@@ -46,7 +46,7 @@ type VerifyCodeHandlerFactory struct {
 func (f VerifyCodeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyCodeHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler

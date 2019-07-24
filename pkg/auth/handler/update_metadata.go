@@ -42,7 +42,7 @@ type UpdateMetadataHandlerFactory struct {
 func (f UpdateMetadataHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &UpdateMetadataHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 func (f UpdateMetadataHandlerFactory) ProvideAuthzPolicy() authz.Policy {

@@ -53,7 +53,7 @@ func (f ForgotPasswordResetHandlerFactory) NewHandler(request *http.Request) htt
 	h := &ForgotPasswordResetHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler

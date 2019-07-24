@@ -47,7 +47,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {

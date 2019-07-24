@@ -12,7 +12,16 @@ func NewProvider() Provider {
 	return &providerImpl{}
 }
 
-func (providerImpl) DispatchEvent(payload event.Payload, user *model.User) error {
+func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.User) error {
 	// TODO(webhook): real impl
 	return nil
+}
+
+func (provider *providerImpl) WillCommitTx() error {
+	// TODO(webhook): real impl
+	return nil
+}
+
+func (provider *providerImpl) DidCommitTx() {
+
 }

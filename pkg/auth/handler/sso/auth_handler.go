@@ -130,63 +130,73 @@ func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 	return payload, nil
 }
 
-func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+// dummy error
+type authHandlerError struct{}
+
+func (authHandlerError) Error() string {
+	return ""
+}
+
+func (h AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	_, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
+		success := h.Handle(w, r)
+		if success {
+			return nil, h.HookProvider.WillCommitTx()
+		}
+		return nil, authHandlerError{}
+	})
+	if err == nil {
+		h.HookProvider.DidCommitTx()
+	}
+}
+
+func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success bool) {
 	var ok interface{}
-	var err error
 	var oauthAuthInfo sso.AuthInfo
+	success = false
 
 	// We have to return error by directly writing to response at this stage
 	// because we do not have valid state.
 	if h.Provider == nil {
-		http.Error(rw, "Provider is not supported", http.StatusBadRequest)
+		http.Error(w, "Provider is not supported", http.StatusBadRequest)
 		return
 	}
 
 	payload, err := h.DecodeRequest(r)
 	if err != nil {
-		http.Error(rw, "Failed to decode request", http.StatusBadRequest)
+		http.Error(w, "Failed to decode request", http.StatusBadRequest)
 		return
 	}
 
 	if err = payload.Validate(); err != nil {
-		http.Error(rw, "Failed to validate request", http.StatusBadRequest)
+		http.Error(w, "Failed to validate request", http.StatusBadRequest)
 		return
 	}
-
-	if e := h.TxContext.BeginTx(); e != nil {
-		http.Error(rw, "Internal Error", http.StatusInternalServerError)
-		return
-	}
-	defer func() {
-		if err != nil {
-			h.TxContext.RollbackTx()
-		} else {
-			h.TxContext.CommitTx()
-		}
-	}()
 
 	reqPayload := payload.(AuthRequestPayload)
 
 	state, err := h.Provider.DecodeState(reqPayload.State)
 	if err != nil {
-		http.Error(rw, "Failed to decode state", http.StatusBadRequest)
+		http.Error(w, "Failed to decode state", http.StatusBadRequest)
 		return
 	}
 
 	if err = h.validateCallbackURL(h.OAuthConfiguration.AllowedCallbackURLs, state.CallbackURL); err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// From now on, we must return response by respecting CallbackURL and UXMode.
 	defer func() {
+		success = err == nil
 		switch state.UXMode {
 		case sso.UXModeWebRedirect, sso.UXModeWebPopup:
-			_ = h.handleSessionResp(rw, r, state.UXMode, state.CallbackURL, ok, err)
+			err = h.handleSessionResp(w, r, state.UXMode, state.CallbackURL, ok, err)
 		case sso.UXModeMobileApp:
-			_ = h.handleRedirectResp(rw, r, state.CallbackURL, ok, err)
+			err = h.handleRedirectResp(w, r, state.CallbackURL, ok, err)
 		default:
-			http.Error(rw, "Invalid UXMode", http.StatusBadRequest)
+			success = false
+			http.Error(w, "Invalid UXMode", http.StatusBadRequest)
 		}
 	}()
 
@@ -195,9 +205,7 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ok, err = h.handle(oauthAuthInfo, *state)
-	if err != nil {
-		return
-	}
+	return
 }
 
 func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.AuthInfo, err error) {

@@ -44,7 +44,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {

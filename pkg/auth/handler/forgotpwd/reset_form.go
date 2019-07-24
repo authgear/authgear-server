@@ -23,6 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -243,31 +244,30 @@ func (h ForgotPasswordResetFormHandler) HandleResetSuccess(rw http.ResponseWrite
 	io.WriteString(rw, html)
 }
 
-func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	if err := h.TxContext.BeginTx(); err != nil {
-		h.HandleRequestError(rw, skyerr.MakeError(err))
-		return
-	}
-
-	var err error
-	defer func() {
-		if err != nil {
-			h.TxContext.RollbackTx()
-		} else {
-			h.TxContext.CommitTx()
+func (h ForgotPasswordResetFormHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	_, err := handler.Transactional(h.TxContext, func() (_ interface{}, err error) {
+		err = h.Handle(w, r)
+		if err == nil {
+			err = h.HookProvider.WillCommitTx()
 		}
-	}()
+		return
+	})
+	if err == nil {
+		h.HookProvider.DidCommitTx()
+	}
+}
 
+func (h ForgotPasswordResetFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err error) {
 	var templateCtx resultTemplateContext
 	if templateCtx, err = h.prepareResultTemplateContext(r); err != nil {
-		h.HandleRequestError(rw, skyerr.MakeError(err))
+		h.HandleRequestError(w, skyerr.MakeError(err))
 		return
 	}
 
 	// check code expiration
 	if timeNow().After(templateCtx.payload.ExpireAtTime) {
 		h.Logger.Error("forgot password code expired")
-		h.HandleRequestError(rw, genericResetPasswordError())
+		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
 
@@ -276,7 +276,7 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *htt
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": templateCtx.payload.UserID,
 		}).WithError(e).Error("user not found")
-		h.HandleRequestError(rw, genericResetPasswordError())
+		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
 
@@ -286,7 +286,7 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *htt
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": templateCtx.payload.UserID,
 		}).WithError(err).Error("unable to get password auth principals")
-		h.HandleRequestError(rw, genericResetPasswordError())
+		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
 
@@ -299,21 +299,23 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *htt
 			"code":          templateCtx.payload.Code,
 			"expected_code": expectedCode,
 		}).Error("wrong forgot password reset password code")
-		h.HandleRequestError(rw, genericResetPasswordError())
+		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
 
 	if r.Method == http.MethodGet {
-		h.HandleGetForm(rw, templateCtx)
+		h.HandleGetForm(w, templateCtx)
 		return
 	}
 
-	h.resetPassword(rw, templateCtx, authInfo, principals)
+	h.resetPassword(w, templateCtx, authInfo, principals)
 
 	// password house keeper
 	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
 		AuthID: authInfo.ID,
 	}, nil)
+
+	return templateCtx.err
 }
 
 func (h ForgotPasswordResetFormHandler) resetPassword(

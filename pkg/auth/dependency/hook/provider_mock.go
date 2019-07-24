@@ -17,4 +17,12 @@ func (MockProvider) DispatchEvent(payload event.Payload, user *model.User) error
 	return nil
 }
 
+func (MockProvider) WillCommitTx() error {
+	return nil
+}
+
+func (MockProvider) DidCommitTx() {
+
+}
+
 var _ Provider = &MockProvider{}
