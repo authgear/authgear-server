@@ -7,12 +7,17 @@ type MockProvider struct {
 	TimeNow    time.Time
 }
 
-func (provider MockProvider) NowUTC() time.Time {
+func (provider *MockProvider) NowUTC() time.Time {
 	return provider.TimeNowUTC
 }
 
-func (provider MockProvider) Now() time.Time {
+func (provider *MockProvider) Now() time.Time {
 	return provider.TimeNow
 }
 
-var _ Provider = MockProvider{}
+func (provider *MockProvider) AdvanceSeconds(seconds int) {
+	provider.TimeNowUTC = provider.TimeNowUTC.Add(time.Duration(seconds) * time.Second)
+	provider.TimeNow = provider.TimeNow.Add(time.Duration(seconds) * time.Second)
+}
+
+var _ Provider = &MockProvider{}

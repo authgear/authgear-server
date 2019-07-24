@@ -124,7 +124,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				},
 			},
 		}
-		vh.UserVerificationProvider = userverify.NewProvider(nil, &store, verifyConfig, time)
+		vh.UserVerificationProvider = userverify.NewProvider(nil, &store, verifyConfig, &time)
 
 		Convey("verify with correct code and auto update", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
@@ -145,7 +145,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				"email": config.UserVerificationKeyConfiguration{Expiry: 12 * 60 * 60},
 				"phone": config.UserVerificationKeyConfiguration{Expiry: 12 * 60 * 60},
 			}
-			provider := userverify.NewProvider(nil, &store, newVerifyConfig, time)
+			provider := userverify.NewProvider(nil, &store, newVerifyConfig, &time)
 			oldProvider := vh.UserVerificationProvider
 			vh.UserVerificationProvider = provider
 			defer func() {

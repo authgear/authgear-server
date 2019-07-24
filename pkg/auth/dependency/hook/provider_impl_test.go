@@ -22,7 +22,7 @@ func TestDispatchEvent(t *testing.T) {
 	authContext := auth.NewMockContextGetter()
 	deliverer := NewMockDeliverer()
 
-	provider := NewProvider(requestID, store, authContext, timeProvider, deliverer)
+	provider := NewProvider(requestID, store, authContext, &timeProvider, deliverer)
 
 	Convey("Dispatch operation events", t, func() {
 		user := model.User{
