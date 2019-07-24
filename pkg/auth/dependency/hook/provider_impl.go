@@ -12,14 +12,22 @@ type providerImpl struct {
 	Store        Store
 	AuthContext  auth.ContextGetter
 	TimeProvider time.Provider
+	Deliverer    Deliverer
 }
 
-func NewProvider(requestID string, store Store, authContext auth.ContextGetter, timeProvider time.Provider) Provider {
+func NewProvider(
+	requestID string,
+	store Store,
+	authContext auth.ContextGetter,
+	timeProvider time.Provider,
+	deliverer Deliverer,
+) Provider {
 	return &providerImpl{
 		RequestID:    requestID,
 		Store:        store,
 		AuthContext:  authContext,
 		TimeProvider: timeProvider,
+		Deliverer:    deliverer,
 	}
 }
 
@@ -32,10 +40,11 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 			return
 		}
 		event := event.NewBeforeEvent(seq, typedPayload, provider.makeContext())
-		err = provider.deliverBeforeEvent(event)
+		err = provider.Deliverer.DeliverBeforeEvent(event, user)
 		if err != nil {
 			return err
 		}
+
 		// TODO(webhook): after events
 		return
 
@@ -56,11 +65,6 @@ func (provider *providerImpl) WillCommitTx() error {
 
 func (provider *providerImpl) DidCommitTx() {
 
-}
-
-func (provider *providerImpl) deliverBeforeEvent(event *event.Event) error {
-	// TODO: deliver
-	return nil
 }
 
 func (provider *providerImpl) makeContext() event.Context {

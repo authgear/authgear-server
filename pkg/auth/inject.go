@@ -97,6 +97,7 @@ func (m DependencyMap) Provide(
 			hook.NewStore(newSQLBuilder(), newSQLExecutor()),
 			newAuthContext(),
 			newTimeProvider(),
+			hook.NewMockDeliverer(), // TODO(webhook): real impl
 		)
 	}
 
