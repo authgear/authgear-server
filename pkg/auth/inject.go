@@ -58,6 +58,14 @@ func (m DependencyMap) Provide(
 		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig))
 	}
 
+	newTimeProvider := func() time.Provider {
+		return time.NewProvider()
+	}
+
+	newAuthContext := func() coreAuth.ContextGetter {
+		return coreAuth.NewContextGetterWithContext(ctx)
+	}
+
 	newPasswordHistoryStore := func() passwordhistory.Store {
 		return pqPWHistory.NewPasswordHistoryStore(
 			newSQLBuilder(),
@@ -84,7 +92,12 @@ func (m DependencyMap) Provide(
 	}
 
 	newHookProvider := func() hook.Provider {
-		return hook.NewProvider()
+		return hook.NewProvider(
+			requestID,
+			hook.NewStore(newSQLBuilder(), newSQLExecutor()),
+			newAuthContext(),
+			newTimeProvider(),
+		)
 	}
 
 	// TODO:
@@ -127,7 +140,7 @@ func (m DependencyMap) Provide(
 
 	switch dependencyName {
 	case "AuthContextGetter":
-		return coreAuth.NewContextGetterWithContext(ctx)
+		return newAuthContext()
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
 	case "TokenStore":
@@ -203,7 +216,7 @@ func (m DependencyMap) Provide(
 				db.NewSafeTxContextWithContext(ctx, tConfig),
 			),
 			tConfig.UserConfig.UserVerification,
-			time.NewProvider(),
+			newTimeProvider(),
 		)
 	case "VerifyHTMLProvider":
 		return userverify.NewVerifyHTMLProvider(tConfig.UserConfig.UserVerification, newTemplateEngine())
