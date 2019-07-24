@@ -3,9 +3,10 @@ package event
 import "github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 type HookResponse struct {
-	IsAllowed bool       `json:"is_allowed"`
-	Reason    string     `json:"reason"`
-	Mutations *Mutations `json:"mutations"`
+	IsAllowed bool        `json:"is_allowed"`
+	Reason    string      `json:"reason"`
+	Data      interface{} `json:"data"`
+	Mutations *Mutations  `json:"mutations"`
 }
 
 func (resp HookResponse) Validate() error {
