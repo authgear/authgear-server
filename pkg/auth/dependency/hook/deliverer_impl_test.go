@@ -165,14 +165,14 @@ func TestDeliverer(t *testing.T) {
 				ID:   "event-id",
 				Type: event.BeforeSessionCreate,
 				Payload: event.SessionCreateEvent{
-					User: &model.User{
+					User: model.User{
 						ID:       "user-id",
 						Disabled: false,
 						Metadata: map[string]interface{}{
 							"test": 123,
 						},
 					},
-					Identity: nil,
+					Identity: model.Identity{},
 				},
 			}
 

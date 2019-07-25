@@ -186,7 +186,7 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 	err = h.HookProvider.DispatchEvent(
 		event.PasswordUpdateEvent{
 			Reason: event.PasswordUpdateReasonChangePassword,
-			User:   &user,
+			User:   user,
 		},
 		&user,
 	)

@@ -118,8 +118,8 @@ func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 	identity := model.NewIdentity(h.IdentityProvider, principal)
 	err = h.HookProvider.DispatchEvent(
 		event.IdentityDeleteEvent{
-			User:     &user,
-			Identity: &identity,
+			User:     user,
+			Identity: identity,
 		},
 		&user,
 	)

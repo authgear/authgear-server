@@ -69,7 +69,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 	if createNewUser {
 		err = h.HookProvider.DispatchEvent(
 			event.UserCreateEvent{
-				User:       &user,
+				User:       user,
 				Identities: []model.Identity{identity},
 			},
 			&user,
@@ -98,8 +98,8 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 	err = h.HookProvider.DispatchEvent(
 		event.SessionCreateEvent{
 			Reason:   sessionCreateReason,
-			User:     &user,
-			Identity: &identity,
+			User:     user,
+			Identity: identity,
 		},
 		&user,
 	)
@@ -166,8 +166,8 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo, linkState sso.Li
 	identity := model.NewIdentity(h.IdentityProvider, principal)
 	err = h.HookProvider.DispatchEvent(
 		event.IdentityCreateEvent{
-			User:     &user,
-			Identity: &identity,
+			User:     user,
+			Identity: identity,
 		},
 		&user,
 	)

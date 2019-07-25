@@ -33,8 +33,8 @@ func TestDispatchEvent(t *testing.T) {
 		}
 		payload := event.SessionCreateEvent{
 			Reason:   event.SessionCreateReasonLogin,
-			User:     &user,
-			Identity: &identity,
+			User:     user,
+			Identity: identity,
 		}
 
 		Convey("should be successful", func() {

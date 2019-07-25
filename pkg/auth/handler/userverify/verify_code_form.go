@@ -129,7 +129,7 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 	err = h.HookProvider.DispatchEvent(
 		event.UserUpdateEvent{
 			Reason:     event.UserUpdateReasonVerification,
-			User:       &oldUser,
+			User:       oldUser,
 			VerifyInfo: &authInfo.VerifyInfo,
 			IsVerified: &authInfo.Verified,
 		},

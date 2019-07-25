@@ -32,11 +32,8 @@ func (mutations Mutations) ApplyingMutations(newMutations Mutations) Mutations {
 	return mutations
 }
 
-func (mutations Mutations) ApplyingToUser(user *model.User) *model.User {
-	if user == nil {
-		return nil
-	}
-	newUser := *user
+func (mutations Mutations) ApplyingToUser(user model.User) model.User {
+	newUser := user
 	if mutations.IsDisabled != nil {
 		newUser.Disabled = *mutations.IsDisabled
 	}
@@ -49,5 +46,5 @@ func (mutations Mutations) ApplyingToUser(user *model.User) *model.User {
 	if mutations.Metadata != nil {
 		newUser.Metadata = *mutations.Metadata
 	}
-	return &newUser
+	return newUser
 }

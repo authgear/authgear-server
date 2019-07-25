@@ -259,7 +259,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 	if createNewUser {
 		err = h.HookProvider.DispatchEvent(
 			event.UserCreateEvent{
-				User:       &user,
+				User:       user,
 				Identities: []model.Identity{identity},
 			},
 			&user,
@@ -288,8 +288,8 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 	err = h.HookProvider.DispatchEvent(
 		event.SessionCreateEvent{
 			Reason:   sessionCreateReason,
-			User:     &user,
-			Identity: &identity,
+			User:     user,
+			Identity: identity,
 		},
 		&user,
 	)

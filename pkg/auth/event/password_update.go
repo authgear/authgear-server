@@ -17,7 +17,7 @@ const (
 
 type PasswordUpdateEvent struct {
 	Reason PasswordUpdateReason `json:"reason"`
-	User   *model.User          `json:"user"`
+	User   model.User           `json:"user"`
 }
 
 func (PasswordUpdateEvent) Version() int32 {

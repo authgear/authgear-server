@@ -15,8 +15,8 @@ const (
 
 type SessionDeleteEvent struct {
 	Reason   SessionDeleteReason `json:"reason"`
-	User     *model.User         `json:"user"`
-	Identity *model.Identity     `json:"identity"`
+	User     model.User          `json:"user"`
+	Identity model.Identity      `json:"identity"`
 }
 
 func (SessionDeleteEvent) Version() int32 {

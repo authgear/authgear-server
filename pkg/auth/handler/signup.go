@@ -204,7 +204,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	err = h.HookProvider.DispatchEvent(
 		event.UserCreateEvent{
-			User:       &user,
+			User:       user,
 			Identities: identities,
 		},
 		&user,
@@ -238,8 +238,8 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	err = h.HookProvider.DispatchEvent(
 		event.SessionCreateEvent{
 			Reason:   event.SessionCreateReasonSignup,
-			User:     &user,
-			Identity: &loginIdentity,
+			User:     user,
+			Identity: loginIdentity,
 		},
 		&user,
 	)

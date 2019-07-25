@@ -8,7 +8,7 @@ const (
 )
 
 type UserCreateEvent struct {
-	User       *model.User      `json:"user"`
+	User       model.User       `json:"user"`
 	Identities []model.Identity `json:"identities"`
 }
 

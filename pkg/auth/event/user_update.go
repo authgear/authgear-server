@@ -27,7 +27,7 @@ type UserUpdateEvent struct {
 	IsVerified *bool             `json:"is_verified,omitempty"`
 	VerifyInfo *map[string]bool  `json:"verify_info,omitempty"`
 	Metadata   *userprofile.Data `json:"metadata,omitempty"`
-	User       *model.User       `json:"user"`
+	User       model.User        `json:"user"`
 }
 
 func (UserUpdateEvent) Version() int32 {

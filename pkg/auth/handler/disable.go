@@ -144,7 +144,7 @@ func (h SetDisableHandler) Handle(req interface{}) (resp interface{}, err error)
 	err = h.HookProvider.DispatchEvent(
 		event.UserUpdateEvent{
 			Reason:     event.UserUpdateReasonAdministrative,
-			User:       &oldUser,
+			User:       oldUser,
 			IsDisabled: &p.Disabled,
 		},
 		&user,

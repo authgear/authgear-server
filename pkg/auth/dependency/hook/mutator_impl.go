@@ -69,7 +69,7 @@ func (mutator *mutatorImpl) Add(mutations event.Mutations) error {
 	if payload, ok := mutator.Event.Payload.(event.UserAwarePayload); ok {
 		mutator.Event.Payload = payload.ApplyingMutations(mutator.Mutations)
 	}
-	mutator.User = mutator.Mutations.ApplyingToUser(mutator.User)
+	*mutator.User = mutator.Mutations.ApplyingToUser(*mutator.User)
 	return nil
 }
 

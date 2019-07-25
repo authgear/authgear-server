@@ -8,8 +8,8 @@ const (
 )
 
 type IdentityCreateEvent struct {
-	User     *model.User     `json:"user"`
-	Identity *model.Identity `json:"identity"`
+	User     model.User     `json:"user"`
+	Identity model.Identity `json:"identity"`
 }
 
 func (IdentityCreateEvent) Version() int32 {

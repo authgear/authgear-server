@@ -155,7 +155,7 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 	err = h.HookProvider.DispatchEvent(
 		event.UserUpdateEvent{
 			Reason:   event.UserUpdateReasonUpdateMetadata,
-			User:     &oldUser,
+			User:     oldUser,
 			Metadata: &newProfile.Data,
 		},
 		&user,

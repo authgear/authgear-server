@@ -16,8 +16,8 @@ const (
 
 type SessionCreateEvent struct {
 	Reason   SessionCreateReason `json:"reason"`
-	User     *model.User         `json:"user"`
-	Identity *model.Identity     `json:"identity"`
+	User     model.User          `json:"user"`
+	Identity model.Identity      `json:"identity"`
 }
 
 func (SessionCreateEvent) Version() int32 {

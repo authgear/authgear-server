@@ -138,7 +138,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 	err = h.HookProvider.DispatchEvent(
 		event.PasswordUpdateEvent{
 			Reason: event.PasswordUpdateReasonAdministrative,
-			User:   &user,
+			User:   user,
 		},
 		&user,
 	)

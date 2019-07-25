@@ -194,8 +194,8 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	err = h.HookProvider.DispatchEvent(
 		event.SessionCreateEvent{
 			Reason:   event.SessionCreateReasonLogin,
-			User:     &user,
-			Identity: &identity,
+			User:     user,
+			Identity: identity,
 		},
 		&user,
 	)

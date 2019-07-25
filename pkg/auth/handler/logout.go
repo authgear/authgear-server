@@ -115,7 +115,7 @@ func (h LogoutHandler) Handle(req interface{}) (resp interface{}, err error) {
 	err = h.HookProvider.DispatchEvent(
 		event.SessionDeleteEvent{
 			Reason: event.SessionDeleteReasonLogout,
-			User:   &user,
+			User:   user,
 		},
 		&user,
 	)

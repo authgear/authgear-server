@@ -364,7 +364,7 @@ func (h ForgotPasswordResetFormHandler) resetPassword(
 	err = h.HookProvider.DispatchEvent(
 		event.PasswordUpdateEvent{
 			Reason: event.PasswordUpdateReasonResetPassword,
-			User:   &user,
+			User:   user,
 		},
 		&user,
 	)

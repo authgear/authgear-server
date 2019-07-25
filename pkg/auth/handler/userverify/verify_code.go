@@ -129,7 +129,7 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 	err = h.HookProvider.DispatchEvent(
 		event.UserUpdateEvent{
 			Reason:     event.UserUpdateReasonVerification,
-			User:       &oldUser,
+			User:       oldUser,
 			VerifyInfo: &authInfo.VerifyInfo,
 			IsVerified: &authInfo.Verified,
 		},
