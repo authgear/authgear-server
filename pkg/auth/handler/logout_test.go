@@ -6,10 +6,15 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -36,9 +41,25 @@ func TestLogoutHandler(t *testing.T) {
 		h.TokenStore = authtoken.NewJWTStore("myApp", "secret", 0)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.AuditTrail = coreAudit.NewMockTrail(t)
-		h.HookProvider = hook.NewMockProvider()
+		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+			map[string]config.LoginIDKeyConfiguration{},
+			[]string{password.DefaultRealm},
+			map[string]password.Principal{
+				"faseng.cat.principal.id": password.Principal{
+					ID:         "faseng.cat.principal.id",
+					UserID:     "faseng.cat.id",
+					LoginIDKey: "email",
+					LoginID:    "faseng@example.com",
+					Realm:      password.DefaultRealm,
+				},
+			},
+		)
+		h.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider)
+		hookProvider := hook.NewMockProvider()
+		h.HookProvider = hookProvider
 
 		Convey("logout user successfully", func() {
+			hookProvider.Reset()
 			token := "test_token"
 			payload := LogoutRequestPayload{
 				AccessToken: token,
@@ -46,6 +67,28 @@ func TestLogoutHandler(t *testing.T) {
 			resp, err := h.Handle(payload)
 			So(resp, ShouldResemble, map[string]string{})
 			So(err, ShouldBeNil)
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.SessionDeleteEvent{
+					Reason: event.SessionDeleteReasonLogout,
+					User: model.User{
+						ID:         "faseng.cat.id",
+						Verified:   true,
+						VerifyInfo: map[string]bool{},
+						Metadata:   userprofile.Data{},
+					},
+					Identity: model.Identity{
+						ID:   "faseng.cat.principal.id",
+						Type: "password",
+						Attributes: principal.Attributes{
+							"login_id_key": "email",
+							"login_id":     "faseng@example.com",
+							"realm":        "default",
+						},
+						Claims: principal.Claims{},
+					},
+				},
+			})
 		})
 
 		Convey("log audit trail when logout", func() {

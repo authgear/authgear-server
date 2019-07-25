@@ -12,6 +12,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -78,11 +80,14 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		)
 		uh.PasswordAuthProvider = passwordAuthProvider
 		uh.IdentityProvider = principal.NewMockIdentityProvider(uh.PasswordAuthProvider)
-		uh.HookProvider = hook.NewMockProvider()
+		hookProvider := hook.NewMockProvider()
+		uh.HookProvider = hookProvider
 		uh.TxContext = db.NewMockTxContext()
 		h := handler.APIHandlerToHandler(uh, uh.TxContext)
 
 		Convey("should update metadata", func() {
+			hookProvider.Reset()
+
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"metadata": {
@@ -111,6 +116,27 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					}
 				}
 			}`, userID))
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.UserUpdateEvent{
+					Reason: event.UserUpdateReasonUpdateMetadata,
+					Metadata: &userprofile.Data{
+						"username": "john.doe",
+						"email":    "john.doe@example.com",
+						"age":      float64(24),
+					},
+					User: model.User{
+						ID:         userID,
+						Verified:   true,
+						Disabled:   false,
+						VerifyInfo: map[string]bool{},
+						Metadata: userprofile.Data{
+							"username": "john.doe",
+							"email":    "john.doe@example.com",
+						},
+					},
+				},
+			})
 		})
 
 		Convey("should allow to delete attributes in metadata", func() {

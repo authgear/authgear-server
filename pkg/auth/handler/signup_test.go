@@ -10,6 +10,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 
 	"github.com/sirupsen/logrus"
 
@@ -92,7 +94,8 @@ func TestSingupHandler(t *testing.T) {
 
 	Convey("Test SignupHandler", t, func() {
 		realTime := timeNow
-		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		now := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
+		timeNow = func() time.Time { return now }
 		defer func() {
 			timeNow = realTime
 		}()
@@ -133,10 +136,12 @@ func TestSingupHandler(t *testing.T) {
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
 		sh.WelcomeEmailEnabled = true
-		sh.HookProvider = hook.NewMockProvider()
+		hookProvider := hook.NewMockProvider()
+		sh.HookProvider = hookProvider
 		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("signup user with login_id", func() {
+			hookProvider.Reset()
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -153,6 +158,10 @@ func TestSingupHandler(t *testing.T) {
 			var p password.Principal
 			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeNil)
+			var p2 password.Principal
+			err = sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "john.doe", password.DefaultRealm, &p2)
+			So(err, ShouldBeNil)
+
 			userID := p.UserID
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -182,9 +191,70 @@ func TestSingupHandler(t *testing.T) {
 				userID,
 				p.ID,
 				token.AccessToken))
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.UserCreateEvent{
+					User: model.User{
+						ID:          userID,
+						LastLoginAt: &now,
+						Verified:    false,
+						Disabled:    false,
+						VerifyInfo:  map[string]bool{},
+						Metadata:    userprofile.Data{},
+					},
+					Identities: []model.Identity{
+						model.Identity{
+							ID:   p.ID,
+							Type: "password",
+							Attributes: principal.Attributes{
+								"login_id_key": "email",
+								"login_id":     "john.doe@example.com",
+								"realm":        "default",
+							},
+							Claims: principal.Claims{
+								"email": "john.doe@example.com",
+							},
+						},
+						model.Identity{
+							ID:   p2.ID,
+							Type: "password",
+							Attributes: principal.Attributes{
+								"login_id_key": "username",
+								"login_id":     "john.doe",
+								"realm":        "default",
+							},
+							Claims: principal.Claims{},
+						},
+					},
+				},
+				event.SessionCreateEvent{
+					Reason: event.SessionCreateReasonSignup,
+					User: model.User{
+						ID:          userID,
+						LastLoginAt: &now,
+						Verified:    false,
+						Disabled:    false,
+						VerifyInfo:  map[string]bool{},
+						Metadata:    userprofile.Data{},
+					},
+					Identity: model.Identity{
+						ID:   p.ID,
+						Type: "password",
+						Attributes: principal.Attributes{
+							"login_id_key": "email",
+							"login_id":     "john.doe@example.com",
+							"realm":        "default",
+						},
+						Claims: principal.Claims{
+							"email": "john.doe@example.com",
+						},
+					},
+				},
+			})
 		})
 
 		Convey("signup user with login_id with realm", func() {
+			hookProvider.Reset()
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -230,6 +300,56 @@ func TestSingupHandler(t *testing.T) {
 				userID,
 				p.ID,
 				token.AccessToken))
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.UserCreateEvent{
+					User: model.User{
+						ID:          userID,
+						LastLoginAt: &now,
+						Verified:    false,
+						Disabled:    false,
+						VerifyInfo:  map[string]bool{},
+						Metadata:    userprofile.Data{},
+					},
+					Identities: []model.Identity{
+						model.Identity{
+							ID:   p.ID,
+							Type: "password",
+							Attributes: principal.Attributes{
+								"login_id_key": "email",
+								"login_id":     "john.doe@example.com",
+								"realm":        "admin",
+							},
+							Claims: principal.Claims{
+								"email": "john.doe@example.com",
+							},
+						},
+					},
+				},
+				event.SessionCreateEvent{
+					Reason: event.SessionCreateReasonSignup,
+					User: model.User{
+						ID:          userID,
+						LastLoginAt: &now,
+						Verified:    false,
+						Disabled:    false,
+						VerifyInfo:  map[string]bool{},
+						Metadata:    userprofile.Data{},
+					},
+					Identity: model.Identity{
+						ID:   p.ID,
+						Type: "password",
+						Attributes: principal.Attributes{
+							"login_id_key": "email",
+							"login_id":     "john.doe@example.com",
+							"realm":        "admin",
+						},
+						Claims: principal.Claims{
+							"email": "john.doe@example.com",
+						},
+					},
+				},
+			})
 		})
 
 		Convey("signup with incorrect login_id", func() {

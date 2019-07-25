@@ -10,6 +10,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -263,7 +264,8 @@ func TestLoginHandler(t *testing.T) {
 
 	Convey("Test LoginHandler response", t, func() {
 		realTime := timeNow
-		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		now := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
+		timeNow = func() time.Time { return now }
 		defer func() {
 			timeNow = realTime
 		}()
@@ -316,7 +318,8 @@ func TestLoginHandler(t *testing.T) {
 		lh.PasswordAuthProvider = passwordAuthProvider
 		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
 		lh.AuditTrail = coreAudit.NewMockTrail(t)
-		lh.HookProvider = hook.NewMockProvider()
+		hookProvider := hook.NewMockProvider()
+		lh.HookProvider = hookProvider
 		profileData := map[string]map[string]interface{}{
 			userID: map[string]interface{}{},
 		}
@@ -325,6 +328,7 @@ func TestLoginHandler(t *testing.T) {
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("should contains current identity", func() {
+			hookProvider.Reset()
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_id_key": "email",
@@ -361,6 +365,29 @@ func TestLoginHandler(t *testing.T) {
 				userID,
 				token.AccessToken,
 			))
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.SessionCreateEvent{
+					Reason: event.SessionCreateReasonLogin,
+					User: model.User{
+						ID:          userID,
+						LastLoginAt: &now,
+						Verified:    true,
+						VerifyInfo:  map[string]bool{},
+						Metadata:    userprofile.Data{},
+					},
+					Identity: model.Identity{
+						ID:   "john.doe.principal.id1",
+						Type: "password",
+						Attributes: principal.Attributes{
+							"login_id_key": "email",
+							"login_id":     "john.doe@example.com",
+							"realm":        "default",
+						},
+						Claims: principal.Claims{},
+					},
+				},
+			})
 		})
 	})
 }

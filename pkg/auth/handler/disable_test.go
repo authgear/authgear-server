@@ -10,6 +10,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -47,7 +49,8 @@ func TestSetDisableHandler(t *testing.T) {
 		h.AuthInfoStore = authInfoStore
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.AuditTrail = coreAudit.NewMockTrail(t)
-		h.HookProvider = hook.NewMockProvider()
+		hookProvider := hook.NewMockProvider()
+		h.HookProvider = hookProvider
 
 		Convey("decode valid request", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -81,6 +84,8 @@ func TestSetDisableHandler(t *testing.T) {
 		})
 
 		Convey("set user disable", func() {
+			hookProvider.Reset()
+
 			expiry := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
 			userID := "john.doe.id"
 			payload := setDisableUserPayload{
@@ -101,9 +106,25 @@ func TestSetDisableHandler(t *testing.T) {
 			So(a.Disabled, ShouldBeTrue)
 			So(a.DisabledMessage, ShouldEqual, "Temporarily disable")
 			So(a.DisabledExpiry.Equal(expiry), ShouldBeTrue)
+
+			isDisabled := true
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.UserUpdateEvent{
+					Reason:     event.UserUpdateReasonAdministrative,
+					IsDisabled: &isDisabled,
+					User: model.User{
+						ID:         userID,
+						Disabled:   false,
+						VerifyInfo: map[string]bool{},
+						Metadata:   userprofile.Data{},
+					},
+				},
+			})
 		})
 
 		Convey("should ingore expiry and message when disable is false", func() {
+			hookProvider.Reset()
+
 			expiry := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
 			userID := "john.doe.id"
 			payload := setDisableUserPayload{
@@ -124,6 +145,20 @@ func TestSetDisableHandler(t *testing.T) {
 			So(a.Disabled, ShouldBeFalse)
 			So(a.DisabledMessage, ShouldBeEmpty)
 			So(a.DisabledExpiry, ShouldBeNil)
+
+			isDisabled := false
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.UserUpdateEvent{
+					Reason:     event.UserUpdateReasonAdministrative,
+					IsDisabled: &isDisabled,
+					User: model.User{
+						ID:         userID,
+						Disabled:   false,
+						VerifyInfo: map[string]bool{},
+						Metadata:   userprofile.Data{},
+					},
+				},
+			})
 		})
 
 		Convey("log audit trail when disable user", func() {

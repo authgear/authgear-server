@@ -8,18 +8,23 @@ import (
 )
 
 type MockProvider struct {
+	DispatchedEvents []event.Payload
 }
 
 func NewMockProvider() *MockProvider {
 	return &MockProvider{}
 }
 
+func (provider *MockProvider) Reset() {
+	*provider = *NewMockProvider()
+}
+
 func (provider *MockProvider) WithRequest(request *http.Request) Provider {
 	return provider
 }
 
-func (MockProvider) DispatchEvent(payload event.Payload, user *model.User) error {
-	// TODO(webhook): test impl
+func (provider *MockProvider) DispatchEvent(payload event.Payload, user *model.User) error {
+	provider.DispatchedEvents = append(provider.DispatchedEvents, payload)
 	return nil
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
@@ -69,12 +70,13 @@ func (p LogoutRequestPayload) Validate() error {
 
 // LogoutHandler handles logout request
 type LogoutHandler struct {
-	AuthContext      coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	UserProfileStore userprofile.Store      `dependency:"UserProfileStore"`
-	TokenStore       authtoken.Store        `dependency:"TokenStore"`
-	AuditTrail       audit.Trail            `dependency:"AuditTrail"`
-	HookProvider     hook.Provider          `dependency:"HookProvider"`
-	TxContext        db.TxContext           `dependency:"TxContext"`
+	AuthContext      coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	UserProfileStore userprofile.Store          `dependency:"UserProfileStore"`
+	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
+	TokenStore       authtoken.Store            `dependency:"TokenStore"`
+	AuditTrail       audit.Trail                `dependency:"AuditTrail"`
+	HookProvider     hook.Provider              `dependency:"HookProvider"`
+	TxContext        db.TxContext               `dependency:"TxContext"`
 }
 
 func (h LogoutHandler) WithTx() bool {
@@ -110,12 +112,19 @@ func (h LogoutHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
+	var principal principal.Principal
+	if principal, err = h.IdentityProvider.GetPrincipalByID(h.AuthContext.Token().PrincipalID); err != nil {
+		return
+	}
+
 	user := authModel.NewUser(*h.AuthContext.AuthInfo(), profile)
+	identity := authModel.NewIdentity(h.IdentityProvider, principal)
 
 	err = h.HookProvider.DispatchEvent(
 		event.SessionDeleteEvent{
-			Reason: event.SessionDeleteReasonLogout,
-			User:   user,
+			Reason:   event.SessionDeleteReasonLogout,
+			User:     user,
+			Identity: identity,
 		},
 		&user,
 	)

@@ -16,6 +16,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -30,7 +32,8 @@ import (
 
 func TestCustomTokenLoginHandler(t *testing.T) {
 	realTime := timeNow
-	timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+	now := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
+	timeNow = func() time.Time { return now }
 	defer func() {
 		timeNow = realTime
 	}()
@@ -79,23 +82,24 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()
 		lh.TaskQueue = mockTaskQueue
-		lh.HookProvider = hook.NewMockProvider()
+		hookProvider := hook.NewMockProvider()
+		lh.HookProvider = hookProvider
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
+		iat := time.Now().UTC()
+		exp := iat.Add(time.Hour * 1)
+
 		Convey("create user account with custom token", func(c C) {
-			iat := time.Now().UTC()
-			exp := iat.Add(time.Hour * 1)
-			tokenString, err := jwt.NewWithClaims(
-				jwt.SigningMethodHS256,
-				customtoken.SSOCustomTokenClaims{
-					"iss":   issuer,
-					"aud":   audience,
-					"iat":   iat.Unix(),
-					"exp":   exp.Unix(),
-					"sub":   "otherid1",
-					"email": "John@skygear.io",
-				},
-			).SignedString([]byte("ssosecret"))
+			hookProvider.Reset()
+			claims := customtoken.SSOCustomTokenClaims{
+				"iss":   issuer,
+				"aud":   audience,
+				"iat":   float64(iat.Unix()),
+				"exp":   float64(exp.Unix()),
+				"sub":   "otherid1",
+				"email": "John@skygear.io",
+			}
+			tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("ssosecret"))
 			So(err, ShouldBeNil)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(fmt.Sprintf(`
@@ -154,20 +158,64 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			So(param.Email, ShouldEqual, "John@skygear.io")
 			So(param.User, ShouldNotBeNil)
 			So(param.User.Metadata, ShouldResemble, userprofile.Data{})
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.UserCreateEvent{
+					User: model.User{
+						ID:          p.UserID,
+						CreatedAt:   now,
+						LastLoginAt: &now,
+						VerifyInfo:  map[string]bool{},
+						Metadata:    userprofile.Data{},
+					},
+					Identities: []model.Identity{
+						model.Identity{
+							ID:   p.ID,
+							Type: "custom_token",
+							Attributes: principal.Attributes{
+								"provider_user_id": "otherid1",
+								"raw_profile":      claims,
+							},
+							Claims: principal.Claims{
+								"email": "John@skygear.io",
+							},
+						},
+					},
+				},
+				event.SessionCreateEvent{
+					Reason: event.SessionCreateReasonSignup,
+					User: model.User{
+						ID:          p.UserID,
+						CreatedAt:   now,
+						LastLoginAt: &now,
+						VerifyInfo:  map[string]bool{},
+						Metadata:    userprofile.Data{},
+					},
+					Identity: model.Identity{
+						ID:   p.ID,
+						Type: "custom_token",
+						Attributes: principal.Attributes{
+							"provider_user_id": "otherid1",
+							"raw_profile":      claims,
+						},
+						Claims: principal.Claims{
+							"email": "John@skygear.io",
+						},
+					},
+				},
+			})
 		})
 
 		Convey("does not update user account with custom token", func(c C) {
-			tokenString, err := jwt.NewWithClaims(
-				jwt.SigningMethodHS256,
-				customtoken.SSOCustomTokenClaims{
-					"iss":   issuer,
-					"aud":   audience,
-					"iat":   time.Now().Unix(),
-					"exp":   time.Now().Add(time.Hour * 1).Unix(),
-					"sub":   "chima.customtoken.id",
-					"email": "John@skygear.io",
-				},
-			).SignedString([]byte("ssosecret"))
+			claims := customtoken.SSOCustomTokenClaims{
+				"iss":   issuer,
+				"aud":   audience,
+				"iat":   float64(time.Now().Unix()),
+				"exp":   float64(time.Now().Add(time.Hour * 1).Unix()),
+				"sub":   "chima.customtoken.id",
+				"email": "John@skygear.io",
+			}
+			tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("ssosecret"))
 			So(err, ShouldBeNil)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(fmt.Sprintf(`
@@ -187,6 +235,33 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			})
 
 			So(mockTaskQueue.TasksParam, ShouldHaveLength, 0)
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.SessionCreateEvent{
+					Reason: event.SessionCreateReasonLogin,
+					User: model.User{
+						ID:          "chima",
+						CreatedAt:   now,
+						LastLoginAt: &now,
+						VerifyInfo:  map[string]bool{},
+						Metadata: userprofile.Data{
+							"name":  "chima",
+							"email": "chima@skygear.io",
+						},
+					},
+					Identity: model.Identity{
+						ID:   "uuid-chima-token",
+						Type: "custom_token",
+						Attributes: principal.Attributes{
+							"provider_user_id": "chima.customtoken.id",
+							"raw_profile":      claims,
+						},
+						Claims: principal.Claims{
+							"email": "John@skygear.io",
+						},
+					},
+				},
+			})
 		})
 
 		Convey("check whether token is invalid", func(c C) {

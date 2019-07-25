@@ -12,6 +12,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
@@ -94,10 +96,13 @@ func TestLinkHandler(t *testing.T) {
 		sh.AuthInfoStore = authInfoStore
 		sh.OAuthConfiguration = oauthConfig
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
-		sh.HookProvider = hook.NewMockProvider()
+		hookProvider := hook.NewMockProvider()
+		sh.HookProvider = hookProvider
 		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("should link user id with oauth principal", func() {
+			hookProvider.Reset()
+
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"access_token": "token"
 			}`))
@@ -113,6 +118,31 @@ func TestLinkHandler(t *testing.T) {
 				ProviderUserID: providerUserInfo.ID,
 			})
 			So(p.UserID, ShouldEqual, "faseng.cat.id")
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.IdentityCreateEvent{
+					User: model.User{
+						ID:         "faseng.cat.id",
+						VerifyInfo: map[string]bool{},
+						Metadata:   userprofile.Data{},
+					},
+					Identity: model.Identity{
+						ID:   p.ID,
+						Type: "oauth",
+						Attributes: principal.Attributes{
+							"provider_type":    "google",
+							"provider_user_id": "mock_user_id",
+							"raw_profile": map[string]interface{}{
+								"id":    "mock_user_id",
+								"email": "john.doe@example.com",
+							},
+						},
+						Claims: principal.Claims{
+							"email": "john.doe@example.com",
+						},
+					},
+				},
+			})
 		})
 
 		sh.OAuthConfiguration.ExternalAccessTokenFlowEnabled = false

@@ -10,6 +10,8 @@ import (
 
 	authHook "github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -81,7 +83,8 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		fh.CodeGenerator = codeGenerator
 		fh.PasswordChecker = &authAudit.PasswordChecker{}
 		fh.TaskQueue = mockTaskQueue
-		fh.HookProvider = authHook.NewMockProvider()
+		hookProvider := authHook.NewMockProvider()
+		fh.HookProvider = hookProvider
 
 		Convey("reset password after expiry", func() {
 			// expireAt := time.Date(2005, 1, 2, 15, 4, 5, 0, time.UTC)                                // 1104678245
@@ -132,6 +135,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		})
 
 		Convey("reset password", func() {
+			hookProvider.Reset()
 			// expireAt := time.Date(2006, 2, 2, 15, 4, 5, 0, time.UTC)                                // 1138892645
 			// expectedCode := codeGenerator.Generate(authInfo, email, hashedPassword, expireAt)       // 0e0e0776
 
@@ -153,6 +157,17 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)
 			So(mockTaskQueue.TasksParam[0], ShouldResemble, task.PwHousekeeperTaskParam{
 				AuthID: "john.doe.id",
+			})
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.PasswordUpdateEvent{
+					Reason: event.PasswordUpdateReasonResetPassword,
+					User: model.User{
+						ID:         "john.doe.id",
+						VerifyInfo: map[string]bool{},
+						Metadata:   userprofile.Data{},
+					},
+				},
 			})
 		})
 	})

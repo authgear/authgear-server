@@ -7,6 +7,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -96,10 +98,13 @@ func TestResetPasswordHandler(t *testing.T) {
 		h.PasswordChecker = passwordChecker
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AuditTrail = audit.NewMockTrail(t)
-		h.HookProvider = hook.NewMockProvider()
+		hookProvider := hook.NewMockProvider()
+		h.HookProvider = hookProvider
 		h.TaskQueue = mockTaskQueue
 
 		Convey("should reset password by user id", func() {
+			hookProvider.Reset()
+
 			userID := "john.doe.id"
 			newPassword := "234567"
 			payload := ResetPasswordRequestPayload{
@@ -122,6 +127,17 @@ func TestResetPasswordHandler(t *testing.T) {
 			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)
 			So(mockTaskQueue.TasksParam[0], ShouldResemble, task.PwHousekeeperTaskParam{
 				AuthID: userID,
+			})
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.PasswordUpdateEvent{
+					Reason: event.PasswordUpdateReasonAdministrative,
+					User: model.User{
+						ID:         userID,
+						VerifyInfo: map[string]bool{},
+						Metadata:   userprofile.Data{},
+					},
+				},
 			})
 		})
 
