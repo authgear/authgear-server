@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -28,12 +27,9 @@ func TestIsUserVerified(t *testing.T) {
 				verifyConfigs[loginIDKey] = config.UserVerificationKeyConfiguration{}
 			}
 
-			authInfo := authinfo.AuthInfo{
-				ID:         "user-id",
-				VerifyInfo: map[string]bool{},
-			}
+			verifyInfo := map[string]bool{}
 			for _, loginID := range request.VerifiedLoginIDs {
-				authInfo.VerifyInfo[loginID] = true
+				verifyInfo[loginID] = true
 			}
 
 			principals := []*password.Principal{}
@@ -47,8 +43,8 @@ func TestIsUserVerified(t *testing.T) {
 			}
 
 			return verifyResult{
-				All: IsUserVerified(&authInfo, principals, config.UserVerificationCriteriaAll, verifyConfigs),
-				Any: IsUserVerified(&authInfo, principals, config.UserVerificationCriteriaAny, verifyConfigs),
+				All: IsUserVerified(verifyInfo, principals, config.UserVerificationCriteriaAll, verifyConfigs),
+				Any: IsUserVerified(verifyInfo, principals, config.UserVerificationCriteriaAny, verifyConfigs),
 			}
 		}
 

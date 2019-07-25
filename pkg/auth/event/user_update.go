@@ -50,7 +50,10 @@ func (event UserUpdateEvent) ApplyingMutations(mutations Mutations) UserAwarePay
 	}
 	if mutations.VerifyInfo != nil {
 		newEvent.VerifyInfo = mutations.VerifyInfo
-		// TODO(webhook): update IsVerified
+		// IsVerified will be updated by mutator, if it is not also mutated
+	}
+	if mutations.IsVerified != nil {
+		newEvent.IsVerified = mutations.IsVerified
 	}
 	if mutations.Metadata != nil {
 		newEvent.Metadata = mutations.Metadata

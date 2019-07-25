@@ -4,12 +4,11 @@ import (
 	"fmt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 func IsUserVerified(
-	authInfo *authinfo.AuthInfo,
+	verifyInfo map[string]bool,
 	principals []*password.Principal,
 	criteria config.UserVerificationCriteria,
 	verifyConfigs map[string]config.UserVerificationKeyConfiguration,
@@ -29,7 +28,7 @@ func IsUserVerified(
 					continue
 				}
 				loginIDToVerify++
-				if !authInfo.VerifyInfo[principal.LoginID] {
+				if !verifyInfo[principal.LoginID] {
 					verified = false
 					return
 				}
@@ -44,7 +43,7 @@ func IsUserVerified(
 				if principal.LoginIDKey != key {
 					continue
 				}
-				if authInfo.VerifyInfo[principal.LoginID] {
+				if verifyInfo[principal.LoginID] {
 					verified = true
 					return
 				}

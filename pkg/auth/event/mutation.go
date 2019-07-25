@@ -7,6 +7,7 @@ import (
 
 type Mutations struct {
 	IsDisabled *bool             `json:"is_disabled,omitempty"`
+	IsVerified *bool             `json:"is_verified,omitempty"`
 	VerifyInfo *map[string]bool  `json:"verify_info,omitempty"`
 	Metadata   *userprofile.Data `json:"metadata,omitempty"`
 }
@@ -17,6 +18,9 @@ func (mutations Mutations) ApplyingMutations(newMutations Mutations) Mutations {
 	}
 	if newMutations.VerifyInfo != nil {
 		mutations.VerifyInfo = newMutations.VerifyInfo
+	}
+	if newMutations.IsVerified != nil {
+		mutations.IsVerified = newMutations.IsVerified
 	}
 	if newMutations.Metadata != nil {
 		mutations.Metadata = newMutations.Metadata
@@ -34,6 +38,9 @@ func (mutations Mutations) ApplyingToUser(user *model.User) *model.User {
 	}
 	if mutations.VerifyInfo != nil {
 		newUser.VerifyInfo = *mutations.VerifyInfo
+	}
+	if mutations.IsVerified != nil {
+		newUser.Verified = *mutations.IsVerified
 	}
 	if mutations.Metadata != nil {
 		newUser.Metadata = *mutations.Metadata

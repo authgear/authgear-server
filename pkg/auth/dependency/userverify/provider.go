@@ -139,7 +139,7 @@ func (provider *providerImpl) markUserVerified(
 	// Update user
 	authInfo.VerifyInfo[verifyCode.LoginID] = true
 	authInfo.Verified = IsUserVerified(
-		authInfo,
+		authInfo.VerifyInfo,
 		principals,
 		provider.config.Criteria,
 		provider.config.LoginIDKeys,
