@@ -23,3 +23,10 @@ func (IdentityDeleteEvent) BeforeEventType() Type {
 func (IdentityDeleteEvent) AfterEventType() Type {
 	return AfterIdentityDelete
 }
+
+func (event IdentityDeleteEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+	return IdentityDeleteEvent{
+		User:     mutations.ApplyingToUser(event.User),
+		Identity: event.Identity,
+	}
+}

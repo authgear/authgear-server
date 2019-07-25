@@ -8,6 +8,12 @@ type Payload interface {
 	Version() int32
 }
 
+// UserAwarePayload represents event payload that can apply mutations on its own user object
+type UserAwarePayload interface {
+	Payload
+	ApplyingMutations(Mutations) UserAwarePayload
+}
+
 // NotificationPayload represents event payload for notifications, with single event type variant
 type NotificationPayload interface {
 	Payload

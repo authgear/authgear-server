@@ -30,3 +30,11 @@ func (SessionDeleteEvent) BeforeEventType() Type {
 func (SessionDeleteEvent) AfterEventType() Type {
 	return AfterSessionDelete
 }
+
+func (event SessionDeleteEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+	return SessionDeleteEvent{
+		Reason:   event.Reason,
+		User:     mutations.ApplyingToUser(event.User),
+		Identity: event.Identity,
+	}
+}

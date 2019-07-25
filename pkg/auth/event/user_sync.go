@@ -19,3 +19,9 @@ func (UserSyncEvent) Version() int32 {
 func (UserSyncEvent) EventType() Type {
 	return UserSync
 }
+
+func (event UserSyncEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+	return UserSyncEvent{
+		User: mutations.ApplyingToUser(event.User),
+	}
+}

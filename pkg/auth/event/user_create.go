@@ -23,3 +23,10 @@ func (UserCreateEvent) BeforeEventType() Type {
 func (UserCreateEvent) AfterEventType() Type {
 	return AfterUserCreate
 }
+
+func (event UserCreateEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+	return UserCreateEvent{
+		User:       mutations.ApplyingToUser(event.User),
+		Identities: event.Identities,
+	}
+}

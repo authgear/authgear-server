@@ -41,3 +41,19 @@ func (UserUpdateEvent) BeforeEventType() Type {
 func (UserUpdateEvent) AfterEventType() Type {
 	return AfterUserUpdate
 }
+
+func (event UserUpdateEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+	// user object in this event is a snapshot before operation, so mutations are not applied
+	newEvent := event
+	if mutations.IsDisabled != nil {
+		newEvent.IsDisabled = mutations.IsDisabled
+	}
+	if mutations.VerifyInfo != nil {
+		newEvent.VerifyInfo = mutations.VerifyInfo
+		// TODO(webhook): update IsVerified
+	}
+	if mutations.Metadata != nil {
+		newEvent.Metadata = mutations.Metadata
+	}
+	return newEvent
+}

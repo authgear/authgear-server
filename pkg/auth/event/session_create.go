@@ -31,3 +31,11 @@ func (SessionCreateEvent) BeforeEventType() Type {
 func (SessionCreateEvent) AfterEventType() Type {
 	return AfterSessionCreate
 }
+
+func (event SessionCreateEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+	return SessionCreateEvent{
+		Reason:   event.Reason,
+		User:     mutations.ApplyingToUser(event.User),
+		Identity: event.Identity,
+	}
+}
