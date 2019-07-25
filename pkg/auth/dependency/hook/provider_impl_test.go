@@ -189,4 +189,66 @@ func TestDispatchEvent(t *testing.T) {
 			})
 		})
 	})
+
+	Convey("When transaction is about to commit", t, func() {
+		Convey("should persist events", func() {
+			store.Reset()
+			deliverer.Reset()
+			deliverer.DeliveryError = nil
+			authContext.Set(nil, nil)
+			provider.PersistentEventPayloads = []event.Payload{
+				event.SessionCreateEvent{
+					User: model.User{
+						ID: "user-id",
+					},
+				},
+				event.UserSyncEvent{
+					User: model.User{
+						ID: "user-id",
+					},
+				},
+			}
+
+			err := provider.WillCommitTx()
+
+			So(err, ShouldBeNil)
+			So(provider.PersistentEventPayloads, ShouldBeNil)
+			So(store.persistedEvents, ShouldResemble, []*event.Event{
+				&event.Event{
+					ID:         store.persistedEvents[0].ID,
+					Type:       event.AfterSessionCreate,
+					Version:    2,
+					SequenceNo: 1,
+					Payload: event.SessionCreateEvent{
+						User: model.User{
+							ID: "user-id",
+						},
+					},
+					Context: event.Context{
+						Timestamp:   1136214245,
+						RequestID:   &requestID,
+						UserID:      nil,
+						PrincipalID: nil,
+					},
+				},
+				&event.Event{
+					ID:         store.persistedEvents[1].ID,
+					Type:       event.UserSync,
+					Version:    2,
+					SequenceNo: 2,
+					Payload: event.UserSyncEvent{
+						User: model.User{
+							ID: "user-id",
+						},
+					},
+					Context: event.Context{
+						Timestamp:   1136214245,
+						RequestID:   &requestID,
+						UserID:      nil,
+						PrincipalID: nil,
+					},
+				},
+			})
+		})
+	})
 }
