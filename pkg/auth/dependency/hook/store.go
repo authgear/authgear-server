@@ -4,5 +4,6 @@ import "github.com/skygeario/skygear-server/pkg/auth/event"
 
 type Store interface {
 	NextSequenceNumber() (int64, error)
-	PersistEvents(events []*event.Event) error
+	AddEvents(events []*event.Event) error
+	GetEventsForDelivery() ([]*event.Event, error)
 }

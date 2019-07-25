@@ -10,12 +10,14 @@ import (
 type storeImpl struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
+	events      []*event.Event
 }
 
 func NewStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
 	return &storeImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
+		events:      []*event.Event{},
 	}
 }
 
@@ -28,7 +30,13 @@ func (store *storeImpl) NextSequenceNumber() (seq int64, err error) {
 	return
 }
 
-func (store *storeImpl) PersistEvents(events []*event.Event) error {
+func (store *storeImpl) AddEvents(events []*event.Event) error {
 	// TODO(webhook): persist events
+	store.events = append(store.events, events...)
 	return nil
+}
+
+func (store *storeImpl) GetEventsForDelivery() ([]*event.Event, error) {
+	// TODO(webhook): get events
+	return store.events, nil
 }

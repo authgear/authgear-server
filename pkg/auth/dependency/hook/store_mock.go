@@ -24,9 +24,13 @@ func (store *mockStore) NextSequenceNumber() (seq int64, err error) {
 	return
 }
 
-func (store *mockStore) PersistEvents(events []*event.Event) error {
+func (store *mockStore) AddEvents(events []*event.Event) error {
 	store.persistedEvents = append(store.persistedEvents, events...)
 	return nil
+}
+
+func (store *mockStore) GetEventsForDelivery() ([]*event.Event, error) {
+	return store.persistedEvents, nil
 }
 
 var _ Store = &mockStore{}

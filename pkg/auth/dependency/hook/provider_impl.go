@@ -1,6 +1,8 @@
 package hook
 
 import (
+	gotime "time"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -81,16 +83,21 @@ func (provider *providerImpl) WillCommitTx() error {
 		events = append(events, ev)
 	}
 
-	err := provider.Store.PersistEvents(events)
+	err := provider.Store.AddEvents(events)
 	if err != nil {
 		return err
 	}
+	provider.PersistentEventPayloads = nil
 
 	return nil
 }
 
 func (provider *providerImpl) DidCommitTx() {
 	// TODO(webhook): deliver persisted events
+	events, _ := provider.Store.GetEventsForDelivery()
+	for _, event := range events {
+		_ = provider.Deliverer.DeliverNonBeforeEvent(event, 60*gotime.Second)
+	}
 }
 
 func (provider *providerImpl) makeContext() event.Context {
