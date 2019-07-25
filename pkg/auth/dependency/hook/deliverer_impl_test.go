@@ -1,9 +1,12 @@
 package hook
 
 import (
+	"fmt"
 	gohttp "net/http"
 	"testing"
 	gotime "time"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/franela/goreq"
 	"github.com/h2non/gock"
@@ -31,11 +34,13 @@ func TestDeliverer(t *testing.T) {
 		timeProvider.TimeNow = initialTime
 		timeProvider.TimeNowUTC = initialTime
 	}
+	mutator := NewMockMutator()
 
 	deliverer := delivererImpl{
 		UserConfig:   &userConfig,
 		AppConfig:    &appConfig,
 		TimeProvider: &timeProvider,
+		Mutator:      mutator,
 	}
 
 	gock.InterceptClient(goreq.DefaultClient)
@@ -132,6 +137,96 @@ func TestDeliverer(t *testing.T) {
 				},
 			})
 			So(gock.IsDone(), ShouldBeTrue)
+		})
+
+		Convey("should apply mutations", func() {
+			deliverer.Hooks = &[]config.Hook{
+				config.Hook{
+					Event: string(event.BeforeSessionCreate),
+					URL:   "https://example.com/a",
+				},
+				config.Hook{
+					Event: string(event.BeforeSessionCreate),
+					URL:   "https://example.com/b",
+				},
+			}
+
+			user := model.User{
+				ID:       "user-id",
+				Disabled: false,
+				Metadata: map[string]interface{}{
+					"test": 123,
+				},
+			}
+
+			e := event.Event{
+				ID:   "event-id",
+				Type: event.BeforeSessionCreate,
+				Payload: event.SessionCreateEvent{
+					User: &model.User{
+						ID:       "user-id",
+						Disabled: false,
+						Metadata: map[string]interface{}{
+							"test": 123,
+						},
+					},
+					Identity: nil,
+				},
+			}
+
+			gock.New("https://example.com").
+				Post("/a").
+				Reply(200).
+				JSON(map[string]interface{}{
+					"is_allowed": true,
+					"mutations": map[string]interface{}{
+						"metadata": map[string]interface{}{
+							"test1": 123,
+						},
+					},
+				})
+
+			gock.New("https://example.com").
+				Post("/b").
+				Reply(200).
+				JSON(map[string]interface{}{
+					"is_allowed": true,
+					"mutations": map[string]interface{}{
+						"is_disabled": true,
+					},
+				})
+
+			Convey("successful", func() {
+				resetTime()
+
+				err := deliverer.DeliverBeforeEvent(&e, &user)
+
+				t := true
+				So(err, ShouldBeNil)
+				So(mutator.Event, ShouldEqual, &e)
+				So(mutator.User, ShouldEqual, &user)
+				So(mutator.MutationsList, ShouldResemble, []event.Mutations{
+					event.Mutations{
+						Metadata: &userprofile.Data{
+							"test1": float64(123),
+						},
+					},
+					event.Mutations{
+						IsDisabled: &t,
+					},
+				})
+				So(mutator.IsApplied, ShouldEqual, true)
+				So(gock.IsDone(), ShouldBeTrue)
+			})
+
+			Convey("failed", func() {
+				resetTime()
+				mutator.ApplyError = fmt.Errorf("cannot apply mutations")
+				err := deliverer.DeliverBeforeEvent(&e, &user)
+
+				So(err, ShouldBeError, "cannot apply mutations")
+				So(gock.IsDone(), ShouldBeTrue)
+			})
 		})
 
 		Convey("should reject invalid status code", func() {

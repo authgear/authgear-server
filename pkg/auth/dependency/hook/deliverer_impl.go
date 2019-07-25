@@ -22,22 +22,25 @@ type delivererImpl struct {
 	UserConfig   *config.HookUserConfiguration
 	AppConfig    *config.HookAppConfiguration
 	TimeProvider time.Provider
+	Mutator      Mutator
 }
 
-func NewDeliverer(config *config.TenantConfiguration, timeProvider time.Provider) Deliverer {
+func NewDeliverer(config *config.TenantConfiguration, timeProvider time.Provider, mutator Mutator) Deliverer {
 	return &delivererImpl{
 		Hooks:        &config.Hooks,
 		UserConfig:   &config.UserConfig.Hook,
 		AppConfig:    &config.AppConfig.Hook,
 		TimeProvider: timeProvider,
+		Mutator:      mutator,
 	}
 }
 
 func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.User) error {
-
 	startTime := deliverer.TimeProvider.Now()
 	requestTimeout := gotime.Duration(deliverer.AppConfig.SyncHookTimeout) * gotime.Second
 	totalTimeout := gotime.Duration(deliverer.AppConfig.SyncHookTotalTimeout) * gotime.Second
+
+	mutator := deliverer.Mutator.New(e, user)
 
 	for _, hook := range *deliverer.Hooks {
 		if hook.Event != string(e.Type) {
@@ -71,10 +74,12 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.U
 			}
 		}
 
-		// TODO(webhook): apply mutations
+		if resp.Mutations != nil {
+			mutator.Add(*resp.Mutations)
+		}
 	}
 
-	return nil
+	return mutator.Apply()
 }
 
 func (deliverer *delivererImpl) prepareRequest(event *event.Event) (*goreq.Request, error) {
