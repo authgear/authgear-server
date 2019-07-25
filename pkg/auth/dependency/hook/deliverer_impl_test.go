@@ -315,4 +315,60 @@ func TestDeliverer(t *testing.T) {
 			So(gock.IsDone(), ShouldBeTrue)
 		})
 	})
+
+	Convey("Deliver non-before events", t, func() {
+		e := event.Event{
+			ID:   "event-id",
+			Type: event.UserSync,
+		}
+
+		Convey("should be successful", func() {
+			resetTime()
+
+			deliverer.Hooks = &[]config.Hook{
+				config.Hook{
+					Event: string(event.UserSync),
+					URL:   "https://example.com/a",
+				},
+				config.Hook{
+					Event: string(event.AfterIdentityCreate),
+					URL:   "https://example.com/b",
+				},
+			}
+
+			gock.New("https://example.com").
+				Post("/a").
+				JSON(e).
+				Reply(200).
+				BodyString("test")
+			defer func() { gock.Flush() }()
+
+			err := deliverer.DeliverNonBeforeEvent(&e, 5*gotime.Second)
+
+			So(err, ShouldBeNil)
+			So(gock.IsDone(), ShouldBeTrue)
+		})
+
+		Convey("should reject invalid status code", func() {
+			resetTime()
+
+			deliverer.Hooks = &[]config.Hook{
+				config.Hook{
+					Event: string(event.UserSync),
+					URL:   "https://example.com/a",
+				},
+			}
+
+			gock.New("https://example.com").
+				Post("/a").
+				JSON(e).
+				Reply(500)
+			defer func() { gock.Flush() }()
+
+			err := deliverer.DeliverNonBeforeEvent(&e, 5*gotime.Second)
+
+			So(err, ShouldBeError, "web-hook event delivery failed: invalid status code")
+			So(gock.IsDone(), ShouldBeTrue)
+		})
+	})
 }

@@ -1,6 +1,8 @@
 package hook
 
 import (
+	"time"
+
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 )
@@ -9,6 +11,7 @@ type mockDeliverer struct {
 	DeliveryError         error
 	OnDeliverBeforeEvents func(event *event.Event, user *model.User)
 	BeforeEvents          []mockDelivererBeforeEvent
+	NonBeforeEvents       []mockDelivererNonBeforeEvent
 }
 
 type mockDelivererBeforeEvent struct {
@@ -16,9 +19,15 @@ type mockDelivererBeforeEvent struct {
 	User  *model.User
 }
 
+type mockDelivererNonBeforeEvent struct {
+	Event   *event.Event
+	Timeout time.Duration
+}
+
 func newMockDeliverer() *mockDeliverer {
 	return &mockDeliverer{
-		BeforeEvents: []mockDelivererBeforeEvent{},
+		BeforeEvents:    []mockDelivererBeforeEvent{},
+		NonBeforeEvents: []mockDelivererNonBeforeEvent{},
 	}
 }
 
@@ -36,6 +45,15 @@ func (deliverer *mockDeliverer) DeliverBeforeEvent(event *event.Event, user *mod
 	if deliverer.OnDeliverBeforeEvents != nil {
 		deliverer.OnDeliverBeforeEvents(event, user)
 	}
+	return deliverer.DeliveryError
+}
+
+func (deliverer *mockDeliverer) DeliverNonBeforeEvent(event *event.Event, timeout time.Duration) error {
+	_event := *event
+	deliverer.NonBeforeEvents = append(deliverer.NonBeforeEvents, mockDelivererNonBeforeEvent{
+		Event:   &_event,
+		Timeout: timeout,
+	})
 	return deliverer.DeliveryError
 }
 

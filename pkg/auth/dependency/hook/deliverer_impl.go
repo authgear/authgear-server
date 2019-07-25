@@ -90,6 +90,28 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.U
 	return nil
 }
 
+func (deliverer *delivererImpl) DeliverNonBeforeEvent(e *event.Event, timeout gotime.Duration) error {
+	for _, hook := range *deliverer.Hooks {
+		if hook.Event != string(e.Type) {
+			continue
+		}
+
+		request, err := deliverer.prepareRequest(e)
+		if err != nil {
+			return err
+		}
+		request.Uri = hook.URL
+		request.Timeout = timeout
+
+		_, err = performRequest(request, false)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (deliverer *delivererImpl) prepareRequest(event *event.Event) (*goreq.Request, error) {
 	body, err := json.Marshal(event)
 	if err != nil {

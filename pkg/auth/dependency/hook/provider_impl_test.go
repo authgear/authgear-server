@@ -91,6 +91,7 @@ func TestDispatchEvent(t *testing.T) {
 			)
 
 			So(err, ShouldBeNil)
+			So(deliverer.NonBeforeEvents, ShouldResemble, []mockDelivererNonBeforeEvent{})
 			So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{
 				mockDelivererBeforeEvent{
 					Event: &event.Event{
@@ -181,6 +182,7 @@ func TestDispatchEvent(t *testing.T) {
 			)
 
 			So(err, ShouldBeNil)
+			So(deliverer.NonBeforeEvents, ShouldResemble, []mockDelivererNonBeforeEvent{})
 			So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{})
 			So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
 				payload,
