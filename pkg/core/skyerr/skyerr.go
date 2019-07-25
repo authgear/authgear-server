@@ -161,8 +161,11 @@ const (
 	// than limit
 	AssetSizeTooLarge
 
-	// HookTimeOut occurs when an hook operation timed out
-	HookTimeOut
+	// WebHookTimeOut occurs when an web-hook operation timed out
+	WebHookTimeOut
+
+	// WebHookTimeOut occurs when an web-hook operation failed for other reasons
+	WebHookFailed
 
 	// Error codes for expected error condition should be placed
 	// above this line.

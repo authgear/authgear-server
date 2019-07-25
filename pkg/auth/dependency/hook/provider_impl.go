@@ -70,7 +70,7 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 		return
 
 	default:
-		panic(InvalidEventPayload{payload: payload})
+		panic(invalidEventPayload{payload: payload})
 	}
 }
 
@@ -104,7 +104,7 @@ func (provider *providerImpl) WillCommitTx() error {
 			}
 
 		default:
-			panic(InvalidEventPayload{payload: payload})
+			panic(invalidEventPayload{payload: payload})
 		}
 
 		if ev == nil {

@@ -3,7 +3,6 @@ package hook
 import (
 	"bytes"
 	"encoding/json"
-	"net"
 	gotime "time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
@@ -57,7 +56,7 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.U
 		}
 
 		if deliverer.TimeProvider.Now().Sub(startTime) > totalTimeout {
-			return DeliveryTimeout{}
+			return newErrorDeliveryTimeout()
 		}
 
 		request, err := deliverer.prepareRequest(e)
@@ -73,27 +72,27 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.U
 		}
 
 		if !resp.IsAllowed {
-			return OperationDisallowed{
-				Items: []OperationDisallowedItem{
+			return newErrorOperationDisallowed(
+				[]OperationDisallowedItem{
 					OperationDisallowedItem{
 						Reason: resp.Reason,
 						Data:   resp.Data,
 					},
 				},
-			}
+			)
 		}
 
 		if resp.Mutations != nil {
 			err = mutator.Add(*resp.Mutations)
 			if err != nil {
-				return MutationFailed{inner: err}
+				return newErrorMutationFailed(err)
 			}
 		}
 	}
 
 	err := mutator.Apply()
 	if err != nil {
-		return MutationFailed{inner: err}
+		return newErrorMutationFailed(err)
 	}
 
 	return nil
@@ -124,7 +123,7 @@ func (deliverer *delivererImpl) DeliverNonBeforeEvent(e *event.Event, timeout go
 func (deliverer *delivererImpl) prepareRequest(event *event.Event) (*goreq.Request, error) {
 	body, err := json.Marshal(event)
 	if err != nil {
-		return nil, DeliveryFailed{inner: err}
+		return nil, newErrorDeliveryFailed(err)
 	}
 
 	signature := hash.HMACSHA256(body, []byte(deliverer.UserConfig.Secret))
@@ -142,23 +141,23 @@ func (deliverer *delivererImpl) prepareRequest(event *event.Event) (*goreq.Reque
 func performRequest(request *goreq.Request, withResponse bool) (hookResp *event.HookResponse, err error) {
 	var resp *goreq.Response
 	resp, err = request.Do()
-	if netError, ok := err.(net.Error); ok && netError.Timeout() {
-		err = DeliveryTimeout{}
+	if reqError, ok := err.(*goreq.Error); ok && reqError.Timeout() {
+		err = newErrorDeliveryTimeout()
 		return
 	} else if err != nil {
-		err = DeliveryFailed{inner: err}
+		err = newErrorDeliveryFailed(err)
 		return
 	}
 
 	defer func() {
 		closeError := resp.Body.Close()
 		if err == nil && closeError != nil {
-			err = DeliveryFailed{inner: closeError}
+			err = newErrorDeliveryFailed(closeError)
 		}
 	}()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		err = DeliveryFailedInvalidStatusCode
+		err = newErrorDeliveryInvalidStatusCode()
 		return
 	}
 
@@ -169,13 +168,13 @@ func performRequest(request *goreq.Request, withResponse bool) (hookResp *event.
 	hookResp = &event.HookResponse{}
 	err = resp.Body.FromJsonTo(hookResp)
 	if err != nil {
-		err = DeliveryFailed{inner: err}
+		err = newErrorDeliveryFailed(err)
 		return
 	}
 
 	err = hookResp.Validate()
 	if err != nil {
-		err = DeliveryFailed{inner: err}
+		err = newErrorDeliveryFailed(err)
 		return
 	}
 

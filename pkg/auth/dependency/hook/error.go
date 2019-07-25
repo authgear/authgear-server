@@ -4,50 +4,42 @@ import (
 	"fmt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
-type InvalidEventPayload struct {
+type invalidEventPayload struct {
 	payload event.Payload
 }
 
-func (err InvalidEventPayload) Error() string {
+func (err invalidEventPayload) Error() string {
 	return fmt.Sprintf("invalid event payload: %T", err.payload)
 }
 
-type DeliveryTimeout struct{}
-
-func (err DeliveryTimeout) Error() string {
-	return "web-hook event delivery timed out"
+func newErrorDeliveryTimeout() error {
+	return skyerr.NewError(skyerr.WebHookTimeOut, "web-hook event delivery timed out")
 }
 
-type DeliveryFailed struct {
-	inner error
+func newErrorDeliveryFailed(inner error) error {
+	return skyerr.NewErrorf(skyerr.WebHookFailed, "web-hook event delivery failed: %v", inner)
 }
 
-func (err DeliveryFailed) Error() string {
-	return fmt.Sprintf("web-hook event delivery failed: %v", err.inner)
+func newErrorDeliveryInvalidStatusCode() error {
+	return skyerr.NewError(skyerr.WebHookFailed, "invalid status code")
 }
 
-var DeliveryFailedInvalidStatusCode = DeliveryFailed{
-	inner: fmt.Errorf("invalid status code"),
-}
-
-type OperationDisallowed struct {
-	Items []OperationDisallowedItem
-}
 type OperationDisallowedItem struct {
 	Reason string      `json:"reason"`
 	Data   interface{} `json:"data,omitempty"`
 }
 
-func (err OperationDisallowed) Error() string {
-	return "disallowed by web-hook event handler"
+func newErrorOperationDisallowed(items []OperationDisallowedItem) error {
+	return skyerr.NewErrorWithInfo(
+		skyerr.PermissionDenied,
+		"disallowed by web-hook event handler",
+		map[string]interface{}{"errors": items},
+	)
 }
 
-type MutationFailed struct {
-	inner error
-}
-
-func (err MutationFailed) Error() string {
-	return fmt.Sprintf("web-hook mutation failed: %v", err.inner)
+func newErrorMutationFailed(inner error) error {
+	return skyerr.NewErrorf(skyerr.WebHookFailed, "web-hook mutation failed: %v", inner)
 }

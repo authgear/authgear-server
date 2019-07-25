@@ -147,16 +147,7 @@ func TestDeliverer(t *testing.T) {
 
 			err := deliverer.DeliverBeforeEvent(&e, &user)
 
-			So(err, ShouldBeError, OperationDisallowed{
-				Items: []OperationDisallowedItem{
-					OperationDisallowedItem{
-						Reason: "nope",
-						Data: map[string]interface{}{
-							"extra": 123,
-						},
-					},
-				},
-			})
+			So(err, ShouldBeError, "PermissionDenied: disallowed by web-hook event handler")
 			So(gock.IsDone(), ShouldBeTrue)
 		})
 
@@ -246,7 +237,7 @@ func TestDeliverer(t *testing.T) {
 				mutator.ApplyError = fmt.Errorf("cannot apply mutations")
 				err := deliverer.DeliverBeforeEvent(&e, &user)
 
-				So(err, ShouldBeError, "web-hook mutation failed: cannot apply mutations")
+				So(err, ShouldBeError, "WebHookFailed: web-hook mutation failed: cannot apply mutations")
 				So(mutator.IsApplied, ShouldEqual, true)
 				So(gock.IsDone(), ShouldBeTrue)
 			})
@@ -256,7 +247,7 @@ func TestDeliverer(t *testing.T) {
 				mutator.AddError = fmt.Errorf("cannot add mutations")
 				err := deliverer.DeliverBeforeEvent(&e, &user)
 
-				So(err, ShouldBeError, "web-hook mutation failed: cannot add mutations")
+				So(err, ShouldBeError, "WebHookFailed: web-hook mutation failed: cannot add mutations")
 				So(mutator.IsApplied, ShouldEqual, false)
 				So(gock.IsDone(), ShouldBeFalse)
 			})
@@ -284,7 +275,7 @@ func TestDeliverer(t *testing.T) {
 
 			err := deliverer.DeliverBeforeEvent(&e, &user)
 
-			So(err, ShouldBeError, "web-hook event delivery failed: invalid status code")
+			So(err, ShouldBeError, "WebHookFailed: invalid status code")
 			So(gock.IsDone(), ShouldBeTrue)
 		})
 
@@ -330,7 +321,7 @@ func TestDeliverer(t *testing.T) {
 
 			err := deliverer.DeliverBeforeEvent(&e, &user)
 
-			So(err, ShouldBeError, "web-hook event delivery timed out")
+			So(err, ShouldBeError, "WebHookTimeOut: web-hook event delivery timed out")
 			So(gock.IsDone(), ShouldBeTrue)
 		})
 	})
@@ -386,7 +377,7 @@ func TestDeliverer(t *testing.T) {
 
 			err := deliverer.DeliverNonBeforeEvent(&e, 5*gotime.Second)
 
-			So(err, ShouldBeError, "web-hook event delivery failed: invalid status code")
+			So(err, ShouldBeError, "WebHookFailed: invalid status code")
 			So(gock.IsDone(), ShouldBeTrue)
 		})
 	})
