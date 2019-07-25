@@ -30,3 +30,7 @@ func (event UserCreateEvent) ApplyingMutations(mutations Mutations) UserAwarePay
 		Identities: event.Identities,
 	}
 }
+
+func (event UserCreateEvent) UserID() string {
+	return event.User.ID
+}

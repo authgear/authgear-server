@@ -25,3 +25,7 @@ func (event UserSyncEvent) ApplyingMutations(mutations Mutations) UserAwarePaylo
 		User: mutations.ApplyingToUser(event.User),
 	}
 }
+
+func (event UserSyncEvent) UserID() string {
+	return event.User.ID
+}

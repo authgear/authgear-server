@@ -135,6 +135,8 @@ func (m DependencyMap) Provide(
 			hook.NewStore(newSQLBuilder(), newSQLExecutor()),
 			newAuthContext(),
 			newTimeProvider(),
+			newAuthInfoStore(),
+			newUserProfileStore(),
 			hook.NewDeliverer(
 				&tConfig,
 				newTimeProvider(),

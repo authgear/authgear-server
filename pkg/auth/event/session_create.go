@@ -39,3 +39,7 @@ func (event SessionCreateEvent) ApplyingMutations(mutations Mutations) UserAware
 		Identity: event.Identity,
 	}
 }
+
+func (event SessionCreateEvent) UserID() string {
+	return event.User.ID
+}

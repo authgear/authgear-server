@@ -6,6 +6,7 @@ import (
 	gotime "time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 
@@ -21,8 +22,28 @@ func TestDispatchEvent(t *testing.T) {
 	store := newMockStore()
 	authContext := auth.NewMockContextGetter()
 	deliverer := newMockDeliverer()
+	authInfoStore := authinfo.NewMockStore()
+	userProfileStore := userprofile.NewMockUserProfileStore()
 
-	provider := NewProvider(requestID, store, authContext, &timeProvider, deliverer).(*providerImpl)
+	provider := NewProvider(
+		requestID,
+		store,
+		authContext,
+		&timeProvider,
+		authInfoStore,
+		userProfileStore,
+		deliverer,
+	).(*providerImpl)
+
+	reset := func() {
+		store.Reset()
+		deliverer.Reset()
+		deliverer.DeliveryError = nil
+		authContext.Set(nil, nil)
+		authInfoStore.AuthInfoMap = map[string]authinfo.AuthInfo{}
+		userProfileStore.Data = map[string]map[string]interface{}{}
+		provider.PersistentEventPayloads = nil
+	}
 
 	Convey("Dispatch operation events", t, func() {
 		user := model.User{
@@ -38,11 +59,7 @@ func TestDispatchEvent(t *testing.T) {
 		}
 
 		Convey("should be successful", func() {
-			store.Reset()
-			deliverer.Reset()
-			deliverer.DeliveryError = nil
-			authContext.Set(nil, nil)
-			provider.PersistentEventPayloads = nil
+			reset()
 
 			err := provider.DispatchEvent(
 				payload,
@@ -74,16 +91,12 @@ func TestDispatchEvent(t *testing.T) {
 		})
 
 		Convey("should use mutated payload", func() {
-			store.Reset()
-			deliverer.Reset()
-			deliverer.DeliveryError = nil
+			reset()
 			deliverer.OnDeliverBeforeEvents = func(ev *event.Event, user *model.User) {
 				payload := ev.Payload.(event.SessionCreateEvent)
 				payload.Reason = event.SessionCreateReasonSignup
 				ev.Payload = payload
 			}
-			authContext.Set(nil, nil)
-			provider.PersistentEventPayloads = nil
 
 			err := provider.DispatchEvent(
 				payload,
@@ -120,16 +133,13 @@ func TestDispatchEvent(t *testing.T) {
 		})
 
 		Convey("should include auth info", func() {
-			store.Reset()
-			deliverer.Reset()
-			deliverer.DeliveryError = nil
+			reset()
 			userID := "user-id"
 			principalID := "principal-id"
 			authContext.Set(
 				&authinfo.AuthInfo{ID: userID},
 				&authtoken.Token{PrincipalID: principalID},
 			)
-			provider.PersistentEventPayloads = nil
 
 			err := provider.DispatchEvent(
 				payload,
@@ -170,11 +180,7 @@ func TestDispatchEvent(t *testing.T) {
 		}
 
 		Convey("should be successful", func() {
-			store.Reset()
-			deliverer.Reset()
-			deliverer.DeliveryError = nil
-			authContext.Set(nil, nil)
-			provider.PersistentEventPayloads = nil
+			reset()
 
 			err := provider.DispatchEvent(
 				payload,
@@ -192,21 +198,22 @@ func TestDispatchEvent(t *testing.T) {
 
 	Convey("When transaction is about to commit", t, func() {
 		Convey("should persist events", func() {
-			store.Reset()
-			deliverer.Reset()
-			deliverer.DeliveryError = nil
-			authContext.Set(nil, nil)
+			reset()
 			provider.PersistentEventPayloads = []event.Payload{
 				event.SessionCreateEvent{
 					User: model.User{
 						ID: "user-id",
 					},
 				},
-				event.UserSyncEvent{
-					User: model.User{
-						ID: "user-id",
-					},
+			}
+			authInfoStore.AuthInfoMap = map[string]authinfo.AuthInfo{
+				"user-id": authinfo.AuthInfo{
+					ID:         "user-id",
+					VerifyInfo: map[string]bool{"user@example.com": true},
 				},
+			}
+			userProfileStore.Data = map[string]map[string]interface{}{
+				"user-id": map[string]interface{}{"user": true},
 			}
 
 			err := provider.WillCommitTx()
@@ -238,7 +245,9 @@ func TestDispatchEvent(t *testing.T) {
 					SequenceNo: 2,
 					Payload: event.UserSyncEvent{
 						User: model.User{
-							ID: "user-id",
+							ID:         "user-id",
+							VerifyInfo: map[string]bool{"user@example.com": true},
+							Metadata:   map[string]interface{}{"user": true},
 						},
 					},
 					Context: event.Context{

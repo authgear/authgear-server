@@ -4,9 +4,11 @@ import (
 	gotime "time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 )
 
 type providerImpl struct {
@@ -14,6 +16,8 @@ type providerImpl struct {
 	Store                   Store
 	AuthContext             auth.ContextGetter
 	TimeProvider            time.Provider
+	AuthInfoStore           authinfo.Store
+	UserProfileStore        userprofile.Store
 	Deliverer               Deliverer
 	PersistentEventPayloads []event.Payload
 }
@@ -23,14 +27,18 @@ func NewProvider(
 	store Store,
 	authContext auth.ContextGetter,
 	timeProvider time.Provider,
+	authInfoStore authinfo.Store,
+	userProfileStore userprofile.Store,
 	deliverer Deliverer,
 ) Provider {
 	return &providerImpl{
-		RequestID:    requestID,
-		Store:        store,
-		AuthContext:  authContext,
-		TimeProvider: timeProvider,
-		Deliverer:    deliverer,
+		RequestID:        requestID,
+		Store:            store,
+		AuthContext:      authContext,
+		TimeProvider:     timeProvider,
+		AuthInfoStore:    authInfoStore,
+		UserProfileStore: userProfileStore,
+		Deliverer:        deliverer,
 	}
 }
 
@@ -63,6 +71,11 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 }
 
 func (provider *providerImpl) WillCommitTx() error {
+	err := provider.syncUserIfNeeded()
+	if err != nil {
+		return err
+	}
+
 	events := []*event.Event{}
 	for _, payload := range provider.PersistentEventPayloads {
 		seq, err := provider.Store.NextSequenceNumber()
@@ -83,7 +96,7 @@ func (provider *providerImpl) WillCommitTx() error {
 		events = append(events, ev)
 	}
 
-	err := provider.Store.AddEvents(events)
+	err = provider.Store.AddEvents(events)
 	if err != nil {
 		return err
 	}
@@ -98,6 +111,41 @@ func (provider *providerImpl) DidCommitTx() {
 	for _, event := range events {
 		_ = provider.Deliverer.DeliverNonBeforeEvent(event, 60*gotime.Second)
 	}
+}
+
+func (provider *providerImpl) syncUserIfNeeded() error {
+	userIDToSync := []string{}
+
+	for _, payload := range provider.PersistentEventPayloads {
+		if _, isOperation := payload.(event.OperationPayload); !isOperation {
+			continue
+		}
+		if userAwarePayload, ok := payload.(event.UserAwarePayload); ok {
+			userIDToSync = append(userIDToSync, userAwarePayload.UserID())
+		}
+	}
+
+	for _, userID := range userIDToSync {
+		var authInfo authinfo.AuthInfo
+		err := provider.AuthInfoStore.GetAuth(userID, &authInfo)
+		if err != nil {
+			return err
+		}
+
+		userProfile, err := provider.UserProfileStore.GetUserProfile(userID)
+		if err != nil {
+			return err
+		}
+
+		user := model.NewUser(authInfo, userProfile)
+		payload := event.UserSyncEvent{User: user}
+		err = provider.DispatchEvent(payload, &user)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (provider *providerImpl) makeContext() event.Context {

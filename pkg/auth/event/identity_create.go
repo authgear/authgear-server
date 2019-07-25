@@ -30,3 +30,7 @@ func (event IdentityCreateEvent) ApplyingMutations(mutations Mutations) UserAwar
 		Identity: event.Identity,
 	}
 }
+
+func (event IdentityCreateEvent) UserID() string {
+	return event.User.ID
+}

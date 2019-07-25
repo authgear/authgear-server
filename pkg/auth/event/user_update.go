@@ -60,3 +60,7 @@ func (event UserUpdateEvent) ApplyingMutations(mutations Mutations) UserAwarePay
 	}
 	return newEvent
 }
+
+func (event UserUpdateEvent) UserID() string {
+	return event.User.ID
+}

@@ -12,6 +12,7 @@ type Payload interface {
 type UserAwarePayload interface {
 	Payload
 	ApplyingMutations(Mutations) UserAwarePayload
+	UserID() string
 }
 
 // NotificationPayload represents event payload for notifications, with single event type variant

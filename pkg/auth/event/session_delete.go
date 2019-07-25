@@ -38,3 +38,7 @@ func (event SessionDeleteEvent) ApplyingMutations(mutations Mutations) UserAware
 		Identity: event.Identity,
 	}
 }
+
+func (event SessionDeleteEvent) UserID() string {
+	return event.User.ID
+}

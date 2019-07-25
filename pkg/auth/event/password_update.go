@@ -36,3 +36,7 @@ func (event PasswordUpdateEvent) ApplyingMutations(mutations Mutations) UserAwar
 	// user object in this event is a snapshot before operation, so mutations are not applied
 	return event
 }
+
+func (event PasswordUpdateEvent) UserID() string {
+	return event.User.ID
+}
