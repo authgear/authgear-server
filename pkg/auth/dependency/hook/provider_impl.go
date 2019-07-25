@@ -8,11 +8,12 @@ import (
 )
 
 type providerImpl struct {
-	RequestID    string
-	Store        Store
-	AuthContext  auth.ContextGetter
-	TimeProvider time.Provider
-	Deliverer    Deliverer
+	RequestID               string
+	Store                   Store
+	AuthContext             auth.ContextGetter
+	TimeProvider            time.Provider
+	Deliverer               Deliverer
+	PersistentEventPayloads []event.Payload
 }
 
 func NewProvider(
@@ -45,11 +46,12 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 			return err
 		}
 
-		// TODO(webhook): after events
+		// use event.payload since it may have been updated by mutations
+		provider.PersistentEventPayloads = append(provider.PersistentEventPayloads, event.Payload)
 		return
 
 	case event.NotificationPayload:
-		// TODO(webhook): delayed delivery
+		provider.PersistentEventPayloads = append(provider.PersistentEventPayloads, payload)
 		err = nil
 		return
 
@@ -59,12 +61,36 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 }
 
 func (provider *providerImpl) WillCommitTx() error {
-	// TODO(webhook): real impl
+	events := []*event.Event{}
+	for _, payload := range provider.PersistentEventPayloads {
+		seq, err := provider.Store.NextSequenceNumber()
+		if err != nil {
+			return err
+		}
+
+		var ev *event.Event
+		switch typedPayload := payload.(type) {
+		case event.OperationPayload:
+			ev = event.NewAfterEvent(seq, typedPayload, provider.makeContext())
+		case event.NotificationPayload:
+			ev = event.NewEvent(seq, typedPayload, provider.makeContext())
+		default:
+			panic(InvalidEventPayload{payload: payload})
+		}
+
+		events = append(events, ev)
+	}
+
+	err := provider.Store.PersistEvents(events)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (provider *providerImpl) DidCommitTx() {
-
+	// TODO(webhook): deliver persisted events
 }
 
 func (provider *providerImpl) makeContext() event.Context {

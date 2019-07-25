@@ -1,7 +1,10 @@
 package hook
 
+import "github.com/skygeario/skygear-server/pkg/auth/event"
+
 type mockStore struct {
 	nextSequenceNumber int64
+	persistedEvents    []*event.Event
 }
 
 func newMockStore() *mockStore {
@@ -11,9 +14,7 @@ func newMockStore() *mockStore {
 }
 
 func (store *mockStore) Reset() {
-	*store = mockStore{
-		nextSequenceNumber: 1,
-	}
+	*store = *newMockStore()
 }
 
 func (store *mockStore) NextSequenceNumber() (seq int64, err error) {
@@ -21,6 +22,11 @@ func (store *mockStore) NextSequenceNumber() (seq int64, err error) {
 	store.nextSequenceNumber++
 	err = nil
 	return
+}
+
+func (store *mockStore) PersistEvents(events []*event.Event) error {
+	store.persistedEvents = append(store.persistedEvents, events...)
+	return nil
 }
 
 var _ Store = &mockStore{}

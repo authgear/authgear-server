@@ -3,6 +3,7 @@ package hook
 import (
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
@@ -25,4 +26,9 @@ func (store *storeImpl) NextSequenceNumber() (seq int64, err error) {
 	row := store.sqlExecutor.QueryRowWith(builder)
 	err = row.Scan(&seq)
 	return
+}
+
+func (store *storeImpl) PersistEvents(events []*event.Event) error {
+	// TODO(webhook): persist events
+	return nil
 }

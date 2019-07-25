@@ -6,8 +6,9 @@ import (
 )
 
 type mockDeliverer struct {
-	DeliveryError error
-	BeforeEvents  []mockDelivererBeforeEvent
+	DeliveryError         error
+	OnDeliverBeforeEvents func(event *event.Event, user *model.User)
+	BeforeEvents          []mockDelivererBeforeEvent
 }
 
 type mockDelivererBeforeEvent struct {
@@ -16,18 +17,25 @@ type mockDelivererBeforeEvent struct {
 }
 
 func newMockDeliverer() *mockDeliverer {
-	return &mockDeliverer{}
+	return &mockDeliverer{
+		BeforeEvents: []mockDelivererBeforeEvent{},
+	}
 }
 
 func (deliverer *mockDeliverer) Reset() {
-	*deliverer = mockDeliverer{}
+	*deliverer = *newMockDeliverer()
 }
 
 func (deliverer *mockDeliverer) DeliverBeforeEvent(event *event.Event, user *model.User) error {
+	_event := *event
+	_user := *user
 	deliverer.BeforeEvents = append(deliverer.BeforeEvents, mockDelivererBeforeEvent{
-		Event: event,
-		User:  user,
+		Event: &_event,
+		User:  &_user,
 	})
+	if deliverer.OnDeliverBeforeEvents != nil {
+		deliverer.OnDeliverBeforeEvents(event, user)
+	}
 	return deliverer.DeliveryError
 }
 

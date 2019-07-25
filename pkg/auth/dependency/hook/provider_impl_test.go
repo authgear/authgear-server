@@ -22,7 +22,7 @@ func TestDispatchEvent(t *testing.T) {
 	authContext := auth.NewMockContextGetter()
 	deliverer := newMockDeliverer()
 
-	provider := NewProvider(requestID, store, authContext, &timeProvider, deliverer)
+	provider := NewProvider(requestID, store, authContext, &timeProvider, deliverer).(*providerImpl)
 
 	Convey("Dispatch operation events", t, func() {
 		user := model.User{
@@ -42,6 +42,7 @@ func TestDispatchEvent(t *testing.T) {
 			deliverer.Reset()
 			deliverer.DeliveryError = nil
 			authContext.Set(nil, nil)
+			provider.PersistentEventPayloads = nil
 
 			err := provider.DispatchEvent(
 				payload,
@@ -67,6 +68,54 @@ func TestDispatchEvent(t *testing.T) {
 					User: &user,
 				},
 			})
+			So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
+				payload,
+			})
+		})
+
+		Convey("should use mutated payload", func() {
+			store.Reset()
+			deliverer.Reset()
+			deliverer.DeliveryError = nil
+			deliverer.OnDeliverBeforeEvents = func(ev *event.Event, user *model.User) {
+				payload := ev.Payload.(event.SessionCreateEvent)
+				payload.Reason = event.SessionCreateReasonSignup
+				ev.Payload = payload
+			}
+			authContext.Set(nil, nil)
+			provider.PersistentEventPayloads = nil
+
+			err := provider.DispatchEvent(
+				payload,
+				&user,
+			)
+
+			So(err, ShouldBeNil)
+			So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{
+				mockDelivererBeforeEvent{
+					Event: &event.Event{
+						ID:         deliverer.BeforeEvents[0].Event.ID,
+						Type:       event.BeforeSessionCreate,
+						Version:    2,
+						SequenceNo: 1,
+						Payload:    payload,
+						Context: event.Context{
+							Timestamp:   1136214245,
+							RequestID:   &requestID,
+							UserID:      nil,
+							PrincipalID: nil,
+						},
+					},
+					User: &user,
+				},
+			})
+			So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
+				event.SessionCreateEvent{
+					Reason:   event.SessionCreateReasonSignup,
+					User:     user,
+					Identity: identity,
+				},
+			})
 		})
 
 		Convey("should include auth info", func() {
@@ -79,6 +128,7 @@ func TestDispatchEvent(t *testing.T) {
 				&authinfo.AuthInfo{ID: userID},
 				&authtoken.Token{PrincipalID: principalID},
 			)
+			provider.PersistentEventPayloads = nil
 
 			err := provider.DispatchEvent(
 				payload,
@@ -99,6 +149,7 @@ func TestDispatchEvent(t *testing.T) {
 			deliverer.Reset()
 			deliverer.DeliveryError = fmt.Errorf("Failed to deliver")
 			authContext.Set(nil, nil)
+			provider.PersistentEventPayloads = nil
 
 			err := provider.DispatchEvent(
 				payload,
@@ -106,6 +157,34 @@ func TestDispatchEvent(t *testing.T) {
 			)
 
 			So(err, ShouldBeError, "Failed to deliver")
+		})
+	})
+
+	Convey("Dispatch notification events", t, func() {
+		user := model.User{
+			ID: "user-id",
+		}
+		payload := event.UserSyncEvent{
+			User: user,
+		}
+
+		Convey("should be successful", func() {
+			store.Reset()
+			deliverer.Reset()
+			deliverer.DeliveryError = nil
+			authContext.Set(nil, nil)
+			provider.PersistentEventPayloads = nil
+
+			err := provider.DispatchEvent(
+				payload,
+				&user,
+			)
+
+			So(err, ShouldBeNil)
+			So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{})
+			So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
+				payload,
+			})
 		})
 	})
 }
