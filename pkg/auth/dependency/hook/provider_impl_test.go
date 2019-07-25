@@ -38,7 +38,6 @@ func TestDispatchEvent(t *testing.T) {
 	reset := func() {
 		store.Reset()
 		deliverer.Reset()
-		deliverer.DeliveryError = nil
 		authContext.Set(nil, nil)
 		authInfoStore.AuthInfoMap = map[string]authinfo.AuthInfo{}
 		userProfileStore.Data = map[string]map[string]interface{}{}
@@ -85,6 +84,25 @@ func TestDispatchEvent(t *testing.T) {
 					User: &user,
 				},
 			})
+			So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
+				payload,
+			})
+		})
+
+		Convey("should not generate before events that would not be delivered", func() {
+			reset()
+			deliverer.WillDeliverFunc = func(eventType event.Type) bool {
+				return false
+			}
+
+			err := provider.DispatchEvent(
+				payload,
+				&user,
+			)
+
+			So(err, ShouldBeNil)
+			So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{})
+			So(store.nextSequenceNumber, ShouldEqual, 1)
 			So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
 				payload,
 			})
@@ -197,7 +215,7 @@ func TestDispatchEvent(t *testing.T) {
 	})
 
 	Convey("When transaction is about to commit", t, func() {
-		Convey("should persist events", func() {
+		Convey("should generate & persist events", func() {
 			reset()
 			provider.PersistentEventPayloads = []event.Payload{
 				event.SessionCreateEvent{
@@ -243,6 +261,56 @@ func TestDispatchEvent(t *testing.T) {
 					Type:       event.UserSync,
 					Version:    2,
 					SequenceNo: 2,
+					Payload: event.UserSyncEvent{
+						User: model.User{
+							ID:         "user-id",
+							VerifyInfo: map[string]bool{"user@example.com": true},
+							Metadata:   map[string]interface{}{"user": true},
+						},
+					},
+					Context: event.Context{
+						Timestamp:   1136214245,
+						RequestID:   &requestID,
+						UserID:      nil,
+						PrincipalID: nil,
+					},
+				},
+			})
+		})
+
+		Convey("should not generate events that would not be delivered", func() {
+			reset()
+			deliverer.WillDeliverFunc = func(eventType event.Type) bool {
+				return eventType == event.UserSync
+			}
+			provider.PersistentEventPayloads = []event.Payload{
+				event.SessionCreateEvent{
+					User: model.User{
+						ID: "user-id",
+					},
+				},
+			}
+			authInfoStore.AuthInfoMap = map[string]authinfo.AuthInfo{
+				"user-id": authinfo.AuthInfo{
+					ID:         "user-id",
+					VerifyInfo: map[string]bool{"user@example.com": true},
+				},
+			}
+			userProfileStore.Data = map[string]map[string]interface{}{
+				"user-id": map[string]interface{}{"user": true},
+			}
+
+			err := provider.WillCommitTx()
+
+			So(err, ShouldBeNil)
+			So(provider.PersistentEventPayloads, ShouldBeNil)
+			So(store.nextSequenceNumber, ShouldEqual, 2)
+			So(store.persistedEvents, ShouldResemble, []*event.Event{
+				&event.Event{
+					ID:         store.persistedEvents[0].ID,
+					Type:       event.UserSync,
+					Version:    2,
+					SequenceNo: 1,
 					Payload: event.UserSyncEvent{
 						User: model.User{
 							ID:         "user-id",

@@ -8,6 +8,7 @@ import (
 )
 
 type Deliverer interface {
+	WillDeliver(eventType event.Type) bool
 	DeliverBeforeEvent(event *event.Event, user *model.User) error
 	DeliverNonBeforeEvent(event *event.Event, timeout time.Duration) error
 }

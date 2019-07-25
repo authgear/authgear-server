@@ -47,6 +47,25 @@ func TestDeliverer(t *testing.T) {
 	defer gock.Off()
 	defer gock.RestoreClient(goreq.DefaultClient)
 
+	Convey("Will the event be delivered", t, func() {
+		Convey("should return correct value", func() {
+			deliverer.Hooks = &[]config.Hook{
+				config.Hook{
+					Event: string(event.BeforeSessionCreate),
+					URL:   "https://example.com/a",
+				},
+				config.Hook{
+					Event: string(event.UserSync),
+					URL:   "https://example.com/b",
+				},
+			}
+
+			So(deliverer.WillDeliver(event.BeforeSessionCreate), ShouldBeTrue)
+			So(deliverer.WillDeliver(event.UserSync), ShouldBeTrue)
+			So(deliverer.WillDeliver(event.AfterSessionCreate), ShouldBeFalse)
+		})
+	})
+
 	Convey("Deliver before events", t, func() {
 		e := event.Event{
 			ID:   "event-id",

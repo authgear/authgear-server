@@ -46,18 +46,22 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 	var seq int64
 	switch typedPayload := payload.(type) {
 	case event.OperationPayload:
-		seq, err = provider.Store.NextSequenceNumber()
-		if err != nil {
-			return
-		}
-		event := event.NewBeforeEvent(seq, typedPayload, provider.makeContext())
-		err = provider.Deliverer.DeliverBeforeEvent(event, user)
-		if err != nil {
-			return err
+		if provider.Deliverer.WillDeliver(typedPayload.BeforeEventType()) {
+			seq, err = provider.Store.NextSequenceNumber()
+			if err != nil {
+				return
+			}
+			event := event.NewBeforeEvent(seq, typedPayload, provider.makeContext())
+			err = provider.Deliverer.DeliverBeforeEvent(event, user)
+			if err != nil {
+				return err
+			}
+
+			// update payload since it may have been updated by mutations
+			payload = event.Payload
 		}
 
-		// use event.payload since it may have been updated by mutations
-		provider.PersistentEventPayloads = append(provider.PersistentEventPayloads, event.Payload)
+		provider.PersistentEventPayloads = append(provider.PersistentEventPayloads, payload)
 		return
 
 	case event.NotificationPayload:
@@ -78,21 +82,34 @@ func (provider *providerImpl) WillCommitTx() error {
 
 	events := []*event.Event{}
 	for _, payload := range provider.PersistentEventPayloads {
-		seq, err := provider.Store.NextSequenceNumber()
-		if err != nil {
-			return err
-		}
-
 		var ev *event.Event
+
 		switch typedPayload := payload.(type) {
 		case event.OperationPayload:
-			ev = event.NewAfterEvent(seq, typedPayload, provider.makeContext())
+			if provider.Deliverer.WillDeliver(typedPayload.AfterEventType()) {
+				seq, err := provider.Store.NextSequenceNumber()
+				if err != nil {
+					return err
+				}
+				ev = event.NewAfterEvent(seq, typedPayload, provider.makeContext())
+			}
+
 		case event.NotificationPayload:
-			ev = event.NewEvent(seq, typedPayload, provider.makeContext())
+			if provider.Deliverer.WillDeliver(typedPayload.EventType()) {
+				seq, err := provider.Store.NextSequenceNumber()
+				if err != nil {
+					return err
+				}
+				ev = event.NewEvent(seq, typedPayload, provider.makeContext())
+			}
+
 		default:
 			panic(InvalidEventPayload{payload: payload})
 		}
 
+		if ev == nil {
+			continue
+		}
 		events = append(events, ev)
 	}
 

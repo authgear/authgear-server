@@ -35,6 +35,15 @@ func NewDeliverer(config *config.TenantConfiguration, timeProvider time.Provider
 	}
 }
 
+func (deliverer *delivererImpl) WillDeliver(eventType event.Type) bool {
+	for _, hook := range *deliverer.Hooks {
+		if hook.Event == string(eventType) {
+			return true
+		}
+	}
+	return false
+}
+
 func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.User) error {
 	startTime := deliverer.TimeProvider.Now()
 	requestTimeout := gotime.Duration(deliverer.AppConfig.SyncHookTimeout) * gotime.Second

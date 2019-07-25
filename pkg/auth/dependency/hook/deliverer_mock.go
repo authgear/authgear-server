@@ -8,6 +8,7 @@ import (
 )
 
 type mockDeliverer struct {
+	WillDeliverFunc       func(eventType event.Type) bool
 	DeliveryError         error
 	OnDeliverBeforeEvents func(event *event.Event, user *model.User)
 	BeforeEvents          []mockDelivererBeforeEvent
@@ -33,6 +34,13 @@ func newMockDeliverer() *mockDeliverer {
 
 func (deliverer *mockDeliverer) Reset() {
 	*deliverer = *newMockDeliverer()
+}
+
+func (deliverer *mockDeliverer) WillDeliver(eventType event.Type) bool {
+	if deliverer.WillDeliverFunc == nil {
+		return true
+	}
+	return deliverer.WillDeliverFunc(eventType)
 }
 
 func (deliverer *mockDeliverer) DeliverBeforeEvent(event *event.Event, user *model.User) error {
