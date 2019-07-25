@@ -12,6 +12,10 @@ type Mutations struct {
 	Metadata   *userprofile.Data `json:"metadata,omitempty"`
 }
 
+func (mutations Mutations) IsNoop() bool {
+	return mutations == Mutations{}
+}
+
 func (mutations Mutations) ApplyingMutations(newMutations Mutations) Mutations {
 	if newMutations.IsDisabled != nil {
 		mutations.IsDisabled = newMutations.IsDisabled

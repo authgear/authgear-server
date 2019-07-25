@@ -142,7 +142,7 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	if newProfile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, &authInfo, newMetadata); err != nil {
+	if newProfile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, newMetadata); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to update user profile")
