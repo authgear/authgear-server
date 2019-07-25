@@ -7,6 +7,6 @@ import (
 
 type Mutator interface {
 	New(event *event.Event, user *model.User) Mutator
-	Add(event.Mutations)
+	Add(event.Mutations) error
 	Apply() error
 }

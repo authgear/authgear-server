@@ -43,3 +43,11 @@ type OperationDisallowedItem struct {
 func (err OperationDisallowed) Error() string {
 	return "disallowed by web-hook event handler"
 }
+
+type MutationFailed struct {
+	inner error
+}
+
+func (err MutationFailed) Error() string {
+	return fmt.Sprintf("web-hook mutation failed: %v", err.inner)
+}

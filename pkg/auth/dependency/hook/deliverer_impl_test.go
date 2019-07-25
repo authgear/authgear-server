@@ -79,6 +79,7 @@ func TestDeliverer(t *testing.T) {
 				JSON(map[string]interface{}{
 					"is_allowed": true,
 				})
+			defer func() { gock.Flush() }()
 
 			err := deliverer.DeliverBeforeEvent(&e, &user)
 
@@ -123,6 +124,7 @@ func TestDeliverer(t *testing.T) {
 						"extra": 123,
 					},
 				})
+			defer func() { gock.Flush() }()
 
 			err := deliverer.DeliverBeforeEvent(&e, &user)
 
@@ -195,6 +197,7 @@ func TestDeliverer(t *testing.T) {
 						"is_disabled": true,
 					},
 				})
+			defer func() { gock.Flush() }()
 
 			Convey("successful", func() {
 				resetTime()
@@ -219,13 +222,24 @@ func TestDeliverer(t *testing.T) {
 				So(gock.IsDone(), ShouldBeTrue)
 			})
 
-			Convey("failed", func() {
+			Convey("failed apply", func() {
 				resetTime()
 				mutator.ApplyError = fmt.Errorf("cannot apply mutations")
 				err := deliverer.DeliverBeforeEvent(&e, &user)
 
-				So(err, ShouldBeError, "cannot apply mutations")
+				So(err, ShouldBeError, "web-hook mutation failed: cannot apply mutations")
+				So(mutator.IsApplied, ShouldEqual, true)
 				So(gock.IsDone(), ShouldBeTrue)
+			})
+
+			Convey("failed add", func() {
+				resetTime()
+				mutator.AddError = fmt.Errorf("cannot add mutations")
+				err := deliverer.DeliverBeforeEvent(&e, &user)
+
+				So(err, ShouldBeError, "web-hook mutation failed: cannot add mutations")
+				So(mutator.IsApplied, ShouldEqual, false)
+				So(gock.IsDone(), ShouldBeFalse)
 			})
 		})
 
@@ -247,6 +261,7 @@ func TestDeliverer(t *testing.T) {
 				Post("/a").
 				JSON(e).
 				Reply(500)
+			defer func() { gock.Flush() }()
 
 			err := deliverer.DeliverBeforeEvent(&e, &user)
 
@@ -292,6 +307,7 @@ func TestDeliverer(t *testing.T) {
 				JSON(map[string]interface{}{
 					"is_allowed": true,
 				})
+			defer func() { gock.Flush() }()
 
 			err := deliverer.DeliverBeforeEvent(&e, &user)
 

@@ -75,17 +75,25 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.U
 		}
 
 		if resp.Mutations != nil {
-			mutator.Add(*resp.Mutations)
+			err = mutator.Add(*resp.Mutations)
+			if err != nil {
+				return MutationFailed{inner: err}
+			}
 		}
 	}
 
-	return mutator.Apply()
+	err := mutator.Apply()
+	if err != nil {
+		return MutationFailed{inner: err}
+	}
+
+	return nil
 }
 
 func (deliverer *delivererImpl) prepareRequest(event *event.Event) (*goreq.Request, error) {
 	body, err := json.Marshal(event)
 	if err != nil {
-		return nil, err
+		return nil, DeliveryFailed{inner: err}
 	}
 
 	signature := hash.HMACSHA256(body, []byte(deliverer.UserConfig.Secret))
@@ -136,6 +144,7 @@ func performRequest(request *goreq.Request, withResponse bool) (hookResp *event.
 
 	err = hookResp.Validate()
 	if err != nil {
+		err = DeliveryFailed{inner: err}
 		return
 	}
 

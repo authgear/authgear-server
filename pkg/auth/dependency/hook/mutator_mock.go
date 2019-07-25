@@ -10,6 +10,7 @@ type MockMutator struct {
 	User          *model.User
 	MutationsList []event.Mutations
 	IsApplied     bool
+	AddError      error
 	ApplyError    error
 }
 
@@ -23,18 +24,21 @@ func (mutator *MockMutator) Reset() {
 
 func (mutator *MockMutator) New(event *event.Event, user *model.User) Mutator {
 	// preserve mock error
-	err := mutator.ApplyError
+	addError := mutator.AddError
+	applyError := mutator.ApplyError
 	mutator.Reset()
-	mutator.ApplyError = err
+	mutator.AddError = addError
+	mutator.ApplyError = applyError
 
-	// return self for testingv
+	// return self for testing
 	mutator.Event = event
 	mutator.User = user
 	return mutator
 }
 
-func (mutator *MockMutator) Add(mutations event.Mutations) {
+func (mutator *MockMutator) Add(mutations event.Mutations) error {
 	mutator.MutationsList = append(mutator.MutationsList, mutations)
+	return mutator.AddError
 }
 
 func (mutator *MockMutator) Apply() error {
