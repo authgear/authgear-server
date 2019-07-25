@@ -91,16 +91,6 @@ func (m DependencyMap) Provide(
 		)
 	}
 
-	newHookProvider := func() hook.Provider {
-		return hook.NewProvider(
-			requestID,
-			hook.NewStore(newSQLBuilder(), newSQLExecutor()),
-			newAuthContext(),
-			newTimeProvider(),
-			hook.NewMockDeliverer(), // TODO(webhook): real impl
-		)
-	}
-
 	// TODO:
 	// from tConfig
 	isPasswordHistoryEnabled := func() bool {
@@ -136,6 +126,25 @@ func (m DependencyMap) Provide(
 			newSQLExecutor(),
 			newLogger("provider_oauth"),
 			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
+	}
+
+	newHookProvider := func() hook.Provider {
+		return hook.NewProvider(
+			requestID,
+			hook.NewStore(newSQLBuilder(), newSQLExecutor()),
+			newAuthContext(),
+			newTimeProvider(),
+			hook.NewDeliverer(
+				&tConfig,
+				newTimeProvider(),
+				hook.NewMutator(
+					&tConfig.UserConfig.UserVerification,
+					newPasswordAuthProvider(),
+					newAuthInfoStore(),
+					newUserProfileStore(),
+				),
+			),
 		)
 	}
 

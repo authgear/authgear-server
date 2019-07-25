@@ -34,7 +34,7 @@ func TestDeliverer(t *testing.T) {
 		timeProvider.TimeNow = initialTime
 		timeProvider.TimeNowUTC = initialTime
 	}
-	mutator := NewMockMutator()
+	mutator := newMockMutator()
 
 	deliverer := delivererImpl{
 		UserConfig:   &userConfig,

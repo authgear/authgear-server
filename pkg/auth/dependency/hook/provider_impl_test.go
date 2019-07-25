@@ -18,9 +18,9 @@ import (
 func TestDispatchEvent(t *testing.T) {
 	requestID := "request-id"
 	timeProvider := time.MockProvider{TimeNowUTC: gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)}
-	store := NewMockStore()
+	store := newMockStore()
 	authContext := auth.NewMockContextGetter()
-	deliverer := NewMockDeliverer()
+	deliverer := newMockDeliverer()
 
 	provider := NewProvider(requestID, store, authContext, &timeProvider, deliverer)
 
@@ -49,8 +49,8 @@ func TestDispatchEvent(t *testing.T) {
 			)
 
 			So(err, ShouldBeNil)
-			So(deliverer.BeforeEvents, ShouldResemble, []MockDelivererBeforeEvent{
-				MockDelivererBeforeEvent{
+			So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{
+				mockDelivererBeforeEvent{
 					Event: &event.Event{
 						ID:         deliverer.BeforeEvents[0].Event.ID,
 						Type:       event.BeforeSessionCreate,

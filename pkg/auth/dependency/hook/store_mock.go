@@ -1,26 +1,26 @@
 package hook
 
-type MockStore struct {
+type mockStore struct {
 	nextSequenceNumber int64
 }
 
-func NewMockStore() *MockStore {
-	return &MockStore{
+func newMockStore() *mockStore {
+	return &mockStore{
 		nextSequenceNumber: 1,
 	}
 }
 
-func (store *MockStore) Reset() {
-	*store = MockStore{
+func (store *mockStore) Reset() {
+	*store = mockStore{
 		nextSequenceNumber: 1,
 	}
 }
 
-func (store *MockStore) NextSequenceNumber() (seq int64, err error) {
+func (store *mockStore) NextSequenceNumber() (seq int64, err error) {
 	seq = store.nextSequenceNumber
 	store.nextSequenceNumber++
 	err = nil
 	return
 }
 
-var _ Store = &MockStore{}
+var _ Store = &mockStore{}

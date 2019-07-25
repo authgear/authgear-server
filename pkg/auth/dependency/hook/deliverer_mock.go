@@ -5,30 +5,30 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 )
 
-type MockDeliverer struct {
+type mockDeliverer struct {
 	DeliveryError error
-	BeforeEvents  []MockDelivererBeforeEvent
+	BeforeEvents  []mockDelivererBeforeEvent
 }
 
-type MockDelivererBeforeEvent struct {
+type mockDelivererBeforeEvent struct {
 	Event *event.Event
 	User  *model.User
 }
 
-func NewMockDeliverer() *MockDeliverer {
-	return &MockDeliverer{}
+func newMockDeliverer() *mockDeliverer {
+	return &mockDeliverer{}
 }
 
-func (deliverer *MockDeliverer) Reset() {
-	*deliverer = MockDeliverer{}
+func (deliverer *mockDeliverer) Reset() {
+	*deliverer = mockDeliverer{}
 }
 
-func (deliverer *MockDeliverer) DeliverBeforeEvent(event *event.Event, user *model.User) error {
-	deliverer.BeforeEvents = append(deliverer.BeforeEvents, MockDelivererBeforeEvent{
+func (deliverer *mockDeliverer) DeliverBeforeEvent(event *event.Event, user *model.User) error {
+	deliverer.BeforeEvents = append(deliverer.BeforeEvents, mockDelivererBeforeEvent{
 		Event: event,
 		User:  user,
 	})
 	return deliverer.DeliveryError
 }
 
-var _ Deliverer = &MockDeliverer{}
+var _ Deliverer = &mockDeliverer{}
