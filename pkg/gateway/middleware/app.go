@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	gatewayModel "github.com/skygeario/skygear-server/pkg/gateway/model"
 	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
@@ -37,16 +38,18 @@ func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		hooks, err := f.Store.GetLastDeploymentHooks(app)
-		if err != nil {
+		if err == skydb.ErrUserNotFound {
+			// no hook exists: ignore error
+		} else if err != nil {
 			http.Error(w, "Fail to get deployment hooks", http.StatusInternalServerError)
 			return
-		}
-
-		for _, hook := range hooks.Hooks {
-			app.Config.Hooks = append(app.Config.Hooks, config.Hook{
-				Event: hook.Event,
-				URL:   hook.URL,
-			})
+		} else {
+			for _, hook := range hooks.Hooks {
+				app.Config.Hooks = append(app.Config.Hooks, config.Hook{
+					Event: hook.Event,
+					URL:   hook.URL,
+				})
+			}
 		}
 
 		ctx := gatewayModel.GatewayContextFromContext(r.Context())

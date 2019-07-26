@@ -3,6 +3,7 @@ package pq
 import (
 	"database/sql"
 	"encoding/json"
+	"github.com/skygeario/skygear-server/pkg/core/skydb"
 
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
@@ -33,9 +34,7 @@ func (s *Store) GetLastDeploymentHooks(app model.App) (hooks *model.DeploymentHo
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			// in case no rows exist: deployment has no hooks
-			// ignore the error and return empty hooks
-			err = nil
+			err = skydb.ErrUserNotFound
 		}
 		return
 	}
