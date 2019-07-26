@@ -6,11 +6,10 @@ import (
 	"testing"
 	gotime "time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-
-	"github.com/franela/goreq"
 	"github.com/h2non/gock"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -41,11 +40,14 @@ func TestDeliverer(t *testing.T) {
 		AppConfig:    &appConfig,
 		TimeProvider: &timeProvider,
 		Mutator:      mutator,
+		NewHTTPClient: func() gohttp.Client {
+			client := gohttp.Client{}
+			gock.InterceptClient(&client)
+			return client
+		},
 	}
 
-	gock.InterceptClient(goreq.DefaultClient)
 	defer gock.Off()
-	defer gock.RestoreClient(goreq.DefaultClient)
 
 	Convey("Will the event be delivered", t, func() {
 		Convey("should return correct value", func() {
