@@ -10,8 +10,8 @@ const (
 type PasswordUpdateReason string
 
 const (
-	PasswordUpdateReasonChangePassword = "change-password"
-	PasswordUpdateReasonResetPassword  = "reset-password"
+	PasswordUpdateReasonChangePassword = "change_password"
+	PasswordUpdateReasonResetPassword  = "reset_password"
 	PasswordUpdateReasonAdministrative = "administrative"
 )
 

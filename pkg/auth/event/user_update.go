@@ -15,8 +15,8 @@ const UserUpdateEventVersion int32 = 1
 type UserUpdateReason string
 
 const (
-	UserUpdateReasonUpdateMetadata = "update-metadata"
-	UserUpdateReasonUpdateIdentity = "update-identity"
+	UserUpdateReasonUpdateMetadata = "update_metadata"
+	UserUpdateReasonUpdateIdentity = "update_identity"
 	UserUpdateReasonVerification   = "verification"
 	UserUpdateReasonAdministrative = "administrative"
 )
