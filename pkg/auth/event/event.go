@@ -29,21 +29,21 @@ type OperationPayload interface {
 }
 
 type Event struct {
-	Version    int32   `json:"version"`
-	ID         string  `json:"id"`
-	SequenceNo int64   `json:"seq"`
-	Type       Type    `json:"type"`
-	Payload    Payload `json:"payload"`
-	Context    Context `json:"context"`
+	Version int32   `json:"version"`
+	ID      string  `json:"id"`
+	Seq     int64   `json:"seq"`
+	Type    Type    `json:"type"`
+	Payload Payload `json:"payload"`
+	Context Context `json:"context"`
 }
 
 func newEvent(seqNo int64, payload Payload, context Context) *Event {
 	return &Event{
-		Version:    payload.Version() + ContextVersion,
-		ID:         uuid.New(),
-		SequenceNo: seqNo,
-		Payload:    payload,
-		Context:    context,
+		Version: payload.Version() + ContextVersion,
+		ID:      uuid.New(),
+		Seq:     seqNo,
+		Payload: payload,
+		Context: context,
 	}
 }
 

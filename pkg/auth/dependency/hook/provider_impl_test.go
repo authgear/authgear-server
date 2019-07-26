@@ -69,11 +69,11 @@ func TestDispatchEvent(t *testing.T) {
 			So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{
 				mockDelivererBeforeEvent{
 					Event: &event.Event{
-						ID:         deliverer.BeforeEvents[0].Event.ID,
-						Type:       event.BeforeSessionCreate,
-						Version:    2,
-						SequenceNo: 1,
-						Payload:    payload,
+						ID:      deliverer.BeforeEvents[0].Event.ID,
+						Type:    event.BeforeSessionCreate,
+						Version: 2,
+						Seq:     1,
+						Payload: payload,
 						Context: event.Context{
 							Timestamp:   1136214245,
 							RequestID:   &requestID,
@@ -126,11 +126,11 @@ func TestDispatchEvent(t *testing.T) {
 			So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{
 				mockDelivererBeforeEvent{
 					Event: &event.Event{
-						ID:         deliverer.BeforeEvents[0].Event.ID,
-						Type:       event.BeforeSessionCreate,
-						Version:    2,
-						SequenceNo: 1,
-						Payload:    payload,
+						ID:      deliverer.BeforeEvents[0].Event.ID,
+						Type:    event.BeforeSessionCreate,
+						Version: 2,
+						Seq:     1,
+						Payload: payload,
 						Context: event.Context{
 							Timestamp:   1136214245,
 							RequestID:   &requestID,
@@ -240,10 +240,10 @@ func TestDispatchEvent(t *testing.T) {
 			So(provider.PersistentEventPayloads, ShouldBeNil)
 			So(store.persistedEvents, ShouldResemble, []*event.Event{
 				&event.Event{
-					ID:         store.persistedEvents[0].ID,
-					Type:       event.AfterSessionCreate,
-					Version:    2,
-					SequenceNo: 1,
+					ID:      store.persistedEvents[0].ID,
+					Type:    event.AfterSessionCreate,
+					Version: 2,
+					Seq:     1,
 					Payload: event.SessionCreateEvent{
 						User: model.User{
 							ID: "user-id",
@@ -257,10 +257,10 @@ func TestDispatchEvent(t *testing.T) {
 					},
 				},
 				&event.Event{
-					ID:         store.persistedEvents[1].ID,
-					Type:       event.UserSync,
-					Version:    2,
-					SequenceNo: 2,
+					ID:      store.persistedEvents[1].ID,
+					Type:    event.UserSync,
+					Version: 2,
+					Seq:     2,
 					Payload: event.UserSyncEvent{
 						User: model.User{
 							ID:         "user-id",
@@ -307,10 +307,10 @@ func TestDispatchEvent(t *testing.T) {
 			So(store.nextSequenceNumber, ShouldEqual, 2)
 			So(store.persistedEvents, ShouldResemble, []*event.Event{
 				&event.Event{
-					ID:         store.persistedEvents[0].ID,
-					Type:       event.UserSync,
-					Version:    2,
-					SequenceNo: 1,
+					ID:      store.persistedEvents[0].ID,
+					Type:    event.UserSync,
+					Version: 2,
+					Seq:     1,
 					Payload: event.UserSyncEvent{
 						User: model.User{
 							ID:         "user-id",
