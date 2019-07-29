@@ -1,6 +1,6 @@
 package event
 
-import "github.com/skygeario/skygear-server/pkg/core/uuid"
+import "fmt"
 
 type Type string
 
@@ -37,7 +37,7 @@ type Event struct {
 
 func newEvent(seqNo int64, payload Payload, context Context) *Event {
 	return &Event{
-		ID:      uuid.New(),
+		ID:      fmt.Sprintf("%08x", seqNo),
 		Seq:     seqNo,
 		Payload: payload,
 		Context: context,
