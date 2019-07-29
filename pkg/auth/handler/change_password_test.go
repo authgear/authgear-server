@@ -83,8 +83,6 @@ func TestChangePasswordHandler(t *testing.T) {
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("change password success", func(c C) {
-			hookProvider.Reset()
-
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"old_password": "123456",

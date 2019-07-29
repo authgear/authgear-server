@@ -130,8 +130,6 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		vh.UserVerificationProvider = userverify.NewProvider(nil, &store, verifyConfig, &time)
 
 		Convey("verify with correct code and auto update", func() {
-			hookProvider.Reset()
-
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code1"
 			}`))

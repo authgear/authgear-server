@@ -103,8 +103,6 @@ func TestResetPasswordHandler(t *testing.T) {
 		h.TaskQueue = mockTaskQueue
 
 		Convey("should reset password by user id", func() {
-			hookProvider.Reset()
-
 			userID := "john.doe.id"
 			newPassword := "234567"
 			payload := ResetPasswordRequestPayload{

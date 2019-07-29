@@ -32,10 +32,6 @@ func newMockDeliverer() *mockDeliverer {
 	}
 }
 
-func (deliverer *mockDeliverer) Reset() {
-	*deliverer = *newMockDeliverer()
-}
-
 func (deliverer *mockDeliverer) WillDeliver(eventType event.Type) bool {
 	if deliverer.WillDeliverFunc == nil {
 		return true

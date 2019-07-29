@@ -13,10 +13,6 @@ func newMockStore() *mockStore {
 	}
 }
 
-func (store *mockStore) Reset() {
-	*store = *newMockStore()
-}
-
 func (store *mockStore) NextSequenceNumber() (seq int64, err error) {
 	seq = store.nextSequenceNumber
 	store.nextSequenceNumber++

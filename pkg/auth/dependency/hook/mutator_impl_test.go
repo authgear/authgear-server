@@ -14,66 +14,66 @@ import (
 )
 
 func TestMutator(t *testing.T) {
-	var err error
-	verifyConfig := config.UserVerificationConfiguration{
-		Criteria: config.UserVerificationCriteriaAll,
-		LoginIDKeys: map[string]config.UserVerificationKeyConfiguration{
-			"email": config.UserVerificationKeyConfiguration{},
-		},
-	}
-	passwordAuthProvider := password.NewMockProvider(
-		map[string]config.LoginIDKeyConfiguration{},
-		[]string{},
-	)
-	authInfoStore := authinfo.NewMockStore()
-	userProfileStore := userprofile.NewMockUserProfileStore()
-
-	initUser := func(user model.User) {
-		authInfoStore.AuthInfoMap = map[string]authinfo.AuthInfo{
-			user.ID: authinfo.AuthInfo{
-				ID:         user.ID,
-				Disabled:   user.Disabled,
-				Verified:   user.Verified,
-				VerifyInfo: user.VerifyInfo,
+	Convey("Hook Mutator", t, func() {
+		var err error
+		verifyConfig := config.UserVerificationConfiguration{
+			Criteria: config.UserVerificationCriteriaAll,
+			LoginIDKeys: map[string]config.UserVerificationKeyConfiguration{
+				"email": config.UserVerificationKeyConfiguration{},
 			},
 		}
-		passwordAuthProvider.PrincipalMap = map[string]password.Principal{
-			"principal-id-1": password.Principal{
-				ID:         "principal-id-1",
-				UserID:     user.ID,
-				LoginIDKey: "email",
-				LoginID:    "test-1@example.com",
-			},
-			"principal-id-2": password.Principal{
-				ID:         "principal-id-2",
-				UserID:     user.ID,
-				LoginIDKey: "email",
-				LoginID:    "test-2@example.com",
-			},
+		passwordAuthProvider := password.NewMockProvider(
+			map[string]config.LoginIDKeyConfiguration{},
+			[]string{},
+		)
+		authInfoStore := authinfo.NewMockStore()
+		userProfileStore := userprofile.NewMockUserProfileStore()
+
+		initUser := func(user model.User) {
+			authInfoStore.AuthInfoMap = map[string]authinfo.AuthInfo{
+				user.ID: authinfo.AuthInfo{
+					ID:         user.ID,
+					Disabled:   user.Disabled,
+					Verified:   user.Verified,
+					VerifyInfo: user.VerifyInfo,
+				},
+			}
+			passwordAuthProvider.PrincipalMap = map[string]password.Principal{
+				"principal-id-1": password.Principal{
+					ID:         "principal-id-1",
+					UserID:     user.ID,
+					LoginIDKey: "email",
+					LoginID:    "test-1@example.com",
+				},
+				"principal-id-2": password.Principal{
+					ID:         "principal-id-2",
+					UserID:     user.ID,
+					LoginIDKey: "email",
+					LoginID:    "test-2@example.com",
+				},
+			}
+			userProfileStore.Data = map[string]map[string]interface{}{
+				user.ID: user.Metadata,
+			}
 		}
-		userProfileStore.Data = map[string]map[string]interface{}{
-			user.ID: user.Metadata,
+		testStoreData := func(user model.User) {
+			So(authInfoStore.AuthInfoMap, ShouldResemble, map[string]authinfo.AuthInfo{
+				user.ID: authinfo.AuthInfo{
+					ID:         user.ID,
+					Disabled:   user.Disabled,
+					Verified:   user.Verified,
+					VerifyInfo: user.VerifyInfo,
+				},
+			})
+			So(userProfileStore.Data, ShouldResemble, map[string]map[string]interface{}{
+				user.ID: user.Metadata,
+			})
 		}
-	}
-	testStoreData := func(user model.User) {
-		So(authInfoStore.AuthInfoMap, ShouldResemble, map[string]authinfo.AuthInfo{
-			user.ID: authinfo.AuthInfo{
-				ID:         user.ID,
-				Disabled:   user.Disabled,
-				Verified:   user.Verified,
-				VerifyInfo: user.VerifyInfo,
-			},
-		})
-		So(userProfileStore.Data, ShouldResemble, map[string]map[string]interface{}{
-			user.ID: user.Metadata,
-		})
-	}
 
-	newBool := func(v bool) *bool { return &v }
+		newBool := func(v bool) *bool { return &v }
 
-	mutator := NewMutator(&verifyConfig, passwordAuthProvider, authInfoStore, userProfileStore)
+		mutator := NewMutator(&verifyConfig, passwordAuthProvider, authInfoStore, userProfileStore)
 
-	Convey("Mutator", t, func() {
 		Convey("should do nothing", func() {
 			user := model.User{
 				ID: "user-id",

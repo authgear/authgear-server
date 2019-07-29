@@ -135,7 +135,6 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		})
 
 		Convey("reset password", func() {
-			hookProvider.Reset()
 			// expireAt := time.Date(2006, 2, 2, 15, 4, 5, 0, time.UTC)                                // 1138892645
 			// expectedCode := codeGenerator.Generate(authInfo, email, hashedPassword, expireAt)       // 0e0e0776
 

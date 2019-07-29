@@ -84,8 +84,6 @@ func TestSetDisableHandler(t *testing.T) {
 		})
 
 		Convey("set user disable", func() {
-			hookProvider.Reset()
-
 			expiry := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
 			userID := "john.doe.id"
 			payload := setDisableUserPayload{
@@ -123,8 +121,6 @@ func TestSetDisableHandler(t *testing.T) {
 		})
 
 		Convey("should ingore expiry and message when disable is false", func() {
-			hookProvider.Reset()
-
 			expiry := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
 			userID := "john.doe.id"
 			payload := setDisableUserPayload{

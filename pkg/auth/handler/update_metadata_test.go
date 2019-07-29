@@ -86,8 +86,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		h := handler.APIHandlerToHandler(uh, uh.TxContext)
 
 		Convey("should update metadata", func() {
-			hookProvider.Reset()
-
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"metadata": {

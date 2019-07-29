@@ -17,7 +17,6 @@ func NewStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
 	return &storeImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
-		events:      []*event.Event{},
 	}
 }
 

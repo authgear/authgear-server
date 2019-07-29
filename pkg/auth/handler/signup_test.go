@@ -141,7 +141,6 @@ func TestSingupHandler(t *testing.T) {
 		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("signup user with login_id", func() {
-			hookProvider.Reset()
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -254,7 +253,6 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("signup user with login_id with realm", func() {
-			hookProvider.Reset()
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [

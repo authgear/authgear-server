@@ -59,7 +59,6 @@ func TestLogoutHandler(t *testing.T) {
 		h.HookProvider = hookProvider
 
 		Convey("logout user successfully", func() {
-			hookProvider.Reset()
 			token := "test_token"
 			payload := LogoutRequestPayload{
 				AccessToken: token,

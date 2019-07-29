@@ -15,10 +15,6 @@ func NewMockProvider() *MockProvider {
 	return &MockProvider{}
 }
 
-func (provider *MockProvider) Reset() {
-	*provider = *NewMockProvider()
-}
-
 func (provider *MockProvider) WithRequest(request *http.Request) Provider {
 	return provider
 }

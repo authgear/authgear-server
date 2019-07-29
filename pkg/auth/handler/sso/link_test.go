@@ -101,8 +101,6 @@ func TestLinkHandler(t *testing.T) {
 		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("should link user id with oauth principal", func() {
-			hookProvider.Reset()
-
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"access_token": "token"
 			}`))

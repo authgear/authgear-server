@@ -18,15 +18,11 @@ func newMockMutator() *mockMutator {
 	return &mockMutator{}
 }
 
-func (mutator *mockMutator) Reset() {
-	*mutator = mockMutator{}
-}
-
 func (mutator *mockMutator) New(event *event.Event, user *model.User) Mutator {
 	// preserve mock error
 	addError := mutator.AddError
 	applyError := mutator.ApplyError
-	mutator.Reset()
+	*mutator = mockMutator{}
 	mutator.AddError = addError
 	mutator.ApplyError = applyError
 

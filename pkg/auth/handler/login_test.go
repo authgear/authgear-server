@@ -328,7 +328,6 @@ func TestLoginHandler(t *testing.T) {
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("should contains current identity", func() {
-			hookProvider.Reset()
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_id_key": "email",

@@ -90,7 +90,6 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		exp := iat.Add(time.Hour * 1)
 
 		Convey("create user account with custom token", func(c C) {
-			hookProvider.Reset()
 			claims := customtoken.SSOCustomTokenClaims{
 				"iss":   issuer,
 				"aud":   audience,
