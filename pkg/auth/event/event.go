@@ -5,7 +5,6 @@ import "github.com/skygeario/skygear-server/pkg/core/uuid"
 type Type string
 
 type Payload interface {
-	Version() int32
 }
 
 // UserAwarePayload represents event payload that can apply mutations on its own user object
@@ -29,7 +28,6 @@ type OperationPayload interface {
 }
 
 type Event struct {
-	Version int32   `json:"version"`
 	ID      string  `json:"id"`
 	Seq     int64   `json:"seq"`
 	Type    Type    `json:"type"`
@@ -39,7 +37,6 @@ type Event struct {
 
 func newEvent(seqNo int64, payload Payload, context Context) *Event {
 	return &Event{
-		Version: payload.Version() + ContextVersion,
 		ID:      uuid.New(),
 		Seq:     seqNo,
 		Payload: payload,

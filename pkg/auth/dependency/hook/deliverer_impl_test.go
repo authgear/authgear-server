@@ -92,7 +92,7 @@ func TestDeliverer(t *testing.T) {
 				gock.New("https://example.com").
 					Post("/a").
 					JSON(e).
-					MatchHeader(http.HeaderRequestBodySignature, "87a6fe072c68ab9c2e785946d06b163ef52a373b110dc5d4fc7e9e088cc4182b").
+					MatchHeader(http.HeaderRequestBodySignature, "85deb97ff51c6705e4d741e2e2ea6669204c704ccba1cc2ba05b7665777f8def").
 					Reply(200).
 					JSON(map[string]interface{}{
 						"is_allowed": true,

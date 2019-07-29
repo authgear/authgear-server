@@ -12,10 +12,6 @@ type IdentityDeleteEvent struct {
 	Identity model.Identity `json:"identity"`
 }
 
-func (IdentityDeleteEvent) Version() int32 {
-	return 1
-}
-
 func (IdentityDeleteEvent) BeforeEventType() Type {
 	return BeforeIdentityDelete
 }

@@ -19,10 +19,6 @@ type SessionDeleteEvent struct {
 	Identity model.Identity      `json:"identity"`
 }
 
-func (SessionDeleteEvent) Version() int32 {
-	return 1
-}
-
 func (SessionDeleteEvent) BeforeEventType() Type {
 	return BeforeSessionDelete
 }

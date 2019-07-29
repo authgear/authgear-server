@@ -12,10 +12,6 @@ type UserCreateEvent struct {
 	Identities []model.Identity `json:"identities"`
 }
 
-func (UserCreateEvent) Version() int32 {
-	return 1
-}
-
 func (UserCreateEvent) BeforeEventType() Type {
 	return BeforeUserCreate
 }

@@ -20,10 +20,6 @@ type PasswordUpdateEvent struct {
 	User   model.User           `json:"user"`
 }
 
-func (PasswordUpdateEvent) Version() int32 {
-	return 1
-}
-
 func (PasswordUpdateEvent) BeforeEventType() Type {
 	return BeforePasswordUpdate
 }

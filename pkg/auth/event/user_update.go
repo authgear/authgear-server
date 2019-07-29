@@ -10,8 +10,6 @@ const (
 	AfterUserUpdate  Type = "after_user_update"
 )
 
-const UserUpdateEventVersion int32 = 1
-
 type UserUpdateReason string
 
 const (
@@ -28,10 +26,6 @@ type UserUpdateEvent struct {
 	VerifyInfo *map[string]bool  `json:"verify_info,omitempty"`
 	Metadata   *userprofile.Data `json:"metadata,omitempty"`
 	User       model.User        `json:"user"`
-}
-
-func (UserUpdateEvent) Version() int32 {
-	return 1
 }
 
 func (UserUpdateEvent) BeforeEventType() Type {

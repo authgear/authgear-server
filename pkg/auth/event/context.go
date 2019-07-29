@@ -1,7 +1,5 @@
 package event
 
-const ContextVersion int32 = 1
-
 type Context struct {
 	Timestamp   int64   `json:"timestamp"`
 	RequestID   *string `json:"request_id"`

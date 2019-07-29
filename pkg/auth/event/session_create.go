@@ -20,10 +20,6 @@ type SessionCreateEvent struct {
 	Identity model.Identity      `json:"identity"`
 }
 
-func (SessionCreateEvent) Version() int32 {
-	return 1
-}
-
 func (SessionCreateEvent) BeforeEventType() Type {
 	return BeforeSessionCreate
 }
