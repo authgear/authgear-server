@@ -239,10 +239,9 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				event.SessionCreateEvent{
 					Reason: event.SessionCreateReasonLogin,
 					User: model.User{
-						ID:          "chima",
-						CreatedAt:   now,
-						LastLoginAt: &now,
-						VerifyInfo:  map[string]bool{},
+						ID:         "chima",
+						CreatedAt:  now,
+						VerifyInfo: map[string]bool{},
 						Metadata: userprofile.Data{
 							"name":  "chima",
 							"email": "chima@skygear.io",
@@ -443,7 +442,6 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				"result": {
 					"user": {
 						"created_at": "2006-01-02T15:04:05Z",
-						"last_login_at":"2006-01-02T15:04:05Z",
 						"id": "john.doe.id",
 						"is_disabled": false,
 						"is_verified": false,

@@ -180,15 +180,6 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	// Populate the activity time to user
-	now := timeNow()
-	fetchedAuthInfo.LastLoginAt = &now
-	fetchedAuthInfo.LastSeenAt = &now
-	if err = h.AuthInfoStore.UpdateAuth(&fetchedAuthInfo); err != nil {
-		err = skyerr.MakeError(err)
-		return
-	}
-
 	user := model.NewUser(fetchedAuthInfo, userProfile)
 	identity := model.NewIdentity(h.IdentityProvider, principal)
 	err = h.HookProvider.DispatchEvent(
@@ -200,6 +191,20 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		&user,
 	)
 	if err != nil {
+		return
+	}
+
+	// Reload auth info, in case before hook handler mutated it
+	if err = h.AuthInfoStore.GetAuth(principal.UserID, &fetchedAuthInfo); err != nil {
+		return
+	}
+
+	// Update the activity time of user (return old activity time for usefulness)
+	now := timeNow()
+	fetchedAuthInfo.LastLoginAt = &now
+	fetchedAuthInfo.LastSeenAt = &now
+	if err = h.AuthInfoStore.UpdateAuth(&fetchedAuthInfo); err != nil {
+		err = skyerr.MakeError(err)
 		return
 	}
 

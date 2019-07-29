@@ -244,15 +244,6 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 
 	// TODO: check disable
 
-	// Populate the activity time to user
-	now := timeNow()
-	info.LastLoginAt = &now
-	info.LastSeenAt = &now
-	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
-		err = skyerr.MakeError(err)
-		return
-	}
-
 	user := model.NewUser(info, userProfile)
 	identity := model.NewIdentity(h.IdentityProvider, principal)
 
@@ -294,6 +285,20 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		&user,
 	)
 	if err != nil {
+		return
+	}
+
+	// Reload auth info, in case before hook handler mutated it
+	if err = h.AuthInfoStore.GetAuth(principal.UserID, &info); err != nil {
+		return
+	}
+
+	// Update the activity time of user (return old activity time for usefulness)
+	now := timeNow()
+	info.LastLoginAt = &now
+	info.LastSeenAt = &now
+	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
+		err = skyerr.MakeError(err)
 		return
 	}
 

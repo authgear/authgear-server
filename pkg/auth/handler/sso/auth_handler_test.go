@@ -681,7 +681,6 @@ func TestAuthHandler(t *testing.T) {
 					"result": {
 						"user": {
 							"created_at": "0001-01-01T00:00:00Z",
-							"last_login_at":"2006-01-02T15:04:05Z",
 							"id": "%s",
 							"is_disabled": false,
 							"is_verified": false,
