@@ -75,7 +75,7 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 }
 
 func (provider *providerImpl) WillCommitTx() error {
-	err := provider.syncUserIfNeeded()
+	err := provider.dispatchSyncUserEventIfNeeded()
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func (provider *providerImpl) DidCommitTx() {
 	}
 }
 
-func (provider *providerImpl) syncUserIfNeeded() error {
+func (provider *providerImpl) dispatchSyncUserEventIfNeeded() error {
 	userIDToSync := []string{}
 
 	for _, payload := range provider.PersistentEventPayloads {
