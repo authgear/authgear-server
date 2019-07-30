@@ -20,9 +20,11 @@ func (IdentityCreateEvent) AfterEventType() Type {
 	return AfterIdentityCreate
 }
 
-func (event IdentityCreateEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+func (event IdentityCreateEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
+	user := event.User
+	mutations.ApplyToUser(&user)
 	return IdentityCreateEvent{
-		User:     mutations.ApplyingToUser(event.User),
+		User:     user,
 		Identity: event.Identity,
 	}
 }

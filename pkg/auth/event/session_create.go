@@ -28,10 +28,12 @@ func (SessionCreateEvent) AfterEventType() Type {
 	return AfterSessionCreate
 }
 
-func (event SessionCreateEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+func (event SessionCreateEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
+	user := event.User
+	mutations.ApplyToUser(&user)
 	return SessionCreateEvent{
 		Reason:   event.Reason,
-		User:     mutations.ApplyingToUser(event.User),
+		User:     user,
 		Identity: event.Identity,
 	}
 }

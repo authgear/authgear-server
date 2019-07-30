@@ -10,7 +10,7 @@ type Payload interface {
 // UserAwarePayload represents event payload that can apply mutations on its own user object
 type UserAwarePayload interface {
 	Payload
-	ApplyingMutations(Mutations) UserAwarePayload
+	WithMutationsApplied(Mutations) UserAwarePayload
 	UserID() string
 }
 

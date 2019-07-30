@@ -27,10 +27,12 @@ func (SessionDeleteEvent) AfterEventType() Type {
 	return AfterSessionDelete
 }
 
-func (event SessionDeleteEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+func (event SessionDeleteEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
+	user := event.User
+	mutations.ApplyToUser(&user)
 	return SessionDeleteEvent{
 		Reason:   event.Reason,
-		User:     mutations.ApplyingToUser(event.User),
+		User:     user,
 		Identity: event.Identity,
 	}
 }

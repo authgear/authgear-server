@@ -28,7 +28,7 @@ func (PasswordUpdateEvent) AfterEventType() Type {
 	return AfterPasswordUpdate
 }
 
-func (event PasswordUpdateEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+func (event PasswordUpdateEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
 	// user object in this event is a snapshot before operation, so mutations are not applied
 	return event
 }

@@ -16,7 +16,7 @@ func (mutations Mutations) IsNoop() bool {
 	return mutations == Mutations{}
 }
 
-func (mutations Mutations) ApplyingMutations(newMutations Mutations) Mutations {
+func (mutations Mutations) WithMutationsApplied(newMutations Mutations) Mutations {
 	if newMutations.IsDisabled != nil {
 		mutations.IsDisabled = newMutations.IsDisabled
 	}
@@ -32,19 +32,17 @@ func (mutations Mutations) ApplyingMutations(newMutations Mutations) Mutations {
 	return mutations
 }
 
-func (mutations Mutations) ApplyingToUser(user model.User) model.User {
-	newUser := user
+func (mutations Mutations) ApplyToUser(user *model.User) {
 	if mutations.IsDisabled != nil {
-		newUser.Disabled = *mutations.IsDisabled
+		user.Disabled = *mutations.IsDisabled
 	}
 	if mutations.VerifyInfo != nil {
-		newUser.VerifyInfo = *mutations.VerifyInfo
+		user.VerifyInfo = *mutations.VerifyInfo
 	}
 	if mutations.IsVerified != nil {
-		newUser.Verified = *mutations.IsVerified
+		user.Verified = *mutations.IsVerified
 	}
 	if mutations.Metadata != nil {
-		newUser.Metadata = *mutations.Metadata
+		user.Metadata = *mutations.Metadata
 	}
-	return newUser
 }

@@ -20,9 +20,11 @@ func (IdentityDeleteEvent) AfterEventType() Type {
 	return AfterIdentityDelete
 }
 
-func (event IdentityDeleteEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+func (event IdentityDeleteEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
+	user := event.User
+	mutations.ApplyToUser(&user)
 	return IdentityDeleteEvent{
-		User:     mutations.ApplyingToUser(event.User),
+		User:     user,
 		Identity: event.Identity,
 	}
 }

@@ -65,11 +65,11 @@ func (mutator *mutatorImpl) Add(mutations event.Mutations) error {
 		mutations.IsVerified = &isVerified
 	}
 
-	mutator.Mutations = mutator.Mutations.ApplyingMutations(mutations)
+	mutator.Mutations = mutator.Mutations.WithMutationsApplied(mutations)
 	if payload, ok := mutator.Event.Payload.(event.UserAwarePayload); ok {
-		mutator.Event.Payload = payload.ApplyingMutations(mutator.Mutations)
+		mutator.Event.Payload = payload.WithMutationsApplied(mutator.Mutations)
 	}
-	*mutator.User = mutator.Mutations.ApplyingToUser(*mutator.User)
+	mutator.Mutations.ApplyToUser(mutator.User)
 	return nil
 }
 

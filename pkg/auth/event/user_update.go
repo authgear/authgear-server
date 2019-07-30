@@ -36,7 +36,7 @@ func (UserUpdateEvent) AfterEventType() Type {
 	return AfterUserUpdate
 }
 
-func (event UserUpdateEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+func (event UserUpdateEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
 	// user object in this event is a snapshot before operation, so mutations are not applied
 	newEvent := event
 	if mutations.IsDisabled != nil {

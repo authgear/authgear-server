@@ -14,9 +14,11 @@ func (UserSyncEvent) EventType() Type {
 	return UserSync
 }
 
-func (event UserSyncEvent) ApplyingMutations(mutations Mutations) UserAwarePayload {
+func (event UserSyncEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
+	user := event.User
+	mutations.ApplyToUser(&user)
 	return UserSyncEvent{
-		User: mutations.ApplyingToUser(event.User),
+		User: user,
 	}
 }
 
