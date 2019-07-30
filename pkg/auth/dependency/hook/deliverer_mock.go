@@ -26,10 +26,7 @@ type mockDelivererNonBeforeEvent struct {
 }
 
 func newMockDeliverer() *mockDeliverer {
-	return &mockDeliverer{
-		BeforeEvents:    []mockDelivererBeforeEvent{},
-		NonBeforeEvents: []mockDelivererNonBeforeEvent{},
-	}
+	return &mockDeliverer{}
 }
 
 func (deliverer *mockDeliverer) WillDeliver(eventType event.Type) bool {

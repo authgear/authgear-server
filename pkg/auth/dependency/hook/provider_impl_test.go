@@ -93,7 +93,7 @@ func TestDispatchEvent(t *testing.T) {
 				)
 
 				So(err, ShouldBeNil)
-				So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{})
+				So(deliverer.BeforeEvents, ShouldBeEmpty)
 				So(store.nextSequenceNumber, ShouldEqual, 1)
 				So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
 					payload,
@@ -113,7 +113,7 @@ func TestDispatchEvent(t *testing.T) {
 				)
 
 				So(err, ShouldBeNil)
-				So(deliverer.NonBeforeEvents, ShouldResemble, []mockDelivererNonBeforeEvent{})
+				So(deliverer.NonBeforeEvents, ShouldBeEmpty)
 				So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{
 					mockDelivererBeforeEvent{
 						Event: &event.Event{
@@ -189,8 +189,8 @@ func TestDispatchEvent(t *testing.T) {
 				)
 
 				So(err, ShouldBeNil)
-				So(deliverer.NonBeforeEvents, ShouldResemble, []mockDelivererNonBeforeEvent{})
-				So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{})
+				So(deliverer.NonBeforeEvents, ShouldBeEmpty)
+				So(deliverer.BeforeEvents, ShouldBeEmpty)
 				So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
 					payload,
 				})
