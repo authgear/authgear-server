@@ -23,8 +23,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/hash"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
@@ -144,7 +144,7 @@ func TestAuthHandler(t *testing.T) {
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
 		sh.HookProvider = hook.NewMockProvider()
 		nonce := "nonce"
-		hashedNonce := hash.SHA256String(nonce)
+		hashedNonce := crypto.SHA256String(nonce)
 		nonceCookie := &http.Cookie{
 			Name:  coreHttp.CookieNameOpenIDConnectNonce,
 			Value: nonce,
@@ -397,7 +397,7 @@ func TestAuthHandler(t *testing.T) {
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
 		sh.HookProvider = hook.NewMockProvider()
 		nonce := "nonce"
-		hashedNonce := hash.SHA256String(nonce)
+		hashedNonce := crypto.SHA256String(nonce)
 		nonceCookie := &http.Cookie{
 			Name:  coreHttp.CookieNameOpenIDConnectNonce,
 			Value: nonce,
@@ -589,7 +589,7 @@ func TestAuthHandler(t *testing.T) {
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
 		sh.HookProvider = hook.NewMockProvider()
 		nonce := "nonce"
-		hashedNonce := hash.SHA256String(nonce)
+		hashedNonce := crypto.SHA256String(nonce)
 		nonceCookie := &http.Cookie{
 			Name:  coreHttp.CookieNameOpenIDConnectNonce,
 			Value: nonce,

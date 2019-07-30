@@ -10,7 +10,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
 
-	"github.com/skygeario/skygear-server/pkg/core/hash"
+	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -133,7 +133,7 @@ func (deliverer *delivererImpl) prepareRequest(url string, event *event.Event) (
 		return nil, newErrorDeliveryFailed(err)
 	}
 
-	signature := hash.HMACSHA256(body, []byte(deliverer.UserConfig.Secret))
+	signature := crypto.HMACSHA256String([]byte(deliverer.UserConfig.Secret), body)
 
 	request, err := gohttp.NewRequest("POST", url, bytes.NewReader(body))
 	if err != nil {

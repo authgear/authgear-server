@@ -1,4 +1,4 @@
-package hash
+package crypto
 
 import (
 	"crypto/hmac"
@@ -6,8 +6,8 @@ import (
 	"encoding/hex"
 )
 
-// HMACSHA256 returns the HMAC-SHA256 code of body using secret as key.
-func HMACSHA256(body []byte, secret []byte) string {
+// HMACSHA256String returns the hex-encoded string of HMAC-SHA256 code of body using secret as key.
+func HMACSHA256String(secret []byte, body []byte) string {
 	hasher := hmac.New(sha256.New, secret)
 	hasher.Write(body)
 	signature := hasher.Sum(nil)
