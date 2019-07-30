@@ -19,22 +19,22 @@ import (
 )
 
 type delivererImpl struct {
-	Hooks         *[]config.Hook
-	UserConfig    *config.HookUserConfiguration
-	AppConfig     *config.HookAppConfiguration
-	TimeProvider  time.Provider
-	Mutator       Mutator
-	NewHTTPClient func() gohttp.Client
+	Hooks        *[]config.Hook
+	UserConfig   *config.HookUserConfiguration
+	AppConfig    *config.HookAppConfiguration
+	TimeProvider time.Provider
+	Mutator      Mutator
+	HTTPClient   gohttp.Client
 }
 
 func NewDeliverer(config *config.TenantConfiguration, timeProvider time.Provider, mutator Mutator) Deliverer {
 	return &delivererImpl{
-		Hooks:         &config.Hooks,
-		UserConfig:    &config.UserConfig.Hook,
-		AppConfig:     &config.AppConfig.Hook,
-		TimeProvider:  timeProvider,
-		Mutator:       mutator,
-		NewHTTPClient: func() gohttp.Client { return gohttp.Client{} },
+		Hooks:        &config.Hooks,
+		UserConfig:   &config.UserConfig.Hook,
+		AppConfig:    &config.AppConfig.Hook,
+		TimeProvider: timeProvider,
+		Mutator:      mutator,
+		HTTPClient:   gohttp.Client{},
 	}
 }
 
@@ -53,7 +53,7 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.U
 	totalTimeout := gotime.Duration(deliverer.AppConfig.SyncHookTotalTimeout) * gotime.Second
 
 	mutator := deliverer.Mutator.New(e, user)
-	client := deliverer.NewHTTPClient()
+	client := deliverer.HTTPClient
 	client.CheckRedirect = noFollowRedirectPolicy
 	client.Timeout = requestTimeout
 
@@ -104,7 +104,7 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.U
 }
 
 func (deliverer *delivererImpl) DeliverNonBeforeEvent(e *event.Event, timeout gotime.Duration) error {
-	client := deliverer.NewHTTPClient()
+	client := deliverer.HTTPClient
 	client.CheckRedirect = noFollowRedirectPolicy
 	client.Timeout = timeout
 

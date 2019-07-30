@@ -34,16 +34,14 @@ func TestDeliverer(t *testing.T) {
 		timeProvider.TimeNowUTC = initialTime
 		mutator := newMockMutator()
 
+		httpClient := gohttp.Client{}
+		gock.InterceptClient(&httpClient)
 		deliverer := delivererImpl{
 			UserConfig:   &userConfig,
 			AppConfig:    &appConfig,
 			TimeProvider: &timeProvider,
 			Mutator:      mutator,
-			NewHTTPClient: func() gohttp.Client {
-				client := gohttp.Client{}
-				gock.InterceptClient(&client)
-				return client
-			},
+			HTTPClient:   httpClient,
 		}
 
 		defer gock.Off()
