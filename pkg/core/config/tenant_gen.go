@@ -2521,11 +2521,6 @@ func (z *OAuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
-		case "js_sdk_cdn_url":
-			z.JSSDKCDNURL, err = dc.ReadString()
-			if err != nil {
-				return
-			}
 		case "state_jwt_secret":
 			z.StateJWTSecret, err = dc.ReadString()
 			if err != nil {
@@ -2592,22 +2587,13 @@ func (z *OAuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *OAuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 8
+	// map header, size 7
 	// write "url_prefix"
-	err = en.Append(0x88, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
+	err = en.Append(0x87, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
 	if err != nil {
 		return err
 	}
 	err = en.WriteString(z.URLPrefix)
-	if err != nil {
-		return
-	}
-	// write "js_sdk_cdn_url"
-	err = en.Append(0xae, 0x6a, 0x73, 0x5f, 0x73, 0x64, 0x6b, 0x5f, 0x63, 0x64, 0x6e, 0x5f, 0x75, 0x72, 0x6c)
-	if err != nil {
-		return err
-	}
-	err = en.WriteString(z.JSSDKCDNURL)
 	if err != nil {
 		return
 	}
@@ -2683,13 +2669,10 @@ func (z *OAuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *OAuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 8
+	// map header, size 7
 	// string "url_prefix"
-	o = append(o, 0x88, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
+	o = append(o, 0x87, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
 	o = msgp.AppendString(o, z.URLPrefix)
-	// string "js_sdk_cdn_url"
-	o = append(o, 0xae, 0x6a, 0x73, 0x5f, 0x73, 0x64, 0x6b, 0x5f, 0x63, 0x64, 0x6e, 0x5f, 0x75, 0x72, 0x6c)
-	o = msgp.AppendString(o, z.JSSDKCDNURL)
 	// string "state_jwt_secret"
 	o = append(o, 0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 	o = msgp.AppendString(o, z.StateJWTSecret)
@@ -2738,11 +2721,6 @@ func (z *OAuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		switch msgp.UnsafeString(field) {
 		case "url_prefix":
 			z.URLPrefix, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				return
-			}
-		case "js_sdk_cdn_url":
-			z.JSSDKCDNURL, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
 				return
 			}
@@ -2813,7 +2791,7 @@ func (z *OAuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *OAuthConfiguration) Msgsize() (s int) {
-	s = 1 + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 15 + msgp.StringPrefixSize + len(z.JSSDKCDNURL) + 17 + msgp.StringPrefixSize + len(z.StateJWTSecret) + 22 + msgp.ArrayHeaderSize
+	s = 1 + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 17 + msgp.StringPrefixSize + len(z.StateJWTSecret) + 22 + msgp.ArrayHeaderSize
 	for ztco := range z.AllowedCallbackURLs {
 		s += msgp.StringPrefixSize + len(z.AllowedCallbackURLs[ztco])
 	}

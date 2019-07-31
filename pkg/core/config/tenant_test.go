@@ -157,7 +157,6 @@ var fullTenantConfig = TenantConfiguration{
 			},
 			OAuth: OAuthConfiguration{
 				URLPrefix:      "http://localhost:3000/oauth",
-				JSSDKCDNURL:    "http://localhost:3000/oauth/sdk.js",
 				StateJWTSecret: "oauthstatejwtsecret",
 				AllowedCallbackURLs: []string{
 					"http://localhost:3000/oauth/callback",
