@@ -37,7 +37,7 @@ type Event struct {
 
 func newEvent(seqNo int64, payload Payload, context Context) *Event {
 	return &Event{
-		ID:      fmt.Sprintf("%08x", seqNo),
+		ID:      fmt.Sprintf("%016x", seqNo),
 		Seq:     seqNo,
 		Payload: payload,
 		Context: context,

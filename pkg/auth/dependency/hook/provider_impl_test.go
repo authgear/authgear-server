@@ -63,7 +63,7 @@ func TestDispatchEvent(t *testing.T) {
 				So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{
 					mockDelivererBeforeEvent{
 						Event: &event.Event{
-							ID:      "00000001",
+							ID:      "0000000000000001",
 							Type:    event.BeforeSessionCreate,
 							Seq:     1,
 							Payload: payload,
@@ -117,7 +117,7 @@ func TestDispatchEvent(t *testing.T) {
 				So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{
 					mockDelivererBeforeEvent{
 						Event: &event.Event{
-							ID:      "00000001",
+							ID:      "0000000000000001",
 							Type:    event.BeforeSessionCreate,
 							Seq:     1,
 							Payload: payload,
@@ -222,7 +222,7 @@ func TestDispatchEvent(t *testing.T) {
 				So(provider.PersistentEventPayloads, ShouldBeNil)
 				So(store.persistedEvents, ShouldResemble, []*event.Event{
 					&event.Event{
-						ID:   "00000001",
+						ID:   "0000000000000001",
 						Type: event.AfterSessionCreate,
 						Seq:  1,
 						Payload: event.SessionCreateEvent{
@@ -238,7 +238,7 @@ func TestDispatchEvent(t *testing.T) {
 						},
 					},
 					&event.Event{
-						ID:   "00000002",
+						ID:   "0000000000000002",
 						Type: event.UserSync,
 						Seq:  2,
 						Payload: event.UserSyncEvent{
@@ -286,7 +286,7 @@ func TestDispatchEvent(t *testing.T) {
 				So(store.nextSequenceNumber, ShouldEqual, 2)
 				So(store.persistedEvents, ShouldResemble, []*event.Event{
 					&event.Event{
-						ID:   "00000001",
+						ID:   "0000000000000001",
 						Type: event.UserSync,
 						Seq:  1,
 						Payload: event.UserSyncEvent{
