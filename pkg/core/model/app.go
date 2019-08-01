@@ -3,6 +3,7 @@ package model
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
@@ -59,6 +60,27 @@ func CheckAccessKeyType(config config.TenantConfiguration, apiKey string) KeyTyp
 	return NoAccessKey
 }
 
+const httpHeaderAuthorization = "authorization"
+const httpAuthzBearerScheme = "bearer"
+
+func parseAuthorizationHeader(r *http.Request) (token string) {
+	authorization := strings.SplitN(r.Header.Get(httpHeaderAuthorization), " ", 2)
+	if len(authorization) != 2 {
+		return
+	}
+
+	scheme := authorization[0]
+	if strings.ToLower(scheme) != httpAuthzBearerScheme {
+		return
+	}
+
+	return authorization[1]
+}
+
 func GetAccessToken(r *http.Request) string {
+	token := parseAuthorizationHeader(r)
+	if token != "" {
+		return token
+	}
 	return r.Header.Get(coreHttp.HeaderAccessToken)
 }
