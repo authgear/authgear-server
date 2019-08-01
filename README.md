@@ -129,6 +129,41 @@ $ go run ./cmd/migrate/main.go \
 >       up
 ```
 
+**Start migration server in http server mode**
+
+- To start the migration server
+
+    ```
+    $ go run ./cmd/migrate/main.go \
+    >       -add-migration-src=auth,cmd/migrate/revisions/auth \
+    >       -add-migration-src=core,cmd/migrate/revisions/core \
+    >       -http-server
+    ```
+
+- Calling the migration server 
+
+    ```
+    POST /migrate
+    ```
+
+    Request example
+
+    ```json
+    {
+        "migration": "auth",
+        "schema": "app_config",
+        "database": "postgres://postgres:@localhost:5432/postgres?sslmode=disable",
+        "command": "version"
+    }
+    ```
+
+    Response example
+
+    ```json
+    {
+        "result":"1563434450"
+    }
+    ```
 
 **(Optional) Use docker to run migration**
 
