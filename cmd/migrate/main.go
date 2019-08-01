@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/skygeario/skygear-server/pkg/migrate/command"
 	"github.com/skygeario/skygear-server/pkg/migrate/source"
+	"github.com/skygeario/skygear-server/pkg/migrate/tenant"
 )
 
 type commandRequest struct {
@@ -26,25 +28,39 @@ type commandRequest struct {
 }
 
 func main() {
+	// multi-tentant mode flags
+	configDatabasePtr := flag.String("config-database", "", "(multi-tenant mode only) app config db url")
+	appFilterKeyPtr := flag.String("app-filter-key", "", "filter app by key, e.g. auth_version")
+	appFilterValuePtr := flag.String("app-filter-value", "", "use with app-filter-key, specify the value of key, e.g. live")
+	hostnameOverridePtr := flag.String("hostname-override", "", "override the hostname of the database url of each app")
+
+	// single db mode flags
+	databasePtr := flag.String("database", "postgres://postgres:@localhost/postgres?sslmode=disable", "migration db url")
+	schemaPtr := flag.String("schema", "", "migration schema")
+
+	// general flags
 	sources := command.SourceFlags{}
 	flag.Var(&sources, "add-migration-src", "specify source in form <migration_name>,<source_url>")
 
 	migrations := command.MigrationFlags{}
 	flag.Var(&migrations, "migration", "migration name, e.g. core")
 
-	databasePtr := flag.String("database", "postgres://postgres:@localhost/postgres?sslmode=disable", "migration db url")
-	schemaPtr := flag.String("schema", "", "migration schema")
 	dryRunPtr := flag.Bool("dry-run", false, "enable dry run will rollback the transaction")
 	startHTTPServerPtr := flag.Bool("http-server", false, "start server to accept migration request by api. if this is true, all the other flag will be ignored")
 
 	flag.Parse()
 
+	configDBStr := *configDatabasePtr
+	appFilterKey := *appFilterKeyPtr
+	appFilterValue := *appFilterValuePtr
+	hostnameOverride := *hostnameOverridePtr
 	schema := *schemaPtr
 	databaseURL := *databasePtr
 	dryRun := *dryRunPtr
 	command := flag.Arg(0)
 	commandArg := flag.Arg(1)
 
+	// Download source
 	err := source.ClearCache()
 	if err != nil {
 		log.WithField("error", err).Error("unable to clear cache")
@@ -61,27 +77,37 @@ func main() {
 	}
 
 	startHTTPServer := *startHTTPServerPtr
-
 	if !startHTTPServer {
-		for _, m := range migrations {
-			SourceURL := ""
-			if s, ok := sources[m]; ok {
-				SourceURL = s.SourceURL
-			}
-			_, err := runCmd(commandRequest{
-				Migration:   m,
-				Schema:      schema,
-				DatabaseURL: databaseURL,
-				SourceURL:   SourceURL,
-				DryRun:      dryRun,
-				Command:     command,
-				CommandArg:  commandArg,
-			})
-			if err != nil {
-				os.Exit(1)
+		if configDBStr != "" {
+			// multi-tenant mode
+			runMultiTenantMigrations(
+				configDBStr, appFilterKey, appFilterValue,
+				hostnameOverride, sources, migrations,
+				dryRun, command, commandArg,
+			)
+		} else {
+			// cli mode
+			for _, m := range migrations {
+				SourceURL := ""
+				if s, ok := sources[m]; ok {
+					SourceURL = s.SourceURL
+				}
+				_, err := runCmd(commandRequest{
+					Migration:   m,
+					Schema:      schema,
+					DatabaseURL: databaseURL,
+					SourceURL:   SourceURL,
+					DryRun:      dryRun,
+					Command:     command,
+					CommandArg:  commandArg,
+				})
+				if err != nil {
+					os.Exit(1)
+				}
 			}
 		}
 	} else {
+		// http mode
 		http.HandleFunc("/migrate", func(w http.ResponseWriter, r *http.Request) {
 			var err error
 			var result string
@@ -120,6 +146,62 @@ func main() {
 		})
 		log.Printf("migration server boot")
 		log.Fatal(http.ListenAndServe(":3000", nil))
+	}
+}
+
+func runMultiTenantMigrations(
+	configDBStr string, appFilterKey string, appFilterValue string,
+	hostnameOverride string, sources command.SourceFlags,
+	migrations command.MigrationFlags,
+	dryRun bool, command string, commandArg string,
+) {
+	db, err := sql.Open("postgres", configDBStr)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	defer func() {
+		err = db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	apps, err := tenant.GetMigrateApps(hostnameOverride, db, appFilterKey, appFilterValue)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	log.WithFields(log.Fields{
+		"count":        len(apps),
+		"filter_key":   appFilterKey,
+		"filter_value": appFilterValue,
+	}).Info("start running migration")
+
+	for _, a := range apps {
+		for _, migration := range migrations {
+			databaseURL := a.DatabaseURL
+			schema := fmt.Sprintf("app_%s", a.Name)
+
+			sourceURL := ""
+			if s, ok := sources[migration]; ok {
+				sourceURL = s.SourceURL
+			}
+
+			_, err = runCmd(commandRequest{
+				Migration:   migration,
+				Schema:      schema,
+				DatabaseURL: databaseURL,
+				SourceURL:   sourceURL,
+				DryRun:      dryRun,
+				Command:     command,
+				CommandArg:  commandArg,
+			})
+
+			if err != nil {
+				os.Exit(1)
+			}
+		}
 	}
 }
 
