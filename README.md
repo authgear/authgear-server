@@ -51,10 +51,9 @@ DB migration must be run before server boot up. And since we do not have a full 
 
 1. Create a schema for common gateway.
 1. Create a schema for your app.
-1. Run core migration.
-1. Run gear(s) migration.
+1. Run core and gear(s) migration.
 
-For example, the app name is `helloworld` and you want to run `auth` gear and `chat` gear.
+For example, the app name is `helloworld` and you want to run `auth` gear .
 
 ```
 # Base app_config schema for core gateway
@@ -66,16 +65,14 @@ CREATE SCHEMA app_helloworld;
 # If you have psql cli
 $ psql ${DATABASE_URL} -c "CREATE SCHEMA app_helloworld;"
 
-# Run migration
-# MODULE can be gateway, core, auth...
-$ export MODULE=<module_name>
-$ go run cmd/migrate/main.go -module ${MODULE} -schema app_helloworld up
-
-# Run core migration
-$ go run cmd/migrate/main.go -module core -schema app_helloworld up
-
-# Run auth gear migration
-$ go run cmd/migrate/main.go -module auth -schema app_helloworld up
+# Run core and auth migration
+$ go run cmd/migrate/main.go \
+>       -add-migration-src=auth,cmd/migrate/revisions/auth \
+>       -add-migration-src=core,cmd/migrate/revisions/core \
+>       -migration=core \
+>       -migration=auth \
+>       -schema app_helloworld \
+>       up
 ```
 
 See below sections for more commands about db migration.
@@ -90,39 +87,48 @@ $ export MODULE=<module_name>
 $ export REVISION=<revision_description>
 $ make -f scripts/migrate/Makefile add-version MODULE=${MODULE} REVISION=${REVISION}
 ```
-
-**Run core migration**
-
-```
-$ export APPNAME="app name"
-$ go run cmd/migrate/main.go -module core -schema app_${APPNAME} up
-```
-
-**Run gear migration**
-
-```
-$ export GEAR="gear name"
-$ export APPNAME="app name"
-$ go run cmd/migrate/main.go -module ${GEAR} -schema app_${APPNAME} up
-```
-
 **Check current db version**
 
 ```
-$ export GEAR="gear name"
-$ export APPNAME="app name"
-$ go run cmd/migrate/main.go -module ${GEAR} -schema app_${APPNAME} version
+$ go run cmd/migrate/main.go \
+>       -migration=core \
+>       -migration=auth \
+>       -schema=app_helloworld \
+>       version
 ```
 
 **Dry run the migration**
 
-- Transaction will be rollback
+Transaction will be rollback
 
 ```
-$ export GEAR="gear name"
-$ export APPNAME="app name"
-$ go run cmd/migrate/main.go -module ${GEAR} -schema app_${APPNAME} -dry-run up
+$ go run cmd/migrate/main.go \
+>       -add-migration-src=auth,cmd/migrate/revisions/auth \
+>       -add-migration-src=core,cmd/migrate/revisions/core \
+>       -migration=core \
+>       -migration=auth \
+>       -schema=app_helloworld \
+>       -dry-run
+>       up
 ```
+
+**Running db migration to all apps in cluster (multi-tenant mode)**
+
+Run core and auth migrations to apps which auth version in live
+
+```
+$ go run ./cmd/migrate/main.go \
+>       -add-migration-src=auth,cmd/migrate/revisions/auth \
+>       -add-migration-src=core,cmd/migrate/revisions/core \
+>       -migration=core \
+>       -migration=auth \
+>       -app-filter-key=auth_version \
+>       -app-filter-value=live \
+>       -config-database=postgres://postgres:@localhost/postgres?sslmode=disable \
+>       -hostname-override=localhost \
+>       up
+```
+
 
 **(Optional) Use docker to run migration**
 
@@ -130,14 +136,19 @@ $ go run cmd/migrate/main.go -module ${GEAR} -schema app_${APPNAME} -dry-run up
 # Build the docker image
 docker build -f ./cmd/migrate/Dockerfile -t skygear-migrate .
 
-# Run migration
-docker run --rm --network=host skygear-migrate -module=gateway up
-docker run --rm --network=host skygear-migrate -module=core -schema=app_${APPNAME} up
+# for docker from 18.03 onwards
+# connect to host db
+export DATABASE_URL=postgres://postgres:@host.docker.internal:5432/postgres?sslmode=disable
 
-# Run migration to remote db
-docker run --rm --network=host skygear-migrate \
-        -module=core \
-        -schema=app_${APPNAME} \
+# Run migration
+docker run --rm \
+        -v $(PWD)/cmd/migrate/revisions:/cmd/migrate/revisions \
+        skygear-migrate \
+        -add-migration-src=auth,/cmd/migrate/revisions/auth \
+        -add-migration-src=core,/cmd/migrate/revisions/core \
+        -migration=core \
+        -migration=auth \
+        -schema=app_helloworld \
         -database=${DATABASE_URL} \
         up
 ```
