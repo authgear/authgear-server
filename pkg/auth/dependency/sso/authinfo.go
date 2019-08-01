@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/hash"
+	"github.com/skygeario/skygear-server/pkg/core/crypto"
 )
 
 type getAuthInfoRequest struct {
@@ -22,7 +22,7 @@ func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse) (authInfo 
 		return
 	}
 
-	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(hash.SHA256String(r.Nonce))) != 1 {
+	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
 		err = fmt.Errorf("invalid nonce")
 		return
 	}

@@ -1,25 +1,23 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-
-	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -32,7 +30,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -97,7 +94,8 @@ func TestSingupHandler(t *testing.T) {
 
 	Convey("Test SignupHandler", t, func() {
 		realTime := timeNow
-		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		now := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
+		timeNow = func() time.Time { return now }
 		defer func() {
 			timeNow = realTime
 		}()
@@ -138,10 +136,9 @@ func TestSingupHandler(t *testing.T) {
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
 		sh.WelcomeEmailEnabled = true
-		executor := hook.ExecutorImpl{}
-		hooks := []config.Hook{}
-		sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), "")
-		h := auth.HookHandlerToHandler(sh, sh.TxContext)
+		hookProvider := hook.NewMockProvider()
+		sh.HookProvider = hookProvider
+		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("signup user with login_id", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -160,6 +157,10 @@ func TestSingupHandler(t *testing.T) {
 			var p password.Principal
 			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeNil)
+			var p2 password.Principal
+			err = sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "john.doe", password.DefaultRealm, &p2)
+			So(err, ShouldBeNil)
+
 			userID := p.UserID
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -189,6 +190,66 @@ func TestSingupHandler(t *testing.T) {
 				userID,
 				p.ID,
 				token.AccessToken))
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.UserCreateEvent{
+					User: model.User{
+						ID:          userID,
+						LastLoginAt: &now,
+						Verified:    false,
+						Disabled:    false,
+						VerifyInfo:  map[string]bool{},
+						Metadata:    userprofile.Data{},
+					},
+					Identities: []model.Identity{
+						model.Identity{
+							ID:   p.ID,
+							Type: "password",
+							Attributes: principal.Attributes{
+								"login_id_key": "email",
+								"login_id":     "john.doe@example.com",
+								"realm":        "default",
+							},
+							Claims: principal.Claims{
+								"email": "john.doe@example.com",
+							},
+						},
+						model.Identity{
+							ID:   p2.ID,
+							Type: "password",
+							Attributes: principal.Attributes{
+								"login_id_key": "username",
+								"login_id":     "john.doe",
+								"realm":        "default",
+							},
+							Claims: principal.Claims{},
+						},
+					},
+				},
+				event.SessionCreateEvent{
+					Reason: event.SessionCreateReasonSignup,
+					User: model.User{
+						ID:          userID,
+						LastLoginAt: &now,
+						Verified:    false,
+						Disabled:    false,
+						VerifyInfo:  map[string]bool{},
+						Metadata:    userprofile.Data{},
+					},
+					Identity: model.Identity{
+						ID:   p.ID,
+						Type: "password",
+						Attributes: principal.Attributes{
+							"login_id_key": "email",
+							"login_id":     "john.doe@example.com",
+							"realm":        "default",
+						},
+						Claims: principal.Claims{
+							"email": "john.doe@example.com",
+						},
+					},
+				},
+			})
 		})
 
 		Convey("signup user with login_id with realm", func() {
@@ -237,6 +298,56 @@ func TestSingupHandler(t *testing.T) {
 				userID,
 				p.ID,
 				token.AccessToken))
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.UserCreateEvent{
+					User: model.User{
+						ID:          userID,
+						LastLoginAt: &now,
+						Verified:    false,
+						Disabled:    false,
+						VerifyInfo:  map[string]bool{},
+						Metadata:    userprofile.Data{},
+					},
+					Identities: []model.Identity{
+						model.Identity{
+							ID:   p.ID,
+							Type: "password",
+							Attributes: principal.Attributes{
+								"login_id_key": "email",
+								"login_id":     "john.doe@example.com",
+								"realm":        "admin",
+							},
+							Claims: principal.Claims{
+								"email": "john.doe@example.com",
+							},
+						},
+					},
+				},
+				event.SessionCreateEvent{
+					Reason: event.SessionCreateReasonSignup,
+					User: model.User{
+						ID:          userID,
+						LastLoginAt: &now,
+						Verified:    false,
+						Disabled:    false,
+						VerifyInfo:  map[string]bool{},
+						Metadata:    userprofile.Data{},
+					},
+					Identity: model.Identity{
+						ID:   p.ID,
+						Type: "password",
+						Attributes: principal.Attributes{
+							"login_id_key": "email",
+							"login_id":     "john.doe@example.com",
+							"realm":        "admin",
+						},
+						Claims: principal.Claims{
+							"email": "john.doe@example.com",
+						},
+					},
+				},
+			})
 		})
 
 		Convey("signup with incorrect login_id", func() {
@@ -394,10 +505,8 @@ func TestSingupHandler(t *testing.T) {
 		mockTaskQueue := async.NewMockQueue()
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
-		executor := hook.ExecutorImpl{}
-		hooks := []config.Hook{}
-		sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), "")
-		h := auth.HookHandlerToHandler(sh, sh.TxContext)
+		sh.HookProvider = hook.NewMockProvider()
+		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("duplicated user error format", func(c C) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -475,478 +584,6 @@ func TestSingupHandler(t *testing.T) {
 				}
 			}
 			`)
-		})
-	})
-
-	Convey("Test signup hooks", t, func() {
-		realTime := timeNow
-		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
-		defer func() {
-			timeNow = realTime
-		}()
-
-		zero := 0
-		one := 1
-		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
-			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
-			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
-		}
-		allowedRealms := []string{password.DefaultRealm}
-		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDsKeys, allowedRealms)
-
-		passwordChecker := &authAudit.PasswordChecker{
-			PwMinLength: 6,
-		}
-
-		sh := &SignupHandler{}
-		sh.AuthInfoStore = authInfoStore
-		mockTokenStore := authtoken.NewMockStore()
-		sh.TokenStore = mockTokenStore
-		sh.PasswordChecker = passwordChecker
-		sh.PasswordAuthProvider = passwordAuthProvider
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider)
-		sh.AuditTrail = audit.NewMockTrail(t)
-		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
-		sh.Logger = logrus.NewEntry(logrus.New())
-		mockTaskQueue := async.NewMockQueue()
-		sh.TaskQueue = mockTaskQueue
-		sh.TxContext = db.NewMockTxContext()
-		sh.WelcomeEmailEnabled = true
-		requestID := "request_id"
-
-		Convey("should invoke before signup hook", func(c C) {
-			server := hook.NewMockHookUpdateMetaHandler(userprofile.Data{
-				"name": "john.doe",
-			})
-			defer server.Close()
-
-			executor := hook.ExecutorImpl{}
-			hooks := []config.Hook{
-				config.Hook{
-					Event: hook.BeforeSignup,
-					URL:   server.URL,
-				},
-			}
-			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
-			h := auth.HookHandlerToHandler(sh, sh.TxContext)
-
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
-			{
-				"login_ids": [
-					{ "key": "email", "value": "john.doe@example.com" },
-					{ "key": "username", "value": "john.doe" }
-				],
-				"password": "123456"
-			}`))
-			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-
-			So(resp.Code, ShouldEqual, 200)
-
-			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
-			So(err, ShouldBeNil)
-			userID := p.UserID
-			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-				"result": {
-					"user": {
-						"id": "%s",
-						"is_verified": false,
-						"is_disabled": false,
-						"last_login_at": "2006-01-02T15:04:05Z",
-						"created_at": "0001-01-01T00:00:00Z",
-						"verify_info": {},
-						"metadata": {
-							"name":"john.doe"
-						}
-					},
-					"identity": {
-						"id": "%s",
-						"type": "password",
-						"login_id_key": "email",
-						"login_id": "john.doe@example.com",
-						"realm": "default",
-						"claims": {}
-					},
-					"access_token": "%s"
-				}
-			}`,
-				userID,
-				p.ID,
-				token.AccessToken))
-		})
-
-		Convey("should stop signup if hook throws error", func(c C) {
-			server := hook.NewMockHookErrorHandler(skyerr.NotSupported, "after_signup_fail")
-			defer server.Close()
-
-			hooks := []config.Hook{
-				config.Hook{
-					Event: hook.AfterSignup,
-					URL:   server.URL,
-				},
-			}
-			executor := hook.ExecutorImpl{}
-			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
-			h := auth.HookHandlerToHandler(sh, sh.TxContext)
-
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
-			{
-				"login_ids": [
-					{ "key": "email", "value": "john.doe@example.com" },
-					{ "key": "username", "value": "john.doe" }
-				],
-				"password": "123456"
-			}`))
-			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-
-			So(resp.Code, ShouldEqual, 501)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `
-			{
-				"error": {
-					"name": "NotSupported",
-					"code": 111,
-					"message": "after_signup_fail"
-				}
-			}
-			`)
-		})
-
-		Convey("should invoke hook with correct formatted payload", func(c C) {
-			getAuthInfo := func() (string, string, string) {
-				var p password.Principal
-				err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
-				if err != nil {
-					return "", "", ""
-				}
-				userID := p.UserID
-				token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
-				return userID, p.ID, token.AccessToken
-			}
-
-			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-				userID, _, accessToken := getAuthInfo()
-				c.So(req.Header.Get(coreHttp.HeaderAccessToken), ShouldEqual, accessToken)
-				body, err := ioutil.ReadAll(req.Body)
-				c.So(err, ShouldBeNil)
-				c.So(body, ShouldEqualJSON, fmt.Sprintf(`{
-					"context": {
-						"req": {
-							"id": "%s",
-							"path": "/auth/signup",
-							"payload": {
-								"login_ids": [
-									{ "key": "email", "value": "john.doe@example.com" },
-									{ "key": "username", "value": "john.doe" }
-								],
-								"realm": "default",
-								"password": "123456",
-								"metadata": {}
-							}
-						}
-					},
-					"data": {
-						"id": "%s",
-						"is_verified": false,
-						"is_disabled": false,
-						"last_login_at": "2006-01-02T15:04:05Z",
-						"created_at": "0001-01-01T00:00:00Z",
-						"verify_info": {},
-						"metadata": {}
-					},
-					"event": "after_signup"
-				}`,
-					requestID,
-					userID))
-
-				rw.WriteHeader(http.StatusOK)
-			}))
-			defer server.Close()
-
-			executor := hook.ExecutorImpl{}
-			hooks := []config.Hook{
-				config.Hook{
-					Event: hook.AfterSignup,
-					URL:   server.URL,
-				},
-			}
-			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
-			url, _ := url.Parse("http://skygear/auth/signup")
-			sh.HookStore = sh.HookStore.WithRequest(&http.Request{
-				URL: url,
-			})
-			h := auth.HookHandlerToHandler(sh, sh.TxContext)
-
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
-							{
-								"login_ids": [
-									{ "key": "email", "value": "john.doe@example.com" },
-									{ "key": "username", "value": "john.doe" }
-								],
-								"password": "123456"
-							}`))
-			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-
-			So(resp.Code, ShouldEqual, 200)
-
-			userID, principalID, accessToken := getAuthInfo()
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-				"result": {
-					"user": {
-						"id": "%s",
-						"is_verified": false,
-						"is_disabled": false,
-						"last_login_at": "2006-01-02T15:04:05Z",
-						"created_at": "0001-01-01T00:00:00Z",
-						"verify_info": {},
-						"metadata": {}
-					},
-					"identity": {
-						"id": "%s",
-						"type": "password",
-						"login_id_key": "email",
-						"login_id": "john.doe@example.com",
-						"realm": "default",
-						"claims": {}
-					},
-					"access_token": "%s"
-				}
-			}`,
-				userID,
-				principalID,
-				accessToken))
-		})
-
-		Convey("should not stop signup if async hook throws error", func(c C) {
-			server := hook.NewMockHookErrorHandler(skyerr.NotSupported, "after_signup_fail")
-			defer server.Close()
-
-			hooks := []config.Hook{
-				config.Hook{
-					Async: true,
-					Event: hook.AfterSignup,
-					URL:   server.URL,
-				},
-			}
-			executor := hook.ExecutorImpl{}
-			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
-			h := auth.HookHandlerToHandler(sh, sh.TxContext)
-
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
-			{
-				"login_ids": [
-					{ "key": "email", "value": "john.doe@example.com" },
-					{ "key": "username", "value": "john.doe" }
-				],
-				"password": "123456"
-			}`))
-			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-
-			So(resp.Code, ShouldEqual, 200)
-
-			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
-			So(err, ShouldBeNil)
-			userID := p.UserID
-			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-				"result": {
-					"user": {
-						"id": "%s",
-						"is_verified": false,
-						"is_disabled": false,
-						"last_login_at": "2006-01-02T15:04:05Z",
-						"created_at": "0001-01-01T00:00:00Z",
-						"verify_info": {},
-						"metadata": {}
-					},
-					"identity": {
-						"id": "%s",
-						"type": "password",
-						"login_id_key": "email",
-						"login_id": "john.doe@example.com",
-						"realm": "default",
-						"claims": {}
-					},
-					"access_token": "%s"
-				}
-			}`,
-				userID,
-				p.ID,
-				token.AccessToken))
-		})
-
-		Convey("should not update metadata", func(c C) {
-			server := hook.NewMockHookUpdateMetaHandler(userprofile.Data{
-				"name": "john.doe",
-			})
-			defer server.Close()
-
-			hooks := []config.Hook{
-				config.Hook{
-					Event: hook.AfterSignup,
-					URL:   server.URL,
-				},
-			}
-			executor := hook.ExecutorImpl{}
-			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
-			h := auth.HookHandlerToHandler(sh, sh.TxContext)
-
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
-			{
-				"login_ids": [
-					{ "key": "email", "value": "john.doe@example.com" },
-					{ "key": "username", "value": "john.doe" }
-				],
-				"password": "123456"
-			}`))
-			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-
-			So(resp.Code, ShouldEqual, 200)
-
-			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
-			So(err, ShouldBeNil)
-			userID := p.UserID
-			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-				"result": {
-					"user": {
-						"id": "%s",
-						"is_verified": false,
-						"is_disabled": false,
-						"last_login_at": "2006-01-02T15:04:05Z",
-						"created_at": "0001-01-01T00:00:00Z",
-						"verify_info": {},
-						"metadata": {}
-					},
-					"identity": {
-						"id": "%s",
-						"type": "password",
-						"login_id_key": "email",
-						"login_id": "john.doe@example.com",
-						"realm": "default",
-						"claims": {}
-					},
-					"access_token": "%s"
-				}
-			}`,
-				userID,
-				p.ID,
-				token.AccessToken))
-		})
-
-		Convey("should invoke multiple before signup hook", func(c C) {
-			server1 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-				decoder := json.NewDecoder(req.Body)
-				var payload hook.AuthPayload
-				err := decoder.Decode(&payload)
-				if err != nil {
-					panic(err)
-				}
-
-				user := payload.Data
-				metadata := user["metadata"].(map[string]interface{})
-				metadata["email"] = "john.doe@example.com"
-
-				body, err := json.Marshal(user)
-				if err != nil {
-					panic(err)
-				}
-
-				rw.WriteHeader(http.StatusOK)
-				rw.Write(body)
-			}))
-			defer server1.Close()
-
-			server2 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-				decoder := json.NewDecoder(req.Body)
-				var payload hook.AuthPayload
-				err := decoder.Decode(&payload)
-				if err != nil {
-					panic(err)
-				}
-
-				user := payload.Data
-				metadata := user["metadata"].(map[string]interface{})
-				metadata["name"] = "john.doe"
-
-				body, err := json.Marshal(user)
-				if err != nil {
-					panic(err)
-				}
-
-				rw.WriteHeader(http.StatusOK)
-				rw.Write(body)
-			}))
-			defer server2.Close()
-
-			executor := hook.ExecutorImpl{}
-			hooks := []config.Hook{
-				config.Hook{
-					Event: hook.BeforeSignup,
-					URL:   server1.URL,
-				},
-				config.Hook{
-					Event: hook.BeforeSignup,
-					URL:   server2.URL,
-				},
-			}
-			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
-			h := auth.HookHandlerToHandler(sh, sh.TxContext)
-
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
-			{
-				"login_ids": [
-					{ "key": "email", "value": "john.doe@example.com" },
-					{ "key": "username", "value": "john.doe" }
-				],
-				"password": "123456"
-			}`))
-			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-
-			So(resp.Code, ShouldEqual, 200)
-
-			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
-			So(err, ShouldBeNil)
-			userID := p.UserID
-			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-				"result": {
-					"user": {
-						"id": "%s",
-						"is_verified": false,
-						"is_disabled": false,
-						"last_login_at": "2006-01-02T15:04:05Z",
-						"created_at": "0001-01-01T00:00:00Z",
-						"verify_info": {},
-						"metadata": {
-							"name": "john.doe",
-							"email": "john.doe@example.com"
-						}
-					},
-					"identity": {
-						"id": "%s",
-						"type": "password",
-						"login_id_key": "email",
-						"login_id": "john.doe@example.com",
-						"realm": "default",
-						"claims": {}
-					},
-					"access_token": "%s"
-				}
-			}`,
-				userID,
-				p.ID,
-				token.AccessToken))
 		})
 	})
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/hash"
+	"github.com/skygeario/skygear-server/pkg/core/crypto"
 )
 
 const (
@@ -91,7 +91,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 		return
 	}
 
-	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(hash.SHA256String(r.Nonce))) != 1 {
+	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
 		err = fmt.Errorf("invalid nonce")
 		return
 	}
@@ -161,7 +161,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 		err = fmt.Errorf("no nonce")
 		return
 	}
-	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(hash.SHA256String(r.Nonce))) != 1 {
+	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
 		err = fmt.Errorf("invalid nonce")
 		return
 	}

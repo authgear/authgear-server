@@ -7,7 +7,11 @@ import (
 	"testing"
 	gotime "time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -80,6 +84,9 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			},
 		)
 		vh.AuthInfoStore = authInfoStore
+		vh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		hookProvider := hook.NewMockProvider()
+		vh.HookProvider = hookProvider
 
 		verifyConfig := config.UserVerificationConfiguration{
 			Criteria: config.UserVerificationCriteriaAll,
@@ -120,7 +127,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				},
 			},
 		}
-		vh.UserVerificationProvider = userverify.NewProvider(nil, &store, verifyConfig, time)
+		vh.UserVerificationProvider = userverify.NewProvider(nil, &store, verifyConfig, &time)
 
 		Convey("verify with correct code and auto update", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
@@ -133,6 +140,26 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				"result": {}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeTrue)
+
+			isVerified := true
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.UserUpdateEvent{
+					Reason:     event.UserUpdateReasonVerification,
+					IsVerified: &isVerified,
+					VerifyInfo: &map[string]bool{
+						"faseng.cat.id@example.com": true,
+					},
+					User: model.User{
+						ID:       "faseng.cat.id",
+						Verified: false,
+						Disabled: false,
+						VerifyInfo: map[string]bool{
+							"faseng.cat.id@example.com": false,
+						},
+						Metadata: userprofile.Data{},
+					},
+				},
+			})
 		})
 
 		Convey("verify with correct code but not all verified", func() {
@@ -141,7 +168,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				"email": config.UserVerificationKeyConfiguration{Expiry: 12 * 60 * 60},
 				"phone": config.UserVerificationKeyConfiguration{Expiry: 12 * 60 * 60},
 			}
-			provider := userverify.NewProvider(nil, &store, newVerifyConfig, time)
+			provider := userverify.NewProvider(nil, &store, newVerifyConfig, &time)
 			oldProvider := vh.UserVerificationProvider
 			vh.UserVerificationProvider = provider
 			defer func() {

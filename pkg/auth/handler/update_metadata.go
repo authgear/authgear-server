@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
@@ -40,7 +42,7 @@ type UpdateMetadataHandlerFactory struct {
 func (f UpdateMetadataHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &UpdateMetadataHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 func (f UpdateMetadataHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -87,6 +89,7 @@ type UpdateMetadataHandler struct {
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
+	HookProvider         hook.Provider              `dependency:"HookProvider"`
 }
 
 func (h UpdateMetadataHandler) WithTx() bool {
@@ -131,15 +134,37 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	var profile userprofile.UserProfile
-	if profile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, &authInfo, newMetadata); err != nil {
+	var oldProfile, newProfile userprofile.UserProfile
+	if oldProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to get user profile")
+		return
+	}
+
+	if newProfile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, newMetadata); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to update user profile")
 		return
 	}
 
-	resp = authModel.NewAuthResponseWithUser(authModel.NewUser(authInfo, profile))
+	oldUser := authModel.NewUser(authInfo, oldProfile)
+	user := authModel.NewUser(authInfo, newProfile)
+
+	err = h.HookProvider.DispatchEvent(
+		event.UserUpdateEvent{
+			Reason:   event.UserUpdateReasonUpdateMetadata,
+			User:     oldUser,
+			Metadata: &newProfile.Data,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
+
+	resp = authModel.NewAuthResponseWithUser(user)
 
 	return
 }

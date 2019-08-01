@@ -15,12 +15,19 @@ type APIHandler interface {
 	Handle(requestPayload interface{}) (interface{}, error)
 }
 
+type APITxHandler interface {
+	WillCommitTx() error
+	DidCommitTx()
+}
+
 type APIResponse struct {
 	Result interface{}  `json:"result,omitempty"`
 	Err    skyerr.Error `json:"error,omitempty"`
 }
 
 func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Handler {
+	txHandler, _ := apiHandler.(APITxHandler)
+
 	handleAPICall := func(r *http.Request) (response APIResponse) {
 		payload, err := apiHandler.DecodeRequest(r)
 		if err != nil {
@@ -48,11 +55,18 @@ func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Han
 
 		responsePayload, err := apiHandler.Handle(payload)
 
+		if err == nil && txHandler != nil {
+			err = txHandler.WillCommitTx()
+		}
+
 		if err == nil {
 			response.Result = responsePayload
 
 			if txContext != nil {
 				txContext.CommitTx()
+			}
+			if txHandler != nil {
+				txHandler.DidCommitTx()
 			}
 		} else {
 			response.Err = skyerr.MakeError(err)

@@ -36,13 +36,27 @@ func NewUser(
 	authInfo authinfo.AuthInfo,
 	userProfile userprofile.UserProfile,
 ) User {
+	// copy data to prevent sharing
+	if authInfo.LastLoginAt != nil {
+		lastLoginAt := *authInfo.LastLoginAt
+		authInfo.LastLoginAt = &lastLoginAt
+	}
+	verifyInfo := map[string]bool{}
+	for k, v := range authInfo.VerifyInfo {
+		verifyInfo[k] = v
+	}
+	metadata := userprofile.Data{}
+	for k, v := range userProfile.Data {
+		metadata[k] = v
+	}
+
 	return User{
 		ID:          authInfo.ID,
 		CreatedAt:   userProfile.CreatedAt,
 		LastLoginAt: authInfo.LastLoginAt,
 		Verified:    authInfo.Verified,
 		Disabled:    authInfo.Disabled,
-		VerifyInfo:  authInfo.VerifyInfo,
-		Metadata:    userProfile.Data,
+		VerifyInfo:  verifyInfo,
+		Metadata:    metadata,
 	}
 }

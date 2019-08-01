@@ -4,7 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -37,7 +42,7 @@ func (f UnlinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 func (f UnlinkHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -63,10 +68,13 @@ func (f UnlinkHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 // }
 //
 type UnlinkHandler struct {
-	TxContext         db.TxContext           `dependency:"TxContext"`
-	AuthContext       coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	OAuthAuthProvider oauth.Provider         `dependency:"OAuthAuthProvider"`
-	ProviderFactory   *sso.ProviderFactory   `dependency:"SSOProviderFactory"`
+	TxContext         db.TxContext               `dependency:"TxContext"`
+	AuthContext       coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	OAuthAuthProvider oauth.Provider             `dependency:"OAuthAuthProvider"`
+	IdentityProvider  principal.IdentityProvider `dependency:"IdentityProvider"`
+	UserProfileStore  userprofile.Store          `dependency:"UserProfileStore"`
+	HookProvider      hook.Provider              `dependency:"HookProvider"`
+	ProviderFactory   *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
 	ProviderID        string
 }
 
@@ -96,6 +104,25 @@ func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	err = h.OAuthAuthProvider.DeletePrincipal(principal)
+	if err != nil {
+		return
+	}
+
+	var userProfile userprofile.UserProfile
+	userProfile, err = h.UserProfileStore.GetUserProfile(userID)
+	if err != nil {
+		return
+	}
+
+	user := model.NewUser(*h.AuthContext.AuthInfo(), userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, principal)
+	err = h.HookProvider.DispatchEvent(
+		event.IdentityDeleteEvent{
+			User:     user,
+			Identity: identity,
+		},
+		&user,
+	)
 	if err != nil {
 		return
 	}

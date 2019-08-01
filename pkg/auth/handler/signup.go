@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 
 	"github.com/skygeario/skygear-server/pkg/core/utils"
 
@@ -55,8 +56,7 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	h.HookStore = h.HookStore.WithRequest(request)
-	return auth.HookHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -124,7 +124,7 @@ type SignupHandler struct {
 	TxContext               db.TxContext                                       `dependency:"TxContext"`
 	Logger                  *logrus.Entry                                      `dependency:"HandlerLogger"`
 	TaskQueue               async.Queue                                        `dependency:"AsyncTaskQueue"`
-	HookStore               hook.Store                                         `dependency:"HookStore"`
+	HookProvider            hook.Provider                                      `dependency:"HookProvider"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -149,14 +149,7 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return payload, nil
 }
 
-func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *model.User) error {
-	payload := req.(SignupRequestPayload)
-	inputUser.Metadata = payload.Metadata
-	err := h.HookStore.ExecBeforeHooksByEvent(hook.BeforeSignup, req, inputUser, "")
-	return err
-}
-
-func (h SignupHandler) HandleRequest(req interface{}, inputUser *model.User) (resp interface{}, err error) {
+func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
 	err = h.verifyPayload(payload)
@@ -184,9 +177,6 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *model.User) (re
 	// Create Profile
 	var userProfile userprofile.UserProfile
 	metadata := payload.Metadata
-	if inputUser != nil {
-		metadata = inputUser.Metadata
-	}
 	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, metadata); err != nil {
 		// TODO:
 		// return proper error
@@ -195,10 +185,38 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *model.User) (re
 	}
 
 	// Create Principal
-	loginPrincipal, err := h.createPrincipals(payload, info)
+	principals, err := h.createPrincipals(payload, info)
 	if err != nil {
 		return
 	}
+	loginPrincipal := principals[0]
+
+	user := model.NewUser(info, userProfile)
+	identities := []model.Identity{}
+	var loginIdentity model.Identity
+	for _, principal := range principals {
+		identity := model.NewIdentity(h.IdentityProvider, principal)
+		identities = append(identities, identity)
+		if principal == loginPrincipal {
+			loginIdentity = identity
+		}
+	}
+
+	err = h.HookProvider.DispatchEvent(
+		event.UserCreateEvent{
+			User:       user,
+			Identities: identities,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
+
+	h.AuditTrail.Log(audit.Entry{
+		AuthID: info.ID,
+		Event:  audit.EventSignup,
+	})
 
 	// Create auth token
 	tkn, err := h.TokenStore.NewToken(info.ID, loginPrincipal.PrincipalID())
@@ -217,37 +235,29 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *model.User) (re
 		return
 	}
 
-	h.AuditTrail.Log(audit.Entry{
-		AuthID: info.ID,
-		Event:  audit.EventSignup,
-	})
-
-	user := model.NewUser(info, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, loginPrincipal)
-
-	*inputUser = user
-	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
-
-	return
-}
-
-func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user model.User) error {
-	reqPayload := req.(SignupRequestPayload)
-	respPayload := resp.(model.AuthResponse)
-	err := h.HookStore.ExecAfterHooksByEvent(hook.AfterSignup, req, user, respPayload.AccessToken)
+	err = h.HookProvider.DispatchEvent(
+		event.SessionCreateEvent{
+			Reason:   event.SessionCreateReasonSignup,
+			User:     user,
+			Identity: loginIdentity,
+		},
+		&user,
+	)
 	if err != nil {
-		return err
+		return
 	}
 
+	resp = model.NewAuthResponse(user, loginIdentity, tkn.AccessToken)
+
 	if h.WelcomeEmailEnabled {
-		h.sendWelcomeEmail(user, reqPayload.LoginIDs)
+		h.sendWelcomeEmail(user, payload.LoginIDs)
 	}
 
 	if h.AutoSendUserVerifyCode {
-		h.sendUserVerifyRequest(user, reqPayload.LoginIDs)
+		h.sendUserVerifyRequest(user, payload.LoginIDs)
 	}
 
-	return nil
+	return
 }
 
 func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
@@ -268,8 +278,13 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 	return
 }
 
-func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (principal principal.Principal, err error) {
-	principals, createError := h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs, payload.Realm)
+func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (principals []principal.Principal, err error) {
+	passwordPrincipals, createError := h.PasswordAuthProvider.CreatePrincipalsByLoginID(
+		authInfo.ID,
+		payload.Password,
+		payload.LoginIDs,
+		payload.Realm,
+	)
 
 	if createError != nil {
 		if createError == skydb.ErrUserDuplicated {
@@ -279,7 +294,9 @@ func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo a
 		}
 	}
 	if err == nil {
-		principal = principals[0]
+		for _, principal := range passwordPrincipals {
+			principals = append(principals, principal)
+		}
 	}
 	return
 }

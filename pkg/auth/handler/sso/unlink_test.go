@@ -6,8 +6,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -43,13 +48,18 @@ func TestUnlinkHandler(t *testing.T) {
 		})
 		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
 			&oauth.Principal{
+				ID:             "oauth-principal-id",
 				ProviderType:   "google",
 				ProviderKeys:   map[string]interface{}{},
 				ProviderUserID: providerUserID,
 				UserID:         "faseng.cat.id",
 			},
 		})
+		sh.IdentityProvider = principal.NewMockIdentityProvider(mockOAuthProvider)
 		sh.OAuthAuthProvider = mockOAuthProvider
+		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		hookProvider := hook.NewMockProvider()
+		sh.HookProvider = hookProvider
 		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("should unlink user id with oauth principal", func() {
@@ -69,6 +79,27 @@ func TestUnlinkHandler(t *testing.T) {
 			})
 			So(e, ShouldEqual, skydb.ErrUserNotFound)
 			So(p, ShouldBeNil)
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.IdentityDeleteEvent{
+					User: model.User{
+						ID:         "faseng.cat.id",
+						Verified:   true,
+						VerifyInfo: map[string]bool{},
+						Metadata:   userprofile.Data{},
+					},
+					Identity: model.Identity{
+						ID:   "oauth-principal-id",
+						Type: "oauth",
+						Attributes: principal.Attributes{
+							"provider_type":    "google",
+							"provider_user_id": "mock_user_id",
+							"raw_profile":      nil,
+						},
+						Claims: principal.Claims{},
+					},
+				},
+			})
 		})
 	})
 }

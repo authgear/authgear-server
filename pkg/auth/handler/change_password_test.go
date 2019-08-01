@@ -11,9 +11,12 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -75,6 +78,8 @@ func TestChangePasswordHandler(t *testing.T) {
 		)
 		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
 		lh.TaskQueue = mockTaskQueue
+		hookProvider := hook.NewMockProvider()
+		lh.HookProvider = hookProvider
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("change password success", func(c C) {
@@ -115,6 +120,18 @@ func TestChangePasswordHandler(t *testing.T) {
 			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)
 			So(mockTaskQueue.TasksParam[0], ShouldResemble, task.PwHousekeeperTaskParam{
 				AuthID: userID,
+			})
+
+			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.PasswordUpdateEvent{
+					Reason: event.PasswordUpdateReasonChangePassword,
+					User: model.User{
+						ID:         userID,
+						Verified:   true,
+						VerifyInfo: map[string]bool{},
+						Metadata:   userprofile.Data{},
+					},
+				},
 			})
 		})
 

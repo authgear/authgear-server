@@ -2,8 +2,6 @@ package userprofile
 
 import (
 	"time"
-
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 )
 
 type MockUserProfileStoreImpl struct {
@@ -55,7 +53,7 @@ func (u MockUserProfileStoreImpl) GetUserProfile(userID string) (profile UserPro
 	return
 }
 
-func (u MockUserProfileStoreImpl) UpdateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (profile UserProfile, err error) {
+func (u MockUserProfileStoreImpl) UpdateUserProfile(userID string, data Data) (profile UserProfile, err error) {
 	u.Data[userID] = data
 	now := u.TimeNowfunc()
 	profile = UserProfile{

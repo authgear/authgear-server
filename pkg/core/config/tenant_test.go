@@ -64,6 +64,10 @@ var fullTenantConfig = TenantConfiguration{
 			APISecret: "mynexmoapisecret",
 			From:      "mynexmo",
 		},
+		Hook: HookAppConfiguration{
+			SyncHookTimeout:      10,
+			SyncHookTotalTimeout: 60,
+		},
 	},
 	UserConfig: UserConfiguration{
 		APIKey:    "myapikey",
@@ -208,19 +212,18 @@ var fullTenantConfig = TenantConfiguration{
 				},
 			},
 		},
+		Hook: HookUserConfiguration{
+			Secret: "hook-secret",
+		},
 	},
 	Hooks: []Hook{
 		Hook{
-			Async:   true,
-			Event:   "after_signup",
-			URL:     "http://localhost:3000/after_signup",
-			Timeout: 60,
+			Event: "after_signup",
+			URL:   "http://localhost:3000/after_signup",
 		},
 		Hook{
-			Async:   false,
-			Event:   "after_signup",
-			URL:     "http://localhost:3000/after_signup",
-			Timeout: 60,
+			Event: "after_signup",
+			URL:   "http://localhost:3000/after_signup",
 		},
 	},
 	DeploymentRoutes: []DeploymentRoute{

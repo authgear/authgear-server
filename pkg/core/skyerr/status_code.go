@@ -35,6 +35,8 @@ func ErrorDefaultStatusCode(err Error) int {
 		PasswordPolicyViolated:  http.StatusBadRequest,
 		UserDisabled:            http.StatusForbidden,
 		VerificationRequired:    http.StatusForbidden,
+		WebHookTimeOut:          http.StatusGatewayTimeout,
+		WebHookFailed:           http.StatusBadGateway,
 	}[err.Code()]
 	if !ok {
 		if err.Code() < 10000 {

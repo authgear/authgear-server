@@ -2,8 +2,11 @@ package sso
 
 import (
 	"encoding/json"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
@@ -49,7 +52,7 @@ type CustomTokenLoginHandlerFactory struct {
 func (f CustomTokenLoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &CustomTokenLoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -122,6 +125,7 @@ type CustomTokenLoginHandler struct {
 	AuthInfoStore            authinfo.Store                  `dependency:"AuthInfoStore"`
 	CustomTokenAuthProvider  customtoken.Provider            `dependency:"CustomTokenAuthProvider"`
 	IdentityProvider         principal.IdentityProvider      `dependency:"IdentityProvider"`
+	HookProvider             hook.Provider                   `dependency:"HookProvider"`
 	PasswordAuthProvider     password.Provider               `dependency:"PasswordAuthProvider"`
 	CustomTokenConfiguration config.CustomTokenConfiguration `dependency:"CustomTokenConfiguration"`
 	WelcomeEmailEnabled      bool                            `dependency:"WelcomeEmailEnabled"`
@@ -240,6 +244,22 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 
 	// TODO: check disable
 
+	user := model.NewUser(info, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, principal)
+
+	if createNewUser {
+		err = h.HookProvider.DispatchEvent(
+			event.UserCreateEvent{
+				User:       user,
+				Identities: []model.Identity{identity},
+			},
+			&user,
+		)
+		if err != nil {
+			return
+		}
+	}
+
 	// Create auth token
 	tkn, err := h.TokenStore.NewToken(info.ID, principal.ID)
 	if err != nil {
@@ -250,11 +270,30 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		panic(err)
 	}
 
-	user := model.NewUser(info, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, principal)
-	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
+	var sessionCreateReason event.SessionCreateReason
+	if createNewUser {
+		sessionCreateReason = event.SessionCreateReasonSignup
+	} else {
+		sessionCreateReason = event.SessionCreateReasonLogin
+	}
+	err = h.HookProvider.DispatchEvent(
+		event.SessionCreateEvent{
+			Reason:   sessionCreateReason,
+			User:     user,
+			Identity: identity,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
 
-	// Populate the activity time to user
+	// Reload auth info, in case before hook handler mutated it
+	if err = h.AuthInfoStore.GetAuth(principal.UserID, &info); err != nil {
+		return
+	}
+
+	// Update the activity time of user (return old activity time for usefulness)
 	now := timeNow()
 	info.LastLoginAt = &now
 	info.LastSeenAt = &now
@@ -262,6 +301,8 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		err = skyerr.MakeError(err)
 		return
 	}
+
+	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
 
 	// TODO: audit trail
 	if createNewUser && h.WelcomeEmailEnabled {

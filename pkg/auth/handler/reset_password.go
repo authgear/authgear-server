@@ -4,7 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
@@ -41,7 +45,7 @@ func (f ResetPasswordHandlerFactory) NewHandler(request *http.Request) http.Hand
 	h := &ResetPasswordHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 func (f ResetPasswordHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -73,12 +77,14 @@ func (p ResetPasswordRequestPayload) Validate() error {
 // ResetPasswordHandler handles signup request
 type ResetPasswordHandler struct {
 	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
+	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
+	HookProvider         hook.Provider              `dependency:"HookProvider"`
 }
 
 func (h ResetPasswordHandler) WithTx() bool {
@@ -118,6 +124,24 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 	now := timeNow()
 	authinfo.TokenValidSince = &now
 	err = h.AuthInfoStore.UpdateAuth(&authinfo)
+	if err != nil {
+		return
+	}
+
+	var profile userprofile.UserProfile
+	if profile, err = h.UserProfileStore.GetUserProfile(authinfo.ID); err != nil {
+		return
+	}
+
+	user := model.NewUser(authinfo, profile)
+
+	err = h.HookProvider.DispatchEvent(
+		event.PasswordUpdateEvent{
+			Reason: event.PasswordUpdateReasonAdministrative,
+			User:   user,
+		},
+		&user,
+	)
 	if err != nil {
 		return
 	}

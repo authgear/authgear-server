@@ -24,6 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -57,6 +58,14 @@ func (m DependencyMap) Provide(
 		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig))
 	}
 
+	newTimeProvider := func() time.Provider {
+		return time.NewProvider()
+	}
+
+	newAuthContext := func() coreAuth.ContextGetter {
+		return coreAuth.NewContextGetterWithContext(ctx)
+	}
+
 	newPasswordHistoryStore := func() passwordhistory.Store {
 		return pqPWHistory.NewPasswordHistoryStore(
 			newSQLBuilder(),
@@ -67,6 +76,19 @@ func (m DependencyMap) Provide(
 
 	newTemplateEngine := func() *template.Engine {
 		return authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
+	}
+
+	newAuthInfoStore := func() authinfo.Store {
+		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
+	}
+
+	newUserProfileStore := func() userprofile.Store {
+		return userprofile.NewSafeProvider(
+			newSQLBuilder(),
+			newSQLExecutor(),
+			newLogger("auth_user_profile"),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
 	}
 
 	// TODO:
@@ -107,15 +129,36 @@ func (m DependencyMap) Provide(
 		)
 	}
 
+	newHookProvider := func() hook.Provider {
+		return hook.NewProvider(
+			requestID,
+			hook.NewStore(newSQLBuilder(), newSQLExecutor()),
+			newAuthContext(),
+			newTimeProvider(),
+			newAuthInfoStore(),
+			newUserProfileStore(),
+			hook.NewDeliverer(
+				&tConfig,
+				newTimeProvider(),
+				hook.NewMutator(
+					&tConfig.UserConfig.UserVerification,
+					newPasswordAuthProvider(),
+					newAuthInfoStore(),
+					newUserProfileStore(),
+				),
+			),
+		)
+	}
+
 	switch dependencyName {
 	case "AuthContextGetter":
-		return coreAuth.NewContextGetterWithContext(ctx)
+		return newAuthContext()
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
 	case "TokenStore":
 		return coreAuth.NewDefaultTokenStore(ctx, tConfig)
 	case "AuthInfoStore":
-		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
+		return newAuthInfoStore()
 	case "PasswordChecker":
 		return &authAudit.PasswordChecker{
 			PwMinLength:         tConfig.UserConfig.UserAudit.Password.MinLength,
@@ -146,12 +189,7 @@ func (m DependencyMap) Provide(
 	case "HandlerLogger":
 		return newLogger("handler")
 	case "UserProfileStore":
-		return userprofile.NewSafeProvider(
-			newSQLBuilder(),
-			newSQLExecutor(),
-			newLogger("auth_user_profile"),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
-		)
+		return newUserProfileStore()
 	case "ForgotPasswordEmailSender":
 		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), newTemplateEngine())
 	case "TestForgotPasswordEmailSender":
@@ -190,7 +228,7 @@ func (m DependencyMap) Provide(
 				db.NewSafeTxContextWithContext(ctx, tConfig),
 			),
 			tConfig.UserConfig.UserVerification,
-			time.NewProvider(),
+			newTimeProvider(),
 		)
 	case "VerifyHTMLProvider":
 		return userverify.NewVerifyHTMLProvider(tConfig.UserConfig.UserVerification, newTemplateEngine())
@@ -216,8 +254,8 @@ func (m DependencyMap) Provide(
 		return sso.NewAuthHandlerHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint(), tConfig.UserConfig.SSO.OAuth.JSSDKCDNURL)
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
-	case "HookStore":
-		return hook.NewHookProvider(tConfig.Hooks, hook.ExecutorImpl{}, newLogger("auth_hook"), requestID)
+	case "HookProvider":
+		return newHookProvider()
 	case "CustomTokenConfiguration":
 		return tConfig.UserConfig.SSO.CustomToken
 	case "OAuthConfiguration":

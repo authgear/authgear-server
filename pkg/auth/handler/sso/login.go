@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -46,7 +47,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -105,6 +106,7 @@ type LoginHandler struct {
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	ProviderFactory      *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
+	HookProvider         hook.Provider              `dependency:"HookProvider"`
 	OAuthConfiguration   config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
 	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
 	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
@@ -162,6 +164,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		PasswordAuthProvider: h.PasswordAuthProvider,
 		IdentityProvider:     h.IdentityProvider,
 		UserProfileStore:     h.UserProfileStore,
+		HookProvider:         h.HookProvider,
 		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
 		TaskQueue:            h.TaskQueue,
 	}

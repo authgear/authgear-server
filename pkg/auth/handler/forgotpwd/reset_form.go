@@ -6,12 +6,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
@@ -21,6 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -101,6 +104,7 @@ type ForgotPasswordResetFormHandler struct {
 	AuthInfoStore             authinfo.Store                            `dependency:"AuthInfoStore"`
 	PasswordAuthProvider      password.Provider                         `dependency:"PasswordAuthProvider"`
 	UserProfileStore          userprofile.Store                         `dependency:"UserProfileStore"`
+	HookProvider              hook.Provider                             `dependency:"HookProvider"`
 	ResetPasswordHTMLProvider *forgotpwdemail.ResetPasswordHTMLProvider `dependency:"ResetPasswordHTMLProvider"`
 	TxContext                 db.TxContext                              `dependency:"TxContext"`
 	Logger                    *logrus.Entry                             `dependency:"HandlerLogger"`
@@ -240,31 +244,30 @@ func (h ForgotPasswordResetFormHandler) HandleResetSuccess(rw http.ResponseWrite
 	io.WriteString(rw, html)
 }
 
-func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	if err := h.TxContext.BeginTx(); err != nil {
-		h.HandleRequestError(rw, skyerr.MakeError(err))
-		return
-	}
-
-	var err error
-	defer func() {
-		if err != nil {
-			h.TxContext.RollbackTx()
-		} else {
-			h.TxContext.CommitTx()
+func (h ForgotPasswordResetFormHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	_, err := handler.Transactional(h.TxContext, func() (_ interface{}, err error) {
+		err = h.Handle(w, r)
+		if err == nil {
+			err = h.HookProvider.WillCommitTx()
 		}
-	}()
+		return
+	})
+	if err == nil {
+		h.HookProvider.DidCommitTx()
+	}
+}
 
+func (h ForgotPasswordResetFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err error) {
 	var templateCtx resultTemplateContext
 	if templateCtx, err = h.prepareResultTemplateContext(r); err != nil {
-		h.HandleRequestError(rw, skyerr.MakeError(err))
+		h.HandleRequestError(w, skyerr.MakeError(err))
 		return
 	}
 
 	// check code expiration
 	if timeNow().After(templateCtx.payload.ExpireAtTime) {
 		h.Logger.Error("forgot password code expired")
-		h.HandleRequestError(rw, genericResetPasswordError())
+		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
 
@@ -273,7 +276,7 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *htt
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": templateCtx.payload.UserID,
 		}).WithError(e).Error("user not found")
-		h.HandleRequestError(rw, genericResetPasswordError())
+		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
 
@@ -283,7 +286,7 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *htt
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": templateCtx.payload.UserID,
 		}).WithError(err).Error("unable to get password auth principals")
-		h.HandleRequestError(rw, genericResetPasswordError())
+		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
 
@@ -296,24 +299,31 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *htt
 			"code":          templateCtx.payload.Code,
 			"expected_code": expectedCode,
 		}).Error("wrong forgot password reset password code")
-		h.HandleRequestError(rw, genericResetPasswordError())
+		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
 
 	if r.Method == http.MethodGet {
-		h.HandleGetForm(rw, templateCtx)
+		h.HandleGetForm(w, templateCtx)
 		return
 	}
 
-	h.resetPassword(rw, templateCtx, principals)
+	h.resetPassword(w, templateCtx, authInfo, principals)
 
 	// password house keeper
 	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
 		AuthID: authInfo.ID,
 	}, nil)
+
+	return templateCtx.err
 }
 
-func (h ForgotPasswordResetFormHandler) resetPassword(rw http.ResponseWriter, templateCtx resultTemplateContext, principals []*password.Principal) {
+func (h ForgotPasswordResetFormHandler) resetPassword(
+	rw http.ResponseWriter,
+	templateCtx resultTemplateContext,
+	authInfo authinfo.AuthInfo,
+	principals []*password.Principal,
+) {
 	var err error
 	defer func() {
 		if err != nil {
@@ -340,4 +350,22 @@ func (h ForgotPasswordResetFormHandler) resetPassword(rw http.ResponseWriter, te
 	}
 
 	err = resetPwdCtx.ExecuteWithPrincipals(templateCtx.payload.NewPassword, principals)
+	if err != nil {
+		return
+	}
+
+	var profile userprofile.UserProfile
+	if profile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
+		return
+	}
+
+	user := model.NewUser(authInfo, profile)
+
+	err = h.HookProvider.DispatchEvent(
+		event.PasswordUpdateEvent{
+			Reason: event.PasswordUpdateReasonResetPassword,
+			User:   user,
+		},
+		&user,
+	)
 }

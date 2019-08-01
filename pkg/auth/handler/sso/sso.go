@@ -1,11 +1,13 @@
 package sso
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
@@ -24,6 +26,7 @@ type respHandler struct {
 	PasswordAuthProvider password.Provider
 	IdentityProvider     principal.IdentityProvider
 	UserProfileStore     userprofile.Store
+	HookProvider         hook.Provider
 	TaskQueue            async.Queue
 	WelcomeEmailEnabled  bool
 }
@@ -51,6 +54,22 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 		return
 	}
 
+	user := model.NewUser(info, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, principal)
+
+	if createNewUser {
+		err = h.HookProvider.DispatchEvent(
+			event.UserCreateEvent{
+				User:       user,
+				Identities: []model.Identity{identity},
+			},
+			&user,
+		)
+		if err != nil {
+			return
+		}
+	}
+
 	// Create auth token
 	var token authtoken.Token
 	token, err = h.TokenStore.NewToken(info.ID, principal.ID)
@@ -61,11 +80,30 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 		panic(err)
 	}
 
-	user := model.NewUser(info, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, principal)
-	resp = model.NewAuthResponse(user, identity, token.AccessToken)
+	var sessionCreateReason event.SessionCreateReason
+	if createNewUser {
+		sessionCreateReason = event.SessionCreateReasonSignup
+	} else {
+		sessionCreateReason = event.SessionCreateReasonLogin
+	}
+	err = h.HookProvider.DispatchEvent(
+		event.SessionCreateEvent{
+			Reason:   sessionCreateReason,
+			User:     user,
+			Identity: identity,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
 
-	// Populate the activity time to user
+	// Reload auth info, in case before hook handler mutated it
+	if err = h.AuthInfoStore.GetAuth(principal.UserID, &info); err != nil {
+		return
+	}
+
+	// Update the activity time of user (return old activity time for usefulness)
 	now := timeNow()
 	info.LastLoginAt = &now
 	info.LastSeenAt = &now
@@ -73,6 +111,8 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 		err = skyerr.MakeError(err)
 		return
 	}
+
+	resp = model.NewAuthResponse(user, identity, token.AccessToken)
 
 	if createNewUser &&
 		h.WelcomeEmailEnabled &&
@@ -115,10 +155,31 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo, linkState sso.Li
 		return resp, err
 	}
 
-	_, err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
+	var principal *oauth.Principal
+	principal, err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
 	if err != nil {
 		return resp, err
 	}
+
+	var userProfile userprofile.UserProfile
+	userProfile, err = h.UserProfileStore.GetUserProfile(info.ID)
+	if err != nil {
+		return
+	}
+
+	user := model.NewUser(info, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, principal)
+	err = h.HookProvider.DispatchEvent(
+		event.IdentityCreateEvent{
+			User:     user,
+			Identity: identity,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
+
 	resp = map[string]string{}
 	return
 }

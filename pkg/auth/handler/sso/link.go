@@ -5,9 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -42,7 +44,7 @@ func (f LinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 func (f LinkHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -93,6 +95,8 @@ type LinkHandler struct {
 	OAuthAuthProvider  oauth.Provider             `dependency:"OAuthAuthProvider"`
 	IdentityProvider   principal.IdentityProvider `dependency:"IdentityProvider"`
 	AuthInfoStore      authinfo.Store             `dependency:"AuthInfoStore"`
+	UserProfileStore   userprofile.Store          `dependency:"UserProfileStore"`
+	HookProvider       hook.Provider              `dependency:"HookProvider"`
 	ProviderFactory    *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
 	OAuthConfiguration config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
 	Provider           sso.OAuthProvider
@@ -139,6 +143,8 @@ func (h LinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 		AuthInfoStore:     h.AuthInfoStore,
 		OAuthAuthProvider: h.OAuthAuthProvider,
 		IdentityProvider:  h.IdentityProvider,
+		UserProfileStore:  h.UserProfileStore,
+		HookProvider:      h.HookProvider,
 	}
 	resp, err = handler.linkActionResp(oauthAuthInfo, linkState)
 

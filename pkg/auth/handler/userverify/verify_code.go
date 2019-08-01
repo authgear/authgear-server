@@ -6,8 +6,12 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -42,7 +46,7 @@ type VerifyCodeHandlerFactory struct {
 func (f VerifyCodeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyCodeHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -81,6 +85,8 @@ type VerifyCodeHandler struct {
 	UserVerificationProvider userverify.Provider    `dependency:"UserVerificationProvider"`
 	AuthInfoStore            authinfo.Store         `dependency:"AuthInfoStore"`
 	PasswordAuthProvider     password.Provider      `dependency:"PasswordAuthProvider"`
+	UserProfileStore         userprofile.Store      `dependency:"UserProfileStore"`
+	HookProvider             hook.Provider          `dependency:"HookProvider"`
 	Logger                   *logrus.Entry          `dependency:"HandlerLogger"`
 }
 
@@ -102,10 +108,33 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 	payload := req.(VerifyCodePayload)
 	authInfo := h.AuthContext.AuthInfo()
 
+	var userProfile userprofile.UserProfile
+	userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID)
+	if err != nil {
+		h.Logger.WithFields(map[string]interface{}{
+			"user_id": authInfo.ID,
+		}).WithError(err).Error("unable to get user profile")
+		return
+	}
+
+	oldUser := model.NewUser(*authInfo, userProfile)
+
 	_, err = h.UserVerificationProvider.VerifyUser(h.PasswordAuthProvider, h.AuthInfoStore, authInfo, payload.Code)
 	if err != nil {
 		return
 	}
+
+	user := model.NewUser(*authInfo, userProfile)
+
+	err = h.HookProvider.DispatchEvent(
+		event.UserUpdateEvent{
+			Reason:     event.UserUpdateReasonVerification,
+			User:       oldUser,
+			VerifyInfo: &authInfo.VerifyInfo,
+			IsVerified: &authInfo.Verified,
+		},
+		&user,
+	)
 
 	resp = map[string]string{}
 	return

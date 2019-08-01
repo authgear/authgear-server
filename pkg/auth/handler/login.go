@@ -5,9 +5,11 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -42,7 +44,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
 }
 
 func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -78,6 +80,7 @@ type LoginHandler struct {
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
+	HookProvider         hook.Provider              `dependency:"HookProvider"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 }
 
@@ -177,7 +180,26 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	// Populate the activity time to user
+	user := model.NewUser(fetchedAuthInfo, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, principal)
+	err = h.HookProvider.DispatchEvent(
+		event.SessionCreateEvent{
+			Reason:   event.SessionCreateReasonLogin,
+			User:     user,
+			Identity: identity,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
+
+	// Reload auth info, in case before hook handler mutated it
+	if err = h.AuthInfoStore.GetAuth(principal.UserID, &fetchedAuthInfo); err != nil {
+		return
+	}
+
+	// Update the activity time of user (return old activity time for usefulness)
 	now := timeNow()
 	fetchedAuthInfo.LastLoginAt = &now
 	fetchedAuthInfo.LastSeenAt = &now
@@ -186,8 +208,6 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	user := model.NewUser(fetchedAuthInfo, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, principal)
 	resp = model.NewAuthResponse(user, identity, token.AccessToken)
 
 	return
