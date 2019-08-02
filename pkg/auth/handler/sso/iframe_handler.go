@@ -18,7 +18,7 @@ func AttachIFrameHandlerFactory(
 ) *server.Server {
 	server.Handle("/sso/iframe_handler", &IFrameHandlerFactory{
 		authDependency,
-	}).Methods("GET")
+	}).Methods("OPTIONS", "GET")
 	return server
 }
 

@@ -33,7 +33,7 @@ func AttachVerifyCodeHandler(
 	}).Methods("OPTIONS", "POST")
 	server.Handle("/verify_code_form", &VerifyCodeFormHandlerFactory{
 		authDependency,
-	}).Methods("POST", "GET")
+	}).Methods("OPTIONS", "POST", "GET")
 	return server
 }
 
