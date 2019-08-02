@@ -23,13 +23,13 @@ func TestResetPasswordPayload(t *testing.T) {
 	Convey("Test ResetPasswordRequestPayload", t, func() {
 		Convey("validate valid payload", func() {
 			payload := ResetPasswordRequestPayload{
-				AuthInfoID: "1",
-				Password:   "123456",
+				UserID:   "1",
+				Password: "123456",
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
 
-		Convey("validate payload without auth_id", func() {
+		Convey("validate payload without user id", func() {
 			payload := ResetPasswordRequestPayload{
 				Password: "123456",
 			}
@@ -40,7 +40,7 @@ func TestResetPasswordPayload(t *testing.T) {
 
 		Convey("validate payload without password", func() {
 			payload := ResetPasswordRequestPayload{
-				AuthInfoID: "1",
+				UserID: "1",
 			}
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)
@@ -106,8 +106,8 @@ func TestResetPasswordHandler(t *testing.T) {
 			userID := "john.doe.id"
 			newPassword := "234567"
 			payload := ResetPasswordRequestPayload{
-				AuthInfoID: userID,
-				Password:   newPassword,
+				UserID:   userID,
+				Password: newPassword,
 			}
 
 			resp, err := h.Handle(payload)
@@ -142,8 +142,8 @@ func TestResetPasswordHandler(t *testing.T) {
 		Convey("should not reset password by wrong user id", func() {
 			userID := "john.doe.id.wrong"
 			payload := ResetPasswordRequestPayload{
-				AuthInfoID: userID,
-				Password:   "123456",
+				UserID:   userID,
+				Password: "123456",
 			}
 
 			_, err := h.Handle(payload)
@@ -153,8 +153,8 @@ func TestResetPasswordHandler(t *testing.T) {
 		Convey("should not reset password with password violates password policy", func() {
 			userID := "john.doe.id"
 			payload := ResetPasswordRequestPayload{
-				AuthInfoID: userID,
-				Password:   "1234",
+				UserID:   userID,
+				Password: "1234",
 			}
 
 			_, err := h.Handle(payload)
@@ -164,8 +164,8 @@ func TestResetPasswordHandler(t *testing.T) {
 		Convey("should have audit trail when reset password", func() {
 			userID := "john.doe.id"
 			payload := ResetPasswordRequestPayload{
-				AuthInfoID: userID,
-				Password:   "123456",
+				UserID:   userID,
+				Password: "123456",
 			}
 
 			h.Handle(payload)
