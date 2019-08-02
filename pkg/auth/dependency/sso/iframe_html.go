@@ -49,9 +49,6 @@ function validateCallbackURL(callbackURL, authorizedURLs) {
 	if (!callbackURL) {
 		return false;
 	}
-	if (authorizedURLs.length <= 0) {
-		return true;
-	}
 	for (var i = 0; i < authorizedURLs.length; ++i) {
 		if (StringStartsWith(callbackURL, authorizedURLs[i])) {
 			return true;

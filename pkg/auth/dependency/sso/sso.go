@@ -211,15 +211,14 @@ func (p *ProviderFactory) GetProviderConfig(id string) (config.OAuthProviderConf
 }
 
 func ValidateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
+	// The logic of this function must be in sync with the inline javascript implementation.
 	if callbackURL == "" {
 		err = fmt.Errorf("missing callback URL")
 		return
 	}
 
-	lowerCallbackURL := strings.ToLower(callbackURL)
 	for _, v := range allowedCallbackURLs {
-		lowerAllowed := strings.ToLower(v)
-		if strings.HasPrefix(lowerCallbackURL, lowerAllowed) {
+		if strings.HasPrefix(callbackURL, v) {
 			return nil
 		}
 	}
