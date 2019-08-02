@@ -214,7 +214,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		}
 
 		h.AuditTrail.Log(audit.Entry{
-			AuthID: info.ID,
+			UserID: info.ID,
 			Event:  event,
 			Data: map[string]interface{}{
 				"type": "custom_token",

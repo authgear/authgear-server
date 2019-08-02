@@ -147,7 +147,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 
 	h.AuditTrail.Log(audit.Entry{
-		AuthID: authinfo.ID,
+		UserID: authinfo.ID,
 		Event:  audit.EventResetPassword,
 	})
 

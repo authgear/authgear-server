@@ -197,7 +197,7 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 	resp = model.NewAuthResponse(user, identity, token.AccessToken)
 
 	h.AuditTrail.Log(audit.Entry{
-		AuthID: authinfo.ID,
+		UserID: authinfo.ID,
 		Event:  audit.EventChangePassword,
 	})
 

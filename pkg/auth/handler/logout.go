@@ -133,7 +133,7 @@ func (h LogoutHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	h.AuditTrail.Log(audit.Entry{
-		AuthID: h.AuthContext.AuthInfo().ID,
+		UserID: h.AuthContext.AuthInfo().ID,
 		Event:  audit.EventLogout,
 	})
 

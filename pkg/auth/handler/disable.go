@@ -169,7 +169,7 @@ func (h SetDisableHandler) logAuditTrail(p setDisableUserPayload) {
 	}
 
 	h.AuditTrail.Log(audit.Entry{
-		AuthID: p.UserID,
+		UserID: p.UserID,
 		Event:  event,
 	})
 }
