@@ -209,7 +209,7 @@ func (m DependencyMap) Provide(
 	case "TestWelcomeEmailSender":
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP))
 	case "IFrameHTMLProvider":
-		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint(), tConfig.UserConfig.SSO.OAuth.JSSDKCDNURL)
+		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint())
 	case "UserVerifyCodeSenderFactory":
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig, newTemplateEngine())
 	case "UserVerifyTestCodeSenderFactory":
@@ -251,7 +251,7 @@ func (m DependencyMap) Provide(
 			newPasswordAuthProvider(),
 		)
 	case "AuthHandlerHTMLProvider":
-		return sso.NewAuthHandlerHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint(), tConfig.UserConfig.SSO.OAuth.JSSDKCDNURL)
+		return sso.NewAuthHandlerHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint())
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	case "HookProvider":

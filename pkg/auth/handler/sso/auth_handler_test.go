@@ -126,7 +126,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
-			"https://api.example.com/skygear.js",
 		)
 		sh.OAuthConfiguration = oauthConfig
 		zero := 0
@@ -252,8 +251,8 @@ func TestAuthHandler(t *testing.T) {
 			sh.ServeHTTP(resp, req)
 			// for web_redirect, it should redirect to original callback url
 			So(resp.Code, ShouldEqual, 200)
-			JSSKDURLPattern := `<script type="text/javascript" src="https://api.example.com/skygear.js"></script>`
-			matched, err := regexp.MatchString(JSSKDURLPattern, resp.Body.String())
+			apiEndpointPattern := `"https://api.example.com/_auth/sso/config"`
+			matched, err := regexp.MatchString(apiEndpointPattern, resp.Body.String())
 			So(err, ShouldBeNil)
 			So(matched, ShouldBeTrue)
 		})
@@ -379,7 +378,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
-			"https://api.example.com/skygear.js",
 		)
 		sh.OAuthConfiguration = oauthConfig
 		zero := 0
@@ -558,7 +556,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
-			"https://api.example.com/skygear.js",
 		)
 		sh.OAuthConfiguration = oauthConfig
 		zero := 0

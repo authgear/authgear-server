@@ -80,11 +80,6 @@ func defaultUserConfiguration() UserConfiguration {
 			Subject:     "Welcome!",
 			Destination: WelcomeEmailDestinationFirst,
 		},
-		SSO: SSOConfiguration{
-			OAuth: OAuthConfiguration{
-				JSSDKCDNURL: "https://code.skygear.io/js/skygear/latest/skygear.min.js",
-			},
-		},
 	}
 }
 
@@ -708,7 +703,6 @@ type CustomTokenConfiguration struct {
 
 type OAuthConfiguration struct {
 	URLPrefix                      string                       `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	JSSDKCDNURL                    string                       `json:"js_sdk_cdn_url" yaml:"js_sdk_cdn_url" msg:"js_sdk_cdn_url"`
 	StateJWTSecret                 string                       `json:"state_jwt_secret" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
 	AllowedCallbackURLs            []string                     `json:"allowed_callback_urls" yaml:"allowed_callback_urls" msg:"allowed_callback_urls"`
 	ExternalAccessTokenFlowEnabled bool                         `json:"external_access_token_flow_enabled" yaml:"external_access_token_flow_enabled" msg:"external_access_token_flow_enabled"`
