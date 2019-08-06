@@ -112,6 +112,18 @@ $ go run cmd/migrate/main.go \
 >       up
 ```
 
+**Run the migration with github source**
+
+```
+$ go run cmd/migrate/main.go \
+>        -add-migration-src=auth,github://:@skygeario/skygear-server/cmd/migrate/revisions/auth#6918eed \
+>        -add-migration-src=core,github://:@skygeario/skygear-server/cmd/migrate/revisions/core#6918eed \
+>        -migration=core \
+>        -migration=auth \
+>        -schema app_config \
+>        up
+```
+
 **Running db migration to all apps in cluster (multi-tenant mode)**
 
 Run core and auth migrations to apps which auth version in live
