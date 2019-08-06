@@ -79,6 +79,7 @@ func main() {
 		RecoverHandler: server.DefaultRecoverPanicHandler,
 	}.Handle)
 
+	r.Use(coreMiddleware.RequestIDMiddleware{}.Handle)
 	r.Use(middleware.FindAppMiddleware{Store: store}.Handle)
 
 	gr := r.PathPrefix("/_{gear}").Subrouter()
