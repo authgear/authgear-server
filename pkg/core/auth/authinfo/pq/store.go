@@ -19,11 +19,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-
-	sq "github.com/lann/squirrel"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	dbPq "github.com/skygeario/skygear-server/pkg/core/db/pq"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"

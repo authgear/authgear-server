@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
 

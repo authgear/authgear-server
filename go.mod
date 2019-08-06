@@ -3,6 +3,7 @@ module github.com/skygeario/skygear-server
 go 1.12
 
 require (
+	github.com/Masterminds/squirrel v1.1.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/dgrijalva/jwt-go v3.1.0+incompatible
 	github.com/evalphobia/logrus_fluent v0.4.0
@@ -25,9 +26,6 @@ require (
 	github.com/kelseyhightower/envconfig v1.3.0
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/kr/text v0.1.0
-	github.com/lann/builder v0.0.0-20150808151131-f22ce00fd939 // indirect
-	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
-	github.com/lann/squirrel v0.0.0-20150302165045-e13dbacee404
 	github.com/lestrrat-go/jwx v0.9.0
 	github.com/lib/pq v0.0.0-20171113044440-8c6ee72f3e6b
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect

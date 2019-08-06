@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	sq "github.com/lann/squirrel"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 )
 
