@@ -69,6 +69,21 @@ type ForgotPasswordResetPayload struct {
 	NewPassword  string `json:"new_password"`
 }
 
+// nolint: gosec
+// @JSONSchema
+const ForgotPasswordResetRequestSchema = `
+{
+	"$id": "#ForgotPasswordResetRequest",
+	"type": "object",
+	"properties": {
+		"user_id": { "type": "string" },
+		"code": { "type": "string" },
+		"expire_at": { "type": "string" },
+		"new_password": { "type": "string" }
+	}
+}
+`
+
 func (payload ForgotPasswordResetPayload) Validate() error {
 	if payload.UserID == "" {
 		return skyerr.NewInvalidArgument("empty user_id", []string{"user_id"})
@@ -89,17 +104,20 @@ func (payload ForgotPasswordResetPayload) Validate() error {
 	return nil
 }
 
-// ForgotPasswordResetHandler reset user password with given code from email.
-//
-//  curl -X POST -H "Content-Type: application/json" \
-//    -d @- http://localhost:3000/forgot_password/reset_password <<EOF
-//  {
-//    "user_id": "xxx",
-//    "code": "xxx",
-//    "expire_at": xxx, (utc timestamp)
-//    "new_password": "xxx",
-//  }
-//  EOF
+/*
+	@Operation POST /forgot_password/reset_password - Reset password
+		Reset password using received recovery code.
+
+		@Tag Forgot Password
+
+		@RequestBody
+			@JSONSchema {ForgotPasswordResetRequest}
+
+		@Response 200 {EmptyResponse}
+
+		@Callback password_update {PasswordUpdateEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type ForgotPasswordResetHandler struct {
 	CodeGenerator        *forgotpwdemail.CodeGenerator `dependency:"ForgotPasswordCodeGenerator"`
 	PasswordChecker      *authAudit.PasswordChecker    `dependency:"PasswordChecker"`

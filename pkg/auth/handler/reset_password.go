@@ -62,6 +62,19 @@ type ResetPasswordRequestPayload struct {
 	Password string `json:"password"`
 }
 
+// nolint: gosec
+// @JSONSchema
+const ResetPasswordRequestSchema = `
+{
+	"$id": "#ResetPasswordRequest",
+	"type": "object",
+	"properties": {
+		"auth_id": { "type": "string" },
+		"password": { "type": "string" }
+	}
+}
+`
+
 func (p ResetPasswordRequestPayload) Validate() error {
 	if p.UserID == "" {
 		return skyerr.NewInvalidArgument("invalid user id", []string{"user_id"})
@@ -74,7 +87,23 @@ func (p ResetPasswordRequestPayload) Validate() error {
 	return nil
 }
 
-// ResetPasswordHandler handles signup request
+/*
+	@Operation POST /reset_password - Reset user password
+		Reset password of target user.
+
+		@Tag Administration
+		@SecurityRequirement master_key
+		@SecurityRequirement access_token
+
+		@RequestBody
+			Describe target user and new password.
+			@JSONSchema {ResetPasswordRequest}
+
+		@Response 200 {EmptyResponse}
+
+		@Callback password_update {PasswordUpdateEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type ResetPasswordHandler struct {
 	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`

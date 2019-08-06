@@ -49,23 +49,18 @@ func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-// MeHandler handles method of the me request, responds with current user data.
-//
-// The handler also:
-// 1. refresh access token with a newly generated one
-// 2. populate the activity time to user
-//
-//  curl -X POST -H "Content-Type: application/json" \
-//    -d @- http://localhost:3000/me <<EOF
-//  {
-//  }
-//  EOF
-//
-// {
-//   "user_id": "3df4b52b-bd58-4fa2-8aee-3d44fd7f974d",
-//   "last_login_at": "2016-09-08T06:42:59.871181Z",
-//   "last_seen_at": "2016-09-08T07:15:18.026567355Z",
-// }
+/*
+	@Operation POST /me - Get current user information
+		Returns information on current user and identity.
+
+		@Tag User
+		@SecurityRequirement access_key
+		@SecurityRequirement access_token
+
+		@Response 200
+			Current user and identity info.
+			@JSONSchema {UserIdentityResponse}
+*/
 type MeHandler struct {
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	TxContext            db.TxContext               `dependency:"TxContext"`

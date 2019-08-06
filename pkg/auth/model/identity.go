@@ -16,6 +16,7 @@ package model
 
 import (
 	"encoding/json"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 )
 
@@ -47,3 +48,16 @@ func (identity Identity) MarshalJSON() ([]byte, error) {
 
 	return json.Marshal(attrs)
 }
+
+// @JSONSchema
+const IdentitySchema = `
+{
+	"$id": "#Identity",
+	"type": "object",
+	"properties": {
+		"id": { "type": "string" },
+		"type": { "type": "string" },
+		"claims": { "type": "object" }
+	}
+}
+`

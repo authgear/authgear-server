@@ -2,8 +2,9 @@ package forgotpwd
 
 import (
 	"encoding/json"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
@@ -58,6 +59,18 @@ type ForgotPasswordPayload struct {
 	Email string `json:"email"`
 }
 
+// nolint: gosec
+// @JSONSchema
+const ForgotPasswordRequestSchema = `
+{
+	"$id": "#ForgotPasswordRequest",
+	"type": "object",
+	"properties": {
+		"email": { "type": "string" }
+	}
+}
+`
+
 func (payload ForgotPasswordPayload) Validate() error {
 	if payload.Email == "" {
 		return skyerr.NewInvalidArgument("empty email", []string{"email"})
@@ -66,14 +79,17 @@ func (payload ForgotPasswordPayload) Validate() error {
 	return nil
 }
 
-// ForgotPasswordHandler send a reset password email to given email.
-//
-//  curl -X POST -H "Content-Type: application/json" \
-//    -d @- http://localhost:3000/forgot_password <<EOF
-//  {
-//     "email": "xxx@oursky.com"
-//  }
-//  EOF
+/*
+	@Operation POST /forgot_password - Request password recovery
+		Request password recovery message to be sent to email.
+
+		@Tag Forgot Password
+
+		@RequestBody
+			@JSONSchema {ForgotPasswordRequest}
+
+		@Response 200 {EmptyResponse}
+*/
 type ForgotPasswordHandler struct {
 	TxContext                 db.TxContext               `dependency:"TxContext"`
 	ForgotPasswordEmailSender forgotpwdemail.Sender      `dependency:"ForgotPasswordEmailSender"`

@@ -14,6 +14,22 @@ var (
 	timeNow = func() time.Time { return time.Now().UTC() }
 )
 
+// nolint: deadcode
+/*
+	@ID EmptyResponse
+	@Response
+		Empty response.
+		@JSONSchema
+*/
+const emptyResponseSchema = `
+{
+	"type": "object",
+	"properties": {
+		"result": { "type": "object" }
+	}
+}
+`
+
 // checkUserIsNotDisabled is used by login handlers to check if the user is
 // not disabled.
 func checkUserIsNotDisabled(authInfo *authinfo.AuthInfo) error {

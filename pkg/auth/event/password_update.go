@@ -15,10 +15,69 @@ const (
 	PasswordUpdateReasonAdministrative = "administrative"
 )
 
+/*
+	@Callback
+		@Operation POST /before_password_update - Before password update
+			The password of a user is about to be updated.
+			@RequestBody
+				@JSONSchema {BeforePasswordUpdateEvent}
+			@Response 200 {HookResponse}
+
+		@Operation POST /after_password_udpate - After password update
+			The password of a user is created.
+			@RequestBody
+				@JSONSchema {AfterPasswordUpdateEvent}
+			@Response 200 {EmptyResponse}
+*/
 type PasswordUpdateEvent struct {
 	Reason PasswordUpdateReason `json:"reason"`
 	User   model.User           `json:"user"`
 }
+
+// nolint: gosec
+// @JSONSchema
+const BeforePasswordUpdateEventSchema = `
+{
+	"$id": "#BeforePasswordUpdateEvent",
+	"type": "object",
+	"properties": {
+		"id": { "type": "string" },
+		"seq": { "type": "integer" },
+		"type": { "type": "string", "enum": ["before_password_update"] },
+		"payload": { "$ref": "#PasswordUpdateEventPayload" },
+		"context": { "$ref": "#EventContext" }
+	}
+}
+`
+
+// nolint: gosec
+// @JSONSchema
+const AfterPasswordUpdateEventSchema = `
+{
+	"$id": "#AfterPasswordUpdateEvent",
+	"type": "object",
+	"properties": {
+		"id": { "type": "string" },
+		"seq": { "type": "integer" },
+		"type": { "type": "string", "enum": ["after_password_update"] },
+		"payload": { "$ref": "#PasswordUpdateEventPayload" },
+		"context": { "$ref": "#EventContext" }
+	}
+}
+`
+
+// nolint: gosec
+// @JSONSchema
+const PasswordUpdateEventPayloadSchema = `
+{
+	"$id": "#PasswordUpdateEventPayload",
+	"type": "object",
+	"properties": {
+		"reason": { "type": "string" },
+		"user": { "$ref": "#User" }
+	}
+}
+`
 
 func (PasswordUpdateEvent) BeforeEventType() Type {
 	return BeforePasswordUpdate

@@ -53,20 +53,20 @@ func (f UnlinkHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-// UnlinkHandler decodes code response and fetch access token from provider.
-//
-// curl \
-//   -X POST \
-//   -H "Content-Type: application/json" \
-//   -H "X-Skygear-Api-Key: API_KEY" \
-//   -d @- \
-//   http://localhost:3000/sso/<provider>/unlink \
-// <<EOF
-//
-// {
-//     "result": {}
-// }
-//
+/*
+	@Operation POST /sso/{provider_id}/unlink - Unlink SSO provider
+		Unlink the specified SSO provider from the current user.
+
+		@Tag SSO
+		@SecurityRequirement access_key
+		@SecurityRequirement access_token
+
+		@Parameter {SSOProviderID}
+		@Response 200 {EmptyResponse}
+
+		@Callback identity_delete {UserSyncEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type UnlinkHandler struct {
 	TxContext         db.TxContext               `dependency:"TxContext"`
 	AuthContext       coreAuth.ContextGetter     `dependency:"AuthContextGetter"`

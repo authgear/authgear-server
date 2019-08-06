@@ -37,6 +37,34 @@ type configuration struct {
 	Host                              string `default:"localhost:3000"`
 }
 
+/*
+	@API Auth Gear
+	@Version 1.0.0
+	@Server {base_url}/_auth
+		Auth Gear URL
+		@Variable {base_url} https://my_app.skygearapis.com
+			Skygear App URL
+
+	@SecuritySchemeAPIKey access_key header X-Skygear-API-Key
+		Access key used by client app
+	@SecuritySchemeAPIKey master_key header X-Skygear-API-Key
+		Master key used by admins, can perform administrative operations.
+		Can be used as access key as well.
+	@SecuritySchemeHTTP access_token Bearer JWT
+		Access token of user
+	@SecurityRequirement access_key
+
+	@Tag User
+		User information
+	@Tag User Verification
+		Login IDs verification
+	@Tag Forgot Password
+		Password recovery process
+	@Tag Administration
+		Administrative operation
+	@Tag SSO
+		Single sign-on
+*/
 func main() {
 	envErr := godotenv.Load()
 	if envErr != nil {

@@ -70,6 +70,29 @@ type SignupRequestPayload struct {
 	Metadata map[string]interface{} `json:"metadata"`
 }
 
+// @JSONSchema
+const SignupRequestSchema = `
+{
+	"$id": "#SignupRequest",
+	"type": "object",
+	"properties": {
+		"login_ids": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"key": { "type": "string" },
+					"value": { "type": "string" }
+				}
+			}
+		},
+		"realm": { "type": "string" },
+		"password": { "type": "string" },
+		"metadata": { "type": "object" }
+	}
+}
+`
+
 func (p SignupRequestPayload) Validate() error {
 	if len(p.LoginIDs) == 0 {
 		return skyerr.NewInvalidArgument("empty login_ids", []string{"login_ids"})
@@ -108,7 +131,24 @@ func (p SignupRequestPayload) duplicatedLoginIDs() bool {
 	return false
 }
 
-// SignupHandler handles signup request
+/*
+	@Operation POST /signup - Signup using password
+		Signup user with login IDs and password.
+
+		@Tag User
+
+		@RequestBody
+			Describe login IDs, password, and initial metadata.
+			@JSONSchema {SignupRequest}
+
+		@Response 200
+			Signed up user and access token.
+			@JSONSchema {AuthResponse}
+
+		@Callback user_create {UserCreateEvent}
+		@Callback session_create {SessionCreateEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type SignupHandler struct {
 	PasswordChecker         *authAudit.PasswordChecker                         `dependency:"PasswordChecker"`
 	UserProfileStore        userprofile.Store                                  `dependency:"UserProfileStore"`

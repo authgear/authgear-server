@@ -59,6 +59,20 @@ type LoginRequestPayload struct {
 	Password   string `json:"password"`
 }
 
+// @JSONSchema
+const LoginRequestSchema = `
+{
+	"$id": "#LoginRequest",
+	"type": "object",
+	"properties": {
+		"login_id_key": { "type": "string" },
+		"login_id": { "type": "string" },
+		"realm": { "type": "string" },
+		"password": { "type": "string" }
+	}
+}
+`
+
 // Validate request payload
 func (p LoginRequestPayload) Validate() error {
 	if p.LoginID == "" {
@@ -72,7 +86,23 @@ func (p LoginRequestPayload) Validate() error {
 	return nil
 }
 
-// LoginHandler handles login request
+/*
+	@Operation POST /login - Login using password
+		Login user with login ID and password.
+
+		@Tag User
+
+		@RequestBody
+			Describe login ID and password.
+			@JSONSchema {LoginRequest}
+
+		@Response 200
+			Logged in user and access token.
+			@JSONSchema {AuthResponse}
+
+		@Callback session_create {SessionCreateEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type LoginHandler struct {
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`

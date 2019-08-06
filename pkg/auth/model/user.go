@@ -60,3 +60,20 @@ func NewUser(
 		Metadata:    metadata,
 	}
 }
+
+// @JSONSchema
+const UserSchema = `
+{
+	"$id": "#User",
+	"type": "object",
+	"properties": {
+		"id": { "type": "string" },
+		"created_at": { "type": "string" },
+		"last_login_at": { "type": "string" },
+		"is_verified": { "type": "boolean" },
+		"is_disabled": { "type": "boolean" },
+		"verify_info": { "type": "object" },
+		"metadata": { "type": "object" }
+	}
+}
+`
