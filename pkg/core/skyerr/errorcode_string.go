@@ -39,6 +39,7 @@ func _() {
 	_ = x[AssetSizeTooLarge-129]
 	_ = x[WebHookTimeOut-130]
 	_ = x[WebHookFailed-131]
+	_ = x[CurrentIdentityBeingDeleted-132]
 	_ = x[UnexpectedError-10000]
 	_ = x[UnexpectedAuthInfoNotFound-10001]
 	_ = x[UnexpectedUnableToOpenDatabase-10002]
@@ -48,18 +49,18 @@ func _() {
 }
 
 const (
-	_ErrorCode_name_0 = "NotAuthenticatedPermissionDeniedAccessKeyNotAcceptedAccessTokenNotAcceptedInvalidCredentialsInvalidSignatureBadRequestInvalidArgumentDuplicatedResourceNotFoundNotSupportedNotImplementedConstraintViolatedIncompatibleSchemaAtomicOperationFailurePartialOperationFailureUndefinedOperationPluginUnavailablePluginTimeoutRecordQueryInvalidPluginInitializingResponseTimeoutDeniedArgumentRecordQueryDeniedNotConfiguredPasswordPolicyViolatedUserDisabledVerificationRequiredAssetSizeTooLargeWebHookTimeOutWebHookFailed"
+	_ErrorCode_name_0 = "NotAuthenticatedPermissionDeniedAccessKeyNotAcceptedAccessTokenNotAcceptedInvalidCredentialsInvalidSignatureBadRequestInvalidArgumentDuplicatedResourceNotFoundNotSupportedNotImplementedConstraintViolatedIncompatibleSchemaAtomicOperationFailurePartialOperationFailureUndefinedOperationPluginUnavailablePluginTimeoutRecordQueryInvalidPluginInitializingResponseTimeoutDeniedArgumentRecordQueryDeniedNotConfiguredPasswordPolicyViolatedUserDisabledVerificationRequiredAssetSizeTooLargeWebHookTimeOutWebHookFailedCurrentIdentityBeingDeleted"
 	_ErrorCode_name_1 = "UnexpectedErrorUnexpectedAuthInfoNotFoundUnexpectedUnableToOpenDatabaseUnexpectedPushNotificationNotConfiguredInternalQueryInvalidUnexpectedUserNotFound"
 )
 
 var (
-	_ErrorCode_index_0 = [...]uint16{0, 16, 32, 52, 74, 92, 108, 118, 133, 143, 159, 171, 185, 203, 221, 243, 266, 284, 301, 314, 332, 350, 365, 379, 396, 409, 431, 443, 463, 480, 494, 507}
+	_ErrorCode_index_0 = [...]uint16{0, 16, 32, 52, 74, 92, 108, 118, 133, 143, 159, 171, 185, 203, 221, 243, 266, 284, 301, 314, 332, 350, 365, 379, 396, 409, 431, 443, 463, 480, 494, 507, 534}
 	_ErrorCode_index_1 = [...]uint8{0, 15, 41, 71, 110, 130, 152}
 )
 
 func (i ErrorCode) String() string {
 	switch {
-	case 101 <= i && i <= 131:
+	case 101 <= i && i <= 132:
 		i -= 101
 		return _ErrorCode_name_0[_ErrorCode_index_0[i]:_ErrorCode_index_0[i+1]]
 	case 10000 <= i && i <= 10005:
