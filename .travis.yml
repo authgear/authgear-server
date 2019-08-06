@@ -3,9 +3,6 @@ language: go
 go:
   - 1.12.5
 
-addons:
-  postgresql: "9.5"
-
 services:
   - redis-server
   - docker
@@ -28,13 +25,8 @@ before_install:
   - popd
 
 install:
-  - sudo apt-get install -y postgresql-9.5-postgis-2.3
   - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.16.0
   - make vendor
-
-before_script:
-  - psql -c 'CREATE DATABASE skygear_test;' -U postgres
-  - psql -c 'CREATE EXTENSION postgis;' -U postgres -d skygear_test
 
 script:
   - make generate
