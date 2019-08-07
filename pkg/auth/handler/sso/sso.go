@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -30,15 +29,14 @@ import (
 type ssoProviderParameter string
 
 type respHandler struct {
-	TokenStore           authtoken.Store
-	AuthInfoStore        authinfo.Store
-	OAuthAuthProvider    oauth.Provider
-	PasswordAuthProvider password.Provider
-	IdentityProvider     principal.IdentityProvider
-	UserProfileStore     userprofile.Store
-	HookProvider         hook.Provider
-	TaskQueue            async.Queue
-	WelcomeEmailEnabled  bool
+	TokenStore          authtoken.Store
+	AuthInfoStore       authinfo.Store
+	OAuthAuthProvider   oauth.Provider
+	IdentityProvider    principal.IdentityProvider
+	UserProfileStore    userprofile.Store
+	HookProvider        hook.Provider
+	TaskQueue           async.Queue
+	WelcomeEmailEnabled bool
 }
 
 func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.LoginState) (resp interface{}, err error) {
@@ -249,7 +247,7 @@ func (h respHandler) handleLogin(
 
 	// Case: OAuth principal was found
 	// => Simple update case
-	// We do not need to consider password principal
+	// We do not need to consider other principals
 	if oauthPrincipal != nil {
 		oauthPrincipal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
 		oauthPrincipal.SetRawProfile(oauthAuthInfo.ProviderRawProfile)
@@ -264,20 +262,21 @@ func (h respHandler) handleLogin(
 	}
 
 	// Case: OAuth principal was not found
-	// We need to consider password principal
-	passwordPrincipal, err := h.findExistingPasswordPrincipal(oauthAuthInfo, loginState.MergeRealm)
+	// We need to consider all principals
+	principals, err := h.findExistingPrincipals(oauthAuthInfo, loginState.MergeRealm)
 	if err != nil {
 		return
 	}
+	userIDs := h.principalsToUserIDs(principals)
 
-	// Case: OAuth principal was not found and Password principal was not found
+	// Case: OAuth principal was not found and no other principals were not found
 	// => Simple create case
-	if passwordPrincipal == nil {
+	if len(userIDs) <= 0 {
 		createFunc()
 		return
 	}
 
-	// Case: OAuth principal was not found and Password principal was found
+	// Case: OAuth principal was not found and some principals were found
 	// => Complex case
 	switch loginState.OnUserDuplicate {
 	case sso.OnUserDuplicateAbort:
@@ -285,15 +284,21 @@ func (h respHandler) handleLogin(
 	case sso.OnUserDuplicateCreate:
 		createFunc()
 	case sso.OnUserDuplicateMerge:
+		// Case: The same email is shared by multiple users
+		if len(userIDs) > 1 {
+			err = skyerr.NewError(skyerr.Duplicated, "Email shared by multiple users")
+			return
+		}
 		// Associate the provider to the existing user
+		userID := userIDs[0]
 		oauthPrincipal, err = h.createPrincipalByOAuthInfo(
-			passwordPrincipal.UserID,
+			userID,
 			oauthAuthInfo,
 		)
 		if err != nil {
 			return
 		}
-		populateInfo(passwordPrincipal.UserID)
+		populateInfo(userID)
 	}
 
 	return
@@ -315,24 +320,40 @@ func (h respHandler) findExistingOAuthPrincipal(oauthAuthInfo sso.AuthInfo) (*oa
 	return principal, nil
 }
 
-func (h respHandler) findExistingPasswordPrincipal(oauthAuthInfo sso.AuthInfo, mergeRealm string) (*password.Principal, error) {
-	// Find password principal by provider primary email
+func (h respHandler) findExistingPrincipals(oauthAuthInfo sso.AuthInfo, mergeRealm string) ([]principal.Principal, error) {
 	email := oauthAuthInfo.ProviderUserInfo.Email
 	if email == "" {
 		return nil, nil
 	}
-	passwordPrincipal := password.Principal{}
-	err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", email, mergeRealm, &passwordPrincipal)
-	if err == skydb.ErrUserNotFound {
-		return nil, nil
-	}
+	principals, err := h.IdentityProvider.ListPrincipalsByClaim("email", oauthAuthInfo.ProviderUserInfo.Email)
 	if err != nil {
 		return nil, err
 	}
-	if !h.PasswordAuthProvider.CheckLoginIDKeyType(passwordPrincipal.LoginIDKey, metadata.Email) {
-		return nil, nil
+	var filteredPrincipals []principal.Principal
+	for _, p := range principals {
+		if passwordPrincipal, ok := p.(*password.Principal); ok {
+			if passwordPrincipal.Realm == mergeRealm {
+				filteredPrincipals = append(filteredPrincipals, p)
+			}
+		} else {
+			filteredPrincipals = append(filteredPrincipals, p)
+		}
 	}
-	return &passwordPrincipal, nil
+	return filteredPrincipals, nil
+}
+
+func (h respHandler) principalsToUserIDs(principals []principal.Principal) []string {
+	seen := map[string]struct{}{}
+	var userIDs []string
+	for _, p := range principals {
+		userID := p.PrincipalUserID()
+		_, ok := seen[userID]
+		if !ok {
+			seen[userID] = struct{}{}
+			userIDs = append(userIDs, userID)
+		}
+	}
+	return userIDs
 }
 
 func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {

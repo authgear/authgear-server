@@ -139,8 +139,7 @@ func TestAuthHandler(t *testing.T) {
 			allowedRealms,
 			map[string]password.Principal{},
 		)
-		sh.PasswordAuthProvider = passwordAuthProvider
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
+		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, passwordAuthProvider)
 		sh.HookProvider = hook.NewMockProvider()
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)
@@ -391,8 +390,7 @@ func TestAuthHandler(t *testing.T) {
 			allowedRealms,
 			map[string]password.Principal{},
 		)
-		sh.PasswordAuthProvider = passwordAuthProvider
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
+		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, passwordAuthProvider)
 		sh.HookProvider = hook.NewMockProvider()
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)
@@ -579,11 +577,13 @@ func TestAuthHandler(t *testing.T) {
 					LoginID:        "john.doe@example.com",
 					Realm:          "default",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+					ClaimsValue: map[string]interface{}{
+						"email": "john.doe@example.com",
+					},
 				},
 			},
 		)
-		sh.PasswordAuthProvider = passwordAuthProvider
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
+		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, passwordAuthProvider)
 		sh.HookProvider = hook.NewMockProvider()
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)

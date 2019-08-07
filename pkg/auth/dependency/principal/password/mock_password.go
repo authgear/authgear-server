@@ -9,7 +9,6 @@ import (
 
 // MockProvider is the memory implementation of password provider
 type MockProvider struct {
-	Provider
 	PrincipalMap   map[string]Principal
 	loginIDChecker loginIDChecker
 	realmChecker   realmChecker
@@ -171,3 +170,31 @@ func (m *MockProvider) GetPrincipalByID(principalID string) (principal.Principal
 	}
 	return nil, skydb.ErrUserNotFound
 }
+
+func (m *MockProvider) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
+	var principals []principal.Principal
+	for _, p := range m.PrincipalMap {
+		if p.ClaimsValue[claimName] == claimValue {
+			var passwordPrincipal *Principal
+			passwordPrincipal = &p
+			principals = append(principals, passwordPrincipal)
+		}
+	}
+	return principals, nil
+}
+
+func (m *MockProvider) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
+	var principals []principal.Principal
+	for _, p := range m.PrincipalMap {
+		if p.UserID == userID {
+			var passwordPrincipal *Principal
+			passwordPrincipal = &p
+			principals = append(principals, passwordPrincipal)
+		}
+	}
+	return principals, nil
+}
+
+var (
+	_ Provider = &MockProvider{}
+)

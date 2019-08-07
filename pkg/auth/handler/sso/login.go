@@ -107,21 +107,20 @@ func (p LoginRequestPayload) Validate() (err error) {
 		@Callback user_sync {UserSyncEvent}
 */
 type LoginHandler struct {
-	TxContext            db.TxContext               `dependency:"TxContext"`
-	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
-	OAuthAuthProvider    oauth.Provider             `dependency:"OAuthAuthProvider"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	TokenStore           authtoken.Store            `dependency:"TokenStore"`
-	ProviderFactory      *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider         hook.Provider              `dependency:"HookProvider"`
-	OAuthConfiguration   config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
-	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
-	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
-	Provider             sso.OAuthProvider
-	ProviderID           string
+	TxContext           db.TxContext               `dependency:"TxContext"`
+	AuthContext         coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	OAuthAuthProvider   oauth.Provider             `dependency:"OAuthAuthProvider"`
+	IdentityProvider    principal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore       authinfo.Store             `dependency:"AuthInfoStore"`
+	TokenStore          authtoken.Store            `dependency:"TokenStore"`
+	ProviderFactory     *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
+	UserProfileStore    userprofile.Store          `dependency:"UserProfileStore"`
+	HookProvider        hook.Provider              `dependency:"HookProvider"`
+	OAuthConfiguration  config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
+	WelcomeEmailEnabled bool                       `dependency:"WelcomeEmailEnabled"`
+	TaskQueue           async.Queue                `dependency:"AsyncTaskQueue"`
+	Provider            sso.OAuthProvider
+	ProviderID          string
 }
 
 func (h LoginHandler) WithTx() bool {
@@ -168,15 +167,14 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	handler := respHandler{
-		TokenStore:           h.TokenStore,
-		AuthInfoStore:        h.AuthInfoStore,
-		OAuthAuthProvider:    h.OAuthAuthProvider,
-		PasswordAuthProvider: h.PasswordAuthProvider,
-		IdentityProvider:     h.IdentityProvider,
-		UserProfileStore:     h.UserProfileStore,
-		HookProvider:         h.HookProvider,
-		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
-		TaskQueue:            h.TaskQueue,
+		TokenStore:          h.TokenStore,
+		AuthInfoStore:       h.AuthInfoStore,
+		OAuthAuthProvider:   h.OAuthAuthProvider,
+		IdentityProvider:    h.IdentityProvider,
+		UserProfileStore:    h.UserProfileStore,
+		HookProvider:        h.HookProvider,
+		WelcomeEmailEnabled: h.WelcomeEmailEnabled,
+		TaskQueue:           h.TaskQueue,
 	}
 	resp, err = handler.loginActionResp(oauthAuthInfo, loginState)
 
