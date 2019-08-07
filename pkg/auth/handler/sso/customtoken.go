@@ -22,7 +22,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -381,7 +380,7 @@ func (h CustomTokenLoginHandler) handleLogin(
 
 	// Case: Custom Token principal was found
 	// => Simple update case
-	// We do not need to consider password principal
+	// We do not need to consider other principals
 	if customTokenPrincipal != nil {
 		customTokenPrincipal.SetRawProfile(payload.Claims)
 		err = h.CustomTokenAuthProvider.UpdatePrincipal(customTokenPrincipal)
@@ -394,15 +393,16 @@ func (h CustomTokenLoginHandler) handleLogin(
 	}
 
 	// Case: Custom Token principal was not found
-	// We need to consider password principal
-	passwordPrincipal, err := h.findExistingPasswordPrincipal(payload.Claims.Email(), payload.MergeRealm)
+	// We need to consider other principals
+	principals, err := h.findExistingPrincipals(payload.Claims.Email(), payload.MergeRealm)
 	if err != nil {
 		return
 	}
+	userIDs := h.principalsToUserIDs(principals)
 
-	// Case: Custom Token principal was not found and Password principal was not found
+	// Case: Custom Token principal was not found and no other principals were not found
 	// => Simple create case
-	if passwordPrincipal == nil {
+	if len(userIDs) <= 0 {
 		createFunc()
 		return
 	}
@@ -415,15 +415,21 @@ func (h CustomTokenLoginHandler) handleLogin(
 	case sso.OnUserDuplicateCreate:
 		createFunc()
 	case sso.OnUserDuplicateMerge:
+		// Case: The same email is shared by multiple users
+		if len(userIDs) > 1 {
+			err = skyerr.NewError(skyerr.Duplicated, "Email shared by multiple users")
+			return
+		}
 		// Associate the provider to the existing user
+		userID := userIDs[0]
 		customTokenPrincipal, err = h.createCustomTokenPrincipal(
-			passwordPrincipal.UserID,
+			userID,
 			payload.Claims,
 		)
 		if err != nil {
 			return
 		}
-		populateInfo(passwordPrincipal.UserID)
+		populateInfo(userID)
 	}
 
 	return
@@ -449,22 +455,39 @@ func (h CustomTokenLoginHandler) sendWelcomeEmail(user model.User, email string)
 	}
 }
 
-func (h CustomTokenLoginHandler) findExistingPasswordPrincipal(email string, realm string) (*password.Principal, error) {
+func (h CustomTokenLoginHandler) findExistingPrincipals(email string, mergeRealm string) ([]principal.Principal, error) {
 	if email == "" {
 		return nil, nil
 	}
-	passwordPrincipal := password.Principal{}
-	err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", email, realm, &passwordPrincipal)
-	if err == skydb.ErrUserNotFound {
-		return nil, nil
-	}
+	principals, err := h.IdentityProvider.ListPrincipalsByClaim("email", email)
 	if err != nil {
 		return nil, err
 	}
-	if !h.PasswordAuthProvider.CheckLoginIDKeyType(passwordPrincipal.LoginIDKey, metadata.Email) {
-		return nil, nil
+	var filteredPrincipals []principal.Principal
+	for _, p := range principals {
+		if passwordPrincipal, ok := p.(*password.Principal); ok {
+			if passwordPrincipal.Realm == mergeRealm {
+				filteredPrincipals = append(filteredPrincipals, p)
+			}
+		} else {
+			filteredPrincipals = append(filteredPrincipals, p)
+		}
 	}
-	return &passwordPrincipal, nil
+	return filteredPrincipals, nil
+}
+
+func (h CustomTokenLoginHandler) principalsToUserIDs(principals []principal.Principal) []string {
+	seen := map[string]struct{}{}
+	var userIDs []string
+	for _, p := range principals {
+		userID := p.PrincipalUserID()
+		_, ok := seen[userID]
+		if !ok {
+			seen[userID] = struct{}{}
+			userIDs = append(userIDs, userID)
+		}
+	}
+	return userIDs
 }
 
 func (h CustomTokenLoginHandler) createCustomTokenPrincipal(userID string, claims customtoken.SSOCustomTokenClaims) (*customtoken.Principal, error) {
