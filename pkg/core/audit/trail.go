@@ -110,14 +110,14 @@ func (t LoggerTrail) WithRequest(req *http.Request) Trail {
 
 type Entry struct {
 	Event  Event
-	AuthID string
+	UserID string
 	Data   map[string]interface{}
 }
 
 func (e *Entry) toLogrusFields() logrus.Fields {
 	return logrus.Fields{
 		"event":   e.Event.String(),
-		"auth_id": e.AuthID,
+		"user_id": e.UserID,
 		"data":    e.Data,
 	}
 }

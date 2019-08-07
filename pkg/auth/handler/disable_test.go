@@ -21,14 +21,14 @@ func TestSetDisableHandler(t *testing.T) {
 	Convey("Test setDisableUserPayload", t, func() {
 		Convey("validate valid payload", func() {
 			payload := setDisableUserPayload{
-				AuthInfoID:   "john.doe.id",
+				UserID:       "john.doe.id",
 				Disabled:     true,
 				ExpiryString: "2006-01-02T15:04:05Z",
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
 
-		Convey("validate payload without AuthInfoID", func() {
+		Convey("validate payload without UserID", func() {
 			payload := setDisableUserPayload{}
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)
@@ -55,7 +55,7 @@ func TestSetDisableHandler(t *testing.T) {
 		Convey("decode valid request", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 				{
-					"auth_id": "john.doe.id",
+					"user_id": "john.doe.id",
 					"expiry": "2006-01-02T15:04:05Z",
 					"disabled": true,
 					"message": "Temporarily disable"
@@ -64,7 +64,7 @@ func TestSetDisableHandler(t *testing.T) {
 			payload, err := h.DecodeRequest(req)
 			disablePayload, ok := payload.(setDisableUserPayload)
 			So(ok, ShouldBeTrue)
-			So(disablePayload.AuthInfoID, ShouldEqual, "john.doe.id")
+			So(disablePayload.UserID, ShouldEqual, "john.doe.id")
 			So(disablePayload.expiry.Equal(time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)), ShouldBeTrue)
 			So(err, ShouldBeNil)
 		})
@@ -72,7 +72,7 @@ func TestSetDisableHandler(t *testing.T) {
 		Convey("decode invalid expiry time format", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 				{
-					"auth_id": "john.doe.id",
+					"user_id": "john.doe.id",
 					"expiry": "Mon Oct 9 15:04:05 HKT 2006",
 					"disabled": true,
 					"message": "Temporarily disable"
@@ -87,10 +87,10 @@ func TestSetDisableHandler(t *testing.T) {
 			expiry := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
 			userID := "john.doe.id"
 			payload := setDisableUserPayload{
-				AuthInfoID: userID,
-				Disabled:   true,
-				Message:    "Temporarily disable",
-				expiry:     &expiry,
+				UserID:   userID,
+				Disabled: true,
+				Message:  "Temporarily disable",
+				expiry:   &expiry,
 			}
 
 			resp, err := h.Handle(payload)
@@ -124,10 +124,10 @@ func TestSetDisableHandler(t *testing.T) {
 			expiry := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
 			userID := "john.doe.id"
 			payload := setDisableUserPayload{
-				AuthInfoID: userID,
-				Disabled:   false,
-				Message:    "Temporarily disable",
-				expiry:     &expiry,
+				UserID:   userID,
+				Disabled: false,
+				Message:  "Temporarily disable",
+				expiry:   &expiry,
 			}
 
 			resp, err := h.Handle(payload)
@@ -161,10 +161,10 @@ func TestSetDisableHandler(t *testing.T) {
 			expiry := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
 			userID := "john.doe.id"
 			payload := setDisableUserPayload{
-				AuthInfoID: userID,
-				Disabled:   true,
-				Message:    "Temporarily disable",
-				expiry:     &expiry,
+				UserID:   userID,
+				Disabled: true,
+				Message:  "Temporarily disable",
+				expiry:   &expiry,
 			}
 			h.Handle(payload)
 			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)

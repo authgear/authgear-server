@@ -58,13 +58,13 @@ func (f ResetPasswordHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type ResetPasswordRequestPayload struct {
-	AuthInfoID string `json:"auth_id"`
-	Password   string `json:"password"`
+	UserID   string `json:"user_id"`
+	Password string `json:"password"`
 }
 
 func (p ResetPasswordRequestPayload) Validate() error {
-	if p.AuthInfoID == "" {
-		return skyerr.NewInvalidArgument("invalid auth id", []string{"auth_id"})
+	if p.UserID == "" {
+		return skyerr.NewInvalidArgument("invalid user id", []string{"user_id"})
 	}
 
 	if p.Password == "" {
@@ -101,7 +101,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 	payload := req.(ResetPasswordRequestPayload)
 
 	authinfo := authinfo.AuthInfo{}
-	if e := h.AuthInfoStore.GetAuth(payload.AuthInfoID, &authinfo); e != nil {
+	if e := h.AuthInfoStore.GetAuth(payload.UserID, &authinfo); e != nil {
 		if err == skydb.ErrUserNotFound {
 			// logger.Info("Auth info not found when setting disabled user status")
 			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
@@ -147,7 +147,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 
 	h.AuditTrail.Log(audit.Entry{
-		AuthID: authinfo.ID,
+		UserID: authinfo.ID,
 		Event:  audit.EventResetPassword,
 	})
 

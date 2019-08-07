@@ -204,7 +204,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	)
 
 	h.AuditTrail.Log(audit.Entry{
-		AuthID: authInfo.ID,
+		UserID: authInfo.ID,
 		Event:  audit.EventResetPassword,
 		Data: map[string]interface{}{
 			"type": "forgot_password",

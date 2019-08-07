@@ -57,7 +57,7 @@ func (f SetDisableHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type setDisableUserPayload struct {
-	AuthInfoID   string `json:"auth_id"`
+	UserID       string `json:"user_id"`
 	Disabled     bool   `json:"disabled"`
 	Message      string `json:"message"`
 	ExpiryString string `json:"expiry"`
@@ -65,8 +65,8 @@ type setDisableUserPayload struct {
 }
 
 func (payload setDisableUserPayload) Validate() error {
-	if payload.AuthInfoID == "" {
-		return skyerr.NewInvalidArgument("invalid auth id", []string{"auth_id"})
+	if payload.UserID == "" {
+		return skyerr.NewInvalidArgument("invalid user id", []string{"user_id"})
 	}
 	return nil
 }
@@ -107,7 +107,7 @@ func (h SetDisableHandler) Handle(req interface{}) (resp interface{}, err error)
 	p := req.(setDisableUserPayload)
 
 	authinfo := authinfo.AuthInfo{}
-	if e := h.AuthInfoStore.GetAuth(p.AuthInfoID, &authinfo); e != nil {
+	if e := h.AuthInfoStore.GetAuth(p.UserID, &authinfo); e != nil {
 		if err == skydb.ErrUserNotFound {
 			// logger.Info("Auth info not found when setting disabled user status")
 			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
@@ -169,7 +169,7 @@ func (h SetDisableHandler) logAuditTrail(p setDisableUserPayload) {
 	}
 
 	h.AuditTrail.Log(audit.Entry{
-		AuthID: p.AuthInfoID,
+		UserID: p.UserID,
 		Event:  event,
 	})
 }

@@ -117,12 +117,12 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	defer func() {
 		if err != nil {
 			h.AuditTrail.Log(audit.Entry{
-				AuthID: fetchedAuthInfo.ID,
+				UserID: fetchedAuthInfo.ID,
 				Event:  audit.EventLoginFailure,
 			})
 		} else {
 			h.AuditTrail.Log(audit.Entry{
-				AuthID: fetchedAuthInfo.ID,
+				UserID: fetchedAuthInfo.ID,
 				Event:  audit.EventLoginSuccess,
 			})
 		}

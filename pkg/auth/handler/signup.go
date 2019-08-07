@@ -214,7 +214,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	h.AuditTrail.Log(audit.Entry{
-		AuthID: info.ID,
+		UserID: info.ID,
 		Event:  audit.EventSignup,
 	})
 
