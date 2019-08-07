@@ -109,6 +109,9 @@ func TestLoginHandler(t *testing.T) {
 					LoginID:        "john.doe@example.com",
 					Realm:          password.DefaultRealm,
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+					ClaimsValue: map[string]interface{}{
+						"email": "john.doe@example.com",
+					},
 				},
 				"john.doe.principal.id2": password.Principal{
 					ID:             "john.doe.principal.id2",
@@ -117,6 +120,7 @@ func TestLoginHandler(t *testing.T) {
 					LoginID:        "john.doe",
 					Realm:          password.DefaultRealm,
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+					ClaimsValue:    map[string]interface{}{},
 				},
 				"john.doe.principal.id3": password.Principal{
 					ID:             "john.doe.principal.id3",
@@ -125,6 +129,9 @@ func TestLoginHandler(t *testing.T) {
 					LoginID:        "john.doe+1@example.com",
 					Realm:          "admin",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+					ClaimsValue: map[string]interface{}{
+						"email": "john.doe+1@example.com",
+					},
 				},
 			},
 		)
@@ -298,6 +305,9 @@ func TestLoginHandler(t *testing.T) {
 					LoginID:        "john.doe@example.com",
 					Realm:          password.DefaultRealm,
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+					ClaimsValue: map[string]interface{}{
+						"email": "john.doe@example.com",
+					},
 				},
 				"john.doe.principal.id2": password.Principal{
 					ID:             "john.doe.principal.id2",
@@ -306,6 +316,7 @@ func TestLoginHandler(t *testing.T) {
 					LoginID:        "john.doe",
 					Realm:          password.DefaultRealm,
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+					ClaimsValue:    map[string]interface{}{},
 				},
 			},
 		)
@@ -354,7 +365,9 @@ func TestLoginHandler(t *testing.T) {
 						"login_id_key": "email",
 						"login_id": "john.doe@example.com",
 						"realm": "default",
-						"claims": {}
+						"claims": {
+							"email": "john.doe@example.com"
+						}
 					},
 					"access_token": "%s"
 				}
@@ -380,7 +393,9 @@ func TestLoginHandler(t *testing.T) {
 							"login_id":     "john.doe@example.com",
 							"realm":        "default",
 						},
-						Claims: principal.Claims{},
+						Claims: principal.Claims{
+							"email": "john.doe@example.com",
+						},
 					},
 				},
 			})

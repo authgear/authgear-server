@@ -33,13 +33,3 @@ func (p *mockIdentityProvider) GetPrincipalByID(principalID string) (principal P
 	}
 	return nil, skydb.ErrUserNotFound
 }
-
-func (p *mockIdentityProvider) DeriveClaims(principal Principal) Claims {
-	for _, provider := range p.providers {
-		if provider.ID() == principal.ProviderID() {
-			return provider.DeriveClaims(principal)
-		}
-	}
-
-	return Claims{}
-}

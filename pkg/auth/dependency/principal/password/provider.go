@@ -2,6 +2,8 @@ package password
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"time"
 
@@ -67,15 +69,15 @@ func NewProvider(
 	return newProvider(builder, executor, logger, loginIDsKeys, allowedRealms, passwordHistoryEnabled)
 }
 
-func (p providerImpl) ValidateLoginIDs(loginIDs []LoginID) error {
+func (p *providerImpl) ValidateLoginIDs(loginIDs []LoginID) error {
 	return p.loginIDChecker.validate(loginIDs)
 }
 
-func (p providerImpl) CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool {
+func (p *providerImpl) CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool {
 	return p.loginIDChecker.checkType(loginIDKey, standardKey)
 }
 
-func (p providerImpl) IsRealmValid(realm string) bool {
+func (p *providerImpl) IsRealmValid(realm string) bool {
 	return p.realmChecker.isValid(realm)
 }
 
@@ -83,7 +85,31 @@ func (p *providerImpl) IsDefaultAllowedRealms() bool {
 	return len(p.allowedRealms) == 1 && p.allowedRealms[0] == DefaultRealm
 }
 
-func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (principals []*Principal, err error) {
+func (p *providerImpl) scan(scanner db.Scanner, principal *Principal) error {
+	var claimsValueBytes []byte
+
+	err := scanner.Scan(
+		&principal.ID,
+		&principal.UserID,
+		&principal.LoginIDKey,
+		&principal.LoginID,
+		&principal.Realm,
+		&principal.HashedPassword,
+		&claimsValueBytes,
+	)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(claimsValueBytes, &principal.ClaimsValue)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (principals []*Principal, err error) {
 	// do not create principal when there is login ID belongs to another user.
 	for _, loginID := range loginIDs {
 		loginIDPrincipals, principalErr := p.GetPrincipalsByLoginID("", loginID.Value)
@@ -105,6 +131,7 @@ func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password stri
 		principal.LoginIDKey = loginID.Key
 		principal.LoginID = loginID.Value
 		principal.Realm = realm
+		principal.deriveClaims(p.loginIDChecker)
 		principal.setPassword(password)
 		err = p.CreatePrincipal(principal)
 
@@ -117,7 +144,7 @@ func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password stri
 	return
 }
 
-func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
+func (p *providerImpl) CreatePrincipal(principal Principal) (err error) {
 	// TODO: log
 
 	// Create principal
@@ -136,18 +163,25 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 		return
 	}
 
+	claimsValueBytes, err := json.Marshal(principal.ClaimsValue)
+	if err != nil {
+		return
+	}
+
 	builder = p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("provider_password")).Columns(
 		"principal_id",
 		"login_id_key",
 		"login_id",
 		"realm",
 		"password",
+		"claims",
 	).Values(
 		principal.ID,
 		principal.LoginIDKey,
 		principal.LoginID,
 		principal.Realm,
 		principal.HashedPassword,
+		claimsValueBytes,
 	)
 
 	_, err = p.sqlExecutor.ExecWith(builder)
@@ -166,54 +200,50 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 	return
 }
 
-func (p providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error) {
-	builder := p.sqlBuilder.Select("principal_id", "login_id_key", "password").
-		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`login_id = ? AND realm = ?`, loginID, realm)
+func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error) {
+	builder := p.sqlBuilder.Select(
+		"p.id",
+		"p.user_id",
+		"pp.login_id_key",
+		"pp.login_id",
+		"pp.realm",
+		"pp.password",
+		"pp.claims",
+	).
+		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
+		Join(fmt.Sprintf("%s AS pp ON p.id = pp.principal_id", p.sqlBuilder.FullTableName("provider_password"))).
+		Where(`pp.login_id = ? AND pp.realm = ?`, loginID, realm)
 	if loginIDKey != "" {
-		builder = builder.Where("login_id_key = ?", loginIDKey)
+		builder = builder.Where("pp.login_id_key = ?", loginIDKey)
 	}
+
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
-	err = scanner.Scan(
-		&principal.ID,
-		&principal.LoginIDKey,
-		&principal.HashedPassword,
-	)
-
+	err = p.scan(scanner, principal)
 	if err == sql.ErrNoRows {
 		err = skydb.ErrUserNotFound
 	}
-
 	if err != nil {
 		return
-	}
-
-	principal.LoginID = loginID
-	principal.Realm = realm
-
-	builder = p.sqlBuilder.Select("user_id").
-		From(p.sqlBuilder.FullTableName("principal")).
-		Where("id = ? AND provider = 'password'", principal.ID)
-	scanner = p.sqlExecutor.QueryRowWith(builder)
-	err = scanner.Scan(&principal.UserID)
-
-	if err == sql.ErrNoRows {
-		p.logger.Warnf("Missing principal for provider_password: %v", principal.ID)
-		err = skydb.ErrUserNotFound
-	}
-
-	if err != nil {
-		return err
 	}
 
 	return
 }
 
-func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
-	builder := p.sqlBuilder.Select("id", "user_id").
-		From(p.sqlBuilder.FullTableName("principal")).
-		Where("user_id = ? AND provider = 'password'", userID)
+func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
+	builder := p.sqlBuilder.Select(
+		"p.id",
+		"p.user_id",
+		"pp.login_id_key",
+		"pp.login_id",
+		"pp.realm",
+		"pp.password",
+		"pp.claims",
+	).
+		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
+		Join(fmt.Sprintf("%s AS pp ON p.id = pp.principal_id", p.sqlBuilder.FullTableName("provider_password"))).
+		Where("p.user_id = ?", userID)
+
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return
@@ -222,13 +252,10 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 
 	for rows.Next() {
 		var principal Principal
-		if err = rows.Scan(
-			&principal.ID,
-			&principal.UserID,
-		); err != nil {
-			return nil, err
+		err = p.scan(rows, &principal)
+		if err != nil {
+			return
 		}
-
 		principals = append(principals, &principal)
 	}
 
@@ -237,37 +264,26 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 		return
 	}
 
-	for _, principal := range principals {
-		builder = p.sqlBuilder.Select("login_id_key", "login_id", "realm", "password").
-			From(p.sqlBuilder.FullTableName("provider_password")).
-			Where(`principal_id = ?`, principal.ID)
-		scanner := p.sqlExecutor.QueryRowWith(builder)
-		err = scanner.Scan(
-			&principal.LoginIDKey,
-			&principal.LoginID,
-			&principal.Realm,
-			&principal.HashedPassword,
-		)
-
-		if err == sql.ErrNoRows {
-			err = skydb.ErrUserNotFound
-		}
-
-		if err != nil {
-			return
-		}
-	}
-
 	return
 }
 
-func (p providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string) (principals []*Principal, err error) {
-	builder := p.sqlBuilder.Select("principal_id", "realm", "login_id_key", "password").
-		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where("login_id = ?", loginID)
+func (p *providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string) (principals []*Principal, err error) {
+	builder := p.sqlBuilder.Select(
+		"p.id",
+		"p.user_id",
+		"pp.login_id_key",
+		"pp.login_id",
+		"pp.realm",
+		"pp.password",
+		"pp.claims",
+	).
+		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
+		Join(fmt.Sprintf("%s AS pp ON p.id = pp.principal_id", p.sqlBuilder.FullTableName("provider_password"))).
+		Where(`pp.login_id = ?`, loginID)
 	if loginIDKey != "" {
-		builder = builder.Where("login_id_key = ?", loginIDKey)
+		builder = builder.Where("pp.login_id_key = ?", loginIDKey)
 	}
+
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return
@@ -276,16 +292,10 @@ func (p providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string) 
 
 	for rows.Next() {
 		var principal Principal
-		principal.LoginID = loginID
-		if err = rows.Scan(
-			&principal.ID,
-			&principal.Realm,
-			&principal.LoginIDKey,
-			&principal.HashedPassword,
-		); err != nil {
+		err = p.scan(rows, &principal)
+		if err != nil {
 			return
 		}
-
 		principals = append(principals, &principal)
 	}
 
@@ -294,26 +304,10 @@ func (p providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string) 
 		return
 	}
 
-	for _, principal := range principals {
-		builder = p.sqlBuilder.Select("user_id").
-			From(p.sqlBuilder.FullTableName("principal")).
-			Where("id = ? AND provider = 'password'", principal.ID)
-		scanner := p.sqlExecutor.QueryRowWith(builder)
-		err = scanner.Scan(&principal.UserID)
-
-		if err == sql.ErrNoRows {
-			p.logger.Warnf("Missing principal for provider_password: %v", principal.ID)
-			err = skydb.ErrUserNotFound
-		}
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return
 }
 
-func (p providerImpl) UpdatePassword(principal *Principal, password string) (err error) {
+func (p *providerImpl) UpdatePassword(principal *Principal, password string) (err error) {
 	// TODO: log
 
 	var isPasswordChanged = !principal.IsSamePassword(password)
@@ -345,51 +339,38 @@ func (p providerImpl) UpdatePassword(principal *Principal, password string) (err
 	return
 }
 
-func (p providerImpl) ID() string {
+func (p *providerImpl) ID() string {
 	return providerPassword
 }
 
-func (p providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
-	builder := p.sqlBuilder.Select("login_id", "login_id_key", "realm", "password").
-		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`principal_id = ?`, principalID)
+func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
+	builder := p.sqlBuilder.Select(
+		"p.id",
+		"p.user_id",
+		"pp.login_id_key",
+		"pp.login_id",
+		"pp.realm",
+		"pp.password",
+		"pp.claims",
+	).
+		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
+		Join(fmt.Sprintf("%s AS pp ON p.id = pp.principal_id", p.sqlBuilder.FullTableName("provider_password"))).
+		Where(`p.id = ?`, principalID)
+
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
-	principal := Principal{ID: principalID}
-	err := scanner.Scan(
-		&principal.LoginID,
-		&principal.LoginIDKey,
-		&principal.Realm,
-		&principal.HashedPassword,
-	)
-
+	principal := Principal{}
+	err := p.scan(scanner, &principal)
 	if err == sql.ErrNoRows {
 		err = skydb.ErrUserNotFound
 	}
-
 	if err != nil {
 		return nil, err
 	}
-
-	builder = p.sqlBuilder.Select("user_id").
-		From(p.sqlBuilder.FullTableName("principal")).
-		Where("id = ? AND provider = 'password'", principal.ID)
-	scanner = p.sqlExecutor.QueryRowWith(builder)
-	err = scanner.Scan(&principal.UserID)
-
-	if err == sql.ErrNoRows {
-		p.logger.Warnf("Missing principal for provider_password: %v", principal.ID)
-		err = skydb.ErrUserNotFound
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
 	return &principal, nil
 }
 
-func (p providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
+func (p *providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
 	principals, err := p.GetPrincipalsByUserID(userID)
 	if err != nil {
 		return nil, err
@@ -401,16 +382,6 @@ func (p providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Princip
 	}
 
 	return genericPrincipals, nil
-}
-
-func (p providerImpl) DeriveClaims(genericPrincipal principal.Principal) principal.Claims {
-	passwordPrincipal := genericPrincipal.(*Principal)
-	standardKey, hasStandardKey := p.loginIDChecker.standardKey(passwordPrincipal.LoginIDKey)
-	claims := principal.Claims{}
-	if hasStandardKey {
-		claims[string(standardKey)] = passwordPrincipal.LoginID
-	}
-	return claims
 }
 
 // this ensures that our structure conform to certain interfaces.

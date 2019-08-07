@@ -1,7 +1,6 @@
 package anonymous
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
@@ -30,8 +29,4 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 
 func (m *MockProvider) ID() string {
 	return providerAnonymous
-}
-
-func (m *MockProvider) DeriveClaims(_ principal.Principal) principal.Claims {
-	return principal.Claims{}
 }

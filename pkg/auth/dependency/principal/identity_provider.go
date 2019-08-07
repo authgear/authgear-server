@@ -9,7 +9,6 @@ import (
 type IdentityProvider interface {
 	ListPrincipalsByUserID(userID string) ([]Principal, error)
 	GetPrincipalByID(principalID string) (Principal, error)
-	DeriveClaims(principal Principal) Claims
 }
 
 type identityProviderImpl struct {
@@ -59,14 +58,4 @@ func (p *identityProviderImpl) GetPrincipalByID(principalID string) (Principal, 
 	}
 
 	return nil, skydb.ErrUserNotFound
-}
-
-func (p *identityProviderImpl) DeriveClaims(principal Principal) Claims {
-	for _, provider := range p.providers {
-		if provider.ID() == principal.ProviderID() {
-			return provider.DeriveClaims(principal)
-		}
-	}
-
-	return Claims{}
 }

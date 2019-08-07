@@ -383,7 +383,7 @@ func (h CustomTokenLoginHandler) handleLogin(
 	// => Simple update case
 	// We do not need to consider password principal
 	if customTokenPrincipal != nil {
-		customTokenPrincipal.RawProfile = payload.Claims
+		customTokenPrincipal.SetRawProfile(payload.Claims)
 		err = h.CustomTokenAuthProvider.UpdatePrincipal(customTokenPrincipal)
 		if err != nil {
 			return
@@ -471,7 +471,7 @@ func (h CustomTokenLoginHandler) createCustomTokenPrincipal(userID string, claim
 	customTokenPrincipal := customtoken.NewPrincipal()
 	customTokenPrincipal.TokenPrincipalID = claims.Subject()
 	customTokenPrincipal.UserID = userID
-	customTokenPrincipal.RawProfile = claims
+	customTokenPrincipal.SetRawProfile(claims)
 	err := h.CustomTokenAuthProvider.CreatePrincipal(&customTokenPrincipal)
 	return &customTokenPrincipal, err
 }

@@ -32,7 +32,7 @@ func NewIdentity(identityProvider principal.IdentityProvider, principal principa
 	return Identity{
 		ID:         principal.PrincipalID(),
 		Type:       principal.ProviderID(),
-		Claims:     identityProvider.DeriveClaims(principal),
+		Claims:     principal.Claims(),
 		Attributes: principal.Attributes(),
 	}
 }

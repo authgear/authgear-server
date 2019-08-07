@@ -95,7 +95,3 @@ func (p providerImpl) ListPrincipalsByUserID(userID string) (principals []princi
 
 	return
 }
-
-func (p providerImpl) DeriveClaims(_ principal.Principal) principal.Claims {
-	return principal.Claims{}
-}

@@ -3,9 +3,6 @@ package oauth
 import (
 	"reflect"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
@@ -91,23 +88,4 @@ func (m *MockProvider) GetPrincipalsByUserID(userID string) ([]*Principal, error
 
 func (m *MockProvider) ID() string {
 	return providerName
-}
-
-func (m *MockProvider) DeriveClaims(pp principal.Principal) (claims principal.Claims) {
-	claims = principal.Claims{}
-	attrs := pp.Attributes()
-	providerType, ok := attrs["provider_type"].(string)
-	if !ok {
-		return
-	}
-	rawProfile, ok := attrs["raw_profile"].(map[string]interface{})
-	if !ok {
-		return
-	}
-	decoder := sso.GetUserInfoDecoder(config.OAuthProviderType(providerType))
-	providerUserInfo := decoder.DecodeUserInfo(rawProfile)
-	if providerUserInfo.Email != "" {
-		claims["email"] = providerUserInfo.Email
-	}
-	return
 }

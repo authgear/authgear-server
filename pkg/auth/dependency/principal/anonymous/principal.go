@@ -31,3 +31,7 @@ func (p *Principal) ProviderID() string {
 func (p *Principal) Attributes() principal.Attributes {
 	return principal.Attributes{}
 }
+
+func (p *Principal) Claims() principal.Claims {
+	return principal.Claims{}
+}

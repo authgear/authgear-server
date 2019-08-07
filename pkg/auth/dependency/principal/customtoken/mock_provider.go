@@ -5,7 +5,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
@@ -75,15 +74,4 @@ func (p MockProvider) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*
 
 func (p MockProvider) ID() string {
 	return providerName
-}
-
-func (p MockProvider) DeriveClaims(pp principal.Principal) (claims principal.Claims) {
-	claims = principal.Claims{}
-	attrs := pp.Attributes()
-	rawProfile, ok := attrs["raw_profile"].(SSOCustomTokenClaims)
-	if !ok {
-		return
-	}
-	claims["email"] = rawProfile.Email()
-	return
 }

@@ -76,6 +76,7 @@ func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password str
 		principal.LoginID = loginID.Value
 		principal.Realm = realm
 		principal.setPassword(password)
+		principal.deriveClaims(m.loginIDChecker)
 		err = m.CreatePrincipal(principal)
 
 		if err != nil {
@@ -169,14 +170,4 @@ func (m *MockProvider) GetPrincipalByID(principalID string) (principal.Principal
 		}
 	}
 	return nil, skydb.ErrUserNotFound
-}
-
-func (m *MockProvider) DeriveClaims(genericPrincipal principal.Principal) principal.Claims {
-	passwordPrincipal := genericPrincipal.(*Principal)
-	standardKey, hasStandardKey := m.loginIDChecker.standardKey(passwordPrincipal.LoginIDKey)
-	metadata := principal.Claims{}
-	if hasStandardKey {
-		metadata[string(standardKey)] = passwordPrincipal.LoginID
-	}
-	return metadata
 }

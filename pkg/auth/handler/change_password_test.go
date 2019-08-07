@@ -66,6 +66,7 @@ func TestChangePasswordHandler(t *testing.T) {
 					LoginIDKey:     "username",
 					LoginID:        "john.doe",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+					ClaimsValue:    map[string]interface{}{},
 				},
 				"john.doe.principal.id1": password.Principal{
 					ID:             "john.doe.principal.id1",
@@ -73,6 +74,9 @@ func TestChangePasswordHandler(t *testing.T) {
 					LoginIDKey:     "email",
 					LoginID:        "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+					ClaimsValue: map[string]interface{}{
+						"email": "john.doe@example.com",
+					},
 				},
 			},
 		)

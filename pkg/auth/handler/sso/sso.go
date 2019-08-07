@@ -252,7 +252,7 @@ func (h respHandler) handleLogin(
 	// We do not need to consider password principal
 	if oauthPrincipal != nil {
 		oauthPrincipal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
-		oauthPrincipal.UserProfile = oauthAuthInfo.ProviderRawProfile
+		oauthPrincipal.SetRawProfile(oauthAuthInfo.ProviderRawProfile)
 		oauthPrincipal.UpdatedAt = &now
 		if err = h.OAuthAuthProvider.UpdatePrincipal(oauthPrincipal); err != nil {
 			err = skyerr.MakeError(err)
@@ -343,7 +343,7 @@ func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 	principal.ProviderType = string(oauthAuthInfo.ProviderConfig.Type)
 	principal.ProviderUserID = oauthAuthInfo.ProviderUserInfo.ID
 	principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
-	principal.UserProfile = oauthAuthInfo.ProviderRawProfile
+	principal.SetRawProfile(oauthAuthInfo.ProviderRawProfile)
 	principal.CreatedAt = &now
 	principal.UpdatedAt = &now
 	err := h.OAuthAuthProvider.CreatePrincipal(principal)
