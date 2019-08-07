@@ -267,6 +267,43 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 	return
 }
 
+func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string) (principals []*Principal, err error) {
+	builder := p.sqlBuilder.Select(
+		"p.id",
+		"p.user_id",
+		"pp.login_id_key",
+		"pp.login_id",
+		"pp.realm",
+		"pp.password",
+		"pp.claims",
+	).
+		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
+		Join(fmt.Sprintf("%s AS pp ON p.id = pp.principal_id", p.sqlBuilder.FullTableName("provider_password"))).
+		Where(fmt.Sprintf(`(pp.claims #>> '{%s}') = ?`, claimName), claimValue)
+
+	rows, err := p.sqlExecutor.QueryWith(builder)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var principal Principal
+		err = p.scan(rows, &principal)
+		if err != nil {
+			return
+		}
+		principals = append(principals, &principal)
+	}
+
+	if len(principals) == 0 {
+		err = skydb.ErrUserNotFound
+		return
+	}
+
+	return
+}
+
 func (p *providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string) (principals []*Principal, err error) {
 	builder := p.sqlBuilder.Select(
 		"p.id",
@@ -370,9 +407,29 @@ func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal
 	return &principal, nil
 }
 
+func (p *providerImpl) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
+	principals, err := p.GetPrincipalsByClaim(claimName, claimValue)
+	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	genericPrincipals := []principal.Principal{}
+	for _, principal := range principals {
+		genericPrincipals = append(genericPrincipals, principal)
+	}
+
+	return genericPrincipals, nil
+}
+
 func (p *providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
 	principals, err := p.GetPrincipalsByUserID(userID)
 	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 

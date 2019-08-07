@@ -95,3 +95,7 @@ func (p providerImpl) ListPrincipalsByUserID(userID string) (principals []princi
 
 	return
 }
+
+func (p providerImpl) ListPrincipalsByClaim(claimName string, claimValue string) (principals []principal.Principal, err error) {
+	return
+}

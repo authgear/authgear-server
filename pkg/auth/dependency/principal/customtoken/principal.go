@@ -7,8 +7,8 @@ import (
 
 type Principal struct {
 	ID               string
-	TokenPrincipalID string
 	UserID           string
+	TokenPrincipalID string
 	RawProfile       SSOCustomTokenClaims
 	ClaimsValue      map[string]interface{}
 }

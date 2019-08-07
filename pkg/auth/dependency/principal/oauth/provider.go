@@ -361,6 +361,51 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 		principals = append(principals, &principal)
 	}
 
+	if len(principals) == 0 {
+		err = skydb.ErrUserNotFound
+		return
+	}
+
+	return
+}
+
+func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string) (principals []*Principal, err error) {
+	builder := p.sqlBuilder.Select(
+		"p.id",
+		"p.user_id",
+		"o.provider_type",
+		"o.provider_keys",
+		"o.provider_user_id",
+		"o.token_response",
+		"o.profile",
+		"o.claims",
+		"o._created_at",
+		"o._updated_at",
+	).
+		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
+		Join(fmt.Sprintf("%s AS o ON p.id = o.principal_id", p.sqlBuilder.FullTableName("provider_oauth"))).
+		Where(fmt.Sprintf(`(o.claims #>> '{%s}') = ?`, claimName), claimValue)
+
+	rows, err := p.sqlExecutor.QueryWith(builder)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var principal Principal
+		err = p.scan(rows, &principal)
+		if err != nil {
+			return
+		}
+		principals = append(principals, &principal)
+	}
+
+	if len(principals) == 0 {
+		err = skydb.ErrUserNotFound
+		return
+	}
+
 	return
 }
 
@@ -404,6 +449,26 @@ func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal
 func (p *providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
 	principals, err := p.GetPrincipalsByUserID(userID)
 	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	genericPrincipals := []principal.Principal{}
+	for _, principal := range principals {
+		genericPrincipals = append(genericPrincipals, principal)
+	}
+
+	return genericPrincipals, nil
+}
+
+func (p *providerImpl) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
+	principals, err := p.GetPrincipalsByClaim(claimName, claimValue)
+	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 
