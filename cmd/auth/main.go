@@ -83,12 +83,11 @@ func main() {
 				return *tenantConfig, nil
 			}),
 		}.Handle)
+		srv.Use(middleware.RequestIDMiddleware{}.Handle)
+		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
 		srv = server.NewServer(configuration.Host, authContextResolverFactory)
 	}
-
-	srv.Use(middleware.RequestIDMiddleware{}.Handle)
-	srv.Use(middleware.CORSMiddleware{}.Handle)
 
 	handler.AttachSignupHandler(&srv, authDependency)
 	handler.AttachLoginHandler(&srv, authDependency)
