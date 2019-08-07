@@ -39,7 +39,7 @@ func AttachForgotPasswordResetHandler(
 	}).Methods("OPTIONS", "POST")
 	server.Handle("/forgot_password/reset_password_form", &ForgotPasswordResetFormHandlerFactory{
 		authDependency,
-	}).Methods("POST", "GET")
+	}).Methods("OPTIONS", "POST", "GET")
 	return server
 }
 
