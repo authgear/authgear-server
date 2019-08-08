@@ -12,6 +12,7 @@ require (
 	github.com/fluent/fluent-logger-golang v1.3.0 // indirect
 	github.com/franela/goblin v0.0.0-20181003173013-ead4ad1d2727 // indirect
 	github.com/franela/goreq v0.0.0-20170418064916-b5b0f5eb2d16
+	github.com/frankban/quicktest v1.4.1 // indirect
 	github.com/go-gomail/gomail v0.0.0-20150902115704-41f357289737
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/golang-migrate/migrate v3.2.0+incompatible
@@ -26,7 +27,6 @@ require (
 	github.com/jmoiron/sqlx v0.0.0-20170430194603-d9bd385d68c0
 	github.com/joho/godotenv v0.0.0-20150907010228-4ed13390c0ac
 	github.com/kelseyhightower/envconfig v1.3.0
-	github.com/kr/pretty v0.1.0 // indirect
 	github.com/kr/text v0.1.0
 	github.com/lestrrat-go/jwx v0.9.0
 	github.com/lib/pq v0.0.0-20171113044440-8c6ee72f3e6b
