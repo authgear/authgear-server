@@ -65,6 +65,10 @@ go-lint:
 .PHONY: generate
 generate: go-generate
 
+.PHONY: tidy
+tidy:
+	go mod tidy
+
 .PHONY: build
 build:
 	$(DOCKER_RUN) go build -o $(DIST) $(GO_BUILD_ARGS)

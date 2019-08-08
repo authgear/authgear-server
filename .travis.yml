@@ -32,6 +32,8 @@ script:
   - git status | grep "_gen.go$"; test $? -eq 1
   - git status | grep "_string.go$"; test $? -eq 1
   - git status | grep "mockgen.*go$"; test $? -eq 1
+  - make tidy
+  - git status | grep "go.mod$"; test $? -eq 1
   - make lint
   - make test
 
