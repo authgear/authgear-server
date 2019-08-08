@@ -103,6 +103,13 @@ func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
+	// principalID can be missing
+	principalID := h.AuthContext.Token().PrincipalID
+	if principalID != "" && principalID == principal.ID {
+		err = skyerr.NewError(skyerr.CurrentIdentityBeingDeleted, "Cannot delete current identity")
+		return
+	}
+
 	err = h.OAuthAuthProvider.DeletePrincipal(principal)
 	if err != nil {
 		return

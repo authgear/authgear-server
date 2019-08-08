@@ -60,11 +60,10 @@ func TestUnlinkHandler(t *testing.T) {
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
-		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("should unlink user id with oauth principal", func() {
+			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"access_token": "token"
 			}`))
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
@@ -100,6 +99,24 @@ func TestUnlinkHandler(t *testing.T) {
 					},
 				},
 			})
+		})
+
+		Convey("should disallow remove current identity", func() {
+			sh.AuthContext = auth.NewMockContextGetterWithUser("faseng.cat.id", "oauth-principal-id", true, map[string]bool{})
+			h := handler.APIHandlerToHandler(sh, sh.TxContext)
+
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code": 132,
+					"message": "Cannot delete current identity",
+					"name": "CurrentIdentityBeingDeleted"
+				}
+			}`)
 		})
 	})
 }

@@ -167,6 +167,9 @@ const (
 	// WebHookTimeOut occurs when an web-hook operation failed for other reasons
 	WebHookFailed
 
+	// CurrentIdentityBeingDeleted occurs when the current identity is being deleted.
+	CurrentIdentityBeingDeleted
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )
