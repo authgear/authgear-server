@@ -18,6 +18,18 @@ func TestIsValidOnUserDuplicateForSSO(t *testing.T) {
 	})
 }
 
+func TestIsValidOnUserDuplicateForPassword(t *testing.T) {
+	Convey("Test IsValidOnUserDuplicateForPassword", t, func() {
+		So(IsValidOnUserDuplicateForPassword(""), ShouldBeFalse)
+		So(IsValidOnUserDuplicateForPassword("nonsense"), ShouldBeFalse)
+
+		So(IsValidOnUserDuplicateForPassword(OnUserDuplicateDefault), ShouldBeTrue)
+		So(IsValidOnUserDuplicateForPassword(OnUserDuplicateAbort), ShouldBeTrue)
+		So(IsValidOnUserDuplicateForPassword(OnUserDuplicateMerge), ShouldBeFalse)
+		So(IsValidOnUserDuplicateForPassword(OnUserDuplicateCreate), ShouldBeTrue)
+	})
+}
+
 func TestIsAllowedOnUserDuplicate(t *testing.T) {
 	Convey("Test IsAllowedOnUserDuplicate", t, func() {
 		f := IsAllowedOnUserDuplicate

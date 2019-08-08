@@ -24,6 +24,17 @@ func IsValidOnUserDuplicateForSSO(input OnUserDuplicate) bool {
 	return false
 }
 
+// IsValidOnUserDuplicateForPassword validates OnUserDuplicate
+func IsValidOnUserDuplicateForPassword(input OnUserDuplicate) bool {
+	allVariants := []OnUserDuplicate{OnUserDuplicateAbort, OnUserDuplicateCreate}
+	for _, v := range allVariants {
+		if input == v {
+			return true
+		}
+	}
+	return false
+}
+
 // IsAllowedOnUserDuplicate checks if input is allowed
 func IsAllowedOnUserDuplicate(onUserDuplicateAllowMerge bool, onUserDuplicateAllowCreate bool, input OnUserDuplicate) bool {
 	if !onUserDuplicateAllowMerge && input == OnUserDuplicateMerge {
