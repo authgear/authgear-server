@@ -495,6 +495,11 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					return
 				}
 			}
+		case "on_user_duplicate_allow_create":
+			z.OnUserDuplicateAllowCreate, err = dc.ReadBool()
+			if err != nil {
+				return
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -507,9 +512,9 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 2
+	// map header, size 3
 	// write "login_id_keys"
-	err = en.Append(0x82, 0xad, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x73)
+	err = en.Append(0x83, 0xad, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x73)
 	if err != nil {
 		return err
 	}
@@ -542,15 +547,24 @@ func (z *AuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	}
+	// write "on_user_duplicate_allow_create"
+	err = en.Append(0xbe, 0x6f, 0x6e, 0x5f, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x64, 0x75, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x65, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x5f, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65)
+	if err != nil {
+		return err
+	}
+	err = en.WriteBool(z.OnUserDuplicateAllowCreate)
+	if err != nil {
+		return
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *AuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 2
+	// map header, size 3
 	// string "login_id_keys"
-	o = append(o, 0x82, 0xad, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x73)
+	o = append(o, 0x83, 0xad, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x73)
 	o = msgp.AppendMapHeader(o, uint32(len(z.LoginIDKeys)))
 	for zxhx, zlqf := range z.LoginIDKeys {
 		o = msgp.AppendString(o, zxhx)
@@ -565,6 +579,9 @@ func (z *AuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	for zdaf := range z.AllowedRealms {
 		o = msgp.AppendString(o, z.AllowedRealms[zdaf])
 	}
+	// string "on_user_duplicate_allow_create"
+	o = append(o, 0xbe, 0x6f, 0x6e, 0x5f, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x64, 0x75, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x65, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x5f, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65)
+	o = msgp.AppendBool(o, z.OnUserDuplicateAllowCreate)
 	return
 }
 
@@ -628,6 +645,11 @@ func (z *AuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					return
 				}
 			}
+		case "on_user_duplicate_allow_create":
+			z.OnUserDuplicateAllowCreate, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				return
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -652,6 +674,7 @@ func (z *AuthConfiguration) Msgsize() (s int) {
 	for zdaf := range z.AllowedRealms {
 		s += msgp.StringPrefixSize + len(z.AllowedRealms[zdaf])
 	}
+	s += 31 + msgp.BoolSize
 	return
 }
 

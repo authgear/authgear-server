@@ -589,8 +589,9 @@ type CORSConfiguration struct {
 }
 
 type AuthConfiguration struct {
-	LoginIDKeys   map[string]LoginIDKeyConfiguration `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
-	AllowedRealms []string                           `json:"allowed_realms" yaml:"allowed_realms" msg:"allowed_realms"`
+	LoginIDKeys                map[string]LoginIDKeyConfiguration `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
+	AllowedRealms              []string                           `json:"allowed_realms" yaml:"allowed_realms" msg:"allowed_realms"`
+	OnUserDuplicateAllowCreate bool                               `json:"on_user_duplicate_allow_create" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
 }
 
 type LoginIDKeyType string
