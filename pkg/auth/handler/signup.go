@@ -64,10 +64,11 @@ func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type SignupRequestPayload struct {
-	LoginIDs []password.LoginID     `json:"login_ids"`
-	Realm    string                 `json:"realm"`
-	Password string                 `json:"password"`
-	Metadata map[string]interface{} `json:"metadata"`
+	LoginIDs        []password.LoginID     `json:"login_ids"`
+	Realm           string                 `json:"realm"`
+	Password        string                 `json:"password"`
+	Metadata        map[string]interface{} `json:"metadata"`
+	OnUserDuplicate model.OnUserDuplicate  `json:"on_user_duplicate"`
 }
 
 // @JSONSchema
@@ -110,6 +111,10 @@ func (p SignupRequestPayload) Validate() error {
 
 	if p.duplicatedLoginIDs() {
 		return skyerr.NewInvalidArgument("duplicated login_ids", []string{"login_ids"})
+	}
+
+	if !model.IsValidOnUserDuplicateForPassword(p.OnUserDuplicate) {
+		return skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
 	}
 
 	return nil
@@ -161,6 +166,7 @@ type SignupHandler struct {
 	WelcomeEmailDestination config.WelcomeEmailDestination                     `dependency:"WelcomeEmailDestination"`
 	AutoSendUserVerifyCode  bool                                               `dependency:"AutoSendUserVerifyCodeOnSignup"`
 	UserVerifyLoginIDKeys   map[string]config.UserVerificationKeyConfiguration `dependency:"UserVerifyLoginIDKeys"`
+	AuthConfiguration       config.AuthConfiguration                           `dependency:"AuthConfiguration"`
 	TxContext               db.TxContext                                       `dependency:"TxContext"`
 	Logger                  *logrus.Entry                                      `dependency:"HandlerLogger"`
 	TaskQueue               async.Queue                                        `dependency:"AsyncTaskQueue"`
@@ -186,14 +192,36 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	if payload.Realm == "" {
 		payload.Realm = password.DefaultRealm
 	}
+	if payload.OnUserDuplicate == "" {
+		payload.OnUserDuplicate = model.OnUserDuplicateDefault
+	}
 	return payload, nil
 }
 
 func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
+	if !model.IsAllowedOnUserDuplicate(
+		false,
+		h.AuthConfiguration.OnUserDuplicateAllowCreate,
+		payload.OnUserDuplicate,
+	) {
+		err = skyerr.NewInvalidArgument("Disallowed OnUserDuplicate", []string{string(payload.OnUserDuplicate)})
+		return
+	}
+
 	err = h.verifyPayload(payload)
 	if err != nil {
+		return
+	}
+
+	existingPrincipals, err := h.findExistingPrincipals(payload)
+	if err != nil {
+		return
+	}
+
+	if len(existingPrincipals) > 0 && payload.OnUserDuplicate == model.OnUserDuplicateAbort {
+		err = skyerr.NewError(skyerr.Duplicated, "Aborted due to duplicate user")
 		return
 	}
 
@@ -298,6 +326,41 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	return
+}
+
+func (h SignupHandler) findExistingPrincipals(payload SignupRequestPayload) ([]principal.Principal, error) {
+	var principals []principal.Principal
+
+	// Find out all login IDs that are of type email.
+	var emails []string
+	for _, loginID := range payload.LoginIDs {
+		if h.PasswordAuthProvider.CheckLoginIDKeyType(loginID.Key, metadata.Email) {
+			emails = append(emails, loginID.Value)
+		}
+	}
+
+	// For each email, find out all principals.
+	for _, email := range emails {
+		ps, err := h.IdentityProvider.ListPrincipalsByClaim("email", email)
+		if err != nil {
+			return nil, err
+		}
+		principals = append(principals, ps...)
+	}
+
+	// Skip password principals which are not in the same realm.
+	var filteredPrincipals []principal.Principal
+	for _, p := range principals {
+		if passwordPrincipal, ok := p.(*password.Principal); ok {
+			if passwordPrincipal.Realm == payload.Realm {
+				filteredPrincipals = append(filteredPrincipals, p)
+			}
+		} else {
+			filteredPrincipals = append(filteredPrincipals, p)
+		}
+	}
+
+	return filteredPrincipals, nil
 }
 
 func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
