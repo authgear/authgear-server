@@ -11,7 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -62,7 +61,7 @@ func (f CustomTokenLoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 type customTokenLoginPayload struct {
 	TokenString      string                           `json:"token"`
 	MergeRealm       string                           `json:"merge_realm"`
-	OnUserDuplicate  sso.OnUserDuplicate              `json:"on_user_duplicate"`
+	OnUserDuplicate  model.OnUserDuplicate            `json:"on_user_duplicate"`
 	Claims           customtoken.SSOCustomTokenClaims `json:"-"`
 	ExpectedIssuer   string                           `json:"-"`
 	ExpectedAudience string                           `json:"-"`
@@ -90,7 +89,7 @@ func (payload customTokenLoginPayload) Validate() error {
 		)
 	}
 
-	if !sso.IsValidOnUserDuplicate(payload.OnUserDuplicate) {
+	if !model.IsValidOnUserDuplicateForSSO(payload.OnUserDuplicate) {
 		return skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
 	}
 
@@ -185,7 +184,7 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (handler.R
 	}
 
 	if payload.OnUserDuplicate == "" {
-		payload.OnUserDuplicate = sso.OnUserDuplicateDefault
+		payload.OnUserDuplicate = model.OnUserDuplicateDefault
 	}
 
 	payload.Claims, err = h.CustomTokenAuthProvider.Decode(payload.TokenString)
@@ -209,7 +208,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		return
 	}
 
-	if !sso.IsAllowedOnUserDuplicate(
+	if !model.IsAllowedOnUserDuplicate(
 		h.CustomTokenConfiguration.OnUserDuplicateAllowMerge,
 		h.CustomTokenConfiguration.OnUserDuplicateAllowCreate,
 		payload.OnUserDuplicate,
@@ -410,11 +409,11 @@ func (h CustomTokenLoginHandler) handleLogin(
 	// Case: Custom Token principal was not found and Password principal was found
 	// => Complex case
 	switch payload.OnUserDuplicate {
-	case sso.OnUserDuplicateAbort:
+	case model.OnUserDuplicateAbort:
 		err = skyerr.NewError(skyerr.Duplicated, "Aborted due to duplicate user")
-	case sso.OnUserDuplicateCreate:
+	case model.OnUserDuplicateCreate:
 		createFunc()
-	case sso.OnUserDuplicateMerge:
+	case model.OnUserDuplicateMerge:
 		// Case: The same email is shared by multiple users
 		if len(userIDs) > 1 {
 			err = skyerr.NewError(skyerr.Duplicated, "Email shared by multiple users")

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/rand"
 )
@@ -14,8 +15,8 @@ const (
 
 // LoginState stores login specific state.
 type LoginState struct {
-	MergeRealm      string          `json:"merge_realm,omitempty"`
-	OnUserDuplicate OnUserDuplicate `json:"on_user_duplicate,omitempty"`
+	MergeRealm      string                `json:"merge_realm,omitempty"`
+	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate,omitempty"`
 }
 
 // LinkState stores link specific state.
@@ -59,41 +60,6 @@ func IsValidUXMode(mode UXMode) bool {
 		}
 	}
 	return false
-}
-
-// OnUserDuplicate is the strategy to handle user duplicate
-type OnUserDuplicate string
-
-// OnUserDuplicate constants
-const (
-	OnUserDuplicateAbort  OnUserDuplicate = "abort"
-	OnUserDuplicateMerge  OnUserDuplicate = "merge"
-	OnUserDuplicateCreate OnUserDuplicate = "create"
-)
-
-// OnUserDuplicateDefault is OnUserDuplicateAbort
-const OnUserDuplicateDefault = OnUserDuplicateAbort
-
-// IsValidOnUserDuplicate validates OnUserDuplicate
-func IsValidOnUserDuplicate(input OnUserDuplicate) bool {
-	allVariants := []OnUserDuplicate{OnUserDuplicateAbort, OnUserDuplicateMerge, OnUserDuplicateCreate}
-	for _, v := range allVariants {
-		if input == v {
-			return true
-		}
-	}
-	return false
-}
-
-// IsAllowedOnUserDuplicate checks if input is allowed
-func IsAllowedOnUserDuplicate(onUserDuplicateAllowMerge bool, onUserDuplicateAllowCreate bool, input OnUserDuplicate) bool {
-	if !onUserDuplicateAllowMerge && input == OnUserDuplicateMerge {
-		return false
-	}
-	if !onUserDuplicateAllowCreate && input == OnUserDuplicateCreate {
-		return false
-	}
-	return true
 }
 
 // GetURLParams is the argument of getAuthURL

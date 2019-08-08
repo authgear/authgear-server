@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -56,9 +57,9 @@ func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // LoginRequestPayload login handler request payload
 type LoginRequestPayload struct {
-	AccessToken     string              `json:"access_token"`
-	MergeRealm      string              `json:"merge_realm"`
-	OnUserDuplicate sso.OnUserDuplicate `json:"on_user_duplicate"`
+	AccessToken     string                `json:"access_token"`
+	MergeRealm      string                `json:"merge_realm"`
+	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 }
 
 // @JSONSchema
@@ -81,7 +82,7 @@ func (p LoginRequestPayload) Validate() (err error) {
 		return
 	}
 
-	if !sso.IsValidOnUserDuplicate(p.OnUserDuplicate) {
+	if !model.IsValidOnUserDuplicateForSSO(p.OnUserDuplicate) {
 		err = skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
 		return
 	}
@@ -137,7 +138,7 @@ func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPaylo
 		payload.MergeRealm = password.DefaultRealm
 	}
 	if payload.OnUserDuplicate == "" {
-		payload.OnUserDuplicate = sso.OnUserDuplicateDefault
+		payload.OnUserDuplicate = model.OnUserDuplicateDefault
 	}
 	return payload, nil
 }

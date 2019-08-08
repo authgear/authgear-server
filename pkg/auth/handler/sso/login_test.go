@@ -32,7 +32,7 @@ func TestLoginPayload(t *testing.T) {
 		Convey("validate valid payload", func() {
 			payload := LoginRequestPayload{
 				AccessToken:     "token",
-				OnUserDuplicate: sso.OnUserDuplicateDefault,
+				OnUserDuplicate: model.OnUserDuplicateDefault,
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})

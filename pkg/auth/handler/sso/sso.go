@@ -279,11 +279,11 @@ func (h respHandler) handleLogin(
 	// Case: OAuth principal was not found and some principals were found
 	// => Complex case
 	switch loginState.OnUserDuplicate {
-	case sso.OnUserDuplicateAbort:
+	case model.OnUserDuplicateAbort:
 		err = skyerr.NewError(skyerr.Duplicated, "Aborted due to duplicate user")
-	case sso.OnUserDuplicateCreate:
+	case model.OnUserDuplicateCreate:
 		createFunc()
-	case sso.OnUserDuplicateMerge:
+	case model.OnUserDuplicateMerge:
 		// Case: The same email is shared by multiple users
 		if len(userIDs) > 1 {
 			err = skyerr.NewError(skyerr.Duplicated, "Email shared by multiple users")

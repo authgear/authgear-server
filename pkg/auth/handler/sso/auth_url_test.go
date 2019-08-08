@@ -14,6 +14,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -29,7 +30,7 @@ func TestAuthURLPayload(t *testing.T) {
 			payload := AuthURLRequestPayload{
 				CallbackURL:     "callbackURL",
 				UXMode:          sso.UXModeWebRedirect,
-				OnUserDuplicate: sso.OnUserDuplicateAbort,
+				OnUserDuplicate: model.OnUserDuplicateAbort,
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
@@ -37,7 +38,7 @@ func TestAuthURLPayload(t *testing.T) {
 		Convey("validate payload without callback url", func() {
 			payload := AuthURLRequestPayload{
 				UXMode:          sso.UXModeWebRedirect,
-				OnUserDuplicate: sso.OnUserDuplicateAbort,
+				OnUserDuplicate: model.OnUserDuplicateAbort,
 			}
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)
@@ -47,7 +48,7 @@ func TestAuthURLPayload(t *testing.T) {
 		Convey("validate payload without UX mode", func() {
 			payload := AuthURLRequestPayload{
 				CallbackURL:     "callbackURL",
-				OnUserDuplicate: sso.OnUserDuplicateAbort,
+				OnUserDuplicate: model.OnUserDuplicateAbort,
 			}
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)

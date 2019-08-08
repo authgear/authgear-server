@@ -10,6 +10,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -135,10 +136,10 @@ const AuthURLResponseSchema = `
 
 // AuthURLRequestPayload login handler request payload
 type AuthURLRequestPayload struct {
-	CallbackURL     string              `json:"callback_url"`
-	UXMode          sso.UXMode          `json:"ux_mode"`
-	MergeRealm      string              `json:"merge_realm"`
-	OnUserDuplicate sso.OnUserDuplicate `json:"on_user_duplicate"`
+	CallbackURL     string                `json:"callback_url"`
+	UXMode          sso.UXMode            `json:"ux_mode"`
+	MergeRealm      string                `json:"merge_realm"`
+	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 }
 
 func (p AuthURLRequestPayload) Validate() (err error) {
@@ -151,7 +152,7 @@ func (p AuthURLRequestPayload) Validate() (err error) {
 		return
 	}
 
-	if !sso.IsValidOnUserDuplicate(p.OnUserDuplicate) {
+	if !model.IsValidOnUserDuplicateForSSO(p.OnUserDuplicate) {
 		err = skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
 		return
 	}
@@ -276,7 +277,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		payload.CallbackURL = r.Form.Get("callback_url")
 		payload.UXMode = sso.UXMode(r.Form.Get("ux_mode"))
 		payload.MergeRealm = r.Form.Get("merge_realm")
-		payload.OnUserDuplicate = sso.OnUserDuplicate(r.Form.Get("on_user_duplicate"))
+		payload.OnUserDuplicate = model.OnUserDuplicate(r.Form.Get("on_user_duplicate"))
 	}
 
 	if payload.MergeRealm == "" {
@@ -284,7 +285,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	}
 
 	if payload.OnUserDuplicate == "" {
-		payload.OnUserDuplicate = sso.OnUserDuplicateDefault
+		payload.OnUserDuplicate = model.OnUserDuplicateDefault
 	}
 
 	err = payload.Validate()
@@ -302,7 +303,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		return
 	}
 
-	if !sso.IsAllowedOnUserDuplicate(
+	if !model.IsAllowedOnUserDuplicate(
 		h.OAuthConfiguration.OnUserDuplicateAllowMerge,
 		h.OAuthConfiguration.OnUserDuplicateAllowCreate,
 		payload.OnUserDuplicate,
