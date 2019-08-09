@@ -70,10 +70,10 @@ func main() {
 
 	gatewayDependency := gateway.DependencyMap{}
 
-	r := mux.NewRouter()
-	r.HandleFunc("/healthz", HealthCheckHandler)
+	rr := mux.NewRouter()
+	rr.HandleFunc("/_healthz", HealthCheckHandler)
 
-	r = r.PathPrefix("/").Subrouter()
+	r := rr.PathPrefix("/").Subrouter()
 	// RecoverMiddleware must come first
 	r.Use(coreMiddleware.RecoverMiddleware{
 		RecoverHandler: server.DefaultRecoverPanicHandler,
@@ -131,7 +131,7 @@ func main() {
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler:      r, // Pass our instance of gorilla/mux in.
+		Handler:      rr, // Pass our instance of gorilla/mux in.
 	}
 
 	logger.Info("Start gateway server")
