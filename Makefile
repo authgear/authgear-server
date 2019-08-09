@@ -156,3 +156,11 @@ docker-push-version:
 .PHONY: release-commit
 release-commit:
 	./scripts/release-commit.sh
+
+.PHONY: preview-doc-auth
+preview-doc-auth:
+	./scripts/preview-doc.sh auth
+
+.PHONY: generate-doc-auth
+generate-doc-auth:
+	@openapi3-gen -output "$(DOC_PATH)" ./cmd/auth/... ./pkg/auth/...

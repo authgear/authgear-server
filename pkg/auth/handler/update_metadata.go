@@ -61,27 +61,42 @@ type UpdateMetadataRequestPayload struct {
 	Metadata map[string]interface{} `json:"metadata"`
 }
 
+// @JSONSchema
+const UpdateMetadataRequestSchema = `
+{
+	"$id": "#UpdateMetadataRequest",
+	"type": "object",
+	"properties": {
+		"user_id": { "type": "string" },
+		"metadata": { "type": "object" }
+	}
+}
+`
+
 func (p UpdateMetadataRequestPayload) Validate() error {
 	return nil
 }
 
-// UpdateMetadataHandler handles update current user's metadata
-//
-//
-//  curl -X POST -H "Content-Type: application/json" \
-//    -d @- http://localhost:3000/update_metadata <<EOF
-//  {
-//    "metadata": {
-//    }
-//  }
-//  EOF
-//
-// {
-//   "user_id": "3df4b52b-bd58-4fa2-8aee-3d44fd7f974d",
-//   "last_login_at": "2016-09-08T06:42:59.871181Z",
-//   "last_seen_at": "2016-09-08T07:15:18.026567355Z",
-//   "metadata": {}
-// }
+/*
+	@Operation POST /update_metadata - Update metadata
+		Changes metadata of current user.
+		If master key is used as access key, other users can be specified.
+
+		@Tag User
+		@SecurityRequirement access_key
+		@SecurityRequirement access_token
+
+		@RequestBody
+			Describe target user and new metadata.
+			@JSONSchema {UpdateMetadataRequest}
+
+		@Response 200
+			User information with new metadata.
+			@JSONSchema {UserResponse}
+
+		@Callback user_update {UserUpdateEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type UpdateMetadataHandler struct {
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`

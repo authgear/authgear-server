@@ -68,7 +68,19 @@ func (p LogoutRequestPayload) Validate() error {
 	return nil
 }
 
-// LogoutHandler handles logout request
+/*
+	@Operation POST /logout - Logout current session
+		Logout current session.
+
+		@Tag User
+		@SecurityRequirement access_key
+		@SecurityRequirement access_token
+
+		@Response 200 {EmptyResponse}
+
+		@Callback session_delete {SessionDeleteEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type LogoutHandler struct {
 	AuthContext      coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	UserProfileStore userprofile.Store          `dependency:"UserProfileStore"`

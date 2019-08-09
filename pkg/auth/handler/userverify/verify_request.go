@@ -2,9 +2,10 @@ package userverify
 
 import (
 	"encoding/json"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"net/http"
 	"time"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/utils"
@@ -85,6 +86,18 @@ type VerifyRequestPayload struct {
 	LoginID     string      `json:"login_id"`
 }
 
+// @JSONSchema
+const VerifyRequestSchema = `
+{
+	"$id": "#VerifyRequest",
+	"type": "object",
+	"properties": {
+		"login_id_type": { "type": "string" },
+		"login_id": { "type": "string" }
+	}
+}
+`
+
 func (payload VerifyRequestPayload) Validate() error {
 	if !utils.StringSliceContains(allLoginIDTypes, string(payload.LoginIDType)) {
 		return skyerr.NewInvalidArgument("invalid login ID type", []string{"login_id_type"})
@@ -97,16 +110,19 @@ func (payload VerifyRequestPayload) Validate() error {
 	return nil
 }
 
-// VerifyRequestHandler allows client to request verification (i.e. send email or send SMS).
-//
-//  curl -X POST -H "Content-Type: application/json" \
-//    -d @- http://localhost:3000/verify_request <<EOF
-//  {
-//    "login_id_type": "email",
-//    "login_id": "user@example.com"
-//  }
-//  EOF
-//
+/*
+	@Operation POST /verify_request - Request verification
+		Request verification code to be sent to login ID.
+
+		@Tag User Verification
+		@SecurityRequirement access_key
+		@SecurityRequirement access_token
+
+		@RequestBody
+			@JSONSchema {VerifyRequest}
+
+		@Response 200 {EmptyResponse}
+*/
 type VerifyRequestHandler struct {
 	TxContext                db.TxContext                 `dependency:"TxContext"`
 	AuthContext              coreAuth.ContextGetter       `dependency:"AuthContextGetter"`

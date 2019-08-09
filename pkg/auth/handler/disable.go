@@ -64,6 +64,20 @@ type setDisableUserPayload struct {
 	expiry       *time.Time
 }
 
+// @JSONSchema
+const SetDisableRequestSchema = `
+{
+	"$id": "#SetDisableRequest",
+	"type": "object",
+	"properties": {
+		"auth_id": { "type": "string" },
+		"disabled": { "type": "boolean" },
+		"message": { "type": "string" },
+		"expiry": { "type": "string" }
+	}
+}
+`
+
 func (payload setDisableUserPayload) Validate() error {
 	if payload.UserID == "" {
 		return skyerr.NewInvalidArgument("invalid user id", []string{"user_id"})
@@ -71,7 +85,40 @@ func (payload setDisableUserPayload) Validate() error {
 	return nil
 }
 
-// SetDisableHandler handles set disable request
+/*
+	@Operation POST /disable/set - Set user disabled status
+		Disable/enable target user.
+
+		@Tag Administration
+		@SecurityRequirement master_key
+		@SecurityRequirement access_token
+
+		@RequestBody
+			Describe target user and desired disable status.
+			@JSONSchema {SetDisableRequest}
+			@JSONExample EnableUser - Enable user
+				{
+					"auth_id": "F1D4AAAC-A31A-4471-92B2-6E08376BDD87",
+					"disabled": false
+				}
+			@JSONExample DisableUser - Disable user permanently
+				{
+					"auth_id": "F1D4AAAC-A31A-4471-92B2-6E08376BDD87",
+					"disabled": true
+				}
+			@JSONExample DisableUserExpiry - Disable user with expiry
+				{
+					"auth_id": "F1D4AAAC-A31A-4471-92B2-6E08376BDD87",
+					"disabled": true,
+					"message": "Banned",
+					"expiry": "2019-07-31T09:39:22.349Z"
+				}
+
+		@Response 200 {EmptyResponse}
+
+		@Callback user_update {UserUpdateEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type SetDisableHandler struct {
 	AuthInfoStore    authinfo.Store    `dependency:"AuthInfoStore"`
 	UserProfileStore userprofile.Store `dependency:"UserProfileStore"`

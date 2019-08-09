@@ -56,6 +56,83 @@ func (f AuthURLHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return policy.Everybody{Allow: true}
 }
 
+// nolint: deadcode
+/*
+	@ID SSOCallbackURL
+	@Parameter callback_url query
+		Callback URL after SSO flow
+		@JSONSchema
+			{ "type": "string" }
+*/
+type ssoCallbackURL string
+
+// nolint: deadcode
+/*
+	@ID SSOUXMode
+	@Parameter ux_mode query
+		UX mode of SSO flow
+		@JSONSchema
+			{ "type": "string" }
+*/
+type ssoUXMode string
+
+// nolint: deadcode
+/*
+	@ID SSOMergeRealm
+	@Parameter merge_realm query
+		Realm to merge when duplicated user is detected
+		@JSONSchema
+			{ "type": "string" }
+*/
+type ssoMergeRealm string
+
+// nolint: deadcode
+/*
+	@ID SSOOnUserDuplicate
+	@Parameter on_user_duplicate query
+		Behavior when duplicated user is detected
+		@JSONSchema
+			{ "type": "string" }
+*/
+type ssoOnUserDuplicate string
+
+/*
+	@ID AuthURLRequest
+	@RequestBody
+		Describe desired behavior and UX of SSO flow.
+		@JSONSchema
+*/
+const AuthURLRequestSchema = `
+{
+	"type": "object",
+	"properties": {
+		"callback_url": { "type": "string" },
+		"ux_mode": { "type": "string" },
+		"merge_realm": { "type": "string" },
+		"on_user_duplicate": { "type": "string" }
+	}
+}
+`
+
+/*
+	@ID AuthURLResponse
+	@Response
+		SSO initiation URL.
+		@JSONSchema
+		@JSONExample Success - Return SSO URL
+		{
+			"result": "https://myapp.skygearapis.com/_auth/sso/provider/auth_handler"
+		}
+*/
+const AuthURLResponseSchema = `
+{
+	"type": "object",
+	"properties": {
+		"result": { "type": "string" }
+	}
+}
+`
+
 // AuthURLRequestPayload login handler request payload
 type AuthURLRequestPayload struct {
 	CallbackURL     string              `json:"callback_url"`
@@ -81,45 +158,83 @@ func (p AuthURLRequestPayload) Validate() (err error) {
 	return
 }
 
-// AuthURLHandler returns the SSO auth url by provider.
-//
-// curl \
-//   -X POST \
-//   -H "Content-Type: application/json" \
-//   -H "X-Skygear-Api-Key: API_KEY" \
-//   -d @- \
-//   http://localhost:3000/sso/<provider>/login_auth_url \
-// <<EOF
-// {
-//     callback_url: <url>,
-//     ux_mode: <ux_mode>
-// }
-// EOF
-//
-// {
-//     "result": "<auth_url>"
-// }
-//
-// curl \
-//   -X POST \
-//   -H "Content-Type: application/json" \
-//   -H "X-Skygear-Api-Key: API_KEY" \
-//   -d @- \
-//   http://localhost:3000/sso/<provider>/link_auth_url \
-// <<EOF
-// {
-//     callback_url: <url>,
-//     ux_mode: <ux_mode>
-// }
-// EOF
-//
-// {
-//     "result": "<auth_url>"
-// }
-// The handler also supports GET method. If you are experimenting
-// with an OpenID Connect provider, you should construct an URL
-// and visit it in a browser. In this way, nonce is set in the session
-// cookie and automatically redirected to the provider authorization URL.
+/*
+	@Operation POST /sso/{provider_id}/login_auth_url - Get login SSO flow url of provider
+		Returns SSO auth URL. Client should redirect user agent to this URL to
+		initiate SSO login flow.
+
+		If you are experimenting with an OpenID Connect provider, you should
+		use GET method instead visit it in a browser. In this way, nonce is set
+		in the session cookie and automatically redirected to the provider
+		authorization URL.
+
+		@Tag SSO
+
+		@Parameter {SSOProviderID}
+		@RequestBody {AuthURLRequest}
+		@Response 200 {AuthURLResponse}
+
+		@Callback user_create {UserSyncEvent}
+		@Callback identity_create {UserSyncEvent}
+		@Callback session_create {UserSyncEvent}
+		@Callback user_sync {UserSyncEvent}
+
+	@Operation GET /sso/{provider_id}/login_auth_url - Begin SSO login flow with provider
+		Redirect user to SSO login flow.
+
+		@Tag SSO
+
+		@Parameter {SSOProviderID}
+		@Parameter {SSOCallbackURL}
+		@Parameter {SSOUXMode}
+		@Parameter {SSOMergeRealm}
+		@Parameter {SSOOnUserDuplicate}
+		@Response 302
+			Redirect to SSO login flow
+
+		@Callback user_create {UserSyncEvent}
+		@Callback identity_create {UserSyncEvent}
+		@Callback session_create {UserSyncEvent}
+		@Callback user_sync {UserSyncEvent}
+
+	@Operation POST /sso/{provider_id}/link_auth_url - Get link SSO link url of provider
+		Returns SSO auth URL. Client should redirect user agent to this URL to
+		initiate SSO link flow.
+
+		If you are experimenting with an OpenID Connect provider, you should
+		use GET method instead visit it in a browser. In this way, nonce is set
+		in the session cookie and automatically redirected to the provider
+		authorization URL.
+
+		@Tag SSO
+
+		@Parameter {SSOProviderID}
+		@RequestBody {AuthURLRequest}
+		@Response 200 {AuthURLResponse}
+
+		@Callback user_create {UserSyncEvent}
+		@Callback identity_create {UserSyncEvent}
+		@Callback session_create {UserSyncEvent}
+		@Callback user_sync {UserSyncEvent}
+
+	@Operation GET /sso/{provider_id}/link_auth_url - Begin SSO link flow with provider
+		Redirect user to SSO link flow.
+
+		@Tag SSO
+
+		@Parameter {SSOProviderID}
+		@Parameter {SSOCallbackURL}
+		@Parameter {SSOUXMode}
+		@Parameter {SSOMergeRealm}
+		@Parameter {SSOOnUserDuplicate}
+		@Response 302
+			Redirect to SSO link flow
+
+		@Callback user_create {UserSyncEvent}
+		@Callback identity_create {UserSyncEvent}
+		@Callback session_create {UserSyncEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type AuthURLHandler struct {
 	TxContext            db.TxContext              `dependency:"TxContext"`
 	AuthContext          coreAuth.ContextGetter    `dependency:"AuthContextGetter"`

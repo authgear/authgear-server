@@ -60,6 +60,17 @@ type LinkRequestPayload struct {
 	AccessToken string `json:"access_token"`
 }
 
+// @JSONSchema
+const LinkRequestSchema = `
+{
+	"$id": "#LinkRequest",
+	"type": "object",
+	"properties": {
+		"access_token": { "type": "string" }
+	}
+}
+`
+
 // Validate request payload
 func (p LinkRequestPayload) Validate() error {
 	if p.AccessToken == "" {
@@ -69,26 +80,24 @@ func (p LinkRequestPayload) Validate() error {
 	return nil
 }
 
-// LinkHandler decodes code response and fetch access token from provider.
-//
-// curl \
-//   -X POST \
-//   -H "Content-Type: application/json" \
-//   -H "X-Skygear-Api-Key: API_KEY" \
-//   -d @- \
-//   http://localhost:3000/sso/<provider>/link \
-// <<EOF
-// {
-//     "token_response": {
-//       "access_token": "<access_token>"
-//     }
-// }
-// EOF
-//
-// {
-//     "result": {}
-// }
-//
+/*
+	@Operation POST /sso/{provider_id}/link - Link SSO provider with token
+		Link the specified SSO provider with the current user, using access
+		token obtained from the provider.
+
+		@Tag SSO
+		@SecurityRequirement access_key
+		@SecurityRequirement access_token
+
+		@Parameter {SSOProviderID}
+		@RequestBody
+			Describe the access token of SSO provider.
+			@JSONSchema {LinkRequest}
+		@Response 200 {EmptyResponse}
+
+		@Callback identity_create {UserSyncEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type LinkHandler struct {
 	TxContext          db.TxContext               `dependency:"TxContext"`
 	AuthContext        coreAuth.ContextGetter     `dependency:"AuthContextGetter"`

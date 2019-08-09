@@ -65,6 +65,19 @@ type ChangePasswordRequestPayload struct {
 	OldPassword string `json:"old_password"`
 }
 
+// nolint:gosec
+// @JSONSchema
+const ChangePasswordRequestSchema = `
+{
+	"$id": "#ChangePasswordRequest",
+	"type": "object",
+	"properties": {
+		"password": { "type": "string" },
+		"old_password": { "type": "string" }
+	}
+}
+`
+
 func (p ChangePasswordRequestPayload) Validate() error {
 	if p.OldPassword == "" {
 		return skyerr.NewInvalidArgument("empty old password", []string{"old_password"})
@@ -75,25 +88,25 @@ func (p ChangePasswordRequestPayload) Validate() error {
 	return nil
 }
 
-// ChangePasswordHandler change the current user password
-//
-// ChangePasswordHandler receives old and new password:
-//
-// * old_password (string, required)
-// * password (string, required)
-//
-// If user is not logged in, an 401 unauthorized will return.
-//
-//  Current implementation
-//  curl -X POST -H "Content-Type: application/json" \
-//    -d @- http://localhost:3000/change_password <<EOF
-//  {
-//      "old_password": "oldpassword",
-//      "password": "newpassword"
-//  }
-//  EOF
-// Response
-// return auth response with new access token
+/*
+	@Operation POST /change_password - Change password
+		Changes current user password.
+
+		@Tag User
+		@SecurityRequirement access_key
+		@SecurityRequirement access_token
+
+		@RequestBody
+			Describe old and new password.
+			@JSONSchema {ChangePasswordRequest}
+
+		@Response 200
+			Return user and new access token.
+			@JSONSchema {AuthResponse}
+
+		@Callback password_update {PasswordUpdateEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type ChangePasswordHandler struct {
 	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`

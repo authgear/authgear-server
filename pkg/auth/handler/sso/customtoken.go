@@ -69,6 +69,20 @@ type customTokenLoginPayload struct {
 	ExpectedAudience string                           `json:"-"`
 }
 
+// nolint: gosec
+// @JSONSchema
+const CustomTokenLoginRequestSchema = `
+{
+	"$id": "#CustomTokenLoginRequest",
+	"type": "object",
+	"properties": {
+		"token": { "type": "string" },
+		"merge_realm": { "type": "string" },
+		"on_user_duplicate": { "type": "string" }
+	}
+}
+`
+
 func (payload customTokenLoginPayload) Validate() error {
 	if err := payload.Claims.Validate(payload.ExpectedIssuer, payload.ExpectedAudience); err != nil {
 		return skyerr.NewError(
@@ -84,39 +98,46 @@ func (payload customTokenLoginPayload) Validate() error {
 	return nil
 }
 
+// nolint: gosec
 /*
-CustomTokenLoginHandler authenticates the user with a custom token
+	@Operation POST /sso/custom_token/login - Authenticate with custom token
+		An external server is responsible for generating the custom token which
+		contains a Principal ID and a signature. It is required that the token
+		has issued-at and expired-at claims.
 
-An external server is responsible for generating the custom token which
-contains a Principal ID and a signature. It is required that the token
-has issued-at and expired-at claims.
+		The custom token is signed by a shared secret and encoded in JWT format.
 
-The custom token is signed by a shared secret and encoded in JWT format.
+		The claims of the custom token is as follows:
 
-The claims of the custom token is as follows:
+			{
+			"sub": "id1234567800",
+			"iat": 1513316033,
+			"exp": 1828676033,
+			"email": "johndoe@oursky.com"
+			}
 
-    {
-      "sub": "id1234567800",
-      "iat": 1513316033,
-      "exp": 1828676033,
-      "email": "johndoe@oursky.com"
-    }
+		When signing the above claims with the custom token secret `ssosecret` using
+		HS256 as algorithm, the following JWT token is produced:
 
-When signing the above claims with the custom token secret `ssosecret` using
-HS256 as algorithm, the following JWT token is produced:
+			eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJpZDEyMzQ1Njc4MDAiLCJpYXQiOjE1MTMzMTYwMzMsImV4cCI6MTgyODY3NjAzMywic2t5cHJvZmlsZSI6eyJuYW1lIjoiSm9obiBEb2UifX0.JRAwXPF4CDWCpMCvemCBPrUAQAXPV9qVWeAYo1vBAqQ
 
-	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJpZDEyMzQ1Njc4MDAiLCJpYXQiOjE1MTMzMTYwMzMsImV4cCI6MTgyODY3NjAzMywic2t5cHJvZmlsZSI6eyJuYW1lIjoiSm9obiBEb2UifX0.JRAwXPF4CDWCpMCvemCBPrUAQAXPV9qVWeAYo1vBAqQ
+		This token can be used to log in to Skygear Server. If there is no user
+		associated with the Token Principal ID (the subject/sub claim), a new user is
+		created.
 
-This token can be used to log in to Skygear Server. If there is no user
-associated with the Token Principal ID (the subject/sub claim), a new user is
-created.
+		@Tag SSO
 
-curl -X POST -H "Content-Type: application/json" \
-  -d @- http://localhost:3000/sso/custom_token/login <<EOF
-{
-	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJpZDEyMzQ1Njc4MDAiLCJpYXQiOjE1MTMzMTYwMzMsImV4cCI6MTgyODY3NjAzMywic2t5cHJvZmlsZSI6eyJuYW1lIjoiSm9obiBEb2UifX0.JRAwXPF4CDWCpMCvemCBPrUAQAXPV9qVWeAYo1vBAqQ"
-}
-EOF
+		@RequestBody
+			@JSONSchema {CustomTokenLoginRequest}
+
+		@Response 200
+			Logged in user and access token.
+			@JSONSchema {AuthResponse}
+
+		@Callback user_create {UserSyncEvent}
+		@Callback identity_create {UserSyncEvent}
+		@Callback session_create {UserSyncEvent}
+		@Callback user_sync {UserSyncEvent}
 */
 type CustomTokenLoginHandler struct {
 	TxContext                db.TxContext                    `dependency:"TxContext"`

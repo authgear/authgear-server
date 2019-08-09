@@ -19,6 +19,16 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
+// nolint: deadcode
+/*
+	@ID SSOProviderID
+	@Parameter provider_id path
+		ID of SSO provider
+		@JSONSchema
+			{ "type": "string" }
+*/
+type ssoProviderParameter string
+
 type respHandler struct {
 	TokenStore           authtoken.Store
 	AuthInfoStore        authinfo.Store

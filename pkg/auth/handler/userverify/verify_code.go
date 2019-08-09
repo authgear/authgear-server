@@ -62,6 +62,17 @@ type VerifyCodePayload struct {
 	Code string `json:"code"`
 }
 
+// @JSONSchema
+const VerifyCodeRequestSchema = `
+{
+	"$id": "#VerifyCodeRequest",
+	"type": "object",
+	"properties": {
+		"code": { "type": "string" }
+	}
+}
+`
+
 func (payload VerifyCodePayload) Validate() error {
 	if payload.Code == "" {
 		return skyerr.NewInvalidArgument("empty code", []string{"code"})
@@ -70,15 +81,22 @@ func (payload VerifyCodePayload) Validate() error {
 	return nil
 }
 
-// VerifyCodeHandler accepts user to submit code for user verification.
-//
-//  curl -X POST -H "Content-Type: application/json" \
-//    -d @- http://localhost:3000/verify_code <<EOF
-//  {
-//    "code": "xxx"
-//  }
-//  EOF
-//
+/*
+	@Operation POST /verify_code - Submit verification code
+		Verify user using received verification code.
+
+		@Tag User Verification
+		@SecurityRequirement access_key
+		@SecurityRequirement access_token
+
+		@RequestBody
+			@JSONSchema {VerifyCodeRequest}
+
+		@Response 200 {EmptyResponse}
+
+		@Callback user_update {UserUpdateEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type VerifyCodeHandler struct {
 	TxContext                db.TxContext           `dependency:"TxContext"`
 	AuthContext              coreAuth.ContextGetter `dependency:"AuthContextGetter"`

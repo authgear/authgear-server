@@ -40,3 +40,54 @@ func NewAuthResponse(user User, identity Identity, accessToken string) AuthRespo
 		AccessToken: accessToken,
 	}
 }
+
+// @JSONSchema
+const UserResponseSchema = `
+{
+	"$id": "#UserResponse",
+	"type": "object",
+	"properties": {
+		"result": {
+			"type": "object",
+			"properties": {
+				"user": { "$ref": "#User" }
+			}
+		}
+	}
+}
+`
+
+// @JSONSchema
+const UserIdentityResponseSchema = `
+{
+	"$id": "#UserIdentityResponse",
+	"type": "object",
+	"properties": {
+		"result": {
+			"type": "object",
+			"properties": {
+				"user": { "$ref": "#User" },
+				"identity": { "$ref": "#Identity" }
+			}
+		}
+	}
+}
+`
+
+// @JSONSchema
+const AuthResponseSchema = `
+{
+	"$id": "#AuthResponse",
+	"type": "object",
+	"properties": {
+		"result": {
+			"type": "object",
+			"properties": {
+				"user": { "$ref": "#User" },
+				"identity": { "$ref": "#Identity" },
+				"access_token": { "type": "string" }
+			}
+		}
+	}
+}
+`

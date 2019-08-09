@@ -61,6 +61,19 @@ type LoginRequestPayload struct {
 	OnUserDuplicate sso.OnUserDuplicate `json:"on_user_duplicate"`
 }
 
+// @JSONSchema
+const LoginRequestSchema = `
+{
+	"$id": "#SSOLoginRequest",
+	"type": "object",
+	"properties": {
+		"access_token": { "type": "string" },
+		"merge_realm": { "type": "string" },
+		"on_user_duplicate": { "type": "string" }
+	}
+}
+`
+
 // Validate request payload
 func (p LoginRequestPayload) Validate() (err error) {
 	if p.AccessToken == "" {
@@ -76,26 +89,23 @@ func (p LoginRequestPayload) Validate() (err error) {
 	return
 }
 
-// LoginHandler decodes code response and fetch access token from provider.
-//
-// curl \
-//   -X POST \
-//   -H "Content-Type: application/json" \
-//   -H "X-Skygear-Api-Key: API_KEY" \
-//   -d @- \
-//   http://localhost:3000/sso/<provider>/link \
-// <<EOF
-// {
-//     "token_response": {
-//       "access_token": "<access_token>"
-//     }
-// }
-// EOF
-//
-// {
-//     "result": {}
-// }
-//
+/*
+	@Operation POST /sso/{provider_id}/login - Login SSO provider with token
+		Login the specified SSO provider, using access token obtained from the provider.
+
+		@Tag SSO
+
+		@Parameter {SSOProviderID}
+		@RequestBody
+			Describe the access token of SSO provider and login behavior.
+			@JSONSchema {SSOLoginRequest}
+		@Response 200 {EmptyResponse}
+
+		@Callback user_create {UserSyncEvent}
+		@Callback identity_create {UserSyncEvent}
+		@Callback session_create {UserSyncEvent}
+		@Callback user_sync {UserSyncEvent}
+*/
 type LoginHandler struct {
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
