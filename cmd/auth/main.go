@@ -42,7 +42,7 @@ type configuration struct {
 	@Version 1.0.0
 	@Server {base_url}/_auth
 		Auth Gear URL
-		@Variable {base_url} https://my_app.skygearapis.com
+		@Variable base_url https://my_app.skygearapis.com
 			Skygear App URL
 
 	@SecuritySchemeAPIKey access_key header X-Skygear-API-Key
