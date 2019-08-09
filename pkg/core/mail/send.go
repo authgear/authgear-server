@@ -7,15 +7,13 @@ import (
 )
 
 type SendRequest struct {
-	Dialer      *gomail.Dialer
-	Sender      string
-	SenderName  string
-	Recipient   string
-	Subject     string
-	ReplyTo     string
-	ReplyToName string
-	TextBody    string
-	HTMLBody    string
+	Dialer    *gomail.Dialer
+	Sender    string
+	Recipient string
+	Subject   string
+	ReplyTo   string
+	TextBody  string
+	HTMLBody  string
 }
 
 type updateMessageFunc func(*gomail.Message) error
@@ -47,12 +45,7 @@ func (r *SendRequest) applyFrom(message *gomail.Message) error {
 		return errors.New("sender address is missing")
 	}
 
-	if r.SenderName == "" {
-		message.SetHeader("From", r.Sender)
-	} else {
-		message.SetAddressHeader("From", r.Sender, r.SenderName)
-	}
-
+	message.SetHeader("From", r.Sender)
 	return nil
 }
 
@@ -70,12 +63,7 @@ func (r *SendRequest) applyReplyTo(message *gomail.Message) error {
 		return nil
 	}
 
-	if r.SenderName == "" {
-		message.SetHeader("Reply-To", r.ReplyTo)
-	} else {
-		message.SetAddressHeader("Reply-To", r.ReplyTo, r.ReplyToName)
-	}
-
+	message.SetHeader("Reply-To", r.ReplyTo)
 	return nil
 }
 

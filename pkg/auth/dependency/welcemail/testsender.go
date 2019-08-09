@@ -16,8 +16,6 @@ type TestSender interface {
 		subject string,
 		sender string,
 		replyTo string,
-		senderName string,
-		replyToName string,
 	) error
 }
 
@@ -42,8 +40,6 @@ func (d *DefaultTestSender) Send(
 	subject string,
 	sender string,
 	replyTo string,
-	senderName string,
-	replyToName string,
 ) (err error) {
 	check := func(test, a, b string) string {
 		if test != "" {
@@ -75,15 +71,13 @@ func (d *DefaultTestSender) Send(
 	}
 
 	sendReq := mail.SendRequest{
-		Dialer:      d.Dialer,
-		Sender:      check(sender, sender, d.Config.Sender),
-		SenderName:  check(sender, senderName, d.Config.SenderName),
-		Recipient:   email,
-		Subject:     check(subject, subject, d.Config.Subject),
-		ReplyTo:     check(replyTo, replyTo, d.Config.ReplyTo),
-		ReplyToName: check(replyTo, replyToName, d.Config.ReplyToName),
-		TextBody:    textBody,
-		HTMLBody:    htmlBody,
+		Dialer:    d.Dialer,
+		Sender:    check(sender, sender, d.Config.Sender),
+		Recipient: email,
+		Subject:   check(subject, subject, d.Config.Subject),
+		ReplyTo:   check(replyTo, replyTo, d.Config.ReplyTo),
+		TextBody:  textBody,
+		HTMLBody:  htmlBody,
 	}
 
 	err = sendReq.Execute()

@@ -215,8 +215,6 @@ type ForgotPasswordTestPayload struct {
 	Subject      string `json:"subject"`
 	Sender       string `json:"sender"`
 	ReplyTo      string `json:"reply_to"`
-	SenderName   string `json:"sender_name"`
-	ReplyToName  string `json:"reply_to_name"`
 }
 
 func (payload ForgotPasswordTestPayload) Validate() error {
@@ -237,9 +235,7 @@ func (payload ForgotPasswordTestPayload) Validate() error {
 //     "html_template": "xxx",
 //     "subject": "xxx",
 //     "sender": "xxx",
-//     "reply_to": "xxx",
-//     "sender_name": "xxx",
-//     "reply_to_name": "xxx"
+//     "reply_to": "xxx"
 //  }
 //  EOF
 type ForgotPasswordTestHandler struct {
@@ -269,8 +265,6 @@ func (h ForgotPasswordTestHandler) Handle(req interface{}) (resp interface{}, er
 		payload.Subject,
 		payload.Sender,
 		payload.ReplyTo,
-		payload.SenderName,
-		payload.ReplyToName,
 	); err == nil {
 		resp = map[string]string{}
 	}
