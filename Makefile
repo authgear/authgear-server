@@ -164,3 +164,8 @@ preview-doc-auth:
 .PHONY: generate-doc-auth
 generate-doc-auth:
 	@openapi3-gen -output "$(DOC_PATH)" ./cmd/auth/... ./pkg/auth/...
+
+# Start the migrate http server locally
+.PHONY: serve-migrate-http
+serve-migrate-http:
+	go run ./cmd/migrate/main.go -add-migration-src=auth,cmd/migrate/revisions/auth -add-migration-src=core,cmd/migrate/revisions/core -http-server
