@@ -21,6 +21,8 @@ func newGearReverseProxy() *httputil.ReverseProxy {
 		path := req.URL.Path
 		query := req.URL.RawQuery
 		fragment := req.URL.Fragment
+		coreHttp.SetForwardedHeaders(req)
+
 		var err error
 		u, err := url.Parse(req.Header.Get(coreHttp.HeaderGearEndpoint))
 		if err != nil {

@@ -20,6 +20,7 @@ func NewDeploymentRouteHandler() http.HandlerFunc {
 func newDeploymentRouteReverseProxy() *httputil.ReverseProxy {
 	director := func(req *http.Request) {
 		originalPath := req.URL.Path
+		coreHttp.SetForwardedHeaders(req)
 
 		ctx := model.GatewayContextFromContext(req.Context())
 		deploymentRoute := ctx.DeploymentRoute
