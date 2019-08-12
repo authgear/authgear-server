@@ -37,6 +37,7 @@ type configuration struct {
 	StandaloneTenantConfigurationFile string `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
 	PathPrefix                        string `envconfig:"PATH_PREFIX"`
 	Host                              string `default:"localhost:3000"`
+	ValidHosts                        string `envconfig:"VALID_HOSTS"`
 }
 
 /*
@@ -75,6 +76,9 @@ func main() {
 
 	configuration := configuration{}
 	envconfig.Process("", &configuration)
+	if configuration.ValidHosts == "" {
+		configuration.ValidHosts = configuration.Host
+	}
 
 	// default template initialization
 	templateEngine := template.NewEngine()
@@ -121,6 +125,7 @@ func main() {
 				return *tenantConfig, nil
 			}),
 		}.Handle)
+		srv.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
 		srv.Use(middleware.RequestIDMiddleware{}.Handle)
 		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
