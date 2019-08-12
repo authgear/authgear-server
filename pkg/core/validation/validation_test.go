@@ -8,7 +8,7 @@ import (
 
 func TestURL(t *testing.T) {
 	Convey("URL", t, func() {
-		Convey("AllowAbsoluteURI = false", func(_ C) {
+		Convey("URLVariant == URLVariantFullOnly", func(_ C) {
 			cases := []struct {
 				input    string
 				expected bool
@@ -18,9 +18,42 @@ func TestURL(t *testing.T) {
 				{"我", false},
 				{"/?a", false},
 				{"/#a", false},
-				{"http://example.com", false},
 				{"../a", false},
 				{"/a/..", false},
+				{"/", false},
+				{"/a", false},
+				{"/a/b", false},
+				{"/%20", false},
+				{"/Hong+Kong", false},
+
+				{"http://example.com", true},
+				{"http://example.com/", true},
+				{"http://example.com/a", true},
+			}
+			for _, c := range cases {
+				actual := URL{URLVariant: URLVariantFullOnly}.IsFormat(c.input)
+				So(actual, ShouldEqual, c.expected)
+			}
+		})
+		Convey("URLVariant == URLVariantPathOnly", func(_ C) {
+			cases := []struct {
+				input    string
+				expected bool
+			}{
+				{"", false},
+				{"a", false},
+				{"我", false},
+				{"../a", false},
+				{"/?a", false},
+				{"/#a", false},
+				{"/a/..", false},
+				{"http://example.com/?a", false},
+				{"http://example.com/#a", false},
+				{"http://example.com/a/..", false},
+				{"http://example.com", false},
+				{"http://example.com/", false},
+				{"http://example.com/a", false},
+				{"http://example.com/a/b", false},
 
 				{"/", true},
 				{"/a", true},
@@ -29,11 +62,11 @@ func TestURL(t *testing.T) {
 				{"/Hong+Kong", true},
 			}
 			for _, c := range cases {
-				actual := URL{}.IsFormat(c.input)
+				actual := URL{URLVariant: URLVariantPathOnly}.IsFormat(c.input)
 				So(actual, ShouldEqual, c.expected)
 			}
 		})
-		Convey("AllowAbsoluteURI = true", func(_ C) {
+		Convey("URLVariant == URLVariantFullOrPath", func(_ C) {
 			cases := []struct {
 				input    string
 				expected bool
@@ -49,18 +82,18 @@ func TestURL(t *testing.T) {
 				{"http://example.com/#a", false},
 				{"http://example.com/a/..", false},
 
+				{"http://example.com", true},
+				{"http://example.com/", true},
+				{"http://example.com/a", true},
+				{"http://example.com/a/b", true},
 				{"/", true},
 				{"/a", true},
 				{"/a/b", true},
 				{"/%20", true},
 				{"/Hong+Kong", true},
-				{"http://example.com", true},
-				{"http://example.com/", true},
-				{"http://example.com/a", true},
-				{"http://example.com/a/b", true},
 			}
 			for _, c := range cases {
-				actual := URL{AllowAbsoluteURI: true}.IsFormat(c.input)
+				actual := URL{URLVariant: URLVariantFullOrPath}.IsFormat(c.input)
 				So(actual, ShouldEqual, c.expected)
 			}
 		})

@@ -13,8 +13,14 @@ import (
 )
 
 func init() {
-	gojsonschema.FormatCheckers.Add("URLPath", URL{
-		AllowAbsoluteURI: false,
+	gojsonschema.FormatCheckers.Add("URLPathOnly", URL{
+		URLVariant: URLVariantPathOnly,
+	})
+	gojsonschema.FormatCheckers.Add("URLFullOrPath", URL{
+		URLVariant: URLVariantFullOrPath,
+	})
+	gojsonschema.FormatCheckers.Add("URLFullOnly", URL{
+		URLVariant: URLVariantFullOrPath,
 	})
 	gojsonschema.FormatCheckers.Add("RelativeDirectoryPath", FilePath{
 		Relative: true,
@@ -23,9 +29,6 @@ func init() {
 	gojsonschema.FormatCheckers.Add("RelativeFilePath", FilePath{
 		Relative: true,
 		File:     true,
-	})
-	gojsonschema.FormatCheckers.Add("HookURL", URL{
-		AllowAbsoluteURI: true,
 	})
 }
 
@@ -92,8 +95,16 @@ func (e Error) Swap(i, j int) {
 	e.Causes[i], e.Causes[j] = e.Causes[j], e.Causes[i]
 }
 
+type URLVariant int
+
+const (
+	URLVariantFullOnly URLVariant = iota
+	URLVariantPathOnly
+	URLVariantFullOrPath
+)
+
 type URL struct {
-	AllowAbsoluteURI bool
+	URLVariant URLVariant
 }
 
 // nolint: gocyclo
@@ -110,21 +121,34 @@ func (f URL) IsFormat(input interface{}) bool {
 	if err != nil {
 		return false
 	}
-	if !f.AllowAbsoluteURI && (u.Scheme != "" || u.User != nil || u.Host != "") {
-		return false
-	}
 	if u.RawQuery != "" || u.Fragment != "" {
 		return false
 	}
 
-	var p string
-	if f.AllowAbsoluteURI {
+	p := ""
+	switch f.URLVariant {
+	case URLVariantFullOnly:
+		if u.Scheme == "" || u.Host == "" {
+			return false
+		}
 		p = u.EscapedPath()
-	} else {
+		if p == "" {
+			p = "/"
+		}
+	case URLVariantPathOnly:
+		if u.Scheme != "" || u.User != nil || u.Host != "" {
+			return false
+		}
 		p = str
-	}
-	if p == "" {
-		p = "/"
+	case URLVariantFullOrPath:
+		if u.Scheme != "" || u.User != nil || u.Host != "" {
+			p = u.EscapedPath()
+			if p == "" {
+				p = "/"
+			}
+		} else {
+			p = str
+		}
 	}
 
 	cleaned := filepath.Clean(p)
