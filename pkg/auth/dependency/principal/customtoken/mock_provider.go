@@ -80,9 +80,8 @@ func (p *MockProvider) ListPrincipalsByUserID(userID string) ([]principal.Princi
 	var principals []principal.Principal
 	for _, p := range p.PrincipalMap {
 		if p.UserID == userID {
-			var principal principal.Principal
-			principal = &p
-			principals = append(principals, principal)
+			principal := p
+			principals = append(principals, &principal)
 		}
 	}
 	return principals, nil
@@ -92,9 +91,8 @@ func (p *MockProvider) ListPrincipalsByClaim(claimName string, claimValue string
 	var principals []principal.Principal
 	for _, p := range p.PrincipalMap {
 		if p.ClaimsValue[claimName] == claimValue {
-			var principal principal.Principal
-			principal = &p
-			principals = append(principals, principal)
+			principal := p
+			principals = append(principals, &principal)
 		}
 	}
 	return principals, nil
@@ -103,9 +101,8 @@ func (p *MockProvider) ListPrincipalsByClaim(claimName string, claimValue string
 func (p *MockProvider) GetPrincipalByID(principalID string) (principal.Principal, error) {
 	for _, p := range p.PrincipalMap {
 		if p.ID == principalID {
-			var principal principal.Principal
-			principal = &p
-			return principal, nil
+			principal := p
+			return &principal, nil
 		}
 	}
 	return nil, skydb.ErrUserNotFound

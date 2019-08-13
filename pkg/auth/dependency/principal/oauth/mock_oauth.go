@@ -78,9 +78,8 @@ func (m *MockProvider) GetPrincipalsByUserID(userID string) ([]*Principal, error
 	var principals []*Principal
 	for _, p := range m.Principals {
 		if p.UserID == userID {
-			var principal Principal
-			principal = *p
-			principals = append(principals, &principal)
+			principal := p
+			principals = append(principals, principal)
 		}
 	}
 	return principals, nil
@@ -90,9 +89,8 @@ func (m *MockProvider) GetPrincipalsByClaim(claimName string, claimValue string)
 	var principals []*Principal
 	for _, p := range m.Principals {
 		if p.ClaimsValue[claimName] == claimValue {
-			var principal Principal
-			principal = *p
-			principals = append(principals, &principal)
+			principal := p
+			principals = append(principals, principal)
 		}
 	}
 	return principals, nil
@@ -105,8 +103,7 @@ func (m *MockProvider) ID() string {
 func (m *MockProvider) GetPrincipalByID(id string) (principal.Principal, error) {
 	for _, p := range m.Principals {
 		if p.ID == id {
-			var principal principal.Principal
-			principal = p
+			principal := p
 			return principal, nil
 		}
 	}

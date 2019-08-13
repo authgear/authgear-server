@@ -175,9 +175,8 @@ func (m *MockProvider) ListPrincipalsByClaim(claimName string, claimValue string
 	var principals []principal.Principal
 	for _, p := range m.PrincipalMap {
 		if p.ClaimsValue[claimName] == claimValue {
-			var passwordPrincipal *Principal
-			passwordPrincipal = &p
-			principals = append(principals, passwordPrincipal)
+			principal := p
+			principals = append(principals, &principal)
 		}
 	}
 	return principals, nil
@@ -187,9 +186,8 @@ func (m *MockProvider) ListPrincipalsByUserID(userID string) ([]principal.Princi
 	var principals []principal.Principal
 	for _, p := range m.PrincipalMap {
 		if p.UserID == userID {
-			var passwordPrincipal *Principal
-			passwordPrincipal = &p
-			principals = append(principals, passwordPrincipal)
+			principal := p
+			principals = append(principals, &principal)
 		}
 	}
 	return principals, nil
