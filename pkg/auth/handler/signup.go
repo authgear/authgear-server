@@ -355,13 +355,10 @@ func (h SignupHandler) findExistingPrincipals(payload SignupRequestPayload) ([]p
 	// Skip password principals which are not in the same realm.
 	var filteredPrincipals []principal.Principal
 	for _, p := range principals {
-		if passwordPrincipal, ok := p.(*password.Principal); ok {
-			if passwordPrincipal.Realm == payload.Realm {
-				filteredPrincipals = append(filteredPrincipals, p)
-			}
-		} else {
-			filteredPrincipals = append(filteredPrincipals, p)
+		if passwordPrincipal, ok := p.(*password.Principal); ok && passwordPrincipal.Realm != payload.Realm {
+			continue
 		}
+		filteredPrincipals = append(filteredPrincipals, p)
 	}
 
 	return filteredPrincipals, nil
