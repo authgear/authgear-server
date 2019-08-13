@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/lib/pq"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -273,7 +274,7 @@ func (p *providerImpl) ListPrincipalsByClaim(claimName string, claimValue string
 	).
 		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
 		Join(fmt.Sprintf("%s AS ct ON p.id = ct.principal_id", p.sqlBuilder.FullTableName("provider_custom_token"))).
-		Where(fmt.Sprintf(`(ct.claims #>> '{%s}') = ?`, claimName), claimValue)
+		Where("(ct.claims #>> ?) = ?", pq.Array([]string{claimName}), claimValue)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {

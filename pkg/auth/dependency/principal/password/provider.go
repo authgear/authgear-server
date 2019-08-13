@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
@@ -279,7 +280,7 @@ func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string)
 	).
 		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
 		Join(fmt.Sprintf("%s AS pp ON p.id = pp.principal_id", p.sqlBuilder.FullTableName("provider_password"))).
-		Where(fmt.Sprintf(`(pp.claims #>> '{%s}') = ?`, claimName), claimValue)
+		Where("(pp.claims #>> ?) = ?", pq.Array([]string{claimName}), claimValue)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {

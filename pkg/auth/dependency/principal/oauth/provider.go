@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -384,7 +385,7 @@ func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string)
 	).
 		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
 		Join(fmt.Sprintf("%s AS o ON p.id = o.principal_id", p.sqlBuilder.FullTableName("provider_oauth"))).
-		Where(fmt.Sprintf(`(o.claims #>> '{%s}') = ?`, claimName), claimValue)
+		Where("(o.claims #>> ?) = ?", pq.Array([]string{claimName}), claimValue)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
