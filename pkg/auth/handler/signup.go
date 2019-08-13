@@ -89,7 +89,11 @@ const SignupRequestSchema = `
 		},
 		"realm": { "type": "string" },
 		"password": { "type": "string" },
-		"metadata": { "type": "object" }
+		"metadata": { "type": "object" },
+		"on_user_duplicate": {
+			"type": "string",
+			"enum": ["abort", "create"]
+		}
 	}
 }
 `
