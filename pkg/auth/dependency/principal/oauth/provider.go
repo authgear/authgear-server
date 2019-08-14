@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
@@ -44,6 +43,7 @@ func (p *providerImpl) scan(scanner db.Scanner, principal *Principal) error {
 	var tokenBytes []byte
 	var profileBytes []byte
 	var providerKeysBytes []byte
+	var claimsValueBytes []byte
 
 	err := scanner.Scan(
 		&principal.ID,
@@ -53,6 +53,7 @@ func (p *providerImpl) scan(scanner db.Scanner, principal *Principal) error {
 		&principal.ProviderUserID,
 		&tokenBytes,
 		&profileBytes,
+		&claimsValueBytes,
 		&principal.CreatedAt,
 		&principal.UpdatedAt,
 	)
@@ -71,6 +72,11 @@ func (p *providerImpl) scan(scanner db.Scanner, principal *Principal) error {
 	}
 
 	err = json.Unmarshal(providerKeysBytes, &principal.ProviderKeys)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(claimsValueBytes, &principal.ClaimsValue)
 	if err != nil {
 		return err
 	}
@@ -97,6 +103,7 @@ func (p *providerImpl) GetPrincipalByProvider(options GetByProviderOptions) (*Pr
 		"o.provider_user_id",
 		"o.token_response",
 		"o.profile",
+		"o.claims",
 		"o._created_at",
 		"o._updated_at",
 	).
@@ -140,6 +147,7 @@ func (p *providerImpl) GetPrincipalByUser(options GetByUserOptions) (*Principal,
 		"o.provider_user_id",
 		"o.token_response",
 		"o.profile",
+		"o.claims",
 		"o._created_at",
 		"o._updated_at",
 	).
@@ -189,6 +197,10 @@ func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 	if err != nil {
 		return
 	}
+	claimsValueBytes, err := json.Marshal(principal.ClaimsValue)
+	if err != nil {
+		return
+	}
 	providerKeysBytes, err := json.Marshal(principal.ProviderKeys)
 	if err != nil {
 		return
@@ -201,6 +213,7 @@ func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 		"provider_user_id",
 		"token_response",
 		"profile",
+		"claims",
 		"_created_at",
 		"_updated_at",
 	).Values(
@@ -210,6 +223,7 @@ func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 		principal.ProviderUserID,
 		accessTokenRespBytes,
 		userProfileBytes,
+		claimsValueBytes,
 		principal.CreatedAt,
 		principal.UpdatedAt,
 	)
@@ -235,9 +249,15 @@ func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 		return
 	}
 
+	claimsValueBytes, err := json.Marshal(principal.ClaimsValue)
+	if err != nil {
+		return
+	}
+
 	builder := p.sqlBuilder.Update(p.sqlBuilder.FullTableName("provider_oauth")).
 		Set("token_response", accessTokenRespBytes).
 		Set("profile", userProfileBytes).
+		Set("claims", claimsValueBytes).
 		Set("_updated_at", principal.UpdatedAt).
 		Where("principal_id = ?", principal.ID)
 
@@ -316,6 +336,7 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 		"o.provider_user_id",
 		"o.token_response",
 		"o.profile",
+		"o.claims",
 		"o._created_at",
 		"o._updated_at",
 	).
@@ -341,6 +362,51 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 		principals = append(principals, &principal)
 	}
 
+	if len(principals) == 0 {
+		err = skydb.ErrUserNotFound
+		return
+	}
+
+	return
+}
+
+func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string) (principals []*Principal, err error) {
+	builder := p.sqlBuilder.Select(
+		"p.id",
+		"p.user_id",
+		"o.provider_type",
+		"o.provider_keys",
+		"o.provider_user_id",
+		"o.token_response",
+		"o.profile",
+		"o.claims",
+		"o._created_at",
+		"o._updated_at",
+	).
+		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
+		Join(fmt.Sprintf("%s AS o ON p.id = o.principal_id", p.sqlBuilder.FullTableName("provider_oauth"))).
+		Where("(o.claims #>> ?) = ?", pq.Array([]string{claimName}), claimValue)
+
+	rows, err := p.sqlExecutor.QueryWith(builder)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var principal Principal
+		err = p.scan(rows, &principal)
+		if err != nil {
+			return
+		}
+		principals = append(principals, &principal)
+	}
+
+	if len(principals) == 0 {
+		err = skydb.ErrUserNotFound
+		return
+	}
+
 	return
 }
 
@@ -357,6 +423,7 @@ func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal
 		"o.provider_user_id",
 		"o.token_response",
 		"o.profile",
+		"o.claims",
 		"o._created_at",
 		"o._updated_at",
 	).
@@ -383,6 +450,9 @@ func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal
 func (p *providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
 	principals, err := p.GetPrincipalsByUserID(userID)
 	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -394,23 +464,21 @@ func (p *providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Princi
 	return genericPrincipals, nil
 }
 
-func (p *providerImpl) DeriveClaims(pp principal.Principal) (claims principal.Claims) {
-	claims = principal.Claims{}
-	attrs := pp.Attributes()
-	providerType, ok := attrs["provider_type"].(string)
-	if !ok {
-		return
+func (p *providerImpl) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
+	principals, err := p.GetPrincipalsByClaim(claimName, claimValue)
+	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			return nil, nil
+		}
+		return nil, err
 	}
-	rawProfile, ok := attrs["raw_profile"].(map[string]interface{})
-	if !ok {
-		return
+
+	genericPrincipals := []principal.Principal{}
+	for _, principal := range principals {
+		genericPrincipals = append(genericPrincipals, principal)
 	}
-	decoder := sso.GetUserInfoDecoder(config.OAuthProviderType(providerType))
-	providerUserInfo := decoder.DecodeUserInfo(rawProfile)
-	if providerUserInfo.Email != "" {
-		claims["email"] = providerUserInfo.Email
-	}
-	return
+
+	return genericPrincipals, nil
 }
 
 // this ensures that our structure conform to certain interfaces.

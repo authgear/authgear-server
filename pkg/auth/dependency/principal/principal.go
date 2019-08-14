@@ -5,6 +5,7 @@ type Principal interface {
 	PrincipalUserID() string
 	ProviderID() string
 	Attributes() Attributes
+	Claims() Claims
 }
 
 type Attributes map[string]interface{}

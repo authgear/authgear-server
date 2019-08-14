@@ -4,13 +4,10 @@ import (
 	"reflect"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
 type MockProvider struct {
-	Provider
 	Principals []*Principal
 }
 
@@ -81,9 +78,19 @@ func (m *MockProvider) GetPrincipalsByUserID(userID string) ([]*Principal, error
 	var principals []*Principal
 	for _, p := range m.Principals {
 		if p.UserID == userID {
-			var principal Principal
-			principal = *p
-			principals = append(principals, &principal)
+			principal := p
+			principals = append(principals, principal)
+		}
+	}
+	return principals, nil
+}
+
+func (m *MockProvider) GetPrincipalsByClaim(claimName string, claimValue string) ([]*Principal, error) {
+	var principals []*Principal
+	for _, p := range m.Principals {
+		if p.ClaimsValue[claimName] == claimValue {
+			principal := p
+			principals = append(principals, principal)
 		}
 	}
 	return principals, nil
@@ -93,21 +100,50 @@ func (m *MockProvider) ID() string {
 	return providerName
 }
 
-func (m *MockProvider) DeriveClaims(pp principal.Principal) (claims principal.Claims) {
-	claims = principal.Claims{}
-	attrs := pp.Attributes()
-	providerType, ok := attrs["provider_type"].(string)
-	if !ok {
-		return
+func (m *MockProvider) GetPrincipalByID(id string) (principal.Principal, error) {
+	for _, p := range m.Principals {
+		if p.ID == id {
+			principal := p
+			return principal, nil
+		}
 	}
-	rawProfile, ok := attrs["raw_profile"].(map[string]interface{})
-	if !ok {
-		return
-	}
-	decoder := sso.GetUserInfoDecoder(config.OAuthProviderType(providerType))
-	providerUserInfo := decoder.DecodeUserInfo(rawProfile)
-	if providerUserInfo.Email != "" {
-		claims["email"] = providerUserInfo.Email
-	}
-	return
+	return nil, skydb.ErrUserNotFound
 }
+
+func (m *MockProvider) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
+	principals, err := m.GetPrincipalsByUserID(userID)
+	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	genericPrincipals := []principal.Principal{}
+	for _, principal := range principals {
+		genericPrincipals = append(genericPrincipals, principal)
+	}
+
+	return genericPrincipals, nil
+}
+
+func (m *MockProvider) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
+	principals, err := m.GetPrincipalsByClaim(claimName, claimValue)
+	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	genericPrincipals := []principal.Principal{}
+	for _, principal := range principals {
+		genericPrincipals = append(genericPrincipals, principal)
+	}
+
+	return genericPrincipals, nil
+}
+
+var (
+	_ Provider = &MockProvider{}
+)

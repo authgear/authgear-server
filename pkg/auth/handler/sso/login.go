@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -56,9 +57,9 @@ func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // LoginRequestPayload login handler request payload
 type LoginRequestPayload struct {
-	AccessToken     string              `json:"access_token"`
-	MergeRealm      string              `json:"merge_realm"`
-	OnUserDuplicate sso.OnUserDuplicate `json:"on_user_duplicate"`
+	AccessToken     string                `json:"access_token"`
+	MergeRealm      string                `json:"merge_realm"`
+	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 }
 
 // @JSONSchema
@@ -81,7 +82,7 @@ func (p LoginRequestPayload) Validate() (err error) {
 		return
 	}
 
-	if !sso.IsValidOnUserDuplicate(p.OnUserDuplicate) {
+	if !model.IsValidOnUserDuplicateForSSO(p.OnUserDuplicate) {
 		err = skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
 		return
 	}
@@ -107,21 +108,20 @@ func (p LoginRequestPayload) Validate() (err error) {
 		@Callback user_sync {UserSyncEvent}
 */
 type LoginHandler struct {
-	TxContext            db.TxContext               `dependency:"TxContext"`
-	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
-	OAuthAuthProvider    oauth.Provider             `dependency:"OAuthAuthProvider"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	TokenStore           authtoken.Store            `dependency:"TokenStore"`
-	ProviderFactory      *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider         hook.Provider              `dependency:"HookProvider"`
-	OAuthConfiguration   config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
-	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
-	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
-	Provider             sso.OAuthProvider
-	ProviderID           string
+	TxContext           db.TxContext               `dependency:"TxContext"`
+	AuthContext         coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	OAuthAuthProvider   oauth.Provider             `dependency:"OAuthAuthProvider"`
+	IdentityProvider    principal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore       authinfo.Store             `dependency:"AuthInfoStore"`
+	TokenStore          authtoken.Store            `dependency:"TokenStore"`
+	ProviderFactory     *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
+	UserProfileStore    userprofile.Store          `dependency:"UserProfileStore"`
+	HookProvider        hook.Provider              `dependency:"HookProvider"`
+	OAuthConfiguration  config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
+	WelcomeEmailEnabled bool                       `dependency:"WelcomeEmailEnabled"`
+	TaskQueue           async.Queue                `dependency:"AsyncTaskQueue"`
+	Provider            sso.OAuthProvider
+	ProviderID          string
 }
 
 func (h LoginHandler) WithTx() bool {
@@ -138,7 +138,7 @@ func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPaylo
 		payload.MergeRealm = password.DefaultRealm
 	}
 	if payload.OnUserDuplicate == "" {
-		payload.OnUserDuplicate = sso.OnUserDuplicateDefault
+		payload.OnUserDuplicate = model.OnUserDuplicateDefault
 	}
 	return payload, nil
 }
@@ -168,15 +168,14 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	handler := respHandler{
-		TokenStore:           h.TokenStore,
-		AuthInfoStore:        h.AuthInfoStore,
-		OAuthAuthProvider:    h.OAuthAuthProvider,
-		PasswordAuthProvider: h.PasswordAuthProvider,
-		IdentityProvider:     h.IdentityProvider,
-		UserProfileStore:     h.UserProfileStore,
-		HookProvider:         h.HookProvider,
-		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
-		TaskQueue:            h.TaskQueue,
+		TokenStore:          h.TokenStore,
+		AuthInfoStore:       h.AuthInfoStore,
+		OAuthAuthProvider:   h.OAuthAuthProvider,
+		IdentityProvider:    h.IdentityProvider,
+		UserProfileStore:    h.UserProfileStore,
+		HookProvider:        h.HookProvider,
+		WelcomeEmailEnabled: h.WelcomeEmailEnabled,
+		TaskQueue:           h.TaskQueue,
 	}
 	resp, err = handler.loginActionResp(oauthAuthInfo, loginState)
 

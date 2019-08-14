@@ -8,29 +8,28 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
-	. "github.com/skygeario/skygear-server/pkg/core/skytest"
-	. "github.com/smartystreets/goconvey/convey"
-
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestSingupHandler(t *testing.T) {
@@ -41,7 +40,8 @@ func TestSingupHandler(t *testing.T) {
 					password.LoginID{Key: "username", Value: "john.doe"},
 					password.LoginID{Key: "email", Value: "john.doe@example.com"},
 				},
-				Password: "123456",
+				Password:        "123456",
+				OnUserDuplicate: model.OnUserDuplicateDefault,
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
@@ -52,15 +52,17 @@ func TestSingupHandler(t *testing.T) {
 					password.LoginID{Key: "username", Value: "john.doe"},
 					password.LoginID{Key: "email", Value: "john.doe@example.com"},
 				},
-				Realm:    "admin",
-				Password: "123456",
+				Realm:           "admin",
+				Password:        "123456",
+				OnUserDuplicate: model.OnUserDuplicateDefault,
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
 
 		Convey("validate payload without login_id", func() {
 			payload := SignupRequestPayload{
-				Password: "123456",
+				Password:        "123456",
+				OnUserDuplicate: model.OnUserDuplicateDefault,
 			}
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)
@@ -73,6 +75,20 @@ func TestSingupHandler(t *testing.T) {
 					password.LoginID{Key: "username", Value: "john.doe"},
 					password.LoginID{Key: "email", Value: "john.doe@example.com"},
 				},
+				OnUserDuplicate: model.OnUserDuplicateDefault,
+			}
+			err := payload.Validate()
+			errResponse := err.(skyerr.Error)
+			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+		})
+
+		Convey("validate payload without on_user_duplicate", func() {
+			payload := SignupRequestPayload{
+				LoginIDs: []password.LoginID{
+					password.LoginID{Key: "username", Value: "john.doe"},
+					password.LoginID{Key: "email", Value: "john.doe@example.com"},
+				},
+				Password: "123456",
 			}
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)
@@ -128,6 +144,17 @@ func TestSingupHandler(t *testing.T) {
 		sh.TokenStore = mockTokenStore
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
+		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
+			&oauth.Principal{
+				ID:           "john.doe.id",
+				UserID:       "john.doe.id",
+				ProviderType: "google",
+				ProviderKeys: map[string]interface{}{},
+				ClaimsValue: map[string]interface{}{
+					"email": "john.doe@example.com",
+				},
+			},
+		})
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider)
 		sh.AuditTrail = audit.NewMockTrail(t)
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
@@ -138,9 +165,54 @@ func TestSingupHandler(t *testing.T) {
 		sh.WelcomeEmailEnabled = true
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
-		h := handler.APIHandlerToHandler(sh, sh.TxContext)
+
+		Convey("abort if user duplicate with oauth", func() {
+			sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider, mockOAuthProvider)
+			h := handler.APIHandlerToHandler(sh, sh.TxContext)
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": [
+					{ "key": "email", "value": "john.doe@example.com" },
+					{ "key": "username", "value": "john.doe" }
+				],
+				"password": "123456"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 409)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code": 109,
+					"message": "Aborted due to duplicate user",
+					"name": "Duplicated"
+				}
+			}`)
+		})
+
+		Convey("singup with on_user_duplicate == create", func() {
+			sh.AuthConfiguration = config.AuthConfiguration{
+				OnUserDuplicateAllowCreate: true,
+			}
+			sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider, mockOAuthProvider)
+			h := handler.APIHandlerToHandler(sh, sh.TxContext)
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": [
+					{ "key": "email", "value": "john.doe@example.com" },
+					{ "key": "username", "value": "john.doe" }
+				],
+				"password": "123456",
+				"on_user_duplicate": "create"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 200)
+		})
 
 		Convey("signup user with login_id", func() {
+			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -253,6 +325,7 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("signup user with login_id with realm", func() {
+			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -351,6 +424,7 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("signup with incorrect login_id", func() {
+			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -377,6 +451,7 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("signup with weak password", func() {
+			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -407,6 +482,7 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("signup with email, send welcome email to first login ID", func() {
 			sh.WelcomeEmailDestination = config.WelcomeEmailDestinationFirst
+			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -429,6 +505,7 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("signup with email, send welcome email to all login IDs", func() {
 			sh.WelcomeEmailDestination = config.WelcomeEmailDestinationAll
+			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -453,6 +530,7 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when signup success", func() {
+			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [

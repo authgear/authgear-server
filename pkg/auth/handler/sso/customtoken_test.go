@@ -353,6 +353,9 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 					LoginID:        "john.doe@example.com",
 					Realm:          "default",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+					ClaimsValue: map[string]interface{}{
+						"email": "john.doe@example.com",
+					},
 				},
 			},
 		)
@@ -365,7 +368,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		}
 		lh.TxContext = db.NewMockTxContext()
 		lh.CustomTokenAuthProvider = customtoken.NewMockProviderWithPrincipalMap("ssosecret", map[string]customtoken.Principal{})
-		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.CustomTokenAuthProvider)
+		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.CustomTokenAuthProvider, lh.PasswordAuthProvider)
 		lh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				"john.doe.id": authinfo.AuthInfo{

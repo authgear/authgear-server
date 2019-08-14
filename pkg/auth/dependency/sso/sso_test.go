@@ -17,49 +17,6 @@ func TestIsValidUXmode(t *testing.T) {
 	})
 }
 
-func TestIsValidOnUserDuplicate(t *testing.T) {
-	Convey("Test IsValidOnUserDuplicate", t, func() {
-		So(IsValidOnUserDuplicate(""), ShouldBeFalse)
-		So(IsValidOnUserDuplicate("nonsense"), ShouldBeFalse)
-
-		So(IsValidOnUserDuplicate(OnUserDuplicateDefault), ShouldBeTrue)
-		So(IsValidOnUserDuplicate(OnUserDuplicateAbort), ShouldBeTrue)
-		So(IsValidOnUserDuplicate(OnUserDuplicateMerge), ShouldBeTrue)
-		So(IsValidOnUserDuplicate(OnUserDuplicateCreate), ShouldBeTrue)
-	})
-}
-
-func TestIsAllowedOnUserDuplicate(t *testing.T) {
-	Convey("Test IsAllowedOnUserDuplicate", t, func() {
-		f := IsAllowedOnUserDuplicate
-
-		merge := false
-		create := false
-
-		So(f(merge, create, OnUserDuplicateAbort), ShouldBeTrue)
-		So(f(merge, create, OnUserDuplicateMerge), ShouldBeFalse)
-		So(f(merge, create, OnUserDuplicateCreate), ShouldBeFalse)
-
-		merge = true
-
-		So(f(merge, create, OnUserDuplicateAbort), ShouldBeTrue)
-		So(f(merge, create, OnUserDuplicateMerge), ShouldBeTrue)
-		So(f(merge, create, OnUserDuplicateCreate), ShouldBeFalse)
-
-		create = true
-
-		So(f(merge, create, OnUserDuplicateAbort), ShouldBeTrue)
-		So(f(merge, create, OnUserDuplicateMerge), ShouldBeTrue)
-		So(f(merge, create, OnUserDuplicateCreate), ShouldBeTrue)
-
-		merge = false
-
-		So(f(merge, create, OnUserDuplicateAbort), ShouldBeTrue)
-		So(f(merge, create, OnUserDuplicateMerge), ShouldBeFalse)
-		So(f(merge, create, OnUserDuplicateCreate), ShouldBeTrue)
-	})
-}
-
 func TestValidateCallbackURL(t *testing.T) {
 	Convey("Test ValidateCallbackURL", t, func() {
 		f := ValidateCallbackURL

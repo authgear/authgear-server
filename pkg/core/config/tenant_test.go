@@ -94,7 +94,8 @@ var fullTenantConfig = TenantConfiguration{
 					Maximum: newInt(1),
 				},
 			},
-			AllowedRealms: []string{"default"},
+			AllowedRealms:              []string{"default"},
+			OnUserDuplicateAllowCreate: true,
 		},
 		TokenStore: TokenStoreConfiguration{
 			Secret: "mytokenstoresecret",

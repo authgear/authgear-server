@@ -51,6 +51,9 @@ func TestLogoutHandler(t *testing.T) {
 					LoginIDKey: "email",
 					LoginID:    "faseng@example.com",
 					Realm:      password.DefaultRealm,
+					ClaimsValue: map[string]interface{}{
+						"email": "faseng@example.com",
+					},
 				},
 			},
 		)
@@ -84,7 +87,9 @@ func TestLogoutHandler(t *testing.T) {
 							"login_id":     "faseng@example.com",
 							"realm":        "default",
 						},
-						Claims: principal.Claims{},
+						Claims: principal.Claims{
+							"email": "faseng@example.com",
+						},
 					},
 				},
 			})

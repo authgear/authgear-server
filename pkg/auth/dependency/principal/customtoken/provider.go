@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/lib/pq"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -45,7 +46,34 @@ func NewProvider(
 	return newProvider(builder, executor, logger, customTokenConfig)
 }
 
-func (p providerImpl) Decode(tokenString string) (claims SSOCustomTokenClaims, err error) {
+func (p *providerImpl) scan(scanner db.Scanner, principal *Principal) error {
+	var rawProfileBytes []byte
+	var claimsValueBytes []byte
+	err := scanner.Scan(
+		&principal.ID,
+		&principal.UserID,
+		&principal.TokenPrincipalID,
+		&rawProfileBytes,
+		&claimsValueBytes,
+	)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(rawProfileBytes, &principal.RawProfile)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(claimsValueBytes, &principal.ClaimsValue)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *providerImpl) Decode(tokenString string) (claims SSOCustomTokenClaims, err error) {
 	_, err = jwt.ParseWithClaims(
 		tokenString,
 		&claims,
@@ -65,7 +93,7 @@ func (p providerImpl) Decode(tokenString string) (claims SSOCustomTokenClaims, e
 	return
 }
 
-func (p providerImpl) CreatePrincipal(principal *Principal) (err error) {
+func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 	// Create principal
 	builder := p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("principal")).Columns(
 		"id",
@@ -82,8 +110,12 @@ func (p providerImpl) CreatePrincipal(principal *Principal) (err error) {
 		return
 	}
 
-	var rawProfileBytes []byte
-	rawProfileBytes, err = json.Marshal(principal.RawProfile)
+	rawProfileBytes, err := json.Marshal(principal.RawProfile)
+	if err != nil {
+		return
+	}
+
+	claimsBytes, err := json.Marshal(principal.ClaimsValue)
 	if err != nil {
 		return
 	}
@@ -92,10 +124,12 @@ func (p providerImpl) CreatePrincipal(principal *Principal) (err error) {
 		"principal_id",
 		"raw_profile",
 		"token_principal_id",
+		"claims",
 	).Values(
 		principal.ID,
 		rawProfileBytes,
 		principal.TokenPrincipalID,
+		claimsBytes,
 	)
 
 	_, err = p.sqlExecutor.ExecWith(builder)
@@ -108,13 +142,20 @@ func (p providerImpl) CreatePrincipal(principal *Principal) (err error) {
 	return
 }
 
-func (p providerImpl) UpdatePrincipal(principal *Principal) (err error) {
+func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 	rawProfileBytes, err := json.Marshal(principal.RawProfile)
 	if err != nil {
 		return
 	}
 
-	builder := p.sqlBuilder.Update(p.sqlBuilder.FullTableName("provider_custom_token")).Set("raw_profile", rawProfileBytes).
+	claimsBytes, err := json.Marshal(principal.ClaimsValue)
+	if err != nil {
+		return
+	}
+
+	builder := p.sqlBuilder.Update(p.sqlBuilder.FullTableName("provider_custom_token")).
+		Set("raw_profile", rawProfileBytes).
+		Set("claims", claimsBytes).
 		Where("principal_id = ?", principal.ID)
 
 	result, err := p.sqlExecutor.ExecWith(builder)
@@ -135,24 +176,22 @@ func (p providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 	return nil
 }
 
-func (p providerImpl) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*Principal, error) {
+func (p *providerImpl) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*Principal, error) {
 	principal := Principal{}
-	principal.TokenPrincipalID = tokenPrincipalID
+	builder := p.sqlBuilder.Select(
+		"p.id",
+		"p.user_id",
+		"ct.token_principal_id",
+		"ct.raw_profile",
+		"ct.claims",
+	).
+		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
+		Join(fmt.Sprintf("%s AS ct ON p.id = ct.principal_id", p.sqlBuilder.FullTableName("provider_custom_token"))).
+		Where("ct.token_principal_id = ?", tokenPrincipalID)
 
-	builder := p.sqlBuilder.Select("p.id", "p.user_id", "ct.raw_profile").
-		From(fmt.Sprintf("%s as p", p.sqlBuilder.FullTableName("principal"))).
-		Join(p.sqlBuilder.FullTableName("provider_custom_token")+" AS ct ON p.id = ct.principal_id").
-		Where("ct.token_principal_id = ? AND p.provider = 'custom_token'", tokenPrincipalID)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
-	var rawProfileBytes []byte
-
-	err := scanner.Scan(
-		&principal.ID,
-		&principal.UserID,
-		&rawProfileBytes,
-	)
-
+	err := p.scan(scanner, &principal)
 	if err == sql.ErrNoRows {
 		err = skydb.ErrUserNotFound
 	}
@@ -161,35 +200,29 @@ func (p providerImpl) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*
 		return nil, err
 	}
 
-	err = json.Unmarshal(rawProfileBytes, &principal.RawProfile)
-	if err != nil {
-		return nil, err
-	}
-
 	return &principal, nil
 }
 
-func (p providerImpl) ID() string {
+func (p *providerImpl) ID() string {
 	return providerName
 }
 
-func (p providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
-	principal := Principal{ID: principalID}
+func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
+	principal := Principal{}
+	builder := p.sqlBuilder.Select(
+		"p.id",
+		"p.user_id",
+		"ct.token_principal_id",
+		"ct.raw_profile",
+		"ct.claims",
+	).
+		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
+		Join(fmt.Sprintf("%s AS ct ON p.id = ct.principal_id", p.sqlBuilder.FullTableName("provider_custom_token"))).
+		Where("p.id = ?", principalID)
 
-	builder := p.sqlBuilder.Select("p.user_id", "ct.token_principal_id", "ct.raw_profile").
-		From(fmt.Sprintf("%s as p", p.sqlBuilder.FullTableName("principal"))).
-		Join(p.sqlBuilder.FullTableName("provider_custom_token")+" AS ct ON p.id = ct.principal_id").
-		Where("p.id = ? AND p.provider = 'custom_token'", principalID)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
-	var rawProfileBytes []byte
-
-	err := scanner.Scan(
-		&principal.UserID,
-		&principal.TokenPrincipalID,
-		&rawProfileBytes,
-	)
-
+	err := p.scan(scanner, &principal)
 	if err == sql.ErrNoRows {
 		err = skydb.ErrUserNotFound
 	}
@@ -198,19 +231,21 @@ func (p providerImpl) GetPrincipalByID(principalID string) (principal.Principal,
 		return nil, err
 	}
 
-	err = json.Unmarshal(rawProfileBytes, &principal.RawProfile)
-	if err != nil {
-		return nil, err
-	}
-
 	return &principal, nil
 }
 
-func (p providerImpl) ListPrincipalsByUserID(userID string) (principals []principal.Principal, err error) {
-	builder := p.sqlBuilder.Select("p.id", "ct.token_principal_id", "ct.raw_profile").
-		From(fmt.Sprintf("%s as p", p.sqlBuilder.FullTableName("principal"))).
-		Join(p.sqlBuilder.FullTableName("provider_custom_token")+" AS ct ON p.id = ct.principal_id").
-		Where("p.user_id = ? AND p.provider = 'custom_token'", userID)
+func (p *providerImpl) ListPrincipalsByUserID(userID string) (principals []principal.Principal, err error) {
+	builder := p.sqlBuilder.Select(
+		"p.id",
+		"p.user_id",
+		"ct.token_principal_id",
+		"ct.raw_profile",
+		"ct.claims",
+	).
+		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
+		Join(fmt.Sprintf("%s AS ct ON p.id = ct.principal_id", p.sqlBuilder.FullTableName("provider_custom_token"))).
+		Where("p.user_id = ?", userID)
+
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return
@@ -218,37 +253,44 @@ func (p providerImpl) ListPrincipalsByUserID(userID string) (principals []princi
 	defer rows.Close()
 
 	for rows.Next() {
-		principal := Principal{UserID: userID}
-		var rawProfileBytes []byte
-		if err = rows.Scan(
-			&principal.ID,
-			&principal.TokenPrincipalID,
-			&rawProfileBytes,
-		); err != nil {
-			return
-		}
-		err = json.Unmarshal(rawProfileBytes, &principal.RawProfile)
+		principal := Principal{}
+		err = p.scan(rows, &principal)
 		if err != nil {
 			return
 		}
-
 		principals = append(principals, &principal)
 	}
 
 	return
 }
 
-func (p providerImpl) DeriveClaims(pp principal.Principal) (claims principal.Claims) {
-	claims = principal.Claims{}
-	attrs := pp.Attributes()
-	rawProfile, ok := attrs["raw_profile"].(SSOCustomTokenClaims)
-	if !ok {
+func (p *providerImpl) ListPrincipalsByClaim(claimName string, claimValue string) (principals []principal.Principal, err error) {
+	builder := p.sqlBuilder.Select(
+		"p.id",
+		"p.user_id",
+		"ct.token_principal_id",
+		"ct.raw_profile",
+		"ct.claims",
+	).
+		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
+		Join(fmt.Sprintf("%s AS ct ON p.id = ct.principal_id", p.sqlBuilder.FullTableName("provider_custom_token"))).
+		Where("(ct.claims #>> ?) = ?", pq.Array([]string{claimName}), claimValue)
+
+	rows, err := p.sqlExecutor.QueryWith(builder)
+	if err != nil {
 		return
 	}
-	email := rawProfile.Email()
-	if email != "" {
-		claims["email"] = email
+	defer rows.Close()
+
+	for rows.Next() {
+		principal := Principal{}
+		err = p.scan(rows, &principal)
+		if err != nil {
+			return
+		}
+		principals = append(principals, &principal)
 	}
+
 	return
 }
 

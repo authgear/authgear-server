@@ -14,6 +14,7 @@ type Principal struct {
 	LoginID        string
 	Realm          string
 	HashedPassword []byte
+	ClaimsValue    map[string]interface{}
 }
 
 func NewPrincipal() Principal {
@@ -29,6 +30,15 @@ func (p *Principal) setPassword(password string) (err error) {
 
 func (p *Principal) IsSamePassword(password string) bool {
 	return bcrypt.CompareHashAndPassword(p.HashedPassword, []byte(password)) == nil
+}
+
+func (p *Principal) deriveClaims(checker loginIDChecker) {
+	standardKey, hasStandardKey := checker.standardKey(p.LoginIDKey)
+	claimsValue := map[string]interface{}{}
+	if hasStandardKey {
+		claimsValue[string(standardKey)] = p.LoginID
+	}
+	p.ClaimsValue = claimsValue
 }
 
 func (p *Principal) PrincipalID() string {
@@ -49,4 +59,8 @@ func (p *Principal) Attributes() principal.Attributes {
 		"login_id":     p.LoginID,
 		"realm":        p.Realm,
 	}
+}
+
+func (p *Principal) Claims() principal.Claims {
+	return p.ClaimsValue
 }

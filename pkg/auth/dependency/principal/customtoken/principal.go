@@ -7,9 +7,10 @@ import (
 
 type Principal struct {
 	ID               string
-	TokenPrincipalID string
 	UserID           string
+	TokenPrincipalID string
 	RawProfile       SSOCustomTokenClaims
+	ClaimsValue      map[string]interface{}
 }
 
 func NewPrincipal() Principal {
@@ -35,4 +36,19 @@ func (p *Principal) Attributes() principal.Attributes {
 		"provider_user_id": p.TokenPrincipalID,
 		"raw_profile":      p.RawProfile,
 	}
+}
+
+func (p *Principal) Claims() principal.Claims {
+	return p.ClaimsValue
+}
+
+func (p *Principal) SetRawProfile(rawProfile SSOCustomTokenClaims) {
+	p.RawProfile = rawProfile
+
+	claimsValue := map[string]interface{}{}
+	email := rawProfile.Email()
+	if email != "" {
+		claimsValue["email"] = email
+	}
+	p.ClaimsValue = claimsValue
 }

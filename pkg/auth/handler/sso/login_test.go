@@ -11,7 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -33,7 +32,7 @@ func TestLoginPayload(t *testing.T) {
 		Convey("validate valid payload", func() {
 			payload := LoginRequestPayload{
 				AccessToken:     "token",
-				OnUserDuplicate: sso.OnUserDuplicateDefault,
+				OnUserDuplicate: model.OnUserDuplicateDefault,
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
@@ -96,14 +95,6 @@ func TestLoginHandler(t *testing.T) {
 		sh.AuthInfoStore = authInfoStore
 		mockTokenStore := authtoken.NewMockStore()
 		sh.TokenStore = mockTokenStore
-		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{}
-		allowedRealms := []string{password.DefaultRealm}
-		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeys,
-			allowedRealms,
-			map[string]password.Principal{},
-		)
-		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.OAuthConfiguration = oauthConfig
 		hookProvider := hook.NewMockProvider()

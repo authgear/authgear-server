@@ -260,6 +260,8 @@ func (m DependencyMap) Provide(
 		return tConfig.UserConfig.SSO.CustomToken
 	case "OAuthConfiguration":
 		return tConfig.UserConfig.SSO.OAuth
+	case "AuthConfiguration":
+		return tConfig.UserConfig.Auth
 	default:
 		return nil
 	}

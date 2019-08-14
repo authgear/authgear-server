@@ -53,6 +53,9 @@ func TestUnlinkHandler(t *testing.T) {
 				ProviderKeys:   map[string]interface{}{},
 				ProviderUserID: providerUserID,
 				UserID:         "faseng.cat.id",
+				ClaimsValue: map[string]interface{}{
+					"email": "faseng@example.com",
+				},
 			},
 		})
 		sh.IdentityProvider = principal.NewMockIdentityProvider(mockOAuthProvider)
@@ -95,7 +98,9 @@ func TestUnlinkHandler(t *testing.T) {
 							"provider_user_id": "mock_user_id",
 							"raw_profile":      nil,
 						},
-						Claims: principal.Claims{},
+						Claims: principal.Claims{
+							"email": "faseng@example.com",
+						},
 					},
 				},
 			})

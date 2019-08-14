@@ -43,7 +43,11 @@ func (p *safeProviderImpl) ListPrincipalsByUserID(userID string) ([]principal.Pr
 	return p.impl.ListPrincipalsByUserID(userID)
 }
 
-func (p *safeProviderImpl) DeriveClaims(principal principal.Principal) principal.Claims {
+func (p *safeProviderImpl) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
 	p.txContext.EnsureTx()
-	return p.impl.DeriveClaims(principal)
+	return p.impl.ListPrincipalsByClaim(claimName, claimValue)
 }
+
+var (
+	_ Provider = &safeProviderImpl{}
+)

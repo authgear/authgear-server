@@ -11,7 +11,6 @@ import (
 
 // MockProvider is the memory implementation of custom provider
 type MockProvider struct {
-	Provider
 	secret       string
 	PrincipalMap map[string]Principal
 }
@@ -28,7 +27,7 @@ func NewMockProviderWithPrincipalMap(secret string, principalMap map[string]Prin
 	}
 }
 
-func (p MockProvider) Decode(tokenString string) (claims SSOCustomTokenClaims, err error) {
+func (p *MockProvider) Decode(tokenString string) (claims SSOCustomTokenClaims, err error) {
 	_, err = jwt.ParseWithClaims(
 		tokenString,
 		&claims,
@@ -43,7 +42,7 @@ func (p MockProvider) Decode(tokenString string) (claims SSOCustomTokenClaims, e
 	return
 }
 
-func (p MockProvider) CreatePrincipal(principal *Principal) error {
+func (p *MockProvider) CreatePrincipal(principal *Principal) error {
 	if _, existed := p.PrincipalMap[principal.ID]; existed {
 		return skydb.ErrUserDuplicated
 	}
@@ -58,12 +57,12 @@ func (p MockProvider) CreatePrincipal(principal *Principal) error {
 	return nil
 }
 
-func (p MockProvider) UpdatePrincipal(principal *Principal) error {
+func (p *MockProvider) UpdatePrincipal(principal *Principal) error {
 	p.PrincipalMap[principal.ID] = *principal
 	return nil
 }
 
-func (p MockProvider) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*Principal, error) {
+func (p *MockProvider) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*Principal, error) {
 	for _, p := range p.PrincipalMap {
 		if p.TokenPrincipalID == tokenPrincipalID {
 			return &p, nil
@@ -73,17 +72,42 @@ func (p MockProvider) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*
 	return nil, skydb.ErrUserNotFound
 }
 
-func (p MockProvider) ID() string {
+func (p *MockProvider) ID() string {
 	return providerName
 }
 
-func (p MockProvider) DeriveClaims(pp principal.Principal) (claims principal.Claims) {
-	claims = principal.Claims{}
-	attrs := pp.Attributes()
-	rawProfile, ok := attrs["raw_profile"].(SSOCustomTokenClaims)
-	if !ok {
-		return
+func (p *MockProvider) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
+	var principals []principal.Principal
+	for _, p := range p.PrincipalMap {
+		if p.UserID == userID {
+			principal := p
+			principals = append(principals, &principal)
+		}
 	}
-	claims["email"] = rawProfile.Email()
-	return
+	return principals, nil
 }
+
+func (p *MockProvider) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
+	var principals []principal.Principal
+	for _, p := range p.PrincipalMap {
+		if p.ClaimsValue[claimName] == claimValue {
+			principal := p
+			principals = append(principals, &principal)
+		}
+	}
+	return principals, nil
+}
+
+func (p *MockProvider) GetPrincipalByID(principalID string) (principal.Principal, error) {
+	for _, p := range p.PrincipalMap {
+		if p.ID == principalID {
+			principal := p
+			return &principal, nil
+		}
+	}
+	return nil, skydb.ErrUserNotFound
+}
+
+var (
+	_ Provider = &MockProvider{}
+)

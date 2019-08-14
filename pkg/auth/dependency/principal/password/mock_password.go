@@ -9,7 +9,6 @@ import (
 
 // MockProvider is the memory implementation of password provider
 type MockProvider struct {
-	Provider
 	PrincipalMap   map[string]Principal
 	loginIDChecker loginIDChecker
 	realmChecker   realmChecker
@@ -76,6 +75,7 @@ func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password str
 		principal.LoginID = loginID.Value
 		principal.Realm = realm
 		principal.setPassword(password)
+		principal.deriveClaims(m.loginIDChecker)
 		err = m.CreatePrincipal(principal)
 
 		if err != nil {
@@ -171,12 +171,28 @@ func (m *MockProvider) GetPrincipalByID(principalID string) (principal.Principal
 	return nil, skydb.ErrUserNotFound
 }
 
-func (m *MockProvider) DeriveClaims(genericPrincipal principal.Principal) principal.Claims {
-	passwordPrincipal := genericPrincipal.(*Principal)
-	standardKey, hasStandardKey := m.loginIDChecker.standardKey(passwordPrincipal.LoginIDKey)
-	metadata := principal.Claims{}
-	if hasStandardKey {
-		metadata[string(standardKey)] = passwordPrincipal.LoginID
+func (m *MockProvider) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
+	var principals []principal.Principal
+	for _, p := range m.PrincipalMap {
+		if p.ClaimsValue[claimName] == claimValue {
+			principal := p
+			principals = append(principals, &principal)
+		}
 	}
-	return metadata
+	return principals, nil
 }
+
+func (m *MockProvider) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
+	var principals []principal.Principal
+	for _, p := range m.PrincipalMap {
+		if p.UserID == userID {
+			principal := p
+			principals = append(principals, &principal)
+		}
+	}
+	return principals, nil
+}
+
+var (
+	_ Provider = &MockProvider{}
+)
