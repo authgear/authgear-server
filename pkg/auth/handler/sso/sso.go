@@ -331,13 +331,10 @@ func (h respHandler) findExistingPrincipals(oauthAuthInfo sso.AuthInfo, mergeRea
 	}
 	var filteredPrincipals []principal.Principal
 	for _, p := range principals {
-		if passwordPrincipal, ok := p.(*password.Principal); ok {
-			if passwordPrincipal.Realm == mergeRealm {
-				filteredPrincipals = append(filteredPrincipals, p)
-			}
-		} else {
-			filteredPrincipals = append(filteredPrincipals, p)
+		if passwordPrincipal, ok := p.(*password.Principal); ok && passwordPrincipal.Realm != mergeRealm {
+			continue
 		}
+		filteredPrincipals = append(filteredPrincipals, p)
 	}
 	return filteredPrincipals, nil
 }
