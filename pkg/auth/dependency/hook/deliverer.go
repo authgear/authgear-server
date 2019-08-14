@@ -1,6 +1,7 @@
 package hook
 
 import (
+	"net/url"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -9,6 +10,6 @@ import (
 
 type Deliverer interface {
 	WillDeliver(eventType event.Type) bool
-	DeliverBeforeEvent(event *event.Event, user *model.User) error
-	DeliverNonBeforeEvent(event *event.Event, timeout time.Duration) error
+	DeliverBeforeEvent(baseURL *url.URL, event *event.Event, user *model.User) error
+	DeliverNonBeforeEvent(baseURL *url.URL, event *event.Event, timeout time.Duration) error
 }

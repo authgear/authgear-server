@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net"
 	gohttp "net/http"
+	"net/url"
 	gotime "time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
@@ -47,7 +48,7 @@ func (deliverer *delivererImpl) WillDeliver(eventType event.Type) bool {
 	return false
 }
 
-func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.User) error {
+func (deliverer *delivererImpl) DeliverBeforeEvent(baseURL *url.URL, e *event.Event, user *model.User) error {
 	startTime := deliverer.TimeProvider.Now()
 	requestTimeout := gotime.Duration(deliverer.AppConfig.SyncHookTimeout) * gotime.Second
 	totalTimeout := gotime.Duration(deliverer.AppConfig.SyncHookTotalTimeout) * gotime.Second
@@ -66,7 +67,7 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.U
 			return newErrorDeliveryTimeout()
 		}
 
-		request, err := deliverer.prepareRequest(hook.URL, e)
+		request, err := deliverer.prepareRequest(baseURL, hook, e)
 		if err != nil {
 			return err
 		}
@@ -103,7 +104,7 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.U
 	return nil
 }
 
-func (deliverer *delivererImpl) DeliverNonBeforeEvent(e *event.Event, timeout gotime.Duration) error {
+func (deliverer *delivererImpl) DeliverNonBeforeEvent(baseURL *url.URL, e *event.Event, timeout gotime.Duration) error {
 	client := deliverer.HTTPClient
 	client.CheckRedirect = noFollowRedirectPolicy
 	client.Timeout = timeout
@@ -113,7 +114,7 @@ func (deliverer *delivererImpl) DeliverNonBeforeEvent(e *event.Event, timeout go
 			continue
 		}
 
-		request, err := deliverer.prepareRequest(hook.URL, e)
+		request, err := deliverer.prepareRequest(baseURL, hook, e)
 		if err != nil {
 			return err
 		}
@@ -127,7 +128,13 @@ func (deliverer *delivererImpl) DeliverNonBeforeEvent(e *event.Event, timeout go
 	return nil
 }
 
-func (deliverer *delivererImpl) prepareRequest(url string, event *event.Event) (*gohttp.Request, error) {
+func (deliverer *delivererImpl) prepareRequest(baseURL *url.URL, hook config.Hook, event *event.Event) (*gohttp.Request, error) {
+	hookURL, err := url.Parse(hook.URL)
+	if err != nil {
+		return nil, newErrorDeliveryFailed(err)
+	}
+	hookURL = baseURL.ResolveReference(hookURL)
+
 	body, err := json.Marshal(event)
 	if err != nil {
 		return nil, newErrorDeliveryFailed(err)
@@ -135,7 +142,7 @@ func (deliverer *delivererImpl) prepareRequest(url string, event *event.Event) (
 
 	signature := crypto.HMACSHA256String([]byte(deliverer.UserConfig.Secret), body)
 
-	request, err := gohttp.NewRequest("POST", url, bytes.NewReader(body))
+	request, err := gohttp.NewRequest("POST", hookURL.String(), bytes.NewReader(body))
 	if err != nil {
 		return nil, newErrorDeliveryFailed(err)
 	}

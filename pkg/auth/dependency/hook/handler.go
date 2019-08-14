@@ -1,6 +1,8 @@
 package hook
 
-import "github.com/skygeario/skygear-server/pkg/core/handler"
+import (
+	"github.com/skygeario/skygear-server/pkg/core/handler"
+)
 
 type hookHandler struct {
 	handler.APIHandler

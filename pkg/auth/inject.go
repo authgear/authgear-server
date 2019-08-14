@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
@@ -41,6 +42,7 @@ type DependencyMap struct {
 // nolint: gocyclo, golint
 func (m DependencyMap) Provide(
 	dependencyName string,
+	request *http.Request,
 	ctx context.Context,
 	requestID string,
 	tConfig config.TenantConfiguration,
@@ -132,6 +134,7 @@ func (m DependencyMap) Provide(
 	newHookProvider := func() hook.Provider {
 		return hook.NewProvider(
 			requestID,
+			request,
 			hook.NewStore(newSQLBuilder(), newSQLExecutor()),
 			newAuthContext(),
 			newTimeProvider(),

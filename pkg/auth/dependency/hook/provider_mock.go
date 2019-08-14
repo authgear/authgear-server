@@ -1,8 +1,6 @@
 package hook
 
 import (
-	"net/http"
-
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 )
@@ -13,10 +11,6 @@ type MockProvider struct {
 
 func NewMockProvider() *MockProvider {
 	return &MockProvider{}
-}
-
-func (provider *MockProvider) WithRequest(request *http.Request) Provider {
-	return provider
 }
 
 func (provider *MockProvider) DispatchEvent(payload event.Payload, user *model.User) error {
