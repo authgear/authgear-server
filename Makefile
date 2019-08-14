@@ -1,12 +1,8 @@
-DIST_DIR = ./dist/
-DIST := skygear-server
 VERSION := $(shell git describe --always)
 GIT_SHA := $(shell git rev-parse HEAD)
 BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-TARGETS := gateway auth migrate
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
 GO_TEST_TIMEOUT := 1m30s
-OSARCHS := linux/amd64 linux/386 linux/arm windows/amd64 windows/386 darwin/amd64
 GO_TEST_CPU := 1,4
 GO_TEST_PACKAGE := ./pkg/core/... ./pkg/auth/... ./pkg/gateway/...
 SHELL := /bin/bash
@@ -69,11 +65,6 @@ generate: go-generate
 tidy:
 	go mod tidy
 
-.PHONY: build
-build:
-	$(DOCKER_RUN) go build -o $(DIST) $(GO_BUILD_ARGS)
-	$(DOCKER_RUN) chmod +x $(DIST)
-
 .PHONY: test
 test:
 # Run `go install` to compile packages for caching and catch compilation error.
@@ -87,33 +78,12 @@ lint: go-lint
 fmt:
 	${DOCKER_RUN} gofmt -w cmd/**/main.go ./pkg
 
-.PHONY: clean
-clean:
-	rm -rf $(DIST_DIR)
-
-.PHONY: all
-all:
-	for TARGET in $(TARGETS) ; do \
-		DIST_DIR=$(DIST_DIR)$$TARGET/ ; \
-		mkdir -p $$DIST_DIR ; \
-		cp cmd/$$TARGET/main.go . ; \
-		$(DOCKER_RUN) gox -osarch="$(OSARCHS)" -output="$${DIST_DIR}skygear-$$TARGET-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS) ; \
-		$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$${DIST_DIR}skygear-$$TARGET-linux-amd64; \
-		$(DOCKER_RUN) chmod +x $${DIST_DIR}skygear-$$TARGET* ; \
-		rm main.go ; \
-	done
-
 .PHONY: update-version
 update-version:
 	sed -i "" "s/version = \".*\"/version = \"v$(SKYGEAR_VERSION)\"/" pkg/server/skyversion/version.go
 
-.PHONY: archive
-archive:
-	cd $(DIST_DIR) ; \
-		find . -maxdepth 2 -type f -name 'skygear-*' -not -name '*.exe' -not -name '*.zip' -not -name '*.tar.gz' -exec tar -zcvf {}.tar.gz {} \; ; \
-		find . -maxdepth 2 -type f -name 'skygear-*.exe' -not -exec zip -r {}.zip {} \;
-
 .PHONY: docker-build-image
+docker-build-image: CONTEXT ?= .
 docker-build-image:
 	docker build \
 	  -f $(DOCKER_FILE) \
@@ -121,7 +91,7 @@ docker-build-image:
 		--build-arg sha=$(GIT_SHA) \
 		--build-arg version=$(VERSION) \
 		--build-arg build_date=$(BUILD_DATE) \
-		.
+		$(CONTEXT)
 
 .PHONY: docker-build-auth
 docker-build-auth:
@@ -133,7 +103,7 @@ docker-build-gateway:
 
 .PHONY: docker-build-migrate
 docker-build-migrate:
-	$(MAKE) docker-build-image DOCKER_FILE=cmd/migrate/Dockerfile IMAGE_NAME=$(MIGRATE_IMAGE_NAME)
+	$(MAKE) docker-build-image DOCKER_FILE=./migrate/cmd/migrate/Dockerfile IMAGE_NAME=$(MIGRATE_IMAGE_NAME) CONTEXT=./migrate
 
 .PHONY: docker-build
 docker-build: docker-build-auth docker-build-gateway docker-build-migrate

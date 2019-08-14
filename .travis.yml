@@ -37,17 +37,10 @@ script:
   - make lint
   - make test
 
-before_deploy:
-  - if [[ ! -z "$TRAVIS_TAG" ]]; then make all archive; fi
-
 deploy:
   - provider: releases
     api-key: "$GITHUB_RELEASE_TOKEN"
-    file:
-      - "dist/**/skygear-*.tar.gz"
-      - "dist/**/skygear-*.zip"
     skip_cleanup: true
-    file_glob: true
     on:
       repo: SkygearIO/skygear-server
       tags: true
