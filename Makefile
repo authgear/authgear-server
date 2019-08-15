@@ -1,6 +1,7 @@
 VERSION := $(shell git describe --always)
 GIT_SHA := $(shell git rev-parse HEAD)
 BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+BUILD_CONTEXT ?= .
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
 GO_TEST_TIMEOUT := 1m30s
 GO_TEST_CPU := 1,4
@@ -83,7 +84,6 @@ update-version:
 	sed -i "" "s/version = \".*\"/version = \"v$(SKYGEAR_VERSION)\"/" pkg/server/skyversion/version.go
 
 .PHONY: docker-build-image
-docker-build-image: CONTEXT ?= .
 docker-build-image:
 	docker build \
 	  -f $(DOCKER_FILE) \
@@ -91,7 +91,7 @@ docker-build-image:
 		--build-arg sha=$(GIT_SHA) \
 		--build-arg version=$(VERSION) \
 		--build-arg build_date=$(BUILD_DATE) \
-		$(CONTEXT)
+		$(BUILD_CONTEXT)
 
 .PHONY: docker-build-auth
 docker-build-auth:
@@ -103,7 +103,7 @@ docker-build-gateway:
 
 .PHONY: docker-build-migrate
 docker-build-migrate:
-	$(MAKE) docker-build-image DOCKER_FILE=./migrate/cmd/migrate/Dockerfile IMAGE_NAME=$(MIGRATE_IMAGE_NAME) CONTEXT=./migrate
+	$(MAKE) docker-build-image DOCKER_FILE=./migrate/cmd/migrate/Dockerfile IMAGE_NAME=$(MIGRATE_IMAGE_NAME) BUILD_CONTEXT=./migrate
 
 .PHONY: docker-build
 docker-build: docker-build-auth docker-build-gateway docker-build-migrate
