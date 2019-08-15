@@ -10,7 +10,7 @@ import (
 	"github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/migrate/database/postgres"
+	"github.com/skygeario/skygear-server/migrate/pkg/migrate/database/postgres"
 )
 
 func Run(module string, schema string, databaseURL string, sourceURL string, dryRun bool, command string, commandArg string) (result string, err error) {

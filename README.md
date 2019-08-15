@@ -66,13 +66,7 @@ CREATE SCHEMA app_helloworld;
 $ psql ${DATABASE_URL} -c "CREATE SCHEMA app_helloworld;"
 
 # Run core and auth migration
-$ go run cmd/migrate/main.go \
->       -add-migration-src=auth,cmd/migrate/revisions/auth \
->       -add-migration-src=core,cmd/migrate/revisions/core \
->       -migration=core \
->       -migration=auth \
->       -schema app_helloworld \
->       up
+$ make -C migrate migrate MIGRATE_CMD=up
 ```
 
 See below sections for more commands about db migration.
@@ -85,16 +79,12 @@ See below sections for more commands about db migration.
 # MODULE can be gateway, core, auth...
 $ export MODULE=<module_name>
 $ export REVISION=<revision_description>
-$ make -f scripts/migrate/Makefile add-version MODULE=${MODULE} REVISION=${REVISION}
+$ make -C migrate add-version MODULE=${MODULE} REVISION=${REVISION}
 ```
 **Check current db version**
 
 ```
-$ go run cmd/migrate/main.go \
->       -migration=core \
->       -migration=auth \
->       -schema=app_helloworld \
->       version
+$ make -C migrate
 ```
 
 **Dry run the migration**
@@ -102,26 +92,16 @@ $ go run cmd/migrate/main.go \
 Transaction will be rollback
 
 ```
-$ go run cmd/migrate/main.go \
->       -add-migration-src=auth,cmd/migrate/revisions/auth \
->       -add-migration-src=core,cmd/migrate/revisions/core \
->       -migration=core \
->       -migration=auth \
->       -schema=app_helloworld \
->       -dry-run
->       up
+$ make -C migrate MIGRATE_CMD=up DRY_RUN=1
 ```
 
 **Run the migration with github source**
 
 ```
-$ go run cmd/migrate/main.go \
->        -add-migration-src=auth,github://:@skygeario/skygear-server/cmd/migrate/revisions/auth#6918eed \
->        -add-migration-src=core,github://:@skygeario/skygear-server/cmd/migrate/revisions/core#6918eed \
->        -migration=core \
->        -migration=auth \
->        -schema app_config \
->        up
+$ make -C migrate migrate \
+    CORE_SOURCE=github://:@skygeario/skygear-server/migrations/core#6918eed \
+    AUTH_SOURCE=github://:@skygeario/skygear-server/migrations/auth#6918eed \
+    MIGRATE_CMD=up
 ```
 
 **Running db migration to all apps in cluster (multi-tenant mode)**
@@ -129,28 +109,21 @@ $ go run cmd/migrate/main.go \
 Run core and auth migrations to apps which auth version in live
 
 ```
-$ go run ./cmd/migrate/main.go \
->       -add-migration-src=auth,cmd/migrate/revisions/auth \
->       -add-migration-src=core,cmd/migrate/revisions/core \
->       -migration=core \
->       -migration=auth \
->       -app-filter-key=auth_version \
->       -app-filter-value=live \
->       -config-database=postgres://postgres:@localhost/postgres?sslmode=disable \
->       -hostname-override=localhost \
->       up
+$ make -C migrate migrate \
+    APP_FILTER_KEY=auth_version \
+    APP_FILTER_VALUE=live \
+    CONFIG_DATABASE=postgres://postgres:@localhost/postgres?sslmode=disable \
+    HOSTNAME_OVERRIDE=localhost \
+    MIGRATE_CMD=up
 ```
 
 **Start migration server in http server mode**
 
 - To start the migration server
 
-    ```
-    $ go run ./cmd/migrate/main.go \
-    >       -add-migration-src=auth,cmd/migrate/revisions/auth \
-    >       -add-migration-src=core,cmd/migrate/revisions/core \
-    >       -http-server
-    ```
+```
+$ make -C migrate http
+```
 
 - Calling the migration server 
 
@@ -176,29 +149,6 @@ $ go run ./cmd/migrate/main.go \
         "result":"1563434450"
     }
     ```
-
-**(Optional) Use docker to run migration**
-
-```
-# Build the docker image
-docker build -f ./cmd/migrate/Dockerfile -t skygear-migrate .
-
-# for docker from 18.03 onwards
-# connect to host db
-export DATABASE_URL=postgres://postgres:@host.docker.internal:5432/postgres?sslmode=disable
-
-# Run migration
-docker run --rm \
-        -v $(PWD)/cmd/migrate/revisions:/cmd/migrate/revisions \
-        skygear-migrate \
-        -add-migration-src=auth,/cmd/migrate/revisions/auth \
-        -add-migration-src=core,/cmd/migrate/revisions/core \
-        -migration=core \
-        -migration=auth \
-        -schema=app_helloworld \
-        -database=${DATABASE_URL} \
-        up
-```
 
 ## License & Copyright
 

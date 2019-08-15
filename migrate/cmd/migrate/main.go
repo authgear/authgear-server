@@ -12,9 +12,9 @@ import (
 
 	_ "github.com/golang-migrate/migrate/source/file"
 	_ "github.com/lib/pq"
-	"github.com/skygeario/skygear-server/pkg/migrate/command"
-	"github.com/skygeario/skygear-server/pkg/migrate/source"
-	"github.com/skygeario/skygear-server/pkg/migrate/tenant"
+	"github.com/skygeario/skygear-server/migrate/pkg/migrate/command"
+	"github.com/skygeario/skygear-server/migrate/pkg/migrate/source"
+	"github.com/skygeario/skygear-server/migrate/pkg/migrate/tenant"
 )
 
 type commandRequest struct {
