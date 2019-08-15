@@ -150,29 +150,6 @@ $ make -C migrate http
     }
     ```
 
-**(Optional) Use docker to run migration**
-
-```
-# Build the docker image
-docker build -f ./migrate/cmd/migrate/Dockerfile -t skygear-migrate ./migrate
-
-# for docker from 18.03 onwards
-# connect to host db
-export DATABASE_URL=postgres://postgres:@host.docker.internal:5432/postgres?sslmode=disable
-
-# Run migration
-docker run --rm \
-        -v $(PWD)/migrate/cmd/migrate/revisions:/cmd/migrate/revisions \
-        skygear-migrate \
-        -add-migration-src=auth,/cmd/migrate/revisions/auth \
-        -add-migration-src=core,/cmd/migrate/revisions/core \
-        -migration=core \
-        -migration=auth \
-        -schema=app_helloworld \
-        -database=${DATABASE_URL} \
-        up
-```
-
 ## License & Copyright
 
 ```
