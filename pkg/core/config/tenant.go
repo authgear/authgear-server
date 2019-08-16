@@ -20,28 +20,29 @@ import (
 
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/name"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
-	Version          string            `json:"version" yaml:"version" msg:"version"`
-	AppName          string            `json:"app_name" yaml:"app_name" msg:"app_name"`
-	AppConfig        AppConfiguration  `json:"app_config" yaml:"app_config" msg:"app_config"`
-	UserConfig       UserConfiguration `json:"user_config" yaml:"user_config" msg:"user_config"`
-	Hooks            []Hook            `json:"hooks" yaml:"hooks" msg:"hooks"`
-	DeploymentRoutes []DeploymentRoute `json:"deployment_routes" yaml:"deployment_routes" msg:"deployment_routes"`
+	Version          string            `json:"version,omitempty" yaml:"version" msg:"version"`
+	AppName          string            `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
+	AppConfig        AppConfiguration  `json:"app_config,omitempty" yaml:"app_config" msg:"app_config"`
+	UserConfig       UserConfiguration `json:"user_config,omitempty" yaml:"user_config" msg:"user_config"`
+	Hooks            []Hook            `json:"hooks,omitempty" yaml:"hooks" msg:"hooks"`
+	DeploymentRoutes []DeploymentRoute `json:"deployment_routes,omitempty" yaml:"deployment_routes" msg:"deployment_routes"`
 }
 
 type Hook struct {
-	Event string `json:"event" yaml:"event" msg:"event"`
-	URL   string `json:"url" yaml:"url" msg:"url"`
+	Event string `json:"event,omitempty" yaml:"event" msg:"event"`
+	URL   string `json:"url,omitempty" yaml:"url" msg:"url"`
 }
 
 type DeploymentRoute struct {
-	Version    string                 `json:"version" yaml:"version" msg:"version"`
-	Path       string                 `json:"path" yaml:"path" msg:"path"`
-	Type       string                 `json:"type" yaml:"type" msg:"type"`
-	TypeConfig map[string]interface{} `json:"type_config" yaml:"type_config" msg:"type_config"`
+	Version    string                 `json:"version,omitempty" yaml:"version" msg:"version"`
+	Path       string                 `json:"path,omitempty" yaml:"path" msg:"path"`
+	Type       string                 `json:"type,omitempty" yaml:"type" msg:"type"`
+	TypeConfig map[string]interface{} `json:"type_config,omitempty" yaml:"type_config" msg:"type_config"`
 }
 
 func defaultAppConfiguration() AppConfiguration {
@@ -276,124 +277,57 @@ func (c *TenantConfiguration) Validate() error {
 	if c.Version != "1" {
 		return errors.New("Only version 1 is supported")
 	}
+
+	// Validate AppConfiguration
 	if c.AppConfig.DatabaseURL == "" {
 		return errors.New("DATABASE_URL is not set")
 	}
+	if !c.AppConfig.SMTP.Mode.IsValid() {
+		return errors.New("Invalid SMTP mode")
+	}
+
+	// Validate AppName
 	if c.AppName == "" {
 		return errors.New("APP_NAME is not set")
 	}
-	if c.UserConfig.APIKey == "" {
-		return errors.New("API_KEY is not set")
+	if err := name.ValidateAppName(c.AppName); err != nil {
+		return err
 	}
-	if c.UserConfig.MasterKey == "" {
-		return errors.New("MASTER_KEY is not set")
+
+	// Validate UserConfiguration
+	if err := validation.ValidateUserConfiguration(c.UserConfig); err != nil {
+		if validationError, ok := err.(validation.Error); ok {
+			return validationError.SkyErrInvalidArgument("Invalid UserConfiguration")
+		}
+		return err
 	}
+
+	// Validate complex UserConfiguration
 	if c.UserConfig.APIKey == c.UserConfig.MasterKey {
 		return errors.New("MASTER_KEY cannot be the same as API_KEY")
 	}
 
-	if len(c.UserConfig.Auth.LoginIDKeys) == 0 {
-		return errors.New("LoginIDKeys cannot be empty")
-	}
 	for _, loginIDKeyConfig := range c.UserConfig.Auth.LoginIDKeys {
-		if !loginIDKeyConfig.Type.IsValid() {
-			return errors.New("Invalid LoginIDKeys type: " + string(loginIDKeyConfig.Type))
-		}
 		if *loginIDKeyConfig.Minimum > *loginIDKeyConfig.Maximum || *loginIDKeyConfig.Maximum <= 0 {
 			return errors.New("Invalid LoginIDKeys amount range: " + string(loginIDKeyConfig.Type))
 		}
 	}
 
-	for key, verifyConfig := range c.UserConfig.UserVerification.LoginIDKeys {
-		keyConfig, ok := c.UserConfig.Auth.LoginIDKeys[key]
+	for key := range c.UserConfig.UserVerification.LoginIDKeys {
+		_, ok := c.UserConfig.Auth.LoginIDKeys[key]
 		if !ok {
 			return errors.New("Cannot verify disallowed login ID key: " + key)
-		}
-		if metadataKey, valid := keyConfig.Type.MetadataKey(); !valid || (metadataKey != metadata.Email && metadataKey != metadata.Phone) {
-			return errors.New("Cannot verify login ID key with unknown type: " + key)
-		}
-		if !verifyConfig.CodeFormat.IsValid() {
-			return errors.New("Invalid verify code format for login ID key: " + key)
-		}
-		if !verifyConfig.Provider.IsValid() {
-			return errors.New("Invalid verify code provider for login ID key: " + key)
-		}
-	}
-
-	if err := name.ValidateAppName(c.AppName); err != nil {
-		return err
-	}
-
-	if !c.UserConfig.UserVerification.Criteria.IsValid() {
-		return errors.New("Invalid user verification criteria")
-	}
-
-	if !c.UserConfig.WelcomeEmail.Destination.IsValid() {
-		return errors.New("Invalid welcome email destination")
-	}
-
-	if !c.AppConfig.SMTP.Mode.IsValid() {
-		return errors.New("Invalid SMTP mode")
-	}
-
-	// Validate CustomToken
-	if c.UserConfig.SSO.CustomToken.Enabled {
-		if c.UserConfig.SSO.CustomToken.Issuer == "" {
-			return errors.New("Must set Custom Token Issuer")
-		}
-		if c.UserConfig.SSO.CustomToken.Secret == "" {
-			return errors.New("Must set Custom Token Secret")
 		}
 	}
 
 	// Validate OAuth
 	seenOAuthProviderID := map[string]struct{}{}
 	for _, provider := range c.UserConfig.SSO.OAuth.Providers {
-		// Ensure ID is set
-		if provider.ID == "" {
-			return fmt.Errorf("Missing OAuth Provider ID")
-		}
-
 		// Ensure ID is not duplicate.
 		if _, ok := seenOAuthProviderID[provider.ID]; ok {
 			return fmt.Errorf("Duplicate OAuth Provider: %s", provider.ID)
 		}
 		seenOAuthProviderID[provider.ID] = struct{}{}
-
-		switch provider.Type {
-		case OAuthProviderTypeGoogle:
-			break
-		case OAuthProviderTypeFacebook:
-			break
-		case OAuthProviderTypeInstagram:
-			break
-		case OAuthProviderTypeLinkedIn:
-			break
-		case OAuthProviderTypeAzureADv2:
-			// Ensure tenant is set
-			if provider.Tenant == "" {
-				return errors.New("Must set Azure Tenant")
-			}
-		default:
-			// Ensure Type is recognized
-			return fmt.Errorf("Unknown OAuth Provider: %s", provider.Type)
-		}
-
-		if provider.ClientID == "" {
-			return fmt.Errorf("OAuth Provider %s: missing client id", provider.ID)
-		}
-		if provider.ClientSecret == "" {
-			return fmt.Errorf("OAuth Provider %s: missing client secret", provider.ID)
-		}
-		if provider.Scope == "" {
-			return fmt.Errorf("OAuth Provider %s: missing scope", provider.ID)
-		}
-	}
-	oauthIsEffective := len(c.UserConfig.SSO.OAuth.Providers) > 0
-	if oauthIsEffective {
-		if len(c.UserConfig.SSO.OAuth.AllowedCallbackURLs) <= 0 {
-			return fmt.Errorf("Must specify OAuth callback URLs")
-		}
 	}
 
 	return nil
@@ -565,18 +499,18 @@ func removeTrailingSlash(url string) string {
 
 // UserConfiguration represents user-editable configuration
 type UserConfiguration struct {
-	APIKey           string                        `json:"api_key" yaml:"api_key" msg:"api_key"`
-	MasterKey        string                        `json:"master_key" yaml:"master_key" msg:"master_key"`
-	URLPrefix        string                        `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	CORS             CORSConfiguration             `json:"cors" yaml:"cors" msg:"cors"`
-	Auth             AuthConfiguration             `json:"auth" yaml:"auth" msg:"auth"`
-	TokenStore       TokenStoreConfiguration       `json:"token_store" yaml:"token_store" msg:"token_store"`
-	UserAudit        UserAuditConfiguration        `json:"user_audit" yaml:"user_audit" msg:"user_audit"`
-	ForgotPassword   ForgotPasswordConfiguration   `json:"forgot_password" yaml:"forgot_password" msg:"forgot_password"`
-	WelcomeEmail     WelcomeEmailConfiguration     `json:"welcome_email" yaml:"welcome_email" msg:"welcome_email"`
-	SSO              SSOConfiguration              `json:"sso" yaml:"sso" msg:"sso"`
-	UserVerification UserVerificationConfiguration `json:"user_verification" yaml:"user_verification" msg:"user_verification"`
-	Hook             HookUserConfiguration         `json:"hook" yaml:"hook" msg:"hook"`
+	APIKey           string                        `json:"api_key,omitempty" yaml:"api_key" msg:"api_key"`
+	MasterKey        string                        `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
+	URLPrefix        string                        `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
+	CORS             CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors"`
+	Auth             AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth"`
+	TokenStore       TokenStoreConfiguration       `json:"token_store,omitempty" yaml:"token_store" msg:"token_store"`
+	UserAudit        UserAuditConfiguration        `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit"`
+	ForgotPassword   ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password"`
+	WelcomeEmail     WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email"`
+	SSO              SSOConfiguration              `json:"sso,omitempty" yaml:"sso" msg:"sso"`
+	UserVerification UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification"`
+	Hook             HookUserConfiguration         `json:"hook,omitempty" yaml:"hook" msg:"hook"`
 }
 
 // CORSConfiguration represents CORS configuration.
@@ -585,13 +519,13 @@ type UserConfiguration struct {
 // The interpretation of origin is done by this library
 // https://github.com/iawaknahc/originmatcher
 type CORSConfiguration struct {
-	Origin string `json:"origin" yaml:"origin" msg:"origin"`
+	Origin string `json:"origin,omitempty" yaml:"origin" msg:"origin"`
 }
 
 type AuthConfiguration struct {
-	LoginIDKeys                map[string]LoginIDKeyConfiguration `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
-	AllowedRealms              []string                           `json:"allowed_realms" yaml:"allowed_realms" msg:"allowed_realms"`
-	OnUserDuplicateAllowCreate bool                               `json:"on_user_duplicate_allow_create" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
+	LoginIDKeys                map[string]LoginIDKeyConfiguration `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
+	AllowedRealms              []string                           `json:"allowed_realms,omitempty" yaml:"allowed_realms" msg:"allowed_realms"`
+	OnUserDuplicateAllowCreate bool                               `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
 }
 
 type LoginIDKeyType string
@@ -613,55 +547,55 @@ func (t LoginIDKeyType) IsValid() bool {
 }
 
 type LoginIDKeyConfiguration struct {
-	Type    LoginIDKeyType `json:"type" yaml:"type" msg:"type"`
-	Minimum *int           `json:"minimum" yaml:"minimum" msg:"minimum"`
-	Maximum *int           `json:"maximum" yaml:"maximum" msg:"maximum"`
+	Type    LoginIDKeyType `json:"type,omitempty" yaml:"type" msg:"type"`
+	Minimum *int           `json:"minimum,omitempty" yaml:"minimum" msg:"minimum"`
+	Maximum *int           `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
 }
 
 type TokenStoreConfiguration struct {
-	Secret string `json:"secret" yaml:"secret" msg:"secret"`
-	Expiry int64  `json:"expiry" yaml:"expiry" msg:"expiry"`
+	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
+	Expiry int64  `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
 }
 
 type UserAuditConfiguration struct {
-	Enabled         bool                  `json:"enabled" yaml:"enabled" msg:"enabled"`
-	TrailHandlerURL string                `json:"trail_handler_url" yaml:"trail_handler_url" msg:"trail_handler_url"`
-	Password        PasswordConfiguration `json:"password" yaml:"password" msg:"password"`
+	Enabled         bool                  `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
+	TrailHandlerURL string                `json:"trail_handler_url,omitempty" yaml:"trail_handler_url" msg:"trail_handler_url"`
+	Password        PasswordConfiguration `json:"password,omitempty" yaml:"password" msg:"password"`
 }
 
 type PasswordConfiguration struct {
-	MinLength             int      `json:"min_length" yaml:"min_length" msg:"min_length"`
-	UppercaseRequired     bool     `json:"uppercase_required" yaml:"uppercase_required" msg:"uppercase_required"`
-	LowercaseRequired     bool     `json:"lowercase_required" yaml:"lowercase_required" msg:"lowercase_required"`
-	DigitRequired         bool     `json:"digit_required" yaml:"digit_required" msg:"digit_required"`
-	SymbolRequired        bool     `json:"symbol_required" yaml:"symbol_required" msg:"symbol_required"`
-	MinimumGuessableLevel int      `json:"minimum_guessable_level" yaml:"minimum_guessable_level" msg:"minimum_guessable_level"`
-	ExcludedKeywords      []string `json:"excluded_keywords" yaml:"excluded_keywords" msg:"excluded_keywords"`
+	MinLength             int      `json:"min_length,omitempty" yaml:"min_length" msg:"min_length"`
+	UppercaseRequired     bool     `json:"uppercase_required,omitempty" yaml:"uppercase_required" msg:"uppercase_required"`
+	LowercaseRequired     bool     `json:"lowercase_required,omitempty" yaml:"lowercase_required" msg:"lowercase_required"`
+	DigitRequired         bool     `json:"digit_required,omitempty" yaml:"digit_required" msg:"digit_required"`
+	SymbolRequired        bool     `json:"symbol_required,omitempty" yaml:"symbol_required" msg:"symbol_required"`
+	MinimumGuessableLevel int      `json:"minimum_guessable_level,omitempty" yaml:"minimum_guessable_level" msg:"minimum_guessable_level"`
+	ExcludedKeywords      []string `json:"excluded_keywords,omitempty" yaml:"excluded_keywords" msg:"excluded_keywords"`
 	// Do not know how to support fields because we do not
 	// have them now
-	// ExcludedFields     []string `json:"excluded_fields" yaml:"excluded_fields" msg:"excluded_fields"`
-	HistorySize int `json:"history_size" yaml:"history_size" msg:"history_size"`
-	HistoryDays int `json:"history_days" yaml:"history_days" msg:"history_days"`
-	ExpiryDays  int `json:"expiry_days" yaml:"expiry_days" msg:"expiry_days"`
+	// ExcludedFields     []string `json:"excluded_fields,omitempty" yaml:"excluded_fields" msg:"excluded_fields"`
+	HistorySize int `json:"history_size,omitempty" yaml:"history_size" msg:"history_size"`
+	HistoryDays int `json:"history_days,omitempty" yaml:"history_days" msg:"history_days"`
+	ExpiryDays  int `json:"expiry_days,omitempty" yaml:"expiry_days" msg:"expiry_days"`
 }
 
 type ForgotPasswordConfiguration struct {
-	AppName             string `json:"app_name" yaml:"app_name" msg:"app_name"`
-	URLPrefix           string `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	SecureMatch         bool   `json:"secure_match" yaml:"secure_match" msg:"secure_match"`
-	SenderName          string `json:"sender_name" yaml:"sender_name" msg:"sender_name"`
-	Sender              string `json:"sender" yaml:"sender" msg:"sender"`
-	Subject             string `json:"subject" yaml:"subject" msg:"subject"`
-	ReplyToName         string `json:"reply_to_name" yaml:"reply_to_name" msg:"reply_to_name"`
-	ReplyTo             string `json:"reply_to" yaml:"reply_to" msg:"reply_to"`
-	ResetURLLifetime    int    `json:"reset_url_lifetime" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
-	SuccessRedirect     string `json:"success_redirect" yaml:"success_redirect" msg:"success_redirect"`
-	ErrorRedirect       string `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
-	EmailTextURL        string `json:"email_text_url" yaml:"email_text_url" msg:"email_text_url"`
-	EmailHTMLURL        string `json:"email_html_url" yaml:"email_html_url" msg:"email_html_url"`
-	ResetHTMLURL        string `json:"reset_html_url" yaml:"reset_html_url" msg:"reset_html_url"`
-	ResetSuccessHTMLURL string `json:"reset_success_html_url" yaml:"reset_success_html_url" msg:"reset_success_html_url"`
-	ResetErrorHTMLURL   string `json:"reset_error_html_url" yaml:"reset_error_html_url" msg:"reset_error_html_url"`
+	AppName             string `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
+	URLPrefix           string `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
+	SecureMatch         bool   `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
+	SenderName          string `json:"sender_name,omitempty" yaml:"sender_name" msg:"sender_name"`
+	Sender              string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
+	Subject             string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
+	ReplyToName         string `json:"reply_to_name,omitempty" yaml:"reply_to_name" msg:"reply_to_name"`
+	ReplyTo             string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
+	ResetURLLifetime    int    `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
+	SuccessRedirect     string `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
+	ErrorRedirect       string `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
+	EmailTextURL        string `json:"email_text_url,omitempty" yaml:"email_text_url" msg:"email_text_url"`
+	EmailHTMLURL        string `json:"email_html_url,omitempty" yaml:"email_html_url" msg:"email_html_url"`
+	ResetHTMLURL        string `json:"reset_html_url,omitempty" yaml:"reset_html_url" msg:"reset_html_url"`
+	ResetSuccessHTMLURL string `json:"reset_success_html_url,omitempty" yaml:"reset_success_html_url" msg:"reset_success_html_url"`
+	ResetErrorHTMLURL   string `json:"reset_error_html_url,omitempty" yaml:"reset_error_html_url" msg:"reset_error_html_url"`
 }
 
 type WelcomeEmailDestination string
@@ -676,40 +610,40 @@ func (destination WelcomeEmailDestination) IsValid() bool {
 }
 
 type WelcomeEmailConfiguration struct {
-	Enabled     bool                    `json:"enabled" yaml:"enabled" msg:"enabled"`
-	URLPrefix   string                  `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	SenderName  string                  `json:"sender_name" yaml:"sender_name" msg:"sender_name"`
-	Sender      string                  `json:"sender" yaml:"sender" msg:"sender"`
-	Subject     string                  `json:"subject" yaml:"subject" msg:"subject"`
-	ReplyToName string                  `json:"reply_to_name" yaml:"reply_to_name" msg:"reply_to_name"`
-	ReplyTo     string                  `json:"reply_to" yaml:"reply_to" msg:"reply_to"`
-	TextURL     string                  `json:"text_url" yaml:"text_url" msg:"text_url"`
-	HTMLURL     string                  `json:"html_url" yaml:"html_url" msg:"html_url"`
-	Destination WelcomeEmailDestination `json:"destination" yaml:"destination" msg:"destination"`
+	Enabled     bool                    `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
+	URLPrefix   string                  `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
+	SenderName  string                  `json:"sender_name,omitempty" yaml:"sender_name" msg:"sender_name"`
+	Sender      string                  `json:"sender,omitempty" yaml:"sender" msg:"sender"`
+	Subject     string                  `json:"subject,omitempty" yaml:"subject" msg:"subject"`
+	ReplyToName string                  `json:"reply_to_name,omitempty" yaml:"reply_to_name" msg:"reply_to_name"`
+	ReplyTo     string                  `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
+	TextURL     string                  `json:"text_url,omitempty" yaml:"text_url" msg:"text_url"`
+	HTMLURL     string                  `json:"html_url,omitempty" yaml:"html_url" msg:"html_url"`
+	Destination WelcomeEmailDestination `json:"destination,omitempty" yaml:"destination" msg:"destination"`
 }
 
 type SSOConfiguration struct {
-	CustomToken CustomTokenConfiguration `json:"custom_token" yaml:"custom_token" msg:"custom_token"`
-	OAuth       OAuthConfiguration       `json:"oauth" yaml:"oauth" msg:"oauth"`
+	CustomToken CustomTokenConfiguration `json:"custom_token,omitempty" yaml:"custom_token" msg:"custom_token"`
+	OAuth       OAuthConfiguration       `json:"oauth,omitempty" yaml:"oauth" msg:"oauth"`
 }
 
 type CustomTokenConfiguration struct {
-	Enabled                    bool   `json:"enabled" yaml:"enabled" msg:"enabled"`
-	Issuer                     string `json:"issuer" yaml:"issuer" msg:"issuer"`
-	Audience                   string `json:"audience" yaml:"audience" msg:"audience"`
-	Secret                     string `json:"secret" yaml:"secret" msg:"secret"`
-	OnUserDuplicateAllowMerge  bool   `json:"on_user_duplicate_allow_merge" yaml:"on_user_duplicate_allow_merge" msg:"on_user_duplicate_allow_merge"`
-	OnUserDuplicateAllowCreate bool   `json:"on_user_duplicate_allow_create" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
+	Enabled                    bool   `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
+	Issuer                     string `json:"issuer,omitempty" yaml:"issuer" msg:"issuer"`
+	Audience                   string `json:"audience,omitempty" yaml:"audience" msg:"audience"`
+	Secret                     string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
+	OnUserDuplicateAllowMerge  bool   `json:"on_user_duplicate_allow_merge,omitempty" yaml:"on_user_duplicate_allow_merge" msg:"on_user_duplicate_allow_merge"`
+	OnUserDuplicateAllowCreate bool   `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
 }
 
 type OAuthConfiguration struct {
-	URLPrefix                      string                       `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	StateJWTSecret                 string                       `json:"state_jwt_secret" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
-	AllowedCallbackURLs            []string                     `json:"allowed_callback_urls" yaml:"allowed_callback_urls" msg:"allowed_callback_urls"`
-	ExternalAccessTokenFlowEnabled bool                         `json:"external_access_token_flow_enabled" yaml:"external_access_token_flow_enabled" msg:"external_access_token_flow_enabled"`
-	OnUserDuplicateAllowMerge      bool                         `json:"on_user_duplicate_allow_merge" yaml:"on_user_duplicate_allow_merge" msg:"on_user_duplicate_allow_merge"`
-	OnUserDuplicateAllowCreate     bool                         `json:"on_user_duplicate_allow_create" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
-	Providers                      []OAuthProviderConfiguration `json:"providers" yaml:"providers" msg:"providers"`
+	URLPrefix                      string                       `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
+	StateJWTSecret                 string                       `json:"state_jwt_secret,omitempty" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
+	AllowedCallbackURLs            []string                     `json:"allowed_callback_urls,omitempty" yaml:"allowed_callback_urls" msg:"allowed_callback_urls"`
+	ExternalAccessTokenFlowEnabled bool                         `json:"external_access_token_flow_enabled,omitempty" yaml:"external_access_token_flow_enabled" msg:"external_access_token_flow_enabled"`
+	OnUserDuplicateAllowMerge      bool                         `json:"on_user_duplicate_allow_merge,omitempty" yaml:"on_user_duplicate_allow_merge" msg:"on_user_duplicate_allow_merge"`
+	OnUserDuplicateAllowCreate     bool                         `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
+	Providers                      []OAuthProviderConfiguration `json:"providers,omitempty" yaml:"providers" msg:"providers"`
 }
 
 func (s *OAuthConfiguration) APIEndpoint() string {
@@ -737,13 +671,13 @@ const (
 )
 
 type OAuthProviderConfiguration struct {
-	ID           string            `json:"id" yaml:"id" msg:"id"`
-	Type         OAuthProviderType `json:"type" yaml:"type" msg:"type"`
-	ClientID     string            `json:"client_id" yaml:"client_id" msg:"client_id"`
-	ClientSecret string            `json:"client_secret" yaml:"client_secret" msg:"client_secret"`
-	Scope        string            `json:"scope" yaml:"scope" msg:"scope"`
+	ID           string            `json:"id,omitempty" yaml:"id" msg:"id"`
+	Type         OAuthProviderType `json:"type,omitempty" yaml:"type" msg:"type"`
+	ClientID     string            `json:"client_id,omitempty" yaml:"client_id" msg:"client_id"`
+	ClientSecret string            `json:"client_secret,omitempty" yaml:"client_secret" msg:"client_secret"`
+	Scope        string            `json:"scope,omitempty" yaml:"scope" msg:"scope"`
 	// Type specific fields
-	Tenant string `json:"tenant" yaml:"tenant" msg:"tenant"`
+	Tenant string `json:"tenant,omitempty" yaml:"tenant" msg:"tenant"`
 }
 
 type UserVerificationCriteria string
@@ -760,12 +694,12 @@ func (criteria UserVerificationCriteria) IsValid() bool {
 }
 
 type UserVerificationConfiguration struct {
-	URLPrefix        string                                      `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	AutoSendOnSignup bool                                        `json:"auto_send_on_signup" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
-	Criteria         UserVerificationCriteria                    `json:"criteria" yaml:"criteria" msg:"criteria"`
-	ErrorRedirect    string                                      `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
-	ErrorHTMLURL     string                                      `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
-	LoginIDKeys      map[string]UserVerificationKeyConfiguration `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
+	URLPrefix        string                                      `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
+	AutoSendOnSignup bool                                        `json:"auto_send_on_signup,omitempty" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
+	Criteria         UserVerificationCriteria                    `json:"criteria,omitempty" yaml:"criteria" msg:"criteria"`
+	ErrorRedirect    string                                      `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
+	ErrorHTMLURL     string                                      `json:"error_html_url,omitempty" yaml:"error_html_url" msg:"error_html_url"`
+	LoginIDKeys      map[string]UserVerificationKeyConfiguration `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
 }
 
 type UserVerificationCodeFormat string
@@ -800,37 +734,37 @@ func (format UserVerificationProvider) IsValid() bool {
 }
 
 type UserVerificationKeyConfiguration struct {
-	CodeFormat      UserVerificationCodeFormat            `json:"code_format" yaml:"code_format" msg:"code_format"`
-	Expiry          int64                                 `json:"expiry" yaml:"expiry" msg:"expiry"`
-	SuccessRedirect string                                `json:"success_redirect" yaml:"success_redirect" msg:"success_redirect"`
-	SuccessHTMLURL  string                                `json:"success_html_url" yaml:"success_html_url" msg:"success_html_url"`
-	ErrorRedirect   string                                `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
-	ErrorHTMLURL    string                                `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
-	Provider        UserVerificationProvider              `json:"provider" yaml:"provider" msg:"provider"`
-	ProviderConfig  UserVerificationProviderConfiguration `json:"provider_config" yaml:"provider_config" msg:"provider_config"`
+	CodeFormat      UserVerificationCodeFormat            `json:"code_format,omitempty" yaml:"code_format" msg:"code_format"`
+	Expiry          int64                                 `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
+	SuccessRedirect string                                `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
+	SuccessHTMLURL  string                                `json:"success_html_url,omitempty" yaml:"success_html_url" msg:"success_html_url"`
+	ErrorRedirect   string                                `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
+	ErrorHTMLURL    string                                `json:"error_html_url,omitempty" yaml:"error_html_url" msg:"error_html_url"`
+	Provider        UserVerificationProvider              `json:"provider,omitempty" yaml:"provider" msg:"provider"`
+	ProviderConfig  UserVerificationProviderConfiguration `json:"provider_config,omitempty" yaml:"provider_config" msg:"provider_config"`
 }
 
 type UserVerificationProviderConfiguration struct {
-	Subject     string `json:"subject" yaml:"subject" msg:"subject"`
-	Sender      string `json:"sender" yaml:"sender" msg:"sender"`
-	SenderName  string `json:"sender_name" yaml:"sender_name" msg:"sender_name"`
-	ReplyTo     string `json:"reply_to" yaml:"reply_to" msg:"reply_to"`
-	ReplyToName string `json:"reply_to_name" yaml:"reply_to_name" msg:"reply_to_name"`
-	TextURL     string `json:"text_url" yaml:"text_url" msg:"text_url"`
-	HTMLURL     string `json:"html_url" yaml:"html_url" msg:"html_url"`
+	Subject     string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
+	Sender      string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
+	SenderName  string `json:"sender_name,omitempty" yaml:"sender_name" msg:"sender_name"`
+	ReplyTo     string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
+	ReplyToName string `json:"reply_to_name,omitempty" yaml:"reply_to_name" msg:"reply_to_name"`
+	TextURL     string `json:"text_url,omitempty" yaml:"text_url" msg:"text_url"`
+	HTMLURL     string `json:"html_url,omitempty" yaml:"html_url" msg:"html_url"`
 }
 
 type HookUserConfiguration struct {
-	Secret string `json:"secret" yaml:"secret" msg:"secret"`
+	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
 }
 
 // AppConfiguration is configuration kept secret from the developer.
 type AppConfiguration struct {
-	DatabaseURL string               `json:"database_url" yaml:"database_url" msg:"database_url"`
-	SMTP        SMTPConfiguration    `json:"smtp" yaml:"smtp" msg:"smtp"`
-	Twilio      TwilioConfiguration  `json:"twilio" yaml:"twilio" msg:"twilio"`
-	Nexmo       NexmoConfiguration   `json:"nexmo" yaml:"nexmo" msg:"nexmo"`
-	Hook        HookAppConfiguration `json:"hook" yaml:"hook" msg:"hook"`
+	DatabaseURL string               `json:"database_url,omitempty" yaml:"database_url" msg:"database_url"`
+	SMTP        SMTPConfiguration    `json:"smtp,omitempty" yaml:"smtp" msg:"smtp"`
+	Twilio      TwilioConfiguration  `json:"twilio,omitempty" yaml:"twilio" msg:"twilio"`
+	Nexmo       NexmoConfiguration   `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo"`
+	Hook        HookAppConfiguration `json:"hook,omitempty" yaml:"hook" msg:"hook"`
 }
 
 type SMTPMode string
@@ -851,28 +785,28 @@ func (mode SMTPMode) IsValid() bool {
 }
 
 type SMTPConfiguration struct {
-	Host     string   `json:"host" yaml:"host" msg:"host"`
-	Port     int      `json:"port" yaml:"port" msg:"port"`
-	Mode     SMTPMode `json:"mode" yaml:"mode" msg:"mode"`
-	Login    string   `json:"login" yaml:"login" msg:"login"`
-	Password string   `json:"password" yaml:"password" msg:"password"`
+	Host     string   `json:"host,omitempty" yaml:"host" msg:"host"`
+	Port     int      `json:"port,omitempty" yaml:"port" msg:"port"`
+	Mode     SMTPMode `json:"mode,omitempty" yaml:"mode" msg:"mode"`
+	Login    string   `json:"login,omitempty" yaml:"login" msg:"login"`
+	Password string   `json:"password,omitempty" yaml:"password" msg:"password"`
 }
 
 type TwilioConfiguration struct {
-	AccountSID string `json:"account_sid" yaml:"account_sid" msg:"account_sid"`
-	AuthToken  string `json:"auth_token" yaml:"auth_token" msg:"auth_token"`
-	From       string `json:"from" yaml:"from" msg:"from"`
+	AccountSID string `json:"account_sid,omitempty" yaml:"account_sid" msg:"account_sid"`
+	AuthToken  string `json:"auth_token,omitempty" yaml:"auth_token" msg:"auth_token"`
+	From       string `json:"from,omitempty" yaml:"from" msg:"from"`
 }
 
 type NexmoConfiguration struct {
-	APIKey    string `json:"api_key" yaml:"api_key" msg:"api_key"`
-	APISecret string `json:"secret" yaml:"secret" msg:"secret"`
-	From      string `json:"from" yaml:"from" msg:"from"`
+	APIKey    string `json:"api_key,omitempty" yaml:"api_key" msg:"api_key"`
+	APISecret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
+	From      string `json:"from,omitempty" yaml:"from" msg:"from"`
 }
 
 type HookAppConfiguration struct {
-	SyncHookTimeout      int `json:"sync_hook_timeout_second" yaml:"sync_hook_timeout_second" msg:"sync_hook_timeout_second"`
-	SyncHookTotalTimeout int `json:"sync_hook_total_timeout_second" yaml:"sync_hook_total_timeout_second" msg:"sync_hook_total_timeout_second"`
+	SyncHookTimeout      int `json:"sync_hook_timeout_second,omitempty" yaml:"sync_hook_timeout_second" msg:"sync_hook_timeout_second"`
+	SyncHookTotalTimeout int `json:"sync_hook_total_timeout_second,omitempty" yaml:"sync_hook_total_timeout_second" msg:"sync_hook_total_timeout_second"`
 }
 
 var (
