@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -10,15 +11,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn/resolver"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 
-	"github.com/kelseyhightower/envconfig"
-
-	"github.com/joho/godotenv"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
@@ -28,6 +29,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type configuration struct {
@@ -100,6 +102,14 @@ func main() {
 			return os.Open(filename)
 		})
 		if err != nil {
+			if skyError, ok := err.(skyerr.Error); ok {
+				info := skyError.Info()
+				if arguments, ok := info["arguments"].([]string); ok {
+					for _, a := range arguments {
+						fmt.Fprintf(os.Stderr, "%v\n", a)
+					}
+				}
+			}
 			log.Fatal(err)
 		}
 
