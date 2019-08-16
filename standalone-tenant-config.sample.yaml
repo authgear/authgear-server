@@ -2,11 +2,79 @@ version: '1'
 app_name: myapp
 app_config:
   database_url: postgres://
+  smtp:
+    host: smtp.gmail.com
+    port: 587
+    login: your.gmail.account@gmail.com
+    password: enable-2fa-and-use-app-password
 user_config:
-  api_key: apikey
-  master_key: masterkey
+  url_prefix: http://localhost:3000/_auth
+  api_key: api_key
+  master_key: master_key
+  welcome_email:
+    enabled: true
+  user_verification:
+    login_id_keys:
+      email:
+        provider: smtp
+  auth:
+    on_user_duplicate_allow_create: true
+  sso:
+    custom_token:
+      enabled: true
+      issuer: myissuer
+      secret: mysecret
+      on_user_duplicate_allow_create: true
+      on_user_duplicate_allow_merge: true
+    oauth:
+      external_access_token_flow_enabled: true
+      state_jwt_secret: statesecret
+      allowed_callback_urls:
+      - "http://localhost:9999"
+      on_user_duplicate_allow_create: true
+      on_user_duplicate_allow_merge: true
+      providers:
+      - type: google
+        client_id: 'client_id'
+        client_secret: 'client_secret'
 deployment_routes:
-- type: http-service
-  path: /
-  type_config:
-    backend_url: http://localhost:9999
+  - type: http-service
+    path: /
+    type_config:
+      backend_url: 'http://localhost:9999'
+# hooks:
+# - event: "user_sync"
+#   url: "http://localhost:9999/user_sync"
+# 
+# - event: "before_user_create"
+#   url: "http://localhost:9999/before_user_create"
+# - event: "after_user_create"
+#   url: "http://localhost:9999/after_user_create"
+# 
+# - event: "before_user_update"
+#   url: "http://localhost:9999/before_user_update"
+# - event: "after_user_update"
+#   url: "http://localhost:9999/after_user_update"
+# 
+# - event: "before_session_create"
+#   url: "http://localhost:9999/before_session_create"
+# - event: "after_session_create"
+#   url: "http://localhost:9999/after_session_create"
+# - event: "before_session_delete"
+#   url: "http://localhost:9999/before_session_delete"
+# - event: "after_session_delete"
+#   url: "http://localhost:9999/after_session_delete"
+# 
+# - event: "before_identity_create"
+#   url: "http://localhost:9999/before_identity_create"
+# - event: "after_identity_create"
+#   url: "http://localhost:9999/after_identity_create"
+# - event: "before_identity_delete"
+#   url: "http://localhost:9999/before_identity_delete"
+# - event: "after_identity_delete"
+#   url: "http://localhost:9999/after_identity_delete"
+# 
+# - event: "before_password_update"
+#   url: "http://localhost:9999/before_password_update"
+# - event: "after_password_udpate"
+#   url: "http://localhost:9999/after_password_udpate"
