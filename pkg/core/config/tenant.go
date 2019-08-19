@@ -159,7 +159,7 @@ func (c *TenantConfiguration) Validate() error {
 	if c.AppConfig.DatabaseURL == "" {
 		return errors.New("DATABASE_URL is not set")
 	}
-	if !c.AppConfig.SMTP.Mode.IsValid() {
+	if c.AppConfig.SMTP.Mode != "" && !c.AppConfig.SMTP.Mode.IsValid() {
 		return errors.New("Invalid SMTP mode")
 	}
 

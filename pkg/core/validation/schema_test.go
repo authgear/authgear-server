@@ -18,6 +18,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`{}`,
 				`#: api_key is required
 #: auth is required
+#: hook is required
 #: master_key is required
 #: token_store is required
 `,
@@ -29,11 +30,11 @@ func TestValidateUserConfiguration(t *testing.T) {
 	"api_key": "api_key",
 	"master_key": "master_key",
 	"auth": {},
-	"token_store": {}
+	"token_store": {},
+	"hook": {}
 }
 				`,
-				`#/auth: allowed_realms is required
-#/auth: login_id_keys is required
+				`#/hook: secret is required
 #/token_store: secret is required
 `,
 			},
@@ -47,11 +48,13 @@ func TestValidateUserConfiguration(t *testing.T) {
 		"login_id_keys": {},
 		"allowed_realms": []
 	},
-	"token_store": {}
+	"token_store": {},
+	"hook": {}
 }
 				`,
 				`#/auth/allowed_realms: Array must have at least 1 items
 #/auth/login_id_keys: Must have at least 1 properties
+#/hook: secret is required
 #/token_store: secret is required
 `,
 			},
@@ -78,10 +81,12 @@ func TestValidateUserConfiguration(t *testing.T) {
 		},
 		"allowed_realms": ["default"]
 	},
-	"token_store": {}
+	"token_store": {},
+	"hook": {}
 }
 				`,
 				`#/auth/login_id_keys/type: auth.login_id_keys.type must be one of the following: "raw", "email", "phone"
+#/hook: secret is required
 #/token_store: secret is required
 `,
 			},
@@ -107,6 +112,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 	},
 	"token_store": {
 		"secret": "tokensecret"
+	},
+	"hook": {
+		"secret": "hooksecret"
 	}
 }
 				`,
@@ -134,6 +142,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 	},
 	"token_store": {
 		"secret": "tokensecret"
+	},
+	"hook": {
+		"secret": "hooksecret"
 	},
 	"cors": {}
 }
@@ -163,6 +174,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 	},
 	"token_store": {
 		"secret": "tokensecret"
+	},
+	"hook": {
+		"secret": "hooksecret"
 	},
 	"user_audit": {
 		"password": {
@@ -205,6 +219,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 	"token_store": {
 		"secret": "tokensecret"
 	},
+	"hook": {
+		"secret": "hooksecret"
+	},
 	"welcome_email": {
 		"destination": "invalid"
 	}
@@ -235,6 +252,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 	},
 	"token_store": {
 		"secret": "tokensecret"
+	},
+	"hook": {
+		"secret": "hooksecret"
 	},
 	"sso": {
 		"custom_token": {
@@ -272,6 +292,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 	"token_store": {
 		"secret": "tokensecret"
 	},
+	"hook": {
+		"secret": "hooksecret"
+	},
 	"sso": {
 		"oauth": {
 			"providers": [
@@ -286,7 +309,8 @@ func TestValidateUserConfiguration(t *testing.T) {
 	}
 }
 				`,
-				`#/sso/oauth: Must validate "then" as "if" was valid
+				`#/sso: custom_token is required
+#/sso/oauth: Must validate "then" as "if" was valid
 #/sso/oauth: allowed_callback_urls is required
 #/sso/oauth: state_jwt_secret is required
 #/sso/oauth/providers/0: Must validate "then" as "if" was valid
@@ -320,6 +344,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 	},
 	"token_store": {
 		"secret": "tokensecret"
+	},
+	"hook": {
+		"secret": "hooksecret"
 	},
 	"user_verification": {
 		"criteria": "invalid",
