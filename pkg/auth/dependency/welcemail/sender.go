@@ -1,8 +1,6 @@
 package welcemail
 
 import (
-	"errors"
-
 	"github.com/go-gomail/gomail"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
@@ -36,10 +34,6 @@ func NewDefaultSender(
 }
 
 func (d *DefaultSender) Send(email string, user model.User) (err error) {
-	if d.Config.TextURL == "" {
-		return errors.New("welcome email text template url is empty")
-	}
-
 	context := map[string]interface{}{
 		"appname":    d.AppName,
 		"email":      email,
