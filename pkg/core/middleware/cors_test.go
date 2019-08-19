@@ -59,6 +59,17 @@ func TestCORSMiddleware(t *testing.T) {
 			So(resp.Body.Len(), ShouldEqual, 0)
 		})
 
+		Convey("should handle localhost", func() {
+			req := newReq("OPTIONS", "http://localhost:3000", "localhost:3000")
+			resp := httptest.NewRecorder()
+			handler.ServeHTTP(resp, req)
+
+			So(resp.Header().Get("Vary"), ShouldEqual, "Origin")
+			So(resp.Header().Get("Access-Control-Allow-Origin"), ShouldEqual, "http://localhost:3000")
+			So(resp.Header().Get("Access-Control-Allow-Credentials"), ShouldEqual, "true")
+			So(resp.Body.Len(), ShouldEqual, 0)
+		})
+
 		Convey("should handle POST request", func() {
 			req := newReq("POST", "http://test.example.com", "*.example.com")
 			resp := httptest.NewRecorder()

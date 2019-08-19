@@ -19,7 +19,7 @@ require (
 	github.com/gorilla/mux v1.6.2
 	github.com/gorilla/schema v1.0.2 // indirect
 	github.com/h2non/gock v1.0.12
-	github.com/iawaknahc/originmatcher v0.0.0-20190619035036-880455986baa
+	github.com/iawaknahc/originmatcher v0.0.0-20190816101335-7c3f833688c0
 	github.com/jmoiron/sqlx v0.0.0-20170430194603-d9bd385d68c0
 	github.com/joho/godotenv v0.0.0-20150907010228-4ed13390c0ac
 	github.com/kelseyhightower/envconfig v1.3.0
