@@ -66,7 +66,7 @@ CREATE SCHEMA app_helloworld;
 $ psql ${DATABASE_URL} -c "CREATE SCHEMA app_helloworld;"
 
 # Run core and auth migration
-$ make -C migrate migrate MIGRATE_CMD=up
+$ make -C migrate migrate MIGRATE_CMD=up DATABASE_URL=${DATABASE_URL} SCHEMA=app_helloworld
 ```
 
 See below sections for more commands about db migration.
