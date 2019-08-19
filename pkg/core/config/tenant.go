@@ -45,45 +45,6 @@ type DeploymentRoute struct {
 	TypeConfig map[string]interface{} `json:"type_config,omitempty" yaml:"type_config" msg:"type_config"`
 }
 
-func defaultAppConfiguration() AppConfiguration {
-	return AppConfiguration{
-		DatabaseURL: "postgres://postgres:@localhost/postgres?sslmode=disable",
-		SMTP: SMTPConfiguration{
-			Port: 25,
-			Mode: "normal",
-		},
-	}
-}
-
-func defaultUserConfiguration() UserConfiguration {
-	return UserConfiguration{
-		CORS: CORSConfiguration{
-			Origin: "*",
-		},
-		Auth: AuthConfiguration{
-			// Default to email and username
-			LoginIDKeys: map[string]LoginIDKeyConfiguration{
-				"username": LoginIDKeyConfiguration{Type: LoginIDKeyTypeRaw},
-				"email":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Email)},
-				"phone":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Phone)},
-			},
-			AllowedRealms: []string{"default"},
-		},
-		ForgotPassword: ForgotPasswordConfiguration{
-			SecureMatch:      false,
-			Sender:           "no-reply@skygeario.com",
-			Subject:          "Reset password instruction",
-			ResetURLLifetime: 43200,
-		},
-		WelcomeEmail: WelcomeEmailConfiguration{
-			Enabled:     false,
-			Sender:      "no-reply@skygeario.com",
-			Subject:     "Welcome!",
-			Destination: WelcomeEmailDestinationFirst,
-		},
-	}
-}
-
 type FromScratchOptions struct {
 	AppName     string `envconfig:"APP_NAME"`
 	DatabaseURL string `envconfig:"DATABASE_URL"`
@@ -92,16 +53,15 @@ type FromScratchOptions struct {
 }
 
 func NewTenantConfigurationFromScratch(options FromScratchOptions) (*TenantConfiguration, error) {
-	c := TenantConfiguration{
-		AppConfig:  defaultAppConfiguration(),
-		UserConfig: defaultUserConfiguration(),
-	}
+	c := TenantConfiguration{}
 	c.Version = "1"
 
 	c.AppName = options.AppName
 	c.AppConfig.DatabaseURL = options.DatabaseURL
 	c.UserConfig.APIKey = options.APIKey
 	c.UserConfig.MasterKey = options.MasterKey
+	c.UserConfig.TokenStore.Secret = options.MasterKey
+	c.UserConfig.Hook.Secret = options.MasterKey
 
 	c.AfterUnmarshal()
 	err := c.Validate()
@@ -114,10 +74,7 @@ func NewTenantConfigurationFromScratch(options FromScratchOptions) (*TenantConfi
 
 func loadTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
 	decoder := yaml.NewDecoder(r)
-	config := TenantConfiguration{
-		AppConfig:  defaultAppConfiguration(),
-		UserConfig: defaultUserConfiguration(),
-	}
+	config := TenantConfiguration{}
 	err := decoder.Decode(&config)
 	if err != nil {
 		return nil, err
@@ -195,10 +152,7 @@ func NewTenantConfigurationFromYAMLAndEnv(open func() (io.Reader, error)) (*Tena
 
 func NewTenantConfigurationFromJSON(r io.Reader) (*TenantConfiguration, error) {
 	decoder := json.NewDecoder(r)
-	config := TenantConfiguration{
-		AppConfig:  defaultAppConfiguration(),
-		UserConfig: defaultUserConfiguration(),
-	}
+	config := TenantConfiguration{}
 	err := decoder.Decode(&config)
 	if err != nil {
 		return nil, err
@@ -335,15 +289,6 @@ func (c *TenantConfiguration) Validate() error {
 
 // nolint: gocyclo
 func (c *TenantConfiguration) AfterUnmarshal() {
-	// Default token secret to master key
-	if c.UserConfig.TokenStore.Secret == "" {
-		c.UserConfig.TokenStore.Secret = c.UserConfig.MasterKey
-	}
-	// Default oauth state secret to master key
-	if c.UserConfig.SSO.OAuth.StateJWTSecret == "" {
-		c.UserConfig.SSO.OAuth.StateJWTSecret = c.UserConfig.MasterKey
-	}
-
 	// Propagate AppName
 	if c.UserConfig.ForgotPassword.AppName == "" {
 		c.UserConfig.ForgotPassword.AppName = c.AppName
@@ -370,7 +315,23 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	c.UserConfig.UserVerification.URLPrefix = removeTrailingSlash(c.UserConfig.UserVerification.URLPrefix)
 	c.UserConfig.SSO.OAuth.URLPrefix = removeTrailingSlash(c.UserConfig.SSO.OAuth.URLPrefix)
 
-	// Set default value for login ID keys config
+	// Set default CORSConfiguration
+	if c.UserConfig.CORS.Origin == "" {
+		c.UserConfig.CORS.Origin = "*"
+	}
+
+	// Set default AuthConfiguration
+	if c.UserConfig.Auth.LoginIDKeys == nil {
+		c.UserConfig.Auth.LoginIDKeys = map[string]LoginIDKeyConfiguration{
+			"username": LoginIDKeyConfiguration{Type: LoginIDKeyTypeRaw},
+			"email":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Email)},
+			"phone":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Phone)},
+		}
+	}
+	if c.UserConfig.Auth.AllowedRealms == nil {
+		c.UserConfig.Auth.AllowedRealms = []string{"default"}
+	}
+	// Set default minimum and maximum
 	for key, config := range c.UserConfig.Auth.LoginIDKeys {
 		if config.Minimum == nil {
 			config.Minimum = new(int)
@@ -407,14 +368,34 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.UserConfig.UserVerification.LoginIDKeys[key] = config
 	}
 
-	// Set default welcome email destination
+	// Set default WelcomeEmailConfiguration
 	if c.UserConfig.WelcomeEmail.Destination == "" {
 		c.UserConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
 	}
+	if c.UserConfig.WelcomeEmail.Sender == "" {
+		c.UserConfig.WelcomeEmail.Sender = "no-reply@skygeario.com"
+	}
+	if c.UserConfig.WelcomeEmail.Subject == "" {
+		c.UserConfig.WelcomeEmail.Subject = "Welcome!"
+	}
 
-	// Set default smtp mode
+	// Set default ForgotPasswordConfiguration
+	if c.UserConfig.ForgotPassword.Sender == "" {
+		c.UserConfig.ForgotPassword.Sender = "no-reply@skygeario.com"
+	}
+	if c.UserConfig.ForgotPassword.Subject == "" {
+		c.UserConfig.ForgotPassword.Subject = "Reset password instruction"
+	}
+	if c.UserConfig.ForgotPassword.ResetURLLifetime == 0 {
+		c.UserConfig.ForgotPassword.ResetURLLifetime = 43200
+	}
+
+	// Set default SMTPConfiguration
 	if c.AppConfig.SMTP.Mode == "" {
 		c.AppConfig.SMTP.Mode = SMTPModeNormal
+	}
+	if c.AppConfig.SMTP.Port == 0 {
+		c.AppConfig.SMTP.Port = 25
 	}
 
 	// Set type to id
@@ -452,11 +433,6 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 				c.UserConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
 			}
 		}
-	}
-
-	// Set default hook secret
-	if c.UserConfig.Hook.Secret == "" {
-		c.UserConfig.Hook.Secret = c.UserConfig.MasterKey
 	}
 
 	// Set default hook timeout

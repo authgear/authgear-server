@@ -29,6 +29,8 @@ user_config:
         type: raw
   token_store:
     secret: tokensecret
+  hook:
+    secret: hooksecret
 `
 
 const inputMinimalJSON = `
@@ -57,6 +59,9 @@ const inputMinimalJSON = `
 		},
 		"token_store": {
 			"secret": "tokensecret"
+		},
+		"hook": {
+			"secret": "hooksecret"
 		}
 	}
 }
