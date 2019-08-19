@@ -1,7 +1,7 @@
 version: '1'
 app_name: myapp
 app_config:
-  database_url: postgres://
+  database_url: postgres://postgres:@localhost:5432/postgres?sslmode=disable
   smtp:
     host: smtp.gmail.com
     port: 587
@@ -11,6 +11,10 @@ user_config:
   url_prefix: http://localhost:3000/_auth
   api_key: api_key
   master_key: master_key
+  token_store:
+    secret: tokenstoresecret
+  hook:
+    secret: hooksecret
   welcome_email:
     enabled: true
   user_verification:
@@ -23,6 +27,7 @@ user_config:
     custom_token:
       enabled: true
       issuer: myissuer
+      audience: myaudience
       secret: mysecret
       on_user_duplicate_allow_create: true
       on_user_duplicate_allow_merge: true

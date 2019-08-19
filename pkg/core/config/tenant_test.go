@@ -29,6 +29,11 @@ user_config:
     secret: tokensecret
   hook:
     secret: hooksecret
+  sso:
+    custom_token:
+      secret: customtokensecret
+    oauth:
+      state_jwt_secret: statejwtsecret
 `
 
 const inputMinimalJSON = `
@@ -60,6 +65,14 @@ const inputMinimalJSON = `
 		},
 		"hook": {
 			"secret": "hooksecret"
+		},
+		"sso": {
+			"custom_token": {
+				"secret": "customtokensecret"
+			},
+			"oauth": {
+				"state_jwt_secret": "statejwtsecret"
+			}
 		}
 	}
 }
