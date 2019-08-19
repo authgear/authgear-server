@@ -117,7 +117,7 @@ func TestUnlinkHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 400)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 132,
+					"code": 116,
 					"message": "Cannot delete current identity",
 					"name": "CurrentIdentityBeingDeleted"
 				}

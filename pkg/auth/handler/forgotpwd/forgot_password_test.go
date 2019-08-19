@@ -150,7 +150,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 108,
+					"code": 107,
 					"info": {
 						"arguments": ["email"]
 					},
@@ -169,7 +169,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 110,
+					"code": 109,
 					"message": "user not found",
 					"name": "ResourceNotFound"
 				}
@@ -185,7 +185,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 110,
+					"code": 109,
 					"message": "user not found",
 					"name": "ResourceNotFound"
 				}

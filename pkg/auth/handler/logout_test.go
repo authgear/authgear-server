@@ -31,7 +31,7 @@ func TestLogoutHandler(t *testing.T) {
 			payload := LogoutRequestPayload{}
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.AccessTokenNotAccepted)
+			So(errResponse.Code(), ShouldEqual, skyerr.NotAuthenticated)
 		})
 	})
 

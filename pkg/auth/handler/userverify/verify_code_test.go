@@ -200,7 +200,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 108,
+					"code": 107,
 					"message": "the code has expired",
 					"name": "InvalidArgument"
 				}
@@ -217,7 +217,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 108,
+					"code": 107,
 					"message": "invalid verification code",
 					"name": "InvalidArgument"
 				}
@@ -234,7 +234,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 108,
+					"code": 107,
 					"message": "invalid verification code",
 					"name": "InvalidArgument"
 				}
@@ -255,7 +255,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 108,
+					"code": 107,
 					"message": "invalid verification code",
 					"name": "InvalidArgument"
 				}
@@ -272,7 +272,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 108,
+					"code": 107,
 					"message": "invalid verification code",
 					"name": "InvalidArgument"
 				}

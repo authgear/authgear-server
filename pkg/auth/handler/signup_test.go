@@ -183,7 +183,7 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 409)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 109,
+					"code": 108,
 					"message": "Aborted due to duplicate user",
 					"name": "Duplicated"
 				}
@@ -440,7 +440,7 @@ func TestSingupHandler(t *testing.T) {
 			{
 				"error": {
 					"name": "InvalidArgument",
-					"code": 108,
+					"code": 107,
 					"info":{
 						"arguments":["phone"]
 					},
@@ -468,7 +468,7 @@ func TestSingupHandler(t *testing.T) {
 			{
 				"error": {
 					"name": "PasswordPolicyViolated",
-					"code": 126,
+					"code": 111,
 					"info":{
 							"min_length": 6,
 							"pw_length": 4,
@@ -612,7 +612,7 @@ func TestSingupHandler(t *testing.T) {
 			{
 				"error": {
 					"name": "Duplicated",
-					"code": 109,
+					"code": 108,
 					"message": "user duplicated"
 				}
 			}
@@ -633,7 +633,7 @@ func TestSingupHandler(t *testing.T) {
 			{
 				"error": {
 					"name": "Duplicated",
-					"code": 109,
+					"code": 108,
 					"message": "user duplicated"
 				}
 			}
@@ -654,7 +654,7 @@ func TestSingupHandler(t *testing.T) {
 			{
 				"error": {
 					"name": "InvalidArgument",
-					"code": 108,
+					"code": 107,
 					"info":{
 						"arguments":["realm"]
 					},

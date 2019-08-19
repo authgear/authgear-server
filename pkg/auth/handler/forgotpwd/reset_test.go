@@ -101,7 +101,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 110,
+					"code": 109,
 					"message": "user not found or code invalid",
 					"name": "ResourceNotFound"
 				}
@@ -125,7 +125,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 110,
+					"code": 109,
 					"message": "user not found or code invalid",
 					"name": "ResourceNotFound"
 				}

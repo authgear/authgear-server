@@ -53,10 +53,6 @@ const (
 	// to get authenticated is incorrect.
 	InvalidCredentials
 
-	// InvalidSignature is returned by an operation that requires a signature
-	// and the provided signature is not valid.
-	InvalidSignature
-
 	// BadRequest is an error when the server does not understand the request.
 	//
 	// The same error is used for requests that does not conform to HTTP
@@ -79,72 +75,8 @@ const (
 	// to be available, and that resource is specified in the request.
 	ResourceNotFound
 
-	// NotSupported occurs when the server understands the request,
-	// but the feature is not available due to a known limitation.
-	//
-	// Use this when the feature is not likely to be implemented in the near
-	// future.
-	NotSupported
-
-	// NotImplemented occurs when the server understands the request,
-	// but the feature is not implemented yet.
-	//
-	// Use this when the feature is likely to be implemented in the near
-	// future.
-	NotImplemented
-
-	// ConstraintViolated occurs when a resource cannot be saved because
-	// doing so would violate a constraint.
-	ConstraintViolated
-
-	// IncompatibleSchema occurs if because the saving record is incompatible
-	// with the existing schema.
-	IncompatibleSchema
-
-	// AtomicOperationFailure occurs when a batch operation failed because
-	// it failed partially, and the batch operation is required to be atomic
-	AtomicOperationFailure
-
-	// PartialOperationFailure occurs when a batch operation failed because
-	// it failed partially, and the batch operation is not required to be atomic
-	PartialOperationFailure
-
 	// UndefinedOperation is an operation that is not known to the system
 	UndefinedOperation
-
-	// PluginUnavailable occurs when the configured plugin is not available at
-	// the moment
-	PluginUnavailable
-
-	// PluginTimeout occurs when an operation carried by a plugin is timed out
-	PluginTimeout
-
-	// RecordQueryInvalid is returned when information contained in a record
-	// query
-	// is not valid. Examples include referencing keypath that is invalid, and
-	// unsupported comparison.
-	RecordQueryInvalid
-
-	// PluginInitializing occurs when any of the plugins are initializing
-	PluginInitializing
-
-	// ResponseTimeout occurs when an operation is taking too long to produce
-	// a response
-	ResponseTimeout
-
-	// DeniedArgument occurs when the a request involves an argument
-	// that the user is not allowed to specify. This might occur
-	// when modifying a field in a record that the user has no write access.
-	DeniedArgument
-
-	// RecordQueryDenied is returned when the user is not allowed to
-	// perform the query.
-	// Examples include referencing a field that is disallowed by Field ACL.
-	RecordQueryDenied
-
-	// NotConfigured is returned when a feature requires extra configuration
-	// and the required configuration is missing.
-	NotConfigured
 
 	// PasswordPolicyViolated is returned when the password violates
 	// a configured policy.
@@ -156,10 +88,6 @@ const (
 	// VerificationRequired is returned when verification is required but the
 	// user is not verified.
 	VerificationRequired
-
-	// AssetSizeTooLarge is returned when size of asset to be uploaded is larger
-	// than limit
-	AssetSizeTooLarge
 
 	// WebHookTimeOut occurs when an web-hook operation timed out
 	WebHookTimeOut
@@ -183,10 +111,6 @@ const (
 	// Refrain from using this error code.
 	UnexpectedError ErrorCode = 10000 + iota
 	UnexpectedAuthInfoNotFound
-	UnexpectedUnableToOpenDatabase
-	UnexpectedPushNotificationNotConfigured
-	InternalQueryInvalid
-	UnexpectedUserNotFound
 
 	// Error codes for unexpected error condition should be placed
 	// above this line.
@@ -241,18 +165,6 @@ func NewInvalidArgument(message string, arguments []string) Error {
 	}
 }
 
-// NewDeniedArgument is a convenient function to returns a denied argument
-// error with a list of arguments that are denied.
-func NewDeniedArgument(message string, arguments []string) Error {
-	return &genericError{
-		code:    DeniedArgument,
-		message: message,
-		info: map[string]interface{}{
-			"arguments": arguments,
-		},
-	}
-}
-
 // MakeError returns an Error interface with the specified error. If the
 // specified error already implements the Error interface, the specified error
 // is returned.
@@ -266,55 +178,9 @@ func MakeError(err error) Error {
 	return NewError(UnexpectedError, err.Error())
 }
 
-// NewRequestJSONInvalidErr returns new RequestJSONInvalid Error
-func NewRequestJSONInvalidErr(err error) Error {
-	return NewError(BadRequest, err.Error())
-}
-
 // NewResourceFetchFailureErr returns a new ResourceFetchFailure Error
 func NewResourceFetchFailureErr(kind string, id interface{}) Error {
 	return NewError(UnexpectedError, fmt.Sprintf("failed to fetch %v id = %v", kind, id))
-}
-
-func NewResourceSaveFailureErr(kind string, id interface{}) Error {
-	var message string
-	if id != nil {
-		message = fmt.Sprintf("failed to save %v id = %v", kind, id)
-	} else {
-		message = "failed to save " + kind
-	}
-
-	return NewError(UnexpectedError, message)
-}
-
-// NewResourceSaveFailureErrWithStringID returns a new ResourceSaveFailure Error
-// with the specified kind and string id in the error message
-func NewResourceSaveFailureErrWithStringID(kind string, id string) Error {
-	var iID interface{}
-	if id != "" {
-		iID = id
-	}
-	return NewResourceSaveFailureErr(kind, iID)
-}
-
-func newResourceDeleteFailureErr(kind string, id interface{}) Error {
-	var message string
-	if id != nil {
-		message = fmt.Sprintf("failed to delete %v id = %v", kind, id)
-	} else {
-		message = "failed to delete " + kind
-	}
-
-	return NewError(UnexpectedError, message)
-}
-
-// NewResourceDeleteFailureErrWithStringID returns a new ResourceDeleteFailure Error
-func NewResourceDeleteFailureErrWithStringID(kind string, id string) Error {
-	var iID interface{}
-	if id != "" {
-		iID = id
-	}
-	return newResourceDeleteFailureErr(kind, iID)
 }
 
 func (e *genericError) Name() string {

@@ -495,7 +495,7 @@ func TestAuthHandler(t *testing.T) {
 				"callback_url": "http://localhost:3000",
 				"result": {
 					"error": {
-						"code": 108,
+						"code": 107,
 						"message": "the provider user is already linked",
 						"name": "InvalidArgument"
 					}
@@ -628,7 +628,7 @@ func TestAuthHandler(t *testing.T) {
 				"callback_url": "http://localhost:3000",
 				"result": {
 					"error": {
-						"code": 109,
+						"code": 108,
 						"message": "Aborted due to duplicate user",
 						"name": "Duplicated"
 					}
