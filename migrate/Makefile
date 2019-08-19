@@ -27,6 +27,10 @@ ifneq (,$(HOSTNAME_OVERRIDE))
 HOSTNAME_OVERRIDE_ARG := -hostname-override=$(HOSTNAME_OVERRIDE)
 endif
 
+ifneq (,$(DATABASE_URL))
+DATABASE_URL_ARG := -database=$(DATABASE_URL)
+endif
+
 .PHONY: migrate
 migrate:
 	go run cmd/migrate/main.go \
@@ -39,6 +43,7 @@ migrate:
 		$(APP_FILTER_KEY_ARG) \
 		$(APP_FILTER_VALUE_ARG) \
 		$(CONFIG_DATABASE_ARG) \
+		$(DATABASE_URL_ARG) \
 		$(MIGRATE_CMD)
 
 .PHONY: http
