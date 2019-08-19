@@ -303,7 +303,7 @@ user_config:
 		})
 		// JSON
 		Convey("should have default value when load from JSON", func() {
-			c, err := NewTenantConfigurationFromJSON(strings.NewReader(inputMinimalJSON))
+			c, err := NewTenantConfigurationFromJSON(strings.NewReader(inputMinimalJSON), false)
 			So(err, ShouldBeNil)
 			So(c.Version, ShouldEqual, "1")
 			So(c.AppName, ShouldEqual, "myapp")
@@ -329,7 +329,7 @@ user_config:
 		  }
 		}
 					`
-			_, err := NewTenantConfigurationFromJSON(strings.NewReader(invalidInput))
+			_, err := NewTenantConfigurationFromJSON(strings.NewReader(invalidInput), false)
 			So(err, ShouldBeError, "Only version 1 is supported")
 		})
 		// Conversion
@@ -345,7 +345,7 @@ user_config:
 			c := makeFullTenantConfig()
 			b, err := json.Marshal(c)
 			So(err, ShouldBeNil)
-			cc, err := NewTenantConfigurationFromJSON(bytes.NewReader(b))
+			cc, err := NewTenantConfigurationFromJSON(bytes.NewReader(b), false)
 			So(err, ShouldBeNil)
 			So(c, ShouldResemble, *cc)
 		})

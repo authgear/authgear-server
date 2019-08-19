@@ -73,17 +73,19 @@ func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
 	return config, nil
 }
 
-func NewTenantConfigurationFromJSON(r io.Reader) (*TenantConfiguration, error) {
+func NewTenantConfigurationFromJSON(r io.Reader, raw bool) (*TenantConfiguration, error) {
 	decoder := json.NewDecoder(r)
 	config := TenantConfiguration{}
 	err := decoder.Decode(&config)
 	if err != nil {
 		return nil, err
 	}
-	config.AfterUnmarshal()
-	err = config.Validate()
-	if err != nil {
-		return nil, err
+	if !raw {
+		config.AfterUnmarshal()
+		err = config.Validate()
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &config, nil
 }
@@ -117,7 +119,7 @@ func (c *TenantConfiguration) Scan(value interface{}) error {
 	if !ok {
 		return fmt.Errorf("Cannot convert %T to TenantConfiguration", value)
 	}
-	config, err := NewTenantConfigurationFromJSON(bytes.NewReader(b))
+	config, err := NewTenantConfigurationFromJSON(bytes.NewReader(b), true)
 	if err != nil {
 		return err
 	}
