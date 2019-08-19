@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -98,9 +97,11 @@ func main() {
 	var srv server.Server
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
-		tenantConfig, err := config.NewTenantConfigurationFromYAMLAndEnv(func() (io.Reader, error) {
-			return os.Open(filename)
-		})
+		reader, err := os.Open(filename)
+		if err != nil {
+			log.Fatal(err)
+		}
+		tenantConfig, err := config.NewTenantConfigurationFromYAML(reader)
 		if err != nil {
 			if skyError, ok := err.(skyerr.Error); ok {
 				info := skyError.Info()

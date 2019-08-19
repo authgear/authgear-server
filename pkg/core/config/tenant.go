@@ -13,11 +13,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-
-	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/name"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -45,31 +43,10 @@ type DeploymentRoute struct {
 	TypeConfig map[string]interface{} `json:"type_config,omitempty" yaml:"type_config" msg:"type_config"`
 }
 
-type FromScratchOptions struct {
-	AppName     string `envconfig:"APP_NAME"`
-	DatabaseURL string `envconfig:"DATABASE_URL"`
-	APIKey      string `envconfig:"API_KEY"`
-	MasterKey   string `envconfig:"MASTER_KEY"`
-}
-
-func NewTenantConfigurationFromScratch(options FromScratchOptions) (*TenantConfiguration, error) {
-	c := TenantConfiguration{}
-	c.Version = "1"
-
-	c.AppName = options.AppName
-	c.AppConfig.DatabaseURL = options.DatabaseURL
-	c.UserConfig.APIKey = options.APIKey
-	c.UserConfig.MasterKey = options.MasterKey
-	c.UserConfig.TokenStore.Secret = options.MasterKey
-	c.UserConfig.Hook.Secret = options.MasterKey
-
-	c.AfterUnmarshal()
-	err := c.Validate()
-	if err != nil {
-		return nil, err
+func NewTenantConfiguration() TenantConfiguration {
+	return TenantConfiguration{
+		Version: "1",
 	}
-
-	return &c, nil
 }
 
 func loadTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
@@ -94,60 +71,6 @@ func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
 		return nil, err
 	}
 	return config, nil
-}
-
-func NewTenantConfigurationFromEnv() (*TenantConfiguration, error) {
-	options := FromScratchOptions{}
-	err := envconfig.Process("", &options)
-	if err != nil {
-		return nil, err
-	}
-	return NewTenantConfigurationFromScratch(options)
-}
-
-func NewTenantConfigurationFromYAMLAndEnv(open func() (io.Reader, error)) (*TenantConfiguration, error) {
-	options := FromScratchOptions{}
-	err := envconfig.Process("", &options)
-	if err != nil {
-		return nil, err
-	}
-
-	r, err := open()
-	if err != nil {
-		// Load from env directly
-		return NewTenantConfigurationFromScratch(options)
-	}
-	defer func() {
-		if rc, ok := r.(io.Closer); ok {
-			rc.Close()
-		}
-	}()
-
-	c, err := loadTenantConfigurationFromYAML(r)
-	if err != nil {
-		return nil, err
-	}
-
-	// Allow override from env
-	if options.AppName != "" {
-		c.AppName = options.AppName
-	}
-	if options.DatabaseURL != "" {
-		c.AppConfig.DatabaseURL = options.DatabaseURL
-	}
-	if options.APIKey != "" {
-		c.UserConfig.APIKey = options.APIKey
-	}
-	if options.MasterKey != "" {
-		c.UserConfig.MasterKey = options.MasterKey
-	}
-
-	c.AfterUnmarshal()
-	err = c.Validate()
-	if err != nil {
-		return nil, err
-	}
-	return c, nil
 }
 
 func NewTenantConfigurationFromJSON(r io.Reader) (*TenantConfiguration, error) {

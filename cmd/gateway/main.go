@@ -47,11 +47,13 @@ func main() {
 	var connErr error
 	if config.Standalone {
 		filename := config.StandaloneTenantConfigurationFile
-		tenantConfig, err := coreConfig.NewTenantConfigurationFromYAMLAndEnv(func() (io.Reader, error) {
-			return os.Open(filename)
-		})
+		reader, err := os.Open(filename)
 		if err != nil {
-			logger.WithError(err).Panic("Fail to load config")
+			logger.WithError(err).Panic("Fail to open config file")
+		}
+		tenantConfig, err := coreConfig.NewTenantConfigurationFromYAML(reader)
+		if err != nil {
+			logger.WithError(err).Panic("Fail to load config from YAML")
 		}
 		store = &standaloneStore.Store{
 			TenantConfig: *tenantConfig,
