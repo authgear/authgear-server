@@ -30,6 +30,7 @@ func (m ValidateHostMiddleware) Handle(next http.Handler) http.Handler {
 		if !utils.StringSliceContains(validateHosts, host) {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte{})
+			return
 		}
 
 		next.ServeHTTP(w, r)
