@@ -583,10 +583,8 @@ type ForgotPasswordConfiguration struct {
 	AppName             string `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
 	URLPrefix           string `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
 	SecureMatch         bool   `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
-	SenderName          string `json:"sender_name,omitempty" yaml:"sender_name" msg:"sender_name"`
 	Sender              string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
 	Subject             string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	ReplyToName         string `json:"reply_to_name,omitempty" yaml:"reply_to_name" msg:"reply_to_name"`
 	ReplyTo             string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
 	ResetURLLifetime    int    `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
 	SuccessRedirect     string `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
@@ -612,10 +610,8 @@ func (destination WelcomeEmailDestination) IsValid() bool {
 type WelcomeEmailConfiguration struct {
 	Enabled     bool                    `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
 	URLPrefix   string                  `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
-	SenderName  string                  `json:"sender_name,omitempty" yaml:"sender_name" msg:"sender_name"`
 	Sender      string                  `json:"sender,omitempty" yaml:"sender" msg:"sender"`
 	Subject     string                  `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	ReplyToName string                  `json:"reply_to_name,omitempty" yaml:"reply_to_name" msg:"reply_to_name"`
 	ReplyTo     string                  `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
 	TextURL     string                  `json:"text_url,omitempty" yaml:"text_url" msg:"text_url"`
 	HTMLURL     string                  `json:"html_url,omitempty" yaml:"html_url" msg:"html_url"`
@@ -745,13 +741,11 @@ type UserVerificationKeyConfiguration struct {
 }
 
 type UserVerificationProviderConfiguration struct {
-	Subject     string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	Sender      string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	SenderName  string `json:"sender_name,omitempty" yaml:"sender_name" msg:"sender_name"`
-	ReplyTo     string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-	ReplyToName string `json:"reply_to_name,omitempty" yaml:"reply_to_name" msg:"reply_to_name"`
-	TextURL     string `json:"text_url,omitempty" yaml:"text_url" msg:"text_url"`
-	HTMLURL     string `json:"html_url,omitempty" yaml:"html_url" msg:"html_url"`
+	Subject string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
+	Sender  string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
+	ReplyTo string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
+	TextURL string `json:"text_url,omitempty" yaml:"text_url" msg:"text_url"`
+	HTMLURL string `json:"html_url,omitempty" yaml:"html_url" msg:"html_url"`
 }
 
 type HookUserConfiguration struct {

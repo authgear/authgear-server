@@ -54,15 +54,13 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 	}
 
 	sendReq := mail.SendRequest{
-		Dialer:      e.Dialer,
-		Sender:      providerConfig.Sender,
-		SenderName:  providerConfig.SenderName,
-		Recipient:   verifyCode.LoginID,
-		Subject:     providerConfig.Subject,
-		ReplyTo:     providerConfig.ReplyTo,
-		ReplyToName: providerConfig.ReplyToName,
-		TextBody:    textBody,
-		HTMLBody:    htmlBody,
+		Dialer:    e.Dialer,
+		Sender:    providerConfig.Sender,
+		Recipient: verifyCode.LoginID,
+		Subject:   providerConfig.Subject,
+		ReplyTo:   providerConfig.ReplyTo,
+		TextBody:  textBody,
+		HTMLBody:  htmlBody,
 	}
 
 	err = sendReq.Execute()

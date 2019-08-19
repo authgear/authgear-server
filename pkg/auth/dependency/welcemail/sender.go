@@ -66,15 +66,13 @@ func (d *DefaultSender) Send(email string, user model.User) (err error) {
 	}
 
 	sendReq := mail.SendRequest{
-		Dialer:      d.Dialer,
-		Sender:      d.Config.Sender,
-		SenderName:  d.Config.SenderName,
-		Recipient:   email,
-		Subject:     d.Config.Subject,
-		ReplyTo:     d.Config.ReplyTo,
-		ReplyToName: d.Config.ReplyToName,
-		TextBody:    textBody,
-		HTMLBody:    htmlBody,
+		Dialer:    d.Dialer,
+		Sender:    d.Config.Sender,
+		Recipient: email,
+		Subject:   d.Config.Subject,
+		ReplyTo:   d.Config.ReplyTo,
+		TextBody:  textBody,
+		HTMLBody:  htmlBody,
 	}
 
 	err = sendReq.Execute()
