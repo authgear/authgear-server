@@ -29,6 +29,11 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
+		case "database_schema":
+			z.DatabaseSchema, err = dc.ReadString()
+			if err != nil {
+				return
+			}
 		case "smtp":
 			err = z.SMTP.DecodeMsg(dc)
 			if err != nil {
@@ -146,13 +151,22 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 5
+	// map header, size 6
 	// write "database_url"
-	err = en.Append(0x85, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
+	err = en.Append(0x86, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
 	if err != nil {
 		return err
 	}
 	err = en.WriteString(z.DatabaseURL)
+	if err != nil {
+		return
+	}
+	// write "database_schema"
+	err = en.Append(0xaf, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61)
+	if err != nil {
+		return err
+	}
+	err = en.WriteString(z.DatabaseSchema)
 	if err != nil {
 		return
 	}
@@ -249,10 +263,13 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 5
+	// map header, size 6
 	// string "database_url"
-	o = append(o, 0x85, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
+	o = append(o, 0x86, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
 	o = msgp.AppendString(o, z.DatabaseURL)
+	// string "database_schema"
+	o = append(o, 0xaf, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61)
+	o = msgp.AppendString(o, z.DatabaseSchema)
 	// string "smtp"
 	o = append(o, 0xa4, 0x73, 0x6d, 0x74, 0x70)
 	o, err = z.SMTP.MarshalMsg(o)
@@ -310,6 +327,11 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		switch msgp.UnsafeString(field) {
 		case "database_url":
 			z.DatabaseURL, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				return
+			}
+		case "database_schema":
+			z.DatabaseSchema, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
 				return
 			}
@@ -431,7 +453,7 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *AppConfiguration) Msgsize() (s int) {
-	s = 1 + 13 + msgp.StringPrefixSize + len(z.DatabaseURL) + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 7 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From) + 5 + 1 + 25 + msgp.IntSize + 31 + msgp.IntSize
+	s = 1 + 13 + msgp.StringPrefixSize + len(z.DatabaseURL) + 16 + msgp.StringPrefixSize + len(z.DatabaseSchema) + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 7 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From) + 5 + 1 + 25 + msgp.IntSize + 31 + msgp.IntSize
 	return
 }
 
@@ -3593,6 +3615,11 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
+		case "app_id":
+			z.AppID, err = dc.ReadString()
+			if err != nil {
+				return
+			}
 		case "app_name":
 			z.AppName, err = dc.ReadString()
 			if err != nil {
@@ -3679,13 +3706,22 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 6
+	// map header, size 7
 	// write "version"
-	err = en.Append(0x86, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0x87, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return err
 	}
 	err = en.WriteString(z.Version)
+	if err != nil {
+		return
+	}
+	// write "app_id"
+	err = en.Append(0xa6, 0x61, 0x70, 0x70, 0x5f, 0x69, 0x64)
+	if err != nil {
+		return err
+	}
+	err = en.WriteString(z.AppID)
 	if err != nil {
 		return
 	}
@@ -3767,10 +3803,13 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 6
+	// map header, size 7
 	// string "version"
-	o = append(o, 0x86, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0x87, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	o = msgp.AppendString(o, z.Version)
+	// string "app_id"
+	o = append(o, 0xa6, 0x61, 0x70, 0x70, 0x5f, 0x69, 0x64)
+	o = msgp.AppendString(o, z.AppID)
 	// string "app_name"
 	o = append(o, 0xa8, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	o = msgp.AppendString(o, z.AppName)
@@ -3828,6 +3867,11 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		switch msgp.UnsafeString(field) {
 		case "version":
 			z.Version, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				return
+			}
+		case "app_id":
+			z.AppID, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
 				return
 			}
@@ -3918,7 +3962,7 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *TenantConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 9 + msgp.StringPrefixSize + len(z.AppName) + 11 + z.AppConfig.Msgsize() + 12 + z.UserConfig.Msgsize() + 6 + msgp.ArrayHeaderSize
+	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 7 + msgp.StringPrefixSize + len(z.AppID) + 9 + msgp.StringPrefixSize + len(z.AppName) + 11 + z.AppConfig.Msgsize() + 12 + z.UserConfig.Msgsize() + 6 + msgp.ArrayHeaderSize
 	for zupd := range z.Hooks {
 		s += 1 + 6 + msgp.StringPrefixSize + len(z.Hooks[zupd].Event) + 4 + msgp.StringPrefixSize + len(z.Hooks[zupd].URL)
 	}

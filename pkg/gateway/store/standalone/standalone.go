@@ -11,8 +11,8 @@ type Store struct {
 }
 
 func (s *Store) GetAppByDomain(domain string, app *model.App) error {
-	app.ID = "standalone"
-	app.Name = "standalone"
+	app.ID = s.TenantConfig.AppID
+	app.Name = s.TenantConfig.AppName
 	app.Config = s.TenantConfig
 	app.Plan = model.Plan{
 		AuthEnabled: true,

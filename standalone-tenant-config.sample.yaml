@@ -1,7 +1,9 @@
 version: '1'
+app_id: myapp
 app_name: myapp
 app_config:
   database_url: postgres://postgres:@localhost:5432/postgres?sslmode=disable
+  database_schema: app
   smtp:
     host: smtp.gmail.com
     port: 587

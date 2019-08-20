@@ -24,6 +24,7 @@ import (
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
 	Version          string            `json:"version,omitempty" yaml:"version" msg:"version"`
+	AppID            string            `json:"app_id,omitempty" yaml:"app_id" msg:"app_id"`
 	AppName          string            `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
 	AppConfig        AppConfiguration  `json:"app_config,omitempty" yaml:"app_config" msg:"app_config"`
 	UserConfig       UserConfiguration `json:"user_config,omitempty" yaml:"user_config" msg:"user_config"`
@@ -162,6 +163,9 @@ func (c *TenantConfiguration) Validate() error {
 	if c.AppConfig.DatabaseURL == "" {
 		return errors.New("DATABASE_URL is not set")
 	}
+	if c.AppConfig.DatabaseSchema == "" {
+		return errors.New("DATABASE_SCHEMA is not set")
+	}
 	if c.AppConfig.SMTP.Mode != "" && !c.AppConfig.SMTP.Mode.IsValid() {
 		return errors.New("Invalid SMTP mode")
 	}
@@ -172,6 +176,11 @@ func (c *TenantConfiguration) Validate() error {
 	}
 	if err := name.ValidateAppName(c.AppName); err != nil {
 		return err
+	}
+
+	// Validate AppID
+	if c.AppID == "" {
+		return errors.New("APP_ID is not set")
 	}
 
 	// Validate UserConfiguration
@@ -656,11 +665,12 @@ type HookUserConfiguration struct {
 
 // AppConfiguration is configuration kept secret from the developer.
 type AppConfiguration struct {
-	DatabaseURL string               `json:"database_url,omitempty" yaml:"database_url" msg:"database_url"`
-	SMTP        SMTPConfiguration    `json:"smtp,omitempty" yaml:"smtp" msg:"smtp"`
-	Twilio      TwilioConfiguration  `json:"twilio,omitempty" yaml:"twilio" msg:"twilio"`
-	Nexmo       NexmoConfiguration   `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo"`
-	Hook        HookAppConfiguration `json:"hook,omitempty" yaml:"hook" msg:"hook"`
+	DatabaseURL    string               `json:"database_url,omitempty" yaml:"database_url" msg:"database_url"`
+	DatabaseSchema string               `json:"database_schema,omitempty" yaml:"database_schema" msg:"database_schema"`
+	SMTP           SMTPConfiguration    `json:"smtp,omitempty" yaml:"smtp" msg:"smtp"`
+	Twilio         TwilioConfiguration  `json:"twilio,omitempty" yaml:"twilio" msg:"twilio"`
+	Nexmo          NexmoConfiguration   `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo"`
+	Hook           HookAppConfiguration `json:"hook,omitempty" yaml:"hook" msg:"hook"`
 }
 
 type SMTPMode string
