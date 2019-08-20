@@ -1,7 +1,11 @@
 package hook
 
 import (
+	"net/http"
+	"net/url"
 	gotime "time"
+
+	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -13,6 +17,7 @@ import (
 
 type providerImpl struct {
 	RequestID               string
+	BaseURL                 *url.URL
 	Store                   Store
 	AuthContext             auth.ContextGetter
 	TimeProvider            time.Provider
@@ -24,6 +29,7 @@ type providerImpl struct {
 
 func NewProvider(
 	requestID string,
+	request *http.Request,
 	store Store,
 	authContext auth.ContextGetter,
 	timeProvider time.Provider,
@@ -33,6 +39,7 @@ func NewProvider(
 ) Provider {
 	return &providerImpl{
 		RequestID:        requestID,
+		BaseURL:          getHookBaseURL(request),
 		Store:            store,
 		AuthContext:      authContext,
 		TimeProvider:     timeProvider,
@@ -52,7 +59,7 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 				return
 			}
 			event := event.NewBeforeEvent(seq, typedPayload, provider.makeContext())
-			err = provider.Deliverer.DeliverBeforeEvent(event, user)
+			err = provider.Deliverer.DeliverBeforeEvent(provider.BaseURL, event, user)
 			if err != nil {
 				return err
 			}
@@ -126,7 +133,7 @@ func (provider *providerImpl) DidCommitTx() {
 	// TODO(webhook): deliver persisted events
 	events, _ := provider.Store.GetEventsForDelivery()
 	for _, event := range events {
-		_ = provider.Deliverer.DeliverNonBeforeEvent(event, 60*gotime.Second)
+		_ = provider.Deliverer.DeliverNonBeforeEvent(provider.BaseURL, event, 60*gotime.Second)
 	}
 }
 
@@ -188,4 +195,16 @@ func (provider *providerImpl) makeContext() event.Context {
 		UserID:      userID,
 		PrincipalID: principalID,
 	}
+}
+
+func getHookBaseURL(req *http.Request) *url.URL {
+	if req == nil {
+		return &url.URL{}
+	}
+
+	u := &url.URL{
+		Host:   corehttp.GetHost(req),
+		Scheme: corehttp.GetProto(req),
+	}
+	return u
 }

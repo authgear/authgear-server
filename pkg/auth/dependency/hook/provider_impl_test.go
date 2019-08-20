@@ -2,6 +2,7 @@ package hook
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 	gotime "time"
 
@@ -19,6 +20,7 @@ import (
 func TestDispatchEvent(t *testing.T) {
 	Convey("Hook Provider", t, func() {
 		requestID := "request-id"
+		req, _ := http.NewRequest("POST", "https://www.example.com", nil)
 		timeProvider := time.MockProvider{TimeNowUTC: gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)}
 		store := newMockStore()
 		authContext := auth.NewMockContextGetter()
@@ -28,6 +30,7 @@ func TestDispatchEvent(t *testing.T) {
 
 		provider := NewProvider(
 			requestID,
+			req,
 			store,
 			authContext,
 			&timeProvider,

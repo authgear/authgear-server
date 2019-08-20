@@ -17,7 +17,7 @@ type RequestDependencyMap interface {
 }
 
 type DependencyMap interface {
-	Provide(name string, ctx context.Context, requestID string, tenantConfig config.TenantConfiguration) interface{}
+	Provide(name string, request *http.Request, ctx context.Context, requestID string, tenantConfig config.TenantConfiguration) interface{}
 }
 
 func DefaultRequestInject(
@@ -28,6 +28,7 @@ func DefaultRequestInject(
 	return injectDependency(i, func(name string) interface{} {
 		return dependencyMap.Provide(
 			name,
+			request,
 			request.Context(),
 			request.Header.Get(coreHttp.HeaderRequestID),
 			config.GetTenantConfig(request),
@@ -42,7 +43,7 @@ func DefaultTaskInject( // nolint: golint
 	taskCtx async.TaskContext,
 ) (err error) {
 	return injectDependency(i, func(name string) interface{} {
-		return dependencyMap.Provide(name, ctx, taskCtx.RequestID, taskCtx.TenantConfig)
+		return dependencyMap.Provide(name, nil, ctx, taskCtx.RequestID, taskCtx.TenantConfig)
 	})
 }
 
