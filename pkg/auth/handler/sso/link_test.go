@@ -155,7 +155,7 @@ func TestLinkHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 404)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 117,
+					"code": 110,
 					"message": "External access token flow is disabled",
 					"name": "UndefinedOperation"
 				}

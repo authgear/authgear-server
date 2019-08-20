@@ -319,7 +319,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 404)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 117,
+					"code": 110,
 					"message": "Custom Token is disabled",
 					"name": "UndefinedOperation"
 				}
@@ -418,7 +418,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"code": 109,
+					"code": 108,
 					"message": "Aborted due to duplicate user",
 					"name": "Duplicated"
 				}

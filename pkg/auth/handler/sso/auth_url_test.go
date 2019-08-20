@@ -190,7 +190,7 @@ func TestAuthURLHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"code": 108,
+					"code": 107,
 					"info": {
 						"arguments": [
 							"nonsense"
@@ -219,7 +219,7 @@ func TestAuthURLHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"code": 108,
+					"code": 107,
 					"info": {
 						"arguments": [
 							"merge"
