@@ -59,6 +59,13 @@ deploy:
       repo: SkygearIO/skygear-server
       all_branches: true
       go: 1.12.5
+  - provider: script
+    script: ./scripts/deploy-gh-pages.sh
+    skip_cleanup: true
+    on:
+      repo: SkygearIO/skygear-server
+      branch: next
+      go: 1.12.5
 
 notifications:
   slack:
