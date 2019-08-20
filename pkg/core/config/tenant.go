@@ -119,7 +119,8 @@ func (c *TenantConfiguration) Scan(value interface{}) error {
 	if !ok {
 		return fmt.Errorf("Cannot convert %T to TenantConfiguration", value)
 	}
-	config, err := NewTenantConfigurationFromJSON(bytes.NewReader(b), true)
+	// The Scan implemented by TenantConfiguration always call AfterUnmarshal.
+	config, err := NewTenantConfigurationFromJSON(bytes.NewReader(b), false)
 	if err != nil {
 		return err
 	}

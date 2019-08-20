@@ -83,7 +83,6 @@ func (s *Store) getConfigByID(id string, configValue *config.TenantConfiguration
 		return err
 	}
 
-	configValue.AfterUnmarshal()
 	return nil
 }
 
