@@ -4,6 +4,8 @@ VERSION="$(git describe --always)"
 PROJ_ROOT="$PWD"
 TMP_DIR="$(mktemp -d)"
 
+git branch -C origin/gh-pages gh-pages
+
 cd "$TMP_DIR"
 
 go get -u github.com/skygeario/openapi3-gen/cmd/openapi3-gen
