@@ -53,7 +53,7 @@ func (m DependencyMap) Provide(
 	}
 
 	newSQLBuilder := func() db.SQLBuilder {
-		return db.NewSQLBuilder("auth", tConfig.AppName)
+		return db.NewSQLBuilder("auth", tConfig.AppConfig.DatabaseSchema, tConfig.AppID)
 	}
 
 	newSQLExecutor := func() db.SQLExecutor {

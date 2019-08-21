@@ -30,21 +30,24 @@ func (u storeImpl) CreateUserProfile(userID string, data Data) (profile UserProf
 		return
 	}
 
-	builder := u.sqlBuilder.Insert(u.sqlBuilder.FullTableName("user_profile")).Columns(
-		"user_id",
-		"created_at",
-		"created_by",
-		"updated_at",
-		"updated_by",
-		"data",
-	).Values(
-		userID,
-		now,
-		userID,
-		now,
-		userID,
-		dataBytes,
-	)
+	builder := u.sqlBuilder.Tenant().
+		Insert(u.sqlBuilder.FullTableName("user_profile")).
+		Columns(
+			"user_id",
+			"created_at",
+			"created_by",
+			"updated_at",
+			"updated_by",
+			"data",
+		).
+		Values(
+			userID,
+			now,
+			userID,
+			now,
+			userID,
+			dataBytes,
+		)
 
 	_, err = u.sqlExecutor.ExecWith(builder)
 	if err != nil {
@@ -56,7 +59,8 @@ func (u storeImpl) CreateUserProfile(userID string, data Data) (profile UserProf
 }
 
 func (u storeImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
-	builder := u.sqlBuilder.Select("created_at", "updated_at", "data").
+	builder := u.sqlBuilder.Tenant().
+		Select("created_at", "updated_at", "data").
 		From(u.sqlBuilder.FullTableName("user_profile")).
 		Where("user_id = ?", userID)
 	scanner := u.sqlExecutor.QueryRowWith(builder)
@@ -98,7 +102,8 @@ func (u storeImpl) UpdateUserProfile(userID string, data Data) (profile UserProf
 	}
 
 	now := timeNow()
-	builder := u.sqlBuilder.Update(u.sqlBuilder.FullTableName("user_profile")).
+	builder := u.sqlBuilder.Tenant().
+		Update(u.sqlBuilder.FullTableName("user_profile")).
 		Set("updated_at", now).
 		Set("data", dataBytes).
 		Where("user_id = ?", userID)
