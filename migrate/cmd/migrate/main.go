@@ -178,9 +178,14 @@ func runMultiTenantMigrations(
 		"filter_value": appFilterValue,
 	}).Info("start running migration")
 
+	migratedDatabaseURLs := map[string]struct{}{}
 	for _, a := range apps {
+		databaseURL := a.DatabaseURL
+		if _, migrated := migratedDatabaseURLs[databaseURL]; migrated {
+			continue
+		}
+
 		for _, migration := range migrations {
-			databaseURL := a.DatabaseURL
 			schema := "app"
 
 			sourceURL := ""
@@ -202,6 +207,8 @@ func runMultiTenantMigrations(
 				os.Exit(1)
 			}
 		}
+
+		migratedDatabaseURLs[databaseURL] = struct{}{}
 	}
 }
 
