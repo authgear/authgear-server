@@ -79,8 +79,11 @@ func (s *Store) getConfigByID(id string, configValue *config.TenantConfiguration
 	if err == sql.ErrNoRows {
 		return ErrConfigNotFound
 	}
+	if err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
 func (s *Store) getPlanByID(id string, plan *model.Plan) error {

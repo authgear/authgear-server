@@ -39,7 +39,7 @@ const (
 				"user_verification": { "$ref": "#UserVerificationConfiguration" },
 				"hook": { "$ref": "#HookUserConfiguration" }
 			},
-			"required": ["api_key", "master_key", "auth", "token_store"]
+			"required": ["api_key", "master_key", "auth", "token_store", "hook"]
 		},
 		"CORSConfiguration": {
 			"$id": "#CORSConfiguration",
@@ -65,8 +65,7 @@ const (
 					"minItems": 1,
 					"items": { "$ref": "#NonEmptyString" }
 				}
-			},
-			"required": ["login_id_keys", "allowed_realms"]
+			}
 		},
 		"LoginIDKeyConfiguration": {
 			"$id": "#LoginIDKeyConfiguration",
@@ -78,7 +77,8 @@ const (
 				},
 				"minimum": { "$ref": "#NonNegativeInteger" },
 				"maximum": { "$ref": "#NonNegativeInteger" }
-			}
+			},
+			"required": ["type"]
 		},
 		"TokenStoreConfiguration": {
 			"$id": "#TokenStoreConfiguration",
@@ -167,7 +167,8 @@ const (
 			"properties": {
 				"custom_token": { "$ref": "#CustomTokenConfiguration" },
 				"oauth": { "$ref": "#OAuthConfiguration" }
-			}
+			},
+			"required": ["custom_token"]
 		},
 		"CustomTokenConfiguration": {
 			"$id": "#CustomTokenConfiguration",
@@ -190,6 +191,9 @@ const (
 			},
 			"then": {
 				"required": ["issuer", "audience", "secret"]
+			},
+			"else": {
+				"required": ["secret"]
 			}
 		},
 		"OAuthConfiguration": {
@@ -226,6 +230,9 @@ const (
 					}
 				},
 				"required": ["state_jwt_secret", "allowed_callback_urls"]
+			},
+			"else": {
+				"required": ["state_jwt_secret"]
 			}
 		},
 		"OAuthProviderConfiguration": {
