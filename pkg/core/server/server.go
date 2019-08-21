@@ -25,16 +25,19 @@ type Server struct {
 
 	router                     *mux.Router
 	authContextResolverFactory authn.AuthContextResolverFactory
+	dbPool                     db.Pool
 }
 
 // NewServer create a new Server with default option
 func NewServer(
 	addr string,
 	authContextResolverFactory authn.AuthContextResolverFactory,
+	dbPool db.Pool,
 ) Server {
 	return NewServerWithOption(
 		addr,
 		authContextResolverFactory,
+		dbPool,
 		DefaultOption(),
 	)
 }
@@ -43,6 +46,7 @@ func NewServer(
 func NewServerWithOption(
 	addr string,
 	authContextResolverFactory authn.AuthContextResolverFactory,
+	dbPool db.Pool,
 	option Option,
 ) Server {
 	router := mux.NewRouter()
@@ -64,6 +68,7 @@ func NewServerWithOption(
 			Handler:      router,
 		},
 		authContextResolverFactory: authContextResolverFactory,
+		dbPool:                     dbPool,
 	}
 
 	if option.RecoverPanic {
@@ -84,13 +89,7 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 		log := logging.CreateLoggerWithContext(r.Context(), "server")
 
 		r = auth.InitRequestAuthContext(r)
-		r = db.InitRequestDBContext(r)
-		dbContext := db.NewContextWithContext(r.Context(), configuration)
-		defer func() {
-			if err := dbContext.Close(); err != nil {
-				log.WithError(err).Error("failed to close db connection")
-			}
-		}()
+		r = db.InitRequestDBContext(r, s.dbPool)
 
 		h := hf.NewHandler(r)
 

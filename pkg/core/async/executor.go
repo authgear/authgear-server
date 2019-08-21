@@ -11,6 +11,7 @@ import (
 
 type Executor struct {
 	taskFactoryMap map[string]TaskFactory
+	pool           db.Pool
 }
 
 func NewExecutor() *Executor {
@@ -25,7 +26,7 @@ func (e *Executor) Register(name string, taskFactory TaskFactory) {
 
 func (e *Executor) Execute(taskCtx TaskContext, name string, param interface{}, response chan error) {
 	factory := e.taskFactoryMap[name]
-	ctx := db.InitDBContext(context.Background())
+	ctx := db.InitDBContext(context.Background(), e.pool)
 	task := factory.NewTask(ctx, taskCtx)
 
 	formatter := logging.CreateMaskFormatter(taskCtx.TenantConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})

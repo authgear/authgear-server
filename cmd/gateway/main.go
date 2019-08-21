@@ -71,6 +71,7 @@ func main() {
 	defer store.Close()
 
 	gatewayDependency := gateway.DependencyMap{}
+	dbPool := db.NewPool()
 
 	rr := mux.NewRouter()
 	rr.HandleFunc("/_healthz", HealthCheckHandler)
@@ -109,15 +110,7 @@ func main() {
 
 	cr.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			tenantConfig := coreConfig.GetTenantConfig(r)
-			r = db.InitRequestDBContext(r)
-			dbContext := db.NewContextWithContext(r.Context(), tenantConfig)
-			defer func() {
-				if err := dbContext.Close(); err != nil {
-					logger.WithError(err).Error("failed to close db connection")
-				}
-			}()
-
+			r = db.InitRequestDBContext(r, dbPool)
 			next.ServeHTTP(w, r)
 		})
 	})

@@ -19,7 +19,6 @@ var (
 // Context provides db with the interface for retrieving an interface to execute sql
 type Context interface {
 	DB() ExtContext
-	Close() error
 }
 
 // TxContext provides the interface for managing transaction
@@ -62,47 +61,43 @@ func WithTx(tx TxContext, do func() error) (err error) {
 
 // TODO: handle thread safety
 type contextContainer struct {
-	db *sqlx.DB
-	tx *sqlx.Tx
+	pool Pool
+	db   *sqlx.DB
+	tx   *sqlx.Tx
 }
 
 type dbContext struct {
 	context.Context
-	dbOpener func() (*sqlx.DB, error)
+	tConfig config.TenantConfiguration
 }
 
-func InitDBContext(ctx context.Context) context.Context {
-	container := &contextContainer{}
+func InitDBContext(ctx context.Context, pool Pool) context.Context {
+	container := &contextContainer{pool: pool}
 	return context.WithValue(ctx, keyContainer, container)
 }
 
 // InitRequestDBContext initialize db context for the request
-func InitRequestDBContext(req *http.Request) *http.Request {
-	return req.WithContext(InitDBContext(req.Context()))
+func InitRequestDBContext(req *http.Request, pool Pool) *http.Request {
+	return req.WithContext(InitDBContext(req.Context(), pool))
+}
+
+func newDBContext(ctx context.Context, tConfig config.TenantConfiguration) *dbContext {
+	return &dbContext{Context: ctx, tConfig: tConfig}
 }
 
 // NewContextWithContext creates a new context.DB from context
 func NewContextWithContext(ctx context.Context, tConfig config.TenantConfiguration) Context {
-	return &dbContext{
-		Context:  ctx,
-		dbOpener: OpenDB(tConfig),
-	}
+	return newDBContext(ctx, tConfig)
 }
 
 // NewTxContextWithContext creates a new context.Tx from context
 func NewTxContextWithContext(ctx context.Context, tConfig config.TenantConfiguration) TxContext {
-	return &dbContext{
-		Context:  ctx,
-		dbOpener: OpenDB(tConfig),
-	}
+	return newDBContext(ctx, tConfig)
 }
 
 // NewSafeTxContextWithContext creates a new context.Tx from context
 func NewSafeTxContextWithContext(ctx context.Context, tConfig config.TenantConfiguration) SafeTxContext {
-	return &dbContext{
-		Context:  ctx,
-		dbOpener: OpenDB(tConfig),
-	}
+	return newDBContext(ctx, tConfig)
 }
 
 func (d *dbContext) DB() ExtContext {
@@ -111,15 +106,6 @@ func (d *dbContext) DB() ExtContext {
 	}
 
 	return d.lazydb()
-}
-
-func (d *dbContext) Close() error {
-	db := d.db()
-	if db != nil {
-		return db.Close()
-	}
-
-	return nil
 }
 
 func (d *dbContext) HasTx() bool {
@@ -189,12 +175,13 @@ func (d *dbContext) tx() *sqlx.Tx {
 func (d *dbContext) lazydb() *sqlx.DB {
 	db := d.db()
 	if db == nil {
+		container := d.container()
+
 		var err error
-		if db, err = d.dbOpener(); err != nil {
+		if db, err = container.pool.Open(d.tConfig); err != nil {
 			panic(err)
 		}
 
-		container := d.container()
 		container.db = db
 	}
 
