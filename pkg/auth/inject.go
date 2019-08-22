@@ -7,7 +7,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"

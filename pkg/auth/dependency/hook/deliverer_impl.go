@@ -9,7 +9,7 @@ import (
 	"net/url"
 	gotime "time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/http"
