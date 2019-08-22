@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -45,7 +46,7 @@ func (p *poolImpl) Open(tConfig config.TenantConfiguration) (db *sqlx.DB, err er
 		p.cacheMutex.Lock()
 		db, exists = p.cache[source]
 		if !exists {
-			db, err = sqlx.Open("postgres", source)
+			db, err = openPostgresDB(source)
 			if err == nil {
 				p.cache[source] = db
 			}
@@ -67,5 +68,18 @@ func (p *poolImpl) Close() (err error) {
 		}
 	}
 
+	return
+}
+
+func openPostgresDB(url string) (db *sqlx.DB, err error) {
+	db, err = sqlx.Open("postgres", url)
+	if err != nil {
+		return
+	}
+
+	// TODO(pool): configurable / profile for good value?
+	db.SetMaxOpenConns(5)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(30 * time.Minute)
 	return
 }
