@@ -4,7 +4,7 @@ VERSION="$(git describe --always)"
 PROJ_ROOT="$PWD"
 TMP_DIR="$(mktemp -d)"
 
-git branch -C origin/gh-pages gh-pages
+git fetch origin gh-pages:gh-pages -f
 
 cd "$TMP_DIR"
 
