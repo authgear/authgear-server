@@ -1,7 +1,16 @@
 package session
 
-import "time"
+import (
+	"time"
+)
 
+type TokenKind string
+
+const (
+	TokenKindAccessToken TokenKind = "access-token"
+)
+
+// Session represents a session of user logged in with a principal.
 type Session struct {
 	ID          string `json:"id"`
 	UserID      string `json:"user_id"`
