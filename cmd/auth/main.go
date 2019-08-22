@@ -99,7 +99,6 @@ func main() {
 	authDependency := auth.DependencyMap{
 		AsyncTaskExecutor: asyncTaskExecutor,
 		TemplateEngine:    templateEngine,
-		RedisPool:         redisPool,
 	}
 
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
@@ -107,6 +106,10 @@ func main() {
 	task.AttachWelcomeEmailSendTask(asyncTaskExecutor, authDependency)
 
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}
+
+	setupCtxFn := server.SetupContextFunc(func(ctx context.Context) context.Context {
+		return redis.WithRedis(ctx, redisPool)
+	})
 
 	var srv server.Server
 	if configuration.Standalone {
@@ -130,7 +133,7 @@ func main() {
 
 		serverOption := server.DefaultOption()
 		serverOption.GearPathPrefix = configuration.PathPrefix
-		srv = server.NewServerWithOption(configuration.Host, authContextResolverFactory, dbPool, serverOption)
+		srv = server.NewServerWithOption(configuration.Host, authContextResolverFactory, dbPool, setupCtxFn, serverOption)
 		srv.Use(middleware.TenantConfigurationMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
 				return *tenantConfig, nil
@@ -140,7 +143,7 @@ func main() {
 		srv.Use(middleware.RequestIDMiddleware{}.Handle)
 		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		srv = server.NewServer(configuration.Host, authContextResolverFactory, dbPool)
+		srv = server.NewServer(configuration.Host, authContextResolverFactory, dbPool, setupCtxFn)
 	}
 
 	handler.AttachSignupHandler(&srv, authDependency)

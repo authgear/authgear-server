@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -19,6 +20,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
 
+// SetupContextFunc setup context for usage in handler
+type SetupContextFunc func(context.Context) context.Context
+
 // Server embeds a net/http server and has a gorillax mux internally
 type Server struct {
 	*http.Server
@@ -26,6 +30,7 @@ type Server struct {
 	router                     *mux.Router
 	authContextResolverFactory authn.AuthContextResolverFactory
 	dbPool                     db.Pool
+	setupCtxFn                 SetupContextFunc
 }
 
 // NewServer create a new Server with default option
@@ -33,11 +38,13 @@ func NewServer(
 	addr string,
 	authContextResolverFactory authn.AuthContextResolverFactory,
 	dbPool db.Pool,
+	setupCtxFn SetupContextFunc,
 ) Server {
 	return NewServerWithOption(
 		addr,
 		authContextResolverFactory,
 		dbPool,
+		setupCtxFn,
 		DefaultOption(),
 	)
 }
@@ -47,6 +54,7 @@ func NewServerWithOption(
 	addr string,
 	authContextResolverFactory authn.AuthContextResolverFactory,
 	dbPool db.Pool,
+	setupCtxFn SetupContextFunc,
 	option Option,
 ) Server {
 	router := mux.NewRouter()
@@ -69,6 +77,7 @@ func NewServerWithOption(
 		},
 		authContextResolverFactory: authContextResolverFactory,
 		dbPool:                     dbPool,
+		setupCtxFn:                 setupCtxFn,
 	}
 
 	if option.RecoverPanic {
@@ -90,6 +99,9 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 
 		r = auth.InitRequestAuthContext(r)
 		r = db.InitRequestDBContext(r, s.dbPool)
+		if s.setupCtxFn != nil {
+			r = r.WithContext(s.setupCtxFn(r.Context()))
+		}
 
 		h := hf.NewHandler(r)
 
