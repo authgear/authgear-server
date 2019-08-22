@@ -101,18 +101,26 @@ func main() {
 
 	cr := r.PathPrefix("/").Subrouter()
 
-	cr.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r = db.InitRequestDBContext(r)
-			next.ServeHTTP(w, r)
-		})
-	})
-
 	cr.Use(coreMiddleware.TenantConfigurationMiddleware{
 		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
 			Store: store,
 		},
 	}.Handle)
+
+	cr.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			tenantConfig := coreConfig.GetTenantConfig(r)
+			r = db.InitRequestDBContext(r)
+			dbContext := db.NewContextWithContext(r.Context(), tenantConfig)
+			defer func() {
+				if err := dbContext.Close(); err != nil {
+					logger.WithError(err).Error("failed to close db connection")
+				}
+			}()
+
+			next.ServeHTTP(w, r)
+		})
+	})
 
 	cr.Use(middleware.FindDeploymentRouteMiddleware{
 		RestPathIdentifier: "rest",
