@@ -13,6 +13,13 @@ services:
     - db_data:/var/lib/postgresql/data
     ports:
     - "5432:5432"
+  redis:
+    image: redis:5.0
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
   gateway:
     build:
       dockerfile: ./cmd/gateway/Dockerfile
@@ -21,21 +28,27 @@ services:
     - "DATABASE_URL=postgres://postgres:@db/postgres?sslmode=disable"
     - "HOST=0.0.0.0:3001"
     - "AUTH_LIVE_URL=http://auth:3000"
+    - "REDIS_HOST=redis"
     ports:
     - "3001:3001"
     depends_on:
     - db
+    - redis
   auth:
     build:
       dockerfile: ./cmd/auth/Dockerfile
       context: .
     environment:
     - "HOST=0.0.0.0:3000"
+    - "REDIS_HOST=redis"
     ports:
     - "3000:3000"
     depends_on:
     - db
+    - redis
 
 volumes:
   db_data:
+    driver: local
+  redis_data:
     driver: local

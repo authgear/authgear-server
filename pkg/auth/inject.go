@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/gomodule/redigo/redis"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
 
@@ -36,6 +38,7 @@ import (
 type DependencyMap struct {
 	TemplateEngine    *template.Engine
 	AsyncTaskExecutor *async.Executor
+	RedisPool         *redis.Pool
 }
 
 // Provide provides dependency instance by name
