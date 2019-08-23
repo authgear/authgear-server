@@ -2,15 +2,15 @@ package testing
 
 import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	authinfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	authtoken "github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	model "github.com/skygeario/skygear-server/pkg/core/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
 type MockContext struct {
 	accessKeyType model.KeyType
 	authInfo      *authinfo.AuthInfo
-	token         *authtoken.Token
+	session       *session.Session
 }
 
 var _ auth.ContextGetter = &MockContext{}
@@ -27,8 +27,8 @@ func (m *MockContext) AuthInfo() *authinfo.AuthInfo {
 	return m.authInfo
 }
 
-func (m *MockContext) Token() *authtoken.Token {
-	return m.token
+func (m *MockContext) Session() *session.Session {
+	return m.session
 }
 
 func (m *MockContext) UseNoAccessKey() *MockContext {
@@ -46,8 +46,8 @@ func (m *MockContext) UseUser(userID string, principalID string) *MockContext {
 		ID:         userID,
 		VerifyInfo: map[string]bool{},
 	}
-	m.token = &authtoken.Token{
-		AuthInfoID:  userID,
+	m.session = &session.Session{
+		UserID:      userID,
 		PrincipalID: principalID,
 	}
 	return m

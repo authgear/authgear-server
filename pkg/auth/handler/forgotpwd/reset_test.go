@@ -24,7 +24,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -79,7 +78,6 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			},
 		)
 		fh.UserProfileStore = userprofile.NewMockUserProfileStore()
-		fh.TokenStore = authtoken.NewJWTStore("myApp", "secret", 0)
 		fh.CodeGenerator = codeGenerator
 		fh.PasswordChecker = &authAudit.PasswordChecker{}
 		fh.TaskQueue = mockTaskQueue

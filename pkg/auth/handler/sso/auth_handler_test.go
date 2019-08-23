@@ -19,8 +19,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
@@ -123,8 +123,7 @@ func TestAuthHandler(t *testing.T) {
 			map[string]authinfo.AuthInfo{},
 		)
 		sh.AuthInfoStore = authInfoStore
-		mockTokenStore := authtoken.NewMockStore()
-		sh.TokenStore = mockTokenStore
+		sh.SessionProvider = session.NewMockProvider()
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
@@ -187,7 +186,6 @@ func TestAuthHandler(t *testing.T) {
 				ProviderUserID: providerUserID,
 			})
 			So(err, ShouldBeNil)
-			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(actual, ShouldEqualJSON, fmt.Sprintf(`
 			{
 				"callback_url": "http://localhost:3000",
@@ -215,13 +213,10 @@ func TestAuthHandler(t *testing.T) {
 								"email": "mock@example.com"
 							}
 						},
-						"access_token": "%s"
+						"access_token": "access-token-%s-%s-0"
 					}
 				}
-			}`,
-				p.UserID,
-				p.ID,
-				token.AccessToken))
+			}`, p.UserID, p.ID, p.UserID, p.ID))
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
@@ -295,7 +290,6 @@ func TestAuthHandler(t *testing.T) {
 				ProviderType:   "google",
 				ProviderUserID: providerUserID,
 			})
-			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(decoded, ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
 					"user": {
@@ -320,12 +314,9 @@ func TestAuthHandler(t *testing.T) {
 							"email": "mock@example.com"
 						}
 					},
-					"access_token": "%s"
+					"access_token": "access-token-%s-%s-0"
 				}
-			}`,
-				p.UserID,
-				p.ID,
-				token.AccessToken))
+			}`, p.UserID, p.ID, p.UserID, p.ID))
 		})
 	})
 
@@ -376,8 +367,7 @@ func TestAuthHandler(t *testing.T) {
 			},
 		)
 		sh.AuthInfoStore = authInfoStore
-		mockTokenStore := authtoken.NewMockStore()
-		sh.TokenStore = mockTokenStore
+		sh.SessionProvider = session.NewMockProvider()
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
@@ -552,8 +542,7 @@ func TestAuthHandler(t *testing.T) {
 			},
 		)
 		sh.AuthInfoStore = authInfoStore
-		mockTokenStore := authtoken.NewMockStore()
-		sh.TokenStore = mockTokenStore
+		sh.SessionProvider = session.NewMockProvider()
 		profileData := map[string]map[string]interface{}{
 			"john.doe.id": map[string]interface{}{},
 		}
@@ -676,7 +665,6 @@ func TestAuthHandler(t *testing.T) {
 				ProviderType:   "google",
 				ProviderUserID: providerUserID,
 			})
-			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(actual, ShouldEqualJSON, fmt.Sprintf(`
 			{
 				"callback_url": "http://localhost:3000",
@@ -703,7 +691,7 @@ func TestAuthHandler(t *testing.T) {
 								"email": "john.doe@example.com"
 							}
 						},
-						"access_token": "%s"
+						"access_token": "access-token-%s-%s-0"
 					}
 				}
 			}
@@ -711,7 +699,8 @@ func TestAuthHandler(t *testing.T) {
 				p.ID,
 				providerUserID,
 				providerUserID,
-				token.AccessToken))
+				p.UserID,
+				p.ID))
 		})
 
 		Convey("OnUserDuplicate == create", func() {
@@ -749,7 +738,6 @@ func TestAuthHandler(t *testing.T) {
 				ProviderUserID: providerUserID,
 			})
 			So(p.UserID, ShouldNotEqual, "john.doe.id")
-			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(actual, ShouldEqualJSON, fmt.Sprintf(`
 			{
 				"callback_url": "http://localhost:3000",
@@ -777,7 +765,7 @@ func TestAuthHandler(t *testing.T) {
 								"email": "john.doe@example.com"
 							}
 						},
-						"access_token": "%s"
+						"access_token": "access-token-%s-%s-0"
 					}
 				}
 			}
@@ -785,7 +773,8 @@ func TestAuthHandler(t *testing.T) {
 				p.ID,
 				providerUserID,
 				providerUserID,
-				token.AccessToken))
+				p.UserID,
+				p.ID))
 		})
 	})
 }

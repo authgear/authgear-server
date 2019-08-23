@@ -18,9 +18,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -113,7 +113,7 @@ type LoginHandler struct {
 	OAuthAuthProvider   oauth.Provider             `dependency:"OAuthAuthProvider"`
 	IdentityProvider    principal.IdentityProvider `dependency:"IdentityProvider"`
 	AuthInfoStore       authinfo.Store             `dependency:"AuthInfoStore"`
-	TokenStore          authtoken.Store            `dependency:"TokenStore"`
+	SessionProvider     session.Provider           `dependency:"SessionProvider"`
 	ProviderFactory     *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
 	UserProfileStore    userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider        hook.Provider              `dependency:"HookProvider"`
@@ -168,7 +168,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	handler := respHandler{
-		TokenStore:          h.TokenStore,
+		SessionProvider:     h.SessionProvider,
 		AuthInfoStore:       h.AuthInfoStore,
 		OAuthAuthProvider:   h.OAuthAuthProvider,
 		IdentityProvider:    h.IdentityProvider,

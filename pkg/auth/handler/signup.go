@@ -23,10 +23,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -161,7 +161,7 @@ func (p SignupRequestPayload) duplicatedLoginIDs() bool {
 type SignupHandler struct {
 	PasswordChecker         *authAudit.PasswordChecker                         `dependency:"PasswordChecker"`
 	UserProfileStore        userprofile.Store                                  `dependency:"UserProfileStore"`
-	TokenStore              authtoken.Store                                    `dependency:"TokenStore"`
+	SessionProvider         session.Provider                                   `dependency:"SessionProvider"`
 	AuthInfoStore           authinfo.Store                                     `dependency:"AuthInfoStore"`
 	PasswordAuthProvider    password.Provider                                  `dependency:"PasswordAuthProvider"`
 	IdentityProvider        principal.IdentityProvider                         `dependency:"IdentityProvider"`
@@ -290,13 +290,9 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		Event:  audit.EventSignup,
 	})
 
-	// Create auth token
-	tkn, err := h.TokenStore.NewToken(info.ID, loginPrincipal.PrincipalID())
+	// generate session
+	session, err := h.SessionProvider.Create(info.ID, loginPrincipal.PrincipalID())
 	if err != nil {
-		panic(err)
-	}
-
-	if err = h.TokenStore.Put(&tkn); err != nil {
 		panic(err)
 	}
 
@@ -319,7 +315,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	resp = model.NewAuthResponse(user, loginIdentity, tkn.AccessToken)
+	resp = model.NewAuthResponse(user, loginIdentity, session.AccessToken)
 
 	if h.WelcomeEmailEnabled {
 		h.sendWelcomeEmail(user, payload.LoginIDs)

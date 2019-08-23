@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
@@ -19,21 +19,21 @@ var (
 type ContextGetter interface {
 	AccessKeyType() model.KeyType
 	AuthInfo() *authinfo.AuthInfo
-	Token() *authtoken.Token
+	Session() *session.Session
 }
 
 // ContextSetter provides interface for setting authentication data
 type ContextSetter interface {
 	SetAccessKeyType(model.KeyType)
 	SetAuthInfo(*authinfo.AuthInfo)
-	SetToken(*authtoken.Token)
+	SetSession(*session.Session)
 }
 
 // TODO: handle thread safety
 type contextContainer struct {
 	accessKeyType model.KeyType
 	authInfo      *authinfo.AuthInfo
-	token         *authtoken.Token
+	session       *session.Session
 }
 
 type authContext struct {
@@ -65,9 +65,9 @@ func (a *authContext) AuthInfo() *authinfo.AuthInfo {
 	return container.authInfo
 }
 
-func (a *authContext) Token() *authtoken.Token {
+func (a *authContext) Session() *session.Session {
 	container := a.container()
-	return container.token
+	return container.session
 }
 
 func (a *authContext) SetAccessKeyType(keyType model.KeyType) {
@@ -80,9 +80,9 @@ func (a *authContext) SetAuthInfo(authInfo *authinfo.AuthInfo) {
 	container.authInfo = authInfo
 }
 
-func (a *authContext) SetToken(token *authtoken.Token) {
+func (a *authContext) SetSession(session *session.Session) {
 	container := a.container()
-	container.token = token
+	container.session = session
 }
 
 func (a *authContext) container() *contextContainer {

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -21,7 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -40,14 +39,13 @@ func TestChangePasswordHandler(t *testing.T) {
 	Convey("Test ChangePasswordHandler", t, func() {
 		// fixture
 		userID := "john.doe.id"
-		mockTokenStore := authtoken.NewMockStore()
 		mockTaskQueue := async.NewMockQueue()
 
 		lh := &ChangePasswordHandler{}
 		lh.AuditTrail = audit.NewMockTrail(t)
 		lh.AuthContext = authtest.NewMockContext().UseUser(userID, "john.doe.principal.id0").MarkVerified()
 		lh.AuthInfoStore = authinfo.NewMockStoreWithUser(userID)
-		lh.TokenStore = mockTokenStore
+		lh.SessionProvider = session.NewMockProvider()
 		profileData := map[string]map[string]interface{}{
 			"john.doe.id": map[string]interface{}{},
 		}
@@ -95,10 +93,8 @@ func TestChangePasswordHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
-			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
-
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {
 					"user": {
 						"id": "john.doe.id",
@@ -116,9 +112,9 @@ func TestChangePasswordHandler(t *testing.T) {
 						"realm": "",
 						"type": "password"
 					},
-					"access_token": "%s"
+					"access_token": "access-token-john.doe.id-john.doe.principal.id0-0"
 				}
-			}`, token.AccessToken))
+			}`)
 
 			// should enqueue pw housekeeper task
 			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)

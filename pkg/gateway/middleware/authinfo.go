@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/model"
@@ -14,9 +14,9 @@ import (
 // AuthInfoMiddleware injects auth info headers into the request
 // if x-skygear-access-token is present in the request.
 type AuthInfoMiddleware struct {
-	TokenStore    authtoken.Store `dependency:"TokenStore"`
-	AuthInfoStore authinfo.Store  `dependency:"AuthInfoStore"`
-	TxContext     db.TxContext    `dependency:"TxContext"`
+	SessionProvider session.Provider `dependency:"SessionProvider"`
+	AuthInfoStore   authinfo.Store   `dependency:"AuthInfoStore"`
+	TxContext       db.TxContext     `dependency:"TxContext"`
 }
 
 // AuthInfoMiddlewareFactory creates AuthInfoMiddleware per request.
@@ -53,15 +53,14 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		}
 		defer m.TxContext.RollbackTx()
 
-		token := authtoken.Token{}
-		err = m.TokenStore.Get(accessToken, &token)
+		session, err := m.SessionProvider.GetByToken(accessToken, session.TokenKindAccessToken)
 		if err != nil {
 			http.Error(w, "invalid access token", http.StatusUnauthorized)
 			return
 		}
 
 		authInfo := authinfo.AuthInfo{}
-		err = m.AuthInfoStore.GetAuth(token.AuthInfoID, &authInfo)
+		err = m.AuthInfoStore.GetAuth(session.UserID, &authInfo)
 		if err != nil {
 			http.Error(w, "invalid access token", http.StatusUnauthorized)
 			return

@@ -161,8 +161,8 @@ func (m DependencyMap) Provide(
 		return newAuthContext()
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
-	case "TokenStore":
-		return coreAuth.NewDefaultTokenStore(ctx, tConfig)
+	case "SessionProvider":
+		return coreAuth.NewDefaultSessionProvider(ctx, tConfig)
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "PasswordChecker":

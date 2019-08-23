@@ -21,7 +21,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -135,11 +135,11 @@ func TestLoginHandler(t *testing.T) {
 				},
 			},
 		)
-		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 
 		h := &LoginHandler{}
 		h.AuthInfoStore = authInfoStore
-		h.TokenStore = tokenStore
+		sessionProvider := session.NewMockProvider()
+		h.SessionProvider = sessionProvider
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.IdentityProvider = principal.NewMockIdentityProvider(h.PasswordAuthProvider)
 		h.AuditTrail = coreAudit.NewMockTrail(t)
@@ -169,10 +169,8 @@ func TestLoginHandler(t *testing.T) {
 
 			// check the token
 			tokenStr := authResp.AccessToken
-			token := authtoken.Token{}
-			tokenStore.Get(tokenStr, &token)
-			So(token.AuthInfoID, ShouldEqual, userID)
-			So(!token.IsExpired(), ShouldBeTrue)
+			s, _ := sessionProvider.GetByToken(tokenStr, session.TokenKindAccessToken)
+			So(s.UserID, ShouldEqual, userID)
 		})
 
 		Convey("login user without login ID key", func() {
@@ -323,8 +321,7 @@ func TestLoginHandler(t *testing.T) {
 
 		lh := &LoginHandler{}
 		lh.AuthInfoStore = authInfoStore
-		mockTokenStore := authtoken.NewMockStore()
-		lh.TokenStore = mockTokenStore
+		lh.SessionProvider = session.NewMockProvider()
 		lh.PasswordAuthProvider = passwordAuthProvider
 		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
 		lh.AuditTrail = coreAudit.NewMockTrail(t)
@@ -348,7 +345,6 @@ func TestLoginHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
-			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
 					"user": {
@@ -369,12 +365,9 @@ func TestLoginHandler(t *testing.T) {
 							"email": "john.doe@example.com"
 						}
 					},
-					"access_token": "%s"
+					"access_token": "access-token-%s-john.doe.principal.id1-0"
 				}
-			}`,
-				userID,
-				token.AccessToken,
-			))
+			}`, userID, userID))
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.SessionCreateEvent{

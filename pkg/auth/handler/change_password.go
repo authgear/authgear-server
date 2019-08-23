@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -18,7 +20,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -114,7 +115,7 @@ type ChangePasswordHandler struct {
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
-	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+	SessionProvider      session.Provider           `dependency:"SessionProvider"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider         hook.Provider              `dependency:"HookProvider"`
@@ -154,7 +155,7 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 
 	principal := principals[0]
 	for _, p := range principals {
-		if p.ID == h.AuthContext.Token().PrincipalID {
+		if p.ID == h.AuthContext.Session().PrincipalID {
 			principal = p
 		}
 		if !p.IsSamePassword(payload.OldPassword) {
@@ -174,13 +175,9 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	// generate access-token
-	token, err := h.TokenStore.NewToken(authinfo.ID, h.AuthContext.Token().PrincipalID)
+	// generate session
+	session, err := h.SessionProvider.Create(authinfo.ID, h.AuthContext.Session().PrincipalID)
 	if err != nil {
-		panic(err)
-	}
-
-	if err = h.TokenStore.Put(&token); err != nil {
 		panic(err)
 	}
 
@@ -207,7 +204,7 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	resp = model.NewAuthResponse(user, identity, token.AccessToken)
+	resp = model.NewAuthResponse(user, identity, session.AccessToken)
 
 	h.AuditTrail.Log(audit.Entry{
 		UserID: authinfo.ID,

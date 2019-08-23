@@ -13,7 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -29,7 +29,7 @@ import (
 type ssoProviderParameter string
 
 type respHandler struct {
-	TokenStore          authtoken.Store
+	SessionProvider     session.Provider
 	AuthInfoStore       authinfo.Store
 	OAuthAuthProvider   oauth.Provider
 	IdentityProvider    principal.IdentityProvider
@@ -78,13 +78,9 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 		}
 	}
 
-	// Create auth token
-	var token authtoken.Token
-	token, err = h.TokenStore.NewToken(info.ID, principal.ID)
+	// generate session
+	session, err := h.SessionProvider.Create(info.ID, principal.ID)
 	if err != nil {
-		panic(err)
-	}
-	if err = h.TokenStore.Put(&token); err != nil {
 		panic(err)
 	}
 
@@ -120,7 +116,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 		return
 	}
 
-	resp = model.NewAuthResponse(user, identity, token.AccessToken)
+	resp = model.NewAuthResponse(user, identity, session.AccessToken)
 
 	if createNewUser &&
 		h.WelcomeEmailEnabled &&

@@ -13,7 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -98,7 +98,7 @@ type AuthHandler struct {
 	OAuthAuthProvider       oauth.Provider              `dependency:"OAuthAuthProvider"`
 	IdentityProvider        principal.IdentityProvider  `dependency:"IdentityProvider"`
 	AuthInfoStore           authinfo.Store              `dependency:"AuthInfoStore"`
-	TokenStore              authtoken.Store             `dependency:"TokenStore"`
+	SessionProvider         session.Provider            `dependency:"SessionProvider"`
 	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
 	ProviderFactory         *sso.ProviderFactory        `dependency:"SSOProviderFactory"`
 	UserProfileStore        userprofile.Store           `dependency:"UserProfileStore"`
@@ -225,7 +225,7 @@ func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.
 
 func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (resp interface{}, err error) {
 	respHandler := respHandler{
-		TokenStore:          h.TokenStore,
+		SessionProvider:     h.SessionProvider,
 		AuthInfoStore:       h.AuthInfoStore,
 		OAuthAuthProvider:   h.OAuthAuthProvider,
 		IdentityProvider:    h.IdentityProvider,

@@ -24,9 +24,9 @@ func RequireAuthenticated(r *http.Request, ctx auth.ContextGetter) error {
 		// Due to precision, the issue time of the token can be before
 		// AuthInfo.TokenValidSince. We consider the token still valid
 		// if the token is issued within 1 second before tokenValidSince.
-		token := ctx.Token()
-		if !token.IssuedAt.IsZero() &&
-			!token.IssuedAt.After(tokenValidSince.Add(-1*time.Second)) {
+		session := ctx.Session()
+		if !session.AccessTokenCreatedAt.IsZero() &&
+			!session.AccessTokenCreatedAt.After(tokenValidSince.Add(-1*time.Second)) {
 			return skyerr.NewError(skyerr.NotAuthenticated, "require authenticated user")
 		}
 	}

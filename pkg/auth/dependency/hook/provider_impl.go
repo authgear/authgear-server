@@ -186,7 +186,7 @@ func (provider *providerImpl) makeContext() event.Context {
 		principalID = nil
 	} else {
 		userID = &provider.AuthContext.AuthInfo().ID
-		principalID = &provider.AuthContext.Token().PrincipalID
+		principalID = &provider.AuthContext.Session().PrincipalID
 	}
 
 	return event.Context{

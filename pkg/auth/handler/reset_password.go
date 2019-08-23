@@ -16,7 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -107,7 +106,6 @@ func (p ResetPasswordRequestPayload) Validate() error {
 type ResetPasswordHandler struct {
 	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 	AuditTrail           audit.Trail                `dependency:"AuditTrail"`

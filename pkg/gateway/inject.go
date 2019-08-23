@@ -20,8 +20,8 @@ func (m DependencyMap) Provide(
 	tConfig config.TenantConfiguration,
 ) interface{} {
 	switch dependencyName {
-	case "TokenStore":
-		return coreAuth.NewDefaultTokenStore(ctx, tConfig)
+	case "SessionProvider":
+		return coreAuth.NewDefaultSessionProvider(ctx, tConfig)
 	case "AuthInfoStore":
 		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
 	case "TxContext":

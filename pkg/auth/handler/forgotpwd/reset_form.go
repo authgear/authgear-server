@@ -19,7 +19,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -100,7 +99,6 @@ func (payload *ForgotPasswordResetFormPayload) Validate() error {
 type ForgotPasswordResetFormHandler struct {
 	CodeGenerator             *forgotpwdemail.CodeGenerator             `dependency:"ForgotPasswordCodeGenerator"`
 	PasswordChecker           *audit.PasswordChecker                    `dependency:"PasswordChecker"`
-	TokenStore                authtoken.Store                           `dependency:"TokenStore"`
 	AuthInfoStore             authinfo.Store                            `dependency:"AuthInfoStore"`
 	PasswordAuthProvider      password.Provider                         `dependency:"PasswordAuthProvider"`
 	UserProfileStore          userprofile.Store                         `dependency:"UserProfileStore"`

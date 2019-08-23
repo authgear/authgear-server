@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -29,8 +29,8 @@ func TestRequireAuthenticated(t *testing.T) {
 					ID:              "ID",
 					TokenValidSince: &validSince,
 				},
-				mToken: &authtoken.Token{
-					IssuedAt: time.Date(2016, 10, 1, 0, 0, 0, 0, time.UTC),
+				mSession: &session.Session{
+					AccessTokenCreatedAt: time.Date(2016, 10, 1, 0, 0, 0, 0, time.UTC),
 				},
 			}
 
@@ -44,8 +44,8 @@ func TestRequireAuthenticated(t *testing.T) {
 				mAuthInfo: &authinfo.AuthInfo{
 					ID: "ID",
 				},
-				mToken: &authtoken.Token{
-					IssuedAt: time.Date(2016, 10, 1, 0, 0, 0, 0, time.UTC),
+				mSession: &session.Session{
+					AccessTokenCreatedAt: time.Date(2016, 10, 1, 0, 0, 0, 0, time.UTC),
 				},
 			}
 

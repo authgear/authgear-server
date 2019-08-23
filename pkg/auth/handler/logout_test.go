@@ -12,35 +12,25 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func TestLogoutHandler(t *testing.T) {
-	Convey("Test LogoutRequestPayload", t, func() {
-		Convey("validate valid payload", func() {
-			payload := LogoutRequestPayload{
-				AccessToken: "test_token",
-			}
-			So(payload.Validate(), ShouldBeNil)
-		})
-
-		Convey("validate missing access token", func() {
-			payload := LogoutRequestPayload{}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.NotAuthenticated)
-		})
-	})
-
 	Convey("Test LogoutHandler", t, func() {
 		h := &LogoutHandler{}
-		h.AuthContext = authtest.NewMockContext().
+
+		authContext := authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
-		h.TokenStore = authtoken.NewJWTStore("myApp", "secret", 0)
+		authContext.Session().ID = "session-id"
+		h.AuthContext = authContext
+
+		sessionProvider := session.NewMockProvider()
+		sessionProvider.Sessions[authContext.Session().ID] = *authContext.Session()
+		h.SessionProvider = sessionProvider
+
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
@@ -64,11 +54,7 @@ func TestLogoutHandler(t *testing.T) {
 		h.HookProvider = hookProvider
 
 		Convey("logout user successfully", func() {
-			token := "test_token"
-			payload := LogoutRequestPayload{
-				AccessToken: token,
-			}
-			resp, err := h.Handle(payload)
+			resp, err := h.Handle(nil)
 			So(resp, ShouldResemble, map[string]string{})
 			So(err, ShouldBeNil)
 
@@ -98,10 +84,7 @@ func TestLogoutHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when logout", func() {
-			payload := LogoutRequestPayload{
-				AccessToken: "test_token",
-			}
-			h.Handle(payload)
+			h.Handle(nil)
 			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
 			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "logout")

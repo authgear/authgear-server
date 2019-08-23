@@ -22,8 +22,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -140,8 +140,7 @@ func TestSingupHandler(t *testing.T) {
 
 		sh := &SignupHandler{}
 		sh.AuthInfoStore = authInfoStore
-		mockTokenStore := authtoken.NewMockStore()
-		sh.TokenStore = mockTokenStore
+		sh.SessionProvider = session.NewMockProvider()
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
 		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
@@ -234,7 +233,6 @@ func TestSingupHandler(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			userID := p.UserID
-			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
 					"user": {
@@ -256,12 +254,9 @@ func TestSingupHandler(t *testing.T) {
 							"email": "john.doe@example.com"
 						}
 					},
-					"access_token": "%s"
+					"access_token": "access-token-%s-%s-0"
 				}
-			}`,
-				userID,
-				p.ID,
-				token.AccessToken))
+			}`, userID, p.ID, userID, p.ID))
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.UserCreateEvent{
@@ -343,7 +338,6 @@ func TestSingupHandler(t *testing.T) {
 			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", "admin", &p)
 			So(err, ShouldBeNil)
 			userID := p.UserID
-			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
 					"user": {
@@ -365,12 +359,9 @@ func TestSingupHandler(t *testing.T) {
 							"email": "john.doe@example.com"
 						}
 					},
-					"access_token": "%s"
+					"access_token": "access-token-%s-%s-0"
 				}
-			}`,
-				userID,
-				p.ID,
-				token.AccessToken))
+			}`, userID, p.ID, userID, p.ID))
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.UserCreateEvent{
@@ -565,7 +556,6 @@ func TestSingupHandler(t *testing.T) {
 		allowedRealms := []string{password.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()
 		passwordAuthProvider := password.NewMockProvider(loginIDsKeys, allowedRealms)
-		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 
 		passwordChecker := &authAudit.PasswordChecker{
 			PwMinLength: 6,
@@ -573,7 +563,7 @@ func TestSingupHandler(t *testing.T) {
 
 		sh := &SignupHandler{}
 		sh.AuthInfoStore = authInfoStore
-		sh.TokenStore = tokenStore
+		sh.SessionProvider = session.NewMockProvider()
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider)

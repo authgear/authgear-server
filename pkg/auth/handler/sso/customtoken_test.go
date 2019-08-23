@@ -22,8 +22,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -39,7 +39,6 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 	}()
 
 	Convey("Test CustomTokenLoginHandler", t, func() {
-		mockTokenStore := authtoken.NewMockStore()
 		lh := &CustomTokenLoginHandler{}
 		issuer := "myissuer"
 		audience := "myaudience"
@@ -77,7 +76,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		}
 		userProfileStore.TimeNowfunc = timeNow
 		lh.UserProfileStore = userProfileStore
-		lh.TokenStore = mockTokenStore
+		lh.SessionProvider = session.NewMockProvider()
 		lh.AuditTrail = audit.NewMockTrail(t)
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()
@@ -109,7 +108,6 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 
 			p, _ := lh.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID("otherid1")
-			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -139,14 +137,15 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 							"email": "John@skygear.io"
 						}
 					},
-					"access_token": "%s"
+					"access_token": "access-token-%s-%s-0"
 				}
 			}`,
 				p.UserID,
 				p.ID,
 				iat.Unix(),
 				exp.Unix(),
-				token.AccessToken))
+				p.UserID,
+				p.ID))
 
 			mockTrail, _ := lh.AuditTrail.(*audit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
@@ -328,7 +327,6 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 	})
 
 	Convey("Test OnUserDuplicate", t, func() {
-		mockTokenStore := authtoken.NewMockStore()
 		lh := &CustomTokenLoginHandler{}
 		issuer := "myissuer"
 		audience := "myaudience"
@@ -382,7 +380,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		})
 		userProfileStore.TimeNowfunc = timeNow
 		lh.UserProfileStore = userProfileStore
-		lh.TokenStore = mockTokenStore
+		lh.SessionProvider = session.NewMockProvider()
 		lh.AuditTrail = audit.NewMockTrail(t)
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()
@@ -438,7 +436,6 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			p, _ := lh.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID("otherid1")
-			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
 			{
@@ -467,13 +464,13 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						},
 						"type": "custom_token"
 					},
-					"access_token": "%s"
+					"access_token": "access-token-john.doe.id-%s-0"
 				}
 			}
 			`, p.ID,
 				iat.Unix(),
 				exp.Unix(),
-				token.AccessToken))
+				p.ID))
 		})
 
 		Convey("OnUserDuplicate == create", func() {
@@ -488,7 +485,6 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			p, _ := lh.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID("otherid1")
-			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
 			{
@@ -518,10 +514,10 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						},
 						"type": "custom_token"
 					},
-					"access_token": "%s"
+					"access_token": "access-token-%s-%s-0"
 				}
 			}
-			`, p.UserID, p.ID, iat.Unix(), exp.Unix(), token.AccessToken))
+			`, p.UserID, p.ID, iat.Unix(), exp.Unix(), p.UserID, p.ID))
 		})
 	})
 }

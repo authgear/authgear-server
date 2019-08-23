@@ -11,7 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -64,7 +63,6 @@ func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 type MeHandler struct {
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
-	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
@@ -81,7 +79,7 @@ func (h MeHandler) DecodeRequest(request *http.Request) (handler.RequestPayload,
 
 func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	authInfo := h.AuthContext.AuthInfo()
-	principalID := h.AuthContext.Token().PrincipalID
+	principalID := h.AuthContext.Session().PrincipalID
 
 	// Get Profile
 	var userProfile userprofile.UserProfile
