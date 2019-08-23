@@ -10,14 +10,20 @@ import (
 )
 
 type App struct {
-	Name        string
-	DatabaseURL string
+	Name           string
+	DatabaseURL    string
+	DatabaseSchema string
 }
 
 func GetMigrateApps(hostnameOverride string, db sq.BaseRunner, appFilterKey string, appFilterValue string) ([]App, error) {
 	// get apps for migration
 	configSchema := "app_config"
-	sqlizer := sq.Select("app.name", "config.config #> '{app_config,database_url}'").
+	sqlizer := sq.
+		Select(
+			"app.name",
+			"config.config #> '{app_config,database_url}'",
+			"config.config #> '{app_config,database_schema}'",
+		).
 		From(configSchema + ".app").
 		Join(configSchema + ".config ON app.config_id = config.id")
 
@@ -40,7 +46,7 @@ func GetMigrateApps(hostnameOverride string, db sq.BaseRunner, appFilterKey stri
 	}()
 	for rows.Next() {
 		a := App{}
-		err = rows.Scan(&a.Name, &a.DatabaseURL)
+		err = rows.Scan(&a.Name, &a.DatabaseURL, &a.DatabaseSchema)
 		if err != nil {
 			fmt.Printf("err: %v \n", err)
 			return nil, err

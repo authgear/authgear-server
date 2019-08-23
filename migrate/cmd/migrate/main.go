@@ -181,13 +181,12 @@ func runMultiTenantMigrations(
 	migratedDatabaseURLs := map[string]struct{}{}
 	for _, a := range apps {
 		databaseURL := a.DatabaseURL
+		schema := a.DatabaseSchema
 		if _, migrated := migratedDatabaseURLs[databaseURL]; migrated {
 			continue
 		}
 
 		for _, migration := range migrations {
-			schema := "app"
-
 			sourceURL := ""
 			if s, ok := sources[migration]; ok {
 				sourceURL = s.SourceURL
