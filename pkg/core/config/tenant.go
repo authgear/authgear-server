@@ -415,7 +415,6 @@ type UserConfiguration struct {
 	URLPrefix        string                        `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
 	CORS             CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors"`
 	Auth             AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth"`
-	TokenStore       TokenStoreConfiguration       `json:"token_store,omitempty" yaml:"token_store" msg:"token_store"`
 	UserAudit        UserAuditConfiguration        `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit"`
 	ForgotPassword   ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password"`
 	WelcomeEmail     WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email"`
@@ -461,11 +460,6 @@ type LoginIDKeyConfiguration struct {
 	Type    LoginIDKeyType `json:"type,omitempty" yaml:"type" msg:"type"`
 	Minimum *int           `json:"minimum,omitempty" yaml:"minimum" msg:"minimum"`
 	Maximum *int           `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
-}
-
-type TokenStoreConfiguration struct {
-	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
-	Expiry int64  `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
 }
 
 type UserAuditConfiguration struct {

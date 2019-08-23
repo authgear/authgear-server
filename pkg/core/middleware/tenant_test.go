@@ -20,10 +20,6 @@ var (
 		UserConfig: config.UserConfiguration{
 			APIKey:    "APIKey",
 			MasterKey: "MasterKey",
-			TokenStore: config.TokenStoreConfiguration{
-				Secret: "Secret",
-				Expiry: 1000,
-			},
 		},
 	}
 )

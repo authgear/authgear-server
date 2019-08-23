@@ -20,22 +20,19 @@ func TestValidateUserConfiguration(t *testing.T) {
 #: auth is required
 #: hook is required
 #: master_key is required
-#: token_store is required
 `,
 			},
-			// Empty auth and empty token_store
+			// Empty auth
 			{
 				`
 {
 	"api_key": "api_key",
 	"master_key": "master_key",
 	"auth": {},
-	"token_store": {},
 	"hook": {}
 }
 				`,
 				`#/hook: secret is required
-#/token_store: secret is required
 `,
 			},
 			// Empty auth.login_id_keys and auth.allowed_realms
@@ -48,14 +45,12 @@ func TestValidateUserConfiguration(t *testing.T) {
 		"login_id_keys": {},
 		"allowed_realms": []
 	},
-	"token_store": {},
 	"hook": {}
 }
 				`,
 				`#/auth/allowed_realms: Array must have at least 1 items
 #/auth/login_id_keys: Must have at least 1 properties
 #/hook: secret is required
-#/token_store: secret is required
 `,
 			},
 			// Invalid login id type
@@ -81,13 +76,11 @@ func TestValidateUserConfiguration(t *testing.T) {
 		},
 		"allowed_realms": ["default"]
 	},
-	"token_store": {},
 	"hook": {}
 }
 				`,
 				`#/auth/login_id_keys/type: auth.login_id_keys.type must be one of the following: "raw", "email", "phone"
 #/hook: secret is required
-#/token_store: secret is required
 `,
 			},
 			// Minimal valid example
@@ -109,9 +102,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			}
 		},
 		"allowed_realms": ["default"]
-	},
-	"token_store": {
-		"secret": "tokensecret"
 	},
 	"hook": {
 		"secret": "hooksecret"
@@ -139,9 +129,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			}
 		},
 		"allowed_realms": ["default"]
-	},
-	"token_store": {
-		"secret": "tokensecret"
 	},
 	"hook": {
 		"secret": "hooksecret"
@@ -171,9 +158,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			}
 		},
 		"allowed_realms": ["default"]
-	},
-	"token_store": {
-		"secret": "tokensecret"
 	},
 	"hook": {
 		"secret": "hooksecret"
@@ -216,9 +200,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 		},
 		"allowed_realms": ["default"]
 	},
-	"token_store": {
-		"secret": "tokensecret"
-	},
 	"hook": {
 		"secret": "hooksecret"
 	},
@@ -249,9 +230,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			}
 		},
 		"allowed_realms": ["default"]
-	},
-	"token_store": {
-		"secret": "tokensecret"
 	},
 	"hook": {
 		"secret": "hooksecret"
@@ -288,9 +266,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			}
 		},
 		"allowed_realms": ["default"]
-	},
-	"token_store": {
-		"secret": "tokensecret"
 	},
 	"hook": {
 		"secret": "hooksecret"
@@ -341,9 +316,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			}
 		},
 		"allowed_realms": ["default"]
-	},
-	"token_store": {
-		"secret": "tokensecret"
 	},
 	"hook": {
 		"secret": "hooksecret"

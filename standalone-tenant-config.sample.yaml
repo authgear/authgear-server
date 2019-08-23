@@ -13,8 +13,6 @@ user_config:
   url_prefix: http://localhost:3000/_auth
   api_key: api_key
   master_key: master_key
-  token_store:
-    secret: tokenstoresecret
   hook:
     secret: hooksecret
   welcome_email:
