@@ -70,10 +70,19 @@ func ConvertErrors(errs []gojsonschema.ResultError) error {
 
 func (e Error) SkyErrInvalidArgument(message string) error {
 	var arguments []string
+	var arr []map[string]interface{}
 	for _, cause := range e.Causes {
 		arguments = append(arguments, cause.String())
+		arr = append(arr, map[string]interface{}{
+			"pointer": cause.InstancePtr,
+			"message": cause.Message,
+		})
 	}
-	return skyerr.NewInvalidArgument(message, arguments)
+	info := map[string]interface{}{
+		"arguments": arguments,
+		"causes":    arr,
+	}
+	return skyerr.NewErrorWithInfo(skyerr.InvalidArgument, message, info)
 }
 
 func (e Error) Len() int {
