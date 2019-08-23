@@ -10,12 +10,12 @@ import (
 	"testing"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -70,7 +70,9 @@ func TestAuthURLPayload(t *testing.T) {
 func TestAuthURLHandler(t *testing.T) {
 	Convey("Test TestAuthURLHandler", t, func() {
 		h := &AuthURLHandler{}
-		h.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		h.AuthContext = authtest.NewMockContext().
+			UseUser("faseng.cat.id", "faseng.cat.principal.id").
+			MarkVerified()
 		oauthConfig := coreconfig.OAuthConfiguration{
 			URLPrefix:      "http://localhost:3000/auth",
 			StateJWTSecret: "secret",

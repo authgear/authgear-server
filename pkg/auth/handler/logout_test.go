@@ -12,8 +12,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -37,7 +37,9 @@ func TestLogoutHandler(t *testing.T) {
 
 	Convey("Test LogoutHandler", t, func() {
 		h := &LogoutHandler{}
-		h.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		h.AuthContext = authtest.NewMockContext().
+			UseUser("faseng.cat.id", "faseng.cat.principal.id").
+			MarkVerified()
 		h.TokenStore = authtoken.NewJWTStore("myApp", "secret", 0)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.AuditTrail = coreAudit.NewMockTrail(t)
