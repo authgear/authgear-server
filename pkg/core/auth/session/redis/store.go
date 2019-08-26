@@ -33,7 +33,7 @@ func (s *store) Create(sess *auth.Session, ttl time.Duration) (err error) {
 	}
 	conn := redis.GetConn(s.ctx)
 	key := sessionKey(s.appID, sess.ID)
-	_, err = goredis.String(conn.Do("SET", key, json, "EX", int(ttl.Seconds()), "NX"))
+	_, err = goredis.String(conn.Do("SET", key, json, "PX", toMilliseconds(ttl), "NX"))
 	if err == goredis.ErrNil {
 		err = errSessionCreateFailed
 	}
@@ -47,7 +47,7 @@ func (s *store) Update(sess *auth.Session, ttl time.Duration) (err error) {
 	}
 	conn := redis.GetConn(s.ctx)
 	key := sessionKey(s.appID, sess.ID)
-	_, err = goredis.String(conn.Do("SET", key, data, "EX", int(ttl.Seconds()), "XX"))
+	_, err = goredis.String(conn.Do("SET", key, data, "PX", toMilliseconds(ttl), "XX"))
 	if err == goredis.ErrNil {
 		err = session.ErrSessionNotFound
 	}
@@ -71,4 +71,8 @@ func (s *store) Delete(id string) (err error) {
 	key := sessionKey(s.appID, id)
 	_, err = conn.Do("DEL", key)
 	return
+}
+
+func toMilliseconds(d time.Duration) int64 {
+	return int64(d / time.Millisecond)
 }
