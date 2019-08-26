@@ -73,5 +73,7 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		r.Header.Set(coreHttp.HeaderAuthInfoID, id)
 		r.Header.Set(coreHttp.HeaderAuthInfoVerified, strconv.FormatBool(verified))
 		r.Header.Set(coreHttp.HeaderAuthInfoDisabled, strconv.FormatBool(disabled))
+
+		err = m.SessionProvider.Access(session)
 	})
 }
