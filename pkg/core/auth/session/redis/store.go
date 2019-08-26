@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	goredis "github.com/gomodule/redigo/redis"
 
@@ -25,28 +26,28 @@ func NewStore(ctx context.Context, appID string) session.Store {
 	return &store{ctx: ctx, appID: appID}
 }
 
-func (s *store) Create(sess *auth.Session) (err error) {
+func (s *store) Create(sess *auth.Session, ttl time.Duration) (err error) {
 	json, err := json.Marshal(sess)
 	if err != nil {
 		return
 	}
 	conn := redis.GetConn(s.ctx)
 	key := sessionKey(s.appID, sess.ID)
-	_, err = goredis.String(conn.Do("SET", key, json, "NX"))
+	_, err = goredis.String(conn.Do("SET", key, json, "EX", int(ttl.Seconds()), "NX"))
 	if err == goredis.ErrNil {
 		err = errSessionCreateFailed
 	}
 	return
 }
 
-func (s *store) Update(sess *auth.Session) (err error) {
+func (s *store) Update(sess *auth.Session, ttl time.Duration) (err error) {
 	data, err := json.Marshal(sess)
 	if err != nil {
 		return
 	}
 	conn := redis.GetConn(s.ctx)
 	key := sessionKey(s.appID, sess.ID)
-	_, err = goredis.String(conn.Do("SET", key, data, "XX"))
+	_, err = goredis.String(conn.Do("SET", key, data, "EX", int(ttl.Seconds()), "XX"))
 	if err == goredis.ErrNil {
 		err = session.ErrSessionNotFound
 	}

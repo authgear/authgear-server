@@ -50,7 +50,8 @@ func (p *providerImpl) Create(userID string, principalID string) (s *auth.Sessio
 	}
 	p.generateAccessToken(&sess)
 
-	err = p.store.Create(&sess)
+	expiry := computeSessionExpiry(&sess, p.clientConfigs[p.authContext.AccessKey().ClientID])
+	err = p.store.Create(&sess, expiry.Sub(now))
 	if err != nil {
 		return
 	}
@@ -92,8 +93,11 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 }
 
 func (p *providerImpl) Access(s *auth.Session) error {
-	s.AccessedAt = p.time.NowUTC()
-	return p.store.Update(s)
+	now := p.time.NowUTC()
+	s.AccessedAt = now
+
+	expiry := computeSessionExpiry(s, p.clientConfigs[s.ClientID])
+	return p.store.Update(s, expiry.Sub(now))
 }
 
 func (p *providerImpl) Invalidate(id string) error {
@@ -102,7 +106,8 @@ func (p *providerImpl) Invalidate(id string) error {
 
 func (p *providerImpl) Refresh(session *auth.Session) error {
 	p.generateAccessToken(session)
-	return p.store.Update(session)
+	expiry := computeSessionExpiry(session, p.clientConfigs[session.ClientID])
+	return p.store.Update(session, expiry.Sub(p.time.NowUTC()))
 }
 
 func (p *providerImpl) generateAccessToken(s *auth.Session) {

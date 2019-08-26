@@ -2,6 +2,7 @@ package session
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 )
@@ -18,7 +19,7 @@ func NewMockStore() *MockStore {
 	}
 }
 
-func (s *MockStore) Create(sess *auth.Session) error {
+func (s *MockStore) Create(sess *auth.Session, ttl time.Duration) error {
 	if _, exists := s.Sessions[sess.ID]; exists {
 		return fmt.Errorf("cannot create session")
 	}
@@ -26,7 +27,7 @@ func (s *MockStore) Create(sess *auth.Session) error {
 	return nil
 }
 
-func (s *MockStore) Update(sess *auth.Session) error {
+func (s *MockStore) Update(sess *auth.Session, ttl time.Duration) error {
 	if _, exists := s.Sessions[sess.ID]; !exists {
 		return ErrSessionNotFound
 	}
