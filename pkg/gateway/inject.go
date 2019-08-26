@@ -23,7 +23,11 @@ func (m DependencyMap) Provide(
 ) interface{} {
 	switch dependencyName {
 	case "SessionProvider":
-		return session.NewProvider(redisSession.NewStore(ctx, tConfig.AppID))
+		return session.NewProvider(
+			redisSession.NewStore(ctx, tConfig.AppID),
+			auth.NewContextGetterWithContext(ctx),
+			tConfig.UserConfig.Clients,
+		)
 	case "AuthInfoStore":
 		return auth.NewDefaultAuthInfoStore(ctx, tConfig)
 	case "TxContext":

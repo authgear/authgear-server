@@ -32,6 +32,12 @@ func (m *MockContext) Session() *auth.Session {
 	return m.session
 }
 
+func (m *MockContext) UseAPIAccessKey(clientID string) *MockContext {
+	m.accessKey.Type = model.APIAccessKeyType
+	m.accessKey.ClientID = clientID
+	return m
+}
+
 func (m *MockContext) UseNoAccessKey() *MockContext {
 	m.accessKey.Type = model.NoAccessKeyType
 	return m

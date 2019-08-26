@@ -8,8 +8,9 @@ import (
 )
 
 type MockProvider struct {
-	Time    time.Provider
-	counter int
+	ClientID string
+	Time     time.Provider
+	counter  int
 
 	Sessions map[string]auth.Session
 }
@@ -18,6 +19,7 @@ var _ Provider = &MockProvider{}
 
 func NewMockProvider() *MockProvider {
 	return &MockProvider{
+		ClientID: "client-id",
 		Time:     &time.MockProvider{},
 		Sessions: map[string]auth.Session{},
 	}
@@ -28,6 +30,7 @@ func (p *MockProvider) Create(userID string, principalID string) (s *auth.Sessio
 	id := fmt.Sprintf("%s-%s-%d", userID, principalID, p.counter)
 	sess := auth.Session{
 		ID:          id,
+		ClientID:    p.ClientID,
 		UserID:      userID,
 		PrincipalID: principalID,
 

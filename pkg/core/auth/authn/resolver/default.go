@@ -16,8 +16,9 @@ import (
 type AuthContextResolverFactory struct{}
 
 func (f AuthContextResolverFactory) NewResolver(ctx context.Context, tenantConfig config.TenantConfiguration) authn.AuthContextResolver {
+	authCtx := auth.NewContextGetterWithContext(ctx)
 	r := &DefaultAuthContextResolver{
-		SessionProvider: session.NewProvider(redisSession.NewStore(ctx, tenantConfig.AppID)),
+		SessionProvider: session.NewProvider(redisSession.NewStore(ctx, tenantConfig.AppID), authCtx, tenantConfig.UserConfig.Clients),
 		AuthInfoStore:   auth.NewDefaultAuthInfoStore(ctx, tenantConfig),
 	}
 	return r

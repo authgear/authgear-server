@@ -4,6 +4,10 @@ import (
 	"testing"
 	gotime "time"
 
+	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -19,10 +23,18 @@ func TestProvider(t *testing.T) {
 		timeProvider.TimeNow = initialTime
 		timeProvider.TimeNowUTC = initialTime
 
+		authContext := authtest.NewMockContext().UseAPIAccessKey("web-app")
+		clientConfigs := map[string]config.APIClientConfiguration{
+			"web-app":    config.APIClientConfiguration{},
+			"mobile-app": config.APIClientConfiguration{},
+		}
+
 		var provider Provider = &providerImpl{
-			store: store,
-			time:  timeProvider,
-			rand:  corerand.InsecureRand,
+			store:         store,
+			authContext:   authContext,
+			clientConfigs: clientConfigs,
+			time:          timeProvider,
+			rand:          corerand.InsecureRand,
 		}
 
 		Convey("creating session", func() {
@@ -31,6 +43,7 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(session, ShouldResemble, &auth.Session{
 					ID:                   session.ID,
+					ClientID:             "web-app",
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
 					CreatedAt:            initialTime,
@@ -46,6 +59,7 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(session1, ShouldResemble, &auth.Session{
 					ID:                   session1.ID,
+					ClientID:             "web-app",
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
 					CreatedAt:            initialTime,
@@ -58,6 +72,7 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(session2, ShouldResemble, &auth.Session{
 					ID:                   session2.ID,
+					ClientID:             "web-app",
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
 					CreatedAt:            initialTime,
@@ -73,6 +88,7 @@ func TestProvider(t *testing.T) {
 		Convey("getting session", func() {
 			fixtureSession := auth.Session{
 				ID:                   "session-id",
+				ClientID:             "web-app",
 				UserID:               "user-id",
 				PrincipalID:          "principal-id",
 				CreatedAt:            initialTime,
@@ -86,6 +102,13 @@ func TestProvider(t *testing.T) {
 				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)
 				So(err, ShouldBeNil)
 				So(session, ShouldResemble, &fixtureSession)
+			})
+
+			Convey("should reject session of other clients", func() {
+				authContext.UseAPIAccessKey("mobile-app")
+				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)
+				So(err, ShouldBeError, ErrSessionNotFound)
+				So(session, ShouldBeNil)
 			})
 
 			Convey("should reject non-existant session", func() {

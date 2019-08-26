@@ -164,7 +164,11 @@ func (m DependencyMap) Provide(
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
 	case "SessionProvider":
-		return session.NewProvider(redisSession.NewStore(ctx, tConfig.AppID))
+		return session.NewProvider(
+			redisSession.NewStore(ctx, tConfig.AppID),
+			newAuthContext(),
+			tConfig.UserConfig.Clients,
+		)
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "PasswordChecker":

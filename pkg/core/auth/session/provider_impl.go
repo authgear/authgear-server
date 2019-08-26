@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -18,17 +19,21 @@ const (
 )
 
 type providerImpl struct {
-	store Store
+	store         Store
+	authContext   auth.ContextGetter
+	clientConfigs map[string]config.APIClientConfiguration
 
 	time time.Provider
 	rand *rand.Rand
 }
 
-func NewProvider(store Store) Provider {
+func NewProvider(store Store, authContext auth.ContextGetter, clientConfigs map[string]config.APIClientConfiguration) Provider {
 	return &providerImpl{
-		store: store,
-		time:  time.NewProvider(),
-		rand:  corerand.SecureRand,
+		store:         store,
+		authContext:   authContext,
+		clientConfigs: clientConfigs,
+		time:          time.NewProvider(),
+		rand:          corerand.SecureRand,
 	}
 }
 
@@ -36,6 +41,7 @@ func (p *providerImpl) Create(userID string, principalID string) (s *auth.Sessio
 	now := p.time.NowUTC()
 	sess := auth.Session{
 		ID:          uuid.New(),
+		ClientID:    p.authContext.AccessKey().ClientID,
 		UserID:      userID,
 		PrincipalID: principalID,
 
@@ -72,6 +78,13 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 	}
 
 	if subtle.ConstantTimeCompare([]byte(expectedToken), []byte(token)) == 0 {
+		return nil, ErrSessionNotFound
+	}
+
+	accessKey := p.authContext.AccessKey()
+	// microservices may allow no access key, when rendering HTML pages at server
+	// check client ID only if client ID is present (i.e. an access key is used)
+	if accessKey.ClientID != "" && s.ClientID != accessKey.ClientID {
 		return nil, ErrSessionNotFound
 	}
 
