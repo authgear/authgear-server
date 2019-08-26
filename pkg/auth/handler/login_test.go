@@ -20,6 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -169,7 +170,7 @@ func TestLoginHandler(t *testing.T) {
 
 			// check the token
 			tokenStr := authResp.AccessToken
-			s, _ := sessionProvider.GetByToken(tokenStr, session.TokenKindAccessToken)
+			s, _ := sessionProvider.GetByToken(tokenStr, auth.SessionTokenKindAccessToken)
 			So(s.UserID, ShouldEqual, userID)
 		})
 

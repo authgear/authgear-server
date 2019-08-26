@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
@@ -16,7 +17,7 @@ type AuthContextResolverFactory struct{}
 
 func (f AuthContextResolverFactory) NewResolver(ctx context.Context, tenantConfig config.TenantConfiguration) authn.AuthContextResolver {
 	r := &DefaultAuthContextResolver{
-		SessionProvider: auth.NewDefaultSessionProvider(ctx, tenantConfig),
+		SessionProvider: session.NewProvider(redisSession.NewStore(ctx, tenantConfig.AppID)),
 		AuthInfoStore:   auth.NewDefaultAuthInfoStore(ctx, tenantConfig),
 	}
 	return r
@@ -32,7 +33,7 @@ func (r DefaultAuthContextResolver) Resolve(req *http.Request, ctx auth.ContextS
 	ctx.SetAccessKey(key)
 
 	token := model.GetAccessToken(req)
-	s, err := r.SessionProvider.GetByToken(token, session.TokenKindAccessToken)
+	s, err := r.SessionProvider.GetByToken(token, auth.SessionTokenKindAccessToken)
 	if err != nil {
 		if err == session.ErrSessionNotFound {
 			err = nil

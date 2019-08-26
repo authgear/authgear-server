@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -31,9 +32,9 @@ func NewProvider(store Store) Provider {
 	}
 }
 
-func (p *providerImpl) Create(userID string, principalID string) (s *Session, err error) {
+func (p *providerImpl) Create(userID string, principalID string) (s *auth.Session, err error) {
 	now := p.time.NowUTC()
-	sess := Session{
+	sess := auth.Session{
 		ID:          uuid.New(),
 		UserID:      userID,
 		PrincipalID: principalID,
@@ -51,7 +52,7 @@ func (p *providerImpl) Create(userID string, principalID string) (s *Session, er
 	return &sess, nil
 }
 
-func (p *providerImpl) GetByToken(token string, kind TokenKind) (*Session, error) {
+func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*auth.Session, error) {
 	id, ok := decodeTokenSessionID(token)
 	if !ok {
 		return nil, ErrSessionNotFound
@@ -64,7 +65,7 @@ func (p *providerImpl) GetByToken(token string, kind TokenKind) (*Session, error
 
 	var expectedToken string
 	switch kind {
-	case TokenKindAccessToken:
+	case auth.SessionTokenKindAccessToken:
 		expectedToken = s.AccessToken
 	default:
 		return nil, ErrSessionNotFound
@@ -77,7 +78,7 @@ func (p *providerImpl) GetByToken(token string, kind TokenKind) (*Session, error
 	return s, nil
 }
 
-func (p *providerImpl) Access(s *Session) error {
+func (p *providerImpl) Access(s *auth.Session) error {
 	s.AccessedAt = p.time.NowUTC()
 	return p.store.Update(s)
 }
@@ -86,12 +87,12 @@ func (p *providerImpl) Invalidate(id string) error {
 	return p.store.Delete(id)
 }
 
-func (p *providerImpl) Refresh(session *Session) error {
+func (p *providerImpl) Refresh(session *auth.Session) error {
 	p.generateAccessToken(session)
 	return p.store.Update(session)
 }
 
-func (p *providerImpl) generateAccessToken(s *Session) {
+func (p *providerImpl) generateAccessToken(s *auth.Session) {
 	accessToken := corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand)
 	s.AccessToken = encodeToken(s.ID, accessToken)
 	s.AccessTokenCreatedAt = p.time.NowUTC()

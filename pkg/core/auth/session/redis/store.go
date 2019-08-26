@@ -7,6 +7,7 @@ import (
 
 	goredis "github.com/gomodule/redigo/redis"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 )
@@ -24,7 +25,7 @@ func NewStore(ctx context.Context, appID string) session.Store {
 	return &store{ctx: ctx, appID: appID}
 }
 
-func (s *store) Create(sess *session.Session) (err error) {
+func (s *store) Create(sess *auth.Session) (err error) {
 	json, err := json.Marshal(sess)
 	if err != nil {
 		return
@@ -38,7 +39,7 @@ func (s *store) Create(sess *session.Session) (err error) {
 	return
 }
 
-func (s *store) Update(sess *session.Session) (err error) {
+func (s *store) Update(sess *auth.Session) (err error) {
 	data, err := json.Marshal(sess)
 	if err != nil {
 		return
@@ -52,7 +53,7 @@ func (s *store) Update(sess *session.Session) (err error) {
 	return
 }
 
-func (s *store) Get(id string) (sess *session.Session, err error) {
+func (s *store) Get(id string) (sess *auth.Session, err error) {
 	conn := redis.GetConn(s.ctx)
 	key := sessionKey(s.appID, id)
 	data, err := goredis.Bytes(conn.Do("GET", key))

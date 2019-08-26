@@ -1,20 +1,24 @@
 package session
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/skygeario/skygear-server/pkg/core/auth"
+)
 
 type MockStore struct {
-	Sessions map[string]Session
+	Sessions map[string]auth.Session
 }
 
 var _ Store = &MockStore{}
 
 func NewMockStore() *MockStore {
 	return &MockStore{
-		Sessions: map[string]Session{},
+		Sessions: map[string]auth.Session{},
 	}
 }
 
-func (s *MockStore) Create(sess *Session) error {
+func (s *MockStore) Create(sess *auth.Session) error {
 	if _, exists := s.Sessions[sess.ID]; exists {
 		return fmt.Errorf("cannot create session")
 	}
@@ -22,7 +26,7 @@ func (s *MockStore) Create(sess *Session) error {
 	return nil
 }
 
-func (s *MockStore) Update(sess *Session) error {
+func (s *MockStore) Update(sess *auth.Session) error {
 	if _, exists := s.Sessions[sess.ID]; !exists {
 		return ErrSessionNotFound
 	}
@@ -30,7 +34,7 @@ func (s *MockStore) Update(sess *Session) error {
 	return nil
 }
 
-func (s *MockStore) Get(id string) (*Session, error) {
+func (s *MockStore) Get(id string) (*auth.Session, error) {
 	sess, exists := s.Sessions[id]
 	if !exists {
 		return nil, ErrSessionNotFound
