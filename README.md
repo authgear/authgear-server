@@ -58,15 +58,15 @@ For example, the app name is `helloworld` and you want to run `auth` gear .
 ```
 # Base app_config schema for core gateway
 CREATE SCHEMA app_config;
-# Create a schema for your app, with name app_{name}
+# Create shared schema for apps
 # Run the following SQL in any postgresql client, like Postico
-CREATE SCHEMA app_helloworld;
+CREATE SCHEMA app;
 
 # If you have psql cli
-$ psql ${DATABASE_URL} -c "CREATE SCHEMA app_helloworld;"
+$ psql ${DATABASE_URL} -c "CREATE SCHEMA app;"
 
 # Run core and auth migration
-$ make -C migrate migrate MIGRATE_CMD=up DATABASE_URL=${DATABASE_URL} SCHEMA=app_helloworld
+$ make -C migrate migrate MIGRATE_CMD=up DATABASE_URL=${DATABASE_URL} SCHEMA=app
 ```
 
 See below sections for more commands about db migration.

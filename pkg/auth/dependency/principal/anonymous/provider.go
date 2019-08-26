@@ -31,15 +31,18 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 	// TODO: log
 
 	// Create principal
-	builder := p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("principal")).Columns(
-		"id",
-		"provider",
-		"user_id",
-	).Values(
-		principal.ID,
-		providerAnonymous,
-		principal.UserID,
-	)
+	builder := p.sqlBuilder.Tenant().
+		Insert(p.sqlBuilder.FullTableName("principal")).
+		Columns(
+			"id",
+			"provider",
+			"user_id",
+		).
+		Values(
+			principal.ID,
+			providerAnonymous,
+			principal.UserID,
+		)
 
 	_, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
@@ -56,7 +59,8 @@ func (p providerImpl) ID() string {
 func (p providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
 	principal := Principal{ID: principalID}
 
-	builder := p.sqlBuilder.Select("user_id").
+	builder := p.sqlBuilder.Tenant().
+		Select("user_id").
 		From(p.sqlBuilder.FullTableName("principal")).
 		Where("id = ? AND provider = ?", principalID, providerAnonymous)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
@@ -75,7 +79,8 @@ func (p providerImpl) GetPrincipalByID(principalID string) (principal.Principal,
 }
 
 func (p providerImpl) ListPrincipalsByUserID(userID string) (principals []principal.Principal, err error) {
-	builder := p.sqlBuilder.Select("id").
+	builder := p.sqlBuilder.Tenant().
+		Select("id").
 		From(p.sqlBuilder.FullTableName("principal")).
 		Where("user_id = ? AND p.provider = ?", userID, providerAnonymous)
 	rows, err := p.sqlExecutor.QueryWith(builder)

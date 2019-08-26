@@ -21,9 +21,8 @@ func NewStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
 }
 
 func (store *storeImpl) NextSequenceNumber() (seq int64, err error) {
-	builder := store.sqlBuilder.Select(
-		fmt.Sprintf("nextval('%s')", store.sqlBuilder.FullTableName("event_sequence")),
-	)
+	builder := store.sqlBuilder.Global().
+		Select(fmt.Sprintf("nextval('%s')", store.sqlBuilder.FullTableName("event_sequence")))
 	row := store.sqlExecutor.QueryRowWith(builder)
 	err = row.Scan(&seq)
 	return

@@ -34,9 +34,8 @@ func (c *Configuration) ReadFromEnv() error {
 }
 
 type GearURLConfig struct {
-	Live     string `envconfig:"LIVE_URL"`
-	Previous string `envconfig:"PREVIOUS_URL"`
-	Nightly  string `envconfig:"NIGHTLY_URL"`
+	Live    string `envconfig:"LIVE_URL"`
+	Nightly string `envconfig:"NIGHTLY_URL"`
 }
 
 // GetGearURL provide router map
@@ -52,8 +51,6 @@ func (c *Configuration) GetGearURL(gear model.Gear, version model.GearVersion) (
 	switch version {
 	case model.LiveVersion:
 		return g.Live, nil
-	case model.PreviousVersion:
-		return g.Previous, nil
 	case model.NightlyVersion:
 		return g.Nightly, nil
 	default:

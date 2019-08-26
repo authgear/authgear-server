@@ -95,15 +95,18 @@ func (p *providerImpl) Decode(tokenString string) (claims SSOCustomTokenClaims, 
 
 func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 	// Create principal
-	builder := p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("principal")).Columns(
-		"id",
-		"provider",
-		"user_id",
-	).Values(
-		principal.ID,
-		providerName,
-		principal.UserID,
-	)
+	builder := p.sqlBuilder.Tenant().
+		Insert(p.sqlBuilder.FullTableName("principal")).
+		Columns(
+			"id",
+			"provider",
+			"user_id",
+		).
+		Values(
+			principal.ID,
+			providerName,
+			principal.UserID,
+		)
 
 	_, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
@@ -120,17 +123,20 @@ func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 		return
 	}
 
-	builder = p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("provider_custom_token")).Columns(
-		"principal_id",
-		"raw_profile",
-		"token_principal_id",
-		"claims",
-	).Values(
-		principal.ID,
-		rawProfileBytes,
-		principal.TokenPrincipalID,
-		claimsBytes,
-	)
+	builder = p.sqlBuilder.Tenant().
+		Insert(p.sqlBuilder.FullTableName("provider_custom_token")).
+		Columns(
+			"principal_id",
+			"raw_profile",
+			"token_principal_id",
+			"claims",
+		).
+		Values(
+			principal.ID,
+			rawProfileBytes,
+			principal.TokenPrincipalID,
+			claimsBytes,
+		)
 
 	_, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
@@ -153,7 +159,8 @@ func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 		return
 	}
 
-	builder := p.sqlBuilder.Update(p.sqlBuilder.FullTableName("provider_custom_token")).
+	builder := p.sqlBuilder.Tenant().
+		Update(p.sqlBuilder.FullTableName("provider_custom_token")).
 		Set("raw_profile", rawProfileBytes).
 		Set("claims", claimsBytes).
 		Where("principal_id = ?", principal.ID)
@@ -178,15 +185,16 @@ func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 
 func (p *providerImpl) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*Principal, error) {
 	principal := Principal{}
-	builder := p.sqlBuilder.Select(
-		"p.id",
-		"p.user_id",
-		"ct.token_principal_id",
-		"ct.raw_profile",
-		"ct.claims",
-	).
-		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
-		Join(fmt.Sprintf("%s AS ct ON p.id = ct.principal_id", p.sqlBuilder.FullTableName("provider_custom_token"))).
+	builder := p.sqlBuilder.Tenant().
+		Select(
+			"p.id",
+			"p.user_id",
+			"ct.token_principal_id",
+			"ct.raw_profile",
+			"ct.claims",
+		).
+		From(p.sqlBuilder.FullTableName("principal"), "p").
+		Join(p.sqlBuilder.FullTableName("provider_custom_token"), "ct", "p.id = ct.principal_id").
 		Where("ct.token_principal_id = ?", tokenPrincipalID)
 
 	scanner := p.sqlExecutor.QueryRowWith(builder)
@@ -209,15 +217,16 @@ func (p *providerImpl) ID() string {
 
 func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
 	principal := Principal{}
-	builder := p.sqlBuilder.Select(
-		"p.id",
-		"p.user_id",
-		"ct.token_principal_id",
-		"ct.raw_profile",
-		"ct.claims",
-	).
-		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
-		Join(fmt.Sprintf("%s AS ct ON p.id = ct.principal_id", p.sqlBuilder.FullTableName("provider_custom_token"))).
+	builder := p.sqlBuilder.Tenant().
+		Select(
+			"p.id",
+			"p.user_id",
+			"ct.token_principal_id",
+			"ct.raw_profile",
+			"ct.claims",
+		).
+		From(p.sqlBuilder.FullTableName("principal"), "p").
+		Join(p.sqlBuilder.FullTableName("provider_custom_token"), "ct", "p.id = ct.principal_id").
 		Where("p.id = ?", principalID)
 
 	scanner := p.sqlExecutor.QueryRowWith(builder)
@@ -235,15 +244,16 @@ func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal
 }
 
 func (p *providerImpl) ListPrincipalsByUserID(userID string) (principals []principal.Principal, err error) {
-	builder := p.sqlBuilder.Select(
-		"p.id",
-		"p.user_id",
-		"ct.token_principal_id",
-		"ct.raw_profile",
-		"ct.claims",
-	).
-		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
-		Join(fmt.Sprintf("%s AS ct ON p.id = ct.principal_id", p.sqlBuilder.FullTableName("provider_custom_token"))).
+	builder := p.sqlBuilder.Tenant().
+		Select(
+			"p.id",
+			"p.user_id",
+			"ct.token_principal_id",
+			"ct.raw_profile",
+			"ct.claims",
+		).
+		From(p.sqlBuilder.FullTableName("principal"), "p").
+		Join(p.sqlBuilder.FullTableName("provider_custom_token"), "ct", "p.id = ct.principal_id").
 		Where("p.user_id = ?", userID)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
@@ -265,15 +275,16 @@ func (p *providerImpl) ListPrincipalsByUserID(userID string) (principals []princ
 }
 
 func (p *providerImpl) ListPrincipalsByClaim(claimName string, claimValue string) (principals []principal.Principal, err error) {
-	builder := p.sqlBuilder.Select(
-		"p.id",
-		"p.user_id",
-		"ct.token_principal_id",
-		"ct.raw_profile",
-		"ct.claims",
-	).
-		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
-		Join(fmt.Sprintf("%s AS ct ON p.id = ct.principal_id", p.sqlBuilder.FullTableName("provider_custom_token"))).
+	builder := p.sqlBuilder.Tenant().
+		Select(
+			"p.id",
+			"p.user_id",
+			"ct.token_principal_id",
+			"ct.raw_profile",
+			"ct.claims",
+		).
+		From(p.sqlBuilder.FullTableName("principal"), "p").
+		Join(p.sqlBuilder.FullTableName("provider_custom_token"), "ct", "p.id = ct.principal_id").
 		Where("(ct.claims #>> ?) = ?", pq.Array([]string{claimName}), claimValue)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)

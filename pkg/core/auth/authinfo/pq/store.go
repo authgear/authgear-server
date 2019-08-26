@@ -79,27 +79,30 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 
 	verifyInfo = authinfo.VerifyInfo
 
-	builder := s.sqlBuilder.Insert(s.sqlBuilder.FullTableName("user")).Columns(
-		"id",
-		"token_valid_since",
-		"last_seen_at",
-		"last_login_at",
-		"disabled",
-		"disabled_message",
-		"disabled_expiry",
-		"verified",
-		"verify_info",
-	).Values(
-		authinfo.ID,
-		tokenValidSince,
-		lastSeenAt,
-		lastLoginAt,
-		authinfo.Disabled,
-		disabledReason,
-		disabledExpiry,
-		authinfo.Verified,
-		verifyInfo,
-	)
+	builder := s.sqlBuilder.Tenant().
+		Insert(s.sqlBuilder.FullTableName("user")).
+		Columns(
+			"id",
+			"token_valid_since",
+			"last_seen_at",
+			"last_login_at",
+			"disabled",
+			"disabled_message",
+			"disabled_expiry",
+			"verified",
+			"verify_info",
+		).
+		Values(
+			authinfo.ID,
+			tokenValidSince,
+			lastSeenAt,
+			lastLoginAt,
+			authinfo.Disabled,
+			disabledReason,
+			disabledExpiry,
+			authinfo.Verified,
+			verifyInfo,
+		)
 
 	_, err = s.sqlExecutor.ExecWith(builder)
 	if db.IsUniqueViolated(err) {
@@ -143,7 +146,8 @@ func (s authInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 
 	verifyInfo = authinfo.VerifyInfo
 
-	builder := s.sqlBuilder.Update(s.sqlBuilder.FullTableName("user")).
+	builder := s.sqlBuilder.Tenant().
+		Update(s.sqlBuilder.FullTableName("user")).
 		Set("token_valid_since", tokenValidSince).
 		Set("last_seen_at", lastSeenAt).
 		Set("last_login_at", lastLoginAt).
@@ -174,11 +178,19 @@ func (s authInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	return nil
 }
 
-func (s authInfoStore) baseUserBuilder() sq.SelectBuilder {
-	return s.sqlBuilder.Select("id",
-		"token_valid_since", "last_seen_at", "last_login_at",
-		"disabled", "disabled_message", "disabled_expiry",
-		"verified", "verify_info").
+func (s authInfoStore) baseUserBuilder() db.SelectBuilder {
+	return s.sqlBuilder.Tenant().
+		Select(
+			"id",
+			"token_valid_since",
+			"last_seen_at",
+			"last_login_at",
+			"disabled",
+			"disabled_message",
+			"disabled_expiry",
+			"verified",
+			"verify_info",
+		).
 		From(s.sqlBuilder.FullTableName("user"))
 }
 
@@ -261,7 +273,8 @@ func (s authInfoStore) GetAuth(id string, authinfo *authinfo.AuthInfo) error {
 }
 
 func (s authInfoStore) DeleteAuth(id string) error {
-	builder := s.sqlBuilder.Delete(s.sqlBuilder.FullTableName("user")).
+	builder := s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("user")).
 		Where("id = ?", id)
 
 	result, err := s.sqlExecutor.ExecWith(builder)

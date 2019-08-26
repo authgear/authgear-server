@@ -26,30 +26,34 @@ func newStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Ent
 }
 
 func (s *storeImpl) CreateVerifyCode(code *VerifyCode) (err error) {
-	builder := s.sqlBuilder.Insert(s.sqlBuilder.FullTableName("verify_code")).Columns(
-		"id",
-		"user_id",
-		"login_id_key",
-		"login_id",
-		"code",
-		"consumed",
-		"created_at",
-	).Values(
-		code.ID,
-		code.UserID,
-		code.LoginIDKey,
-		code.LoginID,
-		code.Code,
-		code.Consumed,
-		code.CreatedAt,
-	)
+	builder := s.sqlBuilder.Tenant().
+		Insert(s.sqlBuilder.FullTableName("verify_code")).
+		Columns(
+			"id",
+			"user_id",
+			"login_id_key",
+			"login_id",
+			"code",
+			"consumed",
+			"created_at",
+		).
+		Values(
+			code.ID,
+			code.UserID,
+			code.LoginIDKey,
+			code.LoginID,
+			code.Code,
+			code.Consumed,
+			code.CreatedAt,
+		)
 
 	_, err = s.sqlExecutor.ExecWith(builder)
 	return
 }
 
 func (s *storeImpl) MarkConsumed(codeID string) (err error) {
-	builder := s.sqlBuilder.Update(s.sqlBuilder.FullTableName("verify_code")).
+	builder := s.sqlBuilder.Tenant().
+		Update(s.sqlBuilder.FullTableName("verify_code")).
 		Set("consumed", true).
 		Where("id = ?", codeID)
 
@@ -61,15 +65,16 @@ func (s *storeImpl) MarkConsumed(codeID string) (err error) {
 }
 
 func (s *storeImpl) GetVerifyCodeByUser(userID string) (*VerifyCode, error) {
-	builder := s.sqlBuilder.Select(
-		"id",
-		"code",
-		"user_id",
-		"login_id_key",
-		"login_id",
-		"consumed",
-		"created_at",
-	).
+	builder := s.sqlBuilder.Tenant().
+		Select(
+			"id",
+			"code",
+			"user_id",
+			"login_id_key",
+			"login_id",
+			"consumed",
+			"created_at",
+		).
 		From(s.sqlBuilder.FullTableName("verify_code")).
 		Where("user_id = ?", userID).
 		OrderBy("created_at desc")

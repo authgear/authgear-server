@@ -95,20 +95,21 @@ func (p *providerImpl) GetPrincipalByProvider(options GetByProviderOptions) (*Pr
 		return nil, err
 	}
 
-	builder := p.sqlBuilder.Select(
-		"p.id",
-		"p.user_id",
-		"o.provider_type",
-		"o.provider_keys",
-		"o.provider_user_id",
-		"o.token_response",
-		"o.profile",
-		"o.claims",
-		"o._created_at",
-		"o._updated_at",
-	).
-		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
-		Join(fmt.Sprintf("%s AS o ON p.id = o.principal_id", p.sqlBuilder.FullTableName("provider_oauth"))).
+	builder := p.sqlBuilder.Tenant().
+		Select(
+			"p.id",
+			"p.user_id",
+			"o.provider_type",
+			"o.provider_keys",
+			"o.provider_user_id",
+			"o.token_response",
+			"o.profile",
+			"o.claims",
+			"o._created_at",
+			"o._updated_at",
+		).
+		From(p.sqlBuilder.FullTableName("principal"), "p").
+		Join(p.sqlBuilder.FullTableName("provider_oauth"), "o", "p.id = o.principal_id").
 		Where(
 			"o.provider_type = ? AND o.provider_keys = ? AND o.provider_user_id = ?",
 			options.ProviderType, providerKeysBytes, options.ProviderUserID)
@@ -139,20 +140,21 @@ func (p *providerImpl) GetPrincipalByUser(options GetByUserOptions) (*Principal,
 		return nil, err
 	}
 
-	builder := p.sqlBuilder.Select(
-		"p.id",
-		"p.user_id",
-		"o.provider_type",
-		"o.provider_keys",
-		"o.provider_user_id",
-		"o.token_response",
-		"o.profile",
-		"o.claims",
-		"o._created_at",
-		"o._updated_at",
-	).
-		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
-		Join(fmt.Sprintf("%s AS o ON p.id = o.principal_id", p.sqlBuilder.FullTableName("provider_oauth"))).
+	builder := p.sqlBuilder.Tenant().
+		Select(
+			"p.id",
+			"p.user_id",
+			"o.provider_type",
+			"o.provider_keys",
+			"o.provider_user_id",
+			"o.token_response",
+			"o.profile",
+			"o.claims",
+			"o._created_at",
+			"o._updated_at",
+		).
+		From(p.sqlBuilder.FullTableName("principal"), "p").
+		Join(p.sqlBuilder.FullTableName("provider_oauth"), "o", "p.id = o.principal_id").
 		Where(
 			"o.provider_type = ? AND o.provider_keys = ? AND p.user_id = ?",
 			options.ProviderType, providerKeysBytes, options.UserID)
@@ -174,15 +176,18 @@ func (p *providerImpl) GetPrincipalByUser(options GetByUserOptions) (*Principal,
 
 func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 	// Create principal
-	builder := p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("principal")).Columns(
-		"id",
-		"provider",
-		"user_id",
-	).Values(
-		principal.ID,
-		providerName,
-		principal.UserID,
-	)
+	builder := p.sqlBuilder.Tenant().
+		Insert(p.sqlBuilder.FullTableName("principal")).
+		Columns(
+			"id",
+			"provider",
+			"user_id",
+		).
+		Values(
+			principal.ID,
+			providerName,
+			principal.UserID,
+		)
 
 	_, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
@@ -206,27 +211,30 @@ func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 		return
 	}
 
-	builder = p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("provider_oauth")).Columns(
-		"principal_id",
-		"provider_type",
-		"provider_keys",
-		"provider_user_id",
-		"token_response",
-		"profile",
-		"claims",
-		"_created_at",
-		"_updated_at",
-	).Values(
-		principal.ID,
-		principal.ProviderType,
-		providerKeysBytes,
-		principal.ProviderUserID,
-		accessTokenRespBytes,
-		userProfileBytes,
-		claimsValueBytes,
-		principal.CreatedAt,
-		principal.UpdatedAt,
-	)
+	builder = p.sqlBuilder.Tenant().
+		Insert(p.sqlBuilder.FullTableName("provider_oauth")).
+		Columns(
+			"principal_id",
+			"provider_type",
+			"provider_keys",
+			"provider_user_id",
+			"token_response",
+			"profile",
+			"claims",
+			"_created_at",
+			"_updated_at",
+		).
+		Values(
+			principal.ID,
+			principal.ProviderType,
+			providerKeysBytes,
+			principal.ProviderUserID,
+			accessTokenRespBytes,
+			userProfileBytes,
+			claimsValueBytes,
+			principal.CreatedAt,
+			principal.UpdatedAt,
+		)
 
 	_, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
@@ -254,7 +262,8 @@ func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 		return
 	}
 
-	builder := p.sqlBuilder.Update(p.sqlBuilder.FullTableName("provider_oauth")).
+	builder := p.sqlBuilder.Tenant().
+		Update(p.sqlBuilder.FullTableName("provider_oauth")).
 		Set("token_response", accessTokenRespBytes).
 		Set("profile", userProfileBytes).
 		Set("claims", claimsValueBytes).
@@ -285,7 +294,8 @@ func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 
 func (p *providerImpl) DeletePrincipal(principal *Principal) (err error) {
 	// Delete provider_oauth
-	builder := p.sqlBuilder.Delete(p.sqlBuilder.FullTableName("provider_oauth")).
+	builder := p.sqlBuilder.Tenant().
+		Delete(p.sqlBuilder.FullTableName("provider_oauth")).
 		Where("principal_id = ?", principal.ID)
 
 	result, err := p.sqlExecutor.ExecWith(builder)
@@ -305,7 +315,8 @@ func (p *providerImpl) DeletePrincipal(principal *Principal) (err error) {
 	}
 
 	// Delete principal
-	builder = p.sqlBuilder.Delete(p.sqlBuilder.FullTableName("principal")).
+	builder = p.sqlBuilder.Tenant().
+		Delete(p.sqlBuilder.FullTableName("principal")).
 		Where("id = ?", principal.ID)
 
 	result, err = p.sqlExecutor.ExecWith(builder)
@@ -328,20 +339,21 @@ func (p *providerImpl) DeletePrincipal(principal *Principal) (err error) {
 }
 
 func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
-	builder := p.sqlBuilder.Select(
-		"p.id",
-		"p.user_id",
-		"o.provider_type",
-		"o.provider_keys",
-		"o.provider_user_id",
-		"o.token_response",
-		"o.profile",
-		"o.claims",
-		"o._created_at",
-		"o._updated_at",
-	).
-		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
-		Join(fmt.Sprintf("%s AS o ON p.id = o.principal_id", p.sqlBuilder.FullTableName("provider_oauth"))).
+	builder := p.sqlBuilder.Tenant().
+		Select(
+			"p.id",
+			"p.user_id",
+			"o.provider_type",
+			"o.provider_keys",
+			"o.provider_user_id",
+			"o.token_response",
+			"o.profile",
+			"o.claims",
+			"o._created_at",
+			"o._updated_at",
+		).
+		From(p.sqlBuilder.FullTableName("principal"), "p").
+		Join(p.sqlBuilder.FullTableName("provider_oauth"), "o", "p.id = o.principal_id").
 		Where(
 			"p.user_id = ? AND p.provider = ?",
 			userID,
@@ -371,20 +383,21 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 }
 
 func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string) (principals []*Principal, err error) {
-	builder := p.sqlBuilder.Select(
-		"p.id",
-		"p.user_id",
-		"o.provider_type",
-		"o.provider_keys",
-		"o.provider_user_id",
-		"o.token_response",
-		"o.profile",
-		"o.claims",
-		"o._created_at",
-		"o._updated_at",
-	).
-		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
-		Join(fmt.Sprintf("%s AS o ON p.id = o.principal_id", p.sqlBuilder.FullTableName("provider_oauth"))).
+	builder := p.sqlBuilder.Tenant().
+		Select(
+			"p.id",
+			"p.user_id",
+			"o.provider_type",
+			"o.provider_keys",
+			"o.provider_user_id",
+			"o.token_response",
+			"o.profile",
+			"o.claims",
+			"o._created_at",
+			"o._updated_at",
+		).
+		From(p.sqlBuilder.FullTableName("principal"), "p").
+		Join(p.sqlBuilder.FullTableName("provider_oauth"), "o", "p.id = o.principal_id").
 		Where("(o.claims #>> ?) = ?", pq.Array([]string{claimName}), claimValue)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
@@ -415,20 +428,21 @@ func (p *providerImpl) ID() string {
 }
 
 func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
-	builder := p.sqlBuilder.Select(
-		"p.id",
-		"p.user_id",
-		"o.provider_type",
-		"o.provider_keys",
-		"o.provider_user_id",
-		"o.token_response",
-		"o.profile",
-		"o.claims",
-		"o._created_at",
-		"o._updated_at",
-	).
-		From(fmt.Sprintf("%s AS p", p.sqlBuilder.FullTableName("principal"))).
-		Join(fmt.Sprintf("%s AS o ON p.id = o.principal_id", p.sqlBuilder.FullTableName("provider_oauth"))).
+	builder := p.sqlBuilder.Tenant().
+		Select(
+			"p.id",
+			"p.user_id",
+			"o.provider_type",
+			"o.provider_keys",
+			"o.provider_user_id",
+			"o.token_response",
+			"o.profile",
+			"o.claims",
+			"o._created_at",
+			"o._updated_at",
+		).
+		From(p.sqlBuilder.FullTableName("principal"), "p").
+		Join(p.sqlBuilder.FullTableName("provider_oauth"), "o", "p.id = o.principal_id").
 		Where("p.id = ?", principalID)
 
 	scanner := p.sqlExecutor.QueryRowWith(builder)

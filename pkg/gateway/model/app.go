@@ -16,7 +16,6 @@ type GearVersion string
 // GearVersion constant specific gear version of app
 const (
 	LiveVersion      GearVersion = "live"
-	PreviousVersion  GearVersion = "previous"
 	NightlyVersion   GearVersion = "nightly"
 	SuspendedVersion GearVersion = "suspended"
 )

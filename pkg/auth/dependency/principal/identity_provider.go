@@ -2,6 +2,7 @@ package principal
 
 import (
 	"database/sql"
+
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
@@ -49,7 +50,8 @@ func (p *identityProviderImpl) ListPrincipalsByUserID(userID string) ([]Principa
 func (p *identityProviderImpl) GetPrincipalByID(principalID string) (Principal, error) {
 	var providerID string
 
-	builder := p.sqlBuilder.Select("provider").
+	builder := p.sqlBuilder.Tenant().
+		Select("provider").
 		From(p.sqlBuilder.FullTableName("principal")).
 		Where("id = ?", principalID)
 	scanner := p.sqlExecutor.QueryRowWith(builder)

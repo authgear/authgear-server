@@ -17,7 +17,7 @@ func NewDefaultTokenStore(ctx context.Context, tConfig config.TenantConfiguratio
 
 func NewDefaultAuthInfoStore(ctx context.Context, tConfig config.TenantConfiguration) authinfo.Store {
 	return pqAuthInfo.NewSafeAuthInfoStore(
-		db.NewSQLBuilder("core", tConfig.AppName),
+		db.NewSQLBuilder("core", tConfig.AppConfig.DatabaseSchema, tConfig.AppID),
 		db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
 		logging.CreateLoggerWithContext(ctx, "authinfo"),
 		db.NewSafeTxContextWithContext(ctx, tConfig),

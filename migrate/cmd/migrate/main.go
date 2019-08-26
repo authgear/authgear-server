@@ -178,11 +178,15 @@ func runMultiTenantMigrations(
 		"filter_value": appFilterValue,
 	}).Info("start running migration")
 
+	migratedDatabaseURLs := map[string]struct{}{}
 	for _, a := range apps {
-		for _, migration := range migrations {
-			databaseURL := a.DatabaseURL
-			schema := fmt.Sprintf("app_%s", a.Name)
+		databaseURL := a.DatabaseURL
+		schema := a.DatabaseSchema
+		if _, migrated := migratedDatabaseURLs[databaseURL]; migrated {
+			continue
+		}
 
+		for _, migration := range migrations {
 			sourceURL := ""
 			if s, ok := sources[migration]; ok {
 				sourceURL = s.SourceURL
@@ -202,6 +206,8 @@ func runMultiTenantMigrations(
 				os.Exit(1)
 			}
 		}
+
+		migratedDatabaseURLs[databaseURL] = struct{}{}
 	}
 }
 
@@ -212,23 +218,18 @@ func runCmd(req commandRequest) (string, error) {
 		sourceURL = fmt.Sprintf("file://%s", sourceURL)
 	}
 
-	schema := req.Schema
-	if req.Migration == "gateway" {
-		schema = "app_config"
-	}
-
 	purl, _ := nurl.Parse(req.DatabaseURL)
 	l := log.WithFields(log.Fields{
 		"migration":  req.Migration,
 		"db_name":    purl.EscapedPath(),
 		"db_host":    purl.Hostname(),
 		"source_url": sourceURL,
-		"schema":     schema,
+		"schema":     req.Schema,
 	})
 
 	result, err := command.Run(
 		req.Migration,
-		schema,
+		req.Schema,
 		req.DatabaseURL,
 		sourceURL,
 		req.DryRun,

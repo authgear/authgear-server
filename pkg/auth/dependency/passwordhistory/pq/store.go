@@ -92,7 +92,8 @@ func (p *passwordHistoryStore) RemovePasswordHistory(userID string, historySize,
 		ids = append(ids, h.ID)
 	}
 
-	builder := p.sqlBuilder.Delete(p.sqlBuilder.FullTableName("password_history")).
+	builder := p.sqlBuilder.Tenant().
+		Delete(p.sqlBuilder.FullTableName("password_history")).
 		Where("user_id = ?", userID).
 		Where("id NOT IN ("+sq.Placeholders(len(ids))+")", ids...).
 		Where("logged_at < ?", oldestTime)
@@ -101,28 +102,32 @@ func (p *passwordHistoryStore) RemovePasswordHistory(userID string, historySize,
 	return err
 }
 
-func (p *passwordHistoryStore) basePasswordHistoryBuilder(userID string) sq.SelectBuilder {
-	return p.sqlBuilder.Select("id", "user_id", "password", "logged_at").
+func (p *passwordHistoryStore) basePasswordHistoryBuilder(userID string) db.SelectBuilder {
+	return p.sqlBuilder.Tenant().
+		Select("id", "user_id", "password", "logged_at").
 		From(p.sqlBuilder.FullTableName("password_history")).
 		Where("user_id = ?", userID).
 		OrderBy("logged_at DESC")
 }
 
-func (p *passwordHistoryStore) insertPasswordHistoryBuilder(userID string, hashedPassword []byte, loggedAt time.Time) sq.InsertBuilder {
-	return p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("password_history")).Columns(
-		"id",
-		"user_id",
-		"password",
-		"logged_at",
-	).Values(
-		uuid.New(),
-		userID,
-		hashedPassword,
-		loggedAt,
-	)
+func (p *passwordHistoryStore) insertPasswordHistoryBuilder(userID string, hashedPassword []byte, loggedAt time.Time) db.InsertBuilder {
+	return p.sqlBuilder.Tenant().
+		Insert(p.sqlBuilder.FullTableName("password_history")).
+		Columns(
+			"id",
+			"user_id",
+			"password",
+			"logged_at",
+		).
+		Values(
+			uuid.New(),
+			userID,
+			hashedPassword,
+			loggedAt,
+		)
 }
 
-func (p *passwordHistoryStore) doQueryPasswordHistory(builder sq.SelectBuilder) ([]passwordhistory.PasswordHistory, error) {
+func (p *passwordHistoryStore) doQueryPasswordHistory(builder db.SelectBuilder) ([]passwordhistory.PasswordHistory, error) {
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return nil, err

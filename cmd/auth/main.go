@@ -17,6 +17,7 @@ import (
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn/resolver"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
@@ -91,6 +92,7 @@ func main() {
 		AsyncTaskExecutor: asyncTaskExecutor,
 		TemplateEngine:    templateEngine,
 	}
+	dbPool := db.NewPool()
 
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
 	task.AttachPwHousekeeperTask(asyncTaskExecutor, authDependency)
@@ -120,7 +122,7 @@ func main() {
 
 		serverOption := server.DefaultOption()
 		serverOption.GearPathPrefix = configuration.PathPrefix
-		srv = server.NewServerWithOption(configuration.Host, authContextResolverFactory, serverOption)
+		srv = server.NewServerWithOption(configuration.Host, authContextResolverFactory, dbPool, serverOption)
 		srv.Use(middleware.TenantConfigurationMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
 				return *tenantConfig, nil
@@ -130,7 +132,7 @@ func main() {
 		srv.Use(middleware.RequestIDMiddleware{}.Handle)
 		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		srv = server.NewServer(configuration.Host, authContextResolverFactory)
+		srv = server.NewServer(configuration.Host, authContextResolverFactory, dbPool)
 	}
 
 	handler.AttachSignupHandler(&srv, authDependency)

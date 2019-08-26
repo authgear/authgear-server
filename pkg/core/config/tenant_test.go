@@ -11,9 +11,11 @@ import (
 )
 
 const inputMinimalYAML = `version: '1'
+app_id: 66EAFE32-BF5C-4878-8FC8-DD0EEA440981
 app_name: myapp
 app_config:
   database_url: postgres://
+  database_schema: app
 user_config:
   api_key: apikey
   master_key: masterkey
@@ -39,9 +41,11 @@ user_config:
 const inputMinimalJSON = `
 {
 	"version": "1",
+	"app_id": "66EAFE32-BF5C-4878-8FC8-DD0EEA440981",
 	"app_name": "myapp",
 	"app_config": {
-		"database_url": "postgres://"
+		"database_url": "postgres://",
+		"database_schema": "app"
 	},
 	"user_config": {
 		"api_key": "apikey",
@@ -86,8 +90,10 @@ func makeFullTenantConfig() TenantConfiguration {
 	var fullTenantConfig = TenantConfiguration{
 		Version: "1",
 		AppName: "myapp",
+		AppID:   "66EAFE32-BF5C-4878-8FC8-DD0EEA440981",
 		AppConfig: AppConfiguration{
-			DatabaseURL: "postgres://user:password@localhost:5432/db?sslmode=disable",
+			DatabaseURL:    "postgres://user:password@localhost:5432/db?sslmode=disable",
+			DatabaseSchema: "app",
 			SMTP: SMTPConfiguration{
 				Host:     "localhost",
 				Port:     465,
@@ -304,9 +310,12 @@ func TestTenantConfig(t *testing.T) {
 			So(c.AppConfig.SMTP.Port, ShouldEqual, 25)
 		})
 		Convey("should validate when load from YAML", func() {
-			invalidInput := `app_name: myapp
+			invalidInput := `
+app_id: 66EAFE32-BF5C-4878-8FC8-DD0EEA440981
+app_name: myapp
 app_config:
   database_url: postgres://
+  database_schema: app
 user_config:
   api_key: apikey
   master_key: masterkey
@@ -329,9 +338,11 @@ user_config:
 		Convey("should validate when load from JSON", func() {
 			invalidInput := `
 		{
+		  "app_id": "66EAFE32-BF5C-4878-8FC8-DD0EEA440981",
 		  "app_name": "myapp",
 		  "app_config": {
-		    "database_url": "postgres://"
+		    "database_url": "postgres://",
+		    "database_schema": "app"
 		  },
 		  "user_config": {
 		    "api_key": "apikey",
