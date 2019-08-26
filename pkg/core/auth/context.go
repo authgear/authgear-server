@@ -17,23 +17,23 @@ var (
 
 // ContextGetter provides interface for getting authentication data
 type ContextGetter interface {
-	AccessKeyType() model.KeyType
+	AccessKey() model.AccessKey
 	AuthInfo() *authinfo.AuthInfo
 	Session() *session.Session
 }
 
 // ContextSetter provides interface for setting authentication data
 type ContextSetter interface {
-	SetAccessKeyType(model.KeyType)
+	SetAccessKey(model.AccessKey)
 	SetAuthInfo(*authinfo.AuthInfo)
 	SetSession(*session.Session)
 }
 
 // TODO: handle thread safety
 type contextContainer struct {
-	accessKeyType model.KeyType
-	authInfo      *authinfo.AuthInfo
-	session       *session.Session
+	accessKey model.AccessKey
+	authInfo  *authinfo.AuthInfo
+	session   *session.Session
 }
 
 type authContext struct {
@@ -55,9 +55,9 @@ func NewContextSetterWithContext(ctx context.Context) ContextSetter {
 	return &authContext{Context: ctx}
 }
 
-func (a *authContext) AccessKeyType() model.KeyType {
+func (a *authContext) AccessKey() model.AccessKey {
 	container := a.container()
-	return container.accessKeyType
+	return container.accessKey
 }
 
 func (a *authContext) AuthInfo() *authinfo.AuthInfo {
@@ -70,9 +70,9 @@ func (a *authContext) Session() *session.Session {
 	return container.session
 }
 
-func (a *authContext) SetAccessKeyType(keyType model.KeyType) {
+func (a *authContext) SetAccessKey(key model.AccessKey) {
 	container := a.container()
-	container.accessKeyType = keyType
+	container.accessKey = key
 }
 
 func (a *authContext) SetAuthInfo(authInfo *authinfo.AuthInfo) {

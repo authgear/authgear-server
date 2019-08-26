@@ -147,10 +147,14 @@ func (c *TenantConfiguration) GetOAuthProviderByID(id string) (OAuthProviderConf
 }
 
 func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
-	return []string{
-		c.UserConfig.APIKey,
-		c.UserConfig.MasterKey,
+	values := make([]string, len(c.UserConfig.Clients)+1)
+	values[0] = c.UserConfig.MasterKey
+	i := 1
+	for _, clientConfig := range c.UserConfig.Clients {
+		values[i] = clientConfig.APIKey
+		i++
 	}
+	return values
 }
 
 // nolint: gocyclo
@@ -192,8 +196,20 @@ func (c *TenantConfiguration) Validate() error {
 	}
 
 	// Validate complex UserConfiguration
-	if c.UserConfig.APIKey == c.UserConfig.MasterKey {
-		return errors.New("MASTER_KEY cannot be the same as API_KEY")
+	for _, clientConfig := range c.UserConfig.Clients {
+		if clientConfig.APIKey == c.UserConfig.MasterKey {
+			return errors.New("Master key must not be same as API key")
+		}
+
+		if !clientConfig.RefreshTokenDisabled &&
+			clientConfig.RefreshTokenLifetime < clientConfig.AccessTokenLifetime {
+			return errors.New("Refresh token lifetime must be greater than or equal to access token lifetime")
+		}
+
+		if clientConfig.SessionIdleTimeoutEnabled &&
+			clientConfig.SessionIdleTimeout > clientConfig.AccessTokenLifetime {
+			return errors.New("Session idle timeout must be less than or equal to access token lifetime")
+		}
 	}
 
 	for _, loginIDKeyConfig := range c.UserConfig.Auth.LoginIDKeys {
@@ -249,6 +265,26 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	c.UserConfig.WelcomeEmail.URLPrefix = removeTrailingSlash(c.UserConfig.WelcomeEmail.URLPrefix)
 	c.UserConfig.UserVerification.URLPrefix = removeTrailingSlash(c.UserConfig.UserVerification.URLPrefix)
 	c.UserConfig.SSO.OAuth.URLPrefix = removeTrailingSlash(c.UserConfig.SSO.OAuth.URLPrefix)
+
+	// Set default APIClientConfiguration values
+	for id, clientConfig := range c.UserConfig.Clients {
+		if clientConfig.AccessTokenLifetime == 0 {
+			clientConfig.AccessTokenLifetime = 1800
+		}
+		if clientConfig.RefreshTokenLifetime == 0 {
+			clientConfig.RefreshTokenLifetime = 86400
+			if clientConfig.AccessTokenLifetime > clientConfig.RefreshTokenLifetime {
+				clientConfig.RefreshTokenLifetime = clientConfig.AccessTokenLifetime
+			}
+		}
+		if clientConfig.SessionIdleTimeout == 0 {
+			clientConfig.SessionIdleTimeout = 300
+			if clientConfig.AccessTokenLifetime < clientConfig.SessionIdleTimeout {
+				clientConfig.SessionIdleTimeout = clientConfig.AccessTokenLifetime
+			}
+		}
+		c.UserConfig.Clients[id] = clientConfig
+	}
 
 	// Set default CORSConfiguration
 	if c.UserConfig.CORS.Origin == "" {
@@ -410,17 +446,39 @@ func removeTrailingSlash(url string) string {
 
 // UserConfiguration represents user-editable configuration
 type UserConfiguration struct {
-	APIKey           string                        `json:"api_key,omitempty" yaml:"api_key" msg:"api_key"`
-	MasterKey        string                        `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
-	URLPrefix        string                        `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
-	CORS             CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors"`
-	Auth             AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth"`
-	UserAudit        UserAuditConfiguration        `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit"`
-	ForgotPassword   ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password"`
-	WelcomeEmail     WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email"`
-	SSO              SSOConfiguration              `json:"sso,omitempty" yaml:"sso" msg:"sso"`
-	UserVerification UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification"`
-	Hook             HookUserConfiguration         `json:"hook,omitempty" yaml:"hook" msg:"hook"`
+	Clients          map[string]APIClientConfiguration `json:"clients" yaml:"clients" msg:"clients"`
+	MasterKey        string                            `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
+	URLPrefix        string                            `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
+	CORS             CORSConfiguration                 `json:"cors,omitempty" yaml:"cors" msg:"cors"`
+	Auth             AuthConfiguration                 `json:"auth,omitempty" yaml:"auth" msg:"auth"`
+	UserAudit        UserAuditConfiguration            `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit"`
+	ForgotPassword   ForgotPasswordConfiguration       `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password"`
+	WelcomeEmail     WelcomeEmailConfiguration         `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email"`
+	SSO              SSOConfiguration                  `json:"sso,omitempty" yaml:"sso" msg:"sso"`
+	UserVerification UserVerificationConfiguration     `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification"`
+	Hook             HookUserConfiguration             `json:"hook,omitempty" yaml:"hook" msg:"hook"`
+}
+
+// SessionTransportType indicates the transport used for session tokens
+type SessionTransportType string
+
+const (
+	// SessionTransportTypeHeader means session tokens should be transport in Authorization HTTP header
+	SessionTransportTypeHeader SessionTransportType = "header"
+)
+
+type APIClientConfiguration struct {
+	Name     string `json:"name" yaml:"name" msg:"name"`
+	Disabled bool   `json:"disabled" yaml:"disabled" msg:"disabled"`
+	APIKey   string `json:"api_key" yaml:"api_key" msg:"api_key"`
+
+	SessionTransport          SessionTransportType `json:"session_transport" yaml:"session_transport" msg:"session_transport"`
+	AccessTokenLifetime       int                  `json:"access_token_lifetime,omitempty" yaml:"access_token_lifetime" msg:"access_token_lifetime"`
+	SessionIdleTimeoutEnabled bool                 `json:"session_idle_timeout_enabled,omitempty" yaml:"session_idle_timeout_enabled" msg:"session_idle_timeout_enabled"`
+	SessionIdleTimeout        int                  `json:"session_idle_timeout,omitempty" yaml:"session_idle_timeout" msg:"session_idle_timeout"`
+
+	RefreshTokenDisabled bool `json:"refresh_token_disabled,omitempty" yaml:"refresh_token_disabled" msg:"refresh_token_disabled"`
+	RefreshTokenLifetime int  `json:"refresh_token_lifetime,omitempty" yaml:"refresh_token_lifetime" msg:"refresh_token_lifetime"`
 }
 
 // CORSConfiguration represents CORS configuration.

@@ -28,8 +28,8 @@ type DefaultAuthContextResolver struct {
 }
 
 func (r DefaultAuthContextResolver) Resolve(req *http.Request, ctx auth.ContextSetter) (err error) {
-	keyType := model.GetAccessKeyType(req)
-	ctx.SetAccessKeyType(keyType)
+	key := model.GetAccessKey(req)
+	ctx.SetAccessKey(key)
 
 	token := model.GetAccessToken(req)
 	s, err := r.SessionProvider.GetByToken(token, session.TokenKindAccessToken)

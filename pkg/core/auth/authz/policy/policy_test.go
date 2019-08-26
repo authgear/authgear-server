@@ -7,19 +7,19 @@ import (
 )
 
 type ContextGetter interface {
-	AccessKeyType() model.KeyType
+	AccessKey() model.AccessKey
 	AuthInfo() *authinfo.AuthInfo
 	Session() *session.Session
 }
 
 type MemoryContextGetter struct {
-	mAccessKeyType model.KeyType
-	mAuthInfo      *authinfo.AuthInfo
-	mSession       *session.Session
+	mAccessKey model.AccessKey
+	mAuthInfo  *authinfo.AuthInfo
+	mSession   *session.Session
 }
 
-func (g MemoryContextGetter) AccessKeyType() model.KeyType {
-	return g.mAccessKeyType
+func (g MemoryContextGetter) AccessKey() model.AccessKey {
+	return g.mAccessKey
 }
 
 func (g MemoryContextGetter) AuthInfo() *authinfo.AuthInfo {

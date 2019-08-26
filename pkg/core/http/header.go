@@ -8,7 +8,8 @@ import (
 const (
 	HeaderAPIKey               = "x-skygear-api-key"
 	HeaderAccessToken          = "x-skygear-access-token"
-	HeaderAccesskeytype        = "x-skygear-accesskeytype"
+	HeaderAccessKeyType        = "x-skygear-access-key-type"
+	HeaderClientID             = "x-skygear-client-id"
 	HeaderAuthInfoDisabled     = "x-skygear-auth-disabled"
 	HeaderAuthInfoID           = "x-skygear-auth-userid"
 	HeaderAuthInfoVerified     = "x-skygear-auth-verified"

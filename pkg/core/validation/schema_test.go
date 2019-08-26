@@ -16,8 +16,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 			// Empty root
 			{
 				`{}`,
-				`#: api_key is required
-#: auth is required
+				`#: auth is required
 #: hook is required
 #: master_key is required
 `,
@@ -26,7 +25,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			{
 				`
 {
-	"api_key": "api_key",
 	"master_key": "master_key",
 	"auth": {},
 	"hook": {}
@@ -39,7 +37,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			{
 				`
 {
-	"api_key": "api_key",
 	"master_key": "master_key",
 	"auth": {
 		"login_id_keys": {},
@@ -57,7 +54,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			{
 				`
 {
-	"api_key": "api_key",
 	"master_key": "master_key",
 	"auth": {
 		"login_id_keys": {
@@ -87,7 +83,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			{
 				`
 {
-	"api_key": "api_key",
 	"master_key": "master_key",
 	"auth": {
 		"login_id_keys": {
@@ -110,11 +105,42 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`,
 				``,
 			},
+			// API Clients
+			{
+				`
+{
+	"clients": {
+		"web-app": {}
+	},
+	"master_key": "master_key",
+	"auth": {
+		"login_id_keys": {
+			"email": {
+				"type": "email"
+			},
+			"phone": {
+				"type": "phone"
+			},
+			"username": {
+				"type": "raw"
+			}
+		},
+		"allowed_realms": ["default"]
+	},
+	"hook": {
+		"secret": "hooksecret"
+	}
+}
+				`,
+				`#/clients: api_key is required
+#/clients: name is required
+#/clients: session_transport is required
+`,
+			},
 			// CORS
 			{
 				`
 {
-	"api_key": "api_key",
 	"master_key": "master_key",
 	"auth": {
 		"login_id_keys": {
@@ -143,7 +169,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			{
 				`
 {
-	"api_key": "api_key",
 	"master_key": "master_key",
 	"auth": {
 		"login_id_keys": {
@@ -184,7 +209,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			{
 				`
 {
-	"api_key": "api_key",
 	"master_key": "master_key",
 	"auth": {
 		"login_id_keys": {
@@ -215,7 +239,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			{
 				`
 {
-	"api_key": "api_key",
 	"master_key": "master_key",
 	"auth": {
 		"login_id_keys": {
@@ -251,7 +274,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			{
 				`
 {
-	"api_key": "api_key",
 	"master_key": "master_key",
 	"auth": {
 		"login_id_keys": {
@@ -301,7 +323,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			{
 				`
 {
-	"api_key": "api_key",
 	"master_key": "master_key",
 	"auth": {
 		"login_id_keys": {

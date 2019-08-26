@@ -23,7 +23,12 @@ const (
 			"$id": "#UserConfiguration",
 			"type": "object",
 			"properties": {
-				"api_key": { "$ref": "#NonEmptyString" },
+				"clients": {
+					"type": "object",
+					"additionalProperties": {
+						"$ref": "#APIClientConfiguration"
+					}
+				},
 				"master_key": { "$ref": "#NonEmptyString" },
 				"url_prefix": {
 					"type": "string",
@@ -38,7 +43,26 @@ const (
 				"user_verification": { "$ref": "#UserVerificationConfiguration" },
 				"hook": { "$ref": "#HookUserConfiguration" }
 			},
-			"required": ["api_key", "master_key", "auth", "hook"]
+			"required": ["master_key", "auth", "hook"]
+		},
+		"APIClientConfiguration": {
+			"$id": "#APIClientConfiguration",
+			"type": "object",
+			"properties": {
+				"name": { "$ref": "#NonEmptyString" },
+				"disabled": { "type": "boolean" },
+				"api_key": { "$ref": "#NonEmptyString" },
+				"session_transport": {
+					"type": "string",
+					"enum": ["header"]
+				},
+				"access_token_lifetime": { "type": "integer", "minimum": 0 },
+				"session_idle_timeout_enabled": { "type": "boolean" },
+				"session_idle_timeout": { "type": "integer", "minimum": 0 },
+				"refresh_token_disabled": { "type": "boolean" },
+				"refresh_token_lifetime": { "type": "integer", "minimum": 0 }
+			},
+			"required": ["name", "api_key", "session_transport"]
 		},
 		"CORSConfiguration": {
 			"$id": "#CORSConfiguration",

@@ -13,7 +13,7 @@ func TestDenyNoAccessKey(t *testing.T) {
 		Convey("should return error if auth context has no access key", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
 			ctx := MemoryContextGetter{
-				mAccessKeyType: model.NoAccessKey,
+				mAccessKey: model.AccessKey{Type: model.NoAccessKeyType},
 			}
 
 			err := DenyNoAccessKey(req, ctx)
@@ -23,7 +23,7 @@ func TestDenyNoAccessKey(t *testing.T) {
 		Convey("should not return error if auth context has api key ", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
 			ctx := MemoryContextGetter{
-				mAccessKeyType: model.APIAccessKey,
+				mAccessKey: model.AccessKey{Type: model.APIAccessKeyType},
 			}
 
 			err := DenyNoAccessKey(req, ctx)
@@ -33,7 +33,7 @@ func TestDenyNoAccessKey(t *testing.T) {
 		Convey("should not return error if auth context has master key ", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
 			ctx := MemoryContextGetter{
-				mAccessKeyType: model.MasterAccessKey,
+				mAccessKey: model.AccessKey{Type: model.MasterAccessKeyType},
 			}
 
 			err := DenyNoAccessKey(req, ctx)
@@ -47,7 +47,7 @@ func TestRequireMasterKey(t *testing.T) {
 		Convey("should return error if auth context has no access key", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
 			ctx := MemoryContextGetter{
-				mAccessKeyType: model.NoAccessKey,
+				mAccessKey: model.AccessKey{Type: model.NoAccessKeyType},
 			}
 
 			err := RequireMasterKey(req, ctx)
@@ -57,7 +57,7 @@ func TestRequireMasterKey(t *testing.T) {
 		Convey("should return error if auth context has api key ", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
 			ctx := MemoryContextGetter{
-				mAccessKeyType: model.APIAccessKey,
+				mAccessKey: model.AccessKey{Type: model.APIAccessKeyType},
 			}
 
 			err := RequireMasterKey(req, ctx)
@@ -67,7 +67,7 @@ func TestRequireMasterKey(t *testing.T) {
 		Convey("should not return error if auth context has master key ", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
 			ctx := MemoryContextGetter{
-				mAccessKeyType: model.MasterAccessKey,
+				mAccessKey: model.AccessKey{Type: model.MasterAccessKeyType},
 			}
 
 			err := RequireMasterKey(req, ctx)

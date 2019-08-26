@@ -11,7 +11,12 @@ app_config:
     password: enable-2fa-and-use-app-password
 user_config:
   url_prefix: http://localhost:3000/_auth
-  api_key: api_key
+  clients:
+    test-app:
+      name: Test App
+      disabled: false
+      api_key: api_key
+      session_transport: header
   master_key: master_key
   hook:
     secret: hooksecret

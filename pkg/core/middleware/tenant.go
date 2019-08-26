@@ -30,10 +30,10 @@ func (m TenantConfigurationMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		// Tenant authentication
-		// Set key type to header only, no rejection
+		// Set access key to header only, no rejection
 		apiKey := model.GetAPIKey(r)
-		apiKeyType := model.CheckAccessKeyType(configuration, apiKey)
-		model.SetAccessKeyType(r, apiKeyType)
+		accessKey := model.CheckAccessKey(configuration, apiKey)
+		model.SetAccessKey(r, accessKey)
 
 		// Tenant configuration
 		config.SetTenantConfig(r, &configuration)

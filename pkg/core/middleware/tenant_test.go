@@ -18,7 +18,10 @@ var (
 			DatabaseURL: "DBConnectionStr",
 		},
 		UserConfig: config.UserConfiguration{
-			APIKey:    "APIKey",
+			Clients: map[string]config.APIClientConfiguration{
+				"web-app":    config.APIClientConfiguration{APIKey: "web-api-key"},
+				"mobile-app": config.APIClientConfiguration{APIKey: "mobile-api-key", Disabled: true},
+			},
 			MasterKey: "MasterKey",
 		},
 	}
@@ -52,15 +55,30 @@ func TestMiddleware(t *testing.T) {
 		Convey("should handle request without headers", func() {
 			req := newReq()
 			handler.ServeHTTP(nil, req)
-			So(model.GetAccessKeyType(req), ShouldEqual, model.NoAccessKey)
+			So(model.GetAccessKey(req), ShouldResemble, model.AccessKey{
+				Type: model.NoAccessKeyType,
+			})
 			So(config.GetTenantConfig(req), ShouldResemble, sampleConfig)
 		})
 
 		Convey("should handle request with apikey", func() {
 			req := newReq()
-			req.Header.Set(coreHttp.HeaderAPIKey, "APIKey")
+			req.Header.Set(coreHttp.HeaderAPIKey, "web-api-key")
 			handler.ServeHTTP(nil, req)
-			So(model.GetAccessKeyType(req), ShouldEqual, model.APIAccessKey)
+			So(model.GetAccessKey(req), ShouldResemble, model.AccessKey{
+				Type:     model.APIAccessKeyType,
+				ClientID: "web-app",
+			})
+			So(config.GetTenantConfig(req), ShouldResemble, sampleConfig)
+		})
+
+		Convey("should handle request with disabled apikey", func() {
+			req := newReq()
+			req.Header.Set(coreHttp.HeaderAPIKey, "mobile-api-key")
+			handler.ServeHTTP(nil, req)
+			So(model.GetAccessKey(req), ShouldResemble, model.AccessKey{
+				Type: model.NoAccessKeyType,
+			})
 			So(config.GetTenantConfig(req), ShouldResemble, sampleConfig)
 		})
 
@@ -68,7 +86,9 @@ func TestMiddleware(t *testing.T) {
 			req := newReq()
 			req.Header.Set(coreHttp.HeaderAPIKey, "MasterKey")
 			handler.ServeHTTP(nil, req)
-			So(model.GetAccessKeyType(req), ShouldEqual, model.MasterAccessKey)
+			So(model.GetAccessKey(req), ShouldResemble, model.AccessKey{
+				Type: model.MasterAccessKeyType,
+			})
 			So(config.GetTenantConfig(req), ShouldResemble, sampleConfig)
 		})
 

@@ -17,7 +17,7 @@ app_config:
   database_url: postgres://
   database_schema: app
 user_config:
-  api_key: apikey
+  clients: {}
   master_key: masterkey
   auth:
     login_id_keys:
@@ -46,7 +46,7 @@ const inputMinimalJSON = `
 		"database_schema": "app"
 	},
 	"user_config": {
-		"api_key": "apikey",
+		"clients": {},
 		"master_key": "masterkey",
 		"auth": {
 			"login_id_keys": {
@@ -112,7 +112,17 @@ func makeFullTenantConfig() TenantConfiguration {
 			},
 		},
 		UserConfig: UserConfiguration{
-			APIKey:    "myapikey",
+			Clients: map[string]APIClientConfiguration{
+				"web-app": APIClientConfiguration{
+					Name:                 "Web App",
+					Disabled:             false,
+					APIKey:               "api_key",
+					SessionTransport:     SessionTransportTypeHeader,
+					AccessTokenLifetime:  1800,
+					SessionIdleTimeout:   300,
+					RefreshTokenLifetime: 86400,
+				},
+			},
 			MasterKey: "mymasterkey",
 			URLPrefix: "http://localhost:3000",
 			CORS: CORSConfiguration{
@@ -292,7 +302,7 @@ func TestTenantConfig(t *testing.T) {
 			So(c.Version, ShouldEqual, "1")
 			So(c.AppName, ShouldEqual, "myapp")
 			So(c.AppConfig.DatabaseURL, ShouldEqual, "postgres://")
-			So(c.UserConfig.APIKey, ShouldEqual, "apikey")
+			So(c.UserConfig.Clients, ShouldBeEmpty)
 			So(c.UserConfig.MasterKey, ShouldEqual, "masterkey")
 		})
 		Convey("should have default value when load from YAML", func() {
@@ -309,7 +319,7 @@ app_config:
   database_url: postgres://
   database_schema: app
 user_config:
-  api_key: apikey
+  clients: {}
   master_key: masterkey
 `
 			_, err := NewTenantConfigurationFromYAML(strings.NewReader(invalidInput))
@@ -322,7 +332,7 @@ user_config:
 			So(c.Version, ShouldEqual, "1")
 			So(c.AppName, ShouldEqual, "myapp")
 			So(c.AppConfig.DatabaseURL, ShouldEqual, "postgres://")
-			So(c.UserConfig.APIKey, ShouldEqual, "apikey")
+			So(c.UserConfig.Clients, ShouldBeEmpty)
 			So(c.UserConfig.MasterKey, ShouldEqual, "masterkey")
 			So(c.UserConfig.CORS.Origin, ShouldEqual, "*")
 			So(c.AppConfig.SMTP.Port, ShouldEqual, 25)
@@ -391,10 +401,12 @@ user_config:
 		})
 		Convey("should validate api key != master key", func() {
 			c := makeFullTenantConfig()
-			c.UserConfig.APIKey = c.UserConfig.MasterKey
+			clientConfig := c.UserConfig.Clients["web-app"]
+			clientConfig.APIKey = c.UserConfig.MasterKey
+			c.UserConfig.Clients["web-app"] = clientConfig
 
 			err := c.Validate()
-			So(err, ShouldBeError, "MASTER_KEY cannot be the same as API_KEY")
+			So(err, ShouldBeError, "Master key must not be same as API key")
 		})
 		Convey("should validate minimum <= maximum", func() {
 			c := makeFullTenantConfig()

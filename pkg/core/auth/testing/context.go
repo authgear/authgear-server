@@ -10,19 +10,19 @@ import (
 )
 
 type MockContext struct {
-	accessKeyType model.KeyType
-	authInfo      *authinfo.AuthInfo
-	session       *session.Session
+	accessKey model.AccessKey
+	authInfo  *authinfo.AuthInfo
+	session   *session.Session
 }
 
 var _ auth.ContextGetter = &MockContext{}
 
 func NewMockContext() *MockContext {
-	return &MockContext{accessKeyType: model.APIAccessKey}
+	return &MockContext{accessKey: model.AccessKey{Type: model.APIAccessKeyType}}
 }
 
-func (m *MockContext) AccessKeyType() model.KeyType {
-	return m.accessKeyType
+func (m *MockContext) AccessKey() model.AccessKey {
+	return m.accessKey
 }
 
 func (m *MockContext) AuthInfo() *authinfo.AuthInfo {
@@ -34,12 +34,12 @@ func (m *MockContext) Session() *session.Session {
 }
 
 func (m *MockContext) UseNoAccessKey() *MockContext {
-	m.accessKeyType = model.NoAccessKey
+	m.accessKey.Type = model.NoAccessKeyType
 	return m
 }
 
 func (m *MockContext) UseMasterKey() *MockContext {
-	m.accessKeyType = model.MasterAccessKey
+	m.accessKey.Type = model.MasterAccessKeyType
 	return m
 }
 
