@@ -4,13 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gomodule/redigo/redis"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
@@ -40,7 +39,7 @@ import (
 type DependencyMap struct {
 	TemplateEngine    *template.Engine
 	AsyncTaskExecutor *async.Executor
-	RedisPool         *redis.Pool
+	UseInsecureCookie bool
 }
 
 // Provide provides dependency instance by name
@@ -169,6 +168,8 @@ func (m DependencyMap) Provide(
 			newAuthContext(),
 			tConfig.UserConfig.Clients,
 		)
+	case "SessionWriter":
+		return authSession.NewWriter(newAuthContext(), tConfig.UserConfig.Clients, m.UseInsecureCookie)
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "PasswordChecker":

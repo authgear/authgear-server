@@ -41,7 +41,7 @@ type configuration struct {
 	Host                              string              `default:"localhost:3000"`
 	ValidHosts                        string              `envconfig:"VALID_HOSTS"`
 	Redis                             redis.Configuration `envconfig:"REDIS"`
-	InsecureCookie                    bool                `envconfig:"INSECURE_COOKIE"`
+	UseInsecureCookie                 bool                `envconfig:"INSECURE_COOKIE"`
 }
 
 /*
@@ -100,6 +100,7 @@ func main() {
 	authDependency := auth.DependencyMap{
 		AsyncTaskExecutor: asyncTaskExecutor,
 		TemplateEngine:    templateEngine,
+		UseInsecureCookie: configuration.UseInsecureCookie,
 	}
 
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
