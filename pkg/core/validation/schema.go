@@ -54,7 +54,7 @@ const (
 				"api_key": { "$ref": "#NonEmptyString" },
 				"session_transport": {
 					"type": "string",
-					"enum": ["header"]
+					"enum": ["header", "cookie"]
 				},
 				"access_token_lifetime": { "type": "integer", "minimum": 0 },
 				"session_idle_timeout_enabled": { "type": "boolean" },
