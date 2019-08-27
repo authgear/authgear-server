@@ -79,12 +79,16 @@ func (p *providerImpl) GetByToken(token string, kind TokenKind) (*Session, error
 
 func (p *providerImpl) Access(s *Session) error {
 	s.AccessedAt = p.time.NowUTC()
-	p.store.Update(s)
-	return nil
+	return p.store.Update(s)
 }
 
 func (p *providerImpl) Invalidate(id string) error {
 	return p.store.Delete(id)
+}
+
+func (p *providerImpl) Refresh(session *Session) error {
+	p.generateAccessToken(session)
+	return p.store.Update(session)
 }
 
 func (p *providerImpl) generateAccessToken(s *Session) {

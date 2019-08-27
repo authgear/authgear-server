@@ -175,8 +175,9 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	// generate session
-	session, err := h.SessionProvider.Create(authinfo.ID, h.AuthContext.Session().PrincipalID)
+	// refresh session
+	session := h.AuthContext.Session()
+	err = h.SessionProvider.Refresh(h.AuthContext.Session())
 	if err != nil {
 		panic(err)
 	}

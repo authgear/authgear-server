@@ -9,4 +9,7 @@ type Provider interface {
 	Access(*Session) error
 	// Invalidate invalidates session with the ID
 	Invalidate(id string) error
+
+	// Refresh re-generates the access token of the session
+	Refresh(*Session) error
 }

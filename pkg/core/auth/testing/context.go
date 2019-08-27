@@ -1,6 +1,8 @@
 package testing
 
 import (
+	"fmt"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -47,8 +49,10 @@ func (m *MockContext) UseUser(userID string, principalID string) *MockContext {
 		VerifyInfo: map[string]bool{},
 	}
 	m.session = &session.Session{
+		ID:          fmt.Sprintf("%s-%s", userID, principalID),
 		UserID:      userID,
 		PrincipalID: principalID,
+		AccessToken: fmt.Sprintf("access-token-%s-%s", userID, principalID),
 	}
 	return m
 }

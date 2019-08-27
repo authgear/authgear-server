@@ -71,3 +71,9 @@ func (p *MockProvider) Invalidate(id string) error {
 	delete(p.Sessions, id)
 	return nil
 }
+
+func (p *MockProvider) Refresh(session *Session) error {
+	session.AccessToken = fmt.Sprintf("access-token-%s-%d", session.ID, p.counter)
+	p.counter++
+	return nil
+}
