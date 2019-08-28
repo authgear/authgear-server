@@ -7,9 +7,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/model"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -122,6 +125,16 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 			return resolver.Resolve(r, auth.NewContextSetterWithContext(r.Context()))
 		})
 		if err != nil {
+			if err == model.ErrTokenConflict {
+				// clear session cookie if tokens conflicted
+				cookie := &http.Cookie{
+					Name:    coreHttp.CookieNameSession,
+					Path:    "/",
+					Expires: time.Unix(0, 0),
+				}
+				http.SetCookie(rw, cookie)
+			}
+
 			// TODO: log
 			log.WithError(err).Error("failed to resolve auth")
 			s.handleError(rw, err)

@@ -20,6 +20,7 @@ func (f AuthContextResolverFactory) NewResolver(ctx context.Context, tenantConfi
 	r := &DefaultAuthContextResolver{
 		SessionProvider: session.NewProvider(redisSession.NewStore(ctx, tenantConfig.AppID), authCtx, tenantConfig.UserConfig.Clients),
 		AuthInfoStore:   auth.NewDefaultAuthInfoStore(ctx, tenantConfig),
+		ClientConfigs:   tenantConfig.UserConfig.Clients,
 	}
 	return r
 }
@@ -27,18 +28,31 @@ func (f AuthContextResolverFactory) NewResolver(ctx context.Context, tenantConfi
 type DefaultAuthContextResolver struct {
 	SessionProvider session.Provider
 	AuthInfoStore   authinfo.Store
+	ClientConfigs   map[string]config.APIClientConfiguration
 }
 
 func (r DefaultAuthContextResolver) Resolve(req *http.Request, ctx auth.ContextSetter) (err error) {
 	key := model.GetAccessKey(req)
 	ctx.SetAccessKey(key)
 
-	token := model.GetAccessToken(req)
+	token, transport, err := model.GetAccessToken(req)
+	if err != nil {
+		if err == model.ErrTokenConflict {
+			err = nil
+		}
+		return
+	}
+
 	s, err := r.SessionProvider.GetByToken(token, auth.SessionTokenKindAccessToken)
 	if err != nil {
 		if err == session.ErrSessionNotFound {
 			err = nil
 		}
+		return
+	}
+
+	if r.ClientConfigs[s.ClientID].SessionTransport != transport {
+		err = nil
 		return
 	}
 

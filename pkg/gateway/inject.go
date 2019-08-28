@@ -32,6 +32,8 @@ func (m DependencyMap) Provide(
 		return auth.NewDefaultAuthInfoStore(ctx, tConfig)
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
+	case "ClientConfigs":
+		return tConfig.UserConfig.Clients
 	default:
 		return nil
 	}

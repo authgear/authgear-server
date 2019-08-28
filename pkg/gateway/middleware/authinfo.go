@@ -3,6 +3,9 @@ package middleware
 import (
 	"net/http"
 	"strconv"
+	"time"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -15,9 +18,10 @@ import (
 // AuthInfoMiddleware injects auth info headers into the request
 // if x-skygear-access-token is present in the request.
 type AuthInfoMiddleware struct {
-	SessionProvider session.Provider `dependency:"SessionProvider"`
-	AuthInfoStore   authinfo.Store   `dependency:"AuthInfoStore"`
-	TxContext       db.TxContext     `dependency:"TxContext"`
+	SessionProvider session.Provider                         `dependency:"SessionProvider"`
+	AuthInfoStore   authinfo.Store                           `dependency:"AuthInfoStore"`
+	TxContext       db.TxContext                             `dependency:"TxContext"`
+	ClientConfigs   map[string]config.APIClientConfiguration `dependency:"ClientConfigs"`
 }
 
 // AuthInfoMiddlewareFactory creates AuthInfoMiddleware per request.
@@ -43,7 +47,21 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		r.Header.Del(coreHttp.HeaderAuthInfoVerified)
 		r.Header.Del(coreHttp.HeaderAuthInfoDisabled)
 
-		accessToken := model.GetAccessToken(r)
+		accessToken, transport, err := model.GetAccessToken(r)
+		if err == model.ErrTokenConflict {
+			err = nil
+			// clear session cookie if failed to get access token
+			cookie := &http.Cookie{
+				Name:    coreHttp.CookieNameSession,
+				Path:    "/",
+				Expires: time.Unix(0, 0),
+			}
+			http.SetCookie(w, cookie)
+			accessToken = ""
+		} else if err != nil {
+			return
+		}
+
 		// No access token found. Simply proceed.
 		if accessToken == "" {
 			return
@@ -56,6 +74,11 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 
 		session, err := m.SessionProvider.GetByToken(accessToken, auth.SessionTokenKindAccessToken)
 		if err != nil {
+			http.Error(w, "invalid access token", http.StatusUnauthorized)
+			return
+		}
+
+		if m.ClientConfigs[session.ClientID].SessionTransport != transport {
 			http.Error(w, "invalid access token", http.StatusUnauthorized)
 			return
 		}
