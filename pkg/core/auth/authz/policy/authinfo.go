@@ -12,7 +12,7 @@ import (
 func RequireAuthenticated(r *http.Request, ctx auth.ContextGetter) error {
 	authInfo := ctx.AuthInfo()
 	if authInfo == nil {
-		return skyerr.NewError(skyerr.NotAuthenticated, "require authenticated user")
+		return skyerr.NewNotAuthenticatedErr()
 	}
 
 	if authInfo.TokenValidSince != nil {
@@ -27,7 +27,7 @@ func RequireAuthenticated(r *http.Request, ctx auth.ContextGetter) error {
 		session := ctx.Session()
 		if !session.AccessTokenCreatedAt.IsZero() &&
 			!session.AccessTokenCreatedAt.After(tokenValidSince.Add(-1*time.Second)) {
-			return skyerr.NewError(skyerr.NotAuthenticated, "require authenticated user")
+			return skyerr.NewNotAuthenticatedErr()
 		}
 	}
 

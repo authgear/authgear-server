@@ -1,18 +1,20 @@
 package middleware
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
-
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/model"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 // AuthInfoMiddleware injects auth info headers into the request
@@ -39,6 +41,22 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		defer func() {
 			if err == nil {
 				next.ServeHTTP(w, r)
+			} else {
+				// clear session cookie if error occurred
+				cookie := &http.Cookie{
+					Name:    coreHttp.CookieNameSession,
+					Path:    "/",
+					Expires: time.Unix(0, 0),
+				}
+				http.SetCookie(w, cookie)
+
+				skyErr := skyerr.NewNotAuthenticatedErr()
+				httpStatus := skyerr.ErrorDefaultStatusCode(skyErr)
+				response := handler.APIResponse{Err: skyErr}
+				encoder := json.NewEncoder(w)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(httpStatus)
+				encoder.Encode(response)
 			}
 		}()
 
@@ -48,17 +66,8 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		r.Header.Del(coreHttp.HeaderAuthInfoDisabled)
 
 		accessToken, transport, err := model.GetAccessToken(r)
-		if err == model.ErrTokenConflict {
-			err = nil
-			// clear session cookie if failed to get access token
-			cookie := &http.Cookie{
-				Name:    coreHttp.CookieNameSession,
-				Path:    "/",
-				Expires: time.Unix(0, 0),
-			}
-			http.SetCookie(w, cookie)
-			accessToken = ""
-		} else if err != nil {
+		if err != nil {
+			// invalid session token -> must not proceed
 			return
 		}
 
@@ -72,21 +81,23 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		}
 		defer m.TxContext.RollbackTx()
 
-		session, err := m.SessionProvider.GetByToken(accessToken, auth.SessionTokenKindAccessToken)
+		s, err := m.SessionProvider.GetByToken(accessToken, auth.SessionTokenKindAccessToken)
 		if err != nil {
-			http.Error(w, "invalid access token", http.StatusUnauthorized)
+			// session not found -> treat as no access token is provided
+			err = nil
 			return
 		}
 
-		if m.ClientConfigs[session.ClientID].SessionTransport != transport {
-			http.Error(w, "invalid access token", http.StatusUnauthorized)
+		if m.ClientConfigs[s.ClientID].SessionTransport != transport {
+			// inconsistent session token transport -> must not proceed
+			err = session.ErrSessionNotFound
 			return
 		}
 
 		authInfo := authinfo.AuthInfo{}
-		err = m.AuthInfoStore.GetAuth(session.UserID, &authInfo)
+		err = m.AuthInfoStore.GetAuth(s.UserID, &authInfo)
 		if err != nil {
-			http.Error(w, "invalid access token", http.StatusUnauthorized)
+			// user not found -> treat as no access token is provided
 			return
 		}
 
@@ -99,9 +110,9 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		r.Header.Set(coreHttp.HeaderAuthInfoDisabled, strconv.FormatBool(disabled))
 
 		// in case valid session is used, infer access key from session
-		accessKey := model.NewAccessKey(session.ClientID)
+		accessKey := model.NewAccessKey(s.ClientID)
 		model.SetAccessKey(r, accessKey)
 
-		err = m.SessionProvider.Access(session)
+		err = m.SessionProvider.Access(s)
 	})
 }

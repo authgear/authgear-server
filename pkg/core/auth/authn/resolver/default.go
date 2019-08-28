@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/skydb"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
@@ -37,9 +39,6 @@ func (r DefaultAuthContextResolver) Resolve(req *http.Request, ctx auth.ContextS
 
 	token, transport, err := model.GetAccessToken(req)
 	if err != nil {
-		if err == model.ErrTokenConflict {
-			err = nil
-		}
 		return
 	}
 
@@ -59,6 +58,9 @@ func (r DefaultAuthContextResolver) Resolve(req *http.Request, ctx auth.ContextS
 	info := &authinfo.AuthInfo{}
 	err = r.AuthInfoStore.GetAuth(s.UserID, info)
 	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			err = nil
+		}
 		return
 	}
 

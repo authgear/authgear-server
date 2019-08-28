@@ -7,16 +7,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/model"
-
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
+	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	nextSkyerr "github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -126,7 +124,7 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 		})
 		if err != nil {
 			if err == model.ErrTokenConflict {
-				// clear session cookie if tokens conflicted
+				// clear session cookie if session token is invalid
 				cookie := &http.Cookie{
 					Name:    coreHttp.CookieNameSession,
 					Path:    "/",
@@ -137,6 +135,7 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 
 			// TODO: log
 			log.WithError(err).Error("failed to resolve auth")
+			err = skyerr.NewNotAuthenticatedErr()
 			s.handleError(rw, err)
 			return
 		}
@@ -160,7 +159,7 @@ func (s *Server) Use(mwf ...mux.MiddlewareFunc) {
 
 func (s *Server) handleError(rw http.ResponseWriter, err error) {
 	skyErr := skyerr.MakeError(err)
-	httpStatus := nextSkyerr.ErrorDefaultStatusCode(skyErr)
+	httpStatus := skyerr.ErrorDefaultStatusCode(skyErr)
 	response := errorResponse{Err: skyErr}
 	encoder := json.NewEncoder(rw)
 	rw.Header().Set("Content-Type", "application/json")
