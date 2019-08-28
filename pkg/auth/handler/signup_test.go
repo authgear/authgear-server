@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -26,7 +27,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -141,6 +141,7 @@ func TestSingupHandler(t *testing.T) {
 		sh := &SignupHandler{}
 		sh.AuthInfoStore = authInfoStore
 		sh.SessionProvider = session.NewMockProvider()
+		sh.SessionWriter = authSession.NewMockWriter()
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
 		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
@@ -167,7 +168,6 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("abort if user duplicate with oauth", func() {
 			sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider, mockOAuthProvider)
-			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -177,7 +177,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 409)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
@@ -194,7 +194,6 @@ func TestSingupHandler(t *testing.T) {
 				OnUserDuplicateAllowCreate: true,
 			}
 			sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider, mockOAuthProvider)
-			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -205,13 +204,12 @@ func TestSingupHandler(t *testing.T) {
 				"on_user_duplicate": "create"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 		})
 
 		Convey("signup user with login_id", func() {
-			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -221,7 +219,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 
@@ -320,7 +318,6 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("signup user with login_id with realm", func() {
-			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -330,7 +327,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 
@@ -415,7 +412,6 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("signup with incorrect login_id", func() {
-			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -424,7 +420,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 400)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
@@ -442,7 +438,6 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("signup with weak password", func() {
-			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -452,7 +447,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "1234"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 400)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
@@ -473,7 +468,6 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("signup with email, send welcome email to first login ID", func() {
 			sh.WelcomeEmailDestination = config.WelcomeEmailDestinationFirst
-			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -484,7 +478,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "12345678"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
 
 			So(mockTaskQueue.TasksName, ShouldResemble, []string{task.WelcomeEmailSendTaskName})
@@ -496,7 +490,6 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("signup with email, send welcome email to all login IDs", func() {
 			sh.WelcomeEmailDestination = config.WelcomeEmailDestinationAll
-			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -507,7 +500,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "12345678"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
 
 			So(mockTaskQueue.TasksName, ShouldResemble, []string{task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskName})
@@ -521,7 +514,6 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when signup success", func() {
-			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -531,7 +523,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
 
 			mockTrail, _ := sh.AuditTrail.(*audit.MockTrail)
@@ -564,6 +556,7 @@ func TestSingupHandler(t *testing.T) {
 		sh := &SignupHandler{}
 		sh.AuthInfoStore = authInfoStore
 		sh.SessionProvider = session.NewMockProvider()
+		sh.SessionWriter = authSession.NewMockWriter()
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider)
@@ -574,7 +567,6 @@ func TestSingupHandler(t *testing.T) {
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
 		sh.HookProvider = hook.NewMockProvider()
-		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("duplicated user error format", func(c C) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -585,7 +577,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
 
 			req, _ = http.NewRequest("POST", "", strings.NewReader(`
@@ -596,7 +588,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "1234567"
 			}`))
 			resp = httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 409)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
@@ -617,7 +609,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "1234567"
 			}`))
 			resp = httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 409)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
@@ -638,7 +630,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "1234567"
 			}`))
 			resp = httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 400)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{

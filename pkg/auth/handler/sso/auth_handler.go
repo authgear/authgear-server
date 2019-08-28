@@ -11,8 +11,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
@@ -99,6 +101,7 @@ type AuthHandler struct {
 	IdentityProvider        principal.IdentityProvider  `dependency:"IdentityProvider"`
 	AuthInfoStore           authinfo.Store              `dependency:"AuthInfoStore"`
 	SessionProvider         session.Provider            `dependency:"SessionProvider"`
+	SessionWriter           authSession.Writer          `dependency:"SessionWriter"`
 	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
 	ProviderFactory         *sso.ProviderFactory        `dependency:"SSOProviderFactory"`
 	UserProfileStore        userprofile.Store           `dependency:"UserProfileStore"`
@@ -149,7 +152,7 @@ func (h AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success bool) {
-	var ok interface{}
+	var resp interface{}
 	var oauthAuthInfo sso.AuthInfo
 	success = false
 
@@ -187,11 +190,16 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	// From now on, we must return response by respecting CallbackURL and UXMode.
 	defer func() {
 		success = err == nil
+		if authResp, isAuthResp := resp.(model.AuthResponse); success && isAuthResp {
+			h.SessionWriter.WriteSession(w, &authResp)
+			resp = authResp
+		}
+
 		switch state.UXMode {
 		case sso.UXModeWebRedirect, sso.UXModeWebPopup:
-			err = h.handleSessionResp(w, r, state.UXMode, state.CallbackURL, ok, err)
+			err = h.handleSessionResp(w, r, state.UXMode, state.CallbackURL, resp, err)
 		case sso.UXModeMobileApp:
-			err = h.handleRedirectResp(w, r, state.CallbackURL, ok, err)
+			err = h.handleRedirectResp(w, r, state.CallbackURL, resp, err)
 		default:
 			success = false
 			http.Error(w, "Invalid UXMode", http.StatusBadRequest)
@@ -202,7 +210,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	if err != nil {
 		return
 	}
-	ok, err = h.handle(oauthAuthInfo, *state)
+	resp, err = h.handle(oauthAuthInfo, *state)
 	return
 }
 
@@ -251,7 +259,7 @@ func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackU
 	return
 }
 
-func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, uxMode sso.UXMode, callbackURL string, ok interface{}, inputErr error) (err error) {
+func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, uxMode sso.UXMode, callbackURL string, resp interface{}, inputErr error) (err error) {
 	//
 	// In JS oauth flow, result send through cookies and handler by js script
 	//
@@ -260,7 +268,7 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 	// sso_result       -- response json
 	//
 	data := make(map[string]interface{})
-	data["result"] = makeJSONResponse(ok, inputErr)
+	data["result"] = makeJSONResponse(resp, inputErr)
 	data["callback_url"] = callbackURL
 	msg, err := json.Marshal(data)
 	if err != nil {
@@ -290,7 +298,7 @@ func (h AuthHandler) handleRedirectResp(
 	rw http.ResponseWriter,
 	r *http.Request,
 	callbackURL string,
-	ok interface{},
+	resp interface{},
 	inputErr error,
 ) error {
 	// In mobile app oauth flow, after auth flow complete will redirect
@@ -299,7 +307,7 @@ func (h AuthHandler) handleRedirectResp(
 	//
 	// Example:
 	// myapp://user.skygear.io/sso/{provider}/auth_handler?result=
-	authRespBytes, err := json.Marshal(makeJSONResponse(ok, inputErr))
+	authRespBytes, err := json.Marshal(makeJSONResponse(resp, inputErr))
 	if err != nil {
 		return err
 	}

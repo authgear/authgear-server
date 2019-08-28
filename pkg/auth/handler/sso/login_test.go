@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -20,7 +21,6 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -96,18 +96,18 @@ func TestLoginHandler(t *testing.T) {
 		)
 		sh.AuthInfoStore = authInfoStore
 		sh.SessionProvider = session.NewMockProvider()
+		sh.SessionWriter = authSession.NewMockWriter()
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.OAuthConfiguration = oauthConfig
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
-		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("should get auth response", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"access_token": "token"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
 			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
 				ProviderType:   "google",
@@ -195,14 +195,13 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		sh.OAuthConfiguration.ExternalAccessTokenFlowEnabled = false
-		h = handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("should return error if disabled", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"access_token": "token"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 404)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {

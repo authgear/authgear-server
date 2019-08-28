@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -48,7 +49,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
-	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
+	return h
 }
 
 func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -114,6 +115,7 @@ type LoginHandler struct {
 	IdentityProvider    principal.IdentityProvider `dependency:"IdentityProvider"`
 	AuthInfoStore       authinfo.Store             `dependency:"AuthInfoStore"`
 	SessionProvider     session.Provider           `dependency:"SessionProvider"`
+	SessionWriter       authSession.Writer         `dependency:"SessionWriter"`
 	ProviderFactory     *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
 	UserProfileStore    userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider        hook.Provider              `dependency:"HookProvider"`
@@ -128,22 +130,54 @@ func (h LoginHandler) WithTx() bool {
 	return true
 }
 
-func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	payload := LoginRequestPayload{}
-	err := json.NewDecoder(request.Body).Decode(&payload)
+func (h LoginHandler) DecodeRequest(request *http.Request) (payload LoginRequestPayload, err error) {
+	err = json.NewDecoder(request.Body).Decode(&payload)
 	if err != nil {
-		return payload, err
+		return
 	}
+
 	if payload.MergeRealm == "" {
 		payload.MergeRealm = password.DefaultRealm
 	}
 	if payload.OnUserDuplicate == "" {
 		payload.OnUserDuplicate = model.OnUserDuplicateDefault
 	}
-	return payload, nil
+	return
 }
 
-func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
+func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	var err error
+	var result interface{}
+	defer func() {
+		if err == nil {
+			h.HookProvider.DidCommitTx()
+			authResp := result.(model.AuthResponse)
+			h.SessionWriter.WriteSession(resp, &authResp)
+			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
+		} else {
+			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
+		}
+	}()
+
+	payload, err := h.DecodeRequest(req)
+	if err != nil {
+		return
+	}
+
+	if err = payload.Validate(); err != nil {
+		return
+	}
+
+	result, err = handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+		result, err = h.Handle(payload)
+		if err == nil {
+			err = h.HookProvider.WillCommitTx()
+		}
+		return
+	})
+}
+
+func (h LoginHandler) Handle(payload LoginRequestPayload) (resp model.AuthResponse, err error) {
 	if !h.OAuthConfiguration.ExternalAccessTokenFlowEnabled {
 		err = skyerr.NewError(skyerr.UndefinedOperation, "External access token flow is disabled")
 		return
@@ -154,8 +188,6 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
 		return
 	}
-
-	payload := req.(LoginRequestPayload)
 
 	loginState := sso.LoginState{
 		MergeRealm:      payload.MergeRealm,

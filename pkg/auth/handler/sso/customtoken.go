@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -50,7 +51,7 @@ type CustomTokenLoginHandlerFactory struct {
 func (f CustomTokenLoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &CustomTokenLoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
+	return h
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -58,7 +59,7 @@ func (f CustomTokenLoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
-type customTokenLoginPayload struct {
+type CustomTokenLoginPayload struct {
 	TokenString      string                           `json:"token"`
 	MergeRealm       string                           `json:"merge_realm"`
 	OnUserDuplicate  model.OnUserDuplicate            `json:"on_user_duplicate"`
@@ -81,7 +82,7 @@ const CustomTokenLoginRequestSchema = `
 }
 `
 
-func (payload customTokenLoginPayload) Validate() error {
+func (payload CustomTokenLoginPayload) Validate() error {
 	if err := payload.Claims.Validate(payload.ExpectedIssuer, payload.ExpectedAudience); err != nil {
 		return skyerr.NewError(
 			skyerr.InvalidCredentials,
@@ -141,6 +142,7 @@ type CustomTokenLoginHandler struct {
 	TxContext                db.TxContext                    `dependency:"TxContext"`
 	UserProfileStore         userprofile.Store               `dependency:"UserProfileStore"`
 	SessionProvider          session.Provider                `dependency:"SessionProvider"`
+	SessionWriter            authSession.Writer              `dependency:"SessionWriter"`
 	AuthInfoStore            authinfo.Store                  `dependency:"AuthInfoStore"`
 	CustomTokenAuthProvider  customtoken.Provider            `dependency:"CustomTokenAuthProvider"`
 	IdentityProvider         principal.IdentityProvider      `dependency:"IdentityProvider"`
@@ -157,10 +159,7 @@ func (h CustomTokenLoginHandler) WithTx() bool {
 }
 
 // DecodeRequest decode request payload
-func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	payload := customTokenLoginPayload{}
-	var err error
-
+func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (payload CustomTokenLoginPayload, err error) {
 	defer func() {
 		if err != nil {
 			h.AuditTrail.Log(audit.Entry{
@@ -173,7 +172,7 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (handler.R
 	}()
 
 	if err = json.NewDecoder(request.Body).Decode(&payload); err != nil {
-		return nil, err
+		return
 	}
 
 	payload.ExpectedIssuer = h.CustomTokenConfiguration.Issuer
@@ -189,19 +188,50 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (handler.R
 
 	payload.Claims, err = h.CustomTokenAuthProvider.Decode(payload.TokenString)
 	if err != nil {
-		return nil, skyerr.NewError(skyerr.BadRequest, err.Error())
+		err = skyerr.NewError(skyerr.BadRequest, err.Error())
+		return
 	}
-	return payload, err
+	return
+}
+
+func (h CustomTokenLoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	var err error
+	var result interface{}
+	defer func() {
+		if err == nil {
+			h.HookProvider.DidCommitTx()
+			authResp := result.(model.AuthResponse)
+			h.SessionWriter.WriteSession(resp, &authResp)
+			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
+		} else {
+			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
+		}
+	}()
+
+	payload, err := h.DecodeRequest(req)
+	if err != nil {
+		return
+	}
+
+	if err = payload.Validate(); err != nil {
+		return
+	}
+
+	result, err = handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+		result, err = h.Handle(payload)
+		if err == nil {
+			err = h.HookProvider.WillCommitTx()
+		}
+		return
+	})
 }
 
 // Handle function handle custom token login
-func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err error) {
+func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp model.AuthResponse, err error) {
 	if !h.CustomTokenConfiguration.Enabled {
 		err = skyerr.NewError(skyerr.UndefinedOperation, "Custom Token is disabled")
 		return
 	}
-
-	payload := req.(customTokenLoginPayload)
 
 	if !h.PasswordAuthProvider.IsRealmValid(payload.MergeRealm) {
 		err = skyerr.NewInvalidArgument("Invalid MergeRealm", []string{payload.MergeRealm})
@@ -328,7 +358,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 }
 
 func (h CustomTokenLoginHandler) handleLogin(
-	payload customTokenLoginPayload,
+	payload CustomTokenLoginPayload,
 	info *authinfo.AuthInfo,
 ) (createNewUser bool, customTokenPrincipal *customtoken.Principal, err error) {
 	customTokenPrincipal, err = h.findExistingCustomTokenPrincipal(payload.Claims.Subject())

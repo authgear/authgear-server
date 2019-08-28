@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
@@ -49,7 +50,7 @@ type ChangePasswordHandlerFactory struct {
 func (f ChangePasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ChangePasswordHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
+	return h
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -116,6 +117,7 @@ type ChangePasswordHandler struct {
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
 	SessionProvider      session.Provider           `dependency:"SessionProvider"`
+	SessionWriter        authSession.Writer         `dependency:"SessionWriter"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider         hook.Provider              `dependency:"HookProvider"`
@@ -127,14 +129,44 @@ func (h ChangePasswordHandler) WithTx() bool {
 }
 
 // DecodeRequest decode the request payload
-func (h ChangePasswordHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	payload := ChangePasswordRequestPayload{}
-	err := json.NewDecoder(request.Body).Decode(&payload)
-	return payload, err
+func (h ChangePasswordHandler) DecodeRequest(request *http.Request) (payload ChangePasswordRequestPayload, err error) {
+	err = json.NewDecoder(request.Body).Decode(&payload)
+	return
 }
 
-func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(ChangePasswordRequestPayload)
+func (h ChangePasswordHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	var err error
+	var result interface{}
+	defer func() {
+		if err == nil {
+			h.HookProvider.DidCommitTx()
+			authResp := result.(model.AuthResponse)
+			h.SessionWriter.WriteSession(resp, &authResp)
+			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
+		} else {
+			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
+		}
+	}()
+
+	payload, err := h.DecodeRequest(req)
+	if err != nil {
+		return
+	}
+
+	if err = payload.Validate(); err != nil {
+		return
+	}
+
+	result, err = handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+		result, err = h.Handle(payload)
+		if err == nil {
+			err = h.HookProvider.WillCommitTx()
+		}
+		return
+	})
+}
+
+func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (resp model.AuthResponse, err error) {
 	authinfo := h.AuthContext.AuthInfo()
 
 	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{

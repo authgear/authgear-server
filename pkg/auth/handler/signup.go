@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 
 	"github.com/skygeario/skygear-server/pkg/core/utils"
@@ -56,7 +57,7 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
+	return h
 }
 
 func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -162,6 +163,7 @@ type SignupHandler struct {
 	PasswordChecker         *authAudit.PasswordChecker                         `dependency:"PasswordChecker"`
 	UserProfileStore        userprofile.Store                                  `dependency:"UserProfileStore"`
 	SessionProvider         session.Provider                                   `dependency:"SessionProvider"`
+	SessionWriter           authSession.Writer                                 `dependency:"SessionWriter"`
 	AuthInfoStore           authinfo.Store                                     `dependency:"AuthInfoStore"`
 	PasswordAuthProvider    password.Provider                                  `dependency:"PasswordAuthProvider"`
 	IdentityProvider        principal.IdentityProvider                         `dependency:"IdentityProvider"`
@@ -181,12 +183,10 @@ func (h SignupHandler) WithTx() bool {
 	return true
 }
 
-func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	payload := SignupRequestPayload{}
-	err := json.NewDecoder(request.Body).Decode(&payload)
-
+func (h SignupHandler) DecodeRequest(request *http.Request) (payload SignupRequestPayload, err error) {
+	err = json.NewDecoder(request.Body).Decode(&payload)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	// Avoid { metadata: null } in the response user object
@@ -199,12 +199,42 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	if payload.OnUserDuplicate == "" {
 		payload.OnUserDuplicate = model.OnUserDuplicateDefault
 	}
-	return payload, nil
+	return
 }
 
-func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(SignupRequestPayload)
+func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	var err error
+	var result interface{}
+	defer func() {
+		if err == nil {
+			h.HookProvider.DidCommitTx()
+			authResp := result.(model.AuthResponse)
+			h.SessionWriter.WriteSession(resp, &authResp)
+			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
+		} else {
+			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
+		}
+	}()
 
+	payload, err := h.DecodeRequest(req)
+	if err != nil {
+		return
+	}
+
+	if err = payload.Validate(); err != nil {
+		return
+	}
+
+	result, err = handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+		result, err = h.Handle(payload)
+		if err == nil {
+			err = h.HookProvider.WillCommitTx()
+		}
+		return
+	})
+}
+
+func (h SignupHandler) Handle(payload SignupRequestPayload) (resp model.AuthResponse, err error) {
 	if !model.IsAllowedOnUserDuplicate(
 		false,
 		h.AuthConfiguration.OnUserDuplicateAllowCreate,

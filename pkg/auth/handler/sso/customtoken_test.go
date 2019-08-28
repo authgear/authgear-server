@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -26,7 +27,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 )
 
@@ -77,13 +77,13 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		userProfileStore.TimeNowfunc = timeNow
 		lh.UserProfileStore = userProfileStore
 		lh.SessionProvider = session.NewMockProvider()
+		lh.SessionWriter = authSession.NewMockWriter()
 		lh.AuditTrail = audit.NewMockTrail(t)
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()
 		lh.TaskQueue = mockTaskQueue
 		hookProvider := hook.NewMockProvider()
 		lh.HookProvider = hookProvider
-		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		iat := time.Now().UTC()
 		exp := iat.Add(time.Hour * 1)
@@ -105,7 +105,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				"token": "%s"
 			}`, tokenString)))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			lh.ServeHTTP(resp, req)
 
 			p, _ := lh.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID("otherid1")
 
@@ -221,7 +221,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				"token": "%s"
 			}`, tokenString)))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			lh.ServeHTTP(resp, req)
 
 			p, _ := lh.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID("chima.customtoken.id")
 			So(p.UserID, ShouldEqual, "chima")
@@ -279,7 +279,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				"token": "%s"
 			}`, tokenString)))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			lh.ServeHTTP(resp, req)
 
 			c.Printf("Response: %s", string(resp.Body.Bytes()))
 			So(resp.Code, ShouldEqual, 400)
@@ -311,9 +311,8 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 
 			lhh := lh
 			lhh.CustomTokenConfiguration.Enabled = false
-			h = handler.APIHandlerToHandler(lhh, lhh.TxContext)
 
-			h.ServeHTTP(resp, req)
+			lhh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 404)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
@@ -381,12 +380,12 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		userProfileStore.TimeNowfunc = timeNow
 		lh.UserProfileStore = userProfileStore
 		lh.SessionProvider = session.NewMockProvider()
+		lh.SessionWriter = authSession.NewMockWriter()
 		lh.AuditTrail = audit.NewMockTrail(t)
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()
 		lh.TaskQueue = mockTaskQueue
 		lh.HookProvider = hook.NewMockProvider()
-		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		iat := time.Now().UTC()
 		exp := iat.Add(time.Hour * 1)
@@ -410,7 +409,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				"token": "%s"
 			}`, tokenString)))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			lh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 409)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
@@ -431,7 +430,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				"on_user_duplicate": "merge"
 			}`, tokenString)))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			lh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 
@@ -480,7 +479,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				"on_user_duplicate": "create"
 			}`, tokenString)))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			lh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 
