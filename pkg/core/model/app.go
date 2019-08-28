@@ -90,6 +90,13 @@ func CheckAccessKey(config config.TenantConfiguration, apiKey string) AccessKey 
 	return AccessKey{Type: NoAccessKeyType}
 }
 
+func NewAccessKey(clientID string) AccessKey {
+	return AccessKey{
+		Type:     APIAccessKeyType,
+		ClientID: clientID,
+	}
+}
+
 const httpHeaderAuthorization = "authorization"
 const httpAuthzBearerScheme = "bearer"
 

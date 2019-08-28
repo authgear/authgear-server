@@ -75,6 +75,10 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		r.Header.Set(coreHttp.HeaderAuthInfoVerified, strconv.FormatBool(verified))
 		r.Header.Set(coreHttp.HeaderAuthInfoDisabled, strconv.FormatBool(disabled))
 
+		// in case valid session is used, infer access key from session
+		accessKey := model.NewAccessKey(session.ClientID)
+		model.SetAccessKey(r, accessKey)
+
 		err = m.SessionProvider.Access(session)
 	})
 }
