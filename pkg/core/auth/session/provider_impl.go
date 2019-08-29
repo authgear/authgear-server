@@ -25,6 +25,7 @@ const (
 type providerImpl struct {
 	req           *http.Request
 	store         Store
+	eventStore    EventStore
 	authContext   auth.ContextGetter
 	clientConfigs map[string]config.APIClientConfiguration
 
@@ -32,10 +33,11 @@ type providerImpl struct {
 	rand *rand.Rand
 }
 
-func NewProvider(req *http.Request, store Store, authContext auth.ContextGetter, clientConfigs map[string]config.APIClientConfiguration) Provider {
+func NewProvider(req *http.Request, store Store, eventStore EventStore, authContext auth.ContextGetter, clientConfigs map[string]config.APIClientConfiguration) Provider {
 	return &providerImpl{
 		req:           req,
 		store:         store,
+		eventStore:    eventStore,
 		authContext:   authContext,
 		clientConfigs: clientConfigs,
 		time:          time.NewProvider(),
@@ -48,13 +50,14 @@ func (p *providerImpl) Create(userID string, principalID string) (s *auth.Sessio
 	clientID := p.authContext.AccessKey().ClientID
 	clientConfig := p.clientConfigs[clientID]
 
+	accessEvent := newAccessEvent(now, p.req)
 	sess := auth.Session{
 		ID:          uuid.New(),
 		ClientID:    clientID,
 		UserID:      userID,
 		PrincipalID: principalID,
 
-		InitialAccess: newAccessEvent(now, p.req),
+		InitialAccess: accessEvent,
 
 		CreatedAt:  now,
 		AccessedAt: now,
@@ -66,6 +69,11 @@ func (p *providerImpl) Create(userID string, principalID string) (s *auth.Sessio
 
 	expiry := computeSessionStorageExpiry(&sess, clientConfig)
 	err = p.store.Create(&sess, expiry.Sub(now))
+	if err != nil {
+		return
+	}
+
+	err = p.eventStore.AppendAccessEvent(&sess, &accessEvent)
 	if err != nil {
 		return
 	}
@@ -123,7 +131,15 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 
 func (p *providerImpl) Access(s *auth.Session) error {
 	now := p.time.NowUTC()
+	accessEvent := newAccessEvent(now, p.req)
+
 	s.AccessedAt = now
+	s.LastAccess = accessEvent
+
+	err := p.eventStore.AppendAccessEvent(s, &accessEvent)
+	if err != nil {
+		return err
+	}
 
 	expiry := computeSessionStorageExpiry(s, p.clientConfigs[s.ClientID])
 	return p.store.Update(s, expiry.Sub(now))

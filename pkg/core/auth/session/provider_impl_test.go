@@ -18,6 +18,7 @@ import (
 func TestProvider(t *testing.T) {
 	Convey("Provider", t, func() {
 		store := NewMockStore()
+		eventStore := NewMockEventStore()
 
 		timeProvider := &time.MockProvider{}
 		initialTime := gotime.Date(2006, 1, 1, 0, 0, 0, 0, gotime.UTC)
@@ -44,6 +45,7 @@ func TestProvider(t *testing.T) {
 		var provider Provider = &providerImpl{
 			req:           req,
 			store:         store,
+			eventStore:    eventStore,
 			authContext:   authContext,
 			clientConfigs: clientConfigs,
 			time:          timeProvider,
@@ -67,6 +69,7 @@ func TestProvider(t *testing.T) {
 					AccessTokenCreatedAt: initialTime,
 				})
 				So(session.AccessToken, ShouldHaveLength, tokenLength+len(session.ID)+1)
+				So(eventStore.AccessEvents, ShouldResemble, []auth.SessionAccessEvent{accessEvent})
 			})
 
 			Convey("should allow creating multiple sessions for same principal", func() {
@@ -231,12 +234,19 @@ func TestProvider(t *testing.T) {
 			}
 			timeProvider.AdvanceSeconds(100)
 			timeNow := timeProvider.TimeNowUTC
+			accessEvent.Timestamp = timeNow
 			store.Sessions["session-id"] = session
 
 			Convey("should be update accessed at time", func() {
 				err := provider.Access(&session)
 				So(err, ShouldBeNil)
 				So(session.AccessedAt, ShouldEqual, timeNow)
+			})
+			Convey("should be create access event", func() {
+				err := provider.Access(&session)
+				So(err, ShouldBeNil)
+				So(session.LastAccess, ShouldResemble, accessEvent)
+				So(eventStore.AccessEvents, ShouldResemble, []auth.SessionAccessEvent{accessEvent})
 			})
 		})
 

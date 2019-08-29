@@ -19,6 +19,7 @@ type Session struct {
 	PrincipalID string `json:"principal_id"`
 
 	InitialAccess SessionAccessEvent `json:"initial_access"`
+	LastAccess    SessionAccessEvent `json:"last_access"`
 
 	CreatedAt  time.Time `json:"created_at"`
 	AccessedAt time.Time `json:"accessed_at"`
