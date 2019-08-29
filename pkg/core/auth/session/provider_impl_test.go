@@ -19,7 +19,7 @@ func TestProvider(t *testing.T) {
 		store := NewMockStore()
 
 		timeProvider := &time.MockProvider{}
-		initialTime := gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)
+		initialTime := gotime.Date(2006, 1, 1, 0, 0, 0, 0, gotime.UTC)
 		timeProvider.TimeNow = initialTime
 		timeProvider.TimeNowUTC = initialTime
 
@@ -178,6 +178,26 @@ func TestProvider(t *testing.T) {
 				So(session, ShouldBeNil)
 
 				session, err = provider.GetByToken("invalid-token", auth.SessionTokenKindAccessToken)
+				So(err, ShouldBeError, ErrSessionNotFound)
+				So(session, ShouldBeNil)
+			})
+			Convey("should reject if client is disabled", func() {
+				clientConfigs["web-app"] = config.APIClientConfiguration{
+					Disabled: true,
+				}
+				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)
+				So(err, ShouldBeError, ErrSessionNotFound)
+				So(session, ShouldBeNil)
+			})
+			Convey("should reject if client does not exists", func() {
+				delete(clientConfigs, "web-app")
+				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)
+				So(err, ShouldBeError, ErrSessionNotFound)
+				So(session, ShouldBeNil)
+			})
+			Convey("should reject if session is expired", func() {
+				timeProvider.AdvanceSeconds(1000000)
+				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)
 				So(err, ShouldBeError, ErrSessionNotFound)
 				So(session, ShouldBeNil)
 			})

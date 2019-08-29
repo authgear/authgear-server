@@ -101,6 +101,15 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 		return nil, ErrSessionNotFound
 	}
 
+	clientConfig, clientExists := p.clientConfigs[s.ClientID]
+	// if client does not exist or is disabled, ignore the session
+	if !clientExists || clientConfig.Disabled {
+		return nil, ErrSessionNotFound
+	}
+	if checkSessionExpired(s, p.time.NowUTC(), clientConfig, kind) {
+		return nil, ErrSessionNotFound
+	}
+
 	return s, nil
 }
 
