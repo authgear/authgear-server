@@ -160,6 +160,8 @@ func (m DependencyMap) Provide(
 	switch dependencyName {
 	case "AuthContextGetter":
 		return newAuthContext()
+	case "AuthContextSetter":
+		return coreAuth.NewContextSetterWithContext(ctx)
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
 	case "SessionProvider":

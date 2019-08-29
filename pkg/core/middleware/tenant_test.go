@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
-	"github.com/skygeario/skygear-server/pkg/core/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -55,40 +53,6 @@ func TestMiddleware(t *testing.T) {
 		Convey("should handle request without headers", func() {
 			req := newReq()
 			handler.ServeHTTP(nil, req)
-			So(model.GetAccessKey(req), ShouldResemble, model.AccessKey{
-				Type: model.NoAccessKeyType,
-			})
-			So(config.GetTenantConfig(req), ShouldResemble, sampleConfig)
-		})
-
-		Convey("should handle request with apikey", func() {
-			req := newReq()
-			req.Header.Set(coreHttp.HeaderAPIKey, "web-api-key")
-			handler.ServeHTTP(nil, req)
-			So(model.GetAccessKey(req), ShouldResemble, model.AccessKey{
-				Type:     model.APIAccessKeyType,
-				ClientID: "web-app",
-			})
-			So(config.GetTenantConfig(req), ShouldResemble, sampleConfig)
-		})
-
-		Convey("should handle request with disabled apikey", func() {
-			req := newReq()
-			req.Header.Set(coreHttp.HeaderAPIKey, "mobile-api-key")
-			handler.ServeHTTP(nil, req)
-			So(model.GetAccessKey(req), ShouldResemble, model.AccessKey{
-				Type: model.NoAccessKeyType,
-			})
-			So(config.GetTenantConfig(req), ShouldResemble, sampleConfig)
-		})
-
-		Convey("should handle request with masterkey", func() {
-			req := newReq()
-			req.Header.Set(coreHttp.HeaderAPIKey, "MasterKey")
-			handler.ServeHTTP(nil, req)
-			So(model.GetAccessKey(req), ShouldResemble, model.AccessKey{
-				Type: model.MasterAccessKeyType,
-			})
 			So(config.GetTenantConfig(req), ShouldResemble, sampleConfig)
 		})
 

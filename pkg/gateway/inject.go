@@ -22,6 +22,10 @@ func (m DependencyMap) Provide(
 	tConfig config.TenantConfiguration,
 ) interface{} {
 	switch dependencyName {
+	case "AuthContextGetter":
+		return auth.NewContextGetterWithContext(ctx)
+	case "AuthContextSetter":
+		return auth.NewContextSetterWithContext(ctx)
 	case "SessionProvider":
 		return session.NewProvider(
 			redisSession.NewStore(ctx, tConfig.AppID),
@@ -32,8 +36,6 @@ func (m DependencyMap) Provide(
 		return auth.NewDefaultAuthInfoStore(ctx, tConfig)
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
-	case "ClientConfigs":
-		return tConfig.UserConfig.Clients
 	default:
 		return nil
 	}
