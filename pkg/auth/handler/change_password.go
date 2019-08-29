@@ -229,7 +229,7 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 		return
 	}
 
-	resp = model.NewAuthResponse(user, identity, session.AccessToken)
+	resp = model.NewAuthResponse(user, identity, session)
 
 	h.AuditTrail.Log(audit.Entry{
 		UserID: authinfo.ID,

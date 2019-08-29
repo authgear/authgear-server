@@ -265,7 +265,7 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp model.AuthRespon
 		return
 	}
 
-	resp = model.NewAuthResponse(user, identity, session.AccessToken)
+	resp = model.NewAuthResponse(user, identity, session)
 
 	return
 }

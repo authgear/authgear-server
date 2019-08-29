@@ -11,6 +11,8 @@ func NewMockWriter() *MockWriter {
 	return &MockWriter{}
 }
 
+var _ Writer = &MockWriter{}
+
 func (w *MockWriter) WriteSession(rw http.ResponseWriter, accessToken *string) {
 }
 

@@ -346,7 +346,7 @@ func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp m
 		return
 	}
 
-	resp = model.NewAuthResponse(user, identity, session.AccessToken)
+	resp = model.NewAuthResponse(user, identity, session)
 
 	// TODO: audit trail
 	if createNewUser && h.WelcomeEmailEnabled {

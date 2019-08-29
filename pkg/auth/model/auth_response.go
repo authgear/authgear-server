@@ -14,10 +14,15 @@
 
 package model
 
+import (
+	"github.com/skygeario/skygear-server/pkg/core/auth"
+)
+
 type AuthResponse struct {
-	User        User      `json:"user"`
-	Identity    *Identity `json:"identity,omitempty"`
-	AccessToken string    `json:"access_token,omitempty"`
+	User         User      `json:"user"`
+	Identity     *Identity `json:"identity,omitempty"`
+	AccessToken  string    `json:"access_token,omitempty"`
+	RefreshToken string    `json:"refresh_token,omitempty"`
 }
 
 func NewAuthResponseWithUser(user User) AuthResponse {
@@ -33,11 +38,12 @@ func NewAuthResponseWithUserIdentity(user User, identity Identity) AuthResponse 
 	}
 }
 
-func NewAuthResponse(user User, identity Identity, accessToken string) AuthResponse {
+func NewAuthResponse(user User, identity Identity, session *auth.Session) AuthResponse {
 	return AuthResponse{
-		User:        user,
-		Identity:    &identity,
-		AccessToken: accessToken,
+		User:         user,
+		Identity:     &identity,
+		AccessToken:  session.AccessToken,
+		RefreshToken: session.RefreshToken,
 	}
 }
 
@@ -85,7 +91,8 @@ const AuthResponseSchema = `
 			"properties": {
 				"user": { "$ref": "#User" },
 				"identity": { "$ref": "#Identity" },
-				"access_token": { "type": "string" }
+				"access_token": { "type": "string" },
+				"refresh_token": { "type": "string" }
 			}
 		}
 	}

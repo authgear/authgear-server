@@ -156,6 +156,7 @@ func main() {
 	handler.AttachSignupHandler(&srv, authDependency)
 	handler.AttachLoginHandler(&srv, authDependency)
 	handler.AttachLogoutHandler(&srv, authDependency)
+	handler.AttachRefreshHandler(&srv, authDependency)
 	handler.AttachMeHandler(&srv, authDependency)
 	handler.AttachSetDisableHandler(&srv, authDependency)
 	handler.AttachChangePasswordHandler(&srv, authDependency)
