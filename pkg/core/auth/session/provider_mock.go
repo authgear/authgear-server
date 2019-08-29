@@ -52,6 +52,8 @@ func (p *MockProvider) GetByToken(token string, kind auth.SessionTokenKind) (*au
 		switch kind {
 		case auth.SessionTokenKindAccessToken:
 			expectedToken = s.AccessToken
+		case auth.SessionTokenKindRefreshToken:
+			expectedToken = s.RefreshToken
 		default:
 			continue
 		}

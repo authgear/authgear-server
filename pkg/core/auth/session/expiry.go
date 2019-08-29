@@ -7,9 +7,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-func computeSessionExpiry(session *auth.Session, config config.APIClientConfiguration) (expiry time.Time) {
-	expiry = session.AccessTokenCreatedAt.Add(time.Second * time.Duration(config.AccessTokenLifetime))
+func computeSessionStorageExpiry(session *auth.Session, config config.APIClientConfiguration) (expiry time.Time) {
 	if config.RefreshTokenDisabled {
+		expiry = session.AccessTokenCreatedAt.Add(time.Second * time.Duration(config.AccessTokenLifetime))
 		if config.SessionIdleTimeoutEnabled {
 			sessionIdleExpiry := session.AccessedAt.Add(time.Second * time.Duration(config.SessionIdleTimeout))
 			if sessionIdleExpiry.Before(expiry) {
@@ -17,9 +17,9 @@ func computeSessionExpiry(session *auth.Session, config config.APIClientConfigur
 			}
 		}
 	} else {
-		// TODO(session): refresh token handling
+		expiry = session.CreatedAt.Add(time.Second * time.Duration(config.RefreshTokenLifetime))
 		if config.SessionIdleTimeoutEnabled {
-			sessionIdleExpiry := session.AccessedAt.Add(time.Second * time.Duration(config.SessionIdleTimeout))
+			sessionIdleExpiry := session.AccessTokenCreatedAt.Add(time.Second * time.Duration(config.SessionIdleTimeout))
 			if sessionIdleExpiry.Before(expiry) {
 				expiry = sessionIdleExpiry
 			}

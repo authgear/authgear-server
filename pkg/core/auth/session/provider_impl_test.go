@@ -49,6 +49,7 @@ func TestProvider(t *testing.T) {
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
 					AccessToken:          session.AccessToken,
+					RefreshToken:         session.RefreshToken,
 					AccessTokenCreatedAt: initialTime,
 				})
 				So(session.AccessToken, ShouldHaveLength, tokenLength+len(session.ID)+1)
@@ -65,6 +66,7 @@ func TestProvider(t *testing.T) {
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
 					AccessToken:          session1.AccessToken,
+					RefreshToken:         session1.RefreshToken,
 					AccessTokenCreatedAt: initialTime,
 				})
 
@@ -78,10 +80,27 @@ func TestProvider(t *testing.T) {
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
 					AccessToken:          session2.AccessToken,
+					RefreshToken:         session2.RefreshToken,
 					AccessTokenCreatedAt: initialTime,
 				})
 
 				So(session1.ID, ShouldNotEqual, session2.ID)
+			})
+			Convey("should generate refresh token if enabled", func() {
+				clientConfigs["web-app"] = config.APIClientConfiguration{
+					RefreshTokenDisabled: false,
+				}
+				session, err := provider.Create("user-id", "principal-id")
+				So(err, ShouldBeNil)
+				So(session.RefreshToken, ShouldHaveLength, tokenLength+len(session.ID)+1)
+			})
+			Convey("should not generate refresh token if disabled", func() {
+				clientConfigs["web-app"] = config.APIClientConfiguration{
+					RefreshTokenDisabled: true,
+				}
+				session, err := provider.Create("user-id", "principal-id")
+				So(err, ShouldBeNil)
+				So(session.RefreshToken, ShouldBeEmpty)
 			})
 		})
 
@@ -94,14 +113,50 @@ func TestProvider(t *testing.T) {
 				CreatedAt:            initialTime,
 				AccessedAt:           initialTime,
 				AccessToken:          "session-id.access-token",
+				RefreshToken:         "session-id.refresh-token",
 				AccessTokenCreatedAt: initialTime,
 			}
-			store.Sessions["session-id"] = fixtureSession
+			store.Sessions[fixtureSession.ID] = fixtureSession
 
-			Convey("should be successful", func() {
+			Convey("should be successful using access token", func() {
 				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)
 				So(err, ShouldBeNil)
 				So(session, ShouldResemble, &fixtureSession)
+			})
+
+			Convey("should be successful using refresh token", func() {
+				session, err := provider.GetByToken("session-id.refresh-token", auth.SessionTokenKindRefreshToken)
+				So(err, ShouldBeNil)
+				So(session, ShouldResemble, &fixtureSession)
+			})
+
+			Convey("should not mix up access & refresh token", func() {
+				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindRefreshToken)
+				So(err, ShouldBeError, ErrSessionNotFound)
+				So(session, ShouldBeNil)
+
+				session, err = provider.GetByToken("session-id.refresh-token", auth.SessionTokenKindAccessToken)
+				So(err, ShouldBeError, ErrSessionNotFound)
+				So(session, ShouldBeNil)
+			})
+
+			Convey("should not match empty tokens", func() {
+				Convey("for access token", func() {
+					fixtureSession.AccessToken = ""
+					store.Sessions[fixtureSession.ID] = fixtureSession
+
+					session, err := provider.GetByToken("session-id.", auth.SessionTokenKindAccessToken)
+					So(err, ShouldBeError, ErrSessionNotFound)
+					So(session, ShouldBeNil)
+				})
+				Convey("for refresh token", func() {
+					fixtureSession.RefreshToken = ""
+					store.Sessions[fixtureSession.ID] = fixtureSession
+
+					session, err := provider.GetByToken("session-id.", auth.SessionTokenKindRefreshToken)
+					So(err, ShouldBeError, ErrSessionNotFound)
+					So(session, ShouldBeNil)
+				})
 			})
 
 			Convey("should reject session of other clients", func() {

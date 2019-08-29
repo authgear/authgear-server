@@ -39,18 +39,24 @@ func NewProvider(store Store, authContext auth.ContextGetter, clientConfigs map[
 
 func (p *providerImpl) Create(userID string, principalID string) (s *auth.Session, err error) {
 	now := p.time.NowUTC()
+	clientID := p.authContext.AccessKey().ClientID
+	clientConfig := p.clientConfigs[clientID]
+
 	sess := auth.Session{
 		ID:          uuid.New(),
-		ClientID:    p.authContext.AccessKey().ClientID,
+		ClientID:    clientID,
 		UserID:      userID,
 		PrincipalID: principalID,
 
 		CreatedAt:  now,
 		AccessedAt: now,
 	}
+	if !clientConfig.RefreshTokenDisabled {
+		p.generateRefreshToken(&sess)
+	}
 	p.generateAccessToken(&sess)
 
-	expiry := computeSessionExpiry(&sess, p.clientConfigs[p.authContext.AccessKey().ClientID])
+	expiry := computeSessionStorageExpiry(&sess, clientConfig)
 	err = p.store.Create(&sess, expiry.Sub(now))
 	if err != nil {
 		return
@@ -74,7 +80,13 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 	switch kind {
 	case auth.SessionTokenKindAccessToken:
 		expectedToken = s.AccessToken
+	case auth.SessionTokenKindRefreshToken:
+		expectedToken = s.RefreshToken
 	default:
+		return nil, ErrSessionNotFound
+	}
+
+	if expectedToken == "" {
 		return nil, ErrSessionNotFound
 	}
 
@@ -96,7 +108,7 @@ func (p *providerImpl) Access(s *auth.Session) error {
 	now := p.time.NowUTC()
 	s.AccessedAt = now
 
-	expiry := computeSessionExpiry(s, p.clientConfigs[s.ClientID])
+	expiry := computeSessionStorageExpiry(s, p.clientConfigs[s.ClientID])
 	return p.store.Update(s, expiry.Sub(now))
 }
 
@@ -106,7 +118,8 @@ func (p *providerImpl) Invalidate(id string) error {
 
 func (p *providerImpl) Refresh(session *auth.Session) error {
 	p.generateAccessToken(session)
-	expiry := computeSessionExpiry(session, p.clientConfigs[session.ClientID])
+
+	expiry := computeSessionStorageExpiry(session, p.clientConfigs[session.ClientID])
 	return p.store.Update(session, expiry.Sub(p.time.NowUTC()))
 }
 
@@ -114,6 +127,12 @@ func (p *providerImpl) generateAccessToken(s *auth.Session) {
 	accessToken := corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand)
 	s.AccessToken = encodeToken(s.ID, accessToken)
 	s.AccessTokenCreatedAt = p.time.NowUTC()
+	return
+}
+
+func (p *providerImpl) generateRefreshToken(s *auth.Session) {
+	refreshToken := corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand)
+	s.RefreshToken = encodeToken(s.ID, refreshToken)
 	return
 }
 
