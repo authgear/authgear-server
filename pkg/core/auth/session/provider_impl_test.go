@@ -1,6 +1,7 @@
 package session
 
 import (
+	"net/http"
 	"testing"
 	gotime "time"
 
@@ -29,7 +30,19 @@ func TestProvider(t *testing.T) {
 			"mobile-app": config.APIClientConfiguration{},
 		}
 
+		req, _ := http.NewRequest("POST", "", nil)
+		req.Header.Set("User-Agent", "SDK")
+		req.Header.Set("X-Skygear-Extra-Info", `{ "device_name": "Device" }`)
+		accessEvent := auth.SessionAccessEvent{
+			Timestamp: initialTime,
+			UserAgent: "SDK",
+			Extra: auth.SessionAccessEventExtraInfo{
+				"device_name": "Device",
+			},
+		}
+
 		var provider Provider = &providerImpl{
+			req:           req,
 			store:         store,
 			authContext:   authContext,
 			clientConfigs: clientConfigs,
@@ -46,6 +59,7 @@ func TestProvider(t *testing.T) {
 					ClientID:             "web-app",
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
+					InitialAccess:        accessEvent,
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
 					AccessToken:          session.AccessToken,
@@ -63,6 +77,7 @@ func TestProvider(t *testing.T) {
 					ClientID:             "web-app",
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
+					InitialAccess:        accessEvent,
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
 					AccessToken:          session1.AccessToken,
@@ -77,6 +92,7 @@ func TestProvider(t *testing.T) {
 					ClientID:             "web-app",
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
+					InitialAccess:        accessEvent,
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
 					AccessToken:          session2.AccessToken,

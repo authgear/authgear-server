@@ -2,12 +2,16 @@ package session
 
 import (
 	"crypto/subtle"
+	"encoding/json"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"strings"
+	gotime "time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -19,6 +23,7 @@ const (
 )
 
 type providerImpl struct {
+	req           *http.Request
 	store         Store
 	authContext   auth.ContextGetter
 	clientConfigs map[string]config.APIClientConfiguration
@@ -27,8 +32,9 @@ type providerImpl struct {
 	rand *rand.Rand
 }
 
-func NewProvider(store Store, authContext auth.ContextGetter, clientConfigs map[string]config.APIClientConfiguration) Provider {
+func NewProvider(req *http.Request, store Store, authContext auth.ContextGetter, clientConfigs map[string]config.APIClientConfiguration) Provider {
 	return &providerImpl{
+		req:           req,
 		store:         store,
 		authContext:   authContext,
 		clientConfigs: clientConfigs,
@@ -47,6 +53,8 @@ func (p *providerImpl) Create(userID string, principalID string) (s *auth.Sessio
 		ClientID:    clientID,
 		UserID:      userID,
 		PrincipalID: principalID,
+
+		InitialAccess: newAccessEvent(now, p.req),
 
 		CreatedAt:  now,
 		AccessedAt: now,
@@ -156,4 +164,23 @@ func decodeTokenSessionID(token string) (id string, ok bool) {
 	}
 	id, ok = parts[0], true
 	return
+}
+
+func newAccessEvent(timestamp gotime.Time, req *http.Request) auth.SessionAccessEvent {
+	remote := auth.SessionAccessEventConnInfo{
+		RemoteAddr:    req.RemoteAddr,
+		XForwardedFor: req.Header.Get("X-Forwarded-For"),
+		XRealIP:       req.Header.Get("X-Real-IP"),
+		Forwarded:     req.Header.Get("Forwarded"),
+	}
+
+	extra := auth.SessionAccessEventExtraInfo{}
+	json.Unmarshal([]byte(req.Header.Get(corehttp.HeaderSessionExtraInfo)), &extra)
+
+	return auth.SessionAccessEvent{
+		Timestamp: timestamp,
+		Remote:    remote,
+		UserAgent: req.UserAgent(),
+		Extra:     extra,
+	}
 }

@@ -30,6 +30,7 @@ func (m DependencyMap) Provide(
 		return auth.NewContextSetterWithContext(ctx)
 	case "SessionProvider":
 		return session.NewProvider(
+			request,
 			redisSession.NewStore(ctx, tConfig.AppID),
 			auth.NewContextGetterWithContext(ctx),
 			tConfig.UserConfig.Clients,

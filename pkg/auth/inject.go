@@ -165,6 +165,7 @@ func (m DependencyMap) Provide(
 		return db.NewTxContextWithContext(ctx, tConfig)
 	case "SessionProvider":
 		return session.NewProvider(
+			request,
 			redisSession.NewStore(ctx, tConfig.AppID),
 			newAuthContext(),
 			tConfig.UserConfig.Clients,
