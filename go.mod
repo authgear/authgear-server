@@ -46,6 +46,7 @@ require (
 	github.com/tinylib/msgp v1.0.2
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect
 	github.com/twinj/uuid v0.0.0-20160621131530-b505f2cca343
+	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190809123943-df4f5c81cb3b // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.0.0-20190530122614-20be4c3c3ed5
