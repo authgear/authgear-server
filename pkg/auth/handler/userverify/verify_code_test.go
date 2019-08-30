@@ -8,18 +8,18 @@ import (
 	gotime "time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -27,7 +27,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestForgotPasswordResetHandler(t *testing.T) {
+func TestVerifyCodeHandler(t *testing.T) {
 	Convey("Test VerifyCodeHandler", t, func() {
 		time := time.MockProvider{TimeNowUTC: gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)}
 
@@ -35,9 +35,8 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		logger, _ := test.NewNullLogger()
 		vh.Logger = logrus.NewEntry(logger)
 		vh.TxContext = db.NewMockTxContext()
-		vh.AuthContext = auth.NewMockContextGetterWithUnverifiedUser(map[string]bool{
-			"faseng.cat.id@example.com": false,
-		})
+		vh.AuthContext = authtest.NewMockContext().
+			UseUser("faseng.cat.id", "faseng.cat.principal.id")
 
 		zero := 0
 		one := 1
@@ -150,13 +149,11 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 						"faseng.cat.id@example.com": true,
 					},
 					User: model.User{
-						ID:       "faseng.cat.id",
-						Verified: false,
-						Disabled: false,
-						VerifyInfo: map[string]bool{
-							"faseng.cat.id@example.com": false,
-						},
-						Metadata: userprofile.Data{},
+						ID:         "faseng.cat.id",
+						Verified:   false,
+						Disabled:   false,
+						VerifyInfo: map[string]bool{},
+						Metadata:   userprofile.Data{},
 					},
 				},
 			})

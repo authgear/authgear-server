@@ -14,8 +14,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -36,7 +36,9 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		userID := "john.doe.id"
 
 		uh := &UpdateMetadataHandler{}
-		uh.AuthContext = auth.NewMockContextGetterWithUser(userID, "john.doe.principal.id0", true, map[string]bool{})
+		uh.AuthContext = authtest.NewMockContext().
+			UseUser(userID, "john.doe.principal.id0").
+			MarkVerified()
 		uh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				userID: authinfo.AuthInfo{
@@ -227,7 +229,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		userID := "john.doe.id"
 
 		uh := &UpdateMetadataHandler{}
-		uh.AuthContext = auth.NewMockContextGetterWithMasterkeyDefaultUser()
+		uh.AuthContext = authtest.NewMockContext().
+			UseUser("faseng.cat.id", "faseng.cat.principal.id").
+			MarkVerified().
+			UseMasterKey()
 		uh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				userID: authinfo.AuthInfo{

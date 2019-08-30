@@ -14,6 +14,7 @@ require (
 	github.com/go-gomail/gomail v0.0.0-20150902115704-41f357289737
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/golang/mock v1.3.1
+	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2

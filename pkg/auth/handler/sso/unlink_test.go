@@ -13,7 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
+	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -31,7 +31,9 @@ func TestUnlinkHandler(t *testing.T) {
 		sh := &UnlinkHandler{}
 		sh.ProviderID = providerID
 		sh.TxContext = db.NewMockTxContext()
-		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		sh.AuthContext = authtest.NewMockContext().
+			UseUser("faseng.cat.id", "faseng.cat.principal.id").
+			MarkVerified()
 		sh.ProviderFactory = sso.NewProviderFactory(config.TenantConfiguration{
 			UserConfig: config.UserConfiguration{
 				SSO: config.SSOConfiguration{
@@ -107,7 +109,9 @@ func TestUnlinkHandler(t *testing.T) {
 		})
 
 		Convey("should disallow remove current identity", func() {
-			sh.AuthContext = auth.NewMockContextGetterWithUser("faseng.cat.id", "oauth-principal-id", true, map[string]bool{})
+			sh.AuthContext = authtest.NewMockContext().
+				UseUser("faseng.cat.id", "oauth-principal-id").
+				MarkVerified()
 			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{

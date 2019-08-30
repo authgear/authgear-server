@@ -13,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
@@ -85,7 +84,6 @@ func TestResetPasswordHandler(t *testing.T) {
 				},
 			},
 		)
-		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 		passwordChecker := &authAudit.PasswordChecker{
 			PwMinLength: 6,
 		}
@@ -93,7 +91,6 @@ func TestResetPasswordHandler(t *testing.T) {
 
 		h := &ResetPasswordHandler{}
 		h.AuthInfoStore = authInfoStore
-		h.TokenStore = tokenStore
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.PasswordChecker = passwordChecker
 		h.PasswordAuthProvider = passwordAuthProvider

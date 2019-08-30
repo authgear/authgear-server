@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/redis"
+
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
@@ -34,10 +36,11 @@ import (
 
 type configuration struct {
 	Standalone                        bool
-	StandaloneTenantConfigurationFile string `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
-	PathPrefix                        string `envconfig:"PATH_PREFIX"`
-	Host                              string `default:"localhost:3000"`
-	ValidHosts                        string `envconfig:"VALID_HOSTS"`
+	StandaloneTenantConfigurationFile string              `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
+	PathPrefix                        string              `envconfig:"PATH_PREFIX"`
+	Host                              string              `default:"localhost:3000"`
+	ValidHosts                        string              `envconfig:"VALID_HOSTS"`
+	Redis                             redis.Configuration `envconfig:"REDIS"`
 }
 
 /*
@@ -79,6 +82,9 @@ func main() {
 	if configuration.ValidHosts == "" {
 		configuration.ValidHosts = configuration.Host
 	}
+	if configuration.Redis.Host == "" {
+		log.Fatal("REDIS_HOST is not provided")
+	}
 
 	// default template initialization
 	templateEngine := template.NewEngine()
@@ -88,17 +94,25 @@ func main() {
 	logging.SetModule("auth")
 
 	asyncTaskExecutor := async.NewExecutor()
+	dbPool := db.NewPool()
+	redisPool := redis.NewPool(configuration.Redis)
 	authDependency := auth.DependencyMap{
 		AsyncTaskExecutor: asyncTaskExecutor,
 		TemplateEngine:    templateEngine,
 	}
-	dbPool := db.NewPool()
 
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
 	task.AttachPwHousekeeperTask(asyncTaskExecutor, authDependency)
 	task.AttachWelcomeEmailSendTask(asyncTaskExecutor, authDependency)
 
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}
+
+	setupCtxFn := server.SetupContextFunc(func(ctx context.Context) context.Context {
+		return redis.WithRedis(ctx, redisPool)
+	})
+	cleanupCtxFn := server.CleanupContextFunc(func(ctx context.Context) {
+		redis.CloseConn(ctx)
+	})
 
 	var srv server.Server
 	if configuration.Standalone {
@@ -122,7 +136,7 @@ func main() {
 
 		serverOption := server.DefaultOption()
 		serverOption.GearPathPrefix = configuration.PathPrefix
-		srv = server.NewServerWithOption(configuration.Host, authContextResolverFactory, dbPool, serverOption)
+		srv = server.NewServerWithOption(configuration.Host, authContextResolverFactory, dbPool, setupCtxFn, cleanupCtxFn, serverOption)
 		srv.Use(middleware.TenantConfigurationMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
 				return *tenantConfig, nil
@@ -132,7 +146,7 @@ func main() {
 		srv.Use(middleware.RequestIDMiddleware{}.Handle)
 		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		srv = server.NewServer(configuration.Host, authContextResolverFactory, dbPool)
+		srv = server.NewServer(configuration.Host, authContextResolverFactory, dbPool, setupCtxFn, cleanupCtxFn)
 	}
 
 	handler.AttachSignupHandler(&srv, authDependency)

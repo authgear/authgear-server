@@ -2,20 +2,20 @@ package policy
 
 import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
 type ContextGetter interface {
 	AccessKeyType() model.KeyType
 	AuthInfo() *authinfo.AuthInfo
-	Token() *authtoken.Token
+	Session() *session.Session
 }
 
 type MemoryContextGetter struct {
 	mAccessKeyType model.KeyType
 	mAuthInfo      *authinfo.AuthInfo
-	mToken         *authtoken.Token
+	mSession       *session.Session
 }
 
 func (g MemoryContextGetter) AccessKeyType() model.KeyType {
@@ -26,6 +26,6 @@ func (g MemoryContextGetter) AuthInfo() *authinfo.AuthInfo {
 	return g.mAuthInfo
 }
 
-func (g MemoryContextGetter) Token() *authtoken.Token {
-	return g.mToken
+func (g MemoryContextGetter) Session() *session.Session {
+	return g.mSession
 }

@@ -27,8 +27,6 @@ user_config:
         type: phone
       username:
         type: raw
-  token_store:
-    secret: tokensecret
   hook:
     secret: hooksecret
   sso:
@@ -63,9 +61,6 @@ const inputMinimalJSON = `
 				}
 			},
 			"allowed_realms": ["default"]
-		},
-		"token_store": {
-			"secret": "tokensecret"
 		},
 		"hook": {
 			"secret": "hooksecret"
@@ -144,10 +139,7 @@ func makeFullTenantConfig() TenantConfiguration {
 				AllowedRealms:              []string{"default"},
 				OnUserDuplicateAllowCreate: true,
 			},
-			TokenStore: TokenStoreConfiguration{
-				Secret: "mytokenstoresecret",
-				Expiry: 0,
-			},
+
 			UserAudit: UserAuditConfiguration{
 				Enabled:         true,
 				TrailHandlerURL: "http://localhost:3000/useraudit",

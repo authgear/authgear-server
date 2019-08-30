@@ -11,13 +11,12 @@ import (
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -55,19 +54,6 @@ func (f LogoutHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-// LogoutRequestPayload is request payload of logout handler
-type LogoutRequestPayload struct {
-	AccessToken string
-}
-
-// Validate request payload
-func (p LogoutRequestPayload) Validate() error {
-	if p.AccessToken == "" {
-		return skyerr.NewError(skyerr.NotAuthenticated, "missing access token")
-	}
-	return nil
-}
-
 /*
 	@Operation POST /logout - Logout current session
 		Logout current session.
@@ -85,7 +71,7 @@ type LogoutHandler struct {
 	AuthContext      coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	UserProfileStore userprofile.Store          `dependency:"UserProfileStore"`
 	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
-	TokenStore       authtoken.Store            `dependency:"TokenStore"`
+	SessionProvider  session.Provider           `dependency:"SessionProvider"`
 	AuditTrail       audit.Trail                `dependency:"AuditTrail"`
 	HookProvider     hook.Provider              `dependency:"HookProvider"`
 	TxContext        db.TxContext               `dependency:"TxContext"`
@@ -97,27 +83,17 @@ func (h LogoutHandler) WithTx() bool {
 
 // DecodeRequest decode request payload
 func (h LogoutHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	payload := LogoutRequestPayload{}
-	payload.AccessToken = model.GetAccessToken(request)
-	return payload, nil
+	return handler.EmptyRequestPayload{}, nil
 }
 
 // Handle api request
 func (h LogoutHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(LogoutRequestPayload)
-
-	accessToken := payload.AccessToken
-
-	if err = h.TokenStore.Delete(accessToken); err != nil {
-		if _, notfound := err.(*authtoken.NotFoundError); notfound {
-			err = nil
-		}
-	}
-	if err != nil {
+	if err = h.SessionProvider.Invalidate(h.AuthContext.Session().ID); err != nil {
 		err = skyerr.MakeError(err)
-	} else {
-		resp = map[string]string{}
+		return
 	}
+
+	resp = map[string]string{}
 
 	var profile userprofile.UserProfile
 	if profile, err = h.UserProfileStore.GetUserProfile(h.AuthContext.AuthInfo().ID); err != nil {
@@ -125,7 +101,7 @@ func (h LogoutHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	var principal principal.Principal
-	if principal, err = h.IdentityProvider.GetPrincipalByID(h.AuthContext.Token().PrincipalID); err != nil {
+	if principal, err = h.IdentityProvider.GetPrincipalByID(h.AuthContext.Session().PrincipalID); err != nil {
 		return
 	}
 

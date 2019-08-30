@@ -14,8 +14,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -61,7 +61,9 @@ func TestLinkHandler(t *testing.T) {
 
 		sh := &LinkHandler{}
 		sh.TxContext = db.NewMockTxContext()
-		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		sh.AuthContext = authtest.NewMockContext().
+			UseUser("faseng.cat.id", "faseng.cat.principal.id").
+			MarkVerified()
 		oauthConfig := coreconfig.OAuthConfiguration{
 			URLPrefix:                      "http://localhost:3000",
 			StateJWTSecret:                 stateJWTSecret,

@@ -15,9 +15,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -61,7 +61,9 @@ func TestLoginHandler(t *testing.T) {
 
 		sh := &LoginHandler{}
 		sh.TxContext = db.NewMockTxContext()
-		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		sh.AuthContext = authtest.NewMockContext().
+			UseUser("faseng.cat.id", "faseng.cat.principal.id").
+			MarkVerified()
 		oauthConfig := coreconfig.OAuthConfiguration{
 			URLPrefix:                      "http://localhost:3000",
 			StateJWTSecret:                 stateJWTSecret,
@@ -93,8 +95,7 @@ func TestLoginHandler(t *testing.T) {
 			map[string]authinfo.AuthInfo{},
 		)
 		sh.AuthInfoStore = authInfoStore
-		mockTokenStore := authtoken.NewMockStore()
-		sh.TokenStore = mockTokenStore
+		sh.SessionProvider = session.NewMockProvider()
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.OAuthConfiguration = oauthConfig
 		hookProvider := hook.NewMockProvider()
@@ -112,7 +113,6 @@ func TestLoginHandler(t *testing.T) {
 				ProviderType:   "google",
 				ProviderUserID: providerUserID,
 			})
-			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
 					"user": {
@@ -137,12 +137,9 @@ func TestLoginHandler(t *testing.T) {
 							"email": "mock@example.com"
 						}
 					},
-					"access_token": "%s"
+					"access_token": "access-token-%s-%s-0"
 				}
-			}`,
-				p.UserID,
-				p.ID,
-				token.AccessToken))
+			}`, p.UserID, p.ID, p.UserID, p.ID))
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.UserCreateEvent{

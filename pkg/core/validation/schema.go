@@ -31,7 +31,6 @@ const (
 				},
 				"cors": { "$ref": "#CORSConfiguration" },
 				"auth": { "$ref": "#AuthConfiguration" },
-				"token_store": { "$ref": "#TokenStoreConfiguration" },
 				"user_audit": { "$ref": "#UserAuditConfiguration" },
 				"forgot_password": { "$ref": "#ForgotPasswordConfiguration" },
 				"welcome_email": { "$ref": "#WelcomeEmailConfiguration" },
@@ -39,7 +38,7 @@ const (
 				"user_verification": { "$ref": "#UserVerificationConfiguration" },
 				"hook": { "$ref": "#HookUserConfiguration" }
 			},
-			"required": ["api_key", "master_key", "auth", "token_store", "hook"]
+			"required": ["api_key", "master_key", "auth", "hook"]
 		},
 		"CORSConfiguration": {
 			"$id": "#CORSConfiguration",
@@ -79,15 +78,6 @@ const (
 				"maximum": { "$ref": "#NonNegativeInteger" }
 			},
 			"required": ["type"]
-		},
-		"TokenStoreConfiguration": {
-			"$id": "#TokenStoreConfiguration",
-			"type": "object",
-			"properties": {
-				"secret": { "$ref": "#NonEmptyString" },
-				"expiry": { "$ref": "#NonNegativeInteger" }
-			},
-			"required": ["secret"]
 		},
 		"UserAuditConfiguration": {
 			"$id": "#UserAuditConfiguration",

@@ -7,12 +7,12 @@ import (
 
 	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type providerImpl struct {
@@ -186,7 +186,7 @@ func (provider *providerImpl) makeContext() event.Context {
 		principalID = nil
 	} else {
 		userID = &provider.AuthContext.AuthInfo().ID
-		principalID = &provider.AuthContext.Token().PrincipalID
+		principalID = &provider.AuthContext.Session().PrincipalID
 	}
 
 	return event.Context{

@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
+	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/gateway"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
@@ -72,6 +73,7 @@ func main() {
 
 	gatewayDependency := gateway.DependencyMap{}
 	dbPool := db.NewPool()
+	redisPool := redis.NewPool(config.Redis)
 
 	rr := mux.NewRouter()
 	rr.HandleFunc("/_healthz", HealthCheckHandler)
@@ -111,6 +113,7 @@ func main() {
 	cr.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r = db.InitRequestDBContext(r, dbPool)
+			r = r.WithContext(redis.WithRedis(r.Context(), redisPool))
 			next.ServeHTTP(w, r)
 		})
 	})

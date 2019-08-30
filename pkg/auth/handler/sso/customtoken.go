@@ -18,9 +18,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -140,7 +140,7 @@ func (payload customTokenLoginPayload) Validate() error {
 type CustomTokenLoginHandler struct {
 	TxContext                db.TxContext                    `dependency:"TxContext"`
 	UserProfileStore         userprofile.Store               `dependency:"UserProfileStore"`
-	TokenStore               authtoken.Store                 `dependency:"TokenStore"`
+	SessionProvider          session.Provider                `dependency:"SessionProvider"`
 	AuthInfoStore            authinfo.Store                  `dependency:"AuthInfoStore"`
 	CustomTokenAuthProvider  customtoken.Provider            `dependency:"CustomTokenAuthProvider"`
 	IdentityProvider         principal.IdentityProvider      `dependency:"IdentityProvider"`
@@ -279,13 +279,9 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		}
 	}
 
-	// Create auth token
-	tkn, err := h.TokenStore.NewToken(info.ID, principal.ID)
+	// generate session
+	session, err := h.SessionProvider.Create(info.ID, principal.ID)
 	if err != nil {
-		panic(err)
-	}
-
-	if err = h.TokenStore.Put(&tkn); err != nil {
 		panic(err)
 	}
 
@@ -321,7 +317,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		return
 	}
 
-	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
+	resp = model.NewAuthResponse(user, identity, session.AccessToken)
 
 	// TODO: audit trail
 	if createNewUser && h.WelcomeEmailEnabled {

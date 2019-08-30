@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -19,6 +20,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
 
+// SetupContextFunc setup context for usage in handler
+type SetupContextFunc func(context.Context) context.Context
+
+// CleanupContextFunc cleanup context after handler completed
+type CleanupContextFunc func(context.Context)
+
 // Server embeds a net/http server and has a gorillax mux internally
 type Server struct {
 	*http.Server
@@ -26,6 +33,8 @@ type Server struct {
 	router                     *mux.Router
 	authContextResolverFactory authn.AuthContextResolverFactory
 	dbPool                     db.Pool
+	setupCtxFn                 SetupContextFunc
+	cleanupCtxFn               CleanupContextFunc
 }
 
 // NewServer create a new Server with default option
@@ -33,11 +42,15 @@ func NewServer(
 	addr string,
 	authContextResolverFactory authn.AuthContextResolverFactory,
 	dbPool db.Pool,
+	setupCtxFn SetupContextFunc,
+	cleanupCtxFn CleanupContextFunc,
 ) Server {
 	return NewServerWithOption(
 		addr,
 		authContextResolverFactory,
 		dbPool,
+		setupCtxFn,
+		cleanupCtxFn,
 		DefaultOption(),
 	)
 }
@@ -47,6 +60,8 @@ func NewServerWithOption(
 	addr string,
 	authContextResolverFactory authn.AuthContextResolverFactory,
 	dbPool db.Pool,
+	setupCtxFn SetupContextFunc,
+	cleanupCtxFn CleanupContextFunc,
 	option Option,
 ) Server {
 	router := mux.NewRouter()
@@ -69,6 +84,8 @@ func NewServerWithOption(
 		},
 		authContextResolverFactory: authContextResolverFactory,
 		dbPool:                     dbPool,
+		setupCtxFn:                 setupCtxFn,
+		cleanupCtxFn:               cleanupCtxFn,
 	}
 
 	if option.RecoverPanic {
@@ -90,6 +107,12 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 
 		r = auth.InitRequestAuthContext(r)
 		r = db.InitRequestDBContext(r, s.dbPool)
+		if s.setupCtxFn != nil {
+			r = r.WithContext(s.setupCtxFn(r.Context()))
+		}
+		if s.cleanupCtxFn != nil {
+			defer s.cleanupCtxFn(r.Context())
+		}
 
 		h := hf.NewHandler(r)
 

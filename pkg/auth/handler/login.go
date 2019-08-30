@@ -13,9 +13,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -104,7 +104,7 @@ func (p LoginRequestPayload) Validate() error {
 		@Callback user_sync {UserSyncEvent}
 */
 type LoginHandler struct {
-	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+	SessionProvider      session.Provider           `dependency:"SessionProvider"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
@@ -191,13 +191,9 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	// generate access-token
-	token, err := h.TokenStore.NewToken(fetchedAuthInfo.ID, principal.ID)
+	// generate session
+	session, err := h.SessionProvider.Create(fetchedAuthInfo.ID, principal.ID)
 	if err != nil {
-		panic(err)
-	}
-
-	if err = h.TokenStore.Put(&token); err != nil {
 		panic(err)
 	}
 
@@ -238,7 +234,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	resp = model.NewAuthResponse(user, identity, token.AccessToken)
+	resp = model.NewAuthResponse(user, identity, session.AccessToken)
 
 	return
 }
