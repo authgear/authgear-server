@@ -125,12 +125,12 @@ func (h GetHandler) Handle(req interface{}) (resp interface{}, err error) {
 	s, err := h.SessionProvider.Get(sessionID)
 	if err != nil {
 		if err == session.ErrSessionNotFound {
-			err = skyerr.NewResourceFetchFailureErr("session", sessionID)
+			err = skyerr.NewError(skyerr.ResourceNotFound, "session not found")
 		}
 		return
 	}
 	if s.UserID != userID {
-		err = skyerr.NewResourceFetchFailureErr("session", sessionID)
+		err = skyerr.NewError(skyerr.ResourceNotFound, "session not found")
 		return
 	}
 
