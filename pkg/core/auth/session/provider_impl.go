@@ -131,6 +131,21 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 	return s, nil
 }
 
+func (p *providerImpl) Get(id string) (*auth.Session, error) {
+	session, err := p.store.Get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	currentSession := p.authContext.Session()
+	if currentSession != nil && session.ID == currentSession.ID {
+		// should use current session data instead
+		session = currentSession
+	}
+
+	return session, nil
+}
+
 func (p *providerImpl) Access(s *auth.Session) error {
 	now := p.time.NowUTC()
 	accessEvent := newAccessEvent(now, p.req)

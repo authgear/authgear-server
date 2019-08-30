@@ -67,6 +67,14 @@ func (p *MockProvider) GetByToken(token string, kind auth.SessionTokenKind) (*au
 	return nil, ErrSessionNotFound
 }
 
+func (p *MockProvider) Get(id string) (*auth.Session, error) {
+	session, ok := p.Sessions[id]
+	if !ok {
+		return nil, ErrSessionNotFound
+	}
+	return &session, nil
+}
+
 func (p *MockProvider) Access(s *auth.Session) error {
 	s.AccessedAt = p.Time.NowUTC()
 	p.Sessions[s.ID] = *s

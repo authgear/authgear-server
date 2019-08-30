@@ -59,3 +59,14 @@ const SessionUserAgentSchema = `
 	}
 }
 `
+
+// @JSONSchema
+const SessionResponseSchema = `
+{
+	"$id": "#SessionResponse",
+	"type": "object",
+	"properties": {
+		"result": { "$ref": "#Session" }
+	}
+}
+`

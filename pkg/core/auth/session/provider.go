@@ -7,6 +7,8 @@ type Provider interface {
 	Create(userID string, principalID string) (*auth.Session, error)
 	// GetByToken gets the session identified by the token
 	GetByToken(token string, kind auth.SessionTokenKind) (*auth.Session, error)
+	// Get gets the session identified by the ID
+	Get(id string) (*auth.Session, error)
 	// Access updates the session info when it is being accessed by user
 	Access(*auth.Session) error
 	// Invalidate invalidates session with the ID

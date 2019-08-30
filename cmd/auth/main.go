@@ -177,6 +177,7 @@ func main() {
 	ssohandler.AttachLinkHandler(&srv, authDependency)
 	ssohandler.AttachUnlinkHandler(&srv, authDependency)
 	session.AttachListHandler(&srv, authDependency)
+	session.AttachGetHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")
