@@ -70,7 +70,7 @@ func (p *providerImpl) Create(userID string, principalID string) (s *auth.Sessio
 	p.generateAccessToken(&sess)
 
 	expiry := computeSessionStorageExpiry(&sess, clientConfig)
-	err = p.store.Create(&sess, expiry.Sub(now))
+	err = p.store.Create(&sess, expiry)
 	if err != nil {
 		return
 	}
@@ -144,18 +144,49 @@ func (p *providerImpl) Access(s *auth.Session) error {
 	}
 
 	expiry := computeSessionStorageExpiry(s, p.clientConfigs[s.ClientID])
-	return p.store.Update(s, expiry.Sub(now))
+	return p.store.Update(s, expiry)
 }
 
 func (p *providerImpl) Invalidate(id string) error {
 	return p.store.Delete(id)
 }
 
+func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error) {
+	storedSessions, err := p.store.List(userID)
+	if err != nil {
+		return
+	}
+
+	now := p.time.NowUTC()
+	currentSession := p.authContext.Session()
+	for _, session := range storedSessions {
+		clientConfig, clientExists := p.clientConfigs[session.ClientID]
+		// if client does not exist or is disabled, ignore the session
+		if !clientExists || clientConfig.Disabled {
+			continue
+		}
+
+		maxExpiry := computeSessionStorageExpiry(session, clientConfig)
+		// ignore expired sessions
+		if now.After(maxExpiry) {
+			continue
+		}
+
+		if currentSession != nil && session.ID == currentSession.ID {
+			// should use current session data instead
+			session = currentSession
+		}
+
+		sessions = append(sessions, session)
+	}
+	return
+}
+
 func (p *providerImpl) Refresh(session *auth.Session) error {
 	p.generateAccessToken(session)
 
 	expiry := computeSessionStorageExpiry(session, p.clientConfigs[session.ClientID])
-	return p.store.Update(session, expiry.Sub(p.time.NowUTC()))
+	return p.store.Update(session, expiry)
 }
 
 func (p *providerImpl) generateAccessToken(s *auth.Session) {

@@ -78,6 +78,16 @@ func (p *MockProvider) Invalidate(id string) error {
 	return nil
 }
 
+func (p *MockProvider) List(userID string) (sessions []*auth.Session, err error) {
+	for _, session := range p.Sessions {
+		if session.UserID == userID {
+			s := session
+			sessions = append(sessions, &s)
+		}
+	}
+	return
+}
+
 func (p *MockProvider) Refresh(session *auth.Session) error {
 	session.AccessToken = fmt.Sprintf("access-token-%s-%d", session.ID, p.counter)
 	p.Sessions[session.ID] = *session

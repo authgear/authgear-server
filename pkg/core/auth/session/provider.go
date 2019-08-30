@@ -11,6 +11,8 @@ type Provider interface {
 	Access(*auth.Session) error
 	// Invalidate invalidates session with the ID
 	Invalidate(id string) error
+	// List lists the sessions belonging to the user, in ascending creation time order
+	List(userID string) ([]*auth.Session, error)
 
 	// Refresh re-generates the access token of the session
 	Refresh(*auth.Session) error
