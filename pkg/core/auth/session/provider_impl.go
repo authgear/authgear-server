@@ -22,6 +22,8 @@ const (
 	tokenLength   = 32
 )
 
+const extraDataSizeLimit = 1024
+
 type providerImpl struct {
 	req           *http.Request
 	store         Store
@@ -190,8 +192,11 @@ func newAccessEvent(timestamp gotime.Time, req *http.Request) auth.SessionAccess
 		Forwarded:     req.Header.Get("Forwarded"),
 	}
 
+	extraData := []byte(req.Header.Get(corehttp.HeaderSessionExtraInfo))
 	extra := auth.SessionAccessEventExtraInfo{}
-	json.Unmarshal([]byte(req.Header.Get(corehttp.HeaderSessionExtraInfo)), &extra)
+	if len(extraData) <= extraDataSizeLimit {
+		json.Unmarshal(extraData, &extra)
+	}
 
 	return auth.SessionAccessEvent{
 		Timestamp: timestamp,
