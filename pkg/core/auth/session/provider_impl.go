@@ -162,6 +162,24 @@ func (p *providerImpl) Access(s *auth.Session) error {
 	return p.store.Update(s, expiry)
 }
 
+func (p *providerImpl) Update(id string, name *string, data map[string]interface{}) error {
+	// always use the latest data in store
+	session, err := p.store.Get(id)
+	if err != nil {
+		return err
+	}
+
+	if name != nil {
+		session.Name = *name
+	}
+	if data != nil {
+		session.CustomData = data
+	}
+
+	expiry := computeSessionStorageExpiry(session, p.clientConfigs[session.ClientID])
+	return p.store.Update(session, expiry)
+}
+
 func (p *providerImpl) Invalidate(session *auth.Session) error {
 	return p.store.Delete(session)
 }

@@ -251,6 +251,30 @@ func TestProvider(t *testing.T) {
 			})
 		})
 
+		Convey("updating session", func() {
+			session := auth.Session{
+				ID:         "session-id",
+				Name:       "Name 1",
+				CustomData: map[string]interface{}{"data": 1},
+			}
+			store.Sessions[session.ID] = session
+
+			Convey("should be update name correctly", func() {
+				newName := "Name 2"
+				err := provider.Update(session.ID, &newName, nil)
+				So(err, ShouldBeNil)
+				So(store.Sessions[session.ID].Name, ShouldEqual, newName)
+				So(store.Sessions[session.ID].CustomData, ShouldResemble, session.CustomData)
+			})
+			Convey("should be update custom data correctly", func() {
+				newData := map[string]interface{}{}
+				err := provider.Update(session.ID, nil, newData)
+				So(err, ShouldBeNil)
+				So(store.Sessions[session.ID].Name, ShouldEqual, session.Name)
+				So(store.Sessions[session.ID].CustomData, ShouldResemble, newData)
+			})
+		})
+
 		Convey("invalidating session", func() {
 			store.Sessions["session-id"] = auth.Session{
 				ID:                   "session-id",

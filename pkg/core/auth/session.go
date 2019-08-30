@@ -27,6 +27,9 @@ type Session struct {
 	AccessToken          string    `json:"access_token"`
 	RefreshToken         string    `json:"refresh_token,omitempty"`
 	AccessTokenCreatedAt time.Time `json:"access_token_created_at"`
+
+	Name       string                 `json:"name,omitempty"`
+	CustomData map[string]interface{} `json:"data"`
 }
 
 type SessionAccessEvent struct {

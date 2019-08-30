@@ -81,6 +81,18 @@ func (p *MockProvider) Access(s *auth.Session) error {
 	return nil
 }
 
+func (p *MockProvider) Update(id string, name *string, data map[string]interface{}) error {
+	s := p.Sessions[id]
+	if name != nil {
+		s.Name = *name
+	}
+	if data != nil {
+		s.CustomData = data
+	}
+	p.Sessions[id] = s
+	return nil
+}
+
 func (p *MockProvider) Invalidate(session *auth.Session) error {
 	delete(p.Sessions, session.ID)
 	return nil

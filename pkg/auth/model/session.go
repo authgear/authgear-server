@@ -6,13 +6,15 @@ import (
 
 // Session is the API model of user sessions
 type Session struct {
-	ID               string           `json:"id"`
-	IdentityID       string           `json:"identity_id"`
-	CreatedAt        time.Time        `json:"created_at"`
-	LastAccessedAt   time.Time        `json:"last_accessed_at"`
-	CreatedByIP      string           `json:"created_by_ip"`
-	LastAccessedByIP string           `json:"last_accessed_by_ip"`
-	UserAgent        SessionUserAgent `json:"user_agent"`
+	ID               string                 `json:"id"`
+	IdentityID       string                 `json:"identity_id"`
+	CreatedAt        time.Time              `json:"created_at"`
+	LastAccessedAt   time.Time              `json:"last_accessed_at"`
+	CreatedByIP      string                 `json:"created_by_ip"`
+	LastAccessedByIP string                 `json:"last_accessed_by_ip"`
+	UserAgent        SessionUserAgent       `json:"user_agent"`
+	Name             string                 `json:"name"`
+	Data             map[string]interface{} `json:"data"`
 }
 
 // Session is the API model of user agent of session
@@ -38,7 +40,9 @@ const SessionSchema = `
 		"last_accessed_at": { "type": "string" },
 		"created_by_ip": { "type": "string" },
 		"last_accessed_by_ip": { "type": "string" },
-		"user_agent": { "$ref": "#SessionUserAgent" }
+		"user_agent": { "$ref": "#SessionUserAgent" },
+		"name": { "type": "string" },
+		"data": { "type": "object" }
 	}
 }
 `
