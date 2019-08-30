@@ -99,10 +99,14 @@ func (s *store) Get(id string) (sess *auth.Session, err error) {
 	return
 }
 
-func (s *store) Delete(id string) (err error) {
+func (s *store) Delete(session *auth.Session) (err error) {
 	conn := redis.GetConn(s.ctx)
-	key := sessionKey(s.appID, id)
+	key := sessionKey(s.appID, session.ID)
+	listKey := sessionListKey(s.appID, session.UserID)
+
 	_, err = conn.Do("DEL", key)
+	// ignore non-critical error
+	_, _ = conn.Do("HDEL", listKey, key)
 	return
 }
 

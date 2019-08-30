@@ -263,13 +263,13 @@ func TestProvider(t *testing.T) {
 			}
 
 			Convey("should be successful", func() {
-				err := provider.Invalidate("session-id")
+				err := provider.Invalidate(&auth.Session{ID: "session-id"})
 				So(err, ShouldBeNil)
 				So(store.Sessions, ShouldBeEmpty)
 			})
 
 			Convey("should be successful for non-existant sessions", func() {
-				err := provider.Invalidate("session-id-unknown")
+				err := provider.Invalidate(&auth.Session{ID: "session-id-unknown"})
 				So(err, ShouldBeNil)
 				So(store.Sessions, ShouldNotBeEmpty)
 			})

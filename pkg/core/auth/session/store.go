@@ -19,7 +19,7 @@ type Store interface {
 	// Get returns the session with id in the store. It must return `ErrSessionNotFound` when the session does not exist.
 	Get(id string) (*auth.Session, error)
 	// Delete deletes the session with id in the store. It must treat deleting non-existent session as successful.
-	Delete(id string) error
+	Delete(*auth.Session) error
 	// List lists the sessions belonging to the user, in ascending creation time order
 	List(userID string) ([]*auth.Session, error)
 }

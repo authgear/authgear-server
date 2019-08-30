@@ -10,7 +10,7 @@ type Provider interface {
 	// Access updates the session info when it is being accessed by user
 	Access(*auth.Session) error
 	// Invalidate invalidates session with the ID
-	Invalidate(id string) error
+	Invalidate(*auth.Session) error
 	// List lists the sessions belonging to the user, in ascending creation time order
 	List(userID string) ([]*auth.Session, error)
 

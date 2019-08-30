@@ -44,8 +44,8 @@ func (s *MockStore) Get(id string) (*auth.Session, error) {
 	return &sess, nil
 }
 
-func (s *MockStore) Delete(id string) error {
-	delete(s.Sessions, id)
+func (s *MockStore) Delete(session *auth.Session) error {
+	delete(s.Sessions, session.ID)
 	return nil
 }
 

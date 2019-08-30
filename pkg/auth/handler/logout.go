@@ -106,7 +106,7 @@ func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 // Handle api request
 func (h LogoutHandler) Handle() (resp interface{}, err error) {
-	if err = h.SessionProvider.Invalidate(h.AuthContext.Session().ID); err != nil {
+	if err = h.SessionProvider.Invalidate(h.AuthContext.Session()); err != nil {
 		err = skyerr.MakeError(err)
 		return
 	}

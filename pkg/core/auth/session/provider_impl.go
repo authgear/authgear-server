@@ -147,8 +147,8 @@ func (p *providerImpl) Access(s *auth.Session) error {
 	return p.store.Update(s, expiry)
 }
 
-func (p *providerImpl) Invalidate(id string) error {
-	return p.store.Delete(id)
+func (p *providerImpl) Invalidate(session *auth.Session) error {
+	return p.store.Delete(session)
 }
 
 func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error) {

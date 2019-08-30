@@ -73,8 +73,8 @@ func (p *MockProvider) Access(s *auth.Session) error {
 	return nil
 }
 
-func (p *MockProvider) Invalidate(id string) error {
-	delete(p.Sessions, id)
+func (p *MockProvider) Invalidate(session *auth.Session) error {
+	delete(p.Sessions, session.ID)
 	return nil
 }
 
