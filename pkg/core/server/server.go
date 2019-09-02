@@ -105,7 +105,7 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 		policy := hf.ProvideAuthzPolicy()
 		if err := policy.IsAllowed(r, auth.NewContextGetterWithContext(r.Context())); err != nil {
 			// TODO: log
-			log.WithError(err).Error("authz not allowed")
+			log.WithError(err).Info("authz not allowed")
 			s.handleError(w, err)
 			return
 		}
