@@ -60,6 +60,7 @@ func (p *providerImpl) Create(userID string, principalID string) (s *auth.Sessio
 		PrincipalID: principalID,
 
 		InitialAccess: accessEvent,
+		LastAccess:    accessEvent,
 
 		CreatedAt:  now,
 		AccessedAt: now,
