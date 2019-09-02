@@ -31,9 +31,6 @@ type Server struct {
 
 	router        *mux.Router
 	dependencyMap inject.DependencyMap
-	dbPool        db.Pool
-	setupCtxFn    SetupContextFunc
-	cleanupCtxFn  CleanupContextFunc
 }
 
 // NewServer create a new Server with default option
@@ -82,9 +79,6 @@ func NewServerWithOption(
 			Handler:      router,
 		},
 		dependencyMap: dependencyMap,
-		dbPool:        dbPool,
-		setupCtxFn:    setupCtxFn,
-		cleanupCtxFn:  cleanupCtxFn,
 	}
 
 	if option.RecoverPanic {
@@ -92,6 +86,21 @@ func NewServerWithOption(
 			RecoverHandler: option.RecoverPanicHandler,
 		}.Handle)
 	}
+
+	srv.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			r = auth.InitRequestAuthContext(r)
+			r = db.InitRequestDBContext(r, dbPool)
+			if setupCtxFn != nil {
+				r = r.WithContext(setupCtxFn(r.Context()))
+			}
+			if cleanupCtxFn != nil {
+				defer cleanupCtxFn(r.Context())
+			}
+
+			next.ServeHTTP(rw, r)
+		})
+	})
 
 	return srv
 }
@@ -114,26 +123,7 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 		h.ServeHTTP(w, r)
 	})
 
-	// TODO(middleware): refactor this
-	authnMiddleware := middleware.Injecter{
-		MiddlewareFactory: middleware.AuthnMiddlewareFactory{},
-		Dependency:        s.dependencyMap,
-	}.Handle
-
-	h := authnMiddleware(handler)
-
-	return s.router.NewRoute().Path(path).Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		r = auth.InitRequestAuthContext(r)
-		r = db.InitRequestDBContext(r, s.dbPool)
-		if s.setupCtxFn != nil {
-			r = r.WithContext(s.setupCtxFn(r.Context()))
-		}
-		if s.cleanupCtxFn != nil {
-			defer s.cleanupCtxFn(r.Context())
-		}
-
-		h.ServeHTTP(rw, r)
-	}))
+	return s.router.NewRoute().Path(path).Handler(handler)
 }
 
 // Use set middlewares to underlying router

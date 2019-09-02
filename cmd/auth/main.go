@@ -148,6 +148,11 @@ func main() {
 		srv = server.NewServer(configuration.Host, authDependency, dbPool, setupCtxFn, cleanupCtxFn)
 	}
 
+	srv.Use(middleware.Injecter{
+		MiddlewareFactory: middleware.AuthnMiddlewareFactory{},
+		Dependency:        authDependency,
+	}.Handle)
+
 	handler.AttachSignupHandler(&srv, authDependency)
 	handler.AttachLoginHandler(&srv, authDependency)
 	handler.AttachLogoutHandler(&srv, authDependency)
