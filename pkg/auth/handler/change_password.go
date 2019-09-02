@@ -13,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
@@ -117,7 +116,7 @@ type ChangePasswordHandler struct {
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
 	SessionProvider      session.Provider           `dependency:"SessionProvider"`
-	SessionWriter        authSession.Writer         `dependency:"SessionWriter"`
+	SessionWriter        session.Writer             `dependency:"SessionWriter"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider         hook.Provider              `dependency:"HookProvider"`
@@ -141,7 +140,7 @@ func (h ChangePasswordHandler) ServeHTTP(resp http.ResponseWriter, req *http.Req
 		if err == nil {
 			h.HookProvider.DidCommitTx()
 			authResp := result.(model.AuthResponse)
-			h.SessionWriter.WriteSession(resp, &authResp)
+			h.SessionWriter.WriteSession(resp, &authResp.AccessToken)
 			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
 		} else {
 			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})

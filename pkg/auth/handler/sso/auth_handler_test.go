@@ -15,7 +15,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -125,7 +124,7 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.AuthInfoStore = authInfoStore
 		sh.SessionProvider = session.NewMockProvider()
-		sh.SessionWriter = authSession.NewMockWriter()
+		sh.SessionWriter = session.NewMockWriter()
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
@@ -370,7 +369,7 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.AuthInfoStore = authInfoStore
 		sh.SessionProvider = session.NewMockProvider()
-		sh.SessionWriter = authSession.NewMockWriter()
+		sh.SessionWriter = session.NewMockWriter()
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
@@ -546,7 +545,7 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.AuthInfoStore = authInfoStore
 		sh.SessionProvider = session.NewMockProvider()
-		sh.SessionWriter = authSession.NewMockWriter()
+		sh.SessionWriter = session.NewMockWriter()
 		profileData := map[string]map[string]interface{}{
 			"john.doe.id": map[string]interface{}{},
 		}

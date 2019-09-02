@@ -72,7 +72,9 @@ func main() {
 	}
 	defer store.Close()
 
-	gatewayDependency := gateway.DependencyMap{}
+	gatewayDependency := gateway.DependencyMap{
+		UseInsecureCookie: config.UseInsecureCookie,
+	}
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool(config.Redis)
 

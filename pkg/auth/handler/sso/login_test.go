@@ -11,7 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -96,7 +95,7 @@ func TestLoginHandler(t *testing.T) {
 		)
 		sh.AuthInfoStore = authInfoStore
 		sh.SessionProvider = session.NewMockProvider()
-		sh.SessionWriter = authSession.NewMockWriter()
+		sh.SessionWriter = session.NewMockWriter()
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.OAuthConfiguration = oauthConfig
 		hookProvider := hook.NewMockProvider()

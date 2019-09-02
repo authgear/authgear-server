@@ -8,7 +8,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -31,7 +30,7 @@ func TestLogoutHandler(t *testing.T) {
 		sessionProvider := session.NewMockProvider()
 		sessionProvider.Sessions[authContext.Session().ID] = *authContext.Session()
 		h.SessionProvider = sessionProvider
-		h.SessionWriter = authSession.NewMockWriter()
+		h.SessionWriter = session.NewMockWriter()
 
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.AuditTrail = coreAudit.NewMockTrail(t)

@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 
 	"github.com/skygeario/skygear-server/pkg/core/utils"
@@ -163,7 +162,7 @@ type SignupHandler struct {
 	PasswordChecker         *authAudit.PasswordChecker                         `dependency:"PasswordChecker"`
 	UserProfileStore        userprofile.Store                                  `dependency:"UserProfileStore"`
 	SessionProvider         session.Provider                                   `dependency:"SessionProvider"`
-	SessionWriter           authSession.Writer                                 `dependency:"SessionWriter"`
+	SessionWriter           session.Writer                                     `dependency:"SessionWriter"`
 	AuthInfoStore           authinfo.Store                                     `dependency:"AuthInfoStore"`
 	PasswordAuthProvider    password.Provider                                  `dependency:"PasswordAuthProvider"`
 	IdentityProvider        principal.IdentityProvider                         `dependency:"IdentityProvider"`
@@ -209,7 +208,7 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		if err == nil {
 			h.HookProvider.DidCommitTx()
 			authResp := result.(model.AuthResponse)
-			h.SessionWriter.WriteSession(resp, &authResp)
+			h.SessionWriter.WriteSession(resp, &authResp.AccessToken)
 			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
 		} else {
 			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})

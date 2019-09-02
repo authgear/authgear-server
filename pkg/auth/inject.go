@@ -9,7 +9,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
@@ -171,7 +170,7 @@ func (m DependencyMap) Provide(
 			tConfig.UserConfig.Clients,
 		)
 	case "SessionWriter":
-		return authSession.NewWriter(newAuthContext(), tConfig.UserConfig.Clients, m.UseInsecureCookie)
+		return session.NewWriter(newAuthContext(), tConfig.UserConfig.Clients, m.UseInsecureCookie)
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "PasswordChecker":

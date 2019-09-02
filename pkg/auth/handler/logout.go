@@ -6,7 +6,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
@@ -73,7 +72,7 @@ type LogoutHandler struct {
 	UserProfileStore userprofile.Store          `dependency:"UserProfileStore"`
 	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
 	SessionProvider  session.Provider           `dependency:"SessionProvider"`
-	SessionWriter    authSession.Writer         `dependency:"SessionWriter"`
+	SessionWriter    session.Writer             `dependency:"SessionWriter"`
 	AuditTrail       audit.Trail                `dependency:"AuditTrail"`
 	HookProvider     hook.Provider              `dependency:"HookProvider"`
 	TxContext        db.TxContext               `dependency:"TxContext"`

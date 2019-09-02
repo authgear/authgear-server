@@ -15,7 +15,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -77,7 +76,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		userProfileStore.TimeNowfunc = timeNow
 		lh.UserProfileStore = userProfileStore
 		lh.SessionProvider = session.NewMockProvider()
-		lh.SessionWriter = authSession.NewMockWriter()
+		lh.SessionWriter = session.NewMockWriter()
 		lh.AuditTrail = audit.NewMockTrail(t)
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()
@@ -380,7 +379,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		userProfileStore.TimeNowfunc = timeNow
 		lh.UserProfileStore = userProfileStore
 		lh.SessionProvider = session.NewMockProvider()
-		lh.SessionWriter = authSession.NewMockWriter()
+		lh.SessionWriter = session.NewMockWriter()
 		lh.AuditTrail = audit.NewMockTrail(t)
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()

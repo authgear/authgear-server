@@ -2,14 +2,12 @@ package middleware
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
@@ -17,6 +15,7 @@ import (
 type AuthnMiddleware struct {
 	AuthContextSetter auth.ContextSetter `dependency:"AuthContextSetter"`
 	SessionProvider   session.Provider   `dependency:"SessionProvider"`
+	SessionWriter     session.Writer     `dependency:"SessionWriter"`
 	AuthInfoStore     authinfo.Store     `dependency:"AuthInfoStore"`
 	TxContext         db.TxContext       `dependency:"TxContext"`
 }
@@ -35,13 +34,8 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 		var err error
 		defer func() {
 			if err != nil {
-				// clear session cookie if error occurred
-				cookie := &http.Cookie{
-					Name:    coreHttp.CookieNameSession,
-					Path:    "/",
-					Expires: time.Unix(0, 0),
-				}
-				http.SetCookie(w, cookie)
+				// clear session if error occurred
+				m.SessionWriter.ClearSession(w)
 			}
 
 			next.ServeHTTP(w, r)

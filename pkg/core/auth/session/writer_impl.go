@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
@@ -28,7 +27,7 @@ func NewWriter(
 	}
 }
 
-func (w *writerImpl) WriteSession(rw http.ResponseWriter, resp *model.AuthResponse) {
+func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string) {
 	clientConfig := w.clientConfigs[w.authContext.AccessKey().ClientID]
 	useCookie := clientConfig.SessionTransport == config.SessionTransportTypeCookie
 
@@ -48,8 +47,8 @@ func (w *writerImpl) WriteSession(rw http.ResponseWriter, resp *model.AuthRespon
 	}
 
 	if useCookie {
-		token := resp.AccessToken
-		resp.AccessToken = ""
+		token := *accessToken
+		*accessToken = ""
 
 		cookie.Value = token
 		cookie.MaxAge = int(time.Duration(clientConfig.AccessTokenLifetime).Seconds())

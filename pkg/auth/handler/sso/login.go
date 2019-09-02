@@ -9,7 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -115,7 +114,7 @@ type LoginHandler struct {
 	IdentityProvider    principal.IdentityProvider `dependency:"IdentityProvider"`
 	AuthInfoStore       authinfo.Store             `dependency:"AuthInfoStore"`
 	SessionProvider     session.Provider           `dependency:"SessionProvider"`
-	SessionWriter       authSession.Writer         `dependency:"SessionWriter"`
+	SessionWriter       session.Writer             `dependency:"SessionWriter"`
 	ProviderFactory     *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
 	UserProfileStore    userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider        hook.Provider              `dependency:"HookProvider"`
@@ -152,7 +151,7 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		if err == nil {
 			h.HookProvider.DidCommitTx()
 			authResp := result.(model.AuthResponse)
-			h.SessionWriter.WriteSession(resp, &authResp)
+			h.SessionWriter.WriteSession(resp, &authResp.AccessToken)
 			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
 		} else {
 			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})

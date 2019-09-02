@@ -10,7 +10,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 
@@ -141,7 +140,7 @@ func TestLoginHandler(t *testing.T) {
 		h.AuthInfoStore = authInfoStore
 		sessionProvider := session.NewMockProvider()
 		h.SessionProvider = sessionProvider
-		h.SessionWriter = authSession.NewMockWriter()
+		h.SessionWriter = session.NewMockWriter()
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.IdentityProvider = principal.NewMockIdentityProvider(h.PasswordAuthProvider)
 		h.AuditTrail = coreAudit.NewMockTrail(t)
@@ -320,7 +319,7 @@ func TestLoginHandler(t *testing.T) {
 		lh := &LoginHandler{}
 		lh.AuthInfoStore = authInfoStore
 		lh.SessionProvider = session.NewMockProvider()
-		lh.SessionWriter = authSession.NewMockWriter()
+		lh.SessionWriter = session.NewMockWriter()
 		lh.PasswordAuthProvider = passwordAuthProvider
 		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
 		lh.AuditTrail = coreAudit.NewMockTrail(t)
