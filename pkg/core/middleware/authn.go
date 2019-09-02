@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
@@ -10,11 +9,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/model"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 // AuthnMiddleware populate auth context information
@@ -38,9 +34,7 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var err error
 		defer func() {
-			if err == nil {
-				next.ServeHTTP(w, r)
-			} else {
+			if err != nil {
 				// clear session cookie if error occurred
 				cookie := &http.Cookie{
 					Name:    coreHttp.CookieNameSession,
@@ -48,15 +42,9 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 					Expires: time.Unix(0, 0),
 				}
 				http.SetCookie(w, cookie)
-
-				skyErr := skyerr.NewNotAuthenticatedErr()
-				httpStatus := skyerr.ErrorDefaultStatusCode(skyErr)
-				response := handler.APIResponse{Err: skyErr}
-				encoder := json.NewEncoder(w)
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(httpStatus)
-				encoder.Encode(response)
 			}
+
+			next.ServeHTTP(w, r)
 		}()
 
 		tenantConfig := config.GetTenantConfig(r)
@@ -66,17 +54,6 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 
 		accessToken, transport, err := model.GetAccessToken(r)
 		if err != nil {
-			// invalid session token -> must not proceed
-
-			if err == model.ErrTokenConflict {
-				// clear session cookie if session token is conflicted
-				cookie := &http.Cookie{
-					Name:    coreHttp.CookieNameSession,
-					Path:    "/",
-					Expires: time.Unix(0, 0),
-				}
-				http.SetCookie(w, cookie)
-			}
 			return
 		}
 
@@ -86,19 +63,16 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		if err = m.TxContext.BeginTx(); err != nil {
-			panic(err)
+			return
 		}
 		defer m.TxContext.RollbackTx()
 
 		s, err := m.SessionProvider.GetByToken(accessToken, auth.SessionTokenKindAccessToken)
 		if err != nil {
-			// session not found -> treat as no access token is provided
-			err = nil
 			return
 		}
 
 		if tenantConfig.UserConfig.Clients[s.ClientID].SessionTransport != transport {
-			// inconsistent session token transport -> must not proceed
 			err = session.ErrSessionNotFound
 			return
 		}
@@ -106,10 +80,6 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 		authInfo := authinfo.AuthInfo{}
 		err = m.AuthInfoStore.GetAuth(s.UserID, &authInfo)
 		if err != nil {
-			if err == skydb.ErrUserNotFound {
-				// user not found -> treat as no access token is provided
-				err = nil
-			}
 			return
 		}
 
@@ -117,11 +87,10 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 		key = model.NewAccessKey(s.ClientID)
 		m.AuthContextSetter.SetAccessKey(key)
 
-		// should not use current session in context
+		// should not use new session data in context
 		sessionCopy := *s
 		err = m.SessionProvider.Access(&sessionCopy)
 		if err != nil {
-			// cannot access session -> must not proceed
 			return
 		}
 
