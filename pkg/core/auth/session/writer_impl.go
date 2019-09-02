@@ -56,20 +56,39 @@ func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string) {
 		cookie.Expires = time.Unix(0, 0)
 	}
 
-	http.SetCookie(rw, cookie)
+	updateCookie(rw, cookie)
 }
 
 func (w *writerImpl) ClearSession(rw http.ResponseWriter) {
-	clientConfig := w.clientConfigs[w.authContext.AccessKey().ClientID]
-	useCookie := clientConfig.SessionTransport == config.SessionTransportTypeCookie
-	if useCookie {
-		cookie := &http.Cookie{
-			Name:     coreHttp.CookieNameSession,
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   !w.useInsecureCookie,
-			Expires:  time.Unix(0, 0),
-		}
-		http.SetCookie(rw, cookie)
+	cookie := &http.Cookie{
+		Name:     coreHttp.CookieNameSession,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   !w.useInsecureCookie,
+		Expires:  time.Unix(0, 0),
 	}
+	updateCookie(rw, cookie)
+}
+
+func updateCookie(rw http.ResponseWriter, cookie *http.Cookie) {
+	header := rw.Header()
+	resp := http.Response{Header: header}
+
+	cookies := resp.Cookies()
+	updated := false
+	for i, c := range cookies {
+		if c.Name == cookie.Name && c.Domain == cookie.Domain && c.Path == cookie.Path {
+			cookies[i] = cookie
+			updated = true
+		}
+	}
+	if !updated {
+		cookies = append(cookies, cookie)
+	}
+
+	setCookies := make([]string, len(cookies))
+	for i, c := range cookies {
+		setCookies[i] = c.String()
+	}
+	header["Set-Cookie"] = setCookies
 }
