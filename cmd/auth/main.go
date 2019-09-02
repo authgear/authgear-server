@@ -180,6 +180,7 @@ func main() {
 	session.AttachGetHandler(&srv, authDependency)
 	session.AttachUpdateHandler(&srv, authDependency)
 	session.AttachRevokeHandler(&srv, authDependency)
+	session.AttachRevokeAllHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

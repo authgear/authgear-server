@@ -65,7 +65,7 @@ func (p RevokeRequestPayload) Validate() error {
 }
 
 /*
-	@Operation POST /session/update - Revoke session
+	@Operation POST /session/revoke - Revoke session
 		Update specified session. Current session cannot be revoked.
 
 		@Tag User

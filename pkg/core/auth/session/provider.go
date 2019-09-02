@@ -15,6 +15,8 @@ type Provider interface {
 	Update(id string, name *string, data map[string]interface{}) error
 	// Invalidate invalidates session with the ID
 	Invalidate(*auth.Session) error
+	// InvalidateAll invalidates all sessions of the user, except specified session
+	InvalidateAll(userID string, sessionID string) error
 	// List lists the sessions belonging to the user, in ascending creation time order
 	List(userID string) ([]*auth.Session, error)
 

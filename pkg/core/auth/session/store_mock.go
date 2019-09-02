@@ -49,6 +49,15 @@ func (s *MockStore) Delete(session *auth.Session) error {
 	return nil
 }
 
+func (s *MockStore) DeleteAll(userID string, sessionID string) error {
+	for _, session := range s.Sessions {
+		if session.UserID == userID && session.ID != sessionID {
+			delete(s.Sessions, session.ID)
+		}
+	}
+	return nil
+}
+
 func (s *MockStore) List(userID string) (sessions []*auth.Session, err error) {
 	for _, session := range s.Sessions {
 		if session.UserID == userID {

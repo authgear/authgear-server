@@ -110,6 +110,39 @@ func (s *store) Delete(session *auth.Session) (err error) {
 	return
 }
 
+func (s *store) DeleteAll(userID string, sessionID string) error {
+	conn := redis.GetConn(s.ctx)
+	listKey := sessionListKey(s.appID, userID)
+
+	sessionKeys, err := goredis.Strings(conn.Do("HKEYS", listKey))
+	if err != nil {
+		return err
+	}
+
+	sessionKeysDel := []interface{}{}
+	excludeSessionkey := sessionKey(s.appID, sessionID)
+	for _, sessionKey := range sessionKeys {
+		if excludeSessionkey == sessionKey {
+			continue
+		}
+		sessionKeysDel = append(sessionKeysDel, sessionKey)
+	}
+	if len(sessionKeysDel) == 0 {
+		return nil
+	}
+
+	_, err = conn.Do("DEL", sessionKeysDel...)
+	if err != nil {
+		return err
+	}
+
+	args := append([]interface{}{listKey}, sessionKeysDel...)
+	// ignore non-critical error
+	_, _ = conn.Do("HDEL", args...)
+
+	return nil
+}
+
 func (s *store) List(userID string) (sessions []*auth.Session, err error) {
 	now := s.time.NowUTC()
 	conn := redis.GetConn(s.ctx)

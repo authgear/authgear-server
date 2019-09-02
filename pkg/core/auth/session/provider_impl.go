@@ -184,6 +184,10 @@ func (p *providerImpl) Invalidate(session *auth.Session) error {
 	return p.store.Delete(session)
 }
 
+func (p *providerImpl) InvalidateAll(userID string, sessionID string) error {
+	return p.store.DeleteAll(userID, sessionID)
+}
+
 func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error) {
 	storedSessions, err := p.store.List(userID)
 	if err != nil {
