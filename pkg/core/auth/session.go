@@ -1,18 +1,19 @@
-package session
+package auth
 
 import (
 	"time"
 )
 
-type TokenKind string
+type SessionTokenKind string
 
 const (
-	TokenKindAccessToken TokenKind = "access-token"
+	SessionTokenKindAccessToken SessionTokenKind = "access-token"
 )
 
 // Session represents a session of user logged in with a principal.
 type Session struct {
 	ID          string `json:"id"`
+	ClientID    string `json:"client_id"`
 	UserID      string `json:"user_id"`
 	PrincipalID string `json:"principal_id"`
 

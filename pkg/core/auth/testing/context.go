@@ -5,41 +5,46 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
 type MockContext struct {
-	accessKeyType model.KeyType
-	authInfo      *authinfo.AuthInfo
-	session       *session.Session
+	accessKey model.AccessKey
+	authInfo  *authinfo.AuthInfo
+	session   *auth.Session
 }
 
 var _ auth.ContextGetter = &MockContext{}
 
 func NewMockContext() *MockContext {
-	return &MockContext{accessKeyType: model.APIAccessKey}
+	return &MockContext{accessKey: model.AccessKey{Type: model.APIAccessKeyType}}
 }
 
-func (m *MockContext) AccessKeyType() model.KeyType {
-	return m.accessKeyType
+func (m *MockContext) AccessKey() model.AccessKey {
+	return m.accessKey
 }
 
 func (m *MockContext) AuthInfo() *authinfo.AuthInfo {
 	return m.authInfo
 }
 
-func (m *MockContext) Session() *session.Session {
+func (m *MockContext) Session() *auth.Session {
 	return m.session
 }
 
+func (m *MockContext) UseAPIAccessKey(clientID string) *MockContext {
+	m.accessKey.Type = model.APIAccessKeyType
+	m.accessKey.ClientID = clientID
+	return m
+}
+
 func (m *MockContext) UseNoAccessKey() *MockContext {
-	m.accessKeyType = model.NoAccessKey
+	m.accessKey.Type = model.NoAccessKeyType
 	return m
 }
 
 func (m *MockContext) UseMasterKey() *MockContext {
-	m.accessKeyType = model.MasterAccessKey
+	m.accessKey.Type = model.MasterAccessKeyType
 	return m
 }
 
@@ -48,7 +53,7 @@ func (m *MockContext) UseUser(userID string, principalID string) *MockContext {
 		ID:         userID,
 		VerifyInfo: map[string]bool{},
 	}
-	m.session = &session.Session{
+	m.session = &auth.Session{
 		ID:          fmt.Sprintf("%s-%s", userID, principalID),
 		UserID:      userID,
 		PrincipalID: principalID,

@@ -6,13 +6,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func DenyNoAccessKey(r *http.Request, ctx auth.ContextGetter) error {
-	keyType := ctx.AccessKeyType()
-	if keyType == model.NoAccessKey {
+	key := ctx.AccessKey()
+	if key.IsNoAccessKey() {
 		return skyerr.NewError(skyerr.AccessKeyNotAccepted, "api key required")
 	}
 
@@ -20,8 +19,8 @@ func DenyNoAccessKey(r *http.Request, ctx auth.ContextGetter) error {
 }
 
 func RequireMasterKey(r *http.Request, ctx auth.ContextGetter) error {
-	keyType := ctx.AccessKeyType()
-	if keyType != model.MasterAccessKey {
+	key := ctx.AccessKey()
+	if !key.IsMasterKey() {
 		return skyerr.NewError(skyerr.AccessKeyNotAccepted, "master key required")
 	}
 

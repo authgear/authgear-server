@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
@@ -29,11 +30,18 @@ func (m TenantConfigurationMiddleware) Handle(next http.Handler) http.Handler {
 			panic(fmt.Errorf("Unable to retrieve configuration: %v", err.Error()))
 		}
 
+		// FIXME(middleware):
+		// This will be overwritten by core.server, should refactor this.
+		// For now, set checked access key to header and let core.server read it from header.
+		r = auth.InitRequestAuthContext(r)
+		authCtx := auth.NewContextSetterWithContext(r.Context())
+
 		// Tenant authentication
-		// Set key type to header only, no rejection
+		// Set access key to header only, no rejection
 		apiKey := model.GetAPIKey(r)
-		apiKeyType := model.CheckAccessKeyType(configuration, apiKey)
-		model.SetAccessKeyType(r, apiKeyType)
+		accessKey := model.CheckAccessKey(configuration, apiKey)
+		model.SetAccessKey(r, accessKey)
+		authCtx.SetAccessKey(accessKey)
 
 		// Tenant configuration
 		config.SetTenantConfig(r, &configuration)

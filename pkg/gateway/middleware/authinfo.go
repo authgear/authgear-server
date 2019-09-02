@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -53,7 +54,7 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		}
 		defer m.TxContext.RollbackTx()
 
-		session, err := m.SessionProvider.GetByToken(accessToken, session.TokenKindAccessToken)
+		session, err := m.SessionProvider.GetByToken(accessToken, auth.SessionTokenKindAccessToken)
 		if err != nil {
 			http.Error(w, "invalid access token", http.StatusUnauthorized)
 			return
@@ -73,6 +74,10 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		r.Header.Set(coreHttp.HeaderAuthInfoID, id)
 		r.Header.Set(coreHttp.HeaderAuthInfoVerified, strconv.FormatBool(verified))
 		r.Header.Set(coreHttp.HeaderAuthInfoDisabled, strconv.FormatBool(disabled))
+
+		// in case valid session is used, infer access key from session
+		accessKey := model.NewAccessKey(session.ClientID)
+		model.SetAccessKey(r, accessKey)
 
 		err = m.SessionProvider.Access(session)
 	})

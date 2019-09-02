@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -17,24 +19,29 @@ const (
 )
 
 type providerImpl struct {
-	store Store
+	store         Store
+	authContext   auth.ContextGetter
+	clientConfigs map[string]config.APIClientConfiguration
 
 	time time.Provider
 	rand *rand.Rand
 }
 
-func NewProvider(store Store) Provider {
+func NewProvider(store Store, authContext auth.ContextGetter, clientConfigs map[string]config.APIClientConfiguration) Provider {
 	return &providerImpl{
-		store: store,
-		time:  time.NewProvider(),
-		rand:  corerand.SecureRand,
+		store:         store,
+		authContext:   authContext,
+		clientConfigs: clientConfigs,
+		time:          time.NewProvider(),
+		rand:          corerand.SecureRand,
 	}
 }
 
-func (p *providerImpl) Create(userID string, principalID string) (s *Session, err error) {
+func (p *providerImpl) Create(userID string, principalID string) (s *auth.Session, err error) {
 	now := p.time.NowUTC()
-	sess := Session{
+	sess := auth.Session{
 		ID:          uuid.New(),
+		ClientID:    p.authContext.AccessKey().ClientID,
 		UserID:      userID,
 		PrincipalID: principalID,
 
@@ -43,7 +50,8 @@ func (p *providerImpl) Create(userID string, principalID string) (s *Session, er
 	}
 	p.generateAccessToken(&sess)
 
-	err = p.store.Create(&sess)
+	expiry := computeSessionExpiry(&sess, p.clientConfigs[p.authContext.AccessKey().ClientID])
+	err = p.store.Create(&sess, expiry.Sub(now))
 	if err != nil {
 		return
 	}
@@ -51,7 +59,7 @@ func (p *providerImpl) Create(userID string, principalID string) (s *Session, er
 	return &sess, nil
 }
 
-func (p *providerImpl) GetByToken(token string, kind TokenKind) (*Session, error) {
+func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*auth.Session, error) {
 	id, ok := decodeTokenSessionID(token)
 	if !ok {
 		return nil, ErrSessionNotFound
@@ -64,7 +72,7 @@ func (p *providerImpl) GetByToken(token string, kind TokenKind) (*Session, error
 
 	var expectedToken string
 	switch kind {
-	case TokenKindAccessToken:
+	case auth.SessionTokenKindAccessToken:
 		expectedToken = s.AccessToken
 	default:
 		return nil, ErrSessionNotFound
@@ -74,24 +82,35 @@ func (p *providerImpl) GetByToken(token string, kind TokenKind) (*Session, error
 		return nil, ErrSessionNotFound
 	}
 
+	accessKey := p.authContext.AccessKey()
+	// microservices may allow no access key, when rendering HTML pages at server
+	// check client ID only if client ID is present (i.e. an access key is used)
+	if accessKey.ClientID != "" && s.ClientID != accessKey.ClientID {
+		return nil, ErrSessionNotFound
+	}
+
 	return s, nil
 }
 
-func (p *providerImpl) Access(s *Session) error {
-	s.AccessedAt = p.time.NowUTC()
-	return p.store.Update(s)
+func (p *providerImpl) Access(s *auth.Session) error {
+	now := p.time.NowUTC()
+	s.AccessedAt = now
+
+	expiry := computeSessionExpiry(s, p.clientConfigs[s.ClientID])
+	return p.store.Update(s, expiry.Sub(now))
 }
 
 func (p *providerImpl) Invalidate(id string) error {
 	return p.store.Delete(id)
 }
 
-func (p *providerImpl) Refresh(session *Session) error {
+func (p *providerImpl) Refresh(session *auth.Session) error {
 	p.generateAccessToken(session)
-	return p.store.Update(session)
+	expiry := computeSessionExpiry(session, p.clientConfigs[session.ClientID])
+	return p.store.Update(session, expiry.Sub(p.time.NowUTC()))
 }
 
-func (p *providerImpl) generateAccessToken(s *Session) {
+func (p *providerImpl) generateAccessToken(s *auth.Session) {
 	accessToken := corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand)
 	s.AccessToken = encodeToken(s.ID, accessToken)
 	s.AccessTokenCreatedAt = p.time.NowUTC()

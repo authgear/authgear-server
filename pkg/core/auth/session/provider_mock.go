@@ -3,30 +3,34 @@ package session
 import (
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type MockProvider struct {
-	Time    time.Provider
-	counter int
+	ClientID string
+	Time     time.Provider
+	counter  int
 
-	Sessions map[string]Session
+	Sessions map[string]auth.Session
 }
 
 var _ Provider = &MockProvider{}
 
 func NewMockProvider() *MockProvider {
 	return &MockProvider{
+		ClientID: "client-id",
 		Time:     &time.MockProvider{},
-		Sessions: map[string]Session{},
+		Sessions: map[string]auth.Session{},
 	}
 }
 
-func (p *MockProvider) Create(userID string, principalID string) (s *Session, err error) {
+func (p *MockProvider) Create(userID string, principalID string) (s *auth.Session, err error) {
 	now := p.Time.NowUTC()
 	id := fmt.Sprintf("%s-%s-%d", userID, principalID, p.counter)
-	sess := Session{
+	sess := auth.Session{
 		ID:          id,
+		ClientID:    p.ClientID,
 		UserID:      userID,
 		PrincipalID: principalID,
 
@@ -42,11 +46,11 @@ func (p *MockProvider) Create(userID string, principalID string) (s *Session, er
 	return &sess, nil
 }
 
-func (p *MockProvider) GetByToken(token string, kind TokenKind) (*Session, error) {
+func (p *MockProvider) GetByToken(token string, kind auth.SessionTokenKind) (*auth.Session, error) {
 	for _, s := range p.Sessions {
 		var expectedToken string
 		switch kind {
-		case TokenKindAccessToken:
+		case auth.SessionTokenKindAccessToken:
 			expectedToken = s.AccessToken
 		default:
 			continue
@@ -61,7 +65,7 @@ func (p *MockProvider) GetByToken(token string, kind TokenKind) (*Session, error
 	return nil, ErrSessionNotFound
 }
 
-func (p *MockProvider) Access(s *Session) error {
+func (p *MockProvider) Access(s *auth.Session) error {
 	s.AccessedAt = p.Time.NowUTC()
 	p.Sessions[s.ID] = *s
 	return nil
@@ -72,7 +76,7 @@ func (p *MockProvider) Invalidate(id string) error {
 	return nil
 }
 
-func (p *MockProvider) Refresh(session *Session) error {
+func (p *MockProvider) Refresh(session *auth.Session) error {
 	session.AccessToken = fmt.Sprintf("access-token-%s-%d", session.ID, p.counter)
 	p.counter++
 	return nil

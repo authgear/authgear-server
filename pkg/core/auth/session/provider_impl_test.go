@@ -4,6 +4,11 @@ import (
 	"testing"
 	gotime "time"
 
+	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
+
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	. "github.com/smartystreets/goconvey/convey"
@@ -18,18 +23,27 @@ func TestProvider(t *testing.T) {
 		timeProvider.TimeNow = initialTime
 		timeProvider.TimeNowUTC = initialTime
 
+		authContext := authtest.NewMockContext().UseAPIAccessKey("web-app")
+		clientConfigs := map[string]config.APIClientConfiguration{
+			"web-app":    config.APIClientConfiguration{},
+			"mobile-app": config.APIClientConfiguration{},
+		}
+
 		var provider Provider = &providerImpl{
-			store: store,
-			time:  timeProvider,
-			rand:  corerand.InsecureRand,
+			store:         store,
+			authContext:   authContext,
+			clientConfigs: clientConfigs,
+			time:          timeProvider,
+			rand:          corerand.InsecureRand,
 		}
 
 		Convey("creating session", func() {
 			Convey("should be successful", func() {
 				session, err := provider.Create("user-id", "principal-id")
 				So(err, ShouldBeNil)
-				So(session, ShouldResemble, &Session{
+				So(session, ShouldResemble, &auth.Session{
 					ID:                   session.ID,
+					ClientID:             "web-app",
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
 					CreatedAt:            initialTime,
@@ -43,8 +57,9 @@ func TestProvider(t *testing.T) {
 			Convey("should allow creating multiple sessions for same principal", func() {
 				session1, err := provider.Create("user-id", "principal-id")
 				So(err, ShouldBeNil)
-				So(session1, ShouldResemble, &Session{
+				So(session1, ShouldResemble, &auth.Session{
 					ID:                   session1.ID,
+					ClientID:             "web-app",
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
 					CreatedAt:            initialTime,
@@ -55,8 +70,9 @@ func TestProvider(t *testing.T) {
 
 				session2, err := provider.Create("user-id", "principal-id")
 				So(err, ShouldBeNil)
-				So(session2, ShouldResemble, &Session{
+				So(session2, ShouldResemble, &auth.Session{
 					ID:                   session2.ID,
+					ClientID:             "web-app",
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
 					CreatedAt:            initialTime,
@@ -70,8 +86,9 @@ func TestProvider(t *testing.T) {
 		})
 
 		Convey("getting session", func() {
-			fixtureSession := Session{
+			fixtureSession := auth.Session{
 				ID:                   "session-id",
+				ClientID:             "web-app",
 				UserID:               "user-id",
 				PrincipalID:          "principal-id",
 				CreatedAt:            initialTime,
@@ -82,30 +99,37 @@ func TestProvider(t *testing.T) {
 			store.Sessions["session-id"] = fixtureSession
 
 			Convey("should be successful", func() {
-				session, err := provider.GetByToken("session-id.access-token", TokenKindAccessToken)
+				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)
 				So(err, ShouldBeNil)
 				So(session, ShouldResemble, &fixtureSession)
 			})
 
+			Convey("should reject session of other clients", func() {
+				authContext.UseAPIAccessKey("mobile-app")
+				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)
+				So(err, ShouldBeError, ErrSessionNotFound)
+				So(session, ShouldBeNil)
+			})
+
 			Convey("should reject non-existant session", func() {
-				session, err := provider.GetByToken("session-id-unknown.access-token", TokenKindAccessToken)
+				session, err := provider.GetByToken("session-id-unknown.access-token", auth.SessionTokenKindAccessToken)
 				So(err, ShouldBeError, ErrSessionNotFound)
 				So(session, ShouldBeNil)
 			})
 
 			Convey("should reject incorrect token", func() {
-				session, err := provider.GetByToken("session-id.incorrect-token", TokenKindAccessToken)
+				session, err := provider.GetByToken("session-id.incorrect-token", auth.SessionTokenKindAccessToken)
 				So(err, ShouldBeError, ErrSessionNotFound)
 				So(session, ShouldBeNil)
 
-				session, err = provider.GetByToken("invalid-token", TokenKindAccessToken)
+				session, err = provider.GetByToken("invalid-token", auth.SessionTokenKindAccessToken)
 				So(err, ShouldBeError, ErrSessionNotFound)
 				So(session, ShouldBeNil)
 			})
 		})
 
 		Convey("accessing session", func() {
-			session := Session{
+			session := auth.Session{
 				ID:                   "session-id",
 				UserID:               "user-id",
 				PrincipalID:          "principal-id",
@@ -126,7 +150,7 @@ func TestProvider(t *testing.T) {
 		})
 
 		Convey("invalidating session", func() {
-			store.Sessions["session-id"] = Session{
+			store.Sessions["session-id"] = auth.Session{
 				ID:                   "session-id",
 				UserID:               "user-id",
 				PrincipalID:          "principal-id",

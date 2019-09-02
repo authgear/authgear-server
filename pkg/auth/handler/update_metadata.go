@@ -19,7 +19,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -119,10 +118,10 @@ func (h UpdateMetadataHandler) DecodeRequest(request *http.Request) (handler.Req
 
 func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(UpdateMetadataRequestPayload)
-	keyType := h.AuthContext.AccessKeyType()
+	accessKey := h.AuthContext.AccessKey()
 
 	var targetUserID string
-	if keyType == model.MasterAccessKey {
+	if accessKey.IsMasterKey() {
 		if payload.UserID == "" {
 			err = skyerr.NewInvalidArgument("empty user_id", []string{"user_id"})
 			return

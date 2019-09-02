@@ -4,7 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
@@ -21,9 +23,13 @@ func (m DependencyMap) Provide(
 ) interface{} {
 	switch dependencyName {
 	case "SessionProvider":
-		return coreAuth.NewDefaultSessionProvider(ctx, tConfig)
+		return session.NewProvider(
+			redisSession.NewStore(ctx, tConfig.AppID),
+			auth.NewContextGetterWithContext(ctx),
+			tConfig.UserConfig.Clients,
+		)
 	case "AuthInfoStore":
-		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
+		return auth.NewDefaultAuthInfoStore(ctx, tConfig)
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
 	default:

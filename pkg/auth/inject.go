@@ -28,6 +28,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -162,7 +164,11 @@ func (m DependencyMap) Provide(
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
 	case "SessionProvider":
-		return coreAuth.NewDefaultSessionProvider(ctx, tConfig)
+		return session.NewProvider(
+			redisSession.NewStore(ctx, tConfig.AppID),
+			newAuthContext(),
+			tConfig.UserConfig.Clients,
+		)
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "PasswordChecker":

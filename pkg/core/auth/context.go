@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
@@ -17,23 +16,23 @@ var (
 
 // ContextGetter provides interface for getting authentication data
 type ContextGetter interface {
-	AccessKeyType() model.KeyType
+	AccessKey() model.AccessKey
 	AuthInfo() *authinfo.AuthInfo
-	Session() *session.Session
+	Session() *Session
 }
 
 // ContextSetter provides interface for setting authentication data
 type ContextSetter interface {
-	SetAccessKeyType(model.KeyType)
+	SetAccessKey(model.AccessKey)
 	SetAuthInfo(*authinfo.AuthInfo)
-	SetSession(*session.Session)
+	SetSession(*Session)
 }
 
 // TODO: handle thread safety
 type contextContainer struct {
-	accessKeyType model.KeyType
-	authInfo      *authinfo.AuthInfo
-	session       *session.Session
+	accessKey model.AccessKey
+	authInfo  *authinfo.AuthInfo
+	session   *Session
 }
 
 type authContext struct {
@@ -55,9 +54,9 @@ func NewContextSetterWithContext(ctx context.Context) ContextSetter {
 	return &authContext{Context: ctx}
 }
 
-func (a *authContext) AccessKeyType() model.KeyType {
+func (a *authContext) AccessKey() model.AccessKey {
 	container := a.container()
-	return container.accessKeyType
+	return container.accessKey
 }
 
 func (a *authContext) AuthInfo() *authinfo.AuthInfo {
@@ -65,14 +64,14 @@ func (a *authContext) AuthInfo() *authinfo.AuthInfo {
 	return container.authInfo
 }
 
-func (a *authContext) Session() *session.Session {
+func (a *authContext) Session() *Session {
 	container := a.container()
 	return container.session
 }
 
-func (a *authContext) SetAccessKeyType(keyType model.KeyType) {
+func (a *authContext) SetAccessKey(key model.AccessKey) {
 	container := a.container()
-	container.accessKeyType = keyType
+	container.accessKey = key
 }
 
 func (a *authContext) SetAuthInfo(authInfo *authinfo.AuthInfo) {
@@ -80,7 +79,7 @@ func (a *authContext) SetAuthInfo(authInfo *authinfo.AuthInfo) {
 	container.authInfo = authInfo
 }
 
-func (a *authContext) SetSession(session *session.Session) {
+func (a *authContext) SetSession(session *Session) {
 	container := a.container()
 	container.session = session
 }

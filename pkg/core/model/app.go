@@ -1,24 +1,46 @@
 package model
 
 import (
+	"crypto/subtle"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
-type KeyType int
+type AccessKeyType string
 
 const (
-	// NoAccessKey means no correct access key
-	NoAccessKey KeyType = iota
-	// APIAccessKey means request is using api key
-	APIAccessKey
-	// MasterAccessKey means request is using master key
-	MasterAccessKey
+	// NoAccessKeyType means no correct access key
+	NoAccessKeyType AccessKeyType = "no"
+	// APIAccessKeyType means request is using api key
+	APIAccessKeyType AccessKeyType = "api-key"
+	// MasterAccessKeyType means request is using master key
+	MasterAccessKeyType AccessKeyType = "master-key"
 )
+
+func (t AccessKeyType) IsValid() bool {
+	switch t {
+	case NoAccessKeyType, APIAccessKeyType, MasterAccessKeyType:
+		return true
+	default:
+		return false
+	}
+}
+
+type AccessKey struct {
+	Type     AccessKeyType
+	ClientID string
+}
+
+func (k AccessKey) IsNoAccessKey() bool {
+	return k.Type == NoAccessKeyType
+}
+
+func (k AccessKey) IsMasterKey() bool {
+	return k.Type == MasterAccessKeyType
+}
 
 func header(i interface{}) http.Header {
 	switch i.(type) {
@@ -31,33 +53,48 @@ func header(i interface{}) http.Header {
 	}
 }
 
-func GetAccessKeyType(i interface{}) KeyType {
-	ktv, err := strconv.Atoi(header(i).Get(coreHttp.HeaderAccesskeytype))
-	if err != nil {
-		return NoAccessKey
+func GetAccessKey(i interface{}) AccessKey {
+	accessKeyType := AccessKeyType(header(i).Get(coreHttp.HeaderAccessKeyType))
+	clientID := header(i).Get(coreHttp.HeaderClientID)
+
+	if !accessKeyType.IsValid() {
+		return AccessKey{Type: NoAccessKeyType}
 	}
 
-	return KeyType(ktv)
+	return AccessKey{Type: accessKeyType, ClientID: clientID}
 }
 
-func SetAccessKeyType(i interface{}, kt KeyType) {
-	header(i).Set(coreHttp.HeaderAccesskeytype, strconv.Itoa(int(kt)))
+func SetAccessKey(i interface{}, k AccessKey) {
+	header(i).Set(coreHttp.HeaderAccessKeyType, string(k.Type))
+	header(i).Set(coreHttp.HeaderClientID, k.ClientID)
 }
 
 func GetAPIKey(i interface{}) string {
 	return header(i).Get(coreHttp.HeaderAPIKey)
 }
 
-func CheckAccessKeyType(config config.TenantConfiguration, apiKey string) KeyType {
-	if apiKey == config.UserConfig.APIKey {
-		return APIAccessKey
+func CheckAccessKey(config config.TenantConfiguration, apiKey string) AccessKey {
+	if subtle.ConstantTimeCompare([]byte(apiKey), []byte(config.UserConfig.MasterKey)) == 1 {
+		return AccessKey{Type: MasterAccessKeyType}
 	}
 
-	if apiKey == config.UserConfig.MasterKey {
-		return MasterAccessKey
+	for id, clientConfig := range config.UserConfig.Clients {
+		if clientConfig.Disabled {
+			continue
+		}
+		if subtle.ConstantTimeCompare([]byte(apiKey), []byte(clientConfig.APIKey)) == 1 {
+			return AccessKey{Type: APIAccessKeyType, ClientID: id}
+		}
 	}
 
-	return NoAccessKey
+	return AccessKey{Type: NoAccessKeyType}
+}
+
+func NewAccessKey(clientID string) AccessKey {
+	return AccessKey{
+		Type:     APIAccessKeyType,
+		ClientID: clientID,
+	}
 }
 
 const httpHeaderAuthorization = "authorization"
