@@ -20,6 +20,7 @@ const (
 	HeaderRequestID            = "x-skygear-request-id"
 	HeaderTenantConfig         = "x-skygear-app-config"
 	HeaderRequestBodySignature = "x-skygear-body-signature"
+	HeaderSessionExtraInfo     = "x-skygear-extra-info"
 )
 
 func GetHost(req *gohttp.Request) (host string) {

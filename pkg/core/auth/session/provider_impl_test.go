@@ -1,6 +1,8 @@
 package session
 
 import (
+	"fmt"
+	"net/http"
 	"testing"
 	gotime "time"
 
@@ -17,6 +19,7 @@ import (
 func TestProvider(t *testing.T) {
 	Convey("Provider", t, func() {
 		store := NewMockStore()
+		eventStore := NewMockEventStore()
 
 		timeProvider := &time.MockProvider{}
 		initialTime := gotime.Date(2006, 1, 1, 0, 0, 0, 0, gotime.UTC)
@@ -29,8 +32,21 @@ func TestProvider(t *testing.T) {
 			"mobile-app": config.APIClientConfiguration{},
 		}
 
+		req, _ := http.NewRequest("POST", "", nil)
+		req.Header.Set("User-Agent", "SDK")
+		req.Header.Set("X-Skygear-Extra-Info", `{ "device_name": "Device" }`)
+		accessEvent := auth.SessionAccessEvent{
+			Timestamp: initialTime,
+			UserAgent: "SDK",
+			Extra: auth.SessionAccessEventExtraInfo{
+				"device_name": "Device",
+			},
+		}
+
 		var provider Provider = &providerImpl{
+			req:           req,
 			store:         store,
+			eventStore:    eventStore,
 			authContext:   authContext,
 			clientConfigs: clientConfigs,
 			time:          timeProvider,
@@ -46,6 +62,7 @@ func TestProvider(t *testing.T) {
 					ClientID:             "web-app",
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
+					InitialAccess:        accessEvent,
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
 					AccessToken:          session.AccessToken,
@@ -53,6 +70,7 @@ func TestProvider(t *testing.T) {
 					AccessTokenCreatedAt: initialTime,
 				})
 				So(session.AccessToken, ShouldHaveLength, tokenLength+len(session.ID)+1)
+				So(eventStore.AccessEvents, ShouldResemble, []auth.SessionAccessEvent{accessEvent})
 			})
 
 			Convey("should allow creating multiple sessions for same principal", func() {
@@ -63,6 +81,7 @@ func TestProvider(t *testing.T) {
 					ClientID:             "web-app",
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
+					InitialAccess:        accessEvent,
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
 					AccessToken:          session1.AccessToken,
@@ -77,6 +96,7 @@ func TestProvider(t *testing.T) {
 					ClientID:             "web-app",
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
+					InitialAccess:        accessEvent,
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
 					AccessToken:          session2.AccessToken,
@@ -215,12 +235,19 @@ func TestProvider(t *testing.T) {
 			}
 			timeProvider.AdvanceSeconds(100)
 			timeNow := timeProvider.TimeNowUTC
+			accessEvent.Timestamp = timeNow
 			store.Sessions["session-id"] = session
 
 			Convey("should be update accessed at time", func() {
 				err := provider.Access(&session)
 				So(err, ShouldBeNil)
 				So(session.AccessedAt, ShouldEqual, timeNow)
+			})
+			Convey("should be create access event", func() {
+				err := provider.Access(&session)
+				So(err, ShouldBeNil)
+				So(session.LastAccess, ShouldResemble, accessEvent)
+				So(eventStore.AccessEvents, ShouldResemble, []auth.SessionAccessEvent{accessEvent})
 			})
 		})
 
@@ -246,6 +273,63 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(store.Sessions, ShouldNotBeEmpty)
 			})
+		})
+	})
+	Convey("newAccessEvent", t, func() {
+		now := gotime.Date(2006, 1, 1, 0, 0, 0, 0, gotime.UTC)
+		Convey("should record current timestamp", func() {
+			req, _ := http.NewRequest("POST", "", nil)
+
+			event := newAccessEvent(now, req)
+			So(event.Timestamp, ShouldResemble, now)
+		})
+		Convey("should populate connection info", func() {
+			req, _ := http.NewRequest("POST", "", nil)
+			req.RemoteAddr = "192.168.1.11:31035"
+			req.Header.Set("X-Forwarded-For", "13.225.103.28, 216.58.197.110")
+			req.Header.Set("X-Real-IP", "216.58.197.110")
+			req.Header.Set("Forwarded", "for=216.58.197.110;proto=http;by=192.168.1.11")
+
+			event := newAccessEvent(now, req)
+			So(event.Remote, ShouldResemble, auth.SessionAccessEventConnInfo{
+				RemoteAddr:    "192.168.1.11:31035",
+				XForwardedFor: "13.225.103.28, 216.58.197.110",
+				XRealIP:       "216.58.197.110",
+				Forwarded:     "for=216.58.197.110;proto=http;by=192.168.1.11",
+			})
+		})
+		Convey("should populate user agent", func() {
+			req, _ := http.NewRequest("POST", "", nil)
+			req.RemoteAddr = "192.168.1.11:31035"
+			req.Header.Set("User-Agent", "SDK")
+
+			event := newAccessEvent(now, req)
+			So(event.UserAgent, ShouldEqual, "SDK")
+		})
+		Convey("should populate extra info", func() {
+			req, _ := http.NewRequest("POST", "", nil)
+			req.Header.Set("X-Skygear-Extra-Info", `{ "device_name": "Device" }`)
+
+			event := newAccessEvent(now, req)
+			So(event.Extra, ShouldResemble, auth.SessionAccessEventExtraInfo{
+				"device_name": "Device",
+			})
+		})
+		Convey("should not populate extra info if too large", func() {
+			extra := "{ "
+			for i := 0; i < 1000; i++ {
+				if i != 0 {
+					extra += ", "
+				}
+				extra += fmt.Sprintf(`"info_%d": %d`, i, i)
+			}
+			extra += " }"
+
+			req, _ := http.NewRequest("POST", "", nil)
+			req.Header.Set("X-Skygear-Extra-Info", extra)
+
+			event := newAccessEvent(now, req)
+			So(event.Extra, ShouldResemble, auth.SessionAccessEventExtraInfo{})
 		})
 	})
 }

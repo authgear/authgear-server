@@ -2,12 +2,16 @@ package session
 
 import (
 	"crypto/subtle"
+	"encoding/json"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"strings"
+	gotime "time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -18,8 +22,12 @@ const (
 	tokenLength   = 32
 )
 
+const extraDataSizeLimit = 1024
+
 type providerImpl struct {
+	req           *http.Request
 	store         Store
+	eventStore    EventStore
 	authContext   auth.ContextGetter
 	clientConfigs map[string]config.APIClientConfiguration
 
@@ -27,9 +35,11 @@ type providerImpl struct {
 	rand *rand.Rand
 }
 
-func NewProvider(store Store, authContext auth.ContextGetter, clientConfigs map[string]config.APIClientConfiguration) Provider {
+func NewProvider(req *http.Request, store Store, eventStore EventStore, authContext auth.ContextGetter, clientConfigs map[string]config.APIClientConfiguration) Provider {
 	return &providerImpl{
+		req:           req,
 		store:         store,
+		eventStore:    eventStore,
 		authContext:   authContext,
 		clientConfigs: clientConfigs,
 		time:          time.NewProvider(),
@@ -42,11 +52,14 @@ func (p *providerImpl) Create(userID string, principalID string) (s *auth.Sessio
 	clientID := p.authContext.AccessKey().ClientID
 	clientConfig := p.clientConfigs[clientID]
 
+	accessEvent := newAccessEvent(now, p.req)
 	sess := auth.Session{
 		ID:          uuid.New(),
 		ClientID:    clientID,
 		UserID:      userID,
 		PrincipalID: principalID,
+
+		InitialAccess: accessEvent,
 
 		CreatedAt:  now,
 		AccessedAt: now,
@@ -58,6 +71,11 @@ func (p *providerImpl) Create(userID string, principalID string) (s *auth.Sessio
 
 	expiry := computeSessionStorageExpiry(&sess, clientConfig)
 	err = p.store.Create(&sess, expiry.Sub(now))
+	if err != nil {
+		return
+	}
+
+	err = p.eventStore.AppendAccessEvent(&sess, &accessEvent)
 	if err != nil {
 		return
 	}
@@ -115,7 +133,15 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 
 func (p *providerImpl) Access(s *auth.Session) error {
 	now := p.time.NowUTC()
+	accessEvent := newAccessEvent(now, p.req)
+
 	s.AccessedAt = now
+	s.LastAccess = accessEvent
+
+	err := p.eventStore.AppendAccessEvent(s, &accessEvent)
+	if err != nil {
+		return err
+	}
 
 	expiry := computeSessionStorageExpiry(s, p.clientConfigs[s.ClientID])
 	return p.store.Update(s, expiry.Sub(now))
@@ -156,4 +182,26 @@ func decodeTokenSessionID(token string) (id string, ok bool) {
 	}
 	id, ok = parts[0], true
 	return
+}
+
+func newAccessEvent(timestamp gotime.Time, req *http.Request) auth.SessionAccessEvent {
+	remote := auth.SessionAccessEventConnInfo{
+		RemoteAddr:    req.RemoteAddr,
+		XForwardedFor: req.Header.Get("X-Forwarded-For"),
+		XRealIP:       req.Header.Get("X-Real-IP"),
+		Forwarded:     req.Header.Get("Forwarded"),
+	}
+
+	extraData := []byte(req.Header.Get(corehttp.HeaderSessionExtraInfo))
+	extra := auth.SessionAccessEventExtraInfo{}
+	if len(extraData) <= extraDataSizeLimit {
+		json.Unmarshal(extraData, &extra)
+	}
+
+	return auth.SessionAccessEvent{
+		Timestamp: timestamp,
+		Remote:    remote,
+		UserAgent: req.UserAgent(),
+		Extra:     extra,
+	}
 }
