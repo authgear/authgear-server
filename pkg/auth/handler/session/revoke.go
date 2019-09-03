@@ -110,10 +110,12 @@ func (h RevokeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	if err != nil {
 		if err == session.ErrSessionNotFound {
 			err = nil
+			resp = map[string]string{}
 		}
 		return
 	}
 	if s.UserID != userID {
+		resp = map[string]string{}
 		return
 	}
 

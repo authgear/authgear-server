@@ -102,7 +102,7 @@ func (h UpdateHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 func (h UpdateHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(UpdateRequestPayload)
 	if !h.AuthContext.AccessKey().IsMasterKey() && payload.Data != nil {
-		err = skyerr.NewError(skyerr.PermissionDenied, "Must update custom data using master key")
+		err = skyerr.NewError(skyerr.PermissionDenied, "must update custom data using master key")
 		return
 	}
 

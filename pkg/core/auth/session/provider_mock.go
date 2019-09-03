@@ -2,6 +2,7 @@ package session
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -114,6 +115,7 @@ func (p *MockProvider) List(userID string) (sessions []*auth.Session, err error)
 			sessions = append(sessions, &s)
 		}
 	}
+	sort.Sort(sessionSlice(sessions))
 	return
 }
 
