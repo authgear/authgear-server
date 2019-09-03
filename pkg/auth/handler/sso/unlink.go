@@ -85,7 +85,9 @@ func (h UnlinkHandler) WithTx() bool {
 }
 
 func (h UnlinkHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	return handler.EmptyRequestPayload{}, nil
+	payload := handler.EmptyRequestPayload{}
+	err := handler.DecodeJSONBody(request, &payload)
+	return payload, err
 }
 
 func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {

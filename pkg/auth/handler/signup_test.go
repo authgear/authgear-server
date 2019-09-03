@@ -175,6 +175,7 @@ func TestSingupHandler(t *testing.T) {
 				],
 				"password": "123456"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
@@ -202,6 +203,7 @@ func TestSingupHandler(t *testing.T) {
 				"password": "123456",
 				"on_user_duplicate": "create"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
@@ -217,6 +219,7 @@ func TestSingupHandler(t *testing.T) {
 				],
 				"password": "123456"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
@@ -325,6 +328,7 @@ func TestSingupHandler(t *testing.T) {
 				"realm": "admin",
 				"password": "123456"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
@@ -418,6 +422,7 @@ func TestSingupHandler(t *testing.T) {
 				],
 				"password": "123456"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
@@ -445,6 +450,7 @@ func TestSingupHandler(t *testing.T) {
 				],
 				"password": "1234"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
@@ -476,6 +482,7 @@ func TestSingupHandler(t *testing.T) {
 				],
 				"password": "12345678"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
@@ -498,6 +505,7 @@ func TestSingupHandler(t *testing.T) {
 				],
 				"password": "12345678"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
@@ -521,6 +529,7 @@ func TestSingupHandler(t *testing.T) {
 				],
 				"password": "123456"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
@@ -575,6 +584,7 @@ func TestSingupHandler(t *testing.T) {
 				],
 				"password": "123456"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
@@ -586,6 +596,7 @@ func TestSingupHandler(t *testing.T) {
 				],
 				"password": "1234567"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp = httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 409)
@@ -607,6 +618,7 @@ func TestSingupHandler(t *testing.T) {
 				"realm": "admin",
 				"password": "1234567"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp = httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 409)
@@ -628,6 +640,7 @@ func TestSingupHandler(t *testing.T) {
 				"realm": "test",
 				"password": "1234567"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp = httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 400)

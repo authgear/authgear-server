@@ -1,7 +1,6 @@
 package sso
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -130,7 +129,7 @@ func (h LoginHandler) WithTx() bool {
 }
 
 func (h LoginHandler) DecodeRequest(request *http.Request) (payload LoginRequestPayload, err error) {
-	err = json.NewDecoder(request.Body).Decode(&payload)
+	err = handler.DecodeJSONBody(request, &payload)
 	if err != nil {
 		return
 	}

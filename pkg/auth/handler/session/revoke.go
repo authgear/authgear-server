@@ -1,7 +1,6 @@
 package session
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -90,7 +89,7 @@ func (h RevokeHandler) WithTx() bool {
 
 func (h RevokeHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := RevokeRequestPayload{}
-	err := json.NewDecoder(request.Body).Decode(&payload)
+	err := handler.DecodeJSONBody(request, &payload)
 	return payload, err
 }
 

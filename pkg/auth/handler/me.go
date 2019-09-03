@@ -74,7 +74,9 @@ func (h MeHandler) WithTx() bool {
 }
 
 func (h MeHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	return handler.EmptyRequestPayload{}, nil
+	payload := handler.EmptyRequestPayload{}
+	err := handler.DecodeJSONBody(request, &payload)
+	return payload, err
 }
 
 func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {

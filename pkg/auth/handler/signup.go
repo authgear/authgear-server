@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -183,7 +182,7 @@ func (h SignupHandler) WithTx() bool {
 }
 
 func (h SignupHandler) DecodeRequest(request *http.Request) (payload SignupRequestPayload, err error) {
-	err = json.NewDecoder(request.Body).Decode(&payload)
+	err = handler.DecodeJSONBody(request, &payload)
 	if err != nil {
 		return
 	}

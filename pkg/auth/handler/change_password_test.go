@@ -89,6 +89,7 @@ func TestChangePasswordHandler(t *testing.T) {
 				"old_password": "123456",
 				"password": "1234567"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
 
@@ -140,6 +141,7 @@ func TestChangePasswordHandler(t *testing.T) {
 				"old_password": "123456",
 				"password": "1234"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
 
@@ -166,6 +168,7 @@ func TestChangePasswordHandler(t *testing.T) {
 				"old_password": "wrong_password",
 				"password": "123456"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
 

@@ -132,6 +132,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code1"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)
 			h.ServeHTTP(resp, req)
@@ -175,6 +176,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code1"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)
 			h.ServeHTTP(resp, req)
@@ -192,6 +194,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code1"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)
 			h.ServeHTTP(resp, req)
@@ -209,6 +212,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code2"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)
 			h.ServeHTTP(resp, req)
@@ -226,6 +230,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code3"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)
 			h.ServeHTTP(resp, req)
@@ -247,6 +252,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code1"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)
 			h.ServeHTTP(resp, req)
@@ -264,6 +270,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "incorrect"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)
 			h.ServeHTTP(resp, req)

@@ -61,6 +61,7 @@ func TestSetDisableHandler(t *testing.T) {
 					"message": "Temporarily disable"
 				}
 			`))
+			req.Header.Set("Content-Type", "application/json")
 			payload, err := h.DecodeRequest(req)
 			disablePayload, ok := payload.(setDisableUserPayload)
 			So(ok, ShouldBeTrue)
@@ -78,6 +79,7 @@ func TestSetDisableHandler(t *testing.T) {
 					"message": "Temporarily disable"
 				}
 			`))
+			req.Header.Set("Content-Type", "application/json")
 			_, err := h.DecodeRequest(req)
 			errResponse := err.(skyerr.Error)
 			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)

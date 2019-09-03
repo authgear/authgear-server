@@ -94,6 +94,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				"expire_at": 1104678245,
 				"new_password": "xxx"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)
@@ -118,6 +119,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				"expire_at": 1138892645,
 				"new_password": "xxx"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)
@@ -142,6 +144,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				"expire_at": 1138892645,
 				"new_password": "xxx"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)

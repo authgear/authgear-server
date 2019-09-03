@@ -84,7 +84,9 @@ func (h LogoutHandler) WithTx() bool {
 
 // DecodeRequest decode request payload
 func (h LogoutHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	return handler.EmptyRequestPayload{}, nil
+	payload := handler.EmptyRequestPayload{}
+	err := handler.DecodeJSONBody(request, &payload)
+	return payload, err
 }
 
 func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {

@@ -1,7 +1,6 @@
 package sso
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -265,7 +264,7 @@ func (h *AuthURLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
 	payload := AuthURLRequestPayload{}
 	if r.Method == http.MethodPost {
-		err = json.NewDecoder(r.Body).Decode(&payload)
+		err = handler.DecodeJSONBody(r, &payload)
 		if err != nil {
 			return
 		}

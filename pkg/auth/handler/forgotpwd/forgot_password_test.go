@@ -102,6 +102,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"email": "chima@example.com"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)
@@ -122,6 +123,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"email": "john.doe@example.com"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)
@@ -145,6 +147,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"email": ""
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)
@@ -164,6 +167,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"email": "iamyourfather@example.com"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)
@@ -180,6 +184,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"email": "+85299999999"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)

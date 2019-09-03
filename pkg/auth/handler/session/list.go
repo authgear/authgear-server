@@ -90,7 +90,9 @@ func (h ListHandler) WithTx() bool {
 }
 
 func (h ListHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	return handler.EmptyRequestPayload{}, nil
+	payload := handler.EmptyRequestPayload{}
+	err := handler.DecodeJSONBody(request, &payload)
+	return payload, err
 }
 
 func (h ListHandler) Handle(req interface{}) (resp interface{}, err error) {

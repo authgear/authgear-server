@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -120,7 +119,7 @@ func (h ResetPasswordHandler) WithTx() bool {
 
 func (h ResetPasswordHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := ResetPasswordRequestPayload{}
-	err := json.NewDecoder(request.Body).Decode(&payload)
+	err := handler.DecodeJSONBody(request, &payload)
 	return payload, err
 }
 

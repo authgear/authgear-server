@@ -109,6 +109,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"ux_mode": "web_redirect"
 			}
 			`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			httpHandler := h
 			httpHandler.ServeHTTP(resp, req)
@@ -155,6 +156,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"ux_mode": "web_redirect"
 			}
 			`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			httpHandler := h
 			httpHandler.ServeHTTP(resp, req)
@@ -184,6 +186,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"merge_realm": "nonsense"
 			}
 			`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			httpHandler := h
 			httpHandler.ServeHTTP(resp, req)
@@ -213,6 +216,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"on_user_duplicate": "merge"
 			}
 			`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			httpHandler := h
 			httpHandler.ServeHTTP(resp, req)

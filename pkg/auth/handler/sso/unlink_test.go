@@ -84,6 +84,7 @@ func TestUnlinkHandler(t *testing.T) {
 			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
@@ -133,6 +134,7 @@ func TestUnlinkHandler(t *testing.T) {
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 400)

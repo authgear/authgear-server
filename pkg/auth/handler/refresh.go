@@ -106,7 +106,7 @@ func (h RefreshHandler) WithTx() bool {
 
 func (h RefreshHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := RefreshRequestPayload{}
-	err := json.NewDecoder(request.Body).Decode(&payload)
+	err := handler.DecodeJSONBody(request, &payload)
 	return payload, err
 }
 

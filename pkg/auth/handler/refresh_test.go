@@ -43,6 +43,7 @@ func TestRefreshHandler(t *testing.T) {
 			{
 				"refresh_token": ""
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
@@ -61,6 +62,7 @@ func TestRefreshHandler(t *testing.T) {
 			{
 				"refresh_token": "refresh-token"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 

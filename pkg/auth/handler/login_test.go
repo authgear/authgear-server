@@ -338,6 +338,7 @@ func TestLoginHandler(t *testing.T) {
 				"login_id": "john.doe@example.com",
 				"password": "123456"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
 
