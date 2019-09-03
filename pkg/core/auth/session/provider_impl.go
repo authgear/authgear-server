@@ -185,6 +185,10 @@ func (p *providerImpl) Invalidate(session *auth.Session) error {
 	return p.store.Delete(session)
 }
 
+func (p *providerImpl) InvalidateBatch(sessions []*auth.Session) error {
+	return p.store.DeleteBatch(sessions)
+}
+
 func (p *providerImpl) InvalidateAll(userID string, sessionID string) error {
 	return p.store.DeleteAll(userID, sessionID)
 }

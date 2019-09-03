@@ -110,6 +110,24 @@ func (s *store) Delete(session *auth.Session) (err error) {
 	return
 }
 
+func (s *store) DeleteBatch(sessions []*auth.Session) (err error) {
+	conn := redis.GetConn(s.ctx)
+
+	sessionKeys := []interface{}{}
+	listKeys := map[string]struct{}{}
+	for _, session := range sessions {
+		sessionKeys = append(sessionKeys, sessionKey(s.appID, session.ID))
+		listKeys[sessionListKey(s.appID, session.UserID)] = struct{}{}
+	}
+	_, err = conn.Do("DEL", sessionKeys...)
+
+	for listKey := range listKeys {
+		// ignore non-critical error
+		_, _ = conn.Do("HDEL", append([]interface{}{listKey}, sessionKeys...))
+	}
+	return
+}
+
 func (s *store) DeleteAll(userID string, sessionID string) error {
 	conn := redis.GetConn(s.ctx)
 	listKey := sessionListKey(s.appID, userID)

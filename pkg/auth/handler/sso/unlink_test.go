@@ -13,6 +13,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -65,6 +67,18 @@ func TestUnlinkHandler(t *testing.T) {
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
+		sessionProvider := session.NewMockProvider()
+		sh.SessionProvider = sessionProvider
+		sessionProvider.Sessions["faseng.cat.id-faseng.cat.principal.id"] = auth.Session{
+			ID:          "faseng.cat.id-faseng.cat.principal.id",
+			UserID:      "faseng.cat.id",
+			PrincipalID: "faseng.cat.principal.id",
+		}
+		sessionProvider.Sessions["faseng.cat.id-oauth-principal-id"] = auth.Session{
+			ID:          "faseng.cat.id-oauth-principal-id",
+			UserID:      "faseng.cat.id",
+			PrincipalID: "oauth-principal-id",
+		}
 
 		Convey("should unlink user id with oauth principal", func() {
 			h := handler.APIHandlerToHandler(sh, sh.TxContext)
@@ -83,6 +97,9 @@ func TestUnlinkHandler(t *testing.T) {
 			})
 			So(e, ShouldEqual, skydb.ErrUserNotFound)
 			So(p, ShouldBeNil)
+
+			So(sessionProvider.Sessions, ShouldContainKey, "faseng.cat.id-faseng.cat.principal.id")
+			So(sessionProvider.Sessions, ShouldNotContainKey, "faseng.cat.id-oauth-principal-id")
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.IdentityDeleteEvent{

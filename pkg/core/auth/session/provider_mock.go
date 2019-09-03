@@ -99,6 +99,13 @@ func (p *MockProvider) Invalidate(session *auth.Session) error {
 	return nil
 }
 
+func (p *MockProvider) InvalidateBatch(sessions []*auth.Session) error {
+	for _, session := range sessions {
+		delete(p.Sessions, session.ID)
+	}
+	return nil
+}
+
 func (p *MockProvider) InvalidateAll(userID string, sessionID string) error {
 	for _, session := range p.Sessions {
 		if session.UserID == userID && session.ID != sessionID {
