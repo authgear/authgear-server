@@ -148,13 +148,6 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	now := timeNow()
-	authinfo.TokenValidSince = &now
-	err = h.AuthInfoStore.UpdateAuth(&authinfo)
-	if err != nil {
-		return
-	}
-
 	var profile userprofile.UserProfile
 	if profile, err = h.UserProfileStore.GetUserProfile(authinfo.ID); err != nil {
 		return

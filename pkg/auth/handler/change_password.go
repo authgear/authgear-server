@@ -199,13 +199,6 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 		}
 	}
 
-	now := timeNow()
-	authinfo.TokenValidSince = &now
-	err = h.AuthInfoStore.UpdateAuth(authinfo)
-	if err != nil {
-		return
-	}
-
 	// refresh session
 	session := h.AuthContext.Session()
 	err = h.SessionProvider.Refresh(h.AuthContext.Session())
