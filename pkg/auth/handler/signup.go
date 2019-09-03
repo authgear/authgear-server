@@ -344,7 +344,7 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp model.AuthResp
 		return
 	}
 
-	resp = model.NewAuthResponse(user, loginIdentity, session.AccessToken)
+	resp = model.NewAuthResponse(user, loginIdentity, session)
 
 	if h.WelcomeEmailEnabled {
 		h.sendWelcomeEmail(user, payload.LoginIDs)

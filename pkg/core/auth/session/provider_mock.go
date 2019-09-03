@@ -52,6 +52,8 @@ func (p *MockProvider) GetByToken(token string, kind auth.SessionTokenKind) (*au
 		switch kind {
 		case auth.SessionTokenKindAccessToken:
 			expectedToken = s.AccessToken
+		case auth.SessionTokenKindRefreshToken:
+			expectedToken = s.RefreshToken
 		default:
 			continue
 		}
@@ -78,6 +80,7 @@ func (p *MockProvider) Invalidate(id string) error {
 
 func (p *MockProvider) Refresh(session *auth.Session) error {
 	session.AccessToken = fmt.Sprintf("access-token-%s-%d", session.ID, p.counter)
+	p.Sessions[session.ID] = *session
 	p.counter++
 	return nil
 }

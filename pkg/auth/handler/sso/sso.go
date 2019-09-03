@@ -116,7 +116,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 		return
 	}
 
-	resp = model.NewAuthResponse(user, identity, session.AccessToken)
+	resp = model.NewAuthResponse(user, identity, session)
 
 	if createNewUser &&
 		h.WelcomeEmailEnabled &&
