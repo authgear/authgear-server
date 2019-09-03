@@ -201,6 +201,10 @@ func (c *TenantConfiguration) Validate() error {
 			return errors.New("Master key must not be same as API key")
 		}
 
+		if clientConfig.SessionTransport == SessionTransportTypeCookie && !clientConfig.RefreshTokenDisabled {
+			return errors.New("Refresh token must be disabled when cookie is used as session token transport")
+		}
+
 		if !clientConfig.RefreshTokenDisabled &&
 			clientConfig.RefreshTokenLifetime < clientConfig.AccessTokenLifetime {
 			return errors.New("Refresh token lifetime must be greater than or equal to access token lifetime")
@@ -282,6 +286,12 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 			if clientConfig.AccessTokenLifetime < clientConfig.SessionIdleTimeout {
 				clientConfig.SessionIdleTimeout = clientConfig.AccessTokenLifetime
 			}
+		}
+		if clientConfig.SameSite == "" {
+			clientConfig.SameSite = SessionCookieSameSiteLax
+		}
+		if clientConfig.SessionTransport == SessionTransportTypeCookie {
+			clientConfig.RefreshTokenDisabled = true
 		}
 		c.UserConfig.Clients[id] = clientConfig
 	}
@@ -465,6 +475,16 @@ type SessionTransportType string
 const (
 	// SessionTransportTypeHeader means session tokens should be transport in Authorization HTTP header
 	SessionTransportTypeHeader SessionTransportType = "header"
+	// SessionTransportTypeCookie means session tokens should be transport in HTTP cookie
+	SessionTransportTypeCookie SessionTransportType = "cookie"
+)
+
+type SessionCookieSameSite string
+
+const (
+	SessionCookieSameSiteNone   SessionCookieSameSite = "none"
+	SessionCookieSameSiteLax    SessionCookieSameSite = "lax"
+	SessionCookieSameSiteStrict SessionCookieSameSite = "strict"
 )
 
 type APIClientConfiguration struct {
@@ -479,6 +499,8 @@ type APIClientConfiguration struct {
 
 	RefreshTokenDisabled bool `json:"refresh_token_disabled,omitempty" yaml:"refresh_token_disabled" msg:"refresh_token_disabled"`
 	RefreshTokenLifetime int  `json:"refresh_token_lifetime,omitempty" yaml:"refresh_token_lifetime" msg:"refresh_token_lifetime"`
+
+	SameSite SessionCookieSameSite `json:"same_site,omitempty" yaml:"same_site" msg:"same_site"`
 }
 
 // CORSConfiguration represents CORS configuration.

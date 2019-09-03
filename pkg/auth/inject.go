@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gomodule/redigo/redis"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 
@@ -40,7 +38,7 @@ import (
 type DependencyMap struct {
 	TemplateEngine    *template.Engine
 	AsyncTaskExecutor *async.Executor
-	RedisPool         *redis.Pool
+	UseInsecureCookie bool
 }
 
 // Provide provides dependency instance by name
@@ -161,6 +159,8 @@ func (m DependencyMap) Provide(
 	switch dependencyName {
 	case "AuthContextGetter":
 		return newAuthContext()
+	case "AuthContextSetter":
+		return coreAuth.NewContextSetterWithContext(ctx)
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
 	case "SessionProvider":
@@ -169,6 +169,8 @@ func (m DependencyMap) Provide(
 			newAuthContext(),
 			tConfig.UserConfig.Clients,
 		)
+	case "SessionWriter":
+		return session.NewWriter(newAuthContext(), tConfig.UserConfig.Clients, m.UseInsecureCookie)
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "PasswordChecker":

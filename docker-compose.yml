@@ -29,6 +29,7 @@ services:
     - "HOST=0.0.0.0:3001"
     - "AUTH_LIVE_URL=http://auth:3000"
     - "REDIS_HOST=redis"
+    - "INSECURE_COOKIE=true"
     ports:
     - "3001:3001"
     depends_on:
@@ -41,6 +42,7 @@ services:
     environment:
     - "HOST=0.0.0.0:3000"
     - "REDIS_HOST=redis"
+    - "INSECURE_COOKIE=true"
     ports:
     - "3000:3000"
     depends_on:

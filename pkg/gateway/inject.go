@@ -11,7 +11,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
-type DependencyMap struct{}
+type DependencyMap struct {
+	UseInsecureCookie bool
+}
 
 // nolint: golint
 func (m DependencyMap) Provide(
@@ -22,11 +24,21 @@ func (m DependencyMap) Provide(
 	tConfig config.TenantConfiguration,
 ) interface{} {
 	switch dependencyName {
+	case "AuthContextGetter":
+		return auth.NewContextGetterWithContext(ctx)
+	case "AuthContextSetter":
+		return auth.NewContextSetterWithContext(ctx)
 	case "SessionProvider":
 		return session.NewProvider(
 			redisSession.NewStore(ctx, tConfig.AppID),
 			auth.NewContextGetterWithContext(ctx),
 			tConfig.UserConfig.Clients,
+		)
+	case "SessionWriter":
+		return session.NewWriter(
+			auth.NewContextGetterWithContext(ctx),
+			tConfig.UserConfig.Clients,
+			m.UseInsecureCookie,
 		)
 	case "AuthInfoStore":
 		return auth.NewDefaultAuthInfoStore(ctx, tConfig)

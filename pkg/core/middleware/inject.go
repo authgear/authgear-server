@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/gateway"
 )
 
 // InjectableMiddleware is a pointer to a struct
@@ -23,7 +22,7 @@ type InjectableMiddlewareFactory interface {
 // Middleware at request time.
 type Injecter struct {
 	MiddlewareFactory InjectableMiddlewareFactory
-	Dependency        gateway.DependencyMap
+	Dependency        inject.DependencyMap
 }
 
 // Handle implements gorilla middleware signature.

@@ -44,7 +44,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
+	return h
 }
 
 func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -105,6 +105,7 @@ func (p LoginRequestPayload) Validate() error {
 */
 type LoginHandler struct {
 	SessionProvider      session.Provider           `dependency:"SessionProvider"`
+	SessionWriter        session.Writer             `dependency:"SessionWriter"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
@@ -124,24 +125,54 @@ func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
 }
 
 // DecodeRequest decode request payload
-func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	payload := LoginRequestPayload{}
-	err := json.NewDecoder(request.Body).Decode(&payload)
+func (h LoginHandler) DecodeRequest(request *http.Request) (payload LoginRequestPayload, err error) {
+	err = json.NewDecoder(request.Body).Decode(&payload)
 
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	if payload.Realm == "" {
 		payload.Realm = password.DefaultRealm
 	}
-	return payload, nil
+
+	return
+}
+
+func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	var err error
+	var result interface{}
+	defer func() {
+		if err == nil {
+			h.HookProvider.DidCommitTx()
+			authResp := result.(model.AuthResponse)
+			h.SessionWriter.WriteSession(resp, &authResp.AccessToken)
+			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
+		} else {
+			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
+		}
+	}()
+
+	payload, err := h.DecodeRequest(req)
+	if err != nil {
+		return
+	}
+
+	if err = payload.Validate(); err != nil {
+		return
+	}
+
+	result, err = handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+		result, err = h.Handle(payload)
+		if err == nil {
+			err = h.HookProvider.WillCommitTx()
+		}
+		return
+	})
 }
 
 // Handle api request
-func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(LoginRequestPayload)
-
+func (h LoginHandler) Handle(payload LoginRequestPayload) (resp model.AuthResponse, err error) {
 	fetchedAuthInfo := authinfo.AuthInfo{}
 
 	defer func() {

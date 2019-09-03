@@ -42,7 +42,7 @@ func (f LogoutHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LogoutHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
+	return h
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -72,6 +72,7 @@ type LogoutHandler struct {
 	UserProfileStore userprofile.Store          `dependency:"UserProfileStore"`
 	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
 	SessionProvider  session.Provider           `dependency:"SessionProvider"`
+	SessionWriter    session.Writer             `dependency:"SessionWriter"`
 	AuditTrail       audit.Trail                `dependency:"AuditTrail"`
 	HookProvider     hook.Provider              `dependency:"HookProvider"`
 	TxContext        db.TxContext               `dependency:"TxContext"`
@@ -86,8 +87,25 @@ func (h LogoutHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return handler.EmptyRequestPayload{}, nil
 }
 
+func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	result, err := handler.Transactional(h.TxContext, func() (resp interface{}, err error) {
+		resp, err = h.Handle()
+		if err == nil {
+			err = h.HookProvider.WillCommitTx()
+		}
+		return
+	})
+	if err == nil {
+		h.HookProvider.DidCommitTx()
+		h.SessionWriter.ClearSession(resp)
+		handler.WriteResponse(resp, handler.APIResponse{Result: result})
+	} else {
+		handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
+	}
+}
+
 // Handle api request
-func (h LogoutHandler) Handle(req interface{}) (resp interface{}, err error) {
+func (h LogoutHandler) Handle() (resp interface{}, err error) {
 	if err = h.SessionProvider.Invalidate(h.AuthContext.Session().ID); err != nil {
 		err = skyerr.MakeError(err)
 		return

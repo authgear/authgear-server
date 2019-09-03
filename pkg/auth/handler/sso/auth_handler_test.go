@@ -124,6 +124,7 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.AuthInfoStore = authInfoStore
 		sh.SessionProvider = session.NewMockProvider()
+		sh.SessionWriter = session.NewMockWriter()
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
@@ -368,6 +369,7 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.AuthInfoStore = authInfoStore
 		sh.SessionProvider = session.NewMockProvider()
+		sh.SessionWriter = session.NewMockWriter()
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
@@ -543,6 +545,7 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.AuthInfoStore = authInfoStore
 		sh.SessionProvider = session.NewMockProvider()
+		sh.SessionWriter = session.NewMockWriter()
 		profileData := map[string]map[string]interface{}{
 			"john.doe.id": map[string]interface{}{},
 		}

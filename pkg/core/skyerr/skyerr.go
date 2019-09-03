@@ -183,6 +183,10 @@ func NewResourceFetchFailureErr(kind string, id interface{}) Error {
 	return NewError(UnexpectedError, fmt.Sprintf("failed to fetch %v id = %v", kind, id))
 }
 
+func NewNotAuthenticatedErr() Error {
+	return NewError(NotAuthenticated, "require authenticated user")
+}
+
 func (e *genericError) Name() string {
 	return fmt.Sprintf("%v", e.code)
 }

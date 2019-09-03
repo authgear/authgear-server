@@ -7,16 +7,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/inject"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	nextSkyerr "github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/gorilla/mux"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
 
@@ -30,24 +29,21 @@ type CleanupContextFunc func(context.Context)
 type Server struct {
 	*http.Server
 
-	router                     *mux.Router
-	authContextResolverFactory authn.AuthContextResolverFactory
-	dbPool                     db.Pool
-	setupCtxFn                 SetupContextFunc
-	cleanupCtxFn               CleanupContextFunc
+	router        *mux.Router
+	dependencyMap inject.DependencyMap
 }
 
 // NewServer create a new Server with default option
 func NewServer(
 	addr string,
-	authContextResolverFactory authn.AuthContextResolverFactory,
+	dependencyMap inject.DependencyMap,
 	dbPool db.Pool,
 	setupCtxFn SetupContextFunc,
 	cleanupCtxFn CleanupContextFunc,
 ) Server {
 	return NewServerWithOption(
 		addr,
-		authContextResolverFactory,
+		dependencyMap,
 		dbPool,
 		setupCtxFn,
 		cleanupCtxFn,
@@ -58,7 +54,7 @@ func NewServer(
 // NewServerWithOption create a new Server
 func NewServerWithOption(
 	addr string,
-	authContextResolverFactory authn.AuthContextResolverFactory,
+	dependencyMap inject.DependencyMap,
 	dbPool db.Pool,
 	setupCtxFn SetupContextFunc,
 	cleanupCtxFn CleanupContextFunc,
@@ -82,10 +78,7 @@ func NewServerWithOption(
 			IdleTimeout:  time.Second * 60,
 			Handler:      router,
 		},
-		authContextResolverFactory: authContextResolverFactory,
-		dbPool:                     dbPool,
-		setupCtxFn:                 setupCtxFn,
-		cleanupCtxFn:               cleanupCtxFn,
+		dependencyMap: dependencyMap,
 	}
 
 	if option.RecoverPanic {
@@ -94,50 +87,43 @@ func NewServerWithOption(
 		}.Handle)
 	}
 
+	srv.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			r = auth.InitRequestAuthContext(r)
+			r = db.InitRequestDBContext(r, dbPool)
+			if setupCtxFn != nil {
+				r = r.WithContext(setupCtxFn(r.Context()))
+			}
+			if cleanupCtxFn != nil {
+				defer cleanupCtxFn(r.Context())
+			}
+
+			next.ServeHTTP(rw, r)
+		})
+	})
+
 	return srv
 }
 
 // Handle delegates gorilla mux Handler, and accept a HandlerFactory instead of Handler
 func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
-	return s.router.NewRoute().Path(path).Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		configuration := config.GetTenantConfig(r)
-
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// TODO: improve the logger
 		log := logging.CreateLoggerWithContext(r.Context(), "server")
 
-		r = auth.InitRequestAuthContext(r)
-		r = db.InitRequestDBContext(r, s.dbPool)
-		if s.setupCtxFn != nil {
-			r = r.WithContext(s.setupCtxFn(r.Context()))
-		}
-		if s.cleanupCtxFn != nil {
-			defer s.cleanupCtxFn(r.Context())
+		policy := hf.ProvideAuthzPolicy()
+		if err := policy.IsAllowed(r, auth.NewContextGetterWithContext(r.Context())); err != nil {
+			// TODO: log
+			log.WithError(err).Info("authz not allowed")
+			s.handleError(w, err)
+			return
 		}
 
 		h := hf.NewHandler(r)
+		h.ServeHTTP(w, r)
+	})
 
-		txContext := db.NewTxContextWithContext(r.Context(), configuration)
-		resolver := s.authContextResolverFactory.NewResolver(r.Context(), configuration)
-		err := db.WithTx(txContext, func() error {
-			return resolver.Resolve(r, auth.NewContextSetterWithContext(r.Context()))
-		})
-		if err != nil {
-			// TODO: log
-			log.WithError(err).Error("failed to resolve auth")
-			s.handleError(rw, err)
-			return
-		}
-
-		policy := hf.ProvideAuthzPolicy()
-		if err = policy.IsAllowed(r, auth.NewContextGetterWithContext(r.Context())); err != nil {
-			// TODO: log
-			log.WithError(err).Error("authz not allowed")
-			s.handleError(rw, err)
-			return
-		}
-
-		h.ServeHTTP(rw, r)
-	}))
+	return s.router.NewRoute().Path(path).Handler(handler)
 }
 
 // Use set middlewares to underlying router
@@ -147,7 +133,7 @@ func (s *Server) Use(mwf ...mux.MiddlewareFunc) {
 
 func (s *Server) handleError(rw http.ResponseWriter, err error) {
 	skyErr := skyerr.MakeError(err)
-	httpStatus := nextSkyerr.ErrorDefaultStatusCode(skyErr)
+	httpStatus := skyerr.ErrorDefaultStatusCode(skyErr)
 	response := errorResponse{Err: skyErr}
 	encoder := json.NewEncoder(rw)
 	rw.Header().Set("Content-Type", "application/json")

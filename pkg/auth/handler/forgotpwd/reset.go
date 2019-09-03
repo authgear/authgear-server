@@ -197,13 +197,6 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		return
 	}
 
-	// revoke old tokens
-	now := timeNow()
-	authInfo.TokenValidSince = &now
-	if err = h.AuthInfoStore.UpdateAuth(&authInfo); err != nil {
-		return
-	}
-
 	var profile userprofile.UserProfile
 	if profile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
 		return

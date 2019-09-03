@@ -30,6 +30,7 @@ func TestLogoutHandler(t *testing.T) {
 		sessionProvider := session.NewMockProvider()
 		sessionProvider.Sessions[authContext.Session().ID] = *authContext.Session()
 		h.SessionProvider = sessionProvider
+		h.SessionWriter = session.NewMockWriter()
 
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.AuditTrail = coreAudit.NewMockTrail(t)
@@ -54,7 +55,7 @@ func TestLogoutHandler(t *testing.T) {
 		h.HookProvider = hookProvider
 
 		Convey("logout user successfully", func() {
-			resp, err := h.Handle(nil)
+			resp, err := h.Handle()
 			So(resp, ShouldResemble, map[string]string{})
 			So(err, ShouldBeNil)
 
@@ -84,7 +85,7 @@ func TestLogoutHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when logout", func() {
-			h.Handle(nil)
+			h.Handle()
 			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
 			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "logout")

@@ -2,6 +2,7 @@ package model
 
 import (
 	"crypto/subtle"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -114,10 +115,32 @@ func parseAuthorizationHeader(r *http.Request) (token string) {
 	return authorization[1]
 }
 
-func GetAccessToken(r *http.Request) string {
-	token := parseAuthorizationHeader(r)
-	if token != "" {
-		return token
+var ErrTokenConflict = fmt.Errorf("tokens detected in different transports")
+
+func GetAccessToken(r *http.Request) (token string, transport config.SessionTransportType, err error) {
+	headerToken := parseAuthorizationHeader(r)
+	if headerToken == "" {
+		headerToken = r.Header.Get(coreHttp.HeaderAccessToken)
 	}
-	return r.Header.Get(coreHttp.HeaderAccessToken)
+
+	var cookieToken string
+	cookie, err := r.Cookie(coreHttp.CookieNameSession)
+	if err == nil {
+		cookieToken = cookie.Value
+	} else {
+		cookieToken = ""
+		err = nil
+	}
+
+	if cookieToken != "" && headerToken != "" {
+		err = ErrTokenConflict
+		return
+	}
+
+	if headerToken != "" {
+		token, transport = headerToken, config.SessionTransportTypeHeader
+	} else {
+		token, transport = cookieToken, config.SessionTransportTypeCookie
+	}
+	return
 }

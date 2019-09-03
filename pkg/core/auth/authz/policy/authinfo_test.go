@@ -21,23 +21,6 @@ func TestRequireAuthenticated(t *testing.T) {
 			So(err, ShouldNotBeEmpty)
 		})
 
-		Convey("should return error if token is not valid", func() {
-			req, _ := http.NewRequest("POST", "/", nil)
-			validSince := time.Date(2017, 10, 1, 0, 0, 0, 0, time.UTC)
-			ctx := MemoryContextGetter{
-				mAuthInfo: &authinfo.AuthInfo{
-					ID:              "ID",
-					TokenValidSince: &validSince,
-				},
-				mSession: &auth.Session{
-					AccessTokenCreatedAt: time.Date(2016, 10, 1, 0, 0, 0, 0, time.UTC),
-				},
-			}
-
-			err := RequireAuthenticated(req, ctx)
-			So(err, ShouldNotBeEmpty)
-		})
-
 		Convey("should pass if valid auth info exist", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
 			ctx := MemoryContextGetter{

@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -71,7 +72,9 @@ func main() {
 	}
 	defer store.Close()
 
-	gatewayDependency := gateway.DependencyMap{}
+	gatewayDependency := gateway.DependencyMap{
+		UseInsecureCookie: config.UseInsecureCookie,
+	}
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool(config.Redis)
 
@@ -113,6 +116,7 @@ func main() {
 	cr.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r = db.InitRequestDBContext(r, dbPool)
+			r = auth.InitRequestAuthContext(r)
 			r = r.WithContext(redis.WithRedis(r.Context(), redisPool))
 			next.ServeHTTP(w, r)
 		})
@@ -123,10 +127,16 @@ func main() {
 		Store:              store,
 	}.Handle)
 
-	cr.Use(middleware.Injecter{
+	cr.Use(coreMiddleware.Injecter{
+		MiddlewareFactory: coreMiddleware.AuthnMiddlewareFactory{},
+		Dependency:        gatewayDependency,
+	}.Handle)
+
+	cr.Use(coreMiddleware.Injecter{
 		MiddlewareFactory: middleware.AuthInfoMiddlewareFactory{},
 		Dependency:        gatewayDependency,
 	}.Handle)
+
 	cr.Use(coreMiddleware.CORSMiddleware{}.Handle)
 
 	cr.HandleFunc("/{rest:.*}", handler.NewDeploymentRouteHandler())

@@ -24,7 +24,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -141,6 +140,7 @@ func TestLoginHandler(t *testing.T) {
 		h.AuthInfoStore = authInfoStore
 		sessionProvider := session.NewMockProvider()
 		h.SessionProvider = sessionProvider
+		h.SessionWriter = session.NewMockWriter()
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.IdentityProvider = principal.NewMockIdentityProvider(h.PasswordAuthProvider)
 		h.AuditTrail = coreAudit.NewMockTrail(t)
@@ -156,11 +156,7 @@ func TestLoginHandler(t *testing.T) {
 			}
 			userID := "john.doe.id"
 
-			resp, err := h.Handle(payload)
-			So(err, ShouldBeNil)
-
-			authResp, ok := resp.(model.AuthResponse)
-			So(ok, ShouldBeTrue)
+			authResp, err := h.Handle(payload)
 			So(err, ShouldBeNil)
 
 			// check the authinfo store data
@@ -323,6 +319,7 @@ func TestLoginHandler(t *testing.T) {
 		lh := &LoginHandler{}
 		lh.AuthInfoStore = authInfoStore
 		lh.SessionProvider = session.NewMockProvider()
+		lh.SessionWriter = session.NewMockWriter()
 		lh.PasswordAuthProvider = passwordAuthProvider
 		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
 		lh.AuditTrail = coreAudit.NewMockTrail(t)
@@ -333,7 +330,6 @@ func TestLoginHandler(t *testing.T) {
 		}
 		lh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 		lh.TxContext = db.NewMockTxContext()
-		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("should contains current identity", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -343,7 +339,7 @@ func TestLoginHandler(t *testing.T) {
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			lh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{

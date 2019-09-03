@@ -25,7 +25,6 @@ var timeNow = func() time.Time { return time.Now().UTC() }
 // AuthInfo contains a user's information for authentication purpose
 type AuthInfo struct {
 	ID              string          `json:"_id"`
-	TokenValidSince *time.Time      `json:"token_valid_since,omitempty"`
 	LastSeenAt      *time.Time      `json:"last_seen_at,omitempty"`
 	LastLoginAt     *time.Time      `json:"last_login_at,omitempty"`
 	Disabled        bool            `json:"disabled"`

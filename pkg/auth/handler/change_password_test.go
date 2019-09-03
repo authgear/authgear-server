@@ -24,7 +24,6 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 )
 
@@ -46,6 +45,7 @@ func TestChangePasswordHandler(t *testing.T) {
 		lh.AuthContext = authtest.NewMockContext().UseUser(userID, "john.doe.principal.id0").MarkVerified()
 		lh.AuthInfoStore = authinfo.NewMockStoreWithUser(userID)
 		lh.SessionProvider = session.NewMockProvider()
+		lh.SessionWriter = session.NewMockWriter()
 		profileData := map[string]map[string]interface{}{
 			"john.doe.id": map[string]interface{}{},
 		}
@@ -82,7 +82,6 @@ func TestChangePasswordHandler(t *testing.T) {
 		lh.TaskQueue = mockTaskQueue
 		hookProvider := hook.NewMockProvider()
 		lh.HookProvider = hookProvider
-		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("change password success", func(c C) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -91,7 +90,7 @@ func TestChangePasswordHandler(t *testing.T) {
 				"password": "1234567"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			lh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
@@ -142,7 +141,7 @@ func TestChangePasswordHandler(t *testing.T) {
 				"password": "1234"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			lh.ServeHTTP(resp, req)
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 				{
@@ -168,7 +167,7 @@ func TestChangePasswordHandler(t *testing.T) {
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			lh.ServeHTTP(resp, req)
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 				{

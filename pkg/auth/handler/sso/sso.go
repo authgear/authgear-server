@@ -39,7 +39,7 @@ type respHandler struct {
 	WelcomeEmailEnabled bool
 }
 
-func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.LoginState) (resp interface{}, err error) {
+func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.LoginState) (resp model.AuthResponse, err error) {
 	// action => login
 	var info authinfo.AuthInfo
 	createNewUser, principal, err := h.handleLogin(oauthAuthInfo, &info, loginState)

@@ -19,6 +19,7 @@ type Configuration struct {
 	ConnectionStr                     string              `envconfig:"DATABASE_URL"`
 	Auth                              GearURLConfig       `envconfig:"AUTH"`
 	Redis                             redis.Configuration `envconfig:"REDIS"`
+	UseInsecureCookie                 bool                `envconfig:"INSECURE_COOKIE"`
 }
 
 // ReadFromEnv reads from environment variable and update the configuration.

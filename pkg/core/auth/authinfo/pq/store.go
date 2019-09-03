@@ -49,17 +49,12 @@ func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *lo
 
 func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	var (
-		tokenValidSince *time.Time
-		lastSeenAt      *time.Time
-		lastLoginAt     *time.Time
-		disabledReason  *string
-		disabledExpiry  *time.Time
-		verifyInfo      dbPq.JSONMapBooleanValue
+		lastSeenAt     *time.Time
+		lastLoginAt    *time.Time
+		disabledReason *string
+		disabledExpiry *time.Time
+		verifyInfo     dbPq.JSONMapBooleanValue
 	)
-	tokenValidSince = authinfo.TokenValidSince
-	if tokenValidSince != nil && tokenValidSince.IsZero() {
-		tokenValidSince = nil
-	}
 	lastSeenAt = authinfo.LastSeenAt
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
 		lastSeenAt = nil
@@ -83,7 +78,6 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		Insert(s.sqlBuilder.FullTableName("user")).
 		Columns(
 			"id",
-			"token_valid_since",
 			"last_seen_at",
 			"last_login_at",
 			"disabled",
@@ -94,7 +88,6 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		).
 		Values(
 			authinfo.ID,
-			tokenValidSince,
 			lastSeenAt,
 			lastLoginAt,
 			authinfo.Disabled,
@@ -116,17 +109,12 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 // nolint: gocyclo
 func (s authInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	var (
-		tokenValidSince *time.Time
-		lastSeenAt      *time.Time
-		lastLoginAt     *time.Time
-		disabledReason  *string
-		disabledExpiry  *time.Time
-		verifyInfo      dbPq.JSONMapBooleanValue
+		lastSeenAt     *time.Time
+		lastLoginAt    *time.Time
+		disabledReason *string
+		disabledExpiry *time.Time
+		verifyInfo     dbPq.JSONMapBooleanValue
 	)
-	tokenValidSince = authinfo.TokenValidSince
-	if tokenValidSince != nil && tokenValidSince.IsZero() {
-		tokenValidSince = nil
-	}
 	lastSeenAt = authinfo.LastSeenAt
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
 		lastSeenAt = nil
@@ -148,7 +136,6 @@ func (s authInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 
 	builder := s.sqlBuilder.Tenant().
 		Update(s.sqlBuilder.FullTableName("user")).
-		Set("token_valid_since", tokenValidSince).
 		Set("last_seen_at", lastSeenAt).
 		Set("last_login_at", lastLoginAt).
 		Set("disabled", authinfo.Disabled).
@@ -182,7 +169,6 @@ func (s authInfoStore) baseUserBuilder() db.SelectBuilder {
 	return s.sqlBuilder.Tenant().
 		Select(
 			"id",
-			"token_valid_since",
 			"last_seen_at",
 			"last_login_at",
 			"disabled",
@@ -197,20 +183,18 @@ func (s authInfoStore) baseUserBuilder() db.SelectBuilder {
 func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowScanner) error {
 	logger := s.logger
 	var (
-		id              string
-		tokenValidSince pq.NullTime
-		lastSeenAt      pq.NullTime
-		lastLoginAt     pq.NullTime
-		disabled        bool
-		disabledReason  sql.NullString
-		disabledExpiry  pq.NullTime
-		verified        bool
-		verifyInfo      dbPq.NullJSONMapBoolean
+		id             string
+		lastSeenAt     pq.NullTime
+		lastLoginAt    pq.NullTime
+		disabled       bool
+		disabledReason sql.NullString
+		disabledExpiry pq.NullTime
+		verified       bool
+		verifyInfo     dbPq.NullJSONMapBoolean
 	)
 
 	err := scanner.Scan(
 		&id,
-		&tokenValidSince,
 		&lastSeenAt,
 		&lastLoginAt,
 		&disabled,
@@ -227,11 +211,6 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 	}
 
 	authinfo.ID = id
-	if tokenValidSince.Valid {
-		authinfo.TokenValidSince = &tokenValidSince.Time
-	} else {
-		authinfo.TokenValidSince = nil
-	}
 	if lastSeenAt.Valid {
 		authinfo.LastSeenAt = &lastSeenAt.Time
 	} else {
