@@ -165,6 +165,62 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`#/cors: origin is required
 `,
 			},
+			// MFA
+			{
+				`
+{
+	"master_key": "master_key",
+	"auth": {
+		"login_id_keys": {
+			"email": {
+				"type": "email"
+			},
+			"phone": {
+				"type": "phone"
+			},
+			"username": {
+				"type": "raw"
+			}
+		},
+		"allowed_realms": ["default"]
+	},
+	"hook": {
+		"secret": "hooksecret"
+	},
+	"mfa": {
+		"enforcement": "",
+		"maximum": 16,
+		"totp": {
+			"maximum": 6
+		},
+		"oob": {
+			"sms": {
+				"maximum": 6
+			},
+			"email": {
+				"maximum": 6
+			}
+		},
+		"bearer_token": {
+			"expire_in_days": 0
+		},
+		"recovery_code": {
+			"count": 100,
+			"list_enabled": 1
+		}
+	}
+}
+				`,
+				`#/mfa/bearer_token/expire_in_days: Must be greater than or equal to 1/1
+#/mfa/enforcement: mfa.enforcement must be one of the following: "off", "optional", "required"
+#/mfa/maximum: Must be less than or equal to 15/1
+#/mfa/oob/email/maximum: Must be less than or equal to 5/1
+#/mfa/oob/sms/maximum: Must be less than or equal to 5/1
+#/mfa/recovery_code/count: Must be less than or equal to 24/1
+#/mfa/recovery_code/list_enabled: Invalid type. Expected: boolean, given: integer
+#/mfa/totp/maximum: Must be less than or equal to 5/1
+`,
+			},
 			// User Audit
 			{
 				`
