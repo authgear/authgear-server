@@ -18,6 +18,10 @@ type Session struct {
 	UserID      string `json:"user_id"`
 	PrincipalID string `json:"principal_id"`
 
+	AuthenticatorID         string                  `json:"authenticator_id,omitempty"`
+	AuthenticatorType       AuthenticatorType       `json:"authenticator_type,omitempty"`
+	AuthenticatorOOBChannel AuthenticatorOOBChannel `json:"authenticator_oob_channel,omitempty"`
+
 	InitialAccess SessionAccessEvent `json:"initial_access"`
 	LastAccess    SessionAccessEvent `json:"last_access"`
 
