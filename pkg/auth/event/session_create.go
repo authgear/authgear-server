@@ -32,6 +32,7 @@ type SessionCreateEvent struct {
 	Reason   SessionCreateReason `json:"reason"`
 	User     model.User          `json:"user"`
 	Identity model.Identity      `json:"identity"`
+	Session  model.Session       `json:"session"`
 }
 
 // @JSONSchema
@@ -72,7 +73,8 @@ const SessionCreateEventPayloadSchema = `
 	"properties": {
 		"reason": { "type": "string" },
 		"user": { "$ref": "#User" },
-		"identity": { "$ref": "#Identity" }
+		"identity": { "$ref": "#Identity" },
+		"session": { "$ref": "#Session" }
 	}
 }
 `

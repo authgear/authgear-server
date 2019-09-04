@@ -11,6 +11,7 @@ type SessionDeleteReason string
 
 const (
 	SessionDeleteReasonLogout = "logout"
+	SessionDeleteReasonRevoke = "revoke"
 )
 
 /*
@@ -31,6 +32,7 @@ type SessionDeleteEvent struct {
 	Reason   SessionDeleteReason `json:"reason"`
 	User     model.User          `json:"user"`
 	Identity model.Identity      `json:"identity"`
+	Session  model.Session       `json:"session"`
 }
 
 // @JSONSchema
@@ -71,7 +73,8 @@ const SessionDeleteEventPayloadSchema = `
 	"properties": {
 		"reason": { "type": "string" },
 		"user": { "$ref": "#User" },
-		"identity": { "$ref": "#Identity" }
+		"identity": { "$ref": "#Identity" },
+		"session": { "$ref": "#Session" }
 	}
 }
 `

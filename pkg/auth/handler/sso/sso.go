@@ -5,6 +5,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -90,11 +91,13 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 	} else {
 		sessionCreateReason = event.SessionCreateReasonLogin
 	}
+	sessionModel := authSession.Format(session)
 	err = h.HookProvider.DispatchEvent(
 		event.SessionCreateEvent{
 			Reason:   sessionCreateReason,
 			User:     user,
 			Identity: identity,
+			Session:  sessionModel,
 		},
 		&user,
 	)

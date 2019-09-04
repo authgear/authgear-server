@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -238,11 +239,13 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp model.AuthRespon
 
 	user := model.NewUser(fetchedAuthInfo, userProfile)
 	identity := model.NewIdentity(h.IdentityProvider, principal)
+	sessionModel := authSession.Format(session)
 	err = h.HookProvider.DispatchEvent(
 		event.SessionCreateEvent{
 			Reason:   event.SessionCreateReasonLogin,
 			User:     user,
 			Identity: identity,
+			Session:  sessionModel,
 		},
 		&user,
 	)

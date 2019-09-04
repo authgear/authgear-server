@@ -4,6 +4,12 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -53,9 +59,12 @@ func (f RevokeAllHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 		@Response 200 {EmptyResponse}
 */
 type RevokeAllHandler struct {
-	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	TxContext       db.TxContext           `dependency:"TxContext"`
-	SessionProvider session.Provider       `dependency:"SessionProvider"`
+	AuthContext      coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	TxContext        db.TxContext               `dependency:"TxContext"`
+	SessionProvider  session.Provider           `dependency:"SessionProvider"`
+	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
+	UserProfileStore userprofile.Store          `dependency:"UserProfileStore"`
+	HookProvider     hook.Provider              `dependency:"HookProvider"`
 }
 
 func (h RevokeAllHandler) WithTx() bool {
@@ -72,7 +81,48 @@ func (h RevokeAllHandler) Handle(req interface{}) (resp interface{}, err error) 
 	userID := h.AuthContext.AuthInfo().ID
 	sessionID := h.AuthContext.Session().ID
 
-	err = h.SessionProvider.InvalidateAll(userID, sessionID)
+	profile, err := h.UserProfileStore.GetUserProfile(userID)
+	if err != nil {
+		return
+	}
+	user := model.NewUser(*h.AuthContext.AuthInfo(), profile)
+
+	sessions, err := h.SessionProvider.List(userID)
+	if err != nil {
+		return
+	}
+
+	n := 0
+	for _, session := range sessions {
+		if session.ID == sessionID {
+			continue
+		}
+		sessions[n] = session
+		n++
+
+		var principal principal.Principal
+		if principal, err = h.IdentityProvider.GetPrincipalByID(session.PrincipalID); err != nil {
+			return
+		}
+		identity := model.NewIdentity(h.IdentityProvider, principal)
+		sessionModel := authSession.Format(session)
+
+		err = h.HookProvider.DispatchEvent(
+			event.SessionDeleteEvent{
+				Reason:   event.SessionDeleteReasonRevoke,
+				User:     user,
+				Identity: identity,
+				Session:  sessionModel,
+			},
+			&user,
+		)
+		if err != nil {
+			return
+		}
+	}
+	sessions = sessions[:n]
+
+	err = h.SessionProvider.InvalidateBatch(sessions)
 	if err != nil {
 		return
 	}

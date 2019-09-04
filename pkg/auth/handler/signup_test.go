@@ -315,6 +315,11 @@ func TestSingupHandler(t *testing.T) {
 							"email": "john.doe@example.com",
 						},
 					},
+					Session: model.Session{
+						ID:         fmt.Sprintf("%s-%s-0", userID, p.ID),
+						IdentityID: p.ID,
+						Data:       map[string]interface{}{},
+					},
 				},
 			})
 		})
@@ -409,6 +414,11 @@ func TestSingupHandler(t *testing.T) {
 						Claims: principal.Claims{
 							"email": "john.doe@example.com",
 						},
+					},
+					Session: model.Session{
+						ID:         fmt.Sprintf("%s-%s-0", userID, p.ID),
+						IdentityID: p.ID,
+						Data:       map[string]interface{}{},
 					},
 				},
 			})
