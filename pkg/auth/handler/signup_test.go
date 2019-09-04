@@ -254,9 +254,10 @@ func TestSingupHandler(t *testing.T) {
 							"email": "john.doe@example.com"
 						}
 					},
-					"access_token": "access-token-%s-%s-0"
+					"access_token": "access-token-%s-%s-0",
+					"session_id": "%s-%s-0"
 				}
-			}`, userID, p.ID, userID, p.ID))
+			}`, userID, p.ID, userID, p.ID, userID, p.ID))
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.UserCreateEvent{
@@ -364,9 +365,10 @@ func TestSingupHandler(t *testing.T) {
 							"email": "john.doe@example.com"
 						}
 					},
-					"access_token": "access-token-%s-%s-0"
+					"access_token": "access-token-%s-%s-0",
+					"session_id": "%s-%s-0"
 				}
-			}`, userID, p.ID, userID, p.ID))
+			}`, userID, p.ID, userID, p.ID, userID, p.ID))
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.UserCreateEvent{

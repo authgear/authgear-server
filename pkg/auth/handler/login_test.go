@@ -363,9 +363,10 @@ func TestLoginHandler(t *testing.T) {
 							"email": "john.doe@example.com"
 						}
 					},
-					"access_token": "access-token-%s-john.doe.principal.id1-0"
+					"access_token": "access-token-%s-john.doe.principal.id1-0",
+					"session_id": "%s-john.doe.principal.id1-0"
 				}
-			}`, userID, userID))
+			}`, userID, userID, userID))
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.SessionCreateEvent{

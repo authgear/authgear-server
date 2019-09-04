@@ -137,9 +137,10 @@ func TestLoginHandler(t *testing.T) {
 							"email": "mock@example.com"
 						}
 					},
-					"access_token": "access-token-%s-%s-0"
+					"access_token": "access-token-%s-%s-0",
+					"session_id": "%s-%s-0"
 				}
-			}`, p.UserID, p.ID, p.UserID, p.ID))
+			}`, p.UserID, p.ID, p.UserID, p.ID, p.UserID, p.ID))
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.UserCreateEvent{

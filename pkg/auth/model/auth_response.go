@@ -23,6 +23,7 @@ type AuthResponse struct {
 	Identity     *Identity `json:"identity,omitempty"`
 	AccessToken  string    `json:"access_token,omitempty"`
 	RefreshToken string    `json:"refresh_token,omitempty"`
+	SessionID    string    `json:"session_id,omitempty"`
 }
 
 func NewAuthResponseWithUser(user User) AuthResponse {
@@ -44,6 +45,7 @@ func NewAuthResponse(user User, identity Identity, session *auth.Session) AuthRe
 		Identity:     &identity,
 		AccessToken:  session.AccessToken,
 		RefreshToken: session.RefreshToken,
+		SessionID:    session.ID,
 	}
 }
 
@@ -92,7 +94,8 @@ const AuthResponseSchema = `
 				"user": { "$ref": "#User" },
 				"identity": { "$ref": "#Identity" },
 				"access_token": { "type": "string" },
-				"refresh_token": { "type": "string" }
+				"refresh_token": { "type": "string" },
+				"session_id": { "type": "string" }
 			}
 		}
 	}
