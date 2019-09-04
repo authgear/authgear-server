@@ -150,7 +150,28 @@ func makeFullTenantConfig() TenantConfiguration {
 				AllowedRealms:              []string{"default"},
 				OnUserDuplicateAllowCreate: true,
 			},
-
+			MFA: MFAConfiguration{
+				Enforcement: MFAEnforcementOptional,
+				Maximum:     newInt(3),
+				TOTP: MFATOTPConfiguration{
+					Maximum: 1,
+				},
+				OOB: MFAOOBConfiguration{
+					SMS: MFAOOBSMSConfiguration{
+						Maximum: 1,
+					},
+					Email: MFAOOBEmailConfiguration{
+						Maximum: 1,
+					},
+				},
+				BearerToken: MFABearerTokenConfiguration{
+					ExpireInDays: 60,
+				},
+				RecoveryCode: MFARecoveryCodeConfiguration{
+					Count:       24,
+					ListEnabled: true,
+				},
+			},
 			UserAudit: UserAuditConfiguration{
 				Enabled:         true,
 				TrailHandlerURL: "http://localhost:3000/useraudit",
