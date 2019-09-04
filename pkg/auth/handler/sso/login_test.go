@@ -105,6 +105,7 @@ func TestLoginHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"access_token": "token"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
@@ -199,6 +200,7 @@ func TestLoginHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"access_token": "token"
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 404)

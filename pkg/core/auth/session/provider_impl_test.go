@@ -63,6 +63,7 @@ func TestProvider(t *testing.T) {
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
 					InitialAccess:        accessEvent,
+					LastAccess:           accessEvent,
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
 					AccessToken:          session.AccessToken,
@@ -82,6 +83,7 @@ func TestProvider(t *testing.T) {
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
 					InitialAccess:        accessEvent,
+					LastAccess:           accessEvent,
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
 					AccessToken:          session1.AccessToken,
@@ -97,6 +99,7 @@ func TestProvider(t *testing.T) {
 					UserID:               "user-id",
 					PrincipalID:          "principal-id",
 					InitialAccess:        accessEvent,
+					LastAccess:           accessEvent,
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
 					AccessToken:          session2.AccessToken,
@@ -251,6 +254,30 @@ func TestProvider(t *testing.T) {
 			})
 		})
 
+		Convey("updating session", func() {
+			session := auth.Session{
+				ID:         "session-id",
+				Name:       "Name 1",
+				CustomData: map[string]interface{}{"data": 1},
+			}
+			store.Sessions[session.ID] = session
+
+			Convey("should be update name correctly", func() {
+				newName := "Name 2"
+				err := provider.Update(session.ID, &newName, nil)
+				So(err, ShouldBeNil)
+				So(store.Sessions[session.ID].Name, ShouldEqual, newName)
+				So(store.Sessions[session.ID].CustomData, ShouldResemble, session.CustomData)
+			})
+			Convey("should be update custom data correctly", func() {
+				newData := map[string]interface{}{}
+				err := provider.Update(session.ID, nil, newData)
+				So(err, ShouldBeNil)
+				So(store.Sessions[session.ID].Name, ShouldEqual, session.Name)
+				So(store.Sessions[session.ID].CustomData, ShouldResemble, newData)
+			})
+		})
+
 		Convey("invalidating session", func() {
 			store.Sessions["session-id"] = auth.Session{
 				ID:                   "session-id",
@@ -263,15 +290,53 @@ func TestProvider(t *testing.T) {
 			}
 
 			Convey("should be successful", func() {
-				err := provider.Invalidate("session-id")
+				err := provider.Invalidate(&auth.Session{ID: "session-id"})
 				So(err, ShouldBeNil)
 				So(store.Sessions, ShouldBeEmpty)
 			})
 
 			Convey("should be successful for non-existant sessions", func() {
-				err := provider.Invalidate("session-id-unknown")
+				err := provider.Invalidate(&auth.Session{ID: "session-id-unknown"})
 				So(err, ShouldBeNil)
 				So(store.Sessions, ShouldNotBeEmpty)
+			})
+		})
+
+		Convey("listing session", func() {
+			makeSession := func(id string, userID string, clientID string, timeOffset int) {
+				store.Sessions[id] = auth.Session{
+					ID:                   id,
+					UserID:               userID,
+					ClientID:             clientID,
+					CreatedAt:            initialTime.Add(gotime.Duration(timeOffset) * gotime.Second),
+					AccessedAt:           initialTime.Add(gotime.Duration(timeOffset) * gotime.Second),
+					AccessTokenCreatedAt: initialTime.Add(gotime.Duration(timeOffset) * gotime.Second),
+				}
+			}
+			makeSession("a", "user-1", "web-app", 100)
+			makeSession("b", "user-1", "mobile-app", 200)
+			makeSession("c", "user-2", "web-app", -10000)
+			makeSession("d", "user-2", "disabled-app", 400)
+			timeProvider.AdvanceSeconds(500)
+			clientConfigs["web-app"] = config.APIClientConfiguration{AccessTokenLifetime: 1000, RefreshTokenDisabled: true}
+			clientConfigs["mobile-app"] = config.APIClientConfiguration{AccessTokenLifetime: 1000, RefreshTokenDisabled: true}
+
+			list := func(userID string) (ids []string, err error) {
+				sessions, err := provider.List(userID)
+				for _, session := range sessions {
+					ids = append(ids, session.ID)
+				}
+				return
+			}
+
+			Convey("should be correctly filtered", func() {
+				ids, err := list("user-1")
+				So(err, ShouldBeNil)
+				So(ids, ShouldResemble, []string{"a", "b"})
+
+				ids, err = list("user-2")
+				So(err, ShouldBeNil)
+				So(ids, ShouldHaveLength, 0)
 			})
 		})
 	})

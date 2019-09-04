@@ -1,7 +1,6 @@
 package forgotpwd
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
@@ -137,7 +136,7 @@ func (h ForgotPasswordResetHandler) WithTx() bool {
 // DecodeRequest decode request payload
 func (h ForgotPasswordResetHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := ForgotPasswordResetPayload{}
-	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
+	if err := handler.DecodeJSONBody(request, &payload); err != nil {
 		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 

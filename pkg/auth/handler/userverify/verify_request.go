@@ -141,7 +141,7 @@ func (h VerifyRequestHandler) WithTx() bool {
 // DecodeRequest decode request payload
 func (h VerifyRequestHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := VerifyRequestPayload{}
-	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
+	if err := handler.DecodeJSONBody(request, &payload); err != nil {
 		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 

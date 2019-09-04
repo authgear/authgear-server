@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -126,7 +125,7 @@ func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
 
 // DecodeRequest decode request payload
 func (h LoginHandler) DecodeRequest(request *http.Request) (payload LoginRequestPayload, err error) {
-	err = json.NewDecoder(request.Body).Decode(&payload)
+	err = handler.DecodeJSONBody(request, &payload)
 
 	if err != nil {
 		return

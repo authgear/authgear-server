@@ -96,6 +96,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"age": 24
 				}
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
@@ -149,6 +150,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"love":     "cat"
 				}
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
@@ -178,6 +180,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"email":    "john.doe@example.com"
 				}
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp = httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
@@ -209,6 +212,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"age": 25
 				}
 			}`))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
@@ -288,6 +292,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 				}
 			}`,
 				userID)))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 

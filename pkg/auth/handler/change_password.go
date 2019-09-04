@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -129,7 +128,7 @@ func (h ChangePasswordHandler) WithTx() bool {
 
 // DecodeRequest decode the request payload
 func (h ChangePasswordHandler) DecodeRequest(request *http.Request) (payload ChangePasswordRequestPayload, err error) {
-	err = json.NewDecoder(request.Body).Decode(&payload)
+	err = handler.DecodeJSONBody(request, &payload)
 	return
 }
 

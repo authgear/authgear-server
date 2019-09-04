@@ -78,8 +78,10 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		// in case valid session is used, infer access key from session
-		key = model.NewAccessKey(s.ClientID)
-		m.AuthContextSetter.SetAccessKey(key)
+		if !key.IsMasterKey() {
+			key = model.NewAccessKey(s.ClientID)
+			m.AuthContextSetter.SetAccessKey(key)
+		}
 
 		// should not use new session data in context
 		sessionCopy := *s

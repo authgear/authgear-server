@@ -84,7 +84,9 @@ func (h LogoutHandler) WithTx() bool {
 
 // DecodeRequest decode request payload
 func (h LogoutHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	return handler.EmptyRequestPayload{}, nil
+	payload := handler.EmptyRequestPayload{}
+	err := handler.DecodeJSONBody(request, &payload)
+	return payload, err
 }
 
 func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -106,7 +108,7 @@ func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 // Handle api request
 func (h LogoutHandler) Handle() (resp interface{}, err error) {
-	if err = h.SessionProvider.Invalidate(h.AuthContext.Session().ID); err != nil {
+	if err = h.SessionProvider.Invalidate(h.AuthContext.Session()); err != nil {
 		err = skyerr.MakeError(err)
 		return
 	}

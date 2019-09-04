@@ -2,6 +2,7 @@ package session
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -67,15 +68,62 @@ func (p *MockProvider) GetByToken(token string, kind auth.SessionTokenKind) (*au
 	return nil, ErrSessionNotFound
 }
 
+func (p *MockProvider) Get(id string) (*auth.Session, error) {
+	session, ok := p.Sessions[id]
+	if !ok {
+		return nil, ErrSessionNotFound
+	}
+	return &session, nil
+}
+
 func (p *MockProvider) Access(s *auth.Session) error {
 	s.AccessedAt = p.Time.NowUTC()
 	p.Sessions[s.ID] = *s
 	return nil
 }
 
-func (p *MockProvider) Invalidate(id string) error {
-	delete(p.Sessions, id)
+func (p *MockProvider) Update(id string, name *string, data map[string]interface{}) error {
+	s := p.Sessions[id]
+	if name != nil {
+		s.Name = *name
+	}
+	if data != nil {
+		s.CustomData = data
+	}
+	p.Sessions[id] = s
 	return nil
+}
+
+func (p *MockProvider) Invalidate(session *auth.Session) error {
+	delete(p.Sessions, session.ID)
+	return nil
+}
+
+func (p *MockProvider) InvalidateBatch(sessions []*auth.Session) error {
+	for _, session := range sessions {
+		delete(p.Sessions, session.ID)
+	}
+	return nil
+}
+
+func (p *MockProvider) InvalidateAll(userID string, sessionID string) error {
+	for _, session := range p.Sessions {
+		if session.UserID == userID && session.ID != sessionID {
+			delete(p.Sessions, session.ID)
+		}
+	}
+	return nil
+}
+
+func (p *MockProvider) List(userID string) (sessions []*auth.Session, err error) {
+	for _, session := range p.Sessions {
+		if session.UserID == userID {
+			s := session
+			sessions = append(sessions, &s)
+		}
+	}
+	sort.Sort(sessionSlice(sessions))
+	return
 }
 
 func (p *MockProvider) Refresh(session *auth.Session) error {

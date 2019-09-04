@@ -1,7 +1,6 @@
 package sso
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -170,7 +169,7 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (payload C
 		}
 	}()
 
-	if err = json.NewDecoder(request.Body).Decode(&payload); err != nil {
+	if err = handler.DecodeJSONBody(request, &payload); err != nil {
 		return
 	}
 

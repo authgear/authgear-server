@@ -103,6 +103,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			{
 				"token": "%s"
 			}`, tokenString)))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
 
@@ -219,6 +220,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			{
 				"token": "%s"
 			}`, tokenString)))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
 
@@ -277,6 +279,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			{
 				"token": "%s"
 			}`, tokenString)))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
 
@@ -306,6 +309,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			{
 				"token": "%s"
 			}`, tokenString)))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 
 			lhh := lh
@@ -407,6 +411,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			{
 				"token": "%s"
 			}`, tokenString)))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
 
@@ -428,6 +433,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				"token": "%s",
 				"on_user_duplicate": "merge"
 			}`, tokenString)))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
 
@@ -477,6 +483,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				"token": "%s",
 				"on_user_duplicate": "create"
 			}`, tokenString)))
+			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
 

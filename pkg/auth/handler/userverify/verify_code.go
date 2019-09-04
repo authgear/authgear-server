@@ -1,7 +1,6 @@
 package userverify
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
@@ -115,7 +114,7 @@ func (h VerifyCodeHandler) WithTx() bool {
 // DecodeRequest decode request payload
 func (h VerifyCodeHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := VerifyCodePayload{}
-	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
+	if err := handler.DecodeJSONBody(request, &payload); err != nil {
 		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 

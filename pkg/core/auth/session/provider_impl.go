@@ -60,6 +60,7 @@ func (p *providerImpl) Create(userID string, principalID string) (s *auth.Sessio
 		PrincipalID: principalID,
 
 		InitialAccess: accessEvent,
+		LastAccess:    accessEvent,
 
 		CreatedAt:  now,
 		AccessedAt: now,
@@ -70,7 +71,7 @@ func (p *providerImpl) Create(userID string, principalID string) (s *auth.Sessio
 	p.generateAccessToken(&sess)
 
 	expiry := computeSessionStorageExpiry(&sess, clientConfig)
-	err = p.store.Create(&sess, expiry.Sub(now))
+	err = p.store.Create(&sess, expiry)
 	if err != nil {
 		return
 	}
@@ -131,6 +132,21 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 	return s, nil
 }
 
+func (p *providerImpl) Get(id string) (*auth.Session, error) {
+	session, err := p.store.Get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	currentSession := p.authContext.Session()
+	if currentSession != nil && session.ID == currentSession.ID {
+		// should use current session data instead
+		session = currentSession
+	}
+
+	return session, nil
+}
+
 func (p *providerImpl) Access(s *auth.Session) error {
 	now := p.time.NowUTC()
 	accessEvent := newAccessEvent(now, p.req)
@@ -144,18 +160,75 @@ func (p *providerImpl) Access(s *auth.Session) error {
 	}
 
 	expiry := computeSessionStorageExpiry(s, p.clientConfigs[s.ClientID])
-	return p.store.Update(s, expiry.Sub(now))
+	return p.store.Update(s, expiry)
 }
 
-func (p *providerImpl) Invalidate(id string) error {
-	return p.store.Delete(id)
+func (p *providerImpl) Update(id string, name *string, data map[string]interface{}) error {
+	// always use the latest data in store
+	session, err := p.store.Get(id)
+	if err != nil {
+		return err
+	}
+
+	if name != nil {
+		session.Name = *name
+	}
+	if data != nil {
+		session.CustomData = data
+	}
+
+	expiry := computeSessionStorageExpiry(session, p.clientConfigs[session.ClientID])
+	return p.store.Update(session, expiry)
+}
+
+func (p *providerImpl) Invalidate(session *auth.Session) error {
+	return p.store.Delete(session)
+}
+
+func (p *providerImpl) InvalidateBatch(sessions []*auth.Session) error {
+	return p.store.DeleteBatch(sessions)
+}
+
+func (p *providerImpl) InvalidateAll(userID string, sessionID string) error {
+	return p.store.DeleteAll(userID, sessionID)
+}
+
+func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error) {
+	storedSessions, err := p.store.List(userID)
+	if err != nil {
+		return
+	}
+
+	now := p.time.NowUTC()
+	currentSession := p.authContext.Session()
+	for _, session := range storedSessions {
+		clientConfig, clientExists := p.clientConfigs[session.ClientID]
+		// if client does not exist or is disabled, ignore the session
+		if !clientExists || clientConfig.Disabled {
+			continue
+		}
+
+		maxExpiry := computeSessionStorageExpiry(session, clientConfig)
+		// ignore expired sessions
+		if now.After(maxExpiry) {
+			continue
+		}
+
+		if currentSession != nil && session.ID == currentSession.ID {
+			// should use current session data instead
+			session = currentSession
+		}
+
+		sessions = append(sessions, session)
+	}
+	return
 }
 
 func (p *providerImpl) Refresh(session *auth.Session) error {
 	p.generateAccessToken(session)
 
 	expiry := computeSessionStorageExpiry(session, p.clientConfigs[session.ClientID])
-	return p.store.Update(session, expiry.Sub(p.time.NowUTC()))
+	return p.store.Update(session, expiry)
 }
 
 func (p *providerImpl) generateAccessToken(s *auth.Session) {

@@ -9,6 +9,7 @@ import (
 	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type DependencyMap struct {
@@ -31,7 +32,7 @@ func (m DependencyMap) Provide(
 	case "SessionProvider":
 		return session.NewProvider(
 			request,
-			redisSession.NewStore(ctx, tConfig.AppID),
+			redisSession.NewStore(ctx, tConfig.AppID, time.NewProvider()),
 			redisSession.NewEventStore(ctx, tConfig.AppID),
 			auth.NewContextGetterWithContext(ctx),
 			tConfig.UserConfig.Clients,

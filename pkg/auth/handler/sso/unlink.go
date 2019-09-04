@@ -16,6 +16,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -70,6 +71,7 @@ func (f UnlinkHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 type UnlinkHandler struct {
 	TxContext         db.TxContext               `dependency:"TxContext"`
 	AuthContext       coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	SessionProvider   session.Provider           `dependency:"SessionProvider"`
 	OAuthAuthProvider oauth.Provider             `dependency:"OAuthAuthProvider"`
 	IdentityProvider  principal.IdentityProvider `dependency:"IdentityProvider"`
 	UserProfileStore  userprofile.Store          `dependency:"UserProfileStore"`
@@ -83,7 +85,9 @@ func (h UnlinkHandler) WithTx() bool {
 }
 
 func (h UnlinkHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	return handler.EmptyRequestPayload{}, nil
+	payload := handler.EmptyRequestPayload{}
+	err := handler.DecodeJSONBody(request, &payload)
+	return payload, err
 }
 
 func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
@@ -111,6 +115,26 @@ func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	err = h.OAuthAuthProvider.DeletePrincipal(principal)
+	if err != nil {
+		return
+	}
+
+	sessions, err := h.SessionProvider.List(userID)
+	if err != nil {
+		return
+	}
+
+	// filter sessions of deleted principal
+	n := 0
+	for _, session := range sessions {
+		if session.PrincipalID == principal.ID {
+			sessions[n] = session
+			n++
+		}
+	}
+	sessions = sessions[:n]
+
+	err = h.SessionProvider.InvalidateBatch(sessions)
 	if err != nil {
 		return
 	}
