@@ -14,6 +14,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
+	mfaPQ "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
@@ -180,6 +182,15 @@ func (m DependencyMap) Provide(
 		)
 	case "SessionWriter":
 		return session.NewWriter(newAuthContext(), tConfig.UserConfig.Clients, m.UseInsecureCookie)
+	case "MFAProvider":
+		return mfa.NewProvider(
+			mfaPQ.NewStore(
+				tConfig.UserConfig.MFA,
+				newSQLBuilder(),
+				newSQLExecutor(),
+				newTimeProvider(),
+			),
+		)
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "PasswordChecker":
