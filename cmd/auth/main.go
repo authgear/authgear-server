@@ -23,6 +23,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
+	mfaHandler "github.com/skygeario/skygear-server/pkg/auth/handler/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
 	userverifyhandler "github.com/skygeario/skygear-server/pkg/auth/handler/userverify"
@@ -177,6 +178,7 @@ func main() {
 	session.AttachGetHandler(&srv, authDependency)
 	session.AttachRevokeHandler(&srv, authDependency)
 	session.AttachRevokeAllHandler(&srv, authDependency)
+	mfaHandler.AttachListRecoveryCodeHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

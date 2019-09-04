@@ -296,6 +296,8 @@ func (m DependencyMap) Provide(
 		return tConfig.UserConfig.SSO.OAuth
 	case "AuthConfiguration":
 		return tConfig.UserConfig.Auth
+	case "MFAConfiguration":
+		return tConfig.UserConfig.MFA
 	default:
 		return nil
 	}
