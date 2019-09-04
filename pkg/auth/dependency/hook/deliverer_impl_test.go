@@ -92,7 +92,7 @@ func TestDeliverer(t *testing.T) {
 				gock.New("https://example.com").
 					Post("/a").
 					JSON(e).
-					MatchHeader(http.HeaderRequestBodySignature, "85deb97ff51c6705e4d741e2e2ea6669204c704ccba1cc2ba05b7665777f8def").
+					HeaderPresent(http.HeaderRequestBodySignature).
 					Reply(200).
 					JSON(map[string]interface{}{
 						"is_allowed": true,
@@ -124,7 +124,7 @@ func TestDeliverer(t *testing.T) {
 				gock.New("https://example.com").
 					Post("/a").
 					JSON(e).
-					MatchHeader(http.HeaderRequestBodySignature, "85deb97ff51c6705e4d741e2e2ea6669204c704ccba1cc2ba05b7665777f8def").
+					HeaderPresent(http.HeaderRequestBodySignature).
 					Reply(200).
 					JSON(map[string]interface{}{
 						"is_allowed": true,
@@ -132,7 +132,7 @@ func TestDeliverer(t *testing.T) {
 				gock.New("https://test.example.com").
 					Post("/b").
 					JSON(e).
-					MatchHeader(http.HeaderRequestBodySignature, "85deb97ff51c6705e4d741e2e2ea6669204c704ccba1cc2ba05b7665777f8def").
+					HeaderPresent(http.HeaderRequestBodySignature).
 					Reply(200).
 					JSON(map[string]interface{}{
 						"is_allowed": true,

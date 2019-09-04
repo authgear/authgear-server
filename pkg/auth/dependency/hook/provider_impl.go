@@ -5,13 +5,13 @@ import (
 	"net/url"
 	gotime "time"
 
-	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
-
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -174,6 +174,7 @@ func (provider *providerImpl) dispatchSyncUserEventIfNeeded() error {
 
 func (provider *providerImpl) makeContext() event.Context {
 	var requestID, userID, principalID *string
+	var session *model.Session
 
 	if provider.RequestID == "" {
 		requestID = nil
@@ -184,9 +185,12 @@ func (provider *providerImpl) makeContext() event.Context {
 	if provider.AuthContext.AuthInfo() == nil {
 		userID = nil
 		principalID = nil
+		session = nil
 	} else {
 		userID = &provider.AuthContext.AuthInfo().ID
 		principalID = &provider.AuthContext.Session().PrincipalID
+		s := authSession.Format(provider.AuthContext.Session())
+		session = &s
 	}
 
 	return event.Context{
@@ -194,6 +198,7 @@ func (provider *providerImpl) makeContext() event.Context {
 		RequestID:   requestID,
 		UserID:      userID,
 		PrincipalID: principalID,
+		Session:     session,
 	}
 }
 
