@@ -157,6 +157,113 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthe
 	return output, nil
 }
 
+func (s *storeImpl) ListAuthenticators(userID string) ([]interface{}, error) {
+	q1 := s.sqlBuilder.Tenant().
+		Select(
+			"a.id",
+			"a.user_id",
+			"a.type",
+			"at.activated",
+			"at.created_at",
+			"at.activated_at",
+			"at.secret",
+			"at.display_name",
+		).
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator_totp"),
+			"at",
+			"a.id = at.id",
+		).
+		Where("a.user_id = ? AND at.activated = TRUE", userID)
+	rows1, err := s.sqlExecutor.QueryWith(q1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows1.Close()
+
+	var totps []mfa.TOTPAuthenticator
+	for rows1.Next() {
+		var a mfa.TOTPAuthenticator
+		var activatedAt pq.NullTime
+		err = rows1.Scan(
+			&a.ID,
+			&a.UserID,
+			&a.Type,
+			&a.Activated,
+			&a.CreatedAt,
+			&activatedAt,
+			&a.Secret,
+			&a.DisplayName,
+		)
+		if err != nil {
+			return nil, err
+		}
+		if activatedAt.Valid {
+			a.ActivatedAt = &activatedAt.Time
+		}
+		totps = append(totps, a)
+	}
+
+	q2 := s.sqlBuilder.Tenant().
+		Select(
+			"a.id",
+			"a.user_id",
+			"a.type",
+			"ao.activated",
+			"ao.created_at",
+			"ao.activated_at",
+			"ao.channel",
+			"ao.phone",
+			"ao.email",
+		).
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator_oob"),
+			"ao",
+			"a.id = ao.id",
+		).
+		Where("a.user_id = ? AND ao.activated = TRUE", userID)
+	rows2, err := s.sqlExecutor.QueryWith(q2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows2.Close()
+
+	var oobs []mfa.OOBAuthenticator
+	for rows2.Next() {
+		var a mfa.OOBAuthenticator
+		var activatedAt pq.NullTime
+		err = rows2.Scan(
+			&a.ID,
+			&a.UserID,
+			&a.Type,
+			&a.Activated,
+			&a.CreatedAt,
+			&activatedAt,
+			&a.Channel,
+			&a.Phone,
+			&a.Email,
+		)
+		if err != nil {
+			return nil, err
+		}
+		if activatedAt.Valid {
+			a.ActivatedAt = &activatedAt.Time
+		}
+		oobs = append(oobs, a)
+	}
+
+	output := []interface{}{}
+	for _, a := range totps {
+		output = append(output, a)
+	}
+	for _, a := range oobs {
+		output = append(output, a)
+	}
+	return output, nil
+}
+
 var (
 	_ mfa.Store = &storeImpl{}
 )

@@ -34,6 +34,10 @@ func (p *providerImpl) GenerateRecoveryCode(userID string) ([]string, error) {
 	return codes, nil
 }
 
+func (p *providerImpl) ListAuthenticators(userID string) ([]interface{}, error) {
+	return p.store.ListAuthenticators(userID)
+}
+
 var (
 	_ Provider = &providerImpl{}
 )
