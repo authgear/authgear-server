@@ -180,6 +180,7 @@ func main() {
 	session.AttachRevokeAllHandler(&srv, authDependency)
 	mfaHandler.AttachListRecoveryCodeHandler(&srv, authDependency)
 	mfaHandler.AttachRegenerateRecoveryCodeHandler(&srv, authDependency)
+	mfaHandler.AttachListAuthenticatorHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

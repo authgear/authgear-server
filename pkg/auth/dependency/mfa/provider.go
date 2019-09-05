@@ -8,6 +8,6 @@ type Provider interface {
 	GenerateRecoveryCode(userID string) ([]string, error)
 
 	// ListAuthenticators returns a list of authenticators.
-	// Either TOTPAuthenticator or OOBAuthenticator.
+	// Either MaskedTOTPAuthenticator or MaskedOOBAuthenticator.
 	ListAuthenticators(userID string) ([]interface{}, error)
 }

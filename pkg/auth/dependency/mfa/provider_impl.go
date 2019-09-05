@@ -35,7 +35,11 @@ func (p *providerImpl) GenerateRecoveryCode(userID string) ([]string, error) {
 }
 
 func (p *providerImpl) ListAuthenticators(userID string) ([]interface{}, error) {
-	return p.store.ListAuthenticators(userID)
+	authenticators, err := p.store.ListAuthenticators(userID)
+	if err != nil {
+		return nil, err
+	}
+	return MaskAuthenticators(authenticators), nil
 }
 
 var (
