@@ -107,13 +107,6 @@ func main() {
 	task.AttachPwHousekeeperTask(asyncTaskExecutor, authDependency)
 	task.AttachWelcomeEmailSendTask(asyncTaskExecutor, authDependency)
 
-	setupCtxFn := server.SetupContextFunc(func(ctx context.Context) context.Context {
-		return redis.WithRedis(ctx, redisPool)
-	})
-	cleanupCtxFn := server.CleanupContextFunc(func(ctx context.Context) {
-		redis.CloseConn(ctx)
-	})
-
 	var srv server.Server
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
@@ -136,7 +129,7 @@ func main() {
 
 		serverOption := server.DefaultOption()
 		serverOption.GearPathPrefix = configuration.PathPrefix
-		srv = server.NewServerWithOption(configuration.Host, authDependency, dbPool, setupCtxFn, cleanupCtxFn, serverOption)
+		srv = server.NewServerWithOption(configuration.Host, authDependency, serverOption)
 		srv.Use(middleware.TenantConfigurationMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
 				return *tenantConfig, nil
@@ -146,8 +139,12 @@ func main() {
 		srv.Use(middleware.RequestIDMiddleware{}.Handle)
 		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		srv = server.NewServer(configuration.Host, authDependency, dbPool, setupCtxFn, cleanupCtxFn)
+		srv = server.NewServer(configuration.Host, authDependency)
 	}
+
+	srv.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
+	srv.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
+	srv.Use(middleware.AuthMiddleware{}.Handle)
 
 	srv.Use(middleware.Injecter{
 		MiddlewareFactory: middleware.AuthnMiddlewareFactory{},

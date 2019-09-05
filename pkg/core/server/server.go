@@ -1,26 +1,17 @@
 package server
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
-
-// SetupContextFunc setup context for usage in handler
-type SetupContextFunc func(context.Context) context.Context
-
-// CleanupContextFunc cleanup context after handler completed
-type CleanupContextFunc func(context.Context)
 
 // Server embeds a net/http server and has a gorillax mux internally
 type Server struct {
@@ -34,16 +25,10 @@ type Server struct {
 func NewServer(
 	addr string,
 	dependencyMap inject.DependencyMap,
-	dbPool db.Pool,
-	setupCtxFn SetupContextFunc,
-	cleanupCtxFn CleanupContextFunc,
 ) Server {
 	return NewServerWithOption(
 		addr,
 		dependencyMap,
-		dbPool,
-		setupCtxFn,
-		cleanupCtxFn,
 		DefaultOption(),
 	)
 }
@@ -52,9 +37,6 @@ func NewServer(
 func NewServerWithOption(
 	addr string,
 	dependencyMap inject.DependencyMap,
-	dbPool db.Pool,
-	setupCtxFn SetupContextFunc,
-	cleanupCtxFn CleanupContextFunc,
 	option Option,
 ) Server {
 	router := mux.NewRouter()
@@ -83,21 +65,6 @@ func NewServerWithOption(
 			RecoverHandler: option.RecoverPanicHandler,
 		}.Handle)
 	}
-
-	srv.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			r = auth.InitRequestAuthContext(r)
-			r = db.InitRequestDBContext(r, dbPool)
-			if setupCtxFn != nil {
-				r = r.WithContext(setupCtxFn(r.Context()))
-			}
-			if cleanupCtxFn != nil {
-				defer cleanupCtxFn(r.Context())
-			}
-
-			next.ServeHTTP(rw, r)
-		})
-	})
 
 	return srv
 }
