@@ -14,9 +14,10 @@ type Executor struct {
 	pool           db.Pool
 }
 
-func NewExecutor() *Executor {
+func NewExecutor(dbPool db.Pool) *Executor {
 	return &Executor{
 		taskFactoryMap: map[string]TaskFactory{},
+		pool:           dbPool,
 	}
 }
 
