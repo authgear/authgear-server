@@ -4,6 +4,7 @@ import (
 	"time"
 
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
 )
@@ -112,4 +113,61 @@ func MaskAuthenticators(authenticators []interface{}) []interface{} {
 		}
 	}
 	return output
+}
+
+func CanAddAuthenticator(authenticators []interface{}, newA interface{}, mfaConfiguration config.MFAConfiguration) bool {
+	// Calculate the count
+	totalCount := len(authenticators)
+	totpCount := 0
+	oobSMSCount := 0
+	oobEmailCount := 0
+	for _, a := range authenticators {
+		switch aa := a.(type) {
+		case TOTPAuthenticator:
+			totpCount++
+		case OOBAuthenticator:
+			switch aa.Channel {
+			case coreAuth.AuthenticatorOOBChannelSMS:
+				oobSMSCount++
+			case coreAuth.AuthenticatorOOBChannelEmail:
+				oobSMSCount++
+			default:
+				panic("unknown OOB authenticator channel")
+			}
+		default:
+			panic("unknown authenticator")
+		}
+	}
+
+	// Simulate the count if new one is added.
+	totalCount++
+	switch newAA := newA.(type) {
+	case TOTPAuthenticator:
+		totpCount++
+	case OOBAuthenticator:
+		switch newAA.Channel {
+		case coreAuth.AuthenticatorOOBChannelSMS:
+			oobSMSCount++
+		case coreAuth.AuthenticatorOOBChannelEmail:
+			oobSMSCount++
+		default:
+			panic("unknown OOB authenticator channel")
+		}
+	}
+
+	// Compare the count
+	if totalCount > *mfaConfiguration.Maximum {
+		return false
+	}
+	if totpCount > mfaConfiguration.TOTP.Maximum {
+		return false
+	}
+	if oobSMSCount > mfaConfiguration.OOB.SMS.Maximum {
+		return false
+	}
+	if oobEmailCount > mfaConfiguration.OOB.Email.Maximum {
+		return false
+	}
+
+	return true
 }
