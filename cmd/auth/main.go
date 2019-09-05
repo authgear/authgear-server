@@ -94,9 +94,9 @@ func main() {
 	// logging initialization
 	logging.SetModule("auth")
 
-	asyncTaskExecutor := async.NewExecutor()
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool(configuration.Redis)
+	asyncTaskExecutor := async.NewExecutor(dbPool)
 	authDependency := auth.DependencyMap{
 		AsyncTaskExecutor: asyncTaskExecutor,
 		TemplateEngine:    templateEngine,
