@@ -37,12 +37,12 @@ require (
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
+	github.com/pquerna/otp v1.2.0
 	github.com/rifflock/lfshook v0.0.0-20171219153109-1fdc019a3514
 	github.com/sfreiberg/gotwilio v0.0.0-20181012193634-a13e5b0d458a
 	github.com/sirupsen/logrus v1.0.3
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
-	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/tinylib/msgp v1.0.2
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect
 	github.com/twinj/uuid v0.0.0-20160621131530-b505f2cca343
