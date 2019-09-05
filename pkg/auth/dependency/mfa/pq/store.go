@@ -264,6 +264,50 @@ func (s *storeImpl) ListAuthenticators(userID string) ([]interface{}, error) {
 	return output, nil
 }
 
+func (s *storeImpl) CreateTOTP(a *mfa.TOTPAuthenticator) error {
+	q1 := s.sqlBuilder.Tenant().
+		Insert(s.sqlBuilder.FullTableName("authenticator")).
+		Columns(
+			"id",
+			"type",
+			"user_id",
+		).
+		Values(
+			a.ID,
+			a.Type,
+			a.UserID,
+		)
+	_, err := s.sqlExecutor.ExecWith(q1)
+	if err != nil {
+		return err
+	}
+
+	q2 := s.sqlBuilder.Tenant().
+		Insert(s.sqlBuilder.FullTableName("authenticator_totp")).
+		Columns(
+			"id",
+			"activated",
+			"created_at",
+			"activated_at",
+			"secret",
+			"display_name",
+		).
+		Values(
+			a.ID,
+			a.Activated,
+			a.CreatedAt,
+			a.ActivatedAt,
+			a.Secret,
+			a.DisplayName,
+		)
+	_, err = s.sqlExecutor.ExecWith(q2)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 var (
 	_ mfa.Store = &storeImpl{}
 )

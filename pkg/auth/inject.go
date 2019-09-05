@@ -190,6 +190,8 @@ func (m DependencyMap) Provide(
 				newSQLExecutor(),
 				newTimeProvider(),
 			),
+			tConfig.UserConfig.MFA,
+			newTimeProvider(),
 		)
 	case "AuthInfoStore":
 		return newAuthInfoStore()
