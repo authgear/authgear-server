@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"io"
 	"net/http"
 	"time"
@@ -11,9 +10,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -108,17 +105,6 @@ func NewServerWithOption(
 // Handle delegates gorilla mux Handler, and accept a HandlerFactory instead of Handler
 func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: improve the logger
-		log := logging.CreateLoggerWithContext(r.Context(), "server")
-
-		policy := hf.ProvideAuthzPolicy()
-		if err := policy.IsAllowed(r, auth.NewContextGetterWithContext(r.Context())); err != nil {
-			// TODO: log
-			log.WithError(err).Info("authz not allowed")
-			s.handleError(w, err)
-			return
-		}
-
 		h := hf.NewHandler(r)
 		h.ServeHTTP(w, r)
 	})
@@ -131,23 +117,9 @@ func (s *Server) Use(mwf ...mux.MiddlewareFunc) {
 	s.router.Use(mwf...)
 }
 
-func (s *Server) handleError(rw http.ResponseWriter, err error) {
-	skyErr := skyerr.MakeError(err)
-	httpStatus := skyerr.ErrorDefaultStatusCode(skyErr)
-	response := errorResponse{Err: skyErr}
-	encoder := json.NewEncoder(rw)
-	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(httpStatus)
-	encoder.Encode(response)
-}
-
 // HealthCheckHandler is basic handler for server health check
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	io.WriteString(w, "OK")
-}
-
-type errorResponse struct {
-	Err skyerr.Error `json:"error,omitempty"`
 }

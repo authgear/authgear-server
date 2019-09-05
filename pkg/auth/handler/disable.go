@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -42,17 +43,7 @@ func (f SetDisableHandlerFactory) NewHandler(request *http.Request) http.Handler
 	h := &SetDisableHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (f SetDisableHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.RequireMasterKey),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
 }
 
 type setDisableUserPayload struct {
@@ -119,11 +110,22 @@ func (payload setDisableUserPayload) Validate() error {
 		@Callback user_sync {UserSyncEvent}
 */
 type SetDisableHandler struct {
-	AuthInfoStore    authinfo.Store    `dependency:"AuthInfoStore"`
-	UserProfileStore userprofile.Store `dependency:"UserProfileStore"`
-	AuditTrail       audit.Trail       `dependency:"AuditTrail"`
-	HookProvider     hook.Provider     `dependency:"HookProvider"`
-	TxContext        db.TxContext      `dependency:"TxContext"`
+	AuthContext      coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	AuthInfoStore    authinfo.Store         `dependency:"AuthInfoStore"`
+	UserProfileStore userprofile.Store      `dependency:"UserProfileStore"`
+	AuditTrail       audit.Trail            `dependency:"AuditTrail"`
+	HookProvider     hook.Provider          `dependency:"HookProvider"`
+	TxContext        db.TxContext           `dependency:"TxContext"`
+}
+
+// ProvideAuthzPolicy provides authorization policy of handler
+func (h SetDisableHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireAuthenticated),
+		authz.PolicyFunc(policy.RequireMasterKey),
+		authz.PolicyFunc(policy.DenyDisabledUser),
+	)
 }
 
 func (h SetDisableHandler) WithTx() bool {

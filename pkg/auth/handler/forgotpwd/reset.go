@@ -17,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -51,12 +52,7 @@ func (f ForgotPasswordResetHandlerFactory) NewHandler(request *http.Request) htt
 	h := &ForgotPasswordResetHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (f ForgotPasswordResetHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
 }
 
 type ForgotPasswordResetPayload struct {
@@ -117,6 +113,7 @@ func (payload ForgotPasswordResetPayload) Validate() error {
 		@Callback user_sync {UserSyncEvent}
 */
 type ForgotPasswordResetHandler struct {
+	AuthContext          coreAuth.ContextGetter        `dependency:"AuthContextGetter"`
 	CodeGenerator        *forgotpwdemail.CodeGenerator `dependency:"ForgotPasswordCodeGenerator"`
 	PasswordChecker      *authAudit.PasswordChecker    `dependency:"PasswordChecker"`
 	AuthInfoStore        authinfo.Store                `dependency:"AuthInfoStore"`
@@ -127,6 +124,11 @@ type ForgotPasswordResetHandler struct {
 	TxContext            db.TxContext                  `dependency:"TxContext"`
 	Logger               *logrus.Entry                 `dependency:"HandlerLogger"`
 	TaskQueue            async.Queue                   `dependency:"AsyncTaskQueue"`
+}
+
+// ProvideAuthzPolicy provides authorization policy of handler
+func (h ForgotPasswordResetHandler) ProvideAuthzPolicy() authz.Policy {
+	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
 func (h ForgotPasswordResetHandler) WithTx() bool {

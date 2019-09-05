@@ -5,6 +5,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -33,14 +34,7 @@ type WelcomeEmailHandlerFactory struct {
 func (f WelcomeEmailHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &WelcomeEmailHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h, nil)
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (f WelcomeEmailHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireMasterKey),
-	)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(h, nil), h.AuthContext, h)
 }
 
 type WelcomeEmailPayload struct {
@@ -74,7 +68,15 @@ func (payload WelcomeEmailPayload) Validate() error {
 //  }
 //  EOF
 type WelcomeEmailHandler struct {
-	WelcomeEmailSender welcemail.TestSender `dependency:"TestWelcomeEmailSender"`
+	AuthContext        coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	WelcomeEmailSender welcemail.TestSender   `dependency:"TestWelcomeEmailSender"`
+}
+
+// ProvideAuthzPolicy provides authorization policy of handler
+func (h WelcomeEmailHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.RequireMasterKey),
+	)
 }
 
 func (h WelcomeEmailHandler) WithTx() bool {

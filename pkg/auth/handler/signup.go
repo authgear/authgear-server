@@ -17,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -52,11 +53,7 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return h
-}
-
-func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
+	return handler.RequireAuthz(handler.RequireAuthz(h, h.AuthContext, h), h.AuthContext, h)
 }
 
 type SignupRequestPayload struct {
@@ -155,6 +152,7 @@ func (p SignupRequestPayload) duplicatedLoginIDs() bool {
 		@Callback user_sync {UserSyncEvent}
 */
 type SignupHandler struct {
+	AuthContext             coreAuth.ContextGetter                             `dependency:"AuthContextGetter"`
 	PasswordChecker         *authAudit.PasswordChecker                         `dependency:"PasswordChecker"`
 	UserProfileStore        userprofile.Store                                  `dependency:"UserProfileStore"`
 	SessionProvider         session.Provider                                   `dependency:"SessionProvider"`
@@ -172,6 +170,10 @@ type SignupHandler struct {
 	Logger                  *logrus.Entry                                      `dependency:"HandlerLogger"`
 	TaskQueue               async.Queue                                        `dependency:"AsyncTaskQueue"`
 	HookProvider            hook.Provider                                      `dependency:"HookProvider"`
+}
+
+func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
+	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
 func (h SignupHandler) WithTx() bool {

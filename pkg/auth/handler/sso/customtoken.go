@@ -16,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -49,12 +50,7 @@ type CustomTokenLoginHandlerFactory struct {
 func (f CustomTokenLoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &CustomTokenLoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (f CustomTokenLoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
+	return handler.RequireAuthz(h, h.AuthContext, h)
 }
 
 type CustomTokenLoginPayload struct {
@@ -138,6 +134,7 @@ func (payload CustomTokenLoginPayload) Validate() error {
 */
 type CustomTokenLoginHandler struct {
 	TxContext                db.TxContext                    `dependency:"TxContext"`
+	AuthContext              coreAuth.ContextGetter          `dependency:"AuthContextGetter"`
 	UserProfileStore         userprofile.Store               `dependency:"UserProfileStore"`
 	SessionProvider          session.Provider                `dependency:"SessionProvider"`
 	SessionWriter            session.Writer                  `dependency:"SessionWriter"`
@@ -150,6 +147,11 @@ type CustomTokenLoginHandler struct {
 	WelcomeEmailEnabled      bool                            `dependency:"WelcomeEmailEnabled"`
 	AuditTrail               audit.Trail                     `dependency:"AuditTrail"`
 	TaskQueue                async.Queue                     `dependency:"AsyncTaskQueue"`
+}
+
+// ProvideAuthzPolicy provides authorization policy of handler
+func (h CustomTokenLoginHandler) ProvideAuthzPolicy() authz.Policy {
+	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
 func (h CustomTokenLoginHandler) WithTx() bool {

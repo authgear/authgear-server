@@ -6,8 +6,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
@@ -30,10 +28,6 @@ func (f IFrameHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &IFrameHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	return h
-}
-
-func (f IFrameHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf()
 }
 
 type IFrameHandler struct {

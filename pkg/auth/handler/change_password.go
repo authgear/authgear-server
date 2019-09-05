@@ -48,16 +48,7 @@ type ChangePasswordHandlerFactory struct {
 func (f ChangePasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ChangePasswordHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (f ChangePasswordHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return handler.RequireAuthz(h, h.AuthContext, h)
 }
 
 type ChangePasswordRequestPayload struct {
@@ -120,6 +111,15 @@ type ChangePasswordHandler struct {
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider         hook.Provider              `dependency:"HookProvider"`
 	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
+}
+
+// ProvideAuthzPolicy provides authorization policy of handler
+func (h ChangePasswordHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireAuthenticated),
+		authz.PolicyFunc(policy.DenyDisabledUser),
+	)
 }
 
 func (h ChangePasswordHandler) WithTx() bool {

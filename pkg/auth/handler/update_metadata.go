@@ -40,18 +40,7 @@ type UpdateMetadataHandlerFactory struct {
 func (f UpdateMetadataHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &UpdateMetadataHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
-}
-
-func (f UpdateMetadataHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AnyOf(
-		authz.PolicyFunc(policy.RequireMasterKey),
-		policy.AllOf(
-			authz.PolicyFunc(policy.DenyNoAccessKey),
-			authz.PolicyFunc(policy.RequireAuthenticated),
-			authz.PolicyFunc(policy.DenyDisabledUser),
-		),
-	)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
 }
 
 type UpdateMetadataRequestPayload struct {
@@ -103,6 +92,17 @@ type UpdateMetadataHandler struct {
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	HookProvider         hook.Provider              `dependency:"HookProvider"`
+}
+
+func (h UpdateMetadataHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AnyOf(
+		authz.PolicyFunc(policy.RequireMasterKey),
+		policy.AllOf(
+			authz.PolicyFunc(policy.DenyNoAccessKey),
+			authz.PolicyFunc(policy.RequireAuthenticated),
+			authz.PolicyFunc(policy.DenyDisabledUser),
+		),
+	)
 }
 
 func (h UpdateMetadataHandler) WithTx() bool {

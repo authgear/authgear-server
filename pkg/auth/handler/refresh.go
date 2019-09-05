@@ -33,13 +33,7 @@ type RefreshHandlerFactory struct {
 func (f RefreshHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &RefreshHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h
-}
-
-func (f RefreshHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-	)
+	return handler.RequireAuthz(h, h.AuthContext, h)
 }
 
 type RefreshRequestPayload struct {
@@ -95,9 +89,16 @@ const RefreshResponseSchema = `
 			@JSONSchema {RefreshResponse}
 */
 type RefreshHandler struct {
-	TxContext       db.TxContext     `dependency:"TxContext"`
-	SessionProvider session.Provider `dependency:"SessionProvider"`
-	SessionWriter   session.Writer   `dependency:"SessionWriter"`
+	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	TxContext       db.TxContext           `dependency:"TxContext"`
+	SessionProvider session.Provider       `dependency:"SessionProvider"`
+	SessionWriter   session.Writer         `dependency:"SessionWriter"`
+}
+
+func (h RefreshHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+	)
 }
 
 func (h RefreshHandler) WithTx() bool {

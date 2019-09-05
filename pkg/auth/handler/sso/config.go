@@ -4,8 +4,6 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -68,8 +66,4 @@ func (f ConfigHandler) NewHandler(request *http.Request) http.Handler {
 		response := handleAPICall(r)
 		handler.WriteResponse(rw, response)
 	})
-}
-
-func (f ConfigHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf()
 }

@@ -11,8 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -50,10 +48,6 @@ func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
 	h.Action = f.Action
 	return h
-}
-
-func (f AuthURLHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.Everybody{Allow: true}
 }
 
 // nolint: deadcode
