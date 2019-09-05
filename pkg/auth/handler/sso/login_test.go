@@ -137,9 +137,10 @@ func TestLoginHandler(t *testing.T) {
 							"email": "mock@example.com"
 						}
 					},
-					"access_token": "access-token-%s-%s-0"
+					"access_token": "access-token-%s-%s-0",
+					"session_id": "%s-%s-0"
 				}
-			}`, p.UserID, p.ID, p.UserID, p.ID))
+			}`, p.UserID, p.ID, p.UserID, p.ID, p.UserID, p.ID))
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.UserCreateEvent{
@@ -189,6 +190,11 @@ func TestLoginHandler(t *testing.T) {
 						Claims: principal.Claims{
 							"email": "mock@example.com",
 						},
+					},
+					Session: model.Session{
+						ID:         fmt.Sprintf("%s-%s-0", p.UserID, p.ID),
+						IdentityID: p.ID,
+						Data:       map[string]interface{}{},
 					},
 				},
 			})

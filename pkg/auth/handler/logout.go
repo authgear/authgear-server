@@ -6,6 +6,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
@@ -127,12 +128,14 @@ func (h LogoutHandler) Handle() (resp interface{}, err error) {
 
 	user := authModel.NewUser(*h.AuthContext.AuthInfo(), profile)
 	identity := authModel.NewIdentity(h.IdentityProvider, principal)
+	session := authSession.Format(h.AuthContext.Session())
 
 	err = h.HookProvider.DispatchEvent(
 		event.SessionDeleteEvent{
 			Reason:   event.SessionDeleteReasonLogout,
 			User:     user,
 			Identity: identity,
+			Session:  session,
 		},
 		&user,
 	)

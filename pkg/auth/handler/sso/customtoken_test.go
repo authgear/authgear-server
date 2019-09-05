@@ -137,13 +137,16 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 							"email": "John@skygear.io"
 						}
 					},
-					"access_token": "access-token-%s-%s-0"
+					"access_token": "access-token-%s-%s-0",
+					"session_id": "%s-%s-0"
 				}
 			}`,
 				p.UserID,
 				p.ID,
 				iat.Unix(),
 				exp.Unix(),
+				p.UserID,
+				p.ID,
 				p.UserID,
 				p.ID))
 
@@ -199,6 +202,11 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						Claims: principal.Claims{
 							"email": "John@skygear.io",
 						},
+					},
+					Session: model.Session{
+						ID:         fmt.Sprintf("%s-%s-0", p.UserID, p.ID),
+						IdentityID: p.ID,
+						Data:       map[string]interface{}{},
 					},
 				},
 			})
@@ -257,6 +265,11 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						Claims: principal.Claims{
 							"email": "John@skygear.io",
 						},
+					},
+					Session: model.Session{
+						ID:         "chima-uuid-chima-token-0",
+						IdentityID: "uuid-chima-token",
+						Data:       map[string]interface{}{},
 					},
 				},
 			})
@@ -468,12 +481,14 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						},
 						"type": "custom_token"
 					},
-					"access_token": "access-token-john.doe.id-%s-0"
+					"access_token": "access-token-john.doe.id-%s-0",
+					"session_id": "john.doe.id-%s-0"
 				}
 			}
 			`, p.ID,
 				iat.Unix(),
 				exp.Unix(),
+				p.ID,
 				p.ID))
 		})
 
@@ -519,10 +534,11 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						},
 						"type": "custom_token"
 					},
-					"access_token": "access-token-%s-%s-0"
+					"access_token": "access-token-%s-%s-0",
+					"session_id": "%s-%s-0"
 				}
 			}
-			`, p.UserID, p.ID, iat.Unix(), exp.Unix(), p.UserID, p.ID))
+			`, p.UserID, p.ID, iat.Unix(), exp.Unix(), p.UserID, p.ID, p.UserID, p.ID))
 		})
 	})
 }

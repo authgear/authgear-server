@@ -3,22 +3,18 @@ package handler
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-
-	"github.com/skygeario/skygear-server/pkg/core/utils"
-
-	"github.com/skygeario/skygear-server/pkg/auth/task"
-
 	"github.com/sirupsen/logrus"
-
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -33,6 +29,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/utils"
 )
 
 var ErrUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")
@@ -331,11 +328,13 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp model.AuthResp
 		return
 	}
 
+	sessionModel := authSession.Format(session)
 	err = h.HookProvider.DispatchEvent(
 		event.SessionCreateEvent{
 			Reason:   event.SessionCreateReasonSignup,
 			User:     user,
 			Identity: loginIdentity,
+			Session:  sessionModel,
 		},
 		&user,
 	)

@@ -119,6 +119,10 @@ func (s *store) DeleteBatch(sessions []*auth.Session) (err error) {
 		sessionKeys = append(sessionKeys, sessionKey(s.appID, session.ID))
 		listKeys[sessionListKey(s.appID, session.UserID)] = struct{}{}
 	}
+	if len(sessionKeys) == 0 {
+		return nil
+	}
+
 	_, err = conn.Do("DEL", sessionKeys...)
 
 	for listKey := range listKeys {

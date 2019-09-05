@@ -3,14 +3,14 @@ package sso
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-
-	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
@@ -319,11 +319,13 @@ func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp m
 	} else {
 		sessionCreateReason = event.SessionCreateReasonLogin
 	}
+	sessionModel := authSession.Format(session)
 	err = h.HookProvider.DispatchEvent(
 		event.SessionCreateEvent{
 			Reason:   sessionCreateReason,
 			User:     user,
 			Identity: identity,
+			Session:  sessionModel,
 		},
 		&user,
 	)

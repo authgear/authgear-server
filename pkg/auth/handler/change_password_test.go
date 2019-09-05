@@ -112,7 +112,8 @@ func TestChangePasswordHandler(t *testing.T) {
 						"realm": "",
 						"type": "password"
 					},
-					"access_token": "access-token-john.doe.id-john.doe.principal.id0-0"
+					"access_token": "access-token-john.doe.id-john.doe.principal.id0-0",
+					"session_id": "john.doe.id-john.doe.principal.id0"
 				}
 			}`)
 

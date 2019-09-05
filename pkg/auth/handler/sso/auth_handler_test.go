@@ -214,10 +214,11 @@ func TestAuthHandler(t *testing.T) {
 								"email": "mock@example.com"
 							}
 						},
-						"access_token": "access-token-%s-%s-0"
+						"access_token": "access-token-%s-%s-0",
+						"session_id": "%s-%s-0"
 					}
 				}
-			}`, p.UserID, p.ID, p.UserID, p.ID))
+			}`, p.UserID, p.ID, p.UserID, p.ID, p.UserID, p.ID))
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
@@ -315,9 +316,10 @@ func TestAuthHandler(t *testing.T) {
 							"email": "mock@example.com"
 						}
 					},
-					"access_token": "access-token-%s-%s-0"
+					"access_token": "access-token-%s-%s-0",
+					"session_id": "%s-%s-0"
 				}
-			}`, p.UserID, p.ID, p.UserID, p.ID))
+			}`, p.UserID, p.ID, p.UserID, p.ID, p.UserID, p.ID))
 		})
 	})
 
@@ -694,7 +696,8 @@ func TestAuthHandler(t *testing.T) {
 								"email": "john.doe@example.com"
 							}
 						},
-						"access_token": "access-token-%s-%s-0"
+						"access_token": "access-token-%s-%s-0",
+						"session_id": "%s-%s-0"
 					}
 				}
 			}
@@ -702,6 +705,8 @@ func TestAuthHandler(t *testing.T) {
 				p.ID,
 				providerUserID,
 				providerUserID,
+				p.UserID,
+				p.ID,
 				p.UserID,
 				p.ID))
 		})
@@ -768,7 +773,8 @@ func TestAuthHandler(t *testing.T) {
 								"email": "john.doe@example.com"
 							}
 						},
-						"access_token": "access-token-%s-%s-0"
+						"access_token": "access-token-%s-%s-0",
+						"session_id": "%s-%s-0"
 					}
 				}
 			}
@@ -776,6 +782,8 @@ func TestAuthHandler(t *testing.T) {
 				p.ID,
 				providerUserID,
 				providerUserID,
+				p.UserID,
+				p.ID,
 				p.UserID,
 				p.ID))
 		})
