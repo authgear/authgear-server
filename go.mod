@@ -34,6 +34,7 @@ require (
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
 	github.com/nbutton23/zxcvbn-go v0.0.0-20171102151520-eafdab6b0663
 	github.com/njern/gonexmo v2.0.0+incompatible
+	github.com/nyaruka/phonenumbers v1.0.45
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
