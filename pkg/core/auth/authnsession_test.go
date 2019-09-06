@@ -1,11 +1,9 @@
-package model
+package auth
 
 import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 )
 
 func TestAuthnSession(t *testing.T) {
@@ -85,17 +83,17 @@ func TestAuthnSession(t *testing.T) {
 				UserID:                  "user",
 				PrincipalID:             "principal",
 				AuthenticatorID:         "authenticator",
-				AuthenticatorType:       coreAuth.AuthenticatorTypeOOB,
-				AuthenticatorOOBChannel: coreAuth.AuthenticatorOOBChannelSMS,
+				AuthenticatorType:       AuthenticatorTypeOOB,
+				AuthenticatorOOBChannel: AuthenticatorOOBChannelSMS,
 			}
 			actual := a.Session()
-			expected := coreAuth.Session{
+			expected := Session{
 				ClientID:                "client",
 				UserID:                  "user",
 				PrincipalID:             "principal",
 				AuthenticatorID:         "authenticator",
-				AuthenticatorType:       coreAuth.AuthenticatorTypeOOB,
-				AuthenticatorOOBChannel: coreAuth.AuthenticatorOOBChannelSMS,
+				AuthenticatorType:       AuthenticatorTypeOOB,
+				AuthenticatorOOBChannel: AuthenticatorOOBChannelSMS,
 			}
 			So(actual, ShouldResemble, expected)
 		})

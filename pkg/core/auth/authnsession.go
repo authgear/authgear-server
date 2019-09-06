@@ -1,8 +1,4 @@
-package model
-
-import (
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
-)
+package auth
 
 type AuthnSessionStep string
 
@@ -22,9 +18,9 @@ type AuthnSession struct {
 	FinishedSteps []AuthnSessionStep `json:"finished_steps"`
 
 	// The following fields are filled in step "mfa"
-	AuthenticatorID         string                           `json:"authenticator_id,omitempty"`
-	AuthenticatorType       coreAuth.AuthenticatorType       `json:"authenticator_type,omitempty"`
-	AuthenticatorOOBChannel coreAuth.AuthenticatorOOBChannel `json:"authenticator_oob_channel,omitempty"`
+	AuthenticatorID         string                  `json:"authenticator_id,omitempty"`
+	AuthenticatorType       AuthenticatorType       `json:"authenticator_type,omitempty"`
+	AuthenticatorOOBChannel AuthenticatorOOBChannel `json:"authenticator_oob_channel,omitempty"`
 }
 
 func (a *AuthnSession) IsFinished() bool {
@@ -46,8 +42,8 @@ func (a *AuthnSession) StepForward() {
 	a.FinishedSteps = append(a.FinishedSteps, step)
 }
 
-func (a *AuthnSession) Session() coreAuth.Session {
-	return coreAuth.Session{
+func (a *AuthnSession) Session() Session {
+	return Session{
 		ClientID:                a.ClientID,
 		UserID:                  a.UserID,
 		PrincipalID:             a.PrincipalID,
