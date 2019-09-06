@@ -1,6 +1,7 @@
 package pq
 
 import (
+	"database/sql"
 	"github.com/lib/pq"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -30,6 +31,27 @@ func NewStore(
 		sqlExecutor:  sqlExecutor,
 		timeProvider: timeProvider,
 	}
+}
+
+func (s *storeImpl) scanTOTPAuthenticator(scanner db.Scanner, a *mfa.TOTPAuthenticator) error {
+	var activatedAt pq.NullTime
+	err := scanner.Scan(
+		&a.ID,
+		&a.UserID,
+		&a.Type,
+		&a.Activated,
+		&a.CreatedAt,
+		&activatedAt,
+		&a.Secret,
+		&a.DisplayName,
+	)
+	if err != nil {
+		return err
+	}
+	if activatedAt.Valid {
+		a.ActivatedAt = &activatedAt.Time
+	}
+	return nil
 }
 
 func (s *storeImpl) GetRecoveryCode(userID string) (output []mfa.RecoveryCodeAuthenticator, err error) {
@@ -185,22 +207,9 @@ func (s *storeImpl) ListAuthenticators(userID string) ([]interface{}, error) {
 	var totps []mfa.TOTPAuthenticator
 	for rows1.Next() {
 		var a mfa.TOTPAuthenticator
-		var activatedAt pq.NullTime
-		err = rows1.Scan(
-			&a.ID,
-			&a.UserID,
-			&a.Type,
-			&a.Activated,
-			&a.CreatedAt,
-			&activatedAt,
-			&a.Secret,
-			&a.DisplayName,
-		)
+		err = s.scanTOTPAuthenticator(rows1, &a)
 		if err != nil {
 			return nil, err
-		}
-		if activatedAt.Valid {
-			a.ActivatedAt = &activatedAt.Time
 		}
 		totps = append(totps, a)
 	}
@@ -306,6 +315,51 @@ func (s *storeImpl) CreateTOTP(a *mfa.TOTPAuthenticator) error {
 	}
 
 	return nil
+}
+
+func (s *storeImpl) GetTOTP(userID string, id string) (*mfa.TOTPAuthenticator, error) {
+	q1 := s.sqlBuilder.Tenant().
+		Select(
+			"a.id",
+			"a.user_id",
+			"a.type",
+			"at.activated",
+			"at.created_at",
+			"at.activated_at",
+			"at.secret",
+			"at.display_name",
+		).
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator_totp"),
+			"at",
+			"a.id = at.id",
+		).
+		Where("a.user_id = ? AND a.id = ?", userID, id)
+
+	row := s.sqlExecutor.QueryRowWith(q1)
+	var a mfa.TOTPAuthenticator
+	err := s.scanTOTPAuthenticator(row, &a)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = mfa.ErrAuthenticatorNotFound
+		}
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (s *storeImpl) UpdateTOTP(a *mfa.TOTPAuthenticator) error {
+	q1 := s.sqlBuilder.Tenant().
+		Update(s.sqlBuilder.FullTableName("authenticator_totp")).
+		Set("activated", a.Activated).
+		Set("activated_at", a.ActivatedAt).
+		Where("id = ?", a.ID)
+	_, err := s.sqlExecutor.ExecWith(q1)
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 var (

@@ -83,6 +83,49 @@ func (p *providerImpl) CreateTOTP(userID string, displayName string) (*TOTPAuthe
 	return &a, nil
 }
 
+func (p *providerImpl) ActivateTOTP(userID string, id string, code string) ([]string, error) {
+	a, err := p.store.GetTOTP(userID, id)
+	if err != nil {
+		return nil, err
+	}
+	if a.Activated {
+		return nil, nil
+	}
+
+	authenticators, err := p.store.ListAuthenticators(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	ok := CanAddAuthenticator(authenticators, *a, p.mfaConfiguration)
+	if !ok {
+		return nil, skyerr.NewError(skyerr.BadRequest, "no more authenticator can be added")
+	}
+
+	now := p.timeProvider.NowUTC()
+	ok, err = ValidateTOTP(a.Secret, code, now)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, skyerr.NewError(skyerr.BadRequest, "invalid OTP")
+	}
+
+	a.Activated = true
+	a.ActivatedAt = &now
+	err = p.store.UpdateTOTP(a)
+	if err != nil {
+		return nil, err
+	}
+
+	generateRecoveryCode := len(authenticators) <= 0
+	if generateRecoveryCode {
+		return p.GenerateRecoveryCode(userID)
+	}
+
+	return nil, nil
+}
+
 var (
 	_ Provider = &providerImpl{}
 )
