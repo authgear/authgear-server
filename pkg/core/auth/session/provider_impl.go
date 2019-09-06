@@ -2,6 +2,7 @@ package session
 
 import (
 	"crypto/subtle"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -265,10 +266,10 @@ func newAccessEvent(timestamp gotime.Time, req *http.Request) auth.SessionAccess
 		Forwarded:     req.Header.Get("Forwarded"),
 	}
 
-	extraData := []byte(req.Header.Get(corehttp.HeaderSessionExtraInfo))
 	extra := auth.SessionAccessEventExtraInfo{}
-	if len(extraData) <= extraDataSizeLimit {
-		json.Unmarshal(extraData, &extra)
+	extraData, err := base64.StdEncoding.DecodeString(req.Header.Get(corehttp.HeaderSessionExtraInfo))
+	if err == nil && len(extraData) <= extraDataSizeLimit {
+		_ = json.Unmarshal(extraData, &extra)
 	}
 
 	return auth.SessionAccessEvent{
