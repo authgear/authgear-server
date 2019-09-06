@@ -13,6 +13,8 @@ type Store interface {
 	GetRecoveryCode(userID string) ([]RecoveryCodeAuthenticator, error)
 	// GenerateRecoveryCode deletes the existing codes and generate new ones.
 	GenerateRecoveryCode(userID string) ([]RecoveryCodeAuthenticator, error)
+	// DeleteRecoveryCode deletes recovery codes.
+	DeleteRecoveryCode(userID string) error
 
 	// ListAuthenticators returns a list of authenticators.
 	// Either TOTPAuthenticator or OOBAuthenticator.

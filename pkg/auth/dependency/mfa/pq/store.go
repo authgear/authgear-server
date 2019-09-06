@@ -96,10 +96,10 @@ func (s *storeImpl) GetRecoveryCode(userID string) (output []mfa.RecoveryCodeAut
 	return
 }
 
-func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthenticator, error) {
+func (s *storeImpl) DeleteRecoveryCode(userID string) error {
 	old, err := s.GetRecoveryCode(userID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	var ids []string
 	for _, a := range old {
@@ -113,7 +113,7 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthe
 
 		_, err = s.sqlExecutor.ExecWith(q1)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		q2 := s.sqlBuilder.Tenant().
@@ -122,8 +122,17 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthe
 
 		_, err = s.sqlExecutor.ExecWith(q2)
 		if err != nil {
-			return nil, err
+			return err
 		}
+	}
+
+	return nil
+}
+
+func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthenticator, error) {
+	err := s.DeleteRecoveryCode(userID)
+	if err != nil {
+		return nil, err
 	}
 
 	now := s.timeProvider.NowUTC()
