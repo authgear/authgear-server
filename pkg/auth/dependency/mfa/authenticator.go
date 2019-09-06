@@ -171,3 +171,42 @@ func CanAddAuthenticator(authenticators []interface{}, newA interface{}, mfaConf
 
 	return true
 }
+
+func IsDeletingLastActivatedAuthenticator(authenticators []interface{}, a interface{}) bool {
+	id := ""
+	activated := false
+	switch a := a.(type) {
+	case TOTPAuthenticator:
+		id = a.ID
+		activated = a.Activated
+	case OOBAuthenticator:
+		id = a.ID
+		activated = a.Activated
+	default:
+		panic("unknown authenticator")
+	}
+
+	if !activated {
+		return false
+	}
+
+	if len(authenticators) != 1 {
+		return false
+	}
+
+	for _, aa := range authenticators {
+		switch aa := aa.(type) {
+		case TOTPAuthenticator:
+			if aa.ID == id {
+				return true
+			}
+		case OOBAuthenticator:
+			if aa.ID == id {
+				return true
+			}
+		default:
+			panic("unknown authenticator")
+		}
+	}
+	return false
+}

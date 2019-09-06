@@ -126,6 +126,35 @@ func (p *providerImpl) ActivateTOTP(userID string, id string, code string) ([]st
 	return nil, nil
 }
 
+func (p *providerImpl) DeleteAuthenticator(userID string, id string) error {
+	// TODO: Delete OOB
+	// TODO: Delete associated bearer token first
+	a, err := p.store.GetTOTP(userID, id)
+	if err != nil {
+		return err
+	}
+
+	authenticators, err := p.store.ListAuthenticators(userID)
+	if err != nil {
+		return err
+	}
+
+	err = p.store.DeleteTOTP(a)
+	if err != nil {
+		return err
+	}
+
+	deletingLastActivated := IsDeletingLastActivatedAuthenticator(authenticators, *a)
+	if deletingLastActivated {
+		err = p.store.DeleteRecoveryCode(userID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 var (
 	_ Provider = &providerImpl{}
 )

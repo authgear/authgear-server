@@ -371,6 +371,40 @@ func (s *storeImpl) UpdateTOTP(a *mfa.TOTPAuthenticator) error {
 	return err
 }
 
+func (s *storeImpl) DeleteTOTP(a *mfa.TOTPAuthenticator) error {
+	q1 := s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("authenticator_totp")).
+		Where("id = ?", a.ID)
+	r1, err := s.sqlExecutor.ExecWith(q1)
+	if err != nil {
+		return err
+	}
+	count, err := r1.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return mfa.ErrAuthenticatorNotFound
+	}
+
+	q2 := s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("authenticator")).
+		Where("id = ?", a.ID)
+	r2, err := s.sqlExecutor.ExecWith(q2)
+	if err != nil {
+		return err
+	}
+	count, err = r2.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return mfa.ErrAuthenticatorNotFound
+	}
+
+	return err
+}
+
 var (
 	_ mfa.Store = &storeImpl{}
 )

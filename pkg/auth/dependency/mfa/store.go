@@ -26,4 +26,6 @@ type Store interface {
 	GetTOTP(userID string, id string) (*TOTPAuthenticator, error)
 	// UpdateTOTP updates TOTP authenticator.
 	UpdateTOTP(a *TOTPAuthenticator) error
+	// DeleteTOTP deletes TOTP authenticator.
+	DeleteTOTP(a *TOTPAuthenticator) error
 }

@@ -182,3 +182,48 @@ func TestCanAddAuthenticator(t *testing.T) {
 		}
 	})
 }
+
+func TestIsDeletingLastActivatedAuthenticator(t *testing.T) {
+	type Case struct {
+		Authenticators []interface{}
+		Authenticator  interface{}
+		Expected       bool
+	}
+	cases := []Case{
+		Case{
+			Authenticators: []interface{}{
+				TOTPAuthenticator{
+					ID:        "totp",
+					Activated: true,
+				},
+			},
+			Authenticator: TOTPAuthenticator{
+				ID:        "totp",
+				Activated: false,
+			},
+			Expected: false,
+		},
+		Case{
+			Authenticators: []interface{}{
+				TOTPAuthenticator{
+					ID:        "totp",
+					Activated: true,
+				},
+			},
+			Authenticator: TOTPAuthenticator{
+				ID:        "totp",
+				Activated: true,
+			},
+			Expected: true,
+		},
+	}
+	f := func(c Case) {
+		actual := IsDeletingLastActivatedAuthenticator(c.Authenticators, c.Authenticator)
+		So(actual, ShouldEqual, c.Expected)
+	}
+	Convey("IsDeletingActivatedAuthenticator", t, func() {
+		for _, c := range cases {
+			f(c)
+		}
+	})
+}
