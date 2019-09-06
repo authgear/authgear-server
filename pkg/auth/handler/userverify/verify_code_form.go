@@ -12,9 +12,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -31,11 +30,6 @@ func (f VerifyCodeFormHandlerFactory) NewHandler(request *http.Request) http.Han
 	h := &VerifyCodeFormHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	return h
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (f VerifyCodeFormHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.Everybody{Allow: true}
 }
 
 type VerifyCodeFormPayload struct {
@@ -69,6 +63,7 @@ func (payload *VerifyCodeFormPayload) Validate() error {
 
 // VerifyCodeFormHandler reset user password with given code from email.
 type VerifyCodeFormHandler struct {
+	AuthContext              coreAuth.ContextGetter         `dependency:"AuthContextGetter"`
 	VerifyHTMLProvider       *userverify.VerifyHTMLProvider `dependency:"VerifyHTMLProvider"`
 	UserVerificationProvider userverify.Provider            `dependency:"UserVerificationProvider"`
 	AuthInfoStore            authinfo.Store                 `dependency:"AuthInfoStore"`

@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -44,11 +45,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return h
-}
-
-func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
+	return handler.RequireAuthz(h, h.AuthContext, h)
 }
 
 // LoginRequestPayload login handler request payload
@@ -104,6 +101,7 @@ func (p LoginRequestPayload) Validate() error {
 		@Callback user_sync {UserSyncEvent}
 */
 type LoginHandler struct {
+	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	SessionProvider      session.Provider           `dependency:"SessionProvider"`
 	SessionWriter        session.Writer             `dependency:"SessionWriter"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`

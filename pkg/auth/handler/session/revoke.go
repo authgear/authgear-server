@@ -40,15 +40,7 @@ type RevokeHandlerFactory struct {
 func (f RevokeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &RevokeHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
-}
-
-func (f RevokeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
 }
 
 type RevokeRequestPayload struct {
@@ -91,6 +83,14 @@ type RevokeHandler struct {
 	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
 	UserProfileStore userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider     hook.Provider              `dependency:"HookProvider"`
+}
+
+func (h RevokeHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireAuthenticated),
+		authz.PolicyFunc(policy.DenyDisabledUser),
+	)
 }
 
 func (h RevokeHandler) WithTx() bool {

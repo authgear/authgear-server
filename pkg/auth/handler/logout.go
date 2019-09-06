@@ -43,16 +43,7 @@ func (f LogoutHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LogoutHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return h
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (f LogoutHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return handler.RequireAuthz(h, h.AuthContext, h)
 }
 
 /*
@@ -77,6 +68,15 @@ type LogoutHandler struct {
 	AuditTrail       audit.Trail                `dependency:"AuditTrail"`
 	HookProvider     hook.Provider              `dependency:"HookProvider"`
 	TxContext        db.TxContext               `dependency:"TxContext"`
+}
+
+// ProvideAuthzPolicy provides authorization policy of handler
+func (h LogoutHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireAuthenticated),
+		authz.PolicyFunc(policy.DenyDisabledUser),
+	)
 }
 
 func (h LogoutHandler) WithTx() bool {

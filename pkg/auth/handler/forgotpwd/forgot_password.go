@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -47,12 +48,7 @@ type ForgotPasswordHandlerFactory struct {
 func (f ForgotPasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ForgotPasswordHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (f ForgotPasswordHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
 }
 
 type ForgotPasswordPayload struct {
@@ -92,12 +88,18 @@ func (payload ForgotPasswordPayload) Validate() error {
 */
 type ForgotPasswordHandler struct {
 	TxContext                 db.TxContext               `dependency:"TxContext"`
+	AuthContext               coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	ForgotPasswordEmailSender forgotpwdemail.Sender      `dependency:"ForgotPasswordEmailSender"`
 	PasswordAuthProvider      password.Provider          `dependency:"PasswordAuthProvider"`
 	IdentityProvider          principal.IdentityProvider `dependency:"IdentityProvider"`
 	AuthInfoStore             authinfo.Store             `dependency:"AuthInfoStore"`
 	UserProfileStore          userprofile.Store          `dependency:"UserProfileStore"`
 	SecureMatch               bool                       `dependency:"ForgotPasswordSecureMatch"`
+}
+
+// ProvideAuthzPolicy provides authorization policy of handler
+func (h ForgotPasswordHandler) ProvideAuthzPolicy() authz.Policy {
+	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
 func (h ForgotPasswordHandler) WithTx() bool {
@@ -198,14 +200,7 @@ type ForgotPasswordTestHandlerFactory struct {
 func (f ForgotPasswordTestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ForgotPasswordTestHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h, nil)
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (f ForgotPasswordTestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireMasterKey),
-	)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(h, nil), h.AuthContext, h)
 }
 
 type ForgotPasswordTestPayload struct {
@@ -239,7 +234,15 @@ func (payload ForgotPasswordTestPayload) Validate() error {
 //  }
 //  EOF
 type ForgotPasswordTestHandler struct {
-	ForgotPasswordEmailSender welcemail.TestSender `dependency:"TestForgotPasswordEmailSender"`
+	AuthContext               coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	ForgotPasswordEmailSender welcemail.TestSender   `dependency:"TestForgotPasswordEmailSender"`
+}
+
+// ProvideAuthzPolicy provides authorization policy of handler
+func (h ForgotPasswordTestHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.RequireMasterKey),
+	)
 }
 
 func (h ForgotPasswordTestHandler) WithTx() bool {

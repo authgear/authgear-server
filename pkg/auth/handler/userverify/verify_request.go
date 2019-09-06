@@ -50,16 +50,7 @@ type VerifyRequestHandlerFactory struct {
 func (f VerifyRequestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyRequestHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (f VerifyRequestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
 }
 
 type loginIDType string
@@ -132,6 +123,15 @@ type VerifyRequestHandler struct {
 	PasswordAuthProvider     password.Provider            `dependency:"PasswordAuthProvider"`
 	IdentityProvider         principal.IdentityProvider   `dependency:"IdentityProvider"`
 	Logger                   *logrus.Entry                `dependency:"HandlerLogger"`
+}
+
+// ProvideAuthzPolicy provides authorization policy of handler
+func (h VerifyRequestHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireAuthenticated),
+		authz.PolicyFunc(policy.DenyDisabledUser),
+	)
 }
 
 func (h VerifyRequestHandler) WithTx() bool {
@@ -209,14 +209,7 @@ type VerifyRequestTestHandlerFactory struct {
 func (f VerifyRequestTestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyRequestTestHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h, nil)
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (f VerifyRequestTestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireMasterKey),
-	)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(h, nil), h.AuthContext, h)
 }
 
 type VerifyRequestTestPayload struct {
@@ -269,8 +262,16 @@ func (payload VerifyRequestTestPayload) Validate() error {
 //  EOF
 //
 type VerifyRequestTestHandler struct {
+	AuthContext           coreAuth.ContextGetter           `dependency:"AuthContextGetter"`
 	TestCodeSenderFactory userverify.TestCodeSenderFactory `dependency:"UserVerifyTestCodeSenderFactory"`
 	Logger                *logrus.Entry                    `dependency:"HandlerLogger"`
+}
+
+// ProvideAuthzPolicy provides authorization policy of handler
+func (h VerifyRequestTestHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.RequireMasterKey),
+	)
 }
 
 func (h VerifyRequestTestHandler) WithTx() bool {

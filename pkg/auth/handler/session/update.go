@@ -33,15 +33,7 @@ type UpdateHandlerFactory struct {
 func (f UpdateHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &UpdateHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
-}
-
-func (f UpdateHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
 }
 
 type UpdateRequestPayload struct {
@@ -86,6 +78,14 @@ type UpdateHandler struct {
 	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	TxContext       db.TxContext           `dependency:"TxContext"`
 	SessionProvider session.Provider       `dependency:"SessionProvider"`
+}
+
+func (h UpdateHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireAuthenticated),
+		authz.PolicyFunc(policy.DenyDisabledUser),
+	)
 }
 
 func (h UpdateHandler) WithTx() bool {

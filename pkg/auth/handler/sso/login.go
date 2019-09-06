@@ -47,11 +47,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
-	return h
-}
-
-func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
+	return handler.RequireAuthz(h, h.AuthContext, h)
 }
 
 // LoginRequestPayload login handler request payload
@@ -122,6 +118,10 @@ type LoginHandler struct {
 	TaskQueue           async.Queue                `dependency:"AsyncTaskQueue"`
 	Provider            sso.OAuthProvider
 	ProviderID          string
+}
+
+func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
+	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
 func (h LoginHandler) WithTx() bool {

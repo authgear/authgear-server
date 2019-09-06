@@ -33,15 +33,7 @@ type ListHandlerFactory struct {
 func (f ListHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ListHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
-}
-
-func (f ListHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
 }
 
 type ListResponse struct {
@@ -83,6 +75,14 @@ type ListHandler struct {
 	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	TxContext       db.TxContext           `dependency:"TxContext"`
 	SessionProvider session.Provider       `dependency:"SessionProvider"`
+}
+
+func (h ListHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireAuthenticated),
+		authz.PolicyFunc(policy.DenyDisabledUser),
+	)
 }
 
 func (h ListHandler) WithTx() bool {

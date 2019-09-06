@@ -43,15 +43,7 @@ func (f LinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
-	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
-}
-
-func (f LinkHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
 }
 
 // LinkRequestPayload login handler request payload
@@ -109,6 +101,14 @@ type LinkHandler struct {
 	OAuthConfiguration config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
 	Provider           sso.OAuthProvider
 	ProviderID         string
+}
+
+func (h LinkHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireAuthenticated),
+		authz.PolicyFunc(policy.DenyDisabledUser),
+	)
 }
 
 func (h LinkHandler) WithTx() bool {

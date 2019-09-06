@@ -21,8 +21,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -52,10 +50,6 @@ func (f AuthHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
 	return h
-}
-
-func (f AuthHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf()
 }
 
 // AuthRequestPayload is sso.OAuthAuthorizationResponse

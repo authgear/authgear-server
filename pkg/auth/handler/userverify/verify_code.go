@@ -45,16 +45,7 @@ type VerifyCodeHandlerFactory struct {
 func (f VerifyCodeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyCodeHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext)
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (f VerifyCodeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
 }
 
 type VerifyCodePayload struct {
@@ -105,6 +96,15 @@ type VerifyCodeHandler struct {
 	UserProfileStore         userprofile.Store      `dependency:"UserProfileStore"`
 	HookProvider             hook.Provider          `dependency:"HookProvider"`
 	Logger                   *logrus.Entry          `dependency:"HandlerLogger"`
+}
+
+// ProvideAuthzPolicy provides authorization policy of handler
+func (h VerifyCodeHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireAuthenticated),
+		authz.PolicyFunc(policy.DenyDisabledUser),
+	)
 }
 
 func (h VerifyCodeHandler) WithTx() bool {
