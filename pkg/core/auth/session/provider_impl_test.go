@@ -1,6 +1,7 @@
 package session
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"testing"
@@ -34,7 +35,7 @@ func TestProvider(t *testing.T) {
 
 		req, _ := http.NewRequest("POST", "", nil)
 		req.Header.Set("User-Agent", "SDK")
-		req.Header.Set("X-Skygear-Extra-Info", `{ "device_name": "Device" }`)
+		req.Header.Set("X-Skygear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
 		accessEvent := auth.SessionAccessEvent{
 			Timestamp: initialTime,
 			UserAgent: "SDK",
@@ -373,7 +374,7 @@ func TestProvider(t *testing.T) {
 		})
 		Convey("should populate extra info", func() {
 			req, _ := http.NewRequest("POST", "", nil)
-			req.Header.Set("X-Skygear-Extra-Info", `{ "device_name": "Device" }`)
+			req.Header.Set("X-Skygear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
 
 			event := newAccessEvent(now, req)
 			So(event.Extra, ShouldResemble, auth.SessionAccessEventExtraInfo{
@@ -389,6 +390,7 @@ func TestProvider(t *testing.T) {
 				extra += fmt.Sprintf(`"info_%d": %d`, i, i)
 			}
 			extra += " }"
+			extra = base64.StdEncoding.EncodeToString([]byte(extra))
 
 			req, _ := http.NewRequest("POST", "", nil)
 			req.Header.Set("X-Skygear-Extra-Info", extra)
