@@ -1,11 +1,11 @@
 package sso
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -30,17 +29,17 @@ import (
 type ssoProviderParameter string
 
 type respHandler struct {
-	SessionProvider     session.Provider
-	AuthInfoStore       authinfo.Store
-	OAuthAuthProvider   oauth.Provider
-	IdentityProvider    principal.IdentityProvider
-	UserProfileStore    userprofile.Store
-	HookProvider        hook.Provider
-	TaskQueue           async.Queue
-	WelcomeEmailEnabled bool
+	AuthnSessionProvider authnsession.Provider
+	AuthInfoStore        authinfo.Store
+	OAuthAuthProvider    oauth.Provider
+	IdentityProvider     principal.IdentityProvider
+	UserProfileStore     userprofile.Store
+	HookProvider         hook.Provider
+	TaskQueue            async.Queue
+	WelcomeEmailEnabled  bool
 }
 
-func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.LoginState) (resp model.AuthResponse, err error) {
+func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.LoginState) (resp interface{}, err error) {
 	// action => login
 	var info authinfo.AuthInfo
 	createNewUser, principal, err := h.handleLogin(oauthAuthInfo, &info, loginState)
@@ -79,28 +78,14 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 		}
 	}
 
-	// generate session
-	session, err := h.SessionProvider.Create(info.ID, principal.ID)
-	if err != nil {
-		panic(err)
-	}
-
 	var sessionCreateReason event.SessionCreateReason
 	if createNewUser {
 		sessionCreateReason = event.SessionCreateReasonSignup
 	} else {
 		sessionCreateReason = event.SessionCreateReasonLogin
 	}
-	sessionModel := authSession.Format(session)
-	err = h.HookProvider.DispatchEvent(
-		event.SessionCreateEvent{
-			Reason:   sessionCreateReason,
-			User:     user,
-			Identity: identity,
-			Session:  sessionModel,
-		},
-		&user,
-	)
+	sess := h.AuthnSessionProvider.NewFromScratch(principal.UserID, principal.ID, sessionCreateReason)
+	resp, err = h.AuthnSessionProvider.GenerateResponse(sess)
 	if err != nil {
 		return
 	}
@@ -118,8 +103,6 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 		err = skyerr.MakeError(err)
 		return
 	}
-
-	resp = model.NewAuthResponse(user, identity, session)
 
 	if createNewUser &&
 		h.WelcomeEmailEnabled &&
