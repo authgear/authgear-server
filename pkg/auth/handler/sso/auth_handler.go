@@ -8,13 +8,12 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -93,8 +92,7 @@ type AuthHandler struct {
 	OAuthAuthProvider       oauth.Provider              `dependency:"OAuthAuthProvider"`
 	IdentityProvider        principal.IdentityProvider  `dependency:"IdentityProvider"`
 	AuthInfoStore           authinfo.Store              `dependency:"AuthInfoStore"`
-	SessionProvider         session.Provider            `dependency:"SessionProvider"`
-	SessionWriter           session.Writer              `dependency:"SessionWriter"`
+	AuthnSessionProvider    authnsession.Provider       `dependency:"AuthnSessionProvider"`
 	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
 	ProviderFactory         *sso.ProviderFactory        `dependency:"SSOProviderFactory"`
 	UserProfileStore        userprofile.Store           `dependency:"UserProfileStore"`
@@ -183,11 +181,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	// From now on, we must return response by respecting CallbackURL and UXMode.
 	defer func() {
 		success = err == nil
-		if authResp, isAuthResp := resp.(model.AuthResponse); success && isAuthResp {
-			h.SessionWriter.WriteSession(w, &authResp.AccessToken)
-			resp = authResp
-		}
-
+		resp = h.AuthnSessionProvider.AlterResponse(w, resp, err)
 		switch state.UXMode {
 		case sso.UXModeWebRedirect, sso.UXModeWebPopup:
 			err = h.handleSessionResp(w, r, state.UXMode, state.CallbackURL, resp, err)
@@ -226,14 +220,14 @@ func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.
 
 func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (resp interface{}, err error) {
 	respHandler := respHandler{
-		SessionProvider:     h.SessionProvider,
-		AuthInfoStore:       h.AuthInfoStore,
-		OAuthAuthProvider:   h.OAuthAuthProvider,
-		IdentityProvider:    h.IdentityProvider,
-		UserProfileStore:    h.UserProfileStore,
-		HookProvider:        h.HookProvider,
-		WelcomeEmailEnabled: h.WelcomeEmailEnabled,
-		TaskQueue:           h.TaskQueue,
+		AuthnSessionProvider: h.AuthnSessionProvider,
+		AuthInfoStore:        h.AuthInfoStore,
+		OAuthAuthProvider:    h.OAuthAuthProvider,
+		IdentityProvider:     h.IdentityProvider,
+		UserProfileStore:     h.UserProfileStore,
+		HookProvider:         h.HookProvider,
+		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
+		TaskQueue:            h.TaskQueue,
 	}
 
 	if state.Action == "login" {
