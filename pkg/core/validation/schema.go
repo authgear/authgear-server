@@ -77,6 +77,7 @@ const (
 			"$id": "#AuthConfiguration",
 			"type": "object",
 			"properties": {
+				"authentication_session": { "$ref": "#AuthenticationSessionConfiguration" },
 				"login_id_keys": {
 					"type": "object",
 					"minProperties": 1,
@@ -89,7 +90,16 @@ const (
 					"minItems": 1,
 					"items": { "$ref": "#NonEmptyString" }
 				}
-			}
+			},
+			"required": ["authentication_session"]
+		},
+		"AuthenticationSessionConfiguration": {
+			"$id": "#AuthenticationSessionConfiguration",
+			"type": "object",
+			"properties": {
+				"secret": { "$ref": "#NonEmptyString" }
+			},
+			"required": ["secret"]
 		},
 		"MFAConfiguration": {
 			"$id": "#MFAConfiguration",

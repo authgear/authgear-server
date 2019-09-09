@@ -27,6 +27,8 @@ user_config:
       email:
         provider: smtp
   auth:
+    authentication_session:
+      secret: authnsessionsecret
     on_user_duplicate_allow_create: true
   sso:
     custom_token:

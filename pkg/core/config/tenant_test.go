@@ -20,6 +20,8 @@ user_config:
   clients: {}
   master_key: masterkey
   auth:
+    authentication_session:
+      secret: authnsessionsecret
     login_id_keys:
       email:
         type: email
@@ -49,6 +51,9 @@ const inputMinimalJSON = `
 		"clients": {},
 		"master_key": "masterkey",
 		"auth": {
+			"authentication_session": {
+				"secret": "authnsessionsecret"
+			},
 			"login_id_keys": {
 				"email": {
 					"type": "email"
@@ -130,6 +135,9 @@ func makeFullTenantConfig() TenantConfiguration {
 				Origin: "localhost:3000",
 			},
 			Auth: AuthConfiguration{
+				AuthenticationSession: AuthenticationSessionConfiguration{
+					Secret: "authnsessionsecret",
+				},
 				LoginIDKeys: map[string]LoginIDKeyConfiguration{
 					"email": LoginIDKeyConfiguration{
 						Type:    LoginIDKeyType("email"),

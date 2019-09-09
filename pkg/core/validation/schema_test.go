@@ -30,7 +30,8 @@ func TestValidateUserConfiguration(t *testing.T) {
 	"hook": {}
 }
 				`,
-				`#/hook: secret is required
+				`#/auth: authentication_session is required
+#/hook: secret is required
 `,
 			},
 			// Empty auth.login_id_keys and auth.allowed_realms
@@ -45,7 +46,8 @@ func TestValidateUserConfiguration(t *testing.T) {
 	"hook": {}
 }
 				`,
-				`#/auth/allowed_realms: Array must have at least 1 items
+				`#/auth: authentication_session is required
+#/auth/allowed_realms: Array must have at least 1 items
 #/auth/login_id_keys: Must have at least 1 properties
 #/hook: secret is required
 `,
@@ -75,7 +77,8 @@ func TestValidateUserConfiguration(t *testing.T) {
 	"hook": {}
 }
 				`,
-				`#/auth/login_id_keys/type: auth.login_id_keys.type must be one of the following: "raw", "email", "phone"
+				`#/auth: authentication_session is required
+#/auth/login_id_keys/type: auth.login_id_keys.type must be one of the following: "raw", "email", "phone"
 #/hook: secret is required
 `,
 			},
@@ -85,6 +88,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 {
 	"master_key": "master_key",
 	"auth": {
+		"authentication_session": {
+			"secret": "authnsessionsecret"
+		},
 		"login_id_keys": {
 			"email": {
 				"type": "email"
@@ -114,6 +120,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 	},
 	"master_key": "master_key",
 	"auth": {
+		"authentication_session": {
+			"secret": "authnsessionsecret"
+		},
 		"login_id_keys": {
 			"email": {
 				"type": "email"
@@ -143,6 +152,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 {
 	"master_key": "master_key",
 	"auth": {
+		"authentication_session": {
+			"secret": "authnsessionsecret"
+		},
 		"login_id_keys": {
 			"email": {
 				"type": "email"
@@ -171,6 +183,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 {
 	"master_key": "master_key",
 	"auth": {
+		"authentication_session": {
+			"secret": "authnsessionsecret"
+		},
 		"login_id_keys": {
 			"email": {
 				"type": "email"
@@ -227,6 +242,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 {
 	"master_key": "master_key",
 	"auth": {
+		"authentication_session": {
+			"secret": "authnsessionsecret"
+		},
 		"login_id_keys": {
 			"email": {
 				"type": "email"
@@ -267,6 +285,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 {
 	"master_key": "master_key",
 	"auth": {
+		"authentication_session": {
+			"secret": "authnsessionsecret"
+		},
 		"login_id_keys": {
 			"email": {
 				"type": "email"
@@ -297,6 +318,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 {
 	"master_key": "master_key",
 	"auth": {
+		"authentication_session": {
+			"secret": "authnsessionsecret"
+		},
 		"login_id_keys": {
 			"email": {
 				"type": "email"
@@ -332,6 +356,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 {
 	"master_key": "master_key",
 	"auth": {
+		"authentication_session": {
+			"secret": "authnsessionsecret"
+		},
 		"login_id_keys": {
 			"email": {
 				"type": "email"
@@ -381,6 +408,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 {
 	"master_key": "master_key",
 	"auth": {
+		"authentication_session": {
+			"secret": "authnsessionsecret"
+		},
 		"login_id_keys": {
 			"email": {
 				"type": "email"
