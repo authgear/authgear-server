@@ -14,6 +14,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	mfaPQ "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
@@ -163,6 +164,30 @@ func (m DependencyMap) Provide(
 		)
 	}
 
+	newSessionProvider := func() session.Provider {
+		return session.NewProvider(
+			request,
+			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider()),
+			redisSession.NewEventStore(ctx, tConfig.AppID),
+			newAuthContext(),
+			tConfig.UserConfig.Clients,
+		)
+	}
+
+	newIdentityProvider := func() principal.IdentityProvider {
+		return principal.NewIdentityProvider(
+			newSQLBuilder(),
+			newSQLExecutor(),
+			newCustomTokenAuthProvider(),
+			newOAuthAuthProvider(),
+			newPasswordAuthProvider(),
+		)
+	}
+
+	newSessionWriter := func() session.Writer {
+		return session.NewWriter(newAuthContext(), tConfig.UserConfig.Clients, m.UseInsecureCookie)
+	}
+
 	switch dependencyName {
 	case "AuthContextGetter":
 		return newAuthContext()
@@ -173,15 +198,9 @@ func (m DependencyMap) Provide(
 	case "LoggerFactory":
 		return newLoggerFactory()
 	case "SessionProvider":
-		return session.NewProvider(
-			request,
-			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider()),
-			redisSession.NewEventStore(ctx, tConfig.AppID),
-			newAuthContext(),
-			tConfig.UserConfig.Clients,
-		)
+		return newSessionProvider()
 	case "SessionWriter":
-		return session.NewWriter(newAuthContext(), tConfig.UserConfig.Clients, m.UseInsecureCookie)
+		return newSessionWriter()
 	case "MFAProvider":
 		return mfa.NewProvider(
 			mfaPQ.NewStore(
@@ -192,6 +211,19 @@ func (m DependencyMap) Provide(
 			),
 			tConfig.UserConfig.MFA,
 			newTimeProvider(),
+		)
+	case "AuthnSessionProvider":
+		return authnsession.NewProvider(
+			newAuthContext(),
+			tConfig.UserConfig.MFA,
+			tConfig.UserConfig.Auth.AuthenticationSession,
+			newTimeProvider(),
+			newAuthInfoStore(),
+			newSessionProvider(),
+			newSessionWriter(),
+			newIdentityProvider(),
+			newHookProvider(),
+			newUserProfileStore(),
 		)
 	case "AuthInfoStore":
 		return newAuthInfoStore()
@@ -279,13 +311,7 @@ func (m DependencyMap) Provide(
 	case "OAuthAuthProvider":
 		return newOAuthAuthProvider()
 	case "IdentityProvider":
-		return principal.NewIdentityProvider(
-			newSQLBuilder(),
-			newSQLExecutor(),
-			newCustomTokenAuthProvider(),
-			newOAuthAuthProvider(),
-			newPasswordAuthProvider(),
-		)
+		return newIdentityProvider()
 	case "AuthHandlerHTMLProvider":
 		return sso.NewAuthHandlerHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint())
 	case "AsyncTaskQueue":

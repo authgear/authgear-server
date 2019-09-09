@@ -1,0 +1,211 @@
+package authnsession
+
+import (
+	"errors"
+	"net/http"
+	gotime "time"
+
+	"github.com/dgrijalva/jwt-go"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/time"
+)
+
+type Claims struct {
+	jwt.StandardClaims
+	AuthnSession auth.AuthnSession `json:"authn_session"`
+}
+
+func NewAuthnSessionToken(secret string, claims Claims) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(secret))
+}
+
+func ParseAuthnSessionToken(secret string, tokenString string) (*Claims, error) {
+	t, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	claims, ok := t.Claims.(*Claims)
+	if !ok {
+		return nil, errors.New("unknown claims")
+	}
+	if !t.Valid {
+		return nil, errors.New("invalid token")
+	}
+	return claims, nil
+}
+
+type providerImpl struct {
+	authContextGetter                  auth.ContextGetter
+	mfaConfiguration                   config.MFAConfiguration
+	authenticationSessionConfiguration config.AuthenticationSessionConfiguration
+	timeProvider                       time.Provider
+	authInfoStore                      authinfo.Store
+	sessionProvider                    session.Provider
+	sessionWriter                      session.Writer
+	identityProvider                   principal.IdentityProvider
+	hookProvider                       hook.Provider
+	userProfileStore                   userprofile.Store
+}
+
+func NewProvider(
+	authContextGetter auth.ContextGetter,
+	mfaConfiguration config.MFAConfiguration,
+	authenticationSessionConfiguration config.AuthenticationSessionConfiguration,
+	timeProvider time.Provider,
+	authInfoStore authinfo.Store,
+	sessionProvider session.Provider,
+	sessionWriter session.Writer,
+	identityProvider principal.IdentityProvider,
+	hookProvider hook.Provider,
+	userProfileStore userprofile.Store,
+) Provider {
+	return &providerImpl{
+		authContextGetter:                  authContextGetter,
+		mfaConfiguration:                   mfaConfiguration,
+		authenticationSessionConfiguration: authenticationSessionConfiguration,
+		timeProvider:                       timeProvider,
+		authInfoStore:                      authInfoStore,
+		sessionProvider:                    sessionProvider,
+		sessionWriter:                      sessionWriter,
+		identityProvider:                   identityProvider,
+		hookProvider:                       hookProvider,
+		userProfileStore:                   userProfileStore,
+	}
+}
+
+func NewAuthenticationSessionError(token string, step auth.AuthnSessionStep) skyerr.Error {
+	return skyerr.NewErrorWithInfo(
+		skyerr.AuthenticationSession,
+		"Authentication Session",
+		map[string]interface{}{
+			"token": token,
+			"step":  step,
+		},
+	)
+}
+
+func (p *providerImpl) NewWithToken(token string) (*auth.AuthnSession, error) {
+	claims, err := ParseAuthnSessionToken(p.authenticationSessionConfiguration.Secret, token)
+	if err != nil {
+		return nil, err
+	}
+	return &claims.AuthnSession, nil
+}
+
+func (p *providerImpl) getRequiredSteps() []auth.AuthnSessionStep {
+	// TODO: Check MFA enforcement
+	return []auth.AuthnSessionStep{auth.AuthnSessionStepIdentity}
+}
+
+func (p *providerImpl) NewFromScratch(userID string, principalID string, reason event.SessionCreateReason) auth.AuthnSession {
+	clientID := p.authContextGetter.AccessKey().ClientID
+	requiredSteps := p.getRequiredSteps()
+	// Identity is considered finished here.
+	finishedSteps := requiredSteps[:1]
+	return auth.AuthnSession{
+		ClientID:            clientID,
+		UserID:              userID,
+		PrincipalID:         principalID,
+		RequiredSteps:       requiredSteps,
+		FinishedSteps:       finishedSteps,
+		SessionCreateReason: string(reason),
+	}
+}
+
+func (p *providerImpl) GenerateResponse(authnSess auth.AuthnSession) (interface{}, error) {
+	step, ok := authnSess.NextStep()
+	if !ok {
+		var authInfo authinfo.AuthInfo
+		err := p.authInfoStore.GetAuth(authnSess.UserID, &authInfo)
+		if err != nil {
+			return nil, err
+		}
+
+		userProfile, err := p.userProfileStore.GetUserProfile(authnSess.UserID)
+		if err != nil {
+			return nil, err
+		}
+
+		user := model.NewUser(authInfo, userProfile)
+
+		prin, err := p.identityProvider.GetPrincipalByID(authnSess.PrincipalID)
+		if err != nil {
+			return nil, err
+		}
+		identity := model.NewIdentity(p.identityProvider, prin)
+
+		sess, err := p.sessionProvider.Create(&authnSess)
+		if err != nil {
+			return nil, err
+		}
+
+		sessionModel := authSession.Format(sess)
+		err = p.hookProvider.DispatchEvent(
+			event.SessionCreateEvent{
+				Reason:   event.SessionCreateReason(authnSess.SessionCreateReason),
+				User:     user,
+				Identity: identity,
+				Session:  sessionModel,
+			},
+			&user,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		resp := model.NewAuthResponse(user, identity, sess)
+		return resp, nil
+	}
+	now := p.timeProvider.NowUTC()
+	expiresAt := now.Add(5 * gotime.Minute)
+	claims := Claims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expiresAt.Unix(),
+			IssuedAt:  now.Unix(),
+		},
+		AuthnSession: authnSess,
+	}
+	token, err := NewAuthnSessionToken(p.authenticationSessionConfiguration.Secret, claims)
+	if err != nil {
+		return nil, err
+	}
+	authnSessionErr := NewAuthenticationSessionError(token, step)
+	return authnSessionErr, nil
+}
+
+func (p *providerImpl) WriteResponse(w http.ResponseWriter, resp interface{}, err error) {
+	if err == nil {
+		switch v := resp.(type) {
+		case model.AuthResponse:
+			p.sessionWriter.WriteSession(w, &v.AccessToken)
+			handler.WriteResponse(w, handler.APIResponse{Result: v})
+		default:
+			panic("unknown response")
+		}
+	} else {
+		handler.WriteResponse(w, handler.APIResponse{Err: skyerr.MakeError(err)})
+	}
+}
+
+func (p *providerImpl) AlterResponse(w http.ResponseWriter, resp interface{}, err error) interface{} {
+	if v, ok := resp.(model.AuthResponse); ok && err == nil {
+		p.sessionWriter.WriteSession(w, &v.AccessToken)
+		return v
+	}
+	return resp
+}

@@ -9,9 +9,8 @@ import (
 )
 
 type MockProvider struct {
-	ClientID string
-	Time     time.Provider
-	counter  int
+	Time    time.Provider
+	counter int
 
 	Sessions map[string]auth.Session
 }
@@ -20,26 +19,20 @@ var _ Provider = &MockProvider{}
 
 func NewMockProvider() *MockProvider {
 	return &MockProvider{
-		ClientID: "client-id",
 		Time:     &time.MockProvider{},
 		Sessions: map[string]auth.Session{},
 	}
 }
 
-func (p *MockProvider) Create(userID string, principalID string) (s *auth.Session, err error) {
+func (p *MockProvider) Create(authnSess *auth.AuthnSession) (s *auth.Session, err error) {
 	now := p.Time.NowUTC()
-	id := fmt.Sprintf("%s-%s-%d", userID, principalID, p.counter)
-	sess := auth.Session{
-		ID:          id,
-		ClientID:    p.ClientID,
-		UserID:      userID,
-		PrincipalID: principalID,
-
-		CreatedAt:            now,
-		AccessedAt:           now,
-		AccessToken:          "access-token-" + id,
-		AccessTokenCreatedAt: now,
-	}
+	id := fmt.Sprintf("%s-%s-%d", authnSess.UserID, authnSess.PrincipalID, p.counter)
+	sess := authnSess.Session()
+	sess.ID = id
+	sess.CreatedAt = now
+	sess.AccessedAt = now
+	sess.AccessToken = "access-token-" + id
+	sess.AccessTokenCreatedAt = now
 	p.counter++
 
 	p.Sessions[sess.ID] = sess

@@ -48,24 +48,18 @@ func NewProvider(req *http.Request, store Store, eventStore EventStore, authCont
 	}
 }
 
-func (p *providerImpl) Create(userID string, principalID string) (s *auth.Session, err error) {
+func (p *providerImpl) Create(authnSess *auth.AuthnSession) (s *auth.Session, err error) {
 	now := p.time.NowUTC()
 	clientID := p.authContext.AccessKey().ClientID
 	clientConfig := p.clientConfigs[clientID]
 
 	accessEvent := newAccessEvent(now, p.req)
-	sess := auth.Session{
-		ID:          uuid.New(),
-		ClientID:    clientID,
-		UserID:      userID,
-		PrincipalID: principalID,
-
-		InitialAccess: accessEvent,
-		LastAccess:    accessEvent,
-
-		CreatedAt:  now,
-		AccessedAt: now,
-	}
+	sess := authnSess.Session()
+	sess.ID = uuid.New()
+	sess.InitialAccess = accessEvent
+	sess.LastAccess = accessEvent
+	sess.CreatedAt = now
+	sess.AccessedAt = now
 	if !clientConfig.RefreshTokenDisabled {
 		p.generateRefreshToken(&sess)
 	}
