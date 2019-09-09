@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -28,6 +29,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -139,10 +141,10 @@ func TestSingupHandler(t *testing.T) {
 
 		sh := &SignupHandler{}
 		sh.AuthInfoStore = authInfoStore
-		sh.SessionProvider = session.NewMockProvider()
-		sh.SessionWriter = session.NewMockWriter()
-		sh.PasswordChecker = passwordChecker
-		sh.PasswordAuthProvider = passwordAuthProvider
+		sessionProvider := session.NewMockProvider()
+		sessionWriter := session.NewMockWriter()
+		userProfileStore := userprofile.NewMockUserProfileStore()
+		identityProvider := principal.NewMockIdentityProvider(passwordAuthProvider)
 		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
 			&oauth.Principal{
 				ID:           "john.doe.id",
@@ -154,9 +156,11 @@ func TestSingupHandler(t *testing.T) {
 				},
 			},
 		})
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider)
+		sh.PasswordChecker = passwordChecker
+		sh.PasswordAuthProvider = passwordAuthProvider
+		sh.IdentityProvider = identityProvider
 		sh.AuditTrail = audit.NewMockTrail(t)
-		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sh.UserProfileStore = userProfileStore
 		sh.Logger = logrus.NewEntry(logrus.New())
 		mockTaskQueue := async.NewMockQueue()
 		sh.TaskQueue = mockTaskQueue
@@ -164,9 +168,28 @@ func TestSingupHandler(t *testing.T) {
 		sh.WelcomeEmailEnabled = true
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		sh.AuthnSessionProvider = authnsession.NewMockProvider(
+			timeProvider,
+			authInfoStore,
+			sessionProvider,
+			sessionWriter,
+			identityProvider,
+			hookProvider,
+			userProfileStore,
+		)
 
 		Convey("abort if user duplicate with oauth", func() {
-			sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider, mockOAuthProvider)
+			sh.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider, mockOAuthProvider)
+			sh.AuthnSessionProvider = authnsession.NewMockProvider(
+				timeProvider,
+				authInfoStore,
+				sessionProvider,
+				sessionWriter,
+				identityProvider,
+				hookProvider,
+				userProfileStore,
+			)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -193,7 +216,16 @@ func TestSingupHandler(t *testing.T) {
 			sh.AuthConfiguration = config.AuthConfiguration{
 				OnUserDuplicateAllowCreate: true,
 			}
-			sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider, mockOAuthProvider)
+			sh.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider, mockOAuthProvider)
+			sh.AuthnSessionProvider = authnsession.NewMockProvider(
+				timeProvider,
+				authInfoStore,
+				sessionProvider,
+				sessionWriter,
+				identityProvider,
+				hookProvider,
+				userProfileStore,
+			)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -573,18 +605,31 @@ func TestSingupHandler(t *testing.T) {
 
 		sh := &SignupHandler{}
 		sh.AuthInfoStore = authInfoStore
-		sh.SessionProvider = session.NewMockProvider()
-		sh.SessionWriter = session.NewMockWriter()
+		sessionProvider := session.NewMockProvider()
+		sessionWriter := session.NewMockWriter()
+		userProfileStore := userprofile.NewMockUserProfileStore()
+		identityProvider := principal.NewMockIdentityProvider(passwordAuthProvider)
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider)
+		sh.IdentityProvider = identityProvider
 		sh.AuditTrail = audit.NewMockTrail(t)
-		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sh.UserProfileStore = userProfileStore
 		sh.Logger = logrus.NewEntry(logrus.New())
 		mockTaskQueue := async.NewMockQueue()
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
-		sh.HookProvider = hook.NewMockProvider()
+		hookProvider := hook.NewMockProvider()
+		sh.HookProvider = hookProvider
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		sh.AuthnSessionProvider = authnsession.NewMockProvider(
+			timeProvider,
+			authInfoStore,
+			sessionProvider,
+			sessionWriter,
+			identityProvider,
+			hookProvider,
+			userProfileStore,
+		)
 
 		Convey("duplicated user error format", func(c C) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
