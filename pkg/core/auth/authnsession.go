@@ -11,11 +11,12 @@ const (
 // When the authentication session is finished, it converts to Session.
 type AuthnSession struct {
 	// The following fields are filled in step "identity"
-	ClientID      string             `json:"client_id"`
-	UserID        string             `json:"user_id"`
-	PrincipalID   string             `json:"principal_id"`
-	RequiredSteps []AuthnSessionStep `json:"required_steps"`
-	FinishedSteps []AuthnSessionStep `json:"finished_steps"`
+	ClientID            string             `json:"client_id"`
+	UserID              string             `json:"user_id"`
+	PrincipalID         string             `json:"principal_id"`
+	RequiredSteps       []AuthnSessionStep `json:"required_steps"`
+	FinishedSteps       []AuthnSessionStep `json:"finished_steps"`
+	SessionCreateReason string             `json:"session_create_reason"`
 
 	// The following fields are filled in step "mfa"
 	AuthenticatorID         string                  `json:"authenticator_id,omitempty"`
