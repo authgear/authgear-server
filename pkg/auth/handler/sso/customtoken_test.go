@@ -11,6 +11,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
@@ -27,6 +28,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func TestCustomTokenLoginHandler(t *testing.T) {
@@ -52,21 +54,24 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			Audience: audience,
 		}
 		lh.TxContext = db.NewMockTxContext()
-		lh.CustomTokenAuthProvider = customtoken.NewMockProviderWithPrincipalMap("ssosecret", map[string]customtoken.Principal{
+		customTokenAuthProvider := customtoken.NewMockProviderWithPrincipalMap("ssosecret", map[string]customtoken.Principal{
 			"uuid-chima-token": customtoken.Principal{
 				ID:               "uuid-chima-token",
 				TokenPrincipalID: "chima.customtoken.id",
 				UserID:           "chima",
 			},
 		})
-		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.CustomTokenAuthProvider)
-		lh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
+		lh.CustomTokenAuthProvider = customTokenAuthProvider
+		identityProvider := principal.NewMockIdentityProvider(customTokenAuthProvider)
+		lh.IdentityProvider = identityProvider
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				"chima": authinfo.AuthInfo{
 					ID: "chima",
 				},
 			},
 		)
+		lh.AuthInfoStore = authInfoStore
 		userProfileStore := userprofile.NewMockUserProfileStore()
 		userProfileStore.Data = map[string]map[string]interface{}{}
 		userProfileStore.Data["chima"] = map[string]interface{}{
@@ -75,14 +80,24 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		}
 		userProfileStore.TimeNowfunc = timeNow
 		lh.UserProfileStore = userProfileStore
-		lh.SessionProvider = session.NewMockProvider()
-		lh.SessionWriter = session.NewMockWriter()
+		sessionProvider := session.NewMockProvider()
+		sessionWriter := session.NewMockWriter()
 		lh.AuditTrail = audit.NewMockTrail(t)
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()
 		lh.TaskQueue = mockTaskQueue
 		hookProvider := hook.NewMockProvider()
 		lh.HookProvider = hookProvider
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		lh.AuthnSessionProvider = authnsession.NewMockProvider(
+			timeProvider,
+			authInfoStore,
+			sessionProvider,
+			sessionWriter,
+			identityProvider,
+			hookProvider,
+			userProfileStore,
+		)
 
 		iat := time.Now().UTC()
 		exp := iat.Add(time.Hour * 1)
@@ -353,7 +368,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			},
 		}
 		allowedRealms := []string{password.DefaultRealm}
-		lh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
+		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{
@@ -370,6 +385,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				},
 			},
 		)
+		lh.PasswordAuthProvider = passwordAuthProvider
 		lh.CustomTokenConfiguration = config.CustomTokenConfiguration{
 			Enabled:                    true,
 			Issuer:                     issuer,
@@ -378,9 +394,11 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			OnUserDuplicateAllowCreate: true,
 		}
 		lh.TxContext = db.NewMockTxContext()
-		lh.CustomTokenAuthProvider = customtoken.NewMockProviderWithPrincipalMap("ssosecret", map[string]customtoken.Principal{})
-		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.CustomTokenAuthProvider, lh.PasswordAuthProvider)
-		lh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
+		customTokenAuthProvider := customtoken.NewMockProviderWithPrincipalMap("ssosecret", map[string]customtoken.Principal{})
+		lh.CustomTokenAuthProvider = customTokenAuthProvider
+		identityProvider := principal.NewMockIdentityProvider(lh.CustomTokenAuthProvider, passwordAuthProvider)
+		lh.IdentityProvider = identityProvider
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				"john.doe.id": authinfo.AuthInfo{
 					ID:         "john.doe.id",
@@ -388,18 +406,30 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				},
 			},
 		)
+		lh.AuthInfoStore = authInfoStore
 		userProfileStore := userprofile.NewMockUserProfileStoreByData(map[string]map[string]interface{}{
 			"john.doe.id": map[string]interface{}{},
 		})
 		userProfileStore.TimeNowfunc = timeNow
 		lh.UserProfileStore = userProfileStore
-		lh.SessionProvider = session.NewMockProvider()
-		lh.SessionWriter = session.NewMockWriter()
+		sessionProvider := session.NewMockProvider()
+		sessionWriter := session.NewMockWriter()
 		lh.AuditTrail = audit.NewMockTrail(t)
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()
 		lh.TaskQueue = mockTaskQueue
-		lh.HookProvider = hook.NewMockProvider()
+		hookProvider := hook.NewMockProvider()
+		lh.HookProvider = hookProvider
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		lh.AuthnSessionProvider = authnsession.NewMockProvider(
+			timeProvider,
+			authInfoStore,
+			sessionProvider,
+			sessionWriter,
+			identityProvider,
+			hookProvider,
+			userProfileStore,
+		)
 
 		iat := time.Now().UTC()
 		exp := iat.Add(time.Hour * 1)

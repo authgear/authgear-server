@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
@@ -20,7 +20,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -135,9 +134,8 @@ func (payload CustomTokenLoginPayload) Validate() error {
 type CustomTokenLoginHandler struct {
 	TxContext                db.TxContext                    `dependency:"TxContext"`
 	AuthContext              coreAuth.ContextGetter          `dependency:"AuthContextGetter"`
+	AuthnSessionProvider     authnsession.Provider           `dependency:"AuthnSessionProvider"`
 	UserProfileStore         userprofile.Store               `dependency:"UserProfileStore"`
-	SessionProvider          session.Provider                `dependency:"SessionProvider"`
-	SessionWriter            session.Writer                  `dependency:"SessionWriter"`
 	AuthInfoStore            authinfo.Store                  `dependency:"AuthInfoStore"`
 	CustomTokenAuthProvider  customtoken.Provider            `dependency:"CustomTokenAuthProvider"`
 	IdentityProvider         principal.IdentityProvider      `dependency:"IdentityProvider"`
@@ -152,10 +150,6 @@ type CustomTokenLoginHandler struct {
 // ProvideAuthzPolicy provides authorization policy of handler
 func (h CustomTokenLoginHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.DenyNoAccessKey)
-}
-
-func (h CustomTokenLoginHandler) WithTx() bool {
-	return true
 }
 
 // DecodeRequest decode request payload
@@ -200,12 +194,8 @@ func (h CustomTokenLoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.R
 	defer func() {
 		if err == nil {
 			h.HookProvider.DidCommitTx()
-			authResp := result.(model.AuthResponse)
-			h.SessionWriter.WriteSession(resp, &authResp.AccessToken)
-			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
-		} else {
-			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
 		}
+		h.AuthnSessionProvider.WriteResponse(resp, result, err)
 	}()
 
 	payload, err := h.DecodeRequest(req)
@@ -227,7 +217,7 @@ func (h CustomTokenLoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.R
 }
 
 // Handle function handle custom token login
-func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp model.AuthResponse, err error) {
+func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp interface{}, err error) {
 	if !h.CustomTokenConfiguration.Enabled {
 		err = skyerr.NewError(skyerr.UndefinedOperation, "Custom Token is disabled")
 		return
@@ -309,28 +299,15 @@ func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp m
 		}
 	}
 
-	// generate session
-	session, err := h.SessionProvider.Create(info.ID, principal.ID)
-	if err != nil {
-		panic(err)
-	}
-
 	var sessionCreateReason event.SessionCreateReason
 	if createNewUser {
 		sessionCreateReason = event.SessionCreateReasonSignup
 	} else {
 		sessionCreateReason = event.SessionCreateReasonLogin
 	}
-	sessionModel := authSession.Format(session)
-	err = h.HookProvider.DispatchEvent(
-		event.SessionCreateEvent{
-			Reason:   sessionCreateReason,
-			User:     user,
-			Identity: identity,
-			Session:  sessionModel,
-		},
-		&user,
-	)
+
+	sess := h.AuthnSessionProvider.NewFromScratch(principal.UserID, principal.ID, sessionCreateReason)
+	resp, err = h.AuthnSessionProvider.GenerateResponse(sess)
 	if err != nil {
 		return
 	}
@@ -348,8 +325,6 @@ func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp m
 		err = skyerr.MakeError(err)
 		return
 	}
-
-	resp = model.NewAuthResponse(user, identity, session)
 
 	// TODO: audit trail
 	if createNewUser && h.WelcomeEmailEnabled {
