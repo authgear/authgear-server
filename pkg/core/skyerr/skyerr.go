@@ -98,6 +98,10 @@ const (
 	// CurrentIdentityBeingDeleted occurs when the current identity is being deleted.
 	CurrentIdentityBeingDeleted
 
+	// AuthenticationSession occurs when the authentication involves multiple steps.
+	// A token and the step are included in info.
+	AuthenticationSession
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )

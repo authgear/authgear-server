@@ -24,6 +24,7 @@ func ErrorDefaultStatusCode(err Error) int {
 		WebHookTimeOut:              http.StatusGatewayTimeout,
 		WebHookFailed:               http.StatusBadGateway,
 		CurrentIdentityBeingDeleted: http.StatusBadRequest,
+		AuthenticationSession:       http.StatusBadRequest,
 	}[err.Code()]
 	if !ok {
 		if err.Code() < 10000 {
