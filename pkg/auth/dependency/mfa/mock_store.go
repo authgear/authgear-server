@@ -12,6 +12,7 @@ type MockStore struct {
 	RecoveryCode map[string][]RecoveryCodeAuthenticator
 	TOTP         map[string][]TOTPAuthenticator
 	OOB          map[string][]OOBAuthenticator
+	BearerToken  map[string][]BearerTokenAuthenticator
 }
 
 func NewMockStore(timeProvider time.Provider) Store {
@@ -20,6 +21,7 @@ func NewMockStore(timeProvider time.Provider) Store {
 		RecoveryCode: map[string][]RecoveryCodeAuthenticator{},
 		TOTP:         map[string][]TOTPAuthenticator{},
 		OOB:          map[string][]OOBAuthenticator{},
+		BearerToken:  map[string][]BearerTokenAuthenticator{},
 	}
 }
 
@@ -47,6 +49,35 @@ func (s *MockStore) GenerateRecoveryCode(userID string) ([]RecoveryCodeAuthentic
 
 func (s *MockStore) DeleteRecoveryCode(userID string) error {
 	delete(s.RecoveryCode, userID)
+	return nil
+}
+
+func (s *MockStore) DeleteBearerTokenByParentID(userID string, parentID string) error {
+	bt := s.BearerToken[userID]
+	var newBT []BearerTokenAuthenticator
+	for _, a := range bt {
+		if a.ParentID == parentID {
+			continue
+		}
+		newBT = append(newBT, a)
+	}
+	s.BearerToken[userID] = newBT
+	return nil
+}
+
+func (s *MockStore) DeleteAllBearerToken(userID string) error {
+	delete(s.BearerToken, userID)
+	return nil
+}
+
+func (s *MockStore) CreateBearerToken(a *BearerTokenAuthenticator) error {
+	bt := s.BearerToken[a.UserID]
+	if bt == nil {
+		bt = []BearerTokenAuthenticator{*a}
+	} else {
+		bt = append(bt, *a)
+	}
+	s.BearerToken[a.UserID] = bt
 	return nil
 }
 

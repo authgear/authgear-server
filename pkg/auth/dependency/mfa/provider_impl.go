@@ -6,6 +6,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
+	gotime "time"
 )
 
 type providerImpl struct {
@@ -126,10 +127,10 @@ func (p *providerImpl) ActivateTOTP(userID string, id string, code string) ([]st
 	return nil, nil
 }
 
-func (p *providerImpl) AuthenticateTOTP(userID string, code string) (*TOTPAuthenticator, error) {
+func (p *providerImpl) AuthenticateTOTP(userID string, code string, generateBearerToken bool) (*TOTPAuthenticator, string, error) {
 	authenticators, err := p.store.ListAuthenticators(userID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	now := p.timeProvider.NowUTC()
@@ -138,29 +139,50 @@ func (p *providerImpl) AuthenticateTOTP(userID string, code string) (*TOTPAuthen
 		case TOTPAuthenticator:
 			ok, err := ValidateTOTP(a.Secret, code, now)
 			if err != nil {
-				return nil, err
+				return nil, "", err
 			}
 			if ok {
 				aa := a
-				return &aa, nil
+				if generateBearerToken {
+					expireAt := now.Add(gotime.Duration(p.mfaConfiguration.BearerToken.ExpireInDays) * gotime.Hour * 24)
+					token := GenerateRandomBearerToken()
+					bt := BearerTokenAuthenticator{
+						ID:        uuid.New(),
+						UserID:    userID,
+						Type:      coreAuth.AuthenticatorTypeBearerToken,
+						ParentID:  aa.ID,
+						Token:     token,
+						CreatedAt: now,
+						ExpireAt:  expireAt,
+					}
+					err = p.store.CreateBearerToken(&bt)
+					if err != nil {
+						return nil, "", err
+					}
+				}
+				return &aa, "", nil
 			}
 		default:
 			break
 		}
 	}
 
-	return nil, skyerr.NewError(skyerr.BadRequest, "invalid OTP")
+	return nil, "", skyerr.NewError(skyerr.BadRequest, "invalid OTP")
 }
 
 func (p *providerImpl) DeleteAuthenticator(userID string, id string) error {
 	// TODO: Delete OOB
-	// TODO: Delete associated bearer token first
 	a, err := p.store.GetTOTP(userID, id)
 	if err != nil {
 		return err
 	}
 
 	authenticators, err := p.store.ListAuthenticators(userID)
+	if err != nil {
+		return err
+	}
+
+	err = p.store.DeleteBearerTokenByParentID(userID, a.ID)
 	if err != nil {
 		return err
 	}

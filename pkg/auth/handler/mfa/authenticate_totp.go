@@ -139,8 +139,8 @@ func (h *AuthenticateTOTPHandler) Handle(req interface{}) (resp interface{}, err
 		return
 	}
 
-	// TODO(mfa): bearer token
-	a, err := h.MFAProvider.AuthenticateTOTP(authnSess.UserID, payload.OTP)
+	// TODO(mfa): Include bearer token in auth response
+	a, _, err := h.MFAProvider.AuthenticateTOTP(authnSess.UserID, payload.OTP, payload.RequestBearerToken)
 	if err != nil {
 		return
 	}

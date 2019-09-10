@@ -17,7 +17,8 @@ type Provider interface {
 	// a list of recovery codes are generated and returned.
 	ActivateTOTP(userID string, id string, code string) ([]string, error)
 	// AuthenticateTOTP authenticates the user with the given code.
-	AuthenticateTOTP(userID string, code string) (*TOTPAuthenticator, error)
+	// If generateBearerToken is true, a bearer token is generated.
+	AuthenticateTOTP(userID string, code string, generateBearerToken bool) (*TOTPAuthenticator, string, error)
 
 	// DeleteTOTP deletes authenticator.
 	// It this is the last authenticator,

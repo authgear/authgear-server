@@ -188,6 +188,128 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthe
 	return output, nil
 }
 
+func (s *storeImpl) DeleteAllBearerToken(userID string) error {
+	q1 := s.sqlBuilder.Tenant().
+		Select("a.id").
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Where("a.user_id = ? AND a.type = ?", userID, coreAuth.AuthenticatorTypeBearerToken)
+
+	rows1, err := s.sqlExecutor.QueryWith(q1)
+	if err != nil {
+		return err
+	}
+	defer rows1.Close()
+
+	var ids []string
+	for rows1.Next() {
+		var id string
+		err = rows1.Scan(&id)
+		if err != nil {
+			return err
+		}
+		ids = append(ids, id)
+	}
+
+	return s.deleteBearerTokenByIDs(ids)
+}
+
+func (s *storeImpl) DeleteBearerTokenByParentID(userID string, parentID string) error {
+	q1 := s.sqlBuilder.Tenant().
+		Select(
+			"a.id",
+		).
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator_bearer_token"),
+			"abt",
+			"a.id = abt.id",
+		).
+		Where("a.user_id = ? AND abt.parent_id = ?", userID, parentID)
+
+	rows1, err := s.sqlExecutor.QueryWith(q1)
+	if err != nil {
+		return err
+	}
+	defer rows1.Close()
+
+	var ids []string
+	for rows1.Next() {
+		var id string
+		err = rows1.Scan(&id)
+		if err != nil {
+			return err
+		}
+		ids = append(ids, id)
+	}
+
+	return s.deleteBearerTokenByIDs(ids)
+}
+
+func (s *storeImpl) deleteBearerTokenByIDs(ids []string) error {
+	if len(ids) <= 0 {
+		return nil
+	}
+	q2 := s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("authenticator_bearer_token")).
+		Where("id = ANY (?)", pq.Array(ids))
+	_, err := s.sqlExecutor.ExecWith(q2)
+	if err != nil {
+		return err
+	}
+
+	q3 := s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("authenticator")).
+		Where("id = ANY (?)", pq.Array(ids))
+
+	_, err = s.sqlExecutor.ExecWith(q3)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *storeImpl) CreateBearerToken(a *mfa.BearerTokenAuthenticator) error {
+	q1 := s.sqlBuilder.Tenant().
+		Insert(s.sqlBuilder.FullTableName("authenticator")).
+		Columns(
+			"id",
+			"type",
+			"user_id",
+		).
+		Values(
+			a.ID,
+			a.Type,
+			a.UserID,
+		)
+	_, err := s.sqlExecutor.ExecWith(q1)
+	if err != nil {
+		return err
+	}
+
+	q2 := s.sqlBuilder.Tenant().
+		Insert(s.sqlBuilder.FullTableName("authenticator_bearer_token")).
+		Columns(
+			"id",
+			"parent_id",
+			"token",
+			"created_at",
+			"expire_at",
+		).
+		Values(
+			a.ID,
+			a.ParentID,
+			a.Token,
+			a.CreatedAt,
+			a.ExpireAt,
+		)
+	_, err = s.sqlExecutor.ExecWith(q2)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *storeImpl) ListAuthenticators(userID string) ([]interface{}, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(

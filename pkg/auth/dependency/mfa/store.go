@@ -16,6 +16,13 @@ type Store interface {
 	// DeleteRecoveryCode deletes recovery codes.
 	DeleteRecoveryCode(userID string) error
 
+	// DeleteBearerToken deletes bearer token of the given parent authenticator.
+	DeleteBearerTokenByParentID(userID string, parentID string) error
+	// DeleteAllBearerToken deletes all bearer token of the given user.
+	DeleteAllBearerToken(userID string) error
+	// CreateBearerToken creates Bearer Token authenticator.
+	CreateBearerToken(a *BearerTokenAuthenticator) error
+
 	// ListAuthenticators returns a list of authenticators.
 	// Either TOTPAuthenticator or OOBAuthenticator.
 	ListAuthenticators(userID string) ([]interface{}, error)
