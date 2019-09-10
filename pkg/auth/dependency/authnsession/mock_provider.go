@@ -2,6 +2,7 @@ package authnsession
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -12,7 +13,9 @@ import (
 )
 
 func NewMockProvider(
+	mfaConfiguration config.MFAConfiguration,
 	timeProvider time.Provider,
+	mfaProvider mfa.Provider,
 	authInfoStore authinfo.Store,
 	sessionProvider session.Provider,
 	sessionWriter session.Writer,
@@ -21,9 +24,6 @@ func NewMockProvider(
 	userProfileStore userprofile.Store,
 ) Provider {
 	authContext := authTesting.NewMockContext()
-	mfaConfiguration := config.MFAConfiguration{
-		Enforcement: config.MFAEnforcementOff,
-	}
 	authenticationSessionConfiguration :=
 		config.AuthenticationSessionConfiguration{
 			Secret: "authnsessionsecret",
@@ -33,6 +33,7 @@ func NewMockProvider(
 		mfaConfiguration,
 		authenticationSessionConfiguration,
 		timeProvider,
+		mfaProvider,
 		authInfoStore,
 		sessionProvider,
 		sessionWriter,

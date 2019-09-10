@@ -13,6 +13,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -89,8 +90,15 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		lh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := config.MFAConfiguration{
+			Enforcement: config.MFAEnforcementOff,
+		}
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider)
 		lh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
 			timeProvider,
+			mfaProvider,
 			authInfoStore,
 			sessionProvider,
 			sessionWriter,
@@ -421,8 +429,15 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		lh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := config.MFAConfiguration{
+			Enforcement: config.MFAEnforcementOff,
+		}
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider)
 		lh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
 			timeProvider,
+			mfaProvider,
 			authInfoStore,
 			sessionProvider,
 			sessionWriter,

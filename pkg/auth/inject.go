@@ -188,6 +188,19 @@ func (m DependencyMap) Provide(
 		return session.NewWriter(newAuthContext(), tConfig.UserConfig.Clients, m.UseInsecureCookie)
 	}
 
+	newMFAProvider := func() mfa.Provider {
+		return mfa.NewProvider(
+			mfaPQ.NewStore(
+				tConfig.UserConfig.MFA,
+				newSQLBuilder(),
+				newSQLExecutor(),
+				newTimeProvider(),
+			),
+			tConfig.UserConfig.MFA,
+			newTimeProvider(),
+		)
+	}
+
 	switch dependencyName {
 	case "AuthContextGetter":
 		return newAuthContext()
@@ -202,22 +215,14 @@ func (m DependencyMap) Provide(
 	case "SessionWriter":
 		return newSessionWriter()
 	case "MFAProvider":
-		return mfa.NewProvider(
-			mfaPQ.NewStore(
-				tConfig.UserConfig.MFA,
-				newSQLBuilder(),
-				newSQLExecutor(),
-				newTimeProvider(),
-			),
-			tConfig.UserConfig.MFA,
-			newTimeProvider(),
-		)
+		return newMFAProvider()
 	case "AuthnSessionProvider":
 		return authnsession.NewProvider(
 			newAuthContext(),
 			tConfig.UserConfig.MFA,
 			tConfig.UserConfig.Auth.AuthenticationSession,
 			newTimeProvider(),
+			newMFAProvider(),
 			newAuthInfoStore(),
 			newSessionProvider(),
 			newSessionWriter(),

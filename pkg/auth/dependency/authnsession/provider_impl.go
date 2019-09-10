@@ -8,6 +8,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -21,6 +22,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
+
+var ErrUnknownMFAEnforcement = errors.New("unknown MFA enforcement")
+var ErrUnknownClaims = errors.New("unknown claims")
+var ErrInvalidToken = errors.New("invalid token")
 
 type Claims struct {
 	jwt.StandardClaims
@@ -41,10 +46,10 @@ func ParseAuthnSessionToken(secret string, tokenString string) (*Claims, error) 
 	}
 	claims, ok := t.Claims.(*Claims)
 	if !ok {
-		return nil, errors.New("unknown claims")
+		return nil, ErrUnknownClaims
 	}
 	if !t.Valid {
-		return nil, errors.New("invalid token")
+		return nil, ErrInvalidToken
 	}
 	return claims, nil
 }
@@ -54,6 +59,7 @@ type providerImpl struct {
 	mfaConfiguration                   config.MFAConfiguration
 	authenticationSessionConfiguration config.AuthenticationSessionConfiguration
 	timeProvider                       time.Provider
+	mfaProvider                        mfa.Provider
 	authInfoStore                      authinfo.Store
 	sessionProvider                    session.Provider
 	sessionWriter                      session.Writer
@@ -67,6 +73,7 @@ func NewProvider(
 	mfaConfiguration config.MFAConfiguration,
 	authenticationSessionConfiguration config.AuthenticationSessionConfiguration,
 	timeProvider time.Provider,
+	mfaProvider mfa.Provider,
 	authInfoStore authinfo.Store,
 	sessionProvider session.Provider,
 	sessionWriter session.Writer,
@@ -79,6 +86,7 @@ func NewProvider(
 		mfaConfiguration:                   mfaConfiguration,
 		authenticationSessionConfiguration: authenticationSessionConfiguration,
 		timeProvider:                       timeProvider,
+		mfaProvider:                        mfaProvider,
 		authInfoStore:                      authInfoStore,
 		sessionProvider:                    sessionProvider,
 		sessionWriter:                      sessionWriter,
@@ -107,24 +115,44 @@ func (p *providerImpl) NewWithToken(token string) (*auth.AuthnSession, error) {
 	return &claims.AuthnSession, nil
 }
 
-func (p *providerImpl) getRequiredSteps() []auth.AuthnSessionStep {
-	// TODO: Check MFA enforcement
-	return []auth.AuthnSessionStep{auth.AuthnSessionStepIdentity}
+func (p *providerImpl) getRequiredSteps(userID string) ([]auth.AuthnSessionStep, error) {
+	steps := []auth.AuthnSessionStep{auth.AuthnSessionStepIdentity}
+	enforcement := p.mfaConfiguration.Enforcement
+	switch enforcement {
+	case config.MFAEnforcementOptional:
+		authenticators, err := p.mfaProvider.ListAuthenticators(userID)
+		if err != nil {
+			return nil, err
+		}
+		if len(authenticators) > 0 {
+			steps = append(steps, auth.AuthnSessionStepMFA)
+		}
+	case config.MFAEnforcementRequired:
+		steps = append(steps, auth.AuthnSessionStepMFA)
+	case config.MFAEnforcementOff:
+		break
+	default:
+		return nil, ErrUnknownMFAEnforcement
+	}
+	return steps, nil
 }
 
-func (p *providerImpl) NewFromScratch(userID string, principalID string, reason event.SessionCreateReason) auth.AuthnSession {
+func (p *providerImpl) NewFromScratch(userID string, principalID string, reason event.SessionCreateReason) (*auth.AuthnSession, error) {
 	clientID := p.authContextGetter.AccessKey().ClientID
-	requiredSteps := p.getRequiredSteps()
+	requiredSteps, err := p.getRequiredSteps(userID)
+	if err != nil {
+		return nil, err
+	}
 	// Identity is considered finished here.
 	finishedSteps := requiredSteps[:1]
-	return auth.AuthnSession{
+	return &auth.AuthnSession{
 		ClientID:            clientID,
 		UserID:              userID,
 		PrincipalID:         principalID,
 		RequiredSteps:       requiredSteps,
 		FinishedSteps:       finishedSteps,
 		SessionCreateReason: string(reason),
-	}
+	}, nil
 }
 
 func (p *providerImpl) GenerateResponse(authnSess auth.AuthnSession) (interface{}, error) {
@@ -194,6 +222,8 @@ func (p *providerImpl) WriteResponse(w http.ResponseWriter, resp interface{}, er
 		case model.AuthResponse:
 			p.sessionWriter.WriteSession(w, &v.AccessToken)
 			handler.WriteResponse(w, handler.APIResponse{Result: v})
+		case skyerr.Error:
+			handler.WriteResponse(w, handler.APIResponse{Err: v})
 		default:
 			panic("unknown response")
 		}

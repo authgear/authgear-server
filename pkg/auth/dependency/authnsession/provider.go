@@ -12,7 +12,7 @@ type Provider interface {
 	// NewWithToken decodes an authentication session from a token.
 	NewWithToken(token string) (*auth.AuthnSession, error)
 	// NewFromScratch creates a new authentication session.
-	NewFromScratch(userID string, principalID string, reason event.SessionCreateReason) auth.AuthnSession
+	NewFromScratch(userID string, principalID string, reason event.SessionCreateReason) (*auth.AuthnSession, error)
 	// GenerateResponse generates authentication response.
 	GenerateResponse(session auth.AuthnSession) (interface{}, error)
 	// WriteResponse alters the response, write Cookies and write HTTP Body. It should be used in a defer block.

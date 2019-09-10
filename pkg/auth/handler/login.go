@@ -205,8 +205,11 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 		return
 	}
 
-	sess := h.AuthnSessionProvider.NewFromScratch(fetchedAuthInfo.ID, principal.ID, event.SessionCreateReasonLogin)
-	resp, err = h.AuthnSessionProvider.GenerateResponse(sess)
+	sess, err := h.AuthnSessionProvider.NewFromScratch(fetchedAuthInfo.ID, principal.ID, event.SessionCreateReasonLogin)
+	if err != nil {
+		return
+	}
+	resp, err = h.AuthnSessionProvider.GenerateResponse(*sess)
 	if err != nil {
 		return
 	}

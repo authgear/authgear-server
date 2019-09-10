@@ -13,6 +13,7 @@ import (
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -169,8 +170,16 @@ func TestSingupHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := config.MFAConfiguration{
+			Enforcement: config.MFAEnforcementOff,
+		}
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider)
 		sh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
 			timeProvider,
+			mfaProvider,
 			authInfoStore,
 			sessionProvider,
 			sessionWriter,
@@ -182,7 +191,9 @@ func TestSingupHandler(t *testing.T) {
 		Convey("abort if user duplicate with oauth", func() {
 			sh.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider, mockOAuthProvider)
 			sh.AuthnSessionProvider = authnsession.NewMockProvider(
+				mfaConfiguration,
 				timeProvider,
+				mfaProvider,
 				authInfoStore,
 				sessionProvider,
 				sessionWriter,
@@ -218,7 +229,9 @@ func TestSingupHandler(t *testing.T) {
 			}
 			sh.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider, mockOAuthProvider)
 			sh.AuthnSessionProvider = authnsession.NewMockProvider(
+				mfaConfiguration,
 				timeProvider,
+				mfaProvider,
 				authInfoStore,
 				sessionProvider,
 				sessionWriter,
@@ -621,8 +634,16 @@ func TestSingupHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := config.MFAConfiguration{
+			Enforcement: config.MFAEnforcementOff,
+		}
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider)
 		sh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
 			timeProvider,
+			mfaProvider,
 			authInfoStore,
 			sessionProvider,
 			sessionWriter,

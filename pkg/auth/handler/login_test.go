@@ -10,6 +10,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -148,8 +149,15 @@ func TestLoginHandler(t *testing.T) {
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		h.HookProvider = hookProvider
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := config.MFAConfiguration{
+			Enforcement: config.MFAEnforcementOff,
+		}
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider)
 		h.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
 			timeProvider,
+			mfaProvider,
 			authInfoStore,
 			sessionProvider,
 			sessionWriter,
@@ -320,8 +328,15 @@ func TestLoginHandler(t *testing.T) {
 		sessionWriter := session.NewMockWriter()
 		userProfileStore := userprofile.NewMockUserProfileStoreByData(profileData)
 		lh.TxContext = db.NewMockTxContext()
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := config.MFAConfiguration{
+			Enforcement: config.MFAEnforcementOff,
+		}
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider)
 		lh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
 			timeProvider,
+			mfaProvider,
 			authInfoStore,
 			sessionProvider,
 			sessionWriter,

@@ -13,6 +13,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -149,8 +150,15 @@ func TestAuthHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := coreconfig.MFAConfiguration{
+			Enforcement: coreconfig.MFAEnforcementOff,
+		}
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider)
 		sh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
 			timeProvider,
+			mfaProvider,
 			authInfoStore,
 			sessionProvider,
 			sessionWriter,
@@ -410,8 +418,15 @@ func TestAuthHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := coreconfig.MFAConfiguration{
+			Enforcement: coreconfig.MFAEnforcementOff,
+		}
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider)
 		sh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
 			timeProvider,
+			mfaProvider,
 			authInfoStore,
 			sessionProvider,
 			sessionWriter,
@@ -619,8 +634,15 @@ func TestAuthHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := coreconfig.MFAConfiguration{
+			Enforcement: coreconfig.MFAEnforcementOff,
+		}
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider)
 		sh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
 			timeProvider,
+			mfaProvider,
 			authInfoStore,
 			sessionProvider,
 			sessionWriter,
