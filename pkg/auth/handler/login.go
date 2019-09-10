@@ -209,22 +209,8 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 	if err != nil {
 		return
 	}
-	resp, err = h.AuthnSessionProvider.GenerateResponse(*sess)
+	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
 	if err != nil {
-		return
-	}
-
-	// Reload auth info, in case before hook handler mutated it
-	if err = h.AuthInfoStore.GetAuth(principal.UserID, &fetchedAuthInfo); err != nil {
-		return
-	}
-
-	// Update the activity time of user (return old activity time for usefulness)
-	now := timeNow()
-	fetchedAuthInfo.LastLoginAt = &now
-	fetchedAuthInfo.LastSeenAt = &now
-	if err = h.AuthInfoStore.UpdateAuth(&fetchedAuthInfo); err != nil {
-		err = skyerr.MakeError(err)
 		return
 	}
 

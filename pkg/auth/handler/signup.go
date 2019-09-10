@@ -307,15 +307,8 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, e
 	if err != nil {
 		return
 	}
-	resp, err = h.AuthnSessionProvider.GenerateResponse(*sess)
+	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
 	if err != nil {
-		return
-	}
-
-	// Populate the activity time to user
-	info.LastSeenAt = &now
-	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
-		err = skyerr.MakeError(err)
 		return
 	}
 

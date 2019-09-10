@@ -155,7 +155,7 @@ func (p *providerImpl) NewFromScratch(userID string, principalID string, reason 
 	}, nil
 }
 
-func (p *providerImpl) GenerateResponse(authnSess auth.AuthnSession) (interface{}, error) {
+func (p *providerImpl) GenerateResponseAndUpdateLastLoginAt(authnSess auth.AuthnSession) (interface{}, error) {
 	step, ok := authnSess.NextStep()
 	if !ok {
 		var authInfo authinfo.AuthInfo
@@ -197,6 +197,22 @@ func (p *providerImpl) GenerateResponse(authnSess auth.AuthnSession) (interface{
 		}
 
 		resp := model.NewAuthResponse(user, identity, sess)
+
+		// Refetch the authInfo
+		err = p.authInfoStore.GetAuth(authnSess.UserID, &authInfo)
+		if err != nil {
+			return nil, err
+		}
+
+		// Update LastLoginAt and LastSeenAt
+		now := p.timeProvider.NowUTC()
+		authInfo.LastLoginAt = &now
+		authInfo.LastSeenAt = &now
+		err = p.authInfoStore.UpdateAuth(&authInfo)
+		if err != nil {
+			return nil, err
+		}
+
 		return resp, nil
 	}
 	now := p.timeProvider.NowUTC()

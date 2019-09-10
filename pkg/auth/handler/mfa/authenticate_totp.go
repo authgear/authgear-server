@@ -150,12 +150,10 @@ func (h *AuthenticateTOTPHandler) Handle(req interface{}) (resp interface{}, err
 		return
 	}
 
-	resp, err = h.AuthnSessionProvider.GenerateResponse(*authnSess)
+	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*authnSess)
 	if err != nil {
 		return
 	}
-
-	// TODO(mfa): Update lastLoginAt and lastSeenAt. Centralize this in AuthnSessionProvider
 
 	return
 }
