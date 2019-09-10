@@ -1,5 +1,9 @@
 package auth
 
+import (
+	"fmt"
+)
+
 type AuthnSessionStep string
 
 const (
@@ -35,12 +39,16 @@ func (a *AuthnSession) NextStep() (AuthnSessionStep, bool) {
 	return a.RequiredSteps[len(a.FinishedSteps)], true
 }
 
-func (a *AuthnSession) StepForward() {
+func (a *AuthnSession) StepMFA(authenticatorID string, authenticatorType AuthenticatorType, channel AuthenticatorOOBChannel) error {
 	step, ok := a.NextStep()
-	if !ok {
-		return
+	if !ok || step != AuthnSessionStepMFA {
+		return fmt.Errorf("expected step to be mfa")
 	}
+	a.AuthenticatorID = authenticatorID
+	a.AuthenticatorType = authenticatorType
+	a.AuthenticatorOOBChannel = channel
 	a.FinishedSteps = append(a.FinishedSteps, step)
+	return nil
 }
 
 func (a *AuthnSession) Session() Session {

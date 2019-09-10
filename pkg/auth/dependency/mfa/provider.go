@@ -16,6 +16,8 @@ type Provider interface {
 	// ActivateTOTP activates TOTP authenticator. If this is the first authenticator,
 	// a list of recovery codes are generated and returned.
 	ActivateTOTP(userID string, id string, code string) ([]string, error)
+	// AuthenticateTOTP authenticates the user with the given code.
+	AuthenticateTOTP(userID string, code string) (*TOTPAuthenticator, error)
 
 	// DeleteTOTP deletes authenticator.
 	// It this is the last authenticator,

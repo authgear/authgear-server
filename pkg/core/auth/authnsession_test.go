@@ -57,25 +57,20 @@ func TestAuthnSession(t *testing.T) {
 			_, ok = a.NextStep()
 			So(ok, ShouldBeFalse)
 		})
-		Convey("StepForward", func() {
+		Convey("StepMFA", func() {
 			a := AuthnSession{}
+			step := func() error {
+				return a.StepMFA("authenticator", AuthenticatorTypeTOTP, "")
+			}
+
+			So(step(), ShouldBeError, "expected step to be mfa")
 
 			a.RequiredSteps = []AuthnSessionStep{"identity"}
-			So(a.FinishedSteps, ShouldBeEmpty)
-			a.StepForward()
-			So(a.FinishedSteps, ShouldResemble, []AuthnSessionStep{"identity"})
-			a.StepForward()
-			So(a.FinishedSteps, ShouldResemble, []AuthnSessionStep{"identity"})
+			So(step(), ShouldBeError, "expected step to be mfa")
 
 			a.RequiredSteps = []AuthnSessionStep{"identity", "mfa"}
-			a.FinishedSteps = nil
-			So(a.FinishedSteps, ShouldBeEmpty)
-			a.StepForward()
-			So(a.FinishedSteps, ShouldResemble, []AuthnSessionStep{"identity"})
-			a.StepForward()
-			So(a.FinishedSteps, ShouldResemble, []AuthnSessionStep{"identity", "mfa"})
-			a.StepForward()
-			So(a.FinishedSteps, ShouldResemble, []AuthnSessionStep{"identity", "mfa"})
+			a.FinishedSteps = []AuthnSessionStep{"identity"}
+			So(step(), ShouldBeNil)
 		})
 		Convey("Session", func() {
 			a := AuthnSession{

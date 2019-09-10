@@ -184,6 +184,7 @@ func main() {
 	mfaHandler.AttachCreateTOTPHandler(&srv, authDependency)
 	mfaHandler.AttachActivateTOTPHandler(&srv, authDependency)
 	mfaHandler.AttachDeleteAuthenticatorHandler(&srv, authDependency)
+	mfaHandler.AttachAuthenticateTOTPHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

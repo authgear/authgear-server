@@ -126,6 +126,32 @@ func (p *providerImpl) ActivateTOTP(userID string, id string, code string) ([]st
 	return nil, nil
 }
 
+func (p *providerImpl) AuthenticateTOTP(userID string, code string) (*TOTPAuthenticator, error) {
+	authenticators, err := p.store.ListAuthenticators(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	now := p.timeProvider.NowUTC()
+	for _, iface := range authenticators {
+		switch a := iface.(type) {
+		case TOTPAuthenticator:
+			ok, err := ValidateTOTP(a.Secret, code, now)
+			if err != nil {
+				return nil, err
+			}
+			if ok {
+				aa := a
+				return &aa, nil
+			}
+		default:
+			break
+		}
+	}
+
+	return nil, skyerr.NewError(skyerr.BadRequest, "invalid OTP")
+}
+
 func (p *providerImpl) DeleteAuthenticator(userID string, id string) error {
 	// TODO: Delete OOB
 	// TODO: Delete associated bearer token first
