@@ -7,6 +7,9 @@ type Provider interface {
 	// GenerateRecoveryCode generates a new set of recovery codes and return it.
 	GenerateRecoveryCode(userID string) ([]string, error)
 
+	// DeleteAllBearerToken deletes all bearer token of the given user.
+	DeleteAllBearerToken(userID string) error
+
 	// ListAuthenticators returns a list of authenticators.
 	// Either MaskedTOTPAuthenticator or MaskedOOBAuthenticator.
 	ListAuthenticators(userID string) ([]interface{}, error)

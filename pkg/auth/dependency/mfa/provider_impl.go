@@ -47,6 +47,10 @@ func (p *providerImpl) GenerateRecoveryCode(userID string) ([]string, error) {
 	return codes, nil
 }
 
+func (p *providerImpl) DeleteAllBearerToken(userID string) error {
+	return p.store.DeleteAllBearerToken(userID)
+}
+
 func (p *providerImpl) ListAuthenticators(userID string) ([]interface{}, error) {
 	authenticators, err := p.store.ListAuthenticators(userID)
 	if err != nil {
