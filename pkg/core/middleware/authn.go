@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/model"
+	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
 // AuthnMiddleware populate auth context information
@@ -33,9 +34,12 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var err error
 		defer func() {
-			if err != nil {
-				// clear session if error occurred
+			if err == session.ErrSessionNotFound {
+				// clear session if session is not found
 				m.SessionWriter.ClearSession(w)
+			} else if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
 			}
 
 			next.ServeHTTP(w, r)
@@ -74,6 +78,9 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 		authInfo := authinfo.AuthInfo{}
 		err = m.AuthInfoStore.GetAuth(s.UserID, &authInfo)
 		if err != nil {
+			if err == skydb.ErrUserNotFound {
+				err = session.ErrSessionNotFound
+			}
 			return
 		}
 
