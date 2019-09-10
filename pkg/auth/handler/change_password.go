@@ -139,7 +139,7 @@ func (h ChangePasswordHandler) ServeHTTP(resp http.ResponseWriter, req *http.Req
 		if err == nil {
 			h.HookProvider.DidCommitTx()
 			authResp := result.(model.AuthResponse)
-			h.SessionWriter.WriteSession(resp, &authResp.AccessToken)
+			h.SessionWriter.WriteSession(resp, &authResp.AccessToken, nil)
 			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
 		} else {
 			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
@@ -228,7 +228,7 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 		return
 	}
 
-	resp = model.NewAuthResponse(user, identity, session)
+	resp = model.NewAuthResponse(user, identity, session, "")
 
 	h.AuditTrail.Log(audit.Entry{
 		UserID: authinfo.ID,

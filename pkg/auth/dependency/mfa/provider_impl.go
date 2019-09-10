@@ -159,6 +159,7 @@ func (p *providerImpl) AuthenticateTOTP(userID string, code string, generateBear
 					if err != nil {
 						return nil, "", err
 					}
+					return &aa, token, nil
 				}
 				return &aa, "", nil
 			}

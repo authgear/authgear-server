@@ -23,9 +23,17 @@ type AuthnSession struct {
 	SessionCreateReason string             `json:"session_create_reason"`
 
 	// The following fields are filled in step "mfa"
-	AuthenticatorID         string                  `json:"authenticator_id,omitempty"`
-	AuthenticatorType       AuthenticatorType       `json:"authenticator_type,omitempty"`
-	AuthenticatorOOBChannel AuthenticatorOOBChannel `json:"authenticator_oob_channel,omitempty"`
+	AuthenticatorID          string                  `json:"authenticator_id,omitempty"`
+	AuthenticatorType        AuthenticatorType       `json:"authenticator_type,omitempty"`
+	AuthenticatorOOBChannel  AuthenticatorOOBChannel `json:"authenticator_oob_channel,omitempty"`
+	AuthenticatorBearerToken string                  `json:"authenticator_bearer_token,omitempty"`
+}
+
+type AuthnSessionStepMFAOptions struct {
+	AuthenticatorID          string
+	AuthenticatorType        AuthenticatorType
+	AuthenticatorOOBChannel  AuthenticatorOOBChannel
+	AuthenticatorBearerToken string
 }
 
 func (a *AuthnSession) IsFinished() bool {
@@ -39,14 +47,15 @@ func (a *AuthnSession) NextStep() (AuthnSessionStep, bool) {
 	return a.RequiredSteps[len(a.FinishedSteps)], true
 }
 
-func (a *AuthnSession) StepMFA(authenticatorID string, authenticatorType AuthenticatorType, channel AuthenticatorOOBChannel) error {
+func (a *AuthnSession) StepMFA(opts AuthnSessionStepMFAOptions) error {
 	step, ok := a.NextStep()
 	if !ok || step != AuthnSessionStepMFA {
 		return fmt.Errorf("expected step to be mfa")
 	}
-	a.AuthenticatorID = authenticatorID
-	a.AuthenticatorType = authenticatorType
-	a.AuthenticatorOOBChannel = channel
+	a.AuthenticatorID = opts.AuthenticatorID
+	a.AuthenticatorType = opts.AuthenticatorType
+	a.AuthenticatorOOBChannel = opts.AuthenticatorOOBChannel
+	a.AuthenticatorBearerToken = opts.AuthenticatorBearerToken
 	a.FinishedSteps = append(a.FinishedSteps, step)
 	return nil
 }

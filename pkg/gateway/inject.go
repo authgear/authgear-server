@@ -47,6 +47,7 @@ func (m DependencyMap) Provide(
 		return session.NewWriter(
 			auth.NewContextGetterWithContext(ctx),
 			tConfig.UserConfig.Clients,
+			tConfig.UserConfig.MFA,
 			m.UseInsecureCookie,
 		)
 	case "AuthInfoStore":

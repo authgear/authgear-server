@@ -60,7 +60,10 @@ func TestAuthnSession(t *testing.T) {
 		Convey("StepMFA", func() {
 			a := AuthnSession{}
 			step := func() error {
-				return a.StepMFA("authenticator", AuthenticatorTypeTOTP, "")
+				return a.StepMFA(AuthnSessionStepMFAOptions{
+					AuthenticatorID:   "authenticator",
+					AuthenticatorType: AuthenticatorTypeTOTP,
+				})
 			}
 
 			So(step(), ShouldBeError, "expected step to be mfa")

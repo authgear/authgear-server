@@ -13,7 +13,7 @@ func NewMockWriter() *MockWriter {
 
 var _ Writer = &MockWriter{}
 
-func (w *MockWriter) WriteSession(rw http.ResponseWriter, accessToken *string) {
+func (w *MockWriter) WriteSession(rw http.ResponseWriter, accessToken *string, mfaBearerToken *string) {
 }
 
 func (w *MockWriter) ClearSession(rw http.ResponseWriter) {

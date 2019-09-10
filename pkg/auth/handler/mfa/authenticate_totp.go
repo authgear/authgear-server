@@ -139,13 +139,16 @@ func (h *AuthenticateTOTPHandler) Handle(req interface{}) (resp interface{}, err
 		return
 	}
 
-	// TODO(mfa): Include bearer token in auth response
-	a, _, err := h.MFAProvider.AuthenticateTOTP(authnSess.UserID, payload.OTP, payload.RequestBearerToken)
+	a, bearerToken, err := h.MFAProvider.AuthenticateTOTP(authnSess.UserID, payload.OTP, payload.RequestBearerToken)
 	if err != nil {
 		return
 	}
 
-	err = authnSess.StepMFA(a.ID, a.Type, "")
+	err = authnSess.StepMFA(coreAuth.AuthnSessionStepMFAOptions{
+		AuthenticatorID:          a.ID,
+		AuthenticatorType:        a.Type,
+		AuthenticatorBearerToken: bearerToken,
+	})
 	if err != nil {
 		return
 	}

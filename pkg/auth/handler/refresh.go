@@ -117,7 +117,7 @@ func (h RefreshHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if err == nil {
 			refreshResp := result.(RefreshResponse)
-			h.SessionWriter.WriteSession(resp, &refreshResp.AccessToken)
+			h.SessionWriter.WriteSession(resp, &refreshResp.AccessToken, nil)
 			handler.WriteResponse(resp, handler.APIResponse{Result: refreshResp})
 		} else {
 			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})

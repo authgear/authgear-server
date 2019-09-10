@@ -185,7 +185,12 @@ func (m DependencyMap) Provide(
 	}
 
 	newSessionWriter := func() session.Writer {
-		return session.NewWriter(newAuthContext(), tConfig.UserConfig.Clients, m.UseInsecureCookie)
+		return session.NewWriter(
+			newAuthContext(),
+			tConfig.UserConfig.Clients,
+			tConfig.UserConfig.MFA,
+			m.UseInsecureCookie,
+		)
 	}
 
 	newMFAProvider := func() mfa.Provider {
