@@ -11,6 +11,8 @@ type Provider interface {
 
 	// DeleteAllBearerToken deletes all bearer token of the given user.
 	DeleteAllBearerToken(userID string) error
+	// AuthenticateBearerToken authenticates the user with the given bearer token.
+	AuthenticateBearerToken(userID string, token string) (*BearerTokenAuthenticator, error)
 
 	// ListAuthenticators returns a list of authenticators.
 	// Either MaskedTOTPAuthenticator or MaskedOOBAuthenticator.

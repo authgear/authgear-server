@@ -236,7 +236,12 @@ func (p *providerImpl) WriteResponse(w http.ResponseWriter, resp interface{}, er
 	if err == nil {
 		switch v := resp.(type) {
 		case model.AuthResponse:
-			p.sessionWriter.WriteSession(w, &v.AccessToken, &v.MFABearerToken)
+			// Do not touch the cookie if it is not in the response.
+			if v.MFABearerToken == "" {
+				p.sessionWriter.WriteSession(w, &v.AccessToken, nil)
+			} else {
+				p.sessionWriter.WriteSession(w, &v.AccessToken, &v.MFABearerToken)
+			}
 			handler.WriteResponse(w, handler.APIResponse{Result: v})
 		case skyerr.Error:
 			handler.WriteResponse(w, handler.APIResponse{Err: v})
@@ -250,7 +255,12 @@ func (p *providerImpl) WriteResponse(w http.ResponseWriter, resp interface{}, er
 
 func (p *providerImpl) AlterResponse(w http.ResponseWriter, resp interface{}, err error) interface{} {
 	if v, ok := resp.(model.AuthResponse); ok && err == nil {
-		p.sessionWriter.WriteSession(w, &v.AccessToken, &v.MFABearerToken)
+		// Do not touch the cookie if it is not in the response.
+		if v.MFABearerToken == "" {
+			p.sessionWriter.WriteSession(w, &v.AccessToken, nil)
+		} else {
+			p.sessionWriter.WriteSession(w, &v.AccessToken, &v.MFABearerToken)
+		}
 		return v
 	}
 	return resp

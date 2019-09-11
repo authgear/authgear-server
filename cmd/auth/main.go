@@ -187,6 +187,7 @@ func main() {
 	mfaHandler.AttachAuthenticateTOTPHandler(&srv, authDependency)
 	mfaHandler.AttachRevokeAllBearerTokenHandler(&srv, authDependency)
 	mfaHandler.AttachAuthenticateRecoveryCodeHandler(&srv, authDependency)
+	mfaHandler.AttachAuthenticateBearerTokenHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

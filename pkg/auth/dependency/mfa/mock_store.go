@@ -92,6 +92,17 @@ func (s *MockStore) CreateBearerToken(a *BearerTokenAuthenticator) error {
 	return nil
 }
 
+func (s *MockStore) GetBearerTokenByToken(userID string, token string) (*BearerTokenAuthenticator, error) {
+	bt := s.BearerToken[userID]
+	for _, a := range bt {
+		if a.Token == token {
+			aa := a
+			return &aa, nil
+		}
+	}
+	return nil, ErrAuthenticatorNotFound
+}
+
 func (s *MockStore) ListAuthenticators(userID string) ([]interface{}, error) {
 	totp := s.TOTP[userID]
 	oob := s.OOB[userID]

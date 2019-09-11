@@ -322,6 +322,45 @@ func (s *storeImpl) CreateBearerToken(a *mfa.BearerTokenAuthenticator) error {
 	return nil
 }
 
+func (s *storeImpl) GetBearerTokenByToken(userID string, token string) (*mfa.BearerTokenAuthenticator, error) {
+	q1 := s.sqlBuilder.Tenant().
+		Select(
+			"a.id",
+			"a.user_id",
+			"a.type",
+			"abt.parent_id",
+			"abt.token",
+			"abt.created_at",
+			"abt.expire_at",
+		).
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator_bearer_token"),
+			"abt",
+			"a.id = abt.id",
+		).
+		Where("a.user_id = ? AND abt.token = ?", userID, token)
+
+	row := s.sqlExecutor.QueryRowWith(q1)
+	var a mfa.BearerTokenAuthenticator
+	err := row.Scan(
+		&a.ID,
+		&a.UserID,
+		&a.Type,
+		&a.ParentID,
+		&a.Token,
+		&a.CreatedAt,
+		&a.ExpireAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = mfa.ErrAuthenticatorNotFound
+		}
+		return nil, err
+	}
+	return &a, nil
+}
+
 func (s *storeImpl) ListAuthenticators(userID string) ([]interface{}, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(

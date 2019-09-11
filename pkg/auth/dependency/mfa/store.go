@@ -24,6 +24,8 @@ type Store interface {
 	DeleteAllBearerToken(userID string) error
 	// CreateBearerToken creates Bearer Token authenticator.
 	CreateBearerToken(a *BearerTokenAuthenticator) error
+	// GetBearerTokenByToken gets bearer token authenticator by token.
+	GetBearerTokenByToken(userID string, token string) (*BearerTokenAuthenticator, error)
 
 	// ListAuthenticators returns a list of authenticators.
 	// Either TOTPAuthenticator or OOBAuthenticator.

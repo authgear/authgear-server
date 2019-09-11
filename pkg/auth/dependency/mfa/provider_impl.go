@@ -13,6 +13,7 @@ import (
 )
 
 var ErrInvalidRecoveryCode = errors.New("invalid recovery code")
+var ErrInvalidBearerToken = errors.New("invalid bearer token")
 
 type providerImpl struct {
 	store            Store
@@ -83,6 +84,21 @@ func (p *providerImpl) AuthenticateRecoveryCode(userID string, code string) (*Re
 
 func (p *providerImpl) DeleteAllBearerToken(userID string) error {
 	return p.store.DeleteAllBearerToken(userID)
+}
+
+func (p *providerImpl) AuthenticateBearerToken(userID string, token string) (*BearerTokenAuthenticator, error) {
+	a, err := p.store.GetBearerTokenByToken(userID, token)
+	if err != nil {
+		if err == ErrAuthenticatorNotFound {
+			err = ErrInvalidBearerToken
+		}
+		return nil, err
+	}
+	now := p.timeProvider.NowUTC()
+	if now.After(a.ExpireAt) {
+		return nil, ErrInvalidBearerToken
+	}
+	return a, nil
 }
 
 func (p *providerImpl) ListAuthenticators(userID string) ([]interface{}, error) {
