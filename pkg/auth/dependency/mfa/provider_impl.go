@@ -1,13 +1,18 @@
 package mfa
 
 import (
+	"crypto/subtle"
+	"errors"
+	gotime "time"
+
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
-	gotime "time"
 )
+
+var ErrInvalidRecoveryCode = errors.New("invalid recovery code")
 
 type providerImpl struct {
 	store            Store
@@ -45,6 +50,35 @@ func (p *providerImpl) GenerateRecoveryCode(userID string) ([]string, error) {
 		codes[i] = a.Code
 	}
 	return codes, nil
+}
+
+func (p *providerImpl) AuthenticateRecoveryCode(userID string, code string) (*RecoveryCodeAuthenticator, error) {
+	recoveryCodes, err := p.store.GetRecoveryCode(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, recoveryCode := range recoveryCodes {
+		if recoveryCode.Consumed {
+			continue
+		}
+		eq := subtle.ConstantTimeCompare([]byte(code), []byte(recoveryCode.Code)) == 1
+		if !eq {
+			continue
+		}
+
+		a := recoveryCode
+		a.Consumed = true
+
+		err = p.store.UpdateRecoveryCode(&a)
+		if err != nil {
+			return nil, err
+		}
+
+		return &a, nil
+	}
+
+	return nil, ErrInvalidRecoveryCode
 }
 
 func (p *providerImpl) DeleteAllBearerToken(userID string) error {

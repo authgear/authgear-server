@@ -6,6 +6,8 @@ type Provider interface {
 	GetRecoveryCode(userID string) ([]string, error)
 	// GenerateRecoveryCode generates a new set of recovery codes and return it.
 	GenerateRecoveryCode(userID string) ([]string, error)
+	// AuthenticateRecoveryCode authenticates the user with the given code.
+	AuthenticateRecoveryCode(userID string, code string) (*RecoveryCodeAuthenticator, error)
 
 	// DeleteAllBearerToken deletes all bearer token of the given user.
 	DeleteAllBearerToken(userID string) error

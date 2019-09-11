@@ -52,6 +52,17 @@ func (s *MockStore) DeleteRecoveryCode(userID string) error {
 	return nil
 }
 
+func (s *MockStore) UpdateRecoveryCode(a *RecoveryCodeAuthenticator) error {
+	recoveryCode := s.RecoveryCode[a.UserID]
+	for i, b := range recoveryCode {
+		if b.ID == a.ID {
+			recoveryCode[i] = *a
+			return nil
+		}
+	}
+	return ErrAuthenticatorNotFound
+}
+
 func (s *MockStore) DeleteBearerTokenByParentID(userID string, parentID string) error {
 	bt := s.BearerToken[userID]
 	var newBT []BearerTokenAuthenticator

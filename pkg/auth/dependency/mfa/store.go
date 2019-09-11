@@ -15,6 +15,8 @@ type Store interface {
 	GenerateRecoveryCode(userID string) ([]RecoveryCodeAuthenticator, error)
 	// DeleteRecoveryCode deletes recovery codes.
 	DeleteRecoveryCode(userID string) error
+	// UpdateRecoveryCode updates recovery code authenticator.
+	UpdateRecoveryCode(a *RecoveryCodeAuthenticator) error
 
 	// DeleteBearerToken deletes bearer token of the given parent authenticator.
 	DeleteBearerTokenByParentID(userID string, parentID string) error

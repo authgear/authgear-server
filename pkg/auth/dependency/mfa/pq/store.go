@@ -188,6 +188,18 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthe
 	return output, nil
 }
 
+func (s *storeImpl) UpdateRecoveryCode(a *mfa.RecoveryCodeAuthenticator) error {
+	q1 := s.sqlBuilder.Tenant().
+		Update(s.sqlBuilder.FullTableName("authenticator_recovery_code")).
+		Set("consumed", a.Consumed).
+		Where("id = ?", a.ID)
+	_, err := s.sqlExecutor.ExecWith(q1)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
 func (s *storeImpl) DeleteAllBearerToken(userID string) error {
 	q1 := s.sqlBuilder.Tenant().
 		Select("a.id").
