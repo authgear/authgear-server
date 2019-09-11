@@ -226,18 +226,26 @@ func (p *providerImpl) AuthenticateTOTP(userID string, code string, generateBear
 }
 
 func (p *providerImpl) DeleteAuthenticator(userID string, id string) error {
-	// TODO: Delete OOB
-	a, err := p.store.GetTOTP(userID, id)
+	totp, err := p.store.GetTOTP(userID, id)
+	if err == nil {
+		return p.DeleteTOTPAuthenticator(totp)
+	}
+
+	oob, err := p.store.GetOOB(userID, id)
+	if err == nil {
+		return p.DeleteOOBAuthenticator(oob)
+	}
+
+	return nil
+}
+
+func (p *providerImpl) DeleteTOTPAuthenticator(a *TOTPAuthenticator) error {
+	authenticators, err := p.store.ListAuthenticators(a.UserID)
 	if err != nil {
 		return err
 	}
 
-	authenticators, err := p.store.ListAuthenticators(userID)
-	if err != nil {
-		return err
-	}
-
-	err = p.store.DeleteBearerTokenByParentID(userID, a.ID)
+	err = p.store.DeleteBearerTokenByParentID(a.UserID, a.ID)
 	if err != nil {
 		return err
 	}
@@ -249,7 +257,34 @@ func (p *providerImpl) DeleteAuthenticator(userID string, id string) error {
 
 	deletingLastActivated := IsDeletingLastActivatedAuthenticator(authenticators, *a)
 	if deletingLastActivated {
-		err = p.store.DeleteRecoveryCode(userID)
+		err = p.store.DeleteRecoveryCode(a.UserID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (p *providerImpl) DeleteOOBAuthenticator(a *OOBAuthenticator) error {
+	authenticators, err := p.store.ListAuthenticators(a.UserID)
+	if err != nil {
+		return err
+	}
+
+	err = p.store.DeleteBearerTokenByParentID(a.UserID, a.ID)
+	if err != nil {
+		return err
+	}
+
+	err = p.store.DeleteOOB(a)
+	if err != nil {
+		return err
+	}
+
+	deletingLastActivated := IsDeletingLastActivatedAuthenticator(authenticators, *a)
+	if deletingLastActivated {
+		err = p.store.DeleteRecoveryCode(a.UserID)
 		if err != nil {
 			return err
 		}
