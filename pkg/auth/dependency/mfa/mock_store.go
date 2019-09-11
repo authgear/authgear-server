@@ -2,6 +2,7 @@ package mfa
 
 import (
 	"fmt"
+	gotime "time"
 
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -13,6 +14,7 @@ type MockStore struct {
 	TOTP         map[string][]TOTPAuthenticator
 	OOB          map[string][]OOBAuthenticator
 	BearerToken  map[string][]BearerTokenAuthenticator
+	OOBCode      map[string][]OOBCode
 }
 
 func NewMockStore(timeProvider time.Provider) Store {
@@ -22,6 +24,7 @@ func NewMockStore(timeProvider time.Provider) Store {
 		TOTP:         map[string][]TOTPAuthenticator{},
 		OOB:          map[string][]OOBAuthenticator{},
 		BearerToken:  map[string][]BearerTokenAuthenticator{},
+		OOBCode:      map[string][]OOBCode{},
 	}
 }
 
@@ -209,6 +212,42 @@ func (s *MockStore) DeleteOOB(a *OOBAuthenticator) error {
 		newOOB = append(newOOB, b)
 	}
 	s.OOB[a.UserID] = newOOB
+	return nil
+}
+
+func (s *MockStore) GetValidOOBCode(userID string, t gotime.Time) ([]OOBCode, error) {
+	oobCode := s.OOBCode[userID]
+	var output []OOBCode
+	for _, code := range oobCode {
+		if code.ExpireAt.After(t) {
+			c := code
+			output = append(output, c)
+		}
+	}
+	return output, nil
+}
+
+func (s *MockStore) CreateOOBCode(c *OOBCode) error {
+	oobCode := s.OOBCode[c.UserID]
+	if oobCode == nil {
+		oobCode = []OOBCode{*c}
+	} else {
+		oobCode = append(oobCode, *c)
+	}
+	s.OOBCode[c.UserID] = oobCode
+	return nil
+}
+
+func (s *MockStore) DeleteOOBCode(c *OOBCode) error {
+	oobCode := s.OOBCode[c.UserID]
+	var newOOBCode []OOBCode
+	for _, d := range oobCode {
+		if d.ID == c.ID {
+			continue
+		}
+		newOOBCode = append(newOOBCode, d)
+	}
+	s.OOBCode[c.UserID] = newOOBCode
 	return nil
 }
 

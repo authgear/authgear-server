@@ -1,6 +1,8 @@
 package mfa
 
 import (
+	"time"
+
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -48,4 +50,11 @@ type Store interface {
 	UpdateOOB(a *OOBAuthenticator) error
 	// DeleteOOB deletes OOB authenticator.
 	DeleteOOB(a *OOBAuthenticator) error
+
+	// GetValidOOBCode gets all valid OOB codes.
+	GetValidOOBCode(userID string, t time.Time) ([]OOBCode, error)
+	// CreateOOBCode creates OOB code.
+	CreateOOBCode(c *OOBCode) error
+	// DeleteOOBCode deletes OOB code.
+	DeleteOOBCode(c *OOBCode) error
 }

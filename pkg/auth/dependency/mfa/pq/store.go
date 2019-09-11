@@ -3,6 +3,7 @@ package pq
 import (
 	"database/sql"
 	"github.com/lib/pq"
+	gotime "time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -710,6 +711,84 @@ func (s *storeImpl) DeleteOOB(a *mfa.OOBAuthenticator) error {
 	}
 
 	return err
+}
+
+func (s *storeImpl) GetValidOOBCode(userID string, t gotime.Time) ([]mfa.OOBCode, error) {
+	q1 := s.sqlBuilder.Tenant().
+		Select(
+			"aoc.id",
+			"a.user_id",
+			"aoc.authenticator_id",
+			"aoc.code",
+			"aoc.created_at",
+			"aoc.expire_at",
+		).
+		From(s.sqlBuilder.FullTableName("authenticator_oob_code"), "aoc").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator"),
+			"a",
+			"a.id = aoc.authenticator_id",
+		).
+		Where("a.user_id = ? AND aoc.expire_at > ?", userID, t)
+	rows, err := s.sqlExecutor.QueryWith(q1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var output []mfa.OOBCode
+	for rows.Next() {
+		var a mfa.OOBCode
+		err = rows.Scan(
+			&a.ID,
+			&a.UserID,
+			&a.AuthenticatorID,
+			&a.Code,
+			&a.CreatedAt,
+			&a.ExpireAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		output = append(output, a)
+	}
+
+	return output, nil
+}
+
+func (s *storeImpl) CreateOOBCode(c *mfa.OOBCode) error {
+	q1 := s.sqlBuilder.Tenant().
+		Insert(s.sqlBuilder.FullTableName("authenticator_oob_code")).
+		Columns(
+			"id",
+			"authenticator_id",
+			"code",
+			"created_at",
+			"expire_at",
+		).
+		Values(
+			c.ID,
+			c.AuthenticatorID,
+			c.Code,
+			c.CreatedAt,
+			c.ExpireAt,
+		)
+	_, err := s.sqlExecutor.ExecWith(q1)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *storeImpl) DeleteOOBCode(c *mfa.OOBCode) error {
+	q1 := s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("authenticator_oob_code")).
+		Where("id = ?", c.ID)
+	_, err := s.sqlExecutor.ExecWith(q1)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 var (
