@@ -54,6 +54,28 @@ func (s *storeImpl) scanTOTPAuthenticator(scanner db.Scanner, a *mfa.TOTPAuthent
 	return nil
 }
 
+func (s *storeImpl) scanOOBAuthenticator(scanner db.Scanner, a *mfa.OOBAuthenticator) error {
+	var activatedAt pq.NullTime
+	err := scanner.Scan(
+		&a.ID,
+		&a.UserID,
+		&a.Type,
+		&a.Activated,
+		&a.CreatedAt,
+		&activatedAt,
+		&a.Channel,
+		&a.Phone,
+		&a.Email,
+	)
+	if err != nil {
+		return err
+	}
+	if activatedAt.Valid {
+		a.ActivatedAt = &activatedAt.Time
+	}
+	return nil
+}
+
 func (s *storeImpl) GetRecoveryCode(userID string) (output []mfa.RecoveryCodeAuthenticator, err error) {
 	builder := s.sqlBuilder.Tenant().
 		Select(
@@ -424,23 +446,9 @@ func (s *storeImpl) ListAuthenticators(userID string) ([]interface{}, error) {
 	var oobs []mfa.OOBAuthenticator
 	for rows2.Next() {
 		var a mfa.OOBAuthenticator
-		var activatedAt pq.NullTime
-		err = rows2.Scan(
-			&a.ID,
-			&a.UserID,
-			&a.Type,
-			&a.Activated,
-			&a.CreatedAt,
-			&activatedAt,
-			&a.Channel,
-			&a.Phone,
-			&a.Email,
-		)
+		err = s.scanOOBAuthenticator(rows2, &a)
 		if err != nil {
 			return nil, err
-		}
-		if activatedAt.Valid {
-			a.ActivatedAt = &activatedAt.Time
 		}
 		oobs = append(oobs, a)
 	}
@@ -547,6 +555,132 @@ func (s *storeImpl) UpdateTOTP(a *mfa.TOTPAuthenticator) error {
 func (s *storeImpl) DeleteTOTP(a *mfa.TOTPAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Delete(s.sqlBuilder.FullTableName("authenticator_totp")).
+		Where("id = ?", a.ID)
+	r1, err := s.sqlExecutor.ExecWith(q1)
+	if err != nil {
+		return err
+	}
+	count, err := r1.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return mfa.ErrAuthenticatorNotFound
+	}
+
+	q2 := s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("authenticator")).
+		Where("id = ?", a.ID)
+	r2, err := s.sqlExecutor.ExecWith(q2)
+	if err != nil {
+		return err
+	}
+	count, err = r2.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return mfa.ErrAuthenticatorNotFound
+	}
+
+	return err
+}
+
+func (s *storeImpl) CreateOOB(a *mfa.OOBAuthenticator) error {
+	q1 := s.sqlBuilder.Tenant().
+		Insert(s.sqlBuilder.FullTableName("authenticator")).
+		Columns(
+			"id",
+			"type",
+			"user_id",
+		).
+		Values(
+			a.ID,
+			a.Type,
+			a.UserID,
+		)
+	_, err := s.sqlExecutor.ExecWith(q1)
+	if err != nil {
+		return err
+	}
+
+	q2 := s.sqlBuilder.Tenant().
+		Insert(s.sqlBuilder.FullTableName("authenticator_oob")).
+		Columns(
+			"id",
+			"activated",
+			"created_at",
+			"activated_at",
+			"channel",
+			"phone",
+			"email",
+		).
+		Values(
+			a.ID,
+			a.Activated,
+			a.CreatedAt,
+			a.ActivatedAt,
+			a.Channel,
+			a.Phone,
+			a.Email,
+		)
+	_, err = s.sqlExecutor.ExecWith(q2)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *storeImpl) GetOOB(userID string, id string) (*mfa.OOBAuthenticator, error) {
+	q1 := s.sqlBuilder.Tenant().
+		Select(
+			"a.id",
+			"a.user_id",
+			"a.type",
+			"ao.activated",
+			"ao.created_at",
+			"ao.activated_at",
+			"ao.channel",
+			"ao.phone",
+			"ao.email",
+		).
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator_oob"),
+			"ao",
+			"a.id = ao.id",
+		).
+		Where("a.user_id = ? AND a.id = ?", userID, id)
+
+	row := s.sqlExecutor.QueryRowWith(q1)
+	var a mfa.OOBAuthenticator
+	err := s.scanOOBAuthenticator(row, &a)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = mfa.ErrAuthenticatorNotFound
+		}
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (s *storeImpl) UpdateOOB(a *mfa.OOBAuthenticator) error {
+	q1 := s.sqlBuilder.Tenant().
+		Update(s.sqlBuilder.FullTableName("authenticator_oob")).
+		Set("activated", a.Activated).
+		Set("activated_at", a.ActivatedAt).
+		Where("id = ?", a.ID)
+	_, err := s.sqlExecutor.ExecWith(q1)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func (s *storeImpl) DeleteOOB(a *mfa.OOBAuthenticator) error {
+	q1 := s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("authenticator_oob")).
 		Where("id = ?", a.ID)
 	r1, err := s.sqlExecutor.ExecWith(q1)
 	if err != nil {

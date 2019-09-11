@@ -166,6 +166,52 @@ func (s *MockStore) DeleteTOTP(a *TOTPAuthenticator) error {
 	return nil
 }
 
+func (s *MockStore) CreateOOB(a *OOBAuthenticator) error {
+	oob := s.OOB[a.UserID]
+	if oob == nil {
+		oob = []OOBAuthenticator{*a}
+	} else {
+		oob = append(oob, *a)
+	}
+	s.OOB[a.UserID] = oob
+	return nil
+}
+
+func (s *MockStore) GetOOB(userID string, id string) (*OOBAuthenticator, error) {
+	oob := s.OOB[userID]
+	for _, a := range oob {
+		if a.ID == id {
+			aa := a
+			return &aa, nil
+		}
+	}
+	return nil, ErrAuthenticatorNotFound
+}
+
+func (s *MockStore) UpdateOOB(a *OOBAuthenticator) error {
+	oob := s.OOB[a.UserID]
+	for i, b := range oob {
+		if b.ID == a.ID {
+			oob[i] = *a
+			return nil
+		}
+	}
+	return ErrAuthenticatorNotFound
+}
+
+func (s *MockStore) DeleteOOB(a *OOBAuthenticator) error {
+	oob := s.OOB[a.UserID]
+	var newOOB []OOBAuthenticator
+	for _, b := range oob {
+		if b.ID == a.ID {
+			continue
+		}
+		newOOB = append(newOOB, b)
+	}
+	s.OOB[a.UserID] = newOOB
+	return nil
+}
+
 var (
 	_ Store = &MockStore{}
 )
