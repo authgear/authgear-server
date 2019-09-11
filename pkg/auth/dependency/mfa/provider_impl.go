@@ -293,6 +293,32 @@ func (p *providerImpl) DeleteOOBAuthenticator(a *OOBAuthenticator) error {
 	return nil
 }
 
+func (p *providerImpl) CreateOOB(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
+	now := p.timeProvider.NowUTC()
+	a := OOBAuthenticator{
+		ID:        uuid.New(),
+		UserID:    userID,
+		Type:      coreAuth.AuthenticatorTypeOOB,
+		CreatedAt: now,
+		Channel:   channel,
+		Phone:     phone,
+		Email:     email,
+	}
+	authenticators, err := p.store.ListAuthenticators(a.UserID)
+	if err != nil {
+		return nil, err
+	}
+	ok := CanAddAuthenticator(authenticators, a, p.mfaConfiguration)
+	if !ok {
+		return nil, skyerr.NewError(skyerr.BadRequest, "no more authenticator can be added")
+	}
+	err = p.store.CreateOOB(&a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
 var (
 	_ Provider = &providerImpl{}
 )

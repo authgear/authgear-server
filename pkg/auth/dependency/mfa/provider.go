@@ -1,5 +1,9 @@
 package mfa
 
+import (
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+)
+
 // Provider manipulates authenticators
 type Provider interface {
 	// GetRecoveryCode returns a list of recovery codes.
@@ -26,6 +30,9 @@ type Provider interface {
 	// AuthenticateTOTP authenticates the user with the given code.
 	// If generateBearerToken is true, a bearer token is generated.
 	AuthenticateTOTP(userID string, code string, generateBearerToken bool) (*TOTPAuthenticator, string, error)
+
+	// CreateOOB creates OOB authenticator.
+	CreateOOB(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error)
 
 	// DeleteTOTP deletes authenticator.
 	// It this is the last authenticator,
