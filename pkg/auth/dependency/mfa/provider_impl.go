@@ -316,7 +316,85 @@ func (p *providerImpl) CreateOOB(userID string, channel coreAuth.AuthenticatorOO
 	if err != nil {
 		return nil, err
 	}
+	err = p.TriggerOOB(userID, a.ID)
+	if err != nil {
+		return nil, err
+	}
 	return &a, nil
+}
+
+func (p *providerImpl) TriggerOOB(userID string, id string) (err error) {
+	// Resolve the OOBAuthenticator
+	// If id is given, simply get it by ID
+	// Otherwise, loop through activated authenticators and assert the only one.
+	var a *OOBAuthenticator
+	if id != "" {
+		a, err = p.store.GetOOB(userID, id)
+		if err != nil {
+			return
+		}
+	} else {
+		authenticators, err := p.store.ListAuthenticators(userID)
+		if err != nil {
+			return err
+		}
+		var oob []OOBAuthenticator
+		for _, b := range authenticators {
+			switch v := b.(type) {
+			case OOBAuthenticator:
+				vv := v
+				oob = append(oob, vv)
+			default:
+				break
+			}
+		}
+		if len(oob) != 1 {
+			return skyerr.NewError(skyerr.BadRequest, "must specify authenticator ID")
+		}
+		a = &oob[0]
+	}
+
+	// Find the existing valid code.
+	// If not found, create a new one.
+	now := p.timeProvider.NowUTC()
+	oobCodes, err := p.store.GetValidOOBCode(userID, now)
+	if err != nil {
+		return
+	}
+	var oobCode *OOBCode
+	for _, c := range oobCodes {
+		if c.AuthenticatorID == a.ID {
+			cc := c
+			oobCode = &cc
+			break
+		}
+	}
+	if oobCode == nil {
+		code := GenerateRandomOOBCode()
+		// Assert code is unique
+		for _, c := range oobCodes {
+			if c.Code == code {
+				err = skyerr.NewError(skyerr.UnexpectedError, "cannot generate oob code")
+				return
+			}
+		}
+		oobCode = &OOBCode{
+			ID:              uuid.New(),
+			UserID:          userID,
+			AuthenticatorID: a.ID,
+			Code:            code,
+			CreatedAt:       now,
+			// TODO(mfa): Allow customizing OOB code expiry
+			ExpireAt: now.Add(5 * gotime.Minute),
+		}
+		err = p.store.CreateOOBCode(oobCode)
+		if err != nil {
+			return err
+		}
+	}
+
+	// TODO(mfa): Send the oob code
+	return nil
 }
 
 var (

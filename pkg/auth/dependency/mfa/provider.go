@@ -33,6 +33,9 @@ type Provider interface {
 
 	// CreateOOB creates OOB authenticator.
 	CreateOOB(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error)
+	// TriggerOOB generate OOB Code and delivers it. The argument id is optional when
+	// there is only one activated OOB authenticator.
+	TriggerOOB(userID string, id string) error
 
 	// DeleteTOTP deletes authenticator.
 	// It this is the last authenticator,
