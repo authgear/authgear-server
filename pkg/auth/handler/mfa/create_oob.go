@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -39,17 +40,14 @@ func (f CreateOOBHandlerFactory) NewHandler(request *http.Request) http.Handler 
 }
 
 func (h *CreateOOBHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return policy.AllOf(authz.PolicyFunc(policy.DenyNoAccessKey))
 }
 
 type CreateOOBRequest struct {
-	Channel coreAuth.AuthenticatorOOBChannel `json:"channel"`
-	Phone   string                           `json:"phone"`
-	Email   string                           `json:"email"`
+	Channel           coreAuth.AuthenticatorOOBChannel `json:"channel"`
+	Phone             string                           `json:"phone"`
+	Email             string                           `json:"email"`
+	AuthnSessionToken string                           `json:"authn_session_token"`
 }
 
 func (r CreateOOBRequest) Validate() error {
@@ -77,14 +75,16 @@ const CreateOOBRequestSchema = `
 		{
 			"properties": {
 				"channel": { "const": "sms" },
-				"phone": { "type": "string" }
+				"phone": { "type": "string" },
+				"authn_session_token": { "type": "string" }
 			},
 			"required": ["channel", "phone"]
 		},
 		{
 			"properties": {
 				"channel": { "const": "email" },
-				"email": { "type": "string" }
+				"email": { "type": "string" },
+				"authn_session_token": { "type": "string" }
 			},
 			"required": ["channel", "email"]
 		}
@@ -124,10 +124,11 @@ const CreateOOBResponseSchema = `
 			@JSONSchema {CreateOOBResponse}
 */
 type CreateOOBHandler struct {
-	TxContext        db.TxContext            `dependency:"TxContext"`
-	AuthContext      coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
-	MFAProvider      mfa.Provider            `dependency:"MFAProvider"`
-	MFAConfiguration config.MFAConfiguration `dependency:"MFAConfiguration"`
+	TxContext            db.TxContext            `dependency:"TxContext"`
+	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
+	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
+	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
 }
 
 func (h *CreateOOBHandler) WithTx() bool {
@@ -142,7 +143,12 @@ func (h *CreateOOBHandler) DecodeRequest(request *http.Request) (handler.Request
 
 func (h *CreateOOBHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(CreateOOBRequest)
-	userID := h.AuthContext.AuthInfo().ID
+	userID, err := h.AuthnSessionProvider.ResolveUserID(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveUserIDOptions{
+		MFACase: authnsession.ResolveUserIDMfaCaseOnlyWhenNoAuthenticators,
+	})
+	if err != nil {
+		return nil, err
+	}
 	a, err := h.MFAProvider.CreateOOB(userID, payload.Channel, payload.Phone, payload.Email)
 	if err != nil {
 		return

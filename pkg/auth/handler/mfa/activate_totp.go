@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -37,8 +38,9 @@ func (f ActivateTOTPHandlerFactory) NewHandler(request *http.Request) http.Handl
 }
 
 type ActivateTOTPRequest struct {
-	AuthenticatorID string `json:"authenticator_id"`
-	OTP             string `json:"otp"`
+	AuthenticatorID   string `json:"authenticator_id"`
+	OTP               string `json:"otp"`
+	AuthnSessionToken string `json:"authn_session_token"`
 }
 
 func (r ActivateTOTPRequest) Validate() error {
@@ -62,7 +64,8 @@ const ActivateTOTPRequestSchema = `
 	"type": "object",
 	"properties": {
 		"authenticator_id": { "type": "string" },
-		"otp": { "type": "string" }
+		"otp": { "type": "string" },
+		"authn_session_token": { "type": "string" }
 	}
 	"required": ["authenticator_id", "otp"]
 }
@@ -103,18 +106,15 @@ const ActivateTOTPResponseSchema = `
 			@JSONSchema {ActivateTOTPResponse}
 */
 type ActivateTOTPHandler struct {
-	TxContext        db.TxContext            `dependency:"TxContext"`
-	AuthContext      coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
-	MFAProvider      mfa.Provider            `dependency:"MFAProvider"`
-	MFAConfiguration config.MFAConfiguration `dependency:"MFAConfiguration"`
+	TxContext            db.TxContext            `dependency:"TxContext"`
+	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
+	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
+	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
 }
 
 func (h *ActivateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return policy.AllOf(authz.PolicyFunc(policy.DenyNoAccessKey))
 }
 
 func (h *ActivateTOTPHandler) WithTx() bool {
@@ -129,7 +129,12 @@ func (h *ActivateTOTPHandler) DecodeRequest(request *http.Request) (handler.Requ
 
 func (h *ActivateTOTPHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(ActivateTOTPRequest)
-	userID := h.AuthContext.AuthInfo().ID
+	userID, err := h.AuthnSessionProvider.ResolveUserID(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveUserIDOptions{
+		MFACase: authnsession.ResolveUserIDMfaCaseOnlyWhenNoAuthenticators,
+	})
+	if err != nil {
+		return nil, err
+	}
 	recoveryCodes, err := h.MFAProvider.ActivateTOTP(userID, payload.AuthenticatorID, payload.OTP)
 	if err != nil {
 		return

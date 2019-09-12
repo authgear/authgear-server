@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -36,7 +37,8 @@ func (f TriggerOOBHandlerFactory) NewHandler(request *http.Request) http.Handler
 }
 
 type TriggerOOBRequest struct {
-	AuthenticatorID string `json:"authenticator_id"`
+	AuthenticatorID   string `json:"authenticator_id"`
+	AuthnSessionToken string `json:"authn_session_token"`
 }
 
 func (r TriggerOOBRequest) Validate() error {
@@ -49,7 +51,8 @@ const TriggerOOBRequestSchema = `
 	"$id": "#TriggerOOBRequest",
 	"type": "object",
 	"properties": {
-		"authenticator_id": { "type": "string" }
+		"authenticator_id": { "type": "string" },
+		"authn_session_token": { "type": "string" }
 	}
 }
 `
@@ -66,18 +69,15 @@ const TriggerOOBRequestSchema = `
 		@Response 200 {EmptyResponse}
 */
 type TriggerOOBHandler struct {
-	TxContext        db.TxContext            `dependency:"TxContext"`
-	AuthContext      coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
-	MFAProvider      mfa.Provider            `dependency:"MFAProvider"`
-	MFAConfiguration config.MFAConfiguration `dependency:"MFAConfiguration"`
+	TxContext            db.TxContext            `dependency:"TxContext"`
+	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
+	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
+	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
 }
 
 func (h *TriggerOOBHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return policy.AllOf(authz.PolicyFunc(policy.DenyNoAccessKey))
 }
 
 func (h *TriggerOOBHandler) WithTx() bool {
@@ -92,7 +92,12 @@ func (h *TriggerOOBHandler) DecodeRequest(request *http.Request) (handler.Reques
 
 func (h *TriggerOOBHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(TriggerOOBRequest)
-	userID := h.AuthContext.AuthInfo().ID
+	userID, err := h.AuthnSessionProvider.ResolveUserID(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveUserIDOptions{
+		MFACase: authnsession.ResolveUserIDMFACaseAlwaysAccept,
+	})
+	if err != nil {
+		return nil, err
+	}
 	err = h.MFAProvider.TriggerOOB(userID, payload.AuthenticatorID)
 	if err != nil {
 		return

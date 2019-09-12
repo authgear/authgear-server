@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -33,6 +34,25 @@ func (f ListAuthenticatorHandlerFactory) NewHandler(request *http.Request) http.
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
 }
+
+type ListAuthenticatorRequest struct {
+	AuthnSessionToken string `json:"authn_session_token"`
+}
+
+func (p ListAuthenticatorRequest) Validate() error {
+	return nil
+}
+
+// @JSONSchema
+const ListAuthenticatorRequestSchema = `
+{
+	"$id": "#ListAuthenticatorRequest",
+	"type": "object",
+	"properties": {
+		"authn_session_token": { "type": "string" }
+	}
+}
+`
 
 type ListAuthenticatorResponse struct {
 	Authenticators []interface{} `json:"authenticators"`
@@ -65,22 +85,20 @@ const ListAuthenticatorResponseSchema = `
 		@SecurityRequirement access_key
 		@SecurityRequirement access_token
 
+		@RequestBody {ListAuthenticatorRequest}
 		@Response 200
 			List of recovery codes.
 			@JSONSchema {ListAuthenticatorResponse}
 */
 type ListAuthenticatorHandler struct {
-	TxContext   db.TxContext           `dependency:"TxContext"`
-	AuthContext coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	MFAProvider mfa.Provider           `dependency:"MFAProvider"`
+	TxContext            db.TxContext           `dependency:"TxContext"`
+	AuthContext          coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	MFAProvider          mfa.Provider           `dependency:"MFAProvider"`
+	AuthnSessionProvider authnsession.Provider  `dependency:"AuthnSessionProvider"`
 }
 
 func (h *ListAuthenticatorHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return policy.AllOf(authz.PolicyFunc(policy.DenyNoAccessKey))
 }
 
 func (h *ListAuthenticatorHandler) WithTx() bool {
@@ -88,13 +106,19 @@ func (h *ListAuthenticatorHandler) WithTx() bool {
 }
 
 func (h *ListAuthenticatorHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	payload := handler.EmptyRequestPayload{}
+	payload := ListAuthenticatorRequest{}
 	err := handler.DecodeJSONBody(request, &payload)
 	return payload, err
 }
 
 func (h *ListAuthenticatorHandler) Handle(req interface{}) (resp interface{}, err error) {
-	userID := h.AuthContext.AuthInfo().ID
+	payload := req.(ListAuthenticatorRequest)
+	userID, err := h.AuthnSessionProvider.ResolveUserID(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveUserIDOptions{
+		MFACase: authnsession.ResolveUserIDMFACaseAlwaysAccept,
+	})
+	if err != nil {
+		return nil, err
+	}
 	authenticators, err := h.MFAProvider.ListAuthenticators(userID)
 	if err != nil {
 		return nil, err

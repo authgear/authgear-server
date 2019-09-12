@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -37,15 +38,12 @@ func (f CreateTOTPHandlerFactory) NewHandler(request *http.Request) http.Handler
 }
 
 func (h *CreateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return policy.AllOf(authz.PolicyFunc(policy.DenyNoAccessKey))
 }
 
 type CreateTOTPRequest struct {
-	DisplayName string `json:"display_name"`
+	AuthnSessionToken string `json:"authn_session_token"`
+	DisplayName       string `json:"display_name"`
 }
 
 func (r CreateTOTPRequest) Validate() error {
@@ -67,7 +65,8 @@ const CreateTOTPRequestSchema = `
 	"$id": "#CreateTOTPRequest",
 	"type": "object",
 	"properties": {
-		"display_name": { "type": string },
+		"display_name": { "type": "string" },
+		"authn_session_token": { "type": "string" }
 	}
 	"required": ["display_name"]
 }
@@ -105,10 +104,11 @@ const CreateTOTPResponseSchema = `
 			@JSONSchema {CreateTOTPResponse}
 */
 type CreateTOTPHandler struct {
-	TxContext        db.TxContext            `dependency:"TxContext"`
-	AuthContext      coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
-	MFAProvider      mfa.Provider            `dependency:"MFAProvider"`
-	MFAConfiguration config.MFAConfiguration `dependency:"MFAConfiguration"`
+	TxContext            db.TxContext            `dependency:"TxContext"`
+	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
+	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
+	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
 }
 
 func (h *CreateTOTPHandler) WithTx() bool {
@@ -123,7 +123,12 @@ func (h *CreateTOTPHandler) DecodeRequest(request *http.Request) (handler.Reques
 
 func (h *CreateTOTPHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(CreateTOTPRequest)
-	userID := h.AuthContext.AuthInfo().ID
+	userID, err := h.AuthnSessionProvider.ResolveUserID(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveUserIDOptions{
+		MFACase: authnsession.ResolveUserIDMfaCaseOnlyWhenNoAuthenticators,
+	})
+	if err != nil {
+		return nil, err
+	}
 	a, err := h.MFAProvider.CreateTOTP(userID, payload.DisplayName)
 	if err != nil {
 		return
