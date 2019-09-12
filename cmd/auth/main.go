@@ -191,6 +191,7 @@ func main() {
 	mfaHandler.AttachCreateOOBHandler(&srv, authDependency)
 	mfaHandler.AttachTriggerOOBHandler(&srv, authDependency)
 	mfaHandler.AttachActivateOOBHandler(&srv, authDependency)
+	mfaHandler.AttachAuthenticateOOBHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

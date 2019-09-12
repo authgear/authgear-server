@@ -198,18 +198,8 @@ func (p *providerImpl) AuthenticateTOTP(userID string, code string, generateBear
 			if ok {
 				aa := a
 				if generateBearerToken {
-					expireAt := now.Add(gotime.Duration(p.mfaConfiguration.BearerToken.ExpireInDays) * gotime.Hour * 24)
-					token := GenerateRandomBearerToken()
-					bt := BearerTokenAuthenticator{
-						ID:        uuid.New(),
-						UserID:    userID,
-						Type:      coreAuth.AuthenticatorTypeBearerToken,
-						ParentID:  aa.ID,
-						Token:     token,
-						CreatedAt: now,
-						ExpireAt:  expireAt,
-					}
-					err = p.store.CreateBearerToken(&bt)
+					var token string
+					token, err = p.createBearerToken(userID, aa.ID, now)
 					if err != nil {
 						return nil, "", err
 					}
@@ -455,6 +445,79 @@ func (p *providerImpl) ActivateOOB(userID string, id string, code string) ([]str
 	}
 
 	return nil, nil
+}
+
+func (p *providerImpl) createBearerToken(userID string, parentID string, now gotime.Time) (string, error) {
+	expireAt := now.Add(gotime.Duration(p.mfaConfiguration.BearerToken.ExpireInDays) * gotime.Hour * 24)
+	token := GenerateRandomBearerToken()
+	bt := BearerTokenAuthenticator{
+		ID:        uuid.New(),
+		UserID:    userID,
+		Type:      coreAuth.AuthenticatorTypeBearerToken,
+		ParentID:  parentID,
+		Token:     token,
+		CreatedAt: now,
+		ExpireAt:  expireAt,
+	}
+	err := p.store.CreateBearerToken(&bt)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+func (p *providerImpl) AuthenticateOOB(userID string, code string, generateBearerToken bool) (*OOBAuthenticator, string, error) {
+	now := p.timeProvider.NowUTC()
+	oobCodes, err := p.store.GetValidOOBCode(userID, now)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// Find the OOB code
+	var oobCode *OOBCode
+	for _, c := range oobCodes {
+		isCodeValid := subtle.ConstantTimeCompare([]byte(code), []byte(c.Code)) == 1
+		if isCodeValid {
+			cc := c
+			oobCode = &cc
+		}
+	}
+	if oobCode == nil {
+		return nil, "", skyerr.NewError(skyerr.BadRequest, "invalid code")
+	}
+
+	// Delete the code so that it cannot be reused.
+	err = p.store.DeleteOOBCode(oobCode)
+	if err != nil {
+		return nil, "", err
+	}
+
+	authenticators, err := p.store.ListAuthenticators(userID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	for _, iface := range authenticators {
+		switch a := iface.(type) {
+		case OOBAuthenticator:
+			if a.ID == oobCode.AuthenticatorID {
+				aa := a
+				if generateBearerToken {
+					var token string
+					token, err = p.createBearerToken(userID, aa.ID, now)
+					if err != nil {
+						return nil, "", err
+					}
+					return &aa, token, nil
+				}
+				return &aa, "", nil
+			}
+		default:
+			break
+		}
+	}
+
+	return nil, "", skyerr.NewError(skyerr.BadRequest, "invalid code")
 }
 
 var (

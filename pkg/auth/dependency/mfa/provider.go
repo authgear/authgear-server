@@ -39,6 +39,9 @@ type Provider interface {
 	// ActivateOOB activates the OOB authenticator. If this is the first authenticator,
 	// a list of recovery codes are generated and returned.
 	ActivateOOB(userID string, id string, code string) ([]string, error)
+	// AuthenticateOOB authenticates the user with the given code.
+	// If generateBearerToken is true, a bearer token is generated.
+	AuthenticateOOB(userID string, code string, generateBearerToken bool) (*OOBAuthenticator, string, error)
 
 	// DeleteTOTP deletes authenticator.
 	// It this is the last authenticator,
