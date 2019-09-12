@@ -265,3 +265,52 @@ func (p *providerImpl) AlterResponse(w http.ResponseWriter, resp interface{}, er
 	}
 	return resp
 }
+
+func (p *providerImpl) ResolveUserID(authContext auth.ContextGetter, authnSessionToken string, options ResolveUserIDOptions) (userID string, err error) {
+	// Simple case
+	authInfo := authContext.AuthInfo()
+	if authInfo != nil {
+		userID = authInfo.ID
+		return
+	}
+
+	if authnSessionToken == "" {
+		err = skyerr.NewNotAuthenticatedErr()
+		return
+	}
+
+	authnSession, err := p.NewWithToken(authnSessionToken)
+	if err != nil {
+		return
+	}
+
+	step, ok := authnSession.NextStep()
+	if !ok {
+		err = skyerr.NewNotAuthenticatedErr()
+		return
+	}
+
+	switch step {
+	case auth.AuthnSessionStepMFA:
+		switch options.MFACase {
+		case ResolveUserIDMFACaseAlwaysAccept:
+			userID = authnSession.UserID
+			return
+		case ResolveUserIDMfaCaseOnlyWhenNoAuthenticators:
+			var authenticators []interface{}
+			authenticators, err = p.mfaProvider.ListAuthenticators(userID)
+			if err != nil {
+				return
+			}
+			if len(authenticators) > 0 {
+				err = skyerr.NewNotAuthenticatedErr()
+				return
+			}
+			userID = authnSession.UserID
+			return
+		}
+	}
+
+	err = skyerr.NewNotAuthenticatedErr()
+	return
+}
