@@ -94,6 +94,8 @@ func (s *store) Get(id string) (sess *auth.Session, err error) {
 	if err == goredis.ErrNil {
 		err = session.ErrSessionNotFound
 		return
+	} else if err != nil {
+		return
 	}
 	err = json.Unmarshal(data, &sess)
 	return
@@ -194,6 +196,9 @@ func (s *store) List(userID string) (sessions []*auth.Session, err error) {
 		if err == goredis.ErrNil {
 			err = nil
 			session = nil
+		} else if err != nil {
+			// unexpected error
+			return
 		} else {
 			err = json.Unmarshal(sessionJSON, session)
 			if err != nil {
