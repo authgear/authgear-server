@@ -19,13 +19,15 @@ type providerImpl struct {
 	store            Store
 	mfaConfiguration config.MFAConfiguration
 	timeProvider     time.Provider
+	sender           Sender
 }
 
-func NewProvider(store Store, mfaConfiguration config.MFAConfiguration, timeProvider time.Provider) Provider {
+func NewProvider(store Store, mfaConfiguration config.MFAConfiguration, timeProvider time.Provider, sender Sender) Provider {
 	return &providerImpl{
 		store:            store,
 		mfaConfiguration: mfaConfiguration,
 		timeProvider:     timeProvider,
+		sender:           sender,
 	}
 }
 
@@ -383,7 +385,11 @@ func (p *providerImpl) TriggerOOB(userID string, id string) (err error) {
 		}
 	}
 
-	// TODO(mfa): Send the oob code
+	err = p.sender.Send(oobCode.Code, a.Phone, a.Email)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

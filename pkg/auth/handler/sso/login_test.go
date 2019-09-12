@@ -110,7 +110,8 @@ func TestLoginHandler(t *testing.T) {
 		mfaConfiguration := coreconfig.MFAConfiguration{
 			Enforcement: coreconfig.MFAEnforcementOff,
 		}
-		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider)
+		mfaSender := mfa.NewMockSender()
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
 		sh.AuthnSessionProvider = authnsession.NewMockProvider(
 			mfaConfiguration,
 			timeProvider,

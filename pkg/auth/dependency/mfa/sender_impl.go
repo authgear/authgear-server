@@ -15,6 +15,14 @@ type senderImpl struct {
 	templateEngine *template.Engine
 }
 
+func NewSender(smsClient sms.Client, mailDialer *gomail.Dialer, templateEngine *template.Engine) Sender {
+	return &senderImpl{
+		smsClient:      smsClient,
+		mailDialer:     mailDialer,
+		templateEngine: templateEngine,
+	}
+}
+
 func (s *senderImpl) Send(code string, phone string, email string) error {
 	context := map[string]interface{}{
 		"code": code,

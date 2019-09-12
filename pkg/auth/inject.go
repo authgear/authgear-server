@@ -196,6 +196,14 @@ func (m DependencyMap) Provide(
 		)
 	}
 
+	newSMSClient := func() sms.Client {
+		return sms.NewClient(tConfig.AppConfig)
+	}
+
+	newMailDialer := func() *gomail.Dialer {
+		return mail.NewDialer(tConfig.AppConfig.SMTP)
+	}
+
 	newMFAProvider := func() mfa.Provider {
 		return mfa.NewProvider(
 			mfaPQ.NewStore(
@@ -206,11 +214,12 @@ func (m DependencyMap) Provide(
 			),
 			tConfig.UserConfig.MFA,
 			newTimeProvider(),
+			mfa.NewSender(
+				newSMSClient(),
+				newMailDialer(),
+				newTemplateEngine(),
+			),
 		)
-	}
-
-	newMailDialer := func() *gomail.Dialer {
-		return mail.NewDialer(tConfig.AppConfig.SMTP)
 	}
 
 	switch dependencyName {

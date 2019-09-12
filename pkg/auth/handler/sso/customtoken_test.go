@@ -94,7 +94,8 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		mfaConfiguration := config.MFAConfiguration{
 			Enforcement: config.MFAEnforcementOff,
 		}
-		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider)
+		mfaSender := mfa.NewMockSender()
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
 		lh.AuthnSessionProvider = authnsession.NewMockProvider(
 			mfaConfiguration,
 			timeProvider,
@@ -433,7 +434,8 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		mfaConfiguration := config.MFAConfiguration{
 			Enforcement: config.MFAEnforcementOff,
 		}
-		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider)
+		mfaSender := mfa.NewMockSender()
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
 		lh.AuthnSessionProvider = authnsession.NewMockProvider(
 			mfaConfiguration,
 			timeProvider,
