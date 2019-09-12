@@ -4,11 +4,14 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -29,6 +32,9 @@ func (m DependencyMap) Provide(
 		return auth.NewContextGetterWithContext(ctx)
 	case "AuthContextSetter":
 		return auth.NewContextSetterWithContext(ctx)
+	case "LoggerFactory":
+		formatter := logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
+		return logging.NewFactory(request, formatter)
 	case "SessionProvider":
 		return session.NewProvider(
 			request,

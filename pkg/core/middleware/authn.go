@@ -3,17 +3,21 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/logging"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/model"
+	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
 // AuthnMiddleware populate auth context information
 type AuthnMiddleware struct {
 	AuthContextSetter auth.ContextSetter `dependency:"AuthContextSetter"`
+	LoggerFactory     logging.Factory    `dependency:"LoggerFactory"`
 	SessionProvider   session.Provider   `dependency:"SessionProvider"`
 	SessionWriter     session.Writer     `dependency:"SessionWriter"`
 	AuthInfoStore     authinfo.Store     `dependency:"AuthInfoStore"`
@@ -30,12 +34,17 @@ func (f AuthnMiddlewareFactory) NewInjectableMiddleware() InjectableMiddleware {
 
 // Handle implements InjectableMiddleware.
 func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
+	log := m.LoggerFactory.NewLogger("authn")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var err error
 		defer func() {
-			if err != nil {
-				// clear session if error occurred
+			if err == session.ErrSessionNotFound {
+				// clear session if session is not found
 				m.SessionWriter.ClearSession(w)
+			} else if err != nil {
+				log.WithError(err).Error("failed to resolve session")
+				w.WriteHeader(http.StatusInternalServerError)
+				return
 			}
 
 			next.ServeHTTP(w, r)
@@ -74,6 +83,9 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 		authInfo := authinfo.AuthInfo{}
 		err = m.AuthInfoStore.GetAuth(s.UserID, &authInfo)
 		if err != nil {
+			if err == skydb.ErrUserNotFound {
+				err = session.ErrSessionNotFound
+			}
 			return
 		}
 

@@ -55,6 +55,11 @@ func (m DependencyMap) Provide(
 		return logging.CreateLoggerWithRequestID(requestID, name, formatter)
 	}
 
+	newLoggerFactory := func() logging.Factory {
+		formatter := logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
+		return logging.NewFactory(request, formatter)
+	}
+
 	newSQLBuilder := func() db.SQLBuilder {
 		return db.NewSQLBuilder("auth", tConfig.AppConfig.DatabaseSchema, tConfig.AppID)
 	}
@@ -163,6 +168,8 @@ func (m DependencyMap) Provide(
 		return coreAuth.NewContextSetterWithContext(ctx)
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
+	case "LoggerFactory":
+		return newLoggerFactory()
 	case "SessionProvider":
 		return session.NewProvider(
 			request,
