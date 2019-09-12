@@ -4,6 +4,9 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/go-gomail/gomail"
+	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 
@@ -12,7 +15,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
-	"github.com/sirupsen/logrus"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -35,6 +37,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
@@ -206,6 +209,10 @@ func (m DependencyMap) Provide(
 		)
 	}
 
+	newMailDialer := func() *gomail.Dialer {
+		return mail.NewDialer(tConfig.AppConfig.SMTP)
+	}
+
 	switch dependencyName {
 	case "AuthContextGetter":
 		return newAuthContext()
@@ -269,9 +276,9 @@ func (m DependencyMap) Provide(
 	case "UserProfileStore":
 		return newUserProfileStore()
 	case "ForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), newTemplateEngine())
+		return forgotpwdemail.NewDefaultSender(tConfig, newMailDialer(), newTemplateEngine())
 	case "TestForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP))
+		return forgotpwdemail.NewDefaultTestSender(tConfig, newMailDialer())
 	case "ForgotPasswordCodeGenerator":
 		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.UserConfig.MasterKey}
 	case "ForgotPasswordSecureMatch":
@@ -283,9 +290,9 @@ func (m DependencyMap) Provide(
 	case "WelcomeEmailDestination":
 		return tConfig.UserConfig.WelcomeEmail.Destination
 	case "WelcomeEmailSender":
-		return welcemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), newTemplateEngine())
+		return welcemail.NewDefaultSender(tConfig, newMailDialer(), newTemplateEngine())
 	case "TestWelcomeEmailSender":
-		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP))
+		return welcemail.NewDefaultTestSender(tConfig, newMailDialer())
 	case "IFrameHTMLProvider":
 		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint())
 	case "UserVerifyCodeSenderFactory":
