@@ -40,6 +40,13 @@ const (
 
 	// TemplateNameVerifyErrorHTML is the template name of verify error html
 	TemplateNameVerifyErrorHTML = "verify_error_html"
+
+	// TemplateNameMFAOOBCodeSMSText is the template name of MFA OOB code SMS text.
+	TemplateNameMFAOOBCodeSMSText = "mfa_oob_code_sms_text"
+	// TemplateNameMFAOOBCodeEmailText is the template name of MFA OOB code email text.
+	TemplateNameMFAOOBCodeEmailText = "mfa_oob_code_email_text"
+	// TemplateNameMFAOOBCodeEmailHTML is the template name of MFA OOB code email HTML.
+	TemplateNameMFAOOBCodeEmailHTML = "mfa_oob_code_email_html"
 )
 
 func VerifyTemplateNameForKey(key string, templateType string) string {
