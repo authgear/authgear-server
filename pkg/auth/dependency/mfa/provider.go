@@ -36,6 +36,9 @@ type Provider interface {
 	// TriggerOOB generate OOB Code and delivers it. The argument id is optional when
 	// there is only one activated OOB authenticator.
 	TriggerOOB(userID string, id string) error
+	// ActivateOOB activates the OOB authenticator. If this is the first authenticator,
+	// a list of recovery codes are generated and returned.
+	ActivateOOB(userID string, id string, code string) ([]string, error)
 
 	// DeleteTOTP deletes authenticator.
 	// It this is the last authenticator,

@@ -397,6 +397,66 @@ func (p *providerImpl) TriggerOOB(userID string, id string) (err error) {
 	return nil
 }
 
+func (p *providerImpl) ActivateOOB(userID string, id string, code string) ([]string, error) {
+	a, err := p.store.GetOOB(userID, id)
+	if err != nil {
+		return nil, err
+	}
+	if a.Activated {
+		return nil, nil
+	}
+
+	authenticators, err := p.store.ListAuthenticators(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	ok := CanAddAuthenticator(authenticators, *a, p.mfaConfiguration)
+	if !ok {
+		return nil, skyerr.NewError(skyerr.BadRequest, "no more authenticator can be added")
+	}
+
+	now := p.timeProvider.NowUTC()
+	oobCodes, err := p.store.GetValidOOBCode(userID, now)
+	if err != nil {
+		return nil, err
+	}
+
+	// Find the OOB code
+	var oobCode *OOBCode
+	for _, c := range oobCodes {
+		isTargetAuthenticator := c.AuthenticatorID == id
+		isCodeValid := subtle.ConstantTimeCompare([]byte(code), []byte(c.Code)) == 1
+		if isTargetAuthenticator && isCodeValid {
+			cc := c
+			oobCode = &cc
+		}
+	}
+	if oobCode == nil {
+		return nil, skyerr.NewError(skyerr.BadRequest, "invalid code")
+	}
+
+	// Delete the code so that it cannot be reused.
+	err = p.store.DeleteOOBCode(oobCode)
+	if err != nil {
+		return nil, err
+	}
+
+	a.Activated = true
+	a.ActivatedAt = &now
+	err = p.store.UpdateOOB(a)
+	if err != nil {
+		return nil, err
+	}
+
+	generateRecoveryCode := len(authenticators) <= 0
+	if generateRecoveryCode {
+		return p.GenerateRecoveryCode(userID)
+	}
+
+	return nil, nil
+}
+
 var (
 	_ Provider = &providerImpl{}
 )
