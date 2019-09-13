@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/Masterminds/squirrel v1.1.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
 	github.com/dgrijalva/jwt-go v3.1.0+incompatible
 	github.com/evalphobia/logrus_fluent v0.4.0
 	github.com/flosch/pongo2 v0.0.0-20141028000813-5e81b817a0c4
