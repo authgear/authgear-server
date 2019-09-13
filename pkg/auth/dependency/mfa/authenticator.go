@@ -116,6 +116,11 @@ func MaskAuthenticators(authenticators []interface{}) []interface{} {
 }
 
 func CanAddAuthenticator(authenticators []interface{}, newA interface{}, mfaConfiguration config.MFAConfiguration) bool {
+	// Always return false if MFA is off.
+	if mfaConfiguration.Enforcement == config.MFAEnforcementOff {
+		return false
+	}
+
 	// Calculate the count
 	totalCount := len(authenticators)
 	totpCount := 0

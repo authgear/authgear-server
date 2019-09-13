@@ -81,10 +81,11 @@ func TestCanAddAuthenticator(t *testing.T) {
 		OOBEmail int
 	}
 	type Case struct {
-		Existing Existing
-		New      interface{}
-		Limit    Limit
-		Expected bool
+		Enforcement config.MFAEnforcement
+		Existing    Existing
+		New         interface{}
+		Limit       Limit
+		Expected    bool
 	}
 
 	f := func(c Case) {
@@ -107,7 +108,8 @@ func TestCanAddAuthenticator(t *testing.T) {
 
 		maximum := &c.Limit.Total
 		mfaConfiguration := config.MFAConfiguration{
-			Maximum: maximum,
+			Enforcement: c.Enforcement,
+			Maximum:     maximum,
 			TOTP: config.MFATOTPConfiguration{
 				Maximum: c.Limit.TOTP,
 			},
@@ -127,6 +129,7 @@ func TestCanAddAuthenticator(t *testing.T) {
 
 	cases := []Case{
 		Case{
+			Enforcement: config.MFAEnforcementOptional,
 			Existing: Existing{
 				TOTP:     0,
 				OOBSMS:   0,
@@ -143,6 +146,24 @@ func TestCanAddAuthenticator(t *testing.T) {
 		},
 
 		Case{
+			Enforcement: config.MFAEnforcementOff,
+			Existing: Existing{
+				TOTP:     0,
+				OOBSMS:   0,
+				OOBEmail: 0,
+			},
+			Limit: Limit{
+				Total:    1,
+				TOTP:     1,
+				OOBSMS:   0,
+				OOBEmail: 0,
+			},
+			New:      TOTPAuthenticator{},
+			Expected: false,
+		},
+
+		Case{
+			Enforcement: config.MFAEnforcementOptional,
 			Existing: Existing{
 				TOTP:     1,
 				OOBSMS:   0,
@@ -159,6 +180,7 @@ func TestCanAddAuthenticator(t *testing.T) {
 		},
 
 		Case{
+			Enforcement: config.MFAEnforcementOptional,
 			Existing: Existing{
 				TOTP:     1,
 				OOBSMS:   0,
@@ -174,6 +196,25 @@ func TestCanAddAuthenticator(t *testing.T) {
 				Channel: coreAuth.AuthenticatorOOBChannelSMS,
 			},
 			Expected: true,
+		},
+
+		Case{
+			Enforcement: config.MFAEnforcementOff,
+			Existing: Existing{
+				TOTP:     1,
+				OOBSMS:   0,
+				OOBEmail: 0,
+			},
+			Limit: Limit{
+				Total:    2,
+				TOTP:     1,
+				OOBSMS:   1,
+				OOBEmail: 0,
+			},
+			New: OOBAuthenticator{
+				Channel: coreAuth.AuthenticatorOOBChannelSMS,
+			},
+			Expected: false,
 		},
 	}
 	Convey("CanAddAuthenticator", t, func() {
