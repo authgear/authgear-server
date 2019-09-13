@@ -30,9 +30,9 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		model.SetAccessKey(r, m.AuthContext.AccessKey())
 
 		// Remove untrusted headers first.
-		r.Header.Del(coreHttp.HeaderAuthInfoID)
-		r.Header.Del(coreHttp.HeaderAuthInfoVerified)
-		r.Header.Del(coreHttp.HeaderAuthInfoDisabled)
+		r.Header.Del(coreHttp.HeaderUserID)
+		r.Header.Del(coreHttp.HeaderUserVerified)
+		r.Header.Del(coreHttp.HeaderUserDisabled)
 
 		authInfo := m.AuthContext.AuthInfo()
 		if authInfo != nil {
@@ -40,9 +40,9 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 			disabled := authInfo.Disabled
 			verified := authInfo.Verified
 
-			r.Header.Set(coreHttp.HeaderAuthInfoID, id)
-			r.Header.Set(coreHttp.HeaderAuthInfoVerified, strconv.FormatBool(verified))
-			r.Header.Set(coreHttp.HeaderAuthInfoDisabled, strconv.FormatBool(disabled))
+			r.Header.Set(coreHttp.HeaderUserID, id)
+			r.Header.Set(coreHttp.HeaderUserVerified, strconv.FormatBool(verified))
+			r.Header.Set(coreHttp.HeaderUserDisabled, strconv.FormatBool(disabled))
 		}
 
 		next.ServeHTTP(w, r)
