@@ -44,7 +44,7 @@ require (
 	github.com/sirupsen/logrus v1.0.3
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
-	github.com/tinylib/msgp v1.0.2
+	github.com/tinylib/msgp v1.1.0
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect
 	github.com/twinj/uuid v0.0.0-20160621131530-b505f2cca343
 	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329
