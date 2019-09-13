@@ -5,8 +5,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-const providerName string = "oauth"
-
 type GetByProviderOptions struct {
 	ProviderType   string
 	ProviderKeys   map[string]interface{}

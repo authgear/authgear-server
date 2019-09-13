@@ -84,7 +84,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 	} else {
 		sessionCreateReason = event.SessionCreateReasonLogin
 	}
-	sess, err := h.AuthnSessionProvider.NewFromScratch(principal.UserID, principal.ID, sessionCreateReason)
+	sess, err := h.AuthnSessionProvider.NewFromScratch(principal.UserID, principal, sessionCreateReason)
 	if err != nil {
 		return
 	}

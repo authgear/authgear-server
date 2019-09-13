@@ -306,7 +306,7 @@ func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp i
 		sessionCreateReason = event.SessionCreateReasonLogin
 	}
 
-	sess, err := h.AuthnSessionProvider.NewFromScratch(principal.UserID, principal.ID, sessionCreateReason)
+	sess, err := h.AuthnSessionProvider.NewFromScratch(principal.UserID, principal, sessionCreateReason)
 	if err != nil {
 		return
 	}

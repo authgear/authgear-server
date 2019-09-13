@@ -6,6 +6,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
@@ -73,7 +74,7 @@ func (p *MockProvider) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (
 }
 
 func (p *MockProvider) ID() string {
-	return providerName
+	return string(coreAuth.PrincipalTypeCustomToken)
 }
 
 func (p *MockProvider) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {

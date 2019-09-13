@@ -11,12 +11,23 @@ const (
 	SessionTokenKindRefreshToken SessionTokenKind = "refresh-token"
 )
 
+type PrincipalType string
+
+const (
+	PrincipalTypePassword    PrincipalType = "password"
+	PrincipalTypeOAuth       PrincipalType = "oauth"
+	PrincipalTypeCustomToken PrincipalType = "custom_token"
+)
+
 // Session represents a session of user logged in with a principal.
 type Session struct {
-	ID          string `json:"id"`
-	ClientID    string `json:"client_id"`
-	UserID      string `json:"user_id"`
-	PrincipalID string `json:"principal_id"`
+	ID       string `json:"id"`
+	ClientID string `json:"client_id"`
+
+	UserID string `json:"user_id"`
+
+	PrincipalID   string        `json:"principal_id"`
+	PrincipalType PrincipalType `json:"principal_type"`
 
 	AuthenticatorID         string                  `json:"authenticator_id,omitempty"`
 	AuthenticatorType       AuthenticatorType       `json:"authenticator_type,omitempty"`

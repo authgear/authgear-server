@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -158,7 +158,7 @@ func (p *providerImpl) CreatePrincipal(principal Principal) (err error) {
 		).
 		Values(
 			principal.ID,
-			providerPassword,
+			coreAuth.PrincipalTypePassword,
 			principal.UserID,
 		)
 
@@ -389,7 +389,7 @@ func (p *providerImpl) UpdatePassword(principal *Principal, password string) (er
 }
 
 func (p *providerImpl) ID() string {
-	return providerPassword
+	return string(coreAuth.PrincipalTypePassword)
 }
 
 func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {

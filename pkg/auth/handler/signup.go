@@ -303,7 +303,7 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, e
 		Event:  audit.EventSignup,
 	})
 
-	sess, err := h.AuthnSessionProvider.NewFromScratch(info.ID, loginPrincipal.PrincipalID(), event.SessionCreateReasonSignup)
+	sess, err := h.AuthnSessionProvider.NewFromScratch(info.ID, loginPrincipal, event.SessionCreateReasonSignup)
 	if err != nil {
 		return
 	}

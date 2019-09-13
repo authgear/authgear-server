@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
@@ -185,7 +186,7 @@ func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 		).
 		Values(
 			principal.ID,
-			providerName,
+			coreAuth.PrincipalTypeOAuth,
 			principal.UserID,
 		)
 
@@ -357,7 +358,7 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 		Where(
 			"p.user_id = ? AND p.provider = ?",
 			userID,
-			providerName)
+			coreAuth.PrincipalTypeOAuth)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
@@ -424,7 +425,7 @@ func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string)
 }
 
 func (p *providerImpl) ID() string {
-	return providerName
+	return string(coreAuth.PrincipalTypeOAuth)
 }
 
 func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {

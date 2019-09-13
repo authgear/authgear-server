@@ -15,9 +15,12 @@ const (
 // When the authentication session is finished, it converts to Session.
 type AuthnSession struct {
 	// The following fields are filled in step "identity"
-	ClientID            string             `json:"client_id"`
-	UserID              string             `json:"user_id"`
-	PrincipalID         string             `json:"principal_id"`
+	ClientID string `json:"client_id"`
+	UserID   string `json:"user_id"`
+
+	PrincipalID   string        `json:"principal_id"`
+	PrincipalType PrincipalType `json:"principal_type"`
+
 	RequiredSteps       []AuthnSessionStep `json:"required_steps"`
 	FinishedSteps       []AuthnSessionStep `json:"finished_steps"`
 	SessionCreateReason string             `json:"session_create_reason"`
@@ -65,6 +68,7 @@ func (a *AuthnSession) Session() Session {
 		ClientID:                a.ClientID,
 		UserID:                  a.UserID,
 		PrincipalID:             a.PrincipalID,
+		PrincipalType:           a.PrincipalType,
 		AuthenticatorID:         a.AuthenticatorID,
 		AuthenticatorType:       a.AuthenticatorType,
 		AuthenticatorOOBChannel: a.AuthenticatorOOBChannel,
