@@ -33,6 +33,8 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		r.Header.Del(coreHttp.HeaderUserID)
 		r.Header.Del(coreHttp.HeaderUserVerified)
 		r.Header.Del(coreHttp.HeaderUserDisabled)
+		r.Header.Del(coreHttp.HeaderSessionIdentityType)
+		r.Header.Del(coreHttp.HeaderSessionAuthenticatorType)
 
 		authInfo := m.AuthContext.AuthInfo()
 		if authInfo != nil {
@@ -43,6 +45,17 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 			r.Header.Set(coreHttp.HeaderUserID, id)
 			r.Header.Set(coreHttp.HeaderUserVerified, strconv.FormatBool(verified))
 			r.Header.Set(coreHttp.HeaderUserDisabled, strconv.FormatBool(disabled))
+		}
+		sess := m.AuthContext.Session()
+		if sess != nil {
+			ptype := sess.PrincipalType
+			if ptype != "" {
+				r.Header.Set(coreHttp.HeaderSessionIdentityType, string(ptype))
+			}
+			atype := sess.AuthenticatorType
+			if atype != "" {
+				r.Header.Set(coreHttp.HeaderSessionAuthenticatorType, string(atype))
+			}
 		}
 
 		next.ServeHTTP(w, r)
