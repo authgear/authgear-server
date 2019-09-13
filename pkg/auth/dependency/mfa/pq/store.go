@@ -791,6 +791,17 @@ func (s *storeImpl) DeleteOOBCode(c *mfa.OOBCode) error {
 	return nil
 }
 
+func (s *storeImpl) DeleteOOBCodeByAuthenticator(a *mfa.OOBAuthenticator) error {
+	q1 := s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("authenticator_oob_code")).
+		Where("authenticator_id = ?", a.ID)
+	_, err := s.sqlExecutor.ExecWith(q1)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 var (
 	_ mfa.Store = &storeImpl{}
 )

@@ -264,7 +264,16 @@ func (p *providerImpl) DeleteOOBAuthenticator(a *OOBAuthenticator) error {
 		return err
 	}
 
+	// To OOB authenticator, we have to delete its dependencies first
+	// 1. bearer token
+	// 2. OOB code
+
 	err = p.store.DeleteBearerTokenByParentID(a.UserID, a.ID)
+	if err != nil {
+		return err
+	}
+
+	err = p.store.DeleteOOBCodeByAuthenticator(a)
 	if err != nil {
 		return err
 	}

@@ -251,6 +251,19 @@ func (s *MockStore) DeleteOOBCode(c *OOBCode) error {
 	return nil
 }
 
+func (s *MockStore) DeleteOOBCodeByAuthenticator(a *OOBAuthenticator) error {
+	oobCode := s.OOBCode[a.UserID]
+	var newOOBCode []OOBCode
+	for _, d := range oobCode {
+		if d.AuthenticatorID == a.ID {
+			continue
+		}
+		newOOBCode = append(newOOBCode, d)
+	}
+	s.OOBCode[a.UserID] = newOOBCode
+	return nil
+}
+
 var (
 	_ Store = &MockStore{}
 )

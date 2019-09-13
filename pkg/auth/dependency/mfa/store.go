@@ -57,4 +57,6 @@ type Store interface {
 	CreateOOBCode(c *OOBCode) error
 	// DeleteOOBCode deletes OOB code.
 	DeleteOOBCode(c *OOBCode) error
+	// DeleteOOBCodeByAuthenticator deletes all OOB codes of the given authenticator.
+	DeleteOOBCodeByAuthenticator(a *OOBAuthenticator) error
 }
