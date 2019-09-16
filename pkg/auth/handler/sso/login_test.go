@@ -194,7 +194,6 @@ func TestLoginHandler(t *testing.T) {
 					Session: model.Session{
 						ID:         fmt.Sprintf("%s-%s-0", p.UserID, p.ID),
 						IdentityID: p.ID,
-						Data:       map[string]interface{}{},
 					},
 				},
 			})

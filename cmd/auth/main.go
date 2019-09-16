@@ -175,7 +175,6 @@ func main() {
 	ssohandler.AttachUnlinkHandler(&srv, authDependency)
 	session.AttachListHandler(&srv, authDependency)
 	session.AttachGetHandler(&srv, authDependency)
-	session.AttachUpdateHandler(&srv, authDependency)
 	session.AttachRevokeHandler(&srv, authDependency)
 	session.AttachRevokeAllHandler(&srv, authDependency)
 

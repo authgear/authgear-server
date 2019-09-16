@@ -11,8 +11,6 @@ type Provider interface {
 	Get(id string) (*auth.Session, error)
 	// Access updates the session info when it is being accessed by user
 	Access(*auth.Session) error
-	// Update updates the name/custom data of the specified session
-	Update(id string, name *string, data map[string]interface{}) error
 	// Invalidate invalidates session with the ID
 	Invalidate(*auth.Session) error
 	// InvalidateBatch invalidates sessions

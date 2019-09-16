@@ -392,7 +392,6 @@ func TestLoginHandler(t *testing.T) {
 					Session: model.Session{
 						ID:         "john.doe.id-john.doe.principal.id1-0",
 						IdentityID: "john.doe.principal.id1",
-						Data:       map[string]interface{}{},
 					},
 				},
 			})

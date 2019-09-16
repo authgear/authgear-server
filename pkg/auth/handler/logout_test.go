@@ -83,7 +83,6 @@ func TestLogoutHandler(t *testing.T) {
 					Session: model.Session{
 						ID:         "session-id",
 						IdentityID: "faseng.cat.principal.id",
-						Data:       map[string]interface{}{},
 					},
 				},
 			})
