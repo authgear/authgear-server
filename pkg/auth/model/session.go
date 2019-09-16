@@ -6,15 +6,13 @@ import (
 
 // Session is the API model of user sessions
 type Session struct {
-	ID               string                 `json:"id"`
-	IdentityID       string                 `json:"identity_id"`
-	CreatedAt        time.Time              `json:"created_at"`
-	LastAccessedAt   time.Time              `json:"last_accessed_at"`
-	CreatedByIP      string                 `json:"created_by_ip"`
-	LastAccessedByIP string                 `json:"last_accessed_by_ip"`
-	UserAgent        SessionUserAgent       `json:"user_agent"`
-	Name             string                 `json:"name"`
-	Data             map[string]interface{} `json:"data"`
+	ID               string           `json:"id"`
+	IdentityID       string           `json:"identity_id"`
+	CreatedAt        time.Time        `json:"created_at"`
+	LastAccessedAt   time.Time        `json:"last_accessed_at"`
+	CreatedByIP      string           `json:"created_by_ip"`
+	LastAccessedByIP string           `json:"last_accessed_by_ip"`
+	UserAgent        SessionUserAgent `json:"user_agent"`
 }
 
 // Session is the API model of user agent of session

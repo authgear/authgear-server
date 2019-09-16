@@ -110,7 +110,6 @@ func TestRevokeHandler(t *testing.T) {
 						IdentityID:     "principal-id-2",
 						CreatedAt:      now,
 						LastAccessedAt: now,
-						Data:           map[string]interface{}{},
 					},
 				},
 			})

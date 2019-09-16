@@ -319,7 +319,6 @@ func TestSingupHandler(t *testing.T) {
 					Session: model.Session{
 						ID:         fmt.Sprintf("%s-%s-0", userID, p.ID),
 						IdentityID: p.ID,
-						Data:       map[string]interface{}{},
 					},
 				},
 			})
@@ -420,7 +419,6 @@ func TestSingupHandler(t *testing.T) {
 					Session: model.Session{
 						ID:         fmt.Sprintf("%s-%s-0", userID, p.ID),
 						IdentityID: p.ID,
-						Data:       map[string]interface{}{},
 					},
 				},
 			})

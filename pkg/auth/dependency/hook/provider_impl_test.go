@@ -161,7 +161,6 @@ func TestDispatchEvent(t *testing.T) {
 					Session: &model.Session{
 						ID:         "user-id-principal-id",
 						IdentityID: "principal-id",
-						Data:       map[string]interface{}{},
 					},
 				})
 			})

@@ -59,14 +59,12 @@ func TestListHandler(t *testing.T) {
 						IdentityID:     "principal-id-1",
 						CreatedAt:      now.Add(-1 * time.Minute),
 						LastAccessedAt: now.Add(-1 * time.Minute),
-						Data:           map[string]interface{}{},
 					},
 					model.Session{
 						ID:             "user-id-1-principal-id-2",
 						IdentityID:     "principal-id-2",
 						CreatedAt:      now,
 						LastAccessedAt: now,
-						Data:           map[string]interface{}{},
 					},
 				},
 			})

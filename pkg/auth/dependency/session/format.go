@@ -20,12 +20,6 @@ func Format(session *auth.Session) (mSession model.Session) {
 	mSession.LastAccessedByIP = resolveIP(session.LastAccess.Remote)
 	mSession.UserAgent = parseUserAgent(session.LastAccess.UserAgent)
 	mSession.UserAgent.DeviceName = session.LastAccess.Extra.DeviceName()
-	mSession.Name = session.Name
-	mSession.Data = session.CustomData
-	// custom data is always non-null
-	if mSession.Data == nil {
-		mSession.Data = map[string]interface{}{}
-	}
 	return
 }
 

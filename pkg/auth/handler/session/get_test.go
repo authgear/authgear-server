@@ -51,7 +51,6 @@ func TestGetHandler(t *testing.T) {
 					IdentityID:     "principal-id-1",
 					CreatedAt:      now,
 					LastAccessedAt: now,
-					Data:           map[string]interface{}{},
 				},
 			})
 		})
