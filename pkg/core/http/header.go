@@ -11,6 +11,10 @@ const (
 	HeaderAccessToken      = "x-skygear-access-token"
 	HeaderSessionExtraInfo = "x-skygear-extra-info"
 
+	// Headers appearing in server response
+	// nolint: gosec
+	HeaderTryRefreshToken = "x-skygear-try-refresh-token"
+
 	// Headers appearing in proxied request
 	HeaderRequestID = "x-skygear-request-id"
 

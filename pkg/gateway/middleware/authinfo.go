@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/model"
@@ -27,7 +29,10 @@ func (f AuthInfoMiddlewareFactory) NewInjectableMiddleware() coreMiddleware.Inje
 // Handle implements InjectableMiddleware.
 func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		model.SetAccessKey(r, m.AuthContext.AccessKey())
+		tenantConfig := config.GetTenantConfig(r)
+		accessKey := m.AuthContext.AccessKey()
+
+		model.SetAccessKey(r, accessKey)
 
 		// Remove untrusted headers first.
 		r.Header.Del(coreHttp.HeaderUserID)
@@ -36,9 +41,20 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		r.Header.Del(coreHttp.HeaderSessionIdentityType)
 		r.Header.Del(coreHttp.HeaderSessionAuthenticatorType)
 
-		// TODO(mfa): If refresh token is enabled and the session is invalid,
+		// If refresh token is enabled and the session is invalid,
 		// do not forward the request and write `x-skygear-try-refresh-token: true`
-		authInfo, _ := m.AuthContext.AuthInfo()
+		authInfo, err := m.AuthContext.AuthInfo()
+		if err == session.ErrSessionNotFound {
+			if accessKey.ClientID != "" {
+				clientConfig, ok := model.GetClientConfig(tenantConfig, accessKey.ClientID)
+				if ok && !clientConfig.RefreshTokenDisabled {
+					w.Header().Set(coreHttp.HeaderTryRefreshToken, "true")
+					w.WriteHeader(401)
+					return
+				}
+			}
+		}
+
 		if authInfo != nil {
 			id := authInfo.ID
 			disabled := authInfo.Disabled

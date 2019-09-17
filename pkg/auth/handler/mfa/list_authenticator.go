@@ -98,7 +98,10 @@ type ListAuthenticatorHandler struct {
 }
 
 func (h *ListAuthenticatorHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(authz.PolicyFunc(policy.DenyNoAccessKey))
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.DenyInvalidSession),
+	)
 }
 
 func (h *ListAuthenticatorHandler) WithTx() bool {

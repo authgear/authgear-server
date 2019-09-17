@@ -13,7 +13,7 @@ func RequireAuthenticated(r *http.Request, ctx auth.ContextGetter) error {
 	authInfo, err := ctx.AuthInfo()
 	if authInfo == nil {
 		if err == session.ErrSessionNotFound {
-			// TODO(mfa): write `x-skygear-try-refresh-token: true`
+			return err
 		}
 		return skyerr.NewNotAuthenticatedErr()
 	}

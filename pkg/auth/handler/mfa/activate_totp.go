@@ -114,7 +114,10 @@ type ActivateTOTPHandler struct {
 }
 
 func (h *ActivateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(authz.PolicyFunc(policy.DenyNoAccessKey))
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.DenyInvalidSession),
+	)
 }
 
 func (h *ActivateTOTPHandler) WithTx() bool {
