@@ -331,7 +331,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 
 	// Set default MFAConfiguration
 	if c.UserConfig.MFA.Enforcement == "" {
-		c.UserConfig.MFA.Enforcement = MFAEnforcementOff
+		c.UserConfig.MFA.Enforcement = MFAEnforcementOptional
 	}
 	if c.UserConfig.MFA.Maximum == nil {
 		c.UserConfig.MFA.Maximum = new(int)
@@ -572,6 +572,7 @@ const (
 )
 
 type MFAConfiguration struct {
+	Enabled      bool                         `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
 	Enforcement  MFAEnforcement               `json:"enforcement,omitempty" yaml:"enforcement" msg:"enforcement"`
 	Maximum      *int                         `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
 	TOTP         MFATOTPConfiguration         `json:"totp,omitempty" yaml:"totp" msg:"totp"`

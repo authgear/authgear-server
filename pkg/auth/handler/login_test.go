@@ -151,7 +151,8 @@ func TestLoginHandler(t *testing.T) {
 		h.HookProvider = hookProvider
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := config.MFAConfiguration{
-			Enforcement: config.MFAEnforcementOff,
+			Enabled:     false,
+			Enforcement: config.MFAEnforcementOptional,
 		}
 		mfaSender := mfa.NewMockSender()
 		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
@@ -331,7 +332,8 @@ func TestLoginHandler(t *testing.T) {
 		lh.TxContext = db.NewMockTxContext()
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := config.MFAConfiguration{
-			Enforcement: config.MFAEnforcementOff,
+			Enabled:     false,
+			Enforcement: config.MFAEnforcementOptional,
 		}
 		mfaSender := mfa.NewMockSender()
 		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)

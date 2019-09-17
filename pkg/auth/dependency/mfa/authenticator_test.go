@@ -81,11 +81,11 @@ func TestCanAddAuthenticator(t *testing.T) {
 		OOBEmail int
 	}
 	type Case struct {
-		Enforcement config.MFAEnforcement
-		Existing    Existing
-		New         interface{}
-		Limit       Limit
-		Expected    bool
+		Enabled  bool
+		Existing Existing
+		New      interface{}
+		Limit    Limit
+		Expected bool
 	}
 
 	f := func(c Case) {
@@ -108,8 +108,8 @@ func TestCanAddAuthenticator(t *testing.T) {
 
 		maximum := &c.Limit.Total
 		mfaConfiguration := config.MFAConfiguration{
-			Enforcement: c.Enforcement,
-			Maximum:     maximum,
+			Enabled: c.Enabled,
+			Maximum: maximum,
 			TOTP: config.MFATOTPConfiguration{
 				Maximum: c.Limit.TOTP,
 			},
@@ -129,7 +129,7 @@ func TestCanAddAuthenticator(t *testing.T) {
 
 	cases := []Case{
 		Case{
-			Enforcement: config.MFAEnforcementOptional,
+			Enabled: true,
 			Existing: Existing{
 				TOTP:     0,
 				OOBSMS:   0,
@@ -146,7 +146,7 @@ func TestCanAddAuthenticator(t *testing.T) {
 		},
 
 		Case{
-			Enforcement: config.MFAEnforcementOff,
+			Enabled: false,
 			Existing: Existing{
 				TOTP:     0,
 				OOBSMS:   0,
@@ -163,7 +163,7 @@ func TestCanAddAuthenticator(t *testing.T) {
 		},
 
 		Case{
-			Enforcement: config.MFAEnforcementOptional,
+			Enabled: true,
 			Existing: Existing{
 				TOTP:     1,
 				OOBSMS:   0,
@@ -180,7 +180,7 @@ func TestCanAddAuthenticator(t *testing.T) {
 		},
 
 		Case{
-			Enforcement: config.MFAEnforcementOptional,
+			Enabled: true,
 			Existing: Existing{
 				TOTP:     1,
 				OOBSMS:   0,
@@ -199,7 +199,7 @@ func TestCanAddAuthenticator(t *testing.T) {
 		},
 
 		Case{
-			Enforcement: config.MFAEnforcementOff,
+			Enabled: false,
 			Existing: Existing{
 				TOTP:     1,
 				OOBSMS:   0,

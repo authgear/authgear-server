@@ -173,7 +173,8 @@ func TestSingupHandler(t *testing.T) {
 
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := config.MFAConfiguration{
-			Enforcement: config.MFAEnforcementOff,
+			Enabled:     false,
+			Enforcement: config.MFAEnforcementOptional,
 		}
 		mfaSender := mfa.NewMockSender()
 		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
@@ -638,7 +639,8 @@ func TestSingupHandler(t *testing.T) {
 
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := config.MFAConfiguration{
-			Enforcement: config.MFAEnforcementOff,
+			Enabled:     false,
+			Enforcement: config.MFAEnforcementOptional,
 		}
 		mfaSender := mfa.NewMockSender()
 		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)

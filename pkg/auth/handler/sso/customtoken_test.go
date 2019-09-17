@@ -92,7 +92,8 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := config.MFAConfiguration{
-			Enforcement: config.MFAEnforcementOff,
+			Enabled:     false,
+			Enforcement: config.MFAEnforcementOptional,
 		}
 		mfaSender := mfa.NewMockSender()
 		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
@@ -432,7 +433,8 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := config.MFAConfiguration{
-			Enforcement: config.MFAEnforcementOff,
+			Enabled:     false,
+			Enforcement: config.MFAEnforcementOptional,
 		}
 		mfaSender := mfa.NewMockSender()
 		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)

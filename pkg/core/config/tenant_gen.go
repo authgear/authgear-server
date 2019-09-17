@@ -3086,6 +3086,12 @@ func (z *MFAConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
+		case "enabled":
+			z.Enabled, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "Enabled")
+				return
+			}
 		case "enforcement":
 			{
 				var zb0002 string
@@ -3226,9 +3232,19 @@ func (z *MFAConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *MFAConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 6
+	// map header, size 7
+	// write "enabled"
+	err = en.Append(0x87, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	if err != nil {
+		return
+	}
+	err = en.WriteBool(z.Enabled)
+	if err != nil {
+		err = msgp.WrapError(err, "Enabled")
+		return
+	}
 	// write "enforcement"
-	err = en.Append(0x86, 0xab, 0x65, 0x6e, 0x66, 0x6f, 0x72, 0x63, 0x65, 0x6d, 0x65, 0x6e, 0x74)
+	err = en.Append(0xab, 0x65, 0x6e, 0x66, 0x6f, 0x72, 0x63, 0x65, 0x6d, 0x65, 0x6e, 0x74)
 	if err != nil {
 		return
 	}
@@ -3316,9 +3332,12 @@ func (z *MFAConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *MFAConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 6
+	// map header, size 7
+	// string "enabled"
+	o = append(o, 0x87, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	o = msgp.AppendBool(o, z.Enabled)
 	// string "enforcement"
-	o = append(o, 0x86, 0xab, 0x65, 0x6e, 0x66, 0x6f, 0x72, 0x63, 0x65, 0x6d, 0x65, 0x6e, 0x74)
+	o = append(o, 0xab, 0x65, 0x6e, 0x66, 0x6f, 0x72, 0x63, 0x65, 0x6d, 0x65, 0x6e, 0x74)
 	o = msgp.AppendString(o, string(z.Enforcement))
 	// string "maximum"
 	o = append(o, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
@@ -3373,6 +3392,12 @@ func (z *MFAConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
+		case "enabled":
+			z.Enabled, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Enabled")
+				return
+			}
 		case "enforcement":
 			{
 				var zb0002 string
@@ -3513,7 +3538,7 @@ func (z *MFAConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *MFAConfiguration) Msgsize() (s int) {
-	s = 1 + 12 + msgp.StringPrefixSize + len(string(z.Enforcement)) + 8
+	s = 1 + 8 + msgp.BoolSize + 12 + msgp.StringPrefixSize + len(string(z.Enforcement)) + 8
 	if z.Maximum == nil {
 		s += msgp.NilSize
 	} else {

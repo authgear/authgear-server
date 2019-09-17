@@ -159,6 +159,7 @@ func makeFullTenantConfig() TenantConfiguration {
 				OnUserDuplicateAllowCreate: true,
 			},
 			MFA: MFAConfiguration{
+				Enabled:     true,
 				Enforcement: MFAEnforcementOptional,
 				Maximum:     newInt(3),
 				TOTP: MFATOTPConfiguration{
