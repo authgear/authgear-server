@@ -535,6 +535,21 @@ func (p *providerImpl) AuthenticateOOB(userID string, code string, generateBeare
 	return nil, "", skyerr.NewError(skyerr.BadRequest, "invalid code")
 }
 
+func (p *providerImpl) StepMFA(a *coreAuth.AuthnSession, opts coreAuth.AuthnSessionStepMFAOptions) error {
+	now := p.timeProvider.NowUTC()
+	step, ok := a.NextStep()
+	if !ok || step != coreAuth.AuthnSessionStepMFA {
+		return skyerr.NewError(skyerr.BadRequest, "expected step to be mfa")
+	}
+	a.AuthenticatorID = opts.AuthenticatorID
+	a.AuthenticatorType = opts.AuthenticatorType
+	a.AuthenticatorOOBChannel = opts.AuthenticatorOOBChannel
+	a.AuthenticatorUpdatedAt = &now
+	a.AuthenticatorBearerToken = opts.AuthenticatorBearerToken
+	a.FinishedSteps = append(a.FinishedSteps, step)
+	return nil
+}
+
 var (
 	_ Provider = &providerImpl{}
 )

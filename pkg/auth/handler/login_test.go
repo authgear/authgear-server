@@ -408,8 +408,10 @@ func TestLoginHandler(t *testing.T) {
 						},
 					},
 					Session: model.Session{
-						ID:         "john.doe.id-john.doe.principal.id1-0",
-						IdentityID: "john.doe.principal.id1",
+						ID:                "john.doe.id-john.doe.principal.id1-0",
+						IdentityID:        "john.doe.principal.id1",
+						IdentityType:      "password",
+						IdentityUpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 					},
 				},
 			})

@@ -155,7 +155,7 @@ func (h *AuthenticateBearerTokenHandler) Handle(req interface{}) (resp interface
 		return
 	}
 
-	err = authnSess.StepMFA(coreAuth.AuthnSessionStepMFAOptions{
+	err = h.MFAProvider.StepMFA(authnSess, coreAuth.AuthnSessionStepMFAOptions{
 		AuthenticatorID:   a.ID,
 		AuthenticatorType: a.Type,
 	})

@@ -144,7 +144,7 @@ func (h *AuthenticateTOTPHandler) Handle(req interface{}) (resp interface{}, err
 		return
 	}
 
-	err = authnSess.StepMFA(coreAuth.AuthnSessionStepMFAOptions{
+	err = h.MFAProvider.StepMFA(authnSess, coreAuth.AuthnSessionStepMFAOptions{
 		AuthenticatorID:          a.ID,
 		AuthenticatorType:        a.Type,
 		AuthenticatorBearerToken: bearerToken,

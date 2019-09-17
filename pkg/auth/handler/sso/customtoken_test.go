@@ -229,8 +229,10 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						},
 					},
 					Session: model.Session{
-						ID:         fmt.Sprintf("%s-%s-0", p.UserID, p.ID),
-						IdentityID: p.ID,
+						ID:                fmt.Sprintf("%s-%s-0", p.UserID, p.ID),
+						IdentityID:        p.ID,
+						IdentityType:      "custom_token",
+						IdentityUpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 					},
 				},
 			})
@@ -291,8 +293,10 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						},
 					},
 					Session: model.Session{
-						ID:         "chima-uuid-chima-token-0",
-						IdentityID: "uuid-chima-token",
+						ID:                "chima-uuid-chima-token-0",
+						IdentityID:        "uuid-chima-token",
+						IdentityType:      "custom_token",
+						IdentityUpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 					},
 				},
 			})

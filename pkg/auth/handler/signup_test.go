@@ -364,8 +364,10 @@ func TestSingupHandler(t *testing.T) {
 						},
 					},
 					Session: model.Session{
-						ID:         fmt.Sprintf("%s-%s-0", userID, p.ID),
-						IdentityID: p.ID,
+						ID:                fmt.Sprintf("%s-%s-0", userID, p.ID),
+						IdentityID:        p.ID,
+						IdentityType:      "password",
+						IdentityUpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 					},
 				},
 			})
@@ -464,8 +466,10 @@ func TestSingupHandler(t *testing.T) {
 						},
 					},
 					Session: model.Session{
-						ID:         fmt.Sprintf("%s-%s-0", userID, p.ID),
-						IdentityID: p.ID,
+						ID:                fmt.Sprintf("%s-%s-0", userID, p.ID),
+						IdentityID:        p.ID,
+						IdentityType:      "password",
+						IdentityUpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 					},
 				},
 			})

@@ -138,6 +138,7 @@ func (p *providerImpl) getRequiredSteps(userID string) ([]auth.AuthnSessionStep,
 }
 
 func (p *providerImpl) NewFromScratch(userID string, prin principal.Principal, reason event.SessionCreateReason) (*auth.AuthnSession, error) {
+	now := p.timeProvider.NowUTC()
 	clientID := p.authContextGetter.AccessKey().ClientID
 	requiredSteps, err := p.getRequiredSteps(userID)
 	if err != nil {
@@ -150,6 +151,7 @@ func (p *providerImpl) NewFromScratch(userID string, prin principal.Principal, r
 		UserID:              userID,
 		PrincipalID:         prin.PrincipalID(),
 		PrincipalType:       auth.PrincipalType(prin.ProviderID()),
+		PrincipalUpdatedAt:  now,
 		RequiredSteps:       requiredSteps,
 		FinishedSteps:       finishedSteps,
 		SessionCreateReason: string(reason),

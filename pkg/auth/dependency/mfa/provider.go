@@ -47,4 +47,7 @@ type Provider interface {
 	// It this is the last authenticator,
 	// the recovery codes are also deleted.
 	DeleteAuthenticator(userID string, id string) error
+
+	// StepMFA steps forward the MFA step.
+	StepMFA(authnSession *coreAuth.AuthnSession, opts coreAuth.AuthnSessionStepMFAOptions) error
 }
