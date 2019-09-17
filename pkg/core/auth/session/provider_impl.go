@@ -208,6 +208,17 @@ func (p *providerImpl) Refresh(session *auth.Session) error {
 	return p.store.Update(session, expiry)
 }
 
+func (p *providerImpl) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepMFAOptions) error {
+	now := p.time.NowUTC()
+	sess.AuthenticatorID = opts.AuthenticatorID
+	sess.AuthenticatorType = opts.AuthenticatorType
+	sess.AuthenticatorOOBChannel = opts.AuthenticatorOOBChannel
+	sess.AuthenticatorUpdatedAt = &now
+
+	expiry := computeSessionStorageExpiry(sess, p.clientConfigs[sess.ClientID])
+	return p.store.Update(sess, expiry)
+}
+
 func (p *providerImpl) generateAccessToken(s *auth.Session) {
 	accessToken := corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand)
 	s.AccessToken = encodeToken(s.ID, accessToken)

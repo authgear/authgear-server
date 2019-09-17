@@ -113,3 +113,13 @@ func (p *MockProvider) Refresh(session *auth.Session) error {
 	p.counter++
 	return nil
 }
+
+func (p *MockProvider) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepMFAOptions) error {
+	now := p.Time.NowUTC()
+	sess.AuthenticatorID = opts.AuthenticatorID
+	sess.AuthenticatorType = opts.AuthenticatorType
+	sess.AuthenticatorOOBChannel = opts.AuthenticatorOOBChannel
+	sess.AuthenticatorUpdatedAt = &now
+	p.Sessions[sess.ID] = *sess
+	return nil
+}

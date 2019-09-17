@@ -22,4 +22,7 @@ type Provider interface {
 
 	// Refresh re-generates the access token of the session
 	Refresh(*auth.Session) error
+
+	// UpdateMFA updates the session MFA.
+	UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepMFAOptions) error
 }
