@@ -24,8 +24,7 @@ import (
 )
 
 var ErrUnknownMFAEnforcement = errors.New("unknown MFA enforcement")
-var ErrUnknownClaims = errors.New("unknown claims")
-var ErrInvalidToken = errors.New("invalid token")
+var ErrInvalidToken = skyerr.NewError(skyerr.InvalidAuthenticationSession, "invalid authentication session")
 
 type Claims struct {
 	jwt.StandardClaims
@@ -42,11 +41,11 @@ func ParseAuthnSessionToken(secret string, tokenString string) (*Claims, error) 
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, ErrInvalidToken
 	}
 	claims, ok := t.Claims.(*Claims)
 	if !ok {
-		return nil, ErrUnknownClaims
+		return nil, ErrInvalidToken
 	}
 	if !t.Valid {
 		return nil, ErrInvalidToken
@@ -289,8 +288,7 @@ func (p *providerImpl) ResolveUserID(authContext auth.ContextGetter, authnSessio
 
 	step, ok := authnSession.NextStep()
 	if !ok {
-		// TODO(mfa): InvalidAuthenticationSession
-		err = skyerr.NewNotAuthenticatedErr()
+		err = ErrInvalidToken
 		return
 	}
 

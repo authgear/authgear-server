@@ -102,6 +102,9 @@ const (
 	// A token and the step are included in info.
 	AuthenticationSession
 
+	// InvalidAuthenticationSession occurs the authentication session is invalid.
+	InvalidAuthenticationSession
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )
