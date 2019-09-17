@@ -17,22 +17,21 @@ var (
 // ContextGetter provides interface for getting authentication data
 type ContextGetter interface {
 	AccessKey() model.AccessKey
-	AuthInfo() *authinfo.AuthInfo
-	Session() *Session
+	AuthInfo() (*authinfo.AuthInfo, error)
+	Session() (*Session, error)
 }
 
 // ContextSetter provides interface for setting authentication data
 type ContextSetter interface {
 	SetAccessKey(model.AccessKey)
-	SetAuthInfo(*authinfo.AuthInfo)
-	SetSession(*Session)
+	SetSessionAndAuthInfo(*Session, *authinfo.AuthInfo, error)
 }
 
-// TODO: handle thread safety
 type contextContainer struct {
 	accessKey model.AccessKey
 	authInfo  *authinfo.AuthInfo
 	session   *Session
+	err       error
 }
 
 type authContext struct {
@@ -59,14 +58,14 @@ func (a *authContext) AccessKey() model.AccessKey {
 	return container.accessKey
 }
 
-func (a *authContext) AuthInfo() *authinfo.AuthInfo {
+func (a *authContext) AuthInfo() (*authinfo.AuthInfo, error) {
 	container := a.container()
-	return container.authInfo
+	return container.authInfo, container.err
 }
 
-func (a *authContext) Session() *Session {
+func (a *authContext) Session() (*Session, error) {
 	container := a.container()
-	return container.session
+	return container.session, container.err
 }
 
 func (a *authContext) SetAccessKey(key model.AccessKey) {
@@ -74,14 +73,11 @@ func (a *authContext) SetAccessKey(key model.AccessKey) {
 	container.accessKey = key
 }
 
-func (a *authContext) SetAuthInfo(authInfo *authinfo.AuthInfo) {
-	container := a.container()
-	container.authInfo = authInfo
-}
-
-func (a *authContext) SetSession(session *Session) {
+func (a *authContext) SetSessionAndAuthInfo(session *Session, authInfo *authinfo.AuthInfo, err error) {
 	container := a.container()
 	container.session = session
+	container.authInfo = authInfo
+	container.err = err
 }
 
 func (a *authContext) container() *contextContainer {

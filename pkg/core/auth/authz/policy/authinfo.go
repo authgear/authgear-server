@@ -5,12 +5,16 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func RequireAuthenticated(r *http.Request, ctx auth.ContextGetter) error {
-	authInfo := ctx.AuthInfo()
+	authInfo, err := ctx.AuthInfo()
 	if authInfo == nil {
+		if err == session.ErrSessionNotFound {
+			// TODO(mfa): write `x-skygear-try-refresh-token: true`
+		}
 		return skyerr.NewNotAuthenticatedErr()
 	}
 

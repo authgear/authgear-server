@@ -133,7 +133,7 @@ func (p *providerImpl) Get(id string) (*auth.Session, error) {
 		return nil, err
 	}
 
-	currentSession := p.authContext.Session()
+	currentSession, _ := p.authContext.Session()
 	if currentSession != nil && session.ID == currentSession.ID {
 		// should use current session data instead
 		session = currentSession
@@ -177,7 +177,7 @@ func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error)
 	}
 
 	now := p.time.NowUTC()
-	currentSession := p.authContext.Session()
+	currentSession, _ := p.authContext.Session()
 	for _, session := range storedSessions {
 		clientConfig, clientExists := p.clientConfigs[session.ClientID]
 		// if client does not exist or is disabled, ignore the session

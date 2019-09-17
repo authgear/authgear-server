@@ -100,7 +100,8 @@ func (h *ListRecoveryCodeHandler) Handle(req interface{}) (resp interface{}, err
 	if !h.MFAConfiguration.RecoveryCode.ListEnabled {
 		return nil, skyerr.NewError(skyerr.BadRequest, "listing recovery code is disabled")
 	}
-	userID := h.AuthContext.AuthInfo().ID
+	authInfo, _ := h.AuthContext.AuthInfo()
+	userID := authInfo.ID
 	codes, err := h.MFAProvider.GetRecoveryCode(userID)
 	if err != nil {
 		return nil, err

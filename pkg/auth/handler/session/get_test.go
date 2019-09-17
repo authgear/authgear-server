@@ -17,8 +17,9 @@ func TestGetHandler(t *testing.T) {
 	Convey("Test GetHandler", t, func() {
 		h := &GetHandler{}
 		h.TxContext = db.NewMockTxContext()
-		h.AuthContext = authtest.NewMockContext().
+		authContext := authtest.NewMockContext().
 			UseUser("user-id-1", "principal-id-1")
+		h.AuthContext = authContext
 		sessionProvider := session.NewMockProvider()
 		h.SessionProvider = sessionProvider
 
@@ -39,7 +40,8 @@ func TestGetHandler(t *testing.T) {
 			CreatedAt:   now,
 			AccessedAt:  now,
 		}
-		*h.AuthContext.Session() = sessionProvider.Sessions["user-id-1-principal-id-1"]
+		sess := sessionProvider.Sessions["user-id-1-principal-id-1"]
+		authContext.UseSession(&sess)
 
 		Convey("should get existing session", func() {
 			payload := GetRequestPayload{SessionID: "user-id-1-principal-id-1"}

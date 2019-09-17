@@ -182,14 +182,16 @@ func (provider *providerImpl) makeContext() event.Context {
 		requestID = &provider.RequestID
 	}
 
-	if provider.AuthContext.AuthInfo() == nil {
+	authInfo, _ := provider.AuthContext.AuthInfo()
+	sess, _ := provider.AuthContext.Session()
+	if authInfo == nil {
 		userID = nil
 		principalID = nil
 		session = nil
 	} else {
-		userID = &provider.AuthContext.AuthInfo().ID
-		principalID = &provider.AuthContext.Session().PrincipalID
-		s := authSession.Format(provider.AuthContext.Session())
+		userID = &authInfo.ID
+		principalID = &sess.PrincipalID
+		s := authSession.Format(sess)
 		session = &s
 	}
 

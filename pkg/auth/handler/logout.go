@@ -109,7 +109,9 @@ func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 // Handle api request
 func (h LogoutHandler) Handle() (resp interface{}, err error) {
-	if err = h.SessionProvider.Invalidate(h.AuthContext.Session()); err != nil {
+	authInfo, _ := h.AuthContext.AuthInfo()
+	sess, _ := h.AuthContext.Session()
+	if err = h.SessionProvider.Invalidate(sess); err != nil {
 		err = skyerr.MakeError(err)
 		return
 	}
@@ -117,18 +119,18 @@ func (h LogoutHandler) Handle() (resp interface{}, err error) {
 	resp = map[string]string{}
 
 	var profile userprofile.UserProfile
-	if profile, err = h.UserProfileStore.GetUserProfile(h.AuthContext.AuthInfo().ID); err != nil {
+	if profile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
 		return
 	}
 
 	var principal principal.Principal
-	if principal, err = h.IdentityProvider.GetPrincipalByID(h.AuthContext.Session().PrincipalID); err != nil {
+	if principal, err = h.IdentityProvider.GetPrincipalByID(sess.PrincipalID); err != nil {
 		return
 	}
 
-	user := authModel.NewUser(*h.AuthContext.AuthInfo(), profile)
+	user := authModel.NewUser(*authInfo, profile)
 	identity := authModel.NewIdentity(h.IdentityProvider, principal)
-	session := authSession.Format(h.AuthContext.Session())
+	session := authSession.Format(sess)
 
 	err = h.HookProvider.DispatchEvent(
 		event.SessionDeleteEvent{
@@ -144,7 +146,7 @@ func (h LogoutHandler) Handle() (resp interface{}, err error) {
 	}
 
 	h.AuditTrail.Log(audit.Entry{
-		UserID: h.AuthContext.AuthInfo().ID,
+		UserID: authInfo.ID,
 		Event:  audit.EventLogout,
 	})
 

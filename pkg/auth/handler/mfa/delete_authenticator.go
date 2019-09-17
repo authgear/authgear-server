@@ -83,7 +83,8 @@ func (h *DeleteAuthenticatorHandler) DecodeRequest(request *http.Request) (handl
 
 func (h *DeleteAuthenticatorHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(DeleteAuthenticatorRequest)
-	userID := h.AuthContext.AuthInfo().ID
+	authInfo, _ := h.AuthContext.AuthInfo()
+	userID := authInfo.ID
 	err = h.MFAProvider.DeleteAuthenticator(userID, payload.AuthenticatorID)
 	if err != nil {
 		return

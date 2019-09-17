@@ -271,7 +271,8 @@ func (p *providerImpl) AlterResponse(w http.ResponseWriter, resp interface{}, er
 
 func (p *providerImpl) ResolveUserID(authContext auth.ContextGetter, authnSessionToken string, options ResolveUserIDOptions) (userID string, err error) {
 	// Simple case
-	authInfo := authContext.AuthInfo()
+	// TODO(mfa): Introduce a policy to guard against invalid session
+	authInfo, _ := authContext.AuthInfo()
 	if authInfo != nil {
 		userID = authInfo.ID
 		return
@@ -289,6 +290,7 @@ func (p *providerImpl) ResolveUserID(authContext auth.ContextGetter, authnSessio
 
 	step, ok := authnSession.NextStep()
 	if !ok {
+		// TODO(mfa): InvalidAuthenticationSession
 		err = skyerr.NewNotAuthenticatedErr()
 		return
 	}

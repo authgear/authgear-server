@@ -24,11 +24,12 @@ func TestLogoutHandler(t *testing.T) {
 		authContext := authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
-		authContext.Session().ID = "session-id"
+		sess, _ := authContext.Session()
+		sess.ID = "session-id"
 		h.AuthContext = authContext
 
 		sessionProvider := session.NewMockProvider()
-		sessionProvider.Sessions[authContext.Session().ID] = *authContext.Session()
+		sessionProvider.Sessions[sess.ID] = *sess
 		h.SessionProvider = sessionProvider
 		h.SessionWriter = session.NewMockWriter()
 

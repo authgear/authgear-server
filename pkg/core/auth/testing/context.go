@@ -12,6 +12,7 @@ type MockContext struct {
 	accessKey model.AccessKey
 	authInfo  *authinfo.AuthInfo
 	session   *auth.Session
+	err       error
 }
 
 var _ auth.ContextGetter = &MockContext{}
@@ -24,12 +25,12 @@ func (m *MockContext) AccessKey() model.AccessKey {
 	return m.accessKey
 }
 
-func (m *MockContext) AuthInfo() *authinfo.AuthInfo {
-	return m.authInfo
+func (m *MockContext) AuthInfo() (*authinfo.AuthInfo, error) {
+	return m.authInfo, m.err
 }
 
-func (m *MockContext) Session() *auth.Session {
-	return m.session
+func (m *MockContext) Session() (*auth.Session, error) {
+	return m.session, m.err
 }
 
 func (m *MockContext) UseAPIAccessKey(clientID string) *MockContext {
@@ -59,6 +60,11 @@ func (m *MockContext) UseUser(userID string, principalID string) *MockContext {
 		PrincipalID: principalID,
 		AccessToken: fmt.Sprintf("access-token-%s-%s", userID, principalID),
 	}
+	return m
+}
+
+func (m *MockContext) UseSession(sess *auth.Session) *MockContext {
+	m.session = sess
 	return m
 }
 

@@ -118,7 +118,8 @@ func (h GetHandler) DecodeRequest(request *http.Request) (handler.RequestPayload
 }
 
 func (h GetHandler) Handle(req interface{}) (resp interface{}, err error) {
-	userID := h.AuthContext.AuthInfo().ID
+	authInfo, _ := h.AuthContext.AuthInfo()
+	userID := authInfo.ID
 	sessionID := req.(GetRequestPayload).SessionID
 
 	s, err := h.SessionProvider.Get(sessionID)

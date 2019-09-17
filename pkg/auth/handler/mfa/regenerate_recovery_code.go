@@ -96,7 +96,8 @@ func (h *RegenerateRecoveryCodeHandler) DecodeRequest(request *http.Request) (ha
 }
 
 func (h *RegenerateRecoveryCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
-	userID := h.AuthContext.AuthInfo().ID
+	authInfo, _ := h.AuthContext.AuthInfo()
+	userID := authInfo.ID
 	codes, err := h.MFAProvider.GenerateRecoveryCode(userID)
 	if err != nil {
 		return nil, err

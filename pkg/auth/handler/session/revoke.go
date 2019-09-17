@@ -106,10 +106,12 @@ func (h RevokeHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 func (h RevokeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(RevokeRequestPayload)
 
-	userID := h.AuthContext.AuthInfo().ID
+	authInfo, _ := h.AuthContext.AuthInfo()
+	userID := authInfo.ID
+	sess, _ := h.AuthContext.Session()
 	sessionID := payload.SessionID
 
-	if h.AuthContext.Session().ID == sessionID {
+	if sess.ID == sessionID {
 		err = skyerr.NewInvalidArgument("must not revoke current session", []string{"session_id"})
 		return
 	}
@@ -138,7 +140,7 @@ func (h RevokeHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	user := model.NewUser(*h.AuthContext.AuthInfo(), profile)
+	user := model.NewUser(*authInfo, profile)
 	identity := model.NewIdentity(h.IdentityProvider, principal)
 	session := authSession.Format(s)
 

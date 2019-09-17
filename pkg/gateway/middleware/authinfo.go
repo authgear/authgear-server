@@ -36,7 +36,9 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		r.Header.Del(coreHttp.HeaderSessionIdentityType)
 		r.Header.Del(coreHttp.HeaderSessionAuthenticatorType)
 
-		authInfo := m.AuthContext.AuthInfo()
+		// TODO(mfa): If refresh token is enabled and the session is invalid,
+		// do not forward the request and write `x-skygear-try-refresh-token: true`
+		authInfo, _ := m.AuthContext.AuthInfo()
 		if authInfo != nil {
 			id := authInfo.ID
 			disabled := authInfo.Disabled
@@ -46,7 +48,7 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 			r.Header.Set(coreHttp.HeaderUserVerified, strconv.FormatBool(verified))
 			r.Header.Set(coreHttp.HeaderUserDisabled, strconv.FormatBool(disabled))
 		}
-		sess := m.AuthContext.Session()
+		sess, _ := m.AuthContext.Session()
 		if sess != nil {
 			ptype := sess.PrincipalType
 			if ptype != "" {

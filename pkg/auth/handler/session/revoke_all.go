@@ -78,14 +78,16 @@ func (h RevokeAllHandler) DecodeRequest(request *http.Request) (handler.RequestP
 }
 
 func (h RevokeAllHandler) Handle(req interface{}) (resp interface{}, err error) {
-	userID := h.AuthContext.AuthInfo().ID
-	sessionID := h.AuthContext.Session().ID
+	authInfo, _ := h.AuthContext.AuthInfo()
+	userID := authInfo.ID
+	sess, _ := h.AuthContext.Session()
+	sessionID := sess.ID
 
 	profile, err := h.UserProfileStore.GetUserProfile(userID)
 	if err != nil {
 		return
 	}
-	user := model.NewUser(*h.AuthContext.AuthInfo(), profile)
+	user := model.NewUser(*authInfo, profile)
 
 	sessions, err := h.SessionProvider.List(userID)
 	if err != nil {

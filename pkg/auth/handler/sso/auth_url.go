@@ -337,8 +337,10 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 			Nonce: crypto.SHA256String(nonce),
 		},
 	}
-	if h.AuthContext.AuthInfo() != nil {
-		params.State.UserID = h.AuthContext.AuthInfo().ID
+	// TODO(mfa): Introduce a policy to guard against invalid session
+	authInfo, _ := h.AuthContext.AuthInfo()
+	if authInfo != nil {
+		params.State.UserID = authInfo.ID
 	}
 	url, err := h.Provider.GetAuthURL(params)
 	if err != nil {

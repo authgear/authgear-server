@@ -71,7 +71,8 @@ func (h *RevokeAllBearerTokenHandler) DecodeRequest(request *http.Request) (hand
 }
 
 func (h *RevokeAllBearerTokenHandler) Handle(req interface{}) (resp interface{}, err error) {
-	userID := h.AuthContext.AuthInfo().ID
+	authInfo, _ := h.AuthContext.AuthInfo()
+	userID := authInfo.ID
 	err = h.MFAProvider.DeleteAllBearerToken(userID)
 	if err != nil {
 		return

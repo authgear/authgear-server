@@ -123,7 +123,7 @@ func (h VerifyCodeHandler) DecodeRequest(request *http.Request) (handler.Request
 
 func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(VerifyCodePayload)
-	authInfo := h.AuthContext.AuthInfo()
+	authInfo, _ := h.AuthContext.AuthInfo()
 
 	var userProfile userprofile.UserProfile
 	userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID)
