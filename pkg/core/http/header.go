@@ -19,12 +19,17 @@ const (
 	HeaderRequestID = "x-skygear-request-id"
 
 	// Headers appearing in proxied microservice request
-	HeaderUserDisabled             = "x-skygear-user-disabled"
-	HeaderUserID                   = "x-skygear-user-userid"
-	HeaderUserVerified             = "x-skygear-user-verified"
-	HeaderSessionIdentityType      = "x-skygear-session-identity-type"
-	HeaderSessionAuthenticatorType = "x-skygear-session-authenticator-type"
-	HeaderHTTPPath                 = "x-skygear-http-path"
+	HeaderUserID                         = "x-skygear-user-id"
+	HeaderUserDisabled                   = "x-skygear-user-disabled"
+	HeaderUserVerified                   = "x-skygear-user-verified"
+	HeaderSessionIdentityID              = "x-skygear-session-identity-id"
+	HeaderSessionIdentityType            = "x-skygear-session-identity-type"
+	HeaderSessionIdentityUpdatedAt       = "x-skygear-session-identity-updated-at"
+	HeaderSessionAuthenticatorID         = "x-skygear-session-authenticator-id"
+	HeaderSessionAuthenticatorType       = "x-skygear-session-authenticator-type"
+	HeaderSessionAuthenticatorOOBChannel = "x-skygear-session-authenticator-oob-channel"
+	HeaderSessionAuthenticatorUpdatedAt  = "x-skygear-session-authenticator-updated-at"
+	HeaderHTTPPath                       = "x-skygear-http-path"
 
 	// Headers appearing in proxied gear request
 	HeaderGear         = "x-skygear-gear"

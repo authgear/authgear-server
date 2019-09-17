@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -36,10 +37,15 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 
 		// Remove untrusted headers first.
 		r.Header.Del(coreHttp.HeaderUserID)
-		r.Header.Del(coreHttp.HeaderUserVerified)
 		r.Header.Del(coreHttp.HeaderUserDisabled)
+		r.Header.Del(coreHttp.HeaderUserVerified)
+		r.Header.Del(coreHttp.HeaderSessionIdentityID)
 		r.Header.Del(coreHttp.HeaderSessionIdentityType)
+		r.Header.Del(coreHttp.HeaderSessionIdentityUpdatedAt)
+		r.Header.Del(coreHttp.HeaderSessionAuthenticatorID)
 		r.Header.Del(coreHttp.HeaderSessionAuthenticatorType)
+		r.Header.Del(coreHttp.HeaderSessionAuthenticatorOOBChannel)
+		r.Header.Del(coreHttp.HeaderSessionAuthenticatorUpdatedAt)
 
 		// If refresh token is enabled and the session is invalid,
 		// do not forward the request and write `x-skygear-try-refresh-token: true`
@@ -66,13 +72,20 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		}
 		sess, _ := m.AuthContext.Session()
 		if sess != nil {
-			ptype := sess.PrincipalType
-			if ptype != "" {
-				r.Header.Set(coreHttp.HeaderSessionIdentityType, string(ptype))
+			r.Header.Set(coreHttp.HeaderSessionIdentityID, sess.PrincipalID)
+			r.Header.Set(coreHttp.HeaderSessionIdentityType, string(sess.PrincipalType))
+			if !sess.PrincipalUpdatedAt.IsZero() {
+				r.Header.Set(coreHttp.HeaderSessionIdentityUpdatedAt, sess.PrincipalUpdatedAt.Format(time.RFC3339))
 			}
-			atype := sess.AuthenticatorType
-			if atype != "" {
-				r.Header.Set(coreHttp.HeaderSessionAuthenticatorType, string(atype))
+			if sess.AuthenticatorID != "" {
+				r.Header.Set(coreHttp.HeaderSessionAuthenticatorID, sess.AuthenticatorID)
+				r.Header.Set(coreHttp.HeaderSessionAuthenticatorType, string(sess.AuthenticatorType))
+				if sess.AuthenticatorOOBChannel != "" {
+					r.Header.Set(coreHttp.HeaderSessionAuthenticatorOOBChannel, string(sess.AuthenticatorOOBChannel))
+				}
+				if sess.AuthenticatorUpdatedAt != nil && !sess.AuthenticatorUpdatedAt.IsZero() {
+					r.Header.Set(coreHttp.HeaderSessionAuthenticatorUpdatedAt, sess.AuthenticatorUpdatedAt.Format(time.RFC3339))
+				}
 			}
 		}
 
