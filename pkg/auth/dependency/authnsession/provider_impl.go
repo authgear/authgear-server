@@ -268,11 +268,11 @@ func (p *providerImpl) AlterResponse(w http.ResponseWriter, resp interface{}, er
 	return resp
 }
 
-func (p *providerImpl) ResolveUserID(authContext auth.ContextGetter, authnSessionToken string, options ResolveUserIDOptions) (userID string, err error) {
+func (p *providerImpl) Resolve(authContext auth.ContextGetter, authnSessionToken string, options ResolveOptions) (userID string, sess *auth.Session, authnSession *auth.AuthnSession, err error) {
 	// Simple case
-	authInfo, _ := authContext.AuthInfo()
-	if authInfo != nil {
-		userID = authInfo.ID
+	sess, _ = authContext.Session()
+	if sess != nil {
+		userID = sess.UserID
 		return
 	}
 
@@ -281,7 +281,7 @@ func (p *providerImpl) ResolveUserID(authContext auth.ContextGetter, authnSessio
 		return
 	}
 
-	authnSession, err := p.NewWithToken(authnSessionToken)
+	authnSession, err = p.NewWithToken(authnSessionToken)
 	if err != nil {
 		return
 	}
@@ -294,13 +294,13 @@ func (p *providerImpl) ResolveUserID(authContext auth.ContextGetter, authnSessio
 
 	switch step {
 	case auth.AuthnSessionStepMFA:
-		switch options.MFACase {
-		case ResolveUserIDMFACaseAlwaysAccept:
+		switch options.MFAOption {
+		case ResolveMFAOptionAlwaysAccept:
 			userID = authnSession.UserID
 			return
-		case ResolveUserIDMfaCaseOnlyWhenNoAuthenticators:
+		case ResolveMFAOptionOnlyWhenNoAuthenticators:
 			var authenticators []interface{}
-			authenticators, err = p.mfaProvider.ListAuthenticators(userID)
+			authenticators, err = p.mfaProvider.ListAuthenticators(authnSession.UserID)
 			if err != nil {
 				return
 			}

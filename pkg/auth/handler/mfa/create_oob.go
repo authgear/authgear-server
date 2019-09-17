@@ -146,8 +146,8 @@ func (h *CreateOOBHandler) DecodeRequest(request *http.Request) (handler.Request
 
 func (h *CreateOOBHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(CreateOOBRequest)
-	userID, err := h.AuthnSessionProvider.ResolveUserID(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveUserIDOptions{
-		MFACase: authnsession.ResolveUserIDMfaCaseOnlyWhenNoAuthenticators,
+	userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
+		MFAOption: authnsession.ResolveMFAOptionOnlyWhenNoAuthenticators,
 	})
 	if err != nil {
 		return nil, err

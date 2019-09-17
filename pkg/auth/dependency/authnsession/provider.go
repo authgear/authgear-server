@@ -8,15 +8,15 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 )
 
-type ResolveUserIDOptions struct {
-	MFACase ResolveUserIDMFACase
+type ResolveOptions struct {
+	MFAOption ResolveMFAOption
 }
 
-type ResolveUserIDMFACase int
+type ResolveMFAOption int
 
 const (
-	ResolveUserIDMFACaseAlwaysAccept ResolveUserIDMFACase = iota
-	ResolveUserIDMfaCaseOnlyWhenNoAuthenticators
+	ResolveMFAOptionAlwaysAccept ResolveMFAOption = iota
+	ResolveMFAOptionOnlyWhenNoAuthenticators
 )
 
 // Provider manipulates authentication session
@@ -35,6 +35,6 @@ type Provider interface {
 	// It should only be used when the response is not given in HTTP Body.
 	AlterResponse(w http.ResponseWriter, resp interface{}, err error) interface{}
 
-	// ResolveUserID resolves user ID from auth context or the token.
-	ResolveUserID(authContext auth.ContextGetter, authnSessionToken string, options ResolveUserIDOptions) (string, error)
+	// Resolve resolves session or authentication session.
+	Resolve(authContext auth.ContextGetter, authnSessionToken string, options ResolveOptions) (userID string, sess *auth.Session, authnSession *auth.AuthnSession, err error)
 }

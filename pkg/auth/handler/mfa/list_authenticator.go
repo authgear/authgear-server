@@ -116,8 +116,8 @@ func (h *ListAuthenticatorHandler) DecodeRequest(request *http.Request) (handler
 
 func (h *ListAuthenticatorHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(ListAuthenticatorRequest)
-	userID, err := h.AuthnSessionProvider.ResolveUserID(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveUserIDOptions{
-		MFACase: authnsession.ResolveUserIDMFACaseAlwaysAccept,
+	userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
+		MFAOption: authnsession.ResolveMFAOptionAlwaysAccept,
 	})
 	if err != nil {
 		return nil, err
