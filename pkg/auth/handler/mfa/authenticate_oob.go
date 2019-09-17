@@ -10,6 +10,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -45,9 +46,6 @@ type AuthenticateOOBRequest struct {
 }
 
 func (r AuthenticateOOBRequest) Validate() error {
-	if r.AuthnSessionToken == "" {
-		return skyerr.NewInvalidArgument("missing authentication session token", []string{"authn_session_token"})
-	}
 	if r.Code == "" {
 		return skyerr.NewInvalidArgument("missing code", []string{"code"})
 	}
@@ -64,7 +62,7 @@ const AuthenticateOOBRequestSchema = `
 		"code": { "type": "string" },
 		"request_bearer_token": { "type": "boolean" }
 	}
-	"required": ["authn_session_token", "code"]
+	"required": ["code"]
 }
 `
 
@@ -86,6 +84,7 @@ const AuthenticateOOBRequestSchema = `
 type AuthenticateOOBHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	SessionProvider      session.Provider        `dependency:"SessionProvider"`
 	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
 	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
 	HookProvider         hook.Provider           `dependency:"HookProvider"`
@@ -93,7 +92,10 @@ type AuthenticateOOBHandler struct {
 }
 
 func (h *AuthenticateOOBHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(authz.PolicyFunc(policy.DenyNoAccessKey))
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.DenyInvalidSession),
+	)
 }
 
 func (h *AuthenticateOOBHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
@@ -134,29 +136,42 @@ func (h *AuthenticateOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 func (h *AuthenticateOOBHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(AuthenticateOOBRequest)
 
-	authnSess, err := h.AuthnSessionProvider.NewWithToken(payload.AuthnSessionToken)
-	if err != nil {
-		return
-	}
-
-	a, bearerToken, err := h.MFAProvider.AuthenticateOOB(authnSess.UserID, payload.Code, payload.RequestBearerToken)
-	if err != nil {
-		return
-	}
-
-	err = h.MFAProvider.StepMFA(authnSess, coreAuth.AuthnSessionStepMFAOptions{
-		AuthenticatorID:          a.ID,
-		AuthenticatorType:        a.Type,
-		AuthenticatorOOBChannel:  a.Channel,
-		AuthenticatorBearerToken: bearerToken,
+	userID, sess, authnSess, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
+		MFAOption: authnsession.ResolveMFAOptionAlwaysAccept,
 	})
 	if err != nil {
 		return
 	}
 
-	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*authnSess)
+	a, bearerToken, err := h.MFAProvider.AuthenticateOOB(userID, payload.Code, payload.RequestBearerToken)
 	if err != nil {
 		return
+	}
+	opts := coreAuth.AuthnSessionStepMFAOptions{
+		AuthenticatorID:          a.ID,
+		AuthenticatorType:        a.Type,
+		AuthenticatorOOBChannel:  a.Channel,
+		AuthenticatorBearerToken: bearerToken,
+	}
+
+	if sess != nil {
+		err = h.SessionProvider.UpdateMFA(sess, opts)
+		if err != nil {
+			return
+		}
+		resp, err = h.AuthnSessionProvider.GenerateResponseWithSession(sess, bearerToken)
+		if err != nil {
+			return
+		}
+	} else if authnSess != nil {
+		err = h.MFAProvider.StepMFA(authnSess, opts)
+		if err != nil {
+			return
+		}
+		resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*authnSess)
+		if err != nil {
+			return
+		}
 	}
 
 	return

@@ -28,6 +28,10 @@ type Provider interface {
 	// GenerateResponseAndUpdateLastLoginAt generates authentication response and update last_login_at
 	// if the response is AuthResponse.
 	GenerateResponseAndUpdateLastLoginAt(session auth.AuthnSession) (interface{}, error)
+
+	// GenerateResponseWithSession generates authentication response.
+	GenerateResponseWithSession(sess *auth.Session, mfaBearerToken string) (interface{}, error)
+
 	// WriteResponse alters the response, write Cookies and write HTTP Body. It should be used in a defer block.
 	// It should be used in most cases.
 	WriteResponse(w http.ResponseWriter, resp interface{}, err error)

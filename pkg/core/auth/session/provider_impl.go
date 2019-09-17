@@ -214,9 +214,7 @@ func (p *providerImpl) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepM
 	sess.AuthenticatorType = opts.AuthenticatorType
 	sess.AuthenticatorOOBChannel = opts.AuthenticatorOOBChannel
 	sess.AuthenticatorUpdatedAt = &now
-
-	expiry := computeSessionStorageExpiry(sess, p.clientConfigs[sess.ClientID])
-	return p.store.Update(sess, expiry)
+	return p.Refresh(sess)
 }
 
 func (p *providerImpl) generateAccessToken(s *auth.Session) {

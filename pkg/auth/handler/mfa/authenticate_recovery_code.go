@@ -10,6 +10,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -44,9 +45,6 @@ type AuthenticateRecoveryCodeRequest struct {
 }
 
 func (r AuthenticateRecoveryCodeRequest) Validate() error {
-	if r.AuthnSessionToken == "" {
-		return skyerr.NewInvalidArgument("missing authentication session token", []string{"authn_session_token"})
-	}
 	if r.Code == "" {
 		return skyerr.NewInvalidArgument("missing recovery code", []string{"code"})
 	}
@@ -62,7 +60,7 @@ const AuthenticateRecoveryCodeRequestSchema = `
 		"authn_session_token": { "type": "string" },
 		"code": { "type": "string" }
 	}
-	"required": ["authn_session_token", "code"]
+	"required": ["code"]
 }
 `
 
@@ -84,6 +82,7 @@ const AuthenticateRecoveryCodeRequestSchema = `
 type AuthenticateRecoveryCodeHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	SessionProvider      session.Provider        `dependency:"SessionProvider"`
 	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
 	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
 	HookProvider         hook.Provider           `dependency:"HookProvider"`
@@ -91,7 +90,10 @@ type AuthenticateRecoveryCodeHandler struct {
 }
 
 func (h *AuthenticateRecoveryCodeHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(authz.PolicyFunc(policy.DenyNoAccessKey))
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.DenyInvalidSession),
+	)
 }
 
 func (h *AuthenticateRecoveryCodeHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
@@ -132,27 +134,41 @@ func (h *AuthenticateRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 func (h *AuthenticateRecoveryCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(AuthenticateRecoveryCodeRequest)
 
-	authnSess, err := h.AuthnSessionProvider.NewWithToken(payload.AuthnSessionToken)
-	if err != nil {
-		return
-	}
-
-	a, err := h.MFAProvider.AuthenticateRecoveryCode(authnSess.UserID, payload.Code)
-	if err != nil {
-		return
-	}
-
-	err = h.MFAProvider.StepMFA(authnSess, coreAuth.AuthnSessionStepMFAOptions{
-		AuthenticatorID:   a.ID,
-		AuthenticatorType: a.Type,
+	userID, sess, authnSess, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
+		MFAOption: authnsession.ResolveMFAOptionAlwaysAccept,
 	})
 	if err != nil {
 		return
 	}
 
-	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*authnSess)
+	a, err := h.MFAProvider.AuthenticateRecoveryCode(userID, payload.Code)
 	if err != nil {
 		return
+	}
+
+	opts := coreAuth.AuthnSessionStepMFAOptions{
+		AuthenticatorID:   a.ID,
+		AuthenticatorType: a.Type,
+	}
+
+	if sess != nil {
+		err = h.SessionProvider.UpdateMFA(sess, opts)
+		if err != nil {
+			return
+		}
+		resp, err = h.AuthnSessionProvider.GenerateResponseWithSession(sess, "")
+		if err != nil {
+			return
+		}
+	} else if authnSess != nil {
+		err = h.MFAProvider.StepMFA(authnSess, opts)
+		if err != nil {
+			return
+		}
+		resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*authnSess)
+		if err != nil {
+			return
+		}
 	}
 
 	return

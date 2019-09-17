@@ -10,6 +10,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -45,9 +46,6 @@ type AuthenticateTOTPRequest struct {
 }
 
 func (r AuthenticateTOTPRequest) Validate() error {
-	if r.AuthnSessionToken == "" {
-		return skyerr.NewInvalidArgument("missing authentication session token", []string{"authn_session_token"})
-	}
 	if r.OTP == "" {
 		return skyerr.NewInvalidArgument("missing OTP", []string{"otp"})
 	}
@@ -64,7 +62,7 @@ const AuthenticateTOTPRequestSchema = `
 		"otp": { "type": "string" },
 		"request_bearer_token": { "type": "boolean" }
 	}
-	"required": ["authn_session_token", "otp"]
+	"required": ["otp"]
 }
 `
 
@@ -86,6 +84,7 @@ const AuthenticateTOTPRequestSchema = `
 type AuthenticateTOTPHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	SessionProvider      session.Provider        `dependency:"SessionProvider"`
 	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
 	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
 	HookProvider         hook.Provider           `dependency:"HookProvider"`
@@ -93,7 +92,10 @@ type AuthenticateTOTPHandler struct {
 }
 
 func (h *AuthenticateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(authz.PolicyFunc(policy.DenyNoAccessKey))
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.DenyInvalidSession),
+	)
 }
 
 func (h *AuthenticateTOTPHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
@@ -134,28 +136,41 @@ func (h *AuthenticateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 func (h *AuthenticateTOTPHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(AuthenticateTOTPRequest)
 
-	authnSess, err := h.AuthnSessionProvider.NewWithToken(payload.AuthnSessionToken)
-	if err != nil {
-		return
-	}
-
-	a, bearerToken, err := h.MFAProvider.AuthenticateTOTP(authnSess.UserID, payload.OTP, payload.RequestBearerToken)
-	if err != nil {
-		return
-	}
-
-	err = h.MFAProvider.StepMFA(authnSess, coreAuth.AuthnSessionStepMFAOptions{
-		AuthenticatorID:          a.ID,
-		AuthenticatorType:        a.Type,
-		AuthenticatorBearerToken: bearerToken,
+	userID, sess, authnSess, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
+		MFAOption: authnsession.ResolveMFAOptionAlwaysAccept,
 	})
 	if err != nil {
 		return
 	}
 
-	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*authnSess)
+	a, bearerToken, err := h.MFAProvider.AuthenticateTOTP(userID, payload.OTP, payload.RequestBearerToken)
 	if err != nil {
 		return
+	}
+	opts := coreAuth.AuthnSessionStepMFAOptions{
+		AuthenticatorID:          a.ID,
+		AuthenticatorType:        a.Type,
+		AuthenticatorBearerToken: bearerToken,
+	}
+
+	if sess != nil {
+		err = h.SessionProvider.UpdateMFA(sess, opts)
+		if err != nil {
+			return
+		}
+		resp, err = h.AuthnSessionProvider.GenerateResponseWithSession(sess, bearerToken)
+		if err != nil {
+			return
+		}
+	} else if authnSess != nil {
+		err = h.MFAProvider.StepMFA(authnSess, opts)
+		if err != nil {
+			return
+		}
+		resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*authnSess)
+		if err != nil {
+			return
+		}
 	}
 
 	return

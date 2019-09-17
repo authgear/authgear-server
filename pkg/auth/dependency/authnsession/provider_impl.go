@@ -234,6 +234,29 @@ func (p *providerImpl) GenerateResponseAndUpdateLastLoginAt(authnSess auth.Authn
 	return authnSessionErr, nil
 }
 
+func (p *providerImpl) GenerateResponseWithSession(sess *auth.Session, mfaBearerToken string) (interface{}, error) {
+	var authInfo authinfo.AuthInfo
+	err := p.authInfoStore.GetAuth(sess.UserID, &authInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	userProfile, err := p.userProfileStore.GetUserProfile(sess.UserID)
+	if err != nil {
+		return nil, err
+	}
+	user := model.NewUser(authInfo, userProfile)
+
+	prin, err := p.identityProvider.GetPrincipalByID(sess.PrincipalID)
+	if err != nil {
+		return nil, err
+	}
+	identity := model.NewIdentity(p.identityProvider, prin)
+
+	resp := model.NewAuthResponse(user, identity, sess, mfaBearerToken)
+	return resp, nil
+}
+
 func (p *providerImpl) WriteResponse(w http.ResponseWriter, resp interface{}, err error) {
 	if err == nil {
 		switch v := resp.(type) {
