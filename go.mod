@@ -3,6 +3,7 @@ module github.com/skygeario/skygear-server
 go 1.12
 
 require (
+	github.com/FZambia/sentinel v1.1.0
 	github.com/Masterminds/squirrel v1.1.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/dgrijalva/jwt-go v3.1.0+incompatible
