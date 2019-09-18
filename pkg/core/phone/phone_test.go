@@ -8,15 +8,15 @@ import (
 
 func TestPhone(t *testing.T) {
 	Convey("Phone", t, func() {
-		Convey("Parse", func() {
+		Convey("EnsureE164", func() {
 			good := "+85223456789"
-			So(Parse(good), ShouldBeNil)
+			So(EnsureE164(good), ShouldBeNil)
 
 			bad := " +85223456789 "
-			So(Parse(bad), ShouldBeError, "not in E.164 format")
+			So(EnsureE164(bad), ShouldBeError, "not in E.164 format")
 
 			nonsense := "a"
-			So(Parse(nonsense), ShouldNotBeNil)
+			So(EnsureE164(nonsense), ShouldNotBeNil)
 		})
 
 		Convey("Mask", func() {

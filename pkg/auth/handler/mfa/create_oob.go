@@ -56,7 +56,7 @@ type CreateOOBRequest struct {
 func (r CreateOOBRequest) Validate() error {
 	switch r.Channel {
 	case coreAuth.AuthenticatorOOBChannelSMS:
-		return phone.Parse(r.Phone)
+		return phone.EnsureE164(r.Phone)
 	case coreAuth.AuthenticatorOOBChannelEmail:
 		return mail.Parse(r.Email)
 	default:

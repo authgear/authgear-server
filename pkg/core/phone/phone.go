@@ -11,8 +11,8 @@ import (
 // ErrNotInE164Format means the given phone number is not in E.164 format.
 var ErrNotInE164Format = errors.New("not in E.164 format")
 
-// Parse ensures the given phone is in E.164 format.
-func Parse(phone string) error {
+// EnsureE164 ensures the given phone is in E.164 format.
+func EnsureE164(phone string) error {
 	num, err := phonenumbers.Parse(phone, "")
 	if err != nil {
 		return err
