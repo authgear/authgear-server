@@ -95,7 +95,7 @@ const CreateTOTPResponseSchema = `
 
 /*
 	@Operation POST /mfa/totp/new - Create TOTP authenticator.
-		Create TOTP authenticator. It must be activated.
+		Create TOTP authenticator.
 
 		@Tag User
 		@SecurityRequirement access_key
