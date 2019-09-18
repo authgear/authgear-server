@@ -227,7 +227,7 @@ func (p *providerImpl) DeleteAuthenticator(userID string, id string) error {
 		return p.DeleteOOBAuthenticator(oob)
 	}
 
-	return nil
+	return ErrAuthenticatorNotFound
 }
 
 func (p *providerImpl) DeleteTOTPAuthenticator(a *TOTPAuthenticator) error {
