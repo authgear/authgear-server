@@ -126,7 +126,7 @@ func CanAddAuthenticator(authenticators []interface{}, newA interface{}, mfaConf
 	totpCount := 0
 	oobSMSCount := 0
 	oobEmailCount := 0
-	for _, a := range authenticators {
+	incrFunc := func(a interface{}) {
 		switch aa := a.(type) {
 		case TOTPAuthenticator:
 			totpCount++
@@ -144,21 +144,13 @@ func CanAddAuthenticator(authenticators []interface{}, newA interface{}, mfaConf
 		}
 	}
 
+	for _, a := range authenticators {
+		incrFunc(a)
+	}
+
 	// Simulate the count if new one is added.
 	totalCount++
-	switch newAA := newA.(type) {
-	case TOTPAuthenticator:
-		totpCount++
-	case OOBAuthenticator:
-		switch newAA.Channel {
-		case coreAuth.AuthenticatorOOBChannelSMS:
-			oobSMSCount++
-		case coreAuth.AuthenticatorOOBChannelEmail:
-			oobSMSCount++
-		default:
-			panic("unknown OOB authenticator channel")
-		}
-	}
+	incrFunc(newA)
 
 	// Compare the count
 	if totalCount > *mfaConfiguration.Maximum {
