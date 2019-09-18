@@ -158,6 +158,22 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthe
 		return nil, err
 	}
 
+	q1 := s.sqlBuilder.Tenant().
+		Insert(s.sqlBuilder.FullTableName("authenticator")).
+		Columns(
+			"id",
+			"type",
+			"user_id",
+		)
+	q2 := s.sqlBuilder.Tenant().
+		Insert(s.sqlBuilder.FullTableName("authenticator_recovery_code")).
+		Columns(
+			"id",
+			"code",
+			"created_at",
+			"consumed",
+		)
+
 	now := s.timeProvider.NowUTC()
 	var output []mfa.RecoveryCodeAuthenticator
 	for i := 0; i < s.mfaConfig.RecoveryCode.Count; i++ {
@@ -169,45 +185,29 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthe
 			CreatedAt: now,
 			Consumed:  false,
 		}
-
-		q3 := s.sqlBuilder.Tenant().
-			Insert(s.sqlBuilder.FullTableName("authenticator")).
-			Columns(
-				"id",
-				"type",
-				"user_id",
-			).
-			Values(
-				a.ID,
-				a.Type,
-				a.UserID,
-			)
-		_, err = s.sqlExecutor.ExecWith(q3)
-		if err != nil {
-			return nil, err
-		}
-
-		q4 := s.sqlBuilder.Tenant().
-			Insert(s.sqlBuilder.FullTableName("authenticator_recovery_code")).
-			Columns(
-				"id",
-				"code",
-				"created_at",
-				"consumed",
-			).
-			Values(
-				a.ID,
-				a.Code,
-				a.CreatedAt,
-				a.Consumed,
-			)
-		_, err := s.sqlExecutor.ExecWith(q4)
-		if err != nil {
-			return nil, err
-		}
-
+		q1 = q1.Values(
+			a.ID,
+			a.Type,
+			a.UserID,
+		)
+		q2 = q2.Values(
+			a.ID,
+			a.Code,
+			a.CreatedAt,
+			a.Consumed,
+		)
 		output = append(output, a)
 	}
+
+	_, err = s.sqlExecutor.ExecWith(q1)
+	if err != nil {
+		return nil, err
+	}
+	_, err = s.sqlExecutor.ExecWith(q2)
+	if err != nil {
+		return nil, err
+	}
+
 	return output, nil
 }
 
