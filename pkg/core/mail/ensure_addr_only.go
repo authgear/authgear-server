@@ -9,8 +9,8 @@ import (
 var ErrAddressWithName = errors.New("address must not have name")
 var ErrAddressNotSameAsInput = errors.New("formatted address is not the same as input")
 
-// Parse ensures the given string is address only.
-func Parse(s string) error {
+// EnsureAddressOnly ensures the given string is address only.
+func EnsureAddressOnly(s string) error {
 	addr, err := gomail.ParseAddress(s)
 	if err != nil {
 		return err

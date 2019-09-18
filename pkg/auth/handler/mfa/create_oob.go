@@ -58,7 +58,7 @@ func (r CreateOOBRequest) Validate() error {
 	case coreAuth.AuthenticatorOOBChannelSMS:
 		return phone.EnsureE164(r.Phone)
 	case coreAuth.AuthenticatorOOBChannelEmail:
-		return mail.Parse(r.Email)
+		return mail.EnsureAddressOnly(r.Email)
 	default:
 		return skyerr.NewInvalidArgument("invalid channel", []string{"channel"})
 	}
