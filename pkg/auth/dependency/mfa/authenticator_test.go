@@ -224,7 +224,7 @@ func TestCanAddAuthenticator(t *testing.T) {
 	})
 }
 
-func TestIsDeletingLastActivatedAuthenticator(t *testing.T) {
+func TestIsDeletingOnlyActivatedAuthenticator(t *testing.T) {
 	type Case struct {
 		Authenticators []interface{}
 		Authenticator  interface{}
@@ -259,7 +259,7 @@ func TestIsDeletingLastActivatedAuthenticator(t *testing.T) {
 		},
 	}
 	f := func(c Case) {
-		actual := IsDeletingLastActivatedAuthenticator(c.Authenticators, c.Authenticator)
+		actual := IsDeletingOnlyActivatedAuthenticator(c.Authenticators, c.Authenticator)
 		So(actual, ShouldEqual, c.Expected)
 	}
 	Convey("IsDeletingActivatedAuthenticator", t, func() {

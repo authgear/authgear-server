@@ -247,7 +247,7 @@ func (p *providerImpl) DeleteTOTPAuthenticator(a *TOTPAuthenticator) error {
 		return err
 	}
 
-	deletingLastActivated := IsDeletingLastActivatedAuthenticator(authenticators, *a)
+	deletingLastActivated := IsDeletingOnlyActivatedAuthenticator(authenticators, *a)
 	if deletingLastActivated {
 		err = p.store.DeleteRecoveryCode(a.UserID)
 		if err != nil {
@@ -283,7 +283,7 @@ func (p *providerImpl) DeleteOOBAuthenticator(a *OOBAuthenticator) error {
 		return err
 	}
 
-	deletingLastActivated := IsDeletingLastActivatedAuthenticator(authenticators, *a)
+	deletingLastActivated := IsDeletingOnlyActivatedAuthenticator(authenticators, *a)
 	if deletingLastActivated {
 		err = p.store.DeleteRecoveryCode(a.UserID)
 		if err != nil {

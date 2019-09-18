@@ -177,7 +177,9 @@ func CanAddAuthenticator(authenticators []interface{}, newA interface{}, mfaConf
 	return true
 }
 
-func IsDeletingLastActivatedAuthenticator(authenticators []interface{}, a interface{}) bool {
+// IsDeletingOnlyActivatedAuthenticator checks if authenticators is of length 1 and
+// a is activated and a is in authenticators.
+func IsDeletingOnlyActivatedAuthenticator(authenticators []interface{}, a interface{}) bool {
 	id := ""
 	activated := false
 	switch a := a.(type) {
