@@ -2,7 +2,6 @@ package mfa
 
 import (
 	"crypto/subtle"
-	"errors"
 	gotime "time"
 
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -12,8 +11,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
-var ErrInvalidRecoveryCode = errors.New("invalid recovery code")
-var ErrInvalidBearerToken = errors.New("invalid bearer token")
+var ErrInvalidRecoveryCode = skyerr.NewError(skyerr.InvalidArgument, "invalid recovery code")
+var ErrInvalidBearerToken = skyerr.NewError(skyerr.InvalidArgument, "invalid bearer token")
 
 type providerImpl struct {
 	store            Store
