@@ -32,32 +32,62 @@ func TestTOTP(t *testing.T) {
 		})
 
 		Convey("ValidateTOTP", func() {
-			code, err := GenerateTOTPCode(fixtureSecret, fixtureTime)
-			So(err, ShouldBeNil)
+			Convey("Within the same period", func() {
+				code, err := GenerateTOTPCode(fixtureSecret, fixtureTime)
+				So(err, ShouldBeNil)
 
-			valid, err := ValidateTOTP(fixtureSecret, code, fixtureTime)
-			So(err, ShouldBeNil)
-			So(valid, ShouldBeTrue)
+				valid, err := ValidateTOTP(fixtureSecret, code, fixtureTime)
+				So(err, ShouldBeNil)
+				So(valid, ShouldBeTrue)
+			})
 
-			// -1 period
-			t1 := fixtureTime.Add(-30 * time.Second)
-			t1Code, err := GenerateTOTPCode(fixtureSecret, t1)
-			So(err, ShouldBeNil)
-			So(t1Code, ShouldNotEqual, code)
-			So(t1Code, ShouldEqual, "817861")
-			valid, err = ValidateTOTP(fixtureSecret, t1Code, fixtureTime)
-			So(err, ShouldBeNil)
-			So(valid, ShouldBeTrue)
+			Convey("-1 period", func() {
+				code, err := GenerateTOTPCode(fixtureSecret, fixtureTime)
+				So(err, ShouldBeNil)
 
-			// +1 period
-			t2 := fixtureTime.Add(30 * time.Second)
-			t2Code, err := GenerateTOTPCode(fixtureSecret, t2)
-			So(err, ShouldBeNil)
-			So(t2Code, ShouldNotEqual, code)
-			So(t2Code, ShouldEqual, "503766")
-			valid, err = ValidateTOTP(fixtureSecret, t2Code, fixtureTime)
-			So(err, ShouldBeNil)
-			So(valid, ShouldBeTrue)
+				t1 := fixtureTime.Add(-30 * time.Second)
+				t1Code, err := GenerateTOTPCode(fixtureSecret, t1)
+				So(err, ShouldBeNil)
+				So(t1Code, ShouldNotEqual, code)
+				So(t1Code, ShouldEqual, "817861")
+				valid, err := ValidateTOTP(fixtureSecret, t1Code, fixtureTime)
+				So(err, ShouldBeNil)
+				So(valid, ShouldBeTrue)
+			})
+
+			Convey("+1 period", func() {
+				code, err := GenerateTOTPCode(fixtureSecret, fixtureTime)
+				So(err, ShouldBeNil)
+
+				t2 := fixtureTime.Add(30 * time.Second)
+				t2Code, err := GenerateTOTPCode(fixtureSecret, t2)
+				So(err, ShouldBeNil)
+				So(t2Code, ShouldNotEqual, code)
+				So(t2Code, ShouldEqual, "503766")
+				valid, err := ValidateTOTP(fixtureSecret, t2Code, fixtureTime)
+				So(err, ShouldBeNil)
+				So(valid, ShouldBeTrue)
+			})
+
+			Convey("Invalid code", func() {
+				valid, err := ValidateTOTP(fixtureSecret, "123456", fixtureTime)
+				So(err, ShouldBeNil)
+				So(valid, ShouldBeFalse)
+			})
+
+			Convey("Expired code", func() {
+				code, err := GenerateTOTPCode(fixtureSecret, fixtureTime)
+				So(err, ShouldBeNil)
+
+				t1 := fixtureTime.Add(-60 * time.Second)
+				t1Code, err := GenerateTOTPCode(fixtureSecret, t1)
+				So(err, ShouldBeNil)
+				So(t1Code, ShouldNotEqual, code)
+				So(t1Code, ShouldEqual, "369494")
+				valid, err := ValidateTOTP(fixtureSecret, t1Code, fixtureTime)
+				So(err, ShouldBeNil)
+				So(valid, ShouldBeFalse)
+			})
 		})
 	})
 }
