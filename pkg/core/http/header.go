@@ -12,6 +12,7 @@ const (
 	HeaderSessionExtraInfo = "x-skygear-extra-info"
 
 	// Headers appearing in server response
+	// When you add a new header, you must expose it in CORSMiddleware.
 	// nolint: gosec
 	HeaderTryRefreshToken = "x-skygear-try-refresh-token"
 
