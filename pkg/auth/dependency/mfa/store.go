@@ -37,7 +37,7 @@ type Store interface {
 	CreateTOTP(a *TOTPAuthenticator) error
 	// GetTOTP gets TOTP authenticator.
 	GetTOTP(userID string, id string) (*TOTPAuthenticator, error)
-	// UpdateTOTP updates TOTP authenticator.
+	// UpdateTOTP updates activated and activated_at of TOTP authenticator.
 	UpdateTOTP(a *TOTPAuthenticator) error
 	// DeleteTOTP deletes TOTP authenticator.
 	DeleteTOTP(a *TOTPAuthenticator) error
@@ -46,7 +46,7 @@ type Store interface {
 	CreateOOB(a *OOBAuthenticator) error
 	// GetOOB gets OOB authenticator.
 	GetOOB(userID string, id string) (*OOBAuthenticator, error)
-	// UpdateOOB updates OOB authenticator.
+	// UpdateOOB updates activated and activated_at of OOB authenticator.
 	UpdateOOB(a *OOBAuthenticator) error
 	// DeleteOOB deletes OOB authenticator.
 	DeleteOOB(a *OOBAuthenticator) error
