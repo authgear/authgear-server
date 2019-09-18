@@ -98,7 +98,7 @@ func (h *ListRecoveryCodeHandler) DecodeRequest(request *http.Request) (handler.
 
 func (h *ListRecoveryCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	if !h.MFAConfiguration.RecoveryCode.ListEnabled {
-		return nil, skyerr.NewError(skyerr.BadRequest, "listing recovery code is disabled")
+		return nil, skyerr.NewError(skyerr.UndefinedOperation, "listing recovery code is disabled")
 	}
 	authInfo, _ := h.AuthContext.AuthInfo()
 	userID := authInfo.ID
