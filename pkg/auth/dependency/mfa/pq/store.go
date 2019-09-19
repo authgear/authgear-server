@@ -3,6 +3,7 @@ package pq
 import (
 	"database/sql"
 	"github.com/lib/pq"
+	"sort"
 	gotime "time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -32,6 +33,14 @@ func NewStore(
 		sqlExecutor:  sqlExecutor,
 		timeProvider: timeProvider,
 	}
+}
+
+func sortRecoveryCodeAuthenticatorSlice(s []mfa.RecoveryCodeAuthenticator) {
+	sort.Slice(s, func(i, j int) bool {
+		a := s[i]
+		b := s[j]
+		return a.Code < b.Code
+	})
 }
 
 func (s *storeImpl) scanTOTPAuthenticator(scanner db.Scanner, a *mfa.TOTPAuthenticator) error {
@@ -93,8 +102,7 @@ func (s *storeImpl) GetRecoveryCode(userID string) (output []mfa.RecoveryCodeAut
 			"arc",
 			"a.id = arc.id",
 		).
-		Where("a.user_id = ?", userID).
-		OrderBy("arc.code")
+		Where("a.user_id = ?", userID)
 	rows, err := s.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return
@@ -116,6 +124,8 @@ func (s *storeImpl) GetRecoveryCode(userID string) (output []mfa.RecoveryCodeAut
 		}
 		output = append(output, a)
 	}
+
+	sortRecoveryCodeAuthenticatorSlice(output)
 
 	return
 }
@@ -208,6 +218,8 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthe
 	if err != nil {
 		return nil, err
 	}
+
+	sortRecoveryCodeAuthenticatorSlice(output)
 
 	return output, nil
 }
@@ -465,6 +477,7 @@ func (s *storeImpl) ListAuthenticators(userID string) ([]interface{}, error) {
 	for _, a := range oobs {
 		output = append(output, a)
 	}
+
 	return output, nil
 }
 
