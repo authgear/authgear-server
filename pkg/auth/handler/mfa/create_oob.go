@@ -76,6 +76,7 @@ const CreateOOBRequestSchema = `
 	"$id": "#CreateOOBRequest",
 	"oneOf": [
 		{
+			"additionalProperties": false,
 			"properties": {
 				"channel": { "const": "sms" },
 				"phone": { "type": "string" },
@@ -84,6 +85,7 @@ const CreateOOBRequestSchema = `
 			"required": ["channel", "phone"]
 		},
 		{
+			"additionalProperties": false,
 			"properties": {
 				"channel": { "const": "email" },
 				"email": { "type": "string" },
