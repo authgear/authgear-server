@@ -363,6 +363,9 @@ func (s *storeImpl) GetBearerTokenByToken(userID string, token string) (*mfa.Bea
 			"abt",
 			"a.id = abt.id",
 		).
+		// SECURITY(louis): Ideally we should compare the bearer token in constant time.
+		// However, it requires us to fetch all bearer tokens. The number can be unbound
+		// because we do not limit the number of the bearer tokens.
 		Where("a.user_id = ? AND abt.token = ?", userID, token)
 
 	row := s.sqlExecutor.QueryRowWith(q1)
