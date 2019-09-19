@@ -322,7 +322,7 @@ func (p *providerImpl) Resolve(authContext auth.ContextGetter, authnSessionToken
 			userID = authnSession.UserID
 			return
 		case ResolveMFAOptionOnlyWhenNoAuthenticators:
-			var authenticators []interface{}
+			var authenticators []mfa.Authenticator
 			authenticators, err = p.mfaProvider.ListAuthenticators(authnSession.UserID)
 			if err != nil {
 				return

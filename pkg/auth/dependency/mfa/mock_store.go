@@ -106,10 +106,10 @@ func (s *MockStore) GetBearerTokenByToken(userID string, token string) (*BearerT
 	return nil, ErrAuthenticatorNotFound
 }
 
-func (s *MockStore) ListAuthenticators(userID string) ([]interface{}, error) {
+func (s *MockStore) ListAuthenticators(userID string) ([]Authenticator, error) {
 	totp := s.TOTP[userID]
 	oob := s.OOB[userID]
-	output := []interface{}{}
+	output := []Authenticator{}
 	for _, a := range totp {
 		if a.Activated {
 			output = append(output, a)

@@ -20,7 +20,7 @@ type Provider interface {
 
 	// ListAuthenticators returns a list of authenticators.
 	// Either MaskedTOTPAuthenticator or MaskedOOBAuthenticator.
-	ListAuthenticators(userID string) ([]interface{}, error)
+	ListAuthenticators(userID string) ([]Authenticator, error)
 
 	// CreateTOTP creates TOTP authenticator.
 	CreateTOTP(userID string, displayName string) (*TOTPAuthenticator, error)

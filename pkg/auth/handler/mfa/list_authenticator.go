@@ -55,7 +55,7 @@ const ListAuthenticatorRequestSchema = `
 `
 
 type ListAuthenticatorResponse struct {
-	Authenticators []interface{} `json:"authenticators"`
+	Authenticators []mfa.Authenticator `json:"authenticators"`
 }
 
 // @JSONSchema

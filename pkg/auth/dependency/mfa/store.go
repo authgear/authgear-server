@@ -31,7 +31,7 @@ type Store interface {
 
 	// ListAuthenticators returns a list of authenticators.
 	// Either TOTPAuthenticator or OOBAuthenticator.
-	ListAuthenticators(userID string) ([]interface{}, error)
+	ListAuthenticators(userID string) ([]Authenticator, error)
 
 	// CreateTOTP creates TOTP authenticator.
 	CreateTOTP(a *TOTPAuthenticator) error

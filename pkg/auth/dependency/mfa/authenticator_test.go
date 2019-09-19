@@ -13,7 +13,7 @@ import (
 func TestMaskAuthenticators(t *testing.T) {
 	date := time.Date(2019, 6, 1, 0, 0, 0, 0, time.UTC)
 	Convey("MaskAuthenticators", t, func() {
-		input := []interface{}{
+		input := []Authenticator{
 			TOTPAuthenticator{
 				ID:          "totp",
 				Type:        coreAuth.AuthenticatorTypeTOTP,
@@ -39,7 +39,7 @@ func TestMaskAuthenticators(t *testing.T) {
 			},
 		}
 		actual := MaskAuthenticators(input)
-		expected := []interface{}{
+		expected := []Authenticator{
 			MaskedTOTPAuthenticator{
 				ID:          "totp",
 				Type:        coreAuth.AuthenticatorTypeTOTP,
@@ -83,13 +83,13 @@ func TestCanAddAuthenticator(t *testing.T) {
 	type Case struct {
 		Enabled  bool
 		Existing Existing
-		New      interface{}
+		New      Authenticator
 		Limit    Limit
 		Expected bool
 	}
 
 	f := func(c Case) {
-		var authenticators []interface{}
+		var authenticators []Authenticator
 		for i := 0; i < c.Existing.TOTP; i++ {
 			authenticators = append(authenticators, TOTPAuthenticator{})
 		}
@@ -262,13 +262,13 @@ func TestCanAddAuthenticator(t *testing.T) {
 
 func TestIsDeletingOnlyActivatedAuthenticator(t *testing.T) {
 	type Case struct {
-		Authenticators []interface{}
-		Authenticator  interface{}
+		Authenticators []Authenticator
+		Authenticator  Authenticator
 		Expected       bool
 	}
 	cases := []Case{
 		Case{
-			Authenticators: []interface{}{
+			Authenticators: []Authenticator{
 				TOTPAuthenticator{
 					ID:        "totp",
 					Activated: true,
@@ -281,7 +281,7 @@ func TestIsDeletingOnlyActivatedAuthenticator(t *testing.T) {
 			Expected: false,
 		},
 		Case{
-			Authenticators: []interface{}{
+			Authenticators: []Authenticator{
 				TOTPAuthenticator{
 					ID:        "totp",
 					Activated: true,

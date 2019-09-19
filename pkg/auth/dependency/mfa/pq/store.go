@@ -400,7 +400,7 @@ func (s *storeImpl) GetBearerTokenByToken(userID string, token string) (*mfa.Bea
 	return &a, nil
 }
 
-func (s *storeImpl) ListAuthenticators(userID string) ([]interface{}, error) {
+func (s *storeImpl) ListAuthenticators(userID string) ([]mfa.Authenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -470,7 +470,7 @@ func (s *storeImpl) ListAuthenticators(userID string) ([]interface{}, error) {
 		oobs = append(oobs, a)
 	}
 
-	output := []interface{}{}
+	output := []mfa.Authenticator{}
 	for _, a := range totps {
 		output = append(output, a)
 	}

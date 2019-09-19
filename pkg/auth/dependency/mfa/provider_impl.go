@@ -102,7 +102,7 @@ func (p *providerImpl) AuthenticateBearerToken(userID string, token string) (*Be
 	return a, nil
 }
 
-func (p *providerImpl) ListAuthenticators(userID string) ([]interface{}, error) {
+func (p *providerImpl) ListAuthenticators(userID string) ([]Authenticator, error) {
 	authenticators, err := p.store.ListAuthenticators(userID)
 	if err != nil {
 		return nil, err
