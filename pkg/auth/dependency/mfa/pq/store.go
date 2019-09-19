@@ -93,7 +93,8 @@ func (s *storeImpl) GetRecoveryCode(userID string) (output []mfa.RecoveryCodeAut
 			"arc",
 			"a.id = arc.id",
 		).
-		Where("a.user_id = ?", userID)
+		Where("a.user_id = ?", userID).
+		OrderBy("arc.code")
 	rows, err := s.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return

@@ -11,7 +11,7 @@ var ErrAuthenticatorNotFound = skyerr.NewError(skyerr.ResourceNotFound, "authent
 
 // Store manipulates authenticators
 type Store interface {
-	// GetRecoveryCode gets recovery codes.
+	// GetRecoveryCode gets recovery codes sorted alphabetically.
 	GetRecoveryCode(userID string) ([]RecoveryCodeAuthenticator, error)
 	// GenerateRecoveryCode deletes the existing codes and generate new ones.
 	GenerateRecoveryCode(userID string) ([]RecoveryCodeAuthenticator, error)
