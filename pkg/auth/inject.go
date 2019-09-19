@@ -7,18 +7,14 @@ import (
 	"github.com/go-gomail/gomail"
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
-	"github.com/skygeario/skygear-server/pkg/core/time"
-
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
-
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/apiclientconfig"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	mfaPQ "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
@@ -26,6 +22,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -39,6 +37,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type DependencyMap struct {
@@ -352,6 +351,8 @@ func (m DependencyMap) Provide(
 		return tConfig.UserConfig.Auth
 	case "MFAConfiguration":
 		return tConfig.UserConfig.MFA
+	case "APIClientConfigurationProvider":
+		return apiclientconfig.NewProvider(newAuthContext(), tConfig.UserConfig.Clients)
 	default:
 		return nil
 	}
