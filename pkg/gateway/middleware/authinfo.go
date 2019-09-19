@@ -52,7 +52,7 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		authInfo, err := m.AuthContext.AuthInfo()
 		if err == session.ErrSessionNotFound {
 			if accessKey.ClientID != "" {
-				clientConfig, ok := model.GetClientConfig(tenantConfig, accessKey.ClientID)
+				clientConfig, ok := model.GetClientConfig(tenantConfig.UserConfig.Clients, accessKey.ClientID)
 				if ok && !clientConfig.RefreshTokenDisabled {
 					w.Header().Set(coreHttp.HeaderTryRefreshToken, "true")
 					w.WriteHeader(401)
