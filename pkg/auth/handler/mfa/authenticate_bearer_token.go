@@ -53,8 +53,8 @@ func (r AuthenticateBearerTokenRequest) Validate() error {
 	return nil
 }
 
-// @JSONSchema
 // nolint: gosec
+// @JSONSchema
 const AuthenticateBearerTokenRequestSchema = `
 {
 	"$id": "#AuthenticateBearerTokenRequest",
@@ -62,7 +62,7 @@ const AuthenticateBearerTokenRequestSchema = `
 	"properties": {
 		"authn_session_token": { "type": "string" },
 		"code": { "type": "string" }
-	}
+	},
 	"required": ["code"]
 }
 `

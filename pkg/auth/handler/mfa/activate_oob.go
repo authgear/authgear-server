@@ -66,7 +66,7 @@ const ActivateOOBRequestSchema = `
 		"authenticator_id": { "type": "string" },
 		"code": { "type": "string" },
 		"authn_session_token": { "type": "string" }
-	}
+	},
 	"required": ["authenticator_id", "code"]
 }
 `

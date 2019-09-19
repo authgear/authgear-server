@@ -61,7 +61,7 @@ const AuthenticateOOBRequestSchema = `
 		"authn_session_token": { "type": "string" },
 		"code": { "type": "string" },
 		"request_bearer_token": { "type": "boolean" }
-	}
+	},
 	"required": ["code"]
 }
 `

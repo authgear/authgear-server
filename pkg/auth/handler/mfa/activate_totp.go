@@ -66,7 +66,7 @@ const ActivateTOTPRequestSchema = `
 		"authenticator_id": { "type": "string" },
 		"otp": { "type": "string" },
 		"authn_session_token": { "type": "string" }
-	}
+	},
 	"required": ["authenticator_id", "otp"]
 }
 `

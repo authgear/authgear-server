@@ -70,7 +70,7 @@ const CreateTOTPRequestSchema = `
 	"properties": {
 		"display_name": { "type": "string" },
 		"authn_session_token": { "type": "string" }
-	}
+	},
 	"required": ["display_name"]
 }
 `

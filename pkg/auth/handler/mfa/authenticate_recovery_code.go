@@ -59,7 +59,7 @@ const AuthenticateRecoveryCodeRequestSchema = `
 	"properties": {
 		"authn_session_token": { "type": "string" },
 		"code": { "type": "string" }
-	}
+	},
 	"required": ["code"]
 }
 `

@@ -61,7 +61,7 @@ const AuthenticateTOTPRequestSchema = `
 		"authn_session_token": { "type": "string" },
 		"otp": { "type": "string" },
 		"request_bearer_token": { "type": "boolean" }
-	}
+	},
 	"required": ["otp"]
 }
 `
