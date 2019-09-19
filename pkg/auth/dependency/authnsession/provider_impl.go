@@ -106,7 +106,7 @@ func NewAuthenticationSessionError(token string, step auth.AuthnSessionStep) sky
 	)
 }
 
-func (p *providerImpl) NewWithToken(token string) (*auth.AuthnSession, error) {
+func (p *providerImpl) NewFromToken(token string) (*auth.AuthnSession, error) {
 	claims, err := ParseAuthnSessionToken(p.authenticationSessionConfiguration.Secret, token)
 	if err != nil {
 		return nil, err
@@ -304,7 +304,7 @@ func (p *providerImpl) Resolve(authContext auth.ContextGetter, authnSessionToken
 		return
 	}
 
-	authnSession, err = p.NewWithToken(authnSessionToken)
+	authnSession, err = p.NewFromToken(authnSessionToken)
 	if err != nil {
 		return
 	}

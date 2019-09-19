@@ -20,12 +20,13 @@ const (
 
 // Provider manipulates authentication session
 type Provider interface {
-	// NewWithToken decodes an authentication session from a token.
-	NewWithToken(token string) (*auth.AuthnSession, error)
+	// NewFromToken decodes an authentication session from a token.
+	NewFromToken(token string) (*auth.AuthnSession, error)
 	// NewFromScratch creates a new authentication session.
 	NewFromScratch(userID string, prin principal.Principal, reason auth.SessionCreateReason) (*auth.AuthnSession, error)
 	// GenerateResponseAndUpdateLastLoginAt generates authentication response and update last_login_at
 	// if the response is AuthResponse.
+
 	GenerateResponseAndUpdateLastLoginAt(session auth.AuthnSession) (interface{}, error)
 
 	// GenerateResponseWithSession generates authentication response.
