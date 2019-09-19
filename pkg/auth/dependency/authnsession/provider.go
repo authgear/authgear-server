@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 )
 
@@ -24,7 +23,7 @@ type Provider interface {
 	// NewWithToken decodes an authentication session from a token.
 	NewWithToken(token string) (*auth.AuthnSession, error)
 	// NewFromScratch creates a new authentication session.
-	NewFromScratch(userID string, prin principal.Principal, reason event.SessionCreateReason) (*auth.AuthnSession, error)
+	NewFromScratch(userID string, prin principal.Principal, reason auth.SessionCreateReason) (*auth.AuthnSession, error)
 	// GenerateResponseAndUpdateLastLoginAt generates authentication response and update last_login_at
 	// if the response is AuthResponse.
 	GenerateResponseAndUpdateLastLoginAt(session auth.AuthnSession) (interface{}, error)

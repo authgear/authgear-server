@@ -7,7 +7,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -205,7 +204,7 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 		return
 	}
 
-	sess, err := h.AuthnSessionProvider.NewFromScratch(fetchedAuthInfo.ID, principal, event.SessionCreateReasonLogin)
+	sess, err := h.AuthnSessionProvider.NewFromScratch(fetchedAuthInfo.ID, principal, coreAuth.SessionCreateReasonLogin)
 	if err != nil {
 		return
 	}

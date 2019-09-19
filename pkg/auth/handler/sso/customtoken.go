@@ -299,11 +299,11 @@ func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp i
 		}
 	}
 
-	var sessionCreateReason event.SessionCreateReason
+	var sessionCreateReason coreAuth.SessionCreateReason
 	if createNewUser {
-		sessionCreateReason = event.SessionCreateReasonSignup
+		sessionCreateReason = coreAuth.SessionCreateReasonSignup
 	} else {
-		sessionCreateReason = event.SessionCreateReasonLogin
+		sessionCreateReason = coreAuth.SessionCreateReasonLogin
 	}
 
 	sess, err := h.AuthnSessionProvider.NewFromScratch(principal.UserID, principal, sessionCreateReason)

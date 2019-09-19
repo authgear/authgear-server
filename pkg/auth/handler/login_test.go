@@ -22,6 +22,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -388,7 +389,7 @@ func TestLoginHandler(t *testing.T) {
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.SessionCreateEvent{
-					Reason: event.SessionCreateReasonLogin,
+					Reason: coreAuth.SessionCreateReasonLogin,
 					User: model.User{
 						ID:         userID,
 						Verified:   true,

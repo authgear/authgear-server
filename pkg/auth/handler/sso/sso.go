@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -78,11 +79,11 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 		}
 	}
 
-	var sessionCreateReason event.SessionCreateReason
+	var sessionCreateReason coreAuth.SessionCreateReason
 	if createNewUser {
-		sessionCreateReason = event.SessionCreateReasonSignup
+		sessionCreateReason = coreAuth.SessionCreateReasonSignup
 	} else {
-		sessionCreateReason = event.SessionCreateReasonLogin
+		sessionCreateReason = coreAuth.SessionCreateReasonLogin
 	}
 	sess, err := h.AuthnSessionProvider.NewFromScratch(principal.UserID, principal, sessionCreateReason)
 	if err != nil {

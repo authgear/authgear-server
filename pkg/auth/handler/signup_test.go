@@ -23,6 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -342,7 +343,7 @@ func TestSingupHandler(t *testing.T) {
 					},
 				},
 				event.SessionCreateEvent{
-					Reason: event.SessionCreateReasonSignup,
+					Reason: coreAuth.SessionCreateReasonSignup,
 					User: model.User{
 						ID:          userID,
 						LastLoginAt: &now,
@@ -444,7 +445,7 @@ func TestSingupHandler(t *testing.T) {
 					},
 				},
 				event.SessionCreateEvent{
-					Reason: event.SessionCreateReasonSignup,
+					Reason: coreAuth.SessionCreateReasonSignup,
 					User: model.User{
 						ID:          userID,
 						LastLoginAt: &now,

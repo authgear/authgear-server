@@ -23,6 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -209,7 +210,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 					},
 				},
 				event.SessionCreateEvent{
-					Reason: event.SessionCreateReasonSignup,
+					Reason: coreAuth.SessionCreateReasonSignup,
 					User: model.User{
 						ID:          p.UserID,
 						CreatedAt:   now,
@@ -271,7 +272,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.SessionCreateEvent{
-					Reason: event.SessionCreateReasonLogin,
+					Reason: coreAuth.SessionCreateReasonLogin,
 					User: model.User{
 						ID:         "chima",
 						CreatedAt:  now,

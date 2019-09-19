@@ -136,7 +136,7 @@ func (p *providerImpl) getRequiredSteps(userID string) ([]auth.AuthnSessionStep,
 	return steps, nil
 }
 
-func (p *providerImpl) NewFromScratch(userID string, prin principal.Principal, reason event.SessionCreateReason) (*auth.AuthnSession, error) {
+func (p *providerImpl) NewFromScratch(userID string, prin principal.Principal, reason auth.SessionCreateReason) (*auth.AuthnSession, error) {
 	now := p.timeProvider.NowUTC()
 	clientID := p.authContextGetter.AccessKey().ClientID
 	requiredSteps, err := p.getRequiredSteps(userID)
@@ -187,7 +187,7 @@ func (p *providerImpl) GenerateResponseAndUpdateLastLoginAt(authnSess auth.Authn
 		sessionModel := authSession.Format(sess)
 		err = p.hookProvider.DispatchEvent(
 			event.SessionCreateEvent{
-				Reason:   event.SessionCreateReason(authnSess.SessionCreateReason),
+				Reason:   auth.SessionCreateReason(authnSess.SessionCreateReason),
 				User:     user,
 				Identity: identity,
 				Session:  sessionModel,

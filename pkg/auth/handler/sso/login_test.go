@@ -17,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
@@ -193,7 +194,7 @@ func TestLoginHandler(t *testing.T) {
 					},
 				},
 				event.SessionCreateEvent{
-					Reason: event.SessionCreateReasonSignup,
+					Reason: coreAuth.SessionCreateReasonSignup,
 					User: model.User{
 						ID:          p.UserID,
 						LastLoginAt: &now,

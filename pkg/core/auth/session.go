@@ -66,3 +66,10 @@ func (i SessionAccessEventExtraInfo) DeviceName() string {
 	deviceName, _ := i["device_name"].(string)
 	return deviceName
 }
+
+type SessionCreateReason string
+
+const (
+	SessionCreateReasonSignup = "signup"
+	SessionCreateReasonLogin  = "login"
+)
