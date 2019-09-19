@@ -159,10 +159,7 @@ func (p *providerImpl) ActivateTOTP(userID string, id string, code string) ([]st
 	}
 
 	now := p.timeProvider.NowUTC()
-	ok, err = ValidateTOTP(a.Secret, code, now)
-	if err != nil {
-		return nil, err
-	}
+	ok = ValidateTOTP(a.Secret, code, now)
 	if !ok {
 		return nil, skyerr.NewError(skyerr.BadRequest, "invalid OTP")
 	}
@@ -192,10 +189,7 @@ func (p *providerImpl) AuthenticateTOTP(userID string, code string, generateBear
 	for _, iface := range authenticators {
 		switch a := iface.(type) {
 		case TOTPAuthenticator:
-			ok, err := ValidateTOTP(a.Secret, code, now)
-			if err != nil {
-				return nil, "", err
-			}
+			ok := ValidateTOTP(a.Secret, code, now)
 			if ok {
 				aa := a
 				if generateBearerToken {

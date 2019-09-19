@@ -36,8 +36,7 @@ func TestTOTP(t *testing.T) {
 				code, err := GenerateTOTPCode(fixtureSecret, fixtureTime)
 				So(err, ShouldBeNil)
 
-				valid, err := ValidateTOTP(fixtureSecret, code, fixtureTime)
-				So(err, ShouldBeNil)
+				valid := ValidateTOTP(fixtureSecret, code, fixtureTime)
 				So(valid, ShouldBeTrue)
 			})
 
@@ -50,8 +49,7 @@ func TestTOTP(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(t1Code, ShouldNotEqual, code)
 				So(t1Code, ShouldEqual, "817861")
-				valid, err := ValidateTOTP(fixtureSecret, t1Code, fixtureTime)
-				So(err, ShouldBeNil)
+				valid := ValidateTOTP(fixtureSecret, t1Code, fixtureTime)
 				So(valid, ShouldBeTrue)
 			})
 
@@ -64,14 +62,12 @@ func TestTOTP(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(t2Code, ShouldNotEqual, code)
 				So(t2Code, ShouldEqual, "503766")
-				valid, err := ValidateTOTP(fixtureSecret, t2Code, fixtureTime)
-				So(err, ShouldBeNil)
+				valid := ValidateTOTP(fixtureSecret, t2Code, fixtureTime)
 				So(valid, ShouldBeTrue)
 			})
 
 			Convey("Invalid code", func() {
-				valid, err := ValidateTOTP(fixtureSecret, "123456", fixtureTime)
-				So(err, ShouldBeNil)
+				valid := ValidateTOTP(fixtureSecret, "123456", fixtureTime)
 				So(valid, ShouldBeFalse)
 			})
 
@@ -84,8 +80,7 @@ func TestTOTP(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(t1Code, ShouldNotEqual, code)
 				So(t1Code, ShouldEqual, "369494")
-				valid, err := ValidateTOTP(fixtureSecret, t1Code, fixtureTime)
-				So(err, ShouldBeNil)
+				valid := ValidateTOTP(fixtureSecret, t1Code, fixtureTime)
 				So(valid, ShouldBeFalse)
 			})
 		})

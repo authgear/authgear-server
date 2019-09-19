@@ -43,8 +43,12 @@ func GenerateTOTPSecret() (string, error) {
 }
 
 // ValidateTOTP validates the code against the secret at the given time t.
-func ValidateTOTP(secret string, code string, t time.Time) (bool, error) {
-	return totp.ValidateCustom(code, secret, t, validateOpts)
+func ValidateTOTP(secret string, code string, t time.Time) bool {
+	ok, err := totp.ValidateCustom(code, secret, t, validateOpts)
+	if err != nil {
+		return false
+	}
+	return ok
 }
 
 // GenerateTOTPCode generates the code against the secret at the given time t.
