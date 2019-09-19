@@ -132,6 +132,10 @@ func (p *providerImpl) CreateTOTP(userID string, displayName string) (*TOTPAuthe
 	if !ok {
 		return nil, skyerr.NewError(skyerr.BadRequest, "no more authenticator can be added")
 	}
+	err = p.store.DeleteInactiveTOTP(userID)
+	if err != nil {
+		return nil, err
+	}
 	err = p.store.CreateTOTP(&a)
 	if err != nil {
 		return nil, err

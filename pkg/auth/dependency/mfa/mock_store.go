@@ -169,6 +169,19 @@ func (s *MockStore) DeleteTOTP(a *TOTPAuthenticator) error {
 	return nil
 }
 
+func (s *MockStore) DeleteInactiveTOTP(userID string) error {
+	totp := s.TOTP[userID]
+	var newTOTP []TOTPAuthenticator
+	for _, b := range totp {
+		if !b.Activated {
+			continue
+		}
+		newTOTP = append(newTOTP, b)
+	}
+	s.TOTP[userID] = newTOTP
+	return nil
+}
+
 func (s *MockStore) CreateOOB(a *OOBAuthenticator) error {
 	oob := s.OOB[a.UserID]
 	if oob == nil {

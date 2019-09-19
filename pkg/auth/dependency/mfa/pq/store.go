@@ -614,6 +614,75 @@ func (s *storeImpl) DeleteTOTP(a *mfa.TOTPAuthenticator) error {
 	return err
 }
 
+func (s *storeImpl) DeleteInactiveTOTP(userID string) error {
+	q1 := s.sqlBuilder.Tenant().
+		Select("a.id").
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator_totp"),
+			"at",
+			"a.id = at.id",
+		).
+		Where("a.user_id = ? AND at.activated = FALSE", userID)
+
+	rows1, err := s.sqlExecutor.QueryWith(q1)
+	if err != nil {
+		return err
+	}
+	defer rows1.Close()
+
+	var ids []string
+	for rows1.Next() {
+		var id string
+		err = rows1.Scan(&id)
+		if err != nil {
+			return err
+		}
+		ids = append(ids, id)
+	}
+
+	return s.deleteTOTPByIDs(ids)
+}
+
+func (s *storeImpl) deleteTOTPByIDs(ids []string) error {
+	if len(ids) <= 0 {
+		return nil
+	}
+
+	q2 := s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("authenticator_totp")).
+		Where("id = ANY (?)", pq.Array(ids))
+	r2, err := s.sqlExecutor.ExecWith(q2)
+	if err != nil {
+		return err
+	}
+	count, err := r2.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if int(count) != len(ids) {
+		return mfa.ErrAuthenticatorNotFound
+	}
+
+	q3 := s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("authenticator")).
+		Where("id = ANY (?)", pq.Array(ids))
+
+	r3, err := s.sqlExecutor.ExecWith(q3)
+	if err != nil {
+		return err
+	}
+	count, err = r3.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if int(count) != len(ids) {
+		return mfa.ErrAuthenticatorNotFound
+	}
+
+	return nil
+}
+
 func (s *storeImpl) CreateOOB(a *mfa.OOBAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Insert(s.sqlBuilder.FullTableName("authenticator")).

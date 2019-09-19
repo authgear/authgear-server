@@ -22,7 +22,7 @@ type Provider interface {
 	// Either MaskedTOTPAuthenticator or MaskedOOBAuthenticator.
 	ListAuthenticators(userID string) ([]Authenticator, error)
 
-	// CreateTOTP creates TOTP authenticator.
+	// CreateTOTP deletes existing inactive TOTP authenticator and creates a fresh TOTP authenticator.
 	CreateTOTP(userID string, displayName string) (*TOTPAuthenticator, error)
 	// ActivateTOTP activates TOTP authenticator. If this is the first authenticator,
 	// a list of recovery codes are generated and returned.
