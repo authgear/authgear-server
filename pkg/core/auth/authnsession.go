@@ -22,9 +22,9 @@ type AuthnSession struct {
 	PrincipalType      PrincipalType `json:"principal_type"`
 	PrincipalUpdatedAt time.Time     `json:"principal_updated_at"`
 
-	RequiredSteps       []AuthnSessionStep `json:"required_steps"`
-	FinishedSteps       []AuthnSessionStep `json:"finished_steps"`
-	SessionCreateReason string             `json:"session_create_reason"`
+	RequiredSteps       []AuthnSessionStep  `json:"required_steps"`
+	FinishedSteps       []AuthnSessionStep  `json:"finished_steps"`
+	SessionCreateReason SessionCreateReason `json:"session_create_reason"`
 
 	// The following fields are filled in step "mfa"
 	AuthenticatorID         string                  `json:"authenticator_id,omitempty"`

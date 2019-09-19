@@ -153,7 +153,7 @@ func (p *providerImpl) NewFromScratch(userID string, prin principal.Principal, r
 		PrincipalUpdatedAt:  now,
 		RequiredSteps:       requiredSteps,
 		FinishedSteps:       finishedSteps,
-		SessionCreateReason: string(reason),
+		SessionCreateReason: reason,
 	}, nil
 }
 
