@@ -28,7 +28,6 @@ func GetMigrateApps(hostnameOverride string, db sq.BaseRunner, appFilterKey stri
 		Join(configSchema + ".config ON app.config_id = config.id")
 
 	if appFilterKey != "" {
-		fmt.Printf("appFilterKey %v \n", appFilterKey)
 		appFilterKeyColumn := pq.QuoteIdentifier(appFilterKey)
 		sqlizer = sqlizer.Where(fmt.Sprintf(`"app".%s = $1`, appFilterKeyColumn), appFilterValue)
 	}
@@ -48,11 +47,11 @@ func GetMigrateApps(hostnameOverride string, db sq.BaseRunner, appFilterKey stri
 		a := App{}
 		err = rows.Scan(&a.Name, &a.DatabaseURL, &a.DatabaseSchema)
 		if err != nil {
-			fmt.Printf("err: %v \n", err)
 			return nil, err
 		}
 		// Remove double quotes
 		a.DatabaseURL = a.DatabaseURL[1 : len(a.DatabaseURL)-1]
+		a.DatabaseSchema = a.DatabaseSchema[1 : len(a.DatabaseSchema)-1]
 		// Override host if needed
 		if hostnameOverride != "" {
 			u, err := nurl.Parse(a.DatabaseURL)
