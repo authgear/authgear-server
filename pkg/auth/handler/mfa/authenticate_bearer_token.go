@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -82,13 +83,14 @@ const AuthenticateBearerTokenRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type AuthenticateBearerTokenHandler struct {
-	TxContext            db.TxContext            `dependency:"TxContext"`
-	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
-	SessionProvider      session.Provider        `dependency:"SessionProvider"`
-	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
-	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
-	HookProvider         hook.Provider           `dependency:"HookProvider"`
-	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
+	TxContext                      db.TxContext             `dependency:"TxContext"`
+	AuthContext                    coreAuth.ContextGetter   `dependency:"AuthContextGetter"`
+	SessionProvider                session.Provider         `dependency:"SessionProvider"`
+	MFAProvider                    mfa.Provider             `dependency:"MFAProvider"`
+	MFAConfiguration               config.MFAConfiguration  `dependency:"MFAConfiguration"`
+	HookProvider                   hook.Provider            `dependency:"HookProvider"`
+	AuthnSessionProvider           authnsession.Provider    `dependency:"AuthnSessionProvider"`
+	APIClientConfigurationProvider apiclientconfig.Provider `dependency:"APIClientConfigurationProvider"`
 }
 
 func (h *AuthenticateBearerTokenHandler) ProvideAuthzPolicy() authz.Policy {
@@ -105,7 +107,8 @@ func (h *AuthenticateBearerTokenHandler) DecodeRequest(request *http.Request) (h
 		return nil, err
 	}
 
-	if payload.BearerToken == "" {
+	apiClientConfig, ok := h.APIClientConfigurationProvider.Get()
+	if ok && apiClientConfig.SessionTransport == config.SessionTransportTypeCookie {
 		cookie, err := request.Cookie(coreHttp.CookieNameMFABearerToken)
 		if err == nil {
 			payload.BearerToken = cookie.Value
