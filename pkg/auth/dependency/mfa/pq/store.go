@@ -43,6 +43,14 @@ func sortRecoveryCodeAuthenticatorSlice(s []mfa.RecoveryCodeAuthenticator) {
 	})
 }
 
+func sortAuthenticatorSlice(s []mfa.Authenticator) {
+	sort.Slice(s, func(i, j int) bool {
+		a := s[i]
+		b := s[j]
+		return a.GetActivatedAt().After(*b.GetActivatedAt())
+	})
+}
+
 func (s *storeImpl) scanTOTPAuthenticator(scanner db.Scanner, a *mfa.TOTPAuthenticator) error {
 	var activatedAt pq.NullTime
 	err := scanner.Scan(
@@ -477,6 +485,8 @@ func (s *storeImpl) ListAuthenticators(userID string) ([]mfa.Authenticator, erro
 	for _, a := range oobs {
 		output = append(output, a)
 	}
+
+	sortAuthenticatorSlice(output)
 
 	return output, nil
 }

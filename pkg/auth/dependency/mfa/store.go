@@ -29,7 +29,7 @@ type Store interface {
 	// GetBearerTokenByToken gets bearer token authenticator by token.
 	GetBearerTokenByToken(userID string, token string) (*BearerTokenAuthenticator, error)
 
-	// ListAuthenticators returns a list of authenticators.
+	// ListAuthenticators returns a list of authenticators ordered by activated at desc.
 	// Either TOTPAuthenticator or OOBAuthenticator.
 	ListAuthenticators(userID string) ([]Authenticator, error)
 
