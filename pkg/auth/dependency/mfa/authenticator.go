@@ -135,7 +135,7 @@ func CanAddAuthenticator(authenticators []interface{}, newA interface{}, mfaConf
 			case coreAuth.AuthenticatorOOBChannelSMS:
 				oobSMSCount++
 			case coreAuth.AuthenticatorOOBChannelEmail:
-				oobSMSCount++
+				oobEmailCount++
 			default:
 				panic("unknown OOB authenticator channel")
 			}

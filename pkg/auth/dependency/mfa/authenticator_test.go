@@ -182,6 +182,42 @@ func TestCanAddAuthenticator(t *testing.T) {
 		Case{
 			Enabled: true,
 			Existing: Existing{
+				TOTP:     0,
+				OOBSMS:   0,
+				OOBEmail: 1,
+			},
+			Limit: Limit{
+				Total:    1,
+				TOTP:     0,
+				OOBSMS:   0,
+				OOBEmail: 1,
+			},
+			New:      TOTPAuthenticator{},
+			Expected: false,
+		},
+
+		Case{
+			Enabled: true,
+			Existing: Existing{
+				TOTP:     0,
+				OOBSMS:   0,
+				OOBEmail: 1,
+			},
+			Limit: Limit{
+				Total:    2,
+				TOTP:     0,
+				OOBSMS:   0,
+				OOBEmail: 2,
+			},
+			New: OOBAuthenticator{
+				Channel: coreAuth.AuthenticatorOOBChannelEmail,
+			},
+			Expected: true,
+		},
+
+		Case{
+			Enabled: true,
+			Existing: Existing{
 				TOTP:     1,
 				OOBSMS:   0,
 				OOBEmail: 0,
