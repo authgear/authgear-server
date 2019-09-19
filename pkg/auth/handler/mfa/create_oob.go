@@ -115,7 +115,7 @@ const CreateOOBResponseSchema = `
 
 /*
 	@Operation POST /mfa/oob/new - Create OOB authenticator.
-		Create OOB authenticator. It must be activated.
+		Create inactive OOB authenticator. It must be activated later.
 
 		@Tag User
 		@SecurityRequirement access_key

@@ -67,8 +67,8 @@ const AuthenticateTOTPRequestSchema = `
 `
 
 /*
-	@Operation POST /mfa/totp/authenticate - Authenticate with TOTP.
-		Authenticate with TOTP.
+	@Operation POST /mfa/totp/authenticate - Authenticate with TOTP authenticator.
+		Authenticate with TOTP authenticator.
 
 		@Tag User
 		@SecurityRequirement access_key

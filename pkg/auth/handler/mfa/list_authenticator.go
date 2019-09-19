@@ -79,7 +79,7 @@ const ListAuthenticatorResponseSchema = `
 
 /*
 	@Operation POST /mfa/authenticator/list - List authenticators
-		List recovery codes if allowed.
+		List authenticators.
 
 		@Tag User
 		@SecurityRequirement access_key

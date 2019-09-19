@@ -67,8 +67,8 @@ const AuthenticateOOBRequestSchema = `
 `
 
 /*
-	@Operation POST /mfa/oob/authenticate - Authenticate with OOB.
-		Authenticate with OOB.
+	@Operation POST /mfa/oob/authenticate - Authenticate with OOB authenticator.
+		Authenticate with OOB authenticator.
 
 		@Tag User
 		@SecurityRequirement access_key
