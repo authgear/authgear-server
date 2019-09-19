@@ -26,7 +26,7 @@ type Provider interface {
 	CreateTOTP(userID string, displayName string) (*TOTPAuthenticator, error)
 	// ActivateTOTP activates TOTP authenticator. If this is the first authenticator,
 	// a list of recovery codes are generated and returned.
-	ActivateTOTP(userID string, id string, code string) ([]string, error)
+	ActivateTOTP(userID string, code string) ([]string, error)
 	// AuthenticateTOTP authenticates the user with the given code.
 	// If generateBearerToken is true, a bearer token is generated.
 	AuthenticateTOTP(userID string, code string, generateBearerToken bool) (*TOTPAuthenticator, string, error)

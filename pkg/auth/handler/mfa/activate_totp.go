@@ -38,15 +38,11 @@ func (f ActivateTOTPHandlerFactory) NewHandler(request *http.Request) http.Handl
 }
 
 type ActivateTOTPRequest struct {
-	AuthenticatorID   string `json:"authenticator_id"`
 	OTP               string `json:"otp"`
 	AuthnSessionToken string `json:"authn_session_token"`
 }
 
 func (r ActivateTOTPRequest) Validate() error {
-	if r.AuthenticatorID == "" {
-		return skyerr.NewInvalidArgument("missing authenticator ID", []string{"authenticator_id"})
-	}
 	if r.OTP == "" {
 		return skyerr.NewInvalidArgument("missing OTP", []string{"otp"})
 	}
@@ -63,11 +59,10 @@ const ActivateTOTPRequestSchema = `
 	"$id": "#ActivateTOTPRequest",
 	"type": "object",
 	"properties": {
-		"authenticator_id": { "type": "string" },
 		"otp": { "type": "string" },
 		"authn_session_token": { "type": "string" }
 	},
-	"required": ["authenticator_id", "otp"]
+	"required": ["otp"]
 }
 `
 
@@ -138,7 +133,7 @@ func (h *ActivateTOTPHandler) Handle(req interface{}) (resp interface{}, err err
 	if err != nil {
 		return nil, err
 	}
-	recoveryCodes, err := h.MFAProvider.ActivateTOTP(userID, payload.AuthenticatorID, payload.OTP)
+	recoveryCodes, err := h.MFAProvider.ActivateTOTP(userID, payload.OTP)
 	if err != nil {
 		return
 	}

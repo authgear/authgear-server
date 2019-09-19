@@ -43,6 +43,8 @@ type Store interface {
 	DeleteTOTP(a *TOTPAuthenticator) error
 	// DeleteInactiveTOTP deletes inactive TOTP authenticator.
 	DeleteInactiveTOTP(userID string) error
+	// GetOnlyInactiveTOTP gets the only TOTP authenticator.
+	GetOnlyInactiveTOTP(userID string) (*TOTPAuthenticator, error)
 
 	// CreateOOB creates OOB authenticator.
 	CreateOOB(a *OOBAuthenticator) error

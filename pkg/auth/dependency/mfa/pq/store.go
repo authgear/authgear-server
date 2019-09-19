@@ -683,6 +683,38 @@ func (s *storeImpl) deleteTOTPByIDs(ids []string) error {
 	return nil
 }
 
+func (s *storeImpl) GetOnlyInactiveTOTP(userID string) (*mfa.TOTPAuthenticator, error) {
+	q1 := s.sqlBuilder.Tenant().
+		Select(
+			"a.id",
+			"a.user_id",
+			"a.type",
+			"at.activated",
+			"at.created_at",
+			"at.activated_at",
+			"at.secret",
+			"at.display_name",
+		).
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator_totp"),
+			"at",
+			"a.id = at.id",
+		).
+		Where("a.user_id = ? AND at.activated = FALSE", userID)
+
+	row := s.sqlExecutor.QueryRowWith(q1)
+	var a mfa.TOTPAuthenticator
+	err := s.scanTOTPAuthenticator(row, &a)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = mfa.ErrAuthenticatorNotFound
+		}
+		return nil, err
+	}
+	return &a, nil
+}
+
 func (s *storeImpl) CreateOOB(a *mfa.OOBAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Insert(s.sqlBuilder.FullTableName("authenticator")).

@@ -182,6 +182,20 @@ func (s *MockStore) DeleteInactiveTOTP(userID string) error {
 	return nil
 }
 
+func (s *MockStore) GetOnlyInactiveTOTP(userID string) (*TOTPAuthenticator, error) {
+	totp := s.TOTP[userID]
+	var output []TOTPAuthenticator
+	for _, b := range totp {
+		if !b.Activated {
+			output = append(output, b)
+		}
+	}
+	if len(output) != 1 {
+		return nil, ErrAuthenticatorNotFound
+	}
+	return &output[0], nil
+}
+
 func (s *MockStore) CreateOOB(a *OOBAuthenticator) error {
 	oob := s.OOB[a.UserID]
 	if oob == nil {

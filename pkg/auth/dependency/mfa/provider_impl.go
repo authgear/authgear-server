@@ -143,8 +143,8 @@ func (p *providerImpl) CreateTOTP(userID string, displayName string) (*TOTPAuthe
 	return &a, nil
 }
 
-func (p *providerImpl) ActivateTOTP(userID string, id string, code string) ([]string, error) {
-	a, err := p.store.GetTOTP(userID, id)
+func (p *providerImpl) ActivateTOTP(userID string, code string) ([]string, error) {
+	a, err := p.store.GetOnlyInactiveTOTP(userID)
 	if err != nil {
 		return nil, err
 	}
