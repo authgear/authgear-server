@@ -57,27 +57,5 @@ func TestAuthnSession(t *testing.T) {
 			_, ok = a.NextStep()
 			So(ok, ShouldBeFalse)
 		})
-		Convey("Session", func() {
-			a := AuthnSession{
-				ClientID:                "client",
-				UserID:                  "user",
-				PrincipalID:             "principal",
-				PrincipalType:           "password",
-				AuthenticatorID:         "authenticator",
-				AuthenticatorType:       AuthenticatorTypeOOB,
-				AuthenticatorOOBChannel: AuthenticatorOOBChannelSMS,
-			}
-			actual := a.Session()
-			expected := Session{
-				ClientID:                "client",
-				UserID:                  "user",
-				PrincipalID:             "principal",
-				PrincipalType:           "password",
-				AuthenticatorID:         "authenticator",
-				AuthenticatorType:       AuthenticatorTypeOOB,
-				AuthenticatorOOBChannel: AuthenticatorOOBChannelSMS,
-			}
-			So(actual, ShouldResemble, expected)
-		})
 	})
 }

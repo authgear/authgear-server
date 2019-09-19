@@ -52,17 +52,3 @@ func (a *AuthnSession) NextStep() (AuthnSessionStep, bool) {
 	}
 	return a.RequiredSteps[len(a.FinishedSteps)], true
 }
-
-func (a *AuthnSession) Session() Session {
-	return Session{
-		ClientID:                a.ClientID,
-		UserID:                  a.UserID,
-		PrincipalID:             a.PrincipalID,
-		PrincipalType:           a.PrincipalType,
-		PrincipalUpdatedAt:      a.PrincipalUpdatedAt,
-		AuthenticatorID:         a.AuthenticatorID,
-		AuthenticatorType:       a.AuthenticatorType,
-		AuthenticatorOOBChannel: a.AuthenticatorOOBChannel,
-		AuthenticatorUpdatedAt:  a.AuthenticatorUpdatedAt,
-	}
-}

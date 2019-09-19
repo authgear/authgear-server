@@ -27,12 +27,22 @@ func NewMockProvider() *MockProvider {
 func (p *MockProvider) Create(authnSess *auth.AuthnSession) (s *auth.Session, err error) {
 	now := p.Time.NowUTC()
 	id := fmt.Sprintf("%s-%s-%d", authnSess.UserID, authnSess.PrincipalID, p.counter)
-	sess := authnSess.Session()
-	sess.ID = id
-	sess.CreatedAt = now
-	sess.AccessedAt = now
-	sess.AccessToken = "access-token-" + id
-	sess.AccessTokenCreatedAt = now
+	sess := auth.Session{
+		ID:                      id,
+		ClientID:                authnSess.ClientID,
+		UserID:                  authnSess.UserID,
+		PrincipalID:             authnSess.PrincipalID,
+		PrincipalType:           authnSess.PrincipalType,
+		PrincipalUpdatedAt:      authnSess.PrincipalUpdatedAt,
+		AuthenticatorID:         authnSess.AuthenticatorID,
+		AuthenticatorType:       authnSess.AuthenticatorType,
+		AuthenticatorOOBChannel: authnSess.AuthenticatorOOBChannel,
+		AuthenticatorUpdatedAt:  authnSess.AuthenticatorUpdatedAt,
+		CreatedAt:               now,
+		AccessedAt:              now,
+		AccessToken:             "access-token-" + id,
+		AccessTokenCreatedAt:    now,
+	}
 	p.counter++
 
 	p.Sessions[sess.ID] = sess

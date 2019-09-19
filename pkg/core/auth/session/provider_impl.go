@@ -54,12 +54,24 @@ func (p *providerImpl) Create(authnSess *auth.AuthnSession) (s *auth.Session, er
 	clientConfig := p.clientConfigs[clientID]
 
 	accessEvent := newAccessEvent(now, p.req)
-	sess := authnSess.Session()
-	sess.ID = uuid.New()
-	sess.InitialAccess = accessEvent
-	sess.LastAccess = accessEvent
-	sess.CreatedAt = now
-	sess.AccessedAt = now
+	// NOTE(louis): remember to update the mock provider
+	// if session has new fields.
+	sess := auth.Session{
+		ID:                      uuid.New(),
+		ClientID:                authnSess.ClientID,
+		UserID:                  authnSess.UserID,
+		PrincipalID:             authnSess.PrincipalID,
+		PrincipalType:           authnSess.PrincipalType,
+		PrincipalUpdatedAt:      authnSess.PrincipalUpdatedAt,
+		AuthenticatorID:         authnSess.AuthenticatorID,
+		AuthenticatorType:       authnSess.AuthenticatorType,
+		AuthenticatorOOBChannel: authnSess.AuthenticatorOOBChannel,
+		AuthenticatorUpdatedAt:  authnSess.AuthenticatorUpdatedAt,
+		InitialAccess:           accessEvent,
+		LastAccess:              accessEvent,
+		CreatedAt:               now,
+		AccessedAt:              now,
+	}
 	if !clientConfig.RefreshTokenDisabled {
 		p.generateRefreshToken(&sess)
 	}
