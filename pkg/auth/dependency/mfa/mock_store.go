@@ -242,6 +242,27 @@ func (s *MockStore) DeleteOOB(a *OOBAuthenticator) error {
 	return nil
 }
 
+func (s *MockStore) GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
+	oob := s.OOB[userID]
+	for _, a := range oob {
+		if a.Channel == channel {
+			switch channel {
+			case coreAuth.AuthenticatorOOBChannelSMS:
+				if a.Phone == phone {
+					aa := a
+					return &aa, nil
+				}
+			case coreAuth.AuthenticatorOOBChannelEmail:
+				if a.Email == email {
+					aa := a
+					return &aa, nil
+				}
+			}
+		}
+	}
+	return nil, ErrAuthenticatorNotFound
+}
+
 func (s *MockStore) GetValidOOBCode(userID string, t gotime.Time) ([]OOBCode, error) {
 	oobCode := s.OOBCode[userID]
 	var output []OOBCode

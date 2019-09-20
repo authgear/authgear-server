@@ -773,6 +773,46 @@ func (s *storeImpl) GetOOB(userID string, id string) (*mfa.OOBAuthenticator, err
 	return &a, nil
 }
 
+func (s *storeImpl) GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*mfa.OOBAuthenticator, error) {
+	q1 := s.sqlBuilder.Tenant().
+		Select(
+			"a.id",
+			"a.user_id",
+			"a.type",
+			"ao.activated",
+			"ao.created_at",
+			"ao.activated_at",
+			"ao.channel",
+			"ao.phone",
+			"ao.email",
+		).
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator_oob"),
+			"ao",
+			"a.id = ao.id",
+		)
+	switch channel {
+	case coreAuth.AuthenticatorOOBChannelSMS:
+		q1 = q1.Where("a.user_id = ? AND ao.channel = ? AND ao.phone = ?", userID, channel, phone)
+	case coreAuth.AuthenticatorOOBChannelEmail:
+		q1 = q1.Where("a.user_id = ? AND ao.channel = ? AND ao.email = ?", userID, channel, email)
+	default:
+		panic("unknown authenticator channel")
+	}
+
+	row := s.sqlExecutor.QueryRowWith(q1)
+	var a mfa.OOBAuthenticator
+	err := s.scanOOBAuthenticator(row, &a)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = mfa.ErrAuthenticatorNotFound
+		}
+		return nil, err
+	}
+	return &a, nil
+}
+
 func (s *storeImpl) UpdateOOB(a *mfa.OOBAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Update(s.sqlBuilder.FullTableName("authenticator_oob")).

@@ -3,6 +3,7 @@ package mfa
 import (
 	"time"
 
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -52,6 +53,8 @@ type Store interface {
 	UpdateOOB(a *OOBAuthenticator) error
 	// DeleteOOB deletes OOB authenticator.
 	DeleteOOB(a *OOBAuthenticator) error
+	// GetOOBByChannel gets OOB authenticator by channel.
+	GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error)
 
 	// GetValidOOBCode gets all valid OOB codes.
 	GetValidOOBCode(userID string, t time.Time) ([]OOBCode, error)
