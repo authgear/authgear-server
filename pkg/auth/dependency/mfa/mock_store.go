@@ -289,6 +289,20 @@ func (s *MockStore) GetOOBByChannel(userID string, channel coreAuth.Authenticato
 	return nil, ErrAuthenticatorNotFound
 }
 
+func (s *MockStore) GetOnlyInactiveOOB(userID string) (*OOBAuthenticator, error) {
+	oob := s.OOB[userID]
+	var output []OOBAuthenticator
+	for _, b := range oob {
+		if !b.Activated {
+			output = append(output, b)
+		}
+	}
+	if len(output) != 1 {
+		return nil, ErrAuthenticatorNotFound
+	}
+	return &output[0], nil
+}
+
 func (s *MockStore) GetValidOOBCode(userID string, t gotime.Time) ([]OOBCode, error) {
 	oobCode := s.OOBCode[userID]
 	var output []OOBCode

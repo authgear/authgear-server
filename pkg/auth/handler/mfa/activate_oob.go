@@ -38,15 +38,11 @@ func (f ActivateOOBHandlerFactory) NewHandler(request *http.Request) http.Handle
 }
 
 type ActivateOOBRequest struct {
-	AuthenticatorID   string `json:"authenticator_id"`
 	Code              string `json:"code"`
 	AuthnSessionToken string `json:"authn_session_token"`
 }
 
 func (r ActivateOOBRequest) Validate() error {
-	if r.AuthenticatorID == "" {
-		return skyerr.NewInvalidArgument("missing authenticator ID", []string{"authenticator_id"})
-	}
 	if r.Code == "" {
 		return skyerr.NewInvalidArgument("missing code", []string{"code"})
 	}
@@ -63,11 +59,10 @@ const ActivateOOBRequestSchema = `
 	"$id": "#ActivateOOBRequest",
 	"type": "object",
 	"properties": {
-		"authenticator_id": { "type": "string" },
 		"code": { "type": "string" },
 		"authn_session_token": { "type": "string" }
 	},
-	"required": ["authenticator_id", "code"]
+	"required": ["code"]
 }
 `
 
@@ -138,7 +133,7 @@ func (h *ActivateOOBHandler) Handle(req interface{}) (resp interface{}, err erro
 	if err != nil {
 		return nil, err
 	}
-	recoveryCodes, err := h.MFAProvider.ActivateOOB(userID, payload.AuthenticatorID, payload.Code)
+	recoveryCodes, err := h.MFAProvider.ActivateOOB(userID, payload.Code)
 	if err != nil {
 		return
 	}

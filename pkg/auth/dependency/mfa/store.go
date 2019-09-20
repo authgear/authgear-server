@@ -57,6 +57,8 @@ type Store interface {
 	DeleteInactiveOOB(userID string, exceptID string) error
 	// GetOOBByChannel gets OOB authenticator by channel.
 	GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error)
+	// GetOnlyInactiveOOB gets the only OOB authenticator.
+	GetOnlyInactiveOOB(userID string) (*OOBAuthenticator, error)
 
 	// GetValidOOBCode gets all valid OOB codes.
 	GetValidOOBCode(userID string, t time.Time) ([]OOBCode, error)

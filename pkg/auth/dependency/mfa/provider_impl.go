@@ -410,8 +410,8 @@ func (p *providerImpl) TriggerOOB(userID string, id string) (err error) {
 	return nil
 }
 
-func (p *providerImpl) ActivateOOB(userID string, id string, code string) ([]string, error) {
-	a, err := p.store.GetOOB(userID, id)
+func (p *providerImpl) ActivateOOB(userID string, code string) ([]string, error) {
+	a, err := p.store.GetOnlyInactiveOOB(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +438,7 @@ func (p *providerImpl) ActivateOOB(userID string, id string, code string) ([]str
 	// Find the OOB code
 	var oobCode *OOBCode
 	for _, c := range oobCodes {
-		isTargetAuthenticator := c.AuthenticatorID == id
+		isTargetAuthenticator := c.AuthenticatorID == a.ID
 		isCodeValid := subtle.ConstantTimeCompare([]byte(code), []byte(c.Code)) == 1
 		if isTargetAuthenticator && isCodeValid {
 			cc := c
