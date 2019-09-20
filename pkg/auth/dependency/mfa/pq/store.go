@@ -830,6 +830,38 @@ func (s *storeImpl) DeleteOOB(a *mfa.OOBAuthenticator) error {
 	return s.deleteOOBByIDs([]string{a.ID})
 }
 
+func (s *storeImpl) DeleteInactiveOOB(userID string, exceptID string) error {
+	q1 := s.sqlBuilder.Tenant().
+		Select("a.id").
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator_oob"),
+			"ao",
+			"a.id = ao.id",
+		).
+		Where("a.user_id = ? AND ao.activated = FALSE", userID)
+
+	rows1, err := s.sqlExecutor.QueryWith(q1)
+	if err != nil {
+		return err
+	}
+	defer rows1.Close()
+
+	var ids []string
+	for rows1.Next() {
+		var id string
+		err = rows1.Scan(&id)
+		if err != nil {
+			return err
+		}
+		if id != exceptID {
+			ids = append(ids, id)
+		}
+	}
+
+	return s.deleteOOBByIDs(ids)
+}
+
 func (s *storeImpl) deleteOOBByIDs(ids []string) error {
 	if len(ids) <= 0 {
 		return nil

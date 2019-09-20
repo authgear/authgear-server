@@ -242,6 +242,32 @@ func (s *MockStore) DeleteOOB(a *OOBAuthenticator) error {
 	return nil
 }
 
+func (s *MockStore) DeleteInactiveOOB(userID string, exceptID string) error {
+	totp := s.OOB[userID]
+	deletedIDs := map[string]struct{}{}
+	var newOOB []OOBAuthenticator
+	for _, b := range totp {
+		if !b.Activated && b.ID != exceptID {
+			deletedIDs[b.ID] = struct{}{}
+		}
+		newOOB = append(newOOB, b)
+	}
+	s.OOB[userID] = newOOB
+
+	oobCode := s.OOBCode[userID]
+	var newOOBCode []OOBCode
+	for _, d := range oobCode {
+		_, deleted := deletedIDs[d.AuthenticatorID]
+		if deleted {
+			continue
+		}
+		newOOBCode = append(newOOBCode, d)
+	}
+	s.OOBCode[userID] = newOOBCode
+
+	return nil
+}
+
 func (s *MockStore) GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
 	oob := s.OOB[userID]
 	for _, a := range oob {

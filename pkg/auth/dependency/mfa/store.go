@@ -53,6 +53,8 @@ type Store interface {
 	UpdateOOB(a *OOBAuthenticator) error
 	// DeleteOOB deletes OOB authenticator.
 	DeleteOOB(a *OOBAuthenticator) error
+	// DeleteInactiveOOB deletes inactive OOB authenticator.
+	DeleteInactiveOOB(userID string, exceptID string) error
 	// GetOOBByChannel gets OOB authenticator by channel.
 	GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error)
 

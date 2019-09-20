@@ -273,33 +273,62 @@ func (p *providerImpl) deleteOOBAuthenticator(a *OOBAuthenticator) error {
 }
 
 func (p *providerImpl) CreateOOB(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
-	now := p.timeProvider.NowUTC()
-	a := OOBAuthenticator{
-		ID:        uuid.New(),
-		UserID:    userID,
-		Type:      coreAuth.AuthenticatorTypeOOB,
-		CreatedAt: now,
-		Channel:   channel,
-		Phone:     phone,
-		Email:     email,
+	exceptID := ""
+	createNew := false
+
+	a, err := p.store.GetOOBByChannel(userID, channel, phone, email)
+	// Forward any other errors.
+	if err != nil && err != ErrAuthenticatorNotFound {
+		return nil, err
 	}
+	// Detect duplicate
+	if err == nil && a.Activated {
+		return nil, skyerr.NewError(skyerr.Duplicated, "duplicated authenticator")
+	}
+
+	// If err is non-nil here, it must be ErrAuthenticatorNotFound.
+	if err != nil {
+		createNew = true
+		now := p.timeProvider.NowUTC()
+		a = &OOBAuthenticator{
+			ID:        uuid.New(),
+			UserID:    userID,
+			Type:      coreAuth.AuthenticatorTypeOOB,
+			CreatedAt: now,
+			Channel:   channel,
+			Phone:     phone,
+			Email:     email,
+		}
+	}
+	exceptID = a.ID
+
 	authenticators, err := p.store.ListAuthenticators(a.UserID)
 	if err != nil {
 		return nil, err
 	}
-	ok := CanAddAuthenticator(authenticators, a, p.mfaConfiguration)
+	ok := CanAddAuthenticator(authenticators, *a, p.mfaConfiguration)
 	if !ok {
 		return nil, skyerr.NewError(skyerr.BadRequest, "no more authenticator can be added")
 	}
-	err = p.store.CreateOOB(&a)
+
+	err = p.store.DeleteInactiveOOB(userID, exceptID)
 	if err != nil {
 		return nil, err
 	}
+
+	if createNew {
+		err = p.store.CreateOOB(a)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	err = p.TriggerOOB(userID, a.ID)
 	if err != nil {
 		return nil, err
 	}
-	return &a, nil
+
+	return a, nil
 }
 
 func (p *providerImpl) TriggerOOB(userID string, id string) (err error) {
