@@ -11,9 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
-var ErrInvalidRecoveryCode = skyerr.NewError(skyerr.InvalidArgument, "invalid recovery code")
-var ErrInvalidBearerToken = skyerr.NewError(skyerr.InvalidArgument, "invalid bearer token")
-
 type providerImpl struct {
 	store            Store
 	mfaConfiguration config.MFAConfiguration

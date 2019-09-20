@@ -91,6 +91,16 @@ func (w *writerImpl) ClearSession(rw http.ResponseWriter) {
 	})
 }
 
+func (w *writerImpl) ClearMFABearerToken(rw http.ResponseWriter) {
+	updateCookie(rw, &http.Cookie{
+		Name:     coreHttp.CookieNameMFABearerToken,
+		Path:     "/_auth/mfa/bearer_token/authenticate",
+		HttpOnly: true,
+		Secure:   !w.useInsecureCookie,
+		Expires:  time.Unix(0, 0),
+	})
+}
+
 func updateCookie(rw http.ResponseWriter, cookie *http.Cookie) {
 	header := rw.Header()
 	resp := http.Response{Header: header}

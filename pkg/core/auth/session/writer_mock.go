@@ -18,3 +18,6 @@ func (w *MockWriter) WriteSession(rw http.ResponseWriter, accessToken *string, m
 
 func (w *MockWriter) ClearSession(rw http.ResponseWriter) {
 }
+
+func (w *MockWriter) ClearMFABearerToken(rw http.ResponseWriter) {
+}

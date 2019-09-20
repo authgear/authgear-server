@@ -274,6 +274,9 @@ func (p *providerImpl) WriteResponse(w http.ResponseWriter, resp interface{}, er
 			panic("unknown response")
 		}
 	} else {
+		if err == mfa.ErrInvalidBearerToken {
+			p.sessionWriter.ClearMFABearerToken(w)
+		}
 		handler.WriteResponse(w, handler.APIResponse{Err: skyerr.MakeError(err)})
 	}
 }

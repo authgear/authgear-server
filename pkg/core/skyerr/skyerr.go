@@ -102,8 +102,11 @@ const (
 	// A token and the step are included in info.
 	AuthenticationSession
 
-	// InvalidAuthenticationSession occurs the authentication session is invalid.
+	// InvalidAuthenticationSession occurs when the authentication session is invalid.
 	InvalidAuthenticationSession
+
+	// InvalidMFABearerToken occurs when the bearer token is invalid.
+	InvalidMFABearerToken
 
 	// Error codes for expected error condition should be placed
 	// above this line.

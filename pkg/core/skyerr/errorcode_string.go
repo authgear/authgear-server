@@ -26,23 +26,24 @@ func _() {
 	_ = x[CurrentIdentityBeingDeleted-116]
 	_ = x[AuthenticationSession-117]
 	_ = x[InvalidAuthenticationSession-118]
+	_ = x[InvalidMFABearerToken-119]
 	_ = x[UnexpectedError-10000]
 	_ = x[UnexpectedAuthInfoNotFound-10001]
 }
 
 const (
-	_ErrorCode_name_0 = "NotAuthenticatedPermissionDeniedAccessKeyNotAcceptedAccessTokenNotAcceptedInvalidCredentialsBadRequestInvalidArgumentDuplicatedResourceNotFoundUndefinedOperationPasswordPolicyViolatedUserDisabledVerificationRequiredWebHookTimeOutWebHookFailedCurrentIdentityBeingDeletedAuthenticationSessionInvalidAuthenticationSession"
+	_ErrorCode_name_0 = "NotAuthenticatedPermissionDeniedAccessKeyNotAcceptedAccessTokenNotAcceptedInvalidCredentialsBadRequestInvalidArgumentDuplicatedResourceNotFoundUndefinedOperationPasswordPolicyViolatedUserDisabledVerificationRequiredWebHookTimeOutWebHookFailedCurrentIdentityBeingDeletedAuthenticationSessionInvalidAuthenticationSessionInvalidMFABearerToken"
 	_ErrorCode_name_1 = "UnexpectedErrorUnexpectedAuthInfoNotFound"
 )
 
 var (
-	_ErrorCode_index_0 = [...]uint16{0, 16, 32, 52, 74, 92, 102, 117, 127, 143, 161, 183, 195, 215, 229, 242, 269, 290, 318}
+	_ErrorCode_index_0 = [...]uint16{0, 16, 32, 52, 74, 92, 102, 117, 127, 143, 161, 183, 195, 215, 229, 242, 269, 290, 318, 339}
 	_ErrorCode_index_1 = [...]uint8{0, 15, 41}
 )
 
 func (i ErrorCode) String() string {
 	switch {
-	case 101 <= i && i <= 118:
+	case 101 <= i && i <= 119:
 		i -= 101
 		return _ErrorCode_name_0[_ErrorCode_index_0[i]:_ErrorCode_index_0[i+1]]
 	case 10000 <= i && i <= 10001:

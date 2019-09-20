@@ -2,7 +2,11 @@ package mfa
 
 import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
+
+var ErrInvalidRecoveryCode = skyerr.NewError(skyerr.InvalidArgument, "invalid recovery code")
+var ErrInvalidBearerToken = skyerr.NewError(skyerr.InvalidMFABearerToken, "invalid MFA bearer token")
 
 // Provider manipulates authenticators
 type Provider interface {
