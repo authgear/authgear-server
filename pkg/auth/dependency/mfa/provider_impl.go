@@ -401,6 +401,7 @@ func (p *providerImpl) TriggerOOB(userID string, id string) (err error) {
 		}
 	}
 
+	// TODO(mfa): Do not always send OOB code.
 	err = p.sender.Send(oobCode.Code, a.Phone, a.Email)
 	if err != nil {
 		return err
