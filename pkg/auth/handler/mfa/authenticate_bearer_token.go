@@ -157,6 +157,11 @@ func (h *AuthenticateBearerTokenHandler) Handle(req interface{}) (resp interface
 		return
 	}
 
+	err = h.MFAProvider.DeleteExpiredBearerToken(userID)
+	if err != nil {
+		return
+	}
+
 	a, err := h.MFAProvider.AuthenticateBearerToken(userID, payload.BearerToken)
 	if err != nil {
 		return

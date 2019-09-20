@@ -84,6 +84,20 @@ func (s *MockStore) DeleteAllBearerToken(userID string) error {
 	return nil
 }
 
+func (s *MockStore) DeleteExpiredBearerToken(userID string) error {
+	now := s.TimeProvider.NowUTC()
+	bt := s.BearerToken[userID]
+	var newBT []BearerTokenAuthenticator
+	for _, a := range bt {
+		if a.ExpireAt.Before(now) {
+			continue
+		}
+		newBT = append(newBT, a)
+	}
+	s.BearerToken[userID] = newBT
+	return nil
+}
+
 func (s *MockStore) CreateBearerToken(a *BearerTokenAuthenticator) error {
 	bt := s.BearerToken[a.UserID]
 	if bt == nil {

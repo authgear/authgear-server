@@ -269,6 +269,37 @@ func (s *storeImpl) DeleteAllBearerToken(userID string) error {
 	return s.deleteBearerTokenByIDs(ids)
 }
 
+func (s *storeImpl) DeleteExpiredBearerToken(userID string) error {
+	now := s.timeProvider.NowUTC()
+	q1 := s.sqlBuilder.Tenant().
+		Select("a.id").
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator_bearer_token"),
+			"abt",
+			"a.id = abt.id",
+		).
+		Where("a.user_id = ? AND abt.expire_at < ?", userID, now)
+
+	rows1, err := s.sqlExecutor.QueryWith(q1)
+	if err != nil {
+		return err
+	}
+	defer rows1.Close()
+
+	var ids []string
+	for rows1.Next() {
+		var id string
+		err = rows1.Scan(&id)
+		if err != nil {
+			return err
+		}
+		ids = append(ids, id)
+	}
+
+	return s.deleteBearerTokenByIDs(ids)
+}
+
 func (s *storeImpl) deleteBearerTokenByParentIDs(parentIDs []string) error {
 	if len(parentIDs) <= 0 {
 		return nil

@@ -23,6 +23,8 @@ type Store interface {
 
 	// DeleteAllBearerToken deletes all bearer token of the given user.
 	DeleteAllBearerToken(userID string) error
+	// DeleteExpiredBearerToken deletes all expired bearer token of the given user.
+	DeleteExpiredBearerToken(userID string) error
 	// CreateBearerToken creates Bearer Token authenticator.
 	CreateBearerToken(a *BearerTokenAuthenticator) error
 	// GetBearerTokenByToken gets bearer token authenticator by token.

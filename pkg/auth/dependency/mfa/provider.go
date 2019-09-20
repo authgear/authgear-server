@@ -19,6 +19,8 @@ type Provider interface {
 
 	// DeleteAllBearerToken deletes all bearer token of the given user.
 	DeleteAllBearerToken(userID string) error
+	// DeleteExpiredBearerToken deletes all expired bearer tokens of the given user.
+	DeleteExpiredBearerToken(userID string) error
 	// AuthenticateBearerToken authenticates the user with the given bearer token.
 	AuthenticateBearerToken(userID string, token string) (*BearerTokenAuthenticator, error)
 

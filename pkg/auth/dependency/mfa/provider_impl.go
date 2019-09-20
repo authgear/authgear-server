@@ -84,6 +84,10 @@ func (p *providerImpl) DeleteAllBearerToken(userID string) error {
 	return p.store.DeleteAllBearerToken(userID)
 }
 
+func (p *providerImpl) DeleteExpiredBearerToken(userID string) error {
+	return p.store.DeleteExpiredBearerToken(userID)
+}
+
 func (p *providerImpl) AuthenticateBearerToken(userID string, token string) (*BearerTokenAuthenticator, error) {
 	a, err := p.store.GetBearerTokenByToken(userID, token)
 	if err != nil {
