@@ -269,7 +269,11 @@ func (s *storeImpl) DeleteAllBearerToken(userID string) error {
 	return s.deleteBearerTokenByIDs(ids)
 }
 
-func (s *storeImpl) deleteBearerTokenByParentID(userID string, parentID string) error {
+func (s *storeImpl) deleteBearerTokenByParentIDs(parentIDs []string) error {
+	if len(parentIDs) <= 0 {
+		return nil
+	}
+
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -280,7 +284,7 @@ func (s *storeImpl) deleteBearerTokenByParentID(userID string, parentID string) 
 			"abt",
 			"a.id = abt.id",
 		).
-		Where("a.user_id = ? AND abt.parent_id = ?", userID, parentID)
+		Where("abt.parent_id = ANY (?)", pq.Array(parentIDs))
 
 	rows1, err := s.sqlExecutor.QueryWith(q1)
 	if err != nil {
@@ -581,80 +585,17 @@ func (s *storeImpl) UpdateTOTP(a *mfa.TOTPAuthenticator) error {
 }
 
 func (s *storeImpl) DeleteTOTP(a *mfa.TOTPAuthenticator) error {
-	// To delete TOTP authenticator, we have to delete its dependencies first
-	// 1. bearer token
-
-	err := s.deleteBearerTokenByParentID(a.UserID, a.ID)
-	if err != nil {
-		return err
-	}
-
-	q1 := s.sqlBuilder.Tenant().
-		Delete(s.sqlBuilder.FullTableName("authenticator_totp")).
-		Where("id = ?", a.ID)
-	r1, err := s.sqlExecutor.ExecWith(q1)
-	if err != nil {
-		return err
-	}
-	count, err := r1.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count != 1 {
-		return mfa.ErrAuthenticatorNotFound
-	}
-
-	q2 := s.sqlBuilder.Tenant().
-		Delete(s.sqlBuilder.FullTableName("authenticator")).
-		Where("id = ?", a.ID)
-	r2, err := s.sqlExecutor.ExecWith(q2)
-	if err != nil {
-		return err
-	}
-	count, err = r2.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count != 1 {
-		return mfa.ErrAuthenticatorNotFound
-	}
-
-	return err
-}
-
-func (s *storeImpl) DeleteInactiveTOTP(userID string) error {
-	q1 := s.sqlBuilder.Tenant().
-		Select("a.id").
-		From(s.sqlBuilder.FullTableName("authenticator"), "a").
-		Join(
-			s.sqlBuilder.FullTableName("authenticator_totp"),
-			"at",
-			"a.id = at.id",
-		).
-		Where("a.user_id = ? AND at.activated = FALSE", userID)
-
-	rows1, err := s.sqlExecutor.QueryWith(q1)
-	if err != nil {
-		return err
-	}
-	defer rows1.Close()
-
-	var ids []string
-	for rows1.Next() {
-		var id string
-		err = rows1.Scan(&id)
-		if err != nil {
-			return err
-		}
-		ids = append(ids, id)
-	}
-
-	return s.deleteTOTPByIDs(ids)
+	return s.deleteTOTPByIDs([]string{a.ID})
 }
 
 func (s *storeImpl) deleteTOTPByIDs(ids []string) error {
 	if len(ids) <= 0 {
 		return nil
+	}
+
+	err := s.deleteBearerTokenByParentIDs(ids)
+	if err != nil {
+		return err
 	}
 
 	q2 := s.sqlBuilder.Tenant().
@@ -689,6 +630,36 @@ func (s *storeImpl) deleteTOTPByIDs(ids []string) error {
 	}
 
 	return nil
+}
+
+func (s *storeImpl) DeleteInactiveTOTP(userID string) error {
+	q1 := s.sqlBuilder.Tenant().
+		Select("a.id").
+		From(s.sqlBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.sqlBuilder.FullTableName("authenticator_totp"),
+			"at",
+			"a.id = at.id",
+		).
+		Where("a.user_id = ? AND at.activated = FALSE", userID)
+
+	rows1, err := s.sqlExecutor.QueryWith(q1)
+	if err != nil {
+		return err
+	}
+	defer rows1.Close()
+
+	var ids []string
+	for rows1.Next() {
+		var id string
+		err = rows1.Scan(&id)
+		if err != nil {
+			return err
+		}
+		ids = append(ids, id)
+	}
+
+	return s.deleteTOTPByIDs(ids)
 }
 
 func (s *storeImpl) GetOnlyInactiveTOTP(userID string) (*mfa.TOTPAuthenticator, error) {
@@ -816,23 +787,27 @@ func (s *storeImpl) UpdateOOB(a *mfa.OOBAuthenticator) error {
 }
 
 func (s *storeImpl) DeleteOOB(a *mfa.OOBAuthenticator) error {
-	// To delete OOB authenticator, we have to delete its dependencies first
-	// 1. bearer token
-	// 2. OOB code
+	return s.deleteOOBByIDs([]string{a.ID})
+}
 
-	err := s.deleteBearerTokenByParentID(a.UserID, a.ID)
+func (s *storeImpl) deleteOOBByIDs(ids []string) error {
+	if len(ids) <= 0 {
+		return nil
+	}
+
+	err := s.deleteBearerTokenByParentIDs(ids)
 	if err != nil {
 		return err
 	}
 
-	err = s.deleteOOBCodeByAuthenticator(a)
+	err = s.deleteOOBCodeByAuthenticatorIDs(ids)
 	if err != nil {
 		return err
 	}
 
 	q1 := s.sqlBuilder.Tenant().
 		Delete(s.sqlBuilder.FullTableName("authenticator_oob")).
-		Where("id = ?", a.ID)
+		Where("id = ANY (?)", pq.Array(ids))
 	r1, err := s.sqlExecutor.ExecWith(q1)
 	if err != nil {
 		return err
@@ -841,13 +816,13 @@ func (s *storeImpl) DeleteOOB(a *mfa.OOBAuthenticator) error {
 	if err != nil {
 		return err
 	}
-	if count != 1 {
+	if int(count) != len(ids) {
 		return mfa.ErrAuthenticatorNotFound
 	}
 
 	q2 := s.sqlBuilder.Tenant().
 		Delete(s.sqlBuilder.FullTableName("authenticator")).
-		Where("id = ?", a.ID)
+		Where("id = ANY (?)", pq.Array(ids))
 	r2, err := s.sqlExecutor.ExecWith(q2)
 	if err != nil {
 		return err
@@ -856,11 +831,11 @@ func (s *storeImpl) DeleteOOB(a *mfa.OOBAuthenticator) error {
 	if err != nil {
 		return err
 	}
-	if count != 1 {
+	if int(count) != len(ids) {
 		return mfa.ErrAuthenticatorNotFound
 	}
 
-	return err
+	return nil
 }
 
 func (s *storeImpl) GetValidOOBCode(userID string, t gotime.Time) ([]mfa.OOBCode, error) {
@@ -941,14 +916,19 @@ func (s *storeImpl) DeleteOOBCode(c *mfa.OOBCode) error {
 	return nil
 }
 
-func (s *storeImpl) deleteOOBCodeByAuthenticator(a *mfa.OOBAuthenticator) error {
+func (s *storeImpl) deleteOOBCodeByAuthenticatorIDs(authenticatorIDs []string) error {
+	if len(authenticatorIDs) <= 0 {
+		return nil
+	}
+
 	q1 := s.sqlBuilder.Tenant().
 		Delete(s.sqlBuilder.FullTableName("authenticator_oob_code")).
-		Where("authenticator_id = ?", a.ID)
+		Where("authenticator_id = ANY (?)", pq.Array(authenticatorIDs))
 	_, err := s.sqlExecutor.ExecWith(q1)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
