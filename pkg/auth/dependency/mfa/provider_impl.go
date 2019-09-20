@@ -217,18 +217,18 @@ func (p *providerImpl) AuthenticateTOTP(userID string, code string, generateBear
 func (p *providerImpl) DeleteAuthenticator(userID string, id string) error {
 	totp, err := p.store.GetTOTP(userID, id)
 	if err == nil {
-		return p.DeleteTOTPAuthenticator(totp)
+		return p.deleteTOTPAuthenticator(totp)
 	}
 
 	oob, err := p.store.GetOOB(userID, id)
 	if err == nil {
-		return p.DeleteOOBAuthenticator(oob)
+		return p.deleteOOBAuthenticator(oob)
 	}
 
 	return ErrAuthenticatorNotFound
 }
 
-func (p *providerImpl) DeleteTOTPAuthenticator(a *TOTPAuthenticator) error {
+func (p *providerImpl) deleteTOTPAuthenticator(a *TOTPAuthenticator) error {
 	authenticators, err := p.store.ListAuthenticators(a.UserID)
 	if err != nil {
 		return err
@@ -255,7 +255,7 @@ func (p *providerImpl) DeleteTOTPAuthenticator(a *TOTPAuthenticator) error {
 	return nil
 }
 
-func (p *providerImpl) DeleteOOBAuthenticator(a *OOBAuthenticator) error {
+func (p *providerImpl) deleteOOBAuthenticator(a *OOBAuthenticator) error {
 	authenticators, err := p.store.ListAuthenticators(a.UserID)
 	if err != nil {
 		return err
