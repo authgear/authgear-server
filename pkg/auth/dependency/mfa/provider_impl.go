@@ -234,11 +234,6 @@ func (p *providerImpl) deleteTOTPAuthenticator(a *TOTPAuthenticator) error {
 		return err
 	}
 
-	err = p.store.DeleteBearerTokenByParentID(a.UserID, a.ID)
-	if err != nil {
-		return err
-	}
-
 	err = p.store.DeleteTOTP(a)
 	if err != nil {
 		return err
@@ -257,20 +252,6 @@ func (p *providerImpl) deleteTOTPAuthenticator(a *TOTPAuthenticator) error {
 
 func (p *providerImpl) deleteOOBAuthenticator(a *OOBAuthenticator) error {
 	authenticators, err := p.store.ListAuthenticators(a.UserID)
-	if err != nil {
-		return err
-	}
-
-	// To OOB authenticator, we have to delete its dependencies first
-	// 1. bearer token
-	// 2. OOB code
-
-	err = p.store.DeleteBearerTokenByParentID(a.UserID, a.ID)
-	if err != nil {
-		return err
-	}
-
-	err = p.store.DeleteOOBCodeByAuthenticator(a)
 	if err != nil {
 		return err
 	}

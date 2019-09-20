@@ -269,7 +269,7 @@ func (s *storeImpl) DeleteAllBearerToken(userID string) error {
 	return s.deleteBearerTokenByIDs(ids)
 }
 
-func (s *storeImpl) DeleteBearerTokenByParentID(userID string, parentID string) error {
+func (s *storeImpl) deleteBearerTokenByParentID(userID string, parentID string) error {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -581,6 +581,14 @@ func (s *storeImpl) UpdateTOTP(a *mfa.TOTPAuthenticator) error {
 }
 
 func (s *storeImpl) DeleteTOTP(a *mfa.TOTPAuthenticator) error {
+	// To delete TOTP authenticator, we have to delete its dependencies first
+	// 1. bearer token
+
+	err := s.deleteBearerTokenByParentID(a.UserID, a.ID)
+	if err != nil {
+		return err
+	}
+
 	q1 := s.sqlBuilder.Tenant().
 		Delete(s.sqlBuilder.FullTableName("authenticator_totp")).
 		Where("id = ?", a.ID)
@@ -808,6 +816,20 @@ func (s *storeImpl) UpdateOOB(a *mfa.OOBAuthenticator) error {
 }
 
 func (s *storeImpl) DeleteOOB(a *mfa.OOBAuthenticator) error {
+	// To delete OOB authenticator, we have to delete its dependencies first
+	// 1. bearer token
+	// 2. OOB code
+
+	err := s.deleteBearerTokenByParentID(a.UserID, a.ID)
+	if err != nil {
+		return err
+	}
+
+	err = s.deleteOOBCodeByAuthenticator(a)
+	if err != nil {
+		return err
+	}
+
 	q1 := s.sqlBuilder.Tenant().
 		Delete(s.sqlBuilder.FullTableName("authenticator_oob")).
 		Where("id = ?", a.ID)
@@ -919,7 +941,7 @@ func (s *storeImpl) DeleteOOBCode(c *mfa.OOBCode) error {
 	return nil
 }
 
-func (s *storeImpl) DeleteOOBCodeByAuthenticator(a *mfa.OOBAuthenticator) error {
+func (s *storeImpl) deleteOOBCodeByAuthenticator(a *mfa.OOBAuthenticator) error {
 	q1 := s.sqlBuilder.Tenant().
 		Delete(s.sqlBuilder.FullTableName("authenticator_oob_code")).
 		Where("authenticator_id = ?", a.ID)

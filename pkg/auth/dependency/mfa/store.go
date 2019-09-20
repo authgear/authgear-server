@@ -20,8 +20,6 @@ type Store interface {
 	// UpdateRecoveryCode updates recovery code authenticator.
 	UpdateRecoveryCode(a *RecoveryCodeAuthenticator) error
 
-	// DeleteBearerToken deletes bearer token of the given parent authenticator.
-	DeleteBearerTokenByParentID(userID string, parentID string) error
 	// DeleteAllBearerToken deletes all bearer token of the given user.
 	DeleteAllBearerToken(userID string) error
 	// CreateBearerToken creates Bearer Token authenticator.
@@ -61,6 +59,4 @@ type Store interface {
 	CreateOOBCode(c *OOBCode) error
 	// DeleteOOBCode deletes OOB code.
 	DeleteOOBCode(c *OOBCode) error
-	// DeleteOOBCodeByAuthenticator deletes all OOB codes of the given authenticator.
-	DeleteOOBCodeByAuthenticator(a *OOBAuthenticator) error
 }
