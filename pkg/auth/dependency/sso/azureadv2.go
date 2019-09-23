@@ -206,11 +206,10 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 		err = fmt.Errorf("cannot find oid")
 		return
 	}
-	email, ok := mapClaims["email"].(string)
-	if !ok {
-		err = fmt.Errorf("cannot find email")
-		return
-	}
+	// For "Microsoft Account", email usually exists.
+	// For "AD guest user", email usually exists because to invite an user, the inviter must provide email.
+	// For "AD user", email never exists even one is provided in "Authentication Methods".
+	email, _ := mapClaims["email"].(string)
 
 	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = mapClaims
