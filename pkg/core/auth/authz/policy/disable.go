@@ -8,18 +8,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
+// DenyDisabledUser denies disabled user.
+// It is not an error if the request does not have an associated user.
+// If you want to enforce enabled user, use both RequireAuthenticated and DenyDisabledUser.
 func DenyDisabledUser(r *http.Request, ctx auth.ContextGetter) error {
 	authInfo, _ := ctx.AuthInfo()
-	if authInfo == nil {
-		return skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, "user authentication info not found")
+	if authInfo != nil && authInfo.Disabled {
+		return skyerr.NewError(skyerr.UserDisabled, "user disabled")
 	}
-
-	if authInfo.Disabled {
-		// TODO:
-		// return proper error code
-		return skyerr.NewError(skyerr.UnexpectedError, "user disabled")
-	}
-
 	return nil
 }
 

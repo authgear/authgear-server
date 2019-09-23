@@ -11,12 +11,12 @@ import (
 
 func TestDenyDisabledUser(t *testing.T) {
 	Convey("Test DenyDisabledUser", t, func() {
-		Convey("should return error if auth context has no auth info", func() {
+		Convey("should not return error if auth context has no auth info", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
 			ctx := MemoryContextGetter{}
 
 			err := DenyDisabledUser(req, ctx)
-			So(err, ShouldNotBeEmpty)
+			So(err, ShouldBeNil)
 		})
 
 		Convey("should return error if user is disabled", func() {
@@ -29,7 +29,7 @@ func TestDenyDisabledUser(t *testing.T) {
 			}
 
 			err := DenyDisabledUser(req, ctx)
-			So(err, ShouldNotBeEmpty)
+			So(err, ShouldNotBeNil)
 		})
 
 		Convey("should pass if user is not disabled", func() {
@@ -42,7 +42,7 @@ func TestDenyDisabledUser(t *testing.T) {
 			}
 
 			err := DenyDisabledUser(req, ctx)
-			So(err, ShouldBeEmpty)
+			So(err, ShouldBeNil)
 		})
 
 	})
