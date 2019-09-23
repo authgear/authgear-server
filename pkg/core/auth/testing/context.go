@@ -15,7 +15,10 @@ type MockContext struct {
 	err       error
 }
 
-var _ auth.ContextGetter = &MockContext{}
+var (
+	_ auth.ContextGetter = &MockContext{}
+	_ auth.ContextSetter = &MockContext{}
+)
 
 func NewMockContext() *MockContext {
 	return &MockContext{accessKey: model.AccessKey{Type: model.APIAccessKeyType}}
@@ -31,6 +34,16 @@ func (m *MockContext) AuthInfo() (*authinfo.AuthInfo, error) {
 
 func (m *MockContext) Session() (*auth.Session, error) {
 	return m.session, m.err
+}
+
+func (m *MockContext) SetAccessKey(key model.AccessKey) {
+	m.accessKey = key
+}
+
+func (m *MockContext) SetSessionAndAuthInfo(sess *auth.Session, info *authinfo.AuthInfo, err error) {
+	m.session = sess
+	m.authInfo = info
+	m.err = err
 }
 
 func (m *MockContext) UseAPIAccessKey(clientID string) *MockContext {
