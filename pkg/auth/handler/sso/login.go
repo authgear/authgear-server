@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -19,7 +20,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -103,21 +103,20 @@ func (p LoginRequestPayload) Validate() (err error) {
 		@Callback user_sync {UserSyncEvent}
 */
 type LoginHandler struct {
-	TxContext           db.TxContext               `dependency:"TxContext"`
-	AuthContext         coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
-	OAuthAuthProvider   oauth.Provider             `dependency:"OAuthAuthProvider"`
-	IdentityProvider    principal.IdentityProvider `dependency:"IdentityProvider"`
-	AuthInfoStore       authinfo.Store             `dependency:"AuthInfoStore"`
-	SessionProvider     session.Provider           `dependency:"SessionProvider"`
-	SessionWriter       session.Writer             `dependency:"SessionWriter"`
-	ProviderFactory     *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
-	UserProfileStore    userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider        hook.Provider              `dependency:"HookProvider"`
-	OAuthConfiguration  config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
-	WelcomeEmailEnabled bool                       `dependency:"WelcomeEmailEnabled"`
-	TaskQueue           async.Queue                `dependency:"AsyncTaskQueue"`
-	Provider            sso.OAuthProvider
-	ProviderID          string
+	TxContext            db.TxContext               `dependency:"TxContext"`
+	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	OAuthAuthProvider    oauth.Provider             `dependency:"OAuthAuthProvider"`
+	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
+	AuthnSessionProvider authnsession.Provider      `dependency:"AuthnSessionProvider"`
+	ProviderFactory      *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
+	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
+	HookProvider         hook.Provider              `dependency:"HookProvider"`
+	OAuthConfiguration   config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
+	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
+	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
+	Provider             sso.OAuthProvider
+	ProviderID           string
 }
 
 func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
@@ -149,12 +148,8 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if err == nil {
 			h.HookProvider.DidCommitTx()
-			authResp := result.(model.AuthResponse)
-			h.SessionWriter.WriteSession(resp, &authResp.AccessToken)
-			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
-		} else {
-			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
 		}
+		h.AuthnSessionProvider.WriteResponse(resp, result, err)
 	}()
 
 	payload, err := h.DecodeRequest(req)
@@ -175,7 +170,7 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	})
 }
 
-func (h LoginHandler) Handle(payload LoginRequestPayload) (resp model.AuthResponse, err error) {
+func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err error) {
 	if !h.OAuthConfiguration.ExternalAccessTokenFlowEnabled {
 		err = skyerr.NewError(skyerr.UndefinedOperation, "External access token flow is disabled")
 		return
@@ -198,14 +193,14 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp model.AuthRespon
 	}
 
 	handler := respHandler{
-		SessionProvider:     h.SessionProvider,
-		AuthInfoStore:       h.AuthInfoStore,
-		OAuthAuthProvider:   h.OAuthAuthProvider,
-		IdentityProvider:    h.IdentityProvider,
-		UserProfileStore:    h.UserProfileStore,
-		HookProvider:        h.HookProvider,
-		WelcomeEmailEnabled: h.WelcomeEmailEnabled,
-		TaskQueue:           h.TaskQueue,
+		AuthnSessionProvider: h.AuthnSessionProvider,
+		AuthInfoStore:        h.AuthInfoStore,
+		OAuthAuthProvider:    h.OAuthAuthProvider,
+		IdentityProvider:     h.IdentityProvider,
+		UserProfileStore:     h.UserProfileStore,
+		HookProvider:         h.HookProvider,
+		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
+		TaskQueue:            h.TaskQueue,
 	}
 	resp, err = handler.loginActionResp(oauthAuthInfo, loginState)
 

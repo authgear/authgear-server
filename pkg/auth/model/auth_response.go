@@ -19,11 +19,12 @@ import (
 )
 
 type AuthResponse struct {
-	User         User      `json:"user"`
-	Identity     *Identity `json:"identity,omitempty"`
-	AccessToken  string    `json:"access_token,omitempty"`
-	RefreshToken string    `json:"refresh_token,omitempty"`
-	SessionID    string    `json:"session_id,omitempty"`
+	User           User      `json:"user"`
+	Identity       *Identity `json:"identity,omitempty"`
+	AccessToken    string    `json:"access_token,omitempty"`
+	RefreshToken   string    `json:"refresh_token,omitempty"`
+	MFABearerToken string    `json:"mfa_bearer_token,omitempty"`
+	SessionID      string    `json:"session_id,omitempty"`
 }
 
 func NewAuthResponseWithUser(user User) AuthResponse {
@@ -39,13 +40,14 @@ func NewAuthResponseWithUserIdentity(user User, identity Identity) AuthResponse 
 	}
 }
 
-func NewAuthResponse(user User, identity Identity, session *auth.Session) AuthResponse {
+func NewAuthResponse(user User, identity Identity, session *auth.Session, mfaBearerToken string) AuthResponse {
 	return AuthResponse{
-		User:         user,
-		Identity:     &identity,
-		AccessToken:  session.AccessToken,
-		RefreshToken: session.RefreshToken,
-		SessionID:    session.ID,
+		User:           user,
+		Identity:       &identity,
+		AccessToken:    session.AccessToken,
+		RefreshToken:   session.RefreshToken,
+		MFABearerToken: mfaBearerToken,
+		SessionID:      session.ID,
 	}
 }
 

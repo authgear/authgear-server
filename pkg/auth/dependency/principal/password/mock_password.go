@@ -2,6 +2,7 @@ package password
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
@@ -159,7 +160,7 @@ func (m *MockProvider) UpdatePassword(principal *Principal, password string) (er
 }
 
 func (m *MockProvider) ID() string {
-	return providerPassword
+	return string(coreAuth.PrincipalTypePassword)
 }
 
 func (m *MockProvider) GetPrincipalByID(principalID string) (principal.Principal, error) {

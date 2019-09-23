@@ -13,7 +13,16 @@ import (
 
 func Format(session *auth.Session) (mSession model.Session) {
 	mSession.ID = session.ID
+
 	mSession.IdentityID = session.PrincipalID
+	mSession.IdentityType = string(session.PrincipalType)
+	mSession.IdentityUpdatedAt = session.PrincipalUpdatedAt
+
+	mSession.AuthenticatorID = session.AuthenticatorID
+	mSession.AuthenticatorType = string(session.AuthenticatorType)
+	mSession.AuthenticatorOOBChannel = string(session.AuthenticatorOOBChannel)
+	mSession.AuthenticatorUpdatedAt = session.AuthenticatorUpdatedAt
+
 	mSession.CreatedAt = session.CreatedAt
 	mSession.LastAccessedAt = session.AccessedAt
 	mSession.CreatedByIP = resolveIP(session.InitialAccess.Remote)

@@ -12,32 +12,66 @@ import (
 type writerImpl struct {
 	authContext       auth.ContextGetter
 	clientConfigs     map[string]config.APIClientConfiguration
+	mfaConfiguration  config.MFAConfiguration
 	useInsecureCookie bool
 }
 
 func NewWriter(
 	authContext auth.ContextGetter,
 	clientConfigs map[string]config.APIClientConfiguration,
+	mfaConfiguration config.MFAConfiguration,
 	useInsecureCookie bool,
 ) Writer {
 	return &writerImpl{
 		authContext:       authContext,
 		clientConfigs:     clientConfigs,
+		mfaConfiguration:  mfaConfiguration,
 		useInsecureCookie: useInsecureCookie,
 	}
 }
 
-func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string) {
+func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string, mfaBearerToken *string) {
 	clientConfig := w.clientConfigs[w.authContext.AccessKey().ClientID]
 	useCookie := clientConfig.SessionTransport == config.SessionTransportTypeCookie
 
-	cookie := &http.Cookie{
+	cookieSession := &http.Cookie{
 		Name:     coreHttp.CookieNameSession,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   !w.useInsecureCookie,
 	}
-	switch clientConfig.SameSite {
+	cookieMFABearerToken := &http.Cookie{
+		Name:     coreHttp.CookieNameMFABearerToken,
+		Path:     "/_auth/mfa/bearer_token/authenticate",
+		HttpOnly: true,
+		Secure:   !w.useInsecureCookie,
+	}
+	w.configureCookieSameSite(cookieSession, clientConfig.SameSite)
+	w.configureCookieSameSite(cookieMFABearerToken, clientConfig.SameSite)
+
+	if useCookie {
+		cookieSession.Value = *accessToken
+		*accessToken = ""
+		cookieSession.MaxAge = int(time.Duration(clientConfig.AccessTokenLifetime).Seconds())
+
+		if mfaBearerToken != nil {
+			cookieMFABearerToken.Value = *mfaBearerToken
+			*mfaBearerToken = ""
+			cookieMFABearerToken.MaxAge = int(time.Duration(w.mfaConfiguration.BearerToken.ExpireInDays).Seconds())
+		}
+	} else {
+		cookieSession.Expires = time.Unix(0, 0)
+		cookieMFABearerToken.Expires = time.Unix(0, 0)
+	}
+
+	updateCookie(rw, cookieSession)
+	if mfaBearerToken != nil {
+		updateCookie(rw, cookieMFABearerToken)
+	}
+}
+
+func (w *writerImpl) configureCookieSameSite(cookie *http.Cookie, sameSite config.SessionCookieSameSite) {
+	switch sameSite {
 	case config.SessionCookieSameSiteNone:
 		cookie.SameSite = http.SameSiteDefaultMode
 	case config.SessionCookieSameSiteLax:
@@ -45,29 +79,26 @@ func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string) {
 	case config.SessionCookieSameSiteStrict:
 		cookie.SameSite = http.SameSiteStrictMode
 	}
-
-	if useCookie {
-		token := *accessToken
-		*accessToken = ""
-
-		cookie.Value = token
-		cookie.MaxAge = int(time.Duration(clientConfig.AccessTokenLifetime).Seconds())
-	} else {
-		cookie.Expires = time.Unix(0, 0)
-	}
-
-	updateCookie(rw, cookie)
 }
 
 func (w *writerImpl) ClearSession(rw http.ResponseWriter) {
-	cookie := &http.Cookie{
+	updateCookie(rw, &http.Cookie{
 		Name:     coreHttp.CookieNameSession,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   !w.useInsecureCookie,
 		Expires:  time.Unix(0, 0),
-	}
-	updateCookie(rw, cookie)
+	})
+}
+
+func (w *writerImpl) ClearMFABearerToken(rw http.ResponseWriter) {
+	updateCookie(rw, &http.Cookie{
+		Name:     coreHttp.CookieNameMFABearerToken,
+		Path:     "/_auth/mfa/bearer_token/authenticate",
+		HttpOnly: true,
+		Secure:   !w.useInsecureCookie,
+		Expires:  time.Unix(0, 0),
+	})
 }
 
 func updateCookie(rw http.ResponseWriter, cookie *http.Cookie) {

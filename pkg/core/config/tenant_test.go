@@ -20,6 +20,8 @@ user_config:
   clients: {}
   master_key: masterkey
   auth:
+    authentication_session:
+      secret: authnsessionsecret
     login_id_keys:
       email:
         type: email
@@ -49,6 +51,9 @@ const inputMinimalJSON = `
 		"clients": {},
 		"master_key": "masterkey",
 		"auth": {
+			"authentication_session": {
+				"secret": "authnsessionsecret"
+			},
 			"login_id_keys": {
 				"email": {
 					"type": "email"
@@ -130,6 +135,9 @@ func makeFullTenantConfig() TenantConfiguration {
 				Origin: "localhost:3000",
 			},
 			Auth: AuthConfiguration{
+				AuthenticationSession: AuthenticationSessionConfiguration{
+					Secret: "authnsessionsecret",
+				},
 				LoginIDKeys: map[string]LoginIDKeyConfiguration{
 					"email": LoginIDKeyConfiguration{
 						Type:    LoginIDKeyType("email"),
@@ -150,7 +158,29 @@ func makeFullTenantConfig() TenantConfiguration {
 				AllowedRealms:              []string{"default"},
 				OnUserDuplicateAllowCreate: true,
 			},
-
+			MFA: MFAConfiguration{
+				Enabled:     true,
+				Enforcement: MFAEnforcementOptional,
+				Maximum:     newInt(3),
+				TOTP: MFATOTPConfiguration{
+					Maximum: 1,
+				},
+				OOB: MFAOOBConfiguration{
+					SMS: MFAOOBSMSConfiguration{
+						Maximum: 1,
+					},
+					Email: MFAOOBEmailConfiguration{
+						Maximum: 1,
+					},
+				},
+				BearerToken: MFABearerTokenConfiguration{
+					ExpireInDays: 60,
+				},
+				RecoveryCode: MFARecoveryCodeConfiguration{
+					Count:       24,
+					ListEnabled: true,
+				},
+			},
 			UserAudit: UserAuditConfiguration{
 				Enabled:         true,
 				TrailHandlerURL: "http://localhost:3000/useraudit",

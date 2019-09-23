@@ -6,6 +6,7 @@ require (
 	github.com/FZambia/sentinel v1.1.0
 	github.com/Masterminds/squirrel v1.1.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
 	github.com/dgrijalva/jwt-go v3.1.0+incompatible
 	github.com/evalphobia/logrus_fluent v0.4.0
 	github.com/flosch/pongo2 v0.0.0-20141028000813-5e81b817a0c4
@@ -35,16 +36,17 @@ require (
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
 	github.com/nbutton23/zxcvbn-go v0.0.0-20171102151520-eafdab6b0663
 	github.com/njern/gonexmo v2.0.0+incompatible
+	github.com/nyaruka/phonenumbers v1.0.45
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
+	github.com/pquerna/otp v1.2.0
 	github.com/rifflock/lfshook v0.0.0-20171219153109-1fdc019a3514
 	github.com/sfreiberg/gotwilio v0.0.0-20181012193634-a13e5b0d458a
 	github.com/sirupsen/logrus v1.0.3
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
-	github.com/stretchr/testify v1.3.0 // indirect
-	github.com/tinylib/msgp v1.0.2
+	github.com/tinylib/msgp v1.1.0
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect
 	github.com/twinj/uuid v0.0.0-20160621131530-b505f2cca343
 	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329

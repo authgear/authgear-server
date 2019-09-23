@@ -48,23 +48,29 @@ func NewProvider(req *http.Request, store Store, eventStore EventStore, authCont
 	}
 }
 
-func (p *providerImpl) Create(userID string, principalID string) (s *auth.Session, err error) {
+func (p *providerImpl) Create(authnSess *auth.AuthnSession) (s *auth.Session, err error) {
 	now := p.time.NowUTC()
 	clientID := p.authContext.AccessKey().ClientID
 	clientConfig := p.clientConfigs[clientID]
 
 	accessEvent := newAccessEvent(now, p.req)
+	// NOTE(louis): remember to update the mock provider
+	// if session has new fields.
 	sess := auth.Session{
-		ID:          uuid.New(),
-		ClientID:    clientID,
-		UserID:      userID,
-		PrincipalID: principalID,
-
-		InitialAccess: accessEvent,
-		LastAccess:    accessEvent,
-
-		CreatedAt:  now,
-		AccessedAt: now,
+		ID:                      uuid.New(),
+		ClientID:                authnSess.ClientID,
+		UserID:                  authnSess.UserID,
+		PrincipalID:             authnSess.PrincipalID,
+		PrincipalType:           authnSess.PrincipalType,
+		PrincipalUpdatedAt:      authnSess.PrincipalUpdatedAt,
+		AuthenticatorID:         authnSess.AuthenticatorID,
+		AuthenticatorType:       authnSess.AuthenticatorType,
+		AuthenticatorOOBChannel: authnSess.AuthenticatorOOBChannel,
+		AuthenticatorUpdatedAt:  authnSess.AuthenticatorUpdatedAt,
+		InitialAccess:           accessEvent,
+		LastAccess:              accessEvent,
+		CreatedAt:               now,
+		AccessedAt:              now,
 	}
 	if !clientConfig.RefreshTokenDisabled {
 		p.generateRefreshToken(&sess)
@@ -139,7 +145,7 @@ func (p *providerImpl) Get(id string) (*auth.Session, error) {
 		return nil, err
 	}
 
-	currentSession := p.authContext.Session()
+	currentSession, _ := p.authContext.Session()
 	if currentSession != nil && session.ID == currentSession.ID {
 		// should use current session data instead
 		session = currentSession
@@ -183,7 +189,7 @@ func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error)
 	}
 
 	now := p.time.NowUTC()
-	currentSession := p.authContext.Session()
+	currentSession, _ := p.authContext.Session()
 	for _, session := range storedSessions {
 		clientConfig, clientExists := p.clientConfigs[session.ClientID]
 		// if client does not exist or is disabled, ignore the session
@@ -212,6 +218,15 @@ func (p *providerImpl) Refresh(session *auth.Session) error {
 
 	expiry := computeSessionStorageExpiry(session, p.clientConfigs[session.ClientID])
 	return p.store.Update(session, expiry)
+}
+
+func (p *providerImpl) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepMFAOptions) error {
+	now := p.time.NowUTC()
+	sess.AuthenticatorID = opts.AuthenticatorID
+	sess.AuthenticatorType = opts.AuthenticatorType
+	sess.AuthenticatorOOBChannel = opts.AuthenticatorOOBChannel
+	sess.AuthenticatorUpdatedAt = &now
+	return p.Refresh(sess)
 }
 
 func (p *providerImpl) generateAccessToken(s *auth.Session) {

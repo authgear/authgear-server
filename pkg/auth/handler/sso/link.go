@@ -136,7 +136,8 @@ func (h LinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	userID := h.AuthContext.AuthInfo().ID
+	authInfo, _ := h.AuthContext.AuthInfo()
+	userID := authInfo.ID
 	payload := req.(LinkRequestPayload)
 
 	linkState := sso.LinkState{

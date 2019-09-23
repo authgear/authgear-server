@@ -131,7 +131,8 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 			err = skyerr.NewError(skyerr.PermissionDenied, "must not specify user_id")
 			return
 		}
-		targetUserID = h.AuthContext.AuthInfo().ID
+		authInfo, _ := h.AuthContext.AuthInfo()
+		targetUserID = authInfo.ID
 	}
 
 	newMetadata := payload.Metadata

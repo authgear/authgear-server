@@ -23,8 +23,9 @@ func TestRevokeHandler(t *testing.T) {
 	Convey("Test RevokeHandler", t, func() {
 		h := &RevokeHandler{}
 		h.TxContext = db.NewMockTxContext()
-		h.AuthContext = authtest.NewMockContext().
+		authContext := authtest.NewMockContext().
 			UseUser("user-id-1", "principal-id-1")
+		h.AuthContext = authContext
 		sessionProvider := session.NewMockProvider()
 		h.SessionProvider = sessionProvider
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
@@ -73,7 +74,8 @@ func TestRevokeHandler(t *testing.T) {
 			CreatedAt:   now,
 			AccessedAt:  now,
 		}
-		*h.AuthContext.Session() = sessionProvider.Sessions["user-id-1-principal-id-1"]
+		sess := sessionProvider.Sessions["user-id-1-principal-id-1"]
+		authContext.UseSession(&sess)
 
 		Convey("should revoke existing session", func() {
 			payload := RevokeRequestPayload{SessionID: "user-id-1-principal-id-2"}

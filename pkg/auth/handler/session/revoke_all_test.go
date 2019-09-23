@@ -23,8 +23,9 @@ func TestRevokeAllHandler(t *testing.T) {
 	Convey("Test RevokeAllHandler", t, func() {
 		h := &RevokeAllHandler{}
 		h.TxContext = db.NewMockTxContext()
-		h.AuthContext = authtest.NewMockContext().
+		authContext := authtest.NewMockContext().
 			UseUser("user-id-1", "principal-id-1")
+		h.AuthContext = authContext
 		sessionProvider := session.NewMockProvider()
 		h.SessionProvider = sessionProvider
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
@@ -73,7 +74,8 @@ func TestRevokeAllHandler(t *testing.T) {
 			CreatedAt:   now,
 			AccessedAt:  now,
 		}
-		*h.AuthContext.Session() = sessionProvider.Sessions["user-id-1-principal-id-1"]
+		sess := sessionProvider.Sessions["user-id-1-principal-id-1"]
+		authContext.UseSession(&sess)
 
 		Convey("should revoke all sessions except current session", func() {
 			resp, err := h.Handle(nil)

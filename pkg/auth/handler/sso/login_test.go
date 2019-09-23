@@ -8,19 +8,23 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -89,17 +93,38 @@ func TestLoginHandler(t *testing.T) {
 		sh.Provider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(nil)
 		sh.OAuthAuthProvider = mockOAuthProvider
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider)
+		identityProvider := principal.NewMockIdentityProvider(sh.OAuthAuthProvider)
+		sh.IdentityProvider = identityProvider
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{},
 		)
 		sh.AuthInfoStore = authInfoStore
-		sh.SessionProvider = session.NewMockProvider()
-		sh.SessionWriter = session.NewMockWriter()
-		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sessionProvider := session.NewMockProvider()
+		sessionWriter := session.NewMockWriter()
+		userProfileStore := userprofile.NewMockUserProfileStore()
+		sh.UserProfileStore = userProfileStore
 		sh.OAuthConfiguration = oauthConfig
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := coreconfig.MFAConfiguration{
+			Enabled:     false,
+			Enforcement: coreconfig.MFAEnforcementOptional,
+		}
+		mfaSender := mfa.NewMockSender()
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
+		sh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
+			timeProvider,
+			mfaProvider,
+			authInfoStore,
+			sessionProvider,
+			sessionWriter,
+			identityProvider,
+			hookProvider,
+			userProfileStore,
+		)
 
 		Convey("should get auth response", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
@@ -169,7 +194,7 @@ func TestLoginHandler(t *testing.T) {
 					},
 				},
 				event.SessionCreateEvent{
-					Reason: event.SessionCreateReasonSignup,
+					Reason: coreAuth.SessionCreateReasonSignup,
 					User: model.User{
 						ID:          p.UserID,
 						LastLoginAt: &now,
@@ -192,8 +217,10 @@ func TestLoginHandler(t *testing.T) {
 						},
 					},
 					Session: model.Session{
-						ID:         fmt.Sprintf("%s-%s-0", p.UserID, p.ID),
-						IdentityID: p.ID,
+						ID:                fmt.Sprintf("%s-%s-0", p.UserID, p.ID),
+						IdentityID:        p.ID,
+						IdentityType:      "oauth",
+						IdentityUpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 					},
 				},
 			})

@@ -2,6 +2,12 @@ SHELL := /bin/bash
 
 SCHEMA ?= app_config
 
+# Sometimes only auth migration is added.
+# The program complains if we run `up 1`.
+#
+# Intentionally not quoted
+MIGRATION_ARG ?= -migration=core -migration=auth
+
 ifeq (1,$(DRY_RUN))
 DRY_RUN_ARG := -dry-run
 endif
@@ -36,9 +42,8 @@ migrate:
 	go run cmd/migrate/main.go \
 		-add-migration-src=auth,$(AUTH_SOURCE) \
 		-add-migration-src=core,$(CORE_SOURCE) \
-		-migration=core \
-		-migration=auth \
 		-schema $(SCHEMA) \
+		$(MIGRATION_ARG) \
 		$(DRY_RUN_ARG) \
 		$(APP_FILTER_KEY_ARG) \
 		$(APP_FILTER_VALUE_ARG) \

@@ -11,6 +11,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -47,7 +49,7 @@ func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
 	h.Action = f.Action
-	return h
+	return handler.RequireAuthz(h, h.AuthContext, h)
 }
 
 // nolint: deadcode
@@ -240,6 +242,14 @@ type AuthURLHandler struct {
 	Action               string
 }
 
+func (h *AuthURLHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.DenyInvalidSession),
+		authz.PolicyFunc(policy.DenyDisabledUser),
+	)
+}
+
 func (h *AuthURLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
 		return h.Handle(w, r)
@@ -337,8 +347,9 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 			Nonce: crypto.SHA256String(nonce),
 		},
 	}
-	if h.AuthContext.AuthInfo() != nil {
-		params.State.UserID = h.AuthContext.AuthInfo().ID
+	authInfo, _ := h.AuthContext.AuthInfo()
+	if authInfo != nil {
+		params.State.UserID = authInfo.ID
 	}
 	url, err := h.Provider.GetAuthURL(params)
 	if err != nil {

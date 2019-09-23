@@ -329,6 +329,21 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.UserConfig.Auth.LoginIDKeys[key] = config
 	}
 
+	// Set default MFAConfiguration
+	if c.UserConfig.MFA.Enforcement == "" {
+		c.UserConfig.MFA.Enforcement = MFAEnforcementOptional
+	}
+	if c.UserConfig.MFA.Maximum == nil {
+		c.UserConfig.MFA.Maximum = new(int)
+		*c.UserConfig.MFA.Maximum = 1
+	}
+	if c.UserConfig.MFA.BearerToken.ExpireInDays == 0 {
+		c.UserConfig.MFA.BearerToken.ExpireInDays = 30
+	}
+	if c.UserConfig.MFA.RecoveryCode.Count == 0 {
+		c.UserConfig.MFA.RecoveryCode.Count = 16
+	}
+
 	// Set default user verification settings
 	if c.UserConfig.UserVerification.Criteria == "" {
 		c.UserConfig.UserVerification.Criteria = UserVerificationCriteriaAny
@@ -461,6 +476,7 @@ type UserConfiguration struct {
 	URLPrefix        string                            `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
 	CORS             CORSConfiguration                 `json:"cors,omitempty" yaml:"cors" msg:"cors"`
 	Auth             AuthConfiguration                 `json:"auth,omitempty" yaml:"auth" msg:"auth"`
+	MFA              MFAConfiguration                  `json:"mfa,omitempty" yaml:"mfa" msg:"mfa"`
 	UserAudit        UserAuditConfiguration            `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit"`
 	ForgotPassword   ForgotPasswordConfiguration       `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password"`
 	WelcomeEmail     WelcomeEmailConfiguration         `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email"`
@@ -513,9 +529,14 @@ type CORSConfiguration struct {
 }
 
 type AuthConfiguration struct {
+	AuthenticationSession      AuthenticationSessionConfiguration `json:"authentication_session,omitempty" yaml:"authentication_session" msg:"authentication_session"`
 	LoginIDKeys                map[string]LoginIDKeyConfiguration `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
 	AllowedRealms              []string                           `json:"allowed_realms,omitempty" yaml:"allowed_realms" msg:"allowed_realms"`
 	OnUserDuplicateAllowCreate bool                               `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
+}
+
+type AuthenticationSessionConfiguration struct {
+	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
 }
 
 type LoginIDKeyType string
@@ -540,6 +561,50 @@ type LoginIDKeyConfiguration struct {
 	Type    LoginIDKeyType `json:"type,omitempty" yaml:"type" msg:"type"`
 	Minimum *int           `json:"minimum,omitempty" yaml:"minimum" msg:"minimum"`
 	Maximum *int           `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+}
+
+type MFAEnforcement string
+
+const (
+	MFAEnforcementOff      MFAEnforcement = "off"
+	MFAEnforcementOptional MFAEnforcement = "optional"
+	MFAEnforcementRequired MFAEnforcement = "required"
+)
+
+type MFAConfiguration struct {
+	Enabled      bool                         `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
+	Enforcement  MFAEnforcement               `json:"enforcement,omitempty" yaml:"enforcement" msg:"enforcement"`
+	Maximum      *int                         `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+	TOTP         MFATOTPConfiguration         `json:"totp,omitempty" yaml:"totp" msg:"totp"`
+	OOB          MFAOOBConfiguration          `json:"oob,omitempty" yaml:"oob" msg:"oob"`
+	BearerToken  MFABearerTokenConfiguration  `json:"bearer_token,omitempty" yaml:"bearer_token" msg:"bearer_token"`
+	RecoveryCode MFARecoveryCodeConfiguration `json:"recovery_code,omitempty" yaml:"recovery_code" msg:"recovery_code"`
+}
+
+type MFATOTPConfiguration struct {
+	Maximum int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+}
+
+type MFAOOBConfiguration struct {
+	SMS   MFAOOBSMSConfiguration   `json:"sms,omitempty" yaml:"sms" msg:"sms"`
+	Email MFAOOBEmailConfiguration `json:"email,omitempty" yaml:"email" msg:"email"`
+}
+
+type MFAOOBSMSConfiguration struct {
+	Maximum int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+}
+
+type MFAOOBEmailConfiguration struct {
+	Maximum int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+}
+
+type MFABearerTokenConfiguration struct {
+	ExpireInDays int `json:"expire_in_days,omitempty" yaml:"expire_in_days" msg:"expire_in_days"`
+}
+
+type MFARecoveryCodeConfiguration struct {
+	Count       int  `json:"count,omitempty" yaml:"count" msg:"count"`
+	ListEnabled bool `json:"list_enabled,omitempty" yaml:"list_enabled" msg:"list_enabled"`
 }
 
 type UserAuditConfiguration struct {

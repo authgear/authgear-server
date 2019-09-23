@@ -9,7 +9,7 @@ import (
 )
 
 func DenyDisabledUser(r *http.Request, ctx auth.ContextGetter) error {
-	authInfo := ctx.AuthInfo()
+	authInfo, _ := ctx.AuthInfo()
 	if authInfo == nil {
 		return skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, "user authentication info not found")
 	}

@@ -139,7 +139,7 @@ func (h ChangePasswordHandler) ServeHTTP(resp http.ResponseWriter, req *http.Req
 		if err == nil {
 			h.HookProvider.DidCommitTx()
 			authResp := result.(model.AuthResponse)
-			h.SessionWriter.WriteSession(resp, &authResp.AccessToken)
+			h.SessionWriter.WriteSession(resp, &authResp.AccessToken, nil)
 			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
 		} else {
 			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
@@ -165,7 +165,8 @@ func (h ChangePasswordHandler) ServeHTTP(resp http.ResponseWriter, req *http.Req
 }
 
 func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (resp model.AuthResponse, err error) {
-	authinfo := h.AuthContext.AuthInfo()
+	authinfo, _ := h.AuthContext.AuthInfo()
+	sess, _ := h.AuthContext.Session()
 
 	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
 		PlainPassword: payload.NewPassword,
@@ -185,7 +186,7 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 
 	principal := principals[0]
 	for _, p := range principals {
-		if p.ID == h.AuthContext.Session().PrincipalID {
+		if p.ID == sess.PrincipalID {
 			principal = p
 		}
 		if !p.IsSamePassword(payload.OldPassword) {
@@ -199,8 +200,7 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 	}
 
 	// refresh session
-	session := h.AuthContext.Session()
-	err = h.SessionProvider.Refresh(h.AuthContext.Session())
+	err = h.SessionProvider.Refresh(sess)
 	if err != nil {
 		panic(err)
 	}
@@ -228,7 +228,7 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 		return
 	}
 
-	resp = model.NewAuthResponse(user, identity, session)
+	resp = model.NewAuthResponse(user, identity, sess, "")
 
 	h.AuditTrail.Log(audit.Entry{
 		UserID: authinfo.ID,

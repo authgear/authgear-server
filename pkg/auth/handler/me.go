@@ -80,8 +80,9 @@ func (h MeHandler) DecodeRequest(request *http.Request) (handler.RequestPayload,
 }
 
 func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
-	authInfo := h.AuthContext.AuthInfo()
-	principalID := h.AuthContext.Session().PrincipalID
+	authInfo, _ := h.AuthContext.AuthInfo()
+	sess, _ := h.AuthContext.Session()
+	principalID := sess.PrincipalID
 
 	// Get Profile
 	var userProfile userprofile.UserProfile

@@ -98,6 +98,16 @@ const (
 	// CurrentIdentityBeingDeleted occurs when the current identity is being deleted.
 	CurrentIdentityBeingDeleted
 
+	// AuthenticationSession occurs when the authentication involves multiple steps.
+	// A token and the step are included in info.
+	AuthenticationSession
+
+	// InvalidAuthenticationSession occurs when the authentication session is invalid.
+	InvalidAuthenticationSession
+
+	// InvalidMFABearerToken occurs when the bearer token is invalid.
+	InvalidMFABearerToken
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )

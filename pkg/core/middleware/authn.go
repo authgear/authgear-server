@@ -36,10 +36,17 @@ func (f AuthnMiddlewareFactory) NewInjectableMiddleware() InjectableMiddleware {
 func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 	log := m.LoggerFactory.NewLogger("authn")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var sess *auth.Session
+		var authInfo *authinfo.AuthInfo
 		var err error
 		defer func() {
-			if err == session.ErrSessionNotFound {
-				// clear session if session is not found
+			m.AuthContextSetter.SetSessionAndAuthInfo(sess, authInfo, err)
+
+			if err == model.ErrTokenConflict {
+				// Clear session if token conflicts
+				m.SessionWriter.ClearSession(w)
+			} else if err == session.ErrSessionNotFound {
+				// Clear session if session is not found
 				m.SessionWriter.ClearSession(w)
 			} else if err != nil {
 				log.WithError(err).Error("failed to resolve session")
@@ -70,39 +77,37 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 		}
 		defer m.TxContext.RollbackTx()
 
-		s, err := m.SessionProvider.GetByToken(accessToken, auth.SessionTokenKindAccessToken)
+		sess, err = m.SessionProvider.GetByToken(accessToken, auth.SessionTokenKindAccessToken)
 		if err != nil {
 			return
 		}
 
-		if tenantConfig.UserConfig.Clients[s.ClientID].SessionTransport != transport {
+		if tenantConfig.UserConfig.Clients[sess.ClientID].SessionTransport != transport {
 			err = session.ErrSessionNotFound
 			return
 		}
 
-		authInfo := authinfo.AuthInfo{}
-		err = m.AuthInfoStore.GetAuth(s.UserID, &authInfo)
+		ai := authinfo.AuthInfo{}
+		err = m.AuthInfoStore.GetAuth(sess.UserID, &ai)
 		if err != nil {
 			if err == skydb.ErrUserNotFound {
 				err = session.ErrSessionNotFound
 			}
 			return
 		}
+		authInfo = &ai
 
 		// in case valid session is used, infer access key from session
 		if !key.IsMasterKey() {
-			key = model.NewAccessKey(s.ClientID)
+			key = model.NewAccessKey(sess.ClientID)
 			m.AuthContextSetter.SetAccessKey(key)
 		}
 
 		// should not use new session data in context
-		sessionCopy := *s
+		sessionCopy := *sess
 		err = m.SessionProvider.Access(&sessionCopy)
 		if err != nil {
 			return
 		}
-
-		m.AuthContextSetter.SetSession(s)
-		m.AuthContextSetter.SetAuthInfo(&authInfo)
 	})
 }

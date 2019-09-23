@@ -23,6 +23,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
+	mfaHandler "github.com/skygeario/skygear-server/pkg/auth/handler/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
 	userverifyhandler "github.com/skygeario/skygear-server/pkg/auth/handler/userverify"
@@ -177,6 +178,21 @@ func main() {
 	session.AttachGetHandler(&srv, authDependency)
 	session.AttachRevokeHandler(&srv, authDependency)
 	session.AttachRevokeAllHandler(&srv, authDependency)
+	mfaHandler.AttachListRecoveryCodeHandler(&srv, authDependency)
+	mfaHandler.AttachRegenerateRecoveryCodeHandler(&srv, authDependency)
+	mfaHandler.AttachListAuthenticatorHandler(&srv, authDependency)
+	mfaHandler.AttachCreateTOTPHandler(&srv, authDependency)
+	mfaHandler.AttachActivateTOTPHandler(&srv, authDependency)
+	mfaHandler.AttachDeleteAuthenticatorHandler(&srv, authDependency)
+	mfaHandler.AttachAuthenticateTOTPHandler(&srv, authDependency)
+	mfaHandler.AttachRevokeAllBearerTokenHandler(&srv, authDependency)
+	mfaHandler.AttachAuthenticateRecoveryCodeHandler(&srv, authDependency)
+	mfaHandler.AttachAuthenticateBearerTokenHandler(&srv, authDependency)
+	mfaHandler.AttachCreateOOBHandler(&srv, authDependency)
+	mfaHandler.AttachTriggerOOBHandler(&srv, authDependency)
+	mfaHandler.AttachActivateOOBHandler(&srv, authDependency)
+	mfaHandler.AttachAuthenticateOOBHandler(&srv, authDependency)
+	mfaHandler.AttachTOTPQRCodeHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

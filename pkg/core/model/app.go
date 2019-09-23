@@ -91,6 +91,16 @@ func CheckAccessKey(config config.TenantConfiguration, apiKey string) AccessKey 
 	return AccessKey{Type: NoAccessKeyType}
 }
 
+func GetClientConfig(c map[string]config.APIClientConfiguration, clientID string) (*config.APIClientConfiguration, bool) {
+	for id, clientConfig := range c {
+		if id == clientID {
+			cc := clientConfig
+			return &cc, true
+		}
+	}
+	return nil, false
+}
+
 func NewAccessKey(clientID string) AccessKey {
 	return AccessKey{
 		Type:     APIAccessKeyType,

@@ -1,9 +1,10 @@
 package password
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
@@ -50,7 +51,7 @@ func (p *Principal) PrincipalUserID() string {
 }
 
 func (p *Principal) ProviderID() string {
-	return providerPassword
+	return string(coreAuth.PrincipalTypePassword)
 }
 
 func (p *Principal) Attributes() principal.Attributes {

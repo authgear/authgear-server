@@ -36,6 +36,7 @@ const (
 				},
 				"cors": { "$ref": "#CORSConfiguration" },
 				"auth": { "$ref": "#AuthConfiguration" },
+				"mfa": { "$ref": "#MFAConfiguration" },
 				"user_audit": { "$ref": "#UserAuditConfiguration" },
 				"forgot_password": { "$ref": "#ForgotPasswordConfiguration" },
 				"welcome_email": { "$ref": "#WelcomeEmailConfiguration" },
@@ -76,6 +77,7 @@ const (
 			"$id": "#AuthConfiguration",
 			"type": "object",
 			"properties": {
+				"authentication_session": { "$ref": "#AuthenticationSessionConfiguration" },
 				"login_id_keys": {
 					"type": "object",
 					"minProperties": 1,
@@ -87,6 +89,88 @@ const (
 					"type": "array",
 					"minItems": 1,
 					"items": { "$ref": "#NonEmptyString" }
+				}
+			},
+			"required": ["authentication_session"]
+		},
+		"AuthenticationSessionConfiguration": {
+			"$id": "#AuthenticationSessionConfiguration",
+			"type": "object",
+			"properties": {
+				"secret": { "$ref": "#NonEmptyString" }
+			},
+			"required": ["secret"]
+		},
+		"MFAConfiguration": {
+			"$id": "#MFAConfiguration",
+			"type": "object",
+			"properties": {
+				"enforcement": {
+					"type": "string",
+					"enum": ["off", "optional", "required"]
+				},
+				"maximum": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 15
+				},
+				"totp": {
+					"type": "object",
+					"properties": {
+						"maximum": {
+							"type": "integer",
+							"minimum": 0,
+							"maximum": 5
+						}
+					}
+				},
+				"oob": {
+					"type": "object",
+					"properties": {
+						"sms": {
+							"type": "object",
+							"properties": {
+								"maximum": {
+									"type": "integer",
+									"minimum": 0,
+									"maximum": 5
+								}
+							}
+						},
+						"email": {
+							"type": "object",
+							"properties": {
+								"maximum": {
+									"type": "integer",
+									"minimum": 0,
+									"maximum": 5
+								}
+							}
+						}
+					}
+				},
+				"bearer_token": {
+					"type": "object",
+					"properties": {
+						"expire_in_days": {
+							"type": "integer",
+							"minimum": 1,
+							"maximum": 3650
+						}
+					}
+				},
+				"recovery_code": {
+					"type": "object",
+					"properties": {
+						"count": {
+							"type": "integer",
+							"minimum": 8,
+							"maximum": 24
+						},
+						"list_enabled": {
+							"type": "boolean"
+						}
+					}
 				}
 			}
 		},

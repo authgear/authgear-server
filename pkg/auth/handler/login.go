@@ -4,19 +4,14 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -101,20 +96,13 @@ func (p LoginRequestPayload) Validate() error {
 		@Callback user_sync {UserSyncEvent}
 */
 type LoginHandler struct {
-	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
-	SessionProvider      session.Provider           `dependency:"SessionProvider"`
-	SessionWriter        session.Writer             `dependency:"SessionWriter"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
-	HookProvider         hook.Provider              `dependency:"HookProvider"`
-	TxContext            db.TxContext               `dependency:"TxContext"`
-}
-
-func (h LoginHandler) WithTx() bool {
-	return true
+	AuthContext          coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	AuthInfoStore        authinfo.Store         `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider      `dependency:"PasswordAuthProvider"`
+	AuditTrail           audit.Trail            `dependency:"AuditTrail"`
+	HookProvider         hook.Provider          `dependency:"HookProvider"`
+	AuthnSessionProvider authnsession.Provider  `dependency:"AuthnSessionProvider"`
+	TxContext            db.TxContext           `dependency:"TxContext"`
 }
 
 // ProvideAuthzPolicy provides authorization policy
@@ -143,12 +131,8 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if err == nil {
 			h.HookProvider.DidCommitTx()
-			authResp := result.(model.AuthResponse)
-			h.SessionWriter.WriteSession(resp, &authResp.AccessToken)
-			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
-		} else {
-			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
 		}
+		h.AuthnSessionProvider.WriteResponse(resp, result, err)
 	}()
 
 	payload, err := h.DecodeRequest(req)
@@ -170,7 +154,7 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 // Handle api request
-func (h LoginHandler) Handle(payload LoginRequestPayload) (resp model.AuthResponse, err error) {
+func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err error) {
 	fetchedAuthInfo := authinfo.AuthInfo{}
 
 	defer func() {
@@ -220,52 +204,14 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp model.AuthRespon
 		return
 	}
 
-	// generate session
-	session, err := h.SessionProvider.Create(fetchedAuthInfo.ID, principal.ID)
-	if err != nil {
-		panic(err)
-	}
-
-	// Get Profile
-	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
-		return
-	}
-
-	user := model.NewUser(fetchedAuthInfo, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, principal)
-	sessionModel := authSession.Format(session)
-	err = h.HookProvider.DispatchEvent(
-		event.SessionCreateEvent{
-			Reason:   event.SessionCreateReasonLogin,
-			User:     user,
-			Identity: identity,
-			Session:  sessionModel,
-		},
-		&user,
-	)
+	sess, err := h.AuthnSessionProvider.NewFromScratch(fetchedAuthInfo.ID, principal, coreAuth.SessionCreateReasonLogin)
 	if err != nil {
 		return
 	}
-
-	// Reload auth info, in case before hook handler mutated it
-	if err = h.AuthInfoStore.GetAuth(principal.UserID, &fetchedAuthInfo); err != nil {
+	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
+	if err != nil {
 		return
 	}
-
-	// Update the activity time of user (return old activity time for usefulness)
-	now := timeNow()
-	fetchedAuthInfo.LastLoginAt = &now
-	fetchedAuthInfo.LastSeenAt = &now
-	if err = h.AuthInfoStore.UpdateAuth(&fetchedAuthInfo); err != nil {
-		err = skyerr.MakeError(err)
-		return
-	}
-
-	resp = model.NewAuthResponse(user, identity, session)
 
 	return
 }

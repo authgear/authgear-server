@@ -4,16 +4,17 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
-	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/go-gomail/gomail"
+	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/apiclientconfig"
+	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
-
-	"github.com/sirupsen/logrus"
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
+	mfaPQ "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
@@ -21,6 +22,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -32,7 +35,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type DependencyMap struct {
@@ -161,6 +166,61 @@ func (m DependencyMap) Provide(
 		)
 	}
 
+	newSessionProvider := func() session.Provider {
+		return session.NewProvider(
+			request,
+			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider()),
+			redisSession.NewEventStore(ctx, tConfig.AppID),
+			newAuthContext(),
+			tConfig.UserConfig.Clients,
+		)
+	}
+
+	newIdentityProvider := func() principal.IdentityProvider {
+		return principal.NewIdentityProvider(
+			newSQLBuilder(),
+			newSQLExecutor(),
+			newCustomTokenAuthProvider(),
+			newOAuthAuthProvider(),
+			newPasswordAuthProvider(),
+		)
+	}
+
+	newSessionWriter := func() session.Writer {
+		return session.NewWriter(
+			newAuthContext(),
+			tConfig.UserConfig.Clients,
+			tConfig.UserConfig.MFA,
+			m.UseInsecureCookie,
+		)
+	}
+
+	newSMSClient := func() sms.Client {
+		return sms.NewClient(tConfig.AppConfig)
+	}
+
+	newMailDialer := func() *gomail.Dialer {
+		return mail.NewDialer(tConfig.AppConfig.SMTP)
+	}
+
+	newMFAProvider := func() mfa.Provider {
+		return mfa.NewProvider(
+			mfaPQ.NewStore(
+				tConfig.UserConfig.MFA,
+				newSQLBuilder(),
+				newSQLExecutor(),
+				newTimeProvider(),
+			),
+			tConfig.UserConfig.MFA,
+			newTimeProvider(),
+			mfa.NewSender(
+				newSMSClient(),
+				newMailDialer(),
+				newTemplateEngine(),
+			),
+		)
+	}
+
 	switch dependencyName {
 	case "AuthContextGetter":
 		return newAuthContext()
@@ -171,15 +231,25 @@ func (m DependencyMap) Provide(
 	case "LoggerFactory":
 		return newLoggerFactory()
 	case "SessionProvider":
-		return session.NewProvider(
-			request,
-			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider()),
-			redisSession.NewEventStore(ctx, tConfig.AppID),
-			newAuthContext(),
-			tConfig.UserConfig.Clients,
-		)
+		return newSessionProvider()
 	case "SessionWriter":
-		return session.NewWriter(newAuthContext(), tConfig.UserConfig.Clients, m.UseInsecureCookie)
+		return newSessionWriter()
+	case "MFAProvider":
+		return newMFAProvider()
+	case "AuthnSessionProvider":
+		return authnsession.NewProvider(
+			newAuthContext(),
+			tConfig.UserConfig.MFA,
+			tConfig.UserConfig.Auth.AuthenticationSession,
+			newTimeProvider(),
+			newMFAProvider(),
+			newAuthInfoStore(),
+			newSessionProvider(),
+			newSessionWriter(),
+			newIdentityProvider(),
+			newHookProvider(),
+			newUserProfileStore(),
+		)
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "PasswordChecker":
@@ -214,9 +284,9 @@ func (m DependencyMap) Provide(
 	case "UserProfileStore":
 		return newUserProfileStore()
 	case "ForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), newTemplateEngine())
+		return forgotpwdemail.NewDefaultSender(tConfig, newMailDialer(), newTemplateEngine())
 	case "TestForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP))
+		return forgotpwdemail.NewDefaultTestSender(tConfig, newMailDialer())
 	case "ForgotPasswordCodeGenerator":
 		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.UserConfig.MasterKey}
 	case "ForgotPasswordSecureMatch":
@@ -228,9 +298,9 @@ func (m DependencyMap) Provide(
 	case "WelcomeEmailDestination":
 		return tConfig.UserConfig.WelcomeEmail.Destination
 	case "WelcomeEmailSender":
-		return welcemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), newTemplateEngine())
+		return welcemail.NewDefaultSender(tConfig, newMailDialer(), newTemplateEngine())
 	case "TestWelcomeEmailSender":
-		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP))
+		return welcemail.NewDefaultTestSender(tConfig, newMailDialer())
 	case "IFrameHTMLProvider":
 		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint())
 	case "UserVerifyCodeSenderFactory":
@@ -266,13 +336,7 @@ func (m DependencyMap) Provide(
 	case "OAuthAuthProvider":
 		return newOAuthAuthProvider()
 	case "IdentityProvider":
-		return principal.NewIdentityProvider(
-			newSQLBuilder(),
-			newSQLExecutor(),
-			newCustomTokenAuthProvider(),
-			newOAuthAuthProvider(),
-			newPasswordAuthProvider(),
-		)
+		return newIdentityProvider()
 	case "AuthHandlerHTMLProvider":
 		return sso.NewAuthHandlerHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint())
 	case "AsyncTaskQueue":
@@ -285,6 +349,10 @@ func (m DependencyMap) Provide(
 		return tConfig.UserConfig.SSO.OAuth
 	case "AuthConfiguration":
 		return tConfig.UserConfig.Auth
+	case "MFAConfiguration":
+		return tConfig.UserConfig.MFA
+	case "APIClientConfigurationProvider":
+		return apiclientconfig.NewProvider(newAuthContext(), tConfig.UserConfig.Clients)
 	default:
 		return nil
 	}

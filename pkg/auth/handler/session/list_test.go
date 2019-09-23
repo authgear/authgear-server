@@ -17,8 +17,9 @@ func TestListHandler(t *testing.T) {
 	Convey("Test GetRequestPayload", t, func() {
 		h := &ListHandler{}
 		h.TxContext = db.NewMockTxContext()
-		h.AuthContext = authtest.NewMockContext().
+		authContext := authtest.NewMockContext().
 			UseUser("user-id-1", "principal-id-1")
+		h.AuthContext = authContext
 		sessionProvider := session.NewMockProvider()
 		h.SessionProvider = sessionProvider
 
@@ -47,7 +48,8 @@ func TestListHandler(t *testing.T) {
 			CreatedAt:   now,
 			AccessedAt:  now,
 		}
-		*h.AuthContext.Session() = sessionProvider.Sessions["user-id-1-principal-id-1"]
+		sess := sessionProvider.Sessions["user-id-1-principal-id-1"]
+		authContext.UseSession(&sess)
 
 		Convey("should list sessions", func() {
 			resp, err := h.Handle(nil)

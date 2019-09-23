@@ -96,7 +96,8 @@ func (h ListHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 }
 
 func (h ListHandler) Handle(req interface{}) (resp interface{}, err error) {
-	userID := h.AuthContext.AuthInfo().ID
+	authInfo, _ := h.AuthContext.AuthInfo()
+	userID := authInfo.ID
 
 	sessions, err := h.SessionProvider.List(userID)
 	if err != nil {

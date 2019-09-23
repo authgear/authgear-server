@@ -97,7 +97,9 @@ func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	userID := h.AuthContext.AuthInfo().ID
+	authInfo, _ := h.AuthContext.AuthInfo()
+	sess, _ := h.AuthContext.Session()
+	userID := authInfo.ID
 	principal, err := h.OAuthAuthProvider.GetPrincipalByUser(oauth.GetByUserOptions{
 		ProviderType: string(providerConfig.Type),
 		ProviderKeys: oauth.ProviderKeysFromProviderConfig(providerConfig),
@@ -108,7 +110,7 @@ func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	// principalID can be missing
-	principalID := h.AuthContext.Session().PrincipalID
+	principalID := sess.PrincipalID
 	if principalID != "" && principalID == principal.ID {
 		err = skyerr.NewError(skyerr.CurrentIdentityBeingDeleted, "Cannot delete current identity")
 		return
@@ -145,7 +147,7 @@ func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	user := model.NewUser(*h.AuthContext.AuthInfo(), userProfile)
+	user := model.NewUser(*authInfo, userProfile)
 	identity := model.NewIdentity(h.IdentityProvider, principal)
 	err = h.HookProvider.DispatchEvent(
 		event.IdentityDeleteEvent{

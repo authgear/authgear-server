@@ -5,8 +5,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 )
 
-const providerPassword string = "password"
-
 type Provider interface {
 	principal.Provider
 	ValidateLoginIDs(loginIDs []LoginID) error

@@ -9,9 +9,8 @@ import (
 )
 
 type MockProvider struct {
-	ClientID string
-	Time     time.Provider
-	counter  int
+	Time    time.Provider
+	counter int
 
 	Sessions map[string]auth.Session
 }
@@ -20,25 +19,29 @@ var _ Provider = &MockProvider{}
 
 func NewMockProvider() *MockProvider {
 	return &MockProvider{
-		ClientID: "client-id",
 		Time:     &time.MockProvider{},
 		Sessions: map[string]auth.Session{},
 	}
 }
 
-func (p *MockProvider) Create(userID string, principalID string) (s *auth.Session, err error) {
+func (p *MockProvider) Create(authnSess *auth.AuthnSession) (s *auth.Session, err error) {
 	now := p.Time.NowUTC()
-	id := fmt.Sprintf("%s-%s-%d", userID, principalID, p.counter)
+	id := fmt.Sprintf("%s-%s-%d", authnSess.UserID, authnSess.PrincipalID, p.counter)
 	sess := auth.Session{
-		ID:          id,
-		ClientID:    p.ClientID,
-		UserID:      userID,
-		PrincipalID: principalID,
-
-		CreatedAt:            now,
-		AccessedAt:           now,
-		AccessToken:          "access-token-" + id,
-		AccessTokenCreatedAt: now,
+		ID:                      id,
+		ClientID:                authnSess.ClientID,
+		UserID:                  authnSess.UserID,
+		PrincipalID:             authnSess.PrincipalID,
+		PrincipalType:           authnSess.PrincipalType,
+		PrincipalUpdatedAt:      authnSess.PrincipalUpdatedAt,
+		AuthenticatorID:         authnSess.AuthenticatorID,
+		AuthenticatorType:       authnSess.AuthenticatorType,
+		AuthenticatorOOBChannel: authnSess.AuthenticatorOOBChannel,
+		AuthenticatorUpdatedAt:  authnSess.AuthenticatorUpdatedAt,
+		CreatedAt:               now,
+		AccessedAt:              now,
+		AccessToken:             "access-token-" + id,
+		AccessTokenCreatedAt:    now,
 	}
 	p.counter++
 
@@ -118,5 +121,15 @@ func (p *MockProvider) Refresh(session *auth.Session) error {
 	session.AccessToken = fmt.Sprintf("access-token-%s-%d", session.ID, p.counter)
 	p.Sessions[session.ID] = *session
 	p.counter++
+	return nil
+}
+
+func (p *MockProvider) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepMFAOptions) error {
+	now := p.Time.NowUTC()
+	sess.AuthenticatorID = opts.AuthenticatorID
+	sess.AuthenticatorType = opts.AuthenticatorType
+	sess.AuthenticatorOOBChannel = opts.AuthenticatorOOBChannel
+	sess.AuthenticatorUpdatedAt = &now
+	p.Sessions[sess.ID] = *sess
 	return nil
 }

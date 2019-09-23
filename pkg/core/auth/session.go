@@ -11,12 +11,29 @@ const (
 	SessionTokenKindRefreshToken SessionTokenKind = "refresh-token"
 )
 
+type PrincipalType string
+
+const (
+	PrincipalTypePassword    PrincipalType = "password"
+	PrincipalTypeOAuth       PrincipalType = "oauth"
+	PrincipalTypeCustomToken PrincipalType = "custom_token"
+)
+
 // Session represents a session of user logged in with a principal.
 type Session struct {
-	ID          string `json:"id"`
-	ClientID    string `json:"client_id"`
-	UserID      string `json:"user_id"`
-	PrincipalID string `json:"principal_id"`
+	ID       string `json:"id"`
+	ClientID string `json:"client_id"`
+
+	UserID string `json:"user_id"`
+
+	PrincipalID        string        `json:"principal_id"`
+	PrincipalType      PrincipalType `json:"principal_type"`
+	PrincipalUpdatedAt time.Time     `json:"principal_updated_at"`
+
+	AuthenticatorID         string                  `json:"authenticator_id,omitempty"`
+	AuthenticatorType       AuthenticatorType       `json:"authenticator_type,omitempty"`
+	AuthenticatorOOBChannel AuthenticatorOOBChannel `json:"authenticator_oob_channel,omitempty"`
+	AuthenticatorUpdatedAt  *time.Time              `json:"authenticator_updated_at,omitempty"`
 
 	InitialAccess SessionAccessEvent `json:"initial_access"`
 	LastAccess    SessionAccessEvent `json:"last_access"`
@@ -49,3 +66,10 @@ func (i SessionAccessEventExtraInfo) DeviceName() string {
 	deviceName, _ := i["device_name"].(string)
 	return deviceName
 }
+
+type SessionCreateReason string
+
+const (
+	SessionCreateReasonSignup = "signup"
+	SessionCreateReasonLogin  = "login"
+)

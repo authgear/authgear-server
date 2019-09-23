@@ -5,6 +5,7 @@ import (
 )
 
 type Writer interface {
-	WriteSession(rw http.ResponseWriter, accessToken *string)
+	WriteSession(rw http.ResponseWriter, accessToken *string, mfaBearerToken *string)
 	ClearSession(rw http.ResponseWriter)
+	ClearMFABearerToken(rw http.ResponseWriter)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -50,7 +51,7 @@ func TestDispatchEvent(t *testing.T) {
 				ID: "principal-id",
 			}
 			payload := event.SessionCreateEvent{
-				Reason:   event.SessionCreateReasonLogin,
+				Reason:   coreAuth.SessionCreateReasonLogin,
 				User:     user,
 				Identity: identity,
 			}
@@ -105,7 +106,7 @@ func TestDispatchEvent(t *testing.T) {
 			Convey("should use mutated payload", func() {
 				deliverer.OnDeliverBeforeEvents = func(ev *event.Event, user *model.User) {
 					payload := ev.Payload.(event.SessionCreateEvent)
-					payload.Reason = event.SessionCreateReasonSignup
+					payload.Reason = coreAuth.SessionCreateReasonSignup
 					ev.Payload = payload
 				}
 
@@ -135,7 +136,7 @@ func TestDispatchEvent(t *testing.T) {
 				})
 				So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
 					event.SessionCreateEvent{
-						Reason:   event.SessionCreateReasonSignup,
+						Reason:   coreAuth.SessionCreateReasonSignup,
 						User:     user,
 						Identity: identity,
 					},

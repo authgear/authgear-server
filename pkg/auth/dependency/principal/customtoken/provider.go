@@ -8,9 +8,10 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/lib/pq"
-
 	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
@@ -104,7 +105,7 @@ func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 		).
 		Values(
 			principal.ID,
-			providerName,
+			coreAuth.PrincipalTypeCustomToken,
 			principal.UserID,
 		)
 
@@ -212,7 +213,7 @@ func (p *providerImpl) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (
 }
 
 func (p *providerImpl) ID() string {
-	return providerName
+	return string(coreAuth.PrincipalTypeCustomToken)
 }
 
 func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {

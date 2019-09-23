@@ -7,10 +7,10 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -22,7 +22,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -153,10 +152,9 @@ func (p SignupRequestPayload) duplicatedLoginIDs() bool {
 */
 type SignupHandler struct {
 	AuthContext             coreAuth.ContextGetter                             `dependency:"AuthContextGetter"`
+	AuthnSessionProvider    authnsession.Provider                              `dependency:"AuthnSessionProvider"`
 	PasswordChecker         *authAudit.PasswordChecker                         `dependency:"PasswordChecker"`
 	UserProfileStore        userprofile.Store                                  `dependency:"UserProfileStore"`
-	SessionProvider         session.Provider                                   `dependency:"SessionProvider"`
-	SessionWriter           session.Writer                                     `dependency:"SessionWriter"`
 	AuthInfoStore           authinfo.Store                                     `dependency:"AuthInfoStore"`
 	PasswordAuthProvider    password.Provider                                  `dependency:"PasswordAuthProvider"`
 	IdentityProvider        principal.IdentityProvider                         `dependency:"IdentityProvider"`
@@ -174,10 +172,6 @@ type SignupHandler struct {
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.DenyNoAccessKey)
-}
-
-func (h SignupHandler) WithTx() bool {
-	return true
 }
 
 func (h SignupHandler) DecodeRequest(request *http.Request) (payload SignupRequestPayload, err error) {
@@ -205,12 +199,8 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if err == nil {
 			h.HookProvider.DidCommitTx()
-			authResp := result.(model.AuthResponse)
-			h.SessionWriter.WriteSession(resp, &authResp.AccessToken)
-			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
-		} else {
-			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
 		}
+		h.AuthnSessionProvider.WriteResponse(resp, result, err)
 	}()
 
 	payload, err := h.DecodeRequest(req)
@@ -231,7 +221,7 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	})
 }
 
-func (h SignupHandler) Handle(payload SignupRequestPayload) (resp model.AuthResponse, err error) {
+func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, err error) {
 	if !model.IsAllowedOnUserDuplicate(
 		false,
 		h.AuthConfiguration.OnUserDuplicateAllowCreate,
@@ -292,13 +282,9 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp model.AuthResp
 
 	user := model.NewUser(info, userProfile)
 	identities := []model.Identity{}
-	var loginIdentity model.Identity
 	for _, principal := range principals {
 		identity := model.NewIdentity(h.IdentityProvider, principal)
 		identities = append(identities, identity)
-		if principal == loginPrincipal {
-			loginIdentity = identity
-		}
 	}
 
 	err = h.HookProvider.DispatchEvent(
@@ -317,34 +303,14 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp model.AuthResp
 		Event:  audit.EventSignup,
 	})
 
-	// generate session
-	session, err := h.SessionProvider.Create(info.ID, loginPrincipal.PrincipalID())
-	if err != nil {
-		panic(err)
-	}
-
-	// Populate the activity time to user
-	info.LastSeenAt = &now
-	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
-		err = skyerr.MakeError(err)
-		return
-	}
-
-	sessionModel := authSession.Format(session)
-	err = h.HookProvider.DispatchEvent(
-		event.SessionCreateEvent{
-			Reason:   event.SessionCreateReasonSignup,
-			User:     user,
-			Identity: loginIdentity,
-			Session:  sessionModel,
-		},
-		&user,
-	)
+	sess, err := h.AuthnSessionProvider.NewFromScratch(info.ID, loginPrincipal, coreAuth.SessionCreateReasonSignup)
 	if err != nil {
 		return
 	}
-
-	resp = model.NewAuthResponse(user, loginIdentity, session)
+	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
+	if err != nil {
+		return
+	}
 
 	if h.WelcomeEmailEnabled {
 		h.sendWelcomeEmail(user, payload.LoginIDs)

@@ -22,10 +22,10 @@ func (g MemoryContextGetter) AccessKey() model.AccessKey {
 	return g.mAccessKey
 }
 
-func (g MemoryContextGetter) AuthInfo() *authinfo.AuthInfo {
-	return g.mAuthInfo
+func (g MemoryContextGetter) AuthInfo() (*authinfo.AuthInfo, error) {
+	return g.mAuthInfo, nil
 }
 
-func (g MemoryContextGetter) Session() *auth.Session {
-	return g.mSession
+func (g MemoryContextGetter) Session() (*auth.Session, error) {
+	return g.mSession, nil
 }

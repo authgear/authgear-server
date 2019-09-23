@@ -11,7 +11,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -27,6 +29,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -123,9 +126,10 @@ func TestAuthHandler(t *testing.T) {
 			map[string]authinfo.AuthInfo{},
 		)
 		sh.AuthInfoStore = authInfoStore
-		sh.SessionProvider = session.NewMockProvider()
-		sh.SessionWriter = session.NewMockWriter()
-		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sessionProvider := session.NewMockProvider()
+		sessionWriter := session.NewMockWriter()
+		userProfileStore := userprofile.NewMockUserProfileStore()
+		sh.UserProfileStore = userProfileStore
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
 		)
@@ -141,8 +145,31 @@ func TestAuthHandler(t *testing.T) {
 			allowedRealms,
 			map[string]password.Principal{},
 		)
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, passwordAuthProvider)
-		sh.HookProvider = hook.NewMockProvider()
+		identityProvider := principal.NewMockIdentityProvider(sh.OAuthAuthProvider, passwordAuthProvider)
+		sh.IdentityProvider = identityProvider
+		hookProvider := hook.NewMockProvider()
+		sh.HookProvider = hookProvider
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := coreconfig.MFAConfiguration{
+			Enabled:     false,
+			Enforcement: coreconfig.MFAEnforcementOptional,
+		}
+		mfaSender := mfa.NewMockSender()
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
+
+		sh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
+			timeProvider,
+			mfaProvider,
+			authInfoStore,
+			sessionProvider,
+			sessionWriter,
+			identityProvider,
+			hookProvider,
+			userProfileStore,
+		)
+
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)
 		nonceCookie := &http.Cookie{
@@ -370,9 +397,10 @@ func TestAuthHandler(t *testing.T) {
 			},
 		)
 		sh.AuthInfoStore = authInfoStore
-		sh.SessionProvider = session.NewMockProvider()
-		sh.SessionWriter = session.NewMockWriter()
-		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sessionProvider := session.NewMockProvider()
+		sessionWriter := session.NewMockWriter()
+		userProfileStore := userprofile.NewMockUserProfileStore()
+		sh.UserProfileStore = userProfileStore
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
 		)
@@ -388,8 +416,30 @@ func TestAuthHandler(t *testing.T) {
 			allowedRealms,
 			map[string]password.Principal{},
 		)
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, passwordAuthProvider)
-		sh.HookProvider = hook.NewMockProvider()
+		identityProvider := principal.NewMockIdentityProvider(sh.OAuthAuthProvider, passwordAuthProvider)
+		sh.IdentityProvider = identityProvider
+		hookProvider := hook.NewMockProvider()
+		sh.HookProvider = hookProvider
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := coreconfig.MFAConfiguration{
+			Enabled:     false,
+			Enforcement: coreconfig.MFAEnforcementOptional,
+		}
+		mfaSender := mfa.NewMockSender()
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
+		sh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
+			timeProvider,
+			mfaProvider,
+			authInfoStore,
+			sessionProvider,
+			sessionWriter,
+			identityProvider,
+			hookProvider,
+			userProfileStore,
+		)
+
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)
 		nonceCookie := &http.Cookie{
@@ -546,12 +596,13 @@ func TestAuthHandler(t *testing.T) {
 			},
 		)
 		sh.AuthInfoStore = authInfoStore
-		sh.SessionProvider = session.NewMockProvider()
-		sh.SessionWriter = session.NewMockWriter()
+		sessionProvider := session.NewMockProvider()
+		sessionWriter := session.NewMockWriter()
 		profileData := map[string]map[string]interface{}{
 			"john.doe.id": map[string]interface{}{},
 		}
-		sh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
+		userProfileStore := userprofile.NewMockUserProfileStoreByData(profileData)
+		sh.UserProfileStore = userProfileStore
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
 		)
@@ -583,8 +634,30 @@ func TestAuthHandler(t *testing.T) {
 				},
 			},
 		)
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, passwordAuthProvider)
-		sh.HookProvider = hook.NewMockProvider()
+		identityProvider := principal.NewMockIdentityProvider(sh.OAuthAuthProvider, passwordAuthProvider)
+		sh.IdentityProvider = identityProvider
+		hookProvider := hook.NewMockProvider()
+		sh.HookProvider = hookProvider
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := coreconfig.MFAConfiguration{
+			Enabled:     false,
+			Enforcement: coreconfig.MFAEnforcementOptional,
+		}
+		mfaSender := mfa.NewMockSender()
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
+		sh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
+			timeProvider,
+			mfaProvider,
+			authInfoStore,
+			sessionProvider,
+			sessionWriter,
+			identityProvider,
+			hookProvider,
+			userProfileStore,
+		)
+
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)
 		nonceCookie := &http.Cookie{

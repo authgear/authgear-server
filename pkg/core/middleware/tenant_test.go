@@ -5,8 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
+	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 )
 
 var (
@@ -53,7 +55,9 @@ func TestMiddleware(t *testing.T) {
 		Convey("should handle request without headers", func() {
 			req := newReq()
 			handler.ServeHTTP(nil, req)
-			So(config.GetTenantConfig(req), ShouldResemble, sampleConfig)
+			// NOTE(louis): msgp v1.1.0 serialize nil empty into empty map
+			// so using ShouldResemble will fail the test.
+			So(config.GetTenantConfig(req), ShouldNonRecursiveDataDeepEqual, sampleConfig)
 		})
 
 		targetErrMiddleware := TenantConfigurationMiddleware{

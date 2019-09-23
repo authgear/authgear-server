@@ -8,7 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -20,11 +22,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func TestLoginHandler(t *testing.T) {
@@ -139,36 +142,32 @@ func TestLoginHandler(t *testing.T) {
 		h := &LoginHandler{}
 		h.AuthInfoStore = authInfoStore
 		sessionProvider := session.NewMockProvider()
-		h.SessionProvider = sessionProvider
-		h.SessionWriter = session.NewMockWriter()
+		sessionWriter := session.NewMockWriter()
+		identityProvider := principal.NewMockIdentityProvider(passwordAuthProvider)
+		userProfileStore := userprofile.NewMockUserProfileStore()
+		hookProvider := hook.NewMockProvider()
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 		h.PasswordAuthProvider = passwordAuthProvider
-		h.IdentityProvider = principal.NewMockIdentityProvider(h.PasswordAuthProvider)
 		h.AuditTrail = coreAudit.NewMockTrail(t)
-		h.HookProvider = hook.NewMockProvider()
-		h.UserProfileStore = userprofile.NewMockUserProfileStore()
-
-		Convey("login user with login_id", func() {
-			payload := LoginRequestPayload{
-				LoginIDKey: "email",
-				LoginID:    "john.doe@example.com",
-				Realm:      password.DefaultRealm,
-				Password:   "123456",
-			}
-			userID := "john.doe.id"
-
-			authResp, err := h.Handle(payload)
-			So(err, ShouldBeNil)
-
-			// check the authinfo store data
-			a := authinfo.AuthInfo{}
-			authInfoStore.GetAuth(userID, &a)
-			So(a.LastSeenAt.Equal(time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)), ShouldBeTrue)
-
-			// check the token
-			tokenStr := authResp.AccessToken
-			s, _ := sessionProvider.GetByToken(tokenStr, auth.SessionTokenKindAccessToken)
-			So(s.UserID, ShouldEqual, userID)
-		})
+		h.HookProvider = hookProvider
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := config.MFAConfiguration{
+			Enabled:     false,
+			Enforcement: config.MFAEnforcementOptional,
+		}
+		mfaSender := mfa.NewMockSender()
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
+		h.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
+			timeProvider,
+			mfaProvider,
+			authInfoStore,
+			sessionProvider,
+			sessionWriter,
+			identityProvider,
+			hookProvider,
+			userProfileStore,
+		)
 
 		Convey("login user without login ID key", func() {
 			payload := LoginRequestPayload{
@@ -318,18 +317,38 @@ func TestLoginHandler(t *testing.T) {
 
 		lh := &LoginHandler{}
 		lh.AuthInfoStore = authInfoStore
-		lh.SessionProvider = session.NewMockProvider()
-		lh.SessionWriter = session.NewMockWriter()
+
 		lh.PasswordAuthProvider = passwordAuthProvider
-		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
+		identityProvider := principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
 		lh.AuditTrail = coreAudit.NewMockTrail(t)
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 		hookProvider := hook.NewMockProvider()
 		lh.HookProvider = hookProvider
 		profileData := map[string]map[string]interface{}{
 			userID: map[string]interface{}{},
 		}
-		lh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
+		sessionProvider := session.NewMockProvider()
+		sessionWriter := session.NewMockWriter()
+		userProfileStore := userprofile.NewMockUserProfileStoreByData(profileData)
 		lh.TxContext = db.NewMockTxContext()
+		mfaStore := mfa.NewMockStore(timeProvider)
+		mfaConfiguration := config.MFAConfiguration{
+			Enabled:     false,
+			Enforcement: config.MFAEnforcementOptional,
+		}
+		mfaSender := mfa.NewMockSender()
+		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
+		lh.AuthnSessionProvider = authnsession.NewMockProvider(
+			mfaConfiguration,
+			timeProvider,
+			mfaProvider,
+			authInfoStore,
+			sessionProvider,
+			sessionWriter,
+			identityProvider,
+			hookProvider,
+			userProfileStore,
+		)
 
 		Convey("should contains current identity", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -370,7 +389,7 @@ func TestLoginHandler(t *testing.T) {
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.SessionCreateEvent{
-					Reason: event.SessionCreateReasonLogin,
+					Reason: coreAuth.SessionCreateReasonLogin,
 					User: model.User{
 						ID:         userID,
 						Verified:   true,
@@ -390,8 +409,10 @@ func TestLoginHandler(t *testing.T) {
 						},
 					},
 					Session: model.Session{
-						ID:         "john.doe.id-john.doe.principal.id1-0",
-						IdentityID: "john.doe.principal.id1",
+						ID:                "john.doe.id-john.doe.principal.id1-0",
+						IdentityID:        "john.doe.principal.id1",
+						IdentityType:      "password",
+						IdentityUpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 					},
 				},
 			})

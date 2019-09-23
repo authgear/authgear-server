@@ -56,7 +56,11 @@ func TestProvider(t *testing.T) {
 
 		Convey("creating session", func() {
 			Convey("should be successful", func() {
-				session, err := provider.Create("user-id", "principal-id")
+				session, err := provider.Create(&auth.AuthnSession{
+					UserID:      "user-id",
+					PrincipalID: "principal-id",
+					ClientID:    "web-app",
+				})
 				So(err, ShouldBeNil)
 				So(session, ShouldResemble, &auth.Session{
 					ID:                   session.ID,
@@ -76,7 +80,11 @@ func TestProvider(t *testing.T) {
 			})
 
 			Convey("should allow creating multiple sessions for same principal", func() {
-				session1, err := provider.Create("user-id", "principal-id")
+				session1, err := provider.Create(&auth.AuthnSession{
+					UserID:      "user-id",
+					PrincipalID: "principal-id",
+					ClientID:    "web-app",
+				})
 				So(err, ShouldBeNil)
 				So(session1, ShouldResemble, &auth.Session{
 					ID:                   session1.ID,
@@ -92,7 +100,11 @@ func TestProvider(t *testing.T) {
 					AccessTokenCreatedAt: initialTime,
 				})
 
-				session2, err := provider.Create("user-id", "principal-id")
+				session2, err := provider.Create(&auth.AuthnSession{
+					UserID:      "user-id",
+					PrincipalID: "principal-id",
+					ClientID:    "web-app",
+				})
 				So(err, ShouldBeNil)
 				So(session2, ShouldResemble, &auth.Session{
 					ID:                   session2.ID,
@@ -114,7 +126,11 @@ func TestProvider(t *testing.T) {
 				clientConfigs["web-app"] = config.APIClientConfiguration{
 					RefreshTokenDisabled: false,
 				}
-				session, err := provider.Create("user-id", "principal-id")
+				session, err := provider.Create(&auth.AuthnSession{
+					UserID:      "user-id",
+					PrincipalID: "principal-id",
+					ClientID:    "web-app",
+				})
 				So(err, ShouldBeNil)
 				So(session.RefreshToken, ShouldHaveLength, tokenLength+len(session.ID)+1)
 			})
@@ -122,7 +138,11 @@ func TestProvider(t *testing.T) {
 				clientConfigs["web-app"] = config.APIClientConfiguration{
 					RefreshTokenDisabled: true,
 				}
-				session, err := provider.Create("user-id", "principal-id")
+				session, err := provider.Create(&auth.AuthnSession{
+					UserID:      "user-id",
+					PrincipalID: "principal-id",
+					ClientID:    "web-app",
+				})
 				So(err, ShouldBeNil)
 				So(session.RefreshToken, ShouldBeEmpty)
 			})

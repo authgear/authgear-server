@@ -150,7 +150,7 @@ func (h VerifyRequestHandler) DecodeRequest(request *http.Request) (handler.Requ
 
 func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(VerifyRequestPayload)
-	authInfo := h.AuthContext.AuthInfo()
+	authInfo, _ := h.AuthContext.AuthInfo()
 
 	// Get Profile
 	var userProfile userprofile.UserProfile

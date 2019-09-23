@@ -6,6 +6,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -23,6 +25,11 @@ func (m authzMiddleware) Handle(next http.Handler) http.Handler {
 		policy := m.policyProvider.ProvideAuthzPolicy()
 		if err := policy.IsAllowed(r, m.authContext); err != nil {
 			log.WithError(err).Info("authz not allowed")
+			// NOTE(louis): In case the policy returns this error
+			// write a header to hint the client SDK to try refresh.
+			if err == session.ErrSessionNotFound {
+				rw.Header().Set(coreHttp.HeaderTryRefreshToken, "true")
+			}
 			m.writeUnauthorized(rw, err)
 			return
 		}
