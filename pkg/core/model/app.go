@@ -1,7 +1,6 @@
 package model
 
 import (
-	"crypto/subtle"
 	"fmt"
 	"net/http"
 	"strings"
@@ -72,23 +71,6 @@ func SetAccessKey(i interface{}, k AccessKey) {
 
 func GetAPIKey(i interface{}) string {
 	return header(i).Get(coreHttp.HeaderAPIKey)
-}
-
-func CheckAccessKey(config config.TenantConfiguration, apiKey string) AccessKey {
-	if subtle.ConstantTimeCompare([]byte(apiKey), []byte(config.UserConfig.MasterKey)) == 1 {
-		return AccessKey{Type: MasterAccessKeyType}
-	}
-
-	for id, clientConfig := range config.UserConfig.Clients {
-		if clientConfig.Disabled {
-			continue
-		}
-		if subtle.ConstantTimeCompare([]byte(apiKey), []byte(clientConfig.APIKey)) == 1 {
-			return AccessKey{Type: APIAccessKeyType, ClientID: id}
-		}
-	}
-
-	return AccessKey{Type: NoAccessKeyType}
 }
 
 func GetClientConfig(c map[string]config.APIClientConfiguration, clientID string) (*config.APIClientConfiguration, bool) {

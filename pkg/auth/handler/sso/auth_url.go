@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -20,6 +20,7 @@ import (
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func AttachAuthURLHandler(
@@ -232,14 +233,15 @@ func (p AuthURLRequestPayload) Validate() (err error) {
 		@Callback user_sync {UserSyncEvent}
 */
 type AuthURLHandler struct {
-	TxContext            db.TxContext              `dependency:"TxContext"`
-	AuthContext          coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
-	ProviderFactory      *sso.ProviderFactory      `dependency:"SSOProviderFactory"`
-	PasswordAuthProvider password.Provider         `dependency:"PasswordAuthProvider"`
-	OAuthConfiguration   config.OAuthConfiguration `dependency:"OAuthConfiguration"`
-	Provider             sso.OAuthProvider
-	ProviderID           string
-	Action               string
+	TxContext                      db.TxContext              `dependency:"TxContext"`
+	AuthContext                    coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
+	APIClientConfigurationProvider apiclientconfig.Provider  `dependency:"APIClientConfigurationProvider"`
+	ProviderFactory                *sso.ProviderFactory      `dependency:"SSOProviderFactory"`
+	PasswordAuthProvider           password.Provider         `dependency:"PasswordAuthProvider"`
+	OAuthConfiguration             config.OAuthConfiguration `dependency:"OAuthConfiguration"`
+	Provider                       sso.OAuthProvider
+	ProviderID                     string
+	Action                         string
 }
 
 func (h *AuthURLHandler) ProvideAuthzPolicy() authz.Policy {
@@ -333,6 +335,8 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	}
 	http.SetCookie(w, cookie)
 
+	apiClientConfig, _ := h.APIClientConfigurationProvider.Get()
+
 	params := sso.GetURLParams{
 		State: sso.State{
 			LoginState: sso.LoginState{
@@ -344,7 +348,8 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 				UXMode:      payload.UXMode,
 				Action:      h.Action,
 			},
-			Nonce: crypto.SHA256String(nonce),
+			Nonce:  crypto.SHA256String(nonce),
+			APIKey: apiClientConfig.APIKey,
 		},
 	}
 	authInfo, _ := h.AuthContext.AuthInfo()

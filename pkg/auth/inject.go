@@ -7,7 +7,6 @@ import (
 	"github.com/go-gomail/gomail"
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/apiclientconfig"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
@@ -25,6 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
+	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -352,7 +352,7 @@ func (m DependencyMap) Provide(
 	case "MFAConfiguration":
 		return tConfig.UserConfig.MFA
 	case "APIClientConfigurationProvider":
-		return apiclientconfig.NewProvider(newAuthContext(), tConfig.UserConfig.Clients)
+		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
 	default:
 		return nil
 	}

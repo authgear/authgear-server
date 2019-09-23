@@ -38,7 +38,8 @@ type State struct {
 	LoginState
 	LinkState
 	OAuthAuthorizationCodeFlowState
-	Nonce string `json:"nonce,omitempty"`
+	Nonce  string `json:"nonce,omitempty"`
+	APIKey string `json:"api_key"`
 }
 
 // UXMode indicates how the URL is used

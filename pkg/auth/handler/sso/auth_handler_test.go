@@ -20,6 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -94,9 +95,12 @@ func TestAuthHandler(t *testing.T) {
 		providerUserID := "mock_user_id"
 		sh := &AuthHandler{}
 		sh.TxContext = db.NewMockTxContext()
-		sh.AuthContext = authtest.NewMockContext().
+		sh.APIClientConfigurationProvider = apiclientconfig.NewMockProvider("api_key")
+		authContext := authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
+		sh.AuthContext = authContext
+		sh.AuthContextSetter = authContext
 		oauthConfig := coreconfig.OAuthConfiguration{
 			URLPrefix:      "http://localhost:3000",
 			StateJWTSecret: stateJWTSecret,
@@ -354,10 +358,13 @@ func TestAuthHandler(t *testing.T) {
 		action := "link"
 		stateJWTSecret := "secret"
 		sh := &AuthHandler{}
+		sh.APIClientConfigurationProvider = apiclientconfig.NewMockProvider("api_key")
 		sh.TxContext = db.NewMockTxContext()
-		sh.AuthContext = authtest.NewMockContext().
+		authContext := authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
+		sh.AuthContext = authContext
+		sh.AuthContextSetter = authContext
 		oauthConfig := coreconfig.OAuthConfiguration{
 			URLPrefix:      "http://localhost:3000",
 			StateJWTSecret: stateJWTSecret,
@@ -560,10 +567,13 @@ func TestAuthHandler(t *testing.T) {
 		providerUserID := "mock_user_id"
 
 		sh := &AuthHandler{}
+		sh.APIClientConfigurationProvider = apiclientconfig.NewMockProvider("api_key")
 		sh.TxContext = db.NewMockTxContext()
-		sh.AuthContext = authtest.NewMockContext().
+		authContext := authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
+		sh.AuthContext = authContext
+		sh.AuthContextSetter = authContext
 		oauthConfig := coreconfig.OAuthConfiguration{
 			URLPrefix:      "http://localhost:3000",
 			StateJWTSecret: stateJWTSecret,

@@ -16,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -70,6 +71,7 @@ func TestAuthURLPayload(t *testing.T) {
 func TestAuthURLHandler(t *testing.T) {
 	Convey("Test TestAuthURLHandler", t, func() {
 		h := &AuthURLHandler{}
+		h.APIClientConfigurationProvider = apiclientconfig.NewMockProvider("api_key")
 		h.AuthContext = authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
