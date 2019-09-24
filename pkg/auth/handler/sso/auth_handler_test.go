@@ -497,7 +497,16 @@ func TestAuthHandler(t *testing.T) {
 			{
 				"callback_url": "http://localhost:3000",
 				"result": {
-					"result": {}
+					"result": {
+						"user": {
+							"id": "john.doe.id",
+							"is_verified": false,
+							"is_disabled": false,
+							"created_at": "0001-01-01T00:00:00Z",
+							"verify_info": {},
+							"metadata": {}
+						}
+					}
 				}
 			}
 			`)

@@ -111,7 +111,16 @@ func TestLinkHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": {}
+				"result": {
+					"user": {
+						"id": "faseng.cat.id",
+						"created_at": "0001-01-01T00:00:00Z",
+						"is_disabled": false,
+						"is_verified": false,
+						"metadata": {},
+						"verify_info": {}
+					}
+				}
 			}`)
 
 			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
