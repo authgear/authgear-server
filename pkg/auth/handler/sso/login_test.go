@@ -152,6 +152,7 @@ func TestLoginHandler(t *testing.T) {
 					"identity": {
 						"id": "%s",
 						"type": "oauth",
+						"provider_keys": {},
 						"provider_type": "google",
 						"provider_user_id": "mock_user_id",
 						"raw_profile": {
@@ -180,6 +181,7 @@ func TestLoginHandler(t *testing.T) {
 							ID:   p.ID,
 							Type: "oauth",
 							Attributes: principal.Attributes{
+								"provider_keys":    map[string]interface{}{},
 								"provider_type":    "google",
 								"provider_user_id": "mock_user_id",
 								"raw_profile": map[string]interface{}{
@@ -205,6 +207,7 @@ func TestLoginHandler(t *testing.T) {
 						ID:   p.ID,
 						Type: "oauth",
 						Attributes: principal.Attributes{
+							"provider_keys":    map[string]interface{}{},
 							"provider_type":    "google",
 							"provider_user_id": "mock_user_id",
 							"raw_profile": map[string]interface{}{

@@ -131,6 +131,7 @@ func TestLinkHandler(t *testing.T) {
 						ID:   p.ID,
 						Type: "oauth",
 						Attributes: principal.Attributes{
+							"provider_keys":    map[string]interface{}{},
 							"provider_type":    "google",
 							"provider_user_id": "mock_user_id",
 							"raw_profile": map[string]interface{}{

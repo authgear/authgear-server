@@ -235,6 +235,7 @@ func TestAuthHandler(t *testing.T) {
 						"identity": {
 							"id": "%s",
 							"type": "oauth",
+							"provider_keys": {},
 							"provider_type": "google",
 							"provider_user_id": "mock_user_id",
 							"raw_profile": {
@@ -337,6 +338,7 @@ func TestAuthHandler(t *testing.T) {
 					"identity": {
 						"id": "%s",
 						"type": "oauth",
+						"provider_keys": {},
 						"provider_type": "google",
 						"provider_user_id": "mock_user_id",
 						"raw_profile": {
@@ -769,6 +771,7 @@ func TestAuthHandler(t *testing.T) {
 						"identity": {
 							"type": "oauth",
 							"id": "%s",
+							"provider_keys": {},
 							"provider_type": "google",
 							"provider_user_id": "%s",
 							"raw_profile": {
@@ -846,6 +849,7 @@ func TestAuthHandler(t *testing.T) {
 						"identity": {
 							"type": "oauth",
 							"id": "%s",
+							"provider_keys": {},
 							"provider_type": "google",
 							"provider_user_id": "%s",
 							"raw_profile": {
