@@ -48,7 +48,7 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
 			ProviderConfig: keyConfig,
-			Dialer:         mail.NewDialer(d.Config.AppConfig.SMTP),
+			Sender:         mail.NewSender(d.Config.AppConfig.SMTP),
 			TemplateEngine: templateEngine,
 		}
 

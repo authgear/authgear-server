@@ -5,7 +5,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 
-	"github.com/go-gomail/gomail"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -21,7 +20,7 @@ type EmailCodeSender struct {
 	AppName        string
 	URLPrefix      string
 	ProviderConfig config.UserVerificationProviderConfiguration
-	Dialer         *gomail.Dialer
+	Sender         mail.Sender
 	TemplateEngine *template.Engine
 }
 
@@ -53,17 +52,15 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 		return
 	}
 
-	sendReq := mail.SendRequest{
-		Dialer:    e.Dialer,
+	err = e.Sender.Send(mail.SendOptions{
 		Sender:    providerConfig.Sender,
 		Recipient: verifyCode.LoginID,
 		Subject:   providerConfig.Subject,
 		ReplyTo:   providerConfig.ReplyTo,
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
-	}
+	})
 
-	err = sendReq.Execute()
 	return
 }
 

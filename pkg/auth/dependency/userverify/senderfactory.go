@@ -29,7 +29,7 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templat
 				AppName:        c.AppName,
 				URLPrefix:      userVerifyConfig.URLPrefix,
 				ProviderConfig: verifyConfig.ProviderConfig,
-				Dialer:         mail.NewDialer(c.AppConfig.SMTP),
+				Sender:         mail.NewSender(c.AppConfig.SMTP),
 				TemplateEngine: templateEngine,
 			}
 		case config.UserVerificationProviderTwilio:
