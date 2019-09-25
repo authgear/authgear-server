@@ -7,24 +7,30 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
+var ErrMissingTwilioConfiguration = errors.New("missing twilio configuration")
+
 type TwilioClient struct {
-	From string
-	*gotwilio.Twilio
+	From         string
+	TwilioClient *gotwilio.Twilio
 }
 
 func NewTwilioClient(c config.TwilioConfiguration) *TwilioClient {
-	if c.AccountSID == "" || c.AuthToken == "" {
-		panic(errors.New("Twilio account sid or auth token is empty"))
+	var twilioClient *gotwilio.Twilio
+	if c.AccountSID != "" && c.AuthToken != "" {
+		twilioClient = gotwilio.NewTwilioClient(c.AccountSID, c.AuthToken)
 	}
 
 	return &TwilioClient{
-		From:   c.From,
-		Twilio: gotwilio.NewTwilioClient(c.AccountSID, c.AuthToken),
+		From:         c.From,
+		TwilioClient: twilioClient,
 	}
 }
 
 func (t *TwilioClient) Send(to string, body string) error {
-	_, exception, err := t.SendSMS(t.From, to, body, "", "")
+	if t.TwilioClient == nil {
+		return ErrMissingTwilioConfiguration
+	}
+	_, exception, err := t.TwilioClient.SendSMS(t.From, to, body, "", "")
 	if err != nil {
 		return err
 	}
