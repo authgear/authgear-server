@@ -7,24 +7,29 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
+var ErrMissingNexmoConfiguration = errors.New("missing nexmo configuration")
+
 type NexmoClient struct {
-	From string
-	*nexmo.Client
+	From        string
+	NexmoClient *nexmo.Client
 }
 
 func NewNexmoClient(c config.NexmoConfiguration) *NexmoClient {
-	if c.APIKey == "" || c.APISecret == "" {
-		panic(errors.New("Nexmo api key or secret is empty"))
+	var nexmoClient *nexmo.Client
+	if c.APIKey != "" && c.APISecret != "" {
+		nexmoClient, _ = nexmo.NewClient(c.APIKey, c.APISecret)
 	}
-
-	client, _ := nexmo.NewClient(c.APIKey, c.APISecret)
 	return &NexmoClient{
-		From:   c.From,
-		Client: client,
+		From:        c.From,
+		NexmoClient: nexmoClient,
 	}
 }
 
 func (n *NexmoClient) Send(to string, body string) error {
+	if n.NexmoClient == nil {
+		return ErrMissingNexmoConfiguration
+	}
+
 	message := nexmo.SMSMessage{
 		From:  n.From,
 		To:    to,
@@ -33,7 +38,7 @@ func (n *NexmoClient) Send(to string, body string) error {
 		Class: nexmo.Standard,
 	}
 
-	resp, err := n.SMS.Send(&message)
+	resp, err := n.NexmoClient.SMS.Send(&message)
 	if err != nil {
 		return err
 	}
