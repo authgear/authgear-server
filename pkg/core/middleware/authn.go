@@ -61,7 +61,7 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 
 		tenantConfig := config.GetTenantConfig(r)
 
-		key := m.APIClientConfigurationProvider.AccessKey(model.GetAPIKey(r))
+		key := m.APIClientConfigurationProvider.GetAccessKeyByAPIKey(model.GetAPIKey(r))
 		m.AuthContextSetter.SetAccessKey(key)
 
 		accessToken, transport, err := model.GetAccessToken(r)

@@ -107,7 +107,7 @@ func (h *AuthenticateBearerTokenHandler) DecodeRequest(request *http.Request) (h
 		return nil, err
 	}
 
-	apiClientConfig, ok := h.APIClientConfigurationProvider.Get()
+	_, apiClientConfig, ok := h.APIClientConfigurationProvider.Get()
 	if ok && apiClientConfig.SessionTransport == config.SessionTransportTypeCookie {
 		cookie, err := request.Cookie(coreHttp.CookieNameMFABearerToken)
 		if err == nil {

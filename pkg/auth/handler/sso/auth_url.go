@@ -335,7 +335,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	}
 	http.SetCookie(w, cookie)
 
-	apiClientConfig, _ := h.APIClientConfigurationProvider.Get()
+	apiClientID, _, _ := h.APIClientConfigurationProvider.Get()
 
 	params := sso.GetURLParams{
 		State: sso.State{
@@ -348,8 +348,8 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 				UXMode:      payload.UXMode,
 				Action:      h.Action,
 			},
-			Nonce:  crypto.SHA256String(nonce),
-			APIKey: apiClientConfig.APIKey,
+			Nonce:       crypto.SHA256String(nonce),
+			APIClientID: apiClientID,
 		},
 	}
 	authInfo, _ := h.AuthContext.AuthInfo()

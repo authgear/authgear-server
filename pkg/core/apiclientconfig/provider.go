@@ -7,6 +7,7 @@ import (
 
 // Provider provides access to APIClientConfiguration.
 type Provider interface {
-	Get() (*config.APIClientConfiguration, bool)
-	AccessKey(apiKey string) model.AccessKey
+	Get() (string, *config.APIClientConfiguration, bool)
+	GetAccessKeyByAPIKey(apiKey string) model.AccessKey
+	GetAccessKeyByClientID(clientID string) model.AccessKey
 }

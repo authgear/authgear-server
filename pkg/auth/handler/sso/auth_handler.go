@@ -177,7 +177,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	}
 
 	// Extract API Key from state
-	key := h.APIClientConfigurationProvider.AccessKey(state.APIKey)
+	key := h.APIClientConfigurationProvider.GetAccessKeyByClientID(state.APIClientID)
 	h.AuthContextSetter.SetAccessKey(key)
 
 	if err = h.validateCallbackURL(h.OAuthConfiguration.AllowedCallbackURLs, state.CallbackURL); err != nil {

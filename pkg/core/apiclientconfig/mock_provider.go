@@ -24,18 +24,22 @@ func NewMockProvider(clientID string) *MockProvider {
 	}
 }
 
-func (p *MockProvider) Get() (*config.APIClientConfiguration, bool) {
+func (p *MockProvider) Get() (string, *config.APIClientConfiguration, bool) {
 	if p.APIClientConfig == nil {
-		return nil, false
+		return "", nil, false
 	}
-	return p.APIClientConfig, true
+	return p.ClientID, p.APIClientConfig, true
 }
 
-func (p *MockProvider) AccessKey(apiKey string) model.AccessKey {
+func (p *MockProvider) GetAccessKeyByAPIKey(apiKey string) model.AccessKey {
 	if p.APIClientConfig == nil {
 		return model.AccessKey{Type: model.NoAccessKeyType}
 	}
 	return model.AccessKey{Type: model.APIAccessKeyType, ClientID: p.ClientID}
+}
+
+func (p *MockProvider) GetAccessKeyByClientID(clientID string) model.AccessKey {
+	return model.AccessKey{Type: model.APIAccessKeyType, ClientID: clientID}
 }
 
 var (
