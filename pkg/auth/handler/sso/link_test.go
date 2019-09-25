@@ -111,7 +111,16 @@ func TestLinkHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": {}
+				"result": {
+					"user": {
+						"id": "faseng.cat.id",
+						"created_at": "0001-01-01T00:00:00Z",
+						"is_disabled": false,
+						"is_verified": false,
+						"metadata": {},
+						"verify_info": {}
+					}
+				}
 			}`)
 
 			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
@@ -131,6 +140,7 @@ func TestLinkHandler(t *testing.T) {
 						ID:   p.ID,
 						Type: "oauth",
 						Attributes: principal.Attributes{
+							"provider_keys":    map[string]interface{}{},
 							"provider_type":    "google",
 							"provider_user_id": "mock_user_id",
 							"raw_profile": map[string]interface{}{

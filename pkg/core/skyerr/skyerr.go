@@ -120,7 +120,6 @@ const (
 	//
 	// Refrain from using this error code.
 	UnexpectedError ErrorCode = 10000 + iota
-	UnexpectedAuthInfoNotFound
 
 	// Error codes for unexpected error condition should be placed
 	// above this line.

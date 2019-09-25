@@ -17,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -87,21 +88,23 @@ func (p AuthRequestPayload) Validate() error {
 // it will render a html page and set cookie in the response.
 //
 type AuthHandler struct {
-	TxContext               db.TxContext                `dependency:"TxContext"`
-	AuthContext             coreAuth.ContextGetter      `dependency:"AuthContextGetter"`
-	OAuthAuthProvider       oauth.Provider              `dependency:"OAuthAuthProvider"`
-	IdentityProvider        principal.IdentityProvider  `dependency:"IdentityProvider"`
-	AuthInfoStore           authinfo.Store              `dependency:"AuthInfoStore"`
-	AuthnSessionProvider    authnsession.Provider       `dependency:"AuthnSessionProvider"`
-	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
-	ProviderFactory         *sso.ProviderFactory        `dependency:"SSOProviderFactory"`
-	UserProfileStore        userprofile.Store           `dependency:"UserProfileStore"`
-	HookProvider            hook.Provider               `dependency:"HookProvider"`
-	OAuthConfiguration      config.OAuthConfiguration   `dependency:"OAuthConfiguration"`
-	WelcomeEmailEnabled     bool                        `dependency:"WelcomeEmailEnabled"`
-	TaskQueue               async.Queue                 `dependency:"AsyncTaskQueue"`
-	Provider                sso.OAuthProvider
-	ProviderID              string
+	TxContext                      db.TxContext                `dependency:"TxContext"`
+	AuthContext                    coreAuth.ContextGetter      `dependency:"AuthContextGetter"`
+	AuthContextSetter              coreAuth.ContextSetter      `dependency:"AuthContextSetter"`
+	APIClientConfigurationProvider apiclientconfig.Provider    `dependency:"APIClientConfigurationProvider"`
+	OAuthAuthProvider              oauth.Provider              `dependency:"OAuthAuthProvider"`
+	IdentityProvider               principal.IdentityProvider  `dependency:"IdentityProvider"`
+	AuthInfoStore                  authinfo.Store              `dependency:"AuthInfoStore"`
+	AuthnSessionProvider           authnsession.Provider       `dependency:"AuthnSessionProvider"`
+	AuthHandlerHTMLProvider        sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
+	ProviderFactory                *sso.ProviderFactory        `dependency:"SSOProviderFactory"`
+	UserProfileStore               userprofile.Store           `dependency:"UserProfileStore"`
+	HookProvider                   hook.Provider               `dependency:"HookProvider"`
+	OAuthConfiguration             config.OAuthConfiguration   `dependency:"OAuthConfiguration"`
+	WelcomeEmailEnabled            bool                        `dependency:"WelcomeEmailEnabled"`
+	TaskQueue                      async.Queue                 `dependency:"AsyncTaskQueue"`
+	Provider                       sso.OAuthProvider
+	ProviderID                     string
 }
 
 func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
@@ -172,6 +175,10 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 		http.Error(w, "Failed to decode state", http.StatusBadRequest)
 		return
 	}
+
+	// Extract API Key from state
+	key := h.APIClientConfigurationProvider.GetAccessKeyByClientID(state.APIClientID)
+	h.AuthContextSetter.SetAccessKey(key)
 
 	if err = h.validateCallbackURL(h.OAuthConfiguration.AllowedCallbackURLs, state.CallbackURL); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

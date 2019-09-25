@@ -160,7 +160,7 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo, linkState sso.Li
 		return
 	}
 
-	resp = map[string]string{}
+	resp = model.NewAuthResponseWithUser(user)
 	return
 }
 

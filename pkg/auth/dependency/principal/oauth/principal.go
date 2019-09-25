@@ -47,9 +47,9 @@ func (p *Principal) ProviderID() string {
 }
 
 func (p *Principal) Attributes() principal.Attributes {
-	// TODO: promote tenant
 	return principal.Attributes{
 		"provider_type":    p.ProviderType,
+		"provider_keys":    p.ProviderKeys,
 		"provider_user_id": p.ProviderUserID,
 		"raw_profile":      p.UserProfile,
 	}

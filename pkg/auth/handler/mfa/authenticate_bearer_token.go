@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
+	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -107,7 +107,7 @@ func (h *AuthenticateBearerTokenHandler) DecodeRequest(request *http.Request) (h
 		return nil, err
 	}
 
-	apiClientConfig, ok := h.APIClientConfigurationProvider.Get()
+	_, apiClientConfig, ok := h.APIClientConfigurationProvider.Get()
 	if ok && apiClientConfig.SessionTransport == config.SessionTransportTypeCookie {
 		cookie, err := request.Cookie(coreHttp.CookieNameMFABearerToken)
 		if err == nil {

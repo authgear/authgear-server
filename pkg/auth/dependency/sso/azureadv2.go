@@ -14,10 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 )
 
-const (
-	azureadv2ConfigurationURLFormat string = "https://login.microsoftonline.com/%s/.well-known/openid-configuration"
-)
-
 type Azureadv2Impl struct {
 	OAuthConfig    config.OAuthConfiguration
 	ProviderConfig config.OAuthProviderConfiguration
@@ -32,7 +28,46 @@ type azureadv2OpenIDConfiguration struct {
 
 func (f *Azureadv2Impl) getOpenIDConfiguration() (c azureadv2OpenIDConfiguration, err error) {
 	// TODO(sso): Cache OpenID configuration
-	endpoint := fmt.Sprintf(azureadv2ConfigurationURLFormat, f.ProviderConfig.Tenant)
+
+	tenant := f.ProviderConfig.Tenant
+	var endpoint string
+	// GUIDE(sso): Azure special tenant
+	// If the azure tenant is `organizations` or `common`,
+	// the developer should make use of `before_user_create` and `before_identity_create` hook
+	// to disallow any undesire identity.
+	// The `raw_profile` of the identity is the ID Token claims.
+	// Refer to https://docs.microsoft.com/en-us/azure/active-directory/develop/id-tokens
+	// to see what claims the token could contain.
+	//
+	// For `organizations`, the user can be any user of any organizational AD.
+	// Therefore the developer should have a whitelist of AD tenant IDs.
+	// In the incoming hook, check if `tid` matches one of the entry of the whitelist.
+	//
+	// For `common`, in addition to the users from `organizations`, any Microsoft personal account
+	// could be the user.
+	// In case of personal account, the `tid` is "9188040d-6c67-4c5b-b112-36a304b66dad".
+	// Therefore the developer should first check if `tid` indicates personal account.
+	// If yes, apply their logic to disallow the user creation.
+	// One very common example is to look at the claim `email`.
+	// Use a email address parser to parse the email address.
+	// Obtain the domain and check if the domain is whitelisted.
+	// For example, if the developer only wants user from hotmail.com to create user,
+	// ensure `tid` is "9188040d-6c67-4c5b-b112-36a304b66dad" and ensure `email`
+	// is of domain `@hotmail.com`.
+
+	// As of 2019-09-23, two special values are observed.
+	// To discover these values, create a new client
+	// and try different options.
+	switch tenant {
+	// Special value for any organizational AD
+	case "organizations":
+		endpoint = "https://login.microsoftonline.com/organizations/v2.0/.well-known/openid-configuration"
+	// Special value for any organizational AD and personal accounts (Xbox etc)
+	case "common":
+		endpoint = "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
+	default:
+		endpoint = fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0/.well-known/openid-configuration", tenant)
+	}
 
 	// nolint: gosec
 	resp, err := http.Get(endpoint)
@@ -171,11 +206,10 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 		err = fmt.Errorf("cannot find oid")
 		return
 	}
-	email, ok := mapClaims["email"].(string)
-	if !ok {
-		err = fmt.Errorf("cannot find email")
-		return
-	}
+	// For "Microsoft Account", email usually exists.
+	// For "AD guest user", email usually exists because to invite an user, the inviter must provide email.
+	// For "AD user", email never exists even one is provided in "Authentication Methods".
+	email, _ := mapClaims["email"].(string)
 
 	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = mapClaims

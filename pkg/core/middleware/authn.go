@@ -5,6 +5,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 
+	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -16,12 +17,13 @@ import (
 
 // AuthnMiddleware populate auth context information
 type AuthnMiddleware struct {
-	AuthContextSetter auth.ContextSetter `dependency:"AuthContextSetter"`
-	LoggerFactory     logging.Factory    `dependency:"LoggerFactory"`
-	SessionProvider   session.Provider   `dependency:"SessionProvider"`
-	SessionWriter     session.Writer     `dependency:"SessionWriter"`
-	AuthInfoStore     authinfo.Store     `dependency:"AuthInfoStore"`
-	TxContext         db.TxContext       `dependency:"TxContext"`
+	APIClientConfigurationProvider apiclientconfig.Provider `dependency:"APIClientConfigurationProvider"`
+	AuthContextSetter              auth.ContextSetter       `dependency:"AuthContextSetter"`
+	LoggerFactory                  logging.Factory          `dependency:"LoggerFactory"`
+	SessionProvider                session.Provider         `dependency:"SessionProvider"`
+	SessionWriter                  session.Writer           `dependency:"SessionWriter"`
+	AuthInfoStore                  authinfo.Store           `dependency:"AuthInfoStore"`
+	TxContext                      db.TxContext             `dependency:"TxContext"`
 }
 
 // AuthnMiddlewareFactory creates AuthnMiddleware per request.
@@ -59,7 +61,7 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 
 		tenantConfig := config.GetTenantConfig(r)
 
-		key := model.CheckAccessKey(tenantConfig, model.GetAPIKey(r))
+		key := m.APIClientConfigurationProvider.GetAccessKeyByAPIKey(model.GetAPIKey(r))
 		m.AuthContextSetter.SetAccessKey(key)
 
 		accessToken, transport, err := model.GetAccessToken(r)
