@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-gomail/gomail"
 	"github.com/sirupsen/logrus"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
@@ -199,8 +198,8 @@ func (m DependencyMap) Provide(
 		return sms.NewClient(tConfig.AppConfig)
 	}
 
-	newMailDialer := func() *gomail.Dialer {
-		return mail.NewDialer(tConfig.AppConfig.SMTP)
+	newMailSender := func() mail.Sender {
+		return mail.NewSender(tConfig.AppConfig.SMTP)
 	}
 
 	newMFAProvider := func() mfa.Provider {
@@ -215,7 +214,7 @@ func (m DependencyMap) Provide(
 			newTimeProvider(),
 			mfa.NewSender(
 				newSMSClient(),
-				newMailDialer(),
+				newMailSender(),
 				newTemplateEngine(),
 			),
 		)
@@ -284,9 +283,9 @@ func (m DependencyMap) Provide(
 	case "UserProfileStore":
 		return newUserProfileStore()
 	case "ForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultSender(tConfig, newMailDialer(), newTemplateEngine())
+		return forgotpwdemail.NewDefaultSender(tConfig, newMailSender(), newTemplateEngine())
 	case "TestForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultTestSender(tConfig, newMailDialer())
+		return forgotpwdemail.NewDefaultTestSender(tConfig, newMailSender())
 	case "ForgotPasswordCodeGenerator":
 		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.UserConfig.MasterKey}
 	case "ForgotPasswordSecureMatch":
@@ -298,9 +297,9 @@ func (m DependencyMap) Provide(
 	case "WelcomeEmailDestination":
 		return tConfig.UserConfig.WelcomeEmail.Destination
 	case "WelcomeEmailSender":
-		return welcemail.NewDefaultSender(tConfig, newMailDialer(), newTemplateEngine())
+		return welcemail.NewDefaultSender(tConfig, newMailSender(), newTemplateEngine())
 	case "TestWelcomeEmailSender":
-		return welcemail.NewDefaultTestSender(tConfig, newMailDialer())
+		return welcemail.NewDefaultTestSender(tConfig, newMailSender())
 	case "IFrameHTMLProvider":
 		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint())
 	case "UserVerifyCodeSenderFactory":

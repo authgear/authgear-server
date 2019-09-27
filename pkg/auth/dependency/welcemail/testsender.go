@@ -1,7 +1,6 @@
 package welcemail
 
 import (
-	"github.com/go-gomail/gomail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -22,14 +21,14 @@ type TestSender interface {
 type DefaultTestSender struct {
 	AppName string
 	Config  config.WelcomeEmailConfiguration
-	Dialer  *gomail.Dialer
+	Sender  mail.Sender
 }
 
-func NewDefaultTestSender(config config.TenantConfiguration, dialer *gomail.Dialer) TestSender {
+func NewDefaultTestSender(config config.TenantConfiguration, sender mail.Sender) TestSender {
 	return &DefaultTestSender{
 		AppName: config.AppName,
 		Config:  config.UserConfig.WelcomeEmail,
-		Dialer:  dialer,
+		Sender:  sender,
 	}
 }
 
@@ -70,16 +69,14 @@ func (d *DefaultTestSender) Send(
 		return
 	}
 
-	sendReq := mail.SendRequest{
-		Dialer:    d.Dialer,
+	err = d.Sender.Send(mail.SendOptions{
 		Sender:    check(sender, sender, d.Config.Sender),
 		Recipient: email,
 		Subject:   check(subject, subject, d.Config.Subject),
 		ReplyTo:   check(replyTo, replyTo, d.Config.ReplyTo),
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
-	}
+	})
 
-	err = sendReq.Execute()
 	return
 }

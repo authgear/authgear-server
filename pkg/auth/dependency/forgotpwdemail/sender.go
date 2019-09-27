@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-gomail/gomail"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -24,19 +23,19 @@ type Sender interface {
 
 type DefaultSender struct {
 	Config         config.ForgotPasswordConfiguration
-	Dialer         *gomail.Dialer
+	Sender         mail.Sender
 	CodeGenerator  *CodeGenerator
 	TemplateEngine *template.Engine
 }
 
 func NewDefaultSender(
 	config config.TenantConfiguration,
-	dialer *gomail.Dialer,
+	sender mail.Sender,
 	templateEngine *template.Engine,
 ) Sender {
 	return &DefaultSender{
 		Config:         config.UserConfig.ForgotPassword,
-		Dialer:         dialer,
+		Sender:         sender,
 		CodeGenerator:  &CodeGenerator{config.UserConfig.MasterKey},
 		TemplateEngine: templateEngine,
 	}
@@ -87,16 +86,14 @@ func (d *DefaultSender) Send(
 		return
 	}
 
-	sendReq := mail.SendRequest{
-		Dialer:    d.Dialer,
+	err = d.Sender.Send(mail.SendOptions{
 		Sender:    d.Config.Sender,
 		Recipient: email,
 		Subject:   d.Config.Subject,
 		ReplyTo:   d.Config.ReplyTo,
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
-	}
+	})
 
-	err = sendReq.Execute()
 	return
 }

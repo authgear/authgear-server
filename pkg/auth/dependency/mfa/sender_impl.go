@@ -1,8 +1,6 @@
 package mfa
 
 import (
-	"github.com/go-gomail/gomail"
-
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
@@ -11,14 +9,14 @@ import (
 
 type senderImpl struct {
 	smsClient      sms.Client
-	mailDialer     *gomail.Dialer
+	mailSender     mail.Sender
 	templateEngine *template.Engine
 }
 
-func NewSender(smsClient sms.Client, mailDialer *gomail.Dialer, templateEngine *template.Engine) Sender {
+func NewSender(smsClient sms.Client, mailSender mail.Sender, templateEngine *template.Engine) Sender {
 	return &senderImpl{
 		smsClient:      smsClient,
-		mailDialer:     mailDialer,
+		mailSender:     mailSender,
 		templateEngine: templateEngine,
 	}
 }
@@ -67,8 +65,7 @@ func (s *senderImpl) SendEmail(context map[string]interface{}, email string) err
 		return err
 	}
 
-	sendRequest := mail.SendRequest{
-		Dialer: s.mailDialer,
+	err = s.mailSender.Send(mail.SendOptions{
 		// TODO(mfa): configurable email headers
 		Sender:    "no-reply@skygeario.com",
 		Recipient: email,
@@ -76,8 +73,7 @@ func (s *senderImpl) SendEmail(context map[string]interface{}, email string) err
 		ReplyTo:   "no-reply@skygeario.com",
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
-	}
-	err = sendRequest.Execute()
+	})
 	if err != nil {
 		return err
 	}
