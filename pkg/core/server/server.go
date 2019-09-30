@@ -3,7 +3,6 @@ package server
 import (
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 
@@ -51,11 +50,8 @@ func NewServerWithOption(
 	srv := Server{
 		router: subRouter,
 		Server: &http.Server{
-			Addr:         addr,
-			WriteTimeout: time.Second * 15,
-			ReadTimeout:  time.Second * 15,
-			IdleTimeout:  time.Second * 60,
-			Handler:      router,
+			Addr:    addr,
+			Handler: router,
 		},
 		dependencyMap: dependencyMap,
 	}
