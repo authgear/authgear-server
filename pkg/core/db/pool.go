@@ -78,7 +78,7 @@ func openPostgresDB(url string) (db *sqlx.DB, err error) {
 	}
 
 	// TODO(pool): configurable / profile for good value?
-	db.SetMaxOpenConns(5)
+	db.SetMaxOpenConns(30)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(30 * time.Minute)
 	return
