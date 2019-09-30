@@ -111,9 +111,9 @@ func (h GetHandler) WithTx() bool {
 	return true
 }
 
-func (h GetHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h GetHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := GetRequestPayload{}
-	err := handler.DecodeJSONBody(request, &payload)
+	err := handler.DecodeJSONBody(request, resp, &payload)
 	return payload, err
 }
 

@@ -174,8 +174,8 @@ func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
-func (h SignupHandler) DecodeRequest(request *http.Request) (payload SignupRequestPayload, err error) {
-	err = handler.DecodeJSONBody(request, &payload)
+func (h SignupHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload SignupRequestPayload, err error) {
+	err = handler.DecodeJSONBody(request, resp, &payload)
 	if err != nil {
 		return
 	}
@@ -203,7 +203,7 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		h.AuthnSessionProvider.WriteResponse(resp, result, err)
 	}()
 
-	payload, err := h.DecodeRequest(req)
+	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
 		return
 	}

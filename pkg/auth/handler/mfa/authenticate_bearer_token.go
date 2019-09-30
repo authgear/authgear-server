@@ -100,9 +100,9 @@ func (h *AuthenticateBearerTokenHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *AuthenticateBearerTokenHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h *AuthenticateBearerTokenHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := AuthenticateBearerTokenRequest{}
-	err := handler.DecodeJSONBody(request, &payload)
+	err := handler.DecodeJSONBody(request, resp, &payload)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (h *AuthenticateBearerTokenHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		h.AuthnSessionProvider.WriteResponse(w, result, err)
 	}()
 
-	payload, err := h.DecodeRequest(r)
+	payload, err := h.DecodeRequest(r, w)
 	if err != nil {
 		return
 	}

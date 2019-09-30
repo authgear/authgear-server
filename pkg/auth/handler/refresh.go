@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -105,9 +104,9 @@ func (h RefreshHandler) WithTx() bool {
 	return true
 }
 
-func (h RefreshHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h RefreshHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (RefreshRequestPayload, error) {
 	payload := RefreshRequestPayload{}
-	err := handler.DecodeJSONBody(request, &payload)
+	err := handler.DecodeJSONBody(request, resp, &payload)
 	return payload, err
 }
 
@@ -124,8 +123,7 @@ func (h RefreshHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}()
 
-	payload := RefreshRequestPayload{}
-	err = json.NewDecoder(req.Body).Decode(&payload)
+	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
 		return
 	}

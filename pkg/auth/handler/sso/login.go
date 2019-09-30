@@ -127,8 +127,8 @@ func (h LoginHandler) WithTx() bool {
 	return true
 }
 
-func (h LoginHandler) DecodeRequest(request *http.Request) (payload LoginRequestPayload, err error) {
-	err = handler.DecodeJSONBody(request, &payload)
+func (h LoginHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload LoginRequestPayload, err error) {
+	err = handler.DecodeJSONBody(request, resp, &payload)
 	if err != nil {
 		return
 	}
@@ -152,7 +152,7 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		h.AuthnSessionProvider.WriteResponse(resp, result, err)
 	}()
 
-	payload, err := h.DecodeRequest(req)
+	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
 		return
 	}

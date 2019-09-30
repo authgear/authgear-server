@@ -270,7 +270,7 @@ func (h *AuthURLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
 	payload := AuthURLRequestPayload{}
 	if r.Method == http.MethodPost {
-		err = handler.DecodeJSONBody(r, &payload)
+		err = handler.DecodeJSONBody(r, w, &payload)
 		if err != nil {
 			return
 		}

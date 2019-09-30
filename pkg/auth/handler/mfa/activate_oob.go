@@ -119,9 +119,9 @@ func (h *ActivateOOBHandler) WithTx() bool {
 	return true
 }
 
-func (h *ActivateOOBHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h *ActivateOOBHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := ActivateOOBRequest{}
-	err := handler.DecodeJSONBody(request, &payload)
+	err := handler.DecodeJSONBody(request, resp, &payload)
 	return payload, err
 }
 

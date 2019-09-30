@@ -119,9 +119,9 @@ func (h ResetPasswordHandler) WithTx() bool {
 	return true
 }
 
-func (h ResetPasswordHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h ResetPasswordHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := ResetPasswordRequestPayload{}
-	err := handler.DecodeJSONBody(request, &payload)
+	err := handler.DecodeJSONBody(request, resp, &payload)
 	return payload, err
 }
 

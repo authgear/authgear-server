@@ -71,9 +71,9 @@ func (h RevokeAllHandler) WithTx() bool {
 	return true
 }
 
-func (h RevokeAllHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h RevokeAllHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := handler.EmptyRequestPayload{}
-	err := handler.DecodeJSONBody(request, &payload)
+	err := handler.DecodeJSONBody(request, resp, &payload)
 	return payload, err
 }
 

@@ -96,9 +96,9 @@ func (h *AuthenticateRecoveryCodeHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *AuthenticateRecoveryCodeHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h *AuthenticateRecoveryCodeHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := AuthenticateRecoveryCodeRequest{}
-	err := handler.DecodeJSONBody(request, &payload)
+	err := handler.DecodeJSONBody(request, resp, &payload)
 	return payload, err
 }
 
@@ -112,7 +112,7 @@ func (h *AuthenticateRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		h.AuthnSessionProvider.WriteResponse(w, result, err)
 	}()
 
-	payload, err := h.DecodeRequest(r)
+	payload, err := h.DecodeRequest(r, w)
 	if err != nil {
 		return
 	}

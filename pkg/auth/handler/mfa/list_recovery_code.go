@@ -90,9 +90,9 @@ func (h *ListRecoveryCodeHandler) WithTx() bool {
 	return true
 }
 
-func (h *ListRecoveryCodeHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h *ListRecoveryCodeHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := handler.EmptyRequestPayload{}
-	err := handler.DecodeJSONBody(request, &payload)
+	err := handler.DecodeJSONBody(request, resp, &payload)
 	return payload, err
 }
 
