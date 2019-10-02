@@ -22,3 +22,14 @@ func TestParsePasswordFormat(t *testing.T) {
 		})
 	})
 }
+
+func TestConstructPasswordFormat(t *testing.T) {
+	Convey("constructPasswordFormat", t, func() {
+		Convey("should construct formatted password hash correctly", func() {
+			id := []byte("sha512")
+			data := []byte("Dj51I0q8aPQ3ioaz9LMqGYujAYRbDNblAQbodDRXAMxmY6hsHqEl3F6SvhfJj5oPhcqdX1ldsgEvfMNXGUXBIw")
+			h := constructPasswordFormat(id, data)
+			So(string(h), ShouldEqual, "$sha512$Dj51I0q8aPQ3ioaz9LMqGYujAYRbDNblAQbodDRXAMxmY6hsHqEl3F6SvhfJj5oPhcqdX1ldsgEvfMNXGUXBIw")
+		})
+	})
+}

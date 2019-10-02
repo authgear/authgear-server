@@ -31,3 +31,12 @@ func parsePasswordFormat(h []byte) (id []byte, data []byte, err error) {
 	data = h[i+1:]
 	return
 }
+
+func constructPasswordFormat(id []byte, data []byte) []byte {
+	h := make([]byte, len(id)+len(data)+2)
+	h[0] = '$'
+	copy(h[1:], id)
+	h[len(id)+1] = '$'
+	copy(h[len(id)+2:], data)
+	return h
+}
