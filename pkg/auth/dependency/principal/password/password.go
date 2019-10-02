@@ -17,4 +17,5 @@ type Provider interface {
 	GetPrincipalsByUserID(userID string) ([]*Principal, error)
 	GetPrincipalsByLoginID(loginIDKey string, loginID string) ([]*Principal, error)
 	UpdatePassword(principal *Principal, password string) error
+	MigratePassword(principal *Principal, password string) error
 }

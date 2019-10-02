@@ -148,13 +148,22 @@ func (m *MockProvider) GetPrincipalsByLoginID(loginIDKey string, loginID string)
 	return
 }
 
-// UpdatePrincipal update principal in PrincipalMap
 func (m *MockProvider) UpdatePassword(principal *Principal, password string) (err error) {
 	if _, existed := m.PrincipalMap[principal.ID]; !existed {
 		return skydb.ErrUserNotFound
 	}
 
 	principal.setPassword(password)
+	m.PrincipalMap[principal.ID] = *principal
+	return nil
+}
+
+func (m *MockProvider) MigratePassword(principal *Principal, password string) (err error) {
+	if _, existed := m.PrincipalMap[principal.ID]; !existed {
+		return skydb.ErrUserNotFound
+	}
+
+	principal.migratePassword(password)
 	m.PrincipalMap[principal.ID] = *principal
 	return nil
 }

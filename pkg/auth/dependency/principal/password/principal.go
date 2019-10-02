@@ -1,10 +1,9 @@
 package password
 
 import (
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	corePassword "github.com/skygeario/skygear-server/pkg/core/password"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
@@ -25,12 +24,17 @@ func NewPrincipal() Principal {
 }
 
 func (p *Principal) setPassword(password string) (err error) {
-	p.HashedPassword, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	p.HashedPassword, err = corePassword.Hash([]byte(password))
+	return
+}
+
+func (p *Principal) migratePassword(password string) (migrated bool, err error) {
+	migrated, err = corePassword.TryMigrate([]byte(password), &p.HashedPassword)
 	return
 }
 
 func (p *Principal) IsSamePassword(password string) bool {
-	return bcrypt.CompareHashAndPassword(p.HashedPassword, []byte(password)) == nil
+	return corePassword.Compare([]byte(password), p.HashedPassword) == nil
 }
 
 func (p *Principal) deriveClaims(checker loginIDChecker) {

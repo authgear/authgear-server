@@ -19,9 +19,9 @@ import (
 	"strings"
 
 	"github.com/nbutton23/zxcvbn-go"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
+	corepassword "github.com/skygeario/skygear-server/pkg/core/password"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -432,5 +432,5 @@ func (pc *PasswordChecker) shouldCheckPasswordHistory() bool {
 }
 
 func IsSamePassword(hashedPassword []byte, password string) bool {
-	return bcrypt.CompareHashAndPassword(hashedPassword, []byte(password)) == nil
+	return corepassword.Compare([]byte(password), hashedPassword) == nil
 }
