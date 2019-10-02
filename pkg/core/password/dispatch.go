@@ -6,11 +6,13 @@ var defaultFormat passwordFormat
 var supportedFormats map[string]passwordFormat
 
 func init() {
-	latestFormat = bcryptPassword{}
+	latestFormat = bcryptSHA512Password{}
 
 	defaultFormat = bcryptPassword{}
 	supportedFormats = map[string]passwordFormat{}
-	for _, fmt := range []passwordFormat{} {
+	for _, fmt := range []passwordFormat{
+		bcryptSHA512Password{},
+	} {
 		supportedFormats[fmt.ID()] = fmt
 	}
 }
@@ -38,7 +40,7 @@ func Compare(password, hash []byte) error {
 	if err != nil {
 		return err
 	}
-	return fmt.Compare(hash, password)
+	return fmt.Compare(password, hash)
 }
 
 func TryMigrate(password []byte, hash *[]byte) (migrated bool, err error) {
