@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/sirupsen/logrus"
-
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
@@ -57,7 +55,7 @@ func (m DependencyMap) Provide(
 	tConfig config.TenantConfiguration,
 ) interface{} {
 	newLoggerFactory := func() logging.Factory {
-		formatter := logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
+		formatter := logging.NewDefaultMaskedTextFormatter(tConfig.DefaultSensitiveLoggerValues())
 		return logging.NewFactoryFromRequest(request, formatter)
 	}
 

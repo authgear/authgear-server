@@ -15,7 +15,6 @@
 package logging
 
 import (
-	"regexp"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -67,17 +66,4 @@ func LoggerEntry(name string) *logrus.Entry {
 		fields["module"] = gearModule
 	}
 	return logger.WithFields(fields)
-}
-
-func CreateMaskFormatter(maskValues []string, defaultFormatter logrus.Formatter) logrus.Formatter {
-	patterns := []*regexp.Regexp{}
-	for _, v := range maskValues {
-		if p, e := MakeMaskPattern(v); e == nil {
-			patterns = append(patterns, p)
-		}
-	}
-	return &MaskFormatter{
-		MaskPatterns:     patterns,
-		DefaultFormatter: defaultFormatter,
-	}
 }

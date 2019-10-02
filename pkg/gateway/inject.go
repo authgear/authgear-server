@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -29,7 +27,7 @@ func (m DependencyMap) Provide(
 	tConfig config.TenantConfiguration,
 ) interface{} {
 	newLoggerFactory := func() logging.Factory {
-		formatter := logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
+		formatter := logging.NewDefaultMaskedTextFormatter(tConfig.DefaultSensitiveLoggerValues())
 		return logging.NewFactoryFromRequest(request, formatter)
 	}
 

@@ -35,7 +35,7 @@ var logger *logrus.Entry
 func init() {
 	// logging initialization
 	logging.SetModule("gateway")
-	loggerFactory = logging.NewFactory(&logrus.TextFormatter{})
+	loggerFactory = logging.NewFactory(logging.NewDefaultMaskedTextFormatter(nil))
 	logger = loggerFactory.NewLogger("gateway")
 
 	if err := godotenv.Load(); err != nil {
