@@ -66,7 +66,7 @@ func (m DependencyMap) Provide(
 	}
 
 	newSQLExecutor := func() db.SQLExecutor {
-		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig))
+		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig), newLoggerFactory())
 	}
 
 	newTimeProvider := func() time.Provider {

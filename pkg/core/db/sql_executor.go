@@ -28,23 +28,21 @@ import (
 type SQLExecutor struct {
 	context   context.Context
 	dbContext Context
+	logger    *logrus.Entry
 }
 
-func NewSQLExecutor(ctx context.Context, dbContext Context) SQLExecutor {
+func NewSQLExecutor(ctx context.Context, dbContext Context, loggerFactory logging.Factory) SQLExecutor {
 	return SQLExecutor{
 		context:   ctx,
 		dbContext: dbContext,
+		logger:    loggerFactory.NewLogger("sql-executor"),
 	}
 }
 
 func (e *SQLExecutor) Get(dest interface{}, query string, args ...interface{}) (err error) {
-	logger := logging.CreateLoggerWithContext(e.context, "skydb").WithField("tag", "sql")
 	err = e.dbContext.DB().GetContext(e.context, dest, query, args...)
-	logFields := logrus.Fields{"sql": query}
 	if err != nil {
-		logger.WithFields(logFields).WithError(err).Errorln("Failed to execute SQL with sql.Get")
-	} else {
-		logger.WithFields(logFields).Debugln("Executed SQL successfully with sql.Get")
+		e.logger.WithField("sql", query).WithError(err).Errorln("Failed to execute SQL with sql.Get")
 	}
 	return
 }
@@ -58,14 +56,10 @@ func (e *SQLExecutor) GetWith(dest interface{}, sqlizeri sq.Sqlizer) (err error)
 }
 
 func (e *SQLExecutor) Exec(query string, args ...interface{}) (result sql.Result, err error) {
-	logger := logging.CreateLoggerWithContext(e.context, "skydb").WithField("tag", "sql")
 	result, err = e.dbContext.DB().ExecContext(e.context, query, args...)
 
-	logFields := logrus.Fields{"sql": query}
 	if err != nil {
-		logger.WithFields(logFields).WithError(err).Errorln("Failed to execute SQL with sql.Exec")
-	} else {
-		logger.WithFields(logFields).Debugln("Executed SQL successfully with sql.Exec")
+		e.logger.WithField("sql", query).WithError(err).Errorln("Failed to execute SQL with sql.Exec")
 	}
 	return
 }
@@ -79,13 +73,9 @@ func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 }
 
 func (e *SQLExecutor) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
-	logger := logging.CreateLoggerWithContext(e.context, "skydb").WithField("tag", "sql")
 	rows, err = e.dbContext.DB().QueryxContext(e.context, query, args...)
-	logFields := logrus.Fields{"sql": query}
 	if err != nil {
-		logger.WithFields(logFields).WithError(err).Errorln("Failed to execute SQL with sql.Queryx")
-	} else {
-		logger.WithFields(logFields).Debugln("Executed SQL successfully with sql.Queryx")
+		e.logger.WithField("sql", query).WithError(err).Errorln("Failed to execute SQL with sql.Queryx")
 	}
 	return
 }
@@ -99,9 +89,7 @@ func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 }
 
 func (e *SQLExecutor) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
-	logger := logging.CreateLoggerWithContext(e.context, "skydb").WithField("tag", "sql")
 	row = e.dbContext.DB().QueryRowxContext(e.context, query, args...)
-	logger.WithFields(logrus.Fields{"sql": query}).Debugln("Executed SQL with sql.QueryRowx")
 	return
 }
 
