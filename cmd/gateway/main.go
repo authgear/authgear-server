@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -141,8 +142,11 @@ func main() {
 	cr.HandleFunc("/{rest:.*}", handler.NewDeploymentRouteHandler())
 
 	srv := &http.Server{
-		Addr:    config.Host,
-		Handler: rr, // Pass our instance of gorilla/mux in.
+		Addr:         config.Host,
+		ReadTimeout:  time.Second * 60,
+		WriteTimeout: time.Second * 60,
+		IdleTimeout:  time.Second * 60,
+		Handler:      rr, // Pass our instance of gorilla/mux in.
 	}
 
 	logger.Info("Start gateway server")
