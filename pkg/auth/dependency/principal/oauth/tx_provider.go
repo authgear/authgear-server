@@ -1,9 +1,9 @@
 package oauth
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 type safeProviderImpl struct {
@@ -14,11 +14,11 @@ type safeProviderImpl struct {
 func NewSafeProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
-	logger *logrus.Entry,
+	loggerFactory logging.Factory,
 	txContext db.SafeTxContext,
 ) Provider {
 	return &safeProviderImpl{
-		impl:      newProvider(builder, executor, logger),
+		impl:      newProvider(builder, executor, loggerFactory),
 		txContext: txContext,
 	}
 }

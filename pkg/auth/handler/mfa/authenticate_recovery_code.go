@@ -36,7 +36,7 @@ type AuthenticateRecoveryCodeHandlerFactory struct {
 func (f AuthenticateRecoveryCodeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &AuthenticateRecoveryCodeHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(h, h.AuthContext, h)
+	return h.RequireAuthz(h, h)
 }
 
 type AuthenticateRecoveryCodeRequest struct {
@@ -82,6 +82,7 @@ const AuthenticateRecoveryCodeRequestSchema = `
 type AuthenticateRecoveryCodeHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
 	SessionProvider      session.Provider        `dependency:"SessionProvider"`
 	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
 	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`

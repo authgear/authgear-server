@@ -37,7 +37,7 @@ type RevokeAllHandlerFactory struct {
 func (f RevokeAllHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &RevokeAllHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
 }
 
 /*
@@ -52,6 +52,7 @@ func (f RevokeAllHandlerFactory) NewHandler(request *http.Request) http.Handler 
 */
 type RevokeAllHandler struct {
 	AuthContext      coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz     handler.RequireAuthz       `dependency:"RequireAuthz"`
 	TxContext        db.TxContext               `dependency:"TxContext"`
 	SessionProvider  session.Provider           `dependency:"SessionProvider"`
 	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`

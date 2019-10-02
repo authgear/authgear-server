@@ -36,7 +36,7 @@ type AuthenticateOOBHandlerFactory struct {
 func (f AuthenticateOOBHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &AuthenticateOOBHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(h, h.AuthContext, h)
+	return h.RequireAuthz(h, h)
 }
 
 type AuthenticateOOBRequest struct {
@@ -84,6 +84,7 @@ const AuthenticateOOBRequestSchema = `
 type AuthenticateOOBHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
 	SessionProvider      session.Provider        `dependency:"SessionProvider"`
 	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
 	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`

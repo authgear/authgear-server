@@ -49,7 +49,7 @@ type VerifyRequestHandlerFactory struct {
 func (f VerifyRequestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyRequestHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
 }
 
 type loginIDType string
@@ -116,6 +116,7 @@ func (payload VerifyRequestPayload) Validate() error {
 type VerifyRequestHandler struct {
 	TxContext                db.TxContext                 `dependency:"TxContext"`
 	AuthContext              coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
+	RequireAuthz             handler.RequireAuthz         `dependency:"RequireAuthz"`
 	CodeSenderFactory        userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
 	UserVerificationProvider userverify.Provider          `dependency:"UserVerificationProvider"`
 	UserProfileStore         userprofile.Store            `dependency:"UserProfileStore"`
@@ -208,7 +209,7 @@ type VerifyRequestTestHandlerFactory struct {
 func (f VerifyRequestTestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyRequestTestHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(h, nil), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(h, nil), h)
 }
 
 type VerifyRequestTestPayload struct {
@@ -261,7 +262,7 @@ func (payload VerifyRequestTestPayload) Validate() error {
 //  EOF
 //
 type VerifyRequestTestHandler struct {
-	AuthContext           coreAuth.ContextGetter           `dependency:"AuthContextGetter"`
+	RequireAuthz          handler.RequireAuthz             `dependency:"RequireAuthz"`
 	TestCodeSenderFactory userverify.TestCodeSenderFactory `dependency:"UserVerifyTestCodeSenderFactory"`
 	Logger                *logrus.Entry                    `dependency:"HandlerLogger"`
 }

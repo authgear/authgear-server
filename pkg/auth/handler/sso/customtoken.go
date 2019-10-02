@@ -49,7 +49,7 @@ type CustomTokenLoginHandlerFactory struct {
 func (f CustomTokenLoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &CustomTokenLoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(h, h.AuthContext, h)
+	return h.RequireAuthz(h, h)
 }
 
 type CustomTokenLoginPayload struct {
@@ -133,7 +133,7 @@ func (payload CustomTokenLoginPayload) Validate() error {
 */
 type CustomTokenLoginHandler struct {
 	TxContext                db.TxContext                    `dependency:"TxContext"`
-	AuthContext              coreAuth.ContextGetter          `dependency:"AuthContextGetter"`
+	RequireAuthz             handler.RequireAuthz            `dependency:"RequireAuthz"`
 	AuthnSessionProvider     authnsession.Provider           `dependency:"AuthnSessionProvider"`
 	UserProfileStore         userprofile.Store               `dependency:"UserProfileStore"`
 	AuthInfoStore            authinfo.Store                  `dependency:"AuthInfoStore"`

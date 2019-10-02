@@ -43,7 +43,7 @@ func (f LinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
 }
 
 // LinkRequestPayload login handler request payload
@@ -92,6 +92,7 @@ func (p LinkRequestPayload) Validate() error {
 type LinkHandler struct {
 	TxContext          db.TxContext               `dependency:"TxContext"`
 	AuthContext        coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz       handler.RequireAuthz       `dependency:"RequireAuthz"`
 	OAuthAuthProvider  oauth.Provider             `dependency:"OAuthAuthProvider"`
 	IdentityProvider   principal.IdentityProvider `dependency:"IdentityProvider"`
 	AuthInfoStore      authinfo.Store             `dependency:"AuthInfoStore"`

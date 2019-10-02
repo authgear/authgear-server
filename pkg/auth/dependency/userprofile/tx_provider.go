@@ -1,8 +1,8 @@
 package userprofile
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 type safeUserProfileImpl struct {
@@ -14,11 +14,11 @@ type safeUserProfileImpl struct {
 func NewSafeProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
-	logger *logrus.Entry,
+	loggerFactory logging.Factory,
 	txContext db.SafeTxContext,
 ) Store {
 	return &safeUserProfileImpl{
-		impl:      newUserProfileStore(builder, executor, logger),
+		impl:      newUserProfileStore(builder, executor, loggerFactory),
 		txContext: txContext,
 	}
 }

@@ -48,7 +48,7 @@ type ChangePasswordHandlerFactory struct {
 func (f ChangePasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ChangePasswordHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(h, h.AuthContext, h)
+	return h.RequireAuthz(h, h)
 }
 
 type ChangePasswordRequestPayload struct {
@@ -101,6 +101,7 @@ func (p ChangePasswordRequestPayload) Validate() error {
 type ChangePasswordHandler struct {
 	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`

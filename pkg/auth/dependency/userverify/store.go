@@ -3,6 +3,7 @@ package userverify
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 type Store interface {
@@ -17,11 +18,11 @@ type storeImpl struct {
 	logger      *logrus.Entry
 }
 
-func newStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *storeImpl {
+func newStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) *storeImpl {
 	return &storeImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
-		logger:      logger,
+		logger:      loggerFactory.NewLogger("verify-code-store"),
 	}
 }
 

@@ -45,7 +45,7 @@ type VerifyCodeHandlerFactory struct {
 func (f VerifyCodeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyCodeHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
 }
 
 type VerifyCodePayload struct {
@@ -90,6 +90,7 @@ func (payload VerifyCodePayload) Validate() error {
 type VerifyCodeHandler struct {
 	TxContext                db.TxContext           `dependency:"TxContext"`
 	AuthContext              coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	RequireAuthz             handler.RequireAuthz   `dependency:"RequireAuthz"`
 	UserVerificationProvider userverify.Provider    `dependency:"UserVerificationProvider"`
 	AuthInfoStore            authinfo.Store         `dependency:"AuthInfoStore"`
 	PasswordAuthProvider     password.Provider      `dependency:"PasswordAuthProvider"`

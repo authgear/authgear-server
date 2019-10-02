@@ -3,9 +3,9 @@ package pq
 import (
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 type safePasswordHistoryStore struct {
@@ -16,11 +16,11 @@ type safePasswordHistoryStore struct {
 func NewSafePasswordHistoryStore(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
-	logger *logrus.Entry,
+	loggerFactory logging.Factory,
 	txContext db.SafeTxContext,
 ) passwordhistory.Store {
 	return &safePasswordHistoryStore{
-		impl:      newPasswordHistoryStore(builder, executor, logger),
+		impl:      newPasswordHistoryStore(builder, executor, loggerFactory),
 		txContext: txContext,
 	}
 }

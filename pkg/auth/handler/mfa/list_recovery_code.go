@@ -33,7 +33,7 @@ type ListRecoveryCodeHandlerFactory struct {
 func (f ListRecoveryCodeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ListRecoveryCodeHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
 }
 
 type ListRecoveryCodeResponse struct {
@@ -74,6 +74,7 @@ const ListRecoveryCodeResponseSchema = `
 type ListRecoveryCodeHandler struct {
 	TxContext        db.TxContext            `dependency:"TxContext"`
 	AuthContext      coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	RequireAuthz     handler.RequireAuthz    `dependency:"RequireAuthz"`
 	MFAProvider      mfa.Provider            `dependency:"MFAProvider"`
 	MFAConfiguration config.MFAConfiguration `dependency:"MFAConfiguration"`
 }

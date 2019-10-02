@@ -18,18 +18,19 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 func NewPwHousekeeper(
 	passwordHistoryStore passwordhistory.Store,
-	logger *logrus.Entry,
+	loggerFactory logging.Factory,
 	pwHistorySize int,
 	pwHistoryDays int,
 	passwordHistoryEnabled bool,
 ) *PwHousekeeper {
 	return &PwHousekeeper{
 		passwordHistoryStore:   passwordHistoryStore,
-		logger:                 logger,
+		logger:                 loggerFactory.NewLogger("password-housekeeper"),
 		pwHistorySize:          pwHistorySize,
 		pwHistoryDays:          pwHistoryDays,
 		passwordHistoryEnabled: passwordHistoryEnabled,

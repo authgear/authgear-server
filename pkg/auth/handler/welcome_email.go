@@ -5,7 +5,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -34,7 +33,7 @@ type WelcomeEmailHandlerFactory struct {
 func (f WelcomeEmailHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &WelcomeEmailHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(h, nil), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(h, nil), h)
 }
 
 type WelcomeEmailPayload struct {
@@ -68,8 +67,8 @@ func (payload WelcomeEmailPayload) Validate() error {
 //  }
 //  EOF
 type WelcomeEmailHandler struct {
-	AuthContext        coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	WelcomeEmailSender welcemail.TestSender   `dependency:"TestWelcomeEmailSender"`
+	RequireAuthz       handler.RequireAuthz `dependency:"RequireAuthz"`
+	WelcomeEmailSender welcemail.TestSender `dependency:"TestWelcomeEmailSender"`
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler

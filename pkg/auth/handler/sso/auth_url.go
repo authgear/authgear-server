@@ -50,7 +50,7 @@ func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
 	h.Action = f.Action
-	return handler.RequireAuthz(h, h.AuthContext, h)
+	return h.RequireAuthz(h, h)
 }
 
 // nolint: deadcode
@@ -235,6 +235,7 @@ func (p AuthURLRequestPayload) Validate() (err error) {
 type AuthURLHandler struct {
 	TxContext                      db.TxContext              `dependency:"TxContext"`
 	AuthContext                    coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
+	RequireAuthz                   handler.RequireAuthz      `dependency:"RequireAuthz"`
 	APIClientConfigurationProvider apiclientconfig.Provider  `dependency:"APIClientConfigurationProvider"`
 	ProviderFactory                *sso.ProviderFactory      `dependency:"SSOProviderFactory"`
 	PasswordAuthProvider           password.Provider         `dependency:"PasswordAuthProvider"`

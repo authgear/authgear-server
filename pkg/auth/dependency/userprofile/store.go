@@ -6,6 +6,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 type storeImpl struct {
@@ -14,11 +15,11 @@ type storeImpl struct {
 	logger      *logrus.Entry
 }
 
-func newUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *storeImpl {
+func newUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) *storeImpl {
 	return &storeImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
-		logger:      logger,
+		logger:      loggerFactory.NewLogger("user-profile"),
 	}
 }
 
