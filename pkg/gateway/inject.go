@@ -30,7 +30,7 @@ func (m DependencyMap) Provide(
 ) interface{} {
 	newLoggerFactory := func() logging.Factory {
 		formatter := logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
-		return logging.NewFactory(request, formatter)
+		return logging.NewFactoryFromRequest(request, formatter)
 	}
 
 	switch dependencyName {
@@ -39,8 +39,7 @@ func (m DependencyMap) Provide(
 	case "AuthContextSetter":
 		return auth.NewContextSetterWithContext(ctx)
 	case "LoggerFactory":
-		formatter := logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
-		return logging.NewFactory(request, formatter)
+		return newLoggerFactory()
 	case "SessionProvider":
 		return session.NewProvider(
 			request,

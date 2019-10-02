@@ -4,10 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
@@ -20,7 +17,6 @@ var ErrAppNotFound = errors.New("App not found")
 var ErrConfigNotFound = errors.New("Tenant config not found")
 
 func (s *Store) GetAppByDomain(domain string, app *model.App) error {
-	logger := logging.LoggerEntry("gateway")
 	builder := psql.Select("app.id", "app.name", "app.config_id", "app.plan_id", "app.auth_version").
 		From(s.tableName("app")).
 		Join(s.tableName("domain")+" ON app.id = domain.app_id").
@@ -47,21 +43,17 @@ func (s *Store) GetAppByDomain(domain string, app *model.App) error {
 
 	configValue := config.TenantConfiguration{}
 	if err := s.getConfigByID(configID, &configValue); err != nil {
-		logger.WithError(err).Error("Fail to get app tenant config")
+		s.logger.WithError(err).Error("Fail to get app tenant config")
 		return err
 	}
 	app.Config = configValue
 
 	plan := model.Plan{}
 	if err := s.getPlanByID(planID, &plan); err != nil {
-		logger.WithError(err).Error("Fail to get app plan")
+		s.logger.WithError(err).Error("Fail to get app plan")
 		return err
 	}
 	app.Plan = plan
-
-	logger.WithFields(logrus.Fields{
-		"app": app,
-	}).Debug("Got the app successfully")
 
 	return nil
 }

@@ -9,16 +9,17 @@ import (
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
 
 // NewGatewayStore create new gateway store by db connection url
-func NewGatewayStore(ctx context.Context, connString string, logger *logrus.Entry) (*Store, error) {
+func NewGatewayStore(ctx context.Context, connString string, loggerFactory logging.Factory) (*Store, error) {
 	s, err := Connect(ctx, connString)
 	if err != nil {
 		return nil, err
 	}
-	s.logger = logger
+	s.logger = loggerFactory.NewLogger("gateway-store")
 	return s, nil
 }
 

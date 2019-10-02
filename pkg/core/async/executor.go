@@ -31,7 +31,8 @@ func (e *Executor) Execute(taskCtx TaskContext, name string, param interface{}, 
 	task := factory.NewTask(ctx, taskCtx)
 
 	formatter := logging.CreateMaskFormatter(taskCtx.TenantConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
-	logger := logging.CreateLoggerWithRequestID(taskCtx.RequestID, "async_task_server", formatter)
+	loggerFactory := logging.NewFactoryFromRequestID(taskCtx.RequestID, formatter)
+	logger := loggerFactory.NewLogger("async-executor")
 	go func() {
 		defer func() {
 			if rec := recover(); rec != nil {
