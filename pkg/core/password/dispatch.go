@@ -26,9 +26,8 @@ func resolveFormat(hash []byte) (passwordFormat, error) {
 	fmt, ok := supportedFormats[string(id)]
 	if ok {
 		return fmt, nil
-	} else {
-		return defaultFormat, nil
 	}
+	return defaultFormat, nil
 }
 
 func Hash(password []byte) ([]byte, error) {
