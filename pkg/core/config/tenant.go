@@ -154,6 +154,28 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 		values[i] = clientConfig.APIKey
 		i++
 	}
+
+	values = append(values,
+		c.UserConfig.Auth.AuthenticationSession.Secret,
+		c.UserConfig.SSO.CustomToken.Secret,
+		c.UserConfig.SSO.OAuth.StateJWTSecret,
+		c.UserConfig.Hook.Secret,
+		c.AppConfig.DatabaseURL,
+		c.AppConfig.DatabaseSchema,
+		c.AppConfig.SMTP.Host,
+		c.AppConfig.SMTP.Login,
+		c.AppConfig.SMTP.Password,
+		c.AppConfig.Twilio.AccountSID,
+		c.AppConfig.Twilio.AuthToken,
+		c.AppConfig.Nexmo.APIKey,
+		c.AppConfig.Nexmo.APISecret,
+	)
+	oauthSecrets := make([]string, len(c.UserConfig.SSO.OAuth.Providers)*2)
+	for i, oauthConfig := range c.UserConfig.SSO.OAuth.Providers {
+		oauthSecrets[i*2] = oauthConfig.ClientID
+		oauthSecrets[i*2+1] = oauthConfig.ClientSecret
+	}
+	values = append(values, oauthSecrets...)
 	return values
 }
 
