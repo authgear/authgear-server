@@ -26,6 +26,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	dbPq "github.com/skygeario/skygear-server/pkg/core/db/pq"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
@@ -35,16 +36,16 @@ type authInfoStore struct {
 	logger      *logrus.Entry
 }
 
-func newAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *authInfoStore {
+func newAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) *authInfoStore {
 	return &authInfoStore{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
-		logger:      logger,
+		logger:      loggerFactory.NewLogger("auth-info"),
 	}
 }
 
-func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) authinfo.Store {
-	return newAuthInfoStore(builder, executor, logger)
+func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) authinfo.Store {
+	return newAuthInfoStore(builder, executor, loggerFactory)
 }
 
 func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {

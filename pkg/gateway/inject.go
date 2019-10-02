@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -27,6 +28,11 @@ func (m DependencyMap) Provide(
 	requestID string,
 	tConfig config.TenantConfiguration,
 ) interface{} {
+	newLoggerFactory := func() logging.Factory {
+		formatter := logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
+		return logging.NewFactory(request, formatter)
+	}
+
 	switch dependencyName {
 	case "AuthContextGetter":
 		return auth.NewContextGetterWithContext(ctx)
@@ -51,7 +57,12 @@ func (m DependencyMap) Provide(
 			m.UseInsecureCookie,
 		)
 	case "AuthInfoStore":
-		return auth.NewDefaultAuthInfoStore(ctx, tConfig)
+		return pqAuthInfo.NewSafeAuthInfoStore(
+			db.NewSQLBuilder("core", tConfig.AppConfig.DatabaseSchema, tConfig.AppID),
+			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+			newLoggerFactory(),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
 	default:

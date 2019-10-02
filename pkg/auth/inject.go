@@ -28,6 +28,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -89,7 +90,12 @@ func (m DependencyMap) Provide(
 	}
 
 	newAuthInfoStore := func() authinfo.Store {
-		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
+		return pqAuthInfo.NewSafeAuthInfoStore(
+			db.NewSQLBuilder("core", tConfig.AppConfig.DatabaseSchema, tConfig.AppID),
+			newSQLExecutor(),
+			newLoggerFactory(),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
 	}
 
 	newUserProfileStore := func() userprofile.Store {
