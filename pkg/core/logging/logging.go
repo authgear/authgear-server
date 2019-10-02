@@ -23,7 +23,6 @@ import (
 
 var (
 	loggers                sync.Map
-	lock                   sync.Mutex
 	configureLoggerHandler func(string, *logrus.Logger)
 	gearModule             string
 )
