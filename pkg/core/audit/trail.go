@@ -26,8 +26,7 @@ import (
 )
 
 const (
-	enabledLevel  = logrus.InfoLevel
-	disabledLevel = logrus.PanicLevel
+	enabledLevel = logrus.InfoLevel
 )
 
 type Event int
@@ -183,24 +182,6 @@ func createHook(handlerURL string) (logrus.Hook, error) {
 }
 
 func NewTrail(enabled bool, handlerURL string) (Trail, error) {
-	var trailLogger = logrus.New()
-	trailLogger.Formatter = &logrus.JSONFormatter{}
-	if enabled {
-		trailLogger.Level = enabledLevel
-	} else {
-		trailLogger.Level = disabledLevel
-	}
-	if handlerURL != "" {
-		hook, err := createHook(handlerURL)
-		if err != nil {
-			return nil, err
-		}
-		if hook != nil {
-			trailLogger.Hooks.Add(hook)
-		}
-	}
-
-	return &LoggerTrail{
-		logger: logrus.NewEntry(trailLogger),
-	}, nil
+	// NOTE(audit): audit trail is disabled for now.
+	return NullTrail{}, nil
 }
