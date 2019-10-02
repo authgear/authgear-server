@@ -78,6 +78,11 @@ func (p *safeProviderImpl) UpdatePassword(principal *Principal, password string)
 	return p.impl.UpdatePassword(principal, password)
 }
 
+func (p *safeProviderImpl) MigratePassword(principal *Principal, password string) error {
+	p.txContext.EnsureTx()
+	return p.impl.MigratePassword(principal, password)
+}
+
 func (p *safeProviderImpl) ID() string {
 	p.txContext.EnsureTx()
 	return p.impl.ID()

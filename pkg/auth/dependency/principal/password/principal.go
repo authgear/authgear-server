@@ -28,6 +28,11 @@ func (p *Principal) setPassword(password string) (err error) {
 	return
 }
 
+func (p *Principal) migratePassword(password string) (migrated bool, err error) {
+	migrated, err = corePassword.TryMigrate([]byte(password), &p.HashedPassword)
+	return
+}
+
 func (p *Principal) IsSamePassword(password string) bool {
 	return corePassword.Compare([]byte(password), p.HashedPassword) == nil
 }

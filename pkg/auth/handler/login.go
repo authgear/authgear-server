@@ -231,5 +231,11 @@ func (h LoginHandler) getPrincipal(pwd string, loginIDKey string, loginID string
 		return nil, skyerr.NewError(skyerr.InvalidCredentials, "login_id or password incorrect")
 	}
 
+	err = h.PasswordAuthProvider.MigratePassword(&principal, pwd)
+	if err != nil {
+		// non-critical error: ignore it
+		err = nil
+	}
+
 	return &principal, nil
 }

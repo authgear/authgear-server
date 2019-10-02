@@ -388,6 +388,27 @@ func (p *providerImpl) UpdatePassword(principal *Principal, password string) (er
 	return
 }
 
+func (p *providerImpl) MigratePassword(principal *Principal, password string) (err error) {
+	migrated, err := principal.migratePassword(password)
+	if err != nil {
+		return err
+	}
+	if !migrated {
+		return
+	}
+
+	builder := p.sqlBuilder.Tenant().
+		Update(p.sqlBuilder.FullTableName("provider_password")).
+		Set("password", principal.HashedPassword).
+		Where("principal_id = ?", principal.ID)
+
+	_, err = p.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		return
+	}
+	return
+}
+
 func (p *providerImpl) ID() string {
 	return string(coreAuth.PrincipalTypePassword)
 }
