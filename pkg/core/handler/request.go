@@ -17,11 +17,15 @@ func (p EmptyRequestPayload) Validate() error {
 	return nil
 }
 
-func DecodeJSONBody(r *http.Request, payload interface{}) error {
+const BodyMaxSize = 1024 * 1024 * 10
+
+func DecodeJSONBody(r *http.Request, w http.ResponseWriter, payload interface{}) error {
 	if contentType := r.Header.Get("Content-Type"); contentType != "application/json" {
 		return skyerr.NewError(skyerr.BadRequest, "invalid request content type")
 	}
-	if err := json.NewDecoder(r.Body).Decode(payload); err != nil {
+	body := http.MaxBytesReader(w, r.Body, BodyMaxSize)
+	defer body.Close()
+	if err := json.NewDecoder(body).Decode(payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 	return nil

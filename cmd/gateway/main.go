@@ -142,10 +142,9 @@ func main() {
 	cr.HandleFunc("/{rest:.*}", handler.NewDeploymentRouteHandler())
 
 	srv := &http.Server{
-		Addr: config.Host,
-		// Good practice to set timeouts to avoid Slowloris attacks.
-		WriteTimeout: time.Second * 15,
-		ReadTimeout:  time.Second * 15,
+		Addr:         config.Host,
+		ReadTimeout:  time.Second * 60,
+		WriteTimeout: time.Second * 60,
 		IdleTimeout:  time.Second * 60,
 		Handler:      rr, // Pass our instance of gorilla/mux in.
 	}

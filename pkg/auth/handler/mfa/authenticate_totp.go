@@ -98,9 +98,9 @@ func (h *AuthenticateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *AuthenticateTOTPHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h *AuthenticateTOTPHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := AuthenticateTOTPRequest{}
-	err := handler.DecodeJSONBody(request, &payload)
+	err := handler.DecodeJSONBody(request, resp, &payload)
 	return payload, err
 }
 
@@ -114,7 +114,7 @@ func (h *AuthenticateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		h.AuthnSessionProvider.WriteResponse(w, result, err)
 	}()
 
-	payload, err := h.DecodeRequest(r)
+	payload, err := h.DecodeRequest(r, w)
 	if err != nil {
 		return
 	}

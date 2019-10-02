@@ -153,7 +153,7 @@ func (h CustomTokenLoginHandler) ProvideAuthzPolicy() authz.Policy {
 }
 
 // DecodeRequest decode request payload
-func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (payload CustomTokenLoginPayload, err error) {
+func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload CustomTokenLoginPayload, err error) {
 	defer func() {
 		if err != nil {
 			h.AuditTrail.Log(audit.Entry{
@@ -165,7 +165,7 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (payload C
 		}
 	}()
 
-	if err = handler.DecodeJSONBody(request, &payload); err != nil {
+	if err = handler.DecodeJSONBody(request, resp, &payload); err != nil {
 		return
 	}
 
@@ -198,7 +198,7 @@ func (h CustomTokenLoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.R
 		h.AuthnSessionProvider.WriteResponse(resp, result, err)
 	}()
 
-	payload, err := h.DecodeRequest(req)
+	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
 		return
 	}

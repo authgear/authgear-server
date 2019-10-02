@@ -1,7 +1,6 @@
 package forgotpwd
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -107,9 +106,9 @@ func (h ForgotPasswordHandler) WithTx() bool {
 }
 
 // DecodeRequest decode request payload
-func (h ForgotPasswordHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h ForgotPasswordHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := ForgotPasswordPayload{}
-	if err := handler.DecodeJSONBody(request, &payload); err != nil {
+	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
 		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 
@@ -250,9 +249,9 @@ func (h ForgotPasswordTestHandler) WithTx() bool {
 }
 
 // DecodeRequest decode request payload
-func (h ForgotPasswordTestHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h ForgotPasswordTestHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := ForgotPasswordTestPayload{}
-	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
+	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
 		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 

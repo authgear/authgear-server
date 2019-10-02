@@ -10,7 +10,7 @@ import (
 )
 
 type APIHandler interface {
-	DecodeRequest(request *http.Request) (RequestPayload, error)
+	DecodeRequest(request *http.Request, resp http.ResponseWriter) (RequestPayload, error)
 	WithTx() bool
 	Handle(requestPayload interface{}) (interface{}, error)
 }
@@ -28,8 +28,8 @@ type APIResponse struct {
 func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Handler {
 	txHandler, _ := apiHandler.(APITxHandler)
 
-	handleAPICall := func(r *http.Request) (response APIResponse) {
-		payload, err := apiHandler.DecodeRequest(r)
+	handleAPICall := func(r *http.Request, resp http.ResponseWriter) (response APIResponse) {
+		payload, err := apiHandler.DecodeRequest(r, resp)
 		if err != nil {
 			response.Err = skyerr.MakeError(err)
 			return
@@ -76,7 +76,7 @@ func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Han
 	}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		response := handleAPICall(r)
+		response := handleAPICall(r, rw)
 		WriteResponse(rw, response)
 	})
 }

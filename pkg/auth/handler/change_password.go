@@ -127,8 +127,8 @@ func (h ChangePasswordHandler) WithTx() bool {
 }
 
 // DecodeRequest decode the request payload
-func (h ChangePasswordHandler) DecodeRequest(request *http.Request) (payload ChangePasswordRequestPayload, err error) {
-	err = handler.DecodeJSONBody(request, &payload)
+func (h ChangePasswordHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload ChangePasswordRequestPayload, err error) {
+	err = handler.DecodeJSONBody(request, resp, &payload)
 	return
 }
 
@@ -146,7 +146,7 @@ func (h ChangePasswordHandler) ServeHTTP(resp http.ResponseWriter, req *http.Req
 		}
 	}()
 
-	payload, err := h.DecodeRequest(req)
+	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
 		return
 	}

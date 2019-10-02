@@ -115,9 +115,9 @@ func (h LinkHandler) WithTx() bool {
 	return true
 }
 
-func (h LinkHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h LinkHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := LinkRequestPayload{}
-	err := handler.DecodeJSONBody(request, &payload)
+	err := handler.DecodeJSONBody(request, resp, &payload)
 	if err != nil {
 		return payload, err
 	}

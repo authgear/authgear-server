@@ -136,9 +136,9 @@ func (h ForgotPasswordResetHandler) WithTx() bool {
 }
 
 // DecodeRequest decode request payload
-func (h ForgotPasswordResetHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h ForgotPasswordResetHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := ForgotPasswordResetPayload{}
-	if err := handler.DecodeJSONBody(request, &payload); err != nil {
+	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
 		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 

@@ -62,7 +62,7 @@ func TestSetDisableHandler(t *testing.T) {
 				}
 			`))
 			req.Header.Set("Content-Type", "application/json")
-			payload, err := h.DecodeRequest(req)
+			payload, err := h.DecodeRequest(req, nil)
 			disablePayload, ok := payload.(setDisableUserPayload)
 			So(ok, ShouldBeTrue)
 			So(disablePayload.UserID, ShouldEqual, "john.doe.id")
@@ -80,7 +80,7 @@ func TestSetDisableHandler(t *testing.T) {
 				}
 			`))
 			req.Header.Set("Content-Type", "application/json")
-			_, err := h.DecodeRequest(req)
+			_, err := h.DecodeRequest(req, nil)
 			errResponse := err.(skyerr.Error)
 			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
 		})

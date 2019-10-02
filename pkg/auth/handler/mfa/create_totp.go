@@ -118,9 +118,9 @@ func (h *CreateTOTPHandler) WithTx() bool {
 	return true
 }
 
-func (h *CreateTOTPHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h *CreateTOTPHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := CreateTOTPRequest{}
-	err := handler.DecodeJSONBody(request, &payload)
+	err := handler.DecodeJSONBody(request, resp, &payload)
 	return payload, err
 }
 

@@ -133,9 +133,9 @@ func (h SetDisableHandler) WithTx() bool {
 }
 
 // DecodeRequest decode request payload
-func (h SetDisableHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h SetDisableHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := setDisableUserPayload{}
-	if err := handler.DecodeJSONBody(request, &payload); err != nil {
+	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
 		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 
