@@ -2,31 +2,42 @@ package template
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net/http"
+	"os"
 	"path/filepath"
 
 	"github.com/flosch/pongo2"
-	"github.com/franela/goreq"
 )
 
+const MaxTemplateSize = 1024 * 1024 * 1
+
 func DownloadTemplateFromFilePath(filePath string) (string, error) {
-	buf, err := ioutil.ReadFile(filepath.Clean(filePath))
+	filePath = filepath.Clean(filePath)
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	b, err := ioutil.ReadAll(io.LimitReader(f, MaxTemplateSize))
 	if err != nil {
 		return "", err
 	}
 
-	return string(buf), nil
+	return string(b), nil
 }
 
 func DownloadTemplateFromURL(url string) (string, error) {
-	req := goreq.Request{
-		Method: "GET",
-		Uri:    url,
+	// FIXME(sec): validate URL to be trusted URL
+	// nolint: gosec
+	resp, err := http.Get(url)
+	if resp != nil {
+		defer resp.Body.Close()
 	}
-
-	var err error
-	var resp *goreq.Response
-	if resp, err = req.Do(); err != nil {
+	if err != nil {
 		return "", err
 	}
 
@@ -34,12 +45,12 @@ func DownloadTemplateFromURL(url string) (string, error) {
 		return "", fmt.Errorf("unsuccessful request: %s", resp.Status)
 	}
 
-	var body string
-	if body, err = resp.Body.ToString(); err != nil {
+	body, err := ioutil.ReadAll(io.LimitReader(resp.Body, MaxTemplateSize))
+	if err != nil {
 		return "", err
 	}
 
-	return body, nil
+	return string(body), nil
 }
 
 func ParseTextTemplateFromURL(url string, context map[string]interface{}) (string, error) {
