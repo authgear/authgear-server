@@ -9,7 +9,7 @@ require (
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
 	github.com/dgrijalva/jwt-go v3.1.0+incompatible
 	github.com/evalphobia/logrus_fluent v0.4.0
-	github.com/flosch/pongo2 v0.0.0-20141028000813-5e81b817a0c4
+	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4
 	github.com/fluent/fluent-logger-golang v1.3.0 // indirect
 	github.com/franela/goblin v0.0.0-20181003173013-ead4ad1d2727 // indirect
 	github.com/franela/goreq v0.0.0-20170418064916-b5b0f5eb2d16
@@ -26,7 +26,6 @@ require (
 	github.com/jmoiron/sqlx v0.0.0-20170430194603-d9bd385d68c0
 	github.com/joho/godotenv v0.0.0-20150907010228-4ed13390c0ac
 	github.com/kelseyhightower/envconfig v1.3.0
-	github.com/kr/pretty v0.1.0 // indirect
 	github.com/lestrrat-go/jwx v0.9.0
 	github.com/lib/pq v0.0.0-20171113044440-8c6ee72f3e6b
 	github.com/louischan-oursky/gojsonschema v1.1.1-0.20190618084317-891d0e852428
