@@ -14,13 +14,9 @@
 
 package uuid
 
-import "github.com/twinj/uuid"
-
-func init() {
-	uuid.SwitchFormat(uuid.FormatCanonical)
-}
+import "github.com/google/uuid"
 
 // New returns a new uuid4 string
 func New() string {
-	return uuid.NewV4().String()
+	return uuid.Must(uuid.NewRandom()).String()
 }
