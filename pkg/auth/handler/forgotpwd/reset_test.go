@@ -106,7 +106,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				}
 			}`)
 			So(hook.LastEntry().Level, ShouldEqual, logrus.ErrorLevel)
-			So(hook.LastEntry().Message, ShouldEqual, "forgot password code expired")
+			So(hook.LastEntry().Message, ShouldEqual, "Forgot password code expired")
 		})
 
 		Convey("reset password with unmatched code", func() {
@@ -131,7 +131,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				}
 			}`)
 			So(hook.LastEntry().Level, ShouldEqual, logrus.ErrorLevel)
-			So(hook.LastEntry().Message, ShouldEqual, "wrong forgot password reset password code")
+			So(hook.LastEntry().Message, ShouldEqual, "Wrong forgot password reset password code")
 		})
 
 		Convey("reset password", func() {
