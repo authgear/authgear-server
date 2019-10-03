@@ -26,6 +26,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	dbPq "github.com/skygeario/skygear-server/pkg/core/db/pq"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
@@ -35,16 +36,16 @@ type authInfoStore struct {
 	logger      *logrus.Entry
 }
 
-func newAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *authInfoStore {
+func newAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) *authInfoStore {
 	return &authInfoStore{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
-		logger:      logger,
+		logger:      loggerFactory.NewLogger("auth-info"),
 	}
 }
 
-func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) authinfo.Store {
-	return newAuthInfoStore(builder, executor, logger)
+func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) authinfo.Store {
+	return newAuthInfoStore(builder, executor, loggerFactory)
 }
 
 func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
@@ -181,7 +182,6 @@ func (s authInfoStore) baseUserBuilder() db.SelectBuilder {
 }
 
 func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowScanner) error {
-	logger := s.logger
 	var (
 		id             string
 		lastSeenAt     pq.NullTime
@@ -203,11 +203,10 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		&verified,
 		&verifyInfo,
 	)
-	if err != nil {
-		logger.Infof(err.Error())
-	}
 	if err == sql.ErrNoRows {
 		return skydb.ErrUserNotFound
+	} else if err != nil {
+		return err
 	}
 
 	authinfo.ID = id
@@ -242,7 +241,7 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 	authinfo.Verified = verified
 	authinfo.VerifyInfo = verifyInfo.JSON
 
-	return err
+	return nil
 }
 
 func (s authInfoStore) GetAuth(id string, authinfo *authinfo.AuthInfo) error {

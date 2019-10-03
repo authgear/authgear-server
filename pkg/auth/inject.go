@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/sirupsen/logrus"
-
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
@@ -28,10 +26,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
@@ -54,14 +54,9 @@ func (m DependencyMap) Provide(
 	requestID string,
 	tConfig config.TenantConfiguration,
 ) interface{} {
-	newLogger := func(name string) *logrus.Entry {
-		formatter := logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
-		return logging.CreateLoggerWithRequestID(requestID, name, formatter)
-	}
-
 	newLoggerFactory := func() logging.Factory {
-		formatter := logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
-		return logging.NewFactory(request, formatter)
+		formatter := logging.NewDefaultMaskedTextFormatter(tConfig.DefaultSensitiveLoggerValues())
+		return logging.NewFactoryFromRequest(request, formatter)
 	}
 
 	newSQLBuilder := func() db.SQLBuilder {
@@ -69,7 +64,7 @@ func (m DependencyMap) Provide(
 	}
 
 	newSQLExecutor := func() db.SQLExecutor {
-		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig))
+		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig), newLoggerFactory())
 	}
 
 	newTimeProvider := func() time.Provider {
@@ -84,7 +79,7 @@ func (m DependencyMap) Provide(
 		return pqPWHistory.NewPasswordHistoryStore(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLogger("auth_password_history"),
+			newLoggerFactory(),
 		)
 	}
 
@@ -93,14 +88,19 @@ func (m DependencyMap) Provide(
 	}
 
 	newAuthInfoStore := func() authinfo.Store {
-		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
+		return pqAuthInfo.NewSafeAuthInfoStore(
+			db.NewSQLBuilder("core", tConfig.AppConfig.DatabaseSchema, tConfig.AppID),
+			newSQLExecutor(),
+			newLoggerFactory(),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
 	}
 
 	newUserProfileStore := func() userprofile.Store {
 		return userprofile.NewSafeProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLogger("auth_user_profile"),
+			newLoggerFactory(),
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
@@ -116,7 +116,7 @@ func (m DependencyMap) Provide(
 		return password.NewSafeProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLogger("provider_password"),
+			newLoggerFactory(),
 			tConfig.UserConfig.Auth.LoginIDKeys,
 			tConfig.UserConfig.Auth.AllowedRealms,
 			isPasswordHistoryEnabled(),
@@ -128,7 +128,7 @@ func (m DependencyMap) Provide(
 		return customtoken.NewSafeProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLogger("provider_custom_token"),
+			newLoggerFactory(),
 			tConfig.UserConfig.SSO.CustomToken,
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
@@ -138,7 +138,7 @@ func (m DependencyMap) Provide(
 		return oauth.NewSafeProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLogger("provider_oauth"),
+			newLoggerFactory(),
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
@@ -229,6 +229,8 @@ func (m DependencyMap) Provide(
 		return db.NewTxContextWithContext(ctx, tConfig)
 	case "LoggerFactory":
 		return newLoggerFactory()
+	case "RequireAuthz":
+		return handler.NewRequireAuthzFactory(newAuthContext(), newLoggerFactory())
 	case "SessionProvider":
 		return newSessionProvider()
 	case "SessionWriter":
@@ -269,7 +271,7 @@ func (m DependencyMap) Provide(
 	case "PwHousekeeper":
 		return authAudit.NewPwHousekeeper(
 			newPasswordHistoryStore(),
-			newLogger("audit"),
+			newLoggerFactory(),
 			tConfig.UserConfig.UserAudit.Password.HistorySize,
 			tConfig.UserConfig.UserAudit.Password.HistoryDays,
 			isPasswordHistoryEnabled(),
@@ -279,7 +281,7 @@ func (m DependencyMap) Provide(
 	case "CustomTokenAuthProvider":
 		return newCustomTokenAuthProvider()
 	case "HandlerLogger":
-		return newLogger("handler")
+		return newLoggerFactory().NewLogger("handler")
 	case "UserProfileStore":
 		return newUserProfileStore()
 	case "ForgotPasswordEmailSender":
@@ -316,7 +318,7 @@ func (m DependencyMap) Provide(
 			userverify.NewSafeStore(
 				newSQLBuilder(),
 				newSQLExecutor(),
-				newLogger("verify_code"),
+				newLoggerFactory(),
 				db.NewSafeTxContextWithContext(ctx, tConfig),
 			),
 			tConfig.UserConfig.UserVerification,

@@ -17,7 +17,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -52,7 +51,7 @@ func (f ForgotPasswordResetHandlerFactory) NewHandler(request *http.Request) htt
 	h := &ForgotPasswordResetHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
 }
 
 type ForgotPasswordResetPayload struct {
@@ -113,7 +112,7 @@ func (payload ForgotPasswordResetPayload) Validate() error {
 		@Callback user_sync {UserSyncEvent}
 */
 type ForgotPasswordResetHandler struct {
-	AuthContext          coreAuth.ContextGetter        `dependency:"AuthContextGetter"`
+	RequireAuthz         handler.RequireAuthz          `dependency:"RequireAuthz"`
 	CodeGenerator        *forgotpwdemail.CodeGenerator `dependency:"ForgotPasswordCodeGenerator"`
 	PasswordChecker      *authAudit.PasswordChecker    `dependency:"PasswordChecker"`
 	AuthInfoStore        authinfo.Store                `dependency:"AuthInfoStore"`
@@ -152,7 +151,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 
 	// check code expiration
 	if timeNow().After(payload.ExpireAtTime) {
-		h.Logger.Error("forgot password code expired")
+		h.Logger.Debug("Forgot password code expired")
 		err = genericResetPasswordError()
 		return
 	}
@@ -161,7 +160,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	if e := h.AuthInfoStore.GetAuth(payload.UserID, &authInfo); e != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
-		}).WithError(e).Error("user not found")
+		}).WithError(e).Debug("User not found")
 		err = genericResetPasswordError()
 		return
 	}
@@ -171,7 +170,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	if err != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
-		}).WithError(err).Error("unable to get password auth principals")
+		}).WithError(err).Error("Unable to get password auth principals")
 		err = genericResetPasswordError()
 		return
 	}
@@ -181,10 +180,8 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	expectedCode := h.CodeGenerator.Generate(authInfo, hashedPassword, payload.ExpireAtTime)
 	if payload.Code != expectedCode {
 		h.Logger.WithFields(map[string]interface{}{
-			"user_id":       payload.UserID,
-			"code":          payload.Code,
-			"expected_code": expectedCode,
-		}).Error("wrong forgot password reset password code")
+			"user_id": payload.UserID,
+		}).Debug("Wrong forgot password reset password code")
 		err = genericResetPasswordError()
 		return
 	}

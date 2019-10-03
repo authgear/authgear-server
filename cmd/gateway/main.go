@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
@@ -27,23 +29,27 @@ import (
 )
 
 var config gatewayConfig.Configuration
+var loggerFactory logging.Factory
+var logger *logrus.Entry
 
 func init() {
 	// logging initialization
 	logging.SetModule("gateway")
+	loggerFactory = logging.NewFactory(logging.NewDefaultMaskedTextFormatter(nil))
+	logger = loggerFactory.NewLogger("gateway")
 
-	logger := logging.LoggerEntry("gateway")
+	if err := godotenv.Load(); err != nil {
+		logger.WithError(err).Info(
+			"Error in loading .env file, continue without .env")
+	}
+
 	if err := config.ReadFromEnv(); err != nil {
 		logger.WithError(err).Panic(
 			"Fail to load config for starting gateway server")
 	}
-
-	logger.WithField("config", config).Debug("Gateway config")
 }
 
 func main() {
-	logger := logging.LoggerEntry("gateway")
-
 	// create gateway store
 	var store store.GatewayStore
 	var connErr error
@@ -64,7 +70,7 @@ func main() {
 		store, connErr = pqStore.NewGatewayStore(
 			context.Background(),
 			config.ConnectionStr,
-			logger,
+			loggerFactory,
 		)
 		if connErr != nil {
 			logger.WithError(connErr).Panic("Fail to create db conn")
@@ -151,7 +157,7 @@ func main() {
 
 	logger.Info("Start gateway server")
 	if err := srv.ListenAndServe(); err != nil {
-		logger.Errorf("Fail to start gateway server %v", err)
+		logger.WithError(err).Errorf("Fail to start gateway server")
 	}
 }
 

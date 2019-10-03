@@ -52,7 +52,7 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.RequireAuthz(handler.RequireAuthz(h, h.AuthContext, h), h.AuthContext, h)
+	return h.RequireAuthz(h, h)
 }
 
 type SignupRequestPayload struct {
@@ -151,7 +151,7 @@ func (p SignupRequestPayload) duplicatedLoginIDs() bool {
 		@Callback user_sync {UserSyncEvent}
 */
 type SignupHandler struct {
-	AuthContext             coreAuth.ContextGetter                             `dependency:"AuthContextGetter"`
+	RequireAuthz            handler.RequireAuthz                               `dependency:"RequireAuthz"`
 	AuthnSessionProvider    authnsession.Provider                              `dependency:"AuthnSessionProvider"`
 	PasswordChecker         *authAudit.PasswordChecker                         `dependency:"PasswordChecker"`
 	UserProfileStore        userprofile.Store                                  `dependency:"UserProfileStore"`

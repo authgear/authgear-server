@@ -34,7 +34,7 @@ type CreateTOTPHandlerFactory struct {
 func (f CreateTOTPHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &CreateTOTPHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
 }
 
 func (h *CreateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
@@ -109,6 +109,7 @@ const CreateTOTPResponseSchema = `
 type CreateTOTPHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
 	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
 	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
 	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`

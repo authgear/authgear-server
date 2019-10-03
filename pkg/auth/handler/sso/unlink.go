@@ -43,7 +43,7 @@ func (f UnlinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
 }
 
 /*
@@ -63,6 +63,7 @@ func (f UnlinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 type UnlinkHandler struct {
 	TxContext         db.TxContext               `dependency:"TxContext"`
 	AuthContext       coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz      handler.RequireAuthz       `dependency:"RequireAuthz"`
 	SessionProvider   session.Provider           `dependency:"SessionProvider"`
 	OAuthAuthProvider oauth.Provider             `dependency:"OAuthAuthProvider"`
 	IdentityProvider  principal.IdentityProvider `dependency:"IdentityProvider"`

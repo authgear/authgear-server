@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -74,9 +73,14 @@ type configuration struct {
 		Single sign-on
 */
 func main() {
+	// logging initialization
+	logging.SetModule("auth")
+	loggerFactory := logging.NewFactory(logging.NewDefaultMaskedTextFormatter(nil))
+	logger := loggerFactory.NewLogger("auth")
+
 	envErr := godotenv.Load()
 	if envErr != nil {
-		log.Print("Error in loading .env file")
+		logger.WithError(envErr).Debug("Cannot load .env file")
 	}
 
 	configuration := configuration{}
@@ -85,15 +89,12 @@ func main() {
 		configuration.ValidHosts = configuration.Host
 	}
 	if configuration.Redis.Host == "" {
-		log.Fatal("REDIS_HOST is not provided")
+		logger.Fatal("REDIS_HOST is not provided")
 	}
 
 	// default template initialization
 	templateEngine := template.NewEngine()
 	authTemplate.RegisterDefaultTemplates(templateEngine)
-
-	// logging initialization
-	logging.SetModule("auth")
 
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool(configuration.Redis)
@@ -113,7 +114,7 @@ func main() {
 		filename := configuration.StandaloneTenantConfigurationFile
 		reader, err := os.Open(filename)
 		if err != nil {
-			log.Fatal(err)
+			logger.WithError(err).Error("Cannot open standalone config")
 		}
 		tenantConfig, err := config.NewTenantConfigurationFromYAML(reader)
 		if err != nil {
@@ -125,7 +126,7 @@ func main() {
 					}
 				}
 			}
-			log.Fatal(err)
+			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
 		serverOption := server.DefaultOption()
@@ -195,9 +196,9 @@ func main() {
 	mfaHandler.AttachTOTPQRCodeHandler(&srv, authDependency)
 
 	go func() {
-		log.Printf("Auth gear boot")
+		logger.Info("Starting auth gear")
 		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
+			logger.WithError(err).Error("Cannot start HTTP server")
 		}
 	}()
 
@@ -207,7 +208,7 @@ func main() {
 	// wait interrupt signal
 	select {
 	case <-sig:
-		log.Printf("Stoping http server ...\n")
+		logger.Info("Stopping HTTP server")
 	}
 
 	// create shutdown context with 10 second timeout
@@ -217,6 +218,6 @@ func main() {
 	// shutdown the server
 	err := srv.Shutdown(ctx)
 	if err != nil {
-		log.Printf("Shutdown request error: %v\n", err)
+		logger.WithError(err).Fatal("Cannot shutdown server")
 	}
 }

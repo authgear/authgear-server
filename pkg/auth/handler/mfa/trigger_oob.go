@@ -33,7 +33,7 @@ type TriggerOOBHandlerFactory struct {
 func (f TriggerOOBHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &TriggerOOBHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
 }
 
 type TriggerOOBRequest struct {
@@ -71,6 +71,7 @@ const TriggerOOBRequestSchema = `
 type TriggerOOBHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
 	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
 	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
 	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`

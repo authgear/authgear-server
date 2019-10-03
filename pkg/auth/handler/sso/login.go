@@ -16,7 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -47,7 +46,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
-	return handler.RequireAuthz(h, h.AuthContext, h)
+	return h.RequireAuthz(h, h)
 }
 
 // LoginRequestPayload login handler request payload
@@ -104,7 +103,7 @@ func (p LoginRequestPayload) Validate() (err error) {
 */
 type LoginHandler struct {
 	TxContext            db.TxContext               `dependency:"TxContext"`
-	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	OAuthAuthProvider    oauth.Provider             `dependency:"OAuthAuthProvider"`
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`

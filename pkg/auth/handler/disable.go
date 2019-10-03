@@ -43,7 +43,7 @@ func (f SetDisableHandlerFactory) NewHandler(request *http.Request) http.Handler
 	h := &SetDisableHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
 }
 
 type setDisableUserPayload struct {
@@ -111,6 +111,7 @@ func (payload setDisableUserPayload) Validate() error {
 */
 type SetDisableHandler struct {
 	AuthContext      coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	RequireAuthz     handler.RequireAuthz   `dependency:"RequireAuthz"`
 	AuthInfoStore    authinfo.Store         `dependency:"AuthInfoStore"`
 	UserProfileStore userprofile.Store      `dependency:"UserProfileStore"`
 	AuditTrail       audit.Trail            `dependency:"AuditTrail"`

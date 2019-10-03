@@ -40,7 +40,7 @@ type UpdateMetadataHandlerFactory struct {
 func (f UpdateMetadataHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &UpdateMetadataHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
 }
 
 type UpdateMetadataRequestPayload struct {
@@ -86,6 +86,7 @@ func (p UpdateMetadataRequestPayload) Validate() error {
 */
 type UpdateMetadataHandler struct {
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`

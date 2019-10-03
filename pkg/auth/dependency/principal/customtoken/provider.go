@@ -14,6 +14,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
@@ -27,13 +28,13 @@ type providerImpl struct {
 func newProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
-	logger *logrus.Entry,
+	loggerFactory logging.Factory,
 	customTokenConfig config.CustomTokenConfiguration,
 ) *providerImpl {
 	return &providerImpl{
 		sqlBuilder:        builder,
 		sqlExecutor:       executor,
-		logger:            logger,
+		logger:            loggerFactory.NewLogger("custom-token-provider"),
 		customTokenConfig: customTokenConfig,
 	}
 }
@@ -41,10 +42,10 @@ func newProvider(
 func NewProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
-	logger *logrus.Entry,
+	loggerFactory logging.Factory,
 	customTokenConfig config.CustomTokenConfiguration,
 ) Provider {
-	return newProvider(builder, executor, logger, customTokenConfig)
+	return newProvider(builder, executor, loggerFactory, customTokenConfig)
 }
 
 func (p *providerImpl) scan(scanner db.Scanner, principal *Principal) error {

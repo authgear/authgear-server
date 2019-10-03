@@ -15,27 +15,16 @@
 package logging
 
 import (
-	"context"
-	"net/http"
-	"regexp"
 	"sync"
 
 	"github.com/sirupsen/logrus"
-
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
 var (
-	loggers                map[string]*logrus.Logger
-	lock                   sync.Mutex
+	loggers                sync.Map
 	configureLoggerHandler func(string, *logrus.Logger)
 	gearModule             string
 )
-
-func init() {
-	loggers = map[string]*logrus.Logger{}
-	loggers[""] = logrus.StandardLogger()
-}
 
 func SetConfigureLoggerHandler(handler func(string, *logrus.Logger)) {
 	configureLoggerHandler = handler
@@ -45,11 +34,9 @@ func SetModule(module string) {
 	gearModule = module
 }
 
-func Logger(name string) *logrus.Logger {
-	lock.Lock()
-	defer lock.Unlock()
-
-	logger, ok := loggers[name]
+func getLogger(name string) *logrus.Logger {
+	l, ok := loggers.Load(name)
+	var logger *logrus.Logger
 	if !ok {
 		logger = logrus.New()
 
@@ -62,80 +49,21 @@ func Logger(name string) *logrus.Logger {
 			handler(name, logger)
 		}
 
-		loggers[name] = logger
+		l, _ = loggers.LoadOrStore(name, logger)
 	}
+	logger = l.(*logrus.Logger)
 
 	return logger
 }
 
-func Loggers() map[string]*logrus.Logger {
-	lock.Lock()
-	defer lock.Unlock()
-
-	ret := map[string]*logrus.Logger{}
-	for loggerName, logger := range loggers {
-		ret[loggerName] = logger
-	}
-	return ret
-}
-
 func LoggerEntry(name string) *logrus.Entry {
-	return LoggerEntryWithTag(name, name)
-}
-
-func LoggerEntryWithTag(name string, tag string) *logrus.Entry {
-	logger := Logger(name)
+	logger := getLogger(name)
 	fields := logrus.Fields{}
 	if name != "" {
 		fields["logger"] = name
-	}
-	if tag != "" {
-		fields["tag"] = tag
 	}
 	if gearModule != "" {
 		fields["module"] = gearModule
 	}
 	return logger.WithFields(fields)
-}
-
-func CreateLoggerWithRequestID(requestID string, logger string, formatter logrus.Formatter) *logrus.Entry {
-	fields := logrus.Fields{}
-	if requestID != "" {
-		fields["request_id"] = requestID
-	}
-	entry := LoggerEntry(logger).WithFields(fields)
-	entry.Logger.Formatter = formatter
-	return entry
-}
-
-func CreateLoggerWithContext(ctx context.Context, logger string) *logrus.Entry {
-	var requestTag string
-	fields := logrus.Fields{}
-	if ctx != nil {
-		if tag, ok := ctx.Value("RequestTag").(string); ok {
-			requestTag = tag
-		}
-
-		if requestID, ok := ctx.Value("RequestID").(string); ok {
-			fields["request_id"] = requestID
-		}
-	}
-	return LoggerEntryWithTag(logger, requestTag).WithFields(fields)
-}
-
-func CreateLogger(r *http.Request, logger string, formatter logrus.Formatter) *logrus.Entry {
-	return CreateLoggerWithRequestID(r.Header.Get(coreHttp.HeaderRequestID), logger, formatter)
-}
-
-func CreateMaskFormatter(maskValues []string, defaultFormatter logrus.Formatter) logrus.Formatter {
-	patterns := []*regexp.Regexp{}
-	for _, v := range maskValues {
-		if p, e := MakeMaskPattern(v); e == nil {
-			patterns = append(patterns, p)
-		}
-	}
-	return &MaskFormatter{
-		MaskPatterns:     patterns,
-		DefaultFormatter: defaultFormatter,
-	}
 }

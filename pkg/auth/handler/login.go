@@ -40,7 +40,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.RequireAuthz(h, h.AuthContext, h)
+	return h.RequireAuthz(h, h)
 }
 
 // LoginRequestPayload login handler request payload
@@ -96,13 +96,13 @@ func (p LoginRequestPayload) Validate() error {
 		@Callback user_sync {UserSyncEvent}
 */
 type LoginHandler struct {
-	AuthContext          coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	AuthInfoStore        authinfo.Store         `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider      `dependency:"PasswordAuthProvider"`
-	AuditTrail           audit.Trail            `dependency:"AuditTrail"`
-	HookProvider         hook.Provider          `dependency:"HookProvider"`
-	AuthnSessionProvider authnsession.Provider  `dependency:"AuthnSessionProvider"`
-	TxContext            db.TxContext           `dependency:"TxContext"`
+	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
+	AuthInfoStore        authinfo.Store        `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider     `dependency:"PasswordAuthProvider"`
+	AuditTrail           audit.Trail           `dependency:"AuditTrail"`
+	HookProvider         hook.Provider         `dependency:"HookProvider"`
+	AuthnSessionProvider authnsession.Provider `dependency:"AuthnSessionProvider"`
+	TxContext            db.TxContext          `dependency:"TxContext"`
 }
 
 // ProvideAuthzPolicy provides authorization policy

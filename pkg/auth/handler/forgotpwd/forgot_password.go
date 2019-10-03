@@ -11,7 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -47,7 +46,7 @@ type ForgotPasswordHandlerFactory struct {
 func (f ForgotPasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ForgotPasswordHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
 }
 
 type ForgotPasswordPayload struct {
@@ -87,7 +86,7 @@ func (payload ForgotPasswordPayload) Validate() error {
 */
 type ForgotPasswordHandler struct {
 	TxContext                 db.TxContext               `dependency:"TxContext"`
-	AuthContext               coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz              handler.RequireAuthz       `dependency:"RequireAuthz"`
 	ForgotPasswordEmailSender forgotpwdemail.Sender      `dependency:"ForgotPasswordEmailSender"`
 	PasswordAuthProvider      password.Provider          `dependency:"PasswordAuthProvider"`
 	IdentityProvider          principal.IdentityProvider `dependency:"IdentityProvider"`
@@ -199,7 +198,7 @@ type ForgotPasswordTestHandlerFactory struct {
 func (f ForgotPasswordTestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ForgotPasswordTestHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(h, nil), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(h, nil), h)
 }
 
 type ForgotPasswordTestPayload struct {
@@ -233,8 +232,8 @@ func (payload ForgotPasswordTestPayload) Validate() error {
 //  }
 //  EOF
 type ForgotPasswordTestHandler struct {
-	AuthContext               coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	ForgotPasswordEmailSender welcemail.TestSender   `dependency:"TestForgotPasswordEmailSender"`
+	RequireAuthz              handler.RequireAuthz `dependency:"RequireAuthz"`
+	ForgotPasswordEmailSender welcemail.TestSender `dependency:"TestForgotPasswordEmailSender"`
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler

@@ -43,7 +43,7 @@ func (f LogoutHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LogoutHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.RequireAuthz(h, h.AuthContext, h)
+	return h.RequireAuthz(h, h)
 }
 
 /*
@@ -61,6 +61,7 @@ func (f LogoutHandlerFactory) NewHandler(request *http.Request) http.Handler {
 */
 type LogoutHandler struct {
 	AuthContext      coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz     handler.RequireAuthz       `dependency:"RequireAuthz"`
 	UserProfileStore userprofile.Store          `dependency:"UserProfileStore"`
 	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
 	SessionProvider  session.Provider           `dependency:"SessionProvider"`

@@ -35,7 +35,7 @@ type GetHandlerFactory struct {
 func (f GetHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &GetHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
 }
 
 type GetRequestPayload struct {
@@ -95,6 +95,7 @@ const GetResponseSchema = `
 */
 type GetHandler struct {
 	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	RequireAuthz    handler.RequireAuthz   `dependency:"RequireAuthz"`
 	TxContext       db.TxContext           `dependency:"TxContext"`
 	SessionProvider session.Provider       `dependency:"SessionProvider"`
 }

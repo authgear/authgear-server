@@ -44,7 +44,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		mockTaskQueue := async.NewMockQueue()
 
 		fh := &ForgotPasswordResetHandler{}
-		logger, hook := test.NewNullLogger()
+		logger, _ := test.NewNullLogger()
 		fh.Logger = logrus.NewEntry(logger)
 		fh.AuditTrail = audit.NewMockTrail(t)
 		fh.TxContext = db.NewMockTxContext()
@@ -105,8 +105,6 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 					"name": "ResourceNotFound"
 				}
 			}`)
-			So(hook.LastEntry().Level, ShouldEqual, logrus.ErrorLevel)
-			So(hook.LastEntry().Message, ShouldEqual, "forgot password code expired")
 		})
 
 		Convey("reset password with unmatched code", func() {
@@ -130,8 +128,6 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 					"name": "ResourceNotFound"
 				}
 			}`)
-			So(hook.LastEntry().Level, ShouldEqual, logrus.ErrorLevel)
-			So(hook.LastEntry().Message, ShouldEqual, "wrong forgot password reset password code")
 		})
 
 		Convey("reset password", func() {

@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -44,7 +43,7 @@ func (f ResetPasswordHandlerFactory) NewHandler(request *http.Request) http.Hand
 	h := &ResetPasswordHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
 }
 
 type ResetPasswordRequestPayload struct {
@@ -95,7 +94,7 @@ func (p ResetPasswordRequestPayload) Validate() error {
 		@Callback user_sync {UserSyncEvent}
 */
 type ResetPasswordHandler struct {
-	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`

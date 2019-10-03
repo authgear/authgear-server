@@ -27,7 +27,6 @@ require (
 	github.com/joho/godotenv v0.0.0-20150907010228-4ed13390c0ac
 	github.com/kelseyhightower/envconfig v1.3.0
 	github.com/kr/pretty v0.1.0 // indirect
-	github.com/kr/text v0.1.0
 	github.com/lestrrat-go/jwx v0.9.0
 	github.com/lib/pq v0.0.0-20171113044440-8c6ee72f3e6b
 	github.com/louischan-oursky/gojsonschema v1.1.1-0.20190618084317-891d0e852428

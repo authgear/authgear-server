@@ -3,10 +3,8 @@ package config
 import (
 	"errors"
 
-	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
-	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
@@ -24,11 +22,6 @@ type Configuration struct {
 
 // ReadFromEnv reads from environment variable and update the configuration.
 func (c *Configuration) ReadFromEnv() error {
-	logger := logging.LoggerEntry("gateway")
-	if err := godotenv.Load(); err != nil {
-		logger.WithError(err).Info(
-			"Error in loading .env file, continue without .env")
-	}
 	err := envconfig.Process("", c)
 	if err != nil {
 		return err

@@ -63,14 +63,14 @@ func main() {
 	// Download source
 	err := source.ClearCache()
 	if err != nil {
-		log.WithField("error", err).Error("unable to clear cache")
+		log.WithField("error", err).Error("Unable to clear cache")
 		os.Exit(1)
 	}
 
 	for _, v := range sources {
 		newSourceURL, err := source.Download(v.SourceURL)
 		if err != nil {
-			log.WithField("error", err).Error("unable to download source")
+			log.WithField("error", err).Error("Unable to download source")
 			os.Exit(1)
 		}
 		(*v).SourceURL = newSourceURL
@@ -144,7 +144,7 @@ func main() {
 				"result": "OK",
 			})
 		})
-		log.Printf("migration server boot")
+		log.Printf("Migration server boot")
 		log.Fatal(http.ListenAndServe(":3000", nil))
 	}
 }
@@ -176,7 +176,7 @@ func runMultiTenantMigrations(
 		"count":        len(apps),
 		"filter_key":   appFilterKey,
 		"filter_value": appFilterValue,
-	}).Info("start running migration")
+	}).Info("Start running migration")
 
 	migratedDatabaseURLs := map[string]struct{}{}
 	for _, a := range apps {
@@ -240,7 +240,7 @@ func runCmd(req commandRequest) (string, error) {
 	if err != nil {
 		l.WithField("error", err).Error(err.Error())
 	} else {
-		l.WithField("result", result).Info("done")
+		l.WithField("result", result).Info("Done")
 	}
 
 	return result, err

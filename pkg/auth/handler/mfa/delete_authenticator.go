@@ -32,7 +32,7 @@ type DeleteAuthenticatorHandlerFactory struct {
 func (f DeleteAuthenticatorHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &DeleteAuthenticatorHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return handler.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h.AuthContext, h)
+	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
 }
 
 type DeleteAuthenticatorRequest struct {
@@ -58,9 +58,10 @@ func (r DeleteAuthenticatorRequest) Validate() error {
 		@Response 200 {EmptyResponse}
 */
 type DeleteAuthenticatorHandler struct {
-	TxContext   db.TxContext           `dependency:"TxContext"`
-	AuthContext coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	MFAProvider mfa.Provider           `dependency:"MFAProvider"`
+	TxContext    db.TxContext           `dependency:"TxContext"`
+	AuthContext  coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	RequireAuthz handler.RequireAuthz   `dependency:"RequireAuthz"`
+	MFAProvider  mfa.Provider           `dependency:"MFAProvider"`
 }
 
 func (h *DeleteAuthenticatorHandler) ProvideAuthzPolicy() authz.Policy {
