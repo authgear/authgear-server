@@ -131,7 +131,7 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 	if err != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": authInfo.ID,
-		}).WithError(err).Error("unable to get user profile")
+		}).WithError(err).Error("Unable to get user profile")
 		return
 	}
 

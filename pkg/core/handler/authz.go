@@ -24,7 +24,7 @@ func (m authzMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		policy := m.policyProvider.ProvideAuthzPolicy()
 		if err := policy.IsAllowed(r, m.authContext); err != nil {
-			m.logger.WithError(err).Info("authz not allowed")
+			m.logger.WithError(err).Info("Failed to pass authz policy")
 			// NOTE(louis): In case the policy returns this error
 			// write a header to hint the client SDK to try refresh.
 			if err == session.ErrSessionNotFound {

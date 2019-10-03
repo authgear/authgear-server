@@ -257,7 +257,7 @@ func (h ForgotPasswordResetFormHandler) Handle(w http.ResponseWriter, r *http.Re
 
 	// check code expiration
 	if timeNow().After(templateCtx.payload.ExpireAtTime) {
-		h.Logger.Error("forgot password code expired")
+		h.Logger.Error("Forgot password code expired")
 		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
@@ -266,7 +266,7 @@ func (h ForgotPasswordResetFormHandler) Handle(w http.ResponseWriter, r *http.Re
 	if e := h.AuthInfoStore.GetAuth(templateCtx.payload.UserID, &authInfo); e != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": templateCtx.payload.UserID,
-		}).WithError(e).Error("user not found")
+		}).WithError(e).Error("User not found")
 		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
@@ -276,7 +276,7 @@ func (h ForgotPasswordResetFormHandler) Handle(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": templateCtx.payload.UserID,
-		}).WithError(err).Error("unable to get password auth principals")
+		}).WithError(err).Error("Unable to get password auth principals")
 		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
@@ -286,10 +286,8 @@ func (h ForgotPasswordResetFormHandler) Handle(w http.ResponseWriter, r *http.Re
 	expectedCode := h.CodeGenerator.Generate(authInfo, hashedPassword, templateCtx.payload.ExpireAtTime)
 	if templateCtx.payload.Code != expectedCode {
 		h.Logger.WithFields(map[string]interface{}{
-			"user_id":       templateCtx.payload.UserID,
-			"code":          templateCtx.payload.Code,
-			"expected_code": expectedCode,
-		}).Error("wrong forgot password reset password code")
+			"user_id": templateCtx.payload.UserID,
+		}).Error("Wrong forgot password reset password code")
 		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}

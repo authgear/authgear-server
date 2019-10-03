@@ -182,7 +182,6 @@ func (s authInfoStore) baseUserBuilder() db.SelectBuilder {
 }
 
 func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowScanner) error {
-	logger := s.logger
 	var (
 		id             string
 		lastSeenAt     pq.NullTime
@@ -204,11 +203,10 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		&verified,
 		&verifyInfo,
 	)
-	if err != nil {
-		logger.Infof(err.Error())
-	}
 	if err == sql.ErrNoRows {
 		return skydb.ErrUserNotFound
+	} else if err != nil {
+		return err
 	}
 
 	authinfo.ID = id
@@ -243,7 +241,7 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 	authinfo.Verified = verified
 	authinfo.VerifyInfo = verifyInfo.JSON
 
-	return err
+	return nil
 }
 
 func (s authInfoStore) GetAuth(id string, authinfo *authinfo.AuthInfo) error {

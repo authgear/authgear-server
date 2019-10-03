@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -69,9 +70,8 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	userID := taskParam.UserID
 
 	v.Logger.WithFields(logrus.Fields{
-		"login_id": loginID,
-		"user_id":  userID,
-	}).Info("start sending user verify message")
+		"user_id": userID,
+	}).Info("Start sending user verify message")
 
 	authInfo := authinfo.AuthInfo{}
 	err = v.AuthInfoStore.GetAuth(userID, &authInfo)
@@ -116,8 +116,7 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 		v.Logger.WithFields(logrus.Fields{
 			"error":        err,
 			"login_id_key": userPrincipal.LoginIDKey,
-			"login_id":     userPrincipal.LoginID,
-		}).Error("fail to send verify request")
+		}).Error("Fail to send verify request")
 		return
 	}
 

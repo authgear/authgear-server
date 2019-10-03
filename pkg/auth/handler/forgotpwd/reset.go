@@ -151,7 +151,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 
 	// check code expiration
 	if timeNow().After(payload.ExpireAtTime) {
-		h.Logger.Error("forgot password code expired")
+		h.Logger.Error("Forgot password code expired")
 		err = genericResetPasswordError()
 		return
 	}
@@ -160,7 +160,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	if e := h.AuthInfoStore.GetAuth(payload.UserID, &authInfo); e != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
-		}).WithError(e).Error("user not found")
+		}).WithError(e).Error("User not found")
 		err = genericResetPasswordError()
 		return
 	}
@@ -170,7 +170,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	if err != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
-		}).WithError(err).Error("unable to get password auth principals")
+		}).WithError(err).Error("Unable to get password auth principals")
 		err = genericResetPasswordError()
 		return
 	}
@@ -180,10 +180,8 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	expectedCode := h.CodeGenerator.Generate(authInfo, hashedPassword, payload.ExpireAtTime)
 	if payload.Code != expectedCode {
 		h.Logger.WithFields(map[string]interface{}{
-			"user_id":       payload.UserID,
-			"code":          payload.Code,
-			"expected_code": expectedCode,
-		}).Error("wrong forgot password reset password code")
+			"user_id": payload.UserID,
+		}).Error("Wrong forgot password reset password code")
 		err = genericResetPasswordError()
 		return
 	}

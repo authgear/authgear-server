@@ -191,8 +191,7 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		h.Logger.WithFields(logrus.Fields{
 			"error":        err,
 			"login_id_key": userPrincipal.LoginIDKey,
-			"login_id":     userPrincipal.LoginID,
-		}).Error("fail to send verify request")
+		}).Error("Fail to send verify request")
 		return
 	}
 

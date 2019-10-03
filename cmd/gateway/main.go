@@ -157,7 +157,7 @@ func main() {
 
 	logger.Info("Start gateway server")
 	if err := srv.ListenAndServe(); err != nil {
-		logger.Errorf("Fail to start gateway server %v", err)
+		logger.WithError(err).Errorf("Fail to start gateway server")
 	}
 }
 
