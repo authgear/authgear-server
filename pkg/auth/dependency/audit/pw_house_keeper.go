@@ -50,7 +50,7 @@ func (p *PwHousekeeper) Housekeep(authID string) (err error) {
 		return
 	}
 
-	p.logger.Info("Remove password history")
+	p.logger.Debug("Remove password history")
 	err = p.passwordHistoryStore.RemovePasswordHistory(authID, p.pwHistorySize, p.pwHistoryDays)
 	if err != nil {
 		p.logger.WithError(err).Error("Unable to housekeep password history")

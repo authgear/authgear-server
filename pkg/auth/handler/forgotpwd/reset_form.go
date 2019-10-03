@@ -132,7 +132,7 @@ func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Req
 	if err != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
-		}).WithError(err).Error("unable to get user profile")
+		}).WithError(err).Debug("unable to get user profile")
 		err = genericResetPasswordError()
 		return
 	}
@@ -257,7 +257,7 @@ func (h ForgotPasswordResetFormHandler) Handle(w http.ResponseWriter, r *http.Re
 
 	// check code expiration
 	if timeNow().After(templateCtx.payload.ExpireAtTime) {
-		h.Logger.Error("Forgot password code expired")
+		h.Logger.Debug("Forgot password code expired")
 		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
@@ -266,7 +266,7 @@ func (h ForgotPasswordResetFormHandler) Handle(w http.ResponseWriter, r *http.Re
 	if e := h.AuthInfoStore.GetAuth(templateCtx.payload.UserID, &authInfo); e != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": templateCtx.payload.UserID,
-		}).WithError(e).Error("User not found")
+		}).WithError(e).Debug("User not found")
 		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}
@@ -287,7 +287,7 @@ func (h ForgotPasswordResetFormHandler) Handle(w http.ResponseWriter, r *http.Re
 	if templateCtx.payload.Code != expectedCode {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": templateCtx.payload.UserID,
-		}).Error("Wrong forgot password reset password code")
+		}).Debug("Wrong forgot password reset password code")
 		h.HandleRequestError(w, genericResetPasswordError())
 		return
 	}

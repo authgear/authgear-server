@@ -60,12 +60,12 @@ func (w *WelcomeEmailSendTask) Run(param interface{}) (err error) {
 
 	w.Logger.WithFields(logrus.Fields{
 		"user_id": taskParam.User.ID,
-	}).Info("Start sending welcome email")
+	}).Debug("Start sending welcome email")
 
 	if err = w.WelcomeEmailSender.Send(taskParam.Email, taskParam.User); err != nil {
 		w.Logger.WithError(err).WithFields(logrus.Fields{
 			"user_id": taskParam.User.ID,
-		}).Error("Fail to send welcome email")
+		}).Debug("Fail to send welcome email")
 		return
 	}
 

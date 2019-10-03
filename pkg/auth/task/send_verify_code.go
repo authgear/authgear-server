@@ -71,7 +71,7 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 
 	v.Logger.WithFields(logrus.Fields{
 		"user_id": userID,
-	}).Info("Start sending user verify message")
+	}).Debug("Start sending user verify message")
 
 	authInfo := authinfo.AuthInfo{}
 	err = v.AuthInfoStore.GetAuth(userID, &authInfo)
@@ -114,9 +114,8 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	user := model.NewUser(authInfo, userProfile)
 	if err = codeSender.Send(*verifyCode, user); err != nil {
 		v.Logger.WithFields(logrus.Fields{
-			"error":        err,
 			"login_id_key": userPrincipal.LoginIDKey,
-		}).Error("Fail to send verify request")
+		}).WithError(err).Debug("Fail to send verify request")
 		return
 	}
 

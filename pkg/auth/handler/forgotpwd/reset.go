@@ -151,7 +151,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 
 	// check code expiration
 	if timeNow().After(payload.ExpireAtTime) {
-		h.Logger.Error("Forgot password code expired")
+		h.Logger.Debug("Forgot password code expired")
 		err = genericResetPasswordError()
 		return
 	}
@@ -160,7 +160,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	if e := h.AuthInfoStore.GetAuth(payload.UserID, &authInfo); e != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
-		}).WithError(e).Error("User not found")
+		}).WithError(e).Debug("User not found")
 		err = genericResetPasswordError()
 		return
 	}
@@ -181,7 +181,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	if payload.Code != expectedCode {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
-		}).Error("Wrong forgot password reset password code")
+		}).Debug("Wrong forgot password reset password code")
 		err = genericResetPasswordError()
 		return
 	}

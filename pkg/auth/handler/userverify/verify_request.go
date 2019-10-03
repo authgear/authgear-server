@@ -189,9 +189,8 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 	user := model.NewUser(*authInfo, userProfile)
 	if err = codeSender.Send(*verifyCode, user); err != nil {
 		h.Logger.WithFields(logrus.Fields{
-			"error":        err,
 			"login_id_key": userPrincipal.LoginIDKey,
-		}).Error("Fail to send verify request")
+		}).WithError(err).Debug("Fail to send verify request")
 		return
 	}
 

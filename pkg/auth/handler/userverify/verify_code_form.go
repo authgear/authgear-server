@@ -98,7 +98,7 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 	if err = h.AuthInfoStore.GetAuth(payload.UserID, &authInfo); err != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
-		}).WithError(err).Error("Unable to get user")
+		}).WithError(err).Debug("Unable to get user")
 		return
 	}
 
