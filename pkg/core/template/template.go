@@ -90,8 +90,10 @@ func ParseHTMLTemplate(templateString string, context map[string]interface{}) (o
 		return
 	}
 
-	var t *pongo2.Template
-	if t, err = pongo2.FromString(templateString); err != nil {
+	tset := newTemplateSet()
+
+	t, err := tset.FromString(templateString)
+	if err != nil {
 		return
 	}
 
@@ -100,4 +102,13 @@ func ParseHTMLTemplate(templateString string, context map[string]interface{}) (o
 	}
 
 	return
+}
+
+func newTemplateSet() *pongo2.TemplateSet {
+	tset := pongo2.NewSet("")
+	tset.BanTag("include")
+	tset.BanTag("import")
+	tset.BanTag("extends")
+	tset.BanTag("ssi")
+	return tset
 }
