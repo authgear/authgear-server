@@ -38,6 +38,7 @@ const (
 				"auth": { "$ref": "#AuthConfiguration" },
 				"mfa": { "$ref": "#MFAConfiguration" },
 				"user_audit": { "$ref": "#UserAuditConfiguration" },
+				"password_policy": { "$ref": "#PasswordPolicyConfiguration" },
 				"forgot_password": { "$ref": "#ForgotPasswordConfiguration" },
 				"welcome_email": { "$ref": "#WelcomeEmailConfiguration" },
 				"sso": { "$ref": "#SSOConfiguration" },
@@ -192,12 +193,11 @@ const (
 			"type": "object",
 			"properties": {
 				"enabled": { "type": "boolean" },
-				"trail_handler_url": { "type": "string" },
-				"password": { "$ref": "#PasswordConfiguration" }
+				"trail_handler_url": { "type": "string" }
 			}
 		},
-		"PasswordConfiguration": {
-			"$id": "#PasswordConfiguration",
+		"PasswordPolicyConfiguration": {
+			"$id": "#PasswordPolicyConfiguration",
 			"type": "object",
 			"properties": {
 				"min_length": { "$ref": "#NonNegativeInteger" },

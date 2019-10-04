@@ -5043,7 +5043,7 @@ func (z OAuthProviderType) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
-func (z *PasswordConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
+func (z *PasswordPolicyConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -5145,7 +5145,7 @@ func (z *PasswordConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z *PasswordConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+func (z *PasswordPolicyConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 10
 	// write "min_length"
 	err = en.Append(0x8a, 0xaa, 0x6d, 0x69, 0x6e, 0x5f, 0x6c, 0x65, 0x6e, 0x67, 0x74, 0x68)
@@ -5258,7 +5258,7 @@ func (z *PasswordConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z *PasswordConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+func (z *PasswordPolicyConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 10
 	// string "min_length"
@@ -5298,7 +5298,7 @@ func (z *PasswordConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
-func (z *PasswordConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
+func (z *PasswordPolicyConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -5401,7 +5401,7 @@ func (z *PasswordConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *PasswordConfiguration) Msgsize() (s int) {
+func (z *PasswordPolicyConfiguration) Msgsize() (s int) {
 	s = 1 + 11 + msgp.IntSize + 19 + msgp.BoolSize + 19 + msgp.BoolSize + 15 + msgp.BoolSize + 16 + msgp.BoolSize + 24 + msgp.IntSize + 18 + msgp.ArrayHeaderSize
 	for za0001 := range z.ExcludedKeywords {
 		s += msgp.StringPrefixSize + len(z.ExcludedKeywords[za0001])
@@ -6520,12 +6520,6 @@ func (z *UserAuditConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "TrailHandlerURL")
 				return
 			}
-		case "password":
-			err = z.Password.DecodeMsg(dc)
-			if err != nil {
-				err = msgp.WrapError(err, "Password")
-				return
-			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -6538,10 +6532,10 @@ func (z *UserAuditConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z *UserAuditConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 3
+func (z UserAuditConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 2
 	// write "enabled"
-	err = en.Append(0x83, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	err = en.Append(0x82, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	if err != nil {
 		return
 	}
@@ -6560,36 +6554,19 @@ func (z *UserAuditConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "TrailHandlerURL")
 		return
 	}
-	// write "password"
-	err = en.Append(0xa8, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64)
-	if err != nil {
-		return
-	}
-	err = z.Password.EncodeMsg(en)
-	if err != nil {
-		err = msgp.WrapError(err, "Password")
-		return
-	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z *UserAuditConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+func (z UserAuditConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 3
+	// map header, size 2
 	// string "enabled"
-	o = append(o, 0x83, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	o = append(o, 0x82, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	o = msgp.AppendBool(o, z.Enabled)
 	// string "trail_handler_url"
 	o = append(o, 0xb1, 0x74, 0x72, 0x61, 0x69, 0x6c, 0x5f, 0x68, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x72, 0x5f, 0x75, 0x72, 0x6c)
 	o = msgp.AppendString(o, z.TrailHandlerURL)
-	// string "password"
-	o = append(o, 0xa8, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64)
-	o, err = z.Password.MarshalMsg(o)
-	if err != nil {
-		err = msgp.WrapError(err, "Password")
-		return
-	}
 	return
 }
 
@@ -6623,12 +6600,6 @@ func (z *UserAuditConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 				err = msgp.WrapError(err, "TrailHandlerURL")
 				return
 			}
-		case "password":
-			bts, err = z.Password.UnmarshalMsg(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Password")
-				return
-			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -6642,8 +6613,8 @@ func (z *UserAuditConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *UserAuditConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.TrailHandlerURL) + 9 + z.Password.Msgsize()
+func (z UserAuditConfiguration) Msgsize() (s int) {
+	s = 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.TrailHandlerURL)
 	return
 }
 
@@ -6775,12 +6746,6 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 						err = msgp.WrapError(err, "UserAudit", "TrailHandlerURL")
 						return
 					}
-				case "password":
-					err = z.UserAudit.Password.DecodeMsg(dc)
-					if err != nil {
-						err = msgp.WrapError(err, "UserAudit", "Password")
-						return
-					}
 				default:
 					err = dc.Skip()
 					if err != nil {
@@ -6788,6 +6753,12 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 						return
 					}
 				}
+			}
+		case "password_policy":
+			err = z.PasswordPolicy.DecodeMsg(dc)
+			if err != nil {
+				err = msgp.WrapError(err, "PasswordPolicy")
+				return
 			}
 		case "forgot_password":
 			err = z.ForgotPassword.DecodeMsg(dc)
@@ -6884,9 +6855,9 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 12
+	// map header, size 13
 	// write "clients"
-	err = en.Append(0x8c, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
+	err = en.Append(0x8d, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
 	if err != nil {
 		return
 	}
@@ -6960,9 +6931,9 @@ func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		return
 	}
 	// write "user_audit"
-	// map header, size 3
+	// map header, size 2
 	// write "enabled"
-	err = en.Append(0xaa, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x61, 0x75, 0x64, 0x69, 0x74, 0x83, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	err = en.Append(0xaa, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x61, 0x75, 0x64, 0x69, 0x74, 0x82, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	if err != nil {
 		return
 	}
@@ -6981,14 +6952,14 @@ func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "UserAudit", "TrailHandlerURL")
 		return
 	}
-	// write "password"
-	err = en.Append(0xa8, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64)
+	// write "password_policy"
+	err = en.Append(0xaf, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79)
 	if err != nil {
 		return
 	}
-	err = z.UserAudit.Password.EncodeMsg(en)
+	err = z.PasswordPolicy.EncodeMsg(en)
 	if err != nil {
-		err = msgp.WrapError(err, "UserAudit", "Password")
+		err = msgp.WrapError(err, "PasswordPolicy")
 		return
 	}
 	// write "forgot_password"
@@ -7061,9 +7032,9 @@ func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *UserConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 12
+	// map header, size 13
 	// string "clients"
-	o = append(o, 0x8c, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
+	o = append(o, 0x8d, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
 	o = msgp.AppendMapHeader(o, uint32(len(z.Clients)))
 	for za0001, za0002 := range z.Clients {
 		o = msgp.AppendString(o, za0001)
@@ -7099,18 +7070,18 @@ func (z *UserConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		return
 	}
 	// string "user_audit"
-	// map header, size 3
+	// map header, size 2
 	// string "enabled"
-	o = append(o, 0xaa, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x61, 0x75, 0x64, 0x69, 0x74, 0x83, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	o = append(o, 0xaa, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x61, 0x75, 0x64, 0x69, 0x74, 0x82, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	o = msgp.AppendBool(o, z.UserAudit.Enabled)
 	// string "trail_handler_url"
 	o = append(o, 0xb1, 0x74, 0x72, 0x61, 0x69, 0x6c, 0x5f, 0x68, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x72, 0x5f, 0x75, 0x72, 0x6c)
 	o = msgp.AppendString(o, z.UserAudit.TrailHandlerURL)
-	// string "password"
-	o = append(o, 0xa8, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64)
-	o, err = z.UserAudit.Password.MarshalMsg(o)
+	// string "password_policy"
+	o = append(o, 0xaf, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79)
+	o, err = z.PasswordPolicy.MarshalMsg(o)
 	if err != nil {
-		err = msgp.WrapError(err, "UserAudit", "Password")
+		err = msgp.WrapError(err, "PasswordPolicy")
 		return
 	}
 	// string "forgot_password"
@@ -7286,12 +7257,6 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 						err = msgp.WrapError(err, "UserAudit", "TrailHandlerURL")
 						return
 					}
-				case "password":
-					bts, err = z.UserAudit.Password.UnmarshalMsg(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "UserAudit", "Password")
-						return
-					}
 				default:
 					bts, err = msgp.Skip(bts)
 					if err != nil {
@@ -7299,6 +7264,12 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 						return
 					}
 				}
+			}
+		case "password_policy":
+			bts, err = z.PasswordPolicy.UnmarshalMsg(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "PasswordPolicy")
+				return
 			}
 		case "forgot_password":
 			bts, err = z.ForgotPassword.UnmarshalMsg(bts)
@@ -7403,7 +7374,7 @@ func (z *UserConfiguration) Msgsize() (s int) {
 			s += msgp.StringPrefixSize + len(za0001) + za0002.Msgsize()
 		}
 	}
-	s += 11 + msgp.StringPrefixSize + len(z.MasterKey) + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin) + 5 + z.Auth.Msgsize() + 4 + z.MFA.Msgsize() + 11 + 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.UserAudit.TrailHandlerURL) + 9 + z.UserAudit.Password.Msgsize() + 16 + z.ForgotPassword.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 4 + 1 + 13 + z.SSO.CustomToken.Msgsize() + 6 + z.SSO.OAuth.Msgsize() + 18 + z.UserVerification.Msgsize() + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.Hook.Secret)
+	s += 11 + msgp.StringPrefixSize + len(z.MasterKey) + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin) + 5 + z.Auth.Msgsize() + 4 + z.MFA.Msgsize() + 11 + 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.UserAudit.TrailHandlerURL) + 16 + z.PasswordPolicy.Msgsize() + 16 + z.ForgotPassword.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 4 + 1 + 13 + z.SSO.CustomToken.Msgsize() + 6 + z.SSO.OAuth.Msgsize() + 18 + z.UserVerification.Msgsize() + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.Hook.Secret)
 	return
 }
 

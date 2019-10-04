@@ -261,22 +261,20 @@ func TestValidateUserConfiguration(t *testing.T) {
 	"hook": {
 		"secret": "hooksecret"
 	},
-	"user_audit": {
-		"password": {
-			"min_length": -1,
-			"minimum_guessable_level": 5,
-			"history_size": -1,
-			"history_days": -1,
-			"expiry_days": -1
-		}
+	"password_policy": {
+		"min_length": -1,
+		"minimum_guessable_level": 5,
+		"history_size": -1,
+		"history_days": -1,
+		"expiry_days": -1
 	}
 }
 				`,
-				`#/user_audit/password/expiry_days: Must be greater than or equal to 0/1
-#/user_audit/password/history_days: Must be greater than or equal to 0/1
-#/user_audit/password/history_size: Must be greater than or equal to 0/1
-#/user_audit/password/min_length: Must be greater than or equal to 0/1
-#/user_audit/password/minimum_guessable_level: Must be less than or equal to 4/1
+				`#/password_policy/expiry_days: Must be greater than or equal to 0/1
+#/password_policy/history_days: Must be greater than or equal to 0/1
+#/password_policy/history_size: Must be greater than or equal to 0/1
+#/password_policy/min_length: Must be greater than or equal to 0/1
+#/password_policy/minimum_guessable_level: Must be less than or equal to 4/1
 `,
 			},
 			// WelcomeEmailConfiguration
