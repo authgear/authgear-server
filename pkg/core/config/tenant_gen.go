@@ -380,103 +380,15 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "DatabaseSchema")
 				return
 			}
-		case "smtp":
-			err = z.SMTP.DecodeMsg(dc)
-			if err != nil {
-				err = msgp.WrapError(err, "SMTP")
-				return
-			}
-		case "twilio":
+		case "hook":
 			var zb0002 uint32
 			zb0002, err = dc.ReadMapHeader()
-			if err != nil {
-				err = msgp.WrapError(err, "Twilio")
-				return
-			}
-			for zb0002 > 0 {
-				zb0002--
-				field, err = dc.ReadMapKeyPtr()
-				if err != nil {
-					err = msgp.WrapError(err, "Twilio")
-					return
-				}
-				switch msgp.UnsafeString(field) {
-				case "account_sid":
-					z.Twilio.AccountSID, err = dc.ReadString()
-					if err != nil {
-						err = msgp.WrapError(err, "Twilio", "AccountSID")
-						return
-					}
-				case "auth_token":
-					z.Twilio.AuthToken, err = dc.ReadString()
-					if err != nil {
-						err = msgp.WrapError(err, "Twilio", "AuthToken")
-						return
-					}
-				case "from":
-					z.Twilio.From, err = dc.ReadString()
-					if err != nil {
-						err = msgp.WrapError(err, "Twilio", "From")
-						return
-					}
-				default:
-					err = dc.Skip()
-					if err != nil {
-						err = msgp.WrapError(err, "Twilio")
-						return
-					}
-				}
-			}
-		case "nexmo":
-			var zb0003 uint32
-			zb0003, err = dc.ReadMapHeader()
-			if err != nil {
-				err = msgp.WrapError(err, "Nexmo")
-				return
-			}
-			for zb0003 > 0 {
-				zb0003--
-				field, err = dc.ReadMapKeyPtr()
-				if err != nil {
-					err = msgp.WrapError(err, "Nexmo")
-					return
-				}
-				switch msgp.UnsafeString(field) {
-				case "api_key":
-					z.Nexmo.APIKey, err = dc.ReadString()
-					if err != nil {
-						err = msgp.WrapError(err, "Nexmo", "APIKey")
-						return
-					}
-				case "secret":
-					z.Nexmo.APISecret, err = dc.ReadString()
-					if err != nil {
-						err = msgp.WrapError(err, "Nexmo", "APISecret")
-						return
-					}
-				case "from":
-					z.Nexmo.From, err = dc.ReadString()
-					if err != nil {
-						err = msgp.WrapError(err, "Nexmo", "From")
-						return
-					}
-				default:
-					err = dc.Skip()
-					if err != nil {
-						err = msgp.WrapError(err, "Nexmo")
-						return
-					}
-				}
-			}
-		case "hook":
-			var zb0004 uint32
-			zb0004, err = dc.ReadMapHeader()
 			if err != nil {
 				err = msgp.WrapError(err, "Hook")
 				return
 			}
-			for zb0004 > 0 {
-				zb0004--
+			for zb0002 > 0 {
+				zb0002--
 				field, err = dc.ReadMapKeyPtr()
 				if err != nil {
 					err = msgp.WrapError(err, "Hook")
@@ -516,9 +428,9 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 6
+	// map header, size 3
 	// write "database_url"
-	err = en.Append(0x86, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
+	err = en.Append(0x83, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
 	if err != nil {
 		return
 	}
@@ -535,80 +447,6 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	err = en.WriteString(z.DatabaseSchema)
 	if err != nil {
 		err = msgp.WrapError(err, "DatabaseSchema")
-		return
-	}
-	// write "smtp"
-	err = en.Append(0xa4, 0x73, 0x6d, 0x74, 0x70)
-	if err != nil {
-		return
-	}
-	err = z.SMTP.EncodeMsg(en)
-	if err != nil {
-		err = msgp.WrapError(err, "SMTP")
-		return
-	}
-	// write "twilio"
-	// map header, size 3
-	// write "account_sid"
-	err = en.Append(0xa6, 0x74, 0x77, 0x69, 0x6c, 0x69, 0x6f, 0x83, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Twilio.AccountSID)
-	if err != nil {
-		err = msgp.WrapError(err, "Twilio", "AccountSID")
-		return
-	}
-	// write "auth_token"
-	err = en.Append(0xaa, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Twilio.AuthToken)
-	if err != nil {
-		err = msgp.WrapError(err, "Twilio", "AuthToken")
-		return
-	}
-	// write "from"
-	err = en.Append(0xa4, 0x66, 0x72, 0x6f, 0x6d)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Twilio.From)
-	if err != nil {
-		err = msgp.WrapError(err, "Twilio", "From")
-		return
-	}
-	// write "nexmo"
-	// map header, size 3
-	// write "api_key"
-	err = en.Append(0xa5, 0x6e, 0x65, 0x78, 0x6d, 0x6f, 0x83, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Nexmo.APIKey)
-	if err != nil {
-		err = msgp.WrapError(err, "Nexmo", "APIKey")
-		return
-	}
-	// write "secret"
-	err = en.Append(0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Nexmo.APISecret)
-	if err != nil {
-		err = msgp.WrapError(err, "Nexmo", "APISecret")
-		return
-	}
-	// write "from"
-	err = en.Append(0xa4, 0x66, 0x72, 0x6f, 0x6d)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Nexmo.From)
-	if err != nil {
-		err = msgp.WrapError(err, "Nexmo", "From")
 		return
 	}
 	// write "hook"
@@ -639,42 +477,13 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 6
+	// map header, size 3
 	// string "database_url"
-	o = append(o, 0x86, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
+	o = append(o, 0x83, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
 	o = msgp.AppendString(o, z.DatabaseURL)
 	// string "database_schema"
 	o = append(o, 0xaf, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61)
 	o = msgp.AppendString(o, z.DatabaseSchema)
-	// string "smtp"
-	o = append(o, 0xa4, 0x73, 0x6d, 0x74, 0x70)
-	o, err = z.SMTP.MarshalMsg(o)
-	if err != nil {
-		err = msgp.WrapError(err, "SMTP")
-		return
-	}
-	// string "twilio"
-	// map header, size 3
-	// string "account_sid"
-	o = append(o, 0xa6, 0x74, 0x77, 0x69, 0x6c, 0x69, 0x6f, 0x83, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
-	o = msgp.AppendString(o, z.Twilio.AccountSID)
-	// string "auth_token"
-	o = append(o, 0xaa, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
-	o = msgp.AppendString(o, z.Twilio.AuthToken)
-	// string "from"
-	o = append(o, 0xa4, 0x66, 0x72, 0x6f, 0x6d)
-	o = msgp.AppendString(o, z.Twilio.From)
-	// string "nexmo"
-	// map header, size 3
-	// string "api_key"
-	o = append(o, 0xa5, 0x6e, 0x65, 0x78, 0x6d, 0x6f, 0x83, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
-	o = msgp.AppendString(o, z.Nexmo.APIKey)
-	// string "secret"
-	o = append(o, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
-	o = msgp.AppendString(o, z.Nexmo.APISecret)
-	// string "from"
-	o = append(o, 0xa4, 0x66, 0x72, 0x6f, 0x6d)
-	o = msgp.AppendString(o, z.Nexmo.From)
 	// string "hook"
 	// map header, size 2
 	// string "sync_hook_timeout_second"
@@ -716,103 +525,15 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "DatabaseSchema")
 				return
 			}
-		case "smtp":
-			bts, err = z.SMTP.UnmarshalMsg(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "SMTP")
-				return
-			}
-		case "twilio":
+		case "hook":
 			var zb0002 uint32
 			zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Twilio")
-				return
-			}
-			for zb0002 > 0 {
-				zb0002--
-				field, bts, err = msgp.ReadMapKeyZC(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Twilio")
-					return
-				}
-				switch msgp.UnsafeString(field) {
-				case "account_sid":
-					z.Twilio.AccountSID, bts, err = msgp.ReadStringBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Twilio", "AccountSID")
-						return
-					}
-				case "auth_token":
-					z.Twilio.AuthToken, bts, err = msgp.ReadStringBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Twilio", "AuthToken")
-						return
-					}
-				case "from":
-					z.Twilio.From, bts, err = msgp.ReadStringBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Twilio", "From")
-						return
-					}
-				default:
-					bts, err = msgp.Skip(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Twilio")
-						return
-					}
-				}
-			}
-		case "nexmo":
-			var zb0003 uint32
-			zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Nexmo")
-				return
-			}
-			for zb0003 > 0 {
-				zb0003--
-				field, bts, err = msgp.ReadMapKeyZC(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Nexmo")
-					return
-				}
-				switch msgp.UnsafeString(field) {
-				case "api_key":
-					z.Nexmo.APIKey, bts, err = msgp.ReadStringBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Nexmo", "APIKey")
-						return
-					}
-				case "secret":
-					z.Nexmo.APISecret, bts, err = msgp.ReadStringBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Nexmo", "APISecret")
-						return
-					}
-				case "from":
-					z.Nexmo.From, bts, err = msgp.ReadStringBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Nexmo", "From")
-						return
-					}
-				default:
-					bts, err = msgp.Skip(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Nexmo")
-						return
-					}
-				}
-			}
-		case "hook":
-			var zb0004 uint32
-			zb0004, bts, err = msgp.ReadMapHeaderBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "Hook")
 				return
 			}
-			for zb0004 > 0 {
-				zb0004--
+			for zb0002 > 0 {
+				zb0002--
 				field, bts, err = msgp.ReadMapKeyZC(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Hook")
@@ -853,7 +574,7 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *AppConfiguration) Msgsize() (s int) {
-	s = 1 + 13 + msgp.StringPrefixSize + len(z.DatabaseURL) + 16 + msgp.StringPrefixSize + len(z.DatabaseSchema) + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 7 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From) + 5 + 1 + 25 + msgp.IntSize + 31 + msgp.IntSize
+	s = 1 + 13 + msgp.StringPrefixSize + len(z.DatabaseURL) + 16 + msgp.StringPrefixSize + len(z.DatabaseSchema) + 5 + 1 + 25 + msgp.IntSize + 31 + msgp.IntSize
 	return
 }
 
@@ -6842,6 +6563,94 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
+		case "smtp":
+			err = z.SMTP.DecodeMsg(dc)
+			if err != nil {
+				err = msgp.WrapError(err, "SMTP")
+				return
+			}
+		case "twilio":
+			var zb0007 uint32
+			zb0007, err = dc.ReadMapHeader()
+			if err != nil {
+				err = msgp.WrapError(err, "Twilio")
+				return
+			}
+			for zb0007 > 0 {
+				zb0007--
+				field, err = dc.ReadMapKeyPtr()
+				if err != nil {
+					err = msgp.WrapError(err, "Twilio")
+					return
+				}
+				switch msgp.UnsafeString(field) {
+				case "account_sid":
+					z.Twilio.AccountSID, err = dc.ReadString()
+					if err != nil {
+						err = msgp.WrapError(err, "Twilio", "AccountSID")
+						return
+					}
+				case "auth_token":
+					z.Twilio.AuthToken, err = dc.ReadString()
+					if err != nil {
+						err = msgp.WrapError(err, "Twilio", "AuthToken")
+						return
+					}
+				case "from":
+					z.Twilio.From, err = dc.ReadString()
+					if err != nil {
+						err = msgp.WrapError(err, "Twilio", "From")
+						return
+					}
+				default:
+					err = dc.Skip()
+					if err != nil {
+						err = msgp.WrapError(err, "Twilio")
+						return
+					}
+				}
+			}
+		case "nexmo":
+			var zb0008 uint32
+			zb0008, err = dc.ReadMapHeader()
+			if err != nil {
+				err = msgp.WrapError(err, "Nexmo")
+				return
+			}
+			for zb0008 > 0 {
+				zb0008--
+				field, err = dc.ReadMapKeyPtr()
+				if err != nil {
+					err = msgp.WrapError(err, "Nexmo")
+					return
+				}
+				switch msgp.UnsafeString(field) {
+				case "api_key":
+					z.Nexmo.APIKey, err = dc.ReadString()
+					if err != nil {
+						err = msgp.WrapError(err, "Nexmo", "APIKey")
+						return
+					}
+				case "secret":
+					z.Nexmo.APISecret, err = dc.ReadString()
+					if err != nil {
+						err = msgp.WrapError(err, "Nexmo", "APISecret")
+						return
+					}
+				case "from":
+					z.Nexmo.From, err = dc.ReadString()
+					if err != nil {
+						err = msgp.WrapError(err, "Nexmo", "From")
+						return
+					}
+				default:
+					err = dc.Skip()
+					if err != nil {
+						err = msgp.WrapError(err, "Nexmo")
+						return
+					}
+				}
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -6855,9 +6664,9 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 13
+	// map header, size 16
 	// write "clients"
-	err = en.Append(0x8d, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
+	err = en.Append(0xde, 0x0, 0x10, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
 	if err != nil {
 		return
 	}
@@ -7026,15 +6835,89 @@ func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "Hook", "Secret")
 		return
 	}
+	// write "smtp"
+	err = en.Append(0xa4, 0x73, 0x6d, 0x74, 0x70)
+	if err != nil {
+		return
+	}
+	err = z.SMTP.EncodeMsg(en)
+	if err != nil {
+		err = msgp.WrapError(err, "SMTP")
+		return
+	}
+	// write "twilio"
+	// map header, size 3
+	// write "account_sid"
+	err = en.Append(0xa6, 0x74, 0x77, 0x69, 0x6c, 0x69, 0x6f, 0x83, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Twilio.AccountSID)
+	if err != nil {
+		err = msgp.WrapError(err, "Twilio", "AccountSID")
+		return
+	}
+	// write "auth_token"
+	err = en.Append(0xaa, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Twilio.AuthToken)
+	if err != nil {
+		err = msgp.WrapError(err, "Twilio", "AuthToken")
+		return
+	}
+	// write "from"
+	err = en.Append(0xa4, 0x66, 0x72, 0x6f, 0x6d)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Twilio.From)
+	if err != nil {
+		err = msgp.WrapError(err, "Twilio", "From")
+		return
+	}
+	// write "nexmo"
+	// map header, size 3
+	// write "api_key"
+	err = en.Append(0xa5, 0x6e, 0x65, 0x78, 0x6d, 0x6f, 0x83, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Nexmo.APIKey)
+	if err != nil {
+		err = msgp.WrapError(err, "Nexmo", "APIKey")
+		return
+	}
+	// write "secret"
+	err = en.Append(0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Nexmo.APISecret)
+	if err != nil {
+		err = msgp.WrapError(err, "Nexmo", "APISecret")
+		return
+	}
+	// write "from"
+	err = en.Append(0xa4, 0x66, 0x72, 0x6f, 0x6d)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Nexmo.From)
+	if err != nil {
+		err = msgp.WrapError(err, "Nexmo", "From")
+		return
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *UserConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 13
+	// map header, size 16
 	// string "clients"
-	o = append(o, 0x8d, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
+	o = append(o, 0xde, 0x0, 0x10, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
 	o = msgp.AppendMapHeader(o, uint32(len(z.Clients)))
 	for za0001, za0002 := range z.Clients {
 		o = msgp.AppendString(o, za0001)
@@ -7126,6 +7009,35 @@ func (z *UserConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "secret"
 	o = append(o, 0xa4, 0x68, 0x6f, 0x6f, 0x6b, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 	o = msgp.AppendString(o, z.Hook.Secret)
+	// string "smtp"
+	o = append(o, 0xa4, 0x73, 0x6d, 0x74, 0x70)
+	o, err = z.SMTP.MarshalMsg(o)
+	if err != nil {
+		err = msgp.WrapError(err, "SMTP")
+		return
+	}
+	// string "twilio"
+	// map header, size 3
+	// string "account_sid"
+	o = append(o, 0xa6, 0x74, 0x77, 0x69, 0x6c, 0x69, 0x6f, 0x83, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
+	o = msgp.AppendString(o, z.Twilio.AccountSID)
+	// string "auth_token"
+	o = append(o, 0xaa, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
+	o = msgp.AppendString(o, z.Twilio.AuthToken)
+	// string "from"
+	o = append(o, 0xa4, 0x66, 0x72, 0x6f, 0x6d)
+	o = msgp.AppendString(o, z.Twilio.From)
+	// string "nexmo"
+	// map header, size 3
+	// string "api_key"
+	o = append(o, 0xa5, 0x6e, 0x65, 0x78, 0x6d, 0x6f, 0x83, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
+	o = msgp.AppendString(o, z.Nexmo.APIKey)
+	// string "secret"
+	o = append(o, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+	o = msgp.AppendString(o, z.Nexmo.APISecret)
+	// string "from"
+	o = append(o, 0xa4, 0x66, 0x72, 0x6f, 0x6d)
+	o = msgp.AppendString(o, z.Nexmo.From)
 	return
 }
 
@@ -7353,6 +7265,94 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 				}
 			}
+		case "smtp":
+			bts, err = z.SMTP.UnmarshalMsg(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "SMTP")
+				return
+			}
+		case "twilio":
+			var zb0007 uint32
+			zb0007, bts, err = msgp.ReadMapHeaderBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Twilio")
+				return
+			}
+			for zb0007 > 0 {
+				zb0007--
+				field, bts, err = msgp.ReadMapKeyZC(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Twilio")
+					return
+				}
+				switch msgp.UnsafeString(field) {
+				case "account_sid":
+					z.Twilio.AccountSID, bts, err = msgp.ReadStringBytes(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Twilio", "AccountSID")
+						return
+					}
+				case "auth_token":
+					z.Twilio.AuthToken, bts, err = msgp.ReadStringBytes(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Twilio", "AuthToken")
+						return
+					}
+				case "from":
+					z.Twilio.From, bts, err = msgp.ReadStringBytes(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Twilio", "From")
+						return
+					}
+				default:
+					bts, err = msgp.Skip(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Twilio")
+						return
+					}
+				}
+			}
+		case "nexmo":
+			var zb0008 uint32
+			zb0008, bts, err = msgp.ReadMapHeaderBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Nexmo")
+				return
+			}
+			for zb0008 > 0 {
+				zb0008--
+				field, bts, err = msgp.ReadMapKeyZC(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Nexmo")
+					return
+				}
+				switch msgp.UnsafeString(field) {
+				case "api_key":
+					z.Nexmo.APIKey, bts, err = msgp.ReadStringBytes(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Nexmo", "APIKey")
+						return
+					}
+				case "secret":
+					z.Nexmo.APISecret, bts, err = msgp.ReadStringBytes(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Nexmo", "APISecret")
+						return
+					}
+				case "from":
+					z.Nexmo.From, bts, err = msgp.ReadStringBytes(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Nexmo", "From")
+						return
+					}
+				default:
+					bts, err = msgp.Skip(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Nexmo")
+						return
+					}
+				}
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -7367,14 +7367,14 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.MapHeaderSize
+	s = 3 + 8 + msgp.MapHeaderSize
 	if z.Clients != nil {
 		for za0001, za0002 := range z.Clients {
 			_ = za0002
 			s += msgp.StringPrefixSize + len(za0001) + za0002.Msgsize()
 		}
 	}
-	s += 11 + msgp.StringPrefixSize + len(z.MasterKey) + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin) + 5 + z.Auth.Msgsize() + 4 + z.MFA.Msgsize() + 11 + 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.UserAudit.TrailHandlerURL) + 16 + z.PasswordPolicy.Msgsize() + 16 + z.ForgotPassword.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 4 + 1 + 13 + z.SSO.CustomToken.Msgsize() + 6 + z.SSO.OAuth.Msgsize() + 18 + z.UserVerification.Msgsize() + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.Hook.Secret)
+	s += 11 + msgp.StringPrefixSize + len(z.MasterKey) + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin) + 5 + z.Auth.Msgsize() + 4 + z.MFA.Msgsize() + 11 + 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.UserAudit.TrailHandlerURL) + 16 + z.PasswordPolicy.Msgsize() + 16 + z.ForgotPassword.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 4 + 1 + 13 + z.SSO.CustomToken.Msgsize() + 6 + z.SSO.OAuth.Msgsize() + 18 + z.UserVerification.Msgsize() + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.Hook.Secret) + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 7 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From)
 	return
 }
 

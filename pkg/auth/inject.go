@@ -195,11 +195,11 @@ func (m DependencyMap) Provide(
 	}
 
 	newSMSClient := func() sms.Client {
-		return sms.NewClient(tConfig.AppConfig)
+		return sms.NewClient(tConfig.UserConfig)
 	}
 
 	newMailSender := func() mail.Sender {
-		return mail.NewSender(tConfig.AppConfig.SMTP)
+		return mail.NewSender(tConfig.UserConfig.SMTP)
 	}
 
 	newMFAProvider := func() mfa.Provider {

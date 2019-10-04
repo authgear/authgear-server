@@ -94,23 +94,6 @@ func makeFullTenantConfig() TenantConfiguration {
 		AppConfig: AppConfiguration{
 			DatabaseURL:    "postgres://user:password@localhost:5432/db?sslmode=disable",
 			DatabaseSchema: "app",
-			SMTP: SMTPConfiguration{
-				Host:     "localhost",
-				Port:     465,
-				Mode:     "ssl",
-				Login:    "user",
-				Password: "password",
-			},
-			Twilio: TwilioConfiguration{
-				AccountSID: "mytwilioaccountsid",
-				AuthToken:  "mytwilioauthtoken",
-				From:       "mytwilio",
-			},
-			Nexmo: NexmoConfiguration{
-				APIKey:    "mynexmoapikey",
-				APISecret: "mynexmoapisecret",
-				From:      "mynexmo",
-			},
 			Hook: HookAppConfiguration{
 				SyncHookTimeout:      10,
 				SyncHookTotalTimeout: 60,
@@ -289,6 +272,23 @@ func makeFullTenantConfig() TenantConfiguration {
 			Hook: HookUserConfiguration{
 				Secret: "hook-secret",
 			},
+			SMTP: SMTPConfiguration{
+				Host:     "localhost",
+				Port:     465,
+				Mode:     "ssl",
+				Login:    "user",
+				Password: "password",
+			},
+			Twilio: TwilioConfiguration{
+				AccountSID: "mytwilioaccountsid",
+				AuthToken:  "mytwilioauthtoken",
+				From:       "mytwilio",
+			},
+			Nexmo: NexmoConfiguration{
+				APIKey:    "mynexmoapikey",
+				APISecret: "mynexmoapisecret",
+				From:      "mynexmo",
+			},
 		},
 		Hooks: []Hook{
 			Hook{
@@ -340,7 +340,7 @@ func TestTenantConfig(t *testing.T) {
 			c, err := NewTenantConfigurationFromYAML(strings.NewReader(inputMinimalYAML))
 			So(err, ShouldBeNil)
 			So(c.UserConfig.CORS.Origin, ShouldEqual, "*")
-			So(c.AppConfig.SMTP.Port, ShouldEqual, 25)
+			So(c.UserConfig.SMTP.Port, ShouldEqual, 25)
 		})
 		Convey("should validate when load from YAML", func() {
 			invalidInput := `
@@ -366,7 +366,7 @@ user_config:
 			So(c.UserConfig.Clients, ShouldBeEmpty)
 			So(c.UserConfig.MasterKey, ShouldEqual, "masterkey")
 			So(c.UserConfig.CORS.Origin, ShouldEqual, "*")
-			So(c.AppConfig.SMTP.Port, ShouldEqual, 25)
+			So(c.UserConfig.SMTP.Port, ShouldEqual, 25)
 		})
 		Convey("should validate when load from JSON", func() {
 			invalidInput := `
