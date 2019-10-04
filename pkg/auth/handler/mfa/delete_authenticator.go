@@ -39,6 +39,17 @@ type DeleteAuthenticatorRequest struct {
 	AuthenticatorID string `json:"authenticator_id"`
 }
 
+// @JSONSchema
+const DeleteAuthenticatorRequestSchema = `
+{
+	"$id": "#DeleteAuthenticatorRequest",
+	"type": "object",
+	"properties": {
+		"authenticator_id": { "type": "string" }
+	}
+}
+`
+
 func (r DeleteAuthenticatorRequest) Validate() error {
 	if r.AuthenticatorID == "" {
 		return skyerr.NewInvalidArgument("missing authenticator ID", []string{"authenticator_id"})
@@ -54,7 +65,8 @@ func (r DeleteAuthenticatorRequest) Validate() error {
 		@SecurityRequirement access_key
 		@SecurityRequirement access_token
 
-		@RequestBody {DeleteAuthenticatorRequest}
+		@RequestBody
+			@JSONSchema {DeleteAuthenticatorRequest}
 		@Response 200 {EmptyResponse}
 */
 type DeleteAuthenticatorHandler struct {

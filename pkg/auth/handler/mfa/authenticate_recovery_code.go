@@ -71,7 +71,8 @@ const AuthenticateRecoveryCodeRequestSchema = `
 		@Tag User
 		@SecurityRequirement access_key
 
-		@RequestBody {AuthenticateRecoveryCodeRequest}
+		@RequestBody
+			@JSONSchema {AuthenticateRecoveryCodeRequest}
 		@Response 200
 			Logged in user and access token.
 			@JSONSchema {AuthResponse}

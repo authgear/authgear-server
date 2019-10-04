@@ -65,7 +65,8 @@ const TriggerOOBRequestSchema = `
 		@SecurityRequirement access_key
 		@SecurityRequirement access_token
 
-		@RequestBody {TriggerOOBRequest}
+		@RequestBody
+			@JSONSchema {TriggerOOBRequest}
 		@Response 200 {EmptyResponse}
 */
 type TriggerOOBHandler struct {

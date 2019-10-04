@@ -78,7 +78,7 @@ const CreateOOBRequestSchema = `
 		{
 			"additionalProperties": false,
 			"properties": {
-				"channel": { "const": "sms" },
+				"channel": { "enum": ["sms"] },
 				"phone": { "type": "string" },
 				"authn_session_token": { "type": "string" }
 			},
@@ -87,7 +87,7 @@ const CreateOOBRequestSchema = `
 		{
 			"additionalProperties": false,
 			"properties": {
-				"channel": { "const": "email" },
+				"channel": { "enum": ["email"] },
 				"email": { "type": "string" },
 				"authn_session_token": { "type": "string" }
 			},
@@ -123,7 +123,8 @@ const CreateOOBResponseSchema = `
 		@SecurityRequirement access_key
 		@SecurityRequirement access_token
 
-		@RequestBody {CreateOOBRequest}
+		@RequestBody
+			@JSONSchema {CreateOOBRequest}
 		@Response 200
 			Details of the authenticator
 			@JSONSchema {CreateOOBResponse}
