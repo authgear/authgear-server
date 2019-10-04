@@ -95,7 +95,8 @@ const ActivateTOTPResponseSchema = `
 		@SecurityRequirement access_key
 		@SecurityRequirement access_token
 
-		@RequestBody {ActivateTOTPRequest}
+		@RequestBody
+			@JSONSchema {ActivateTOTPRequest}
 		@Response 200
 			Details of the authenticator
 			@JSONSchema {ActivateTOTPResponse}

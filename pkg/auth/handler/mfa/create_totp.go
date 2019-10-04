@@ -101,7 +101,8 @@ const CreateTOTPResponseSchema = `
 		@SecurityRequirement access_key
 		@SecurityRequirement access_token
 
-		@RequestBody {CreateTOTPRequest}
+		@RequestBody
+			@JSONSchema {CreateTOTPRequest}
 		@Response 200
 			Details of the authenticator
 			@JSONSchema {CreateTOTPResponse}

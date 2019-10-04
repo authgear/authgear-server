@@ -85,7 +85,8 @@ const ListAuthenticatorResponseSchema = `
 		@SecurityRequirement access_key
 		@SecurityRequirement access_token
 
-		@RequestBody {ListAuthenticatorRequest}
+		@RequestBody
+			@JSONSchema {ListAuthenticatorRequest}
 		@Response 200
 			List of recovery codes.
 			@JSONSchema {ListAuthenticatorResponse}

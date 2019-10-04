@@ -73,7 +73,8 @@ const AuthenticateOOBRequestSchema = `
 		@Tag User
 		@SecurityRequirement access_key
 
-		@RequestBody {AuthenticateOOBRequest}
+		@RequestBody
+			@JSONSchema {AuthenticateOOBRequest}
 		@Response 200
 			Logged in user and access token.
 			@JSONSchema {AuthResponse}

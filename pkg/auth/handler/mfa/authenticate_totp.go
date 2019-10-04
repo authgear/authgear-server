@@ -73,7 +73,8 @@ const AuthenticateTOTPRequestSchema = `
 		@Tag User
 		@SecurityRequirement access_key
 
-		@RequestBody {AuthenticateTOTPRequest}
+		@RequestBody
+			@JSONSchema {AuthenticateTOTPRequest}
 		@Response 200
 			Logged in user and access token.
 			@JSONSchema {AuthResponse}

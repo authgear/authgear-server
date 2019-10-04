@@ -74,7 +74,8 @@ const AuthenticateBearerTokenRequestSchema = `
 		@Tag User
 		@SecurityRequirement access_key
 
-		@RequestBody {AuthenticateBearerTokenRequest}
+		@RequestBody
+			@JSONSchema {AuthenticateBearerTokenRequest}
 		@Response 200
 			Logged in user and access token.
 			@JSONSchema {AuthResponse}
