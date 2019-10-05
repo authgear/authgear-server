@@ -8,6 +8,7 @@ require (
 	github.com/Azure/go-autorest/autorest/adal v0.6.0 // indirect
 	github.com/FZambia/sentinel v1.1.0
 	github.com/Masterminds/squirrel v1.1.0
+	github.com/aws/aws-sdk-go v1.25.6
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
