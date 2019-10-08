@@ -441,6 +441,39 @@ func TestValidateUserConfiguration(t *testing.T) {
 #/user_verification/login_id_keys/provider: user_verification.login_id_keys.provider must be one of the following: "smtp", "twilio", "nexmo"
 `,
 			},
+			// SMTP config
+			{
+				`
+{
+	"master_key": "master_key",
+	"auth": {
+		"authentication_session": {
+			"secret": "authnsessionsecret"
+		},
+		"login_id_keys": {
+			"email": {
+				"type": "email"
+			},
+			"phone": {
+				"type": "phone"
+			},
+			"username": {
+				"type": "raw"
+			}
+		},
+		"allowed_realms": ["default"]
+	},
+	"hook": {
+		"secret": "hooksecret"
+	},
+	"smtp": {
+		"mode": "invalid"
+	}
+}
+				`,
+				`#/smtp/mode: smtp.mode must be one of the following: "normal", "ssl"
+`,
+			},
 		}
 		for _, c := range cases {
 			var value interface{}

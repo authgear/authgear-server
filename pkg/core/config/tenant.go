@@ -192,9 +192,6 @@ func (c *TenantConfiguration) Validate() error {
 	if c.AppConfig.DatabaseSchema == "" {
 		return errors.New("DATABASE_SCHEMA is not set")
 	}
-	if c.UserConfig.SMTP.Mode != "" && !c.UserConfig.SMTP.Mode.IsValid() {
-		return errors.New("Invalid SMTP mode")
-	}
 
 	// Validate AppName
 	if c.AppName == "" {
