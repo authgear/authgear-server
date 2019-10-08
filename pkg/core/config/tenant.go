@@ -500,6 +500,7 @@ type UserConfiguration struct {
 	Auth             AuthConfiguration                 `json:"auth,omitempty" yaml:"auth" msg:"auth"`
 	MFA              MFAConfiguration                  `json:"mfa,omitempty" yaml:"mfa" msg:"mfa"`
 	UserAudit        UserAuditConfiguration            `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit"`
+	PasswordPolicy   PasswordPolicyConfiguration       `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy"`
 	ForgotPassword   ForgotPasswordConfiguration       `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password"`
 	WelcomeEmail     WelcomeEmailConfiguration         `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email"`
 	SSO              SSOConfiguration                  `json:"sso,omitempty" yaml:"sso" msg:"sso"`
@@ -630,12 +631,11 @@ type MFARecoveryCodeConfiguration struct {
 }
 
 type UserAuditConfiguration struct {
-	Enabled         bool                  `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
-	TrailHandlerURL string                `json:"trail_handler_url,omitempty" yaml:"trail_handler_url" msg:"trail_handler_url"`
-	Password        PasswordConfiguration `json:"password,omitempty" yaml:"password" msg:"password"`
+	Enabled         bool   `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
+	TrailHandlerURL string `json:"trail_handler_url,omitempty" yaml:"trail_handler_url" msg:"trail_handler_url"`
 }
 
-type PasswordConfiguration struct {
+type PasswordPolicyConfiguration struct {
 	MinLength             int      `json:"min_length,omitempty" yaml:"min_length" msg:"min_length"`
 	UppercaseRequired     bool     `json:"uppercase_required,omitempty" yaml:"uppercase_required" msg:"uppercase_required"`
 	LowercaseRequired     bool     `json:"lowercase_required,omitempty" yaml:"lowercase_required" msg:"lowercase_required"`

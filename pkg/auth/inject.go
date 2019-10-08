@@ -108,8 +108,8 @@ func (m DependencyMap) Provide(
 	// TODO:
 	// from tConfig
 	isPasswordHistoryEnabled := func() bool {
-		return tConfig.UserConfig.UserAudit.Password.HistorySize > 0 ||
-			tConfig.UserConfig.UserAudit.Password.HistoryDays > 0
+		return tConfig.UserConfig.PasswordPolicy.HistorySize > 0 ||
+			tConfig.UserConfig.PasswordPolicy.HistoryDays > 0
 	}
 
 	newPasswordAuthProvider := func() password.Provider {
@@ -255,25 +255,25 @@ func (m DependencyMap) Provide(
 		return newAuthInfoStore()
 	case "PasswordChecker":
 		return &authAudit.PasswordChecker{
-			PwMinLength:         tConfig.UserConfig.UserAudit.Password.MinLength,
-			PwUppercaseRequired: tConfig.UserConfig.UserAudit.Password.UppercaseRequired,
-			PwLowercaseRequired: tConfig.UserConfig.UserAudit.Password.LowercaseRequired,
-			PwDigitRequired:     tConfig.UserConfig.UserAudit.Password.DigitRequired,
-			PwSymbolRequired:    tConfig.UserConfig.UserAudit.Password.SymbolRequired,
-			PwMinGuessableLevel: tConfig.UserConfig.UserAudit.Password.MinimumGuessableLevel,
-			PwExcludedKeywords:  tConfig.UserConfig.UserAudit.Password.ExcludedKeywords,
-			//PwExcludedFields:       tConfig.UserConfig.UserAudit.Password.ExcludedFields,
-			PwHistorySize:          tConfig.UserConfig.UserAudit.Password.HistorySize,
-			PwHistoryDays:          tConfig.UserConfig.UserAudit.Password.HistoryDays,
-			PasswordHistoryEnabled: tConfig.UserConfig.UserAudit.Password.HistorySize > 0 || tConfig.UserConfig.UserAudit.Password.HistoryDays > 0,
+			PwMinLength:         tConfig.UserConfig.PasswordPolicy.MinLength,
+			PwUppercaseRequired: tConfig.UserConfig.PasswordPolicy.UppercaseRequired,
+			PwLowercaseRequired: tConfig.UserConfig.PasswordPolicy.LowercaseRequired,
+			PwDigitRequired:     tConfig.UserConfig.PasswordPolicy.DigitRequired,
+			PwSymbolRequired:    tConfig.UserConfig.PasswordPolicy.SymbolRequired,
+			PwMinGuessableLevel: tConfig.UserConfig.PasswordPolicy.MinimumGuessableLevel,
+			PwExcludedKeywords:  tConfig.UserConfig.PasswordPolicy.ExcludedKeywords,
+			//PwExcludedFields:       tConfig.UserConfig.PasswordPolicy.ExcludedFields,
+			PwHistorySize:          tConfig.UserConfig.PasswordPolicy.HistorySize,
+			PwHistoryDays:          tConfig.UserConfig.PasswordPolicy.HistoryDays,
+			PasswordHistoryEnabled: tConfig.UserConfig.PasswordPolicy.HistorySize > 0 || tConfig.UserConfig.PasswordPolicy.HistoryDays > 0,
 			PasswordHistoryStore:   newPasswordHistoryStore(),
 		}
 	case "PwHousekeeper":
 		return authAudit.NewPwHousekeeper(
 			newPasswordHistoryStore(),
 			newLoggerFactory(),
-			tConfig.UserConfig.UserAudit.Password.HistorySize,
-			tConfig.UserConfig.UserAudit.Password.HistoryDays,
+			tConfig.UserConfig.PasswordPolicy.HistorySize,
+			tConfig.UserConfig.PasswordPolicy.HistoryDays,
 			isPasswordHistoryEnabled(),
 		)
 	case "PasswordAuthProvider":
