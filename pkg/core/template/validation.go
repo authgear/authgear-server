@@ -78,8 +78,8 @@ var badIdentifiers = []string{
 }
 
 func checkIdentifier(id string) bool {
-	for _, badId := range badIdentifiers {
-		if id == badId {
+	for _, badID := range badIdentifiers {
+		if id == badID {
 			return false
 		}
 	}
