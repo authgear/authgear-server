@@ -1,8 +1,11 @@
 package validation
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"strings"
 	"sync"
 
@@ -64,11 +67,29 @@ func (v *Validator) AddSchemaFragments(schemaStrings ...string) error {
 }
 
 func (v *Validator) ValidateGoValue(schemaID string, value interface{}) error {
+	loader := gojsonschema.NewGoLoader(value)
+	return v.validateWithLoader(schemaID, loader)
+}
+
+func (v *Validator) ValidateReader(schemaID string, r io.Reader) (io.Reader, error) {
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	loader := gojsonschema.NewBytesLoader(b)
+	err = v.validateWithLoader(schemaID, loader)
+	if err != nil {
+		return nil, err
+	}
+	return bytes.NewReader(b), nil
+}
+
+func (v *Validator) validateWithLoader(schemaID string, loader gojsonschema.JSONLoader) error {
 	schema, err := v.getSchema(schemaID)
 	if err != nil {
 		return err
 	}
-	result, err := schema.Validate(gojsonschema.NewGoLoader(value))
+	result, err := schema.Validate(loader)
 	if err != nil {
 		return err
 	}
