@@ -108,31 +108,30 @@ func (h *AuthenticateOOBHandler) DecodeRequest(request *http.Request, resp http.
 
 func (h *AuthenticateOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
-	var result interface{}
-	defer func() {
-		if err == nil {
-			h.HookProvider.DidCommitTx()
-		}
-		h.AuthnSessionProvider.WriteResponse(w, result, err)
-	}()
 
 	payload, err := h.DecodeRequest(r, w)
 	if err != nil {
+		h.AuthnSessionProvider.WriteResponse(w, nil, err)
 		return
 	}
 
 	err = payload.Validate()
 	if err != nil {
+		h.AuthnSessionProvider.WriteResponse(w, nil, err)
 		return
 	}
 
-	result, err = handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
 		result, err = h.Handle(payload)
 		if err == nil {
 			err = h.HookProvider.WillCommitTx()
 		}
 		return
 	})
+	if err == nil {
+		h.HookProvider.DidCommitTx()
+	}
+	h.AuthnSessionProvider.WriteResponse(w, result, err)
 }
 
 func (h *AuthenticateOOBHandler) Handle(req interface{}) (resp interface{}, err error) {

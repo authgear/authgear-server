@@ -135,34 +135,33 @@ func (h ChangePasswordHandler) DecodeRequest(request *http.Request, resp http.Re
 
 func (h ChangePasswordHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var err error
-	var result interface{}
-	defer func() {
-		if err == nil {
-			h.HookProvider.DidCommitTx()
-			authResp := result.(model.AuthResponse)
-			h.SessionWriter.WriteSession(resp, &authResp.AccessToken, nil)
-			handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
-		} else {
-			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
-		}
-	}()
 
 	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
+		handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
 		return
 	}
 
 	if err = payload.Validate(); err != nil {
+		handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
 		return
 	}
 
-	result, err = handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
 		result, err = h.Handle(payload)
 		if err == nil {
 			err = h.HookProvider.WillCommitTx()
 		}
 		return
 	})
+	if err == nil {
+		h.HookProvider.DidCommitTx()
+		authResp := result.(model.AuthResponse)
+		h.SessionWriter.WriteSession(resp, &authResp.AccessToken, nil)
+		handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
+	} else {
+		handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
+	}
 }
 
 func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (resp model.AuthResponse, err error) {

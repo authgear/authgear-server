@@ -190,30 +190,29 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request, resp http.
 
 func (h CustomTokenLoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var err error
-	var result interface{}
-	defer func() {
-		if err == nil {
-			h.HookProvider.DidCommitTx()
-		}
-		h.AuthnSessionProvider.WriteResponse(resp, result, err)
-	}()
 
 	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
+		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
 		return
 	}
 
 	if err = payload.Validate(); err != nil {
+		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
 		return
 	}
 
-	result, err = handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
 		result, err = h.Handle(payload)
 		if err == nil {
 			err = h.HookProvider.WillCommitTx()
 		}
 		return
 	})
+	if err == nil {
+		h.HookProvider.DidCommitTx()
+	}
+	h.AuthnSessionProvider.WriteResponse(resp, result, err)
 }
 
 // Handle function handle custom token login
