@@ -53,7 +53,7 @@ type configuration struct {
 	@SecuritySchemeAPIKey master_key header X-Skygear-API-Key
 		Master key used by admins, can perform administrative operations.
 		Can be used as access key as well.
-	@SecuritySchemeHTTP access_token Bearer JWT
+	@SecuritySchemeHTTP access_token Bearer token
 		Access token of user
 	@SecurityRequirement access_key
 

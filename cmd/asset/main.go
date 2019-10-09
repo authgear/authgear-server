@@ -30,6 +30,23 @@ type configuration struct {
 	UseInsecureCookie                 bool                `envconfig:"INSECURE_COOKIE"`
 }
 
+/*
+	@API Asset Gear
+	@Version 1.0.0
+	@Server {base_url}/_asset
+		Asset Gear URL
+		@Variable base_url https://my_app.skygearapis.com
+			Skygear App URL
+
+	@SecuritySchemeAPIKey access_key header X-Skygear-API-Key
+		Access key used by client app
+	@SecuritySchemeAPIKey master_key header X-Skygear-API-Key
+		Master key used by admins, can perform administrative operations.
+		Can be used as access key as well.
+	@SecuritySchemeHTTP access_token Bearer token
+		Access token of user
+	@SecurityRequirement access_key
+*/
 func main() {
 	logging.SetModule("asset")
 	loggerFactory := logging.NewFactory(logging.NewDefaultMaskedTextFormatter(nil))
