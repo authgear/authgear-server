@@ -45,7 +45,9 @@ func validateTree(tree *parse.Tree) (err error) {
 			case *parse.IfNode, *parse.ListNode, *parse.ActionNode, *parse.TextNode:
 				break
 			case *parse.PipeNode:
-				if len(n.Cmds) > 4 {
+				if len(n.Decl) > 0 {
+					err = fmt.Errorf("template: %s: declaration is forbidden", formatLocation(tree, n))
+				} else if len(n.Cmds) > 4 {
 					err = fmt.Errorf("template: %s: pipeline is too long", formatLocation(tree, n))
 				}
 			case *parse.CommandNode:

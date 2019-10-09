@@ -1,7 +1,9 @@
 package template
 
 import (
+	"fmt"
 	"html/template"
+	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -49,6 +51,17 @@ func TestTemplateValidation(t *testing.T) {
 			So(err, ShouldBeError, "template: email:1:2: forbidden identifier printf")
 		})
 
+		Convey("should not allow variable declaration", func() {
+			var err error
+			longStr := strings.Repeat("\\", 1024*512)
+
+			err = ValidateHTMLTemplate(template(fmt.Sprintf(`{{if $v := "%s" | js}}{{$v|js}}{{$v|js}}{{$v|js}}{{$v|js}}{{end}}`, longStr)))
+			So(err, ShouldBeError, "template: email:1:5: declaration is forbidden")
+
+			err = ValidateHTMLTemplate(template(fmt.Sprintf(`{{$v = "%s"}}{{$v|js}}{{$v|js}}{{$v|js}}{{$v|js}}`, longStr)))
+			So(err, ShouldBeError, "template: email:1:2: declaration is forbidden")
+		})
+
 		Convey("should not allow nesting too deep", func() {
 			var err error
 
@@ -65,16 +78,15 @@ func TestTemplateValidation(t *testing.T) {
 			So(err, ShouldBeError, "template: email:1:19: template nested too deep")
 
 			err = ValidateHTMLTemplate(template(`
-			{{ if $v := js "\\" }}
-				{{ if $v := js $v }}
-					{{ if $v := js $v }}
-						{{ if $v := js $v }}
-							{{$v}}
+			{{ if true }}
+				{{ if true }}
+					{{ if true }}
+						{{ if true }}
 						{{end}}
 					{{end}}
 				{{end}}
 			{{end}}`))
-			So(err, ShouldBeError, "template: email:5:26: template nested too deep")
+			So(err, ShouldBeError, "template: email:5:19: template nested too deep")
 		})
 	})
 }
