@@ -201,10 +201,11 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 	}
 
 	// refresh session
-	err = h.SessionProvider.Refresh(sess)
+	accessToken, err := h.SessionProvider.Refresh(sess)
 	if err != nil {
 		panic(err)
 	}
+	tokens := coreAuth.SessionTokens{ID: sess.ID, AccessToken: accessToken}
 
 	// Get Profile
 	var userProfile userprofile.UserProfile
@@ -229,7 +230,7 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 		return
 	}
 
-	resp = model.NewAuthResponse(user, identity, sess, "")
+	resp = model.NewAuthResponse(user, identity, tokens, "")
 
 	h.AuditTrail.Log(audit.Entry{
 		UserID: authinfo.ID,

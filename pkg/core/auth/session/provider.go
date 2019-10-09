@@ -4,7 +4,7 @@ import "github.com/skygeario/skygear-server/pkg/core/auth"
 
 type Provider interface {
 	// Create creates a session from AuthnSession
-	Create(authnSess *auth.AuthnSession) (*auth.Session, error)
+	Create(authnSess *auth.AuthnSession) (*auth.Session, auth.SessionTokens, error)
 	// GetByToken gets the session identified by the token
 	GetByToken(token string, kind auth.SessionTokenKind) (*auth.Session, error)
 	// Get gets the session identified by the ID
@@ -21,7 +21,7 @@ type Provider interface {
 	List(userID string) ([]*auth.Session, error)
 
 	// Refresh re-generates the access token of the session
-	Refresh(*auth.Session) error
+	Refresh(*auth.Session) (accessToken string, err error)
 
 	// UpdateMFA updates the session MFA.
 	UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepMFAOptions) error

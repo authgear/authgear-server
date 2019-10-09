@@ -24,7 +24,7 @@ func NewMockProvider() *MockProvider {
 	}
 }
 
-func (p *MockProvider) Create(authnSess *auth.AuthnSession) (s *auth.Session, err error) {
+func (p *MockProvider) Create(authnSess *auth.AuthnSession) (*auth.Session, auth.SessionTokens, error) {
 	now := p.Time.NowUTC()
 	id := fmt.Sprintf("%s-%s-%d", authnSess.UserID, authnSess.PrincipalID, p.counter)
 	sess := auth.Session{
@@ -40,14 +40,15 @@ func (p *MockProvider) Create(authnSess *auth.AuthnSession) (s *auth.Session, er
 		AuthenticatorUpdatedAt:  authnSess.AuthenticatorUpdatedAt,
 		CreatedAt:               now,
 		AccessedAt:              now,
-		AccessToken:             "access-token-" + id,
+		AccessTokenHash:         "access-token-" + id,
 		AccessTokenCreatedAt:    now,
 	}
+	tok := auth.SessionTokens{ID: id, AccessToken: "access-token-" + id}
 	p.counter++
 
 	p.Sessions[sess.ID] = sess
 
-	return &sess, nil
+	return &sess, tok, nil
 }
 
 func (p *MockProvider) GetByToken(token string, kind auth.SessionTokenKind) (*auth.Session, error) {
@@ -55,9 +56,9 @@ func (p *MockProvider) GetByToken(token string, kind auth.SessionTokenKind) (*au
 		var expectedToken string
 		switch kind {
 		case auth.SessionTokenKindAccessToken:
-			expectedToken = s.AccessToken
+			expectedToken = s.AccessTokenHash
 		case auth.SessionTokenKindRefreshToken:
-			expectedToken = s.RefreshToken
+			expectedToken = s.RefreshTokenHash
 		default:
 			continue
 		}
@@ -117,11 +118,11 @@ func (p *MockProvider) List(userID string) (sessions []*auth.Session, err error)
 	return
 }
 
-func (p *MockProvider) Refresh(session *auth.Session) error {
-	session.AccessToken = fmt.Sprintf("access-token-%s-%d", session.ID, p.counter)
+func (p *MockProvider) Refresh(session *auth.Session) (string, error) {
+	session.AccessTokenHash = fmt.Sprintf("access-token-%s-%d", session.ID, p.counter)
 	p.Sessions[session.ID] = *session
 	p.counter++
-	return nil
+	return session.AccessTokenHash, nil
 }
 
 func (p *MockProvider) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepMFAOptions) error {

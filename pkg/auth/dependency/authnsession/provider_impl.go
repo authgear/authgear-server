@@ -179,7 +179,7 @@ func (p *providerImpl) GenerateResponseAndUpdateLastLoginAt(authnSess auth.Authn
 		}
 		identity := model.NewIdentity(p.identityProvider, prin)
 
-		sess, err := p.sessionProvider.Create(&authnSess)
+		sess, tokens, err := p.sessionProvider.Create(&authnSess)
 		if err != nil {
 			return nil, err
 		}
@@ -198,7 +198,7 @@ func (p *providerImpl) GenerateResponseAndUpdateLastLoginAt(authnSess auth.Authn
 			return nil, err
 		}
 
-		resp := model.NewAuthResponse(user, identity, sess, authnSess.AuthenticatorBearerToken)
+		resp := model.NewAuthResponse(user, identity, tokens, authnSess.AuthenticatorBearerToken)
 
 		// Refetch the authInfo
 		err = p.authInfoStore.GetAuth(authnSess.UserID, &authInfo)
@@ -253,7 +253,7 @@ func (p *providerImpl) GenerateResponseWithSession(sess *auth.Session, mfaBearer
 	}
 	identity := model.NewIdentity(p.identityProvider, prin)
 
-	resp := model.NewAuthResponse(user, identity, sess, mfaBearerToken)
+	resp := model.NewAuthResponse(user, identity, auth.SessionTokens{ID: sess.ID}, mfaBearerToken)
 	return resp, nil
 }
 

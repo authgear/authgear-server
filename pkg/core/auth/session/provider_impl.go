@@ -12,6 +12,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -48,7 +49,7 @@ func NewProvider(req *http.Request, store Store, eventStore EventStore, authCont
 	}
 }
 
-func (p *providerImpl) Create(authnSess *auth.AuthnSession) (s *auth.Session, err error) {
+func (p *providerImpl) Create(authnSess *auth.AuthnSession) (*auth.Session, auth.SessionTokens, error) {
 	now := p.time.NowUTC()
 	clientID := p.authContext.AccessKey().ClientID
 	clientConfig := p.clientConfigs[clientID]
@@ -72,23 +73,24 @@ func (p *providerImpl) Create(authnSess *auth.AuthnSession) (s *auth.Session, er
 		CreatedAt:               now,
 		AccessedAt:              now,
 	}
+	tok := auth.SessionTokens{ID: sess.ID}
 	if !clientConfig.RefreshTokenDisabled {
-		p.generateRefreshToken(&sess)
+		tok.RefreshToken = p.generateRefreshToken(&sess)
 	}
-	p.generateAccessToken(&sess)
+	tok.AccessToken = p.generateAccessToken(&sess)
 
 	expiry := computeSessionStorageExpiry(&sess, clientConfig)
-	err = p.store.Create(&sess, expiry)
+	err := p.store.Create(&sess, expiry)
 	if err != nil {
-		return
+		return nil, tok, err
 	}
 
 	err = p.eventStore.AppendAccessEvent(&sess, &accessEvent)
 	if err != nil {
-		return
+		return nil, tok, err
 	}
 
-	return &sess, nil
+	return &sess, tok, nil
 }
 
 func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*auth.Session, error) {
@@ -102,21 +104,21 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 		return nil, err
 	}
 
-	var expectedToken string
+	var expectedHash string
 	switch kind {
 	case auth.SessionTokenKindAccessToken:
-		expectedToken = s.AccessToken
+		expectedHash = s.AccessTokenHash
 	case auth.SessionTokenKindRefreshToken:
-		expectedToken = s.RefreshToken
+		expectedHash = s.RefreshTokenHash
 	default:
 		return nil, ErrSessionNotFound
 	}
 
-	if expectedToken == "" {
+	if expectedHash == "" {
 		return nil, ErrSessionNotFound
 	}
 
-	if subtle.ConstantTimeCompare([]byte(expectedToken), []byte(token)) == 0 {
+	if !matchTokenHash(expectedHash, token) {
 		return nil, ErrSessionNotFound
 	}
 
@@ -213,11 +215,11 @@ func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error)
 	return
 }
 
-func (p *providerImpl) Refresh(session *auth.Session) error {
-	p.generateAccessToken(session)
+func (p *providerImpl) Refresh(session *auth.Session) (string, error) {
+	accessToken := p.generateAccessToken(session)
 
 	expiry := computeSessionStorageExpiry(session, p.clientConfigs[session.ClientID])
-	return p.store.Update(session, expiry)
+	return accessToken, p.store.Update(session, expiry)
 }
 
 func (p *providerImpl) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepMFAOptions) error {
@@ -226,20 +228,26 @@ func (p *providerImpl) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepM
 	sess.AuthenticatorType = opts.AuthenticatorType
 	sess.AuthenticatorOOBChannel = opts.AuthenticatorOOBChannel
 	sess.AuthenticatorUpdatedAt = &now
-	return p.Refresh(sess)
+	_, err := p.Refresh(sess)
+	return err
 }
 
-func (p *providerImpl) generateAccessToken(s *auth.Session) {
-	accessToken := corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand)
-	s.AccessToken = encodeToken(s.ID, accessToken)
+func (p *providerImpl) generateAccessToken(s *auth.Session) string {
+	accessToken := encodeToken(s.ID, corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand))
+	s.AccessTokenHash = crypto.SHA256String(accessToken)
 	s.AccessTokenCreatedAt = p.time.NowUTC()
-	return
+	return accessToken
 }
 
-func (p *providerImpl) generateRefreshToken(s *auth.Session) {
-	refreshToken := corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand)
-	s.RefreshToken = encodeToken(s.ID, refreshToken)
-	return
+func (p *providerImpl) generateRefreshToken(s *auth.Session) string {
+	refreshToken := encodeToken(s.ID, corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand))
+	s.RefreshTokenHash = crypto.SHA256String(refreshToken)
+	return refreshToken
+}
+
+func matchTokenHash(expectedHash, inputToken string) bool {
+	inputHash := crypto.SHA256String(inputToken)
+	return subtle.ConstantTimeCompare([]byte(expectedHash), []byte(inputHash)) == 1
 }
 
 func encodeToken(id string, token string) string {

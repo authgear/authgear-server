@@ -19,8 +19,8 @@ func TestComputeSessionExpiry(t *testing.T) {
 			PrincipalID:          "principal-id",
 			CreatedAt:            time.Date(2006, 1, 1, 0, 0, 0, 0, gotime.UTC),
 			AccessedAt:           time.Date(2006, 1, 1, 0, 25, 0, 0, gotime.UTC),
-			AccessToken:          "access-token",
-			RefreshToken:         "refresh-token",
+			AccessTokenHash:      "access-token-hash",
+			RefreshTokenHash:     "refresh-token-hash",
 			AccessTokenCreatedAt: time.Date(2006, 1, 1, 0, 20, 0, 0, gotime.UTC),
 		}
 		config := config.APIClientConfiguration{
@@ -76,8 +76,8 @@ func TestCheckSessionExpired(t *testing.T) {
 			PrincipalID:          "principal-id",
 			CreatedAt:            time.Date(2006, 1, 1, 0, 0, 0, 0, gotime.UTC),
 			AccessedAt:           time.Date(2006, 1, 1, 0, 25, 0, 0, gotime.UTC),
-			AccessToken:          "access-token",
-			RefreshToken:         "refresh-token",
+			AccessTokenHash:      "access-token-hash",
+			RefreshTokenHash:     "refresh-token-hash",
 			AccessTokenCreatedAt: time.Date(2006, 1, 1, 0, 20, 0, 0, gotime.UTC),
 		}
 		config := config.APIClientConfiguration{
