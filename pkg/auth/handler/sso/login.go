@@ -143,30 +143,29 @@ func (h LoginHandler) DecodeRequest(request *http.Request, resp http.ResponseWri
 
 func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var err error
-	var result interface{}
-	defer func() {
-		if err == nil {
-			h.HookProvider.DidCommitTx()
-		}
-		h.AuthnSessionProvider.WriteResponse(resp, result, err)
-	}()
 
 	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
+		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
 		return
 	}
 
 	if err = payload.Validate(); err != nil {
+		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
 		return
 	}
 
-	result, err = handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
 		result, err = h.Handle(payload)
 		if err == nil {
 			err = h.HookProvider.WillCommitTx()
 		}
 		return
 	})
+	if err == nil {
+		h.HookProvider.DidCommitTx()
+	}
+	h.AuthnSessionProvider.WriteResponse(resp, result, err)
 }
 
 func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err error) {
