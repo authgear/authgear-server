@@ -51,7 +51,7 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 				// Clear session if session is not found
 				m.SessionWriter.ClearSession(w)
 			} else if err != nil {
-				log.WithError(err).Debug("Cannot resolve session")
+				log.WithError(err).Error("Cannot resolve session")
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
