@@ -8,17 +8,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/redis"
-
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
-	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/template"
-
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
 	mfaHandler "github.com/skygeario/skygear-server/pkg/auth/handler/mfa"
@@ -26,10 +19,15 @@ import (
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
 	userverifyhandler "github.com/skygeario/skygear-server/pkg/auth/handler/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
+	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
+	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
 type configuration struct {
