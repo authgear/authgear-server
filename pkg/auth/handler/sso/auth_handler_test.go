@@ -281,7 +281,7 @@ func TestAuthHandler(t *testing.T) {
 			sh.ServeHTTP(resp, req)
 			// for web_redirect, it should redirect to original callback url
 			So(resp.Code, ShouldEqual, 200)
-			apiEndpointPattern := `"https://api.example.com/_auth/sso/config"`
+			apiEndpointPattern := `"https:\\/\\/api.example.com/_auth/sso/config"`
 			matched, err := regexp.MatchString(apiEndpointPattern, resp.Body.String())
 			So(err, ShouldBeNil)
 			So(matched, ShouldBeTrue)

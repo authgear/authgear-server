@@ -22,7 +22,7 @@ func TestIFrameHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 			ih.ServeHTTP(resp, req)
 
-			apiEndpointPattern := `"https://api.example.com/_auth/sso/config"`
+			apiEndpointPattern := `"https:\\/\\/api.example.com/_auth/sso/config"`
 			matched, err := regexp.MatchString(apiEndpointPattern, resp.Body.String())
 
 			So(err, ShouldBeNil)
