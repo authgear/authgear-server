@@ -65,11 +65,8 @@ func TestTemplateValidation(t *testing.T) {
 		Convey("should not allow nesting too deep", func() {
 			var err error
 
-			err = ValidateHTMLTemplate(template(`{{ "\\" | js | js | js }}`))
-			So(err, ShouldBeNil)
-
-			err = ValidateHTMLTemplate(template(`{{ "\\" | js | js | js | js }}`))
-			So(err, ShouldBeError, "template: email:1:3: pipeline is too long")
+			err = ValidateHTMLTemplate(template(`{{ js (js (js "\\" | js | js | js) | js | js | js) | js | js | js }}`))
+			So(err, ShouldBeError, "template: email:1:3: pipeline is forbidden")
 
 			err = ValidateHTMLTemplate(template(`{{ js (js (js (js "\\"))) }}`))
 			So(err, ShouldBeNil)

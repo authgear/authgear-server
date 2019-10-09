@@ -11,8 +11,8 @@ import (
 func TestTemplateRender(t *testing.T) {
 	Convey("template rendering", t, func() {
 		Convey("should not render large templates", func() {
-			longStr := strings.Repeat("&", MaxTemplateSize - 25)
-			template := fmt.Sprintf(`{{"%s"|html|html|html}}`, longStr)
+			longStr := strings.Repeat("&", MaxTemplateSize - 50)
+			template := fmt.Sprintf(`{{html (html (html (html "%s")))}}`, longStr)
 
 			var err error
 
