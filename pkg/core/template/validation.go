@@ -70,7 +70,9 @@ func validateTree(tree *parse.Tree) (err error) {
 }
 
 var badIdentifiers = []string{
+	"print",
 	"printf",
+	"println",
 }
 
 func checkIdentifier(id string) bool {

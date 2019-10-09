@@ -3,15 +3,15 @@ package template
 import (
 	"bytes"
 	"fmt"
+	htmlTemplate "html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
+	textTemplate "text/template"
 
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-
-	"github.com/flosch/pongo2"
 )
 
 const MaxTemplateSize = 1024 * 1024 * 1
@@ -56,59 +56,23 @@ func DownloadTemplateFromURL(url string) (string, error) {
 	return string(body), nil
 }
 
-func ParseTextTemplateFromURL(url string, context map[string]interface{}) (string, error) {
-	var body string
-	var err error
-	if body, err = DownloadTemplateFromURL(url); err != nil {
-		return "", err
-	}
-
-	return ParseTextTemplate(body, context)
-}
-
-func ParseHTMLTemplateFromURL(url string, context map[string]interface{}) (string, error) {
-	var body string
-	var err error
-	if body, err = DownloadTemplateFromURL(url); err != nil {
-		return "", err
-	}
-
-	return ParseHTMLTemplate(body, context)
-}
-
-func ParseTextTemplate(templateString string, context map[string]interface{}) (out string, err error) {
+func ParseTextTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
 	if templateString == "" {
 		return
 	}
 
-	// turn off auto html escape
-	autoEscapeOffTemplate := `{%% autoescape off %%}%s{%% endautoescape %%}`
-	autoEscapeOffTemplateString := fmt.Sprintf(autoEscapeOffTemplate, templateString)
-
-	return ParseHTMLTemplate(autoEscapeOffTemplateString, context)
-}
-
-func ParseHTMLTemplate(templateString string, context map[string]interface{}) (out string, err error) {
-	if templateString == "" {
-		return
-	}
-
-	tset := newTemplateSet()
-
-	t, err := tset.FromString(templateString)
+	template, err := textTemplate.New(id).Parse(templateString)
 	if err != nil {
 		return
 	}
 
-	defer func() {
-		if rerr := recover(); rerr != nil {
-			out = ""
-			err = rerr.(error)
-		}
-	}()
+	err = ValidateTextTemplate(template)
+	if err != nil {
+		return
+	}
 
 	var buf bytes.Buffer
-	if err = t.ExecuteWriterUnbuffered(context, &limitedWriter{w: &buf, n: MaxTemplateSize}); err != nil {
+	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, context); err != nil {
 		return
 	}
 
@@ -116,13 +80,28 @@ func ParseHTMLTemplate(templateString string, context map[string]interface{}) (o
 	return
 }
 
-func newTemplateSet() *pongo2.TemplateSet {
-	tset := pongo2.NewSet("", nullTemplateLoader{})
-	tset.BanTag("include")
-	tset.BanTag("import")
-	tset.BanTag("extends")
-	tset.BanTag("ssi")
-	return tset
+func ParseHTMLTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
+	if templateString == "" {
+		return
+	}
+
+	template, err := htmlTemplate.New(id).Parse(templateString)
+	if err != nil {
+		return
+	}
+
+	err = ValidateHTMLTemplate(template)
+	if err != nil {
+		return
+	}
+
+	var buf bytes.Buffer
+	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, context); err != nil {
+		return
+	}
+
+	out = string(buf.Bytes())
+	return
 }
 
 var errLimitReached = skyerr.NewError(skyerr.UnexpectedError, "rendered template is too large")
@@ -134,9 +113,7 @@ type limitedWriter struct {
 
 func (l *limitedWriter) Write(p []byte) (n int, err error) {
 	if l.n-int64(len(p)) <= 0 {
-		// HACK(template): pongo2 does not handle write errors correctly,
-		//                 so panic to abort template rendering early.
-		panic(errLimitReached)
+		return 0, errLimitReached
 	}
 
 	n, err = l.w.Write(p)
@@ -144,9 +121,3 @@ func (l *limitedWriter) Write(p []byte) (n int, err error) {
 
 	return
 }
-
-type nullTemplateLoader struct{}
-
-func (l nullTemplateLoader) Abs(base, name string) string       { return name }
-func (l nullTemplateLoader) Get(path string) (io.Reader, error) { return l, nil }
-func (l nullTemplateLoader) Read(p []byte) (int, error)         { return 0, io.EOF }

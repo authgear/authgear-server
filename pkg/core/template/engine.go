@@ -49,7 +49,7 @@ func (e *Engine) ParseTextTemplate(templateName string, context map[string]inter
 		return
 	}
 
-	return ParseTextTemplate(templateBody, context)
+	return ParseTextTemplate(templateName, templateBody, context)
 }
 
 func (e *Engine) ParseHTMLTemplate(templateName string, context map[string]interface{}, option ParseOption) (out string, err error) {
@@ -58,7 +58,7 @@ func (e *Engine) ParseHTMLTemplate(templateName string, context map[string]inter
 		return
 	}
 
-	return ParseHTMLTemplate(templateBody, context)
+	return ParseHTMLTemplate(templateName, templateBody, context)
 }
 
 func (e *Engine) downloadContent(templateName string, option ParseOption) (templateBody string, err error) {

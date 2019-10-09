@@ -1,6 +1,8 @@
 package template
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -8,16 +10,13 @@ import (
 
 func TestTemplateRender(t *testing.T) {
 	Convey("template rendering", t, func() {
-		Convey("should not allow disabled tags", func() {
-			var err error
-
-			_, err = ParseHTMLTemplate("{% include /etc/passwd %}", nil)
-			So(err, ShouldBeError, "[Error (where: parser) in <string> | Line 1 Col 4 near 'include'] Usage of tag 'include' is not allowed (sandbox restriction active).")
-		})
 		Convey("should not render large templates", func() {
+			longStr := strings.Repeat("\\", 1024*512)
+			template := fmt.Sprintf(`{{if $v := "%s" | js}}{{$v|js}}{{$v|js}}{{$v|js}}{{$v|js}}{{end}}`, longStr)
+
 			var err error
 
-			_, err = ParseHTMLTemplate(`{%for i in "0123456789abcdef"%}{%for i in "0123456789abcdef"%}{%for i in "0123456789abcdef"%}{%for i in "0123456789abcdef"%}{%for i in "0123456789abcdef"%}{%for i in "0123456789abcdef"%}{%for i in "0123456789abcdef"%}{%for i in "0123456789abcdef"%}{%for i in "0123456789abcdef"%}0123456789abcdef{%endfor%}{%endfor%}{%endfor%}{%endfor%}{%endfor%}{%endfor%}{%endfor%}{%endfor%}{%endfor%}`, nil)
+			_, err = ParseHTMLTemplate("test", template, nil)
 			So(err, ShouldBeError, "UnexpectedError: rendered template is too large")
 		})
 	})
