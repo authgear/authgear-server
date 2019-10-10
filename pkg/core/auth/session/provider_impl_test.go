@@ -56,7 +56,7 @@ func TestProvider(t *testing.T) {
 
 		Convey("creating session", func() {
 			Convey("should be successful", func() {
-				session, err := provider.Create(&auth.AuthnSession{
+				session, tokens, err := provider.Create(&auth.AuthnSession{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 					ClientID:    "web-app",
@@ -71,16 +71,17 @@ func TestProvider(t *testing.T) {
 					LastAccess:           accessEvent,
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
-					AccessToken:          session.AccessToken,
-					RefreshToken:         session.RefreshToken,
+					AccessTokenHash:      session.AccessTokenHash,
+					RefreshTokenHash:     session.RefreshTokenHash,
 					AccessTokenCreatedAt: initialTime,
 				})
-				So(session.AccessToken, ShouldHaveLength, tokenLength+len(session.ID)+1)
+				So(tokens.AccessToken, ShouldNotEqual, session.AccessTokenHash)
+				So(tokens.AccessToken, ShouldHaveLength, tokenLength+len(session.ID)+1)
 				So(eventStore.AccessEvents, ShouldResemble, []auth.SessionAccessEvent{accessEvent})
 			})
 
 			Convey("should allow creating multiple sessions for same principal", func() {
-				session1, err := provider.Create(&auth.AuthnSession{
+				session1, _, err := provider.Create(&auth.AuthnSession{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 					ClientID:    "web-app",
@@ -95,12 +96,12 @@ func TestProvider(t *testing.T) {
 					LastAccess:           accessEvent,
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
-					AccessToken:          session1.AccessToken,
-					RefreshToken:         session1.RefreshToken,
+					AccessTokenHash:      session1.AccessTokenHash,
+					RefreshTokenHash:     session1.RefreshTokenHash,
 					AccessTokenCreatedAt: initialTime,
 				})
 
-				session2, err := provider.Create(&auth.AuthnSession{
+				session2, _, err := provider.Create(&auth.AuthnSession{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 					ClientID:    "web-app",
@@ -115,8 +116,8 @@ func TestProvider(t *testing.T) {
 					LastAccess:           accessEvent,
 					CreatedAt:            initialTime,
 					AccessedAt:           initialTime,
-					AccessToken:          session2.AccessToken,
-					RefreshToken:         session2.RefreshToken,
+					AccessTokenHash:      session2.AccessTokenHash,
+					RefreshTokenHash:     session2.RefreshTokenHash,
 					AccessTokenCreatedAt: initialTime,
 				})
 
@@ -126,25 +127,26 @@ func TestProvider(t *testing.T) {
 				clientConfigs["web-app"] = config.APIClientConfiguration{
 					RefreshTokenDisabled: false,
 				}
-				session, err := provider.Create(&auth.AuthnSession{
+				session, tokens, err := provider.Create(&auth.AuthnSession{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 					ClientID:    "web-app",
 				})
 				So(err, ShouldBeNil)
-				So(session.RefreshToken, ShouldHaveLength, tokenLength+len(session.ID)+1)
+				So(session.RefreshTokenHash, ShouldNotBeEmpty)
+				So(tokens.RefreshToken, ShouldHaveLength, tokenLength+len(session.ID)+1)
 			})
 			Convey("should not generate refresh token if disabled", func() {
 				clientConfigs["web-app"] = config.APIClientConfiguration{
 					RefreshTokenDisabled: true,
 				}
-				session, err := provider.Create(&auth.AuthnSession{
+				session, _, err := provider.Create(&auth.AuthnSession{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 					ClientID:    "web-app",
 				})
 				So(err, ShouldBeNil)
-				So(session.RefreshToken, ShouldBeEmpty)
+				So(session.RefreshTokenHash, ShouldBeEmpty)
 			})
 		})
 
@@ -156,8 +158,8 @@ func TestProvider(t *testing.T) {
 				PrincipalID:          "principal-id",
 				CreatedAt:            initialTime,
 				AccessedAt:           initialTime,
-				AccessToken:          "session-id.access-token",
-				RefreshToken:         "session-id.refresh-token",
+				AccessTokenHash:      "9a28402f38dec4f737434e07115d6ad544ae1d0098c63a52293734fec8896673",
+				RefreshTokenHash:     "e7053f4213846393317e3f8eadbfa86e957bf5982be1611a71749fd03693fcf6",
 				AccessTokenCreatedAt: initialTime,
 			}
 			store.Sessions[fixtureSession.ID] = fixtureSession
@@ -186,7 +188,7 @@ func TestProvider(t *testing.T) {
 
 			Convey("should not match empty tokens", func() {
 				Convey("for access token", func() {
-					fixtureSession.AccessToken = ""
+					fixtureSession.AccessTokenHash = ""
 					store.Sessions[fixtureSession.ID] = fixtureSession
 
 					session, err := provider.GetByToken("session-id.", auth.SessionTokenKindAccessToken)
@@ -194,7 +196,7 @@ func TestProvider(t *testing.T) {
 					So(session, ShouldBeNil)
 				})
 				Convey("for refresh token", func() {
-					fixtureSession.RefreshToken = ""
+					fixtureSession.RefreshTokenHash = ""
 					store.Sessions[fixtureSession.ID] = fixtureSession
 
 					session, err := provider.GetByToken("session-id.", auth.SessionTokenKindRefreshToken)
@@ -254,7 +256,7 @@ func TestProvider(t *testing.T) {
 				PrincipalID:          "principal-id",
 				CreatedAt:            initialTime,
 				AccessedAt:           initialTime,
-				AccessToken:          "access-token",
+				AccessTokenHash:      "access-token-hash",
 				AccessTokenCreatedAt: initialTime,
 			}
 			timeProvider.AdvanceSeconds(100)
@@ -282,7 +284,7 @@ func TestProvider(t *testing.T) {
 				PrincipalID:          "principal-id",
 				CreatedAt:            initialTime,
 				AccessedAt:           initialTime,
-				AccessToken:          "access-token",
+				AccessTokenHash:      "access-token-hash",
 				AccessTokenCreatedAt: initialTime,
 			}
 

@@ -135,13 +135,13 @@ func (h RefreshHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		err = h.SessionProvider.Refresh(session)
+		accessToken, err := h.SessionProvider.Refresh(session)
 		if err != nil {
 			err = skyerr.NewNotAuthenticatedErr()
 			return
 		}
 
-		result = RefreshResponse{AccessToken: session.AccessToken}
+		result = RefreshResponse{AccessToken: accessToken}
 		return
 	})
 }

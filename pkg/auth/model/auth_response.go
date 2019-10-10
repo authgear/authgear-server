@@ -40,14 +40,14 @@ func NewAuthResponseWithUserIdentity(user User, identity Identity) AuthResponse 
 	}
 }
 
-func NewAuthResponse(user User, identity Identity, session *auth.Session, mfaBearerToken string) AuthResponse {
+func NewAuthResponse(user User, identity Identity, tokens auth.SessionTokens, mfaBearerToken string) AuthResponse {
 	return AuthResponse{
 		User:           user,
 		Identity:       &identity,
-		AccessToken:    session.AccessToken,
-		RefreshToken:   session.RefreshToken,
+		AccessToken:    tokens.AccessToken,
+		RefreshToken:   tokens.RefreshToken,
 		MFABearerToken: mfaBearerToken,
-		SessionID:      session.ID,
+		SessionID:      tokens.ID,
 	}
 }
 

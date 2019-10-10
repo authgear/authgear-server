@@ -41,9 +41,15 @@ type Session struct {
 	CreatedAt  time.Time `json:"created_at"`
 	AccessedAt time.Time `json:"accessed_at"`
 
-	AccessToken          string    `json:"access_token"`
-	RefreshToken         string    `json:"refresh_token,omitempty"`
+	AccessTokenHash      string    `json:"access_token_hash"`
+	RefreshTokenHash     string    `json:"refresh_token_hash,omitempty"`
 	AccessTokenCreatedAt time.Time `json:"access_token_created_at"`
+}
+
+type SessionTokens struct {
+	ID           string
+	AccessToken  string
+	RefreshToken string
 }
 
 type SessionAccessEvent struct {

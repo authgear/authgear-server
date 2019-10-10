@@ -32,8 +32,8 @@ func TestRefreshHandler(t *testing.T) {
 			PrincipalID:          "principal-id",
 			CreatedAt:            now,
 			AccessedAt:           now,
-			AccessToken:          "access-token",
-			RefreshToken:         "refresh-token",
+			AccessTokenHash:      "access-token",
+			RefreshTokenHash:     "refresh-token",
 			AccessTokenCreatedAt: now,
 		}
 		sessionProvider.Sessions[session.ID] = *session
@@ -73,7 +73,7 @@ func TestRefreshHandler(t *testing.T) {
 				}
 			}`)
 
-			So(sessionProvider.Sessions[session.ID].AccessToken, ShouldEqual, "access-token-session-id-0")
+			So(sessionProvider.Sessions[session.ID].AccessTokenHash, ShouldEqual, "access-token-session-id-0")
 		})
 	})
 }

@@ -68,10 +68,10 @@ func (m *MockContext) UseUser(userID string, principalID string) *MockContext {
 		VerifyInfo: map[string]bool{},
 	}
 	m.session = &auth.Session{
-		ID:          fmt.Sprintf("%s-%s", userID, principalID),
-		UserID:      userID,
-		PrincipalID: principalID,
-		AccessToken: fmt.Sprintf("access-token-%s-%s", userID, principalID),
+		ID:              fmt.Sprintf("%s-%s", userID, principalID),
+		UserID:          userID,
+		PrincipalID:     principalID,
+		AccessTokenHash: fmt.Sprintf("access-token-%s-%s", userID, principalID),
 	}
 	return m
 }
