@@ -94,14 +94,14 @@ func (s *GCEStorage) PresignPutObject(name string, accessType AccessType, header
 	return &req, nil
 }
 
-func (s *GCEStorage) PresignGetObject(name string) (*url.URL, error) {
+func (s *GCEStorage) PresignGetOrHeadObject(name string, method string) (*url.URL, error) {
 	now := time.Now().UTC()
 	expires := now.Add(1 * time.Hour)
 
 	opts := storage.SignedURLOptions{
 		GoogleAccessID: s.ServiceAccount,
 		PrivateKey:     s.PrivateKey,
-		Method:         "GET",
+		Method:         method,
 		Expires:        expires,
 		Scheme:         storage.SigningSchemeV4,
 	}
@@ -116,6 +116,14 @@ func (s *GCEStorage) PresignGetObject(name string) (*url.URL, error) {
 	}
 
 	return u, nil
+}
+
+func (s *GCEStorage) PresignGetObject(name string) (*url.URL, error) {
+	return s.PresignGetOrHeadObject(name, "GET")
+}
+
+func (s *GCEStorage) PresignHeadObject(name string) (*url.URL, error) {
+	return s.PresignGetOrHeadObject(name, "HEAD")
 }
 
 func (s *GCEStorage) StandardToProprietary(header http.Header) http.Header {

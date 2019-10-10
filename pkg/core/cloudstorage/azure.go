@@ -81,6 +81,10 @@ func (s *AzureStorage) PresignGetObject(name string) (*url.URL, error) {
 	})
 }
 
+func (s *AzureStorage) PresignHeadObject(name string) (*url.URL, error) {
+	return s.PresignGetObject(name)
+}
+
 func (s *AzureStorage) StandardToProprietary(header http.Header) http.Header {
 	return RewriteHeaderName(header, AzureStandardToProprietaryMap)
 }

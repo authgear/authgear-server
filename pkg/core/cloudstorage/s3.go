@@ -143,6 +143,25 @@ func (s *S3Storage) PresignGetObject(name string) (*url.URL, error) {
 	return u, nil
 }
 
+func (s *S3Storage) PresignHeadObject(name string) (*url.URL, error) {
+	input := &s3.HeadObjectInput{
+		Bucket: aws.String(s.Bucket),
+		Key:    aws.String(name),
+	}
+	req, _ := s.s3.HeadObjectRequest(input)
+	req.NotHoist = false
+	urlStr, _, err := req.PresignRequest(1 * time.Hour)
+	if err != nil {
+		return nil, err
+	}
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
+}
+
 func (s *S3Storage) StandardToProprietary(header http.Header) http.Header {
 	return RewriteHeaderName(header, S3StandardToProprietaryMap)
 }

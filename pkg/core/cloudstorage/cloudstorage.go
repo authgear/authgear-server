@@ -26,6 +26,8 @@ type Storage interface {
 	PresignPutObject(name string, accessType AccessType, header http.Header) (*http.Request, error)
 	// PresignGetObject returns an URL that is ready for use.
 	PresignGetObject(name string) (*url.URL, error)
+	// PresignHeadObject returns an URL that is ready for use.
+	PresignHeadObject(name string) (*url.URL, error)
 	// AccessType returns AccessType stored in the header.
 	AccessType(header http.Header) AccessType
 	// StandardToProprietary rewrites any standard headers to proprietary ones
