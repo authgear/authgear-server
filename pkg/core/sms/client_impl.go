@@ -8,27 +8,27 @@ import (
 var ErrNoAvailableClient = errors.New("no available client")
 
 type clientImpl struct {
-	appConfig    config.AppConfiguration
+	userConfig   config.UserConfiguration
 	nexmoClient  *NexmoClient
 	twilioClient *TwilioClient
 }
 
-func NewClient(appConfig config.AppConfiguration) Client {
-	nexmoConfig := appConfig.Nexmo
-	twilioConfig := appConfig.Twilio
+func NewClient(userConfig config.UserConfiguration) Client {
+	nexmoConfig := userConfig.Nexmo
+	twilioConfig := userConfig.Twilio
 
 	var nexmoClient *NexmoClient
-	if nexmoConfig.APIKey != "" && nexmoConfig.APISecret != "" {
+	if nexmoConfig.IsValid() {
 		nexmoClient = NewNexmoClient(nexmoConfig)
 	}
 
 	var twilioClient *TwilioClient
-	if twilioConfig.AccountSID != "" && twilioConfig.AuthToken != "" {
+	if twilioConfig.IsValid() {
 		twilioClient = NewTwilioClient(twilioConfig)
 	}
 
 	return &clientImpl{
-		appConfig:    appConfig,
+		userConfig:   userConfig,
 		nexmoClient:  nexmoClient,
 		twilioClient: twilioClient,
 	}

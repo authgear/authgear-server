@@ -29,21 +29,21 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templat
 				AppName:        c.AppName,
 				URLPrefix:      userVerifyConfig.URLPrefix,
 				ProviderConfig: verifyConfig.ProviderConfig,
-				Sender:         mail.NewSender(c.AppConfig.SMTP),
+				Sender:         mail.NewSender(c.UserConfig.SMTP),
 				TemplateEngine: templateEngine,
 			}
 		case config.UserVerificationProviderTwilio:
 			codeSender = &SMSCodeSender{
 				AppName:        c.AppName,
 				URLPrefix:      userVerifyConfig.URLPrefix,
-				SMSClient:      sms.NewTwilioClient(c.AppConfig.Twilio),
+				SMSClient:      sms.NewTwilioClient(c.UserConfig.Twilio),
 				TemplateEngine: templateEngine,
 			}
 		case config.UserVerificationProviderNexmo:
 			codeSender = &SMSCodeSender{
 				AppName:        c.AppName,
 				URLPrefix:      userVerifyConfig.URLPrefix,
-				SMSClient:      sms.NewNexmoClient(c.AppConfig.Nexmo),
+				SMSClient:      sms.NewNexmoClient(c.UserConfig.Nexmo),
 				TemplateEngine: templateEngine,
 			}
 		}

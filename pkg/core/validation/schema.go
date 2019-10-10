@@ -43,7 +43,10 @@ const (
 				"welcome_email": { "$ref": "#WelcomeEmailConfiguration" },
 				"sso": { "$ref": "#SSOConfiguration" },
 				"user_verification": { "$ref": "#UserVerificationConfiguration" },
-				"hook": { "$ref": "#HookUserConfiguration" }
+				"hook": { "$ref": "#HookUserConfiguration" },
+				"smtp" : { "$ref": "#SMTPConfiguration" },
+				"twilio" : { "$ref": "#TwilioConfiguration" },
+				"nexmo" : { "$ref": "#NexmoConfiguration" }
 			},
 			"required": ["master_key", "auth", "hook"]
 		},
@@ -420,6 +423,38 @@ const (
 				"secret": { "$ref": "#NonEmptyString" }
 			},
 			"required": ["secret"]
+		},
+		"SMTPConfiguration": {
+			"$id": "#SMTPConfiguration",
+			"type": "object",
+			"properties": {
+				"host": { "type": "string" },
+				"port": { "$ref": "#NonNegativeInteger" },
+				"mode": {
+					"type": "string",
+					"enum": ["normal", "ssl"]
+				},
+				"login": { "type": "string" },
+				"password": { "type": "string" }
+			}
+		},
+		"TwilioConfiguration": {
+			"$id": "#TwilioConfiguration",
+			"type": "object",
+			"properties": {
+				"account_sid": { "type": "string" },
+				"auth_token": { "type": "string" },
+				"from": { "type": "string" }
+			}
+		},
+		"NexmoConfiguration": {
+			"$id": "#NexmoConfiguration",
+			"type": "object",
+			"properties": {
+				"api_key": { "type": "string" },
+				"secret": { "type": "string" },
+				"from": { "type": "string" }
+			}
 		}
 	}
 }

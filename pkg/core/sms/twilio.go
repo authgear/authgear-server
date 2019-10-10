@@ -16,7 +16,7 @@ type TwilioClient struct {
 
 func NewTwilioClient(c config.TwilioConfiguration) *TwilioClient {
 	var twilioClient *gotwilio.Twilio
-	if c.AccountSID != "" && c.AuthToken != "" {
+	if c.IsValid() {
 		twilioClient = gotwilio.NewTwilioClient(c.AccountSID, c.AuthToken)
 	}
 

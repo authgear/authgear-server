@@ -162,13 +162,13 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 		c.UserConfig.Hook.Secret,
 		c.AppConfig.DatabaseURL,
 		c.AppConfig.DatabaseSchema,
-		c.AppConfig.SMTP.Host,
-		c.AppConfig.SMTP.Login,
-		c.AppConfig.SMTP.Password,
-		c.AppConfig.Twilio.AccountSID,
-		c.AppConfig.Twilio.AuthToken,
-		c.AppConfig.Nexmo.APIKey,
-		c.AppConfig.Nexmo.APISecret,
+		c.UserConfig.SMTP.Host,
+		c.UserConfig.SMTP.Login,
+		c.UserConfig.SMTP.Password,
+		c.UserConfig.Twilio.AccountSID,
+		c.UserConfig.Twilio.AuthToken,
+		c.UserConfig.Nexmo.APIKey,
+		c.UserConfig.Nexmo.APISecret,
 	)
 	oauthSecrets := make([]string, len(c.UserConfig.SSO.OAuth.Providers)*2)
 	for i, oauthConfig := range c.UserConfig.SSO.OAuth.Providers {
@@ -191,9 +191,6 @@ func (c *TenantConfiguration) Validate() error {
 	}
 	if c.AppConfig.DatabaseSchema == "" {
 		return errors.New("DATABASE_SCHEMA is not set")
-	}
-	if c.AppConfig.SMTP.Mode != "" && !c.AppConfig.SMTP.Mode.IsValid() {
-		return errors.New("Invalid SMTP mode")
 	}
 
 	// Validate AppName
@@ -409,11 +406,11 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 
 	// Set default SMTPConfiguration
-	if c.AppConfig.SMTP.Mode == "" {
-		c.AppConfig.SMTP.Mode = SMTPModeNormal
+	if c.UserConfig.SMTP.Mode == "" {
+		c.UserConfig.SMTP.Mode = SMTPModeNormal
 	}
-	if c.AppConfig.SMTP.Port == 0 {
-		c.AppConfig.SMTP.Port = 25
+	if c.UserConfig.SMTP.Port == 0 {
+		c.UserConfig.SMTP.Port = 25
 	}
 
 	// Set type to id
@@ -506,6 +503,9 @@ type UserConfiguration struct {
 	SSO              SSOConfiguration                  `json:"sso,omitempty" yaml:"sso" msg:"sso"`
 	UserVerification UserVerificationConfiguration     `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification"`
 	Hook             HookUserConfiguration             `json:"hook,omitempty" yaml:"hook" msg:"hook"`
+	SMTP             SMTPConfiguration                 `json:"smtp,omitempty" yaml:"smtp" msg:"smtp"`
+	Twilio           TwilioConfiguration               `json:"twilio,omitempty" yaml:"twilio" msg:"twilio"`
+	Nexmo            NexmoConfiguration                `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo"`
 }
 
 // SessionTransportType indicates the transport used for session tokens
@@ -828,9 +828,6 @@ type HookUserConfiguration struct {
 type AppConfiguration struct {
 	DatabaseURL    string               `json:"database_url,omitempty" yaml:"database_url" msg:"database_url"`
 	DatabaseSchema string               `json:"database_schema,omitempty" yaml:"database_schema" msg:"database_schema"`
-	SMTP           SMTPConfiguration    `json:"smtp,omitempty" yaml:"smtp" msg:"smtp"`
-	Twilio         TwilioConfiguration  `json:"twilio,omitempty" yaml:"twilio" msg:"twilio"`
-	Nexmo          NexmoConfiguration   `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo"`
 	Hook           HookAppConfiguration `json:"hook,omitempty" yaml:"hook" msg:"hook"`
 }
 
@@ -841,34 +838,36 @@ const (
 	SMTPModeSSL    SMTPMode = "ssl"
 )
 
-func (mode SMTPMode) IsValid() bool {
-	switch mode {
-	case SMTPModeNormal:
-		return true
-	case SMTPModeSSL:
-		return true
-	}
-	return false
+type SMTPConfiguration struct {
+	Host     string   `json:"host,omitempty" yaml:"host" msg:"host" envconfig:"HOST"`
+	Port     int      `json:"port,omitempty" yaml:"port" msg:"port" envconfig:"PORT"`
+	Mode     SMTPMode `json:"mode,omitempty" yaml:"mode" msg:"mode" envconfig:"MODE"`
+	Login    string   `json:"login,omitempty" yaml:"login" msg:"login" envconfig:"LOGIN"`
+	Password string   `json:"password,omitempty" yaml:"password" msg:"password" envconfig:"PASSWORD"`
 }
 
-type SMTPConfiguration struct {
-	Host     string   `json:"host,omitempty" yaml:"host" msg:"host"`
-	Port     int      `json:"port,omitempty" yaml:"port" msg:"port"`
-	Mode     SMTPMode `json:"mode,omitempty" yaml:"mode" msg:"mode"`
-	Login    string   `json:"login,omitempty" yaml:"login" msg:"login"`
-	Password string   `json:"password,omitempty" yaml:"password" msg:"password"`
+func (c SMTPConfiguration) IsValid() bool {
+	return c.Host != ""
 }
 
 type TwilioConfiguration struct {
-	AccountSID string `json:"account_sid,omitempty" yaml:"account_sid" msg:"account_sid"`
-	AuthToken  string `json:"auth_token,omitempty" yaml:"auth_token" msg:"auth_token"`
-	From       string `json:"from,omitempty" yaml:"from" msg:"from"`
+	AccountSID string `json:"account_sid,omitempty" yaml:"account_sid" msg:"account_sid" envconfig:"ACCOUNT_SID"`
+	AuthToken  string `json:"auth_token,omitempty" yaml:"auth_token" msg:"auth_token" envconfig:"AUTH_TOKEN"`
+	From       string `json:"from,omitempty" yaml:"from" msg:"from" envconfig:"FROM"`
+}
+
+func (c TwilioConfiguration) IsValid() bool {
+	return c.AccountSID != "" && c.AuthToken != ""
 }
 
 type NexmoConfiguration struct {
-	APIKey    string `json:"api_key,omitempty" yaml:"api_key" msg:"api_key"`
-	APISecret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
-	From      string `json:"from,omitempty" yaml:"from" msg:"from"`
+	APIKey    string `json:"api_key,omitempty" yaml:"api_key" msg:"api_key" envconfig:"API_KEY"`
+	APISecret string `json:"secret,omitempty" yaml:"secret" msg:"secret" envconfig:"API_SECRET"`
+	From      string `json:"from,omitempty" yaml:"from" msg:"from" envconfig:"FROM"`
+}
+
+func (c NexmoConfiguration) IsValid() bool {
+	return c.APIKey != "" && c.APISecret != ""
 }
 
 type HookAppConfiguration struct {

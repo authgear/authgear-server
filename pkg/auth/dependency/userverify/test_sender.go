@@ -48,7 +48,7 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
 			ProviderConfig: keyConfig,
-			Sender:         mail.NewSender(d.Config.AppConfig.SMTP),
+			Sender:         mail.NewSender(d.Config.UserConfig.SMTP),
 			TemplateEngine: templateEngine,
 		}
 
@@ -56,7 +56,7 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 		codeSender = &SMSCodeSender{
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
-			SMSClient:      sms.NewTwilioClient(d.Config.AppConfig.Twilio),
+			SMSClient:      sms.NewTwilioClient(d.Config.UserConfig.Twilio),
 			TemplateEngine: templateEngine,
 		}
 
@@ -64,7 +64,7 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 		codeSender = &SMSCodeSender{
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
-			SMSClient:      sms.NewNexmoClient(d.Config.AppConfig.Nexmo),
+			SMSClient:      sms.NewNexmoClient(d.Config.UserConfig.Nexmo),
 			TemplateEngine: templateEngine,
 		}
 	}
