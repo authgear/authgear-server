@@ -40,9 +40,10 @@ import (
 )
 
 type DependencyMap struct {
-	TemplateEngine    *template.Engine
-	AsyncTaskExecutor *async.Executor
-	UseInsecureCookie bool
+	TemplateEngine       *template.Engine
+	AsyncTaskExecutor    *async.Executor
+	UseInsecureCookie    bool
+	DefaultConfiguration config.DefaultConfiguration
 }
 
 // Provide provides dependency instance by name
@@ -52,8 +53,26 @@ func (m DependencyMap) Provide(
 	request *http.Request,
 	ctx context.Context,
 	requestID string,
-	tConfig config.TenantConfiguration,
+	tc config.TenantConfiguration,
 ) interface{} {
+	// populate default
+	userConfig := tc.UserConfig
+	if !userConfig.SMTP.IsValid() {
+		userConfig.SMTP = m.DefaultConfiguration.SMTP
+	}
+
+	if !userConfig.Twilio.IsValid() {
+		userConfig.Twilio = m.DefaultConfiguration.Twilio
+	}
+
+	if !userConfig.Nexmo.IsValid() {
+		userConfig.Nexmo = m.DefaultConfiguration.Nexmo
+	}
+
+	// To avoid mutating tc
+	tConfig := tc
+	tConfig.UserConfig = userConfig
+
 	newLoggerFactory := func() logging.Factory {
 		formatter := logging.NewDefaultMaskedTextFormatter(tConfig.DefaultSensitiveLoggerValues())
 		return logging.NewFactoryFromRequest(request, formatter)

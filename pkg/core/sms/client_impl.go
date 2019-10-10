@@ -18,12 +18,12 @@ func NewClient(userConfig config.UserConfiguration) Client {
 	twilioConfig := userConfig.Twilio
 
 	var nexmoClient *NexmoClient
-	if nexmoConfig.APIKey != "" && nexmoConfig.APISecret != "" {
+	if nexmoConfig.IsValid() {
 		nexmoClient = NewNexmoClient(nexmoConfig)
 	}
 
 	var twilioClient *TwilioClient
-	if twilioConfig.AccountSID != "" && twilioConfig.AuthToken != "" {
+	if twilioConfig.IsValid() {
 		twilioClient = NewTwilioClient(twilioConfig)
 	}
 

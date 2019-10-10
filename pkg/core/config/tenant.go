@@ -838,34 +838,36 @@ const (
 	SMTPModeSSL    SMTPMode = "ssl"
 )
 
-func (mode SMTPMode) IsValid() bool {
-	switch mode {
-	case SMTPModeNormal:
-		return true
-	case SMTPModeSSL:
-		return true
-	}
-	return false
+type SMTPConfiguration struct {
+	Host     string   `json:"host,omitempty" yaml:"host" msg:"host" envconfig:"HOST"`
+	Port     int      `json:"port,omitempty" yaml:"port" msg:"port" envconfig:"PORT"`
+	Mode     SMTPMode `json:"mode,omitempty" yaml:"mode" msg:"mode" envconfig:"MODE"`
+	Login    string   `json:"login,omitempty" yaml:"login" msg:"login" envconfig:"LOGIN"`
+	Password string   `json:"password,omitempty" yaml:"password" msg:"password" envconfig:"PASSWORD"`
 }
 
-type SMTPConfiguration struct {
-	Host     string   `json:"host,omitempty" yaml:"host" msg:"host"`
-	Port     int      `json:"port,omitempty" yaml:"port" msg:"port"`
-	Mode     SMTPMode `json:"mode,omitempty" yaml:"mode" msg:"mode"`
-	Login    string   `json:"login,omitempty" yaml:"login" msg:"login"`
-	Password string   `json:"password,omitempty" yaml:"password" msg:"password"`
+func (c SMTPConfiguration) IsValid() bool {
+	return c.Host != ""
 }
 
 type TwilioConfiguration struct {
-	AccountSID string `json:"account_sid,omitempty" yaml:"account_sid" msg:"account_sid"`
-	AuthToken  string `json:"auth_token,omitempty" yaml:"auth_token" msg:"auth_token"`
-	From       string `json:"from,omitempty" yaml:"from" msg:"from"`
+	AccountSID string `json:"account_sid,omitempty" yaml:"account_sid" msg:"account_sid" envconfig:"ACCOUNT_SID"`
+	AuthToken  string `json:"auth_token,omitempty" yaml:"auth_token" msg:"auth_token" envconfig:"AUTH_TOKEN"`
+	From       string `json:"from,omitempty" yaml:"from" msg:"from" envconfig:"FROM"`
+}
+
+func (c TwilioConfiguration) IsValid() bool {
+	return c.AccountSID != "" && c.AuthToken != ""
 }
 
 type NexmoConfiguration struct {
-	APIKey    string `json:"api_key,omitempty" yaml:"api_key" msg:"api_key"`
-	APISecret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
-	From      string `json:"from,omitempty" yaml:"from" msg:"from"`
+	APIKey    string `json:"api_key,omitempty" yaml:"api_key" msg:"api_key" envconfig:"API_KEY"`
+	APISecret string `json:"secret,omitempty" yaml:"secret" msg:"secret" envconfig:"API_SECRET"`
+	From      string `json:"from,omitempty" yaml:"from" msg:"from" envconfig:"FROM"`
+}
+
+func (c NexmoConfiguration) IsValid() bool {
+	return c.APIKey != "" && c.APISecret != ""
 }
 
 type HookAppConfiguration struct {
