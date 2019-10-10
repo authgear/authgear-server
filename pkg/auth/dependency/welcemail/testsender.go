@@ -60,12 +60,12 @@ func (d *DefaultTestSender) Send(
 	}
 
 	var textBody string
-	if textBody, err = template.ParseTextTemplate(textTemplate, context); err != nil {
+	if textBody, err = template.ParseTextTemplate("test-text", textTemplate, context); err != nil {
 		return
 	}
 
 	var htmlBody string
-	if htmlBody, err = template.ParseHTMLTemplate(htmlTemplate, context); err != nil {
+	if htmlBody, err = template.ParseHTMLTemplate("test-html", htmlTemplate, context); err != nil {
 		return
 	}
 

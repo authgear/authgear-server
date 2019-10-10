@@ -98,7 +98,7 @@ req.onload = function() {
 		throw new Error("no window.opener");
 	}
 };
-req.open("POST", "{{ api_endpoint }}/_auth/sso/config", true);
+req.open("POST", "{{ .api_endpoint }}/_auth/sso/config", true);
 req.send(null);
 </script>
 </head>
@@ -110,5 +110,5 @@ req.send(null);
 		"api_endpoint": i.APIEndPoint,
 	}
 
-	return template.ParseHTMLTemplate(templateString, context)
+	return template.ParseHTMLTemplate("auth_handler", templateString, context)
 }
