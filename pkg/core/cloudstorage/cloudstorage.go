@@ -17,6 +17,9 @@ const (
 	AccessTypePrivate AccessType = "private"
 )
 
+// AccessTypeDefault is public.
+const AccessTypeDefault = AccessTypePublic
+
 // Storage is abstraction over various cloud storage providers.
 type Storage interface {
 	// PresignPutObject returns an HTTP request that is ready for use.
