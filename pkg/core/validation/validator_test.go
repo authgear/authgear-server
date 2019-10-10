@@ -2,7 +2,6 @@ package validation
 
 import (
 	"bytes"
-	"encoding/json"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -25,12 +24,14 @@ func TestValidator(t *testing.T) {
 		err := validator.AddSchemaFragments(schemaString)
 		So(err, ShouldBeNil)
 
+		var goValue interface{}
+
 		data := `
 		{
 			"a": "bad"
 		}
 		`
-		_, err = validator.ValidateReader("#A", bytes.NewReader([]byte(data)))
+		err = validator.ParseReader("#A", bytes.NewReader([]byte(data)), &goValue)
 		So(err, ShouldBeError, `#/a: Invalid type. Expected: integer, given: string
 `)
 
@@ -40,11 +41,7 @@ func TestValidator(t *testing.T) {
 		}
 		`
 
-		r, err := validator.ValidateReader("#A", bytes.NewReader([]byte(data)))
-		So(err, ShouldBeNil)
-
-		var goValue interface{}
-		err = json.NewDecoder(r).Decode(&goValue)
+		err = validator.ParseReader("#A", bytes.NewReader([]byte(data)), &goValue)
 		So(err, ShouldBeNil)
 		So(goValue, ShouldResemble, map[string]interface{}{
 			"a": 1.0,

@@ -71,17 +71,21 @@ func (v *Validator) ValidateGoValue(schemaID string, value interface{}) error {
 	return v.validateWithLoader(schemaID, loader)
 }
 
-func (v *Validator) ValidateReader(schemaID string, r io.Reader) (io.Reader, error) {
+func (v *Validator) ParseReader(schemaID string, r io.Reader, value interface{}) error {
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	loader := gojsonschema.NewBytesLoader(b)
 	err = v.validateWithLoader(schemaID, loader)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return bytes.NewReader(b), nil
+	err = json.NewDecoder(bytes.NewReader(b)).Decode(value)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (v *Validator) validateWithLoader(schemaID string, loader gojsonschema.JSONLoader) error {
