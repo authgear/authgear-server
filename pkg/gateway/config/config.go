@@ -13,7 +13,7 @@ import (
 type Configuration struct {
 	Standalone                        bool
 	StandaloneTenantConfigurationFile string              `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
-	Host                              string              `envconfig:"HOST" default:"localhost:3001"`
+	Host                              string              `envconfig:"SERVER_HOST" default:"localhost:3001"`
 	ConnectionStr                     string              `envconfig:"DATABASE_URL"`
 	Auth                              GearURLConfig       `envconfig:"AUTH"`
 	Redis                             redis.Configuration `envconfig:"REDIS"`
