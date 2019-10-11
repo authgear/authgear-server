@@ -90,6 +90,7 @@ func main() {
 	validator := validation.NewValidator("http://v2.skgyear.io")
 	validator.AddSchemaFragments(
 		handler.PresignUploadRequestSchema,
+		handler.SignRequestSchema,
 	)
 
 	dependencyMap := &asset.DependencyMap{
@@ -141,6 +142,7 @@ func main() {
 	}.Handle)
 
 	handler.AttachPresignUploadHandler(&srv, dependencyMap)
+	handler.AttachSignHandler(&srv, dependencyMap)
 
 	go func() {
 		logger.Info("Starting asset gear")

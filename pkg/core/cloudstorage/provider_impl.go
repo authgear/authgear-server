@@ -66,3 +66,14 @@ func (p *providerImpl) checkDuplicate(assetID string) error {
 	}
 	return ErrDuplicateAsset
 }
+
+func (p *providerImpl) Sign(r *SignRequest) (*SignRequest, error) {
+	for i, assetItem := range r.Assets {
+		u, err := p.storage.PresignGetObject(assetItem.AssetID)
+		if err != nil {
+			return nil, err
+		}
+		r.Assets[i].URL = u.String()
+	}
+	return r, nil
+}

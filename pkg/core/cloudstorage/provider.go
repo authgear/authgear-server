@@ -10,4 +10,5 @@ var ErrDuplicateAsset = skyerr.NewError(skyerr.Duplicated, "duplicate asset")
 // Provider manipulates cloud storage.
 type Provider interface {
 	PresignPutRequest(r *PresignUploadRequest) (*PresignUploadResponse, error)
+	Sign(r *SignRequest) (*SignRequest, error)
 }
