@@ -10,7 +10,8 @@ import (
 	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
+	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -19,6 +20,7 @@ import (
 )
 
 type DependencyMap struct {
+	Storage           cloudstorage.Storage
 	UseInsecureCookie bool
 }
 
@@ -30,7 +32,7 @@ func (m *DependencyMap) Provide(
 	request *http.Request,
 	ctx context.Context,
 	requestID string,
-	tConfig config.TenantConfiguration,
+	tConfig coreConfig.TenantConfiguration,
 ) interface{} {
 	newLoggerFactory := func() logging.Factory {
 		formatter := logging.NewDefaultMaskedTextFormatter(tConfig.DefaultSensitiveLoggerValues())
@@ -96,6 +98,8 @@ func (m *DependencyMap) Provide(
 		return newSessionWriter()
 	case "AuthInfoStore":
 		return newAuthInfoStore()
+	case "CloudStorageProvider":
+		return cloudstorage.NewProvider(tConfig.AppID, m.Storage)
 	default:
 		return nil
 	}

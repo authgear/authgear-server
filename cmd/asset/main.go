@@ -13,7 +13,9 @@ import (
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/skygeario/skygear-server/pkg/asset"
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/asset/config"
+	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
+	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
@@ -21,14 +23,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
-
-type configuration struct {
-	Standalone                        bool
-	StandaloneTenantConfigurationFile string              `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
-	Host                              string              `default:"localhost:3002"`
-	Redis                             redis.Configuration `envconfig:"REDIS"`
-	UseInsecureCookie                 bool                `envconfig:"INSECURE_COOKIE"`
-}
 
 /*
 	@API Asset Gear
@@ -56,8 +50,34 @@ func main() {
 		logger.WithError(err).Debug("Cannot load .env file")
 	}
 
-	configuration := configuration{}
+	configuration := config.Configuration{}
 	envconfig.Process("", &configuration)
+	if err := configuration.Initialize(); err != nil {
+		logger.WithError(err).Panic("cannot initialize configuration")
+	}
+
+	var storage cloudstorage.Storage
+	switch configuration.Storage.Backend {
+	case config.StorageBackendAzure:
+		storage = cloudstorage.NewAzureStorage(
+			configuration.Storage.Azure.StorageAccount,
+			configuration.Storage.Azure.AccessKey,
+			configuration.Storage.Azure.Container,
+		)
+	case config.StorageBackendGCS:
+		storage = cloudstorage.NewGCSStorage(
+			configuration.Storage.GCS.ServiceAccount,
+			configuration.Storage.GCS.PrivateKey,
+			configuration.Storage.GCS.Bucket,
+		)
+	case config.StorageBackendS3:
+		storage = cloudstorage.NewS3Storage(
+			configuration.Storage.S3.AccessKey,
+			configuration.Storage.S3.SecretKey,
+			configuration.Storage.S3.Region,
+			configuration.Storage.S3.Bucket,
+		)
+	}
 
 	dbPool := db.NewPool()
 	redisPool, err := redis.NewPool(configuration.Redis)
@@ -66,6 +86,7 @@ func main() {
 	}
 	dependencyMap := &asset.DependencyMap{
 		UseInsecureCookie: configuration.UseInsecureCookie,
+		Storage:           storage,
 	}
 
 	var srv server.Server
@@ -75,7 +96,7 @@ func main() {
 		if err != nil {
 			logger.WithError(err).Error("Cannot open standalone config")
 		}
-		tenantConfig, err := config.NewTenantConfigurationFromYAML(reader)
+		tenantConfig, err := coreConfig.NewTenantConfigurationFromYAML(reader)
 		if err != nil {
 			if skyError, ok := err.(skyerr.Error); ok {
 				info := skyError.Info()
@@ -90,16 +111,16 @@ func main() {
 
 		serverOption := server.DefaultOption()
 		serverOption.GearPathPrefix = "/_asset"
-		srv = server.NewServerWithOption(configuration.Host, dependencyMap, serverOption)
+		srv = server.NewServerWithOption(configuration.ServerHost, dependencyMap, serverOption)
 		srv.Use(middleware.TenantConfigurationMiddleware{
-			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
+			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (coreConfig.TenantConfiguration, error) {
 				return *tenantConfig, nil
 			}),
 		}.Handle)
 		srv.Use(middleware.RequestIDMiddleware{}.Handle)
 		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		srv = server.NewServer(configuration.Host, dependencyMap)
+		srv = server.NewServer(configuration.ServerHost, dependencyMap)
 	}
 
 	srv.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
