@@ -15,7 +15,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/asset"
 	"github.com/skygeario/skygear-server/pkg/asset/config"
 	"github.com/skygeario/skygear-server/pkg/asset/handler"
-	"github.com/skygeario/skygear-server/pkg/asset/validation"
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -24,6 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 /*
@@ -86,9 +86,16 @@ func main() {
 	if err != nil {
 		logger.Fatalf("fail to create redis pool: %v", err)
 	}
+
+	validator := validation.NewValidator("http://v2.skgyear.io")
+	validator.AddSchemaFragments(
+		handler.PresignUploadRequestSchema,
+	)
+
 	dependencyMap := &asset.DependencyMap{
 		UseInsecureCookie: configuration.UseInsecureCookie,
 		Storage:           storage,
+		Validator:         validator,
 	}
 
 	var srv server.Server
@@ -132,10 +139,6 @@ func main() {
 		MiddlewareFactory: middleware.AuthnMiddlewareFactory{},
 		Dependency:        dependencyMap,
 	}.Handle)
-
-	validation.Validator.AddSchemaFragments(
-		handler.PresignUploadRequestSchema,
-	)
 
 	handler.AttachPresignUploadHandler(&srv, dependencyMap)
 

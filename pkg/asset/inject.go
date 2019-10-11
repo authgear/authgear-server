@@ -17,10 +17,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 type DependencyMap struct {
 	Storage           cloudstorage.Storage
+	Validator         *validation.Validator
 	UseInsecureCookie bool
 }
 
@@ -100,6 +102,8 @@ func (m *DependencyMap) Provide(
 		return newAuthInfoStore()
 	case "CloudStorageProvider":
 		return cloudstorage.NewProvider(tConfig.AppID, m.Storage)
+	case "Validator":
+		return m.Validator
 	default:
 		return nil
 	}

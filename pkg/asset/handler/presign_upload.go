@@ -4,7 +4,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/asset/validation"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
@@ -12,7 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	coreValidation "github.com/skygeario/skygear-server/pkg/core/validation"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachPresignUploadHandler(
@@ -38,6 +37,7 @@ func (f *PresignUploadHandlerFactory) NewHandler(request *http.Request) http.Han
 type PresignUploadHandler struct {
 	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
 	CloudStorageProvider cloudstorage.Provider `dependency:"CloudStorageProvider"`
+	Validator            *validation.Validator `dependency:"Validator"`
 }
 
 func (h *PresignUploadHandler) ProvideAuthzPolicy() authz.Policy {
@@ -88,10 +88,6 @@ const PresignUploadRequestSchema = `
 }
 `
 
-func ParsePresignUploadRequest(r io.Reader, p interface{}) error {
-	return validation.Validator.ParseReader("#PresignUploadRequest", r, p)
-}
-
 func (h *PresignUploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var response handler.APIResponse
 	result, err := h.Handle(w, r)
@@ -103,12 +99,16 @@ func (h *PresignUploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	handler.WriteResponse(w, response)
 }
 
+func (h *PresignUploadHandler) ParsePresignUploadRequest(r io.Reader, p interface{}) error {
+	return h.Validator.ParseReader("#PresignUploadRequest", r, p)
+}
+
 func (h *PresignUploadHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
 	// Parse request
 	var payload cloudstorage.PresignUploadRequest
-	err = handler.ParseJSONBody(r, w, ParsePresignUploadRequest, &payload)
+	err = handler.ParseJSONBody(r, w, h.ParsePresignUploadRequest, &payload)
 	if err != nil {
-		if validationError, ok := err.(coreValidation.Error); ok {
+		if validationError, ok := err.(validation.Error); ok {
 			err = validationError.SkyErrInvalidArgument("Validation Error")
 		}
 		return
