@@ -1,9 +1,8 @@
 package template
 
 import (
+	"net/http"
 	"testing"
-
-	"github.com/franela/goreq"
 
 	"github.com/h2non/gock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -38,9 +37,9 @@ func TestResetPasswordPayload(t *testing.T) {
 			"email": "chima@oursky.com",
 		}
 
-		gock.InterceptClient(goreq.DefaultClient)
+		gock.InterceptClient(http.DefaultClient)
 		defer gock.Off()
-		defer gock.RestoreClient(goreq.DefaultClient)
+		defer gock.RestoreClient(http.DefaultClient)
 
 		Convey("render default template", func() {
 			out, err := templateEngine.ParseTextTemplate(TemplateNameWelcomeEmailText, context, template.ParseOption{})

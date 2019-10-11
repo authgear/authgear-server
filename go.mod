@@ -10,8 +10,6 @@ require (
 	github.com/dgrijalva/jwt-go v3.1.0+incompatible
 	github.com/evalphobia/logrus_fluent v0.4.0
 	github.com/fluent/fluent-logger-golang v1.3.0 // indirect
-	github.com/franela/goblin v0.0.0-20181003173013-ead4ad1d2727 // indirect
-	github.com/franela/goreq v0.0.0-20170418064916-b5b0f5eb2d16
 	github.com/go-gomail/gomail v0.0.0-20150902115704-41f357289737
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/golang/mock v1.3.1
