@@ -14,6 +14,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/asset"
 	"github.com/skygeario/skygear-server/pkg/asset/config"
+	"github.com/skygeario/skygear-server/pkg/asset/handler"
+	"github.com/skygeario/skygear-server/pkg/asset/validation"
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -130,6 +132,12 @@ func main() {
 		MiddlewareFactory: middleware.AuthnMiddlewareFactory{},
 		Dependency:        dependencyMap,
 	}.Handle)
+
+	validation.Validator.AddSchemaFragments(
+		handler.PresignUploadRequestSchema,
+	)
+
+	handler.AttachPresignUploadHandler(&srv, dependencyMap)
 
 	go func() {
 		logger.Info("Starting asset gear")
