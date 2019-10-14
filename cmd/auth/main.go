@@ -89,22 +89,16 @@ func main() {
 	if configuration.ValidHosts == "" {
 		configuration.ValidHosts = configuration.Host
 	}
-	if configuration.Redis.Sentinel.Enabled {
-		if len(configuration.Redis.Sentinel.Addrs) == 0 {
-			logger.Fatal("REDIS_SENTINEL_ADDRS is not provided")
-		}
-	} else {
-		if configuration.Redis.Host == "" {
-			logger.Fatal("REDIS_HOST is not provided")
-		}
-	}
 
 	// default template initialization
 	templateEngine := template.NewEngine()
 	authTemplate.RegisterDefaultTemplates(templateEngine)
 
 	dbPool := db.NewPool()
-	redisPool := redis.NewPool(configuration.Redis)
+	redisPool, err := redis.NewPool(configuration.Redis)
+	if err != nil {
+		logger.Fatalf("fail to create redis pool: %v", err.Error())
+	}
 	asyncTaskExecutor := async.NewExecutor(dbPool)
 	authDependency := auth.DependencyMap{
 		AsyncTaskExecutor:    asyncTaskExecutor,
@@ -224,7 +218,7 @@ func main() {
 	defer cancel()
 
 	// shutdown the server
-	err := srv.Shutdown(ctx)
+	err = srv.Shutdown(ctx)
 	if err != nil {
 		logger.WithError(err).Fatal("Cannot shutdown server")
 	}
