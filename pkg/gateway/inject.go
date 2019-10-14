@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -30,10 +31,13 @@ func (m DependencyMap) Provide(
 		formatter := logging.NewDefaultMaskedTextFormatter(tConfig.DefaultSensitiveLoggerValues())
 		return logging.NewFactoryFromRequest(request, formatter)
 	}
+	newAuthContext := func() auth.ContextGetter {
+		return auth.NewContextGetterWithContext(ctx)
+	}
 
 	switch dependencyName {
 	case "AuthContextGetter":
-		return auth.NewContextGetterWithContext(ctx)
+		return newAuthContext()
 	case "AuthContextSetter":
 		return auth.NewContextSetterWithContext(ctx)
 	case "LoggerFactory":
@@ -43,12 +47,12 @@ func (m DependencyMap) Provide(
 			request,
 			redisSession.NewStore(ctx, tConfig.AppID, time.NewProvider()),
 			redisSession.NewEventStore(ctx, tConfig.AppID),
-			auth.NewContextGetterWithContext(ctx),
+			newAuthContext(),
 			tConfig.UserConfig.Clients,
 		)
 	case "SessionWriter":
 		return session.NewWriter(
-			auth.NewContextGetterWithContext(ctx),
+			newAuthContext(),
 			tConfig.UserConfig.Clients,
 			tConfig.UserConfig.MFA,
 			m.UseInsecureCookie,
@@ -62,6 +66,8 @@ func (m DependencyMap) Provide(
 		)
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
+	case "APIClientConfigurationProvider":
+		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
 	default:
 		return nil
 	}
