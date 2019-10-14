@@ -24,9 +24,18 @@ type SentinelConfig struct {
 	MasterName string   `envconfig:"MASTER_NAME"`
 }
 
-func NewPool(config Configuration) *redis.Pool {
+func NewPool(config Configuration) (*redis.Pool, error) {
 	if config.Sentinel.Enabled {
-		return newSentinelPool(config)
+		if len(config.Sentinel.Addrs) == 0 {
+			return nil, errors.New("redis sentinel addrs are not provided")
+		}
+	} else {
+		if config.Host == "" {
+			return nil, errors.New("redis host is not provided")
+		}
+	}
+	if config.Sentinel.Enabled {
+		return newSentinelPool(config), nil
 	}
 	hostPort := fmt.Sprintf("%s:%d", config.Host, config.Port)
 	return newPool(
@@ -43,7 +52,7 @@ func NewPool(config Configuration) *redis.Pool {
 			_, err = conn.Do("PING")
 			return
 		},
-	)
+	), nil
 }
 
 func newPool(

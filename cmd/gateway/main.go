@@ -82,8 +82,10 @@ func main() {
 		UseInsecureCookie: config.UseInsecureCookie,
 	}
 	dbPool := db.NewPool()
-	redisPool := redis.NewPool(config.Redis)
-
+	redisPool, err := redis.NewPool(config.Redis)
+	if err != nil {
+		logger.Fatalf("fail to create redis pool: %v", err.Error())
+	}
 	rr := mux.NewRouter()
 	rr.HandleFunc("/_healthz", HealthCheckHandler)
 

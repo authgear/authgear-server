@@ -17,10 +17,6 @@ github.com/evalphobia/logrus_fluent v0.4.0 h1:uYIgSLezcopy6V7Epr5yIvsnzGqH+bE/62
 github.com/evalphobia/logrus_fluent v0.4.0/go.mod h1:hasyj+CXm3BDP1YhFk/rnTcjlegyqvkokV9A25cQsaA=
 github.com/fluent/fluent-logger-golang v1.3.0 h1:oBolFKS9fY9HReChzaX1RQF5GkdNdByrledPTfUWoGA=
 github.com/fluent/fluent-logger-golang v1.3.0/go.mod h1:2/HCT/jTy78yGyeNGQLGQsjF3zzzAuy6Xlk6FCMV5eU=
-github.com/franela/goblin v0.0.0-20181003173013-ead4ad1d2727 h1:eouy4stZdUKn7n98c1+rdUTxWMg+jvhP+oHt0K8fiug=
-github.com/franela/goblin v0.0.0-20181003173013-ead4ad1d2727/go.mod h1:7dvUGVsVBjqR7JHJk0brhHOZYGmfBYOrK0ZhYMEtBr4=
-github.com/franela/goreq v0.0.0-20170418064916-b5b0f5eb2d16 h1:oBUKHp5f9Q+41u85FETNuJJvJUGhBS/b2zL7OB9bBmY=
-github.com/franela/goreq v0.0.0-20170418064916-b5b0f5eb2d16/go.mod h1:ZhphrRTfi2rbfLwlschooIH4+wKKDR4Pdxhh+TRoA20=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/go-gomail/gomail v0.0.0-20150902115704-41f357289737 h1:AkOq33Mv/qyW/s31VOQsXU9yg8WG/dc0VZX320ij3vY=
