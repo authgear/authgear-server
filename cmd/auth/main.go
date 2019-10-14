@@ -89,8 +89,14 @@ func main() {
 	if configuration.ValidHosts == "" {
 		configuration.ValidHosts = configuration.Host
 	}
-	if configuration.Redis.Host == "" {
-		logger.Fatal("REDIS_HOST is not provided")
+	if configuration.Redis.Sentinel.Enabled {
+		if len(configuration.Redis.Sentinel.Addrs) == 0 {
+			logger.Fatal("REDIS_SENTINEL_ADDRS is not provided")
+		}
+	} else {
+		if configuration.Redis.Host == "" {
+			logger.Fatal("REDIS_HOST is not provided")
+		}
 	}
 
 	// default template initialization
