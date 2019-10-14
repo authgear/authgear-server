@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -64,7 +65,6 @@ func TestLoginHandler(t *testing.T) {
 		sh := &LoginHandler{}
 		sh.TxContext = db.NewMockTxContext()
 		oauthConfig := coreconfig.OAuthConfiguration{
-			URLPrefix:                      "http://localhost:3000",
 			StateJWTSecret:                 stateJWTSecret,
 			ExternalAccessTokenFlowEnabled: true,
 			AllowedCallbackURLs: []string{
@@ -78,6 +78,7 @@ func TestLoginHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
+			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,
 			ProviderConfig: providerConfig,

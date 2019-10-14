@@ -1,14 +1,16 @@
 package sso
 
 import (
+	"net/url"
+
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
 type IFrameHTMLProvider struct {
-	APIEndPoint string
+	APIEndPoint *url.URL
 }
 
-func NewIFrameHTMLProvider(APIEndPoint string) IFrameHTMLProvider {
+func NewIFrameHTMLProvider(APIEndPoint *url.URL) IFrameHTMLProvider {
 	return IFrameHTMLProvider{
 		APIEndPoint: APIEndPoint,
 	}
@@ -103,7 +105,7 @@ req.send(null);
 </html>
 	`
 	context := map[string]interface{}{
-		"api_endpoint": i.APIEndPoint,
+		"api_endpoint": i.APIEndPoint.String(),
 	}
 
 	return template.ParseHTMLTemplate("iframe_html", templateString, context)

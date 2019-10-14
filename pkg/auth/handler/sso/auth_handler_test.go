@@ -102,7 +102,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthContext = authContext
 		sh.AuthContextSetter = authContext
 		oauthConfig := coreconfig.OAuthConfiguration{
-			URLPrefix:      "http://localhost:3000",
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
@@ -115,6 +114,7 @@ func TestAuthHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
+			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,
 			ProviderConfig: providerConfig,
@@ -135,7 +135,7 @@ func TestAuthHandler(t *testing.T) {
 		userProfileStore := userprofile.NewMockUserProfileStore()
 		sh.UserProfileStore = userProfileStore
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
-			"https://api.example.com",
+			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
 		sh.OAuthConfiguration = oauthConfig
 		zero := 0
@@ -368,7 +368,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthContext = authContext
 		sh.AuthContextSetter = authContext
 		oauthConfig := coreconfig.OAuthConfiguration{
-			URLPrefix:      "http://localhost:3000",
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
@@ -381,6 +380,7 @@ func TestAuthHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
+			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,
 			ProviderConfig: providerConfig,
@@ -411,7 +411,7 @@ func TestAuthHandler(t *testing.T) {
 		userProfileStore := userprofile.NewMockUserProfileStore()
 		sh.UserProfileStore = userProfileStore
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
-			"https://api.example.com",
+			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
 		sh.OAuthConfiguration = oauthConfig
 		zero := 0
@@ -586,7 +586,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthContext = authContext
 		sh.AuthContextSetter = authContext
 		oauthConfig := coreconfig.OAuthConfiguration{
-			URLPrefix:      "http://localhost:3000",
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
@@ -599,6 +598,7 @@ func TestAuthHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
+			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,
 			ProviderConfig: providerConfig,
@@ -625,7 +625,7 @@ func TestAuthHandler(t *testing.T) {
 		userProfileStore := userprofile.NewMockUserProfileStoreByData(profileData)
 		sh.UserProfileStore = userProfileStore
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
-			"https://api.example.com",
+			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
 		sh.OAuthConfiguration = oauthConfig
 		zero := 0

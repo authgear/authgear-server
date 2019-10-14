@@ -1,6 +1,8 @@
 package welcemail
 
 import (
+	"net/url"
+
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -14,6 +16,7 @@ type Sender interface {
 
 type DefaultSender struct {
 	AppName        string
+	URLPrefix      *url.URL
 	Config         config.WelcomeEmailConfiguration
 	Sender         mail.Sender
 	TemplateEngine *template.Engine
@@ -21,11 +24,13 @@ type DefaultSender struct {
 
 func NewDefaultSender(
 	config config.TenantConfiguration,
+	urlPrefix *url.URL,
 	sender mail.Sender,
 	templateEngine *template.Engine,
 ) Sender {
 	return &DefaultSender{
 		AppName:        config.AppName,
+		URLPrefix:      urlPrefix,
 		Config:         config.UserConfig.WelcomeEmail,
 		Sender:         sender,
 		TemplateEngine: templateEngine,
@@ -37,7 +42,7 @@ func (d *DefaultSender) Send(email string, user model.User) (err error) {
 		"appname":    d.AppName,
 		"email":      email,
 		"user":       user,
-		"url_prefix": d.Config.URLPrefix,
+		"url_prefix": d.URLPrefix.String(),
 	}
 
 	var textBody string

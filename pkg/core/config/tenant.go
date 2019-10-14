@@ -10,8 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
-	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -268,27 +266,6 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.UserConfig.ForgotPassword.AppName = c.AppName
 	}
 
-	// Propagate URLPrefix
-	if c.UserConfig.ForgotPassword.URLPrefix == "" {
-		c.UserConfig.ForgotPassword.URLPrefix = c.UserConfig.URLPrefix
-	}
-	if c.UserConfig.WelcomeEmail.URLPrefix == "" {
-		c.UserConfig.WelcomeEmail.URLPrefix = c.UserConfig.URLPrefix
-	}
-	if c.UserConfig.SSO.OAuth.URLPrefix == "" {
-		c.UserConfig.SSO.OAuth.URLPrefix = c.UserConfig.URLPrefix
-	}
-	if c.UserConfig.UserVerification.URLPrefix == "" {
-		c.UserConfig.UserVerification.URLPrefix = c.UserConfig.URLPrefix
-	}
-
-	// Remove trailing slash in URLs
-	c.UserConfig.URLPrefix = removeTrailingSlash(c.UserConfig.URLPrefix)
-	c.UserConfig.ForgotPassword.URLPrefix = removeTrailingSlash(c.UserConfig.ForgotPassword.URLPrefix)
-	c.UserConfig.WelcomeEmail.URLPrefix = removeTrailingSlash(c.UserConfig.WelcomeEmail.URLPrefix)
-	c.UserConfig.UserVerification.URLPrefix = removeTrailingSlash(c.UserConfig.UserVerification.URLPrefix)
-	c.UserConfig.SSO.OAuth.URLPrefix = removeTrailingSlash(c.UserConfig.SSO.OAuth.URLPrefix)
-
 	// Set default APIClientConfiguration values
 	for id, clientConfig := range c.UserConfig.Clients {
 		if clientConfig.AccessTokenLifetime == 0 {
@@ -480,19 +457,10 @@ func DelTenantConfig(r *http.Request) {
 	r.Header.Del(coreHttp.HeaderTenantConfig)
 }
 
-func removeTrailingSlash(url string) string {
-	if strings.HasSuffix(url, "/") {
-		return url[:len(url)-1]
-	}
-
-	return url
-}
-
 // UserConfiguration represents user-editable configuration
 type UserConfiguration struct {
 	Clients          map[string]APIClientConfiguration `json:"clients" yaml:"clients" msg:"clients"`
 	MasterKey        string                            `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
-	URLPrefix        string                            `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
 	CORS             CORSConfiguration                 `json:"cors,omitempty" yaml:"cors" msg:"cors"`
 	Auth             AuthConfiguration                 `json:"auth,omitempty" yaml:"auth" msg:"auth"`
 	MFA              MFAConfiguration                  `json:"mfa,omitempty" yaml:"mfa" msg:"mfa"`
@@ -653,7 +621,6 @@ type PasswordPolicyConfiguration struct {
 
 type ForgotPasswordConfiguration struct {
 	AppName             string `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
-	URLPrefix           string `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
 	SecureMatch         bool   `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
 	Sender              string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
 	Subject             string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
@@ -681,7 +648,6 @@ func (destination WelcomeEmailDestination) IsValid() bool {
 
 type WelcomeEmailConfiguration struct {
 	Enabled     bool                    `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
-	URLPrefix   string                  `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
 	Sender      string                  `json:"sender,omitempty" yaml:"sender" msg:"sender"`
 	Subject     string                  `json:"subject,omitempty" yaml:"subject" msg:"subject"`
 	ReplyTo     string                  `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
@@ -705,27 +671,12 @@ type CustomTokenConfiguration struct {
 }
 
 type OAuthConfiguration struct {
-	URLPrefix                      string                       `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
 	StateJWTSecret                 string                       `json:"state_jwt_secret,omitempty" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
 	AllowedCallbackURLs            []string                     `json:"allowed_callback_urls,omitempty" yaml:"allowed_callback_urls" msg:"allowed_callback_urls"`
 	ExternalAccessTokenFlowEnabled bool                         `json:"external_access_token_flow_enabled,omitempty" yaml:"external_access_token_flow_enabled" msg:"external_access_token_flow_enabled"`
 	OnUserDuplicateAllowMerge      bool                         `json:"on_user_duplicate_allow_merge,omitempty" yaml:"on_user_duplicate_allow_merge" msg:"on_user_duplicate_allow_merge"`
 	OnUserDuplicateAllowCreate     bool                         `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
 	Providers                      []OAuthProviderConfiguration `json:"providers,omitempty" yaml:"providers" msg:"providers"`
-}
-
-func (s *OAuthConfiguration) APIEndpoint() string {
-	// URLPrefix can't be seen as skygear endpoint.
-	// Consider URLPrefix = http://localhost:3001/auth
-	// and skygear SDK use is as base endpint URL (in iframe_html and auth_handler_html).
-	// And then, SDK may generate wrong action path base on this wrong endpoint (http://localhost:3001/auth).
-	// So, this function will remote path part of URLPrefix
-	u, err := url.Parse(s.URLPrefix)
-	if err != nil {
-		return s.URLPrefix
-	}
-	u.Path = ""
-	return u.String()
 }
 
 type OAuthProviderType string
@@ -762,7 +713,6 @@ func (criteria UserVerificationCriteria) IsValid() bool {
 }
 
 type UserVerificationConfiguration struct {
-	URLPrefix        string                                      `json:"url_prefix,omitempty" yaml:"url_prefix" msg:"url_prefix"`
 	AutoSendOnSignup bool                                        `json:"auto_send_on_signup,omitempty" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
 	Criteria         UserVerificationCriteria                    `json:"criteria,omitempty" yaml:"criteria" msg:"criteria"`
 	ErrorRedirect    string                                      `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`

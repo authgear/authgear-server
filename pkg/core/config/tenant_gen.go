@@ -1631,12 +1631,6 @@ func (z *ForgotPasswordConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "AppName")
 				return
 			}
-		case "url_prefix":
-			z.URLPrefix, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "URLPrefix")
-				return
-			}
 		case "secure_match":
 			z.SecureMatch, err = dc.ReadBool()
 			if err != nil {
@@ -1722,25 +1716,15 @@ func (z *ForgotPasswordConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *ForgotPasswordConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 14
+	// map header, size 13
 	// write "app_name"
-	err = en.Append(0x8e, 0xa8, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
+	err = en.Append(0x8d, 0xa8, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	if err != nil {
 		return
 	}
 	err = en.WriteString(z.AppName)
 	if err != nil {
 		err = msgp.WrapError(err, "AppName")
-		return
-	}
-	// write "url_prefix"
-	err = en.Append(0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.URLPrefix)
-	if err != nil {
-		err = msgp.WrapError(err, "URLPrefix")
 		return
 	}
 	// write "secure_match"
@@ -1869,13 +1853,10 @@ func (z *ForgotPasswordConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *ForgotPasswordConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 14
+	// map header, size 13
 	// string "app_name"
-	o = append(o, 0x8e, 0xa8, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
+	o = append(o, 0x8d, 0xa8, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	o = msgp.AppendString(o, z.AppName)
-	// string "url_prefix"
-	o = append(o, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
-	o = msgp.AppendString(o, z.URLPrefix)
 	// string "secure_match"
 	o = append(o, 0xac, 0x73, 0x65, 0x63, 0x75, 0x72, 0x65, 0x5f, 0x6d, 0x61, 0x74, 0x63, 0x68)
 	o = msgp.AppendBool(o, z.SecureMatch)
@@ -1937,12 +1918,6 @@ func (z *ForgotPasswordConfiguration) UnmarshalMsg(bts []byte) (o []byte, err er
 			z.AppName, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "AppName")
-				return
-			}
-		case "url_prefix":
-			z.URLPrefix, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "URLPrefix")
 				return
 			}
 		case "secure_match":
@@ -2031,7 +2006,7 @@ func (z *ForgotPasswordConfiguration) UnmarshalMsg(bts []byte) (o []byte, err er
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *ForgotPasswordConfiguration) Msgsize() (s int) {
-	s = 1 + 9 + msgp.StringPrefixSize + len(z.AppName) + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 13 + msgp.BoolSize + 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 9 + msgp.StringPrefixSize + len(z.ReplyTo) + 19 + msgp.IntSize + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 15 + msgp.StringPrefixSize + len(z.EmailTextURL) + 15 + msgp.StringPrefixSize + len(z.EmailHTMLURL) + 15 + msgp.StringPrefixSize + len(z.ResetHTMLURL) + 23 + msgp.StringPrefixSize + len(z.ResetSuccessHTMLURL) + 21 + msgp.StringPrefixSize + len(z.ResetErrorHTMLURL)
+	s = 1 + 9 + msgp.StringPrefixSize + len(z.AppName) + 13 + msgp.BoolSize + 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 9 + msgp.StringPrefixSize + len(z.ReplyTo) + 19 + msgp.IntSize + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 15 + msgp.StringPrefixSize + len(z.EmailTextURL) + 15 + msgp.StringPrefixSize + len(z.EmailHTMLURL) + 15 + msgp.StringPrefixSize + len(z.ResetHTMLURL) + 23 + msgp.StringPrefixSize + len(z.ResetSuccessHTMLURL) + 21 + msgp.StringPrefixSize + len(z.ResetErrorHTMLURL)
 	return
 }
 
@@ -4157,12 +4132,6 @@ func (z *OAuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "url_prefix":
-			z.URLPrefix, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "URLPrefix")
-				return
-			}
 		case "state_jwt_secret":
 			z.StateJWTSecret, err = dc.ReadString()
 			if err != nil {
@@ -4238,19 +4207,9 @@ func (z *OAuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *OAuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 7
-	// write "url_prefix"
-	err = en.Append(0x87, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.URLPrefix)
-	if err != nil {
-		err = msgp.WrapError(err, "URLPrefix")
-		return
-	}
+	// map header, size 6
 	// write "state_jwt_secret"
-	err = en.Append(0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+	err = en.Append(0x86, 0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 	if err != nil {
 		return
 	}
@@ -4329,12 +4288,9 @@ func (z *OAuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *OAuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 7
-	// string "url_prefix"
-	o = append(o, 0x87, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
-	o = msgp.AppendString(o, z.URLPrefix)
+	// map header, size 6
 	// string "state_jwt_secret"
-	o = append(o, 0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+	o = append(o, 0x86, 0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 	o = msgp.AppendString(o, z.StateJWTSecret)
 	// string "allowed_callback_urls"
 	o = append(o, 0xb5, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x63, 0x61, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x5f, 0x75, 0x72, 0x6c, 0x73)
@@ -4382,12 +4338,6 @@ func (z *OAuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "url_prefix":
-			z.URLPrefix, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "URLPrefix")
-				return
-			}
 		case "state_jwt_secret":
 			z.StateJWTSecret, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
@@ -4464,7 +4414,7 @@ func (z *OAuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *OAuthConfiguration) Msgsize() (s int) {
-	s = 1 + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 17 + msgp.StringPrefixSize + len(z.StateJWTSecret) + 22 + msgp.ArrayHeaderSize
+	s = 1 + 17 + msgp.StringPrefixSize + len(z.StateJWTSecret) + 22 + msgp.ArrayHeaderSize
 	for za0001 := range z.AllowedCallbackURLs {
 		s += msgp.StringPrefixSize + len(z.AllowedCallbackURLs[za0001])
 	}
@@ -6393,12 +6343,6 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "MasterKey")
 				return
 			}
-		case "url_prefix":
-			z.URLPrefix, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "URLPrefix")
-				return
-			}
 		case "cors":
 			var zb0003 uint32
 			zb0003, err = dc.ReadMapHeader()
@@ -6664,9 +6608,9 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 16
+	// map header, size 15
 	// write "clients"
-	err = en.Append(0xde, 0x0, 0x10, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
+	err = en.Append(0x8f, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
 	if err != nil {
 		return
 	}
@@ -6695,16 +6639,6 @@ func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	err = en.WriteString(z.MasterKey)
 	if err != nil {
 		err = msgp.WrapError(err, "MasterKey")
-		return
-	}
-	// write "url_prefix"
-	err = en.Append(0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.URLPrefix)
-	if err != nil {
-		err = msgp.WrapError(err, "URLPrefix")
 		return
 	}
 	// write "cors"
@@ -6915,9 +6849,9 @@ func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *UserConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 16
+	// map header, size 15
 	// string "clients"
-	o = append(o, 0xde, 0x0, 0x10, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
+	o = append(o, 0x8f, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
 	o = msgp.AppendMapHeader(o, uint32(len(z.Clients)))
 	for za0001, za0002 := range z.Clients {
 		o = msgp.AppendString(o, za0001)
@@ -6930,9 +6864,6 @@ func (z *UserConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "master_key"
 	o = append(o, 0xaa, 0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x6b, 0x65, 0x79)
 	o = msgp.AppendString(o, z.MasterKey)
-	// string "url_prefix"
-	o = append(o, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
-	o = msgp.AppendString(o, z.URLPrefix)
 	// string "cors"
 	// map header, size 1
 	// string "origin"
@@ -7093,12 +7024,6 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			z.MasterKey, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "MasterKey")
-				return
-			}
-		case "url_prefix":
-			z.URLPrefix, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "URLPrefix")
 				return
 			}
 		case "cors":
@@ -7367,14 +7292,14 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserConfiguration) Msgsize() (s int) {
-	s = 3 + 8 + msgp.MapHeaderSize
+	s = 1 + 8 + msgp.MapHeaderSize
 	if z.Clients != nil {
 		for za0001, za0002 := range z.Clients {
 			_ = za0002
 			s += msgp.StringPrefixSize + len(za0001) + za0002.Msgsize()
 		}
 	}
-	s += 11 + msgp.StringPrefixSize + len(z.MasterKey) + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin) + 5 + z.Auth.Msgsize() + 4 + z.MFA.Msgsize() + 11 + 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.UserAudit.TrailHandlerURL) + 16 + z.PasswordPolicy.Msgsize() + 16 + z.ForgotPassword.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 4 + 1 + 13 + z.SSO.CustomToken.Msgsize() + 6 + z.SSO.OAuth.Msgsize() + 18 + z.UserVerification.Msgsize() + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.Hook.Secret) + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 7 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From)
+	s += 11 + msgp.StringPrefixSize + len(z.MasterKey) + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin) + 5 + z.Auth.Msgsize() + 4 + z.MFA.Msgsize() + 11 + 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.UserAudit.TrailHandlerURL) + 16 + z.PasswordPolicy.Msgsize() + 16 + z.ForgotPassword.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 4 + 1 + 13 + z.SSO.CustomToken.Msgsize() + 6 + z.SSO.OAuth.Msgsize() + 18 + z.UserVerification.Msgsize() + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.Hook.Secret) + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 7 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From)
 	return
 }
 
@@ -7448,12 +7373,6 @@ func (z *UserVerificationConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "url_prefix":
-			z.URLPrefix, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "URLPrefix")
-				return
-			}
 		case "auto_send_on_signup":
 			z.AutoSendOnSignup, err = dc.ReadBool()
 			if err != nil {
@@ -7525,19 +7444,9 @@ func (z *UserVerificationConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *UserVerificationConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 6
-	// write "url_prefix"
-	err = en.Append(0x86, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.URLPrefix)
-	if err != nil {
-		err = msgp.WrapError(err, "URLPrefix")
-		return
-	}
+	// map header, size 5
 	// write "auto_send_on_signup"
-	err = en.Append(0xb3, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x73, 0x65, 0x6e, 0x64, 0x5f, 0x6f, 0x6e, 0x5f, 0x73, 0x69, 0x67, 0x6e, 0x75, 0x70)
+	err = en.Append(0x85, 0xb3, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x73, 0x65, 0x6e, 0x64, 0x5f, 0x6f, 0x6e, 0x5f, 0x73, 0x69, 0x67, 0x6e, 0x75, 0x70)
 	if err != nil {
 		return
 	}
@@ -7604,12 +7513,9 @@ func (z *UserVerificationConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *UserVerificationConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 6
-	// string "url_prefix"
-	o = append(o, 0x86, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
-	o = msgp.AppendString(o, z.URLPrefix)
+	// map header, size 5
 	// string "auto_send_on_signup"
-	o = append(o, 0xb3, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x73, 0x65, 0x6e, 0x64, 0x5f, 0x6f, 0x6e, 0x5f, 0x73, 0x69, 0x67, 0x6e, 0x75, 0x70)
+	o = append(o, 0x85, 0xb3, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x73, 0x65, 0x6e, 0x64, 0x5f, 0x6f, 0x6e, 0x5f, 0x73, 0x69, 0x67, 0x6e, 0x75, 0x70)
 	o = msgp.AppendBool(o, z.AutoSendOnSignup)
 	// string "criteria"
 	o = append(o, 0xa8, 0x63, 0x72, 0x69, 0x74, 0x65, 0x72, 0x69, 0x61)
@@ -7652,12 +7558,6 @@ func (z *UserVerificationConfiguration) UnmarshalMsg(bts []byte) (o []byte, err 
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "url_prefix":
-			z.URLPrefix, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "URLPrefix")
-				return
-			}
 		case "auto_send_on_signup":
 			z.AutoSendOnSignup, bts, err = msgp.ReadBoolBytes(bts)
 			if err != nil {
@@ -7730,7 +7630,7 @@ func (z *UserVerificationConfiguration) UnmarshalMsg(bts []byte) (o []byte, err 
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserVerificationConfiguration) Msgsize() (s int) {
-	s = 1 + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 20 + msgp.BoolSize + 9 + msgp.StringPrefixSize + len(string(z.Criteria)) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorHTMLURL) + 14 + msgp.MapHeaderSize
+	s = 1 + 20 + msgp.BoolSize + 9 + msgp.StringPrefixSize + len(string(z.Criteria)) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorHTMLURL) + 14 + msgp.MapHeaderSize
 	if z.LoginIDKeys != nil {
 		for za0001, za0002 := range z.LoginIDKeys {
 			_ = za0002
@@ -8369,12 +8269,6 @@ func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "Enabled")
 				return
 			}
-		case "url_prefix":
-			z.URLPrefix, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "URLPrefix")
-				return
-			}
 		case "sender":
 			z.Sender, err = dc.ReadString()
 			if err != nil {
@@ -8428,25 +8322,15 @@ func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *WelcomeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 8
+	// map header, size 7
 	// write "enabled"
-	err = en.Append(0x88, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	err = en.Append(0x87, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	if err != nil {
 		return
 	}
 	err = en.WriteBool(z.Enabled)
 	if err != nil {
 		err = msgp.WrapError(err, "Enabled")
-		return
-	}
-	// write "url_prefix"
-	err = en.Append(0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.URLPrefix)
-	if err != nil {
-		err = msgp.WrapError(err, "URLPrefix")
 		return
 	}
 	// write "sender"
@@ -8515,13 +8399,10 @@ func (z *WelcomeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *WelcomeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 8
+	// map header, size 7
 	// string "enabled"
-	o = append(o, 0x88, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	o = append(o, 0x87, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	o = msgp.AppendBool(o, z.Enabled)
-	// string "url_prefix"
-	o = append(o, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
-	o = msgp.AppendString(o, z.URLPrefix)
 	// string "sender"
 	o = append(o, 0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
 	o = msgp.AppendString(o, z.Sender)
@@ -8565,12 +8446,6 @@ func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err erro
 			z.Enabled, bts, err = msgp.ReadBoolBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "Enabled")
-				return
-			}
-		case "url_prefix":
-			z.URLPrefix, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "URLPrefix")
 				return
 			}
 		case "sender":
@@ -8627,7 +8502,7 @@ func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err erro
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *WelcomeEmailConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.BoolSize + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 9 + msgp.StringPrefixSize + len(z.ReplyTo) + 9 + msgp.StringPrefixSize + len(z.TextURL) + 9 + msgp.StringPrefixSize + len(z.HTMLURL) + 12 + msgp.StringPrefixSize + len(string(z.Destination))
+	s = 1 + 8 + msgp.BoolSize + 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 9 + msgp.StringPrefixSize + len(z.ReplyTo) + 9 + msgp.StringPrefixSize + len(z.TextURL) + 9 + msgp.StringPrefixSize + len(z.HTMLURL) + 12 + msgp.StringPrefixSize + len(string(z.Destination))
 	return
 }
 

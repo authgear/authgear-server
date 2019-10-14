@@ -76,7 +76,6 @@ func TestAuthURLHandler(t *testing.T) {
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
 		oauthConfig := coreconfig.OAuthConfiguration{
-			URLPrefix:      "http://localhost:3000/auth",
 			StateJWTSecret: "secret",
 			AllowedCallbackURLs: []string{
 				"callbackURL",
@@ -90,6 +89,7 @@ func TestAuthURLHandler(t *testing.T) {
 			Scope:        "openid profile email",
 		}
 		mockProvider := sso.MockSSOProvider{
+			URLPrefix:      &url.URL{Scheme: "https", Host: "localhost:3000"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,
 			ProviderConfig: providerConfig,
@@ -135,7 +135,7 @@ func TestAuthURLHandler(t *testing.T) {
 			// check redirect_uri
 			r, _ := url.Parse(q.Get("redirect_uri"))
 			So(r.Host, ShouldEqual, "localhost:3000")
-			So(r.Path, ShouldEqual, "/auth/sso/mock/auth_handler")
+			So(r.Path, ShouldEqual, "/_auth/sso/mock/auth_handler")
 
 			// check encoded state
 			s := q.Get("state")

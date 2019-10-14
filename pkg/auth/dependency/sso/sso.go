@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/rand"
@@ -129,10 +130,11 @@ type OpenIDConnectProvider interface {
 }
 
 type ProviderFactory struct {
-	tenantConfig config.TenantConfiguration
+	urlPrefixProvider urlprefix.Provider
+	tenantConfig      config.TenantConfiguration
 }
 
-func NewProviderFactory(tenantConfig config.TenantConfiguration) *ProviderFactory {
+func NewProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider) *ProviderFactory {
 	return &ProviderFactory{
 		tenantConfig: tenantConfig,
 	}
@@ -146,26 +148,31 @@ func (p *ProviderFactory) NewProvider(id string) OAuthProvider {
 	switch providerConfig.Type {
 	case config.OAuthProviderTypeGoogle:
 		return &GoogleImpl{
+			URLPrefix:      p.urlPrefixProvider.Value(),
 			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
 			ProviderConfig: providerConfig,
 		}
 	case config.OAuthProviderTypeFacebook:
 		return &FacebookImpl{
+			URLPrefix:      p.urlPrefixProvider.Value(),
 			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
 			ProviderConfig: providerConfig,
 		}
 	case config.OAuthProviderTypeInstagram:
 		return &InstagramImpl{
+			URLPrefix:      p.urlPrefixProvider.Value(),
 			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
 			ProviderConfig: providerConfig,
 		}
 	case config.OAuthProviderTypeLinkedIn:
 		return &LinkedInImpl{
+			URLPrefix:      p.urlPrefixProvider.Value(),
 			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
 			ProviderConfig: providerConfig,
 		}
 	case config.OAuthProviderTypeAzureADv2:
 		return &Azureadv2Impl{
+			URLPrefix:      p.urlPrefixProvider.Value(),
 			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
 			ProviderConfig: providerConfig,
 		}
