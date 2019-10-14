@@ -48,7 +48,7 @@ func (p *providerImpl) PresignPutRequest(r *PresignUploadRequest) (*PresignUploa
 		return nil, err
 	}
 
-	resp := NewPresignUploadResponse(assetID, httpRequest)
+	resp := NewPresignUploadResponse(httpRequest, assetName)
 	return &resp, nil
 }
 

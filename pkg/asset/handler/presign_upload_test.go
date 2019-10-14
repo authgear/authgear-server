@@ -98,9 +98,9 @@ func TestPresignUploadHandler(t *testing.T) {
 			r := httptest.NewRequest("POST", "/_asset/presign_upload", bytes.NewReader(requestBody))
 			r.Header.Add("content-type", "application/json")
 			provider.PresignUploadResponse = &cloudstorage.PresignUploadResponse{
-				AssetID: "app/myimage.png",
-				URL:     "http://example.com/app/myimage.png",
-				Method:  "PUT",
+				AssetName: "myimage.png",
+				URL:       "http://example.com/app/myimage.png",
+				Method:    "PUT",
 				Headers: []cloudstorage.HeaderField{
 					cloudstorage.HeaderField{
 						Name:  "Content-Length",
@@ -112,7 +112,7 @@ func TestPresignUploadHandler(t *testing.T) {
 
 			So(w.Code, ShouldEqual, 200)
 			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"result":{"asset_id":"app/myimage.png","headers":[{"name":"Content-Length","value":"123"}],"method":"PUT","url":"http://example.com/app/myimage.png"}}
+{"result":{"asset_name":"myimage.png","headers":[{"name":"Content-Length","value":"123"}],"method":"PUT","url":"http://example.com/app/myimage.png"}}
 			`)
 		})
 	})

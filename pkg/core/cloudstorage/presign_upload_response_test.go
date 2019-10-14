@@ -11,7 +11,7 @@ import (
 func TestPresignUploadResponse(t *testing.T) {
 	Convey("PresignUploadResponse", t, func() {
 		Convey("NewPresignUploadResponse", func() {
-			resp := NewPresignUploadResponse("myimage.png", &http.Request{
+			resp := NewPresignUploadResponse(&http.Request{
 				Method: "PUT",
 				URL: &url.URL{
 					Scheme:   "https",
@@ -22,11 +22,11 @@ func TestPresignUploadResponse(t *testing.T) {
 				Header: http.Header{
 					"Content-Length": []string{"123"},
 				},
-			})
+			}, "myimage.png")
 			So(resp, ShouldResemble, PresignUploadResponse{
-				AssetID: "myimage.png",
-				Method:  "PUT",
-				URL:     "https://example.com/a/b?a=b&c=d",
+				AssetName: "myimage.png",
+				Method:    "PUT",
+				URL:       "https://example.com/a/b?a=b&c=d",
 				Headers: []HeaderField{
 					HeaderField{"Content-Length", "123"},
 				},
