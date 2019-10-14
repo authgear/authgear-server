@@ -16,7 +16,7 @@ func (p *MockProvider) PresignPutRequest(r *PresignUploadRequest) (*PresignUploa
 
 func (p *MockProvider) Sign(r *SignRequest) (*SignRequest, error) {
 	for i, assetItem := range r.Assets {
-		r.Assets[i].URL = fmt.Sprintf("http://example/%s", assetItem.AssetID)
+		r.Assets[i].URL = fmt.Sprintf("http://example/%s", assetItem.AssetName)
 	}
 	return r, nil
 }

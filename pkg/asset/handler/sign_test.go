@@ -36,12 +36,12 @@ func TestSignHandler(t *testing.T) {
 			`)
 		})
 
-		Convey("asset_id is required and non-empty", func() {
+		Convey("asset_name is required and non-empty", func() {
 			requestBody := []byte(`
 			{
 				"assets": [
 					{},
-					{ "asset_id": "" }
+					{ "asset_name": "" }
 				]
 			}
 			`)
@@ -52,7 +52,7 @@ func TestSignHandler(t *testing.T) {
 
 			So(w.Code, ShouldEqual, 400)
 			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":107,"info":{"arguments":["#/assets/0: asset_id is required","#/assets/1/asset_id: String length must be greater than or equal to 1"],"causes":[{"message":"asset_id is required","pointer":"#/assets/0"},{"message":"String length must be greater than or equal to 1","pointer":"#/assets/1/asset_id"}]},"message":"Validation Error","name":"InvalidArgument"}}
+{"error":{"code":107,"info":{"arguments":["#/assets/0: asset_name is required","#/assets/1/asset_name: String length must be greater than or equal to 1"],"causes":[{"message":"asset_name is required","pointer":"#/assets/0"},{"message":"String length must be greater than or equal to 1","pointer":"#/assets/1/asset_name"}]},"message":"Validation Error","name":"InvalidArgument"}}
 			`)
 		})
 
@@ -60,7 +60,7 @@ func TestSignHandler(t *testing.T) {
 			requestBody := []byte(`
 			{
 				"assets": [
-					{ "asset_id": "myimage.png" }
+					{ "asset_name": "myimage.png" }
 				]
 			}
 			`)
@@ -71,7 +71,7 @@ func TestSignHandler(t *testing.T) {
 
 			So(w.Code, ShouldEqual, 200)
 			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"result":{"assets":[{"asset_id":"myimage.png","url":"http://example/myimage.png"}]}}
+{"result":{"assets":[{"asset_name":"myimage.png","url":"http://example/myimage.png"}]}}
 			`)
 		})
 	})

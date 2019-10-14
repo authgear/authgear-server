@@ -69,7 +69,8 @@ func (p *providerImpl) checkDuplicate(assetID string) error {
 
 func (p *providerImpl) Sign(r *SignRequest) (*SignRequest, error) {
 	for i, assetItem := range r.Assets {
-		u, err := p.storage.PresignGetObject(assetItem.AssetID)
+		assetID := p.GetAssetID(assetItem.AssetName)
+		u, err := p.storage.PresignGetObject(assetID)
 		if err != nil {
 			return nil, err
 		}

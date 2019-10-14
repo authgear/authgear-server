@@ -1,8 +1,8 @@
 package cloudstorage
 
 type AssetItem struct {
-	AssetID string `json:"asset_id"`
-	URL     string `json:"url"`
+	AssetName string `json:"asset_name"`
+	URL       string `json:"url"`
 }
 
 type SignRequest struct {
