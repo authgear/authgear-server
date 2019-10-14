@@ -60,7 +60,8 @@ const SignRequestSchema = `
 				"additionalProperties": false,
 				"properties": {
 					"asset_id": {
-						"type": "string"
+						"type": "string",
+						"minLength": 1
 					}
 				},
 				"required": ["asset_id"]
