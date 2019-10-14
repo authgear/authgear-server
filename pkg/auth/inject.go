@@ -17,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
@@ -165,7 +166,7 @@ func (m DependencyMap) Provide(
 	newHookProvider := func() hook.Provider {
 		return hook.NewProvider(
 			requestID,
-			request,
+			urlprefix.NewProvider(request),
 			hook.NewStore(newSQLBuilder(), newSQLExecutor()),
 			newAuthContext(),
 			newTimeProvider(),
