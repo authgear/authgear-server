@@ -29,6 +29,7 @@ func (m authzMiddleware) Handle(next http.Handler) http.Handler {
 			// write a header to hint the client SDK to try refresh.
 			if err == session.ErrSessionNotFound {
 				rw.Header().Set(coreHttp.HeaderTryRefreshToken, "true")
+				err = skyerr.NewNotAuthenticatedErr()
 			}
 			m.writeUnauthorized(rw, err)
 			return
