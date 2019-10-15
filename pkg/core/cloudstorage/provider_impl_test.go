@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/h2non/gock"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
