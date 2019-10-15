@@ -6,9 +6,10 @@ import (
 )
 
 type MockStorage struct {
-	PutRequest       *http.Request
-	GetURL           *url.URL
-	OriginallySigned bool
+	PutRequest          *http.Request
+	GetURL              *url.URL
+	OriginallySigned    bool
+	ListObjectsResponse *ListObjectsResponse
 }
 
 var _ Storage = &MockStorage{}
@@ -27,6 +28,10 @@ func (s *MockStorage) PresignHeadObject(name string) (*url.URL, error) {
 
 func (s *MockStorage) RewriteGetURL(u *url.URL, name string) (*url.URL, bool, error) {
 	return s.GetURL, s.OriginallySigned, nil
+}
+
+func (s *MockStorage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, error) {
+	return s.ListObjectsResponse, nil
 }
 
 func (s *MockStorage) AccessType(header http.Header) AccessType {

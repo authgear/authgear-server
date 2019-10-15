@@ -186,6 +186,40 @@ func (s *S3Storage) RewriteGetURL(u *url.URL, name string) (*url.URL, bool, erro
 	return newlySigned, false, err
 }
 
+func (s *S3Storage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, error) {
+	input := &s3.ListObjectsV2Input{
+		Bucket:  aws.String(s.Bucket),
+		MaxKeys: aws.Int64(int64(r.PageSize)),
+		Prefix:  aws.String(r.Prefix),
+	}
+	if r.PaginationToken != "" {
+		input.ContinuationToken = aws.String(r.PaginationToken)
+	}
+
+	output, err := s.s3.ListObjectsV2(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &ListObjectsResponse{}
+
+	if output.NextContinuationToken != nil && *output.NextContinuationToken != "" {
+		resp.PaginationToken = *output.NextContinuationToken
+	}
+
+	for _, object := range output.Contents {
+		resp.Assets = append(resp.Assets, AssetItem{
+			AssetName: *object.Key,
+			Size:      *object.Size,
+		})
+	}
+	if resp.Assets == nil {
+		resp.Assets = []AssetItem{}
+	}
+
+	return resp, nil
+}
+
 func (s *S3Storage) StandardToProprietary(header http.Header) http.Header {
 	return RewriteHeaderName(header, S3StandardToProprietaryMap)
 }

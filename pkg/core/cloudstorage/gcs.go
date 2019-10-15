@@ -193,6 +193,41 @@ func (s *GCSStorage) RewriteGetURL(u *url.URL, name string) (*url.URL, bool, err
 	return newlySigned, false, err
 }
 
+func (s GCSStorage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+
+	call := s.service.Objects.List(s.Bucket)
+	call.Projection("full")
+	call.MaxResults(int64(r.PageSize))
+	call.Prefix(r.Prefix)
+	if r.PaginationToken != "" {
+		call.PageToken(r.PaginationToken)
+	}
+
+	objects, err := call.Do()
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &ListObjectsResponse{}
+
+	resp.PaginationToken = objects.NextPageToken
+
+	for _, item := range objects.Items {
+		resp.Assets = append(resp.Assets, AssetItem{
+			AssetName: item.Name,
+			Size:      int64(item.Size),
+		})
+	}
+	if resp.Assets == nil {
+		resp.Assets = []AssetItem{}
+	}
+
+	return resp, nil
+}
+
 func (s *GCSStorage) StandardToProprietary(header http.Header) http.Header {
 	return RewriteHeaderName(header, GCSStandardToProprietaryMap)
 }

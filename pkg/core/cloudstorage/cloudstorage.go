@@ -32,6 +32,8 @@ type Storage interface {
 	// If the URL is not originally signed, the returned URL is signed.
 	// The second return value indicates whether the original URL is signed or not.
 	RewriteGetURL(u *url.URL, name string) (*url.URL, bool, error)
+	// ListObjects lists objects in a paginated fashion.
+	ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, error)
 	// AccessType returns AccessType stored in the header.
 	AccessType(header http.Header) AccessType
 	// StandardToProprietary rewrites any standard headers to proprietary ones
