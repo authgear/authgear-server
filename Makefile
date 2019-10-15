@@ -4,7 +4,7 @@ BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 BUILD_CONTEXT ?= .
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
 GO_TEST_TIMEOUT := 1m30s
-GO_TEST_PACKAGE := ./pkg/core/... ./pkg/auth/... ./pkg/gateway/...
+GO_TEST_PACKAGE := ./pkg/core/... ./pkg/auth/... ./pkg/gateway/... ./pkg/asset/...
 SHELL := /bin/bash
 
 ifeq (1,${GO_TEST_VERBOSE})
