@@ -68,8 +68,8 @@ func main() {
 		)
 	case config.StorageBackendGCS:
 		storage = cloudstorage.NewGCSStorage(
+			configuration.Storage.GCS.CredentialsJSON,
 			configuration.Storage.GCS.ServiceAccount,
-			configuration.Storage.GCS.PrivateKey,
 			configuration.Storage.GCS.Bucket,
 		)
 	case config.StorageBackendS3:

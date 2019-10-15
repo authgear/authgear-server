@@ -1,11 +1,8 @@
 package config
 
 import (
-	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 )
@@ -42,11 +39,10 @@ type AzureConfiguration struct {
 }
 
 type GCSConfiguration struct {
-	ServiceAccount string `envconfig:"SERVICE_ACCOUNT"`
-	Bucket         string `envconfig:"BUCKET"`
-	PrivateKeyPath string `envconfig:"PRIVATE_KEY_PATH"`
-
-	PrivateKey []byte `ignored:"true"`
+	ServiceAccount      string `envconfig:"SERVICE_ACCOUNT"`
+	Bucket              string `envconfig:"BUCKET"`
+	CredentialsJSONPath string `envconfig:"CREDENTIALS_JSON_PATH"`
+	CredentialsJSON     []byte `ignored:"true"`
 }
 
 type S3Configuration struct {
@@ -58,8 +54,7 @@ type S3Configuration struct {
 
 func (c *Configuration) Initialize() error {
 	if c.Storage.Backend == StorageBackendGCS {
-		p := c.Storage.GCS.PrivateKeyPath
-		ext := filepath.Ext(p)
+		p := c.Storage.GCS.CredentialsJSONPath
 
 		f, err := os.Open(p)
 		if err != nil {
@@ -67,24 +62,11 @@ func (c *Configuration) Initialize() error {
 		}
 		defer f.Close()
 
-		if ext == ".json" {
-			var j map[string]interface{}
-			err = json.NewDecoder(f).Decode(&j)
-			if err != nil {
-				return err
-			}
-			pemString, ok := j["private_key"].(string)
-			if !ok {
-				return fmt.Errorf("invalid service account key JSON: %s", p)
-			}
-			c.Storage.GCS.PrivateKey = []byte(pemString)
-		} else {
-			pemBytes, err := ioutil.ReadAll(f)
-			if err != nil {
-				return err
-			}
-			c.Storage.GCS.PrivateKey = pemBytes
+		jsonBytes, err := ioutil.ReadAll(f)
+		if err != nil {
+			return err
 		}
+		c.Storage.GCS.CredentialsJSON = jsonBytes
 	}
 	return nil
 }
