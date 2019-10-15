@@ -71,7 +71,7 @@ func TestSignHandler(t *testing.T) {
 
 			So(w.Code, ShouldEqual, 200)
 			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"result":{"assets":[{"asset_name":"myimage.png","url":"http://example/myimage.png"}]}}
+{"result":{"assets":[{"asset_name":"myimage.png","url":"http://example.com/_asset/get/myimage.png"}]}}
 			`)
 		})
 	})
