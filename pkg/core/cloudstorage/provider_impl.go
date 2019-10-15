@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 type providerImpl struct {
@@ -20,12 +21,15 @@ func NewProvider(appID string, storage Storage) Provider {
 	}
 }
 
-func (p *providerImpl) GetAssetID(assetName string) string {
+func (p *providerImpl) AssetNameToAssetID(assetName string) string {
 	// This is the final name in the storage.
 	// It must not start with a leading slash because
 	// /a/b is treated as <empty> / a / b by Azure Storage.
-	assetID := fmt.Sprintf("%s/%s", p.appID, assetName)
-	return assetID
+	return fmt.Sprintf("%s/%s", p.appID, assetName)
+}
+
+func (p *providerImpl) AssetIDToAssetName(assetID string) string {
+	return strings.TrimPrefix(assetID, fmt.Sprintf("%s/", p.appID))
 }
 
 func (p *providerImpl) PresignPutRequest(r *PresignUploadRequest) (*PresignUploadResponse, error) {
@@ -38,7 +42,7 @@ func (p *providerImpl) PresignPutRequest(r *PresignUploadRequest) (*PresignUploa
 
 	r.RemoveEmptyHeaders()
 
-	assetID := p.GetAssetID(assetName)
+	assetID := p.AssetNameToAssetID(assetName)
 
 	// Check duplicatae if the name is random.
 	if !r.IsCustomName() {
@@ -75,7 +79,7 @@ func (p *providerImpl) checkDuplicate(assetID string) error {
 
 func (p *providerImpl) Sign(r *SignRequest) (*SignRequest, error) {
 	for i, assetItem := range r.Assets {
-		assetID := p.GetAssetID(assetItem.AssetName)
+		assetID := p.AssetNameToAssetID(assetItem.AssetName)
 		u, err := p.storage.PresignGetObject(assetID)
 		if err != nil {
 			return nil, err
@@ -85,8 +89,27 @@ func (p *providerImpl) Sign(r *SignRequest) (*SignRequest, error) {
 	return r, nil
 }
 
+func (p *providerImpl) List(r *ListObjectsRequest) (*ListObjectsResponse, error) {
+	if r.Prefix != "" {
+		r.Prefix = p.AssetNameToAssetID(r.Prefix)
+	}
+	// 1000 is the greatest common page size.
+	r.PageSize = 1000
+
+	resp, err := p.storage.ListObjects(r)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, assetItem := range resp.Assets {
+		resp.Assets[i].AssetName = p.AssetIDToAssetName(assetItem.AssetName)
+	}
+
+	return resp, nil
+}
+
 func (p *providerImpl) RewriteGetURL(u *url.URL, name string) (*url.URL, bool, error) {
-	assetID := p.GetAssetID(name)
+	assetID := p.AssetNameToAssetID(name)
 	return p.storage.RewriteGetURL(u, assetID)
 }
 

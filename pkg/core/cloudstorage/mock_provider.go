@@ -8,6 +8,7 @@ import (
 
 type MockProvider struct {
 	PresignUploadResponse *PresignUploadResponse
+	ListObjectsResponse   *ListObjectsResponse
 	GetURL                *url.URL
 	OriginallySigned      bool
 	GetAccessType         AccessType
@@ -28,6 +29,10 @@ func (p *MockProvider) Sign(r *SignRequest) (*SignRequest, error) {
 
 func (p *MockProvider) RewriteGetURL(u *url.URL, assetID string) (*url.URL, bool, error) {
 	return p.GetURL, p.OriginallySigned, nil
+}
+
+func (p *MockProvider) List(r *ListObjectsRequest) (*ListObjectsResponse, error) {
+	return p.ListObjectsResponse, nil
 }
 
 func (p *MockProvider) ProprietaryToStandard(header http.Header) http.Header {

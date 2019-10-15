@@ -15,6 +15,7 @@ type Provider interface {
 	PresignPutRequest(r *PresignUploadRequest) (*PresignUploadResponse, error)
 	Sign(r *SignRequest) (*SignRequest, error)
 	RewriteGetURL(u *url.URL, name string) (*url.URL, bool, error)
+	List(r *ListObjectsRequest) (*ListObjectsResponse, error)
 	AccessType(header http.Header) AccessType
 	ProprietaryToStandard(header http.Header) http.Header
 }
