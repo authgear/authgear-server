@@ -3,6 +3,7 @@ package cloudstorage
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 type providerImpl struct {
@@ -19,6 +20,14 @@ func NewProvider(appID string, storage Storage) Provider {
 	}
 }
 
+func (p *providerImpl) GetAssetID(assetName string) string {
+	// This is the final name in the storage.
+	// It must not start with a leading slash because
+	// /a/b is treated as <empty> / a / b by Azure Storage.
+	assetID := fmt.Sprintf("%s/%s", p.appID, assetName)
+	return assetID
+}
+
 func (p *providerImpl) PresignPutRequest(r *PresignUploadRequest) (*PresignUploadResponse, error) {
 	assetName, err := r.DeriveAssetName()
 	if err != nil {
@@ -27,12 +36,9 @@ func (p *providerImpl) PresignPutRequest(r *PresignUploadRequest) (*PresignUploa
 
 	r.SetCacheControl()
 
-	// This is the final name in the storage.
-	// It must not start with a leading slash because
-	// /a/b is treated as <empty> / a / b by Azure Storage.
-	assetID := fmt.Sprintf("%s/%s", p.appID, assetName)
-
 	r.RemoveEmptyHeaders()
+
+	assetID := p.GetAssetID(assetName)
 
 	// Check duplicatae if the name is random.
 	if !r.IsCustomName() {
@@ -77,4 +83,17 @@ func (p *providerImpl) Sign(r *SignRequest) (*SignRequest, error) {
 		r.Assets[i].URL = u.String()
 	}
 	return r, nil
+}
+
+func (p *providerImpl) RewriteGetURL(u *url.URL, name string) (*url.URL, bool, error) {
+	assetID := p.GetAssetID(name)
+	return p.storage.RewriteGetURL(u, assetID)
+}
+
+func (p *providerImpl) ProprietaryToStandard(header http.Header) http.Header {
+	return p.storage.ProprietaryToStandard(header)
+}
+
+func (p *providerImpl) AccessType(header http.Header) AccessType {
+	return p.storage.AccessType(header)
 }

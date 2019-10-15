@@ -1,6 +1,7 @@
 package cloudstorage
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -124,6 +125,24 @@ func (s *GCSStorage) PresignGetObject(name string) (*url.URL, error) {
 
 func (s *GCSStorage) PresignHeadObject(name string) (*url.URL, error) {
 	return s.PresignGetOrHeadObject(name, "HEAD")
+}
+
+func (s *GCSStorage) RewriteGetURL(u *url.URL, name string) (*url.URL, bool, error) {
+	q := u.Query()
+	_, hasSignature := q["X-Goog-Signature"]
+
+	if hasSignature {
+		rewritten := &url.URL{
+			Scheme:   "https",
+			Host:     "storage.googleapis.com",
+			Path:     fmt.Sprintf("/%s/%s", s.Bucket, name),
+			RawQuery: u.RawQuery,
+		}
+		return rewritten, true, nil
+	}
+
+	newlySigned, err := s.PresignGetObject(name)
+	return newlySigned, false, err
 }
 
 func (s *GCSStorage) StandardToProprietary(header http.Header) http.Header {

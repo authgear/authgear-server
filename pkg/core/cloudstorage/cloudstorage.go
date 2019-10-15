@@ -28,6 +28,10 @@ type Storage interface {
 	PresignGetObject(name string) (*url.URL, error)
 	// PresignHeadObject returns an URL that is ready for use.
 	PresignHeadObject(name string) (*url.URL, error)
+	// RewriteGetURL rewrite the given URL so that it is ready for use.
+	// If the URL is not originally signed, the returned URL is signed.
+	// The second return value indicates whether the original URL is signed or not.
+	RewriteGetURL(u *url.URL, name string) (*url.URL, bool, error)
 	// AccessType returns AccessType stored in the header.
 	AccessType(header http.Header) AccessType
 	// StandardToProprietary rewrites any standard headers to proprietary ones
