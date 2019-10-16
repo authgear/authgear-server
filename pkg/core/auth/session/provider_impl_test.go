@@ -212,7 +212,7 @@ func TestProvider(t *testing.T) {
 				So(session, ShouldBeNil)
 			})
 
-			Convey("should reject non-existant session", func() {
+			Convey("should reject non-existent session", func() {
 				session, err := provider.GetByToken("session-id-unknown.access-token", auth.SessionTokenKindAccessToken)
 				So(err, ShouldBeError, ErrSessionNotFound)
 				So(session, ShouldBeNil)
@@ -294,7 +294,7 @@ func TestProvider(t *testing.T) {
 				So(store.Sessions, ShouldBeEmpty)
 			})
 
-			Convey("should be successful for non-existant sessions", func() {
+			Convey("should be successful for non-existent sessions", func() {
 				err := provider.Invalidate(&auth.Session{ID: "session-id-unknown"})
 				So(err, ShouldBeNil)
 				So(store.Sessions, ShouldNotBeEmpty)

@@ -1,11 +1,11 @@
-FROM golang:1.12.5-stretch
+FROM golang:1.13.3-stretch
 
 ENV GO111MODULE on
 SHELL ["/bin/bash", "-c"]
 
 WORKDIR /go/src/github.com/skygeario/skygear-server
 
-RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.16.0
+RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.19.1
 
 COPY go.mod go.sum ./
 RUN go mod download
