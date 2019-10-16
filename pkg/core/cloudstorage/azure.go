@@ -164,6 +164,34 @@ func (s *AzureStorage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse,
 	return resp, nil
 }
 
+func (s *AzureStorage) DeleteObject(name string) error {
+	ctx := context.Background()
+
+	cred, err := azblob.NewSharedKeyCredential(s.StorageAccount, s.AccessKey)
+	if err != nil {
+		return err
+	}
+
+	p := azblob.NewPipeline(cred, azblob.PipelineOptions{})
+
+	u, err := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net", s.StorageAccount))
+	if err != nil {
+		return err
+	}
+
+	serviceURL := azblob.NewServiceURL(*u, p)
+	containerURL := serviceURL.NewContainerURL(s.Container)
+	blobURL := containerURL.NewBlobURL(name)
+
+	_, err = blobURL.Delete(ctx, azblob.DeleteSnapshotsOptionInclude, azblob.BlobAccessConditions{})
+
+	if serr, ok := err.(azblob.StorageError); ok && serr.ServiceCode() == azblob.ServiceCodeBlobNotFound {
+		return nil
+	}
+
+	return err
+}
+
 func (s *AzureStorage) StandardToProprietary(header http.Header) http.Header {
 	return RewriteHeaderName(header, AzureStandardToProprietaryMap)
 }

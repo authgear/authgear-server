@@ -34,6 +34,11 @@ type Storage interface {
 	RewriteGetURL(u *url.URL, name string) (*url.URL, bool, error)
 	// ListObjects lists objects in a paginated fashion.
 	ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, error)
+	// DeleteObject deletes the given object.
+	// It is not an error if the object does not exist.
+	// This is due to the limitation of S3, which treats
+	// deleting non-existent object as success.
+	DeleteObject(name string) error
 	// AccessType returns AccessType stored in the header.
 	AccessType(header http.Header) AccessType
 	// StandardToProprietary rewrites any standard headers to proprietary ones

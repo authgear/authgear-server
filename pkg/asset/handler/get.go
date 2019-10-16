@@ -23,7 +23,7 @@ func AttachGetHandler(
 	server *server.Server,
 	dependencyMap inject.DependencyMap,
 ) *server.Server {
-	server.Handle("/get/{asset_id}", &GetHandlerFactory{
+	server.Handle("/get/{asset_name}", &GetHandlerFactory{
 		dependencyMap,
 	}).Methods("OPTIONS", "HEAD", "GET")
 	return server
@@ -47,7 +47,7 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	hasPipeline := false
 	originallySigned := false
 	vars := mux.Vars(r)
-	assetID := vars["asset_id"]
+	assetName := vars["asset_name"]
 
 	director := func(req *http.Request) {
 		req.Header = coreHttp.RemoveSkygearHeader(req.Header)
@@ -63,7 +63,7 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// However, this function does not return error normally.
 		// The known condition that err could be returned is fail to sign
 		// which is a configuration problem.
-		u, signed, _ := h.CloudStorageProvider.RewriteGetURL(req.URL, assetID)
+		u, signed, _ := h.CloudStorageProvider.RewriteGetURL(req.URL, assetName)
 		originallySigned = signed
 
 		req.URL = u

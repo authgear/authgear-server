@@ -24,6 +24,7 @@ type GCSStorage struct {
 	CredentialsJSON []byte
 
 	privateKey []byte
+	client     *storage.Client
 	service    *raw.Service
 	err        error
 }
@@ -59,6 +60,13 @@ func NewGCSStorage(credentialsJSON []byte, serviceAccount string, bucket string)
 		return s
 	}
 	s.service = service
+
+	client, err := storage.NewClient(ctx, option.WithCredentialsJSON(credentialsJSON))
+	if err != nil {
+		s.err = err
+		return s
+	}
+	s.client = client
 
 	return s
 }
@@ -226,6 +234,20 @@ func (s GCSStorage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, er
 	}
 
 	return resp, nil
+}
+
+func (s *GCSStorage) DeleteObject(name string) error {
+	if s.err != nil {
+		return s.err
+	}
+	bucketHandle := s.client.Bucket(s.Bucket)
+	objectHandle := bucketHandle.Object(name)
+	ctx := context.Background()
+	err := objectHandle.Delete(ctx)
+	if err == storage.ErrObjectNotExist {
+		return nil
+	}
+	return err
 }
 
 func (s *GCSStorage) StandardToProprietary(header http.Header) http.Header {

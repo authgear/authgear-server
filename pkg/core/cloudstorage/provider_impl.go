@@ -108,6 +108,15 @@ func (p *providerImpl) List(r *ListObjectsRequest) (*ListObjectsResponse, error)
 	return resp, nil
 }
 
+func (p *providerImpl) Delete(name string) error {
+	assetID := p.AssetNameToAssetID(name)
+	err := p.storage.DeleteObject(assetID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (p *providerImpl) RewriteGetURL(u *url.URL, name string) (*url.URL, bool, error) {
 	assetID := p.AssetNameToAssetID(name)
 	return p.storage.RewriteGetURL(u, assetID)

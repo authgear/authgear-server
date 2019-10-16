@@ -35,6 +35,10 @@ func (p *MockProvider) List(r *ListObjectsRequest) (*ListObjectsResponse, error)
 	return p.ListObjectsResponse, nil
 }
 
+func (p *MockProvider) Delete(name string) error {
+	return nil
+}
+
 func (p *MockProvider) ProprietaryToStandard(header http.Header) http.Header {
 	return header
 }

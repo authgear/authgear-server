@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -218,6 +219,21 @@ func (s *S3Storage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, er
 	}
 
 	return resp, nil
+}
+
+func (s *S3Storage) DeleteObject(name string) error {
+	input := &s3.DeleteObjectInput{
+		Bucket: aws.String(s.Bucket),
+		Key:    aws.String(name),
+	}
+	_, err := s.s3.DeleteObject(input)
+	// NOTE(louis): S3 idempotent delete
+	// S3 treats deleting non-existent object as success.
+	// So the following condition never hold.
+	if aerr, ok := err.(awserr.Error); ok && aerr.Code() == s3.ErrCodeNoSuchKey {
+		return nil
+	}
+	return err
 }
 
 func (s *S3Storage) StandardToProprietary(header http.Header) http.Header {

@@ -34,6 +34,10 @@ func (s *MockStorage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, 
 	return s.ListObjectsResponse, nil
 }
 
+func (s *MockStorage) DeleteObject(name string) error {
+	return nil
+}
+
 func (s *MockStorage) AccessType(header http.Header) AccessType {
 	return AccessTypeDefault
 }
