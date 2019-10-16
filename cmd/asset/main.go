@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/davidbyttow/govips/pkg/vips"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
@@ -44,6 +45,9 @@ import (
 	@SecurityRequirement access_key
 */
 func main() {
+	vips.Startup(nil)
+	defer vips.Shutdown()
+
 	logging.SetModule("asset")
 	loggerFactory := logging.NewFactory(logging.NewDefaultMaskedTextFormatter(nil))
 	logger := loggerFactory.NewLogger("asset")

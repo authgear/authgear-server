@@ -25,6 +25,19 @@ Next is the V2 of Skygear that aim to follow
         └── main.go
 ```
 
+## Dependencies
+
+If you plan to build and run locally, you need to install the following dependencies.
+
+- pkgconfig
+- vips >= 8.7
+
+If you are on macOS and user of homebrew, you can install them by
+
+```sh
+brew install pkgconfig vips
+```
+
 ## Gateway
 
 ### Migration

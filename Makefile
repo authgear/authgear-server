@@ -21,6 +21,7 @@ DOCKER_REGISTRY :=
 DOCKER_ORG_NAME := skygeario
 DOCKER_IMAGE_AUTH := skygear-auth
 DOCKER_IMAGE_GATEWAY := skygear-gateway
+DOCKER_IMAGE_ASSET := skygear-asset
 DOCKER_IMAGE_MIGRATE := skygear-migrate
 DOCKER_TAG := git-$(shell git rev-parse --short HEAD)
 PUSH_DOCKER_TAG := $(VERSION)
@@ -30,6 +31,8 @@ AUTH_IMAGE_NAME = $(call IMAGE_NAME,$(DOCKER_IMAGE_AUTH))
 AUTH_VERSIONED_IMAGE_NAME = $(call VERSIONED_IMAGE_NAME,$(DOCKER_IMAGE_AUTH))
 GATEWAY_IMAGE_NAME = $(call IMAGE_NAME,$(DOCKER_IMAGE_GATEWAY))
 GATEWAY_VERSIONED_IMAGE_NAME = $(call VERSIONED_IMAGE_NAME,$(DOCKER_IMAGE_GATEWAY))
+ASSET_IMAGE_NAME = $(call IMAGE_NAME,$(DOCKER_IMAGE_ASSET))
+ASSET_VERSIONED_IMAGE_NAME = $(call VERSIONED_IMAGE_NAME,$(DOCKER_IMAGE_ASSET))
 MIGRATE_IMAGE_NAME = $(call IMAGE_NAME,$(DOCKER_IMAGE_MIGRATE))
 MIGRATE_VERSIONED_IMAGE_NAME = $(call VERSIONED_IMAGE_NAME,$(DOCKER_IMAGE_MIGRATE))
 
@@ -100,6 +103,10 @@ docker-build-auth:
 docker-build-gateway:
 	$(MAKE) docker-build-image DOCKER_FILE=cmd/gateway/Dockerfile IMAGE_NAME=$(GATEWAY_IMAGE_NAME)
 
+.PHONY: docker-build-asset
+docker-build-asset:
+	$(MAKE) docker-build-image DOCKER_FILE=cmd/asset/Dockerfile IMAGE_NAME=$(ASSET_IMAGE_NAME)
+
 .PHONY: docker-build-migrate
 docker-build-migrate:
 	$(MAKE) docker-build-image DOCKER_FILE=./migrate/cmd/migrate/Dockerfile IMAGE_NAME=$(MIGRATE_IMAGE_NAME) BUILD_CONTEXT=./migrate
@@ -111,15 +118,18 @@ docker-build: docker-build-auth docker-build-gateway docker-build-migrate
 docker-push:
 	docker push $(AUTH_IMAGE_NAME)
 	docker push $(GATEWAY_IMAGE_NAME)
+	docker push $(ASSET_IMAGE_NAME)
 	docker push $(MIGRATE_IMAGE_NAME)
 
 .PHONY: docker-push-version
 docker-push-version:
 	docker tag $(AUTH_IMAGE_NAME) $(AUTH_VERSIONED_IMAGE_NAME)
 	docker tag $(GATEWAY_IMAGE_NAME) $(GATEWAY_VERSIONED_IMAGE_NAME)
+	docker tag $(ASSET_IMAGE_NAME) $(ASSET_VERSIONED_IMAGE_NAME)
 	docker tag $(MIGRATE_IMAGE_NAME) $(MIGRATE_VERSIONED_IMAGE_NAME)
 	docker push $(AUTH_VERSIONED_IMAGE_NAME)
 	docker push $(GATEWAY_VERSIONED_IMAGE_NAME)
+	docker push $(ASSET_VERSIONED_IMAGE_NAME)
 	docker push $(MIGRATE_VERSIONED_IMAGE_NAME)
 
 .PHONY: release-commit
