@@ -1,6 +1,8 @@
 package userverify
 
 import (
+	"net/url"
+
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
@@ -15,7 +17,7 @@ type defaultCodeSenderFactory struct {
 	CodeSenderMap map[string]CodeSender
 }
 
-func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templateEngine *template.Engine) CodeSenderFactory {
+func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, urlPrefix *url.URL, templateEngine *template.Engine) CodeSenderFactory {
 	userVerifyConfig := c.UserConfig.UserVerification
 	f := defaultCodeSenderFactory{
 		CodeSenderMap: map[string]CodeSender{},
@@ -27,7 +29,7 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templat
 		case config.UserVerificationProviderSMTP:
 			codeSender = &EmailCodeSender{
 				AppName:        c.AppName,
-				URLPrefix:      userVerifyConfig.URLPrefix,
+				URLPrefix:      urlPrefix,
 				ProviderConfig: verifyConfig.ProviderConfig,
 				Sender:         mail.NewSender(c.UserConfig.SMTP),
 				TemplateEngine: templateEngine,
@@ -35,14 +37,14 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templat
 		case config.UserVerificationProviderTwilio:
 			codeSender = &SMSCodeSender{
 				AppName:        c.AppName,
-				URLPrefix:      userVerifyConfig.URLPrefix,
+				URLPrefix:      urlPrefix,
 				SMSClient:      sms.NewTwilioClient(c.UserConfig.Twilio),
 				TemplateEngine: templateEngine,
 			}
 		case config.UserVerificationProviderNexmo:
 			codeSender = &SMSCodeSender{
 				AppName:        c.AppName,
-				URLPrefix:      userVerifyConfig.URLPrefix,
+				URLPrefix:      urlPrefix,
 				SMSClient:      sms.NewNexmoClient(c.UserConfig.Nexmo),
 				TemplateEngine: templateEngine,
 			}

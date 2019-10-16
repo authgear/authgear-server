@@ -3,6 +3,7 @@ package sso
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -65,7 +66,6 @@ func TestLinkHandler(t *testing.T) {
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
 		oauthConfig := coreconfig.OAuthConfiguration{
-			URLPrefix:                      "http://localhost:3000",
 			StateJWTSecret:                 stateJWTSecret,
 			ExternalAccessTokenFlowEnabled: true,
 			AllowedCallbackURLs: []string{
@@ -79,6 +79,7 @@ func TestLinkHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
+			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,
 			ProviderConfig: providerConfig,

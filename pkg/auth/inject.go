@@ -17,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
@@ -165,7 +166,7 @@ func (m DependencyMap) Provide(
 	newHookProvider := func() hook.Provider {
 		return hook.NewProvider(
 			requestID,
-			request,
+			urlprefix.NewProvider(request),
 			hook.NewStore(newSQLBuilder(), newSQLExecutor()),
 			newAuthContext(),
 			newTimeProvider(),
@@ -304,29 +305,29 @@ func (m DependencyMap) Provide(
 	case "UserProfileStore":
 		return newUserProfileStore()
 	case "ForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultSender(tConfig, newMailSender(), newTemplateEngine())
+		return forgotpwdemail.NewDefaultSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender(), newTemplateEngine())
 	case "TestForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultTestSender(tConfig, newMailSender())
+		return forgotpwdemail.NewDefaultTestSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender())
 	case "ForgotPasswordCodeGenerator":
 		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.UserConfig.MasterKey}
 	case "ForgotPasswordSecureMatch":
 		return tConfig.UserConfig.ForgotPassword.SecureMatch
 	case "ResetPasswordHTMLProvider":
-		return forgotpwdemail.NewResetPasswordHTMLProvider(tConfig.UserConfig.ForgotPassword, newTemplateEngine())
+		return forgotpwdemail.NewResetPasswordHTMLProvider(urlprefix.NewProvider(request).Value(), tConfig.UserConfig.ForgotPassword, newTemplateEngine())
 	case "WelcomeEmailEnabled":
 		return tConfig.UserConfig.WelcomeEmail.Enabled
 	case "WelcomeEmailDestination":
 		return tConfig.UserConfig.WelcomeEmail.Destination
 	case "WelcomeEmailSender":
-		return welcemail.NewDefaultSender(tConfig, newMailSender(), newTemplateEngine())
+		return welcemail.NewDefaultSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender(), newTemplateEngine())
 	case "TestWelcomeEmailSender":
-		return welcemail.NewDefaultTestSender(tConfig, newMailSender())
+		return welcemail.NewDefaultTestSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender())
 	case "IFrameHTMLProvider":
-		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint())
+		return sso.NewIFrameHTMLProvider(urlprefix.NewProvider(request).Value())
 	case "UserVerifyCodeSenderFactory":
-		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig, newTemplateEngine())
+		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig, urlprefix.NewProvider(request).Value(), newTemplateEngine())
 	case "UserVerifyTestCodeSenderFactory":
-		return userverify.NewDefaultUserVerifyTestCodeSenderFactory(tConfig, newTemplateEngine())
+		return userverify.NewDefaultUserVerifyTestCodeSenderFactory(tConfig, urlprefix.NewProvider(request).Value(), newTemplateEngine())
 	case "AutoSendUserVerifyCodeOnSignup":
 		return tConfig.UserConfig.UserVerification.AutoSendOnSignup
 	case "UserVerifyLoginIDKeys":
@@ -352,13 +353,13 @@ func (m DependencyMap) Provide(
 		}
 		return trail
 	case "SSOProviderFactory":
-		return sso.NewProviderFactory(tConfig)
+		return sso.NewProviderFactory(tConfig, urlprefix.NewProvider(request))
 	case "OAuthAuthProvider":
 		return newOAuthAuthProvider()
 	case "IdentityProvider":
 		return newIdentityProvider()
 	case "AuthHandlerHTMLProvider":
-		return sso.NewAuthHandlerHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint())
+		return sso.NewAuthHandlerHTMLProvider(urlprefix.NewProvider(request).Value())
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	case "HookProvider":

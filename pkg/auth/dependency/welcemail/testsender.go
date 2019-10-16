@@ -1,6 +1,8 @@
 package welcemail
 
 import (
+	"net/url"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -19,16 +21,18 @@ type TestSender interface {
 }
 
 type DefaultTestSender struct {
-	AppName string
-	Config  config.WelcomeEmailConfiguration
-	Sender  mail.Sender
+	AppName   string
+	URLPrefix *url.URL
+	Config    config.WelcomeEmailConfiguration
+	Sender    mail.Sender
 }
 
-func NewDefaultTestSender(config config.TenantConfiguration, sender mail.Sender) TestSender {
+func NewDefaultTestSender(config config.TenantConfiguration, urlPrefix *url.URL, sender mail.Sender) TestSender {
 	return &DefaultTestSender{
-		AppName: config.AppName,
-		Config:  config.UserConfig.WelcomeEmail,
-		Sender:  sender,
+		AppName:   config.AppName,
+		URLPrefix: urlPrefix,
+		Config:    config.UserConfig.WelcomeEmail,
+		Sender:    sender,
 	}
 }
 
@@ -56,7 +60,7 @@ func (d *DefaultTestSender) Send(
 		"email":      userProfile.Data["email"],
 		"user_id":    userProfile.ID,
 		"user":       userProfile,
-		"url_prefix": d.Config.URLPrefix,
+		"url_prefix": d.URLPrefix.String(),
 	}
 
 	var textBody string

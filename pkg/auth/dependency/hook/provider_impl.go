@@ -1,17 +1,16 @@
 package hook
 
 import (
-	"net/http"
 	"net/url"
 	gotime "time"
 
 	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -29,7 +28,7 @@ type providerImpl struct {
 
 func NewProvider(
 	requestID string,
-	request *http.Request,
+	urlprefix urlprefix.Provider,
 	store Store,
 	authContext auth.ContextGetter,
 	timeProvider time.Provider,
@@ -39,7 +38,7 @@ func NewProvider(
 ) Provider {
 	return &providerImpl{
 		RequestID:        requestID,
-		BaseURL:          getHookBaseURL(request),
+		BaseURL:          urlprefix.Value(),
 		Store:            store,
 		AuthContext:      authContext,
 		TimeProvider:     timeProvider,
@@ -202,16 +201,4 @@ func (provider *providerImpl) makeContext() event.Context {
 		PrincipalID: principalID,
 		Session:     session,
 	}
-}
-
-func getHookBaseURL(req *http.Request) *url.URL {
-	if req == nil {
-		return &url.URL{}
-	}
-
-	u := &url.URL{
-		Host:   corehttp.GetHost(req),
-		Scheme: corehttp.GetProto(req),
-	}
-	return u
 }

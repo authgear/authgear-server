@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -30,6 +31,8 @@ func TestUnlinkHandler(t *testing.T) {
 		providerID := "google"
 		providerUserID := "mock_user_id"
 
+		req, _ := http.NewRequest("POST", "https://api.example.com", nil)
+
 		sh := &UnlinkHandler{}
 		sh.ProviderID = providerID
 		sh.TxContext = db.NewMockTxContext()
@@ -49,7 +52,7 @@ func TestUnlinkHandler(t *testing.T) {
 					},
 				},
 			},
-		})
+		}, urlprefix.NewProvider(req))
 		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
 			&oauth.Principal{
 				ID:             "oauth-principal-id",

@@ -1,6 +1,8 @@
 package sso
 
 import (
+	"net/url"
+
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -8,6 +10,7 @@ import (
 type MockSSOProvider struct {
 	BaseURL        string
 	OAuthConfig    config.OAuthConfiguration
+	URLPrefix      *url.URL
 	ProviderConfig config.OAuthProviderConfiguration
 	UserInfo       ProviderUserInfo
 }
@@ -19,6 +22,7 @@ func (f *MockSSOProvider) GetAuthURL(params GetURLParams) (string, error) {
 	}
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
+		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
 		state:          NewState(params),
 		baseURL:        f.BaseURL,

@@ -1,6 +1,8 @@
 package userverify
 
 import (
+	"net/url"
+
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -19,12 +21,14 @@ type TestCodeSenderFactory interface {
 
 type defaultTestCodeSenderFactory struct {
 	Config         config.TenantConfiguration
+	URLPrefix      *url.URL
 	TemplateEngine *template.Engine
 }
 
-func NewDefaultUserVerifyTestCodeSenderFactory(c config.TenantConfiguration, templateEngine *template.Engine) TestCodeSenderFactory {
+func NewDefaultUserVerifyTestCodeSenderFactory(c config.TenantConfiguration, urlPrefix *url.URL, templateEngine *template.Engine) TestCodeSenderFactory {
 	return &defaultTestCodeSenderFactory{
 		Config:         c,
+		URLPrefix:      urlPrefix,
 		TemplateEngine: templateEngine,
 	}
 }
@@ -46,7 +50,7 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 	case config.UserVerificationProviderSMTP:
 		codeSender = &EmailCodeSender{
 			AppName:        d.Config.AppName,
-			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
+			URLPrefix:      d.URLPrefix,
 			ProviderConfig: keyConfig,
 			Sender:         mail.NewSender(d.Config.UserConfig.SMTP),
 			TemplateEngine: templateEngine,
@@ -55,7 +59,7 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 	case config.UserVerificationProviderTwilio:
 		codeSender = &SMSCodeSender{
 			AppName:        d.Config.AppName,
-			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
+			URLPrefix:      d.URLPrefix,
 			SMSClient:      sms.NewTwilioClient(d.Config.UserConfig.Twilio),
 			TemplateEngine: templateEngine,
 		}
@@ -63,7 +67,7 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 	case config.UserVerificationProviderNexmo:
 		codeSender = &SMSCodeSender{
 			AppName:        d.Config.AppName,
-			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
+			URLPrefix:      d.URLPrefix,
 			SMSClient:      sms.NewNexmoClient(d.Config.UserConfig.Nexmo),
 			TemplateEngine: templateEngine,
 		}

@@ -15,6 +15,7 @@ import (
 )
 
 type Azureadv2Impl struct {
+	URLPrefix      *url.URL
 	OAuthConfig    config.OAuthConfiguration
 	ProviderConfig config.OAuthProviderConfiguration
 }
@@ -103,6 +104,7 @@ func (f *Azureadv2Impl) GetAuthURL(params GetURLParams) (string, error) {
 	}
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
+		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
 		state:          NewState(params),
 		baseURL:        c.AuthorizationEndpoint,
@@ -144,7 +146,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 	body.Set("grant_type", "authorization_code")
 	body.Set("client_id", f.ProviderConfig.ClientID)
 	body.Set("code", r.Code)
-	body.Set("redirect_uri", redirectURI(f.OAuthConfig, f.ProviderConfig))
+	body.Set("redirect_uri", redirectURI(f.URLPrefix, f.ProviderConfig))
 	body.Set("client_secret", f.ProviderConfig.ClientSecret)
 
 	resp, err := http.PostForm(c.TokenEndpoint, body)

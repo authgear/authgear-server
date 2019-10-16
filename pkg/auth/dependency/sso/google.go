@@ -1,6 +1,8 @@
 package sso
 
 import (
+	"net/url"
+
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -12,6 +14,7 @@ const (
 )
 
 type GoogleImpl struct {
+	URLPrefix      *url.URL
 	OAuthConfig    config.OAuthConfiguration
 	ProviderConfig config.OAuthProviderConfiguration
 }
@@ -19,6 +22,7 @@ type GoogleImpl struct {
 func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
+		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
 		state:          NewState(params),
 		baseURL:        googleAuthorizationURL,

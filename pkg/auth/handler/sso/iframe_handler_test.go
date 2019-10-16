@@ -3,6 +3,7 @@ package sso
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"regexp"
 	"testing"
 
@@ -14,7 +15,7 @@ func TestIFrameHandler(t *testing.T) {
 	Convey("Test IFrameHandler", t, func() {
 		ih := &IFrameHandler{}
 		ih.IFrameHTMLProvider = sso.NewIFrameHTMLProvider(
-			"https://api.example.com",
+			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
 
 		Convey("should use provided endpoint", func() {

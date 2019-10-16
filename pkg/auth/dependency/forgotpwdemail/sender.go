@@ -1,7 +1,9 @@
 package forgotpwdemail
 
 import (
-	"fmt"
+	"net/url"
+	"path"
+	"strconv"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -23,6 +25,7 @@ type Sender interface {
 
 type DefaultSender struct {
 	Config         config.ForgotPasswordConfiguration
+	URLPrefix      *url.URL
 	Sender         mail.Sender
 	CodeGenerator  *CodeGenerator
 	TemplateEngine *template.Engine
@@ -30,11 +33,13 @@ type DefaultSender struct {
 
 func NewDefaultSender(
 	config config.TenantConfiguration,
+	urlPrefix *url.URL,
 	sender mail.Sender,
 	templateEngine *template.Engine,
 ) Sender {
 	return &DefaultSender{
 		Config:         config.UserConfig.ForgotPassword,
+		URLPrefix:      urlPrefix,
 		Sender:         sender,
 		CodeGenerator:  &CodeGenerator{config.UserConfig.MasterKey},
 		TemplateEngine: templateEngine,
@@ -52,18 +57,19 @@ func (d *DefaultSender) Send(
 			Truncate(time.Second * 1).
 			Add(time.Second * time.Duration(d.Config.ResetURLLifetime))
 	code := d.CodeGenerator.Generate(authInfo, hashedPassword, expireAt)
+	link := *d.URLPrefix
+	link.Path = path.Join(link.Path, "_auth/forgot_password/reset_password_form")
+	link.RawQuery = url.Values{
+		"code":      []string{code},
+		"user_id":   []string{authInfo.ID},
+		"expire_at": []string{strconv.FormatInt(expireAt.UTC().Unix(), 10)},
+	}.Encode()
 	context := map[string]interface{}{
-		"appname": d.Config.AppName,
-		"link": fmt.Sprintf(
-			"%s/forgot_password/reset_password_form?code=%s&user_id=%s&expire_at=%d",
-			d.Config.URLPrefix,
-			code,
-			authInfo.ID,
-			expireAt.UTC().Unix(),
-		),
+		"appname":    d.Config.AppName,
+		"link":       link.String(),
 		"email":      email,
 		"user":       user,
-		"url_prefix": d.Config.URLPrefix,
+		"url_prefix": d.URLPrefix.String(),
 		"code":       code,
 		"expire_at":  expireAt,
 	}

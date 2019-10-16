@@ -1,7 +1,8 @@
 package forgotpwdemail
 
 import (
-	"fmt"
+	"net/url"
+	"path"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -22,14 +23,16 @@ type TestSender interface {
 }
 
 type DefaultTestSender struct {
-	Config config.ForgotPasswordConfiguration
-	Sender mail.Sender
+	Config    config.ForgotPasswordConfiguration
+	URLPrefix *url.URL
+	Sender    mail.Sender
 }
 
-func NewDefaultTestSender(config config.TenantConfiguration, sender mail.Sender) TestSender {
+func NewDefaultTestSender(config config.TenantConfiguration, urlPrefix *url.URL, sender mail.Sender) TestSender {
 	return &DefaultTestSender{
-		Config: config.UserConfig.ForgotPassword,
-		Sender: sender,
+		Config:    config.UserConfig.ForgotPassword,
+		URLPrefix: urlPrefix,
+		Sender:    sender,
 	}
 }
 
@@ -56,16 +59,15 @@ func (d *DefaultTestSender) Send(
 	userProfile := userprofile.UserProfile{
 		ID: "dummy-id",
 	}
+	link := *d.URLPrefix
+	link.Path = path.Join(link.Path, "_auth/example-reset-password-link")
 	context := map[string]interface{}{
-		"appname": d.Config.AppName,
-		"link": fmt.Sprintf(
-			"%s/example-reset-password-link",
-			d.Config.URLPrefix,
-		),
+		"appname":    d.Config.AppName,
+		"link":       link.String(),
 		"email":      email,
 		"user_id":    userProfile.ID,
 		"user":       userProfile,
-		"url_prefix": d.Config.URLPrefix,
+		"url_prefix": d.URLPrefix.String(),
 		"code":       "dummy-reset-code",
 		"expire_at":  expireAt,
 	}

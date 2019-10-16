@@ -113,7 +113,6 @@ func makeFullTenantConfig() TenantConfiguration {
 				},
 			},
 			MasterKey: "mymasterkey",
-			URLPrefix: "http://localhost:3000",
 			CORS: CORSConfiguration{
 				Origin: "localhost:3000",
 			},
@@ -182,7 +181,6 @@ func makeFullTenantConfig() TenantConfiguration {
 			},
 			ForgotPassword: ForgotPasswordConfiguration{
 				AppName:             "myapp",
-				URLPrefix:           "http://localhost:3000/forgotpassword",
 				SecureMatch:         true,
 				Sender:              "myforgotpasswordsender",
 				Subject:             "myforgotpasswordsubject",
@@ -198,7 +196,6 @@ func makeFullTenantConfig() TenantConfiguration {
 			},
 			WelcomeEmail: WelcomeEmailConfiguration{
 				Enabled:     true,
-				URLPrefix:   "http://localhost:3000/welcomeemail",
 				Sender:      "welcomeemailsender",
 				Subject:     "welcomeemailsubject",
 				ReplyTo:     "welcomeemailreplyto",
@@ -216,7 +213,6 @@ func makeFullTenantConfig() TenantConfiguration {
 					OnUserDuplicateAllowCreate: true,
 				},
 				OAuth: OAuthConfiguration{
-					URLPrefix:      "http://localhost:3000/oauth",
 					StateJWTSecret: "oauthstatejwtsecret",
 					AllowedCallbackURLs: []string{
 						"http://localhost:3000/oauth/callback",
@@ -244,7 +240,6 @@ func makeFullTenantConfig() TenantConfiguration {
 				},
 			},
 			UserVerification: UserVerificationConfiguration{
-				URLPrefix:        "http://localhost:3000/userverification",
 				AutoSendOnSignup: true,
 				Criteria:         "any",
 				ErrorRedirect:    "http://localhost:3000/userverification/error",

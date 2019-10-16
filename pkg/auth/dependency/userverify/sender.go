@@ -1,7 +1,8 @@
 package userverify
 
 import (
-	"fmt"
+	"net/url"
+	"path"
 
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 
@@ -18,7 +19,7 @@ type CodeSender interface {
 
 type EmailCodeSender struct {
 	AppName        string
-	URLPrefix      string
+	URLPrefix      *url.URL
 	ProviderConfig config.UserVerificationProviderConfiguration
 	Sender         mail.Sender
 	TemplateEngine *template.Engine
@@ -66,7 +67,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 
 type SMSCodeSender struct {
 	AppName        string
-	URLPrefix      string
+	URLPrefix      *url.URL
 	SMSClient      sms.Client
 	TemplateEngine *template.Engine
 }
@@ -95,20 +96,19 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user model.User) (err error)
 func prepareVerifyRequestContext(
 	verifyCode VerifyCode,
 	appName string,
-	urlPrefix string,
+	urlPrefix *url.URL,
 	user model.User,
 ) map[string]interface{} {
+	verifyLink := *urlPrefix
+	verifyLink.Path = path.Join(verifyLink.Path, "_auth/verify_code_form")
+	verifyLink.RawQuery = url.Values{"code": []string{verifyCode.Code}, "user_id": []string{user.ID}}.Encode()
+
 	return map[string]interface{}{
 		"appname":      appName,
 		"login_id_key": verifyCode.LoginIDKey,
 		"login_id":     verifyCode.LoginID,
 		"user":         user,
 		"code":         verifyCode.Code,
-		"link": fmt.Sprintf(
-			"%s/verify_code_form?code=%s&user_id=%s",
-			urlPrefix,
-			verifyCode.Code,
-			user.ID,
-		),
+		"link":         verifyLink.String(),
 	}
 }
