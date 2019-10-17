@@ -163,6 +163,8 @@ func parseResizeScalingMode(s string) (ResizeScalingMode, error) {
 		return ResizeScalingModeLfit, nil
 	case string(ResizeScalingModeMfit):
 		return ResizeScalingModeMfit, nil
+	case string(ResizeScalingModeFill):
+		return ResizeScalingModeFill, nil
 	case string(ResizeScalingModePad):
 		return ResizeScalingModePad, nil
 	case string(ResizeScalingModeFixed):
