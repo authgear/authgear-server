@@ -1,5 +1,9 @@
 package imageprocessing
 
+import (
+	"github.com/davidbyttow/govips/pkg/vips"
+)
+
 type ImageFormat string
 
 const (
@@ -8,6 +12,19 @@ const (
 	ImageFormatWebP ImageFormat = "webp"
 )
 
+func (f ImageFormat) VIPSImageType() vips.ImageType {
+	switch f {
+	case ImageFormatJPEG:
+		return vips.ImageTypeJPEG
+	case ImageFormatPNG:
+		return vips.ImageTypePNG
+	case ImageFormatWebP:
+		return vips.ImageTypeWEBP
+	default:
+		panic("unreachable")
+	}
+}
+
 type Format struct {
 	ImageFormat ImageFormat
 }
@@ -15,6 +32,6 @@ type Format struct {
 var _ Operation = &Format{}
 
 func (o *Format) Apply(ctx *OperationContext) error {
-	// TODO(imageprocessing)
+	ctx.Format = o.ImageFormat
 	return nil
 }
