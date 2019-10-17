@@ -76,7 +76,11 @@ func (m DependencyMap) Provide(
 
 	newLoggerFactory := func() logging.Factory {
 		formatter := logging.NewDefaultMaskedTextFormatter(tConfig.DefaultSensitiveLoggerValues())
-		return logging.NewFactoryFromRequest(request, formatter)
+		if request == nil {
+			return logging.NewFactoryFromRequestID(requestID, formatter)
+		} else {
+			return logging.NewFactoryFromRequest(request, formatter)
+		}
 	}
 
 	newSQLBuilder := func() db.SQLBuilder {

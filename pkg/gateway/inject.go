@@ -29,7 +29,11 @@ func (m DependencyMap) Provide(
 ) interface{} {
 	newLoggerFactory := func() logging.Factory {
 		formatter := logging.NewDefaultMaskedTextFormatter(tConfig.DefaultSensitiveLoggerValues())
-		return logging.NewFactoryFromRequest(request, formatter)
+		if request == nil {
+			return logging.NewFactoryFromRequestID(requestID, formatter)
+		} else {
+			return logging.NewFactoryFromRequest(request, formatter)
+		}
 	}
 	newAuthContext := func() auth.ContextGetter {
 		return auth.NewContextGetterWithContext(ctx)
