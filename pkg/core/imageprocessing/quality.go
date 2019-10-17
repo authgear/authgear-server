@@ -10,6 +10,6 @@ const DefaultQuality = 85
 var _ Operation = &Quality{}
 
 func (o *Quality) Apply(ctx *OperationContext) error {
-	// TODO(imageprocessing)
+	ctx.Quality = o.AbsoluteQuality
 	return nil
 }
