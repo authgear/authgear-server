@@ -23,8 +23,52 @@ import (
 
 	coreReflect "github.com/skygeario/skygear-server/pkg/core/reflect"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	xskyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/smartystreets/goconvey/convey"
 )
 
+// ShouldEqualAPIError asserts the equality of skyerr.APIError
+func ShouldEqualAPIError(actual interface{}, expected ...interface{}) string {
+	if len(expected) < 1 || len(expected) > 2 {
+		return fmt.Sprintf("ShouldEqualSkyError receives 1 to 2 arguments")
+	}
+
+	apiErr, ok := actual.(xskyerr.APIError)
+	if !ok {
+		if err, ok := actual.(error); ok {
+			apiErr = *xskyerr.AsAPIError(err)
+		} else {
+			return fmt.Sprintf("%v is not convertible to skyerr.APIError", actual)
+		}
+	}
+
+	// expected[0] is kind
+	// expected[1] is info
+
+	kind, ok := expected[0].(xskyerr.Kind)
+	if !ok {
+		return fmt.Sprintf("%v is not skyerr.Kind", expected[0])
+	}
+
+	var info map[string]interface{}
+	if len(expected) == 2 {
+		info, ok = expected[1].(map[string]interface{})
+		if !ok {
+			return fmt.Sprintf("%v is not map[string]interface{}", expected[1])
+		}
+	} else {
+		info = apiErr.Info
+	}
+
+	type APIError struct {
+		Kind xskyerr.Kind
+		Info map[string]interface{}
+	}
+
+	return convey.ShouldResemble(APIError{apiErr.Kind, apiErr.Info}, APIError{kind, info})
+}
+
+// TODO(error): remove this
 // ShouldEqualSkyError asserts the equality of skyerr.Error
 func ShouldEqualSkyError(actual interface{}, expected ...interface{}) string {
 	if len(expected) < 1 || len(expected) > 3 {
