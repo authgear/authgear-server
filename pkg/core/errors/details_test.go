@@ -8,30 +8,23 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
-func detailsA() error {
-	return errors.New("error 1")
-}
-
-func detailsB() error {
-	return errors.WithDetails(detailsA(), errors.Details{"data": 123})
-}
-
-func detailsC() error {
-	return errors.HandledWithMessage(detailsB(), "error 2")
-}
-
-func detailsD() error {
-	return errors.WithDetails(detailsC(), errors.Details{"data": 456, "value": "test"})
-}
-
 func TestDetails(t *testing.T) {
+	err1 := errors.New("error 1")
+	err2 := errors.WithDetails(err1, errors.Details{"data": 123})
+	err3 := errors.HandledWithMessage(err2, "error 2")
+	err := errors.WithDetails(err3, errors.Details{"data": 456, "value": errors.SafeString("test")})
 	Convey("WithDetails/CollectDetails", t, func() {
-		err := detailsD()
 		So(err, ShouldBeError, "error 2")
 		details := errors.CollectDetails(err, nil)
 		So(details, ShouldResemble, errors.Details{
 			"data":  456,
-			"value": "test",
+			"value": errors.SafeString("test"),
+		})
+	})
+	Convey("FilterDetails/GetSafeDetails", t, func() {
+		details := errors.GetSafeDetails(err)
+		So(details, ShouldResemble, errors.Details{
+			"value": errors.SafeString("test"),
 		})
 	})
 }
