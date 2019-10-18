@@ -9,6 +9,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
+	"github.com/skygeario/skygear-server/pkg/core/imageprocessing"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
@@ -44,8 +45,9 @@ type GetHandler struct {
 }
 
 func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	hasPipeline := false
 	originallySigned := false
+	pipeline := ""
+	hasPipeline := false
 	vars := mux.Vars(r)
 	assetName := vars["asset_name"]
 
@@ -53,8 +55,10 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		req.Header = coreHttp.RemoveSkygearHeader(req.Header)
 
 		query := req.URL.Query()
+		pipeline = query.Get(QueryNamePipeline)
+		_, hasPipeline = query[QueryNamePipeline]
 		// Do not support range request if image processing query is present.
-		if _, hasPipeline = query[QueryNamePipeline]; hasPipeline {
+		if hasPipeline {
 			req.Header.Del("Range")
 			req.Header.Del("If-Range")
 		}
@@ -91,7 +95,19 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return ErrBadAccess
 		}
 
-		// TODO(asset): image processing
+		valid := imageprocessing.IsApplicableToHTTPResponse(resp)
+		if !valid || !hasPipeline {
+			return nil
+		}
+		ops, err := imageprocessing.Parse(pipeline)
+		if err != nil {
+			return nil
+		}
+		err = imageprocessing.ApplyToHTTPResponse(resp, ops)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	}
 
