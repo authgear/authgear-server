@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -82,12 +83,12 @@ func (p *providerImpl) Create(authnSess *auth.AuthnSession) (*auth.Session, auth
 	expiry := computeSessionStorageExpiry(&sess, clientConfig)
 	err := p.store.Create(&sess, expiry)
 	if err != nil {
-		return nil, tok, err
+		return nil, tok, errors.HandledWithMessage(err, "failed to create session")
 	}
 
 	err = p.eventStore.AppendAccessEvent(&sess, &accessEvent)
 	if err != nil {
-		return nil, tok, err
+		return nil, tok, errors.HandledWithMessage(err, "failed to access session")
 	}
 
 	return &sess, tok, nil
@@ -101,6 +102,9 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 
 	s, err := p.store.Get(id)
 	if err != nil {
+		if err != ErrSessionNotFound {
+			err = errors.HandledWithMessage(err, "failed to get session")
+		}
 		return nil, err
 	}
 
@@ -111,7 +115,7 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 	case auth.SessionTokenKindRefreshToken:
 		expectedHash = s.RefreshTokenHash
 	default:
-		return nil, ErrSessionNotFound
+		panic("session: unexpected token kind: " + kind)
 	}
 
 	if expectedHash == "" {
@@ -144,6 +148,9 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 func (p *providerImpl) Get(id string) (*auth.Session, error) {
 	session, err := p.store.Get(id)
 	if err != nil {
+		if err != ErrSessionNotFound {
+			err = errors.HandledWithMessage(err, "failed to get session")
+		}
 		return nil, err
 	}
 
@@ -165,28 +172,45 @@ func (p *providerImpl) Access(s *auth.Session) error {
 
 	err := p.eventStore.AppendAccessEvent(s, &accessEvent)
 	if err != nil {
-		return err
+		return errors.HandledWithMessage(err, "failed to access session")
 	}
 
 	expiry := computeSessionStorageExpiry(s, p.clientConfigs[s.ClientID])
-	return p.store.Update(s, expiry)
+	err = p.store.Update(s, expiry)
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to update session")
+	}
+	return nil
 }
 
 func (p *providerImpl) Invalidate(session *auth.Session) error {
-	return p.store.Delete(session)
+	err := p.store.Delete(session)
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to invalidate session")
+	}
+	return nil
 }
 
 func (p *providerImpl) InvalidateBatch(sessions []*auth.Session) error {
-	return p.store.DeleteBatch(sessions)
+	err := p.store.DeleteBatch(sessions)
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to invalidate sessions")
+	}
+	return nil
 }
 
 func (p *providerImpl) InvalidateAll(userID string, sessionID string) error {
-	return p.store.DeleteAll(userID, sessionID)
+	err := p.store.DeleteAll(userID, sessionID)
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to invalidate sessions")
+	}
+	return nil
 }
 
 func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error) {
 	storedSessions, err := p.store.List(userID)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to list sessions")
 		return
 	}
 
@@ -219,7 +243,11 @@ func (p *providerImpl) Refresh(session *auth.Session) (string, error) {
 	accessToken := p.generateAccessToken(session)
 
 	expiry := computeSessionStorageExpiry(session, p.clientConfigs[session.ClientID])
-	return accessToken, p.store.Update(session, expiry)
+	err := p.store.Update(session, expiry)
+	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to refresh session")
+	}
+	return accessToken, err
 }
 
 func (p *providerImpl) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepMFAOptions) error {

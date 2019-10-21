@@ -25,7 +25,3 @@ type Store interface {
 	// exist in the container.
 	DeleteAuth(id string) error
 }
-
-type StoreProvider struct {
-	CanMigrate bool
-}

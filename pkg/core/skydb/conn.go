@@ -26,12 +26,3 @@ var ErrUserDuplicated = errors.New("skydb: duplicated UserID or Username")
 // Conn.DeleteAuth when the AuthInfo's ID is not found
 // in the current container
 var ErrUserNotFound = errors.New("skydb: AuthInfo ID not found")
-
-// ErrDeviceNotFound is returned by Conn.GetDevice, Conn.DeleteDevice,
-// Conn.DeleteDevicesByToken and Conn.DeleteEmptyDevicesByTime, if the desired Device
-// cannot be found in the current container
-var ErrDeviceNotFound = errors.New("skydb: Specific device not found")
-
-// ErrDatabaseIsReadOnly is returned by skydb.Database if the requested
-// operation modifies the database and the database is readonly.
-var ErrDatabaseIsReadOnly = errors.New("skydb: database is read only")

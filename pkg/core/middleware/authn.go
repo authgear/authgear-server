@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
@@ -42,19 +43,23 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 		var authInfo *authinfo.AuthInfo
 		var err error
 		defer func() {
-			m.AuthContextSetter.SetSessionAndAuthInfo(sess, authInfo, err)
-
-			if err == model.ErrTokenConflict {
+			if errors.Is(err, model.ErrTokenConflict) {
 				// Clear session if token conflicts
 				m.SessionWriter.ClearSession(w)
-			} else if err == session.ErrSessionNotFound {
+				// Treat as session not found
+				err = errors.WithSecondaryError(session.ErrSessionNotFound, err)
+
+			} else if errors.Is(err, session.ErrSessionNotFound) {
 				// Clear session if session is not found
 				m.SessionWriter.ClearSession(w)
+
 			} else if err != nil {
 				log.WithError(err).Error("Cannot resolve session")
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
+
+			m.AuthContextSetter.SetSessionAndAuthInfo(sess, authInfo, err)
 
 			next.ServeHTTP(w, r)
 		}()
@@ -92,7 +97,7 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 		ai := authinfo.AuthInfo{}
 		err = m.AuthInfoStore.GetAuth(sess.UserID, &ai)
 		if err != nil {
-			if err == skydb.ErrUserNotFound {
+			if errors.Is(err, skydb.ErrUserNotFound) {
 				err = session.ErrSessionNotFound
 			}
 			return

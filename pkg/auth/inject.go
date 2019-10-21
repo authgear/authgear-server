@@ -112,11 +112,9 @@ func (m DependencyMap) Provide(
 	}
 
 	newAuthInfoStore := func() authinfo.Store {
-		return pqAuthInfo.NewSafeAuthInfoStore(
+		return pqAuthInfo.NewAuthInfoStore(
 			db.NewSQLBuilder("core", tConfig.AppConfig.DatabaseSchema, tConfig.AppID),
 			newSQLExecutor(),
-			newLoggerFactory(),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
 
@@ -192,7 +190,7 @@ func (m DependencyMap) Provide(
 	newSessionProvider := func() session.Provider {
 		return session.NewProvider(
 			request,
-			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider()),
+			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider(), newLoggerFactory()),
 			redisSession.NewEventStore(ctx, tConfig.AppID),
 			newAuthContext(),
 			tConfig.UserConfig.Clients,

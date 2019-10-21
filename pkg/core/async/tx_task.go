@@ -1,6 +1,8 @@
 package async
 
-import "github.com/skygeario/skygear-server/pkg/core/db"
+import (
+	"github.com/skygeario/skygear-server/pkg/core/db"
+)
 
 type TxTask interface {
 	Task
@@ -10,21 +12,10 @@ type TxTask interface {
 func TxTaskToTask(t TxTask, txContext db.TxContext) Task {
 	return TaskFunc(func(param interface{}) (err error) {
 		if t.WithTx() {
-			// assume txContext != nil if apiHandler.WithTx() is true
-			if err := txContext.BeginTx(); err != nil {
-				panic(err)
-			}
-
-			defer func() {
-				if err != nil {
-					txContext.RollbackTx()
-				} else {
-					txContext.CommitTx()
-				}
-			}()
+			err = db.WithTx(txContext, func() error { return t.Run(param) })
+		} else {
+			err = t.Run(param)
 		}
-
-		err = t.Run(param)
 		return
 	})
 }

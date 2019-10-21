@@ -17,7 +17,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/gateway"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
 	"github.com/skygeario/skygear-server/pkg/gateway/handler"
@@ -91,9 +90,7 @@ func main() {
 
 	r := rr.PathPrefix("/").Subrouter()
 	// RecoverMiddleware must come first
-	r.Use(coreMiddleware.RecoverMiddleware{
-		RecoverHandler: server.DefaultRecoverPanicHandler,
-	}.Handle)
+	r.Use(coreMiddleware.RecoverMiddleware{}.Handle)
 
 	r.Use(coreMiddleware.RequestIDMiddleware{}.Handle)
 	r.Use(middleware.FindAppMiddleware{Store: store}.Handle)

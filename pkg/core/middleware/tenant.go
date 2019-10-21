@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type ConfigurationProvider interface {
@@ -25,7 +25,7 @@ func (m TenantConfigurationMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		configuration, err := m.ProvideConfig(r)
 		if err != nil {
-			panic(fmt.Errorf("Unable to retrieve configuration: %v", err.Error()))
+			panic(errors.Newf("unable to retrieve configuration: %w", err))
 		}
 
 		// Tenant configuration

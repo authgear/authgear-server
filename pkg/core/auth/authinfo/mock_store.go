@@ -43,7 +43,7 @@ func (s *MockStore) CreateAuth(authinfo *AuthInfo) error {
 func (s *MockStore) GetAuth(id string, authinfo *AuthInfo) error {
 	u, existed := s.AuthInfoMap[id]
 	if !existed {
-		return skydb.ErrUserNotFound
+		return ErrNotFound
 	}
 
 	*authinfo = u
@@ -53,7 +53,7 @@ func (s *MockStore) GetAuth(id string, authinfo *AuthInfo) error {
 // UpdateAuth update AuthInfo in AuthInfoMap.
 func (s *MockStore) UpdateAuth(authinfo *AuthInfo) error {
 	if _, ok := s.AuthInfoMap[authinfo.ID]; !ok {
-		return skydb.ErrUserNotFound
+		return ErrNotFound
 	}
 
 	s.AuthInfoMap[authinfo.ID] = *authinfo
@@ -63,7 +63,7 @@ func (s *MockStore) UpdateAuth(authinfo *AuthInfo) error {
 // DeleteAuth delete AuthInfo in AuthInfoMap.
 func (s *MockStore) DeleteAuth(id string) error {
 	if _, ok := s.AuthInfoMap[id]; !ok {
-		return skydb.ErrUserNotFound
+		return ErrNotFound
 	}
 	delete(s.AuthInfoMap, id)
 	return nil

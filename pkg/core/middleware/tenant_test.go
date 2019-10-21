@@ -69,7 +69,7 @@ func TestMiddleware(t *testing.T) {
 			defer func() {
 				r := recover()
 				err, _ := r.(error)
-				So(err.Error(), ShouldEqual, "Unable to retrieve configuration: feature not supported")
+				So(err.Error(), ShouldEqual, "unable to retrieve configuration: feature not supported")
 			}()
 
 			req := newReq()

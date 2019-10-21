@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 type RequestPayload interface {
@@ -21,12 +21,12 @@ const BodyMaxSize = 1024 * 1024 * 10
 
 func DecodeJSONBody(r *http.Request, w http.ResponseWriter, payload interface{}) error {
 	if contentType := r.Header.Get("Content-Type"); contentType != "application/json" {
-		return skyerr.NewError(skyerr.BadRequest, "invalid request content type")
+		return skyerr.NewBadRequest("request content type is invalid")
 	}
 	body := http.MaxBytesReader(w, r.Body, BodyMaxSize)
 	defer body.Close()
 	if err := json.NewDecoder(body).Decode(payload); err != nil {
-		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+		return skyerr.NewBadRequest("failed to decode the request payload")
 	}
 	return nil
 }
