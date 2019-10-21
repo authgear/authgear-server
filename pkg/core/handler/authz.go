@@ -8,10 +8,9 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 type authzMiddleware struct {
@@ -25,13 +24,13 @@ func (m authzMiddleware) Handle(next http.Handler) http.Handler {
 		policy := m.policyProvider.ProvideAuthzPolicy()
 		if err := policy.IsAllowed(r, m.authContext); err != nil {
 			m.logger.WithError(err).Debug("Failed to pass authz policy")
+			apiErr := skyerr.AsAPIError(err)
 			// NOTE(louis): In case the policy returns this error
 			// write a header to hint the client SDK to try refresh.
-			if err == session.ErrSessionNotFound {
+			if apiErr.Kind == authz.NotAuthenticated {
 				rw.Header().Set(coreHttp.HeaderTryRefreshToken, "true")
-				err = skyerr.NewNotAuthenticatedErr()
 			}
-			m.writeUnauthorized(rw, err)
+			m.writeError(rw, apiErr)
 			return
 		}
 
@@ -39,13 +38,11 @@ func (m authzMiddleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m authzMiddleware) writeUnauthorized(rw http.ResponseWriter, err error) {
-	skyErr := skyerr.MakeError(err)
-	httpStatus := skyerr.ErrorDefaultStatusCode(skyErr)
-	response := APIResponse{Err: skyErr}
+func (m authzMiddleware) writeError(rw http.ResponseWriter, err *skyerr.APIError) {
+	response := APIResponse{Error: err}
 	encoder := json.NewEncoder(rw)
 	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(httpStatus)
+	rw.WriteHeader(err.Code)
 	encoder.Encode(response)
 }
 

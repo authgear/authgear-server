@@ -5,7 +5,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 // DenyDisabledUser denies disabled user.
@@ -14,7 +13,7 @@ import (
 func DenyDisabledUser(r *http.Request, ctx auth.ContextGetter) error {
 	authInfo, _ := ctx.AuthInfo()
 	if authInfo != nil && authInfo.Disabled {
-		return skyerr.NewError(skyerr.UserDisabled, "user disabled")
+		return authz.UserDisabled.New("user disabled")
 	}
 	return nil
 }
