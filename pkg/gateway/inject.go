@@ -64,7 +64,7 @@ func (m DependencyMap) Provide(
 	case "AuthInfoStore":
 		return pqAuthInfo.NewAuthInfoStore(
 			db.NewSQLBuilder("core", tConfig.AppConfig.DatabaseSchema, tConfig.AppID),
-			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig), newLoggerFactory()),
+			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
 		)
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)

@@ -2,13 +2,13 @@ package pq
 
 import (
 	"context"
-	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
@@ -48,7 +48,7 @@ func (s *Store) tableName(table string) string {
 func Connect(ctx context.Context, connString string) (*Store, error) {
 	db, err := sqlx.Connect("postgres", connString)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open connection: %s", err)
+		return nil, errors.HandledWithMessage(err, "failed to connect to database")
 	}
 
 	return &Store{

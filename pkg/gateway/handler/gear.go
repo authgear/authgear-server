@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
@@ -26,7 +27,7 @@ func newGearReverseProxy() *httputil.ReverseProxy {
 		var err error
 		u, err := url.Parse(req.Header.Get(coreHttp.HeaderGearEndpoint))
 		if err != nil {
-			panic(err)
+			panic(errors.Newf("failed to parse gear endpoint:%w", err))
 		}
 		req.URL = u
 		req.URL.Path = path

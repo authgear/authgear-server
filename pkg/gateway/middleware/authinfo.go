@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -50,7 +51,7 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		// If refresh token is enabled and the session is invalid,
 		// do not forward the request and write `x-skygear-try-refresh-token: true`
 		authInfo, err := m.AuthContext.AuthInfo()
-		if err == session.ErrSessionNotFound {
+		if errors.Is(err, session.ErrSessionNotFound) {
 			if accessKey.ClientID != "" {
 				clientConfig, ok := model.GetClientConfig(tenantConfig.UserConfig.Clients, accessKey.ClientID)
 				if ok && !clientConfig.RefreshTokenDisabled {
