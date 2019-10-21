@@ -2,10 +2,11 @@ package sms
 
 import (
 	"errors"
+
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-var ErrNoAvailableClient = errors.New("no available client")
+var ErrNoAvailableClient = errors.New("no available SMS client")
 
 type clientImpl struct {
 	userConfig   config.UserConfiguration

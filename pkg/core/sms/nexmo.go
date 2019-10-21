@@ -1,13 +1,12 @@
 package sms
 
 import (
-	"errors"
-
 	nexmo "github.com/njern/gonexmo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
-var ErrMissingNexmoConfiguration = errors.New("missing nexmo configuration")
+var ErrMissingNexmoConfiguration = errors.New("nexmo: configuration is missing")
 
 type NexmoClient struct {
 	From        string
@@ -40,17 +39,17 @@ func (n *NexmoClient) Send(to string, body string) error {
 
 	resp, err := n.NexmoClient.SMS.Send(&message)
 	if err != nil {
-		return err
+		return errors.Newf("nexmo: %w", err)
 	}
 
 	if resp.MessageCount == 0 {
-		err = errors.New("No sms is sent")
+		err = errors.New("nexmo: no sms is sent")
 		return err
 	}
 
 	report := resp.Messages[0]
 	if report.ErrorText != "" {
-		err = errors.New(report.ErrorText)
+		err = errors.Newf("nexmo: %s", report.ErrorText)
 		return err
 	}
 

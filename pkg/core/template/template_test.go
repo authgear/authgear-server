@@ -17,7 +17,7 @@ func TestTemplateRender(t *testing.T) {
 			var err error
 
 			_, err = ParseTextTemplate("test", template, nil)
-			So(err, ShouldBeError, "UnexpectedError: rendered template is too large")
+			So(err, ShouldBeError, "failed to execute template: rendered template is too large")
 		})
 		Convey("should auto-escape templates", func() {
 			template := `
