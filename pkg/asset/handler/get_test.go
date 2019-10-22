@@ -108,7 +108,7 @@ func TestGetHandler(t *testing.T) {
 			router.Handle("/{asset_name}", h)
 			router.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.HeaderMap.Get("Accept-Ranges"), ShouldEqual, "")
+			So(resp.Result().Header.Get("Accept-Ranges"), ShouldEqual, "")
 
 			// no pipeline
 			req, _ = http.NewRequest("GET", "/a", nil)
@@ -117,7 +117,7 @@ func TestGetHandler(t *testing.T) {
 			router.Handle("/{asset_name}", h)
 			router.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.HeaderMap.Get("Accept-Ranges"), ShouldEqual, "accept-ranges")
+			So(resp.Result().Header.Get("Accept-Ranges"), ShouldEqual, "accept-ranges")
 		})
 
 		Convey("return 401 if no signature and private", func() {

@@ -50,6 +50,8 @@ var S3StandardToProprietaryMap = map[string]string{
 
 func NewS3Storage(accessKey string, secretKey string, region string, bucket string) *S3Storage {
 	cred := credentials.NewStaticCredentials(accessKey, secretKey, "")
+	// FIXME(cloudstorage): Use session.NewSession instead of session.New
+	// nolint: staticcheck
 	sess := session.New(&aws.Config{
 		Credentials: cred,
 		Region:      aws.String(region),
