@@ -253,7 +253,6 @@ func makeFullTenantConfig() TenantConfiguration {
 						SuccessHTMLURL:  "http://localhost:3000/userverification/success.html",
 						ErrorRedirect:   "http://localhost:3000/userverification/error",
 						ErrorHTMLURL:    "http://localhost:3000/userverification/error.html",
-						Provider:        "twilio",
 						ProviderConfig: UserVerificationProviderConfiguration{
 							Subject: "userverificationsubject",
 							Sender:  "userverificationsender",

@@ -329,9 +329,21 @@ func (m DependencyMap) Provide(
 	case "IFrameHTMLProvider":
 		return sso.NewIFrameHTMLProvider(urlprefix.NewProvider(request).Value())
 	case "UserVerifyCodeSenderFactory":
-		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig, urlprefix.NewProvider(request).Value(), newTemplateEngine())
+		return userverify.NewDefaultUserVerifyCodeSenderFactory(
+			tConfig,
+			urlprefix.NewProvider(request).Value(),
+			newTemplateEngine(),
+			newMailSender(),
+			newSMSClient(),
+		)
 	case "UserVerifyTestCodeSenderFactory":
-		return userverify.NewDefaultUserVerifyTestCodeSenderFactory(tConfig, urlprefix.NewProvider(request).Value(), newTemplateEngine())
+		return userverify.NewDefaultUserVerifyTestCodeSenderFactory(
+			tConfig,
+			urlprefix.NewProvider(request).Value(),
+			newTemplateEngine(),
+			newMailSender(),
+			newSMSClient(),
+		)
 	case "AutoSendUserVerifyCodeOnSignup":
 		return tConfig.UserConfig.UserVerification.AutoSendOnSignup
 	case "UserVerifyLoginIDKeys":
