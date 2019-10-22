@@ -1,3 +1,8 @@
+# The reason we want to specify the distribution is that
+# we want to install C libraries such as libvips
+os: linux
+dist: bionic
+
 language: go
 
 go:
@@ -14,14 +19,12 @@ cache:
 go_import_path: github.com/skygeario/skygear-server
 
 before_install:
-  - mkdir -p $HOME/.cache/local
-  - export LD_INSTALL_PREFIX=$HOME/.cache/local
-  - export LD_LIBRARY_PATH=$LD_INSTALL_PREFIX/lib:$LD_LIBRARY_PATH
-  - export LIBRARY_PATH=$LD_INSTALL_PREFIX/lib:$LIBRARY_PATH
-  - export PKG_CONFIG_PATH=$LD_INSTALL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH
-  - mkdir -p $LD_INSTALL_PREFIX/src
-  - pushd $LD_INSTALL_PREFIX/src
-  - popd
+  - sudo apt-get update
+  - sudo apt-get install -y build-essential pkg-config glib2.0-dev libexpat1-dev
+  - curl -sfL https://github.com/libvips/libvips/releases/download/v8.8.3/vips-8.8.3a.tar.gz -o vips-8.8.3a.tar.gz
+  - tar xzf vips-8.8.3a.tar.gz
+  - "(cd vips-8.8.3 && ./configure && make && sudo make install)"
+  - sudo ldconfig /usr/local
 
 install:
   - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.19.1
