@@ -9,8 +9,8 @@ import (
 )
 
 type PresignUploadRequest struct {
-	Prefix  string                 `json:"prefix"`
-	Access  AccessType             `json:"access"`
+	Prefix  string                 `json:"prefix,omitempty"`
+	Access  AccessType             `json:"access,omitempty"`
 	Headers map[string]interface{} `json:"headers"`
 }
 

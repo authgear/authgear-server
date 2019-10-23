@@ -150,6 +150,7 @@ func main() {
 	handler.AttachGetHandler(&srv, dependencyMap)
 	handler.AttachListHandler(&srv, dependencyMap)
 	handler.AttachDeleteHandler(&srv, dependencyMap)
+	handler.AttachUploadFormHandler(&srv, dependencyMap)
 
 	go func() {
 		logger.Info("Starting asset gear")
