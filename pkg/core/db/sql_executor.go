@@ -20,83 +20,62 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type SQLExecutor struct {
 	context   context.Context
 	dbContext Context
-	logger    *logrus.Entry
 }
 
-func NewSQLExecutor(ctx context.Context, dbContext Context, loggerFactory logging.Factory) SQLExecutor {
+func NewSQLExecutor(ctx context.Context, dbContext Context) SQLExecutor {
 	return SQLExecutor{
 		context:   ctx,
 		dbContext: dbContext,
-		logger:    loggerFactory.NewLogger("sql-executor"),
 	}
-}
-
-func (e *SQLExecutor) Get(dest interface{}, query string, args ...interface{}) (err error) {
-	err = e.dbContext.DB().GetContext(e.context, dest, query, args...)
-	if err != nil {
-		e.logger.WithField("sql", query).WithError(err).Errorln("Failed to execute SQL with sql.Get")
-	}
-	return
-}
-
-func (e *SQLExecutor) GetWith(dest interface{}, sqlizeri sq.Sqlizer) (err error) {
-	sql, args, err := sqlizeri.ToSql()
-	if err != nil {
-		panic(err)
-	}
-	return e.Get(dest, sql, args...)
-}
-
-func (e *SQLExecutor) Exec(query string, args ...interface{}) (result sql.Result, err error) {
-	result, err = e.dbContext.DB().ExecContext(e.context, query, args...)
-
-	if err != nil {
-		e.logger.WithField("sql", query).WithError(err).Errorln("Failed to execute SQL with sql.Exec")
-	}
-	return
 }
 
 func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
+	db, err := e.dbContext.DB()
+	if err != nil {
+		return nil, err
+	}
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return e.Exec(sql, args...)
-}
-
-func (e *SQLExecutor) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
-	rows, err = e.dbContext.DB().QueryxContext(e.context, query, args...)
+	result, err := db.ExecContext(e.context, sql, args...)
 	if err != nil {
-		e.logger.WithField("sql", query).WithError(err).Errorln("Failed to execute SQL with sql.Queryx")
+		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeString(sql)})
 	}
-	return
+	return result, nil
 }
 
 func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
+	db, err := e.dbContext.DB()
+	if err != nil {
+		return nil, err
+	}
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return e.Queryx(sql, args...)
+	result, err := db.QueryxContext(e.context, sql, args...)
+	if err != nil {
+		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeString(sql)})
+	}
+	return result, nil
 }
 
-func (e *SQLExecutor) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
-	row = e.dbContext.DB().QueryRowxContext(e.context, query, args...)
-	return
-}
-
-func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) *sqlx.Row {
+func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) (*sqlx.Row, error) {
+	db, err := e.dbContext.DB()
+	if err != nil {
+		return nil, err
+	}
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
-		panic(err)
+		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeString(sql)})
 	}
-	return e.QueryRowx(sql, args...)
+	return db.QueryRowxContext(e.context, sql, args...), nil
 }

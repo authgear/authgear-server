@@ -1,8 +1,11 @@
 package hook
 
 import (
+	"fmt"
 	"net/url"
 	gotime "time"
+
+	"github.com/sirupsen/logrus"
 
 	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
@@ -11,7 +14,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 type providerImpl struct {
@@ -24,6 +30,7 @@ type providerImpl struct {
 	UserProfileStore        userprofile.Store
 	Deliverer               Deliverer
 	PersistentEventPayloads []event.Payload
+	Logger                  *logrus.Entry
 }
 
 func NewProvider(
@@ -35,6 +42,7 @@ func NewProvider(
 	authInfoStore authinfo.Store,
 	userProfileStore userprofile.Store,
 	deliverer Deliverer,
+	loggerFactory logging.Factory,
 ) Provider {
 	return &providerImpl{
 		RequestID:        requestID,
@@ -45,6 +53,7 @@ func NewProvider(
 		AuthInfoStore:    authInfoStore,
 		UserProfileStore: userProfileStore,
 		Deliverer:        deliverer,
+		Logger:           loggerFactory.NewLogger("hook"),
 	}
 }
 
@@ -55,12 +64,16 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 		if provider.Deliverer.WillDeliver(typedPayload.BeforeEventType()) {
 			seq, err = provider.Store.NextSequenceNumber()
 			if err != nil {
+				err = errors.HandledWithMessage(err, "failed to dispatch event")
 				return
 			}
 			event := event.NewBeforeEvent(seq, typedPayload, provider.makeContext())
 			err = provider.Deliverer.DeliverBeforeEvent(provider.BaseURL, event, user)
 			if err != nil {
-				return err
+				if !skyerr.IsKind(err, WebHookDisallowed) {
+					err = errors.HandledWithMessage(err, "failed to dispatch event")
+				}
+				return
 			}
 
 			// update payload since it may have been updated by mutations
@@ -76,7 +89,7 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 		return
 
 	default:
-		panic(invalidEventPayload{payload: payload})
+		panic(fmt.Sprintf("hook: invalid event payload: %T", payload))
 	}
 }
 
@@ -95,6 +108,7 @@ func (provider *providerImpl) WillCommitTx() error {
 			if provider.Deliverer.WillDeliver(typedPayload.AfterEventType()) {
 				seq, err := provider.Store.NextSequenceNumber()
 				if err != nil {
+					err = errors.HandledWithMessage(err, "failed to persist event")
 					return err
 				}
 				ev = event.NewAfterEvent(seq, typedPayload, provider.makeContext())
@@ -104,13 +118,14 @@ func (provider *providerImpl) WillCommitTx() error {
 			if provider.Deliverer.WillDeliver(typedPayload.EventType()) {
 				seq, err := provider.Store.NextSequenceNumber()
 				if err != nil {
+					err = errors.HandledWithMessage(err, "failed to persist event")
 					return err
 				}
 				ev = event.NewEvent(seq, typedPayload, provider.makeContext())
 			}
 
 		default:
-			panic(invalidEventPayload{payload: payload})
+			panic(fmt.Sprintf("hook: invalid event payload: %T", payload))
 		}
 
 		if ev == nil {
@@ -121,6 +136,7 @@ func (provider *providerImpl) WillCommitTx() error {
 
 	err = provider.Store.AddEvents(events)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to persist event")
 		return err
 	}
 	provider.PersistentEventPayloads = nil
@@ -132,7 +148,10 @@ func (provider *providerImpl) DidCommitTx() {
 	// TODO(webhook): deliver persisted events
 	events, _ := provider.Store.GetEventsForDelivery()
 	for _, event := range events {
-		_ = provider.Deliverer.DeliverNonBeforeEvent(provider.BaseURL, event, 60*gotime.Second)
+		err := provider.Deliverer.DeliverNonBeforeEvent(provider.BaseURL, event, 60*gotime.Second)
+		if err != nil {
+			provider.Logger.WithError(err).Debug("Failed to dispatch event")
+		}
 	}
 }
 

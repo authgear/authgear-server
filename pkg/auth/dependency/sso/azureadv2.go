@@ -12,6 +12,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type Azureadv2Impl struct {
@@ -72,10 +73,16 @@ func (f *Azureadv2Impl) getOpenIDConfiguration() (c azureadv2OpenIDConfiguration
 
 	// nolint: gosec
 	resp, err := http.Get(endpoint)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		err = errors.Newf("unexpected status code: %d", resp.StatusCode)
+		return
+	}
 	err = json.NewDecoder(resp.Body).Decode(&c)
 	if err != nil {
 		return
@@ -87,12 +94,14 @@ func (f *Azureadv2Impl) getKeys(endpoint string) (*jwk.Set, error) {
 	// TODO(sso): Cache JWKs
 	// nolint: gosec
 	resp, err := http.Get(endpoint)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get JWK keys: %d", resp.StatusCode)
+		return nil, errors.Newf("unexpected status code: %d", resp.StatusCode)
 	}
 	return jwk.Parse(resp.Body)
 }
@@ -129,16 +138,18 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 	}
 
 	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
-		err = fmt.Errorf("invalid nonce")
+		err = NewSSOFailed(InvalidParams, "invalid sso state")
 		return
 	}
 
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
+		err = errors.Newf("failed to get OIDC discovery document: %w", err)
 		return
 	}
 	keySet, err := f.getKeys(c.JWKSUri)
 	if err != nil {
+		err = errors.Newf("failed to get OIDC JWKS: %w", err)
 		return
 	}
 
@@ -151,6 +162,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 
 	resp, err := http.PostForm(c.TokenEndpoint, body)
 	if err != nil {
+		err = NewSSOFailed(NetworkFailed, "failed to connect authorization server")
 		return
 	}
 	defer resp.Body.Close()
@@ -162,12 +174,12 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 			return
 		}
 	} else {
-		var errorResp ErrorResp
+		var errorResp oauthErrorResp
 		err = json.NewDecoder(resp.Body).Decode(&errorResp)
 		if err != nil {
 			return
 		}
-		err = respToError(errorResp)
+		err = errorResp.AsError()
 		return
 	}
 
@@ -175,37 +187,53 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 	keyFunc := func(token *jwt.Token) (interface{}, error) {
 		keyID, ok := token.Header["kid"].(string)
 		if !ok {
-			return nil, fmt.Errorf("no key id")
+			return nil, errors.New("no key id")
 		}
 		if key := keySet.LookupKeyID(keyID); len(key) == 1 {
 			return key[0].Materialize()
 		}
-		return nil, fmt.Errorf("unable to find key")
+		return nil, errors.New("unable to find key")
 	}
 
 	mapClaims := jwt.MapClaims{}
 	_, err = jwt.ParseWithClaims(idToken, mapClaims, keyFunc)
 	if err != nil {
+		err = errors.WithSecondaryError(
+			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
+			err,
+		)
 		return
 	}
 
 	if !mapClaims.VerifyAudience(f.ProviderConfig.ClientID, true) {
-		err = fmt.Errorf("invalid audience")
+		err = errors.WithSecondaryError(
+			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
+			errors.New("invalid audience"),
+		)
 		return
 	}
 	hashedNonce, ok := mapClaims["nonce"].(string)
 	if !ok {
-		err = fmt.Errorf("no nonce")
+		err = errors.WithSecondaryError(
+			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
+			errors.New("no nonce"),
+		)
 		return
 	}
 	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
-		err = fmt.Errorf("invalid nonce")
+		err = errors.WithSecondaryError(
+			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
+			errors.New("invalid nonce"),
+		)
 		return
 	}
 
 	oid, ok := mapClaims["oid"].(string)
 	if !ok {
-		err = fmt.Errorf("cannot find oid")
+		err = errors.WithSecondaryError(
+			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
+			errors.New("cannot find oid"),
+		)
 		return
 	}
 	// For "Microsoft Account", email usually exists.

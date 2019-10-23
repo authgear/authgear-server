@@ -2,12 +2,12 @@ package db
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type contextKey string
@@ -18,7 +18,7 @@ var (
 
 // Context provides db with the interface for retrieving an interface to execute sql
 type Context interface {
-	DB() ExtContext
+	DB() (ExtContext, error)
 }
 
 // TxContext provides the interface for managing transaction
@@ -41,7 +41,7 @@ type SafeTxContext interface {
 func EndTx(tx TxContext, err error) error {
 	if err != nil {
 		if rbErr := tx.RollbackTx(); rbErr != nil {
-			logrus.Errorf("Failed to rollback: %v", rbErr)
+			err = errors.WithSecondaryError(err, rbErr)
 		}
 		return err
 	}
@@ -55,8 +55,12 @@ func WithTx(tx TxContext, do func() error) (err error) {
 		return
 	}
 
+	defer func() {
+		err = EndTx(tx, err)
+	}()
+
 	err = do()
-	return EndTx(tx, err)
+	return
 }
 
 // TODO: handle thread safety
@@ -100,9 +104,9 @@ func NewSafeTxContextWithContext(ctx context.Context, tConfig config.TenantConfi
 	return newDBContext(ctx, tConfig)
 }
 
-func (d *dbContext) DB() ExtContext {
+func (d *dbContext) DB() (ExtContext, error) {
 	if d.tx() != nil {
-		return d.tx()
+		return d.tx(), nil
 	}
 
 	return d.lazydb()
@@ -114,54 +118,58 @@ func (d *dbContext) HasTx() bool {
 
 func (d *dbContext) EnsureTx() {
 	if d.tx() == nil {
-		panic(errors.New("unexpected transaction not began"))
+		panic("skydb: a transaction has not begun")
 	}
 }
 
-func (d *dbContext) BeginTx() (err error) {
+func (d *dbContext) BeginTx() error {
 	if d.tx() != nil {
-		err = ErrDatabaseTxDidBegin
-		return err
+		panic("skydb: a transaction has already begun")
 	}
 
-	var tx *sqlx.Tx
-	tx, err = d.lazydb().BeginTxx(d, nil)
+	db, err := d.lazydb()
 	if err != nil {
 		return err
+	}
+	tx, err := db.BeginTxx(d, nil)
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to begin transaction")
 	}
 
 	container := d.container()
 	container.tx = tx
 
-	return
+	return nil
 }
 
-func (d *dbContext) CommitTx() (err error) {
+func (d *dbContext) CommitTx() error {
 	if d.tx() == nil {
-		err = ErrDatabaseTxDidNotBegin
-		return err
+		panic("skydb: a transaction has not begun")
 	}
 
-	if err = d.tx().Commit(); err == nil {
-		container := d.container()
-		container.tx = nil
+	err := d.tx().Commit()
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to commit transaction")
 	}
 
-	return
+	container := d.container()
+	container.tx = nil
+	return nil
 }
 
-func (d *dbContext) RollbackTx() (err error) {
+func (d *dbContext) RollbackTx() error {
 	if d.tx() == nil {
-		err = ErrDatabaseTxDidNotBegin
-		return
+		panic("skydb: a transaction has not begun")
 	}
 
-	if err = d.tx().Rollback(); err == nil {
-		container := d.container()
-		container.tx = nil
+	err := d.tx().Rollback()
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to rollback transaction")
 	}
 
-	return
+	container := d.container()
+	container.tx = nil
+	return nil
 }
 
 func (d *dbContext) db() *sqlx.DB {
@@ -172,20 +180,20 @@ func (d *dbContext) tx() *sqlx.Tx {
 	return d.container().tx
 }
 
-func (d *dbContext) lazydb() *sqlx.DB {
+func (d *dbContext) lazydb() (*sqlx.DB, error) {
 	db := d.db()
 	if db == nil {
 		container := d.container()
 
 		var err error
 		if db, err = container.pool.Open(d.tConfig); err != nil {
-			panic(err)
+			return nil, errors.HandledWithMessage(err, "failed to connect to database")
 		}
 
 		container.db = db
 	}
 
-	return db
+	return db, nil
 }
 
 func (d *dbContext) container() *contextContainer {

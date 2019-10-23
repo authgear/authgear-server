@@ -37,6 +37,13 @@ func (p *Principal) IsSamePassword(password string) bool {
 	return corePassword.Compare([]byte(password), p.HashedPassword) == nil
 }
 
+func (p *Principal) VerifyPassword(password string) error {
+	if !p.IsSamePassword(password) {
+		return ErrInvalidCredentials
+	}
+	return nil
+}
+
 func (p *Principal) deriveClaims(checker loginIDChecker) {
 	standardKey, hasStandardKey := checker.standardKey(p.LoginIDKey)
 	claimsValue := map[string]interface{}{}

@@ -1,8 +1,6 @@
 package userverify
 
 import (
-	"fmt"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -52,7 +50,7 @@ func IsUserVerified(
 		verified = false
 
 	default:
-		panic(fmt.Errorf("unexpected verify criteria `%s`", criteria))
+		panic("userverify: unexpected verify criteria :" + criteria)
 	}
 	return
 }

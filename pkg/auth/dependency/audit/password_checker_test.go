@@ -19,7 +19,6 @@ import (
 	"time"
 
 	ph "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -171,13 +170,12 @@ func TestValidatePassword(t *testing.T) {
 			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
-			ShouldEqualSkyError,
-			skyerr.PasswordPolicyViolated,
-			"password too short",
+			ShouldEqualAPIError,
+			PasswordPolicyViolated,
 			map[string]interface{}{
-				"reason":     PasswordTooShort.String(),
-				"min_length": 2,
-				"pw_length":  1,
+				"causes": passwordViolations{
+					PasswordViolation{Reason: PasswordTooShort, Info: map[string]interface{}{"min_length": 2, "pw_length": 1}},
+				},
 			},
 		)
 	})
@@ -190,11 +188,12 @@ func TestValidatePassword(t *testing.T) {
 			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
-			ShouldEqualSkyError,
-			skyerr.PasswordPolicyViolated,
-			"password uppercase required",
+			ShouldEqualAPIError,
+			PasswordPolicyViolated,
 			map[string]interface{}{
-				"reason": PasswordUppercaseRequired.String(),
+				"causes": passwordViolations{
+					PasswordViolation{Reason: PasswordUppercaseRequired},
+				},
 			},
 		)
 	})
@@ -207,11 +206,12 @@ func TestValidatePassword(t *testing.T) {
 			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
-			ShouldEqualSkyError,
-			skyerr.PasswordPolicyViolated,
-			"password lowercase required",
+			ShouldEqualAPIError,
+			PasswordPolicyViolated,
 			map[string]interface{}{
-				"reason": PasswordLowercaseRequired.String(),
+				"causes": passwordViolations{
+					PasswordViolation{Reason: PasswordLowercaseRequired},
+				},
 			},
 		)
 	})
@@ -224,11 +224,12 @@ func TestValidatePassword(t *testing.T) {
 			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
-			ShouldEqualSkyError,
-			skyerr.PasswordPolicyViolated,
-			"password digit required",
+			ShouldEqualAPIError,
+			PasswordPolicyViolated,
 			map[string]interface{}{
-				"reason": PasswordDigitRequired.String(),
+				"causes": passwordViolations{
+					PasswordViolation{Reason: PasswordDigitRequired},
+				},
 			},
 		)
 	})
@@ -241,11 +242,12 @@ func TestValidatePassword(t *testing.T) {
 			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
-			ShouldEqualSkyError,
-			skyerr.PasswordPolicyViolated,
-			"password symbol required",
+			ShouldEqualAPIError,
+			PasswordPolicyViolated,
 			map[string]interface{}{
-				"reason": PasswordSymbolRequired.String(),
+				"causes": passwordViolations{
+					PasswordViolation{Reason: PasswordSymbolRequired},
+				},
 			},
 		)
 	})
@@ -258,11 +260,12 @@ func TestValidatePassword(t *testing.T) {
 			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
-			ShouldEqualSkyError,
-			skyerr.PasswordPolicyViolated,
-			"password containing excluded keywords",
+			ShouldEqualAPIError,
+			PasswordPolicyViolated,
 			map[string]interface{}{
-				"reason": PasswordContainingExcludedKeywords.String(),
+				"causes": passwordViolations{
+					PasswordViolation{Reason: PasswordContainingExcludedKeywords},
+				},
 			},
 		)
 	})
@@ -280,11 +283,12 @@ func TestValidatePassword(t *testing.T) {
 				PlainPassword: password,
 				UserData:      userData,
 			}),
-			ShouldEqualSkyError,
-			skyerr.PasswordPolicyViolated,
-			"password containing excluded keywords",
+			ShouldEqualAPIError,
+			PasswordPolicyViolated,
 			map[string]interface{}{
-				"reason": PasswordContainingExcludedKeywords.String(),
+				"causes": passwordViolations{
+					PasswordViolation{Reason: PasswordContainingExcludedKeywords},
+				},
 			},
 		)
 	})
@@ -297,13 +301,12 @@ func TestValidatePassword(t *testing.T) {
 			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
-			ShouldEqualSkyError,
-			skyerr.PasswordPolicyViolated,
-			"password below guessable level",
+			ShouldEqualAPIError,
+			PasswordPolicyViolated,
 			map[string]interface{}{
-				"reason":    PasswordBelowGuessableLevel.String(),
-				"min_level": 5,
-				"pw_level":  1,
+				"causes": passwordViolations{
+					PasswordViolation{Reason: PasswordBelowGuessableLevel, Info: map[string]interface{}{"min_level": 5, "pw_level": 1}},
+				},
 			},
 		)
 	})
@@ -324,13 +327,12 @@ func TestValidatePassword(t *testing.T) {
 				PlainPassword: "chima",
 				AuthID:        authID,
 			}),
-			ShouldEqualSkyError,
-			skyerr.PasswordPolicyViolated,
-			"password reused",
+			ShouldEqualAPIError,
+			PasswordPolicyViolated,
 			map[string]interface{}{
-				"reason":       PasswordReused.String(),
-				"history_size": historySize,
-				"history_days": historyDays,
+				"causes": passwordViolations{
+					PasswordViolation{Reason: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+				},
 			},
 		)
 
@@ -339,13 +341,12 @@ func TestValidatePassword(t *testing.T) {
 				PlainPassword: "coffee",
 				AuthID:        authID,
 			}),
-			ShouldEqualSkyError,
-			skyerr.PasswordPolicyViolated,
-			"password reused",
+			ShouldEqualAPIError,
+			PasswordPolicyViolated,
 			map[string]interface{}{
-				"reason":       PasswordReused.String(),
-				"history_size": historySize,
-				"history_days": historyDays,
+				"causes": passwordViolations{
+					PasswordViolation{Reason: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+				},
 			},
 		)
 
@@ -374,13 +375,12 @@ func TestValidatePassword(t *testing.T) {
 				PlainPassword: "chima",
 				AuthID:        authID,
 			}),
-			ShouldEqualSkyError,
-			skyerr.PasswordPolicyViolated,
-			"password reused",
+			ShouldEqualAPIError,
+			PasswordPolicyViolated,
 			map[string]interface{}{
-				"reason":       PasswordReused.String(),
-				"history_size": historySize,
-				"history_days": historyDays,
+				"causes": passwordViolations{
+					PasswordViolation{Reason: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+				},
 			},
 		)
 
@@ -409,13 +409,12 @@ func TestValidatePassword(t *testing.T) {
 				PlainPassword: "chima",
 				AuthID:        authID,
 			}),
-			ShouldEqualSkyError,
-			skyerr.PasswordPolicyViolated,
-			"password reused",
+			ShouldEqualAPIError,
+			PasswordPolicyViolated,
 			map[string]interface{}{
-				"reason":       PasswordReused.String(),
-				"history_size": historySize,
-				"history_days": historyDays,
+				"causes": passwordViolations{
+					PasswordViolation{Reason: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+				},
 			},
 		)
 

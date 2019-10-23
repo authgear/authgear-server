@@ -3,16 +3,13 @@ package handler
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -21,12 +18,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachChangePasswordHandler(
@@ -71,10 +69,12 @@ const ChangePasswordRequestSchema = `
 
 func (p ChangePasswordRequestPayload) Validate() error {
 	if p.OldPassword == "" {
-		return skyerr.NewInvalidArgument("empty old password", []string{"old_password"})
+		// TODO(error): make error
+		// return skyerr.NewInvalidArgument("empty old password", []string{"old_password"})
 	}
 	if p.NewPassword == "" {
-		return skyerr.NewInvalidArgument("empty password", []string{"password"})
+		// TODO(error): make error
+		// return skyerr.NewInvalidArgument("empty password", []string{"password"})
 	}
 	return nil
 }
@@ -138,12 +138,12 @@ func (h ChangePasswordHandler) ServeHTTP(resp http.ResponseWriter, req *http.Req
 
 	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
-		handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
+		handler.WriteResponse(resp, handler.APIResponse{Error: skyerr.AsAPIError(err)})
 		return
 	}
 
 	if err = payload.Validate(); err != nil {
-		handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
+		handler.WriteResponse(resp, handler.APIResponse{Error: skyerr.AsAPIError(err)})
 		return
 	}
 
@@ -160,7 +160,7 @@ func (h ChangePasswordHandler) ServeHTTP(resp http.ResponseWriter, req *http.Req
 		h.SessionWriter.WriteSession(resp, &authResp.AccessToken, nil)
 		handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
 	} else {
-		handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
+		handler.WriteResponse(resp, handler.APIResponse{Error: skyerr.AsAPIError(err)})
 	}
 }
 
@@ -178,7 +178,8 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authinfo.ID)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+			// TODO(error): make error
+			// err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 			return
 		}
 		return
@@ -190,7 +191,8 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 			principal = p
 		}
 		if !p.IsSamePassword(payload.OldPassword) {
-			err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
+			// TODO(error): make error
+			// err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
 			return
 		}
 		err = h.PasswordAuthProvider.UpdatePassword(p, payload.NewPassword)
@@ -209,9 +211,8 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 	// Get Profile
 	var userProfile userprofile.UserProfile
 	if userProfile, err = h.UserProfileStore.GetUserProfile(authinfo.ID); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+		// TODO(error): make error
+		// err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
 		return
 	}
 

@@ -12,7 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachRefreshHandler(
@@ -52,7 +52,8 @@ const RefreshRequestSchema = `
 
 func (p RefreshRequestPayload) Validate() error {
 	if p.RefreshToken == "" {
-		return skyerr.NewInvalidArgument("invalid refresh token", []string{"refresh_token"})
+		// TODO(error): make error
+		// return skyerr.NewInvalidArgument("invalid refresh token", []string{"refresh_token"})
 	}
 
 	return nil
@@ -119,7 +120,7 @@ func (h RefreshHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			h.SessionWriter.WriteSession(resp, &refreshResp.AccessToken, nil)
 			handler.WriteResponse(resp, handler.APIResponse{Result: refreshResp})
 		} else {
-			handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
+			handler.WriteResponse(resp, handler.APIResponse{Error: skyerr.AsAPIError(err)})
 		}
 	}()
 
@@ -131,13 +132,15 @@ func (h RefreshHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	result, err = handler.Transactional(h.TxContext, func() (result interface{}, err error) {
 		session, err := h.SessionProvider.GetByToken(payload.RefreshToken, coreAuth.SessionTokenKindRefreshToken)
 		if err != nil {
-			err = skyerr.NewNotAuthenticatedErr()
+			// TODO(error): make error
+			// err = skyerr.NewNotAuthenticatedErr()
 			return
 		}
 
 		accessToken, err := h.SessionProvider.Refresh(session)
 		if err != nil {
-			err = skyerr.NewNotAuthenticatedErr()
+			// TODO(error): make error
+			// err = skyerr.NewNotAuthenticatedErr()
 			return
 		}
 

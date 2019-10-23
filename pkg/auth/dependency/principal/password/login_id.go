@@ -3,7 +3,7 @@ package password
 import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 type LoginID struct {
@@ -26,15 +26,16 @@ type defaultLoginIDChecker struct {
 }
 
 func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
+	// TODO(error): integrate JSON schema
 	amounts := map[string]int{}
 	for _, loginID := range loginIDs {
 		_, allowed := c.loginIDsKeys[loginID.Key]
 		if !allowed {
-			return skyerr.NewInvalidArgument("login ID key is not allowed", []string{loginID.Key})
+			return skyerr.NewInvalid("login ID key is not allowed")
 		}
 
 		if loginID.Value == "" {
-			return skyerr.NewInvalidArgument("login ID is empty", []string{loginID.Key})
+			return skyerr.NewInvalid("login ID is empty")
 		}
 		amounts[loginID.Key]++
 	}
@@ -42,12 +43,12 @@ func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
 	for key, keyConfig := range c.loginIDsKeys {
 		amount := amounts[key]
 		if amount > *keyConfig.Maximum || amount < *keyConfig.Minimum {
-			return skyerr.NewInvalidArgument("login ID is not valid", []string{key})
+			return skyerr.NewInvalid("login ID is not valid")
 		}
 	}
 
 	if len(loginIDs) == 0 {
-		return skyerr.NewError(skyerr.InvalidArgument, "no login ID is present")
+		return skyerr.NewInvalid("no login ID is present")
 	}
 
 	return nil

@@ -15,8 +15,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
 var (
@@ -115,13 +115,12 @@ func (p *providerImpl) CreatePrincipalsByLoginID(authInfoID string, password str
 	// do not create principal when there is login ID belongs to another user.
 	for _, loginID := range loginIDs {
 		loginIDPrincipals, principalErr := p.GetPrincipalsByLoginID("", loginID.Value)
-		if principalErr != nil && principalErr != skydb.ErrUserNotFound {
-			err = principalErr
+		if principalErr != nil && principalErr != principal.ErrNotFound {
 			return
 		}
 		for _, principal := range loginIDPrincipals {
 			if principal.UserID != authInfoID {
-				err = skydb.ErrUserDuplicated
+				err = ErrLoginIDAlreadyUsed
 				return
 			}
 		}
@@ -135,9 +134,10 @@ func (p *providerImpl) CreatePrincipalsByLoginID(authInfoID string, password str
 		principal.Realm = realm
 		principal.deriveClaims(p.loginIDChecker)
 		principal.setPassword(password)
-		err = p.CreatePrincipal(principal)
+		err = p.createPrincipal(principal)
 
 		if err != nil {
+			err = errors.HandledWithMessage(err, "failed to create principal")
 			return
 		}
 		principals = append(principals, &principal)
@@ -146,9 +146,7 @@ func (p *providerImpl) CreatePrincipalsByLoginID(authInfoID string, password str
 	return
 }
 
-func (p *providerImpl) CreatePrincipal(principal Principal) (err error) {
-	// TODO: log
-
+func (p *providerImpl) createPrincipal(principal Principal) (err error) {
 	// Create principal
 	builder := p.sqlBuilder.Tenant().
 		Insert(p.sqlBuilder.FullTableName("principal")).
@@ -194,21 +192,27 @@ func (p *providerImpl) CreatePrincipal(principal Principal) (err error) {
 
 	_, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
-		if db.IsUniqueViolated(err) {
-			err = skydb.ErrUserDuplicated
-		}
+		return
 	}
 
-	if p.passwordHistoryEnabled {
-		p.passwordHistoryStore.CreatePasswordHistory(
-			principal.UserID, principal.HashedPassword, timeNow(),
-		)
-	}
+	err = p.savePasswordHistory(&principal)
 
 	return
 }
 
-func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error) {
+func (p *providerImpl) savePasswordHistory(principal *Principal) error {
+	if p.passwordHistoryEnabled {
+		err := p.passwordHistoryStore.CreatePasswordHistory(
+			principal.UserID, principal.HashedPassword, timeNow(),
+		)
+		if err != nil {
+			return errors.Newf("failed to create password history: %w", err)
+		}
+	}
+	return nil
+}
+
+func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, pp *Principal) (err error) {
 	builder := p.sqlBuilder.Tenant().
 		Select(
 			"p.id",
@@ -226,13 +230,18 @@ func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID
 		builder = builder.Where("pp.login_id_key = ?", loginIDKey)
 	}
 
-	scanner := p.sqlExecutor.QueryRowWith(builder)
-
-	err = p.scan(scanner, principal)
-	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
-	}
+	scanner, err := p.sqlExecutor.QueryRowWith(builder)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to get principal by login ID & realm")
+		return
+	}
+
+	err = p.scan(scanner, pp)
+	if err == sql.ErrNoRows {
+		err = principal.ErrNotFound
+		return
+	} else if err != nil {
+		err = errors.HandledWithMessage(err, "failed to get principal by login ID & realm")
 		return
 	}
 
@@ -256,6 +265,7 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to get principal by user ID")
 		return
 	}
 	defer rows.Close()
@@ -264,14 +274,10 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 		var principal Principal
 		err = p.scan(rows, &principal)
 		if err != nil {
+			err = errors.HandledWithMessage(err, "failed to get principal by user ID")
 			return
 		}
 		principals = append(principals, &principal)
-	}
-
-	if len(principals) == 0 {
-		err = skydb.ErrUserNotFound
-		return
 	}
 
 	return
@@ -294,6 +300,7 @@ func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to get principal by claim")
 		return
 	}
 	defer rows.Close()
@@ -302,14 +309,10 @@ func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string)
 		var principal Principal
 		err = p.scan(rows, &principal)
 		if err != nil {
+			err = errors.HandledWithMessage(err, "failed to get principal by claim")
 			return
 		}
 		principals = append(principals, &principal)
-	}
-
-	if len(principals) == 0 {
-		err = skydb.ErrUserNotFound
-		return
 	}
 
 	return
@@ -335,6 +338,7 @@ func (p *providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to get principal by login ID")
 		return
 	}
 	defer rows.Close()
@@ -343,27 +347,22 @@ func (p *providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string)
 		var principal Principal
 		err = p.scan(rows, &principal)
 		if err != nil {
+			err = errors.HandledWithMessage(err, "failed to get principal by login ID")
 			return
 		}
 		principals = append(principals, &principal)
-	}
-
-	if len(principals) == 0 {
-		err = skydb.ErrUserNotFound
-		return
 	}
 
 	return
 }
 
 func (p *providerImpl) UpdatePassword(principal *Principal, password string) (err error) {
-	// TODO: log
-
 	var isPasswordChanged = !principal.IsSamePassword(password)
 
 	err = principal.setPassword(password)
 	if err != nil {
-		panic("provider_password: Failed to hash password")
+		err = errors.HandledWithMessage(err, "failed to update password")
+		return
 	}
 
 	builder := p.sqlBuilder.Tenant().
@@ -373,17 +372,16 @@ func (p *providerImpl) UpdatePassword(principal *Principal, password string) (er
 
 	_, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
-		if db.IsUniqueViolated(err) {
-			err = skydb.ErrUserDuplicated
-		}
-
+		err = errors.HandledWithMessage(err, "failed to update password")
 		return
 	}
 
-	if p.passwordHistoryEnabled && isPasswordChanged {
-		err = p.passwordHistoryStore.CreatePasswordHistory(
-			principal.UserID, principal.HashedPassword, timeNow(),
-		)
+	if isPasswordChanged {
+		err = p.savePasswordHistory(principal)
+		if err != nil {
+			err = errors.HandledWithMessage(err, "failed to update password")
+			return
+		}
 	}
 
 	return
@@ -392,6 +390,7 @@ func (p *providerImpl) UpdatePassword(principal *Principal, password string) (er
 func (p *providerImpl) MigratePassword(principal *Principal, password string) (err error) {
 	migrated, err := principal.migratePassword(password)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to migrate password")
 		return err
 	}
 	if !migrated {
@@ -405,6 +404,7 @@ func (p *providerImpl) MigratePassword(principal *Principal, password string) (e
 
 	_, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to migrate password")
 		return
 	}
 	return
@@ -429,25 +429,27 @@ func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal
 		Join(p.sqlBuilder.FullTableName("provider_password"), "pp", "p.id = pp.principal_id").
 		Where(`p.id = ?`, principalID)
 
-	scanner := p.sqlExecutor.QueryRowWith(builder)
-
-	principal := Principal{}
-	err := p.scan(scanner, &principal)
-	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
-	}
+	scanner, err := p.sqlExecutor.QueryRowWith(builder)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to get principal by ID")
 		return nil, err
 	}
-	return &principal, nil
+
+	pp := Principal{}
+	err = p.scan(scanner, &pp)
+	if err == sql.ErrNoRows {
+		return nil, principal.ErrNotFound
+	}
+	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to get principal by ID")
+		return nil, err
+	}
+	return &pp, nil
 }
 
 func (p *providerImpl) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
 	principals, err := p.GetPrincipalsByClaim(claimName, claimValue)
 	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			return nil, nil
-		}
 		return nil, err
 	}
 
@@ -462,9 +464,6 @@ func (p *providerImpl) ListPrincipalsByClaim(claimName string, claimValue string
 func (p *providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
 	principals, err := p.GetPrincipalsByUserID(userID)
 	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			return nil, nil
-		}
 		return nil, err
 	}
 

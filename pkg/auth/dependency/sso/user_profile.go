@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 func fetchUserProfile(
@@ -23,24 +23,24 @@ func fetchUserProfile(
 	req.Header.Add("Authorization", authorizationHeader)
 
 	resp, err := http.DefaultClient.Do(req)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
+		err = errors.WithSecondaryError(
+			NewSSOFailed(NetworkFailed, "failed to connect authorization server"),
+			err,
+		)
 		return
 	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode == 401 {
-		err = skyerr.NewError(
-			skyerr.InvalidCredentials,
-			"Invalid access token",
-		)
+		err = NewSSOFailed(SSOUnauthorized, "oauth failed")
 		return
 	}
 
 	if resp.StatusCode != 200 {
-		err = skyerr.NewError(
-			skyerr.UnexpectedError,
-			"Fail to fetch userinfo",
-		)
+		err = errors.Newf("unexpected status code: %d", resp.StatusCode)
 		return
 	}
 

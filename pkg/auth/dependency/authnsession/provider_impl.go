@@ -1,7 +1,6 @@
 package authnsession
 
 import (
-	"errors"
 	"net/http"
 	gotime "time"
 
@@ -16,39 +15,41 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/time"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
-
-var ErrUnknownMFAEnforcement = errors.New("unknown MFA enforcement")
-var ErrInvalidToken = skyerr.NewError(skyerr.InvalidAuthenticationSession, "invalid authentication session")
 
 type Claims struct {
 	jwt.StandardClaims
 	AuthnSession auth.AuthnSession `json:"authn_session"`
 }
 
-func NewAuthnSessionToken(secret string, claims Claims) (string, error) {
+func newAuthnSessionToken(secret string, claims Claims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))
 }
 
-func ParseAuthnSessionToken(secret string, tokenString string) (*Claims, error) {
+func parseAuthnSessionToken(secret string, tokenString string) (*Claims, error) {
 	t, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		if token.Method != jwt.SigningMethodHS256 {
+			return nil, errors.New("unexpected JWT alg")
+		}
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return nil, ErrInvalidToken
+		return nil, errInvalidToken
 	}
 	claims, ok := t.Claims.(*Claims)
 	if !ok {
-		return nil, ErrInvalidToken
+		return nil, errInvalidToken
 	}
 	if !t.Valid {
-		return nil, ErrInvalidToken
+		return nil, errInvalidToken
 	}
 	return claims, nil
 }
@@ -95,19 +96,18 @@ func NewProvider(
 	}
 }
 
-func NewAuthenticationSessionError(token string, step auth.AuthnSessionStep) skyerr.Error {
-	return skyerr.NewErrorWithInfo(
-		skyerr.AuthenticationSession,
-		"Authentication Session",
-		map[string]interface{}{
-			"token": token,
-			"step":  step,
+func NewAuthenticationSessionError(token string, step auth.AuthnSessionStep) error {
+	return AuthenticationSessionRequired.NewWithDetails(
+		"authentication session is required",
+		skyerr.Details{
+			"token": skyerr.APIErrorString(token),
+			"step":  skyerr.APIErrorString(step),
 		},
 	)
 }
 
 func (p *providerImpl) NewFromToken(token string) (*auth.AuthnSession, error) {
-	claims, err := ParseAuthnSessionToken(p.authenticationSessionConfiguration.Secret, token)
+	claims, err := parseAuthnSessionToken(p.authenticationSessionConfiguration.Secret, token)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (p *providerImpl) getRequiredSteps(userID string) ([]auth.AuthnSessionStep,
 	case config.MFAEnforcementOff:
 		break
 	default:
-		return nil, ErrUnknownMFAEnforcement
+		return nil, errors.New("unknown MFA enforcement")
 	}
 	return steps, nil
 }
@@ -141,7 +141,7 @@ func (p *providerImpl) NewFromScratch(userID string, prin principal.Principal, r
 	clientID := p.authContextGetter.AccessKey().ClientID
 	requiredSteps, err := p.getRequiredSteps(userID)
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "cannot get required authn steps")
 	}
 	// Identity is considered finished here.
 	finishedSteps := requiredSteps[:1]
@@ -226,7 +226,7 @@ func (p *providerImpl) GenerateResponseAndUpdateLastLoginAt(authnSess auth.Authn
 		},
 		AuthnSession: authnSess,
 	}
-	token, err := NewAuthnSessionToken(p.authenticationSessionConfiguration.Secret, claims)
+	token, err := newAuthnSessionToken(p.authenticationSessionConfiguration.Secret, claims)
 	if err != nil {
 		return nil, err
 	}
@@ -268,16 +268,16 @@ func (p *providerImpl) WriteResponse(w http.ResponseWriter, resp interface{}, er
 				p.sessionWriter.WriteSession(w, &v.AccessToken, &v.MFABearerToken)
 			}
 			handler.WriteResponse(w, handler.APIResponse{Result: v})
-		case skyerr.Error:
-			handler.WriteResponse(w, handler.APIResponse{Err: v})
+		case error:
+			handler.WriteResponse(w, handler.APIResponse{Error: skyerr.AsAPIError(v)})
 		default:
-			panic("unknown response")
+			panic("authnsession: unknown response")
 		}
 	} else {
-		if err == mfa.ErrInvalidBearerToken {
+		if skyerr.IsKind(err, mfa.InvalidBearerToken) {
 			p.sessionWriter.ClearMFABearerToken(w)
 		}
-		handler.WriteResponse(w, handler.APIResponse{Err: skyerr.MakeError(err)})
+		handler.WriteResponse(w, handler.APIResponse{Error: skyerr.AsAPIError(err)})
 	}
 }
 
@@ -303,7 +303,7 @@ func (p *providerImpl) Resolve(authContext auth.ContextGetter, authnSessionToken
 	}
 
 	if authnSessionToken == "" {
-		err = skyerr.NewNotAuthenticatedErr()
+		err = authz.NewNotAuthenticatedError()
 		return
 	}
 
@@ -314,7 +314,7 @@ func (p *providerImpl) Resolve(authContext auth.ContextGetter, authnSessionToken
 
 	step, ok := authnSession.NextStep()
 	if !ok {
-		err = ErrInvalidToken
+		err = errInvalidToken
 		return
 	}
 
@@ -331,7 +331,7 @@ func (p *providerImpl) Resolve(authContext auth.ContextGetter, authnSessionToken
 				return
 			}
 			if len(authenticators) > 0 {
-				err = skyerr.NewNotAuthenticatedErr()
+				err = authz.NewNotAuthenticatedError()
 				return
 			}
 			userID = authnSession.UserID
@@ -339,6 +339,6 @@ func (p *providerImpl) Resolve(authContext auth.ContextGetter, authnSessionToken
 		}
 	}
 
-	err = skyerr.NewNotAuthenticatedErr()
+	err = errors.New("unexpected authn session state")
 	return
 }

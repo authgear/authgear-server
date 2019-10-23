@@ -15,6 +15,7 @@ type VerifyHTMLProvider struct {
 }
 
 type verifyHTMLConfig struct {
+	err             error
 	successRedirect *url.URL
 	errorRedirect   *url.URL
 }
@@ -22,23 +23,24 @@ type verifyHTMLConfig struct {
 func newVerifyHTMLConfig(c config.UserVerificationKeyConfiguration) verifyHTMLConfig {
 	var successRedirect *url.URL
 	var errorRedirect *url.URL
-	var err error
+	var e, err error
 
 	if c.SuccessRedirect != "" {
-		if successRedirect, err = url.Parse(c.SuccessRedirect); err != nil {
-			panic("invalid Forgot password success redirect URL")
+		if successRedirect, e = url.Parse(c.SuccessRedirect); e != nil {
+			err = e
 		}
 	}
 
 	if c.ErrorRedirect != "" {
-		if errorRedirect, err = url.Parse(c.ErrorRedirect); err != nil {
-			panic("invalid Forgot password error redirect URL")
+		if errorRedirect, e = url.Parse(c.ErrorRedirect); e != nil {
+			err = e
 		}
 	}
 
 	return verifyHTMLConfig{
 		successRedirect: successRedirect,
 		errorRedirect:   errorRedirect,
+		err:             err,
 	}
 }
 
@@ -79,7 +81,12 @@ func (v *VerifyHTMLProvider) ErrorHTML(key string, context map[string]interface{
 }
 
 func (v *VerifyHTMLProvider) SuccessRedirect(key string, context map[string]interface{}) *url.URL {
-	successRedirect := v.configMap[key].successRedirect
+	config := v.configMap[key]
+	if config.err != nil {
+		panic(config.err)
+	}
+
+	successRedirect := config.successRedirect
 	if successRedirect == nil {
 		return nil
 	}
@@ -90,6 +97,11 @@ func (v *VerifyHTMLProvider) SuccessRedirect(key string, context map[string]inte
 }
 
 func (v *VerifyHTMLProvider) ErrorRedirect(key string, context map[string]interface{}) (output *url.URL) {
+	config := v.configMap[key]
+	if config.err != nil {
+		panic(config.err)
+	}
+
 	var errorRedirect *url.URL
 	defer func() {
 		if errorRedirect != nil {
@@ -104,7 +116,7 @@ func (v *VerifyHTMLProvider) ErrorRedirect(key string, context map[string]interf
 	}()
 
 	if key != "" {
-		errorRedirect = v.configMap[key].errorRedirect
+		errorRedirect = config.errorRedirect
 		if errorRedirect != nil {
 			return
 		}

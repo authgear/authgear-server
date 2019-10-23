@@ -234,8 +234,12 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 
 func (s authInfoStore) GetAuth(id string, info *authinfo.AuthInfo) error {
 	builder := s.baseUserBuilder().Where("id = ?", id)
-	scanner := s.sqlExecutor.QueryRowWith(builder)
-	err := s.doScanAuth(info, scanner)
+	scanner, err := s.sqlExecutor.QueryRowWith(builder)
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to get user")
+	}
+
+	err = s.doScanAuth(info, scanner)
 	if err == sql.ErrNoRows {
 		return authinfo.ErrNotFound
 	} else if err != nil {

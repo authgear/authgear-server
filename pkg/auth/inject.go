@@ -88,7 +88,7 @@ func (m DependencyMap) Provide(
 	}
 
 	newSQLExecutor := func() db.SQLExecutor {
-		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig), newLoggerFactory())
+		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig))
 	}
 
 	newTimeProvider := func() time.Provider {
@@ -119,11 +119,9 @@ func (m DependencyMap) Provide(
 	}
 
 	newUserProfileStore := func() userprofile.Store {
-		return userprofile.NewSafeProvider(
+		return userprofile.NewUserProfileStore(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLoggerFactory(),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
 
@@ -135,33 +133,28 @@ func (m DependencyMap) Provide(
 	}
 
 	newPasswordAuthProvider := func() password.Provider {
-		return password.NewSafeProvider(
+		return password.NewProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
 			newLoggerFactory(),
 			tConfig.UserConfig.Auth.LoginIDKeys,
 			tConfig.UserConfig.Auth.AllowedRealms,
 			isPasswordHistoryEnabled(),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
 
 	newCustomTokenAuthProvider := func() customtoken.Provider {
-		return customtoken.NewSafeProvider(
+		return customtoken.NewProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLoggerFactory(),
 			tConfig.UserConfig.SSO.CustomToken,
-			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
 
 	newOAuthAuthProvider := func() oauth.Provider {
-		return oauth.NewSafeProvider(
+		return oauth.NewProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLoggerFactory(),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
 
@@ -184,6 +177,7 @@ func (m DependencyMap) Provide(
 					newUserProfileStore(),
 				),
 			),
+			newLoggerFactory(),
 		)
 	}
 
@@ -349,11 +343,9 @@ func (m DependencyMap) Provide(
 	case "UserVerificationProvider":
 		return userverify.NewProvider(
 			userverify.NewCodeGenerator(tConfig),
-			userverify.NewSafeStore(
+			userverify.NewStore(
 				newSQLBuilder(),
 				newSQLExecutor(),
-				newLoggerFactory(),
-				db.NewSafeTxContextWithContext(ctx, tConfig),
 			),
 			tConfig.UserConfig.UserVerification,
 			newTimeProvider(),

@@ -3,33 +3,28 @@ package anonymous
 import (
 	"database/sql"
 
-	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type providerImpl struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
-	logger      *logrus.Entry
 }
 
-func newProvider(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *providerImpl {
+func newProvider(builder db.SQLBuilder, executor db.SQLExecutor) *providerImpl {
 	return &providerImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
-		logger:      logger,
 	}
 }
 
-func NewProvider(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) Provider {
-	return newProvider(builder, executor, logger)
+func NewProvider(builder db.SQLBuilder, executor db.SQLExecutor) Provider {
+	return newProvider(builder, executor)
 }
 
 func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
-	// TODO: log
-
 	// Create principal
 	builder := p.sqlBuilder.Tenant().
 		Insert(p.sqlBuilder.FullTableName("principal")).
@@ -46,7 +41,7 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 
 	_, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
-		return
+		return errors.HandledWithMessage(err, "fail to create principal")
 	}
 
 	return
@@ -57,25 +52,25 @@ func (p providerImpl) ID() string {
 }
 
 func (p providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
-	principal := Principal{ID: principalID}
-
 	builder := p.sqlBuilder.Tenant().
 		Select("user_id").
 		From(p.sqlBuilder.FullTableName("principal")).
 		Where("id = ? AND provider = ?", principalID, providerAnonymous)
-	scanner := p.sqlExecutor.QueryRowWith(builder)
+	scanner, err := p.sqlExecutor.QueryRowWith(builder)
+	if err != nil {
+		return nil, errors.HandledWithMessage(err, "fail to get principal by ID")
+	}
 
-	err := scanner.Scan(&principal.UserID)
+	pp := Principal{ID: principalID}
+	err = scanner.Scan(&pp.UserID)
 
 	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
+		return nil, principal.ErrNotFound
+	} else if err != nil {
+		return nil, errors.HandledWithMessage(err, "fail to get principal by ID")
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
-	return &principal, nil
+	return &pp, nil
 }
 
 func (p providerImpl) ListPrincipalsByUserID(userID string) (principals []principal.Principal, err error) {
@@ -85,14 +80,14 @@ func (p providerImpl) ListPrincipalsByUserID(userID string) (principals []princi
 		Where("user_id = ? AND p.provider = ?", userID, providerAnonymous)
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
-		return
+		return nil, errors.HandledWithMessage(err, "fail to get principal by user ID")
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		principal := Principal{UserID: userID}
 		if err = rows.Scan(&principal.ID); err != nil {
-			return
+			return nil, errors.HandledWithMessage(err, "fail to get principal by user ID")
 		}
 
 		principals = append(principals, &principal)

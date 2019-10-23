@@ -14,7 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
@@ -23,6 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -58,15 +59,18 @@ type AuthRequestPayload sso.OAuthAuthorizationResponse
 // Validate request payload
 func (p AuthRequestPayload) Validate() error {
 	if p.Code == "" {
-		return skyerr.NewInvalidArgument("code is required", []string{"code"})
+		// TODO(error): make error
+		// return skyerr.NewInvalidArgument("code is required", []string{"code"})
 	}
 
 	if p.State == "" {
-		return skyerr.NewInvalidArgument("state is required", []string{"state"})
+		// TODO(error): make error
+		// return skyerr.NewInvalidArgument("state is required", []string{"state"})
 	}
 
 	if p.Nonce == "" {
-		return skyerr.NewInvalidArgument("nonce is required", []string{"nonce"})
+		// TODO(error): make error
+		// return skyerr.NewInvalidArgument("nonce is required", []string{"nonce"})
 	}
 
 	return nil
@@ -210,17 +214,11 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 
 func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.AuthInfo, err error) {
 	oauthAuthInfo, err = h.Provider.GetAuthInfo(sso.OAuthAuthorizationResponse(payload))
-	if err != nil {
-		if ssoErr, ok := err.(sso.Error); ok {
-			switch ssoErr.Code() {
-			case sso.InvalidGrant:
-				err = skyerr.NewError(skyerr.InvalidArgument, "Code was already redeemed")
-			case sso.InvalidClient:
-				err = skyerr.NewError(skyerr.InvalidCredentials, "Unauthorized, please check the app client id and secret")
-			default:
-				err = skyerr.NewError(skyerr.InvalidCredentials, ssoErr.Error())
-			}
-		}
+	if err != nil && !skyerr.IsKind(err, sso.SSOFailed) {
+		err = errors.WithSecondaryError(
+			err,
+			sso.NewSSOFailed(sso.SSOUnauthorized, "unexpected error occurred"),
+		)
 	}
 	return
 }
@@ -247,7 +245,8 @@ func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (resp i
 func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
 	err = sso.ValidateCallbackURL(allowedCallbackURLs, callbackURL)
 	if err != nil {
-		err = skyerr.NewError(skyerr.BadRequest, err.Error())
+		// TODO(error): make error
+		// err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
 	return
@@ -320,7 +319,7 @@ func (h AuthHandler) handleRedirectResp(
 func makeJSONResponse(ok interface{}, err error) handler.APIResponse {
 	if err != nil {
 		return handler.APIResponse{
-			Err: skyerr.MakeError(err),
+			Error: skyerr.AsAPIError(err),
 		}
 	}
 	return handler.APIResponse{

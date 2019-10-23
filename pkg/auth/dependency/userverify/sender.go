@@ -4,12 +4,12 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/skygeario/skygear-server/pkg/core/sms"
-
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
@@ -41,6 +41,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 		context,
 		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifyEmailText},
 	); err != nil {
+		err = errors.Newf("failed to render user verification text email: %w", err)
 		return
 	}
 
@@ -50,6 +51,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 		context,
 		template.ParseOption{Required: false, FallbackTemplateName: authTemplate.TemplateNameVerifyEmailHTML},
 	); err != nil {
+		err = errors.Newf("failed to render user verification HTML email: %w", err)
 		return
 	}
 
@@ -61,6 +63,9 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
 	})
+	if err != nil {
+		err = errors.Newf("failed to send user verification email: %w", err)
+	}
 
 	return
 }
@@ -86,10 +91,15 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user model.User) (err error)
 		context,
 		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifySMSText},
 	); err != nil {
+		err = errors.Newf("failed to render user verification SMS message: %w", err)
 		return
 	}
 
 	err = t.SMSClient.Send(verifyCode.LoginID, textBody)
+	if err != nil {
+		err = errors.Newf("failed to send user verification SMS message: %w", err)
+	}
+
 	return
 }
 

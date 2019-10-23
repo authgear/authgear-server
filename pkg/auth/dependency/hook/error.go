@@ -1,30 +1,22 @@
 package hook
 
 import (
-	"fmt"
-
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
-type invalidEventPayload struct {
-	payload event.Payload
-}
-
-func (err invalidEventPayload) Error() string {
-	return fmt.Sprintf("invalid event payload: %T", err.payload)
-}
+var WebHookDisallowed = skyerr.Forbidden.WithReason("WebHookDisallowed")
 
 func newErrorDeliveryTimeout() error {
-	return skyerr.NewError(skyerr.WebHookTimeOut, "web-hook event delivery timed out")
+	return errors.New("web-hook event delivery timed out")
 }
 
 func newErrorDeliveryFailed(inner error) error {
-	return skyerr.NewErrorf(skyerr.WebHookFailed, "web-hook event delivery failed: %v", inner)
+	return errors.Newf("web-hook event delivery failed: %w", inner)
 }
 
 func newErrorDeliveryInvalidStatusCode() error {
-	return skyerr.NewError(skyerr.WebHookFailed, "invalid status code")
+	return errors.New("invalid status code")
 }
 
 type OperationDisallowedItem struct {
@@ -32,14 +24,17 @@ type OperationDisallowedItem struct {
 	Data   interface{} `json:"data,omitempty"`
 }
 
+type disallowedErrors []OperationDisallowedItem
+
+func (disallowedErrors) IsTagged(tag errors.DetailTag) bool { return tag == skyerr.APIErrorDetail }
+
 func newErrorOperationDisallowed(items []OperationDisallowedItem) error {
-	return skyerr.NewErrorWithInfo(
-		skyerr.PermissionDenied,
+	return WebHookDisallowed.NewWithDetails(
 		"disallowed by web-hook event handler",
-		map[string]interface{}{"errors": items},
+		map[string]interface{}{"causes": disallowedErrors(items)},
 	)
 }
 
 func newErrorMutationFailed(inner error) error {
-	return skyerr.NewErrorf(skyerr.WebHookFailed, "web-hook mutation failed: %v", inner)
+	return errors.Newf("web-hook mutation failed: %w", inner)
 }

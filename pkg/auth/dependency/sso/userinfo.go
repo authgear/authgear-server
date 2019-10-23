@@ -76,5 +76,5 @@ func GetUserInfoDecoder(providerType config.OAuthProviderType) UserInfoDecoder {
 	case config.OAuthProviderTypeAzureADv2:
 		return NewAzureADv2UserInfoDecoder()
 	}
-	panic(fmt.Errorf("unknown provider type: %v", providerType))
+	panic(fmt.Sprintf("sso: unknown provider type: %v", providerType))
 }

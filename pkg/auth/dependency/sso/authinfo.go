@@ -2,11 +2,11 @@ package sso
 
 import (
 	"crypto/subtle"
-	"fmt"
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type getAuthInfoRequest struct {
@@ -25,7 +25,10 @@ func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse) (authInfo 
 	}
 
 	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
-		err = fmt.Errorf("invalid nonce")
+		err = errors.WithSecondaryError(
+			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
+			errors.New("invalid nonce"),
+		)
 		return
 	}
 

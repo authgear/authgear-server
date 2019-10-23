@@ -6,7 +6,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -20,19 +19,13 @@ var (
 type passwordHistoryStore struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
-	logger      *logrus.Entry
-}
-
-func newPasswordHistoryStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) *passwordHistoryStore {
-	return &passwordHistoryStore{
-		sqlBuilder:  builder,
-		sqlExecutor: executor,
-		logger:      loggerFactory.NewLogger("password-history"),
-	}
 }
 
 func NewPasswordHistoryStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) passwordhistory.Store {
-	return newPasswordHistoryStore(builder, executor, loggerFactory)
+	return &passwordHistoryStore{
+		sqlBuilder:  builder,
+		sqlExecutor: executor,
+	}
 }
 
 func (p *passwordHistoryStore) CreatePasswordHistory(userID string, hashedPassword []byte, loggedAt time.Time) error {

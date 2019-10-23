@@ -1,25 +1,23 @@
 package userprofile
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 type storeImpl struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
-	logger      *logrus.Entry
 }
 
-func newUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) *storeImpl {
+func NewUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
 	return &storeImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
-		logger:      loggerFactory.NewLogger("user-profile"),
 	}
 }
 
@@ -64,7 +62,11 @@ func (u storeImpl) GetUserProfile(userID string) (profile UserProfile, err error
 		Select("created_at", "updated_at", "data").
 		From(u.sqlBuilder.FullTableName("user_profile")).
 		Where("user_id = ?", userID)
-	scanner := u.sqlExecutor.QueryRowWith(builder)
+	scanner, err := u.sqlExecutor.QueryRowWith(builder)
+	if err != nil {
+		return
+	}
+
 	var createdAt time.Time
 	var updatedAt time.Time
 	var dataBytes []byte
@@ -73,6 +75,10 @@ func (u storeImpl) GetUserProfile(userID string) (profile UserProfile, err error
 		&updatedAt,
 		&dataBytes,
 	)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		err = ErrUserProfileNotFound
+	}
 
 	if err != nil {
 		return

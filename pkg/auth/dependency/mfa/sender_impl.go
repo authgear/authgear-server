@@ -2,6 +2,7 @@ package mfa
 
 import (
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
@@ -41,9 +42,15 @@ func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error
 		template.ParseOption{Required: true},
 	)
 	if err != nil {
+		err = errors.Newf("failed to render MFA SMS message: %w", err)
 		return err
 	}
-	return s.smsClient.Send(phone, body)
+
+	err = s.smsClient.Send(phone, body)
+	if err != nil {
+		err = errors.Newf("failed to send MFA SMS message: %w", err)
+	}
+	return err
 }
 
 func (s *senderImpl) SendEmail(context map[string]interface{}, email string) error {
@@ -53,6 +60,7 @@ func (s *senderImpl) SendEmail(context map[string]interface{}, email string) err
 		template.ParseOption{Required: true},
 	)
 	if err != nil {
+		err = errors.Newf("failed to render MFA text email: %w", err)
 		return err
 	}
 
@@ -62,6 +70,7 @@ func (s *senderImpl) SendEmail(context map[string]interface{}, email string) err
 		template.ParseOption{Required: false},
 	)
 	if err != nil {
+		err = errors.Newf("failed to render MFA HTML email: %w", err)
 		return err
 	}
 
@@ -75,6 +84,7 @@ func (s *senderImpl) SendEmail(context map[string]interface{}, email string) err
 		HTMLBody:  htmlBody,
 	})
 	if err != nil {
+		err = errors.Newf("failed to send MFA email: %w", err)
 		return err
 	}
 

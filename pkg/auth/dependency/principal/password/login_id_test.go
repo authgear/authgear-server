@@ -45,20 +45,20 @@ func TestLoginID(t *testing.T) {
 				LoginID{Key: "email", Value: "johndoe+1@example.com"},
 				LoginID{Key: "email", Value: "johndoe+2@example.com"},
 			}
-			So(checker.validate(loginIDs), ShouldBeError, "InvalidArgument: login ID is not valid")
+			So(checker.validate(loginIDs), ShouldBeError, "login ID is not valid")
 
 			loginIDs = []LoginID{
 				LoginID{Key: "nickname", Value: "johndoe"},
 			}
-			So(checker.validate(loginIDs), ShouldBeError, "InvalidArgument: login ID key is not allowed")
+			So(checker.validate(loginIDs), ShouldBeError, "login ID key is not allowed")
 
 			loginIDs = []LoginID{
 				LoginID{Key: "email", Value: ""},
 			}
-			So(checker.validate(loginIDs), ShouldBeError, "InvalidArgument: login ID is empty")
+			So(checker.validate(loginIDs), ShouldBeError, "login ID is empty")
 
 			loginIDs = []LoginID{}
-			So(checker.validate(loginIDs), ShouldBeError, "InvalidArgument: no login ID is present")
+			So(checker.validate(loginIDs), ShouldBeError, "no login ID is present")
 		})
 	})
 }

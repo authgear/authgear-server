@@ -5,7 +5,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
 type MockProvider struct {
@@ -30,7 +29,7 @@ func (m *MockProvider) GetPrincipalByProvider(options GetByProviderOptions) (*Pr
 			return p, nil
 		}
 	}
-	return nil, skydb.ErrUserNotFound
+	return nil, principal.ErrNotFound
 }
 
 func (m *MockProvider) GetPrincipalByUser(options GetByUserOptions) (*Principal, error) {
@@ -44,7 +43,7 @@ func (m *MockProvider) GetPrincipalByUser(options GetByUserOptions) (*Principal,
 			return p, nil
 		}
 	}
-	return nil, skydb.ErrUserNotFound
+	return nil, principal.ErrNotFound
 }
 
 func (m *MockProvider) CreatePrincipal(principal *Principal) error {
@@ -108,15 +107,12 @@ func (m *MockProvider) GetPrincipalByID(id string) (principal.Principal, error) 
 			return principal, nil
 		}
 	}
-	return nil, skydb.ErrUserNotFound
+	return nil, principal.ErrNotFound
 }
 
 func (m *MockProvider) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
 	principals, err := m.GetPrincipalsByUserID(userID)
 	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			return nil, nil
-		}
 		return nil, err
 	}
 
@@ -131,9 +127,6 @@ func (m *MockProvider) ListPrincipalsByUserID(userID string) ([]principal.Princi
 func (m *MockProvider) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
 	principals, err := m.GetPrincipalsByClaim(claimName, claimValue)
 	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			return nil, nil
-		}
 		return nil, err
 	}
 

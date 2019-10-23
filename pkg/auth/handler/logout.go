@@ -19,7 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 // AttachLogoutHandler attach logout handler to server
@@ -104,7 +104,7 @@ func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		h.SessionWriter.ClearSession(resp)
 		handler.WriteResponse(resp, handler.APIResponse{Result: result})
 	} else {
-		handler.WriteResponse(resp, handler.APIResponse{Err: skyerr.MakeError(err)})
+		handler.WriteResponse(resp, handler.APIResponse{Error: skyerr.AsAPIError(err)})
 	}
 }
 
@@ -113,7 +113,8 @@ func (h LogoutHandler) Handle() (resp interface{}, err error) {
 	authInfo, _ := h.AuthContext.AuthInfo()
 	sess, _ := h.AuthContext.Session()
 	if err = h.SessionProvider.Invalidate(sess); err != nil {
-		err = skyerr.MakeError(err)
+		// TODO(error): make error
+		// err = skyerr.MakeError(err)
 		return
 	}
 

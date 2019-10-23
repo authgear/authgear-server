@@ -1,12 +1,12 @@
 package db
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type Pool interface {
@@ -27,13 +27,11 @@ func NewPool() Pool {
 	return p
 }
 
-var errPoolClosed = fmt.Errorf("database pool is closed")
-
 func (p *poolImpl) Open(tConfig config.TenantConfiguration) (db *sqlx.DB, err error) {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
-		return nil, errPoolClosed
+		return nil, errors.New("skydb: pool is closed")
 	}
 
 	source := tConfig.AppConfig.DatabaseURL

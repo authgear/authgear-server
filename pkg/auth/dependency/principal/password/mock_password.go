@@ -5,7 +5,6 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
 // MockProvider is the memory implementation of password provider
@@ -57,13 +56,13 @@ func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password str
 	// do not create principal when there is login ID belongs to another user.
 	for _, loginID := range loginIDs {
 		loginIDPrincipals, principalErr := m.GetPrincipalsByLoginID("", loginID.Value)
-		if principalErr != nil && principalErr != skydb.ErrUserNotFound {
+		if principalErr != nil && principalErr != principal.ErrNotFound {
 			err = principalErr
 			return
 		}
-		for _, principal := range loginIDPrincipals {
-			if principal.UserID != authInfoID {
-				err = skydb.ErrUserDuplicated
+		for _, p := range loginIDPrincipals {
+			if p.UserID != authInfoID {
+				err = ErrLoginIDAlreadyUsed
 				return
 			}
 		}
@@ -77,7 +76,7 @@ func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password str
 		principal.Realm = realm
 		principal.setPassword(password)
 		principal.deriveClaims(m.loginIDChecker)
-		err = m.CreatePrincipal(principal)
+		err = m.createPrincipal(principal)
 
 		if err != nil {
 			return
@@ -89,31 +88,31 @@ func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password str
 }
 
 // CreatePrincipal creates principal in PrincipalMap
-func (m *MockProvider) CreatePrincipal(principal Principal) error {
-	if _, existed := m.PrincipalMap[principal.ID]; existed {
-		return skydb.ErrUserDuplicated
+func (m *MockProvider) createPrincipal(p Principal) error {
+	if _, existed := m.PrincipalMap[p.ID]; existed {
+		return principal.ErrAlreadyExists
 	}
 
-	for _, p := range m.PrincipalMap {
-		if principal.LoginID == p.LoginID && principal.Realm == p.Realm {
-			return skydb.ErrUserDuplicated
+	for _, pp := range m.PrincipalMap {
+		if p.LoginID == pp.LoginID && p.Realm == pp.Realm {
+			return principal.ErrAlreadyExists
 		}
 	}
 
-	m.PrincipalMap[principal.ID] = principal
+	m.PrincipalMap[p.ID] = p
 	return nil
 }
 
 // GetPrincipalByLoginID get principal in PrincipalMap by login_id
-func (m *MockProvider) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error) {
-	for _, p := range m.PrincipalMap {
-		if (loginIDKey == "" || p.LoginIDKey == loginIDKey) && p.LoginID == loginID && p.Realm == realm {
-			*principal = p
+func (m *MockProvider) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, p *Principal) (err error) {
+	for _, pp := range m.PrincipalMap {
+		if (loginIDKey == "" || pp.LoginIDKey == loginIDKey) && pp.LoginID == loginID && pp.Realm == realm {
+			*p = pp
 			return
 		}
 	}
 
-	return skydb.ErrUserNotFound
+	return principal.ErrNotFound
 }
 
 // GetPrincipalsByUserID get principals in PrincipalMap by userID
@@ -123,10 +122,6 @@ func (m *MockProvider) GetPrincipalsByUserID(userID string) (principals []*Princ
 			principal := p
 			principals = append(principals, &principal)
 		}
-	}
-
-	if len(principals) == 0 {
-		err = skydb.ErrUserNotFound
 	}
 
 	return
@@ -141,30 +136,26 @@ func (m *MockProvider) GetPrincipalsByLoginID(loginIDKey string, loginID string)
 		}
 	}
 
-	if len(principals) == 0 {
-		err = skydb.ErrUserNotFound
-	}
-
 	return
 }
 
-func (m *MockProvider) UpdatePassword(principal *Principal, password string) (err error) {
-	if _, existed := m.PrincipalMap[principal.ID]; !existed {
-		return skydb.ErrUserNotFound
+func (m *MockProvider) UpdatePassword(p *Principal, password string) (err error) {
+	if _, existed := m.PrincipalMap[p.ID]; !existed {
+		return principal.ErrNotFound
 	}
 
-	principal.setPassword(password)
-	m.PrincipalMap[principal.ID] = *principal
+	p.setPassword(password)
+	m.PrincipalMap[p.ID] = *p
 	return nil
 }
 
-func (m *MockProvider) MigratePassword(principal *Principal, password string) (err error) {
-	if _, existed := m.PrincipalMap[principal.ID]; !existed {
-		return skydb.ErrUserNotFound
+func (m *MockProvider) MigratePassword(p *Principal, password string) (err error) {
+	if _, existed := m.PrincipalMap[p.ID]; !existed {
+		return principal.ErrNotFound
 	}
 
-	principal.migratePassword(password)
-	m.PrincipalMap[principal.ID] = *principal
+	p.migratePassword(password)
+	m.PrincipalMap[p.ID] = *p
 	return nil
 }
 
@@ -178,7 +169,7 @@ func (m *MockProvider) GetPrincipalByID(principalID string) (principal.Principal
 			return &p, nil
 		}
 	}
-	return nil, skydb.ErrUserNotFound
+	return nil, principal.ErrNotFound
 }
 
 func (m *MockProvider) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {

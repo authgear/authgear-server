@@ -1,7 +1,7 @@
 package anonymous
 
 import (
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 )
 
 // MockProvider is the memory implementation of password provider
@@ -16,14 +16,14 @@ func NewMockProvider() *MockProvider {
 }
 
 // CreatePrincipal creates principal in PrincipalMap
-func (m *MockProvider) CreatePrincipal(principal Principal) error {
+func (m *MockProvider) CreatePrincipal(pp Principal) error {
 	for _, p := range m.Principals {
-		if p.ID == principal.ID {
-			return skydb.ErrUserDuplicated
+		if p.ID == pp.ID {
+			return principal.ErrAlreadyExists
 		}
 	}
 
-	m.Principals = append(m.Principals, principal)
+	m.Principals = append(m.Principals, pp)
 	return nil
 }
 
