@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/davidbyttow/govips/pkg/vips"
+	coreIo "github.com/skygeario/skygear-server/pkg/core/io"
 )
 
 // Apply applies operations to image.
@@ -67,14 +68,14 @@ func ApplyToHTTPResponse(resp *http.Response, ops []Operation) error {
 
 	output, imageFormat, err := Apply(input, ops)
 	if err != nil {
-		resp.Body = &bytesReaderCloser{Reader: bytes.NewReader(input)}
+		resp.Body = &coreIo.BytesReaderCloser{Reader: bytes.NewReader(input)}
 		return nil
 	}
 
 	resp.ContentLength = int64(len(output))
 	resp.Header.Set("Content-Length", strconv.Itoa(len(output)))
 	resp.Header.Set("Content-Type", imageFormat.MediaType())
-	resp.Body = &bytesReaderCloser{Reader: bytes.NewReader(output)}
+	resp.Body = &coreIo.BytesReaderCloser{Reader: bytes.NewReader(output)}
 	return nil
 }
 
@@ -99,12 +100,4 @@ func IsApplicableToHTTPResponse(resp *http.Response) bool {
 	default:
 		return false
 	}
-}
-
-type bytesReaderCloser struct {
-	*bytes.Reader
-}
-
-func (r *bytesReaderCloser) Close() error {
-	return nil
 }
