@@ -19,7 +19,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 )
@@ -41,9 +40,7 @@ func TestAuthURLPayload(t *testing.T) {
 				UXMode:          sso.UXModeWebRedirect,
 				OnUserDuplicate: model.OnUserDuplicateAbort,
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 
 		Convey("validate payload without UX mode", func() {
@@ -51,9 +48,7 @@ func TestAuthURLPayload(t *testing.T) {
 				CallbackURL:     "callbackURL",
 				OnUserDuplicate: model.OnUserDuplicateAbort,
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 
 		Convey("validate payload without OnUserDuplicate", func() {
@@ -61,9 +56,7 @@ func TestAuthURLPayload(t *testing.T) {
 				CallbackURL: "callbackURL",
 				UXMode:      sso.UXModeWebRedirect,
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 	})
 }
@@ -197,14 +190,10 @@ func TestAuthURLHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"code": 107,
-					"info": {
-						"arguments": [
-							"nonsense"
-						]
-					},
-					"message": "Invalid MergeRealm",
-					"name": "InvalidArgument"
+					"name": "Invalid",
+					"reason": "Invalid",
+					"message": "invalid MergeRealm",
+					"code": 400
 				}
 			}
 			`)
@@ -227,14 +216,10 @@ func TestAuthURLHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"code": 107,
-					"info": {
-						"arguments": [
-							"merge"
-						]
-					},
-					"message": "Disallowed OnUserDuplicate",
-					"name": "InvalidArgument"
+					"name": "Invalid",
+					"reason": "Invalid",
+					"message": "disallowed OnUserDuplicate",
+					"code": 400
 				}
 			}
 			`)

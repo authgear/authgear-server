@@ -6,23 +6,24 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-
 	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
+	coreaudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 // ForgotPasswordResetFormHandlerFactory creates ForgotPasswordResetFormHandler
@@ -74,15 +75,15 @@ func decodeForgotPasswordResetFormRequest(request *http.Request) (payload Forgot
 
 func (payload *ForgotPasswordResetFormPayload) Validate() error {
 	if payload.UserID == "" {
-		return skyerr.NewInvalidArgument("empty user_id", []string{"user_id"})
+		return skyerr.NewInvalid("empty user_id")
 	}
 
 	if payload.Code == "" {
-		return skyerr.NewInvalidArgument("empty code", []string{"code"})
+		return skyerr.NewInvalid("empty code")
 	}
 
 	if payload.ExpireAt == 0 {
-		return skyerr.NewInvalidArgument("empty expire_at", []string{"expire_at"})
+		return skyerr.NewInvalid("empty expire_at")
 	}
 
 	return nil
@@ -99,11 +100,12 @@ type ForgotPasswordResetFormHandler struct {
 	ResetPasswordHTMLProvider *forgotpwdemail.ResetPasswordHTMLProvider `dependency:"ResetPasswordHTMLProvider"`
 	TxContext                 db.TxContext                              `dependency:"TxContext"`
 	Logger                    *logrus.Entry                             `dependency:"HandlerLogger"`
+	AuditTrail                coreaudit.Trail                           `dependency:"AuditTrail"`
 	TaskQueue                 async.Queue                               `dependency:"AsyncTaskQueue"`
 }
 
 type resultTemplateContext struct {
-	err     skyerr.Error
+	err     error
 	payload ForgotPasswordResetFormPayload
 	user    model.User
 }
@@ -112,6 +114,7 @@ func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Req
 	var payload ForgotPasswordResetFormPayload
 	payload, err = decodeForgotPasswordResetFormRequest(r)
 	if err != nil {
+		err = skyerr.NewBadRequest("invalid form data")
 		return
 	}
 
@@ -130,10 +133,6 @@ func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Req
 	// Get Profile
 	userProfile, err := h.UserProfileStore.GetUserProfile(payload.UserID)
 	if err != nil {
-		h.Logger.WithFields(map[string]interface{}{
-			"user_id": payload.UserID,
-		}).WithError(err).Debug("unable to get user profile")
-		err = genericResetPasswordError()
 		return
 	}
 
@@ -144,9 +143,9 @@ func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Req
 }
 
 // HandleRequestError handle the case when the given data in the form is wrong, e.g. code, user_id, expire_at
-func (h ForgotPasswordResetFormHandler) HandleRequestError(rw http.ResponseWriter, err skyerr.Error) {
+func (h ForgotPasswordResetFormHandler) HandleRequestError(rw http.ResponseWriter, err error) {
 	context := map[string]interface{}{
-		"error": err.Message(),
+		"error": skyerr.AsAPIError(err),
 	}
 
 	url := h.ResetPasswordHTMLProvider.ErrorRedirect(context)
@@ -168,7 +167,7 @@ func (h ForgotPasswordResetFormHandler) HandleRequestError(rw http.ResponseWrite
 // HandleResetError handle the case when the user input data in the form is wrong, e.g. password, confirm
 func (h ForgotPasswordResetFormHandler) HandleResetError(rw http.ResponseWriter, templateCtx resultTemplateContext) {
 	context := map[string]interface{}{
-		"error":     templateCtx.err.Message(),
+		"error":     skyerr.AsAPIError(templateCtx.err),
 		"code":      templateCtx.payload.Code,
 		"user_id":   templateCtx.payload.UserID,
 		"expire_at": strconv.FormatInt(templateCtx.payload.ExpireAt, 10),
@@ -251,44 +250,7 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(w http.ResponseWriter, r *http
 func (h ForgotPasswordResetFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err error) {
 	var templateCtx resultTemplateContext
 	if templateCtx, err = h.prepareResultTemplateContext(r); err != nil {
-		h.HandleRequestError(w, skyerr.MakeError(err))
-		return
-	}
-
-	// check code expiration
-	if timeNow().After(templateCtx.payload.ExpireAtTime) {
-		h.Logger.Debug("Forgot password code expired")
-		h.HandleRequestError(w, genericResetPasswordError())
-		return
-	}
-
-	authInfo := authinfo.AuthInfo{}
-	if e := h.AuthInfoStore.GetAuth(templateCtx.payload.UserID, &authInfo); e != nil {
-		h.Logger.WithFields(map[string]interface{}{
-			"user_id": templateCtx.payload.UserID,
-		}).WithError(e).Debug("User not found")
-		h.HandleRequestError(w, genericResetPasswordError())
-		return
-	}
-
-	// Get password auth principals
-	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID)
-	if err != nil {
-		h.Logger.WithFields(map[string]interface{}{
-			"user_id": templateCtx.payload.UserID,
-		}).WithError(err).Error("Unable to get password auth principals")
-		h.HandleRequestError(w, genericResetPasswordError())
-		return
-	}
-
-	hashedPassword := principals[0].HashedPassword
-
-	expectedCode := h.CodeGenerator.Generate(authInfo, hashedPassword, templateCtx.payload.ExpireAtTime)
-	if templateCtx.payload.Code != expectedCode {
-		h.Logger.WithFields(map[string]interface{}{
-			"user_id": templateCtx.payload.UserID,
-		}).Debug("Wrong forgot password reset password code")
-		h.HandleRequestError(w, genericResetPasswordError())
+		h.HandleRequestError(w, err)
 		return
 	}
 
@@ -297,64 +259,63 @@ func (h ForgotPasswordResetFormHandler) Handle(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	h.resetPassword(w, templateCtx, authInfo, principals)
-
-	// password house keeper
-	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
-		AuthID: authInfo.ID,
-	}, nil)
+	err = h.resetPassword(&templateCtx.user, templateCtx.payload)
+	if err != nil {
+		templateCtx.err = err
+		h.HandleResetError(w, templateCtx)
+	} else {
+		h.HandleResetSuccess(w, templateCtx)
+	}
 
 	return templateCtx.err
 }
 
 func (h ForgotPasswordResetFormHandler) resetPassword(
-	rw http.ResponseWriter,
-	templateCtx resultTemplateContext,
-	authInfo authinfo.AuthInfo,
-	principals []*password.Principal,
-) {
-	var err error
-	defer func() {
-		if err != nil {
-			templateCtx.err = skyerr.MakeError(err)
-			h.HandleResetError(rw, templateCtx)
-		} else {
-			h.HandleResetSuccess(rw, templateCtx)
-		}
-	}()
+	user *model.User,
+	payload ForgotPasswordResetFormPayload,
+) error {
+	if payload.NewPassword != payload.ConfirmPassword {
+		return NewPasswordResetFailed(PasswordNotMatched, "confirm password does not match new password")
+	}
 
-	resetPwdCtx := password.ResetPasswordRequestContext{
+	err := passwordReseter{
+		CodeGenerator:        h.CodeGenerator,
 		PasswordChecker:      h.PasswordChecker,
+		AuthInfoStore:        h.AuthInfoStore,
 		PasswordAuthProvider: h.PasswordAuthProvider,
-	}
-
-	if templateCtx.payload.NewPassword == "" {
-		err = skyerr.NewInvalidArgument("empty password", []string{"password"})
-		return
-	}
-
-	if templateCtx.payload.NewPassword != templateCtx.payload.ConfirmPassword {
-		err = skyerr.NewInvalidArgument("confirm password does not match the password", []string{"password", "confirm"})
-		return
-	}
-
-	err = resetPwdCtx.ExecuteWithPrincipals(templateCtx.payload.NewPassword, principals)
+	}.resetPassword(
+		payload.UserID,
+		payload.ExpireAtTime,
+		payload.Code,
+		payload.NewPassword,
+	)
 	if err != nil {
-		return
+		return err
 	}
-
-	var profile userprofile.UserProfile
-	if profile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
-		return
-	}
-
-	user := model.NewUser(authInfo, profile)
 
 	err = h.HookProvider.DispatchEvent(
 		event.PasswordUpdateEvent{
 			Reason: event.PasswordUpdateReasonResetPassword,
-			User:   user,
+			User:   *user,
 		},
-		&user,
+		user,
 	)
+	if err != nil {
+		return err
+	}
+
+	h.AuditTrail.Log(coreaudit.Entry{
+		UserID: user.ID,
+		Event:  coreaudit.EventResetPassword,
+		Data: map[string]interface{}{
+			"type": "forgot_password",
+		},
+	})
+
+	// password house keeper
+	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
+		AuthID: user.ID,
+	}, nil)
+
+	return nil
 }

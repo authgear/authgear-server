@@ -42,6 +42,7 @@ type TriggerOOBRequest struct {
 }
 
 func (r TriggerOOBRequest) Validate() error {
+	// TODO(error): JSON schema
 	return nil
 }
 

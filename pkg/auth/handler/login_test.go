@@ -26,7 +26,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -45,9 +44,7 @@ func TestLoginHandler(t *testing.T) {
 			payload := LoginRequestPayload{
 				Password: "123456",
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 
 		Convey("validate payload without password", func() {
@@ -55,9 +52,7 @@ func TestLoginHandler(t *testing.T) {
 				LoginIDKey: "username",
 				LoginID:    "john.doe",
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 
 		Convey("validate payload without login ID key", func() {
@@ -199,7 +194,7 @@ func TestLoginHandler(t *testing.T) {
 			}
 
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "ResourceNotFound: user not found")
+			So(err.Error(), ShouldEqual, "invalid credentials")
 		})
 
 		Convey("login user with incorrect password", func() {
@@ -211,7 +206,7 @@ func TestLoginHandler(t *testing.T) {
 			}
 
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "InvalidCredentials: login_id or password incorrect")
+			So(err.Error(), ShouldEqual, "invalid credentials")
 		})
 
 		Convey("login with incorrect login_id", func() {
@@ -222,7 +217,7 @@ func TestLoginHandler(t *testing.T) {
 				Password:   "123456",
 			}
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "InvalidArgument: login ID key is not allowed")
+			So(err.Error(), ShouldEqual, "login ID key is not allowed")
 		})
 
 		Convey("login with disallowed realm", func() {
@@ -232,7 +227,7 @@ func TestLoginHandler(t *testing.T) {
 				Password: "123456",
 			}
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "InvalidArgument: realm is not allowed")
+			So(err.Error(), ShouldEqual, "realm is not allowed")
 		})
 
 		Convey("log audit trail when login success", func() {

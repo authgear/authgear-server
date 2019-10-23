@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 
 	"github.com/sirupsen/logrus"
@@ -58,14 +59,10 @@ func (w *WelcomeEmailSendTask) WithTx() bool {
 func (w *WelcomeEmailSendTask) Run(param interface{}) (err error) {
 	taskParam := param.(WelcomeEmailSendTaskParam)
 
-	w.Logger.WithFields(logrus.Fields{
-		"user_id": taskParam.User.ID,
-	}).Debug("Start sending welcome email")
+	w.Logger.WithFields(logrus.Fields{"user_id": taskParam.User.ID}).Debug("Sending welcome email")
 
 	if err = w.WelcomeEmailSender.Send(taskParam.Email, taskParam.User); err != nil {
-		w.Logger.WithError(err).WithFields(logrus.Fields{
-			"user_id": taskParam.User.ID,
-		}).Debug("Fail to send welcome email")
+		err = errors.WithDetails(err, errors.Details{"user_id": taskParam.User.ID})
 		return
 	}
 

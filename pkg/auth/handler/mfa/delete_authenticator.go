@@ -12,7 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachDeleteAuthenticatorHandler(
@@ -51,8 +51,9 @@ const DeleteAuthenticatorRequestSchema = `
 `
 
 func (r DeleteAuthenticatorRequest) Validate() error {
+	// TODO(error): JSON schema
 	if r.AuthenticatorID == "" {
-		return skyerr.NewInvalidArgument("missing authenticator ID", []string{"authenticator_id"})
+		return skyerr.NewInvalid("missing authenticator ID")
 	}
 	return nil
 }

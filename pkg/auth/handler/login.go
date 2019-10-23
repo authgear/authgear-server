@@ -3,6 +3,8 @@ package handler
 import (
 	"net/http"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -16,8 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 // AttachLoginHandler attach login handler to server
@@ -67,12 +68,13 @@ const LoginRequestSchema = `
 
 // Validate request payload
 func (p LoginRequestPayload) Validate() error {
+	// TODO(error): JSON schema
 	if p.LoginID == "" {
-		return skyerr.NewInvalidArgument("empty login ID", []string{"login_id"})
+		return skyerr.NewInvalid("empty login ID")
 	}
 
 	if p.Password == "" {
-		return skyerr.NewInvalidArgument("empty password", []string{"password"})
+		return skyerr.NewInvalid("empty password")
 	}
 
 	return nil
@@ -100,6 +102,7 @@ type LoginHandler struct {
 	AuthInfoStore        authinfo.Store        `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider     `dependency:"PasswordAuthProvider"`
 	AuditTrail           audit.Trail           `dependency:"AuditTrail"`
+	Logger               *logrus.Entry         `dependency:"HandlerLogger"`
 	HookProvider         hook.Provider         `dependency:"HookProvider"`
 	AuthnSessionProvider authnsession.Provider `dependency:"AuthnSessionProvider"`
 	TxContext            db.TxContext          `dependency:"TxContext"`
@@ -180,7 +183,8 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 	}
 
 	if valid := h.PasswordAuthProvider.IsRealmValid(payload.Realm); !valid {
-		err = skyerr.NewInvalidArgument("realm is not allowed", []string{"realm"})
+		// TODO(error): validation
+		err = skyerr.NewInvalid("realm is not allowed")
 		return
 	}
 
@@ -190,16 +194,6 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 	}
 
 	if err = h.AuthInfoStore.GetAuth(principal.UserID, &fetchedAuthInfo); err != nil {
-		if err == skydb.ErrUserNotFound {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-			return
-		}
-		// TODO: more error handling here if necessary
-		err = skyerr.NewResourceFetchFailureErr("login_id", payload.LoginID)
-		return
-	}
-
-	if err = checkUserIsNotDisabled(&fetchedAuthInfo); err != nil {
 		return
 	}
 
@@ -219,19 +213,17 @@ func (h LoginHandler) getPrincipal(pwd string, loginIDKey string, loginID string
 	var principal password.Principal
 	err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(loginIDKey, loginID, realm, &principal)
 	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			return nil, skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-		}
-		// TODO: more error handling here if necessary
-		return nil, skyerr.NewResourceFetchFailureErr("login_id", loginID)
+		return nil, password.ErrInvalidCredentials
 	}
 
-	if !principal.IsSamePassword(pwd) {
-		return nil, skyerr.NewError(skyerr.InvalidCredentials, "login_id or password incorrect")
+	if err = principal.VerifyPassword(pwd); err != nil {
+		return nil, err
 	}
 
 	// ignore non-critical error
-	_ = h.PasswordAuthProvider.MigratePassword(&principal, pwd)
+	if err := h.PasswordAuthProvider.MigratePassword(&principal, pwd); err != nil {
+		h.Logger.WithError(err).Error("Failed to migrate password")
+	}
 
 	return &principal, nil
 }

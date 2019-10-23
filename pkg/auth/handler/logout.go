@@ -113,8 +113,6 @@ func (h LogoutHandler) Handle() (resp interface{}, err error) {
 	authInfo, _ := h.AuthContext.AuthInfo()
 	sess, _ := h.AuthContext.Session()
 	if err = h.SessionProvider.Invalidate(sess); err != nil {
-		// TODO(error): make error
-		// err = skyerr.MakeError(err)
 		return
 	}
 

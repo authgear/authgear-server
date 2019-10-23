@@ -200,9 +200,11 @@ func TestVerifyCodeHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 107,
-					"message": "the code has expired",
-					"name": "InvalidArgument"
+					"name": "Invalid",
+					"reason": "UserVerificationFailed",
+					"message": "verification code has expired",
+					"code": 400,
+					"info": { "cause": "ExpiredCode" }
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
@@ -218,9 +220,11 @@ func TestVerifyCodeHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 107,
+					"name": "Invalid",
+					"reason": "UserVerificationFailed",
 					"message": "invalid verification code",
-					"name": "InvalidArgument"
+					"code": 400,
+					"info": { "cause": "InvalidCode" }
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
@@ -236,9 +240,11 @@ func TestVerifyCodeHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 107,
+					"name": "Invalid",
+					"reason": "UserVerificationFailed",
 					"message": "invalid verification code",
-					"name": "InvalidArgument"
+					"code": 400,
+					"info": { "cause": "InvalidCode" }
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
@@ -258,9 +264,11 @@ func TestVerifyCodeHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 107,
-					"message": "invalid verification code",
-					"name": "InvalidArgument"
+					"name": "Invalid",
+					"reason": "UserVerificationFailed",
+					"message": "verification code is used",
+					"code": 400,
+					"info": { "cause": "UsedCode" }
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
@@ -276,9 +284,11 @@ func TestVerifyCodeHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 107,
+					"name": "Invalid",
+					"reason": "UserVerificationFailed",
 					"message": "invalid verification code",
-					"name": "InvalidArgument"
+					"code": 400,
+					"info": { "cause": "InvalidCode" }
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)

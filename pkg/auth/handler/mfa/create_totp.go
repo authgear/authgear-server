@@ -14,7 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachCreateTOTPHandler(
@@ -52,8 +52,9 @@ type CreateTOTPRequest struct {
 }
 
 func (r CreateTOTPRequest) Validate() error {
+	// TODO(error): JSON schema
 	if r.DisplayName == "" {
-		return skyerr.NewInvalidArgument("missing display name", []string{"display_name"})
+		return skyerr.NewInvalid("missing display name")
 	}
 	return nil
 }

@@ -60,13 +60,13 @@ func TestGetHandler(t *testing.T) {
 		Convey("should reject non-existing session", func() {
 			payload := GetRequestPayload{SessionID: "user-id-1-principal-id-2"}
 			_, err := h.Handle(payload)
-			So(err, ShouldBeError, "ResourceNotFound: session not found")
+			So(err, ShouldBeError, "session not found")
 		})
 
 		Convey("should reject session of other users", func() {
 			payload := GetRequestPayload{SessionID: "user-id-2-principal-id-2"}
 			_, err := h.Handle(payload)
-			So(err, ShouldBeError, "ResourceNotFound: session not found")
+			So(err, ShouldBeError, "session not found")
 		})
 
 	})

@@ -3,20 +3,19 @@ package task
 import (
 	"context"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-
-	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/async"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/skygeario/skygear-server/pkg/core/inject"
 )
 
 const (
@@ -69,20 +68,16 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	loginID := taskParam.LoginID
 	userID := taskParam.UserID
 
-	v.Logger.WithFields(logrus.Fields{
-		"user_id": userID,
-	}).Debug("Start sending user verify message")
+	v.Logger.WithFields(logrus.Fields{"user_id": taskParam.UserID}).Debug("Sending verification email")
 
 	authInfo := authinfo.AuthInfo{}
 	err = v.AuthInfoStore.GetAuth(userID, &authInfo)
 	if err != nil {
-		err = skyerr.NewError(skyerr.UnexpectedError, "unable to fetch user")
 		return
 	}
 
 	userProfile, err := v.UserProfileStore.GetUserProfile(userID)
 	if err != nil {
-		err = skyerr.NewError(skyerr.UnexpectedError, "unable to fetch user profile")
 		return
 	}
 
@@ -101,7 +96,7 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 		}
 	}
 	if userPrincipal == nil {
-		err = skyerr.NewError(skyerr.UnexpectedError, "Value of "+loginID+" doesn't exist.")
+		err = errors.WithDetails(errors.New("login ID not found"), errors.Details{"user_id": userID})
 		return
 	}
 
@@ -113,9 +108,7 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	codeSender := v.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
 	user := model.NewUser(authInfo, userProfile)
 	if err = codeSender.Send(*verifyCode, user); err != nil {
-		v.Logger.WithFields(logrus.Fields{
-			"login_id_key": userPrincipal.LoginIDKey,
-		}).WithError(err).Debug("Fail to send verify request")
+		err = errors.WithDetails(err, errors.Details{"user_id": userID})
 		return
 	}
 

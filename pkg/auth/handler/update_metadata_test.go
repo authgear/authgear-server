@@ -216,13 +216,14 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
-			So(resp.Code, ShouldEqual, 403)
+			So(resp.Code, ShouldEqual, 400)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
-				"error":{
-					"name": "PermissionDenied",
-					"code": 102,
-					"message": "must not specify user_id"
+				"error": {
+					"name": "Invalid",
+					"reason": "Invalid",
+					"message": "must not specify user_id",
+					"code": 400
 				}
 			}`)
 		})

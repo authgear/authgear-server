@@ -5,8 +5,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	xskyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 type APIHandler interface {
@@ -20,11 +19,9 @@ type APITxHandler interface {
 	DidCommitTx()
 }
 
-// TODO(error): use new APIError
 type APIResponse struct {
-	Result interface{}       `json:"result,omitempty"`
-	Err    skyerr.Error      `json:"error,omitempty"`
-	Error  *xskyerr.APIError `json:",omitempty"`
+	Result interface{}      `json:"result,omitempty"`
+	Error  *skyerr.APIError `json:"error,omitempty"`
 }
 
 func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Handler {
@@ -33,25 +30,25 @@ func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Han
 	handleAPICall := func(r *http.Request, resp http.ResponseWriter) (response APIResponse) {
 		payload, err := apiHandler.DecodeRequest(r, resp)
 		if err != nil {
-			response.Error = xskyerr.AsAPIError(err)
+			response.Error = skyerr.AsAPIError(err)
 			return
 		}
 
 		if err := payload.Validate(); err != nil {
-			response.Error = xskyerr.AsAPIError(err)
+			response.Error = skyerr.AsAPIError(err)
 			return
 		}
 
 		defer func() {
 			if err != nil {
-				response.Error = xskyerr.AsAPIError(err)
+				response.Error = skyerr.AsAPIError(err)
 			}
 		}()
 
 		if apiHandler.WithTx() {
 			// assume txContext != nil if apiHandler.WithTx() is true
 			if err := txContext.BeginTx(); err != nil {
-				response.Error = xskyerr.AsAPIError(err)
+				response.Error = skyerr.AsAPIError(err)
 				return
 			}
 
@@ -86,8 +83,8 @@ func WriteResponse(rw http.ResponseWriter, response APIResponse) {
 	httpStatus := http.StatusOK
 	encoder := json.NewEncoder(rw)
 
-	if response.Err != nil {
-		httpStatus = skyerr.ErrorDefaultStatusCode(response.Err)
+	if response.Error != nil {
+		httpStatus = response.Error.Code
 	}
 
 	rw.Header().Set("Content-Type", "application/json")

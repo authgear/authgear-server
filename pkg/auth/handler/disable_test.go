@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func TestSetDisableHandler(t *testing.T) {
@@ -30,9 +29,7 @@ func TestSetDisableHandler(t *testing.T) {
 
 		Convey("validate payload without UserID", func() {
 			payload := setDisableUserPayload{}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 	})
 
@@ -81,8 +78,7 @@ func TestSetDisableHandler(t *testing.T) {
 			`))
 			req.Header.Set("Content-Type", "application/json")
 			_, err := h.DecodeRequest(req, nil)
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(err, ShouldBeError)
 		})
 
 		Convey("set user disable", func() {

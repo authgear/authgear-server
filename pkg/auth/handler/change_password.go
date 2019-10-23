@@ -23,7 +23,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
@@ -69,12 +68,12 @@ const ChangePasswordRequestSchema = `
 
 func (p ChangePasswordRequestPayload) Validate() error {
 	if p.OldPassword == "" {
-		// TODO(error): make error
-		// return skyerr.NewInvalidArgument("empty old password", []string{"old_password"})
+		// TODO(error): use JSON schema
+		return skyerr.NewBadRequest("empty old password")
 	}
 	if p.NewPassword == "" {
-		// TODO(error): make error
-		// return skyerr.NewInvalidArgument("empty password", []string{"password"})
+		// TODO(error): use JSON schema
+		return skyerr.NewBadRequest("empty new password")
 	}
 	return nil
 }
@@ -177,11 +176,10 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 
 	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authinfo.ID)
 	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			// TODO(error): make error
-			// err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-			return
-		}
+		return
+	}
+	if len(principals) == 0 {
+		err = skyerr.NewInvalid("user has no password")
 		return
 	}
 
@@ -190,9 +188,8 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 		if p.ID == sess.PrincipalID {
 			principal = p
 		}
-		if !p.IsSamePassword(payload.OldPassword) {
-			// TODO(error): make error
-			// err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
+		err = p.VerifyPassword(payload.OldPassword)
+		if err != nil {
 			return
 		}
 		err = h.PasswordAuthProvider.UpdatePassword(p, payload.NewPassword)
@@ -204,15 +201,13 @@ func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (res
 	// refresh session
 	accessToken, err := h.SessionProvider.Refresh(sess)
 	if err != nil {
-		panic(err)
+		return
 	}
 	tokens := coreAuth.SessionTokens{ID: sess.ID, AccessToken: accessToken}
 
 	// Get Profile
-	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authinfo.ID); err != nil {
-		// TODO(error): make error
-		// err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+	userProfile, err := h.UserProfileStore.GetUserProfile(authinfo.ID)
+	if err != nil {
 		return
 	}
 

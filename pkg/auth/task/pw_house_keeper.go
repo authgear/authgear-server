@@ -50,7 +50,7 @@ type PwHousekeeperTaskParam struct {
 
 func (p PwHousekeeperTaskParam) Validate() error {
 	if p.AuthID == "" {
-		return errors.New("missing auth id for pw house keeping task")
+		return errors.New("missing user ID")
 	}
 
 	return nil
@@ -62,6 +62,8 @@ func (t *PwHousekeeperTask) WithTx() bool {
 
 func (t *PwHousekeeperTask) Run(param interface{}) (err error) {
 	taskParam := param.(PwHousekeeperTaskParam)
+
+	t.Logger.WithFields(logrus.Fields{"user_id": taskParam.AuthID}).Debug("Housekeeping password")
 
 	if err = taskParam.Validate(); err != nil {
 		return

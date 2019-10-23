@@ -29,13 +29,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestSingupHandler(t *testing.T) {
+func TestSignupHandler(t *testing.T) {
 	Convey("Test SignupRequestPayload", t, func() {
 		Convey("validate valid payload", func() {
 			payload := SignupRequestPayload{
@@ -67,9 +66,7 @@ func TestSingupHandler(t *testing.T) {
 				Password:        "123456",
 				OnUserDuplicate: model.OnUserDuplicateDefault,
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 
 		Convey("validate payload without password", func() {
@@ -80,9 +77,7 @@ func TestSingupHandler(t *testing.T) {
 				},
 				OnUserDuplicate: model.OnUserDuplicateDefault,
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 
 		Convey("validate payload without on_user_duplicate", func() {
@@ -93,9 +88,7 @@ func TestSingupHandler(t *testing.T) {
 				},
 				Password: "123456",
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 
 		Convey("validate payload with duplicated loginIDs", func() {
@@ -105,9 +98,7 @@ func TestSingupHandler(t *testing.T) {
 					password.LoginID{Key: "email", Value: "john.doe"},
 				},
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 	})
 
@@ -219,9 +210,10 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 409)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 108,
-					"message": "Aborted due to duplicate user",
-					"name": "Duplicated"
+					"name": "AlreadyExists",
+					"reason": "LoginIDAlreadyUsed",
+					"message": "login ID is used by another user",
+					"code": 409
 				}
 			}`)
 		})
@@ -492,12 +484,10 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"name": "InvalidArgument",
-					"code": 107,
-					"info":{
-						"arguments":["phone"]
-					},
-					"message": "login ID key is not allowed","name":"InvalidArgument"
+					"name": "Invalid",
+					"reason": "Invalid",
+					"message": "login ID key is not allowed",
+					"code": 400
 				}
 			}
 			`)
@@ -520,14 +510,15 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"name": "PasswordPolicyViolated",
-					"code": 111,
-					"info":{
-							"min_length": 6,
-							"pw_length": 4,
-							"reason": "PasswordTooShort"
-					},
-					"message": "password too short"
+					"name": "Invalid",
+					"reason": "PasswordPolicyViolated",
+					"message": "password policy violated",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "PasswordTooShort", "min_length": 6, "pw_length": 4 }
+						]
+					}
 				}
 			}
 			`)
@@ -688,9 +679,10 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"name": "Duplicated",
-					"code": 108,
-					"message": "user duplicated"
+					"name": "AlreadyExists",
+					"reason": "LoginIDAlreadyUsed",
+					"message": "login ID is used by another user",
+					"code": 409
 				}
 			}
 			`)
@@ -710,9 +702,10 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"name": "Duplicated",
-					"code": 108,
-					"message": "user duplicated"
+					"name": "AlreadyExists",
+					"reason": "LoginIDAlreadyUsed",
+					"message": "login ID is used by another user",
+					"code": 409
 				}
 			}
 			`)
@@ -732,12 +725,10 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"name": "InvalidArgument",
-					"code": 107,
-					"info":{
-						"arguments":["realm"]
-					},
-					"message": "realm is not allowed"
+					"name": "Invalid",
+					"reason": "Invalid",
+					"message": "realm is not allowed",
+					"code": 400
 				}
 			}
 			`)

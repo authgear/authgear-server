@@ -16,7 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachCreateOOBHandler(
@@ -54,13 +54,14 @@ type CreateOOBRequest struct {
 }
 
 func (r CreateOOBRequest) Validate() error {
+	// TODO(error): JSON schema
 	switch r.Channel {
 	case coreAuth.AuthenticatorOOBChannelSMS:
 		return phone.EnsureE164(r.Phone)
 	case coreAuth.AuthenticatorOOBChannelEmail:
 		return mail.EnsureAddressOnly(r.Email)
 	default:
-		return skyerr.NewInvalidArgument("invalid channel", []string{"channel"})
+		return skyerr.NewInvalid("invalid channel")
 	}
 }
 

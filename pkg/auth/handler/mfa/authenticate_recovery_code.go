@@ -16,7 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachAuthenticateRecoveryCodeHandler(
@@ -45,8 +45,9 @@ type AuthenticateRecoveryCodeRequest struct {
 }
 
 func (r AuthenticateRecoveryCodeRequest) Validate() error {
+	// TODO(error): JSON schema
 	if r.Code == "" {
-		return skyerr.NewInvalidArgument("missing recovery code", []string{"code"})
+		return skyerr.NewInvalid("missing recovery code")
 	}
 	return nil
 }

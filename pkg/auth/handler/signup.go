@@ -27,12 +27,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/utils"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
-
-var ErrUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")
 
 func AttachSignupHandler(
 	server *server.Server,
@@ -91,26 +88,27 @@ const SignupRequestSchema = `
 `
 
 func (p SignupRequestPayload) Validate() error {
+	// TODO(error): JSON schema
 	if len(p.LoginIDs) == 0 {
-		return skyerr.NewInvalidArgument("empty login_ids", []string{"login_ids"})
+		return skyerr.NewInvalid("empty login_ids")
 	}
 
 	if p.Password == "" {
-		return skyerr.NewInvalidArgument("empty password", []string{"password"})
+		return skyerr.NewInvalid("empty password")
 	}
 
 	for _, loginID := range p.LoginIDs {
 		if !loginID.IsValid() {
-			return skyerr.NewInvalidArgument("invalid login_ids", []string{"login_ids"})
+			return skyerr.NewInvalid("invalid login_ids")
 		}
 	}
 
 	if p.duplicatedLoginIDs() {
-		return skyerr.NewInvalidArgument("duplicated login_ids", []string{"login_ids"})
+		return skyerr.NewInvalid("duplicated login_ids")
 	}
 
 	if !model.IsValidOnUserDuplicateForPassword(p.OnUserDuplicate) {
-		return skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
+		return skyerr.NewInvalid("invalid OnUserDuplicate")
 	}
 
 	return nil
@@ -226,7 +224,7 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, e
 		h.AuthConfiguration.OnUserDuplicateAllowCreate,
 		payload.OnUserDuplicate,
 	) {
-		err = skyerr.NewInvalidArgument("Disallowed OnUserDuplicate", []string{string(payload.OnUserDuplicate)})
+		err = skyerr.NewInvalid("disallowed OnUserDuplicate")
 		return
 	}
 
@@ -241,7 +239,7 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, e
 	}
 
 	if len(existingPrincipals) > 0 && payload.OnUserDuplicate == model.OnUserDuplicateAbort {
-		err = skyerr.NewError(skyerr.Duplicated, "Aborted due to duplicate user")
+		err = password.ErrLoginIDAlreadyUsed
 		return
 	}
 
@@ -251,24 +249,12 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, e
 
 	// Create AuthInfo
 	if err = h.AuthInfoStore.CreateAuth(&info); err != nil {
-		if err == skydb.ErrUserDuplicated {
-			err = ErrUserDuplicated
-			return
-		}
-
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save auth info")
 		return
 	}
 
 	// Create Profile
-	var userProfile userprofile.UserProfile
-	metadata := payload.Metadata
-	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, metadata); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
+	userProfile, err := h.UserProfileStore.CreateUserProfile(info.ID, payload.Metadata)
+	if err != nil {
 		return
 	}
 
@@ -360,7 +346,7 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 	}
 
 	if valid := h.PasswordAuthProvider.IsRealmValid(payload.Realm); !valid {
-		err = skyerr.NewInvalidArgument("realm is not allowed", []string{"realm"})
+		err = skyerr.NewInvalid("realm is not allowed")
 		return
 	}
 
@@ -373,24 +359,18 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 }
 
 func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (principals []principal.Principal, err error) {
-	passwordPrincipals, createError := h.PasswordAuthProvider.CreatePrincipalsByLoginID(
+	passwordPrincipals, err := h.PasswordAuthProvider.CreatePrincipalsByLoginID(
 		authInfo.ID,
 		payload.Password,
 		payload.LoginIDs,
 		payload.Realm,
 	)
-
-	if createError != nil {
-		if createError == skydb.ErrUserDuplicated {
-			err = ErrUserDuplicated
-		} else {
-			err = createError
-		}
+	if err != nil {
+		return
 	}
-	if err == nil {
-		for _, principal := range passwordPrincipals {
-			principals = append(principals, principal)
-		}
+
+	for _, principal := range passwordPrincipals {
+		principals = append(principals, principal)
 	}
 	return
 }

@@ -23,7 +23,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -42,9 +41,7 @@ func TestLoginPayload(t *testing.T) {
 
 		Convey("validate payload without access token", func() {
 			payload := LoginRequestPayload{}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 	})
 }
@@ -238,9 +235,10 @@ func TestLoginHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 404)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 110,
-					"message": "External access token flow is disabled",
-					"name": "UndefinedOperation"
+					"name": "NotFound",
+					"reason": "NotFound",
+					"message": "external access token flow is disabled",
+					"code": 404
 				}
 			}`)
 		})

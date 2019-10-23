@@ -74,7 +74,7 @@ func (provider *providerImpl) VerifyUser(
 ) (*VerifyCode, error) {
 	verifyCode, err := provider.store.GetVerifyCodeByUser(authInfo.ID)
 	if err != nil {
-		if !errors.Is(err, ErrCodeNotFound) {
+		if errors.Is(err, ErrCodeNotFound) {
 			err = NewUserVerificationFailed(InvalidCode, "invalid verification code")
 		}
 		return nil, err
@@ -112,7 +112,7 @@ func (provider *providerImpl) VerifyUser(
 	expiryTime := provider.config.LoginIDKeys[verifyCode.LoginIDKey].Expiry
 	expireAt := verifyCode.CreatedAt.Add(gotime.Duration(expiryTime) * gotime.Second)
 	if provider.time.NowUTC().After(expireAt) {
-		return nil, NewUserVerificationFailed(InvalidCode, "verification code has expired")
+		return nil, NewUserVerificationFailed(ExpiredCode, "verification code has expired")
 	}
 
 	err = provider.markUserVerified(passwordProvider, authStore, authInfo, verifyCode)

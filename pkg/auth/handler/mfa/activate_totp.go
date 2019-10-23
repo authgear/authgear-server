@@ -14,7 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachActivateTOTPHandler(
@@ -43,8 +43,9 @@ type ActivateTOTPRequest struct {
 }
 
 func (r ActivateTOTPRequest) Validate() error {
+	// TODO(error): JSON schema
 	if r.OTP == "" {
-		return skyerr.NewInvalidArgument("missing OTP", []string{"otp"})
+		return skyerr.NewInvalid("missing OTP")
 	}
 	return nil
 }

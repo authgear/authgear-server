@@ -29,7 +29,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -65,18 +64,14 @@ func TestAuthPayload(t *testing.T) {
 			payload := AuthRequestPayload{
 				State: "state",
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 
 		Convey("validate payload without state", func() {
 			payload := AuthRequestPayload{
 				Code: "code",
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 	})
 }
@@ -560,9 +555,11 @@ func TestAuthHandler(t *testing.T) {
 				"callback_url": "http://localhost:3000",
 				"result": {
 					"error": {
-						"code": 107,
-						"message": "the provider user is already linked",
-						"name": "InvalidArgument"
+						"name": "Unauthorized",
+						"reason": "SSOFailed",
+						"message": "user is already linked to this provider",
+						"code": 401,
+						"info": { "cause": "AlreadyLinked" }
 					}
 				}
 			}
@@ -721,9 +718,10 @@ func TestAuthHandler(t *testing.T) {
 				"callback_url": "http://localhost:3000",
 				"result": {
 					"error": {
-						"code": 108,
-						"message": "Aborted due to duplicate user",
-						"name": "Duplicated"
+						"name": "AlreadyExists",
+						"reason": "LoginIDAlreadyUsed",
+						"message": "login ID is used by another user",
+						"code": 409
 					}
 				}
 			}

@@ -14,7 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachActivateOOBHandler(
@@ -43,8 +43,9 @@ type ActivateOOBRequest struct {
 }
 
 func (r ActivateOOBRequest) Validate() error {
+	// TODO(error): JSON schema
 	if r.Code == "" {
-		return skyerr.NewInvalidArgument("missing code", []string{"code"})
+		return skyerr.NewInvalid("missing code")
 	}
 	return nil
 }

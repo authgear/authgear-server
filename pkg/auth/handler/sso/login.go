@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -11,9 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-
-	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -24,6 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachLoginHandler(
@@ -71,13 +71,14 @@ const LoginRequestSchema = `
 
 // Validate request payload
 func (p LoginRequestPayload) Validate() (err error) {
+	// TODO(error): JSON schema
 	if p.AccessToken == "" {
-		err = skyerr.NewInvalidArgument("empty access token", []string{"access_token"})
+		err = skyerr.NewInvalid("empty access token")
 		return
 	}
 
 	if !model.IsValidOnUserDuplicateForSSO(p.OnUserDuplicate) {
-		err = skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
+		err = skyerr.NewInvalid("invalid OnUserDuplicate")
 		return
 	}
 
@@ -170,13 +171,13 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err error) {
 	if !h.OAuthConfiguration.ExternalAccessTokenFlowEnabled {
-		err = skyerr.NewError(skyerr.UndefinedOperation, "External access token flow is disabled")
+		err = skyerr.NewNotFound("external access token flow is disabled")
 		return
 	}
 
 	provider, ok := h.Provider.(sso.ExternalAccessTokenFlowProvider)
 	if !ok {
-		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
+		err = skyerr.NewNotFound("unknown provider")
 		return
 	}
 

@@ -8,26 +8,25 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
+
+	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
-
-	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachAuthHandler(
@@ -58,19 +57,18 @@ type AuthRequestPayload sso.OAuthAuthorizationResponse
 
 // Validate request payload
 func (p AuthRequestPayload) Validate() error {
+	// TODO(error): JSON schema
+
 	if p.Code == "" {
-		// TODO(error): make error
-		// return skyerr.NewInvalidArgument("code is required", []string{"code"})
+		return skyerr.NewInvalid("code is required")
 	}
 
 	if p.State == "" {
-		// TODO(error): make error
-		// return skyerr.NewInvalidArgument("state is required", []string{"state"})
+		return skyerr.NewInvalid("state is required")
 	}
 
 	if p.Nonce == "" {
-		// TODO(error): make error
-		// return skyerr.NewInvalidArgument("nonce is required", []string{"nonce"})
+		return skyerr.NewInvalid("nonce is required")
 	}
 
 	return nil
@@ -157,7 +155,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	// We have to return error by directly writing to response at this stage
 	// because we do not have valid state.
 	if h.Provider == nil {
-		http.Error(w, "Provider is not supported", http.StatusBadRequest)
+		http.Error(w, "Unknown provider", http.StatusBadRequest)
 		return
 	}
 
@@ -214,12 +212,6 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 
 func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.AuthInfo, err error) {
 	oauthAuthInfo, err = h.Provider.GetAuthInfo(sso.OAuthAuthorizationResponse(payload))
-	if err != nil && !skyerr.IsKind(err, sso.SSOFailed) {
-		err = errors.WithSecondaryError(
-			err,
-			sso.NewSSOFailed(sso.SSOUnauthorized, "unexpected error occurred"),
-		)
-	}
 	return
 }
 
@@ -244,11 +236,6 @@ func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (resp i
 
 func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
 	err = sso.ValidateCallbackURL(allowedCallbackURLs, callbackURL)
-	if err != nil {
-		// TODO(error): make error
-		// err = skyerr.NewError(skyerr.BadRequest, err.Error())
-		return
-	}
 	return
 }
 

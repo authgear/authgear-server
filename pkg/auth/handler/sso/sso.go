@@ -9,14 +9,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
-	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 // nolint: deadcode
@@ -57,9 +55,6 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 		userProfile, err = h.UserProfileStore.GetUserProfile(info.ID)
 	}
 	if err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
 		return
 	}
 
@@ -120,25 +115,23 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo, linkState sso.Li
 		ProviderUserID: oauthAuthInfo.ProviderUserInfo.ID,
 	})
 	if err == nil {
-		err = skyerr.NewError(skyerr.InvalidArgument, "the provider user is already linked")
-		return resp, err
+		err = sso.NewSSOFailed(sso.AlreadyLinked, "user is already linked to this provider")
+		return
 	}
 
-	if err != skydb.ErrUserNotFound {
-		// some other error
-		return resp, err
+	if !errors.Is(err, principal.ErrNotFound) {
+		return
 	}
 
 	var info authinfo.AuthInfo
 	if err = h.AuthInfoStore.GetAuth(linkState.UserID, &info); err != nil {
-		err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-		return resp, err
+		return
 	}
 
 	var principal *oauth.Principal
 	principal, err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
 	if err != nil {
-		return resp, err
+		return
 	}
 
 	var userProfile userprofile.UserProfile
@@ -170,7 +163,7 @@ func (h respHandler) handleLogin(
 	loginState sso.LoginState,
 ) (createNewUser bool, oauthPrincipal *oauth.Principal, err error) {
 	oauthPrincipal, err = h.findExistingOAuthPrincipal(oauthAuthInfo)
-	if err != nil {
+	if err != nil && !errors.Is(err, principal.ErrNotFound) {
 		return
 	}
 
@@ -178,18 +171,6 @@ func (h respHandler) handleLogin(
 
 	// Two func that closes over the arguments and the return value
 	// and need to be reused.
-
-	// populateInfo sets the argument info to non-nil value
-	populateInfo := func(userID string) {
-		if e := h.AuthInfoStore.GetAuth(userID, info); e != nil {
-			if e == skydb.ErrUserNotFound {
-				err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
-				return
-			}
-			err = skyerr.MakeError(e)
-			return
-		}
-	}
 
 	// createFunc creates a new user.
 	createFunc := func() {
@@ -200,14 +181,7 @@ func (h respHandler) handleLogin(
 		info.LastLoginAt = &now
 
 		// Create AuthInfo
-		if e := h.AuthInfoStore.CreateAuth(info); e != nil {
-			if e == skydb.ErrUserDuplicated {
-				err = signUpHandler.ErrUserDuplicated
-				return
-			}
-			// TODO:
-			// return proper error
-			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save auth info")
+		if err = h.AuthInfoStore.CreateAuth(info); err != nil {
 			return
 		}
 
@@ -220,15 +194,14 @@ func (h respHandler) handleLogin(
 	// Case: OAuth principal was found
 	// => Simple update case
 	// We do not need to consider other principals
-	if oauthPrincipal != nil {
+	if err == nil {
 		oauthPrincipal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
 		oauthPrincipal.SetRawProfile(oauthAuthInfo.ProviderRawProfile)
 		oauthPrincipal.UpdatedAt = &now
 		if err = h.OAuthAuthProvider.UpdatePrincipal(oauthPrincipal); err != nil {
-			err = skyerr.MakeError(err)
 			return
 		}
-		populateInfo(oauthPrincipal.UserID)
+		err = h.AuthInfoStore.GetAuth(oauthPrincipal.UserID, info)
 		// Always return here because we are done with this case.
 		return
 	}
@@ -252,13 +225,13 @@ func (h respHandler) handleLogin(
 	// => Complex case
 	switch loginState.OnUserDuplicate {
 	case model.OnUserDuplicateAbort:
-		err = skyerr.NewError(skyerr.Duplicated, "Aborted due to duplicate user")
+		err = password.ErrLoginIDAlreadyUsed
 	case model.OnUserDuplicateCreate:
 		createFunc()
 	case model.OnUserDuplicateMerge:
 		// Case: The same email is shared by multiple users
 		if len(userIDs) > 1 {
-			err = skyerr.NewError(skyerr.Duplicated, "Email shared by multiple users")
+			err = password.ErrLoginIDAlreadyUsed
 			return
 		}
 		// Associate the provider to the existing user
@@ -270,7 +243,7 @@ func (h respHandler) handleLogin(
 		if err != nil {
 			return
 		}
-		populateInfo(userID)
+		err = h.AuthInfoStore.GetAuth(userID, info)
 	}
 
 	return
@@ -278,18 +251,11 @@ func (h respHandler) handleLogin(
 
 func (h respHandler) findExistingOAuthPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
 	// Find oauth principal from by (provider_id, provider_user_id)
-	principal, err := h.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+	return h.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
 		ProviderType:   string(oauthAuthInfo.ProviderConfig.Type),
 		ProviderKeys:   oauth.ProviderKeysFromProviderConfig(oauthAuthInfo.ProviderConfig),
 		ProviderUserID: oauthAuthInfo.ProviderUserInfo.ID,
 	})
-	if err == skydb.ErrUserNotFound {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	return principal, nil
 }
 
 func (h respHandler) findExistingPrincipals(oauthAuthInfo sso.AuthInfo, mergeRealm string) ([]principal.Principal, error) {

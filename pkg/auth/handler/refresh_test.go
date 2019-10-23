@@ -50,9 +50,10 @@ func TestRefreshHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 401)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 101,
-					"message": "require authenticated user",
-					"name": "NotAuthenticated"
+					"name": "Unauthorized",
+					"reason": "NotAuthenticated",
+					"message": "authentication required",
+					"code": 401
 				}
 			}`)
 		})

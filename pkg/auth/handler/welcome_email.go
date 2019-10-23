@@ -10,7 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 // AttachWelcomeEmailHandler attaches WelcomeEmailHandler to server
@@ -47,7 +47,7 @@ type WelcomeEmailPayload struct {
 
 func (payload WelcomeEmailPayload) Validate() error {
 	if payload.Email == "" {
-		return skyerr.NewInvalidArgument("empty email", []string{"email"})
+		return skyerr.NewInvalid("empty email")
 	}
 
 	return nil
@@ -86,7 +86,7 @@ func (h WelcomeEmailHandler) WithTx() bool {
 func (h WelcomeEmailHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := WelcomeEmailPayload{}
 	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
-		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+		return nil, err
 	}
 
 	return payload, nil

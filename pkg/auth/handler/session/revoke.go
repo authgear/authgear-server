@@ -3,24 +3,23 @@ package session
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-
+	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-
-	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachRevokeHandler(
@@ -113,14 +112,15 @@ func (h RevokeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	sessionID := payload.SessionID
 
 	if sess.ID == sessionID {
-		err = skyerr.NewInvalidArgument("must not revoke current session", []string{"session_id"})
+		// TODO(error): JSON schema
+		err = skyerr.NewInvalid("must not revoke current session")
 		return
 	}
 
 	// ignore session not found errors
 	s, err := h.SessionProvider.Get(sessionID)
 	if err != nil {
-		if err == session.ErrSessionNotFound {
+		if errors.Is(err, session.ErrSessionNotFound) {
 			err = nil
 			resp = map[string]string{}
 		}

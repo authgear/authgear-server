@@ -100,9 +100,11 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 109,
-					"message": "user not found or code invalid",
-					"name": "ResourceNotFound"
+					"name": "Invalid",
+					"reason": "PasswordResetFailed",
+					"message": "reset code has expired",
+					"code": 400,
+					"info": { "cause": "ExpiredCode" }
 				}
 			}`)
 		})
@@ -123,9 +125,11 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 109,
-					"message": "user not found or code invalid",
-					"name": "ResourceNotFound"
+					"name": "Invalid",
+					"reason": "PasswordResetFailed",
+					"message": "invalid reset code",
+					"code": 400,
+					"info": { "cause": "InvalidCode" }
 				}
 			}`)
 		})

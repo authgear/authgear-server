@@ -18,8 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 // AttachSetDisableHandler attaches SetDisableHandler to server
@@ -70,7 +69,8 @@ const SetDisableRequestSchema = `
 
 func (payload setDisableUserPayload) Validate() error {
 	if payload.UserID == "" {
-		return skyerr.NewInvalidArgument("invalid user id", []string{"user_id"})
+		// TODO(error): JSON schema
+		return skyerr.NewInvalid("invalid user ID")
 	}
 	return nil
 }
@@ -137,14 +137,15 @@ func (h SetDisableHandler) WithTx() bool {
 func (h SetDisableHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := setDisableUserPayload{}
 	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
-		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+		return nil, err
 	}
 
 	if payload.ExpiryString != "" {
 		if expiry, err := time.Parse(time.RFC3339, payload.ExpiryString); err == nil {
 			payload.expiry = &expiry
 		} else {
-			return nil, skyerr.NewInvalidArgument("invalid expiry", []string{"expiry"})
+			// TODO(error): JSON schema
+			return nil, skyerr.NewInvalid("invalid expiry")
 		}
 	}
 
@@ -155,40 +156,32 @@ func (h SetDisableHandler) DecodeRequest(request *http.Request, resp http.Respon
 func (h SetDisableHandler) Handle(req interface{}) (resp interface{}, err error) {
 	p := req.(setDisableUserPayload)
 
-	authinfo := authinfo.AuthInfo{}
-	if e := h.AuthInfoStore.GetAuth(p.UserID, &authinfo); e != nil {
-		if err == skydb.ErrUserNotFound {
-			// logger.Info("Auth info not found when setting disabled user status")
-			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
-			return
-		}
-		// logger.WithError(err).Error("Unable to get auth info when setting disabled user status")
-		err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
+	info := authinfo.AuthInfo{}
+	if err = h.AuthInfoStore.GetAuth(p.UserID, &info); err != nil {
 		return
 	}
 
-	var profile userprofile.UserProfile
-	if profile, err = h.UserProfileStore.GetUserProfile(authinfo.ID); err != nil {
+	profile, err := h.UserProfileStore.GetUserProfile(info.ID)
+	if err != nil {
 		return
 	}
 
-	oldUser := authModel.NewUser(authinfo, profile)
+	oldUser := authModel.NewUser(info, profile)
 
-	authinfo.Disabled = p.Disabled
-	if !authinfo.Disabled {
-		authinfo.DisabledMessage = ""
-		authinfo.DisabledExpiry = nil
+	info.Disabled = p.Disabled
+	if !info.Disabled {
+		info.DisabledMessage = ""
+		info.DisabledExpiry = nil
 	} else {
-		authinfo.DisabledMessage = p.Message
-		authinfo.DisabledExpiry = p.expiry
+		info.DisabledMessage = p.Message
+		info.DisabledExpiry = p.expiry
 	}
 
-	if e := h.AuthInfoStore.UpdateAuth(&authinfo); e != nil {
-		err = skyerr.MakeError(err)
+	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
 		return
 	}
 
-	user := authModel.NewUser(authinfo, profile)
+	user := authModel.NewUser(info, profile)
 
 	err = h.HookProvider.DispatchEvent(
 		event.UserUpdateEvent{

@@ -18,7 +18,7 @@ import (
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachAuthenticateBearerTokenHandler(
@@ -47,8 +47,9 @@ type AuthenticateBearerTokenRequest struct {
 }
 
 func (r AuthenticateBearerTokenRequest) Validate() error {
+	// TODO(error): JSON schema
 	if r.BearerToken == "" {
-		return skyerr.NewInvalidArgument("missing bearer token", []string{"bearer_token"})
+		return skyerr.NewInvalid("missing bearer token")
 	}
 	return nil
 }

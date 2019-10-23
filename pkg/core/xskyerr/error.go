@@ -89,3 +89,7 @@ func NewInvalid(msg string) error {
 func NewInternalError(msg string) error {
 	return InternalError.WithReason(string(InternalError)).New(msg)
 }
+
+func NewNotFound(msg string) error {
+	return NotFound.WithReason(string(NotFound)).New(msg)
+}

@@ -13,7 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 func AttachListRecoveryCodeHandler(
@@ -99,7 +99,7 @@ func (h *ListRecoveryCodeHandler) DecodeRequest(request *http.Request, resp http
 
 func (h *ListRecoveryCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	if !h.MFAConfiguration.RecoveryCode.ListEnabled {
-		return nil, skyerr.NewError(skyerr.UndefinedOperation, "listing recovery code is disabled")
+		return nil, skyerr.NewNotFound("listing recovery code is disabled")
 	}
 	authInfo, _ := h.AuthContext.AuthInfo()
 	userID := authInfo.ID

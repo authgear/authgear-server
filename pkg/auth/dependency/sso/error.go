@@ -12,6 +12,7 @@ const (
 	SSOUnauthorized ssoFailCause = "Unauthorized"
 	NetworkFailed   ssoFailCause = "NetworkFailed"
 	InvalidParams   ssoFailCause = "InvalidParams"
+	AlreadyLinked   ssoFailCause = "AlreadyLinked"
 )
 
 func NewSSOFailed(reason ssoFailCause, msg string) error {

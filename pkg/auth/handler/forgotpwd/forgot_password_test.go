@@ -153,12 +153,10 @@ func TestForgotPasswordHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 107,
-					"info": {
-						"arguments": ["email"]
-					},
+					"name": "Invalid",
+					"reason": "Invalid",
 					"message": "empty email",
-					"name": "InvalidArgument"
+					"code": 400
 				}
 			}`)
 		})
@@ -173,9 +171,10 @@ func TestForgotPasswordHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 109,
+					"name": "NotFound",
+					"reason": "UserNotFound",
 					"message": "user not found",
-					"name": "ResourceNotFound"
+					"code": 404
 				}
 			}`)
 		})
@@ -190,9 +189,10 @@ func TestForgotPasswordHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 109,
+					"name": "NotFound",
+					"reason": "UserNotFound",
 					"message": "user not found",
-					"name": "ResourceNotFound"
+					"code": 404
 				}
 			}`)
 		})
