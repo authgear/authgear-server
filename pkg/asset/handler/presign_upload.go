@@ -41,10 +41,13 @@ type PresignUploadHandler struct {
 }
 
 func (h *PresignUploadHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
+	return policy.AnyOf(
+		authz.PolicyFunc(policy.RequireMasterKey),
+		policy.AllOf(
+			authz.PolicyFunc(policy.DenyNoAccessKey),
+			authz.PolicyFunc(policy.RequireAuthenticated),
+			authz.PolicyFunc(policy.DenyDisabledUser),
+		),
 	)
 }
 
