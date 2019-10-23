@@ -21,7 +21,7 @@ func AttachSignHandler(
 	server *server.Server,
 	dependencyMap inject.DependencyMap,
 ) *server.Server {
-	server.Handle("/sign", &SignHandlerFactory{
+	server.Handle("/get_signed_url", &SignHandlerFactory{
 		dependencyMap,
 	}).Methods("OPTIONS", "POST")
 	return server
