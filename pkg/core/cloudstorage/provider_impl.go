@@ -44,12 +44,10 @@ func (p *providerImpl) PresignPutRequest(r *PresignUploadRequest) (*PresignUploa
 
 	assetID := p.AssetNameToAssetID(assetName)
 
-	// Check duplicatae if the name is random.
-	if !r.IsCustomName() {
-		err = p.checkDuplicate(assetID)
-		if err != nil {
-			return nil, err
-		}
+	// Check duplicate
+	err = p.checkDuplicate(assetID)
+	if err != nil {
+		return nil, err
 	}
 
 	httpHeader := r.HTTPHeader()

@@ -11,18 +11,6 @@ import (
 func TestPresignUploadRequest(t *testing.T) {
 	Convey("PresignUploadRequest", t, func() {
 		Convey("DeriveAssetName", func() {
-			Convey("Use exact_name", func() {
-				r := PresignUploadRequest{
-					ExactName: "myimage.png",
-					Headers: map[string]interface{}{
-						"cache-control": "no-store",
-					},
-				}
-				assetName, err := r.DeriveAssetName()
-				So(err, ShouldBeNil)
-				So(assetName, ShouldEqual, r.ExactName)
-			})
-
 			Convey("Use random name", func() {
 				r := PresignUploadRequest{
 					Prefix: "prefix-",
@@ -39,28 +27,6 @@ func TestPresignUploadRequest(t *testing.T) {
 		})
 
 		Convey("SetCacheControl", func() {
-			Convey("Use exact_name", func() {
-				r := PresignUploadRequest{
-					ExactName: "myimage.png",
-					Headers: map[string]interface{}{
-						"cache-control": "no-store",
-					},
-				}
-				r.SetCacheControl()
-				So(r.Headers, ShouldResemble, map[string]interface{}{
-					"cache-control": "no-store",
-				})
-
-				r = PresignUploadRequest{
-					ExactName: "myimage.png",
-					Headers:   map[string]interface{}{},
-				}
-				r.SetCacheControl()
-				So(r.Headers, ShouldResemble, map[string]interface{}{
-					"cache-control": "no-cache",
-				})
-			})
-
 			Convey("Use random name", func() {
 				r := PresignUploadRequest{
 					Headers: map[string]interface{}{

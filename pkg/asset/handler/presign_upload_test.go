@@ -51,24 +51,6 @@ func TestPresignUploadHandler(t *testing.T) {
 			`)
 		})
 
-		Convey("exact_name must be safe", func() {
-			requestBody := []byte(`{
-				"exact_name": "/",
-				"headers": {
-					"content-length": "123"
-				}
-			}`)
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest("POST", "/_asset/presign_upload", bytes.NewReader(requestBody))
-			r.Header.Add("content-type", "application/json")
-			h.ServeHTTP(w, r)
-
-			So(w.Code, ShouldEqual, 400)
-			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":107,"info":{"arguments":["#/exact_name: Does not match pattern '^[^\\x00\\\\/:*'\u003c\u003e|]+$'"],"causes":[{"message":"Does not match pattern '^[^\\x00\\\\/:*'\u003c\u003e|]+$'","pointer":"#/exact_name"}]},"message":"Validation Error","name":"InvalidArgument"}}
-			`)
-		})
-
 		Convey("prefix must be safe", func() {
 			requestBody := []byte(`{
 				"prefix": "/",
@@ -89,7 +71,6 @@ func TestPresignUploadHandler(t *testing.T) {
 
 		Convey("success", func() {
 			requestBody := []byte(`{
-				"exact_name": "myimage.png",
 				"headers": {
 					"content-length": "123"
 				}

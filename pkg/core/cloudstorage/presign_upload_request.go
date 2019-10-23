@@ -9,10 +9,9 @@ import (
 )
 
 type PresignUploadRequest struct {
-	ExactName string                 `json:"exact_name"`
-	Prefix    string                 `json:"prefix"`
-	Access    AccessType             `json:"access"`
-	Headers   map[string]interface{} `json:"headers"`
+	Prefix  string                 `json:"prefix"`
+	Access  AccessType             `json:"access"`
+	Headers map[string]interface{} `json:"headers"`
 }
 
 func (r *PresignUploadRequest) SetDefaultValue() {
@@ -22,10 +21,6 @@ func (r *PresignUploadRequest) SetDefaultValue() {
 	if _, ok := r.Headers["content-type"]; !ok {
 		r.Headers["content-type"] = "application/octet-stream"
 	}
-}
-
-func (r *PresignUploadRequest) IsCustomName() bool {
-	return r.ExactName != ""
 }
 
 func (r *PresignUploadRequest) DeriveAssetName() (assetName string, err error) {
@@ -42,25 +37,13 @@ func (r *PresignUploadRequest) DeriveAssetName() (assetName string, err error) {
 		}
 	}
 
-	// Use exact name if given
-	if r.ExactName != "" {
-		assetName = r.ExactName
-		return
-	}
-
 	assetName = fmt.Sprintf("%s%s%s", r.Prefix, uuid.New(), ext)
 	return
 }
 
 func (r *PresignUploadRequest) SetCacheControl() {
-	if r.IsCustomName() {
-		if _, ok := r.Headers["cache-control"]; !ok {
-			r.Headers["cache-control"] = "no-cache"
-		}
-	} else {
-		if _, ok := r.Headers["cache-control"]; !ok {
-			r.Headers["cache-control"] = "max-age: 3600"
-		}
+	if _, ok := r.Headers["cache-control"]; !ok {
+		r.Headers["cache-control"] = "max-age: 3600"
 	}
 }
 

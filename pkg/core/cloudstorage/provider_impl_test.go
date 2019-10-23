@@ -36,20 +36,12 @@ func TestProvider(t *testing.T) {
 			gock.New("http://localhost").
 				Head("/a").Reply(200)
 
-			Convey("check duplicate if name is random", func() {
+			Convey("check duplicate", func() {
 				_, err := p.PresignPutRequest(&PresignUploadRequest{
 					Headers: map[string]interface{}{},
 				})
 				So(err, ShouldNotBeNil)
 				So(err, ShouldBeError, "Duplicated: duplicate asset")
-			})
-
-			Convey("do not check duplicate if name is exact", func() {
-				_, err := p.PresignPutRequest(&PresignUploadRequest{
-					ExactName: "name",
-					Headers:   map[string]interface{}{},
-				})
-				So(err, ShouldBeNil)
 			})
 		})
 	})

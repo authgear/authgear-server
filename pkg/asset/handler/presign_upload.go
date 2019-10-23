@@ -55,10 +55,6 @@ const PresignUploadRequestSchema = `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"exact_name": {
-			"type": "string",
-			"pattern": "^[^\\x00\\\\/:*'<>|]+$"
-		},
 		"prefix": {
 			"type": "string",
 			"pattern": "^[^\\x00\\\\/:*'<>|]*$"
