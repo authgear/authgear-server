@@ -40,9 +40,18 @@ const (
 			"hook": { "$ref": "#HookUserConfiguration" },
 			"smtp" : { "$ref": "#SMTPConfiguration" },
 			"twilio" : { "$ref": "#TwilioConfiguration" },
-			"nexmo" : { "$ref": "#NexmoConfiguration" }
+			"nexmo" : { "$ref": "#NexmoConfiguration" },
+			"asset": { "$ref": "#AssetConfiguration" }
 		},
-		"required": ["master_key", "auth", "hook"]
+		"required": ["master_key", "auth", "hook", "asset"]
+	},
+	"AssetConfiguration": {
+		"$id": "#AssetConfiguration",
+		"type": "object",
+		"properties": {
+			"secret": { "$ref": "#NonEmptyString" }
+		},
+		"required": ["secret"]
 	},
 	"APIClientConfiguration": {
 		"$id": "#APIClientConfiguration",

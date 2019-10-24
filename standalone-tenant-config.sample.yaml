@@ -18,6 +18,8 @@ user_config:
       api_key: api_key
       session_transport: header
   master_key: master_key
+  asset:
+    secret: assetsecret
   hook:
     secret: hooksecret
   welcome_email:

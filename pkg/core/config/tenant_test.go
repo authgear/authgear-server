@@ -19,6 +19,8 @@ app_config:
 user_config:
   clients: {}
   master_key: masterkey
+  asset:
+    secret: assetsecret
   auth:
     authentication_session:
       secret: authnsessionsecret
@@ -50,6 +52,9 @@ const inputMinimalJSON = `
 	"user_config": {
 		"clients": {},
 		"master_key": "masterkey",
+		"asset": {
+			"secret": "assetsecret"
+		},
 		"auth": {
 			"authentication_session": {
 				"secret": "authnsessionsecret"
@@ -115,6 +120,9 @@ func makeFullTenantConfig() TenantConfiguration {
 			MasterKey: "mymasterkey",
 			CORS: CORSConfiguration{
 				Origin: "localhost:3000",
+			},
+			Asset: AssetConfiguration{
+				Secret: "assetsecret",
 			},
 			Auth: AuthConfiguration{
 				AuthenticationSession: AuthenticationSessionConfiguration{

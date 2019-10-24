@@ -16,7 +16,8 @@ func TestValidateUserConfiguration(t *testing.T) {
 			// Empty root
 			{
 				`{}`,
-				`#: auth is required
+				`#: asset is required
+#: auth is required
 #: hook is required
 #: master_key is required
 `,
@@ -30,7 +31,8 @@ func TestValidateUserConfiguration(t *testing.T) {
 	"hook": {}
 }
 				`,
-				`#/auth: authentication_session is required
+				`#: asset is required
+#/auth: authentication_session is required
 #/hook: secret is required
 `,
 			},
@@ -39,6 +41,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`
 {
 	"master_key": "master_key",
+	"asset": {},
 	"auth": {
 		"login_id_keys": {},
 		"allowed_realms": []
@@ -46,7 +49,8 @@ func TestValidateUserConfiguration(t *testing.T) {
 	"hook": {}
 }
 				`,
-				`#/auth: authentication_session is required
+				`#/asset: secret is required
+#/auth: authentication_session is required
 #/auth/allowed_realms: Array must have at least 1 items
 #/auth/login_id_keys: Must have at least 1 properties
 #/hook: secret is required
@@ -77,7 +81,8 @@ func TestValidateUserConfiguration(t *testing.T) {
 	"hook": {}
 }
 				`,
-				`#/auth: authentication_session is required
+				`#: asset is required
+#/auth: authentication_session is required
 #/auth/login_id_keys/type: auth.login_id_keys.type must be one of the following: "raw", "email", "phone"
 #/hook: secret is required
 `,
@@ -87,6 +92,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`
 {
 	"master_key": "master_key",
+	"asset": {
+		"secret": "assetsecret"
+	},
 	"auth": {
 		"authentication_session": {
 			"secret": "authnsessionsecret"
@@ -117,6 +125,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 {
 	"clients": {
 		"web-app": {}
+	},
+	"asset": {
+		"secret": "assetsecret"
 	},
 	"master_key": "master_key",
 	"auth": {
@@ -151,6 +162,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`
 {
 	"master_key": "master_key",
+	"asset": {
+		"secret": "assetsecret"
+	},
 	"auth": {
 		"authentication_session": {
 			"secret": "authnsessionsecret"
@@ -182,6 +196,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`
 {
 	"master_key": "master_key",
+	"asset": {
+		"secret": "assetsecret"
+	},
 	"auth": {
 		"authentication_session": {
 			"secret": "authnsessionsecret"
@@ -241,6 +258,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`
 {
 	"master_key": "master_key",
+	"asset": {
+		"secret": "assetsecret"
+	},
 	"auth": {
 		"authentication_session": {
 			"secret": "authnsessionsecret"
@@ -282,6 +302,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`
 {
 	"master_key": "master_key",
+	"asset": {
+		"secret": "assetsecret"
+	},
 	"auth": {
 		"authentication_session": {
 			"secret": "authnsessionsecret"
@@ -315,6 +338,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`
 {
 	"master_key": "master_key",
+	"asset": {
+		"secret": "assetsecret"
+	},
 	"auth": {
 		"authentication_session": {
 			"secret": "authnsessionsecret"
@@ -353,6 +379,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`
 {
 	"master_key": "master_key",
+	"asset": {
+		"secret": "assetsecret"
+	},
 	"auth": {
 		"authentication_session": {
 			"secret": "authnsessionsecret"
@@ -405,6 +434,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`
 {
 	"master_key": "master_key",
+	"asset": {
+		"secret": "assetsecret"
+	},
 	"auth": {
 		"authentication_session": {
 			"secret": "authnsessionsecret"
@@ -444,6 +476,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`
 {
 	"master_key": "master_key",
+	"asset": {
+		"secret": "assetsecret"
+	},
 	"auth": {
 		"authentication_session": {
 			"secret": "authnsessionsecret"
