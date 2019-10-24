@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/asset/dependency/presign"
 	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -104,6 +105,8 @@ func (m *DependencyMap) Provide(
 		return cloudstorage.NewProvider(tConfig.AppID, m.Storage)
 	case "Validator":
 		return m.Validator
+	case "PresignProvider":
+		return presign.NewProvider(tConfig.UserConfig.Asset.Secret, newTimeProvider())
 	default:
 		return nil
 	}

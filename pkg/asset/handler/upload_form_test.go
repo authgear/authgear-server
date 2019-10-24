@@ -11,6 +11,7 @@ import (
 	"github.com/h2non/gock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/asset/dependency/presign"
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -26,6 +27,7 @@ func TestUploadFormHandler(t *testing.T) {
 		provider := &cloudstorage.MockProvider{}
 		h.CloudStorageProvider = provider
 		h.Validator = validator
+		h.PresignProvider = &presign.MockProvider{}
 
 		Convey("Content-Type must be multipart/form-data", func() {
 			req, _ := http.NewRequest("POST", "/", nil)

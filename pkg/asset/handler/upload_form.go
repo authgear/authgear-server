@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/skygeario/skygear-server/pkg/asset/dependency/presign"
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -42,6 +43,7 @@ func (f *UploadFormHandlerFactory) NewHandler(request *http.Request) http.Handle
 
 type UploadFormHandler struct {
 	CloudStorageProvider cloudstorage.Provider `dependency:"CloudStorageProvider"`
+	PresignProvider      presign.Provider      `dependency:"PresignProvider"`
 	Validator            *validation.Validator `dependency:"Validator"`
 }
 
@@ -56,6 +58,13 @@ func (h *UploadFormHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UploadFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err error) {
+	// Verify signature
+	err = h.PresignProvider.Verify(r)
+	if err != nil {
+		err = skyerr.NewError(skyerr.BadRequest, err.Error())
+		return
+	}
+
 	contentType := r.Header.Get("Content-Type")
 	mediaType, params, err := mime.ParseMediaType(contentType)
 	if err != nil {
