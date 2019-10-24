@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mime"
 	"net/http"
+	"strconv"
 
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
@@ -12,6 +13,16 @@ type PresignUploadRequest struct {
 	Prefix  string                 `json:"prefix,omitempty"`
 	Access  AccessType             `json:"access,omitempty"`
 	Headers map[string]interface{} `json:"headers"`
+}
+
+func (r *PresignUploadRequest) ContentLength() (contentLength int) {
+	if s, ok := r.Headers["content-length"].(string); ok {
+		i, err := strconv.Atoi(s)
+		if err == nil {
+			contentLength = i
+		}
+	}
+	return
 }
 
 func (r *PresignUploadRequest) SetDefaultValue() {

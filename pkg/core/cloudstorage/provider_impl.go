@@ -33,6 +33,11 @@ func (p *providerImpl) AssetIDToAssetName(assetID string) string {
 }
 
 func (p *providerImpl) PresignPutRequest(r *PresignUploadRequest) (*PresignUploadResponse, error) {
+	contentLength := r.ContentLength()
+	if contentLength <= 0 || contentLength > MaxContentLength {
+		return nil, ErrTooLargeAsset
+	}
+
 	assetName, err := r.DeriveAssetName()
 	if err != nil {
 		return nil, err

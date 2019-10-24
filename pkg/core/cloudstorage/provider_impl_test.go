@@ -36,9 +36,22 @@ func TestProvider(t *testing.T) {
 			gock.New("http://localhost").
 				Head("/a").Reply(200)
 
+			Convey("check content-length", func() {
+				_, err := p.PresignPutRequest(&PresignUploadRequest{
+					Headers: map[string]interface{}{
+						"content-length": "1048576000",
+					},
+				})
+				So(err, ShouldNotBeNil)
+				So(err, ShouldBeError, "BadRequest: too large asset")
+
+			})
+
 			Convey("check duplicate", func() {
 				_, err := p.PresignPutRequest(&PresignUploadRequest{
-					Headers: map[string]interface{}{},
+					Headers: map[string]interface{}{
+						"content-length": "1",
+					},
 				})
 				So(err, ShouldNotBeNil)
 				So(err, ShouldBeError, "Duplicated: duplicate asset")
