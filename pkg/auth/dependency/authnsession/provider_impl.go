@@ -270,7 +270,7 @@ func (p *providerImpl) WriteResponse(w http.ResponseWriter, resp interface{}, er
 			}
 			handler.WriteResponse(w, handler.APIResponse{Result: v})
 		case error:
-			handler.WriteResponse(w, handler.APIResponse{Error: skyerr.AsAPIError(v)})
+			handler.WriteResponse(w, handler.APIResponse{Error: v})
 		default:
 			panic("authnsession: unknown response")
 		}
@@ -278,7 +278,7 @@ func (p *providerImpl) WriteResponse(w http.ResponseWriter, resp interface{}, er
 		if skyerr.IsKind(err, mfa.InvalidBearerToken) {
 			p.sessionWriter.ClearMFABearerToken(w)
 		}
-		handler.WriteResponse(w, handler.APIResponse{Error: skyerr.AsAPIError(err)})
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
 	}
 }
 

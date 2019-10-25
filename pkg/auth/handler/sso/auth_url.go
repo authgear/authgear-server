@@ -259,7 +259,7 @@ func (h *AuthURLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return h.Handle(w, r)
 	})
 	if err != nil {
-		handler.WriteResponse(w, handler.APIResponse{Error: skyerr.AsAPIError(err)})
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
 		return
 	}
 	if r.Method == http.MethodPost {

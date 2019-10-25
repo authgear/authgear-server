@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
@@ -30,20 +29,12 @@ func (m authzMiddleware) Handle(next http.Handler) http.Handler {
 			if apiErr.Kind == authz.NotAuthenticated {
 				rw.Header().Set(coreHttp.HeaderTryRefreshToken, "true")
 			}
-			m.writeError(rw, apiErr)
+			WriteResponse(rw, APIResponse{Error: err})
 			return
 		}
 
 		next.ServeHTTP(rw, r)
 	})
-}
-
-func (m authzMiddleware) writeError(rw http.ResponseWriter, err *skyerr.APIError) {
-	response := APIResponse{Error: err}
-	encoder := json.NewEncoder(rw)
-	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(err.Code)
-	encoder.Encode(response)
 }
 
 type RequireAuthz func(h http.Handler, p authz.PolicyProvider) http.Handler

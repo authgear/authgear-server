@@ -20,8 +20,15 @@ type APITxHandler interface {
 }
 
 type APIResponse struct {
-	Result interface{}      `json:"result,omitempty"`
-	Error  *skyerr.APIError `json:"error,omitempty"`
+	Result interface{}
+	Error  error
+}
+
+func (r APIResponse) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Result interface{}      `json:"result,omitempty"`
+		Error  *skyerr.APIError `json:"error,omitempty"`
+	}{r.Result, skyerr.AsAPIError(r.Error)})
 }
 
 func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Handler {
@@ -30,25 +37,25 @@ func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Han
 	handleAPICall := func(r *http.Request, resp http.ResponseWriter) (response APIResponse) {
 		payload, err := apiHandler.DecodeRequest(r, resp)
 		if err != nil {
-			response.Error = skyerr.AsAPIError(err)
+			response.Error = err
 			return
 		}
 
 		if err := payload.Validate(); err != nil {
-			response.Error = skyerr.AsAPIError(err)
+			response.Error = err
 			return
 		}
 
 		defer func() {
 			if err != nil {
-				response.Error = skyerr.AsAPIError(err)
+				response.Error = err
 			}
 		}()
 
 		if apiHandler.WithTx() {
 			// assume txContext != nil if apiHandler.WithTx() is true
 			if err := txContext.BeginTx(); err != nil {
-				response.Error = skyerr.AsAPIError(err)
+				response.Error = err
 				return
 			}
 
@@ -79,17 +86,27 @@ func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Han
 	})
 }
 
+type HandledError struct {
+	Error error
+}
+
 func WriteResponse(rw http.ResponseWriter, response APIResponse) {
 	httpStatus := http.StatusOK
 	encoder := json.NewEncoder(rw)
+	err := skyerr.AsAPIError(response.Error)
 
-	if response.Error != nil {
-		httpStatus = response.Error.Code
+	if err != nil {
+		httpStatus = err.Code
 	}
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(httpStatus)
 	encoder.Encode(response)
+
+	if err != nil && err.Code >= 500 && err.Code < 600 {
+		// delegate logging to panic recovery
+		panic(HandledError{response.Error})
+	}
 }
 
 // Transactional runs f within a transaction.

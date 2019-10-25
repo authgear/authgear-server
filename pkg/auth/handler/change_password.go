@@ -137,12 +137,12 @@ func (h ChangePasswordHandler) ServeHTTP(resp http.ResponseWriter, req *http.Req
 
 	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
-		handler.WriteResponse(resp, handler.APIResponse{Error: skyerr.AsAPIError(err)})
+		handler.WriteResponse(resp, handler.APIResponse{Error: err})
 		return
 	}
 
 	if err = payload.Validate(); err != nil {
-		handler.WriteResponse(resp, handler.APIResponse{Error: skyerr.AsAPIError(err)})
+		handler.WriteResponse(resp, handler.APIResponse{Error: err})
 		return
 	}
 
@@ -159,7 +159,7 @@ func (h ChangePasswordHandler) ServeHTTP(resp http.ResponseWriter, req *http.Req
 		h.SessionWriter.WriteSession(resp, &authResp.AccessToken, nil)
 		handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
 	} else {
-		handler.WriteResponse(resp, handler.APIResponse{Error: skyerr.AsAPIError(err)})
+		handler.WriteResponse(resp, handler.APIResponse{Error: err})
 	}
 }
 

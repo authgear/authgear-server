@@ -305,11 +305,7 @@ func (h AuthHandler) handleRedirectResp(
 
 func makeJSONResponse(ok interface{}, err error) handler.APIResponse {
 	if err != nil {
-		return handler.APIResponse{
-			Error: skyerr.AsAPIError(err),
-		}
+		return handler.APIResponse{Error: err}
 	}
-	return handler.APIResponse{
-		Result: ok,
-	}
+	return handler.APIResponse{Result: ok}
 }
