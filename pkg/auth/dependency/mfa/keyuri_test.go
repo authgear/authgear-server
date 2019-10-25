@@ -6,7 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestParseKeyURI(t *testing.T) {
+func TestKeyURI(t *testing.T) {
 	Convey("IsGoogleAuthenticatorCompatible", t, func() {
 		keyURI := KeyURI{
 			Type:        KeyURITypeTOTP,
@@ -66,5 +66,21 @@ func TestParseKeyURI(t *testing.T) {
 			}
 			So(*actual, ShouldResemble, expected)
 		})
+	})
+	Convey("String", t, func() {
+		i := "otpauth://totp/?secret=JBSWY3DPEHPK3PXP"
+		u, err := ParseKeyURI(i)
+		So(err, ShouldBeNil)
+		So(u.String(), ShouldEqual, i)
+
+		i = "otpauth://totp/%2Fjohndoe%2F?secret=JBSWY3DPEHPK3PXP"
+		u, err = ParseKeyURI(i)
+		So(err, ShouldBeNil)
+		So(u.String(), ShouldEqual, i)
+
+		i = "otpauth://totp/service:%2Fjohndoe%2F?secret=JBSWY3DPEHPK3PXP&issuer=service"
+		u, err = ParseKeyURI(i)
+		So(err, ShouldBeNil)
+		So(u.String(), ShouldEqual, i)
 	})
 }

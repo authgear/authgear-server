@@ -3,6 +3,7 @@ package mfa
 import (
 	"encoding/base32"
 	"errors"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -53,8 +54,38 @@ type KeyURI struct {
 	Period      int
 }
 
+func NewKeyURI(issuer, accountName, secret string) *KeyURI {
+	return &KeyURI{
+		Type:        KeyURITypeTOTP,
+		Issuer:      issuer,
+		AccountName: accountName,
+		Secret:      secret,
+		Algorithm:   KeyURIAlgorithmSHA1,
+		Digits:      6,
+		Counter:     "",
+		Period:      30,
+	}
+}
+
 func (u *KeyURI) IsGoogleAuthenticatorCompatible() bool {
 	return u.Type == KeyURITypeTOTP && u.Algorithm == KeyURIAlgorithmSHA1 && u.Digits == 6 && u.Period == 30
+}
+
+func (u *KeyURI) String() string {
+	var path string
+	if u.Issuer == "" {
+		path = fmt.Sprintf("%s", url.PathEscape(u.AccountName))
+	} else {
+		path = fmt.Sprintf("%s:%s", url.PathEscape(u.Issuer), url.PathEscape(u.AccountName))
+	}
+	buf := &strings.Builder{}
+	buf.WriteString("secret=")
+	buf.WriteString(url.QueryEscape(u.Secret))
+	if u.Issuer != "" {
+		buf.WriteString("&issuer=")
+		buf.WriteString(url.QueryEscape(u.Issuer))
+	}
+	return fmt.Sprintf("otpauth://totp/%s?%s", path, buf.String())
 }
 
 // ParseKeyURI parses s into KeyURI.
