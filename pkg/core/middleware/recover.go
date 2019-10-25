@@ -3,6 +3,9 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -14,10 +17,18 @@ type RecoverMiddleware struct {
 
 func (m RecoverMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// prepare context for storing tenant config
+		r = r.WithContext(config.WithTenantConfig(r.Context(), nil))
+
 		defer func() {
 			if err := recover(); err != nil {
-				// TODO: read from tconfig
-				logHook := logging.NewDefaultLogHook(nil)
+				tConfig := config.GetTenantConfig(r.Context())
+				var logHook logrus.Hook
+				if tConfig == nil {
+					logHook = logging.NewDefaultLogHook(nil)
+				} else {
+					logHook = logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
+				}
 				loggerFactory := logging.NewFactoryFromRequest(r, logHook)
 				logger := loggerFactory.NewLogger("recovery")
 
