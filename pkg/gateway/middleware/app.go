@@ -16,7 +16,7 @@ type FindAppMiddleware struct {
 
 func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger := logging.NewFactoryFromRequest(r, logging.NewDefaultMaskedTextFormatter(nil)).NewLogger("app-finder")
+		logger := logging.NewFactoryFromRequest(r, logging.NewDefaultLogHook(nil)).NewLogger("app-finder")
 
 		host := r.Host
 		app := gatewayModel.App{}

@@ -12,27 +12,27 @@ type Factory interface {
 	NewLogger(name string) *logrus.Entry
 }
 
-func NewFactory(formatter logrus.Formatter) Factory {
-	return factoryImpl{formatter: formatter}
+func NewFactory(hooks ...logrus.Hook) Factory {
+	return factoryImpl{hooks: hooks}
 }
 
-func NewFactoryFromRequest(r *http.Request, formatter logrus.Formatter) Factory {
+func NewFactoryFromRequest(r *http.Request, hooks ...logrus.Hook) Factory {
 	return factoryImpl{
 		requestID: r.Header.Get(corehttp.HeaderRequestID),
-		formatter: formatter,
+		hooks:     hooks,
 	}
 }
 
-func NewFactoryFromRequestID(requestID string, formatter logrus.Formatter) Factory {
+func NewFactoryFromRequestID(requestID string, hooks ...logrus.Hook) Factory {
 	return factoryImpl{
 		requestID: requestID,
-		formatter: formatter,
+		hooks:     hooks,
 	}
 }
 
 type factoryImpl struct {
 	requestID string
-	formatter logrus.Formatter
+	hooks     []logrus.Hook
 }
 
 func (f factoryImpl) NewLogger(name string) *logrus.Entry {
@@ -40,6 +40,8 @@ func (f factoryImpl) NewLogger(name string) *logrus.Entry {
 	if f.requestID != "" {
 		entry = entry.WithField("request_id", f.requestID)
 	}
-	entry.Logger.Formatter = f.formatter
+	for _, hook := range f.hooks {
+		entry.Logger.Hooks.Add(hook)
+	}
 	return entry
 }

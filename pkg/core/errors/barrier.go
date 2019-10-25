@@ -14,3 +14,10 @@ func HandledWithMessage(err error, msg string) error {
 }
 
 func (e *errorBarrier) Error() string { return e.msg }
+func (e *errorBarrier) Summary() string {
+	inner := Summary(e.inner)
+	if inner != e.msg {
+		return e.msg + ": " + inner
+	}
+	return e.msg
+}

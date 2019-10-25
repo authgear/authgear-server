@@ -74,7 +74,7 @@ type configuration struct {
 func main() {
 	// logging initialization
 	logging.SetModule("auth")
-	loggerFactory := logging.NewFactory(logging.NewDefaultMaskedTextFormatter(nil))
+	loggerFactory := logging.NewFactory(logging.NewDefaultLogHook(nil))
 	logger := loggerFactory.NewLogger("auth")
 
 	envErr := godotenv.Load()

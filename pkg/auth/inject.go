@@ -75,11 +75,11 @@ func (m DependencyMap) Provide(
 	tConfig.UserConfig = userConfig
 
 	newLoggerFactory := func() logging.Factory {
-		formatter := logging.NewDefaultMaskedTextFormatter(tConfig.DefaultSensitiveLoggerValues())
+		logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
 		if request == nil {
-			return logging.NewFactoryFromRequestID(requestID, formatter)
+			return logging.NewFactoryFromRequestID(requestID, logHook)
 		} else {
-			return logging.NewFactoryFromRequest(request, formatter)
+			return logging.NewFactoryFromRequest(request, logHook)
 		}
 	}
 

@@ -3,8 +3,6 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
@@ -18,21 +16,19 @@ func (m RecoverMiddleware) Handle(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				// TODO: read from tconfig
-				formatter := logging.NewDefaultMaskedTextFormatter(nil)
-				loggerFactory := logging.NewFactoryFromRequest(r, formatter)
+				logHook := logging.NewDefaultLogHook(nil)
+				loggerFactory := logging.NewFactoryFromRequest(r, logHook)
 				logger := loggerFactory.NewLogger("recovery")
 
-				var details errors.Details
-				if err, isErr := err.(error); isErr {
-					logger = logger.WithError(err)
-					details = errors.CollectDetails(err, nil)
+				var e error
+				if ee, isErr := err.(error); isErr {
+					e = ee
 				} else {
-					logger = logger.WithError(errors.Newf("%+v", err))
+					e = errors.Newf("%+v", err)
 				}
+				logger.WithError(e).WithField("stack", errors.Callers(8)).Error("unexpected panic occurred")
 
-				logger.
-					WithFields(logrus.Fields{"stack": errors.Callers(8), "details": details}).
-					Error("unexpected panic occurred")
+				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()
 
