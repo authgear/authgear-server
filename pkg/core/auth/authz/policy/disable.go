@@ -6,7 +6,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 // DenyDisabledUser denies disabled user.

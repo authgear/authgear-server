@@ -16,7 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func AttachCreateOOBHandler(

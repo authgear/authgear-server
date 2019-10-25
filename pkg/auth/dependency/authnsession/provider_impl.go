@@ -20,8 +20,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/time"
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 )
 
 type Claims struct {

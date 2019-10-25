@@ -5,7 +5,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func TestURL(t *testing.T) {

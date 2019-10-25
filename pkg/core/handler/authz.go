@@ -10,7 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type authzMiddleware struct {

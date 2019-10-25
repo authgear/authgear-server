@@ -22,7 +22,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	corepassword "github.com/skygeario/skygear-server/pkg/core/password"
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func isUpperRune(r rune) bool {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type RequestPayload interface {

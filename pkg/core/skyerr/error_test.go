@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

@@ -22,7 +22,7 @@ import (
 	"sort"
 
 	coreReflect "github.com/skygeario/skygear-server/pkg/core/reflect"
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/smartystreets/goconvey/convey"
 )
 

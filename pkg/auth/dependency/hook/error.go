@@ -2,7 +2,7 @@ package hook
 
 import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 var WebHookDisallowed = skyerr.Forbidden.WithReason("WebHookDisallowed")

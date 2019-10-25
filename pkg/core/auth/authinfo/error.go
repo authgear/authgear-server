@@ -1,7 +1,7 @@
 package authinfo
 
 import (
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 var UserNotFound = skyerr.NotFound.WithReason("UserNotFound")

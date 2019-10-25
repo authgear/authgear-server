@@ -1,6 +1,6 @@
 package event
 
-import skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+import "github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 /*
 	@ID HookResponse

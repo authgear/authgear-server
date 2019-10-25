@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 var PasswordPolicyViolated skyerr.Kind = skyerr.Invalid.WithReason("PasswordPolicyViolated")

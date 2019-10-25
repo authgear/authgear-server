@@ -10,7 +10,7 @@ import (
 	"github.com/louischan-oursky/gojsonschema"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func init() {

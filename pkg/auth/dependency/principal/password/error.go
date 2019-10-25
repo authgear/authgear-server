@@ -1,7 +1,7 @@
 package password
 
 import (
-	skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 var LoginIDAlreadyUsed = skyerr.AlreadyExists.WithReason("LoginIDAlreadyUsed")
