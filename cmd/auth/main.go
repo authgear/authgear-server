@@ -124,7 +124,7 @@ func main() {
 		serverOption := server.DefaultOption()
 		serverOption.GearPathPrefix = configuration.PathPrefix
 		srv = server.NewServerWithOption(configuration.Host, authDependency, serverOption)
-		srv.Use(middleware.TenantConfigurationMiddleware{
+		srv.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
 				return *tenantConfig, nil
 			}),
@@ -134,6 +134,7 @@ func main() {
 		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
 		srv = server.NewServer(configuration.Host, authDependency)
+		srv.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 	}
 
 	srv.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)

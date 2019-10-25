@@ -31,7 +31,7 @@ func (f AuthInfoMiddlewareFactory) NewInjectableMiddleware() coreMiddleware.Inje
 // Handle implements InjectableMiddleware.
 func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tenantConfig := config.GetTenantConfig(r)
+		tenantConfig := config.GetTenantConfig(r.Context())
 		accessKey := m.AuthContext.AccessKey()
 
 		model.SetAccessKey(r, accessKey)

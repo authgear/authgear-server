@@ -30,7 +30,7 @@ func TestCORSMiddleware(t *testing.T) {
 		if origin != "" {
 			req.Header.Set("Origin", origin)
 		}
-		config.SetTenantConfig(req, &tenantConfig)
+		req = req.WithContext(config.WithTenantConfig(req.Context(), &tenantConfig))
 		return
 	}
 

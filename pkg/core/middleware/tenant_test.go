@@ -46,24 +46,29 @@ func TestMiddleware(t *testing.T) {
 		return
 	}
 
-	targetMiddleware := TenantConfigurationMiddleware{
+	targetMiddleware := WriteTenantConfigMiddleware{
 		ConfigurationProvider: ConfigurationProviderFunc(provideConfiguration),
 	}
-	handler := targetMiddleware.Handle(GetTestHandler())
+	var cb func(*http.Request)
+	handler := targetMiddleware.Handle(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		cb(req)
+	}))
 
-	Convey("Test TenantConfigurationMiddleware", t, func() {
+	Convey("Test WriteTenantConfigMiddleware", t, func() {
 		Convey("should handle request without headers", func() {
 			req := newReq()
+			cb = func(req *http.Request) {
+				// NOTE(louis): msgp v1.1.0 serialize nil empty into empty map
+				// so using ShouldResemble will fail the test.
+				So(*config.GetTenantConfig(req.Context()), ShouldNonRecursiveDataDeepEqual, sampleConfig)
+			}
 			handler.ServeHTTP(nil, req)
-			// NOTE(louis): msgp v1.1.0 serialize nil empty into empty map
-			// so using ShouldResemble will fail the test.
-			So(config.GetTenantConfig(req), ShouldNonRecursiveDataDeepEqual, sampleConfig)
 		})
 
-		targetErrMiddleware := TenantConfigurationMiddleware{
+		targetErrMiddleware := WriteTenantConfigMiddleware{
 			ConfigurationProvider: ConfigurationProviderFunc(provideErr),
 		}
-		errHandler := targetErrMiddleware.Handle(GetTestHandler())
+		errHandler := targetErrMiddleware.Handle(handler)
 
 		Convey("should handle request with error config provider", func() {
 			defer func() {

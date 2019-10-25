@@ -37,7 +37,7 @@ func newDeploymentRouteReverseProxy() *httputil.ReverseProxy {
 		// It does not take backendURL into account.
 		req.Header.Add(coreHttp.HeaderHTTPPath, originalPath)
 		// Remove tenant config from header.
-		coreConfig.DelTenantConfig(req)
+		coreConfig.WriteTenantConfig(req, nil)
 	}
 
 	return &httputil.ReverseProxy{Director: director}

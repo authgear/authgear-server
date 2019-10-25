@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -27,22 +26,15 @@ var (
 	}
 )
 
-func provideConfiguration(r *http.Request) (config.TenantConfiguration, error) {
-	return sampleConfig, nil
-}
-
 func TestConfigHandler(t *testing.T) {
 	Convey("Test ConfigHandler", t, func() {
-		targetMiddleware := middleware.TenantConfigurationMiddleware{
-			ConfigurationProvider: middleware.ConfigurationProviderFunc(provideConfiguration),
-		}
-
 		Convey("should return tenant SSOSeting AllowedCallbackURLs", func() {
 			r, _ := http.NewRequest("POST", "", nil)
 			rw := httptest.NewRecorder()
+			r = r.WithContext(config.WithTenantConfig(r.Context(), &sampleConfig))
 
 			var testingHandler ConfigHandler
-			reqHandler := targetMiddleware.Handle(testingHandler.NewHandler(r))
+			reqHandler := testingHandler.NewHandler(r)
 			reqHandler.ServeHTTP(rw, r)
 
 			So(rw.Body.Bytes(), ShouldEqualJSON, `{

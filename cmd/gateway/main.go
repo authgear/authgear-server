@@ -97,7 +97,7 @@ func main() {
 
 	gr := r.PathPrefix("/_{gear}").Subrouter()
 
-	gr.Use(coreMiddleware.TenantConfigurationMiddleware{
+	gr.Use(coreMiddleware.WriteTenantConfigMiddleware{
 		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
 			Store: store,
 		},
@@ -112,7 +112,7 @@ func main() {
 
 	cr := r.PathPrefix("/").Subrouter()
 
-	cr.Use(coreMiddleware.TenantConfigurationMiddleware{
+	cr.Use(coreMiddleware.WriteTenantConfigMiddleware{
 		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
 			Store: store,
 		},

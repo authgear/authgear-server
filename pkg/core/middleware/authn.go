@@ -57,7 +57,7 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 }
 
 func (m *AuthnMiddleware) resolve(r *http.Request) (s *auth.Session, info *authinfo.AuthInfo, err error) {
-	tenantConfig := config.GetTenantConfig(r)
+	tenantConfig := config.GetTenantConfig(r.Context())
 
 	key := m.APIClientConfigurationProvider.GetAccessKeyByAPIKey(model.GetAPIKey(r))
 	m.AuthContextSetter.SetAccessKey(key)

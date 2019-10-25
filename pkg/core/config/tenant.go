@@ -436,7 +436,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 }
 
-func GetTenantConfig(r *http.Request) TenantConfiguration {
+func ReadTenantConfig(r *http.Request) TenantConfiguration {
 	s := r.Header.Get(coreHttp.HeaderTenantConfig)
 	config, err := NewTenantConfigurationFromStdBase64Msgpack(s)
 	if err != nil {
@@ -445,16 +445,16 @@ func GetTenantConfig(r *http.Request) TenantConfiguration {
 	return *config
 }
 
-func SetTenantConfig(r *http.Request, config *TenantConfiguration) {
-	value, err := config.StdBase64Msgpack()
-	if err != nil {
-		panic(err)
+func WriteTenantConfig(r *http.Request, config *TenantConfiguration) {
+	if config == nil {
+		r.Header.Del(coreHttp.HeaderTenantConfig)
+	} else {
+		value, err := config.StdBase64Msgpack()
+		if err != nil {
+			panic(err)
+		}
+		r.Header.Set(coreHttp.HeaderTenantConfig, value)
 	}
-	r.Header.Set(coreHttp.HeaderTenantConfig, value)
-}
-
-func DelTenantConfig(r *http.Request) {
-	r.Header.Del(coreHttp.HeaderTenantConfig)
 }
 
 // UserConfiguration represents user-editable configuration

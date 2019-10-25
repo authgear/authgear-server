@@ -59,7 +59,7 @@ func TestInjectDependency(t *testing.T) {
 	}
 
 	req, _ := http.NewRequest("POST", "", nil)
-	config.SetTenantConfig(req, &conf)
+	req = req.WithContext(config.WithTenantConfig(req.Context(), &conf))
 
 	Convey("Test injectDependency", t, func() {
 		Convey("should inject simple type", func() {

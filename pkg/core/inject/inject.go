@@ -31,7 +31,7 @@ func DefaultRequestInject(
 			request,
 			request.Context(),
 			request.Header.Get(coreHttp.HeaderRequestID),
-			config.GetTenantConfig(request),
+			*config.GetTenantConfig(request.Context()),
 		)
 	})
 }
