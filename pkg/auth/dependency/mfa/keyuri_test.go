@@ -7,19 +7,6 @@ import (
 )
 
 func TestKeyURI(t *testing.T) {
-	Convey("IsGoogleAuthenticatorCompatible", t, func() {
-		keyURI := KeyURI{
-			Type:        KeyURITypeTOTP,
-			Issuer:      "",
-			AccountName: "",
-			Secret:      "JBSWY3DPEHPK3PXP",
-			Algorithm:   KeyURIAlgorithmSHA1,
-			Digits:      6,
-			Counter:     "",
-			Period:      30,
-		}
-		So(keyURI.IsGoogleAuthenticatorCompatible(), ShouldBeTrue)
-	})
 	Convey("ParseKeyURI", t, func() {
 		Convey("minimal totp", func() {
 			actual, err := ParseKeyURI("otpauth://totp/?secret=JBSWY3DPEHPK3PXP")

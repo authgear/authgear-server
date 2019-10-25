@@ -73,10 +73,6 @@ func NewKeyURI(issuer, accountName, secret string) *KeyURI {
 	}
 }
 
-func (u *KeyURI) IsGoogleAuthenticatorCompatible() bool {
-	return u.Type == KeyURITypeTOTP && u.Algorithm == KeyURIAlgorithmSHA1 && u.Digits == 6 && u.Period == 30
-}
-
 func (u *KeyURI) String() string {
 	var path string
 	if u.Issuer == "" {
