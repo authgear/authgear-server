@@ -397,13 +397,8 @@ const (
 				"success_html_url": { "type": "string" },
 				"error_redirect": { "type": "string" },
 				"error_html_url": { "type": "string" },
-				"provider": {
-					"type": "string",
-					"enum": ["smtp", "twilio", "nexmo"]
-				},
 				"provider_config": { "$ref": "#UserVerificationProviderConfiguration" }
-			},
-			"required": ["provider"]
+			}
 		},
 		"UserVerificationProviderConfiguration": {
 			"$id": "#UserVerificationProviderConfiguration",

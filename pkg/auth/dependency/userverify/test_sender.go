@@ -4,6 +4,7 @@ import (
 	"net/url"
 
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
@@ -12,7 +13,6 @@ import (
 
 type TestCodeSenderFactory interface {
 	NewTestCodeSender(
-		provider config.UserVerificationProvider,
 		keyConfig config.UserVerificationProviderConfiguration,
 		loginIDKey string,
 		templates map[string]string,
@@ -23,18 +23,27 @@ type defaultTestCodeSenderFactory struct {
 	Config         config.TenantConfiguration
 	URLPrefix      *url.URL
 	TemplateEngine *template.Engine
+	SMSClient      sms.Client
+	MailSender     mail.Sender
 }
 
-func NewDefaultUserVerifyTestCodeSenderFactory(c config.TenantConfiguration, urlPrefix *url.URL, templateEngine *template.Engine) TestCodeSenderFactory {
+func NewDefaultUserVerifyTestCodeSenderFactory(
+	c config.TenantConfiguration,
+	urlPrefix *url.URL,
+	templateEngine *template.Engine,
+	mailSender mail.Sender,
+	smsClient sms.Client,
+) TestCodeSenderFactory {
 	return &defaultTestCodeSenderFactory{
 		Config:         c,
 		URLPrefix:      urlPrefix,
 		TemplateEngine: templateEngine,
+		SMSClient:      smsClient,
+		MailSender:     mailSender,
 	}
 }
 
 func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
-	provider config.UserVerificationProvider,
 	keyConfig config.UserVerificationProviderConfiguration,
 	loginIDKey string,
 	templates map[string]string,
@@ -46,29 +55,24 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 	templateEngine := d.TemplateEngine
 	templateEngine.PrependLoader(loader)
 
-	switch provider {
-	case config.UserVerificationProviderSMTP:
+	keyType := d.Config.UserConfig.Auth.LoginIDKeys[loginIDKey].Type
+	metadataKey, _ := keyType.MetadataKey()
+
+	switch metadataKey {
+	case metadata.Email:
 		codeSender = &EmailCodeSender{
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.URLPrefix,
 			ProviderConfig: keyConfig,
-			Sender:         mail.NewSender(d.Config.UserConfig.SMTP),
+			Sender:         d.MailSender,
 			TemplateEngine: templateEngine,
 		}
 
-	case config.UserVerificationProviderTwilio:
+	case metadata.Phone:
 		codeSender = &SMSCodeSender{
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.URLPrefix,
-			SMSClient:      sms.NewTwilioClient(d.Config.UserConfig.Twilio),
-			TemplateEngine: templateEngine,
-		}
-
-	case config.UserVerificationProviderNexmo:
-		codeSender = &SMSCodeSender{
-			AppName:        d.Config.AppName,
-			URLPrefix:      d.URLPrefix,
-			SMSClient:      sms.NewNexmoClient(d.Config.UserConfig.Nexmo),
+			SMSClient:      d.SMSClient,
 			TemplateEngine: templateEngine,
 		}
 	}

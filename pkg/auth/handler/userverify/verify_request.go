@@ -56,16 +56,20 @@ type loginIDType string
 
 const (
 	loginIDTypeEmail loginIDType = "email"
+	loginIDTypePhone loginIDType = "phone"
 )
 
 var allLoginIDTypes = []string{
 	string(loginIDTypeEmail),
+	string(loginIDTypePhone),
 }
 
 func (t loginIDType) MatchPrincipal(principal *password.Principal, provider password.Provider) bool {
 	switch t {
 	case loginIDTypeEmail:
 		return provider.CheckLoginIDKeyType(principal.LoginIDKey, metadata.Email)
+	case loginIDTypePhone:
+		return provider.CheckLoginIDKeyType(principal.LoginIDKey, metadata.Phone)
 	default:
 		return false
 	}
@@ -214,7 +218,6 @@ type VerifyRequestTestPayload struct {
 	LoginIDKey    string                                       `json:"login_id_key"`
 	LoginID       string                                       `json:"login_id"`
 	User          model.User                                   `json:"user"`
-	Provider      config.UserVerificationProvider              `json:"provider"`
 	MessageConfig config.UserVerificationProviderConfiguration `json:"message_config"`
 	Templates     map[string]string                            `json:"templates"`
 }
@@ -226,10 +229,6 @@ func (payload VerifyRequestTestPayload) Validate() error {
 
 	if payload.LoginID == "" {
 		return skyerr.NewInvalidArgument("empty login_id", []string{"login_id"})
-	}
-
-	if !payload.Provider.IsValid() {
-		return skyerr.NewInvalidArgument("invalid provider", []string{"provider"})
 	}
 
 	return nil
@@ -248,7 +247,6 @@ func (payload VerifyRequestTestPayload) Validate() error {
 //        "email": "user@example.com"
 //      }
 //    },
-//    "provider": "smtp",
 //    "templates": {
 //      "text": "testing",
 //      "html": "testing html"
@@ -289,7 +287,6 @@ func (h VerifyRequestTestHandler) DecodeRequest(request *http.Request, resp http
 func (h VerifyRequestTestHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(VerifyRequestTestPayload)
 	sender := h.TestCodeSenderFactory.NewTestCodeSender(
-		payload.Provider,
 		payload.MessageConfig,
 		payload.LoginIDKey,
 		payload.Templates,

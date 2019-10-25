@@ -429,8 +429,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 		"criteria": "invalid",
 		"login_id_keys": {
 			"email": {
-				"code_format": "invalid",
-				"provider": "invalid"
+				"code_format": "invalid"
 			}
 		}
 	}
@@ -438,7 +437,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`,
 				`#/user_verification/criteria: user_verification.criteria must be one of the following: "any", "all"
 #/user_verification/login_id_keys/code_format: user_verification.login_id_keys.code_format must be one of the following: "numeric", "complex"
-#/user_verification/login_id_keys/provider: user_verification.login_id_keys.provider must be one of the following: "smtp", "twilio", "nexmo"
 `,
 			},
 			// SMTP config

@@ -7750,16 +7750,6 @@ func (z *UserVerificationKeyConfiguration) DecodeMsg(dc *msgp.Reader) (err error
 				err = msgp.WrapError(err, "ErrorHTMLURL")
 				return
 			}
-		case "provider":
-			{
-				var zb0003 string
-				zb0003, err = dc.ReadString()
-				if err != nil {
-					err = msgp.WrapError(err, "Provider")
-					return
-				}
-				z.Provider = UserVerificationProvider(zb0003)
-			}
 		case "provider_config":
 			err = z.ProviderConfig.DecodeMsg(dc)
 			if err != nil {
@@ -7779,9 +7769,9 @@ func (z *UserVerificationKeyConfiguration) DecodeMsg(dc *msgp.Reader) (err error
 
 // EncodeMsg implements msgp.Encodable
 func (z *UserVerificationKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 8
+	// map header, size 7
 	// write "code_format"
-	err = en.Append(0x88, 0xab, 0x63, 0x6f, 0x64, 0x65, 0x5f, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74)
+	err = en.Append(0x87, 0xab, 0x63, 0x6f, 0x64, 0x65, 0x5f, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74)
 	if err != nil {
 		return
 	}
@@ -7840,16 +7830,6 @@ func (z *UserVerificationKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error
 		err = msgp.WrapError(err, "ErrorHTMLURL")
 		return
 	}
-	// write "provider"
-	err = en.Append(0xa8, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(string(z.Provider))
-	if err != nil {
-		err = msgp.WrapError(err, "Provider")
-		return
-	}
 	// write "provider_config"
 	err = en.Append(0xaf, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
 	if err != nil {
@@ -7866,9 +7846,9 @@ func (z *UserVerificationKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error
 // MarshalMsg implements msgp.Marshaler
 func (z *UserVerificationKeyConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 8
+	// map header, size 7
 	// string "code_format"
-	o = append(o, 0x88, 0xab, 0x63, 0x6f, 0x64, 0x65, 0x5f, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74)
+	o = append(o, 0x87, 0xab, 0x63, 0x6f, 0x64, 0x65, 0x5f, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74)
 	o = msgp.AppendString(o, string(z.CodeFormat))
 	// string "expiry"
 	o = append(o, 0xa6, 0x65, 0x78, 0x70, 0x69, 0x72, 0x79)
@@ -7885,9 +7865,6 @@ func (z *UserVerificationKeyConfiguration) MarshalMsg(b []byte) (o []byte, err e
 	// string "error_html_url"
 	o = append(o, 0xae, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x5f, 0x68, 0x74, 0x6d, 0x6c, 0x5f, 0x75, 0x72, 0x6c)
 	o = msgp.AppendString(o, z.ErrorHTMLURL)
-	// string "provider"
-	o = append(o, 0xa8, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72)
-	o = msgp.AppendString(o, string(z.Provider))
 	// string "provider_config"
 	o = append(o, 0xaf, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
 	o, err = z.ProviderConfig.MarshalMsg(o)
@@ -7956,16 +7933,6 @@ func (z *UserVerificationKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, e
 				err = msgp.WrapError(err, "ErrorHTMLURL")
 				return
 			}
-		case "provider":
-			{
-				var zb0003 string
-				zb0003, bts, err = msgp.ReadStringBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Provider")
-					return
-				}
-				z.Provider = UserVerificationProvider(zb0003)
-			}
 		case "provider_config":
 			bts, err = z.ProviderConfig.UnmarshalMsg(bts)
 			if err != nil {
@@ -7986,59 +7953,7 @@ func (z *UserVerificationKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, e
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserVerificationKeyConfiguration) Msgsize() (s int) {
-	s = 1 + 12 + msgp.StringPrefixSize + len(string(z.CodeFormat)) + 7 + msgp.Int64Size + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 17 + msgp.StringPrefixSize + len(z.SuccessHTMLURL) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorHTMLURL) + 9 + msgp.StringPrefixSize + len(string(z.Provider)) + 16 + z.ProviderConfig.Msgsize()
-	return
-}
-
-// DecodeMsg implements msgp.Decodable
-func (z *UserVerificationProvider) DecodeMsg(dc *msgp.Reader) (err error) {
-	{
-		var zb0001 string
-		zb0001, err = dc.ReadString()
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		(*z) = UserVerificationProvider(zb0001)
-	}
-	return
-}
-
-// EncodeMsg implements msgp.Encodable
-func (z UserVerificationProvider) EncodeMsg(en *msgp.Writer) (err error) {
-	err = en.WriteString(string(z))
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	return
-}
-
-// MarshalMsg implements msgp.Marshaler
-func (z UserVerificationProvider) MarshalMsg(b []byte) (o []byte, err error) {
-	o = msgp.Require(b, z.Msgsize())
-	o = msgp.AppendString(o, string(z))
-	return
-}
-
-// UnmarshalMsg implements msgp.Unmarshaler
-func (z *UserVerificationProvider) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	{
-		var zb0001 string
-		zb0001, bts, err = msgp.ReadStringBytes(bts)
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		(*z) = UserVerificationProvider(zb0001)
-	}
-	o = bts
-	return
-}
-
-// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z UserVerificationProvider) Msgsize() (s int) {
-	s = msgp.StringPrefixSize + len(string(z))
+	s = 1 + 12 + msgp.StringPrefixSize + len(string(z.CodeFormat)) + 7 + msgp.Int64Size + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 17 + msgp.StringPrefixSize + len(z.SuccessHTMLURL) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorHTMLURL) + 16 + z.ProviderConfig.Msgsize()
 	return
 }
 
