@@ -56,8 +56,8 @@ func NewResetPasswordHTMLProvider(urlPrefix *url.URL, c config.ForgotPasswordCon
 
 func (r *ResetPasswordHTMLProvider) SuccessHTML(context map[string]interface{}) (string, error) {
 	r.injectContext(context)
-	return r.TemplateEngine.ParseTextTemplate(
-		authTemplate.TemplateNameResetPasswordErrorHTML,
+	return r.TemplateEngine.ParseHTMLTemplate(
+		authTemplate.TemplateNameResetPasswordSuccessHTML,
 		context,
 		template.ParseOption{Required: true},
 	)
@@ -65,8 +65,8 @@ func (r *ResetPasswordHTMLProvider) SuccessHTML(context map[string]interface{}) 
 
 func (r *ResetPasswordHTMLProvider) ErrorHTML(context map[string]interface{}) (string, error) {
 	r.injectContext(context)
-	return r.TemplateEngine.ParseTextTemplate(
-		authTemplate.TemplateNameResetPasswordSuccessHTML,
+	return r.TemplateEngine.ParseHTMLTemplate(
+		authTemplate.TemplateNameResetPasswordErrorHTML,
 		context,
 		template.ParseOption{Required: true},
 	)
@@ -74,7 +74,7 @@ func (r *ResetPasswordHTMLProvider) ErrorHTML(context map[string]interface{}) (s
 
 func (r *ResetPasswordHTMLProvider) FormHTML(context map[string]interface{}) (string, error) {
 	r.injectContext(context)
-	return r.TemplateEngine.ParseTextTemplate(
+	return r.TemplateEngine.ParseHTMLTemplate(
 		authTemplate.TemplateNameResetPasswordHTML,
 		context,
 		template.ParseOption{Required: true},

@@ -46,7 +46,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 	}
 
 	var htmlBody string
-	if htmlBody, err = e.TemplateEngine.ParseTextTemplate(
+	if htmlBody, err = e.TemplateEngine.ParseHTMLTemplate(
 		authTemplate.VerifyHTMLTemplateNameForKey(verifyCode.LoginIDKey),
 		context,
 		template.ParseOption{Required: false, FallbackTemplateName: authTemplate.TemplateNameVerifyEmailHTML},
