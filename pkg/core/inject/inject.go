@@ -2,6 +2,7 @@ package inject
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"reflect"
 	"strings"
@@ -9,7 +10,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type RequestDependencyMap interface {
@@ -70,7 +70,7 @@ func injectDependency(
 		dependency := injectFunc(dependencyName)
 
 		if optionSet["optional"] == nil && dependency == nil {
-			err = skyerr.NewError(skyerr.InvalidArgument, `Dependency "`+dependencyName+`" is nil, but does not mark as optional`)
+			err = errors.New(`dependency "` + dependencyName + `" is nil, but does not mark as optional`)
 			return
 		}
 

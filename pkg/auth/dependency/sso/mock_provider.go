@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type MockSSOProvider struct {
@@ -17,8 +17,7 @@ type MockSSOProvider struct {
 
 func (f *MockSSOProvider) GetAuthURL(params GetURLParams) (string, error) {
 	if f.ProviderConfig.ClientID == "" {
-		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
-		return "", skyErr
+		return "", errors.New("must provide ClientID")
 	}
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,

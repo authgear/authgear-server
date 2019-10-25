@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -127,8 +126,7 @@ func TestInjectDependency(t *testing.T) {
 
 			target := targetStruct{}
 			err := DefaultRequestInject(&target, dmap{}, req)
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(err, ShouldBeError)
 		})
 	})
 }

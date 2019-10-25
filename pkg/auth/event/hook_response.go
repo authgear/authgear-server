@@ -1,6 +1,6 @@
 package event
 
-import "github.com/skygeario/skygear-server/pkg/core/skyerr"
+import skyerr "github.com/skygeario/skygear-server/pkg/core/xskyerr"
 
 /*
 	@ID HookResponse
@@ -48,16 +48,17 @@ type HookResponse struct {
 }
 
 func (resp HookResponse) Validate() error {
+	// TODO(error): JSON schema
 	if resp.IsAllowed {
 		if resp.Reason != "" {
-			return skyerr.NewInvalidArgument("reason must not exist", []string{"reason"})
+			return skyerr.NewInvalid("reason must not exist")
 		}
 	} else {
 		if resp.Mutations != nil {
-			return skyerr.NewInvalidArgument("mutations must not exist", []string{"mutations"})
+			return skyerr.NewInvalid("mutations must not exist")
 		}
 		if resp.Reason == "" {
-			return skyerr.NewInvalidArgument("reason must be provided", []string{"mutations"})
+			return skyerr.NewInvalid("reason must be provided")
 		}
 	}
 	return nil

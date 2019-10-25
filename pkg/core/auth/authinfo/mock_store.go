@@ -1,7 +1,7 @@
 package authinfo
 
 import (
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 // MockStore is the memory implementation of authinfo store
@@ -33,7 +33,7 @@ func NewMockStoreWithAuthInfoMap(authInfoMap map[string]AuthInfo) *MockStore {
 // CreateAuth creates AuthInfo in AuthInfoMap.
 func (s *MockStore) CreateAuth(authinfo *AuthInfo) error {
 	if _, existed := s.AuthInfoMap[authinfo.ID]; existed {
-		return skydb.ErrUserDuplicated
+		return errors.New("dupliated auth info")
 	}
 	s.AuthInfoMap[authinfo.ID] = *authinfo
 	return nil

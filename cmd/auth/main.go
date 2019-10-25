@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -31,7 +30,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type configuration struct {
@@ -120,14 +118,6 @@ func main() {
 		}
 		tenantConfig, err := config.NewTenantConfigurationFromYAML(reader)
 		if err != nil {
-			if skyError, ok := err.(skyerr.Error); ok {
-				info := skyError.Info()
-				if arguments, ok := info["arguments"].([]string); ok {
-					for _, a := range arguments {
-						fmt.Fprintf(os.Stderr, "%v\n", a)
-					}
-				}
-			}
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
