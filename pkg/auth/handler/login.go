@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -15,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -210,20 +212,23 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 }
 
 func (h LoginHandler) getPrincipal(pwd string, loginIDKey string, loginID string, realm string) (*password.Principal, error) {
-	var principal password.Principal
-	err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(loginIDKey, loginID, realm, &principal)
+	var p password.Principal
+	err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(loginIDKey, loginID, realm, &p)
 	if err != nil {
-		return nil, password.ErrInvalidCredentials
+		if errors.Is(err, principal.ErrNotFound) {
+			err = password.ErrInvalidCredentials
+		}
+		return nil, err
 	}
 
-	if err = principal.VerifyPassword(pwd); err != nil {
+	if err = p.VerifyPassword(pwd); err != nil {
 		return nil, err
 	}
 
 	// ignore non-critical error
-	if err := h.PasswordAuthProvider.MigratePassword(&principal, pwd); err != nil {
+	if err := h.PasswordAuthProvider.MigratePassword(&p, pwd); err != nil {
 		h.Logger.WithError(err).Error("Failed to migrate password")
 	}
 
-	return &principal, nil
+	return &p, nil
 }
