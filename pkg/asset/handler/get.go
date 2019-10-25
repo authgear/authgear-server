@@ -40,6 +40,13 @@ func (f *GetHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	return h
 }
 
+/*
+	@Operation GET /get/{asset_name} - Retrieve the asset
+		Retrieve the asset.
+
+		@Response 200
+			The asset.
+*/
 type GetHandler struct {
 	CloudStorageProvider cloudstorage.Provider `dependency:"CloudStorageProvider"`
 }

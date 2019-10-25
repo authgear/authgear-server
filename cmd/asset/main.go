@@ -42,7 +42,6 @@ import (
 		Can be used as access key as well.
 	@SecuritySchemeHTTP access_token Bearer token
 		Access token of user
-	@SecurityRequirement access_key
 */
 func main() {
 	vips.Startup(nil)

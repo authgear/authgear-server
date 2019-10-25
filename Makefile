@@ -140,6 +140,10 @@ release-commit:
 preview-doc-auth:
 	./scripts/preview-doc.sh auth
 
+.PHONY: preview-doc-asset
+preview-doc-asset:
+	./scripts/preview-doc.sh asset
+
 .PHONY: generate-doc-auth
 generate-doc-auth:
 	@openapi3-gen -output "$(DOC_PATH)" ./cmd/auth/... ./pkg/auth/...

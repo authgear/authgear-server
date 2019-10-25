@@ -34,6 +34,49 @@ func (f *PresignUploadHandlerFactory) NewHandler(request *http.Request) http.Han
 	return h.RequireAuthz(h, h)
 }
 
+// @JSONSchema
+const PresignUploadResponseSchema = `
+{
+	"$id": "#PresignUploadResponse",
+	"type": "object",
+	"properties": {
+		"result": {
+			"type": "object",
+			"properties": {
+				"asset_name": { "type": "string" },
+				"url": { "type": "string" },
+				"method": { "type": "string" },
+				"headers": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": { "type": "string" },
+							"value": { "type": "string" }
+						},
+						"required": ["name", "value"]
+					}
+				}
+			},
+			"required": ["asset_name", "url", "method", "headers"]
+		}
+	}
+}
+`
+
+/*
+	@Operation POST /presign_upload - Presign an upload request.
+		Presign an upload request.
+
+		@SecurityRequirement access_key
+		@SecurityRequirement access_token
+
+		@RequestBody
+			@JSONSchema {PresignUploadRequest}
+
+		@Response 200
+			@JSONSchema {PresignUploadResponse}
+*/
 type PresignUploadHandler struct {
 	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
 	CloudStorageProvider cloudstorage.Provider `dependency:"CloudStorageProvider"`

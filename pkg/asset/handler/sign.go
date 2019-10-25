@@ -37,6 +37,53 @@ func (f *SignHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	return h.RequireAuthz(h, h)
 }
 
+// @JSONSchema
+const SignAssetResponseSchema = `
+{
+	"$id": "#SignAssetResponse",
+	"type": "object",
+	"properties": {
+		"result": {
+			"type": "object",
+			"properties": {
+				"assets": {
+					"type": "array",
+					"items": { "$ref": "#SignAssetItem" }
+				}
+			},
+			"required": ["assets"]
+		}
+	}
+}
+`
+
+// @JSONSchema
+const SignAssetItemSchema = `
+{
+	"$id": "#SignAssetItem",
+	"type": "object",
+	"properties": {
+		"asset_name": { "type": "string" },
+		"url": { "type": "string" }
+	},
+	"required": ["asset_name", "url"]
+}
+`
+
+/*
+	@Operation POST /get_signed_url - Get signed URL
+		Get signed URL of private assets.
+
+		@SecurityRequirement master_key
+
+		@RequestBody
+			A list of asset names to be signed.
+			@JSONSchema {SignAssetRequest}
+
+		@Response 200
+			A list of signed asset urls.
+			@JSONSchema {SignAssetResponse}
+*/
 type SignHandler struct {
 	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
 	CloudStorageProvider cloudstorage.Provider `dependency:"CloudStorageProvider"`
@@ -52,7 +99,7 @@ func (h *SignHandler) ProvideAuthzPolicy() authz.Policy {
 // @JSONSchema
 const SignRequestSchema = `
 {
-	"$id": "#SignRequest",
+	"$id": "#SignAssetRequest",
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
@@ -87,7 +134,7 @@ func (h *SignHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SignHandler) ParseSignRequest(r io.Reader, p interface{}) error {
-	return h.Validator.ParseReader("#SignRequest", r, p)
+	return h.Validator.ParseReader("#SignAssetRequest", r, p)
 }
 
 func (h *SignHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {

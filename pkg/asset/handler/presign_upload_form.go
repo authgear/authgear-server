@@ -34,6 +34,45 @@ func (f *PresignUploadFormHandlerFactory) NewHandler(request *http.Request) http
 	return h.RequireAuthz(h, h)
 }
 
+// @JSONSchema
+const PresignUploadFormRequestSchema = `
+{
+	"$id": "#PresignUploadFormRequest",
+	"type": "object",
+	"additionalProperties": false
+}
+`
+
+// @JSONSchema
+const PresignUploadFormResponse = `
+{
+	"$id": "#PresignUploadFormResponse",
+	"type": "object",
+	"properties": {
+		"result": {
+			"type": "object",
+			"properties": {
+				"url": { "type": "string" }
+			},
+			"required": ["url"]
+		}
+	}
+}
+`
+
+/*
+	@Operation POST /presign_upload_form - Presign an upload form request.
+		Presign an upload form request.
+
+		@SecurityRequirement access_key
+		@SecurityRequirement access_token
+
+		@RequestBody
+			@JSONSchema {PresignUploadFormRequest}
+
+		@Response 200
+			@JSONSchema {PresignUploadFormResponse}
+*/
 type PresignUploadFormHandler struct {
 	RequireAuthz    handler.RequireAuthz `dependency:"RequireAuthz"`
 	PresignProvider presign.Provider     `dependency:"PresignProvider"`

@@ -32,6 +32,72 @@ func (f *ListHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	return h.RequireAuthz(h, h)
 }
 
+// @JSONSchema
+const ListAssetResponseSchema = `
+{
+	"$id": "#ListAssetResponse",
+	"type": "object",
+	"properties": {
+		"result": {
+			"type": "object",
+			"properties": {
+				"pagination_token": { "type": "string" },
+				"assets": {
+					"type": "array",
+					"items": { "$ref": "#ListAssetItem" }
+				}
+			},
+			"required": ["assets"]
+		}
+	}
+}
+`
+
+// @JSONSchema
+const ListAssetItemSchema = `
+{
+	"$id": "#ListAssetItem",
+	"type": "object",
+	"properties": {
+		"asset_name": { "type": "string" },
+		"size": { "type": "integer" }
+	},
+	"required": ["asset_name", "size"]
+}
+`
+
+// nolint: deadcode
+/*
+	@ID ListAssetPaginationToken
+	@Parameter pagination_token query
+		The opaque pagination token.
+		@JSONSchema
+			{ "type": "string" }
+*/
+type listAssetPaginationToken string
+
+// nolint: deadcode
+/*
+	@ID ListAssetPrefix
+	@Parameter prefix query
+		List on asset with the given prefix.
+		@JSONSchema
+			{ "type": "string" }
+*/
+type listAssetPrefix string
+
+/*
+	@Operation GET /assets - List assets.
+		List assets.
+
+		@SecurityRequirement master_key
+
+		@Parameter {ListAssetPaginationToken}
+		@Parameter {ListAssetPrefix}
+
+		@Response 200
+			@JSONSchema {ListAssetResponse}
+*/
 type ListHandler struct {
 	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
 	CloudStorageProvider cloudstorage.Provider `dependency:"CloudStorageProvider"`

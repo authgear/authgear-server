@@ -34,6 +34,14 @@ func (f *DeleteHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	return h.RequireAuthz(h, h)
 }
 
+/*
+	@Operation DELETE /delete/{asset_name} - Delete the given asset.
+		Delete the given asset.
+
+		@SecurityRequirement master_key
+
+		@Response 200
+*/
 type DeleteHandler struct {
 	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
 	CloudStorageProvider cloudstorage.Provider `dependency:"CloudStorageProvider"`
