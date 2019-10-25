@@ -63,6 +63,7 @@ type CreateTOTPResponse struct {
 	AuthenticatorType string `json:"authenticator_type"`
 	Secret            string `json:"secret"`
 	OTPAuthURI        string `json:"otpauth_uri"`
+	QRCodeImageURI    string `json:"qr_code_image_uri"`
 }
 
 // @JSONSchema
@@ -92,7 +93,8 @@ const CreateTOTPResponseSchema = `
 				"authenticator_id": { "type": "string" },
 				"authenticator_type": { "type": "string" },
 				"secret": { "type": "string" },
-				"otpauth_uri": { "type": "string" }
+				"otpauth_uri": { "type": "string" },
+				"qr_code_image_uri": { "type": "string" }
 			}
 		}
 	}
@@ -145,11 +147,16 @@ func (h *CreateTOTPHandler) Handle(req interface{}) (resp interface{}, err error
 		return
 	}
 	keyURI := mfa.NewKeyURI(payload.Issuer, payload.AccountName, a.Secret)
+	qrCodeImageURI, err := keyURI.QRCodeDataURI()
+	if err != nil {
+		return
+	}
 	resp = CreateTOTPResponse{
 		AuthenticatorID:   a.ID,
 		AuthenticatorType: string(a.Type),
 		Secret:            a.Secret,
 		OTPAuthURI:        keyURI.String(),
+		QRCodeImageURI:    qrCodeImageURI,
 	}
 	return
 }
