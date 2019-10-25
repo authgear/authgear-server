@@ -1,12 +1,18 @@
 package mfa
 
 import (
+	"bytes"
 	"encoding/base32"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"image/png"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/boombuler/barcode"
+	"github.com/boombuler/barcode/qr"
 )
 
 var (
@@ -86,6 +92,36 @@ func (u *KeyURI) String() string {
 		buf.WriteString(url.QueryEscape(u.Issuer))
 	}
 	return fmt.Sprintf("otpauth://totp/%s?%s", path, buf.String())
+}
+
+func (u *KeyURI) QRCodeDataURI() (string, error) {
+	img, err := qr.Encode(u.String(), qr.M, qr.Auto)
+	if err != nil {
+		return "", err
+	}
+
+	img, err = barcode.Scale(img, 512, 512)
+	if err != nil {
+		return "", err
+	}
+
+	buf := &bytes.Buffer{}
+	err = png.Encode(buf, img)
+	if err != nil {
+		return "", err
+	}
+
+	dataURIBuf := &bytes.Buffer{}
+	dataURIBuf.WriteString("data:image/png;base64,")
+
+	encoder := base64.NewEncoder(base64.StdEncoding, dataURIBuf)
+	_, err = encoder.Write(buf.Bytes())
+	if err != nil {
+		return "", err
+	}
+	encoder.Close()
+
+	return dataURIBuf.String(), nil
 }
 
 // ParseKeyURI parses s into KeyURI.
