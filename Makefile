@@ -147,3 +147,7 @@ preview-doc-asset:
 .PHONY: generate-doc-auth
 generate-doc-auth:
 	@openapi3-gen -output "$(DOC_PATH)" ./cmd/auth/... ./pkg/auth/...
+
+.PHONY: generate-doc-asset
+generate-doc-asset:
+	@openapi3-gen -output "$(DOC_PATH)" ./cmd/asset/... ./pkg/asset/...
