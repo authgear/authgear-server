@@ -2,6 +2,7 @@ package presign
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/http/httpsigning"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
@@ -12,10 +13,6 @@ type providerImpl struct {
 	timeProvider coreTime.Provider
 }
 
-const (
-	expires = 15 * 60
-)
-
 func NewProvider(secret string, timeProvider coreTime.Provider) Provider {
 	return &providerImpl{
 		secret:       []byte(secret),
@@ -23,8 +20,8 @@ func NewProvider(secret string, timeProvider coreTime.Provider) Provider {
 	}
 }
 
-func (p *providerImpl) Presign(r *http.Request) {
-	httpsigning.Sign(p.secret, r, p.timeProvider.NowUTC(), expires)
+func (p *providerImpl) Presign(r *http.Request, expires time.Duration) {
+	httpsigning.Sign(p.secret, r, p.timeProvider.NowUTC(), int(expires.Seconds()))
 }
 
 func (p *providerImpl) Verify(r *http.Request) error {
