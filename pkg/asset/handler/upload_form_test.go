@@ -2,10 +2,9 @@ package handler
 
 import (
 	"bytes"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	// "net/url"
-	"mime/multipart"
 	"testing"
 
 	"github.com/h2non/gock"
