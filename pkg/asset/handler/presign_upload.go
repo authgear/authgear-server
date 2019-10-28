@@ -103,7 +103,7 @@ const PresignUploadRequestSchema = `
 	"properties": {
 		"prefix": {
 			"type": "string",
-			"pattern": "^[^\\x00\\\\/:*'<>|]*$"
+			"pattern": "^[-_.a-zA-Z0-9]*$"
 		},
 		"access": { "type": "string", "enum": ["public", "private"] },
 		"headers": {

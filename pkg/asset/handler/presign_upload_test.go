@@ -65,12 +65,13 @@ func TestPresignUploadHandler(t *testing.T) {
 
 			So(w.Code, ShouldEqual, 400)
 			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":107,"info":{"arguments":["#/prefix: Does not match pattern '^[^\\x00\\\\/:*'\u003c\u003e|]*$'"],"causes":[{"message":"Does not match pattern '^[^\\x00\\\\/:*'\u003c\u003e|]*$'","pointer":"#/prefix"}]},"message":"Validation Error","name":"InvalidArgument"}}
+{"error":{"code":107,"info":{"arguments":["#/prefix: Does not match pattern '^[-_.a-zA-Z0-9]*$'"],"causes":[{"message":"Does not match pattern '^[-_.a-zA-Z0-9]*$'","pointer":"#/prefix"}]},"message":"Validation Error","name":"InvalidArgument"}}
 			`)
 		})
 
 		Convey("success", func() {
 			requestBody := []byte(`{
+				"prefix": "-_.azAZ09",
 				"headers": {
 					"content-length": "123"
 				}
