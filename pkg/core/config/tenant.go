@@ -179,6 +179,8 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 
 // nolint: gocyclo
 func (c *TenantConfiguration) Validate() error {
+	// TODO(error): return validation error using WithDetails
+
 	if c.Version != "1" {
 		return errors.New("Only version 1 is supported")
 	}

@@ -86,6 +86,9 @@ func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Han
 	})
 }
 
+// HandledError represents a handled (i.e. API responded with error) unexpected
+// error. When encountered this error, panic recovery middleware should log
+// the error, without changing the response.
 type HandledError struct {
 	Error error
 }
