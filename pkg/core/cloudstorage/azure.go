@@ -54,7 +54,7 @@ var AzureStandardToProprietaryMap = map[string]string{
 
 func (s *AzureStorage) PresignPutObject(name string, accessType AccessType, header http.Header) (*http.Request, error) {
 	now := time.Now().UTC()
-	u, err := s.SignedURL(name, now, azblob.BlobSASPermissions{
+	u, err := s.SignedURL(name, now, PresignPutExpires, azblob.BlobSASPermissions{
 		Create: true,
 		Write:  true,
 	})
@@ -77,7 +77,7 @@ func (s *AzureStorage) PresignPutObject(name string, accessType AccessType, head
 
 func (s *AzureStorage) PresignGetObject(name string) (*url.URL, error) {
 	now := time.Now().UTC()
-	return s.SignedURL(name, now, azblob.BlobSASPermissions{
+	return s.SignedURL(name, now, PresignGetExpires, azblob.BlobSASPermissions{
 		Read: true,
 	})
 }
@@ -212,12 +212,12 @@ func (s *AzureStorage) AccessType(header http.Header) AccessType {
 	}
 }
 
-func (s *AzureStorage) SignedURL(name string, now time.Time, perm azblob.BlobSASPermissions) (*url.URL, error) {
+func (s *AzureStorage) SignedURL(name string, now time.Time, duration time.Duration, perm azblob.BlobSASPermissions) (*url.URL, error) {
 	sigValues := azblob.BlobSASSignatureValues{
 		Version:       "2018-11-09",
 		Protocol:      azblob.SASProtocolHTTPS,
 		StartTime:     now,
-		ExpiryTime:    now.Add(1 * time.Hour),
+		ExpiryTime:    now.Add(duration),
 		Permissions:   perm.String(),
 		ContainerName: s.Container,
 		BlobName:      name,

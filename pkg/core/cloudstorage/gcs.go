@@ -113,7 +113,7 @@ func (s *GCSStorage) PresignPutObject(name string, accessType AccessType, header
 		headerNames = append(headerNames, name)
 	}
 
-	expires := now.Add(1 * time.Hour)
+	expires := now.Add(PresignPutExpires)
 	opts := storage.SignedURLOptions{
 		GoogleAccessID: s.ServiceAccount,
 		PrivateKey:     s.privateKey,
@@ -149,7 +149,7 @@ func (s *GCSStorage) PresignGetOrHeadObject(name string, method string) (*url.UR
 	}
 
 	now := time.Now().UTC()
-	expires := now.Add(1 * time.Hour)
+	expires := now.Add(PresignGetExpires)
 
 	opts := storage.SignedURLOptions{
 		GoogleAccessID: s.ServiceAccount,

@@ -111,7 +111,7 @@ func (s *S3Storage) PresignPutObject(name string, accessType AccessType, header 
 
 	req, _ := s.s3.PutObjectRequest(input)
 	req.NotHoist = true
-	urlStr, _, err := req.PresignRequest(1 * time.Hour)
+	urlStr, _, err := req.PresignRequest(PresignPutExpires)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (s *S3Storage) PresignGetObject(name string) (*url.URL, error) {
 	}
 	req, _ := s.s3.GetObjectRequest(input)
 	req.NotHoist = false
-	urlStr, _, err := req.PresignRequest(1 * time.Hour)
+	urlStr, _, err := req.PresignRequest(PresignGetExpires)
 	if err != nil {
 		return nil, err
 	}

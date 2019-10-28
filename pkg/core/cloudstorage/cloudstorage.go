@@ -5,6 +5,7 @@ import (
 	"net/textproto"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // AccessType is either public or private.
@@ -19,6 +20,12 @@ const (
 
 // AccessTypeDefault is public.
 const AccessTypeDefault = AccessTypePublic
+
+// PresignPutExpires is how long the presign PUT request remains valid.
+const PresignPutExpires time.Duration = 15 * time.Minute
+
+// PresignGetExpires is how long the presign GET request remains valid.
+const PresignGetExpires time.Duration = 1 * time.Hour
 
 // Storage is abstraction over various cloud storage providers.
 type Storage interface {
