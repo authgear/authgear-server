@@ -1,11 +1,18 @@
 package mfa
 
 import (
+	"bytes"
 	"encoding/base32"
+	"encoding/base64"
 	"errors"
+	"fmt"
+	"image/png"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/boombuler/barcode"
+	"github.com/boombuler/barcode/qr"
 )
 
 var (
@@ -53,8 +60,64 @@ type KeyURI struct {
 	Period      int
 }
 
-func (u *KeyURI) IsGoogleAuthenticatorCompatible() bool {
-	return u.Type == KeyURITypeTOTP && u.Algorithm == KeyURIAlgorithmSHA1 && u.Digits == 6 && u.Period == 30
+func NewKeyURI(issuer, accountName, secret string) *KeyURI {
+	return &KeyURI{
+		Type:        KeyURITypeTOTP,
+		Issuer:      issuer,
+		AccountName: accountName,
+		Secret:      secret,
+		Algorithm:   KeyURIAlgorithmSHA1,
+		Digits:      6,
+		Counter:     "",
+		Period:      30,
+	}
+}
+
+func (u *KeyURI) String() string {
+	var path string
+	if u.Issuer == "" {
+		path = fmt.Sprintf("%s", url.PathEscape(u.AccountName))
+	} else {
+		path = fmt.Sprintf("%s:%s", url.PathEscape(u.Issuer), url.PathEscape(u.AccountName))
+	}
+	buf := &strings.Builder{}
+	buf.WriteString("secret=")
+	buf.WriteString(url.QueryEscape(u.Secret))
+	if u.Issuer != "" {
+		buf.WriteString("&issuer=")
+		buf.WriteString(url.QueryEscape(u.Issuer))
+	}
+	return fmt.Sprintf("otpauth://totp/%s?%s", path, buf.String())
+}
+
+func (u *KeyURI) QRCodeDataURI() (string, error) {
+	img, err := qr.Encode(u.String(), qr.M, qr.Auto)
+	if err != nil {
+		return "", err
+	}
+
+	img, err = barcode.Scale(img, 512, 512)
+	if err != nil {
+		return "", err
+	}
+
+	buf := &bytes.Buffer{}
+	err = png.Encode(buf, img)
+	if err != nil {
+		return "", err
+	}
+
+	dataURIBuf := &bytes.Buffer{}
+	dataURIBuf.WriteString("data:image/png;base64,")
+
+	encoder := base64.NewEncoder(base64.StdEncoding, dataURIBuf)
+	_, err = encoder.Write(buf.Bytes())
+	if err != nil {
+		return "", err
+	}
+	encoder.Close()
+
+	return dataURIBuf.String(), nil
 }
 
 // ParseKeyURI parses s into KeyURI.

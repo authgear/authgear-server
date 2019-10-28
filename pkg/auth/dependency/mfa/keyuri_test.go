@@ -6,20 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestParseKeyURI(t *testing.T) {
-	Convey("IsGoogleAuthenticatorCompatible", t, func() {
-		keyURI := KeyURI{
-			Type:        KeyURITypeTOTP,
-			Issuer:      "",
-			AccountName: "",
-			Secret:      "JBSWY3DPEHPK3PXP",
-			Algorithm:   KeyURIAlgorithmSHA1,
-			Digits:      6,
-			Counter:     "",
-			Period:      30,
-		}
-		So(keyURI.IsGoogleAuthenticatorCompatible(), ShouldBeTrue)
-	})
+func TestKeyURI(t *testing.T) {
 	Convey("ParseKeyURI", t, func() {
 		Convey("minimal totp", func() {
 			actual, err := ParseKeyURI("otpauth://totp/?secret=JBSWY3DPEHPK3PXP")
@@ -66,5 +53,21 @@ func TestParseKeyURI(t *testing.T) {
 			}
 			So(*actual, ShouldResemble, expected)
 		})
+	})
+	Convey("String", t, func() {
+		i := "otpauth://totp/?secret=JBSWY3DPEHPK3PXP"
+		u, err := ParseKeyURI(i)
+		So(err, ShouldBeNil)
+		So(u.String(), ShouldEqual, i)
+
+		i = "otpauth://totp/%2Fjohndoe%2F?secret=JBSWY3DPEHPK3PXP"
+		u, err = ParseKeyURI(i)
+		So(err, ShouldBeNil)
+		So(u.String(), ShouldEqual, i)
+
+		i = "otpauth://totp/service:%2Fjohndoe%2F?secret=JBSWY3DPEHPK3PXP&issuer=service"
+		u, err = ParseKeyURI(i)
+		So(err, ShouldBeNil)
+		So(u.String(), ShouldEqual, i)
 	})
 }

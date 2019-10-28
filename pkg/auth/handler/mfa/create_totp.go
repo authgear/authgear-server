@@ -47,6 +47,8 @@ func (h *CreateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
 type CreateTOTPRequest struct {
 	AuthnSessionToken string `json:"authn_session_token"`
 	DisplayName       string `json:"display_name"`
+	AccountName       string `json:"account_name"`
+	Issuer            string `json:"issuer"`
 }
 
 func (r CreateTOTPRequest) Validate() error {
@@ -60,6 +62,8 @@ type CreateTOTPResponse struct {
 	AuthenticatorID   string `json:"authenticator_id"`
 	AuthenticatorType string `json:"authenticator_type"`
 	Secret            string `json:"secret"`
+	OTPAuthURI        string `json:"otpauth_uri"`
+	QRCodeImageURI    string `json:"qr_code_image_uri"`
 }
 
 // @JSONSchema
@@ -69,6 +73,8 @@ const CreateTOTPRequestSchema = `
 	"type": "object",
 	"properties": {
 		"display_name": { "type": "string" },
+		"account_name": { "type": "string" },
+		"issuer": { "type": "string" },
 		"authn_session_token": { "type": "string" }
 	},
 	"required": ["display_name"]
@@ -86,7 +92,9 @@ const CreateTOTPResponseSchema = `
 			"properties": {
 				"authenticator_id": { "type": "string" },
 				"authenticator_type": { "type": "string" },
-				"secret": { "type": "string" }
+				"secret": { "type": "string" },
+				"otpauth_uri": { "type": "string" },
+				"qr_code_image_uri": { "type": "string" }
 			}
 		}
 	}
@@ -138,10 +146,17 @@ func (h *CreateTOTPHandler) Handle(req interface{}) (resp interface{}, err error
 	if err != nil {
 		return
 	}
+	keyURI := mfa.NewKeyURI(payload.Issuer, payload.AccountName, a.Secret)
+	qrCodeImageURI, err := keyURI.QRCodeDataURI()
+	if err != nil {
+		return
+	}
 	resp = CreateTOTPResponse{
 		AuthenticatorID:   a.ID,
 		AuthenticatorType: string(a.Type),
 		Secret:            a.Secret,
+		OTPAuthURI:        keyURI.String(),
+		QRCodeImageURI:    qrCodeImageURI,
 	}
 	return
 }
