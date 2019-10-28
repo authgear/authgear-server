@@ -33,7 +33,7 @@ func NewMockStoreWithAuthInfoMap(authInfoMap map[string]AuthInfo) *MockStore {
 // CreateAuth creates AuthInfo in AuthInfoMap.
 func (s *MockStore) CreateAuth(authinfo *AuthInfo) error {
 	if _, existed := s.AuthInfoMap[authinfo.ID]; existed {
-		return errors.New("dupliated auth info")
+		return errors.New("duplicated auth info")
 	}
 	s.AuthInfoMap[authinfo.ID] = *authinfo
 	return nil

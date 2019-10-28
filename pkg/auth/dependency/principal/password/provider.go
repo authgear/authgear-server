@@ -116,6 +116,7 @@ func (p *providerImpl) CreatePrincipalsByLoginID(authInfoID string, password str
 	for _, loginID := range loginIDs {
 		loginIDPrincipals, principalErr := p.GetPrincipalsByLoginID("", loginID.Value)
 		if principalErr != nil && principalErr != principal.ErrNotFound {
+			err = principalErr
 			return
 		}
 		for _, principal := range loginIDPrincipals {

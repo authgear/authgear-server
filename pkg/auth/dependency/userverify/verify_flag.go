@@ -50,7 +50,7 @@ func IsUserVerified(
 		verified = false
 
 	default:
-		panic("userverify: unexpected verify criteria :" + criteria)
+		panic("userverify: unexpected verify criteria: " + criteria)
 	}
 	return
 }

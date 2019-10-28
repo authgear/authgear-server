@@ -115,7 +115,7 @@ func (p *providerImpl) AuthenticateBearerToken(userID string, token string) (*Be
 func (p *providerImpl) ListAuthenticators(userID string) ([]Authenticator, error) {
 	authenticators, err := p.store.ListAuthenticators(userID)
 	if err != nil {
-		return nil, errors.HandledWithMessage(err, "failed to list expired bearer tokens")
+		return nil, errors.HandledWithMessage(err, "failed to list authenticators")
 	}
 	return MaskAuthenticators(authenticators), nil
 }

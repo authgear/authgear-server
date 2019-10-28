@@ -68,7 +68,7 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	loginID := taskParam.LoginID
 	userID := taskParam.UserID
 
-	v.Logger.WithFields(logrus.Fields{"user_id": taskParam.UserID}).Debug("Sending verification email")
+	v.Logger.WithFields(logrus.Fields{"user_id": taskParam.UserID}).Debug("Sending verification code")
 
 	authInfo := authinfo.AuthInfo{}
 	err = v.AuthInfoStore.GetAuth(userID, &authInfo)
