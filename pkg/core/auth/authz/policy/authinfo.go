@@ -10,7 +10,7 @@ import (
 func RequireAuthenticated(r *http.Request, ctx auth.ContextGetter) error {
 	authInfo, _ := ctx.AuthInfo()
 	if authInfo == nil {
-		return authz.NewNotAuthenticatedError()
+		return authz.ErrNotAuthenticated
 	}
 
 	return nil

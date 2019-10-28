@@ -10,7 +10,7 @@ import (
 func DenyInvalidSession(r *http.Request, ctx auth.ContextGetter) error {
 	_, err := ctx.Session()
 	if err != nil {
-		return authz.NewNotAuthenticatedError()
+		return authz.ErrNotAuthenticated
 	}
 	// ignore any other error
 	return nil

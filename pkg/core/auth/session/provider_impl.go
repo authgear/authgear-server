@@ -102,7 +102,7 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 
 	s, err := p.store.Get(id)
 	if err != nil {
-		if err != ErrSessionNotFound {
+		if !errors.Is(err, ErrSessionNotFound) {
 			err = errors.HandledWithMessage(err, "failed to get session")
 		}
 		return nil, err
@@ -148,7 +148,7 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 func (p *providerImpl) Get(id string) (*auth.Session, error) {
 	session, err := p.store.Get(id)
 	if err != nil {
-		if err != ErrSessionNotFound {
+		if !errors.Is(err, ErrSessionNotFound) {
 			err = errors.HandledWithMessage(err, "failed to get session")
 		}
 		return nil, err

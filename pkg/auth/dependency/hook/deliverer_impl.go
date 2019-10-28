@@ -64,7 +64,7 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(baseURL *url.URL, e *event.Ev
 		}
 
 		if deliverer.TimeProvider.Now().Sub(startTime) > totalTimeout {
-			return newErrorDeliveryTimeout()
+			return errDeliveryTimeout
 		}
 
 		request, err := deliverer.prepareRequest(baseURL, hook, e)
@@ -160,7 +160,7 @@ func performRequest(client gohttp.Client, request *gohttp.Request, withResponse 
 	var resp *gohttp.Response
 	resp, err = client.Do(request)
 	if reqError, ok := err.(net.Error); ok && reqError.Timeout() {
-		err = newErrorDeliveryTimeout()
+		err = errDeliveryTimeout
 		return
 	} else if err != nil {
 		err = newErrorDeliveryFailed(err)
@@ -175,7 +175,7 @@ func performRequest(client gohttp.Client, request *gohttp.Request, withResponse 
 	}()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		err = newErrorDeliveryInvalidStatusCode()
+		err = errDeliveryInvalidStatusCode
 		return
 	}
 

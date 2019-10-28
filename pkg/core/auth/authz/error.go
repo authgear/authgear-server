@@ -10,6 +10,4 @@ var (
 	UserDisabled         = skyerr.Forbidden.WithReason("UserDisabled")
 )
 
-func NewNotAuthenticatedError() error {
-	return NotAuthenticated.New("authentication required")
-}
+var ErrNotAuthenticated = NotAuthenticated.New("authentication required")

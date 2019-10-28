@@ -304,7 +304,7 @@ func (p *providerImpl) Resolve(authContext auth.ContextGetter, authnSessionToken
 	}
 
 	if authnSessionToken == "" {
-		err = authz.NewNotAuthenticatedError()
+		err = authz.ErrNotAuthenticated
 		return
 	}
 
@@ -332,7 +332,7 @@ func (p *providerImpl) Resolve(authContext auth.ContextGetter, authnSessionToken
 				return
 			}
 			if len(authenticators) > 0 {
-				err = authz.NewNotAuthenticatedError()
+				err = authz.ErrNotAuthenticated
 				return
 			}
 			userID = authnSession.UserID

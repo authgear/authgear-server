@@ -7,16 +7,11 @@ import (
 
 var WebHookDisallowed = skyerr.Forbidden.WithReason("WebHookDisallowed")
 
-func newErrorDeliveryTimeout() error {
-	return errors.New("web-hook event delivery timed out")
-}
+var errDeliveryTimeout = errors.New("web-hook event delivery timed out")
+var errDeliveryInvalidStatusCode = errors.New("invalid status code")
 
 func newErrorDeliveryFailed(inner error) error {
 	return errors.Newf("web-hook event delivery failed: %w", inner)
-}
-
-func newErrorDeliveryInvalidStatusCode() error {
-	return errors.New("invalid status code")
 }
 
 type OperationDisallowedItem struct {

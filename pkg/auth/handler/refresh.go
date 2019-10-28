@@ -134,7 +134,7 @@ func (h RefreshHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		s, err := h.SessionProvider.GetByToken(payload.RefreshToken, coreAuth.SessionTokenKindRefreshToken)
 		if err != nil {
 			if errors.Is(err, session.ErrSessionNotFound) {
-				err = authz.NewNotAuthenticatedError()
+				err = authz.ErrNotAuthenticated
 			}
 			return
 		}
