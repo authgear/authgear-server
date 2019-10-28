@@ -72,11 +72,14 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			req.URL.RawQuery = query.Encode()
 		}
 
-		// NOTE(louis): The err is ignored here because we have no way to return it.
+		// NOTE(louis): We use panic here because we have no way to return it.
 		// However, this function does not return error normally.
 		// The known condition that err could be returned is fail to sign
 		// which is a configuration problem.
-		u, signed, _ := h.CloudStorageProvider.RewriteGetURL(req.URL, assetName)
+		u, signed, err := h.CloudStorageProvider.RewriteGetURL(req.URL, assetName)
+		if err != nil {
+			panic(err)
+		}
 		originallySigned = signed
 
 		req.URL = u
