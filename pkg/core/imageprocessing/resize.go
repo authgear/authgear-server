@@ -178,12 +178,12 @@ func (o *Resize) Apply(ctx *OperationContext) error {
 			if contentWidth > targetWidth {
 				extractWidth = targetWidth
 				extractHeight = targetHeight
-				extractX = (contentWidth - targetWidth) >> 1
+				extractX = (contentWidth - targetWidth) / 2
 			}
 			if contentHeight > targetHeight {
 				extractWidth = targetWidth
 				extractHeight = targetHeight
-				extractY = (contentHeight - targetHeight) >> 1
+				extractY = (contentHeight - targetHeight) / 2
 			}
 			err := ctx.Image.ExtractArea(extractX, extractY, extractWidth, extractHeight)
 			if err != nil {
@@ -219,12 +219,12 @@ func (o *Resize) Apply(ctx *OperationContext) error {
 			if targetWidth > contentWidth {
 				embedW = targetWidth
 				embedH = contentHeight
-				embedX = (targetWidth - contentWidth) >> 1
+				embedX = (targetWidth - contentWidth) / 2
 			}
 			if targetHeight > contentHeight {
 				embedH = targetHeight
 				embedW = contentWidth
-				embedY = (targetHeight - contentHeight) >> 1
+				embedY = (targetHeight - contentHeight) / 2
 			}
 			// embed expects bands <= 3.
 			// So we must flatten the image first.
