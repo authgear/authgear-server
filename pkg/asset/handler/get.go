@@ -68,6 +68,8 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if hasPipeline {
 			req.Header.Del("Range")
 			req.Header.Del("If-Range")
+			query.Del(QueryNamePipeline)
+			req.URL.RawQuery = query.Encode()
 		}
 
 		// NOTE(louis): The err is ignored here because we have no way to return it.
