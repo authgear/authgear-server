@@ -5,9 +5,6 @@ import (
 )
 
 func ratio(x int, y int) float64 {
-	if x == y {
-		return 1
-	}
 	return float64(x) / float64(y)
 }
 
