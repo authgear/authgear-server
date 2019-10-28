@@ -91,6 +91,8 @@ func TestParse(t *testing.T) {
 
 				{"image/resize,color", "invalid color: "},
 				{"image/resize,color_G", "invalid color: G"},
+
+				{"image/resize,w_1/resize,w_1/resize,w_1/resize,w_1/resize,w_1/resize,w_1/resize,w_1/resize,w_1/resize,w_1/resize,w_1/resize,w_1", "query too long"},
 			}
 			for _, c := range cases {
 				_, err := Parse(c.Input)

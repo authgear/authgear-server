@@ -1,10 +1,18 @@
 package imageprocessing
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 )
+
+// MaximumNumberOfOperations is maximum number of operations.
+const MaximumNumberOfOperations = 10
+
+// ErrQueryTooLong happens when the number of operations
+// exceeds MaximumNumberOfOperations.
+var ErrQueryTooLong = errors.New("query too long")
 
 // Parse parses the query into a series of operations.
 func Parse(query string) ([]Operation, error) {
@@ -24,6 +32,10 @@ func Parse(query string) ([]Operation, error) {
 			return nil, err
 		}
 		ops = append(ops, op)
+	}
+
+	if len(ops) > MaximumNumberOfOperations {
+		return nil, ErrQueryTooLong
 	}
 
 	return ops, nil
