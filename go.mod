@@ -62,4 +62,6 @@ require (
 	gopkg.in/yaml.v2 v2.2.2
 )
 
+// The reason why we have to use a fork is to support background color in the embed() operation.
+// See https://github.com/SkygearIO/govips/commit/b7b5b9596467e8b6b5f11f2178c754df83e9a35c
 replace github.com/davidbyttow/govips => github.com/skygeario/govips v0.0.0-20191017114550-b7b5b9596467
