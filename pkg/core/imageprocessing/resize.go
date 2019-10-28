@@ -103,7 +103,7 @@ func (o *Resize) Apply(ctx *OperationContext) error {
 		}
 	}
 
-	// targetWidth and targetHeight are now not non-zero.
+	// targetWidth and targetHeight are now non-zero.
 	// But the aspect ratio may not be the same as the original one.
 
 	// w1 and h1 are in the same aspect ratio.
