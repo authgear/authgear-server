@@ -86,19 +86,13 @@ func (o *Resize) Apply(ctx *OperationContext) error {
 		if err != nil {
 			return err
 		}
-		// We need to crop the content image if needed.
-		if contentWidth > targetWidth || contentHeight > targetHeight {
-			var extractX, extractY, extractWidth, extractHeight int
-			if contentWidth > targetWidth {
-				extractWidth = targetWidth
-				extractHeight = targetHeight
-				extractX = (contentWidth - targetWidth) / 2
-			}
-			if contentHeight > targetHeight {
-				extractWidth = targetWidth
-				extractHeight = targetHeight
-				extractY = (contentHeight - targetHeight) / 2
-			}
+		extractX, extractY, extractWidth, extractHeight, needExtract := o.ResolveExtractArea(
+			targetWidth,
+			targetHeight,
+			contentWidth,
+			contentHeight,
+		)
+		if needExtract {
 			err := ctx.Image.ExtractArea(extractX, extractY, extractWidth, extractHeight)
 			if err != nil {
 				return err
@@ -276,6 +270,24 @@ func (o *Resize) ResolveMfit(originalWidth, originalHeight int) (scale float64, 
 		scale = ratio(w2, originalWidth)
 		contentWidth = w2
 		contentHeight = h2
+	}
+
+	return
+}
+
+func (o *Resize) ResolveExtractArea(targetWidth, targetHeight, contentWidth, contentHeight int) (extractX, extractY, extractWidth, extractHeight int, ok bool) {
+	if contentWidth > targetWidth || contentHeight > targetHeight {
+		ok = true
+		if contentWidth > targetWidth {
+			extractWidth = targetWidth
+			extractHeight = targetHeight
+			extractX = (contentWidth - targetWidth) / 2
+		}
+		if contentHeight > targetHeight {
+			extractWidth = targetWidth
+			extractHeight = targetHeight
+			extractY = (contentHeight - targetHeight) / 2
+		}
 	}
 
 	return

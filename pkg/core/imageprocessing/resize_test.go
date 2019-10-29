@@ -263,5 +263,45 @@ func TestResize(t *testing.T) {
 				So(contentHeight, ShouldBeGreaterThanOrEqualTo, c.Resize.Height)
 			}
 		})
+		Convey("ResolveExtractArea", func() {
+			r := Resize{}
+			cases := []struct {
+				TargetWidth   int
+				TargetHeight  int
+				ContentWidth  int
+				ContentHeight int
+				ExtractX      int
+				ExtractY      int
+				ExtractWidth  int
+				ExtractHeight int
+			}{
+				{
+					200, 200,
+					400, 200,
+					100, 0, 200, 200,
+				},
+				{
+					200, 200,
+					200, 400,
+					0, 100, 200, 200,
+				},
+			}
+			for _, c := range cases {
+				extractX, extractY, extractWidth, extractHeight, _ := r.ResolveExtractArea(
+					c.TargetWidth,
+					c.TargetHeight,
+					c.ContentWidth,
+					c.ContentHeight,
+				)
+				So(extractX, ShouldEqual, c.ExtractX)
+				So(extractY, ShouldEqual, c.ExtractY)
+				So(extractWidth, ShouldEqual, c.ExtractWidth)
+				So(extractHeight, ShouldEqual, c.ExtractHeight)
+				// Invariant: extractWidth == targetWidth and
+				// extractHeight == TargetHeight
+				So(extractWidth, ShouldEqual, c.TargetWidth)
+				So(extractHeight, ShouldEqual, c.TargetHeight)
+			}
+		})
 	})
 }
