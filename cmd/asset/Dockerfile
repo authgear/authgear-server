@@ -21,13 +21,16 @@ RUN cd cmd/asset; make build; mv skygear-asset /tmp/
 
 FROM alpine:3.10
 
+# Install mailcap to get /etc/mime.types
+# Golang uses that file to augment mime package.
+# See https://golang.org/pkg/mime/#TypeByExtension
 RUN apk add \
     --repository https://dl-3.alpinelinux.org/alpine/edge/testing \
     --repository https://dl-3.alpinelinux.org/alpine/edge/main \
     --repository https://dl-3.alpinelinux.org/alpine/edge/community \
     --update \
     --no-cache \
-    ca-certificates vips
+    ca-certificates mailcap vips
 
 COPY --from=godev /tmp/skygear-asset /
 RUN chmod a+x /skygear-asset
