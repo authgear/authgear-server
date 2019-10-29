@@ -31,8 +31,9 @@ func TestSignHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			So(w.Code, ShouldEqual, 400)
+			// TODO(error): validation
 			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":107,"info":{"arguments":["#: assets is required"],"causes":[{"message":"assets is required","pointer":"#"}]},"message":"Validation Error","name":"InvalidArgument"}}
+{"error":{"code":400,"message":"Validation Error","name":"Invalid","reason":"Invalid"}}
 			`)
 		})
 
@@ -51,8 +52,9 @@ func TestSignHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			So(w.Code, ShouldEqual, 400)
+			// TODO(error): validation
 			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":107,"info":{"arguments":["#/assets/0: asset_name is required","#/assets/1/asset_name: String length must be greater than or equal to 1"],"causes":[{"message":"asset_name is required","pointer":"#/assets/0"},{"message":"String length must be greater than or equal to 1","pointer":"#/assets/1/asset_name"}]},"message":"Validation Error","name":"InvalidArgument"}}
+{"error":{"code":400,"message":"Validation Error","name":"Invalid","reason":"Invalid"}}
 			`)
 		})
 

@@ -13,6 +13,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/asset/dependency/presign"
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	coreIo "github.com/skygeario/skygear-server/pkg/core/io"
@@ -51,7 +52,7 @@ func (h *UploadFormHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var response handler.APIResponse
 	err := h.Handle(w, r)
 	if err != nil {
-		response.Err = skyerr.MakeError(err)
+		response.Error = err
 		handler.WriteResponse(w, response)
 	}
 	// If there is no error, the response is written by reverse proxy.
@@ -61,23 +62,22 @@ func (h *UploadFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err 
 	// Verify signature
 	err = h.PresignProvider.Verify(r)
 	if err != nil {
-		err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
 
 	contentType := r.Header.Get("Content-Type")
 	mediaType, params, err := mime.ParseMediaType(contentType)
 	if err != nil {
-		err = skyerr.NewError(skyerr.BadRequest, "invalid content-type")
+		err = skyerr.Invalid.WithReason("InvalidContentType").New("invalid content-type")
 		return
 	}
 	if mediaType != "multipart/form-data" {
-		err = skyerr.NewError(skyerr.BadRequest, "invalid content-type")
+		err = skyerr.Invalid.WithReason("InvalidContentType").New("invalid content-type")
 		return
 	}
 	boundary := params["boundary"]
 	if boundary == "" {
-		err = skyerr.NewError(skyerr.BadRequest, "invalid boundary")
+		err = skyerr.Invalid.WithReason("InvalidBoundary").New("invalid boundary")
 		return
 	}
 
@@ -86,6 +86,7 @@ func (h *UploadFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err 
 	// At most 5MiB in memory.
 	form, err := reader.ReadForm(5 * 1024 * 1024)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to read request body")
 		return
 	}
 	defer form.RemoveAll()
@@ -98,7 +99,7 @@ func (h *UploadFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err 
 	// Transform simple fields.
 	for fieldName, values := range form.Value {
 		if len(values) != 1 {
-			err = skyerr.NewError(skyerr.BadRequest, fmt.Sprintf("repeated field: %s", fieldName))
+			err = skyerr.Invalid.WithReason("InvalidFormField").New(fmt.Sprintf("repeated field: %s", fieldName))
 			return
 		}
 		value := values[0]
@@ -115,16 +116,16 @@ func (h *UploadFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err 
 	// Transform the file field.
 	var fileHeader *multipart.FileHeader
 	if len(form.File) != 1 {
-		err = skyerr.NewError(skyerr.BadRequest, "expect exactly 1 file part")
+		err = skyerr.Invalid.WithReason("InvalidFormField").New("expected exactly 1 file part")
 		return
 	}
 	for fileFieldName, fileHeaders := range form.File {
 		if fileFieldName != "file" {
-			err = skyerr.NewError(skyerr.BadRequest, fmt.Sprintf("invalid file field: %s", fileFieldName))
+			err = skyerr.Invalid.WithReason("InvalidFormField").New("invalid file field")
 			return
 		}
 		if len(fileHeaders) != 1 {
-			err = skyerr.NewError(skyerr.BadRequest, fmt.Sprintf("invalid file field: %s", fileFieldName))
+			err = skyerr.Invalid.WithReason("InvalidFormField").New("invalid file field")
 			return
 		}
 		fileHeader = fileHeaders[0]
@@ -140,6 +141,7 @@ func (h *UploadFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err 
 
 	jsonBytes, err := json.Marshal(presignUploadRequest)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to marshal JSON")
 		return
 	}
 	jsonReader := bytes.NewReader(jsonBytes)
@@ -161,6 +163,7 @@ func (h *UploadFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err 
 
 	clientBody, err := fileHeader.Open()
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to open file in form")
 		return
 	}
 

@@ -12,6 +12,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type S3Storage struct {
@@ -97,7 +99,7 @@ func (s *S3Storage) PresignPutObject(name string, accessType AccessType, header 
 				contentLengthStr := header.Get(name)
 				contentLength, err := strconv.ParseInt(contentLengthStr, 10, 64)
 				if err != nil {
-					return nil, err
+					return nil, errors.HandledWithMessage(err, "failed to parse content-length")
 				}
 				input.SetContentLength(contentLength)
 			case "content-md5":
@@ -113,12 +115,9 @@ func (s *S3Storage) PresignPutObject(name string, accessType AccessType, header 
 	req.NotHoist = true
 	urlStr, _, err := req.PresignRequest(PresignPutExpires)
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to presign put request")
 	}
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, err
-	}
+	u, _ := url.Parse(urlStr)
 
 	return &http.Request{
 		Method: "PUT",
@@ -136,12 +135,9 @@ func (s *S3Storage) PresignGetObject(name string) (*url.URL, error) {
 	req.NotHoist = false
 	urlStr, _, err := req.PresignRequest(PresignGetExpires)
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to presign get request")
 	}
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, err
-	}
+	u, _ := url.Parse(urlStr)
 
 	return u, nil
 }
@@ -155,12 +151,9 @@ func (s *S3Storage) PresignHeadObject(name string) (*url.URL, error) {
 	req.NotHoist = false
 	urlStr, _, err := req.PresignRequest(1 * time.Hour)
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to presign head request")
 	}
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, err
-	}
+	u, _ := url.Parse(urlStr)
 
 	return u, nil
 }
@@ -177,7 +170,7 @@ func (s *S3Storage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, er
 
 	output, err := s.s3.ListObjectsV2(input)
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to list objects")
 	}
 
 	resp := &ListObjectsResponse{}
@@ -211,7 +204,7 @@ func (s *S3Storage) DeleteObject(name string) error {
 	if aerr, ok := err.(awserr.Error); ok && aerr.Code() == s3.ErrCodeNoSuchKey {
 		return nil
 	}
-	return err
+	return errors.HandledWithMessage(err, "failed to delete object")
 }
 
 func (s *S3Storage) StandardToProprietary(header http.Header) http.Header {

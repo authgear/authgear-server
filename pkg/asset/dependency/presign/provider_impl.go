@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/http/httpsigning"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -25,5 +26,9 @@ func (p *providerImpl) Presign(r *http.Request, expires time.Duration) {
 }
 
 func (p *providerImpl) Verify(r *http.Request) error {
-	return httpsigning.Verify(p.secret, r, p.timeProvider.NowUTC())
+	err := httpsigning.Verify(p.secret, r, p.timeProvider.NowUTC())
+	if err != nil {
+		return skyerr.Invalid.WithReason("InvalidSignedURL").New(err.Error())
+	}
+	return nil
 }

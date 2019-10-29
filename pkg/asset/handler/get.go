@@ -16,7 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/imageprocessing"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 const (
@@ -74,7 +73,7 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err := h.CloudStorageProvider.Verify(r)
 		if err != nil {
 			handler.WriteResponse(w, handler.APIResponse{
-				Err: skyerr.MakeError(err),
+				Error: err,
 			})
 			return
 		}
@@ -83,7 +82,7 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	u, err := h.CloudStorageProvider.PresignGetRequest(assetName)
 	if err != nil {
 		handler.WriteResponse(w, handler.APIResponse{
-			Err: skyerr.MakeError(err),
+			Error: err,
 		})
 		return
 	}

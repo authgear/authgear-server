@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -23,7 +22,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -48,7 +46,7 @@ func main() {
 	defer vips.Shutdown()
 
 	logging.SetModule("asset")
-	loggerFactory := logging.NewFactory(logging.NewDefaultMaskedTextFormatter(nil))
+	loggerFactory := logging.NewFactory(logging.NewDefaultLogHook(nil))
 	logger := loggerFactory.NewLogger("asset")
 
 	if err := godotenv.Load(); err != nil {
@@ -111,21 +109,13 @@ func main() {
 		}
 		tenantConfig, err := coreConfig.NewTenantConfigurationFromYAML(reader)
 		if err != nil {
-			if skyError, ok := err.(skyerr.Error); ok {
-				info := skyError.Info()
-				if arguments, ok := info["arguments"].([]string); ok {
-					for _, a := range arguments {
-						fmt.Fprintf(os.Stderr, "%v\n", a)
-					}
-				}
-			}
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
 		serverOption := server.DefaultOption()
 		serverOption.GearPathPrefix = "/_asset"
 		srv = server.NewServerWithOption(configuration.ServerHost, dependencyMap, serverOption)
-		srv.Use(middleware.TenantConfigurationMiddleware{
+		srv.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (coreConfig.TenantConfiguration, error) {
 				return *tenantConfig, nil
 			}),

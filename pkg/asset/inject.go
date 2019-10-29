@@ -38,8 +38,8 @@ func (m *DependencyMap) Provide(
 	tConfig coreConfig.TenantConfiguration,
 ) interface{} {
 	newLoggerFactory := func() logging.Factory {
-		formatter := logging.NewDefaultMaskedTextFormatter(tConfig.DefaultSensitiveLoggerValues())
-		return logging.NewFactoryFromRequest(request, formatter)
+		logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
+		return logging.NewFactoryFromRequest(request, logHook)
 	}
 
 	newAuthContext := func() coreAuth.ContextGetter {
@@ -47,7 +47,7 @@ func (m *DependencyMap) Provide(
 	}
 
 	newSQLExecutor := func() db.SQLExecutor {
-		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig), newLoggerFactory())
+		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig))
 	}
 
 	newTimeProvider := func() time.Provider {
@@ -57,7 +57,7 @@ func (m *DependencyMap) Provide(
 	newSessionProvider := func() session.Provider {
 		return session.NewProvider(
 			request,
-			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider()),
+			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider(), newLoggerFactory()),
 			redisSession.NewEventStore(ctx, tConfig.AppID),
 			newAuthContext(),
 			tConfig.UserConfig.Clients,
@@ -74,11 +74,9 @@ func (m *DependencyMap) Provide(
 	}
 
 	newAuthInfoStore := func() authinfo.Store {
-		return pqAuthInfo.NewSafeAuthInfoStore(
+		return pqAuthInfo.NewAuthInfoStore(
 			db.NewSQLBuilder("core", tConfig.AppConfig.DatabaseSchema, tConfig.AppID),
 			newSQLExecutor(),
-			newLoggerFactory(),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
 

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
@@ -41,7 +42,7 @@ func (r *PresignUploadRequest) DeriveAssetName() (assetName string, err error) {
 	if ok {
 		exts, err := mime.ExtensionsByType(contentType)
 		if err != nil {
-			return "", err
+			return "", errors.HandledWithMessage(err, "failed to derive extension from content type")
 		}
 		if len(exts) > 0 {
 			ext = exts[0]

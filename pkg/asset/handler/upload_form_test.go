@@ -35,7 +35,7 @@ func TestUploadFormHandler(t *testing.T) {
 
 			So(recorder.Result().StatusCode, ShouldEqual, 400)
 			So(recorder.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":106,"message":"invalid content-type","name":"BadRequest"}}
+{"error":{"code":400,"message":"invalid content-type","name":"Invalid","reason":"InvalidContentType"}}
 			`)
 		})
 
@@ -47,7 +47,7 @@ func TestUploadFormHandler(t *testing.T) {
 
 			So(recorder.Result().StatusCode, ShouldEqual, 400)
 			So(recorder.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":106,"message":"invalid content-type","name":"BadRequest"}}
+{"error":{"code":400,"message":"invalid content-type","name":"Invalid","reason":"InvalidContentType"}}
 			`)
 		})
 
@@ -65,7 +65,7 @@ func TestUploadFormHandler(t *testing.T) {
 
 			So(recorder.Result().StatusCode, ShouldEqual, 400)
 			So(recorder.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":106,"message":"repeated field: content-type","name":"BadRequest"}}
+{"error":{"code":400,"message":"repeated field: content-type","name":"Invalid","reason":"InvalidFormField"}}
 			`)
 		})
 
@@ -81,7 +81,7 @@ func TestUploadFormHandler(t *testing.T) {
 
 			So(recorder.Result().StatusCode, ShouldEqual, 400)
 			So(recorder.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":106,"message":"expect exactly 1 file part","name":"BadRequest"}}
+{"error":{"code":400,"message":"expected exactly 1 file part","name":"Invalid","reason":"InvalidFormField"}}
 			`)
 		})
 
@@ -99,8 +99,9 @@ func TestUploadFormHandler(t *testing.T) {
 			h.ServeHTTP(recorder, req)
 
 			So(recorder.Result().StatusCode, ShouldEqual, 400)
+			// TODO(error): validation
 			So(recorder.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":107,"info":{"arguments":["#/headers: Additional property unknown is not allowed"],"causes":[{"message":"Additional property unknown is not allowed","pointer":"#/headers"}]},"message":"Validation Error","name":"InvalidArgument"}}
+{"error":{"code":400,"message":"Validation Error","name":"Invalid","reason":"Invalid"}}
 			`)
 		})
 

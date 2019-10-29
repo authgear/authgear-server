@@ -9,7 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func AttachListHandler(
@@ -113,7 +112,7 @@ func (h *ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var response handler.APIResponse
 	result, err := h.Handle(w, r)
 	if err != nil {
-		response.Err = skyerr.MakeError(err)
+		response.Error = err
 	} else {
 		response.Result = result
 	}

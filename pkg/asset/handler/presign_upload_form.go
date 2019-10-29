@@ -12,7 +12,6 @@ import (
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func AttachPresignUploadFormHandler(
@@ -94,7 +93,7 @@ func (h *PresignUploadFormHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	var response handler.APIResponse
 	result, err := h.Handle(w, r)
 	if err != nil {
-		response.Err = skyerr.MakeError(err)
+		response.Error = err
 	} else {
 		response.Result = result
 	}

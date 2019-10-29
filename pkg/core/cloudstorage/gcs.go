@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/url"
 	"strings"
@@ -13,6 +12,8 @@ import (
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/option"
 	raw "google.golang.org/api/storage/v1"
+
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 var ErrInvalidCredentialsJSON = errors.New("invalid credentials JSON")
@@ -40,7 +41,7 @@ func NewGCSStorage(credentialsJSON []byte, serviceAccount string, bucket string)
 	var j map[string]interface{}
 	err := json.NewDecoder(bytes.NewReader(credentialsJSON)).Decode(&j)
 	if err != nil {
-		s.err = err
+		s.err = errors.HandledWithMessage(err, "failed to parse credentials JSON")
 		return s
 	}
 
@@ -55,14 +56,14 @@ func NewGCSStorage(credentialsJSON []byte, serviceAccount string, bucket string)
 	ctx := context.Background()
 	service, err := raw.NewService(ctx, option.WithCredentialsJSON(credentialsJSON))
 	if err != nil {
-		s.err = err
+		s.err = errors.HandledWithMessage(err, "failed to initialize GCS")
 		return s
 	}
 	s.service = service
 
 	client, err := storage.NewClient(ctx, option.WithCredentialsJSON(credentialsJSON))
 	if err != nil {
-		s.err = err
+		s.err = errors.HandledWithMessage(err, "failed to initialize GCS")
 		return s
 	}
 	s.client = client
@@ -125,14 +126,10 @@ func (s *GCSStorage) PresignPutObject(name string, accessType AccessType, header
 	}
 	urlStr, err := storage.SignedURL(s.Bucket, name, &opts)
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to presign put request")
 	}
 
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, err
-	}
-
+	u, _ := url.Parse(urlStr)
 	req := http.Request{
 		Method: "PUT",
 		Header: header,
@@ -159,13 +156,10 @@ func (s *GCSStorage) PresignGetOrHeadObject(name string, method string) (*url.UR
 	}
 	urlStr, err := storage.SignedURL(s.Bucket, name, &opts)
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to presign get or head request")
 	}
 
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, err
-	}
+	u, _ := url.Parse(urlStr)
 
 	return u, nil
 }
@@ -193,7 +187,7 @@ func (s GCSStorage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, er
 
 	objects, err := call.Do()
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to list objects")
 	}
 
 	resp := &ListObjectsResponse{}
@@ -224,7 +218,10 @@ func (s *GCSStorage) DeleteObject(name string) error {
 	if err == storage.ErrObjectNotExist {
 		return nil
 	}
-	return err
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to delete object")
+	}
+	return nil
 }
 
 func (s *GCSStorage) StandardToProprietary(header http.Header) http.Header {

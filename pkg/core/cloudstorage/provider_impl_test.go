@@ -47,8 +47,7 @@ func TestProvider(t *testing.T) {
 					},
 				})
 				So(err, ShouldNotBeNil)
-				So(err, ShouldBeError, "BadRequest: too large asset")
-
+				So(err, ShouldBeError, "asset too large")
 			})
 
 			Convey("check duplicate", func() {
@@ -58,7 +57,7 @@ func TestProvider(t *testing.T) {
 					},
 				})
 				So(err, ShouldNotBeNil)
-				So(err, ShouldBeError, "Duplicated: duplicate asset")
+				So(err, ShouldBeError, "duplicate asset")
 			})
 		})
 	})

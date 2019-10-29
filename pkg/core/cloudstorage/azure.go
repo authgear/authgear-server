@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-storage-blob-go/azblob"
+
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type AzureStorage struct {
@@ -59,7 +61,7 @@ func (s *AzureStorage) PresignPutObject(name string, accessType AccessType, head
 		Write:  true,
 	})
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to presign put request")
 	}
 
 	header = s.StandardToProprietary(header)
@@ -91,14 +93,14 @@ func (s *AzureStorage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse,
 
 	cred, err := azblob.NewSharedKeyCredential(s.StorageAccount, s.AccessKey)
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to create azure credentials")
 	}
 
 	p := azblob.NewPipeline(cred, azblob.PipelineOptions{})
 
 	u, err := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net", s.StorageAccount))
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to parse storage account")
 	}
 
 	serviceURL := azblob.NewServiceURL(*u, p)
@@ -123,7 +125,7 @@ func (s *AzureStorage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse,
 
 	output, err := containerURL.ListBlobsFlatSegment(ctx, marker, opts)
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to list objects")
 	}
 
 	resp := &ListObjectsResponse{}
@@ -150,14 +152,14 @@ func (s *AzureStorage) DeleteObject(name string) error {
 
 	cred, err := azblob.NewSharedKeyCredential(s.StorageAccount, s.AccessKey)
 	if err != nil {
-		return err
+		return errors.HandledWithMessage(err, "failed to create azure credentials")
 	}
 
 	p := azblob.NewPipeline(cred, azblob.PipelineOptions{})
 
 	u, err := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net", s.StorageAccount))
 	if err != nil {
-		return err
+		return errors.HandledWithMessage(err, "failed to parse storage account")
 	}
 
 	serviceURL := azblob.NewServiceURL(*u, p)
@@ -170,7 +172,11 @@ func (s *AzureStorage) DeleteObject(name string) error {
 		return nil
 	}
 
-	return err
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to delete object")
+	}
+
+	return nil
 }
 
 func (s *AzureStorage) StandardToProprietary(header http.Header) http.Header {
@@ -206,12 +212,12 @@ func (s *AzureStorage) SignedURL(name string, now time.Time, duration time.Durat
 
 	cred, err := azblob.NewSharedKeyCredential(s.StorageAccount, s.AccessKey)
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to create azure credentials")
 	}
 
 	q, err := sigValues.NewSASQueryParameters(cred)
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to create SAS query parameters")
 	}
 
 	parts := azblob.BlobURLParts{

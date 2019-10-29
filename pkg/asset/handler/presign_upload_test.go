@@ -31,8 +31,9 @@ func TestPresignUploadHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			So(w.Code, ShouldEqual, 400)
+			// TODO(error): validation
 			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":107,"info":{"arguments":["#: headers is required"],"causes":[{"message":"headers is required","pointer":"#"}]},"message":"Validation Error","name":"InvalidArgument"}}
+{"error":{"code":400,"message":"Validation Error","name":"Invalid","reason":"Invalid"}}
 			`)
 		})
 
@@ -46,8 +47,9 @@ func TestPresignUploadHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			So(w.Code, ShouldEqual, 400)
+			// TODO(error): validation
 			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":107,"info":{"arguments":["#/headers: content-length is required"],"causes":[{"message":"content-length is required","pointer":"#/headers"}]},"message":"Validation Error","name":"InvalidArgument"}}
+{"error":{"code":400,"message":"Validation Error","name":"Invalid","reason":"Invalid"}}
 			`)
 		})
 
@@ -64,8 +66,9 @@ func TestPresignUploadHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			So(w.Code, ShouldEqual, 400)
+			// TODO(error): validation
 			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":107,"info":{"arguments":["#/prefix: Does not match pattern '^[-_.a-zA-Z0-9]*$'"],"causes":[{"message":"Does not match pattern '^[-_.a-zA-Z0-9]*$'","pointer":"#/prefix"}]},"message":"Validation Error","name":"InvalidArgument"}}
+{"error":{"code":400,"message":"Validation Error","name":"Invalid","reason":"Invalid"}}
 			`)
 		})
 

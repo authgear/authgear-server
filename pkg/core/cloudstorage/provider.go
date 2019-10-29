@@ -8,10 +8,10 @@ import (
 )
 
 // ErrDuplicateAsset happens when the asset name is random and conflicts.
-var ErrDuplicateAsset = skyerr.NewError(skyerr.Duplicated, "duplicate asset")
+var ErrDuplicateAsset = skyerr.AlreadyExists.WithReason("DuplicateAsset").New("duplicate asset")
 
-// ErrTooLargeAsset happens when the asset exceeds MaxContentLength.
-var ErrTooLargeAsset = skyerr.NewError(skyerr.BadRequest, "too large asset")
+// ErrAssetTooLarge happens when the asset exceeds MaxContentLength.
+var ErrAssetTooLarge = skyerr.BadRequest.WithReason("AssetTooLarge").New("asset too large")
 
 // MaxContentLength is 512MiB.
 const MaxContentLength = 512 * 1024 * 1024
