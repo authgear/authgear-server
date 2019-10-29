@@ -10,7 +10,6 @@ type MockProvider struct {
 	PresignUploadResponse *PresignUploadResponse
 	ListObjectsResponse   *ListObjectsResponse
 	GetURL                *url.URL
-	OriginallySigned      bool
 	GetAccessType         AccessType
 }
 
@@ -27,8 +26,12 @@ func (p *MockProvider) Sign(scheme string, host string, r *SignRequest) (*SignRe
 	return r, nil
 }
 
-func (p *MockProvider) RewriteGetURL(u *url.URL, assetID string) (*url.URL, bool, error) {
-	return p.GetURL, p.OriginallySigned, nil
+func (p *MockProvider) Verify(r *http.Request) error {
+	return nil
+}
+
+func (p *MockProvider) PresignGetRequest(assetName string) (*url.URL, error) {
+	return p.GetURL, nil
 }
 
 func (p *MockProvider) List(r *ListObjectsRequest) (*ListObjectsResponse, error) {

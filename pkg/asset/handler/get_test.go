@@ -131,7 +131,6 @@ func TestGetHandler(t *testing.T) {
 				Path:   "/a",
 			}
 			provider.GetAccessType = cloudstorage.AccessTypePrivate
-			provider.OriginallySigned = false
 
 			gock.New("http://example.com").
 				Get("/a").
@@ -145,8 +144,7 @@ func TestGetHandler(t *testing.T) {
 			router.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 401)
 
-			provider.OriginallySigned = true
-			req, _ = http.NewRequest("GET", "/a", nil)
+			req, _ = http.NewRequest("GET", "/a?x-skygear-signature=a", nil)
 			resp = httptest.NewRecorder()
 			router = mux.NewRouter()
 			router.Handle("/{asset_name}", h)

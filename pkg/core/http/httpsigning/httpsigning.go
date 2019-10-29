@@ -34,6 +34,12 @@ var (
 	ErrExpiredSignature = errors.New("expired signature")
 )
 
+func IsSigned(r *http.Request) bool {
+	q := r.URL.Query()
+	_, ok := q["x-skygear-signature"]
+	return ok
+}
+
 // Sign turns r into a signed http.Request.
 func Sign(key []byte, r *http.Request, t time.Time, expires int) {
 	q := r.URL.Query()

@@ -8,10 +8,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
+	"github.com/skygeario/skygear-server/pkg/core/http/httpsigning"
 	"github.com/skygeario/skygear-server/pkg/core/imageprocessing"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 const (
@@ -52,44 +55,55 @@ type GetHandler struct {
 }
 
 func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	originallySigned := false
-	pipeline := ""
-	hasPipeline := false
 	vars := mux.Vars(r)
 	assetName := vars["asset_name"]
 
-	director := func(req *http.Request) {
-		req.Header = coreHttp.RemoveSkygearHeader(req.Header)
+	isHead := r.Method == "HEAD"
 
-		query := req.URL.Query()
-		pipeline = query.Get(QueryNamePipeline)
-		_, hasPipeline = query[QueryNamePipeline]
+	originallySigned := httpsigning.IsSigned(r)
+
+	query := r.URL.Query()
+	pipeline := query.Get(QueryNamePipeline)
+	_, hasPipeline := query[QueryNamePipeline]
+	query.Del(QueryNamePipeline)
+	r.URL.RawQuery = query.Encode()
+
+	if originallySigned {
+		err := h.CloudStorageProvider.Verify(r)
+		if err != nil {
+			handler.WriteResponse(w, handler.APIResponse{
+				Err: skyerr.MakeError(err),
+			})
+			return
+		}
+	}
+
+	u, err := h.CloudStorageProvider.PresignGetRequest(assetName)
+	if err != nil {
+		handler.WriteResponse(w, handler.APIResponse{
+			Err: skyerr.MakeError(err),
+		})
+		return
+	}
+
+	director := func(r *http.Request) {
+		// Always set method to GET because S3 treats GET and HEAD differently.
+		r.Method = "GET"
+		// Remove irrelevant header.
+		r.Header = coreHttp.RemoveSkygearHeader(r.Header)
 		// Do not support range request if image processing query is present.
 		if hasPipeline {
-			req.Header.Del("Range")
-			req.Header.Del("If-Range")
-			query.Del(QueryNamePipeline)
-			req.URL.RawQuery = query.Encode()
+			r.Header.Del("Range")
+			r.Header.Del("If-Range")
 		}
-
-		// NOTE(louis): We use panic here because we have no way to return it.
-		// However, this function does not return error normally.
-		// The known condition that err could be returned is fail to sign
-		// which is a configuration problem.
-		u, signed, err := h.CloudStorageProvider.RewriteGetURL(req.URL, assetName)
-		if err != nil {
-			panic(err)
-		}
-		originallySigned = signed
-
-		req.URL = u
-
+		r.URL = u
 		// Override the Host header
-		req.Host = ""
-		req.Header.Set("Host", u.Hostname())
+		r.Host = ""
+		r.Header.Set("Host", u.Hostname())
 	}
 
 	modifyResponse := func(resp *http.Response) error {
+
 		// We only know how to modify 2xx response.
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			return nil
@@ -108,7 +122,7 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		valid := imageprocessing.IsApplicableToHTTPResponse(resp)
-		if !valid || !hasPipeline {
+		if isHead || !valid || !hasPipeline {
 			return nil
 		}
 		ops, err := imageprocessing.Parse(pipeline)

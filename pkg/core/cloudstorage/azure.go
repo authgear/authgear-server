@@ -86,25 +86,6 @@ func (s *AzureStorage) PresignHeadObject(name string) (*url.URL, error) {
 	return s.PresignGetObject(name)
 }
 
-func (s *AzureStorage) RewriteGetURL(u *url.URL, name string) (*url.URL, bool, error) {
-	q := u.Query()
-	_, hasSignature := q["sig"]
-
-	if hasSignature {
-		rewritten := azblob.BlobURLParts{
-			Scheme:        "https",
-			Host:          fmt.Sprintf("%s.blob.core.windows.net", s.StorageAccount),
-			ContainerName: s.Container,
-			BlobName:      name,
-		}.URL()
-		rewritten.RawQuery = u.RawQuery
-		return &rewritten, true, nil
-	}
-
-	newlySigned, err := s.PresignGetObject(name)
-	return newlySigned, false, err
-}
-
 func (s *AzureStorage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, error) {
 	ctx := context.Background()
 

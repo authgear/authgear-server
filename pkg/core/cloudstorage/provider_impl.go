@@ -103,6 +103,31 @@ func (p *providerImpl) Sign(scheme string, host string, r *SignRequest) (*SignRe
 	return r, nil
 }
 
+func (p *providerImpl) Verify(r *http.Request) error {
+	now := p.timeProvider.NowUTC()
+	copiedReq := &http.Request{
+		Method:        r.Method,
+		URL:           r.URL,
+		Proto:         r.Proto,
+		ProtoMajor:    r.ProtoMajor,
+		ProtoMinor:    r.ProtoMinor,
+		Header:        r.Header,
+		ContentLength: r.ContentLength,
+		Host:          r.Host,
+		RemoteAddr:    r.RemoteAddr,
+		RequestURI:    r.RequestURI,
+	}
+	if copiedReq.Method == "HEAD" {
+		copiedReq.Method = "GET"
+	}
+	return httpsigning.Verify(p.secret, copiedReq, now)
+}
+
+func (p *providerImpl) PresignGetRequest(assetName string) (*url.URL, error) {
+	assetID := p.AssetNameToAssetID(assetName)
+	return p.storage.PresignGetObject(assetID)
+}
+
 func (p *providerImpl) List(r *ListObjectsRequest) (*ListObjectsResponse, error) {
 	if r.Prefix != "" {
 		r.Prefix = p.AssetNameToAssetID(r.Prefix)
@@ -129,11 +154,6 @@ func (p *providerImpl) Delete(name string) error {
 		return err
 	}
 	return nil
-}
-
-func (p *providerImpl) RewriteGetURL(u *url.URL, name string) (*url.URL, bool, error) {
-	assetID := p.AssetNameToAssetID(name)
-	return p.storage.RewriteGetURL(u, assetID)
 }
 
 func (p *providerImpl) ProprietaryToStandard(header http.Header) http.Header {

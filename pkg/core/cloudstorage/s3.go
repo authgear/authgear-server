@@ -165,30 +165,6 @@ func (s *S3Storage) PresignHeadObject(name string) (*url.URL, error) {
 	return u, nil
 }
 
-func (s *S3Storage) RewriteGetURL(u *url.URL, name string) (*url.URL, bool, error) {
-	q := u.Query()
-	_, hasSignature := q["X-Amz-Signature"]
-
-	if hasSignature {
-		input := &s3.GetObjectInput{
-			Bucket: aws.String(s.Bucket),
-			Key:    aws.String(name),
-		}
-		req, _ := s.s3.GetObjectRequest(input)
-		req.NotHoist = false
-		err := req.Build()
-		if err != nil {
-			return nil, true, err
-		}
-		rewritten := req.HTTPRequest.URL
-		rewritten.RawQuery = u.RawQuery
-		return rewritten, true, nil
-	}
-
-	newlySigned, err := s.PresignGetObject(name)
-	return newlySigned, false, err
-}
-
 func (s *S3Storage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, error) {
 	input := &s3.ListObjectsV2Input{
 		Bucket:  aws.String(s.Bucket),
