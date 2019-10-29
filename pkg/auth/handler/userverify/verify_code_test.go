@@ -204,7 +204,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 					"reason": "UserVerificationFailed",
 					"message": "verification code has expired",
 					"code": 400,
-					"info": { "cause": "ExpiredCode" }
+					"info": { "cause": { "kind": "ExpiredCode" } }
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
@@ -224,7 +224,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 					"reason": "UserVerificationFailed",
 					"message": "invalid verification code",
 					"code": 400,
-					"info": { "cause": "InvalidCode" }
+					"info": { "cause": { "kind": "InvalidCode" } }
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
@@ -244,7 +244,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 					"reason": "UserVerificationFailed",
 					"message": "invalid verification code",
 					"code": 400,
-					"info": { "cause": "InvalidCode" }
+					"info": { "cause": { "kind": "InvalidCode" } }
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
@@ -268,7 +268,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 					"reason": "UserVerificationFailed",
 					"message": "verification code is used",
 					"code": 400,
-					"info": { "cause": "UsedCode" }
+					"info": { "cause": { "kind": "UsedCode" } }
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
@@ -288,7 +288,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 					"reason": "UserVerificationFailed",
 					"message": "invalid verification code",
 					"code": 400,
-					"info": { "cause": "InvalidCode" }
+					"info": { "cause": { "kind": "InvalidCode" } }
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)

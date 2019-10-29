@@ -15,6 +15,6 @@ const (
 	AlreadyLinked   ssoFailCause = "AlreadyLinked"
 )
 
-func NewSSOFailed(reason ssoFailCause, msg string) error {
-	return SSOFailed.NewWithInfo(msg, skyerr.Details{"cause": reason})
+func NewSSOFailed(cause ssoFailCause, msg string) error {
+	return SSOFailed.NewWithCause(msg, skyerr.StringCause(cause))
 }

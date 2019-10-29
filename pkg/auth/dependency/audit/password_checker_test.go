@@ -19,6 +19,7 @@ import (
 	"time"
 
 	ph "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -173,7 +174,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": passwordViolations{
+				"causes": []skyerr.Cause{
 					PasswordViolation{Reason: PasswordTooShort, Info: map[string]interface{}{"min_length": 2, "pw_length": 1}},
 				},
 			},
@@ -191,7 +192,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": passwordViolations{
+				"causes": []skyerr.Cause{
 					PasswordViolation{Reason: PasswordUppercaseRequired},
 				},
 			},
@@ -209,7 +210,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": passwordViolations{
+				"causes": []skyerr.Cause{
 					PasswordViolation{Reason: PasswordLowercaseRequired},
 				},
 			},
@@ -227,7 +228,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": passwordViolations{
+				"causes": []skyerr.Cause{
 					PasswordViolation{Reason: PasswordDigitRequired},
 				},
 			},
@@ -245,7 +246,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": passwordViolations{
+				"causes": []skyerr.Cause{
 					PasswordViolation{Reason: PasswordSymbolRequired},
 				},
 			},
@@ -263,7 +264,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": passwordViolations{
+				"causes": []skyerr.Cause{
 					PasswordViolation{Reason: PasswordContainingExcludedKeywords},
 				},
 			},
@@ -286,7 +287,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": passwordViolations{
+				"causes": []skyerr.Cause{
 					PasswordViolation{Reason: PasswordContainingExcludedKeywords},
 				},
 			},
@@ -304,7 +305,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": passwordViolations{
+				"causes": []skyerr.Cause{
 					PasswordViolation{Reason: PasswordBelowGuessableLevel, Info: map[string]interface{}{"min_level": 5, "pw_level": 1}},
 				},
 			},
@@ -330,7 +331,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": passwordViolations{
+				"causes": []skyerr.Cause{
 					PasswordViolation{Reason: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
 				},
 			},
@@ -344,7 +345,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": passwordViolations{
+				"causes": []skyerr.Cause{
 					PasswordViolation{Reason: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
 				},
 			},
@@ -378,7 +379,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": passwordViolations{
+				"causes": []skyerr.Cause{
 					PasswordViolation{Reason: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
 				},
 			},
@@ -412,7 +413,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": passwordViolations{
+				"causes": []skyerr.Cause{
 					PasswordViolation{Reason: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
 				},
 			},

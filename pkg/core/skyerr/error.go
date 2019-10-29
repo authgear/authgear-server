@@ -1,12 +1,24 @@
 package skyerr
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type Details errors.Details
+
+type Cause interface{ Kind() string }
+
+type StringCause string
+
+func (c StringCause) Kind() string { return string(c) }
+func (c StringCause) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Kind string `json:"kind"`
+	}{string(c)})
+}
 
 type APIError struct {
 	Kind
@@ -29,6 +41,14 @@ func (k Kind) NewWithInfo(msg string, info Details) error {
 		d[k] = APIErrorDetail.Value(v)
 	}
 	return k.NewWithDetails(msg, d)
+}
+
+func (k Kind) NewWithCause(msg string, c Cause) error {
+	return k.NewWithInfo(msg, Details{"cause": c})
+}
+
+func (k Kind) NewWithCauses(msg string, cs []Cause) error {
+	return k.NewWithInfo(msg, Details{"causes": cs})
 }
 
 func (k Kind) Wrap(err error, msg string) error {

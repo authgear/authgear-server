@@ -104,7 +104,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 					"reason": "PasswordResetFailed",
 					"message": "reset code has expired",
 					"code": 400,
-					"info": { "cause": "ExpiredCode" }
+					"info": { "cause": { "kind": "ExpiredCode" } }
 				}
 			}`)
 		})
@@ -129,7 +129,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 					"reason": "PasswordResetFailed",
 					"message": "invalid reset code",
 					"code": 400,
-					"info": { "cause": "InvalidCode" }
+					"info": { "cause": { "kind": "InvalidCode" } }
 				}
 			}`)
 		})

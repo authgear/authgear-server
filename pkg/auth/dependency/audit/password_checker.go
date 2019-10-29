@@ -308,7 +308,7 @@ func (pc *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) err
 	userData := payload.UserData
 	authID := payload.AuthID
 
-	var violations []PasswordViolation
+	var violations []skyerr.Cause
 	check := func(v *PasswordViolation) {
 		if v != nil {
 			violations = append(violations, *v)
@@ -329,9 +329,7 @@ func (pc *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) err
 		return nil
 	}
 
-	return PasswordPolicyViolated.NewWithInfo("password policy violated", skyerr.Details{
-		"causes": violations,
-	})
+	return PasswordPolicyViolated.NewWithCauses("password policy violated", violations)
 }
 
 func (pc *PasswordChecker) ShouldSavePasswordHistory() bool {

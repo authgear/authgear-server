@@ -67,6 +67,44 @@ func TestAPIError(t *testing.T) {
 				},
 			})
 		})
+		Convey("error with cause", func() {
+			NotAuthenticated := skyerr.Invalid.WithReason("ValidationFailure")
+			err := NotAuthenticated.NewWithCause(
+				"invalid code",
+				skyerr.StringCause("CodeExpired"),
+			)
+			apiErr := skyerr.AsAPIError(err)
+			So(apiErr, ShouldResemble, &skyerr.APIError{
+				Kind:    skyerr.Kind{Name: skyerr.Invalid, Reason: "ValidationFailure"},
+				Message: "invalid code",
+				Code:    400,
+				Info: map[string]interface{}{
+					"cause": skyerr.StringCause("CodeExpired"),
+				},
+			})
+		})
+		Convey("error with causes", func() {
+			NotAuthenticated := skyerr.Invalid.WithReason("ValidationFailure")
+			err := NotAuthenticated.NewWithCauses(
+				"invalid password format",
+				[]skyerr.Cause{
+					skyerr.StringCause("TooShort"),
+					skyerr.StringCause("TooSimple"),
+				},
+			)
+			apiErr := skyerr.AsAPIError(err)
+			So(apiErr, ShouldResemble, &skyerr.APIError{
+				Kind:    skyerr.Kind{Name: skyerr.Invalid, Reason: "ValidationFailure"},
+				Message: "invalid password format",
+				Code:    400,
+				Info: map[string]interface{}{
+					"causes": []skyerr.Cause{
+						skyerr.StringCause("TooShort"),
+						skyerr.StringCause("TooSimple"),
+					},
+				},
+			})
+		})
 	})
 
 	Convey("APIError", t, func() {
@@ -101,6 +139,21 @@ func TestAPIError(t *testing.T) {
 			}
 			json, _ := json.Marshal(apiErr)
 			So(string(json), ShouldEqual, `{"name":"Invalid","reason":"ValidationFailure","message":"failed to validate form payload","code":400,"info":{"field":"email"}}`)
+		})
+		Convey("error with causes", func() {
+			apiErr := &skyerr.APIError{
+				Kind:    skyerr.Kind{Name: skyerr.Invalid, Reason: "ValidationFailure"},
+				Message: "invalid password format",
+				Code:    400,
+				Info: map[string]interface{}{
+					"causes": []skyerr.Cause{
+						skyerr.StringCause("TooShort"),
+						skyerr.StringCause("TooSimple"),
+					},
+				},
+			}
+			json, _ := json.Marshal(apiErr)
+			So(string(json), ShouldEqual, `{"name":"Invalid","reason":"ValidationFailure","message":"invalid password format","code":400,"info":{"causes":[{"kind":"TooShort"},{"kind":"TooSimple"}]}}`)
 		})
 	})
 }

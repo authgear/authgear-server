@@ -45,6 +45,8 @@ type PasswordViolation struct {
 	Info   map[string]interface{}
 }
 
+func (v PasswordViolation) Kind() string { return string(v.Reason) }
+
 func (v PasswordViolation) MarshalJSON() ([]byte, error) {
 	d := map[string]interface{}{"kind": v.Reason}
 	for k, v := range v.Info {

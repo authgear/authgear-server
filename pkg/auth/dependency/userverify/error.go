@@ -20,5 +20,5 @@ const (
 )
 
 func NewUserVerificationFailed(cause verificationFailCause, msg string) error {
-	return UserVerificationFailed.NewWithInfo(msg, skyerr.Details{"cause": cause})
+	return UserVerificationFailed.NewWithCause(msg, skyerr.StringCause(cause))
 }

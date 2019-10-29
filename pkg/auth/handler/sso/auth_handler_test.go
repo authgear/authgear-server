@@ -559,7 +559,7 @@ func TestAuthHandler(t *testing.T) {
 						"reason": "SSOFailed",
 						"message": "user is already linked to this provider",
 						"code": 401,
-						"info": { "cause": "AlreadyLinked" }
+						"info": { "cause": { "kind": "AlreadyLinked" } }
 					}
 				}
 			}
