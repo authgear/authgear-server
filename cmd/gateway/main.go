@@ -17,7 +17,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/gateway"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
 	"github.com/skygeario/skygear-server/pkg/gateway/handler"
@@ -35,7 +34,7 @@ var logger *logrus.Entry
 func init() {
 	// logging initialization
 	logging.SetModule("gateway")
-	loggerFactory = logging.NewFactory(logging.NewDefaultMaskedTextFormatter(nil))
+	loggerFactory = logging.NewFactory(logging.NewDefaultLogHook(nil))
 	logger = loggerFactory.NewLogger("gateway")
 
 	if err := godotenv.Load(); err != nil {
@@ -91,16 +90,14 @@ func main() {
 
 	r := rr.PathPrefix("/").Subrouter()
 	// RecoverMiddleware must come first
-	r.Use(coreMiddleware.RecoverMiddleware{
-		RecoverHandler: server.DefaultRecoverPanicHandler,
-	}.Handle)
+	r.Use(coreMiddleware.RecoverMiddleware{}.Handle)
 
 	r.Use(coreMiddleware.RequestIDMiddleware{}.Handle)
 	r.Use(middleware.FindAppMiddleware{Store: store}.Handle)
 
 	gr := r.PathPrefix("/_{gear}").Subrouter()
 
-	gr.Use(coreMiddleware.TenantConfigurationMiddleware{
+	gr.Use(coreMiddleware.WriteTenantConfigMiddleware{
 		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
 			Store: store,
 		},
@@ -115,7 +112,7 @@ func main() {
 
 	cr := r.PathPrefix("/").Subrouter()
 
-	cr.Use(coreMiddleware.TenantConfigurationMiddleware{
+	cr.Use(coreMiddleware.WriteTenantConfigMiddleware{
 		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
 			Store: store,
 		},

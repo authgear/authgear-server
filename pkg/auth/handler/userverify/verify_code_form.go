@@ -50,12 +50,13 @@ func decodeVerifyCodeFormRequest(request *http.Request) (payload VerifyCodeFormP
 }
 
 func (payload *VerifyCodeFormPayload) Validate() error {
+	// TODO(error): JSON schema
 	if payload.UserID == "" {
-		return skyerr.NewInvalidArgument("empty user_id", []string{"user_id"})
+		return skyerr.NewInvalid("empty user_id")
 	}
 
 	if payload.Code == "" {
-		return skyerr.NewInvalidArgument("empty code", []string{"code"})
+		return skyerr.NewInvalid("empty code")
 	}
 
 	return nil
@@ -75,7 +76,7 @@ type VerifyCodeFormHandler struct {
 }
 
 type resultTemplateContext struct {
-	err        skyerr.Error
+	err        error
 	payload    VerifyCodeFormPayload
 	verifyCode userverify.VerifyCode
 	user       model.User
@@ -85,6 +86,7 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 	var payload VerifyCodeFormPayload
 	payload, err = decodeVerifyCodeFormRequest(r)
 	if err != nil {
+		err = skyerr.NewBadRequest("invalid form data")
 		return
 	}
 
@@ -96,18 +98,11 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 
 	authInfo := authinfo.AuthInfo{}
 	if err = h.AuthInfoStore.GetAuth(payload.UserID, &authInfo); err != nil {
-		h.Logger.WithFields(map[string]interface{}{
-			"user_id": payload.UserID,
-		}).WithError(err).Debug("Unable to get user")
 		return
 	}
 
-	var userProfile userprofile.UserProfile
-	userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID)
+	userProfile, err := h.UserProfileStore.GetUserProfile(authInfo.ID)
 	if err != nil {
-		h.Logger.WithFields(map[string]interface{}{
-			"user_id": payload.UserID,
-		}).WithError(err).Error("Unable to get user profile")
 		return
 	}
 
@@ -139,7 +134,7 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 // HandleVerifyError handle the case when the given data (code, user_id) in the form is wrong
 func (h VerifyCodeFormHandler) HandleVerifyError(rw http.ResponseWriter, templateCtx resultTemplateContext) {
 	context := map[string]interface{}{
-		"error": templateCtx.err.Message(),
+		"error": skyerr.AsAPIError(templateCtx.err),
 	}
 
 	if templateCtx.payload.Code != "" {
@@ -206,7 +201,7 @@ func (h VerifyCodeFormHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request
 
 	templateCtx := result.(resultTemplateContext)
 	if err != nil {
-		templateCtx.err = skyerr.MakeError(err)
+		templateCtx.err = err
 		h.HandleVerifyError(rw, templateCtx)
 	} else {
 		h.HookProvider.DidCommitTx()

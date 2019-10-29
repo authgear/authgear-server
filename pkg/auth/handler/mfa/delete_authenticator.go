@@ -51,8 +51,9 @@ const DeleteAuthenticatorRequestSchema = `
 `
 
 func (r DeleteAuthenticatorRequest) Validate() error {
+	// TODO(error): JSON schema
 	if r.AuthenticatorID == "" {
-		return skyerr.NewInvalidArgument("missing authenticator ID", []string{"authenticator_id"})
+		return skyerr.NewInvalid("missing authenticator ID")
 	}
 	return nil
 }

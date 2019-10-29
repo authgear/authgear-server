@@ -52,8 +52,9 @@ type CreateTOTPRequest struct {
 }
 
 func (r CreateTOTPRequest) Validate() error {
+	// TODO(error): JSON schema
 	if r.DisplayName == "" {
-		return skyerr.NewInvalidArgument("missing display name", []string{"display_name"})
+		return skyerr.NewInvalid("missing display name")
 	}
 	return nil
 }

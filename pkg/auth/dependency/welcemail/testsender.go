@@ -5,6 +5,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
@@ -65,11 +66,13 @@ func (d *DefaultTestSender) Send(
 
 	var textBody string
 	if textBody, err = template.ParseTextTemplate("test-text", textTemplate, context); err != nil {
+		err = errors.Newf("failed to render test text welcome email: %w", err)
 		return
 	}
 
 	var htmlBody string
 	if htmlBody, err = template.ParseHTMLTemplate("test-html", htmlTemplate, context); err != nil {
+		err = errors.Newf("failed to render test HTML welcome email: %w", err)
 		return
 	}
 
@@ -81,6 +84,9 @@ func (d *DefaultTestSender) Send(
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
 	})
+	if err != nil {
+		err = errors.Newf("failed to send test welcome email: %w", err)
+	}
 
 	return
 }

@@ -231,7 +231,8 @@ func TestSkyErrInvalidArgument(t *testing.T) {
 				},
 			},
 		}
-		skyErr := e.SkyErrInvalidArgument("m").(skyerr.Error)
-		So(skyErr.Info(), ShouldResemble, expected)
+		// TODO(error): JSON schema
+		err := skyerr.AsAPIError(e.SkyErrInvalidArgument("m"))
+		SkipSo(err.Info, ShouldResemble, expected)
 	})
 }

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type IdentityProvider interface {
@@ -28,7 +28,7 @@ func (p *identityProviderImpl) ListPrincipalsByClaim(claimName string, claimValu
 	for _, provider := range p.providers {
 		providerPrincipals, err := provider.ListPrincipalsByClaim(claimName, claimValue)
 		if err != nil {
-			return nil, err
+			return nil, errors.Newf("%s: %w", provider.ID(), err)
 		}
 		principals = append(principals, providerPrincipals...)
 	}
@@ -40,7 +40,7 @@ func (p *identityProviderImpl) ListPrincipalsByUserID(userID string) ([]Principa
 	for _, provider := range p.providers {
 		providerPrincipals, err := provider.ListPrincipalsByUserID(userID)
 		if err != nil {
-			return nil, err
+			return nil, errors.Newf("%s: %w", provider.ID(), err)
 		}
 		principals = append(principals, providerPrincipals...)
 	}
@@ -54,23 +54,28 @@ func (p *identityProviderImpl) GetPrincipalByID(principalID string) (Principal, 
 		Select("provider").
 		From(p.sqlBuilder.FullTableName("principal")).
 		Where("id = ?", principalID)
-	scanner := p.sqlExecutor.QueryRowWith(builder)
-
-	err := scanner.Scan(&providerID)
-
-	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
+	scanner, err := p.sqlExecutor.QueryRowWith(builder)
+	if err != nil {
+		return nil, errors.HandledWithMessage(err, "failed to get principal by ID")
 	}
 
-	if err != nil {
-		return nil, err
+	err = scanner.Scan(&providerID)
+
+	if err == sql.ErrNoRows {
+		return nil, ErrNotFound
+	} else if err != nil {
+		return nil, errors.HandledWithMessage(err, "failed to get principal by ID")
 	}
 
 	for _, provider := range p.providers {
 		if provider.ID() == providerID {
-			return provider.GetPrincipalByID(principalID)
+			principal, err := provider.GetPrincipalByID(principalID)
+			if err != nil {
+				return nil, errors.Newf("%s: %w", providerID, err)
+			}
+			return principal, nil
 		}
 	}
 
-	return nil, skydb.ErrUserNotFound
+	return nil, ErrNotFound
 }

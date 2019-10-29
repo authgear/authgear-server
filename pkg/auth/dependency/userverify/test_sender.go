@@ -75,6 +75,8 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 			SMSClient:      d.SMSClient,
 			TemplateEngine: templateEngine,
 		}
+	default:
+		panic("userverify: unknown metadata key: " + metadataKey)
 	}
 
 	return

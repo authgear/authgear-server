@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type AccessTokenResp map[string]interface{}
@@ -80,10 +81,7 @@ func (r AccessTokenResp) TokenType() string {
 
 func (r AccessTokenResp) Validate() error {
 	if r.AccessToken() == "" {
-		err := ssoError{
-			code:    MissingAccessToken,
-			message: "Missing access token parameter",
-		}
+		err := NewSSOFailed(SSOUnauthorized, "unexpected authorization response")
 		return err
 	}
 
@@ -106,10 +104,16 @@ func fetchAccessTokenResp(
 
 	// nolint: gosec
 	resp, err := http.PostForm(accessTokenURL, v)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
+		err = errors.WithSecondaryError(
+			NewSSOFailed(NetworkFailed, "failed to connect authorization server"),
+			err,
+		)
 		return
 	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode == 200 {
 		err = json.NewDecoder(resp.Body).Decode(&r)
@@ -117,12 +121,12 @@ func fetchAccessTokenResp(
 			return
 		}
 	} else { // normally 400 Bad Request
-		var errResp ErrorResp
+		var errResp oauthErrorResp
 		err = json.NewDecoder(resp.Body).Decode(&errResp)
 		if err != nil {
 			return
 		}
-		err = respToError(errResp)
+		err = errResp.AsError()
 	}
 
 	return

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	authprincipal "github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -61,15 +61,15 @@ func (f UnlinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 		@Callback user_sync {UserSyncEvent}
 */
 type UnlinkHandler struct {
-	TxContext         db.TxContext               `dependency:"TxContext"`
-	AuthContext       coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
-	RequireAuthz      handler.RequireAuthz       `dependency:"RequireAuthz"`
-	SessionProvider   session.Provider           `dependency:"SessionProvider"`
-	OAuthAuthProvider oauth.Provider             `dependency:"OAuthAuthProvider"`
-	IdentityProvider  principal.IdentityProvider `dependency:"IdentityProvider"`
-	UserProfileStore  userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider      hook.Provider              `dependency:"HookProvider"`
-	ProviderFactory   *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
+	TxContext         db.TxContext                   `dependency:"TxContext"`
+	AuthContext       coreAuth.ContextGetter         `dependency:"AuthContextGetter"`
+	RequireAuthz      handler.RequireAuthz           `dependency:"RequireAuthz"`
+	SessionProvider   session.Provider               `dependency:"SessionProvider"`
+	OAuthAuthProvider oauth.Provider                 `dependency:"OAuthAuthProvider"`
+	IdentityProvider  authprincipal.IdentityProvider `dependency:"IdentityProvider"`
+	UserProfileStore  userprofile.Store              `dependency:"UserProfileStore"`
+	HookProvider      hook.Provider                  `dependency:"HookProvider"`
+	ProviderFactory   *sso.ProviderFactory           `dependency:"SSOProviderFactory"`
 	ProviderID        string
 }
 
@@ -94,7 +94,7 @@ func (h UnlinkHandler) DecodeRequest(request *http.Request, resp http.ResponseWr
 func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 	providerConfig, ok := h.ProviderFactory.GetProviderConfig(h.ProviderID)
 	if !ok {
-		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
+		err = skyerr.NewNotFound("unknown SSO provider")
 		return
 	}
 
@@ -113,7 +113,7 @@ func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 	// principalID can be missing
 	principalID := sess.PrincipalID
 	if principalID != "" && principalID == principal.ID {
-		err = skyerr.NewError(skyerr.CurrentIdentityBeingDeleted, "Cannot delete current identity")
+		err = authprincipal.ErrCurrentIdentityBeingDeleted
 		return
 	}
 

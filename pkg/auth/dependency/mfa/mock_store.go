@@ -63,7 +63,7 @@ func (s *MockStore) UpdateRecoveryCode(a *RecoveryCodeAuthenticator) error {
 			return nil
 		}
 	}
-	return ErrAuthenticatorNotFound
+	return errAuthenticatorNotFound
 }
 
 func (s *MockStore) DeleteBearerTokenByParentID(userID string, parentID string) error {
@@ -117,7 +117,7 @@ func (s *MockStore) GetBearerTokenByToken(userID string, token string) (*BearerT
 			return &aa, nil
 		}
 	}
-	return nil, ErrAuthenticatorNotFound
+	return nil, errAuthenticatorNotFound
 }
 
 func (s *MockStore) ListAuthenticators(userID string) ([]Authenticator, error) {
@@ -156,7 +156,7 @@ func (s *MockStore) GetTOTP(userID string, id string) (*TOTPAuthenticator, error
 			return &aa, nil
 		}
 	}
-	return nil, ErrAuthenticatorNotFound
+	return nil, errAuthenticatorNotFound
 }
 
 func (s *MockStore) UpdateTOTP(a *TOTPAuthenticator) error {
@@ -167,7 +167,7 @@ func (s *MockStore) UpdateTOTP(a *TOTPAuthenticator) error {
 			return nil
 		}
 	}
-	return ErrAuthenticatorNotFound
+	return errAuthenticatorNotFound
 }
 
 func (s *MockStore) DeleteTOTP(a *TOTPAuthenticator) error {
@@ -205,7 +205,7 @@ func (s *MockStore) GetOnlyInactiveTOTP(userID string) (*TOTPAuthenticator, erro
 		}
 	}
 	if len(output) != 1 {
-		return nil, ErrAuthenticatorNotFound
+		return nil, errAuthenticatorNotFound
 	}
 	return &output[0], nil
 }
@@ -229,7 +229,7 @@ func (s *MockStore) GetOOB(userID string, id string) (*OOBAuthenticator, error) 
 			return &aa, nil
 		}
 	}
-	return nil, ErrAuthenticatorNotFound
+	return nil, errAuthenticatorNotFound
 }
 
 func (s *MockStore) UpdateOOB(a *OOBAuthenticator) error {
@@ -240,7 +240,7 @@ func (s *MockStore) UpdateOOB(a *OOBAuthenticator) error {
 			return nil
 		}
 	}
-	return ErrAuthenticatorNotFound
+	return errAuthenticatorNotFound
 }
 
 func (s *MockStore) DeleteOOB(a *OOBAuthenticator) error {
@@ -300,7 +300,7 @@ func (s *MockStore) GetOOBByChannel(userID string, channel coreAuth.Authenticato
 			}
 		}
 	}
-	return nil, ErrAuthenticatorNotFound
+	return nil, errAuthenticatorNotFound
 }
 
 func (s *MockStore) GetOnlyInactiveOOB(userID string) (*OOBAuthenticator, error) {
@@ -312,7 +312,7 @@ func (s *MockStore) GetOnlyInactiveOOB(userID string) (*OOBAuthenticator, error)
 		}
 	}
 	if len(output) != 1 {
-		return nil, ErrAuthenticatorNotFound
+		return nil, errAuthenticatorNotFound
 	}
 	return &output[0], nil
 }

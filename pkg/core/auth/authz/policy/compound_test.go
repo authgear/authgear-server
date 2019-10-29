@@ -1,11 +1,25 @@
 package policy
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+type everybody struct {
+	Allow bool
+}
+
+func (p everybody) IsAllowed(r *http.Request, ctx auth.ContextGetter) error {
+	if !p.Allow {
+		return errors.New("denied")
+	}
+
+	return nil
+}
 
 func TestAllOfPolicy(t *testing.T) {
 	Convey("Test AllOfPolicy", t, func() {
@@ -14,8 +28,8 @@ func TestAllOfPolicy(t *testing.T) {
 			ctx := MemoryContextGetter{}
 
 			err := AllOf(
-				Everybody{Allow: true},
-				Everybody{Allow: true},
+				everybody{Allow: true},
+				everybody{Allow: true},
 			).IsAllowed(req, ctx)
 			So(err, ShouldBeEmpty)
 		})
@@ -25,8 +39,8 @@ func TestAllOfPolicy(t *testing.T) {
 			ctx := MemoryContextGetter{}
 
 			err := AllOf(
-				Everybody{Allow: true},
-				Everybody{Allow: false},
+				everybody{Allow: true},
+				everybody{Allow: false},
 			).IsAllowed(req, ctx)
 			So(err, ShouldNotBeEmpty)
 		})
@@ -38,8 +52,8 @@ func TestAllOfPolicy(t *testing.T) {
 			ctx := MemoryContextGetter{}
 
 			err := AnyOf(
-				Everybody{Allow: true},
-				Everybody{Allow: true},
+				everybody{Allow: true},
+				everybody{Allow: true},
 			).IsAllowed(req, ctx)
 			So(err, ShouldBeEmpty)
 		})
@@ -49,8 +63,8 @@ func TestAllOfPolicy(t *testing.T) {
 			ctx := MemoryContextGetter{}
 
 			err := AnyOf(
-				Everybody{Allow: true},
-				Everybody{Allow: false},
+				everybody{Allow: true},
+				everybody{Allow: false},
 			).IsAllowed(req, ctx)
 			So(err, ShouldBeEmpty)
 		})
@@ -60,8 +74,8 @@ func TestAllOfPolicy(t *testing.T) {
 			ctx := MemoryContextGetter{}
 
 			err := AnyOf(
-				Everybody{Allow: false},
-				Everybody{Allow: false},
+				everybody{Allow: false},
+				everybody{Allow: false},
 			).IsAllowed(req, ctx)
 			So(err, ShouldNotBeEmpty)
 		})

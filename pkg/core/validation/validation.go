@@ -7,9 +7,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-
 	"github.com/louischan-oursky/gojsonschema"
+
+	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func init() {
@@ -82,7 +83,8 @@ func (e Error) SkyErrInvalidArgument(message string) error {
 		"arguments": arguments,
 		"causes":    arr,
 	}
-	return skyerr.NewErrorWithInfo(skyerr.InvalidArgument, message, info)
+	// TODO(error): JSON schema
+	return errors.WithDetails(skyerr.NewInvalid(message), info)
 }
 
 func (e Error) Len() int {

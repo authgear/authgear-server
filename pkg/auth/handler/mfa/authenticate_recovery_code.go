@@ -45,8 +45,9 @@ type AuthenticateRecoveryCodeRequest struct {
 }
 
 func (r AuthenticateRecoveryCodeRequest) Validate() error {
+	// TODO(error): JSON schema
 	if r.Code == "" {
-		return skyerr.NewInvalidArgument("missing recovery code", []string{"code"})
+		return skyerr.NewInvalid("missing recovery code")
 	}
 	return nil
 }

@@ -20,7 +20,7 @@ func (p GatewayTenantConfigurationProvider) ProvideConfig(r *http.Request) (conf
 	ctx := model.GatewayContextFromContext(r.Context())
 	app := ctx.App
 	if app.ID == "" {
-		panic("Unexpected app not found")
+		panic("config provider: app not found")
 	}
 
 	return app.Config, nil

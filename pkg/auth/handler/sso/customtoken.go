@@ -9,9 +9,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
-	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -22,10 +22,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -76,15 +76,13 @@ const CustomTokenLoginRequestSchema = `
 `
 
 func (payload CustomTokenLoginPayload) Validate() error {
+	// TODO(error): JSON schema
 	if err := payload.Claims.Validate(payload.ExpectedIssuer, payload.ExpectedAudience); err != nil {
-		return skyerr.NewError(
-			skyerr.InvalidCredentials,
-			err.Error(),
-		)
+		return sso.NewSSOFailed(sso.SSOUnauthorized, "invalid token")
 	}
 
 	if !model.IsValidOnUserDuplicateForSSO(payload.OnUserDuplicate) {
-		return skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
+		return skyerr.NewInvalid("invalid OnUserDuplicate")
 	}
 
 	return nil
@@ -182,7 +180,7 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request, resp http.
 
 	payload.Claims, err = h.CustomTokenAuthProvider.Decode(payload.TokenString)
 	if err != nil {
-		err = skyerr.NewError(skyerr.BadRequest, err.Error())
+		err = sso.NewSSOFailed(sso.SSOUnauthorized, "invalid token")
 		return
 	}
 	return
@@ -218,12 +216,13 @@ func (h CustomTokenLoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.R
 // Handle function handle custom token login
 func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp interface{}, err error) {
 	if !h.CustomTokenConfiguration.Enabled {
-		err = skyerr.NewError(skyerr.UndefinedOperation, "Custom Token is disabled")
+		err = skyerr.NewNotFound("custom token is disabled")
 		return
 	}
 
+	// TODO(error): JSON schema
 	if !h.PasswordAuthProvider.IsRealmValid(payload.MergeRealm) {
-		err = skyerr.NewInvalidArgument("Invalid MergeRealm", []string{payload.MergeRealm})
+		err = skyerr.NewInvalid("invalid MergeRealm")
 		return
 	}
 
@@ -232,7 +231,7 @@ func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp i
 		h.CustomTokenConfiguration.OnUserDuplicateAllowCreate,
 		payload.OnUserDuplicate,
 	) {
-		err = skyerr.NewInvalidArgument("Disallowed OnUserDuplicate", []string{string(payload.OnUserDuplicate)})
+		err = skyerr.NewInvalid("disallowed OnUserDuplicate")
 		return
 	}
 
@@ -274,13 +273,8 @@ func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp i
 		userProfile, err = h.UserProfileStore.GetUserProfile(info.ID)
 	}
 	if err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
 		return
 	}
-
-	// TODO: check disable
 
 	user := model.NewUser(info, userProfile)
 	identity := model.NewIdentity(h.IdentityProvider, principal)
@@ -327,21 +321,11 @@ func (h CustomTokenLoginHandler) handleLogin(
 	info *authinfo.AuthInfo,
 ) (createNewUser bool, customTokenPrincipal *customtoken.Principal, err error) {
 	customTokenPrincipal, err = h.findExistingCustomTokenPrincipal(payload.Claims.Subject())
-	if err != nil {
+	if err != nil && !errors.Is(err, principal.ErrNotFound) {
 		return
 	}
 
 	now := timeNow()
-
-	populateInfo := func(userID string) {
-		if e := h.AuthInfoStore.GetAuth(userID, info); e != nil {
-			if e == skydb.ErrUserNotFound {
-				err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-				return
-			}
-			return
-		}
-	}
 
 	createFunc := func() {
 		createNewUser = true
@@ -351,14 +335,6 @@ func (h CustomTokenLoginHandler) handleLogin(
 
 		// Create AuthInfo
 		if e := h.AuthInfoStore.CreateAuth(info); e != nil {
-			if e == skydb.ErrUserDuplicated {
-				err = signUpHandler.ErrUserDuplicated
-				return
-			}
-
-			// TODO:
-			// return proper error
-			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save auth info")
 			return
 		}
 
@@ -378,7 +354,7 @@ func (h CustomTokenLoginHandler) handleLogin(
 			return
 		}
 
-		populateInfo(customTokenPrincipal.UserID)
+		err = h.AuthInfoStore.GetAuth(customTokenPrincipal.UserID, info)
 		return
 	}
 
@@ -401,13 +377,13 @@ func (h CustomTokenLoginHandler) handleLogin(
 	// => Complex case
 	switch payload.OnUserDuplicate {
 	case model.OnUserDuplicateAbort:
-		err = skyerr.NewError(skyerr.Duplicated, "Aborted due to duplicate user")
+		err = password.ErrLoginIDAlreadyUsed
 	case model.OnUserDuplicateCreate:
 		createFunc()
 	case model.OnUserDuplicateMerge:
 		// Case: The same email is shared by multiple users
 		if len(userIDs) > 1 {
-			err = skyerr.NewError(skyerr.Duplicated, "Email shared by multiple users")
+			err = password.ErrLoginIDAlreadyUsed
 			return
 		}
 		// Associate the provider to the existing user
@@ -419,7 +395,7 @@ func (h CustomTokenLoginHandler) handleLogin(
 		if err != nil {
 			return
 		}
-		populateInfo(userID)
+		err = h.AuthInfoStore.GetAuth(userID, info)
 	}
 
 	return
@@ -427,9 +403,6 @@ func (h CustomTokenLoginHandler) handleLogin(
 
 func (h CustomTokenLoginHandler) findExistingCustomTokenPrincipal(subject string) (*customtoken.Principal, error) {
 	principal, err := h.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID(subject)
-	if err == skydb.ErrUserNotFound {
-		return nil, nil
-	}
 	if err != nil {
 		return nil, err
 	}

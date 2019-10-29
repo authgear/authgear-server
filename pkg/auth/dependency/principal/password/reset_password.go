@@ -2,8 +2,6 @@ package password
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type ResetPasswordRequestContext struct {
@@ -31,11 +29,6 @@ func (r *ResetPasswordRequestContext) ExecuteWithPrincipals(newPassword string, 
 func (r *ResetPasswordRequestContext) ExecuteWithUserID(newPassword string, userID string) (err error) {
 	principals, err := r.PasswordAuthProvider.GetPrincipalsByUserID(userID)
 	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-			return
-		}
-
 		return
 	}
 

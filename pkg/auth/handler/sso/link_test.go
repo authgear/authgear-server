@@ -20,7 +20,6 @@ import (
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -38,9 +37,7 @@ func TestLinkPayload(t *testing.T) {
 
 		Convey("validate payload without access token", func() {
 			payload := LinkRequestPayload{}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 	})
 }
@@ -170,9 +167,10 @@ func TestLinkHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 404)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 110,
-					"message": "External access token flow is disabled",
-					"name": "UndefinedOperation"
+					"name": "NotFound",
+					"reason": "NotFound",
+					"message": "external access token flow is disabled",
+					"code": 404
 				}
 			}`)
 		})

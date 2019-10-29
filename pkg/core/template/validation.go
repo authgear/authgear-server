@@ -39,28 +39,28 @@ func ValidateHTMLTemplate(template *html.Template) error {
 func validateTree(tree *parse.Tree) (err error) {
 	validateFn := func(n parse.Node, depth int) (cont bool) {
 		if depth > 4 {
-			err = fmt.Errorf("template: %s: template nested too deep", formatLocation(tree, n))
+			err = fmt.Errorf("%s: template nested too deep", formatLocation(tree, n))
 		} else {
 			switch n := n.(type) {
 			case *parse.IfNode, *parse.ListNode, *parse.ActionNode, *parse.TextNode:
 				break
 			case *parse.PipeNode:
 				if len(n.Decl) > 0 {
-					err = fmt.Errorf("template: %s: declaration is forbidden", formatLocation(tree, n))
+					err = fmt.Errorf("%s: declaration is forbidden", formatLocation(tree, n))
 				} else if len(n.Cmds) > 1 {
-					err = fmt.Errorf("template: %s: pipeline is forbidden", formatLocation(tree, n))
+					err = fmt.Errorf("%s: pipeline is forbidden", formatLocation(tree, n))
 				}
 			case *parse.CommandNode:
 				for _, arg := range n.Args {
 					if ident, ok := arg.(*parse.IdentifierNode); ok {
 						if !checkIdentifier(ident.Ident) {
-							err = fmt.Errorf("template: %s: forbidden identifier %s", formatLocation(tree, n), ident.Ident)
+							err = fmt.Errorf("%s: forbidden identifier %s", formatLocation(tree, n), ident.Ident)
 							break
 						}
 					}
 				}
 			default:
-				err = fmt.Errorf("template: %s: forbidden construct %T", formatLocation(tree, n), n)
+				err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)
 			}
 		}
 

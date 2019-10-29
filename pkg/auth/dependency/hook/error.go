@@ -1,30 +1,17 @@
 package hook
 
 import (
-	"fmt"
-
-	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
-type invalidEventPayload struct {
-	payload event.Payload
-}
+var WebHookDisallowed = skyerr.Forbidden.WithReason("WebHookDisallowed")
 
-func (err invalidEventPayload) Error() string {
-	return fmt.Sprintf("invalid event payload: %T", err.payload)
-}
-
-func newErrorDeliveryTimeout() error {
-	return skyerr.NewError(skyerr.WebHookTimeOut, "web-hook event delivery timed out")
-}
+var errDeliveryTimeout = errors.New("web-hook event delivery timed out")
+var errDeliveryInvalidStatusCode = errors.New("invalid status code")
 
 func newErrorDeliveryFailed(inner error) error {
-	return skyerr.NewErrorf(skyerr.WebHookFailed, "web-hook event delivery failed: %v", inner)
-}
-
-func newErrorDeliveryInvalidStatusCode() error {
-	return skyerr.NewError(skyerr.WebHookFailed, "invalid status code")
+	return errors.Newf("web-hook event delivery failed: %w", inner)
 }
 
 type OperationDisallowedItem struct {
@@ -33,13 +20,14 @@ type OperationDisallowedItem struct {
 }
 
 func newErrorOperationDisallowed(items []OperationDisallowedItem) error {
-	return skyerr.NewErrorWithInfo(
-		skyerr.PermissionDenied,
+	// NOTE(error): These are not causes. Causes are pre-defined,
+	// and reasons are provided by hook handlers.
+	return WebHookDisallowed.NewWithInfo(
 		"disallowed by web-hook event handler",
-		map[string]interface{}{"errors": items},
+		map[string]interface{}{"reasons": items},
 	)
 }
 
 func newErrorMutationFailed(inner error) error {
-	return skyerr.NewErrorf(skyerr.WebHookFailed, "web-hook mutation failed: %v", inner)
+	return errors.Newf("web-hook mutation failed: %w", inner)
 }

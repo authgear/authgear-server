@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -30,7 +31,7 @@ func (f AuthInfoMiddlewareFactory) NewInjectableMiddleware() coreMiddleware.Inje
 // Handle implements InjectableMiddleware.
 func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tenantConfig := config.GetTenantConfig(r)
+		tenantConfig := config.GetTenantConfig(r.Context())
 		accessKey := m.AuthContext.AccessKey()
 
 		model.SetAccessKey(r, accessKey)
@@ -50,7 +51,7 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		// If refresh token is enabled and the session is invalid,
 		// do not forward the request and write `x-skygear-try-refresh-token: true`
 		authInfo, err := m.AuthContext.AuthInfo()
-		if err == session.ErrSessionNotFound {
+		if errors.Is(err, session.ErrSessionNotFound) {
 			if accessKey.ClientID != "" {
 				clientConfig, ok := model.GetClientConfig(tenantConfig.UserConfig.Clients, accessKey.ClientID)
 				if ok && !clientConfig.RefreshTokenDisabled {

@@ -139,17 +139,18 @@ type AuthURLRequestPayload struct {
 }
 
 func (p AuthURLRequestPayload) Validate() (err error) {
+	// TODO(error): JSON schema
 	if p.CallbackURL == "" {
-		err = skyerr.NewInvalidArgument("Callback url is required", []string{"callback_url"})
+		err = skyerr.NewInvalid("callback url is required")
 		return
 	}
 	if !sso.IsValidUXMode(p.UXMode) {
-		err = skyerr.NewInvalidArgument("Invalid UX mode", []string{"ux_mode"})
+		err = skyerr.NewInvalid("invalid UX mode")
 		return
 	}
 
 	if !model.IsValidOnUserDuplicateForSSO(p.OnUserDuplicate) {
-		err = skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
+		err = skyerr.NewInvalid("invalid OnUserDuplicate")
 		return
 	}
 	return
@@ -258,7 +259,7 @@ func (h *AuthURLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return h.Handle(w, r)
 	})
 	if err != nil {
-		handler.WriteResponse(w, handler.APIResponse{Err: skyerr.MakeError(err)})
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
 		return
 	}
 	if r.Method == http.MethodPost {
@@ -300,12 +301,13 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	}
 
 	if h.Provider == nil {
-		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
+		err = skyerr.NewNotFound("unknown provider")
 		return
 	}
 
 	if !h.PasswordAuthProvider.IsRealmValid(payload.MergeRealm) {
-		err = skyerr.NewInvalidArgument("Invalid MergeRealm", []string{payload.MergeRealm})
+		// TODO(error): JSON schema
+		err = skyerr.NewInvalid("invalid MergeRealm")
 		return
 	}
 
@@ -314,12 +316,12 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		h.OAuthConfiguration.OnUserDuplicateAllowCreate,
 		payload.OnUserDuplicate,
 	) {
-		err = skyerr.NewInvalidArgument("Disallowed OnUserDuplicate", []string{string(payload.OnUserDuplicate)})
+		// TODO(error): JSON schema
+		err = skyerr.NewInvalid("disallowed OnUserDuplicate")
 		return
 	}
 
-	if e := sso.ValidateCallbackURL(h.OAuthConfiguration.AllowedCallbackURLs, payload.CallbackURL); e != nil {
-		err = skyerr.NewInvalidArgument(e.Error(), []string{string(payload.CallbackURL)})
+	if err = sso.ValidateCallbackURL(h.OAuthConfiguration.AllowedCallbackURLs, payload.CallbackURL); err != nil {
 		return
 	}
 

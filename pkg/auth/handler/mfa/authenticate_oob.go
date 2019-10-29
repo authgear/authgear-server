@@ -46,8 +46,9 @@ type AuthenticateOOBRequest struct {
 }
 
 func (r AuthenticateOOBRequest) Validate() error {
+	// TODO(error): JSON schema
 	if r.Code == "" {
-		return skyerr.NewInvalidArgument("missing code", []string{"code"})
+		return skyerr.NewInvalid("missing code")
 	}
 	return nil
 }

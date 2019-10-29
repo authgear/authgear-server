@@ -6,39 +6,33 @@ import (
 	"fmt"
 
 	"github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type providerImpl struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
-	logger      *logrus.Entry
 }
 
 func newProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
-	loggerFactory logging.Factory,
 ) *providerImpl {
 	return &providerImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
-		logger:      loggerFactory.NewLogger("oauth-provider"),
 	}
 }
 
 func NewProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
-	loggerFactory logging.Factory,
 ) Provider {
-	return newProvider(builder, executor, loggerFactory)
+	return newProvider(builder, executor)
 }
 
 func (p *providerImpl) scan(scanner db.Scanner, principal *Principal) error {
@@ -91,9 +85,9 @@ func (p *providerImpl) GetPrincipalByProvider(options GetByProviderOptions) (*Pr
 		options.ProviderKeys = map[string]interface{}{}
 	}
 
-	principal := Principal{}
 	providerKeysBytes, err := json.Marshal(options.ProviderKeys)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to get principal")
 		return nil, err
 	}
 
@@ -116,19 +110,22 @@ func (p *providerImpl) GetPrincipalByProvider(options GetByProviderOptions) (*Pr
 			"o.provider_type = ? AND o.provider_keys = ? AND o.provider_user_id = ?",
 			options.ProviderType, providerKeysBytes, options.ProviderUserID)
 
-	row := p.sqlExecutor.QueryRowWith(builder)
-
-	err = p.scan(row, &principal)
-
-	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
-	}
-
+	row, err := p.sqlExecutor.QueryRowWith(builder)
 	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to get principal")
 		return nil, err
 	}
 
-	return &principal, nil
+	var pp Principal
+	err = p.scan(row, &pp)
+
+	if err == sql.ErrNoRows {
+		return nil, principal.ErrNotFound
+	} else if err != nil {
+		return nil, errors.HandledWithMessage(err, "failed to get principal")
+	}
+
+	return &pp, nil
 }
 
 func (p *providerImpl) GetPrincipalByUser(options GetByUserOptions) (*Principal, error) {
@@ -136,10 +133,9 @@ func (p *providerImpl) GetPrincipalByUser(options GetByUserOptions) (*Principal,
 		options.ProviderKeys = map[string]interface{}{}
 	}
 
-	principal := Principal{}
 	providerKeysBytes, err := json.Marshal(options.ProviderKeys)
 	if err != nil {
-		return nil, err
+		return nil, errors.HandledWithMessage(err, "failed to get principal")
 	}
 
 	builder := p.sqlBuilder.Tenant().
@@ -161,19 +157,21 @@ func (p *providerImpl) GetPrincipalByUser(options GetByUserOptions) (*Principal,
 			"o.provider_type = ? AND o.provider_keys = ? AND p.user_id = ?",
 			options.ProviderType, providerKeysBytes, options.UserID)
 
-	row := p.sqlExecutor.QueryRowWith(builder)
+	row, err := p.sqlExecutor.QueryRowWith(builder)
+	if err != nil {
+		return nil, errors.HandledWithMessage(err, "failed to get principal")
+	}
 
-	err = p.scan(row, &principal)
+	var pp Principal
+	err = p.scan(row, &pp)
 
 	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
+		return nil, principal.ErrNotFound
+	} else if err != nil {
+		return nil, errors.HandledWithMessage(err, "failed to get principal")
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
-	return &principal, nil
+	return &pp, nil
 }
 
 func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
@@ -193,24 +191,24 @@ func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 
 	_, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
-		return
+		return errors.HandledWithMessage(err, "failed to create principal")
 	}
 
 	accessTokenRespBytes, err := json.Marshal(principal.AccessTokenResp)
 	if err != nil {
-		return
+		return errors.HandledWithMessage(err, "failed to create principal")
 	}
 	userProfileBytes, err := json.Marshal(principal.UserProfile)
 	if err != nil {
-		return
+		return errors.HandledWithMessage(err, "failed to create principal")
 	}
 	claimsValueBytes, err := json.Marshal(principal.ClaimsValue)
 	if err != nil {
-		return
+		return errors.HandledWithMessage(err, "failed to create principal")
 	}
 	providerKeysBytes, err := json.Marshal(principal.ProviderKeys)
 	if err != nil {
-		return
+		return errors.HandledWithMessage(err, "failed to create principal")
 	}
 
 	builder = p.sqlBuilder.Tenant().
@@ -240,28 +238,26 @@ func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 
 	_, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
-		if db.IsUniqueViolated(err) {
-			err = skydb.ErrUserDuplicated
-		}
+		return errors.HandledWithMessage(err, "failed to create principal")
 	}
 
 	return
 }
 
-func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
-	accessTokenRespBytes, err := json.Marshal(principal.AccessTokenResp)
+func (p *providerImpl) UpdatePrincipal(pp *Principal) (err error) {
+	accessTokenRespBytes, err := json.Marshal(pp.AccessTokenResp)
 	if err != nil {
-		return
+		return errors.HandledWithMessage(err, "failed to update principal")
 	}
 
-	userProfileBytes, err := json.Marshal(principal.UserProfile)
+	userProfileBytes, err := json.Marshal(pp.UserProfile)
 	if err != nil {
-		return
+		return errors.HandledWithMessage(err, "failed to update principal")
 	}
 
-	claimsValueBytes, err := json.Marshal(principal.ClaimsValue)
+	claimsValueBytes, err := json.Marshal(pp.ClaimsValue)
 	if err != nil {
-		return
+		return errors.HandledWithMessage(err, "failed to update principal")
 	}
 
 	builder := p.sqlBuilder.Tenant().
@@ -269,72 +265,69 @@ func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 		Set("token_response", accessTokenRespBytes).
 		Set("profile", userProfileBytes).
 		Set("claims", claimsValueBytes).
-		Set("_updated_at", principal.UpdatedAt).
-		Where("principal_id = ?", principal.ID)
+		Set("_updated_at", pp.UpdatedAt).
+		Where("principal_id = ?", pp.ID)
 
 	result, err := p.sqlExecutor.ExecWith(builder)
 	if err != nil {
-		if db.IsUniqueViolated(err) {
-			err = skydb.ErrUserDuplicated
-			return
-		}
+		return errors.HandledWithMessage(err, "failed to update principal")
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return err
+		return errors.HandledWithMessage(err, "failed to update principal")
 	}
 
 	if rowsAffected == 0 {
-		return skydb.ErrUserNotFound
+		return principal.ErrNotFound
 	} else if rowsAffected > 1 {
-		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
+		panic(fmt.Sprintf("oauth: want 1 rows updated, got %v", rowsAffected))
 	}
 
 	return nil
 }
 
-func (p *providerImpl) DeletePrincipal(principal *Principal) (err error) {
+func (p *providerImpl) DeletePrincipal(pp *Principal) (err error) {
 	// Delete provider_oauth
 	builder := p.sqlBuilder.Tenant().
 		Delete(p.sqlBuilder.FullTableName("provider_oauth")).
-		Where("principal_id = ?", principal.ID)
+		Where("principal_id = ?", pp.ID)
 
 	result, err := p.sqlExecutor.ExecWith(builder)
 	if err != nil {
-		return err
+		return errors.HandledWithMessage(err, "failed to delete principal")
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return err
+		return errors.HandledWithMessage(err, "failed to delete principal")
 	}
 
 	if rowsAffected == 0 {
-		return skydb.ErrUserNotFound
+		return principal.ErrNotFound
 	} else if rowsAffected > 1 {
-		panic(fmt.Errorf("want 1 rows deleted, got %v", rowsAffected))
+		panic(fmt.Sprintf("oauth: want 1 rows deleted, got %v", rowsAffected))
 	}
 
 	// Delete principal
 	builder = p.sqlBuilder.Tenant().
 		Delete(p.sqlBuilder.FullTableName("principal")).
-		Where("id = ?", principal.ID)
+		Where("id = ?", pp.ID)
 
 	result, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
-		return err
+		return errors.HandledWithMessage(err, "failed to delete principal")
 	}
 
 	rowsAffected, err = result.RowsAffected()
 	if err != nil {
-		return err
+		return errors.HandledWithMessage(err, "failed to delete principal")
 	}
 
 	if rowsAffected == 0 {
-		return skydb.ErrUserNotFound
+		return principal.ErrNotFound
 	} else if rowsAffected > 1 {
-		panic(fmt.Errorf("want 1 rows deleted, got %v", rowsAffected))
+		panic(fmt.Sprintf("oauth: want 1 rows deleted, got %v", rowsAffected))
 	}
 
 	return
@@ -363,7 +356,7 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
-		return
+		return nil, errors.HandledWithMessage(err, "failed to get principal by user ID")
 	}
 	defer rows.Close()
 
@@ -371,14 +364,9 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 		var principal Principal
 		err = p.scan(rows, &principal)
 		if err != nil {
-			return
+			return nil, errors.HandledWithMessage(err, "failed to get principal by user ID")
 		}
 		principals = append(principals, &principal)
-	}
-
-	if len(principals) == 0 {
-		err = skydb.ErrUserNotFound
-		return
 	}
 
 	return
@@ -404,7 +392,7 @@ func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
-		return
+		return nil, errors.HandledWithMessage(err, "failed to get principal by claim")
 	}
 	defer rows.Close()
 
@@ -412,14 +400,9 @@ func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string)
 		var principal Principal
 		err = p.scan(rows, &principal)
 		if err != nil {
-			return
+			return nil, errors.HandledWithMessage(err, "failed to get principal by claim")
 		}
 		principals = append(principals, &principal)
-	}
-
-	if len(principals) == 0 {
-		err = skydb.ErrUserNotFound
-		return
 	}
 
 	return
@@ -447,28 +430,26 @@ func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal
 		Join(p.sqlBuilder.FullTableName("provider_oauth"), "o", "p.id = o.principal_id").
 		Where("p.id = ?", principalID)
 
-	scanner := p.sqlExecutor.QueryRowWith(builder)
+	scanner, err := p.sqlExecutor.QueryRowWith(builder)
+	if err != nil {
+		return nil, errors.HandledWithMessage(err, "failed to get principal by ID")
+	}
 
-	var principal Principal
-	err := p.scan(scanner, &principal)
+	var pp Principal
+	err = p.scan(scanner, &pp)
 
 	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
+		return nil, principal.ErrNotFound
+	} else if err != nil {
+		return nil, errors.HandledWithMessage(err, "failed to get principal by user ID")
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
-	return &principal, nil
+	return &pp, nil
 }
 
 func (p *providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
 	principals, err := p.GetPrincipalsByUserID(userID)
 	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			return nil, nil
-		}
 		return nil, err
 	}
 
@@ -483,9 +464,6 @@ func (p *providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Princi
 func (p *providerImpl) ListPrincipalsByClaim(claimName string, claimValue string) ([]principal.Principal, error) {
 	principals, err := p.GetPrincipalsByClaim(claimName, claimValue)
 	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			return nil, nil
-		}
 		return nil, err
 	}
 

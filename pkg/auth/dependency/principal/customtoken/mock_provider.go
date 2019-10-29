@@ -7,7 +7,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
 // MockProvider is the memory implementation of custom provider
@@ -43,18 +42,18 @@ func (p *MockProvider) Decode(tokenString string) (claims SSOCustomTokenClaims, 
 	return
 }
 
-func (p *MockProvider) CreatePrincipal(principal *Principal) error {
-	if _, existed := p.PrincipalMap[principal.ID]; existed {
-		return skydb.ErrUserDuplicated
+func (p *MockProvider) CreatePrincipal(pp *Principal) error {
+	if _, exists := p.PrincipalMap[pp.ID]; exists {
+		return principal.ErrAlreadyExists
 	}
 
 	for _, p := range p.PrincipalMap {
-		if p.TokenPrincipalID == principal.TokenPrincipalID {
-			return skydb.ErrUserDuplicated
+		if p.TokenPrincipalID == pp.TokenPrincipalID {
+			return principal.ErrAlreadyExists
 		}
 	}
 
-	p.PrincipalMap[principal.ID] = *principal
+	p.PrincipalMap[pp.ID] = *pp
 	return nil
 }
 
@@ -70,7 +69,7 @@ func (p *MockProvider) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (
 		}
 	}
 
-	return nil, skydb.ErrUserNotFound
+	return nil, principal.ErrNotFound
 }
 
 func (p *MockProvider) ID() string {
@@ -106,7 +105,7 @@ func (p *MockProvider) GetPrincipalByID(principalID string) (principal.Principal
 			return &principal, nil
 		}
 	}
-	return nil, skydb.ErrUserNotFound
+	return nil, principal.ErrNotFound
 }
 
 var (

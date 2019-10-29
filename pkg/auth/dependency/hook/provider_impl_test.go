@@ -13,6 +13,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -38,6 +39,7 @@ func TestDispatchEvent(t *testing.T) {
 			authInfoStore,
 			userProfileStore,
 			deliverer,
+			logging.NewNullFactory(),
 		).(*providerImpl)
 
 		authInfoStore.AuthInfoMap = map[string]authinfo.AuthInfo{}
@@ -168,14 +170,14 @@ func TestDispatchEvent(t *testing.T) {
 			})
 
 			Convey("should return delivery error", func() {
-				deliverer.DeliveryError = fmt.Errorf("Failed to deliver")
+				deliverer.DeliveryError = fmt.Errorf("failed to deliver")
 
 				err := provider.DispatchEvent(
 					payload,
 					&user,
 				)
 
-				So(err, ShouldBeError, "Failed to deliver")
+				So(err, ShouldBeError, "failed to dispatch event")
 			})
 		})
 

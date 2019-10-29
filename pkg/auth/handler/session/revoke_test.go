@@ -120,7 +120,7 @@ func TestRevokeHandler(t *testing.T) {
 		Convey("should reject current session", func() {
 			payload := RevokeRequestPayload{SessionID: "user-id-1-principal-id-1"}
 			_, err := h.Handle(payload)
-			So(err, ShouldBeError, "InvalidArgument: must not revoke current session")
+			So(err, ShouldBeError, "must not revoke current session")
 			So(sessionProvider.Sessions, ShouldContainKey, "user-id-1-principal-id-1")
 			So(sessionProvider.Sessions, ShouldContainKey, "user-id-1-principal-id-2")
 			So(sessionProvider.Sessions, ShouldContainKey, "user-id-2-principal-id-3")

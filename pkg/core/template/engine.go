@@ -1,7 +1,7 @@
 package template
 
 import (
-	"fmt"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 // Engine parse templates with given url, and fallback to a default one if the
@@ -65,13 +65,12 @@ func (e *Engine) downloadContent(templateName string, option ParseOption) (templ
 	// skip error handling if there is a fallback template name
 	if option.FallbackTemplateName == "" {
 		defer func() {
-			if option.Required && err != nil {
-				// return error if required but template not found
-				err = fmt.Errorf("template with name `%s` not found", templateName)
-			} else if !option.Required && err != nil {
+			if !option.Required && IsNotFound(err) {
 				// no error if not required
 				err = nil
 				templateBody = ""
+			} else if err != nil {
+				err = errors.Newf("failed to load template '%s': %w", templateName, err)
 			}
 		}()
 	}

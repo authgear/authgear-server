@@ -1,14 +1,13 @@
 package mfa
 
 import (
+	"errors"
 	"time"
 
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
-// ErrAuthenticatorNotFound is authenticator not found.
-var ErrAuthenticatorNotFound = skyerr.NewError(skyerr.ResourceNotFound, "authenticator not found")
+var ErrNoAuthenticators = errors.New("no authenticators")
 
 // Store manipulates authenticators
 type Store interface {

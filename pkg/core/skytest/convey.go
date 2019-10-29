@@ -23,50 +23,48 @@ import (
 
 	coreReflect "github.com/skygeario/skygear-server/pkg/core/reflect"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/smartystreets/goconvey/convey"
 )
 
-// ShouldEqualSkyError asserts the equality of skyerr.Error
-func ShouldEqualSkyError(actual interface{}, expected ...interface{}) string {
-	if len(expected) < 1 || len(expected) > 3 {
-		return fmt.Sprintf("ShouldEqualSkyError receives 1 to 3 arguments")
+// ShouldEqualAPIError asserts the equality of skyerr.APIError
+func ShouldEqualAPIError(actual interface{}, expected ...interface{}) string {
+	if len(expected) < 1 || len(expected) > 2 {
+		return fmt.Sprintf("ShouldEqualSkyError receives 1 to 2 arguments")
 	}
 
-	lhs, ok := actual.(skyerr.Error)
+	apiErr, ok := actual.(skyerr.APIError)
 	if !ok {
-		return fmt.Sprintf("%v is not skyerr.Error", actual)
-	}
-
-	// expected[0] is code
-	// expected[1] is message
-	// expected[2] is info
-
-	code, ok := expected[0].(skyerr.ErrorCode)
-	if !ok {
-		return fmt.Sprintf("%v is not skyerr.ErrorCode", expected[0])
-	}
-
-	message := ""
-	if len(expected) >= 2 {
-		message, ok = expected[1].(string)
-		if !ok {
-			return fmt.Sprintf("%v is not message", expected[1])
+		if err, ok := actual.(error); ok {
+			apiErr = *skyerr.AsAPIError(err)
+		} else {
+			return fmt.Sprintf("%v is not convertible to skyerr.APIError", actual)
 		}
+	}
+
+	// expected[0] is kind
+	// expected[1] is info
+
+	kind, ok := expected[0].(skyerr.Kind)
+	if !ok {
+		return fmt.Sprintf("%v is not skyerr.Kind", expected[0])
 	}
 
 	var info map[string]interface{}
-	if len(expected) == 3 {
-		info, ok = expected[2].(map[string]interface{})
+	if len(expected) == 2 {
+		info, ok = expected[1].(map[string]interface{})
 		if !ok {
-			return fmt.Sprintf("%v is not info", expected[2])
+			return fmt.Sprintf("%v is not map[string]interface{}", expected[1])
 		}
+	} else {
+		info = apiErr.Info
 	}
 
-	rhs := skyerr.NewErrorWithInfo(code, message, info)
-	if !reflect.DeepEqual(lhs, rhs) {
-		return fmt.Sprintf(`Expected: '%v' Actual: '%v'`, lhs, rhs)
+	type APIError struct {
+		Kind skyerr.Kind
+		Info map[string]interface{}
 	}
 
-	return ""
+	return convey.ShouldResemble(APIError{apiErr.Kind, apiErr.Info}, APIError{kind, info})
 }
 
 // ShouldEqualStringSliceWithoutOrder compares two string slice

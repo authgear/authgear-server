@@ -1,13 +1,10 @@
 package session
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 )
-
-var ErrSessionNotFound = fmt.Errorf("session is not found")
 
 // Store represents the backing store for user sessions.
 // Note that the returned sessions may not be valid (e.g. can be expired)

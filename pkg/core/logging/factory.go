@@ -8,34 +8,40 @@ import (
 	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
-func NewFactory(formatter logrus.Formatter) Factory {
-	return Factory{formatter: formatter}
+type Factory interface {
+	NewLogger(name string) *logrus.Entry
 }
 
-func NewFactoryFromRequest(r *http.Request, formatter logrus.Formatter) Factory {
-	return Factory{
+func NewFactory(hooks ...logrus.Hook) Factory {
+	return factoryImpl{hooks: hooks}
+}
+
+func NewFactoryFromRequest(r *http.Request, hooks ...logrus.Hook) Factory {
+	return factoryImpl{
 		requestID: r.Header.Get(corehttp.HeaderRequestID),
-		formatter: formatter,
+		hooks:     hooks,
 	}
 }
 
-func NewFactoryFromRequestID(requestID string, formatter logrus.Formatter) Factory {
-	return Factory{
+func NewFactoryFromRequestID(requestID string, hooks ...logrus.Hook) Factory {
+	return factoryImpl{
 		requestID: requestID,
-		formatter: formatter,
+		hooks:     hooks,
 	}
 }
 
-type Factory struct {
+type factoryImpl struct {
 	requestID string
-	formatter logrus.Formatter
+	hooks     []logrus.Hook
 }
 
-func (f Factory) NewLogger(name string) *logrus.Entry {
+func (f factoryImpl) NewLogger(name string) *logrus.Entry {
 	entry := LoggerEntry(name)
 	if f.requestID != "" {
 		entry = entry.WithField("request_id", f.requestID)
 	}
-	entry.Logger.Formatter = f.formatter
+	for _, hook := range f.hooks {
+		entry.Logger.Hooks.Add(hook)
+	}
 	return entry
 }

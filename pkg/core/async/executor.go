@@ -29,8 +29,8 @@ func (e *Executor) Execute(taskCtx TaskContext, name string, param interface{}, 
 	ctx := db.InitDBContext(context.Background(), e.pool)
 	task := factory.NewTask(ctx, taskCtx)
 
-	formatter := logging.NewDefaultMaskedTextFormatter(taskCtx.TenantConfig.DefaultSensitiveLoggerValues())
-	loggerFactory := logging.NewFactoryFromRequestID(taskCtx.RequestID, formatter)
+	logHook := logging.NewDefaultLogHook(taskCtx.TenantConfig.DefaultSensitiveLoggerValues())
+	loggerFactory := logging.NewFactoryFromRequestID(taskCtx.RequestID, logHook)
 	logger := loggerFactory.NewLogger("async-executor")
 	go func() {
 		defer func() {

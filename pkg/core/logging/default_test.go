@@ -9,31 +9,42 @@ import (
 
 func TestDefaultFormatter(t *testing.T) {
 	Convey("DefaultMaskedTextFormatter", t, func() {
-		fmt := NewDefaultMaskedTextFormatter([]string{"SECRET"})
+		h := NewDefaultLogHook([]string{"SECRET"})
 
 		Convey("should mask sensitive strings", func() {
-			buf, err := fmt.Format(&logrus.Entry{
+			e := &logrus.Entry{
 				Message: "Test SECRET",
 				Level:   logrus.ErrorLevel,
-			})
+			}
+			err := h.Fire(e)
 
 			So(err, ShouldBeNil)
-			So(string(buf), ShouldEqual, `time="0001-01-01T00:00:00Z" level=error msg="Test ********"`+"\n")
+			So(e, ShouldResemble, &logrus.Entry{
+				Message: "Test ********",
+				Level:   logrus.ErrorLevel,
+			})
 		})
 		Convey("should mask JWTs", func() {
-			buf, err := fmt.Format(&logrus.Entry{
+			e := &logrus.Entry{
 				Message: "logged in",
 				Level:   logrus.ErrorLevel,
 				Data: logrus.Fields{
 					"authz": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.MiwK31U8C6MNcuYw7EMsAtjioTwG8oOgG0swJeH738k",
 				},
-			})
+			}
+			err := h.Fire(e)
 
 			So(err, ShouldBeNil)
-			So(string(buf), ShouldEqual, `time="0001-01-01T00:00:00Z" level=error msg="logged in" authz="Bearer ********"`+"\n")
+			So(e, ShouldResemble, &logrus.Entry{
+				Message: "logged in",
+				Level:   logrus.ErrorLevel,
+				Data: logrus.Fields{
+					"authz": "Bearer ********",
+				},
+			})
 		})
 		Convey("should mask session tokens", func() {
-			buf, err := fmt.Format(&logrus.Entry{
+			e := &logrus.Entry{
 				Message: "refreshing token",
 				Level:   logrus.ErrorLevel,
 				Data: logrus.Fields{
@@ -45,10 +56,20 @@ func TestDefaultFormatter(t *testing.T) {
 						Refresh: "54448008-84f9-4413-8d61-036f0a6d7878.5EFoSwEoc0mRE7fNGvPNqUjWc1VlY5vG",
 					},
 				},
-			})
+			}
+			err := h.Fire(e)
 
 			So(err, ShouldBeNil)
-			So(string(buf), ShouldEqual, `time="0001-01-01T00:00:00Z" level=error msg="refreshing token" tokens="{******** ********}"`+"\n")
+			So(e, ShouldResemble, &logrus.Entry{
+				Message: "refreshing token",
+				Level:   logrus.ErrorLevel,
+				Data: logrus.Fields{
+					"tokens": map[string]interface{}{
+						"Access":  "********",
+						"Refresh": "********",
+					},
+				},
+			})
 		})
 	})
 }

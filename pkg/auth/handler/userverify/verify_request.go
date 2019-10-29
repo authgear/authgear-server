@@ -93,12 +93,13 @@ const VerifyRequestSchema = `
 `
 
 func (payload VerifyRequestPayload) Validate() error {
+	// TODO(error): JSON schema
 	if !utils.StringSliceContains(allLoginIDTypes, string(payload.LoginIDType)) {
-		return skyerr.NewInvalidArgument("invalid login ID type", []string{"login_id_type"})
+		return skyerr.NewInvalid("invalid login ID type")
 	}
 
 	if payload.LoginID == "" {
-		return skyerr.NewInvalidArgument("empty login ID", []string{"login_id"})
+		return skyerr.NewInvalid("empty login ID")
 	}
 
 	return nil
@@ -146,7 +147,7 @@ func (h VerifyRequestHandler) WithTx() bool {
 func (h VerifyRequestHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := VerifyRequestPayload{}
 	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
-		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+		return nil, err
 	}
 
 	return payload, nil
@@ -159,9 +160,6 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 	// Get Profile
 	var userProfile userprofile.UserProfile
 	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
 		return
 	}
 
@@ -180,7 +178,8 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		}
 	}
 	if userPrincipal == nil {
-		err = skyerr.NewError(skyerr.UnexpectedError, "Value of "+payload.LoginID+" doesn't exist.")
+		// TODO(error): JSON schema
+		err = skyerr.NewInvalid("login ID is not owned by this user")
 		return
 	}
 
@@ -192,9 +191,6 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 	codeSender := h.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
 	user := model.NewUser(*authInfo, userProfile)
 	if err = codeSender.Send(*verifyCode, user); err != nil {
-		h.Logger.WithFields(logrus.Fields{
-			"login_id_key": userPrincipal.LoginIDKey,
-		}).WithError(err).Debug("Fail to send verify request")
 		return
 	}
 
@@ -223,12 +219,13 @@ type VerifyRequestTestPayload struct {
 }
 
 func (payload VerifyRequestTestPayload) Validate() error {
+	// TODO(error): JSON schema
 	if payload.LoginIDKey == "" {
-		return skyerr.NewInvalidArgument("empty login_id_key", []string{"login_id_key"})
+		return skyerr.NewInvalid("empty login_id_key")
 	}
 
 	if payload.LoginID == "" {
-		return skyerr.NewInvalidArgument("empty login_id", []string{"login_id"})
+		return skyerr.NewInvalid("empty login_id")
 	}
 
 	return nil
@@ -278,7 +275,7 @@ func (h VerifyRequestTestHandler) WithTx() bool {
 func (h VerifyRequestTestHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := VerifyRequestTestPayload{}
 	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
-		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+		return nil, err
 	}
 
 	return payload, nil

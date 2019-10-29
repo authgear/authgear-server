@@ -4,14 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-
-	"github.com/skygeario/skygear-server/pkg/auth"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -21,6 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func AttachLinkHandler(
@@ -64,8 +63,9 @@ const LinkRequestSchema = `
 
 // Validate request payload
 func (p LinkRequestPayload) Validate() error {
+	// TODO(error): JSON schema
 	if p.AccessToken == "" {
-		return skyerr.NewInvalidArgument("empty access token", []string{"access_token"})
+		return skyerr.NewInvalid("empty access token")
 	}
 
 	return nil
@@ -127,13 +127,13 @@ func (h LinkHandler) DecodeRequest(request *http.Request, resp http.ResponseWrit
 
 func (h LinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 	if !h.OAuthConfiguration.ExternalAccessTokenFlowEnabled {
-		err = skyerr.NewError(skyerr.UndefinedOperation, "External access token flow is disabled")
+		err = skyerr.NewNotFound("external access token flow is disabled")
 		return
 	}
 
 	provider, ok := h.Provider.(sso.ExternalAccessTokenFlowProvider)
 	if !ok {
-		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
+		err = skyerr.NewNotFound("unknown provider")
 		return
 	}
 

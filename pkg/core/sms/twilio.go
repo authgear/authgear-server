@@ -1,13 +1,12 @@
 package sms
 
 import (
-	"errors"
-
 	"github.com/sfreiberg/gotwilio"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
-var ErrMissingTwilioConfiguration = errors.New("missing twilio configuration")
+var ErrMissingTwilioConfiguration = errors.New("twilio: configuration is missing")
 
 type TwilioClient struct {
 	From         string
@@ -32,11 +31,11 @@ func (t *TwilioClient) Send(to string, body string) error {
 	}
 	_, exception, err := t.TwilioClient.SendSMS(t.From, to, body, "", "")
 	if err != nil {
-		return err
+		return errors.Newf("twilio: %w", err)
 	}
 
 	if exception != nil {
-		err = errors.New(exception.Message)
+		err = errors.Newf("twilio: %s", exception.Message)
 		return err
 	}
 

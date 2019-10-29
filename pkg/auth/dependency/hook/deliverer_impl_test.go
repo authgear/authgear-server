@@ -184,7 +184,7 @@ func TestDeliverer(t *testing.T) {
 
 				err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
 
-				So(err, ShouldBeError, "PermissionDenied: disallowed by web-hook event handler")
+				So(err, ShouldBeError, "disallowed by web-hook event handler")
 				So(gock.IsDone(), ShouldBeTrue)
 			})
 
@@ -271,7 +271,7 @@ func TestDeliverer(t *testing.T) {
 					mutator.ApplyError = fmt.Errorf("cannot apply mutations")
 					err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
 
-					So(err, ShouldBeError, "WebHookFailed: web-hook mutation failed: cannot apply mutations")
+					So(err, ShouldBeError, "web-hook mutation failed: cannot apply mutations")
 					So(mutator.IsApplied, ShouldEqual, true)
 					So(gock.IsDone(), ShouldBeTrue)
 				})
@@ -280,7 +280,7 @@ func TestDeliverer(t *testing.T) {
 					mutator.AddError = fmt.Errorf("cannot add mutations")
 					err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
 
-					So(err, ShouldBeError, "WebHookFailed: web-hook mutation failed: cannot add mutations")
+					So(err, ShouldBeError, "web-hook mutation failed: cannot add mutations")
 					So(mutator.IsApplied, ShouldEqual, false)
 					So(gock.IsDone(), ShouldBeFalse)
 				})
@@ -306,7 +306,7 @@ func TestDeliverer(t *testing.T) {
 
 				err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
 
-				So(err, ShouldBeError, "WebHookFailed: invalid status code")
+				So(err, ShouldBeError, "invalid status code")
 				So(gock.IsDone(), ShouldBeTrue)
 			})
 
@@ -350,7 +350,7 @@ func TestDeliverer(t *testing.T) {
 
 				err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
 
-				So(err, ShouldBeError, "WebHookTimeOut: web-hook event delivery timed out")
+				So(err, ShouldBeError, "web-hook event delivery timed out")
 				So(gock.IsDone(), ShouldBeTrue)
 			})
 		})
@@ -402,7 +402,7 @@ func TestDeliverer(t *testing.T) {
 
 				err := deliverer.DeliverNonBeforeEvent(baseURL, &e, 5*gotime.Second)
 
-				So(err, ShouldBeError, "WebHookFailed: invalid status code")
+				So(err, ShouldBeError, "invalid status code")
 				So(gock.IsDone(), ShouldBeTrue)
 			})
 		})

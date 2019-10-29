@@ -222,7 +222,7 @@ func MaskAuthenticators(authenticators []Authenticator) []Authenticator {
 		case OOBAuthenticator:
 			output[i] = aa.Mask()
 		default:
-			panic("unknown authenticator")
+			panic("mfa: unknown authenticator")
 		}
 	}
 	return output
@@ -250,10 +250,10 @@ func CanAddAuthenticator(authenticators []Authenticator, newA Authenticator, mfa
 			case coreAuth.AuthenticatorOOBChannelEmail:
 				oobEmailCount++
 			default:
-				panic("unknown OOB authenticator channel")
+				panic("mfa: unknown OOB authenticator channel")
 			}
 		default:
-			panic("unknown authenticator")
+			panic("mfa: unknown authenticator")
 		}
 	}
 

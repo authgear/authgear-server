@@ -49,7 +49,7 @@ type ConfigResp struct {
 // }
 func (f ConfigHandler) NewHandler(request *http.Request) http.Handler {
 	handleAPICall := func(r *http.Request) (apiResp handler.APIResponse) {
-		tConfig := config.GetTenantConfig(r)
+		tConfig := config.GetTenantConfig(r.Context())
 		authorizedURLs := tConfig.UserConfig.SSO.OAuth.AllowedCallbackURLs
 		if authorizedURLs == nil {
 			authorizedURLs = []string{}

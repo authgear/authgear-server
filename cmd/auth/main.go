@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -31,7 +30,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type configuration struct {
@@ -76,7 +74,7 @@ type configuration struct {
 func main() {
 	// logging initialization
 	logging.SetModule("auth")
-	loggerFactory := logging.NewFactory(logging.NewDefaultMaskedTextFormatter(nil))
+	loggerFactory := logging.NewFactory(logging.NewDefaultLogHook(nil))
 	logger := loggerFactory.NewLogger("auth")
 
 	envErr := godotenv.Load()
@@ -120,21 +118,13 @@ func main() {
 		}
 		tenantConfig, err := config.NewTenantConfigurationFromYAML(reader)
 		if err != nil {
-			if skyError, ok := err.(skyerr.Error); ok {
-				info := skyError.Info()
-				if arguments, ok := info["arguments"].([]string); ok {
-					for _, a := range arguments {
-						fmt.Fprintf(os.Stderr, "%v\n", a)
-					}
-				}
-			}
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
 		serverOption := server.DefaultOption()
 		serverOption.GearPathPrefix = configuration.PathPrefix
 		srv = server.NewServerWithOption(configuration.Host, authDependency, serverOption)
-		srv.Use(middleware.TenantConfigurationMiddleware{
+		srv.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
 				return *tenantConfig, nil
 			}),
@@ -144,6 +134,7 @@ func main() {
 		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
 		srv = server.NewServer(configuration.Host, authDependency)
+		srv.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 	}
 
 	srv.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)

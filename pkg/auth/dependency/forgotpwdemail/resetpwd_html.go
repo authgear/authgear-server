@@ -6,6 +6,7 @@ import (
 
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
@@ -17,21 +18,29 @@ type ResetPasswordHTMLProvider struct {
 
 	urlPrefix *url.URL
 	config    config.ForgotPasswordConfiguration
+
+	err error
 }
 
 func NewResetPasswordHTMLProvider(urlPrefix *url.URL, c config.ForgotPasswordConfiguration, templateEngine *template.Engine) *ResetPasswordHTMLProvider {
 	var successRedirect *url.URL
 	var errorRedirect *url.URL
-	var err error
+	var providerError error
 	if c.SuccessRedirect != "" {
-		if successRedirect, err = url.Parse(c.SuccessRedirect); err != nil {
-			panic("invalid Forgot password success redirect URL")
+		u, err := url.Parse(c.SuccessRedirect)
+		if err == nil {
+			successRedirect = u
+		} else {
+			providerError = errors.Newf("invalid success redirect URL: %w", err)
 		}
 	}
 
 	if c.ErrorRedirect != "" {
-		if errorRedirect, err = url.Parse(c.ErrorRedirect); err != nil {
-			panic("invalid Forgot password error redirect URL")
+		u, err := url.Parse(c.ErrorRedirect)
+		if err == nil {
+			errorRedirect = u
+		} else {
+			providerError = errors.Newf("invalid error redirect URL: %w", err)
 		}
 	}
 
@@ -41,13 +50,14 @@ func NewResetPasswordHTMLProvider(urlPrefix *url.URL, c config.ForgotPasswordCon
 		errorRedirect:   errorRedirect,
 		urlPrefix:       urlPrefix,
 		config:          c,
+		err:             providerError,
 	}
 }
 
 func (r *ResetPasswordHTMLProvider) SuccessHTML(context map[string]interface{}) (string, error) {
 	r.injectContext(context)
-	return r.TemplateEngine.ParseTextTemplate(
-		authTemplate.TemplateNameResetPasswordErrorHTML,
+	return r.TemplateEngine.ParseHTMLTemplate(
+		authTemplate.TemplateNameResetPasswordSuccessHTML,
 		context,
 		template.ParseOption{Required: true},
 	)
@@ -55,8 +65,8 @@ func (r *ResetPasswordHTMLProvider) SuccessHTML(context map[string]interface{}) 
 
 func (r *ResetPasswordHTMLProvider) ErrorHTML(context map[string]interface{}) (string, error) {
 	r.injectContext(context)
-	return r.TemplateEngine.ParseTextTemplate(
-		authTemplate.TemplateNameResetPasswordSuccessHTML,
+	return r.TemplateEngine.ParseHTMLTemplate(
+		authTemplate.TemplateNameResetPasswordErrorHTML,
 		context,
 		template.ParseOption{Required: true},
 	)
@@ -64,7 +74,7 @@ func (r *ResetPasswordHTMLProvider) ErrorHTML(context map[string]interface{}) (s
 
 func (r *ResetPasswordHTMLProvider) FormHTML(context map[string]interface{}) (string, error) {
 	r.injectContext(context)
-	return r.TemplateEngine.ParseTextTemplate(
+	return r.TemplateEngine.ParseHTMLTemplate(
 		authTemplate.TemplateNameResetPasswordHTML,
 		context,
 		template.ParseOption{Required: true},
@@ -79,6 +89,10 @@ func (r *ResetPasswordHTMLProvider) injectContext(context map[string]interface{}
 }
 
 func (r *ResetPasswordHTMLProvider) SuccessRedirect(context map[string]interface{}) *url.URL {
+	if r.err != nil {
+		panic(r.err)
+	}
+
 	if r.successRedirect == nil {
 		return nil
 	}
@@ -89,6 +103,10 @@ func (r *ResetPasswordHTMLProvider) SuccessRedirect(context map[string]interface
 }
 
 func (r *ResetPasswordHTMLProvider) ErrorRedirect(context map[string]interface{}) *url.URL {
+	if r.err != nil {
+		panic(r.err)
+	}
+
 	if r.errorRedirect == nil {
 		return nil
 	}

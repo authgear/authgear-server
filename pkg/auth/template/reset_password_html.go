@@ -7,7 +7,7 @@ const templateResetPasswordHTML = `<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 {{ if .error }}
-<p>{{ .error }}</p>
+<p>{{ .error.Message }}</p>
 {{ end }}
 <form method="POST" action="{{ .action_url }}">
   <label for="password">New Password</label>

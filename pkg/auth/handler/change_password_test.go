@@ -149,13 +149,14 @@ func TestChangePasswordHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 				{
 					"error": {
-						"code": 111,
-						"name": "PasswordPolicyViolated",
-						"message": "password too short",
+						"name": "Invalid",
+						"reason": "PasswordPolicyViolated",
+						"message": "password policy violated",
+						"code": 400,
 						"info": {
-							"reason": "PasswordTooShort",
-							"min_length": 6,
-							"pw_length": 4
+							"causes": [
+								{ "kind": "PasswordTooShort", "min_length": 6, "pw_length": 4 }
+							]
 						}
 					}
 				}
@@ -176,9 +177,10 @@ func TestChangePasswordHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 				{
 					"error": {
-						"code": 105,
-						"message": "Incorrect old password",
-						"name": "InvalidCredentials"
+						"name": "Unauthorized",
+						"reason": "InvalidCredentials",
+						"message": "invalid credentials",
+						"code": 401
 					}
 				}
 			`)

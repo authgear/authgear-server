@@ -47,8 +47,9 @@ type AuthenticateBearerTokenRequest struct {
 }
 
 func (r AuthenticateBearerTokenRequest) Validate() error {
+	// TODO(error): JSON schema
 	if r.BearerToken == "" {
-		return skyerr.NewInvalidArgument("missing bearer token", []string{"bearer_token"})
+		return skyerr.NewInvalid("missing bearer token")
 	}
 	return nil
 }

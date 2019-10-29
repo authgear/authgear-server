@@ -64,8 +64,9 @@ const VerifyCodeRequestSchema = `
 `
 
 func (payload VerifyCodePayload) Validate() error {
+	// TODO(error): JSON schema
 	if payload.Code == "" {
-		return skyerr.NewInvalidArgument("empty code", []string{"code"})
+		return skyerr.NewInvalid("empty code")
 	}
 
 	return nil
@@ -116,7 +117,7 @@ func (h VerifyCodeHandler) WithTx() bool {
 func (h VerifyCodeHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := VerifyCodePayload{}
 	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
-		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+		return nil, err
 	}
 
 	return payload, nil
@@ -129,9 +130,6 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 	var userProfile userprofile.UserProfile
 	userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID)
 	if err != nil {
-		h.Logger.WithFields(map[string]interface{}{
-			"user_id": authInfo.ID,
-		}).WithError(err).Error("Unable to get user profile")
 		return
 	}
 

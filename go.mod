@@ -1,6 +1,6 @@
 module github.com/skygeario/skygear-server
 
-go 1.12
+go 1.13
 
 require (
 	github.com/FZambia/sentinel v1.1.0

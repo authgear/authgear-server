@@ -1,4 +1,4 @@
-FROM golang:1.12.5-stretch as godev
+FROM golang:1.13.3-stretch as godev
 
 ENV GO111MODULE on
 

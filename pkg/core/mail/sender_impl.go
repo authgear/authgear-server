@@ -8,7 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-var ErrMissingSMTPConfiguration = errors.New("missing SMTP configuration")
+var ErrMissingSMTPConfiguration = errors.New("mail: configuration is missing")
 
 type senderImpl struct {
 	GomailDialer *gomail.Dialer
@@ -65,7 +65,7 @@ func (s *senderImpl) Send(opts SendOptions) (err error) {
 
 func applyFrom(opts *SendOptions, message *gomail.Message) error {
 	if opts.Sender == "" {
-		return errors.New("sender address is missing")
+		return errors.New("mail: sender address is missing")
 	}
 
 	message.SetHeader("From", opts.Sender)
@@ -74,7 +74,7 @@ func applyFrom(opts *SendOptions, message *gomail.Message) error {
 
 func applyTo(opts *SendOptions, message *gomail.Message) error {
 	if opts.Recipient == "" {
-		return errors.New("recipient address is missing")
+		return errors.New("mail: recipient address is missing")
 	}
 
 	message.SetHeader("To", opts.Recipient)
@@ -92,7 +92,7 @@ func applyReplyTo(opts *SendOptions, message *gomail.Message) error {
 
 func applySubject(opts *SendOptions, message *gomail.Message) error {
 	if opts.Subject == "" {
-		return errors.New("subject is missing")
+		return errors.New("mail: subject is missing")
 	}
 
 	message.SetHeader("Subject", opts.Subject)
@@ -101,7 +101,7 @@ func applySubject(opts *SendOptions, message *gomail.Message) error {
 
 func applyTextBody(opts *SendOptions, message *gomail.Message) error {
 	if opts.TextBody == "" {
-		return errors.New("text body is missing")
+		return errors.New("mail: text body is missing")
 	}
 
 	message.SetBody("text/plain", opts.TextBody)

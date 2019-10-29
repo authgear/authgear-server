@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
@@ -36,7 +37,7 @@ func newDeploymentRouteReverseProxy() *httputil.ReverseProxy {
 		// It does not take backendURL into account.
 		req.Header.Add(coreHttp.HeaderHTTPPath, originalPath)
 		// Remove tenant config from header.
-		coreConfig.DelTenantConfig(req)
+		coreConfig.WriteTenantConfig(req, nil)
 	}
 
 	return &httputil.ReverseProxy{Director: director}
@@ -50,7 +51,7 @@ func getForwardURL(reqURL *url.URL, route coreConfig.DeploymentRoute) (*url.URL,
 	case model.DeploymentRouteTypeFunction, model.DeploymentRouteTypeHTTPHandler:
 		forwardURL, err = url.Parse(typeConfig.BackendURL())
 		if err != nil {
-			return nil, err
+			return nil, errors.Newf("failed to parse backend URL: %w", err)
 		}
 		// Handle case that the backend URL does not have trailing slash
 		if forwardURL.Path == "" {
@@ -64,7 +65,7 @@ func getForwardURL(reqURL *url.URL, route coreConfig.DeploymentRoute) (*url.URL,
 	case model.DeploymentRouteTypeHTTPService:
 		forwardURL, err = url.Parse(typeConfig.BackendURL())
 		if err != nil {
-			return nil, err
+			return nil, errors.Newf("failed to parse backend URL: %w", err)
 		}
 		// Handle case that the backend URL does not have trailing slash
 		if forwardURL.Path == "" {

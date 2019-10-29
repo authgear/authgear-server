@@ -1,9 +1,9 @@
 package sso
 
 import (
-	"errors"
-
 	jwt "github.com/dgrijalva/jwt-go"
+
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 // CustomClaims is the type for jwt encoded
@@ -32,12 +32,12 @@ func DecodeState(secret string, encoded string) (*State, error) {
 	claims := CustomClaims{}
 	_, err := jwt.ParseWithClaims(encoded, &claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("fails to parse token")
+			return nil, errors.New("unexpected JWT alg")
 		}
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, NewSSOFailed(InvalidParams, "invalid sso state")
 	}
 	return &claims.State, nil
 }

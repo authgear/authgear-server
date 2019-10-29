@@ -324,8 +324,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
 
-			c.Printf("Response: %s", string(resp.Body.Bytes()))
-			So(resp.Code, ShouldEqual, 400)
+			So(resp.Code, ShouldEqual, 401)
 
 			mockTrail, _ := lh.AuditTrail.(*audit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
@@ -361,9 +360,10 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 404)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 110,
-					"message": "Custom Token is disabled",
-					"name": "UndefinedOperation"
+					"name": "NotFound",
+					"reason": "NotFound",
+					"message": "custom token is disabled",
+					"code": 404
 				}
 			}`)
 		})
@@ -484,9 +484,10 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"code": 108,
-					"message": "Aborted due to duplicate user",
-					"name": "Duplicated"
+					"name": "AlreadyExists",
+					"reason": "LoginIDAlreadyUsed",
+					"message": "login ID is used by another user",
+					"code": 409
 				}
 			}
 			`)

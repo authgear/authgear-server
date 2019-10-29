@@ -16,39 +16,34 @@ package pq
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	dbPq "github.com/skygeario/skygear-server/pkg/core/db/pq"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type authInfoStore struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
-	logger      *logrus.Entry
 }
 
-func newAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) *authInfoStore {
+func newAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor) *authInfoStore {
 	return &authInfoStore{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
-		logger:      loggerFactory.NewLogger("auth-info"),
 	}
 }
 
-func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) authinfo.Store {
-	return newAuthInfoStore(builder, executor, loggerFactory)
+func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor) authinfo.Store {
+	return newAuthInfoStore(builder, executor)
 }
 
-func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
+func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) error {
 	var (
 		lastSeenAt     *time.Time
 		lastLoginAt    *time.Time
@@ -98,9 +93,9 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 			verifyInfo,
 		)
 
-	_, err = s.sqlExecutor.ExecWith(builder)
-	if db.IsUniqueViolated(err) {
-		return skydb.ErrUserDuplicated
+	_, err := s.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to create user")
 	}
 
 	return err
@@ -108,7 +103,7 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 
 // UpdateAuth updates an existing AuthInfo matched by the ID field.
 // nolint: gocyclo
-func (s authInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
+func (s authInfoStore) UpdateAuth(info *authinfo.AuthInfo) error {
 	var (
 		lastSeenAt     *time.Time
 		lastLoginAt    *time.Time
@@ -116,51 +111,46 @@ func (s authInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		disabledExpiry *time.Time
 		verifyInfo     dbPq.JSONMapBooleanValue
 	)
-	lastSeenAt = authinfo.LastSeenAt
+	lastSeenAt = info.LastSeenAt
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
 		lastSeenAt = nil
 	}
-	lastLoginAt = authinfo.LastLoginAt
+	lastLoginAt = info.LastLoginAt
 	if lastLoginAt != nil && lastLoginAt.IsZero() {
 		lastLoginAt = nil
 	}
-	disabledReason = &authinfo.DisabledMessage
+	disabledReason = &info.DisabledMessage
 	if *disabledReason == "" {
 		disabledReason = nil
 	}
-	disabledExpiry = authinfo.DisabledExpiry
+	disabledExpiry = info.DisabledExpiry
 	if disabledExpiry != nil && disabledExpiry.IsZero() {
 		disabledExpiry = nil
 	}
 
-	verifyInfo = authinfo.VerifyInfo
+	verifyInfo = info.VerifyInfo
 
 	builder := s.sqlBuilder.Tenant().
 		Update(s.sqlBuilder.FullTableName("user")).
 		Set("last_seen_at", lastSeenAt).
 		Set("last_login_at", lastLoginAt).
-		Set("disabled", authinfo.Disabled).
+		Set("disabled", info.Disabled).
 		Set("disabled_message", disabledReason).
 		Set("disabled_expiry", disabledExpiry).
-		Set("verified", authinfo.Verified).
+		Set("verified", info.Verified).
 		Set("verify_info", verifyInfo).
-		Where("id = ?", authinfo.ID)
+		Where("id = ?", info.ID)
 
 	result, err := s.sqlExecutor.ExecWith(builder)
 	if err != nil {
-		if db.IsUniqueViolated(err) {
-			return skydb.ErrUserDuplicated
-		}
-		return err
+		return errors.HandledWithMessage(err, "failed to update user")
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return err
+		return errors.HandledWithMessage(err, "failed to update user")
 	}
 	if rowsAffected == 0 {
-		return skydb.ErrUserNotFound
-	} else if rowsAffected > 1 {
-		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
+		return authinfo.ErrNotFound
 	}
 
 	return nil
@@ -203,9 +193,7 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		&verified,
 		&verifyInfo,
 	)
-	if err == sql.ErrNoRows {
-		return skydb.ErrUserNotFound
-	} else if err != nil {
+	if err != nil {
 		return err
 	}
 
@@ -244,10 +232,20 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 	return nil
 }
 
-func (s authInfoStore) GetAuth(id string, authinfo *authinfo.AuthInfo) error {
+func (s authInfoStore) GetAuth(id string, info *authinfo.AuthInfo) error {
 	builder := s.baseUserBuilder().Where("id = ?", id)
-	scanner := s.sqlExecutor.QueryRowWith(builder)
-	return s.doScanAuth(authinfo, scanner)
+	scanner, err := s.sqlExecutor.QueryRowWith(builder)
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to get user")
+	}
+
+	err = s.doScanAuth(info, scanner)
+	if err == sql.ErrNoRows {
+		return authinfo.ErrNotFound
+	} else if err != nil {
+		return errors.HandledWithMessage(err, "failed to get user")
+	}
+	return nil
 }
 
 func (s authInfoStore) DeleteAuth(id string) error {
@@ -257,16 +255,14 @@ func (s authInfoStore) DeleteAuth(id string) error {
 
 	result, err := s.sqlExecutor.ExecWith(builder)
 	if err != nil {
-		return err
+		return errors.HandledWithMessage(err, "failed to delete user")
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return err
+		return errors.HandledWithMessage(err, "failed to delete user")
 	}
 	if rowsAffected == 0 {
-		return skydb.ErrUserNotFound
-	} else if rowsAffected > 1 {
-		panic(fmt.Errorf("want 1 rows deleted, got %v", rowsAffected))
+		return authinfo.ErrNotFound
 	}
 
 	return nil

@@ -19,7 +19,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -66,8 +65,9 @@ const ForgotPasswordRequestSchema = `
 `
 
 func (payload ForgotPasswordPayload) Validate() error {
+	// TODO(error): JSON schema
 	if payload.Email == "" {
-		return skyerr.NewInvalidArgument("empty email", []string{"email"})
+		return skyerr.NewInvalid("empty email")
 	}
 
 	return nil
@@ -108,7 +108,7 @@ func (h ForgotPasswordHandler) WithTx() bool {
 func (h ForgotPasswordHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := ForgotPasswordPayload{}
 	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
-		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+		return nil, err
 	}
 
 	return payload, nil
@@ -117,19 +117,8 @@ func (h ForgotPasswordHandler) DecodeRequest(request *http.Request, resp http.Re
 func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(ForgotPasswordPayload)
 
-	principals, principalErr := h.PasswordAuthProvider.GetPrincipalsByLoginID("", payload.Email)
-	if principalErr != nil {
-		if principalErr == skydb.ErrUserNotFound {
-			if h.SecureMatch {
-				resp = map[string]string{}
-			} else {
-				err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-			}
-
-			return
-		}
-		// TODO: more error handling here if necessary
-		err = skyerr.NewResourceFetchFailureErr("login_id", payload.Email)
+	principals, err := h.PasswordAuthProvider.GetPrincipalsByLoginID("", payload.Email)
+	if err != nil {
 		return
 	}
 
@@ -144,9 +133,8 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		if h.SecureMatch {
 			resp = map[string]string{}
 		} else {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+			err = authinfo.ErrNotFound
 		}
-
 		return
 	}
 
@@ -155,21 +143,12 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 
 		fetchedAuthInfo := authinfo.AuthInfo{}
 		if err = h.AuthInfoStore.GetAuth(userID, &fetchedAuthInfo); err != nil {
-			if err == skydb.ErrUserNotFound {
-				err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-				return
-			}
-			// TODO: more error handling here if necessary
-			err = skyerr.NewResourceFetchFailureErr("login_id", payload.Email)
 			return
 		}
 
 		// Get Profile
 		var userProfile userprofile.UserProfile
 		if userProfile, err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID); err != nil {
-			// TODO:
-			// return proper error
-			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
 			return
 		}
 
@@ -211,8 +190,9 @@ type ForgotPasswordTestPayload struct {
 }
 
 func (payload ForgotPasswordTestPayload) Validate() error {
+	// TODO(error): JSON schema
 	if payload.Email == "" {
-		return skyerr.NewInvalidArgument("empty email", []string{"email"})
+		return skyerr.NewInvalid("empty email")
 	}
 
 	return nil
@@ -251,7 +231,7 @@ func (h ForgotPasswordTestHandler) WithTx() bool {
 func (h ForgotPasswordTestHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
 	payload := ForgotPasswordTestPayload{}
 	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
-		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+		return nil, err
 	}
 
 	return payload, nil

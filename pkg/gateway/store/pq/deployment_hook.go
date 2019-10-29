@@ -3,9 +3,9 @@ package pq
 import (
 	"database/sql"
 	"encoding/json"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
 
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
+	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
 
 func (s *Store) GetLastDeploymentHooks(app model.App) (hooks *model.DeploymentHooks, err error) {
@@ -19,7 +19,10 @@ func (s *Store) GetLastDeploymentHooks(app model.App) (hooks *model.DeploymentHo
 		Where("app_id = ?", app.ID).
 		Where("is_last_deployment = true")
 
-	scanner := s.QueryRowWith(builder)
+	scanner, err := s.QueryRowWith(builder)
+	if err != nil {
+		return
+	}
 
 	hooks = &model.DeploymentHooks{
 		AppID:            app.ID,
@@ -34,7 +37,7 @@ func (s *Store) GetLastDeploymentHooks(app model.App) (hooks *model.DeploymentHo
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = skydb.ErrUserNotFound
+			err = store.NewNotFoundError("deployment hooks")
 		}
 		return
 	}

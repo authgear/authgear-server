@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type ConfigurationProvider interface {
@@ -17,19 +17,30 @@ func (f ConfigurationProviderFunc) ProvideConfig(r *http.Request) (config.Tenant
 	return f(r)
 }
 
-type TenantConfigurationMiddleware struct {
+type WriteTenantConfigMiddleware struct {
 	ConfigurationProvider
 }
 
-func (m TenantConfigurationMiddleware) Handle(next http.Handler) http.Handler {
+func (m WriteTenantConfigMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		configuration, err := m.ProvideConfig(r)
 		if err != nil {
-			panic(fmt.Errorf("Unable to retrieve configuration: %v", err.Error()))
+			panic(errors.Newf("unable to retrieve configuration: %w", err))
 		}
+		config.WriteTenantConfig(r, &configuration)
 
-		// Tenant configuration
-		config.SetTenantConfig(r, &configuration)
+		r = r.WithContext(config.WithTenantConfig(r.Context(), &configuration))
+		next.ServeHTTP(w, r)
+	})
+}
+
+type ReadTenantConfigMiddleware struct{}
+
+func (m ReadTenantConfigMiddleware) Handle(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		configuration := config.ReadTenantConfig(r)
+
+		r = r.WithContext(config.WithTenantConfig(r.Context(), &configuration))
 		next.ServeHTTP(w, r)
 	})
 }

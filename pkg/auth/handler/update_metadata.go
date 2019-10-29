@@ -19,7 +19,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -121,15 +120,16 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 	accessKey := h.AuthContext.AccessKey()
 
 	var targetUserID string
+	// TODO(error): integrate JSON schema
 	if accessKey.IsMasterKey() {
 		if payload.UserID == "" {
-			err = skyerr.NewInvalidArgument("empty user_id", []string{"user_id"})
+			err = skyerr.NewInvalid("empty user_id")
 			return
 		}
 		targetUserID = payload.UserID
 	} else {
 		if payload.UserID != "" {
-			err = skyerr.NewError(skyerr.PermissionDenied, "must not specify user_id")
+			err = skyerr.NewInvalid("must not specify user_id")
 			return
 		}
 		authInfo, _ := h.AuthContext.AuthInfo()
@@ -139,28 +139,16 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 	newMetadata := payload.Metadata
 
 	authInfo := authinfo.AuthInfo{}
-	if e := h.AuthInfoStore.GetAuth(targetUserID, &authInfo); e != nil {
-		if err == skydb.ErrUserNotFound {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
-			return
-		}
-		// TODO: more error handling here if necessary
-		err = skyerr.NewResourceFetchFailureErr("auth_data", payload.UserID)
+	if err = h.AuthInfoStore.GetAuth(targetUserID, &authInfo); err != nil {
 		return
 	}
 
 	var oldProfile, newProfile userprofile.UserProfile
 	if oldProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to get user profile")
 		return
 	}
 
 	if newProfile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, newMetadata); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to update user profile")
 		return
 	}
 

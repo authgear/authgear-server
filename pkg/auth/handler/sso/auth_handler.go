@@ -8,15 +8,14 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
+
+	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-
-	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -27,6 +26,7 @@ import (
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func AttachAuthHandler(
@@ -57,16 +57,18 @@ type AuthRequestPayload sso.OAuthAuthorizationResponse
 
 // Validate request payload
 func (p AuthRequestPayload) Validate() error {
+	// TODO(error): JSON schema
+
 	if p.Code == "" {
-		return skyerr.NewInvalidArgument("code is required", []string{"code"})
+		return skyerr.NewInvalid("code is required")
 	}
 
 	if p.State == "" {
-		return skyerr.NewInvalidArgument("state is required", []string{"state"})
+		return skyerr.NewInvalid("state is required")
 	}
 
 	if p.Nonce == "" {
-		return skyerr.NewInvalidArgument("nonce is required", []string{"nonce"})
+		return skyerr.NewInvalid("nonce is required")
 	}
 
 	return nil
@@ -153,7 +155,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	// We have to return error by directly writing to response at this stage
 	// because we do not have valid state.
 	if h.Provider == nil {
-		http.Error(w, "Provider is not supported", http.StatusBadRequest)
+		http.Error(w, "Unknown provider", http.StatusBadRequest)
 		return
 	}
 
@@ -210,18 +212,6 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 
 func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.AuthInfo, err error) {
 	oauthAuthInfo, err = h.Provider.GetAuthInfo(sso.OAuthAuthorizationResponse(payload))
-	if err != nil {
-		if ssoErr, ok := err.(sso.Error); ok {
-			switch ssoErr.Code() {
-			case sso.InvalidGrant:
-				err = skyerr.NewError(skyerr.InvalidArgument, "Code was already redeemed")
-			case sso.InvalidClient:
-				err = skyerr.NewError(skyerr.InvalidCredentials, "Unauthorized, please check the app client id and secret")
-			default:
-				err = skyerr.NewError(skyerr.InvalidCredentials, ssoErr.Error())
-			}
-		}
-	}
 	return
 }
 
@@ -246,10 +236,6 @@ func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (resp i
 
 func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
 	err = sso.ValidateCallbackURL(allowedCallbackURLs, callbackURL)
-	if err != nil {
-		err = skyerr.NewError(skyerr.BadRequest, err.Error())
-		return
-	}
 	return
 }
 
@@ -319,11 +305,7 @@ func (h AuthHandler) handleRedirectResp(
 
 func makeJSONResponse(ok interface{}, err error) handler.APIResponse {
 	if err != nil {
-		return handler.APIResponse{
-			Err: skyerr.MakeError(err),
-		}
+		return handler.APIResponse{Error: err}
 	}
-	return handler.APIResponse{
-		Result: ok,
-	}
+	return handler.APIResponse{Result: ok}
 }

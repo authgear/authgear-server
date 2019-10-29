@@ -17,7 +17,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func AttachMeHandler(
@@ -88,17 +87,11 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	// Get Profile
 	var userProfile userprofile.UserProfile
 	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
 		return
 	}
 
 	var principal principal.Principal
 	if principal, err = h.IdentityProvider.GetPrincipalByID(principalID); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user identity")
 		return
 	}
 

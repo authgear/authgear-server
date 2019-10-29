@@ -21,7 +21,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -99,7 +98,7 @@ func TestUnlinkHandler(t *testing.T) {
 				ProviderType:   "google",
 				ProviderUserID: providerUserID,
 			})
-			So(e, ShouldEqual, skydb.ErrUserNotFound)
+			So(e, ShouldBeError, principal.ErrNotFound)
 			So(p, ShouldBeNil)
 
 			So(sessionProvider.Sessions, ShouldContainKey, "faseng.cat.id-faseng.cat.principal.id")
@@ -144,9 +143,10 @@ func TestUnlinkHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 400)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 116,
-					"message": "Cannot delete current identity",
-					"name": "CurrentIdentityBeingDeleted"
+					"name": "Invalid",
+					"reason": "CurrentIdentityBeingDeleted",
+					"message": "must not delete current identity",
+					"code": 400
 				}
 			}`)
 		})

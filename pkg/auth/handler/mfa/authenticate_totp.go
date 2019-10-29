@@ -46,8 +46,9 @@ type AuthenticateTOTPRequest struct {
 }
 
 func (r AuthenticateTOTPRequest) Validate() error {
+	// TODO(error): JSON schema
 	if r.OTP == "" {
-		return skyerr.NewInvalidArgument("missing OTP", []string{"otp"})
+		return skyerr.NewInvalid("missing OTP")
 	}
 	return nil
 }

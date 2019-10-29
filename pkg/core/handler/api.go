@@ -6,7 +6,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	nextSkyerr "github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type APIHandler interface {
@@ -21,8 +20,15 @@ type APITxHandler interface {
 }
 
 type APIResponse struct {
-	Result interface{}  `json:"result,omitempty"`
-	Err    skyerr.Error `json:"error,omitempty"`
+	Result interface{}
+	Error  error
+}
+
+func (r APIResponse) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Result interface{}      `json:"result,omitempty"`
+		Error  *skyerr.APIError `json:"error,omitempty"`
+	}{r.Result, skyerr.AsAPIError(r.Error)})
 }
 
 func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Handler {
@@ -31,24 +37,32 @@ func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Han
 	handleAPICall := func(r *http.Request, resp http.ResponseWriter) (response APIResponse) {
 		payload, err := apiHandler.DecodeRequest(r, resp)
 		if err != nil {
-			response.Err = skyerr.MakeError(err)
+			response.Error = err
 			return
 		}
 
 		if err := payload.Validate(); err != nil {
-			response.Err = skyerr.MakeError(err)
+			response.Error = err
 			return
 		}
+
+		defer func() {
+			if err != nil {
+				response.Error = err
+			}
+		}()
 
 		if apiHandler.WithTx() {
 			// assume txContext != nil if apiHandler.WithTx() is true
 			if err := txContext.BeginTx(); err != nil {
-				panic(err)
+				response.Error = err
+				return
 			}
 
 			defer func() {
-				if txContext.HasTx() {
-					txContext.RollbackTx()
+				err = db.EndTx(txContext, err)
+				if err == nil && txHandler != nil {
+					txHandler.DidCommitTx()
 				}
 			}()
 		}
@@ -61,15 +75,6 @@ func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Han
 
 		if err == nil {
 			response.Result = responsePayload
-
-			if txContext != nil {
-				txContext.CommitTx()
-			}
-			if txHandler != nil {
-				txHandler.DidCommitTx()
-			}
-		} else {
-			response.Err = skyerr.MakeError(err)
 		}
 
 		return
@@ -81,17 +86,30 @@ func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Han
 	})
 }
 
+// HandledError represents a handled (i.e. API responded with error) unexpected
+// error. When encountered this error, panic recovery middleware should log
+// the error, without changing the response.
+type HandledError struct {
+	Error error
+}
+
 func WriteResponse(rw http.ResponseWriter, response APIResponse) {
 	httpStatus := http.StatusOK
 	encoder := json.NewEncoder(rw)
+	err := skyerr.AsAPIError(response.Error)
 
-	if response.Err != nil {
-		httpStatus = nextSkyerr.ErrorDefaultStatusCode(response.Err)
+	if err != nil {
+		httpStatus = err.Code
 	}
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(httpStatus)
 	encoder.Encode(response)
+
+	if err != nil && err.Code >= 500 && err.Code < 600 {
+		// delegate logging to panic recovery
+		panic(HandledError{response.Error})
+	}
 }
 
 // Transactional runs f within a transaction.
@@ -99,24 +117,10 @@ func WriteResponse(rw http.ResponseWriter, response APIResponse) {
 // Otherwise the transaction is committed.
 // It is a lightweight and flexible alternative to APIHandler
 // because it is not coupled with http.
-func Transactional(txContext db.TxContext, f func() (interface{}, error)) (interface{}, error) {
-	if e := txContext.BeginTx(); e != nil {
-		panic(e)
-	}
-	defer func() {
-		if txContext.HasTx() {
-			txContext.RollbackTx()
-		}
-	}()
-	result, err := f()
-	if err != nil {
-		if e := txContext.RollbackTx(); e != nil {
-			panic(e)
-		}
-	} else {
-		if e := txContext.CommitTx(); e != nil {
-			panic(e)
-		}
-	}
-	return result, err
+func Transactional(txContext db.TxContext, f func() (interface{}, error)) (result interface{}, err error) {
+	err = db.WithTx(txContext, func() error {
+		result, err = f()
+		return err
+	})
+	return
 }

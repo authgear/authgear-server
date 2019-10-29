@@ -21,7 +21,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -65,12 +64,13 @@ const ResetPasswordRequestSchema = `
 `
 
 func (p ResetPasswordRequestPayload) Validate() error {
+	// TODO(error): JSON schema
 	if p.UserID == "" {
-		return skyerr.NewInvalidArgument("invalid user id", []string{"user_id"})
+		return skyerr.NewInvalid("invalid user id")
 	}
 
 	if p.Password == "" {
-		return skyerr.NewInvalidArgument("empty password", []string{"password"})
+		return skyerr.NewInvalid("empty password")
 	}
 
 	return nil
@@ -128,14 +128,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 	payload := req.(ResetPasswordRequestPayload)
 
 	authinfo := authinfo.AuthInfo{}
-	if e := h.AuthInfoStore.GetAuth(payload.UserID, &authinfo); e != nil {
-		if err == skydb.ErrUserNotFound {
-			// logger.Info("Auth info not found when setting disabled user status")
-			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
-			return
-		}
-		// logger.WithError(err).Error("Unable to get auth info when setting disabled user status")
-		err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
+	if err = h.AuthInfoStore.GetAuth(payload.UserID, &authinfo); err != nil {
 		return
 	}
 

@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -32,18 +31,14 @@ func TestResetPasswordPayload(t *testing.T) {
 			payload := ResetPasswordRequestPayload{
 				Password: "123456",
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 
 		Convey("validate payload without password", func() {
 			payload := ResetPasswordRequestPayload{
 				UserID: "1",
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeError)
 		})
 	})
 }
@@ -144,7 +139,7 @@ func TestResetPasswordHandler(t *testing.T) {
 			}
 
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "ResourceNotFound: User not found")
+			So(err, ShouldBeError, "user not found")
 		})
 
 		Convey("should not reset password with password violates password policy", func() {
@@ -155,7 +150,7 @@ func TestResetPasswordHandler(t *testing.T) {
 			}
 
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "PasswordPolicyViolated: password too short")
+			So(err, ShouldBeError, "password policy violated")
 		})
 
 		Convey("should have audit trail when reset password", func() {

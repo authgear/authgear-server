@@ -1,9 +1,9 @@
 package userverify
 
 import (
-	"github.com/sirupsen/logrus"
+	"database/sql"
+
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 type Store interface {
@@ -15,14 +15,12 @@ type Store interface {
 type storeImpl struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
-	logger      *logrus.Entry
 }
 
-func newStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) *storeImpl {
+func NewStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
 	return &storeImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
-		logger:      loggerFactory.NewLogger("verify-code-store"),
 	}
 }
 
@@ -79,10 +77,13 @@ func (s *storeImpl) GetVerifyCodeByUser(userID string) (*VerifyCode, error) {
 		From(s.sqlBuilder.FullTableName("verify_code")).
 		Where("user_id = ?", userID).
 		OrderBy("created_at desc")
-	scanner := s.sqlExecutor.QueryRowWith(builder)
+	scanner, err := s.sqlExecutor.QueryRowWith(builder)
+	if err != nil {
+		return nil, err
+	}
 
 	verifyCode := VerifyCode{}
-	err := scanner.Scan(
+	err = scanner.Scan(
 		&verifyCode.ID,
 		&verifyCode.Code,
 		&verifyCode.UserID,
@@ -91,6 +92,9 @@ func (s *storeImpl) GetVerifyCodeByUser(userID string) (*VerifyCode, error) {
 		&verifyCode.Consumed,
 		&verifyCode.CreatedAt,
 	)
+	if err == sql.ErrNoRows {
+		err = ErrCodeNotFound
+	}
 
 	return &verifyCode, err
 }

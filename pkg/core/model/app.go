@@ -1,7 +1,7 @@
 package model
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -107,7 +107,7 @@ func parseAuthorizationHeader(r *http.Request) (token string) {
 	return authorization[1]
 }
 
-var ErrTokenConflict = fmt.Errorf("tokens detected in different transports")
+var ErrTokenConflict = errors.New("tokens detected in different transports")
 
 func GetAccessToken(r *http.Request) (token string, transport config.SessionTransportType, err error) {
 	headerToken := parseAuthorizationHeader(r)

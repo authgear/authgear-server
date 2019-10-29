@@ -3,8 +3,6 @@ package session
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -13,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -125,13 +124,13 @@ func (h GetHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	s, err := h.SessionProvider.Get(sessionID)
 	if err != nil {
-		if err == session.ErrSessionNotFound {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "session not found")
+		if errors.Is(err, session.ErrSessionNotFound) {
+			err = errSessionNotFound
 		}
 		return
 	}
 	if s.UserID != userID {
-		err = skyerr.NewError(skyerr.ResourceNotFound, "session not found")
+		err = errSessionNotFound
 		return
 	}
 

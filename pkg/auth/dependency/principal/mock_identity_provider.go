@@ -1,9 +1,5 @@
 package principal
 
-import (
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
-)
-
 type mockIdentityProvider struct {
 	providers []Provider
 }
@@ -43,5 +39,5 @@ func (p *mockIdentityProvider) GetPrincipalByID(principalID string) (principal P
 			return
 		}
 	}
-	return nil, skydb.ErrUserNotFound
+	return nil, ErrNotFound
 }

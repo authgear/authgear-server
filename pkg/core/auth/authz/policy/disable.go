@@ -2,6 +2,7 @@ package policy
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -13,8 +14,16 @@ import (
 // If you want to enforce enabled user, use both RequireAuthenticated and DenyDisabledUser.
 func DenyDisabledUser(r *http.Request, ctx auth.ContextGetter) error {
 	authInfo, _ := ctx.AuthInfo()
-	if authInfo != nil && authInfo.Disabled {
-		return skyerr.NewError(skyerr.UserDisabled, "user disabled")
+	if authInfo != nil && authInfo.IsDisabled() {
+		details := skyerr.Details{}
+		if authInfo.DisabledExpiry != nil {
+			details["expiry"] = authInfo.DisabledExpiry.Format(time.RFC3339)
+		}
+		if authInfo.DisabledMessage != "" {
+			details["message"] = authInfo.DisabledMessage
+		}
+
+		return authz.UserDisabled.NewWithInfo("user is disabled", details)
 	}
 	return nil
 }

@@ -75,11 +75,11 @@ func (m DependencyMap) Provide(
 	tConfig.UserConfig = userConfig
 
 	newLoggerFactory := func() logging.Factory {
-		formatter := logging.NewDefaultMaskedTextFormatter(tConfig.DefaultSensitiveLoggerValues())
+		logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
 		if request == nil {
-			return logging.NewFactoryFromRequestID(requestID, formatter)
+			return logging.NewFactoryFromRequestID(requestID, logHook)
 		} else {
-			return logging.NewFactoryFromRequest(request, formatter)
+			return logging.NewFactoryFromRequest(request, logHook)
 		}
 	}
 
@@ -88,7 +88,7 @@ func (m DependencyMap) Provide(
 	}
 
 	newSQLExecutor := func() db.SQLExecutor {
-		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig), newLoggerFactory())
+		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig))
 	}
 
 	newTimeProvider := func() time.Provider {
@@ -112,20 +112,16 @@ func (m DependencyMap) Provide(
 	}
 
 	newAuthInfoStore := func() authinfo.Store {
-		return pqAuthInfo.NewSafeAuthInfoStore(
+		return pqAuthInfo.NewAuthInfoStore(
 			db.NewSQLBuilder("core", tConfig.AppConfig.DatabaseSchema, tConfig.AppID),
 			newSQLExecutor(),
-			newLoggerFactory(),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
 
 	newUserProfileStore := func() userprofile.Store {
-		return userprofile.NewSafeProvider(
+		return userprofile.NewUserProfileStore(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLoggerFactory(),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
 
@@ -137,33 +133,28 @@ func (m DependencyMap) Provide(
 	}
 
 	newPasswordAuthProvider := func() password.Provider {
-		return password.NewSafeProvider(
+		return password.NewProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
 			newLoggerFactory(),
 			tConfig.UserConfig.Auth.LoginIDKeys,
 			tConfig.UserConfig.Auth.AllowedRealms,
 			isPasswordHistoryEnabled(),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
 
 	newCustomTokenAuthProvider := func() customtoken.Provider {
-		return customtoken.NewSafeProvider(
+		return customtoken.NewProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLoggerFactory(),
 			tConfig.UserConfig.SSO.CustomToken,
-			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
 
 	newOAuthAuthProvider := func() oauth.Provider {
-		return oauth.NewSafeProvider(
+		return oauth.NewProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLoggerFactory(),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
 
@@ -186,13 +177,14 @@ func (m DependencyMap) Provide(
 					newUserProfileStore(),
 				),
 			),
+			newLoggerFactory(),
 		)
 	}
 
 	newSessionProvider := func() session.Provider {
 		return session.NewProvider(
 			request,
-			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider()),
+			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider(), newLoggerFactory()),
 			redisSession.NewEventStore(ctx, tConfig.AppID),
 			newAuthContext(),
 			tConfig.UserConfig.Clients,
@@ -351,11 +343,9 @@ func (m DependencyMap) Provide(
 	case "UserVerificationProvider":
 		return userverify.NewProvider(
 			userverify.NewCodeGenerator(tConfig),
-			userverify.NewSafeStore(
+			userverify.NewStore(
 				newSQLBuilder(),
 				newSQLExecutor(),
-				newLoggerFactory(),
-				db.NewSafeTxContextWithContext(ctx, tConfig),
 			),
 			tConfig.UserConfig.UserVerification,
 			newTimeProvider(),

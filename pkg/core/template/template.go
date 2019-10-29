@@ -2,36 +2,16 @@ package template
 
 import (
 	"bytes"
-	"fmt"
 	htmlTemplate "html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"path/filepath"
 	textTemplate "text/template"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 const MaxTemplateSize = 1024 * 1024 * 1
-
-func DownloadTemplateFromFilePath(filePath string) (string, error) {
-	filePath = filepath.Clean(filePath)
-
-	f, err := os.Open(filePath)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-
-	b, err := ioutil.ReadAll(io.LimitReader(f, MaxTemplateSize))
-	if err != nil {
-		return "", err
-	}
-
-	return string(b), nil
-}
 
 func DownloadTemplateFromURL(url string) (string, error) {
 	// FIXME(sec): validate URL to be trusted URL
@@ -45,7 +25,7 @@ func DownloadTemplateFromURL(url string) (string, error) {
 	}
 
 	if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
-		return "", fmt.Errorf("unsuccessful request: %s", resp.Status)
+		return "", errors.Newf("failed to request: %s", resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(io.LimitReader(resp.Body, MaxTemplateSize))
@@ -63,16 +43,19 @@ func ParseTextTemplate(id string, templateString string, context map[string]inte
 
 	template, err := textTemplate.New(id).Parse(templateString)
 	if err != nil {
+		err = errors.Newf("failed to parse template: %w", err)
 		return
 	}
 
 	err = ValidateTextTemplate(template)
 	if err != nil {
+		err = errors.Newf("failed to validate template: %w", err)
 		return
 	}
 
 	var buf bytes.Buffer
 	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, context); err != nil {
+		err = errors.Newf("failed to execute template: %w", err)
 		return
 	}
 
@@ -87,16 +70,19 @@ func ParseHTMLTemplate(id string, templateString string, context map[string]inte
 
 	template, err := htmlTemplate.New(id).Parse(templateString)
 	if err != nil {
+		err = errors.Newf("failed to parse template: %w", err)
 		return
 	}
 
 	err = ValidateHTMLTemplate(template)
 	if err != nil {
+		err = errors.Newf("failed to validate template: %w", err)
 		return
 	}
 
 	var buf bytes.Buffer
 	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, context); err != nil {
+		err = errors.Newf("failed to execute template: %w", err)
 		return
 	}
 
@@ -104,7 +90,7 @@ func ParseHTMLTemplate(id string, templateString string, context map[string]inte
 	return
 }
 
-var errLimitReached = skyerr.NewError(skyerr.UnexpectedError, "rendered template is too large")
+var errLimitReached = errors.New("rendered template is too large")
 
 type limitedWriter struct {
 	w io.Writer

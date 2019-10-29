@@ -2,9 +2,10 @@ package pq
 
 import (
 	"database/sql"
-	"github.com/lib/pq"
 	"sort"
 	gotime "time"
+
+	"github.com/lib/pq"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -423,9 +424,13 @@ func (s *storeImpl) GetBearerTokenByToken(userID string, token string) (*mfa.Bea
 		// because we do not limit the number of the bearer tokens.
 		Where("a.user_id = ? AND abt.token = ?", userID, token)
 
-	row := s.sqlExecutor.QueryRowWith(q1)
+	row, err := s.sqlExecutor.QueryRowWith(q1)
+	if err != nil {
+		return nil, err
+	}
+
 	var a mfa.BearerTokenAuthenticator
-	err := row.Scan(
+	err = row.Scan(
 		&a.ID,
 		&a.UserID,
 		&a.Type,
@@ -436,7 +441,7 @@ func (s *storeImpl) GetBearerTokenByToken(userID string, token string) (*mfa.Bea
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = mfa.ErrAuthenticatorNotFound
+			err = mfa.ErrNoAuthenticators
 		}
 		return nil, err
 	}
@@ -590,12 +595,16 @@ func (s *storeImpl) GetTOTP(userID string, id string) (*mfa.TOTPAuthenticator, e
 		).
 		Where("a.user_id = ? AND a.id = ?", userID, id)
 
-	row := s.sqlExecutor.QueryRowWith(q1)
+	row, err := s.sqlExecutor.QueryRowWith(q1)
+	if err != nil {
+		return nil, err
+	}
+
 	var a mfa.TOTPAuthenticator
-	err := s.scanTOTPAuthenticator(row, &a)
+	err = s.scanTOTPAuthenticator(row, &a)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = mfa.ErrAuthenticatorNotFound
+			err = mfa.ErrNoAuthenticators
 		}
 		return nil, err
 	}
@@ -641,7 +650,7 @@ func (s *storeImpl) deleteTOTPByIDs(ids []string) error {
 		return err
 	}
 	if int(count) != len(ids) {
-		return mfa.ErrAuthenticatorNotFound
+		return mfa.ErrNoAuthenticators
 	}
 
 	q3 := s.sqlBuilder.Tenant().
@@ -657,7 +666,7 @@ func (s *storeImpl) deleteTOTPByIDs(ids []string) error {
 		return err
 	}
 	if int(count) != len(ids) {
-		return mfa.ErrAuthenticatorNotFound
+		return mfa.ErrNoAuthenticators
 	}
 
 	return nil
@@ -713,12 +722,16 @@ func (s *storeImpl) GetOnlyInactiveTOTP(userID string) (*mfa.TOTPAuthenticator, 
 		).
 		Where("a.user_id = ? AND at.activated = FALSE", userID)
 
-	row := s.sqlExecutor.QueryRowWith(q1)
+	row, err := s.sqlExecutor.QueryRowWith(q1)
+	if err != nil {
+		return nil, err
+	}
+
 	var a mfa.TOTPAuthenticator
-	err := s.scanTOTPAuthenticator(row, &a)
+	err = s.scanTOTPAuthenticator(row, &a)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = mfa.ErrAuthenticatorNotFound
+			err = mfa.ErrNoAuthenticators
 		}
 		return nil, err
 	}
@@ -792,12 +805,16 @@ func (s *storeImpl) GetOOB(userID string, id string) (*mfa.OOBAuthenticator, err
 		).
 		Where("a.user_id = ? AND a.id = ?", userID, id)
 
-	row := s.sqlExecutor.QueryRowWith(q1)
+	row, err := s.sqlExecutor.QueryRowWith(q1)
+	if err != nil {
+		return nil, err
+	}
+
 	var a mfa.OOBAuthenticator
-	err := s.scanOOBAuthenticator(row, &a)
+	err = s.scanOOBAuthenticator(row, &a)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = mfa.ErrAuthenticatorNotFound
+			err = mfa.ErrNoAuthenticators
 		}
 		return nil, err
 	}
@@ -825,12 +842,16 @@ func (s *storeImpl) GetOnlyInactiveOOB(userID string) (*mfa.OOBAuthenticator, er
 		).
 		Where("a.user_id = ? AND ao.activated = FALSE", userID)
 
-	row := s.sqlExecutor.QueryRowWith(q1)
+	row, err := s.sqlExecutor.QueryRowWith(q1)
+	if err != nil {
+		return nil, err
+	}
+
 	var a mfa.OOBAuthenticator
-	err := s.scanOOBAuthenticator(row, &a)
+	err = s.scanOOBAuthenticator(row, &a)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = mfa.ErrAuthenticatorNotFound
+			err = mfa.ErrNoAuthenticators
 		}
 		return nil, err
 	}
@@ -862,15 +883,19 @@ func (s *storeImpl) GetOOBByChannel(userID string, channel coreAuth.Authenticato
 	case coreAuth.AuthenticatorOOBChannelEmail:
 		q1 = q1.Where("a.user_id = ? AND ao.channel = ? AND ao.email = ?", userID, channel, email)
 	default:
-		panic("unknown authenticator channel")
+		panic("mfa: unknown authenticator channel")
 	}
 
-	row := s.sqlExecutor.QueryRowWith(q1)
+	row, err := s.sqlExecutor.QueryRowWith(q1)
+	if err != nil {
+		return nil, err
+	}
+
 	var a mfa.OOBAuthenticator
-	err := s.scanOOBAuthenticator(row, &a)
+	err = s.scanOOBAuthenticator(row, &a)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = mfa.ErrAuthenticatorNotFound
+			err = mfa.ErrNoAuthenticators
 		}
 		return nil, err
 	}
@@ -953,7 +978,7 @@ func (s *storeImpl) deleteOOBByIDs(ids []string) error {
 		return err
 	}
 	if int(count) != len(ids) {
-		return mfa.ErrAuthenticatorNotFound
+		return mfa.ErrNoAuthenticators
 	}
 
 	q2 := s.sqlBuilder.Tenant().
@@ -968,7 +993,7 @@ func (s *storeImpl) deleteOOBByIDs(ids []string) error {
 		return err
 	}
 	if int(count) != len(ids) {
-		return mfa.ErrAuthenticatorNotFound
+		return mfa.ErrNoAuthenticators
 	}
 
 	return nil

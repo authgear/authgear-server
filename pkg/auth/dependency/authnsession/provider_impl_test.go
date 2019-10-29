@@ -24,9 +24,9 @@ func TestAuthnSessionToken(t *testing.T) {
 				AuthenticatorOOBChannel: "sms",
 			},
 		}
-		token, err := NewAuthnSessionToken(secret, claims)
+		token, err := newAuthnSessionToken(secret, claims)
 		So(err, ShouldBeNil)
-		expected, err := ParseAuthnSessionToken(secret, token)
+		expected, err := parseAuthnSessionToken(secret, token)
 		So(err, ShouldBeNil)
 		So(&claims, ShouldResemble, expected)
 	})
