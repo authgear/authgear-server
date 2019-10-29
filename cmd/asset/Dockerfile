@@ -27,8 +27,7 @@ RUN apk add \
     --repository https://dl-3.alpinelinux.org/alpine/edge/community \
     --update \
     --no-cache \
-    libc6-compat ca-certificates vips vips-dev && \
-    ln -s /lib /lib64
+    ca-certificates vips
 
 COPY --from=godev /tmp/skygear-asset /
 RUN chmod a+x /skygear-asset
