@@ -303,5 +303,36 @@ func TestResize(t *testing.T) {
 				So(extractHeight, ShouldEqual, c.TargetHeight)
 			}
 		})
+		Convey("ResolveEmbedArea", func() {
+			r := Resize{}
+			cases := []struct {
+				TargetWidth   int
+				TargetHeight  int
+				ContentWidth  int
+				ContentHeight int
+				EmbedX        int
+				EmbedY        int
+				EmbedWidth    int
+				EmbedHeight   int
+			}{
+				{
+					400, 300,
+					200, 100,
+					100, 100, 400, 300,
+				},
+			}
+			for _, c := range cases {
+				embedX, embedY, embedWidth, embedHeight, _ := r.ResolveEmbedArea(
+					c.TargetWidth,
+					c.TargetHeight,
+					c.ContentWidth,
+					c.ContentHeight,
+				)
+				So(embedX, ShouldEqual, c.EmbedX)
+				So(embedY, ShouldEqual, c.EmbedY)
+				So(embedWidth, ShouldEqual, c.EmbedWidth)
+				So(embedHeight, ShouldEqual, c.EmbedHeight)
+			}
+		})
 	})
 }

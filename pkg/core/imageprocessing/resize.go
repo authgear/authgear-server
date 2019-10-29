@@ -110,19 +110,13 @@ func (o *Resize) Apply(ctx *OperationContext) error {
 		if err != nil {
 			return err
 		}
-		// We need to embed the content image if needed.
-		if targetWidth > contentWidth || targetHeight > contentHeight {
-			var embedX, embedY, embedW, embedH int
-			if targetWidth > contentWidth {
-				embedW = targetWidth
-				embedH = contentHeight
-				embedX = (targetWidth - contentWidth) / 2
-			}
-			if targetHeight > contentHeight {
-				embedH = targetHeight
-				embedW = contentWidth
-				embedY = (targetHeight - contentHeight) / 2
-			}
+		embedX, embedY, embedWidth, embedHeight, needEmbed := o.ResolveEmbedArea(
+			targetWidth,
+			targetHeight,
+			contentWidth,
+			contentHeight,
+		)
+		if needEmbed {
 			// embed expects bands <= 3.
 			// So we must flatten the image first.
 			if ctx.Image.Bands() > 3 {
@@ -136,8 +130,8 @@ func (o *Resize) Apply(ctx *OperationContext) error {
 			err := ctx.Image.Embed(
 				embedX,
 				embedY,
-				embedW,
-				embedH,
+				embedWidth,
+				embedHeight,
 				vips.InputInt("extend", int(vips.ExtendBackground)),
 				vips.InputBackground("background", float64(o.Color.R), float64(o.Color.G), float64(o.Color.B)),
 			)
@@ -287,6 +281,24 @@ func (o *Resize) ResolveExtractArea(targetWidth, targetHeight, contentWidth, con
 			extractWidth = targetWidth
 			extractHeight = targetHeight
 			extractY = (contentHeight - targetHeight) / 2
+		}
+	}
+
+	return
+}
+
+func (o *Resize) ResolveEmbedArea(targetWidth, targetHeight, contentWidth, contentHeight int) (embedX, embedY, embedWidth, embedHeight int, ok bool) {
+	if targetWidth > contentWidth || targetHeight > contentHeight {
+		ok = true
+		embedHeight = contentHeight
+		embedWidth = contentWidth
+		if targetWidth > contentWidth {
+			embedWidth = targetWidth
+			embedX = (targetWidth - contentWidth) / 2
+		}
+		if targetHeight > contentHeight {
+			embedHeight = targetHeight
+			embedY = (targetHeight - contentHeight) / 2
 		}
 	}
 
