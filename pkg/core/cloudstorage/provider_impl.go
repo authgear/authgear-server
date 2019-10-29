@@ -105,22 +105,11 @@ func (p *providerImpl) Sign(scheme string, host string, r *SignRequest) error {
 
 func (p *providerImpl) Verify(r *http.Request) error {
 	now := p.timeProvider.NowUTC()
-	copiedReq := &http.Request{
-		Method:        r.Method,
-		URL:           r.URL,
-		Proto:         r.Proto,
-		ProtoMajor:    r.ProtoMajor,
-		ProtoMinor:    r.ProtoMinor,
-		Header:        r.Header,
-		ContentLength: r.ContentLength,
-		Host:          r.Host,
-		RemoteAddr:    r.RemoteAddr,
-		RequestURI:    r.RequestURI,
-	}
+	copiedReq := *r
 	if copiedReq.Method == "HEAD" {
 		copiedReq.Method = "GET"
 	}
-	return httpsigning.Verify(p.secret, copiedReq, now)
+	return httpsigning.Verify(p.secret, &copiedReq, now)
 }
 
 func (p *providerImpl) PresignGetRequest(assetName string) (*url.URL, error) {
