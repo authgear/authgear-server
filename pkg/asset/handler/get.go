@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"bytes"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 
@@ -103,7 +105,6 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	modifyResponse := func(resp *http.Response) error {
-
 		// We only know how to modify 2xx response.
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			return nil
@@ -122,7 +123,7 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		valid := imageprocessing.IsApplicableToHTTPResponse(resp)
-		if isHead || !valid || !hasPipeline {
+		if !valid || !hasPipeline {
 			return nil
 		}
 		ops, err := imageprocessing.Parse(pipeline)
@@ -132,6 +133,14 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = imageprocessing.ApplyToHTTPResponse(resp, ops)
 		if err != nil {
 			return err
+		}
+
+		if isHead {
+			b := resp.Body
+			defer b.Close()
+			resp.Body = ioutil.NopCloser(bytes.NewReader([]byte{}))
+			// No need to remove Content-Length
+			// See https://tools.ietf.org/html/rfc7230#section-3.3.2
 		}
 
 		return nil
