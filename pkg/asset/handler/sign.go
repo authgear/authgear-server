@@ -1,10 +1,8 @@
 package handler
 
 import (
-	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -147,17 +145,11 @@ func (h *SignHandler) Handle(w http.ResponseWriter, r *http.Request) (result int
 		return
 	}
 
-	resp, err := h.CloudStorageProvider.Sign(&payload)
+	scheme := coreHttp.GetProto(r)
+	host := coreHttp.GetHost(r)
+	resp, err := h.CloudStorageProvider.Sign(scheme, host, &payload)
 	if err != nil {
 		return
-	}
-
-	for i, assetItem := range resp.Assets {
-		u, _ := url.Parse(assetItem.URL)
-		u.Scheme = coreHttp.GetProto(r)
-		u.Host = coreHttp.GetHost(r)
-		u.Path = fmt.Sprintf("/_asset/get/%s", assetItem.AssetName)
-		resp.Assets[i].URL = u.String()
 	}
 
 	result = resp

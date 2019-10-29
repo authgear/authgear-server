@@ -7,13 +7,17 @@ import (
 
 	"github.com/h2non/gock"
 	. "github.com/smartystreets/goconvey/convey"
+
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func TestProvider(t *testing.T) {
 	Convey("Provider", t, func() {
 		appID := "myapp"
 		storage := &MockStorage{}
-		p := NewProvider(appID, storage)
+		secret := "secret"
+		timeProvider := &coreTime.MockProvider{}
+		p := NewProvider(appID, storage, secret, timeProvider)
 
 		Convey("PresignPutRequest", func() {
 			gock.InterceptClient(http.DefaultClient)

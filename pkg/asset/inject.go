@@ -102,7 +102,12 @@ func (m *DependencyMap) Provide(
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "CloudStorageProvider":
-		return cloudstorage.NewProvider(tConfig.AppID, m.Storage)
+		return cloudstorage.NewProvider(
+			tConfig.AppID,
+			m.Storage,
+			tConfig.UserConfig.Asset.Secret,
+			newTimeProvider(),
+		)
 	case "Validator":
 		return m.Validator
 	case "PresignProvider":

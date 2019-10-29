@@ -5,19 +5,26 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/skygeario/skygear-server/pkg/core/http/httpsigning"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type providerImpl struct {
-	storage Storage
-	appID   string
+	storage      Storage
+	appID        string
+	secret       []byte
+	timeProvider coreTime.Provider
 }
 
 var _ Provider = &providerImpl{}
 
-func NewProvider(appID string, storage Storage) Provider {
+func NewProvider(appID string, storage Storage, secret string, timeProvider coreTime.Provider) Provider {
 	return &providerImpl{
-		appID:   appID,
-		storage: storage,
+		appID:        appID,
+		storage:      storage,
+		secret:       []byte(secret),
+		timeProvider: timeProvider,
 	}
 }
 
@@ -81,14 +88,17 @@ func (p *providerImpl) checkDuplicate(assetID string) error {
 	return ErrDuplicateAsset
 }
 
-func (p *providerImpl) Sign(r *SignRequest) (*SignRequest, error) {
+func (p *providerImpl) Sign(scheme string, host string, r *SignRequest) (*SignRequest, error) {
+	now := p.timeProvider.NowUTC()
 	for i, assetItem := range r.Assets {
-		assetID := p.AssetNameToAssetID(assetItem.AssetName)
-		u, err := p.storage.PresignGetObject(assetID)
-		if err != nil {
-			return nil, err
+		u := &url.URL{
+			Scheme: scheme,
+			Host:   host,
+			Path:   fmt.Sprintf("/_asset/get/%s", assetItem.AssetName),
 		}
-		r.Assets[i].URL = u.String()
+		httpRequest, _ := http.NewRequest("GET", u.String(), nil)
+		httpsigning.Sign(p.secret, httpRequest, now, int(PresignGetExpires.Seconds()))
+		r.Assets[i].URL = httpRequest.URL.String()
 	}
 	return r, nil
 }
