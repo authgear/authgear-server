@@ -50,30 +50,10 @@ var _ Operation = &Resize{}
 func (o *Resize) Apply(ctx *OperationContext) error {
 	originalWidth := ctx.Image.Width()
 	originalHeight := ctx.Image.Height()
-	aspectRatio := ratio(originalWidth, originalHeight)
-
-	targetWidth, targetHeight := o.ResolveTargetDimension(originalWidth, originalHeight)
-
-	// targetWidth and targetHeight are now non-zero.
-	// But the aspect ratio may not be the same as the original one.
-
-	// w1 and h1 are in the same aspect ratio.
-	w1 := targetWidth
-	h1 := roundFloat(float64(targetWidth) / aspectRatio)
-
-	// w2 and h2 are in the same aspect ratio.
-	h2 := targetHeight
-	w2 := roundFloat(float64(targetHeight) * aspectRatio)
 
 	switch o.ScalingMode {
 	case ResizeScalingModeLfit:
-		// The final image is at most w x h.
-		var scale float64
-		if w1 <= targetWidth && h1 <= targetHeight {
-			scale = ratio(w1, originalWidth)
-		} else {
-			scale = ratio(w2, originalWidth)
-		}
+		scale, _, _ := o.ResolveLfit(originalWidth, originalHeight)
 		// Do not support upscaling
 		if scale >= 1 {
 			return nil
@@ -84,13 +64,7 @@ func (o *Resize) Apply(ctx *OperationContext) error {
 			return err
 		}
 	case ResizeScalingModeMfit:
-		// The final image is at least w x h.
-		var scale float64
-		if w1 >= targetWidth && h1 >= targetHeight {
-			scale = ratio(w1, originalWidth)
-		} else {
-			scale = ratio(w2, originalWidth)
-		}
+		scale, _, _ := o.ResolveMfit(originalWidth, originalHeight)
 		// Do not support upscaling
 		if scale >= 1 {
 			return nil
@@ -101,19 +75,8 @@ func (o *Resize) Apply(ctx *OperationContext) error {
 			return err
 		}
 	case ResizeScalingModeFill:
-		// The content image is at least w x h.
-		var scale float64
-		var contentWidth int
-		var contentHeight int
-		if w1 >= targetWidth && h1 >= targetHeight {
-			scale = ratio(w1, originalWidth)
-			contentWidth = w1
-			contentHeight = h1
-		} else {
-			scale = ratio(w2, originalWidth)
-			contentWidth = w2
-			contentHeight = h2
-		}
+		targetWidth, targetHeight := o.ResolveTargetDimension(originalWidth, originalHeight)
+		scale, contentWidth, contentHeight := o.ResolveMfit(originalWidth, originalHeight)
 		// Do not support upscaling
 		if scale >= 1 {
 			return nil
@@ -142,19 +105,8 @@ func (o *Resize) Apply(ctx *OperationContext) error {
 			}
 		}
 	case ResizeScalingModePad:
-		// The content image is at most w x h.
-		var scale float64
-		var contentWidth int
-		var contentHeight int
-		if w1 <= targetWidth && h1 <= targetHeight {
-			scale = ratio(w1, originalWidth)
-			contentWidth = w1
-			contentHeight = h1
-		} else {
-			scale = ratio(w2, originalWidth)
-			contentWidth = w2
-			contentHeight = h2
-		}
+		targetWidth, targetHeight := o.ResolveTargetDimension(originalWidth, originalHeight)
+		scale, contentWidth, contentHeight := o.ResolveLfit(originalWidth, originalHeight)
 		// Do not support upscaling
 		if scale >= 1 {
 			return nil
@@ -200,6 +152,7 @@ func (o *Resize) Apply(ctx *OperationContext) error {
 			}
 		}
 	case ResizeScalingModeFixed:
+		targetWidth, targetHeight := o.ResolveTargetDimension(originalWidth, originalHeight)
 		scale := ratio(targetWidth, originalWidth)
 		vscale := ratio(targetHeight, originalHeight)
 		// No change at all
@@ -273,6 +226,56 @@ func (o *Resize) ResolveTargetDimension(originalWidth, originalHeight int) (targ
 		} else {
 			targetHeight = targetWidth
 		}
+	}
+
+	return
+}
+
+func (o *Resize) ResolveLfit(originalWidth, originalHeight int) (scale float64, contentWidth, contentHeight int) {
+	aspectRatio := ratio(originalWidth, originalHeight)
+	targetWidth, targetHeight := o.ResolveTargetDimension(originalWidth, originalHeight)
+
+	// w1 and h1 are in the same aspect ratio.
+	w1 := targetWidth
+	h1 := roundFloat(float64(targetWidth) / aspectRatio)
+
+	// w2 and h2 are in the same aspect ratio.
+	h2 := targetHeight
+	w2 := roundFloat(float64(targetHeight) * aspectRatio)
+
+	if w1 <= targetWidth && h1 <= targetHeight {
+		scale = ratio(w1, originalWidth)
+		contentWidth = w1
+		contentHeight = h1
+	} else {
+		scale = ratio(w2, originalWidth)
+		contentWidth = w2
+		contentHeight = h2
+	}
+
+	return
+}
+
+func (o *Resize) ResolveMfit(originalWidth, originalHeight int) (scale float64, contentWidth, contentHeight int) {
+	aspectRatio := ratio(originalWidth, originalHeight)
+	targetWidth, targetHeight := o.ResolveTargetDimension(originalWidth, originalHeight)
+
+	// w1 and h1 are in the same aspect ratio.
+	w1 := targetWidth
+	h1 := roundFloat(float64(targetWidth) / aspectRatio)
+
+	// w2 and h2 are in the same aspect ratio.
+	h2 := targetHeight
+	w2 := roundFloat(float64(targetHeight) * aspectRatio)
+
+	if w1 >= targetWidth && h1 >= targetHeight {
+		scale = ratio(w1, originalWidth)
+		contentWidth = w1
+		contentHeight = h1
+	} else {
+		scale = ratio(w2, originalWidth)
+		contentWidth = w2
+		contentHeight = h2
 	}
 
 	return
