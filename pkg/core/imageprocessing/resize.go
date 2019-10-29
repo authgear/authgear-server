@@ -52,56 +52,7 @@ func (o *Resize) Apply(ctx *OperationContext) error {
 	originalHeight := ctx.Image.Height()
 	aspectRatio := ratio(originalWidth, originalHeight)
 
-	targetWidth := 0
-	targetHeight := 0
-	var longerTargetSide *int
-	var shorterTargetSide *int
-
-	if originalWidth > originalHeight {
-		longerTargetSide = &targetWidth
-		shorterTargetSide = &targetHeight
-	} else {
-		longerTargetSide = &targetHeight
-		shorterTargetSide = &targetWidth
-	}
-
-	// Set targetWidth and targetHeight if they are specified directly.
-	if o.LongerSide != 0 {
-		*longerTargetSide = o.LongerSide
-	}
-	if o.ShorterSide != 0 {
-		*shorterTargetSide = o.ShorterSide
-	}
-	if o.Width != 0 {
-		targetWidth = o.Width
-	}
-	if o.Height != 0 {
-		targetHeight = o.Height
-	}
-
-	// w h l s are not specified, w and h resolve to original size.
-	if targetWidth == 0 && targetHeight == 0 {
-		targetWidth = originalWidth
-		targetHeight = originalHeight
-	}
-
-	// w is not specified
-	if targetWidth == 0 {
-		if o.ScalingMode.ShouldInferAnotherSideWithAspectRatio() {
-			targetWidth = roundFloat(float64(targetHeight) * aspectRatio)
-		} else {
-			targetWidth = targetHeight
-		}
-	}
-
-	// h is not specified
-	if targetHeight == 0 {
-		if o.ScalingMode.ShouldInferAnotherSideWithAspectRatio() {
-			targetHeight = roundFloat(float64(targetWidth) / aspectRatio)
-		} else {
-			targetHeight = targetWidth
-		}
-	}
+	targetWidth, targetHeight := o.ResolveTargetDimension(originalWidth, originalHeight)
 
 	// targetWidth and targetHeight are now non-zero.
 	// But the aspect ratio may not be the same as the original one.
@@ -270,6 +221,61 @@ func (o *Resize) Apply(ctx *OperationContext) error {
 	}
 
 	return nil
+}
+
+func (o *Resize) ResolveTargetDimension(originalWidth, originalHeight int) (targetWidth, targetHeight int) {
+	aspectRatio := ratio(originalWidth, originalHeight)
+
+	var longerTargetSide *int
+	var shorterTargetSide *int
+
+	if originalWidth > originalHeight {
+		longerTargetSide = &targetWidth
+		shorterTargetSide = &targetHeight
+	} else {
+		longerTargetSide = &targetHeight
+		shorterTargetSide = &targetWidth
+	}
+
+	// Set targetWidth and targetHeight if they are specified directly.
+	if o.LongerSide != 0 {
+		*longerTargetSide = o.LongerSide
+	}
+	if o.ShorterSide != 0 {
+		*shorterTargetSide = o.ShorterSide
+	}
+	if o.Width != 0 {
+		targetWidth = o.Width
+	}
+	if o.Height != 0 {
+		targetHeight = o.Height
+	}
+
+	// w h l s are not specified, w and h resolve to original size.
+	if targetWidth == 0 && targetHeight == 0 {
+		targetWidth = originalWidth
+		targetHeight = originalHeight
+	}
+
+	// w is not specified
+	if targetWidth == 0 {
+		if o.ScalingMode.ShouldInferAnotherSideWithAspectRatio() {
+			targetWidth = roundFloat(float64(targetHeight) * aspectRatio)
+		} else {
+			targetWidth = targetHeight
+		}
+	}
+
+	// h is not specified
+	if targetHeight == 0 {
+		if o.ScalingMode.ShouldInferAnotherSideWithAspectRatio() {
+			targetHeight = roundFloat(float64(targetWidth) / aspectRatio)
+		} else {
+			targetHeight = targetWidth
+		}
+	}
+
+	return
 }
 
 // NewResize returns a Resize with default values.
