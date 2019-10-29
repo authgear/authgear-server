@@ -147,11 +147,11 @@ func (h *SignHandler) Handle(w http.ResponseWriter, r *http.Request) (result int
 
 	scheme := coreHttp.GetProto(r)
 	host := coreHttp.GetHost(r)
-	resp, err := h.CloudStorageProvider.Sign(scheme, host, &payload)
+	err = h.CloudStorageProvider.Sign(scheme, host, &payload)
 	if err != nil {
 		return
 	}
 
-	result = resp
+	result = &payload
 	return
 }

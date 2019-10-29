@@ -19,7 +19,7 @@ const MaxContentLength = 512 * 1024 * 1024
 // Provider manipulates cloud storage.
 type Provider interface {
 	PresignPutRequest(r *PresignUploadRequest) (*PresignUploadResponse, error)
-	Sign(scheme string, host string, r *SignRequest) (*SignRequest, error)
+	Sign(scheme string, host string, r *SignRequest) error
 	Verify(r *http.Request) error
 	PresignGetRequest(assetName string) (*url.URL, error)
 	List(r *ListObjectsRequest) (*ListObjectsResponse, error)

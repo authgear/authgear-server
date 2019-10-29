@@ -88,7 +88,7 @@ func (p *providerImpl) checkDuplicate(assetID string) error {
 	return ErrDuplicateAsset
 }
 
-func (p *providerImpl) Sign(scheme string, host string, r *SignRequest) (*SignRequest, error) {
+func (p *providerImpl) Sign(scheme string, host string, r *SignRequest) error {
 	now := p.timeProvider.NowUTC()
 	for i, assetItem := range r.Assets {
 		u := &url.URL{
@@ -100,7 +100,7 @@ func (p *providerImpl) Sign(scheme string, host string, r *SignRequest) (*SignRe
 		httpsigning.Sign(p.secret, httpRequest, now, int(PresignGetExpires.Seconds()))
 		r.Assets[i].URL = httpRequest.URL.String()
 	}
-	return r, nil
+	return nil
 }
 
 func (p *providerImpl) Verify(r *http.Request) error {
