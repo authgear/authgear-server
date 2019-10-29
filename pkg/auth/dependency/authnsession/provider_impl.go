@@ -97,12 +97,9 @@ func NewProvider(
 }
 
 func NewAuthenticationSessionError(token string, step auth.AuthnSessionStep) error {
-	return AuthenticationSessionRequired.NewWithDetails(
+	return AuthenticationSessionRequired.NewWithInfo(
 		"authentication session is required",
-		skyerr.Details{
-			"token": skyerr.APIErrorString(token),
-			"step":  skyerr.APIErrorString(step),
-		},
+		skyerr.Details{"token": token, "step": step},
 	)
 }
 

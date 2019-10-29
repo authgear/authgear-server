@@ -17,13 +17,13 @@ func DenyDisabledUser(r *http.Request, ctx auth.ContextGetter) error {
 	if authInfo != nil && authInfo.IsDisabled() {
 		details := skyerr.Details{}
 		if authInfo.DisabledExpiry != nil {
-			details["expiry"] = skyerr.APIErrorString(authInfo.DisabledExpiry.Format(time.RFC3339))
+			details["expiry"] = authInfo.DisabledExpiry.Format(time.RFC3339)
 		}
 		if authInfo.DisabledMessage != "" {
-			details["message"] = skyerr.APIErrorString(authInfo.DisabledMessage)
+			details["message"] = authInfo.DisabledMessage
 		}
 
-		return authz.UserDisabled.NewWithDetails("user is disabled", details)
+		return authz.UserDisabled.NewWithInfo("user is disabled", details)
 	}
 	return nil
 }

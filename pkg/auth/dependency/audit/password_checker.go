@@ -308,7 +308,7 @@ func (pc *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) err
 	userData := payload.UserData
 	authID := payload.AuthID
 
-	var violations passwordViolations
+	var violations []PasswordViolation
 	check := func(v *PasswordViolation) {
 		if v != nil {
 			violations = append(violations, *v)
@@ -329,7 +329,7 @@ func (pc *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) err
 		return nil
 	}
 
-	return PasswordPolicyViolated.NewWithDetails("password policy violated", skyerr.Details{
+	return PasswordPolicyViolated.NewWithInfo("password policy violated", skyerr.Details{
 		"causes": violations,
 	})
 }

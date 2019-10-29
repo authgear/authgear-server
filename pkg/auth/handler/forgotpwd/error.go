@@ -16,5 +16,5 @@ const (
 )
 
 func NewPasswordResetFailed(cause resetFailCause, msg string) error {
-	return PasswordResetFailed.NewWithDetails(msg, skyerr.Details{"cause": skyerr.APIErrorString(cause)})
+	return PasswordResetFailed.NewWithInfo(msg, skyerr.Details{"cause": cause})
 }

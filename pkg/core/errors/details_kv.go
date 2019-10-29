@@ -1,27 +1,31 @@
 package errors
 
+import "fmt"
+
 type DetailTag string
 
 const (
 	SafeDetail DetailTag = "safe"
 )
 
-type DetailTaggedValue interface {
-	IsTagged(tag DetailTag) bool
+func (t DetailTag) Value(value interface{}) DetailTaggedValue {
+	return DetailTaggedValue{t, value}
 }
 
-func FilterDetails(d Details, tags ...DetailTag) Details {
+type DetailTaggedValue struct {
+	Tag   DetailTag
+	Value interface{}
+}
+
+func (tv DetailTaggedValue) MarshalText() ([]byte, error) {
+	return []byte(fmt.Sprintf("[detail: %s]", SafeDetail)), nil
+}
+
+func FilterDetails(d Details, tag DetailTag) Details {
 	fd := Details{}
 	for key, value := range d {
-		v, ok := value.(DetailTaggedValue)
-		if !ok {
-			continue
-		}
-		for _, tag := range tags {
-			if v.IsTagged(tag) {
-				fd[key] = value
-				break
-			}
+		if tv, ok := value.(DetailTaggedValue); ok && tv.Tag == tag {
+			fd[key] = tv.Value
 		}
 	}
 	return fd
@@ -30,10 +34,4 @@ func FilterDetails(d Details, tags ...DetailTag) Details {
 func GetSafeDetails(err error) Details {
 	d := CollectDetails(err, nil)
 	return FilterDetails(d, SafeDetail)
-}
-
-type SafeString string
-
-func (SafeString) IsTagged(tag DetailTag) bool {
-	return tag == SafeDetail
 }

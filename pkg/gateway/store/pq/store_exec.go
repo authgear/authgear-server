@@ -10,7 +10,7 @@ import (
 func (s *Store) QueryRowWith(sqlizeri sq.Sqlizer) (*sqlx.Row, error) {
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
-		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeString(sql)})
+		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeDetail.Value(sql)})
 	}
 	return s.DB.QueryRowxContext(s.context, sql, args...), nil
 }
@@ -22,7 +22,7 @@ func (s *Store) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 	}
 	result, err := s.DB.QueryxContext(s.context, sql, args...)
 	if err != nil {
-		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeString(sql)})
+		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeDetail.Value(sql)})
 	}
 	return result, nil
 }

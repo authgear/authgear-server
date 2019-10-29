@@ -37,7 +37,7 @@ func TestAPIError(t *testing.T) {
 			err := NotAuthenticated.NewWithDetails(
 				"failed to validate form payload",
 				skyerr.Details{
-					"field":   skyerr.APIErrorString("email"),
+					"field":   skyerr.APIErrorDetail.Value("email"),
 					"user_id": "user-id",
 				},
 			)
@@ -47,7 +47,23 @@ func TestAPIError(t *testing.T) {
 				Message: "failed to validate form payload",
 				Code:    400,
 				Info: map[string]interface{}{
-					"field": skyerr.APIErrorString("email"),
+					"field": "email",
+				},
+			})
+		})
+		Convey("error with info", func() {
+			NotAuthenticated := skyerr.Invalid.WithReason("ValidationFailure")
+			err := NotAuthenticated.NewWithInfo(
+				"failed to validate form payload",
+				skyerr.Details{"field": "email"},
+			)
+			apiErr := skyerr.AsAPIError(err)
+			So(apiErr, ShouldResemble, &skyerr.APIError{
+				Kind:    skyerr.Kind{Name: skyerr.Invalid, Reason: "ValidationFailure"},
+				Message: "failed to validate form payload",
+				Code:    400,
+				Info: map[string]interface{}{
+					"field": "email",
 				},
 			})
 		})
@@ -80,7 +96,7 @@ func TestAPIError(t *testing.T) {
 				Message: "failed to validate form payload",
 				Code:    400,
 				Info: map[string]interface{}{
-					"field": skyerr.APIErrorString("email"),
+					"field": "email",
 				},
 			}
 			json, _ := json.Marshal(apiErr)

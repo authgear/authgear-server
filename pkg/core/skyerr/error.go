@@ -23,6 +23,14 @@ func (k Kind) NewWithDetails(msg string, details Details) error {
 	return &skyerr{kind: k, msg: msg, details: details}
 }
 
+func (k Kind) NewWithInfo(msg string, info Details) error {
+	d := Details{}
+	for k, v := range info {
+		d[k] = APIErrorDetail.Value(v)
+	}
+	return k.NewWithDetails(msg, d)
+}
+
 func (k Kind) Wrap(err error, msg string) error {
 	return &skyerr{kind: k, inner: err, msg: msg}
 }

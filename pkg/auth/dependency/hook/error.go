@@ -19,14 +19,10 @@ type OperationDisallowedItem struct {
 	Data   interface{} `json:"data,omitempty"`
 }
 
-type disallowedErrors []OperationDisallowedItem
-
-func (disallowedErrors) IsTagged(tag errors.DetailTag) bool { return tag == skyerr.APIErrorDetail }
-
 func newErrorOperationDisallowed(items []OperationDisallowedItem) error {
-	return WebHookDisallowed.NewWithDetails(
+	return WebHookDisallowed.NewWithInfo(
 		"disallowed by web-hook event handler",
-		map[string]interface{}{"causes": disallowedErrors(items)},
+		map[string]interface{}{"causes": items},
 	)
 }
 

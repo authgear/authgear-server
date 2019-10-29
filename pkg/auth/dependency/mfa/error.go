@@ -30,5 +30,5 @@ const (
 )
 
 func NewInvalidMFARequest(cause invalidMFARequestCause, msg string) error {
-	return InvalidMFARequest.NewWithDetails(msg, skyerr.Details{"cause": skyerr.APIErrorString(cause)})
+	return InvalidMFARequest.NewWithInfo(msg, skyerr.Details{"cause": cause})
 }

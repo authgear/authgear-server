@@ -3,7 +3,6 @@ package audit
 import (
 	"encoding/json"
 
-	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -53,7 +52,3 @@ func (v PasswordViolation) MarshalJSON() ([]byte, error) {
 	}
 	return json.Marshal(d)
 }
-
-type passwordViolations []PasswordViolation
-
-func (passwordViolations) IsTagged(tag errors.DetailTag) bool { return tag == skyerr.APIErrorDetail }

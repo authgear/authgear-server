@@ -47,7 +47,7 @@ func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 	}
 	result, err := db.ExecContext(e.context, sql, args...)
 	if err != nil {
-		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeString(sql)})
+		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeDetail.Value(sql)})
 	}
 	return result, nil
 }
@@ -63,7 +63,7 @@ func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 	}
 	result, err := db.QueryxContext(e.context, sql, args...)
 	if err != nil {
-		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeString(sql)})
+		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeDetail.Value(sql)})
 	}
 	return result, nil
 }
@@ -75,7 +75,7 @@ func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) (*sqlx.Row, error) {
 	}
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
-		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeString(sql)})
+		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeDetail.Value(sql)})
 	}
 	return db.QueryRowxContext(e.context, sql, args...), nil
 }
