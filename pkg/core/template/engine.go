@@ -7,15 +7,18 @@ import (
 // Engine resolves and renders templates.
 type Engine struct {
 	DefaultLoader *StringLoader
+	URILoader     *URILoader
 }
 
 type RenderOptions struct {
 	Required bool
+	Key      string
 }
 
-func NewEngine() *Engine {
+func NewEngine(enabledFileLoader bool) *Engine {
 	return &Engine{
 		DefaultLoader: NewStringLoader(),
+		URILoader:     NewURILoader(enabledFileLoader),
 	}
 }
 
