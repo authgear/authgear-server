@@ -286,6 +286,15 @@ func makeFullTenantConfig() TenantConfiguration {
 				From:      "mynexmo",
 			},
 		},
+		TemplateItems: []TemplateItem{
+			TemplateItem{
+				Type:        "templatetype",
+				LanguageTag: "en",
+				Key:         "templatekey",
+				URI:         "file:///template.html",
+				ContentMD5:  "base64",
+			},
+		},
 		Hooks: []Hook{
 			Hook{
 				Event: "after_signup",

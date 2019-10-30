@@ -27,6 +27,7 @@ type TenantConfiguration struct {
 	AppName          string            `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
 	AppConfig        AppConfiguration  `json:"app_config,omitempty" yaml:"app_config" msg:"app_config"`
 	UserConfig       UserConfiguration `json:"user_config,omitempty" yaml:"user_config" msg:"user_config"`
+	TemplateItems    []TemplateItem    `json:"template_items,omitempty" yaml:"template_items" msg:"template_items"`
 	Hooks            []Hook            `json:"hooks,omitempty" yaml:"hooks" msg:"hooks"`
 	DeploymentRoutes []DeploymentRoute `json:"deployment_routes,omitempty" yaml:"deployment_routes" msg:"deployment_routes"`
 }
@@ -41,6 +42,16 @@ type DeploymentRoute struct {
 	Path       string                 `json:"path,omitempty" yaml:"path" msg:"path"`
 	Type       string                 `json:"type,omitempty" yaml:"type" msg:"type"`
 	TypeConfig map[string]interface{} `json:"type_config,omitempty" yaml:"type_config" msg:"type_config"`
+}
+
+type TemplateItemType string
+
+type TemplateItem struct {
+	Type        TemplateItemType `json:"type,omitempty" yaml:"type" msg:"type"`
+	LanguageTag string           `json:"language_tag,omitempty" yaml:"language_tag" msg:"language_tag"`
+	Key         string           `json:"key,omitempty" yaml:"key" msg:"key"`
+	URI         string           `json:"uri,omitempty" yaml:"uri" msg:"uri"`
+	ContentMD5  string           `json:"content_md5,omitempty" yaml:"content_md5" msg:"content_md5"`
 }
 
 func NewTenantConfiguration() TenantConfiguration {

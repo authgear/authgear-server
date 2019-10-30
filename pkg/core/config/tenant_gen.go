@@ -5557,6 +5557,269 @@ func (z SessionTransportType) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
+func (z *TemplateItem) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "type":
+			{
+				var zb0002 string
+				zb0002, err = dc.ReadString()
+				if err != nil {
+					err = msgp.WrapError(err, "Type")
+					return
+				}
+				z.Type = TemplateItemType(zb0002)
+			}
+		case "language_tag":
+			z.LanguageTag, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "LanguageTag")
+				return
+			}
+		case "key":
+			z.Key, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Key")
+				return
+			}
+		case "uri":
+			z.URI, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "URI")
+				return
+			}
+		case "content_md5":
+			z.ContentMD5, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "ContentMD5")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z *TemplateItem) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 5
+	// write "type"
+	err = en.Append(0x85, 0xa4, 0x74, 0x79, 0x70, 0x65)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(string(z.Type))
+	if err != nil {
+		err = msgp.WrapError(err, "Type")
+		return
+	}
+	// write "language_tag"
+	err = en.Append(0xac, 0x6c, 0x61, 0x6e, 0x67, 0x75, 0x61, 0x67, 0x65, 0x5f, 0x74, 0x61, 0x67)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.LanguageTag)
+	if err != nil {
+		err = msgp.WrapError(err, "LanguageTag")
+		return
+	}
+	// write "key"
+	err = en.Append(0xa3, 0x6b, 0x65, 0x79)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Key)
+	if err != nil {
+		err = msgp.WrapError(err, "Key")
+		return
+	}
+	// write "uri"
+	err = en.Append(0xa3, 0x75, 0x72, 0x69)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.URI)
+	if err != nil {
+		err = msgp.WrapError(err, "URI")
+		return
+	}
+	// write "content_md5"
+	err = en.Append(0xab, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x5f, 0x6d, 0x64, 0x35)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.ContentMD5)
+	if err != nil {
+		err = msgp.WrapError(err, "ContentMD5")
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z *TemplateItem) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 5
+	// string "type"
+	o = append(o, 0x85, 0xa4, 0x74, 0x79, 0x70, 0x65)
+	o = msgp.AppendString(o, string(z.Type))
+	// string "language_tag"
+	o = append(o, 0xac, 0x6c, 0x61, 0x6e, 0x67, 0x75, 0x61, 0x67, 0x65, 0x5f, 0x74, 0x61, 0x67)
+	o = msgp.AppendString(o, z.LanguageTag)
+	// string "key"
+	o = append(o, 0xa3, 0x6b, 0x65, 0x79)
+	o = msgp.AppendString(o, z.Key)
+	// string "uri"
+	o = append(o, 0xa3, 0x75, 0x72, 0x69)
+	o = msgp.AppendString(o, z.URI)
+	// string "content_md5"
+	o = append(o, 0xab, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x5f, 0x6d, 0x64, 0x35)
+	o = msgp.AppendString(o, z.ContentMD5)
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *TemplateItem) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "type":
+			{
+				var zb0002 string
+				zb0002, bts, err = msgp.ReadStringBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Type")
+					return
+				}
+				z.Type = TemplateItemType(zb0002)
+			}
+		case "language_tag":
+			z.LanguageTag, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "LanguageTag")
+				return
+			}
+		case "key":
+			z.Key, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Key")
+				return
+			}
+		case "uri":
+			z.URI, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "URI")
+				return
+			}
+		case "content_md5":
+			z.ContentMD5, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "ContentMD5")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z *TemplateItem) Msgsize() (s int) {
+	s = 1 + 5 + msgp.StringPrefixSize + len(string(z.Type)) + 13 + msgp.StringPrefixSize + len(z.LanguageTag) + 4 + msgp.StringPrefixSize + len(z.Key) + 4 + msgp.StringPrefixSize + len(z.URI) + 12 + msgp.StringPrefixSize + len(z.ContentMD5)
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
+func (z *TemplateItemType) DecodeMsg(dc *msgp.Reader) (err error) {
+	{
+		var zb0001 string
+		zb0001, err = dc.ReadString()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		(*z) = TemplateItemType(zb0001)
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z TemplateItemType) EncodeMsg(en *msgp.Writer) (err error) {
+	err = en.WriteString(string(z))
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z TemplateItemType) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	o = msgp.AppendString(o, string(z))
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *TemplateItemType) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	{
+		var zb0001 string
+		zb0001, bts, err = msgp.ReadStringBytes(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		(*z) = TemplateItemType(zb0001)
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z TemplateItemType) Msgsize() (s int) {
+	s = msgp.StringPrefixSize + len(string(z))
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
 func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
@@ -5604,70 +5867,89 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "UserConfig")
 				return
 			}
-		case "hooks":
+		case "template_items":
 			var zb0002 uint32
 			zb0002, err = dc.ReadArrayHeader()
+			if err != nil {
+				err = msgp.WrapError(err, "TemplateItems")
+				return
+			}
+			if cap(z.TemplateItems) >= int(zb0002) {
+				z.TemplateItems = (z.TemplateItems)[:zb0002]
+			} else {
+				z.TemplateItems = make([]TemplateItem, zb0002)
+			}
+			for za0001 := range z.TemplateItems {
+				err = z.TemplateItems[za0001].DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "TemplateItems", za0001)
+					return
+				}
+			}
+		case "hooks":
+			var zb0003 uint32
+			zb0003, err = dc.ReadArrayHeader()
 			if err != nil {
 				err = msgp.WrapError(err, "Hooks")
 				return
 			}
-			if cap(z.Hooks) >= int(zb0002) {
-				z.Hooks = (z.Hooks)[:zb0002]
+			if cap(z.Hooks) >= int(zb0003) {
+				z.Hooks = (z.Hooks)[:zb0003]
 			} else {
-				z.Hooks = make([]Hook, zb0002)
+				z.Hooks = make([]Hook, zb0003)
 			}
-			for za0001 := range z.Hooks {
-				var zb0003 uint32
-				zb0003, err = dc.ReadMapHeader()
+			for za0002 := range z.Hooks {
+				var zb0004 uint32
+				zb0004, err = dc.ReadMapHeader()
 				if err != nil {
-					err = msgp.WrapError(err, "Hooks", za0001)
+					err = msgp.WrapError(err, "Hooks", za0002)
 					return
 				}
-				for zb0003 > 0 {
-					zb0003--
+				for zb0004 > 0 {
+					zb0004--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
-						err = msgp.WrapError(err, "Hooks", za0001)
+						err = msgp.WrapError(err, "Hooks", za0002)
 						return
 					}
 					switch msgp.UnsafeString(field) {
 					case "event":
-						z.Hooks[za0001].Event, err = dc.ReadString()
+						z.Hooks[za0002].Event, err = dc.ReadString()
 						if err != nil {
-							err = msgp.WrapError(err, "Hooks", za0001, "Event")
+							err = msgp.WrapError(err, "Hooks", za0002, "Event")
 							return
 						}
 					case "url":
-						z.Hooks[za0001].URL, err = dc.ReadString()
+						z.Hooks[za0002].URL, err = dc.ReadString()
 						if err != nil {
-							err = msgp.WrapError(err, "Hooks", za0001, "URL")
+							err = msgp.WrapError(err, "Hooks", za0002, "URL")
 							return
 						}
 					default:
 						err = dc.Skip()
 						if err != nil {
-							err = msgp.WrapError(err, "Hooks", za0001)
+							err = msgp.WrapError(err, "Hooks", za0002)
 							return
 						}
 					}
 				}
 			}
 		case "deployment_routes":
-			var zb0004 uint32
-			zb0004, err = dc.ReadArrayHeader()
+			var zb0005 uint32
+			zb0005, err = dc.ReadArrayHeader()
 			if err != nil {
 				err = msgp.WrapError(err, "DeploymentRoutes")
 				return
 			}
-			if cap(z.DeploymentRoutes) >= int(zb0004) {
-				z.DeploymentRoutes = (z.DeploymentRoutes)[:zb0004]
+			if cap(z.DeploymentRoutes) >= int(zb0005) {
+				z.DeploymentRoutes = (z.DeploymentRoutes)[:zb0005]
 			} else {
-				z.DeploymentRoutes = make([]DeploymentRoute, zb0004)
+				z.DeploymentRoutes = make([]DeploymentRoute, zb0005)
 			}
-			for za0002 := range z.DeploymentRoutes {
-				err = z.DeploymentRoutes[za0002].DecodeMsg(dc)
+			for za0003 := range z.DeploymentRoutes {
+				err = z.DeploymentRoutes[za0003].DecodeMsg(dc)
 				if err != nil {
-					err = msgp.WrapError(err, "DeploymentRoutes", za0002)
+					err = msgp.WrapError(err, "DeploymentRoutes", za0003)
 					return
 				}
 			}
@@ -5684,9 +5966,9 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 7
+	// map header, size 8
 	// write "version"
-	err = en.Append(0x87, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0x88, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
@@ -5735,6 +6017,23 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "UserConfig")
 		return
 	}
+	// write "template_items"
+	err = en.Append(0xae, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x5f, 0x69, 0x74, 0x65, 0x6d, 0x73)
+	if err != nil {
+		return
+	}
+	err = en.WriteArrayHeader(uint32(len(z.TemplateItems)))
+	if err != nil {
+		err = msgp.WrapError(err, "TemplateItems")
+		return
+	}
+	for za0001 := range z.TemplateItems {
+		err = z.TemplateItems[za0001].EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "TemplateItems", za0001)
+			return
+		}
+	}
 	// write "hooks"
 	err = en.Append(0xa5, 0x68, 0x6f, 0x6f, 0x6b, 0x73)
 	if err != nil {
@@ -5745,16 +6044,16 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "Hooks")
 		return
 	}
-	for za0001 := range z.Hooks {
+	for za0002 := range z.Hooks {
 		// map header, size 2
 		// write "event"
 		err = en.Append(0x82, 0xa5, 0x65, 0x76, 0x65, 0x6e, 0x74)
 		if err != nil {
 			return
 		}
-		err = en.WriteString(z.Hooks[za0001].Event)
+		err = en.WriteString(z.Hooks[za0002].Event)
 		if err != nil {
-			err = msgp.WrapError(err, "Hooks", za0001, "Event")
+			err = msgp.WrapError(err, "Hooks", za0002, "Event")
 			return
 		}
 		// write "url"
@@ -5762,9 +6061,9 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		if err != nil {
 			return
 		}
-		err = en.WriteString(z.Hooks[za0001].URL)
+		err = en.WriteString(z.Hooks[za0002].URL)
 		if err != nil {
-			err = msgp.WrapError(err, "Hooks", za0001, "URL")
+			err = msgp.WrapError(err, "Hooks", za0002, "URL")
 			return
 		}
 	}
@@ -5778,10 +6077,10 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "DeploymentRoutes")
 		return
 	}
-	for za0002 := range z.DeploymentRoutes {
-		err = z.DeploymentRoutes[za0002].EncodeMsg(en)
+	for za0003 := range z.DeploymentRoutes {
+		err = z.DeploymentRoutes[za0003].EncodeMsg(en)
 		if err != nil {
-			err = msgp.WrapError(err, "DeploymentRoutes", za0002)
+			err = msgp.WrapError(err, "DeploymentRoutes", za0003)
 			return
 		}
 	}
@@ -5791,9 +6090,9 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 7
+	// map header, size 8
 	// string "version"
-	o = append(o, 0x87, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0x88, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	o = msgp.AppendString(o, z.Version)
 	// string "app_id"
 	o = append(o, 0xa6, 0x61, 0x70, 0x70, 0x5f, 0x69, 0x64)
@@ -5815,25 +6114,35 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		err = msgp.WrapError(err, "UserConfig")
 		return
 	}
+	// string "template_items"
+	o = append(o, 0xae, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x5f, 0x69, 0x74, 0x65, 0x6d, 0x73)
+	o = msgp.AppendArrayHeader(o, uint32(len(z.TemplateItems)))
+	for za0001 := range z.TemplateItems {
+		o, err = z.TemplateItems[za0001].MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "TemplateItems", za0001)
+			return
+		}
+	}
 	// string "hooks"
 	o = append(o, 0xa5, 0x68, 0x6f, 0x6f, 0x6b, 0x73)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.Hooks)))
-	for za0001 := range z.Hooks {
+	for za0002 := range z.Hooks {
 		// map header, size 2
 		// string "event"
 		o = append(o, 0x82, 0xa5, 0x65, 0x76, 0x65, 0x6e, 0x74)
-		o = msgp.AppendString(o, z.Hooks[za0001].Event)
+		o = msgp.AppendString(o, z.Hooks[za0002].Event)
 		// string "url"
 		o = append(o, 0xa3, 0x75, 0x72, 0x6c)
-		o = msgp.AppendString(o, z.Hooks[za0001].URL)
+		o = msgp.AppendString(o, z.Hooks[za0002].URL)
 	}
 	// string "deployment_routes"
 	o = append(o, 0xb1, 0x64, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x72, 0x6f, 0x75, 0x74, 0x65, 0x73)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.DeploymentRoutes)))
-	for za0002 := range z.DeploymentRoutes {
-		o, err = z.DeploymentRoutes[za0002].MarshalMsg(o)
+	for za0003 := range z.DeploymentRoutes {
+		o, err = z.DeploymentRoutes[za0003].MarshalMsg(o)
 		if err != nil {
-			err = msgp.WrapError(err, "DeploymentRoutes", za0002)
+			err = msgp.WrapError(err, "DeploymentRoutes", za0003)
 			return
 		}
 	}
@@ -5888,70 +6197,89 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "UserConfig")
 				return
 			}
-		case "hooks":
+		case "template_items":
 			var zb0002 uint32
 			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "TemplateItems")
+				return
+			}
+			if cap(z.TemplateItems) >= int(zb0002) {
+				z.TemplateItems = (z.TemplateItems)[:zb0002]
+			} else {
+				z.TemplateItems = make([]TemplateItem, zb0002)
+			}
+			for za0001 := range z.TemplateItems {
+				bts, err = z.TemplateItems[za0001].UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "TemplateItems", za0001)
+					return
+				}
+			}
+		case "hooks":
+			var zb0003 uint32
+			zb0003, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "Hooks")
 				return
 			}
-			if cap(z.Hooks) >= int(zb0002) {
-				z.Hooks = (z.Hooks)[:zb0002]
+			if cap(z.Hooks) >= int(zb0003) {
+				z.Hooks = (z.Hooks)[:zb0003]
 			} else {
-				z.Hooks = make([]Hook, zb0002)
+				z.Hooks = make([]Hook, zb0003)
 			}
-			for za0001 := range z.Hooks {
-				var zb0003 uint32
-				zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
+			for za0002 := range z.Hooks {
+				var zb0004 uint32
+				zb0004, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
-					err = msgp.WrapError(err, "Hooks", za0001)
+					err = msgp.WrapError(err, "Hooks", za0002)
 					return
 				}
-				for zb0003 > 0 {
-					zb0003--
+				for zb0004 > 0 {
+					zb0004--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
-						err = msgp.WrapError(err, "Hooks", za0001)
+						err = msgp.WrapError(err, "Hooks", za0002)
 						return
 					}
 					switch msgp.UnsafeString(field) {
 					case "event":
-						z.Hooks[za0001].Event, bts, err = msgp.ReadStringBytes(bts)
+						z.Hooks[za0002].Event, bts, err = msgp.ReadStringBytes(bts)
 						if err != nil {
-							err = msgp.WrapError(err, "Hooks", za0001, "Event")
+							err = msgp.WrapError(err, "Hooks", za0002, "Event")
 							return
 						}
 					case "url":
-						z.Hooks[za0001].URL, bts, err = msgp.ReadStringBytes(bts)
+						z.Hooks[za0002].URL, bts, err = msgp.ReadStringBytes(bts)
 						if err != nil {
-							err = msgp.WrapError(err, "Hooks", za0001, "URL")
+							err = msgp.WrapError(err, "Hooks", za0002, "URL")
 							return
 						}
 					default:
 						bts, err = msgp.Skip(bts)
 						if err != nil {
-							err = msgp.WrapError(err, "Hooks", za0001)
+							err = msgp.WrapError(err, "Hooks", za0002)
 							return
 						}
 					}
 				}
 			}
 		case "deployment_routes":
-			var zb0004 uint32
-			zb0004, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			var zb0005 uint32
+			zb0005, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "DeploymentRoutes")
 				return
 			}
-			if cap(z.DeploymentRoutes) >= int(zb0004) {
-				z.DeploymentRoutes = (z.DeploymentRoutes)[:zb0004]
+			if cap(z.DeploymentRoutes) >= int(zb0005) {
+				z.DeploymentRoutes = (z.DeploymentRoutes)[:zb0005]
 			} else {
-				z.DeploymentRoutes = make([]DeploymentRoute, zb0004)
+				z.DeploymentRoutes = make([]DeploymentRoute, zb0005)
 			}
-			for za0002 := range z.DeploymentRoutes {
-				bts, err = z.DeploymentRoutes[za0002].UnmarshalMsg(bts)
+			for za0003 := range z.DeploymentRoutes {
+				bts, err = z.DeploymentRoutes[za0003].UnmarshalMsg(bts)
 				if err != nil {
-					err = msgp.WrapError(err, "DeploymentRoutes", za0002)
+					err = msgp.WrapError(err, "DeploymentRoutes", za0003)
 					return
 				}
 			}
@@ -5969,13 +6297,17 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *TenantConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 7 + msgp.StringPrefixSize + len(z.AppID) + 9 + msgp.StringPrefixSize + len(z.AppName) + 11 + z.AppConfig.Msgsize() + 12 + z.UserConfig.Msgsize() + 6 + msgp.ArrayHeaderSize
-	for za0001 := range z.Hooks {
-		s += 1 + 6 + msgp.StringPrefixSize + len(z.Hooks[za0001].Event) + 4 + msgp.StringPrefixSize + len(z.Hooks[za0001].URL)
+	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 7 + msgp.StringPrefixSize + len(z.AppID) + 9 + msgp.StringPrefixSize + len(z.AppName) + 11 + z.AppConfig.Msgsize() + 12 + z.UserConfig.Msgsize() + 15 + msgp.ArrayHeaderSize
+	for za0001 := range z.TemplateItems {
+		s += z.TemplateItems[za0001].Msgsize()
+	}
+	s += 6 + msgp.ArrayHeaderSize
+	for za0002 := range z.Hooks {
+		s += 1 + 6 + msgp.StringPrefixSize + len(z.Hooks[za0002].Event) + 4 + msgp.StringPrefixSize + len(z.Hooks[za0002].URL)
 	}
 	s += 18 + msgp.ArrayHeaderSize
-	for za0002 := range z.DeploymentRoutes {
-		s += z.DeploymentRoutes[za0002].Msgsize()
+	for za0003 := range z.DeploymentRoutes {
+		s += z.DeploymentRoutes[za0003].Msgsize()
 	}
 	return
 }
