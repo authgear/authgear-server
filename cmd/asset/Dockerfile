@@ -1,4 +1,4 @@
-FROM golang:1.12.10-alpine3.10 as godev
+FROM golang:1.13.3-alpine3.10 as godev
 
 # alpine-sdk includes git, make, etc.
 RUN apk add \
