@@ -124,6 +124,7 @@ func main() {
 		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
 		srv = server.NewServer(configuration.ServerHost, dependencyMap)
+		srv.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 	}
 
 	srv.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
