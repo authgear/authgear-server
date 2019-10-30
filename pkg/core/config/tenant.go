@@ -476,6 +476,11 @@ type UserConfiguration struct {
 	SMTP             SMTPConfiguration                 `json:"smtp,omitempty" yaml:"smtp" msg:"smtp"`
 	Twilio           TwilioConfiguration               `json:"twilio,omitempty" yaml:"twilio" msg:"twilio"`
 	Nexmo            NexmoConfiguration                `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo"`
+	Asset            AssetConfiguration                `json:"asset,omitempty" yaml:"asset" msg:"asset"`
+}
+
+type AssetConfiguration struct {
+	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
 }
 
 // SessionTransportType indicates the transport used for session tokens

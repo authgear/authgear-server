@@ -12,10 +12,6 @@ import (
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
-type RequestDependencyMap interface {
-	Provide(name string, request *http.Request) interface{}
-}
-
 type DependencyMap interface {
 	Provide(name string, request *http.Request, ctx context.Context, requestID string, tenantConfig config.TenantConfiguration) interface{}
 }

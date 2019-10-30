@@ -8,17 +8,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/redis"
-
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
-	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/template"
-
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
 	mfaHandler "github.com/skygeario/skygear-server/pkg/auth/handler/mfa"
@@ -26,16 +19,20 @@ import (
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
 	userverifyhandler "github.com/skygeario/skygear-server/pkg/auth/handler/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
+	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
+	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
 type configuration struct {
 	Standalone                        bool
 	StandaloneTenantConfigurationFile string                      `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
-	PathPrefix                        string                      `envconfig:"PATH_PREFIX"`
 	Host                              string                      `envconfig:"SERVER_HOST" default:"localhost:3000"`
 	ValidHosts                        string                      `envconfig:"VALID_HOSTS"`
 	Redis                             redis.Configuration         `envconfig:"REDIS"`
@@ -56,7 +53,7 @@ type configuration struct {
 	@SecuritySchemeAPIKey master_key header X-Skygear-API-Key
 		Master key used by admins, can perform administrative operations.
 		Can be used as access key as well.
-	@SecuritySchemeHTTP access_token Bearer JWT
+	@SecuritySchemeHTTP access_token Bearer token
 		Access token of user
 	@SecurityRequirement access_key
 
@@ -122,7 +119,7 @@ func main() {
 		}
 
 		serverOption := server.DefaultOption()
-		serverOption.GearPathPrefix = configuration.PathPrefix
+		serverOption.GearPathPrefix = "/_auth"
 		srv = server.NewServerWithOption(configuration.Host, authDependency, serverOption)
 		srv.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {

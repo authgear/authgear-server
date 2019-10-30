@@ -2,6 +2,7 @@ package http
 
 import (
 	gohttp "net/http"
+	"strings"
 )
 
 // Header names
@@ -79,4 +80,17 @@ func GetProto(req *gohttp.Request) (proto string) {
 func SetForwardedHeaders(req *gohttp.Request) {
 	req.Header.Set("X-Forwarded-Host", GetHost(req))
 	req.Header.Set("X-Forwarded-Proto", GetProto(req))
+}
+
+// RemoveSkygearHeader removes all x-skygear-* headers.
+func RemoveSkygearHeader(header gohttp.Header) gohttp.Header {
+	newHeader := gohttp.Header{}
+	for name, values := range header {
+		lower := strings.ToLower(name)
+		if strings.HasPrefix(lower, "x-skygear-") {
+			continue
+		}
+		newHeader[name] = values
+	}
+	return newHeader
 }

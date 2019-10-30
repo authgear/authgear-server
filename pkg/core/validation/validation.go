@@ -13,21 +13,25 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
+func AddFormatChecker(name string, f gojsonschema.FormatChecker) {
+	gojsonschema.FormatCheckers.Add(name, f)
+}
+
 func init() {
-	gojsonschema.FormatCheckers.Add("URLPathOnly", URL{
+	AddFormatChecker("URLPathOnly", URL{
 		URLVariant: URLVariantPathOnly,
 	})
-	gojsonschema.FormatCheckers.Add("URLFullOrPath", URL{
+	AddFormatChecker("URLFullOrPath", URL{
 		URLVariant: URLVariantFullOrPath,
 	})
-	gojsonschema.FormatCheckers.Add("URLFullOnly", URL{
+	AddFormatChecker("URLFullOnly", URL{
 		URLVariant: URLVariantFullOrPath,
 	})
-	gojsonschema.FormatCheckers.Add("RelativeDirectoryPath", FilePath{
+	AddFormatChecker("RelativeDirectoryPath", FilePath{
 		Relative: true,
 		File:     false,
 	})
-	gojsonschema.FormatCheckers.Add("RelativeFilePath", FilePath{
+	AddFormatChecker("RelativeFilePath", FilePath{
 		Relative: true,
 		File:     true,
 	})
