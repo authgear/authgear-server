@@ -688,19 +688,14 @@ type PasswordPolicyConfiguration struct {
 }
 
 type ForgotPasswordConfiguration struct {
-	AppName             string `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
-	SecureMatch         bool   `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
-	Sender              string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	Subject             string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	ReplyTo             string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-	ResetURLLifetime    int    `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
-	SuccessRedirect     string `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
-	ErrorRedirect       string `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
-	EmailTextURL        string `json:"email_text_url,omitempty" yaml:"email_text_url" msg:"email_text_url"`
-	EmailHTMLURL        string `json:"email_html_url,omitempty" yaml:"email_html_url" msg:"email_html_url"`
-	ResetHTMLURL        string `json:"reset_html_url,omitempty" yaml:"reset_html_url" msg:"reset_html_url"`
-	ResetSuccessHTMLURL string `json:"reset_success_html_url,omitempty" yaml:"reset_success_html_url" msg:"reset_success_html_url"`
-	ResetErrorHTMLURL   string `json:"reset_error_html_url,omitempty" yaml:"reset_error_html_url" msg:"reset_error_html_url"`
+	AppName          string `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
+	SecureMatch      bool   `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
+	Sender           string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
+	Subject          string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
+	ReplyTo          string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
+	ResetURLLifetime int    `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
+	SuccessRedirect  string `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
+	ErrorRedirect    string `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
 }
 
 type WelcomeEmailDestination string
@@ -719,8 +714,6 @@ type WelcomeEmailConfiguration struct {
 	Sender      string                  `json:"sender,omitempty" yaml:"sender" msg:"sender"`
 	Subject     string                  `json:"subject,omitempty" yaml:"subject" msg:"subject"`
 	ReplyTo     string                  `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-	TextURL     string                  `json:"text_url,omitempty" yaml:"text_url" msg:"text_url"`
-	HTMLURL     string                  `json:"html_url,omitempty" yaml:"html_url" msg:"html_url"`
 	Destination WelcomeEmailDestination `json:"destination,omitempty" yaml:"destination" msg:"destination"`
 }
 
@@ -784,7 +777,6 @@ type UserVerificationConfiguration struct {
 	AutoSendOnSignup bool                               `json:"auto_send_on_signup,omitempty" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
 	Criteria         UserVerificationCriteria           `json:"criteria,omitempty" yaml:"criteria" msg:"criteria"`
 	ErrorRedirect    string                             `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
-	ErrorHTMLURL     string                             `json:"error_html_url,omitempty" yaml:"error_html_url" msg:"error_html_url"`
 	LoginIDKeys      []UserVerificationKeyConfiguration `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
 }
 
@@ -804,9 +796,7 @@ type UserVerificationKeyConfiguration struct {
 	CodeFormat      UserVerificationCodeFormat            `json:"code_format,omitempty" yaml:"code_format" msg:"code_format"`
 	Expiry          int64                                 `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
 	SuccessRedirect string                                `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
-	SuccessHTMLURL  string                                `json:"success_html_url,omitempty" yaml:"success_html_url" msg:"success_html_url"`
 	ErrorRedirect   string                                `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
-	ErrorHTMLURL    string                                `json:"error_html_url,omitempty" yaml:"error_html_url" msg:"error_html_url"`
 	ProviderConfig  UserVerificationProviderConfiguration `json:"provider_config,omitempty" yaml:"provider_config" msg:"provider_config"`
 }
 
@@ -824,8 +814,6 @@ type UserVerificationProviderConfiguration struct {
 	Subject string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
 	Sender  string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
 	ReplyTo string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-	TextURL string `json:"text_url,omitempty" yaml:"text_url" msg:"text_url"`
-	HTMLURL string `json:"html_url,omitempty" yaml:"html_url" msg:"html_url"`
 }
 
 type HookUserConfiguration struct {
