@@ -19,7 +19,6 @@ import (
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
 	userverifyhandler "github.com/skygeario/skygear-server/pkg/auth/handler/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -28,7 +27,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -90,10 +88,6 @@ func main() {
 		configuration.ValidHosts = configuration.Host
 	}
 
-	// default template initialization
-	templateEngine := template.NewEngine()
-	authTemplate.RegisterDefaultTemplates(templateEngine)
-
 	validator := validation.NewValidator("http://v2.skgyear.io")
 	validator.AddSchemaFragments(
 		handler.ChangePasswordRequestSchema,
@@ -144,7 +138,6 @@ func main() {
 	asyncTaskExecutor := async.NewExecutor(dbPool)
 	authDependency := auth.DependencyMap{
 		AsyncTaskExecutor:    asyncTaskExecutor,
-		TemplateEngine:       templateEngine,
 		UseInsecureCookie:    configuration.UseInsecureCookie,
 		DefaultConfiguration: configuration.Default,
 		Validator:            validator,

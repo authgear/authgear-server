@@ -16,7 +16,7 @@ func TestTemplateRender(t *testing.T) {
 
 			var err error
 
-			_, err = ParseTextTemplate("test", template, nil)
+			_, err = RenderTextTemplate("test", template, nil)
 			So(err, ShouldBeError, "failed to execute template: rendered template is too large")
 		})
 		Convey("should auto-escape templates", func() {
@@ -87,7 +87,7 @@ func TestTemplateRender(t *testing.T) {
 			</html>
 			`
 
-			out, err := ParseHTMLTemplate("test", template, map[string]interface{}{
+			out, err := RenderHTMLTemplate("test", template, map[string]interface{}{
 				"URL":             "https://www.example.com",
 				"Title":           "Welcome to <b>My App</b>.",
 				"BackgroundColor": "#101020; /* for contrast */",

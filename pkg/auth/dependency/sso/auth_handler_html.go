@@ -112,5 +112,5 @@ req.send(null);
 		"api_endpoint": i.APIEndPoint.String(),
 	}
 
-	return template.ParseHTMLTemplate("auth_handler", templateString, context)
+	return template.RenderHTMLTemplate("auth_handler", templateString, context)
 }

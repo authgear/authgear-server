@@ -43,7 +43,6 @@ import (
 )
 
 type DependencyMap struct {
-	TemplateEngine       *template.Engine
 	Validator            *validation.Validator
 	AsyncTaskExecutor    *async.Executor
 	UseInsecureCookie    bool
@@ -112,7 +111,7 @@ func (m DependencyMap) Provide(
 	}
 
 	newTemplateEngine := func() *template.Engine {
-		return authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
+		return authTemplate.NewEngineWithConfig(tConfig)
 	}
 
 	newAuthInfoStore := func() authinfo.Store {

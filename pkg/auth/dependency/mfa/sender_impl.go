@@ -36,10 +36,10 @@ func (s *senderImpl) Send(code string, phone string, email string) error {
 }
 
 func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error {
-	body, err := s.templateEngine.ParseTextTemplate(
-		string(authTemplate.TemplateItemTypeMFAOOBCodeSMSTXT),
+	body, err := s.templateEngine.RenderTextTemplate(
+		authTemplate.TemplateItemTypeMFAOOBCodeSMSTXT,
 		context,
-		template.ParseOption{Required: true},
+		template.RenderOptions{Required: true},
 	)
 	if err != nil {
 		err = errors.Newf("failed to render MFA SMS message: %w", err)
@@ -54,20 +54,20 @@ func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error
 }
 
 func (s *senderImpl) SendEmail(context map[string]interface{}, email string) error {
-	textBody, err := s.templateEngine.ParseTextTemplate(
-		string(authTemplate.TemplateItemTypeMFAOOBCodeEmailTXT),
+	textBody, err := s.templateEngine.RenderTextTemplate(
+		authTemplate.TemplateItemTypeMFAOOBCodeEmailTXT,
 		context,
-		template.ParseOption{Required: true},
+		template.RenderOptions{Required: true},
 	)
 	if err != nil {
 		err = errors.Newf("failed to render MFA text email: %w", err)
 		return err
 	}
 
-	htmlBody, err := s.templateEngine.ParseHTMLTemplate(
-		string(authTemplate.TemplateItemTypeMFAOOBCodeEmailHTML),
+	htmlBody, err := s.templateEngine.RenderHTMLTemplate(
+		authTemplate.TemplateItemTypeMFAOOBCodeEmailHTML,
 		context,
-		template.ParseOption{Required: false},
+		template.RenderOptions{Required: false},
 	)
 	if err != nil {
 		err = errors.Newf("failed to render MFA HTML email: %w", err)

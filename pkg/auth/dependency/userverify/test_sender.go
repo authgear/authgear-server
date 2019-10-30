@@ -48,12 +48,10 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 	templates map[string]string,
 ) (codeSender CodeSender) {
 	// TODO(template): Unbreak test code sender
-	loader := template.NewStringLoader()
 	// for templateType, templateBody := range templates {
 	// 	loader.StringMap[authTemplate.VerifyTemplateNameForKey(loginIDKey, templateType)] = templateBody
 	// }
 	templateEngine := d.TemplateEngine
-	templateEngine.PrependLoader(loader)
 
 	authLoginIDKey, ok := d.Config.UserConfig.Auth.GetLoginIDKey(loginIDKey)
 	if !ok {

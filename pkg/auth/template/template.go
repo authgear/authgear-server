@@ -5,17 +5,20 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
-func RegisterDefaultTemplates(engine *template.Engine) {
-	// TODO(template)
-}
+func NewEngineWithConfig(tConfig config.TenantConfiguration) *template.Engine {
+	e := template.NewEngine()
 
-// NewEngineWithConfig return new engine with loaders from the config
-// nolint: gocyclo
-func NewEngineWithConfig(engine *template.Engine, tConfig config.TenantConfiguration) *template.Engine {
-	newEngine := template.NewEngine()
-	engine.CopyDefaultToEngine(newEngine)
-	loader := template.NewHTTPLoader()
-	// TODO(template)
-	newEngine.SetLoaders([]template.Loader{loader})
-	return newEngine
+	e.SetDefault(TemplateItemTypeForgotPasswordEmailTXT, DefaultForgotPasswordEmailTXT)
+	e.SetDefault(TemplateItemTypeForgotPasswordResetHTML, DefaultForgotPasswordResetHTML)
+	e.SetDefault(TemplateItemTypeForgotPasswordSuccessHTML, DefaultForgotPasswordSuccessHTML)
+	e.SetDefault(TemplateItemTypeForgotPasswordErrorHTML, DefaultErrorHTML)
+	e.SetDefault(TemplateItemTypeWelcomeEmailTXT, DefaultWelcomeEmailTXT)
+	e.SetDefault(TemplateItemTypeUserVerificationSMSTXT, DefaultUserVerificationSMSTXT)
+	e.SetDefault(TemplateItemTypeUserVerificationEmailTXT, DefaultUserVerificationEmailTXT)
+	e.SetDefault(TemplateItemTypeUserVerificationSuccessHTML, DefaultUserVerificationSuccessHTML)
+	e.SetDefault(TemplateItemTypeUserVerificationErrorHTML, DefaultErrorHTML)
+	e.SetDefault(TemplateItemTypeMFAOOBCodeSMSTXT, DefaultMFAOOBCodeSMSTXT)
+	e.SetDefault(TemplateItemTypeMFAOOBCodeEmailTXT, DefaultMFAOOBCodeEmailTXT)
+
+	return e
 }

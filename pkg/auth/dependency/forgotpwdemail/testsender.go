@@ -74,13 +74,13 @@ func (d *DefaultTestSender) Send(
 	}
 
 	var textBody string
-	if textBody, err = template.ParseTextTemplate("test-text", textTemplate, context); err != nil {
+	if textBody, err = template.RenderTextTemplate("test-text", textTemplate, context); err != nil {
 		err = errors.Newf("failed to render test forgot password text email: %w", err)
 		return
 	}
 
 	var htmlBody string
-	if htmlBody, err = template.ParseHTMLTemplate("test-html", htmlTemplate, context); err != nil {
+	if htmlBody, err = template.RenderHTMLTemplate("test-html", htmlTemplate, context); err != nil {
 		err = errors.Newf("failed to render test forgot password HTML email: %w", err)
 		return
 	}

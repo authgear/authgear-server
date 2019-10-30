@@ -76,20 +76,20 @@ func (d *DefaultSender) Send(
 	}
 
 	var textBody string
-	if textBody, err = d.TemplateEngine.ParseTextTemplate(
-		string(authTemplate.TemplateItemTypeForgotPasswordEmailTXT),
+	if textBody, err = d.TemplateEngine.RenderTextTemplate(
+		authTemplate.TemplateItemTypeForgotPasswordEmailTXT,
 		context,
-		template.ParseOption{Required: true},
+		template.RenderOptions{Required: true},
 	); err != nil {
 		err = errors.Newf("failed to render forgot password text email: %w", err)
 		return
 	}
 
 	var htmlBody string
-	if htmlBody, err = d.TemplateEngine.ParseHTMLTemplate(
-		string(authTemplate.TemplateItemTypeForgotPasswordEmailHTML),
+	if htmlBody, err = d.TemplateEngine.RenderHTMLTemplate(
+		authTemplate.TemplateItemTypeForgotPasswordEmailHTML,
 		context,
-		template.ParseOption{Required: false},
+		template.RenderOptions{Required: false},
 	); err != nil {
 		err = errors.Newf("failed to render forgot password HTML email: %w", err)
 		return

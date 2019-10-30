@@ -44,20 +44,20 @@ func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) 
 	}
 
 	var textBody string
-	if textBody, err = d.TemplateEngine.ParseTextTemplate(
-		string(authTemplate.TemplateItemTypeWelcomeEmailTXT),
+	if textBody, err = d.TemplateEngine.RenderTextTemplate(
+		authTemplate.TemplateItemTypeWelcomeEmailTXT,
 		context,
-		template.ParseOption{Required: true},
+		template.RenderOptions{Required: true},
 	); err != nil {
 		err = errors.Newf("failed to render text welcome email: %w", err)
 		return
 	}
 
 	var htmlBody string
-	if htmlBody, err = d.TemplateEngine.ParseHTMLTemplate(
-		string(authTemplate.TemplateItemTypeWelcomeEmailHTML),
+	if htmlBody, err = d.TemplateEngine.RenderHTMLTemplate(
+		authTemplate.TemplateItemTypeWelcomeEmailHTML,
 		context,
-		template.ParseOption{Required: false},
+		template.RenderOptions{Required: false},
 	); err != nil {
 		err = errors.Newf("failed to render HTML welcome email: %w", err)
 		return

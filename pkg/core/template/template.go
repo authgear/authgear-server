@@ -4,39 +4,15 @@ import (
 	"bytes"
 	htmlTemplate "html/template"
 	"io"
-	"io/ioutil"
-	"net/http"
 	textTemplate "text/template"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
+// TODO(template): Apply MaxTemplateSize on remote template.
 const MaxTemplateSize = 1024 * 1024 * 1
 
-func DownloadTemplateFromURL(url string) (string, error) {
-	// FIXME(sec): validate URL to be trusted URL
-	// nolint: gosec
-	resp, err := http.Get(url)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-	if err != nil {
-		return "", err
-	}
-
-	if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
-		return "", errors.Newf("failed to request: %s", resp.Status)
-	}
-
-	body, err := ioutil.ReadAll(io.LimitReader(resp.Body, MaxTemplateSize))
-	if err != nil {
-		return "", err
-	}
-
-	return string(body), nil
-}
-
-func ParseTextTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
+func RenderTextTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
 	if templateString == "" {
 		return
 	}
@@ -63,7 +39,7 @@ func ParseTextTemplate(id string, templateString string, context map[string]inte
 	return
 }
 
-func ParseHTMLTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
+func RenderHTMLTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
 	if templateString == "" {
 		return
 	}
