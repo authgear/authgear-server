@@ -207,7 +207,7 @@ func (c *TenantConfiguration) Validate() error {
 	}
 
 	// Validate UserConfiguration
-	if err := validation.ValidateUserConfiguration(c.UserConfig); err != nil {
+	if err := ValidateUserConfiguration(c.UserConfig); err != nil {
 		if validationError, ok := err.(validation.Error); ok {
 			return validationError.SkyErrInvalidArgument("Invalid UserConfiguration")
 		}
