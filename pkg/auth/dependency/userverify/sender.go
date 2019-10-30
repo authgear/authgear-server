@@ -20,7 +20,7 @@ type CodeSender interface {
 type EmailCodeSender struct {
 	AppName        string
 	URLPrefix      *url.URL
-	ProviderConfig config.UserVerificationProviderConfiguration
+	MessageHeader  config.MessageHeader
 	Sender         mail.Sender
 	TemplateEngine *template.Engine
 }
@@ -32,8 +32,6 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 		e.URLPrefix,
 		user,
 	)
-
-	providerConfig := e.ProviderConfig
 
 	var textBody string
 	if textBody, err = e.TemplateEngine.ParseTextTemplate(
@@ -56,10 +54,10 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 	}
 
 	err = e.Sender.Send(mail.SendOptions{
-		Sender:    providerConfig.Sender,
+		Sender:    e.MessageHeader.Sender,
 		Recipient: verifyCode.LoginID,
-		Subject:   providerConfig.Subject,
-		ReplyTo:   providerConfig.ReplyTo,
+		Subject:   e.MessageHeader.Subject,
+		ReplyTo:   e.MessageHeader.ReplyTo,
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
 	})

@@ -214,11 +214,11 @@ func (f VerifyRequestTestHandlerFactory) NewHandler(request *http.Request) http.
 }
 
 type VerifyRequestTestPayload struct {
-	LoginIDKey    string                                       `json:"login_id_key"`
-	LoginID       string                                       `json:"login_id"`
-	User          model.User                                   `json:"user"`
-	MessageConfig config.UserVerificationProviderConfiguration `json:"message_config"`
-	Templates     map[string]string                            `json:"templates"`
+	LoginIDKey    string               `json:"login_id_key"`
+	LoginID       string               `json:"login_id"`
+	User          model.User           `json:"user"`
+	MessageConfig config.MessageHeader `json:"message_config"`
+	Templates     map[string]string    `json:"templates"`
 }
 
 const VerifyTestRequestSchema = `

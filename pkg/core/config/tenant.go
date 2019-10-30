@@ -403,11 +403,11 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		if config.Expiry == 0 {
 			config.Expiry = 3600 // 1 hour
 		}
-		if config.ProviderConfig.Sender == "" {
-			config.ProviderConfig.Sender = "no-reply@skygeario.com"
+		if config.Sender == "" {
+			config.Sender = "no-reply@skygeario.com"
 		}
-		if config.ProviderConfig.Subject == "" {
-			config.ProviderConfig.Subject = "Verification instruction"
+		if config.Subject == "" {
+			config.Subject = "Verification instruction"
 		}
 		c.UserConfig.UserVerification.LoginIDKeys[i] = config
 	}
@@ -787,17 +787,19 @@ const (
 	UserVerificationCodeFormatComplex UserVerificationCodeFormat = "complex"
 )
 
-func (format UserVerificationCodeFormat) IsValid() bool {
-	return format == UserVerificationCodeFormatNumeric || format == UserVerificationCodeFormatComplex
+type UserVerificationKeyConfiguration struct {
+	Key             string                     `json:"key,omitempty" yaml:"key" msg:"key"`
+	CodeFormat      UserVerificationCodeFormat `json:"code_format,omitempty" yaml:"code_format" msg:"code_format"`
+	Expiry          int64                      `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
+	SuccessRedirect string                     `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
+	ErrorRedirect   string                     `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
+	Subject         string                     `json:"subject,omitempty" yaml:"subject" msg:"subject"`
+	Sender          string                     `json:"sender,omitempty" yaml:"sender" msg:"sender"`
+	ReplyTo         string                     `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
 }
 
-type UserVerificationKeyConfiguration struct {
-	Key             string                                `json:"key" yaml:"key" msg:"key"`
-	CodeFormat      UserVerificationCodeFormat            `json:"code_format,omitempty" yaml:"code_format" msg:"code_format"`
-	Expiry          int64                                 `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
-	SuccessRedirect string                                `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
-	ErrorRedirect   string                                `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
-	ProviderConfig  UserVerificationProviderConfiguration `json:"provider_config,omitempty" yaml:"provider_config" msg:"provider_config"`
+func (format UserVerificationCodeFormat) IsValid() bool {
+	return format == UserVerificationCodeFormatNumeric || format == UserVerificationCodeFormatComplex
 }
 
 func (c *UserVerificationConfiguration) GetLoginIDKey(key string) (*UserVerificationKeyConfiguration, bool) {
@@ -810,10 +812,12 @@ func (c *UserVerificationConfiguration) GetLoginIDKey(key string) (*UserVerifica
 	return nil, false
 }
 
-type UserVerificationProviderConfiguration struct {
-	Subject string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	Sender  string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	ReplyTo string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
+func (c *UserVerificationKeyConfiguration) MessageHeader() MessageHeader {
+	return MessageHeader{
+		Subject: c.Subject,
+		Sender:  c.Sender,
+		ReplyTo: c.ReplyTo,
+	}
 }
 
 type HookUserConfiguration struct {

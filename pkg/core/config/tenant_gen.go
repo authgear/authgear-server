@@ -7704,46 +7704,23 @@ func (z *UserVerificationKeyConfiguration) DecodeMsg(dc *msgp.Reader) (err error
 				err = msgp.WrapError(err, "ErrorRedirect")
 				return
 			}
-		case "provider_config":
-			var zb0003 uint32
-			zb0003, err = dc.ReadMapHeader()
+		case "subject":
+			z.Subject, err = dc.ReadString()
 			if err != nil {
-				err = msgp.WrapError(err, "ProviderConfig")
+				err = msgp.WrapError(err, "Subject")
 				return
 			}
-			for zb0003 > 0 {
-				zb0003--
-				field, err = dc.ReadMapKeyPtr()
-				if err != nil {
-					err = msgp.WrapError(err, "ProviderConfig")
-					return
-				}
-				switch msgp.UnsafeString(field) {
-				case "subject":
-					z.ProviderConfig.Subject, err = dc.ReadString()
-					if err != nil {
-						err = msgp.WrapError(err, "ProviderConfig", "Subject")
-						return
-					}
-				case "sender":
-					z.ProviderConfig.Sender, err = dc.ReadString()
-					if err != nil {
-						err = msgp.WrapError(err, "ProviderConfig", "Sender")
-						return
-					}
-				case "reply_to":
-					z.ProviderConfig.ReplyTo, err = dc.ReadString()
-					if err != nil {
-						err = msgp.WrapError(err, "ProviderConfig", "ReplyTo")
-						return
-					}
-				default:
-					err = dc.Skip()
-					if err != nil {
-						err = msgp.WrapError(err, "ProviderConfig")
-						return
-					}
-				}
+		case "sender":
+			z.Sender, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Sender")
+				return
+			}
+		case "reply_to":
+			z.ReplyTo, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "ReplyTo")
+				return
 			}
 		default:
 			err = dc.Skip()
@@ -7758,9 +7735,9 @@ func (z *UserVerificationKeyConfiguration) DecodeMsg(dc *msgp.Reader) (err error
 
 // EncodeMsg implements msgp.Encodable
 func (z *UserVerificationKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 6
+	// map header, size 8
 	// write "key"
-	err = en.Append(0x86, 0xa3, 0x6b, 0x65, 0x79)
+	err = en.Append(0x88, 0xa3, 0x6b, 0x65, 0x79)
 	if err != nil {
 		return
 	}
@@ -7809,16 +7786,14 @@ func (z *UserVerificationKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error
 		err = msgp.WrapError(err, "ErrorRedirect")
 		return
 	}
-	// write "provider_config"
-	// map header, size 3
 	// write "subject"
-	err = en.Append(0xaf, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x83, 0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
+	err = en.Append(0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.ProviderConfig.Subject)
+	err = en.WriteString(z.Subject)
 	if err != nil {
-		err = msgp.WrapError(err, "ProviderConfig", "Subject")
+		err = msgp.WrapError(err, "Subject")
 		return
 	}
 	// write "sender"
@@ -7826,9 +7801,9 @@ func (z *UserVerificationKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.ProviderConfig.Sender)
+	err = en.WriteString(z.Sender)
 	if err != nil {
-		err = msgp.WrapError(err, "ProviderConfig", "Sender")
+		err = msgp.WrapError(err, "Sender")
 		return
 	}
 	// write "reply_to"
@@ -7836,9 +7811,9 @@ func (z *UserVerificationKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.ProviderConfig.ReplyTo)
+	err = en.WriteString(z.ReplyTo)
 	if err != nil {
-		err = msgp.WrapError(err, "ProviderConfig", "ReplyTo")
+		err = msgp.WrapError(err, "ReplyTo")
 		return
 	}
 	return
@@ -7847,9 +7822,9 @@ func (z *UserVerificationKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error
 // MarshalMsg implements msgp.Marshaler
 func (z *UserVerificationKeyConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 6
+	// map header, size 8
 	// string "key"
-	o = append(o, 0x86, 0xa3, 0x6b, 0x65, 0x79)
+	o = append(o, 0x88, 0xa3, 0x6b, 0x65, 0x79)
 	o = msgp.AppendString(o, z.Key)
 	// string "code_format"
 	o = append(o, 0xab, 0x63, 0x6f, 0x64, 0x65, 0x5f, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74)
@@ -7863,17 +7838,15 @@ func (z *UserVerificationKeyConfiguration) MarshalMsg(b []byte) (o []byte, err e
 	// string "error_redirect"
 	o = append(o, 0xae, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x5f, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74)
 	o = msgp.AppendString(o, z.ErrorRedirect)
-	// string "provider_config"
-	// map header, size 3
 	// string "subject"
-	o = append(o, 0xaf, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x83, 0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
-	o = msgp.AppendString(o, z.ProviderConfig.Subject)
+	o = append(o, 0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
+	o = msgp.AppendString(o, z.Subject)
 	// string "sender"
 	o = append(o, 0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
-	o = msgp.AppendString(o, z.ProviderConfig.Sender)
+	o = msgp.AppendString(o, z.Sender)
 	// string "reply_to"
 	o = append(o, 0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
-	o = msgp.AppendString(o, z.ProviderConfig.ReplyTo)
+	o = msgp.AppendString(o, z.ReplyTo)
 	return
 }
 
@@ -7929,182 +7902,6 @@ func (z *UserVerificationKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, e
 				err = msgp.WrapError(err, "ErrorRedirect")
 				return
 			}
-		case "provider_config":
-			var zb0003 uint32
-			zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "ProviderConfig")
-				return
-			}
-			for zb0003 > 0 {
-				zb0003--
-				field, bts, err = msgp.ReadMapKeyZC(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "ProviderConfig")
-					return
-				}
-				switch msgp.UnsafeString(field) {
-				case "subject":
-					z.ProviderConfig.Subject, bts, err = msgp.ReadStringBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "ProviderConfig", "Subject")
-						return
-					}
-				case "sender":
-					z.ProviderConfig.Sender, bts, err = msgp.ReadStringBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "ProviderConfig", "Sender")
-						return
-					}
-				case "reply_to":
-					z.ProviderConfig.ReplyTo, bts, err = msgp.ReadStringBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "ProviderConfig", "ReplyTo")
-						return
-					}
-				default:
-					bts, err = msgp.Skip(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "ProviderConfig")
-						return
-					}
-				}
-			}
-		default:
-			bts, err = msgp.Skip(bts)
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	o = bts
-	return
-}
-
-// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *UserVerificationKeyConfiguration) Msgsize() (s int) {
-	s = 1 + 4 + msgp.StringPrefixSize + len(z.Key) + 12 + msgp.StringPrefixSize + len(string(z.CodeFormat)) + 7 + msgp.Int64Size + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 16 + 1 + 8 + msgp.StringPrefixSize + len(z.ProviderConfig.Subject) + 7 + msgp.StringPrefixSize + len(z.ProviderConfig.Sender) + 9 + msgp.StringPrefixSize + len(z.ProviderConfig.ReplyTo)
-	return
-}
-
-// DecodeMsg implements msgp.Decodable
-func (z *UserVerificationProviderConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, err = dc.ReadMapHeader()
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, err = dc.ReadMapKeyPtr()
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "subject":
-			z.Subject, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "Subject")
-				return
-			}
-		case "sender":
-			z.Sender, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "Sender")
-				return
-			}
-		case "reply_to":
-			z.ReplyTo, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "ReplyTo")
-				return
-			}
-		default:
-			err = dc.Skip()
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	return
-}
-
-// EncodeMsg implements msgp.Encodable
-func (z UserVerificationProviderConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 3
-	// write "subject"
-	err = en.Append(0x83, 0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Subject)
-	if err != nil {
-		err = msgp.WrapError(err, "Subject")
-		return
-	}
-	// write "sender"
-	err = en.Append(0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Sender)
-	if err != nil {
-		err = msgp.WrapError(err, "Sender")
-		return
-	}
-	// write "reply_to"
-	err = en.Append(0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.ReplyTo)
-	if err != nil {
-		err = msgp.WrapError(err, "ReplyTo")
-		return
-	}
-	return
-}
-
-// MarshalMsg implements msgp.Marshaler
-func (z UserVerificationProviderConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
-	o = msgp.Require(b, z.Msgsize())
-	// map header, size 3
-	// string "subject"
-	o = append(o, 0x83, 0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
-	o = msgp.AppendString(o, z.Subject)
-	// string "sender"
-	o = append(o, 0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
-	o = msgp.AppendString(o, z.Sender)
-	// string "reply_to"
-	o = append(o, 0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
-	o = msgp.AppendString(o, z.ReplyTo)
-	return
-}
-
-// UnmarshalMsg implements msgp.Unmarshaler
-func (z *UserVerificationProviderConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, bts, err = msgp.ReadMapKeyZC(bts)
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
 		case "subject":
 			z.Subject, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
@@ -8136,8 +7933,8 @@ func (z *UserVerificationProviderConfiguration) UnmarshalMsg(bts []byte) (o []by
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z UserVerificationProviderConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.StringPrefixSize + len(z.Subject) + 7 + msgp.StringPrefixSize + len(z.Sender) + 9 + msgp.StringPrefixSize + len(z.ReplyTo)
+func (z *UserVerificationKeyConfiguration) Msgsize() (s int) {
+	s = 1 + 4 + msgp.StringPrefixSize + len(z.Key) + 12 + msgp.StringPrefixSize + len(string(z.CodeFormat)) + 7 + msgp.Int64Size + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 8 + msgp.StringPrefixSize + len(z.Subject) + 7 + msgp.StringPrefixSize + len(z.Sender) + 9 + msgp.StringPrefixSize + len(z.ReplyTo)
 	return
 }
 

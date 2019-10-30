@@ -13,7 +13,7 @@ import (
 
 type TestCodeSenderFactory interface {
 	NewTestCodeSender(
-		keyConfig config.UserVerificationProviderConfiguration,
+		messageHeader config.MessageHeader,
 		loginIDKey string,
 		templates map[string]string,
 	) CodeSender
@@ -44,7 +44,7 @@ func NewDefaultUserVerifyTestCodeSenderFactory(
 }
 
 func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
-	keyConfig config.UserVerificationProviderConfiguration,
+	messageHeader config.MessageHeader,
 	loginIDKey string,
 	templates map[string]string,
 ) (codeSender CodeSender) {
@@ -67,7 +67,7 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 		codeSender = &EmailCodeSender{
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.URLPrefix,
-			ProviderConfig: keyConfig,
+			MessageHeader:  messageHeader,
 			Sender:         d.MailSender,
 			TemplateEngine: templateEngine,
 		}

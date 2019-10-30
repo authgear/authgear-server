@@ -52,7 +52,7 @@ func (d *defaultCodeSenderFactory) NewCodeSender(urlPrefix *url.URL, loginIDKey 
 		return &EmailCodeSender{
 			AppName:        d.Config.AppName,
 			URLPrefix:      urlPrefix,
-			ProviderConfig: verifyConfig.ProviderConfig,
+			MessageHeader:  verifyConfig.MessageHeader(),
 			Sender:         d.MailSender,
 			TemplateEngine: d.TemplateEngine,
 		}
