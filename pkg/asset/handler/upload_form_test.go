@@ -35,7 +35,7 @@ func TestUploadFormHandler(t *testing.T) {
 
 			So(recorder.Result().StatusCode, ShouldEqual, 400)
 			So(recorder.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":400,"message":"invalid content-type","name":"Invalid","reason":"InvalidContentType"}}
+{"error":{"code":400,"message":"invalid content-type","name":"BadRequest","reason":"BadAssetUploadForm"}}
 			`)
 		})
 
@@ -47,7 +47,7 @@ func TestUploadFormHandler(t *testing.T) {
 
 			So(recorder.Result().StatusCode, ShouldEqual, 400)
 			So(recorder.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":400,"message":"invalid content-type","name":"Invalid","reason":"InvalidContentType"}}
+{"error":{"code":400,"message":"invalid content-type","name":"BadRequest","reason":"BadAssetUploadForm"}}
 			`)
 		})
 
@@ -65,7 +65,7 @@ func TestUploadFormHandler(t *testing.T) {
 
 			So(recorder.Result().StatusCode, ShouldEqual, 400)
 			So(recorder.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":400,"message":"repeated field: content-type","name":"Invalid","reason":"InvalidFormField"}}
+{"error":{"code":400,"message":"repeated field: content-type","name":"BadRequest","reason":"BadAssetUploadForm"}}
 			`)
 		})
 
@@ -81,7 +81,7 @@ func TestUploadFormHandler(t *testing.T) {
 
 			So(recorder.Result().StatusCode, ShouldEqual, 400)
 			So(recorder.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":400,"message":"expected exactly 1 file part","name":"Invalid","reason":"InvalidFormField"}}
+{"error":{"code":400,"message":"expected exactly 1 file part","name":"BadRequest","reason":"BadAssetUploadForm"}}
 			`)
 		})
 

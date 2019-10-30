@@ -22,6 +22,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
+var BadAssetUploadForm = skyerr.BadRequest.WithReason("BadAssetUploadForm")
+
 func AttachUploadFormHandler(
 	server *server.Server,
 	dependencyMap inject.DependencyMap,
@@ -68,16 +70,16 @@ func (h *UploadFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err 
 	contentType := r.Header.Get("Content-Type")
 	mediaType, params, err := mime.ParseMediaType(contentType)
 	if err != nil {
-		err = skyerr.Invalid.WithReason("InvalidContentType").New("invalid content-type")
+		err = BadAssetUploadForm.New("invalid content-type")
 		return
 	}
 	if mediaType != "multipart/form-data" {
-		err = skyerr.Invalid.WithReason("InvalidContentType").New("invalid content-type")
+		err = BadAssetUploadForm.New("invalid content-type")
 		return
 	}
 	boundary := params["boundary"]
 	if boundary == "" {
-		err = skyerr.Invalid.WithReason("InvalidBoundary").New("invalid boundary")
+		err = BadAssetUploadForm.New("invalid boundary")
 		return
 	}
 
@@ -99,7 +101,7 @@ func (h *UploadFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err 
 	// Transform simple fields.
 	for fieldName, values := range form.Value {
 		if len(values) != 1 {
-			err = skyerr.Invalid.WithReason("InvalidFormField").New(fmt.Sprintf("repeated field: %s", fieldName))
+			err = BadAssetUploadForm.New(fmt.Sprintf("repeated field: %s", fieldName))
 			return
 		}
 		value := values[0]
@@ -116,16 +118,16 @@ func (h *UploadFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err 
 	// Transform the file field.
 	var fileHeader *multipart.FileHeader
 	if len(form.File) != 1 {
-		err = skyerr.Invalid.WithReason("InvalidFormField").New("expected exactly 1 file part")
+		err = BadAssetUploadForm.New("expected exactly 1 file part")
 		return
 	}
 	for fileFieldName, fileHeaders := range form.File {
 		if fileFieldName != "file" {
-			err = skyerr.Invalid.WithReason("InvalidFormField").New("invalid file field")
+			err = BadAssetUploadForm.New("invalid file field")
 			return
 		}
 		if len(fileHeaders) != 1 {
-			err = skyerr.Invalid.WithReason("InvalidFormField").New("invalid file field")
+			err = BadAssetUploadForm.New("invalid file field")
 			return
 		}
 		fileHeader = fileHeaders[0]
