@@ -58,23 +58,25 @@ func NewVerifyHTMLProvider(c config.UserVerificationConfiguration, templateEngin
 
 func (v *VerifyHTMLProvider) SuccessHTML(key string, context map[string]interface{}) (string, error) {
 	return v.templateEngine.ParseHTMLTemplate(
-		authTemplate.VerifySuccessHTMLTemplateNameForKey(key),
+		// TODO(template): support type + key
+		string(authTemplate.TemplateItemTypeUserVerificationSuccessHTML),
 		context,
-		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifySuccessHTML},
+		template.ParseOption{Required: true},
 	)
 }
 
 func (v *VerifyHTMLProvider) ErrorHTML(key string, context map[string]interface{}) (string, error) {
 	if key != "" {
 		return v.templateEngine.ParseHTMLTemplate(
-			authTemplate.VerifyErrorHTMLTemplateNameForKey(key),
+			// TODO(template): support type + key
+			string(authTemplate.TemplateItemTypeUserVerificationErrorHTML),
 			context,
-			template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifyErrorHTML},
+			template.ParseOption{Required: true},
 		)
 	}
 
 	return v.templateEngine.ParseHTMLTemplate(
-		authTemplate.TemplateNameVerifyErrorHTML,
+		string(authTemplate.TemplateItemTypeUserVerificationErrorHTML),
 		context,
 		template.ParseOption{Required: true},
 	)

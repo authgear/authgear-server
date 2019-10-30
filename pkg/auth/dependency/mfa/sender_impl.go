@@ -37,7 +37,7 @@ func (s *senderImpl) Send(code string, phone string, email string) error {
 
 func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error {
 	body, err := s.templateEngine.ParseTextTemplate(
-		authTemplate.TemplateNameMFAOOBCodeSMSText,
+		string(authTemplate.TemplateItemTypeMFAOOBCodeSMSTXT),
 		context,
 		template.ParseOption{Required: true},
 	)
@@ -55,7 +55,7 @@ func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error
 
 func (s *senderImpl) SendEmail(context map[string]interface{}, email string) error {
 	textBody, err := s.templateEngine.ParseTextTemplate(
-		authTemplate.TemplateNameMFAOOBCodeEmailText,
+		string(authTemplate.TemplateItemTypeMFAOOBCodeEmailTXT),
 		context,
 		template.ParseOption{Required: true},
 	)
@@ -65,7 +65,7 @@ func (s *senderImpl) SendEmail(context map[string]interface{}, email string) err
 	}
 
 	htmlBody, err := s.templateEngine.ParseHTMLTemplate(
-		authTemplate.TemplateNameMFAOOBCodeEmailHTML,
+		string(authTemplate.TemplateItemTypeMFAOOBCodeEmailHTML),
 		context,
 		template.ParseOption{Required: false},
 	)

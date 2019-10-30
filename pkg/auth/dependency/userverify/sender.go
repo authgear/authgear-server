@@ -35,9 +35,10 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 
 	var textBody string
 	if textBody, err = e.TemplateEngine.ParseTextTemplate(
-		authTemplate.VerifyTextTemplateNameForKey(verifyCode.LoginIDKey),
+		// TODO(template): support type + key
+		string(authTemplate.TemplateItemTypeUserVerificationEmailTXT),
 		context,
-		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifyEmailText},
+		template.ParseOption{Required: true},
 	); err != nil {
 		err = errors.Newf("failed to render user verification text email: %w", err)
 		return
@@ -45,9 +46,10 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 
 	var htmlBody string
 	if htmlBody, err = e.TemplateEngine.ParseHTMLTemplate(
-		authTemplate.VerifyHTMLTemplateNameForKey(verifyCode.LoginIDKey),
+		// TODO(template): support type + key
+		string(authTemplate.TemplateItemTypeUserVerificationEmailHTML),
 		context,
-		template.ParseOption{Required: false, FallbackTemplateName: authTemplate.TemplateNameVerifyEmailHTML},
+		template.ParseOption{Required: false},
 	); err != nil {
 		err = errors.Newf("failed to render user verification HTML email: %w", err)
 		return
@@ -85,9 +87,10 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user model.User) (err error)
 
 	var textBody string
 	if textBody, err = t.TemplateEngine.ParseTextTemplate(
-		authTemplate.VerifyTextTemplateNameForKey(verifyCode.LoginIDKey),
+		// TODO(template): support type + key
+		string(authTemplate.TemplateItemTypeUserVerificationSMSTXT),
 		context,
-		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifySMSText},
+		template.ParseOption{Required: true},
 	); err != nil {
 		err = errors.Newf("failed to render user verification SMS message: %w", err)
 		return

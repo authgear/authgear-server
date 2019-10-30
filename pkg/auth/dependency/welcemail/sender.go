@@ -45,7 +45,7 @@ func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) 
 
 	var textBody string
 	if textBody, err = d.TemplateEngine.ParseTextTemplate(
-		authTemplate.TemplateNameWelcomeEmailText,
+		string(authTemplate.TemplateItemTypeWelcomeEmailTXT),
 		context,
 		template.ParseOption{Required: true},
 	); err != nil {
@@ -55,7 +55,7 @@ func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) 
 
 	var htmlBody string
 	if htmlBody, err = d.TemplateEngine.ParseHTMLTemplate(
-		authTemplate.TemplateNameWelcomeEmailHTML,
+		string(authTemplate.TemplateItemTypeWelcomeEmailHTML),
 		context,
 		template.ParseOption{Required: false},
 	); err != nil {

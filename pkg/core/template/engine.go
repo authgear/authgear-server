@@ -14,7 +14,9 @@ type Engine struct {
 }
 
 type ParseOption struct {
-	Required             bool
+	Required bool
+	// TODO(template): Remove this.
+	// This exists because previously there is no type + key.
 	FallbackTemplateName string
 }
 

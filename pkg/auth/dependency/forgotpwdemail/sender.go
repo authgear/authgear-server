@@ -77,7 +77,7 @@ func (d *DefaultSender) Send(
 
 	var textBody string
 	if textBody, err = d.TemplateEngine.ParseTextTemplate(
-		authTemplate.TemplateNameForgotPasswordEmailText,
+		string(authTemplate.TemplateItemTypeForgotPasswordEmailTXT),
 		context,
 		template.ParseOption{Required: true},
 	); err != nil {
@@ -87,7 +87,7 @@ func (d *DefaultSender) Send(
 
 	var htmlBody string
 	if htmlBody, err = d.TemplateEngine.ParseHTMLTemplate(
-		authTemplate.TemplateNameForgotPasswordEmailHTML,
+		string(authTemplate.TemplateItemTypeForgotPasswordEmailHTML),
 		context,
 		template.ParseOption{Required: false},
 	); err != nil {

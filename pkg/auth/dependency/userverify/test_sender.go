@@ -3,7 +3,6 @@ package userverify
 import (
 	"net/url"
 
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -48,10 +47,11 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 	loginIDKey string,
 	templates map[string]string,
 ) (codeSender CodeSender) {
+	// TODO(template): Unbreak test code sender
 	loader := template.NewStringLoader()
-	for templateType, templateBody := range templates {
-		loader.StringMap[authTemplate.VerifyTemplateNameForKey(loginIDKey, templateType)] = templateBody
-	}
+	// for templateType, templateBody := range templates {
+	// 	loader.StringMap[authTemplate.VerifyTemplateNameForKey(loginIDKey, templateType)] = templateBody
+	// }
 	templateEngine := d.TemplateEngine
 	templateEngine.PrependLoader(loader)
 

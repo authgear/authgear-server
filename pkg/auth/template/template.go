@@ -6,19 +6,7 @@ import (
 )
 
 func RegisterDefaultTemplates(engine *template.Engine) {
-	engine.RegisterDefaultTemplate(TemplateNameWelcomeEmailText, templateWelcomeEmailTxt)
-	engine.RegisterDefaultTemplate(TemplateNameForgotPasswordEmailText, templateForgotPasswordEmailTxt)
-	engine.RegisterDefaultTemplate(TemplateNameVerifyEmailText, templateVerifyEmailTxt)
-	engine.RegisterDefaultTemplate(TemplateNameVerifySMSText, templateVerifySMSTxt)
-	engine.RegisterDefaultTemplate(TemplateNameResetPasswordErrorHTML, templateResetPasswordErrorHTML)
-	engine.RegisterDefaultTemplate(TemplateNameResetPasswordSuccessHTML, templateResetPasswordSuccessHTML)
-	engine.RegisterDefaultTemplate(TemplateNameResetPasswordHTML, templateResetPasswordHTML)
-	engine.RegisterDefaultTemplate(TemplateNameVerifyErrorHTML, templateVerifyErrorHTML)
-	engine.RegisterDefaultTemplate(TemplateNameVerifySuccessHTML, templateVerifySuccessHTML)
-	// MFA
-	engine.RegisterDefaultTemplate(TemplateNameMFAOOBCodeSMSText, templateMFAOOBCodeSMSText)
-	engine.RegisterDefaultTemplate(TemplateNameMFAOOBCodeEmailText, templateMFAOOBCodeEmailText)
-	engine.RegisterDefaultTemplate(TemplateNameMFAOOBCodeEmailHTML, templateMFAOOBCodeEmailHTML)
+	// TODO(template)
 }
 
 // NewEngineWithConfig return new engine with loaders from the config
