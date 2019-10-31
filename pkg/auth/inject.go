@@ -43,10 +43,11 @@ import (
 )
 
 type DependencyMap struct {
-	Validator            *validation.Validator
-	AsyncTaskExecutor    *async.Executor
-	UseInsecureCookie    bool
-	DefaultConfiguration config.DefaultConfiguration
+	EnableFileSystemTemplate bool
+	Validator                *validation.Validator
+	AsyncTaskExecutor        *async.Executor
+	UseInsecureCookie        bool
+	DefaultConfiguration     config.DefaultConfiguration
 }
 
 // Provide provides dependency instance by name
@@ -111,7 +112,7 @@ func (m DependencyMap) Provide(
 	}
 
 	newTemplateEngine := func() *template.Engine {
-		return authTemplate.NewEngineWithConfig(tConfig)
+		return authTemplate.NewEngineWithConfig(tConfig, m.EnableFileSystemTemplate)
 	}
 
 	newAuthInfoStore := func() authinfo.Store {

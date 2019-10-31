@@ -37,6 +37,7 @@ type configuration struct {
 	ValidHosts                        string                      `envconfig:"VALID_HOSTS"`
 	Redis                             redis.Configuration         `envconfig:"REDIS"`
 	UseInsecureCookie                 bool                        `envconfig:"INSECURE_COOKIE"`
+	EnableFileSystemTemplate          bool                        `envconfig:"FILE_SYSTEM_TEMPLATE"`
 	Default                           config.DefaultConfiguration `envconfig:"DEFAULT"`
 }
 
@@ -137,10 +138,11 @@ func main() {
 	}
 	asyncTaskExecutor := async.NewExecutor(dbPool)
 	authDependency := auth.DependencyMap{
-		AsyncTaskExecutor:    asyncTaskExecutor,
-		UseInsecureCookie:    configuration.UseInsecureCookie,
-		DefaultConfiguration: configuration.Default,
-		Validator:            validator,
+		EnableFileSystemTemplate: configuration.EnableFileSystemTemplate,
+		AsyncTaskExecutor:        asyncTaskExecutor,
+		UseInsecureCookie:        configuration.UseInsecureCookie,
+		DefaultConfiguration:     configuration.Default,
+		Validator:                validator,
 	}
 
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)

@@ -5,10 +5,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
-func NewEngineWithConfig(tConfig config.TenantConfiguration) *template.Engine {
+func NewEngineWithConfig(tConfig config.TenantConfiguration, enableFileSystemTemplate bool) *template.Engine {
 	e := template.NewEngine(
-		// TODO(template): enable file loader only for standalone mode.
-		false,
+		enableFileSystemTemplate,
 		false,
 		tConfig.TemplateItems,
 		// TODO(template): support preferred languages.
