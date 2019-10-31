@@ -3,6 +3,7 @@ package userverify
 import (
 	"net/url"
 
+	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -14,7 +15,8 @@ type TestCodeSenderFactory interface {
 	NewTestCodeSender(
 		messageHeader config.MessageHeader,
 		loginIDKey string,
-		templates map[string]string,
+		textTemplate string,
+		htmlTemplate string,
 	) CodeSender
 }
 
@@ -45,13 +47,29 @@ func NewDefaultUserVerifyTestCodeSenderFactory(
 func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 	messageHeader config.MessageHeader,
 	loginIDKey string,
-	templates map[string]string,
+	textTemplate string,
+	htmlTemplate string,
 ) (codeSender CodeSender) {
-	// TODO(template): Unbreak test code sender
-	// for templateType, templateBody := range templates {
-	// 	loader.StringMap[authTemplate.VerifyTemplateNameForKey(loginIDKey, templateType)] = templateBody
-	// }
-	templateEngine := d.TemplateEngine
+	templateEngine := d.TemplateEngine.Clone()
+	templateEngine.URILoader.DataLoaderEnabled = true
+	templateEngine.PreferredLanguageTags = nil
+	templateEngine.TemplateItems = []config.TemplateItem{
+		config.TemplateItem{
+			Type: authTemplate.TemplateItemTypeUserVerificationSMSTXT,
+			Key:  loginIDKey,
+			URI:  template.DataURIWithContent(textTemplate),
+		},
+		config.TemplateItem{
+			Type: authTemplate.TemplateItemTypeUserVerificationEmailTXT,
+			Key:  loginIDKey,
+			URI:  template.DataURIWithContent(textTemplate),
+		},
+		config.TemplateItem{
+			Type: authTemplate.TemplateItemTypeUserVerificationEmailHTML,
+			Key:  loginIDKey,
+			URI:  template.DataURIWithContent(htmlTemplate),
+		},
+	}
 
 	authLoginIDKey, ok := d.Config.UserConfig.Auth.GetLoginIDKey(loginIDKey)
 	if !ok {

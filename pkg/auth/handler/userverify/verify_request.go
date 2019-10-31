@@ -218,7 +218,8 @@ type VerifyRequestTestPayload struct {
 	LoginID       string               `json:"login_id"`
 	User          model.User           `json:"user"`
 	MessageConfig config.MessageHeader `json:"message_config"`
-	Templates     map[string]string    `json:"templates"`
+	Text          string               `json:"text"`
+	HTML          string               `json:"html"`
 }
 
 const VerifyTestRequestSchema = `
@@ -250,10 +251,8 @@ const VerifyTestRequestSchema = `
 //        "email": "user@example.com"
 //      }
 //    },
-//    "templates": {
-//      "text": "testing",
-//      "html": "testing html"
-//    },
+//    "text": "testing",
+//    "html": "testing html",
 //    "message_config": {
 //      "subject": "Test"
 //    },
@@ -294,7 +293,8 @@ func (h VerifyRequestTestHandler) Handle(w http.ResponseWriter, r *http.Request)
 	sender := h.TestCodeSenderFactory.NewTestCodeSender(
 		payload.MessageConfig,
 		payload.LoginIDKey,
-		payload.Templates,
+		payload.Text,
+		payload.HTML,
 	)
 
 	user := payload.User
