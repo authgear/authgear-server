@@ -8,16 +8,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
-type FileLoader struct {
-	Enabled bool
-}
+type FileLoader struct{}
 
 func (l *FileLoader) Load(absolutePath string) (templateContent string, err error) {
-	if !l.Enabled {
-		err = &errNotFound{name: absolutePath}
-		return
-	}
-
 	f, err := os.Open(absolutePath)
 	if err != nil {
 		err = &errNotFound{name: absolutePath}
