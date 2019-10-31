@@ -112,7 +112,7 @@ docker-build-migrate:
 	$(MAKE) docker-build-image DOCKER_FILE=./migrate/cmd/migrate/Dockerfile IMAGE_NAME=$(MIGRATE_IMAGE_NAME) BUILD_CONTEXT=./migrate
 
 .PHONY: docker-build
-docker-build: docker-build-auth docker-build-gateway docker-build-migrate
+docker-build: docker-build-auth docker-build-gateway docker-build-migrate docker-build-asset
 
 .PHONY: docker-push
 docker-push:
