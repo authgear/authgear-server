@@ -2,8 +2,6 @@ package validation
 
 import (
 	"fmt"
-	"net/url"
-	"path/filepath"
 	"sort"
 	"strings"
 
@@ -12,30 +10,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
-
-func AddFormatChecker(name string, f gojsonschema.FormatChecker) {
-	gojsonschema.FormatCheckers.Add(name, f)
-}
-
-func init() {
-	AddFormatChecker("URLPathOnly", URL{
-		URLVariant: URLVariantPathOnly,
-	})
-	AddFormatChecker("URLFullOrPath", URL{
-		URLVariant: URLVariantFullOrPath,
-	})
-	AddFormatChecker("URLFullOnly", URL{
-		URLVariant: URLVariantFullOrPath,
-	})
-	AddFormatChecker("RelativeDirectoryPath", FilePath{
-		Relative: true,
-		File:     false,
-	})
-	AddFormatChecker("RelativeFilePath", FilePath{
-		Relative: true,
-		File:     true,
-	})
-}
 
 type Cause struct {
 	Message     string
@@ -108,99 +82,4 @@ func (e Error) Less(i, j int) bool {
 
 func (e Error) Swap(i, j int) {
 	e.Causes[i], e.Causes[j] = e.Causes[j], e.Causes[i]
-}
-
-type URLVariant int
-
-const (
-	URLVariantFullOnly URLVariant = iota
-	URLVariantPathOnly
-	URLVariantFullOrPath
-)
-
-type URL struct {
-	URLVariant URLVariant
-}
-
-// nolint: gocyclo
-func (f URL) IsFormat(input interface{}) bool {
-	str, ok := input.(string)
-	if !ok {
-		return false
-	}
-	if str == "" {
-		return false
-	}
-
-	u, err := url.Parse(str)
-	if err != nil {
-		return false
-	}
-	if u.RawQuery != "" || u.Fragment != "" {
-		return false
-	}
-
-	p := ""
-	switch f.URLVariant {
-	case URLVariantFullOnly:
-		if u.Scheme == "" || u.Host == "" {
-			return false
-		}
-		p = u.EscapedPath()
-		if p == "" {
-			p = "/"
-		}
-	case URLVariantPathOnly:
-		if u.Scheme != "" || u.User != nil || u.Host != "" {
-			return false
-		}
-		p = str
-	case URLVariantFullOrPath:
-		if u.Scheme != "" || u.User != nil || u.Host != "" {
-			p = u.EscapedPath()
-			if p == "" {
-				p = "/"
-			}
-		} else {
-			p = str
-		}
-	}
-
-	cleaned := filepath.Clean(p)
-	if !filepath.IsAbs(p) || cleaned != p {
-		return false
-	}
-
-	return true
-}
-
-type FilePath struct {
-	Relative bool
-	File     bool
-}
-
-func (f FilePath) IsFormat(input interface{}) bool {
-	str, ok := input.(string)
-	if !ok {
-		return false
-	}
-
-	if str == "" {
-		return false
-	}
-
-	abs := filepath.IsAbs(str)
-	if f.Relative && abs {
-		return false
-	}
-	if !f.Relative && !abs {
-		return false
-	}
-
-	trailingSlash := strings.HasSuffix(str, "/")
-	if f.File && trailingSlash {
-		return false
-	}
-
-	return true
 }
