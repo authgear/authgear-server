@@ -5,10 +5,15 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
-func NewEngineWithConfig(tConfig config.TenantConfiguration, enableFileSystemTemplate bool) *template.Engine {
+func NewEngineWithConfig(
+	tConfig config.TenantConfiguration,
+	enableFileSystemTemplate bool,
+	assetGearLoader *template.AssetGearLoader,
+) *template.Engine {
 	e := template.NewEngine(template.NewEngineOptions{
 		EnableFileLoader: enableFileSystemTemplate,
 		TemplateItems:    tConfig.TemplateItems,
+		AssetGearLoader:  assetGearLoader,
 	})
 
 	e.SetDefault(TemplateItemTypeForgotPasswordEmailTXT, DefaultForgotPasswordEmailTXT)

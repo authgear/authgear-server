@@ -9,20 +9,18 @@ import (
 var ErrUnknownURIScheme = errors.New("unknown URI scheme")
 
 type URILoader struct {
-	FileLoaderEnabled bool
-	FileLoader        *FileLoader
-	DataLoaderEnabled bool
-	DataLoader        *DataLoader
-	AssetGearLoader   *AssetGearLoader
+	EnableFileLoader bool
+	FileLoader       *FileLoader
+	EnableDataLoader bool
+	DataLoader       *DataLoader
+	AssetGearLoader  *AssetGearLoader
 }
 
-func NewURILoader(fileLoaderEnabled bool, dataLoaderEnabled bool) *URILoader {
+func NewURILoader(assetGearLoader *AssetGearLoader) *URILoader {
 	return &URILoader{
-		FileLoaderEnabled: fileLoaderEnabled,
-		FileLoader:        &FileLoader{},
-		DataLoaderEnabled: dataLoaderEnabled,
-		DataLoader:        &DataLoader{},
-		AssetGearLoader:   &AssetGearLoader{},
+		FileLoader:      &FileLoader{},
+		DataLoader:      &DataLoader{},
+		AssetGearLoader: assetGearLoader,
 	}
 }
 
@@ -40,20 +38,24 @@ func (l *URILoader) Load(uri string) (templateContent string, err error) {
 
 	switch u.Scheme {
 	case "file":
-		if !l.FileLoaderEnabled {
+		if !l.EnableFileLoader {
 			err = &errNotFound{name: u.Path}
 			return
 		}
 		templateContent, err = l.FileLoader.Load(u.Path)
 		return
 	case "data":
-		if !l.DataLoaderEnabled {
+		if !l.EnableDataLoader {
 			err = &errNotFound{name: uri}
 			return
 		}
 		templateContent, err = l.DataLoader.Load(uri)
 		return
 	case "asset-gear":
+		if l.AssetGearLoader == nil {
+			err = &errNotFound{name: uri}
+			return
+		}
 		templateContent, err = l.AssetGearLoader.Load(u)
 		return
 	default:

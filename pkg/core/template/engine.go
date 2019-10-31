@@ -16,6 +16,7 @@ type RenderOptions struct {
 type NewEngineOptions struct {
 	EnableFileLoader      bool
 	EnableDataLoader      bool
+	AssetGearLoader       *AssetGearLoader
 	TemplateItems         []config.TemplateItem
 	PreferredLanguageTags []string
 }
@@ -29,9 +30,12 @@ type Engine struct {
 }
 
 func NewEngine(opts NewEngineOptions) *Engine {
+	uriLoader := NewURILoader(opts.AssetGearLoader)
+	uriLoader.EnableFileLoader = opts.EnableFileLoader
+	uriLoader.EnableDataLoader = opts.EnableDataLoader
 	return &Engine{
 		DefaultLoader:         NewDefaultLoader(),
-		URILoader:             NewURILoader(opts.EnableFileLoader, opts.EnableDataLoader),
+		URILoader:             uriLoader,
 		TemplateItems:         opts.TemplateItems,
 		PreferredLanguageTags: opts.PreferredLanguageTags,
 	}

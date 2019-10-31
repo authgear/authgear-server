@@ -4,13 +4,44 @@ import (
 	"bytes"
 	htmlTemplate "html/template"
 	"io"
+	"io/ioutil"
+	"net/http"
 	textTemplate "text/template"
+	"unicode/utf8"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
-// TODO(template): Apply MaxTemplateSize on remote template.
 const MaxTemplateSize = 1024 * 1024 * 1
+
+// DownloadStringFromAssuminglyTrustedURL downloads the content of url.
+// url is assumed to be trusted.
+func DownloadStringFromAssuminglyTrustedURL(url string) (content string, err error) {
+	// nolint: gosec
+	resp, err := http.Get(url)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		err = errors.Newf("unexpected status code: %d", resp.StatusCode)
+		return
+	}
+
+	body, err := ioutil.ReadAll(io.LimitReader(resp.Body, MaxTemplateSize))
+	if err != nil {
+		return
+	}
+
+	if !utf8.Valid(body) {
+		err = errors.New("expected content to be UTF-8 encoded")
+		return
+	}
+
+	content = string(body)
+	return
+}
 
 func RenderTextTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
 	if templateString == "" {

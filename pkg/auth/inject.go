@@ -45,6 +45,7 @@ import (
 type DependencyMap struct {
 	EnableFileSystemTemplate bool
 	Validator                *validation.Validator
+	AssetGearLoader          *template.AssetGearLoader
 	AsyncTaskExecutor        *async.Executor
 	UseInsecureCookie        bool
 	DefaultConfiguration     config.DefaultConfiguration
@@ -112,7 +113,11 @@ func (m DependencyMap) Provide(
 	}
 
 	newTemplateEngine := func() *template.Engine {
-		return authTemplate.NewEngineWithConfig(tConfig, m.EnableFileSystemTemplate)
+		return authTemplate.NewEngineWithConfig(
+			tConfig,
+			m.EnableFileSystemTemplate,
+			m.AssetGearLoader,
+		)
 	}
 
 	newAuthInfoStore := func() authinfo.Store {

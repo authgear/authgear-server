@@ -27,6 +27,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -37,8 +38,14 @@ type configuration struct {
 	ValidHosts                        string                      `envconfig:"VALID_HOSTS"`
 	Redis                             redis.Configuration         `envconfig:"REDIS"`
 	UseInsecureCookie                 bool                        `envconfig:"INSECURE_COOKIE"`
-	EnableFileSystemTemplate          bool                        `envconfig:"FILE_SYSTEM_TEMPLATE"`
+	Template                          TemplateConfiguration       `envconfig:"TEMPLATE"`
 	Default                           config.DefaultConfiguration `envconfig:"DEFAULT"`
+}
+
+type TemplateConfiguration struct {
+	EnableFileLoader   bool   `envconfig:"ENABLE_FILE_LOADER"`
+	AssetGearEndpoint  string `envconfig:"ASSET_GEAR_ENDPOINT"`
+	AssetGearMasterKey string `envconfig:"ASSET_GEAR_MASTER_KEY"`
 }
 
 /*
@@ -134,8 +141,16 @@ func main() {
 		logger.Fatalf("fail to create redis pool: %v", err.Error())
 	}
 	asyncTaskExecutor := async.NewExecutor(dbPool)
+	var assetGearLoader *template.AssetGearLoader
+	if configuration.Template.AssetGearEndpoint != "" && configuration.Template.AssetGearMasterKey != "" {
+		assetGearLoader = &template.AssetGearLoader{
+			AssetGearEndpoint:  configuration.Template.AssetGearEndpoint,
+			AssetGearMasterKey: configuration.Template.AssetGearMasterKey,
+		}
+	}
 	authDependency := auth.DependencyMap{
-		EnableFileSystemTemplate: configuration.EnableFileSystemTemplate,
+		EnableFileSystemTemplate: configuration.Template.EnableFileLoader,
+		AssetGearLoader:          assetGearLoader,
 		AsyncTaskExecutor:        asyncTaskExecutor,
 		UseInsecureCookie:        configuration.UseInsecureCookie,
 		DefaultConfiguration:     configuration.Default,
