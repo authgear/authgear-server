@@ -10,7 +10,7 @@ import (
 
 // Engine resolves and renders templates.
 type Engine struct {
-	DefaultLoader         *StringLoader
+	DefaultLoader         *DefaultLoader
 	URILoader             *URILoader
 	TemplateItems         []config.TemplateItem
 	PreferredLanguageTags []string
@@ -28,7 +28,7 @@ func NewEngine(
 	tags []string,
 ) *Engine {
 	return &Engine{
-		DefaultLoader:         NewStringLoader(),
+		DefaultLoader:         NewDefaultLoader(),
 		URILoader:             NewURILoader(fileLoaderEnabled, dataLoaderEnabled),
 		TemplateItems:         templateItems,
 		PreferredLanguageTags: tags,
@@ -50,7 +50,7 @@ func (e *Engine) Clone() *Engine {
 }
 
 func (e *Engine) SetDefault(templateType config.TemplateItemType, template string) {
-	e.DefaultLoader.StringMap[string(templateType)] = template
+	e.DefaultLoader.Map[string(templateType)] = template
 }
 
 func (e *Engine) RenderTextTemplate(templateType config.TemplateItemType, context map[string]interface{}, option RenderOptions) (out string, err error) {
