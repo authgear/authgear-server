@@ -1,6 +1,8 @@
 package sso
 
 import (
+	"net/url"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -36,6 +38,7 @@ type respHandler struct {
 	HookProvider         hook.Provider
 	TaskQueue            async.Queue
 	WelcomeEmailEnabled  bool
+	URLPrefix            *url.URL
 }
 
 func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.LoginState) (resp interface{}, err error) {
@@ -94,8 +97,9 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 		oauthAuthInfo.ProviderUserInfo.Email != "" &&
 		h.TaskQueue != nil {
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
-			Email: oauthAuthInfo.ProviderUserInfo.Email,
-			User:  user,
+			URLPrefix: h.URLPrefix,
+			Email:     oauthAuthInfo.ProviderUserInfo.Email,
+			User:      user,
 		}, nil)
 	}
 

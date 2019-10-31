@@ -397,8 +397,9 @@ func (h SignupHandler) sendWelcomeEmail(user model.User, loginIDs []password.Log
 	for _, loginID := range destinationLoginIDs {
 		email := loginID.Value
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
-			Email: email,
-			User:  user,
+			URLPrefix: h.URLPrefix,
+			Email:     email,
+			User:      user,
 		}, nil)
 	}
 }

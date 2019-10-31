@@ -2,6 +2,7 @@ package sso
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/gorilla/mux"
 
@@ -115,6 +116,7 @@ type LoginHandler struct {
 	OAuthConfiguration   config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
 	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
 	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
+	URLPrefix            *url.URL                   `dependency:"URLPrefix"`
 	Provider             sso.OAuthProvider
 	ProviderID           string
 }
@@ -200,6 +202,7 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 		HookProvider:         h.HookProvider,
 		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
 		TaskQueue:            h.TaskQueue,
+		URLPrefix:            h.URLPrefix,
 	}
 	resp, err = handler.loginActionResp(oauthAuthInfo, loginState)
 

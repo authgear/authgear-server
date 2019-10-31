@@ -2,6 +2,7 @@ package sso
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
@@ -143,6 +144,7 @@ type CustomTokenLoginHandler struct {
 	WelcomeEmailEnabled      bool                            `dependency:"WelcomeEmailEnabled"`
 	AuditTrail               audit.Trail                     `dependency:"AuditTrail"`
 	TaskQueue                async.Queue                     `dependency:"AsyncTaskQueue"`
+	URLPrefix                *url.URL                        `dependency:"URLPrefix"`
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -412,8 +414,9 @@ func (h CustomTokenLoginHandler) findExistingCustomTokenPrincipal(subject string
 func (h CustomTokenLoginHandler) sendWelcomeEmail(user model.User, email string) {
 	if email != "" {
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
-			Email: email,
-			User:  user,
+			URLPrefix: h.URLPrefix,
+			Email:     email,
+			User:      user,
 		}, nil)
 	}
 }
