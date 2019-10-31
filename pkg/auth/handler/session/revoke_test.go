@@ -1,6 +1,9 @@
 package session
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,11 +20,18 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func TestRevokeHandler(t *testing.T) {
 	Convey("Test RevokeHandler", t, func() {
 		h := &RevokeHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			RevokeRequestSchema,
+		)
+		h.Validator = validator
 		h.TxContext = db.NewMockTxContext()
 		authContext := authtest.NewMockContext().
 			UseUser("user-id-1", "principal-id-1")
@@ -81,7 +91,7 @@ func TestRevokeHandler(t *testing.T) {
 			payload := RevokeRequestPayload{SessionID: "user-id-1-principal-id-2"}
 			resp, err := h.Handle(payload)
 			So(err, ShouldBeNil)
-			So(resp, ShouldResemble, map[string]string{})
+			So(resp, ShouldResemble, struct{}{})
 
 			So(sessionProvider.Sessions, ShouldContainKey, "user-id-1-principal-id-1")
 			So(sessionProvider.Sessions, ShouldNotContainKey, "user-id-1-principal-id-2")
@@ -118,9 +128,29 @@ func TestRevokeHandler(t *testing.T) {
 		})
 
 		Convey("should reject current session", func() {
-			payload := RevokeRequestPayload{SessionID: "user-id-1-principal-id-1"}
-			_, err := h.Handle(payload)
-			So(err, ShouldBeError, "must not revoke current session")
+			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"session_id": "user-id-1-principal-id-1"
+			}`))
+			r.Header.Set("Content-Type", "application/json")
+			r = auth.InitRequestAuthContext(r)
+			authContext.CopyTo(auth.NewContextSetterWithContext(r.Context()))
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, r)
+
+			So(w.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "General", "message": "session_id must not be current session", "pointer": "/session_id" }
+						]
+					}
+				}
+			}`)
+
 			So(sessionProvider.Sessions, ShouldContainKey, "user-id-1-principal-id-1")
 			So(sessionProvider.Sessions, ShouldContainKey, "user-id-1-principal-id-2")
 			So(sessionProvider.Sessions, ShouldContainKey, "user-id-2-principal-id-3")

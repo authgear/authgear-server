@@ -78,9 +78,9 @@ func TestRevokeAllHandler(t *testing.T) {
 		authContext.UseSession(&sess)
 
 		Convey("should revoke all sessions except current session", func() {
-			resp, err := h.Handle(nil)
+			resp, err := h.Handle()
 			So(err, ShouldBeNil)
-			So(resp, ShouldResemble, map[string]string{})
+			So(resp, ShouldResemble, struct{}{})
 
 			So(sessionProvider.Sessions, ShouldContainKey, "user-id-1-principal-id-1")
 			So(sessionProvider.Sessions, ShouldNotContainKey, "user-id-1-principal-id-2")

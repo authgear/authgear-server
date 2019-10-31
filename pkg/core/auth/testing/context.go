@@ -85,3 +85,8 @@ func (m *MockContext) MarkVerified() *MockContext {
 	m.authInfo.Verified = true
 	return m
 }
+
+func (m *MockContext) CopyTo(setter auth.ContextSetter) {
+	setter.SetAccessKey(m.accessKey)
+	setter.SetSessionAndAuthInfo(m.session, m.authInfo, m.err)
+}

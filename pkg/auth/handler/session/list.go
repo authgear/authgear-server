@@ -33,7 +33,7 @@ type ListHandlerFactory struct {
 func (f ListHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ListHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type ListResponse struct {
@@ -85,30 +85,39 @@ func (h ListHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h ListHandler) WithTx() bool {
-	return true
+func (h ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	var payload struct{}
+	if err := handler.DecodeJSONBody(r, w, &payload); err != nil {
+		response.Error = err
+	} else {
+		result, err := h.Handle()
+		if err != nil {
+			response.Error = err
+		} else {
+			response.Result = result
+		}
+	}
+	handler.WriteResponse(w, response)
 }
 
-func (h ListHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := handler.EmptyRequestPayload{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
+func (h ListHandler) Handle() (resp interface{}, err error) {
+	err = db.WithTx(h.TxContext, func() error {
+		authInfo, _ := h.AuthContext.AuthInfo()
+		userID := authInfo.ID
 
-func (h ListHandler) Handle(req interface{}) (resp interface{}, err error) {
-	authInfo, _ := h.AuthContext.AuthInfo()
-	userID := authInfo.ID
+		sessions, err := h.SessionProvider.List(userID)
+		if err != nil {
+			return err
+		}
 
-	sessions, err := h.SessionProvider.List(userID)
-	if err != nil {
-		return
-	}
+		sessionModels := make([]model.Session, len(sessions))
+		for i, session := range sessions {
+			sessionModels[i] = authSession.Format(session)
+		}
 
-	sessionModels := make([]model.Session, len(sessions))
-	for i, session := range sessions {
-		sessionModels[i] = authSession.Format(session)
-	}
-
-	resp = ListResponse{Sessions: sessionModels}
+		resp = ListResponse{Sessions: sessionModels}
+		return nil
+	})
 	return
 }

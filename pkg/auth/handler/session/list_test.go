@@ -52,7 +52,7 @@ func TestListHandler(t *testing.T) {
 		authContext.UseSession(&sess)
 
 		Convey("should list sessions", func() {
-			resp, err := h.Handle(nil)
+			resp, err := h.Handle()
 			So(err, ShouldBeNil)
 			So(resp, ShouldResemble, ListResponse{
 				Sessions: []model.Session{
