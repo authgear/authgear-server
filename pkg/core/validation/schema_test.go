@@ -83,7 +83,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 				`,
 				`#: asset is required
 #/auth: authentication_session is required
-#/auth/login_id_keys/type: auth.login_id_keys.type must be one of the following: "raw", "email", "phone"
+#/auth/login_id_keys/invalid/type: auth.login_id_keys.invalid.type must be one of the following: "raw", "email", "phone"
 #/hook: secret is required
 `,
 			},
@@ -152,9 +152,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 	}
 }
 				`,
-				`#/clients: api_key is required
-#/clients: name is required
-#/clients: session_transport is required
+				`#/clients/web-app: api_key is required
+#/clients/web-app: name is required
+#/clients/web-app: session_transport is required
 `,
 			},
 			// CORS
@@ -243,14 +243,14 @@ func TestValidateUserConfiguration(t *testing.T) {
 	}
 }
 				`,
-				`#/mfa/bearer_token/expire_in_days: Must be greater than or equal to 1/1
+				`#/mfa/bearer_token/expire_in_days: Must be greater than or equal to 1
 #/mfa/enforcement: mfa.enforcement must be one of the following: "off", "optional", "required"
-#/mfa/maximum: Must be less than or equal to 15/1
-#/mfa/oob/email/maximum: Must be less than or equal to 5/1
-#/mfa/oob/sms/maximum: Must be less than or equal to 5/1
-#/mfa/recovery_code/count: Must be less than or equal to 24/1
+#/mfa/maximum: Must be less than or equal to 15
+#/mfa/oob/email/maximum: Must be less than or equal to 5
+#/mfa/oob/sms/maximum: Must be less than or equal to 5
+#/mfa/recovery_code/count: Must be less than or equal to 24
 #/mfa/recovery_code/list_enabled: Invalid type. Expected: boolean, given: integer
-#/mfa/totp/maximum: Must be less than or equal to 5/1
+#/mfa/totp/maximum: Must be less than or equal to 5
 `,
 			},
 			// User Audit
@@ -290,11 +290,11 @@ func TestValidateUserConfiguration(t *testing.T) {
 	}
 }
 				`,
-				`#/password_policy/expiry_days: Must be greater than or equal to 0/1
-#/password_policy/history_days: Must be greater than or equal to 0/1
-#/password_policy/history_size: Must be greater than or equal to 0/1
-#/password_policy/min_length: Must be greater than or equal to 0/1
-#/password_policy/minimum_guessable_level: Must be less than or equal to 4/1
+				`#/password_policy/expiry_days: Must be greater than or equal to 0
+#/password_policy/history_days: Must be greater than or equal to 0
+#/password_policy/history_size: Must be greater than or equal to 0
+#/password_policy/min_length: Must be greater than or equal to 0
+#/password_policy/minimum_guessable_level: Must be less than or equal to 4
 `,
 			},
 			// WelcomeEmailConfiguration
@@ -468,7 +468,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 }
 				`,
 				`#/user_verification/criteria: user_verification.criteria must be one of the following: "any", "all"
-#/user_verification/login_id_keys/code_format: user_verification.login_id_keys.code_format must be one of the following: "numeric", "complex"
+#/user_verification/login_id_keys/email/code_format: user_verification.login_id_keys.email.code_format must be one of the following: "numeric", "complex"
 `,
 			},
 			// SMTP config

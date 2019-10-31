@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/louischan-oursky/gojsonschema"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 // Validator is a collection of schemas.

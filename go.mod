@@ -31,7 +31,6 @@ require (
 	github.com/kelseyhightower/envconfig v1.3.0
 	github.com/lestrrat-go/jwx v0.9.0
 	github.com/lib/pq v0.0.0-20171113044440-8c6ee72f3e6b
-	github.com/louischan-oursky/gojsonschema v1.1.1-0.20190618084317-891d0e852428
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/mitchellh/gox v1.0.1
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
@@ -51,7 +50,7 @@ require (
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190809123943-df4f5c81cb3b // indirect
-	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
+	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	golang.org/x/tools v0.0.0-20190917162342-3b4f30a44f3b
 	google.golang.org/api v0.9.0
@@ -65,3 +64,5 @@ require (
 // The reason why we have to use a fork is to support background color in the embed() operation.
 // See https://github.com/SkygearIO/govips/commit/b7b5b9596467e8b6b5f11f2178c754df83e9a35c
 replace github.com/davidbyttow/govips => github.com/skygeario/govips v0.0.0-20191017114550-b7b5b9596467
+
+replace github.com/xeipuuv/gojsonschema => github.com/skygeario/gojsonschema v1.2.1-0.20191031025230-d708aabc60f3

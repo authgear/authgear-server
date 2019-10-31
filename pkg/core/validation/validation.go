@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/louischan-oursky/gojsonschema"
+	"github.com/xeipuuv/gojsonschema"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
