@@ -6,9 +6,14 @@ import (
 )
 
 func NewEngineWithConfig(tConfig config.TenantConfiguration) *template.Engine {
-	// TODO(template): enable file loader only for standalone mode.
-	// TODO(template): support preferred languages.
-	e := template.NewEngine(false, tConfig.TemplateItems, nil)
+	e := template.NewEngine(
+		// TODO(template): enable file loader only for standalone mode.
+		false,
+		false,
+		tConfig.TemplateItems,
+		// TODO(template): support preferred languages.
+		nil,
+	)
 
 	e.SetDefault(TemplateItemTypeForgotPasswordEmailTXT, DefaultForgotPasswordEmailTXT)
 	e.SetDefault(TemplateItemTypeForgotPasswordResetHTML, DefaultForgotPasswordResetHTML)

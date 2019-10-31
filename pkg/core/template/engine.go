@@ -21,10 +21,15 @@ type RenderOptions struct {
 	Key      string
 }
 
-func NewEngine(enabledFileLoader bool, templateItems []config.TemplateItem, tags []string) *Engine {
+func NewEngine(
+	fileLoaderEnabled bool,
+	dataLoaderEnabled bool,
+	templateItems []config.TemplateItem,
+	tags []string,
+) *Engine {
 	return &Engine{
 		DefaultLoader:         NewStringLoader(),
-		URILoader:             NewURILoader(enabledFileLoader),
+		URILoader:             NewURILoader(fileLoaderEnabled, dataLoaderEnabled),
 		TemplateItems:         templateItems,
 		PreferredLanguageTags: tags,
 	}
