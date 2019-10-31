@@ -8,6 +8,18 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
+type RenderOptions struct {
+	Required bool
+	Key      string
+}
+
+type NewEngineOptions struct {
+	EnableFileLoader      bool
+	EnableDataLoader      bool
+	TemplateItems         []config.TemplateItem
+	PreferredLanguageTags []string
+}
+
 // Engine resolves and renders templates.
 type Engine struct {
 	DefaultLoader         *DefaultLoader
@@ -16,22 +28,12 @@ type Engine struct {
 	PreferredLanguageTags []string
 }
 
-type RenderOptions struct {
-	Required bool
-	Key      string
-}
-
-func NewEngine(
-	fileLoaderEnabled bool,
-	dataLoaderEnabled bool,
-	templateItems []config.TemplateItem,
-	tags []string,
-) *Engine {
+func NewEngine(opts NewEngineOptions) *Engine {
 	return &Engine{
 		DefaultLoader:         NewDefaultLoader(),
-		URILoader:             NewURILoader(fileLoaderEnabled, dataLoaderEnabled),
-		TemplateItems:         templateItems,
-		PreferredLanguageTags: tags,
+		URILoader:             NewURILoader(opts.EnableFileLoader, opts.EnableDataLoader),
+		TemplateItems:         opts.TemplateItems,
+		PreferredLanguageTags: opts.PreferredLanguageTags,
 	}
 }
 

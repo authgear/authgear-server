@@ -6,13 +6,10 @@ import (
 )
 
 func NewEngineWithConfig(tConfig config.TenantConfiguration, enableFileSystemTemplate bool) *template.Engine {
-	e := template.NewEngine(
-		enableFileSystemTemplate,
-		false,
-		tConfig.TemplateItems,
-		// TODO(template): support preferred languages.
-		nil,
-	)
+	e := template.NewEngine(template.NewEngineOptions{
+		EnableFileLoader: enableFileSystemTemplate,
+		TemplateItems:    tConfig.TemplateItems,
+	})
 
 	e.SetDefault(TemplateItemTypeForgotPasswordEmailTXT, DefaultForgotPasswordEmailTXT)
 	e.SetDefault(TemplateItemTypeForgotPasswordResetHTML, DefaultForgotPasswordResetHTML)
