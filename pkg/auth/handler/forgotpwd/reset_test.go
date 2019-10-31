@@ -26,8 +26,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -44,6 +44,11 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		mockTaskQueue := async.NewMockQueue()
 
 		fh := &ForgotPasswordResetHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			ForgotPasswordResetRequestSchema,
+		)
+		fh.Validator = validator
 		logger, _ := test.NewNullLogger()
 		fh.Logger = logrus.NewEntry(logger)
 		fh.AuditTrail = audit.NewMockTrail(t)
@@ -96,8 +101,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(fh, fh.TxContext)
-			h.ServeHTTP(resp, req)
+			fh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"name": "Invalid",
@@ -121,8 +125,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(fh, fh.TxContext)
-			h.ServeHTTP(resp, req)
+			fh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"name": "Invalid",
@@ -146,8 +149,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(fh, fh.TxContext)
-			h.ServeHTTP(resp, req)
+			fh.ServeHTTP(resp, req)
 			var respBody map[string]interface{}
 			err := json.Unmarshal(resp.Body.Bytes(), &respBody)
 			So(err, ShouldBeNil)

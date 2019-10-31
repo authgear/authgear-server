@@ -19,7 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 // AttachForgotPasswordHandler attaches ForgotPasswordHandler to server
@@ -45,7 +45,7 @@ type ForgotPasswordHandlerFactory struct {
 func (f ForgotPasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ForgotPasswordHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type ForgotPasswordPayload struct {
@@ -59,19 +59,10 @@ const ForgotPasswordRequestSchema = `
 	"$id": "#ForgotPasswordRequest",
 	"type": "object",
 	"properties": {
-		"email": { "type": "string" }
+		"email": { "type": "string", "format": "email" }
 	}
 }
 `
-
-func (payload ForgotPasswordPayload) Validate() error {
-	// TODO(error): JSON schema
-	if payload.Email == "" {
-		return skyerr.NewInvalid("empty email")
-	}
-
-	return nil
-}
 
 /*
 	@Operation POST /forgot_password - Request password recovery
@@ -85,6 +76,7 @@ func (payload ForgotPasswordPayload) Validate() error {
 		@Response 200 {EmptyResponse}
 */
 type ForgotPasswordHandler struct {
+	Validator                 *validation.Validator      `dependency:"Validator"`
 	TxContext                 db.TxContext               `dependency:"TxContext"`
 	RequireAuthz              handler.RequireAuthz       `dependency:"RequireAuthz"`
 	ForgotPasswordEmailSender forgotpwdemail.Sender      `dependency:"ForgotPasswordEmailSender"`
@@ -100,71 +92,75 @@ func (h ForgotPasswordHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
-func (h ForgotPasswordHandler) WithTx() bool {
-	return true
+func (h ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
+	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
 }
 
-// DecodeRequest decode request payload
-func (h ForgotPasswordHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := ForgotPasswordPayload{}
-	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
+func (h ForgotPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload ForgotPasswordPayload
+	if err := handler.BindJSONBody(r, w, h.Validator, "#ForgotPasswordRequest", &payload); err != nil {
 		return nil, err
 	}
 
-	return payload, nil
-}
+	err = db.WithTx(h.TxContext, func() (err error) {
+		principals, err := h.PasswordAuthProvider.GetPrincipalsByLoginID("", payload.Email)
+		if err != nil {
+			return
+		}
 
-func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(ForgotPasswordPayload)
+		principalMap := map[string]*password.Principal{}
+		for _, principal := range principals {
+			if h.PasswordAuthProvider.CheckLoginIDKeyType(principal.LoginIDKey, metadata.Email) {
+				principalMap[principal.UserID] = principal
+			}
+		}
 
-	principals, err := h.PasswordAuthProvider.GetPrincipalsByLoginID("", payload.Email)
-	if err != nil {
+		if len(principalMap) == 0 {
+			if h.SecureMatch {
+				resp = map[string]string{}
+			} else {
+				err = authinfo.ErrNotFound
+			}
+			return
+		}
+
+		for userID, principal := range principalMap {
+			hashedPassword := principal.HashedPassword
+
+			fetchedAuthInfo := authinfo.AuthInfo{}
+			if err = h.AuthInfoStore.GetAuth(userID, &fetchedAuthInfo); err != nil {
+				return
+			}
+
+			// Get Profile
+			var userProfile userprofile.UserProfile
+			if userProfile, err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID); err != nil {
+				return
+			}
+
+			user := model.NewUser(fetchedAuthInfo, userProfile)
+
+			if err = h.ForgotPasswordEmailSender.Send(
+				payload.Email,
+				fetchedAuthInfo,
+				user,
+				hashedPassword,
+			); err != nil {
+				return
+			}
+		}
+
 		return
-	}
+	})
 
-	principalMap := map[string]*password.Principal{}
-	for _, principal := range principals {
-		if h.PasswordAuthProvider.CheckLoginIDKeyType(principal.LoginIDKey, metadata.Email) {
-			principalMap[principal.UserID] = principal
-		}
-	}
-
-	if len(principalMap) == 0 {
-		if h.SecureMatch {
-			resp = map[string]string{}
-		} else {
-			err = authinfo.ErrNotFound
-		}
-		return
-	}
-
-	for userID, principal := range principalMap {
-		hashedPassword := principal.HashedPassword
-
-		fetchedAuthInfo := authinfo.AuthInfo{}
-		if err = h.AuthInfoStore.GetAuth(userID, &fetchedAuthInfo); err != nil {
-			return
-		}
-
-		// Get Profile
-		var userProfile userprofile.UserProfile
-		if userProfile, err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID); err != nil {
-			return
-		}
-
-		user := model.NewUser(fetchedAuthInfo, userProfile)
-
-		if err = h.ForgotPasswordEmailSender.Send(
-			payload.Email,
-			fetchedAuthInfo,
-			user,
-			hashedPassword,
-		); err != nil {
-			return
-		}
-	}
-
-	resp = map[string]string{}
+	resp = struct{}{}
 	return
 }
 
@@ -177,7 +173,7 @@ type ForgotPasswordTestHandlerFactory struct {
 func (f ForgotPasswordTestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ForgotPasswordTestHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, nil), h)
+	return h.RequireAuthz(h, h)
 }
 
 type ForgotPasswordTestPayload struct {
@@ -189,14 +185,21 @@ type ForgotPasswordTestPayload struct {
 	ReplyTo      string `json:"reply_to"`
 }
 
-func (payload ForgotPasswordTestPayload) Validate() error {
-	// TODO(error): JSON schema
-	if payload.Email == "" {
-		return skyerr.NewInvalid("empty email")
+// nolint: gosec
+const ForgotPasswordTestRequestSchema = `
+{
+	"$id": "#ForgotPasswordTestRequest",
+	"type": "object",
+	"properties": {
+		"email": { "type": "string", "format": "email" },
+		"text_template": { "type": "string", "minLength": 1 },
+		"html_template": { "type": "string", "minLength": 1 },
+		"subject": { "type": "string", "minLength": 1 },
+		"sender": { "type": "string", "minLength": 1 },
+		"reply_to": { "type": "string", "minLength": 1 }
 	}
-
-	return nil
 }
+`
 
 // ForgotPasswordTestHandler send a dummy reset password email to given email.
 //
@@ -212,8 +215,9 @@ func (payload ForgotPasswordTestPayload) Validate() error {
 //  }
 //  EOF
 type ForgotPasswordTestHandler struct {
-	RequireAuthz              handler.RequireAuthz `dependency:"RequireAuthz"`
-	ForgotPasswordEmailSender welcemail.TestSender `dependency:"TestForgotPasswordEmailSender"`
+	RequireAuthz              handler.RequireAuthz  `dependency:"RequireAuthz"`
+	Validator                 *validation.Validator `dependency:"Validator"`
+	ForgotPasswordEmailSender welcemail.TestSender  `dependency:"TestForgotPasswordEmailSender"`
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -223,22 +227,23 @@ func (h ForgotPasswordTestHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h ForgotPasswordTestHandler) WithTx() bool {
-	return false
+func (h ForgotPasswordTestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
+	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
 }
 
-// DecodeRequest decode request payload
-func (h ForgotPasswordTestHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := ForgotPasswordTestPayload{}
-	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
+func (h ForgotPasswordTestHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload ForgotPasswordTestPayload
+	if err := handler.BindJSONBody(r, w, h.Validator, "#ForgotPasswordTestRequest", &payload); err != nil {
 		return nil, err
 	}
 
-	return payload, nil
-}
-
-func (h ForgotPasswordTestHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(ForgotPasswordTestPayload)
 	if err = h.ForgotPasswordEmailSender.Send(
 		payload.Email,
 		payload.TextTemplate,

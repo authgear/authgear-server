@@ -4,9 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/auth/task"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -16,6 +13,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -25,7 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 // AttachForgotPasswordResetHandler attaches ForgotPasswordResetHandler to server
@@ -52,7 +51,7 @@ func (f ForgotPasswordResetHandlerFactory) NewHandler(request *http.Request) htt
 	h := &ForgotPasswordResetHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type ForgotPasswordResetPayload struct {
@@ -70,33 +69,16 @@ const ForgotPasswordResetRequestSchema = `
 	"$id": "#ForgotPasswordResetRequest",
 	"type": "object",
 	"properties": {
-		"user_id": { "type": "string" },
-		"code": { "type": "string" },
-		"expire_at": { "type": "string" },
-		"new_password": { "type": "string" }
+		"user_id": { "type": "string", "minLength": 1 },
+		"code": { "type": "string", "minLength": 1 },
+		"expire_at": { "type": "integer", "minimum": 1 },
+		"new_password": { "type": "string", "minLength": 1 }
 	}
 }
 `
 
-func (payload ForgotPasswordResetPayload) Validate() error {
-	// TODO(error): JSON schema
-	if payload.UserID == "" {
-		return skyerr.NewInvalid("empty user_id")
-	}
-
-	if payload.Code == "" {
-		return skyerr.NewInvalid("empty code")
-	}
-
-	if payload.ExpireAt == 0 {
-		return skyerr.NewInvalid("empty expire_at")
-	}
-
-	if payload.NewPassword == "" {
-		return skyerr.NewInvalid("empty password")
-	}
-
-	return nil
+func (p *ForgotPasswordResetPayload) SetDefaultValue() {
+	p.ExpireAtTime = time.Unix(p.ExpireAt, 0).UTC()
 }
 
 /*
@@ -115,6 +97,7 @@ func (payload ForgotPasswordResetPayload) Validate() error {
 */
 type ForgotPasswordResetHandler struct {
 	RequireAuthz         handler.RequireAuthz          `dependency:"RequireAuthz"`
+	Validator            *validation.Validator         `dependency:"Validator"`
 	CodeGenerator        *forgotpwdemail.CodeGenerator `dependency:"ForgotPasswordCodeGenerator"`
 	PasswordChecker      *authAudit.PasswordChecker    `dependency:"PasswordChecker"`
 	AuthInfoStore        authinfo.Store                `dependency:"AuthInfoStore"`
@@ -132,78 +115,79 @@ func (h ForgotPasswordResetHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
-func (h ForgotPasswordResetHandler) WithTx() bool {
-	return true
+func (h ForgotPasswordResetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
+	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
 }
 
-// DecodeRequest decode request payload
-func (h ForgotPasswordResetHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := ForgotPasswordResetPayload{}
-	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
+func (h ForgotPasswordResetHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload ForgotPasswordResetPayload
+	if err := handler.BindJSONBody(r, w, h.Validator, "#ForgotPasswordResetRequest", &payload); err != nil {
 		return nil, err
 	}
 
-	payload.ExpireAtTime = time.Unix(payload.ExpireAt, 0).UTC()
+	err = hook.WithTx(h.HookProvider, h.TxContext, func() (err error) {
+		err = passwordReseter{
+			CodeGenerator:        h.CodeGenerator,
+			PasswordChecker:      h.PasswordChecker,
+			AuthInfoStore:        h.AuthInfoStore,
+			PasswordAuthProvider: h.PasswordAuthProvider,
+		}.resetPassword(
+			payload.UserID,
+			payload.ExpireAtTime,
+			payload.Code,
+			payload.NewPassword,
+		)
+		if err != nil {
+			return
+		}
 
-	return payload, nil
-}
+		var authInfo authinfo.AuthInfo
+		err = h.AuthInfoStore.GetAuth(payload.UserID, &authInfo)
+		if err != nil {
+			return
+		}
 
-func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(ForgotPasswordResetPayload)
+		userProfile, err := h.UserProfileStore.GetUserProfile(payload.UserID)
+		if err != nil {
+			return
+		}
 
-	err = passwordReseter{
-		CodeGenerator:        h.CodeGenerator,
-		PasswordChecker:      h.PasswordChecker,
-		AuthInfoStore:        h.AuthInfoStore,
-		PasswordAuthProvider: h.PasswordAuthProvider,
-	}.resetPassword(
-		payload.UserID,
-		payload.ExpireAtTime,
-		payload.Code,
-		payload.NewPassword,
-	)
-	if err != nil {
+		user := model.NewUser(authInfo, userProfile)
+
+		err = h.HookProvider.DispatchEvent(
+			event.PasswordUpdateEvent{
+				Reason: event.PasswordUpdateReasonResetPassword,
+				User:   user,
+			},
+			&user,
+		)
+		if err != nil {
+			return
+		}
+
+		h.AuditTrail.Log(audit.Entry{
+			UserID: user.ID,
+			Event:  audit.EventResetPassword,
+			Data: map[string]interface{}{
+				"type": "forgot_password",
+			},
+		})
+
+		// password house keeper
+		h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
+			AuthID: user.ID,
+		}, nil)
+
 		return
-	}
-
-	var authInfo authinfo.AuthInfo
-	err = h.AuthInfoStore.GetAuth(payload.UserID, &authInfo)
-	if err != nil {
-		return
-	}
-
-	userProfile, err := h.UserProfileStore.GetUserProfile(payload.UserID)
-	if err != nil {
-		return
-	}
-
-	user := model.NewUser(authInfo, userProfile)
-
-	err = h.HookProvider.DispatchEvent(
-		event.PasswordUpdateEvent{
-			Reason: event.PasswordUpdateReasonResetPassword,
-			User:   user,
-		},
-		&user,
-	)
-	if err != nil {
-		return
-	}
-
-	h.AuditTrail.Log(audit.Entry{
-		UserID: user.ID,
-		Event:  audit.EventResetPassword,
-		Data: map[string]interface{}{
-			"type": "forgot_password",
-		},
 	})
 
-	// password house keeper
-	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
-		AuthID: user.ID,
-	}, nil)
-
-	resp = map[string]string{}
-
+	resp = struct{}{}
 	return
 }

@@ -6,20 +6,18 @@ import (
 	"strings"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func TestForgotPasswordHandler(t *testing.T) {
@@ -29,6 +27,11 @@ func TestForgotPasswordHandler(t *testing.T) {
 
 	Convey("Test ForgotPasswordHandler", t, func() {
 		fh := &ForgotPasswordHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			ForgotPasswordRequestSchema,
+		)
+		fh.Validator = validator
 		fh.TxContext = db.NewMockTxContext()
 		fh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
 			map[string]config.LoginIDKeyConfiguration{
@@ -104,8 +107,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(fh, fh.TxContext)
-			h.ServeHTTP(resp, req)
+			fh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {}
 			}`)
@@ -125,8 +127,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(fh, fh.TxContext)
-			h.ServeHTTP(resp, req)
+			fh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {}
 			}`)
@@ -149,14 +150,23 @@ func TestForgotPasswordHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(fh, fh.TxContext)
-			h.ServeHTTP(resp, req)
+			fh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"name": "Invalid",
-					"reason": "Invalid",
-					"message": "empty email",
-					"code": 400
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{
+								"kind": "StringFormat",
+								"pointer": "/email",
+								"message": "Does not match format 'email'",
+								"details": { "format": "email" }
+							}
+						]
+					}
 				}
 			}`)
 		})
@@ -167,26 +177,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(fh, fh.TxContext)
-			h.ServeHTTP(resp, req)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"error": {
-					"name": "NotFound",
-					"reason": "UserNotFound",
-					"message": "user not found",
-					"code": 404
-				}
-			}`)
-		})
-
-		Convey("throw error for not supported key type", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"email": "+85299999999"
-			}`))
-			req.Header.Set("Content-Type", "application/json")
-			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(fh, fh.TxContext)
-			h.ServeHTTP(resp, req)
+			fh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"name": "NotFound",
