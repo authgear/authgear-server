@@ -126,7 +126,6 @@ func main() {
 		ssohandler.CustomTokenLoginRequestSchema,
 
 		userverifyhandler.VerifyCodeRequestSchema,
-		userverifyhandler.VerifyTestRequestSchema,
 		userverifyhandler.VerifyRequestSchema,
 		userverifyhandler.VerifyCodeFormSchema,
 	)

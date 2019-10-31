@@ -3,11 +3,9 @@ package userverify
 import (
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 
 	"github.com/sirupsen/logrus"
@@ -32,9 +30,6 @@ func AttachVerifyRequestHandler(
 	authDependency auth.DependencyMap,
 ) *server.Server {
 	server.Handle("/verify_request", &VerifyRequestHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST")
-	server.Handle("/verify_request/test", &VerifyRequestTestHandlerFactory{
 		authDependency,
 	}).Methods("OPTIONS", "POST")
 	return server
@@ -198,124 +193,5 @@ func (h VerifyRequestHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 		resp = struct{}{}
 		return
 	})
-	return
-}
-
-// VerifyRequestTestHandlerFactory creates VerifyRequestTestHandler
-type VerifyRequestTestHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-// NewHandler creates new VerifyRequestTestHandler
-func (f VerifyRequestTestHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &VerifyRequestTestHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
-}
-
-type VerifyRequestTestPayload struct {
-	LoginIDKey    string               `json:"login_id_key"`
-	LoginID       string               `json:"login_id"`
-	User          model.User           `json:"user"`
-	MessageConfig config.MessageHeader `json:"message_config"`
-	Text          string               `json:"text"`
-	HTML          string               `json:"html"`
-}
-
-const VerifyTestRequestSchema = `
-{
-	"$id": "#VerifyTestRequest",
-	"type": "object",
-	"properties": {
-		"login_id_key": { "type": "string", "minLength": 1 },
-		"login_id": { "type": "string", "minLength": 1 },
-		"user": { "type": "object" },
-		"html_template": { "type": "string", "minLength": 1 },
-		"message_config": { "type": "object" },
-		"templates": { "type": "object" }
-	},
-	"required": ["login_id_key", "login_id", "user", "html_template", "message_config", "templates"]
-}
-`
-
-// VerifyRequestTestHandler sends a dummy verification request (i.e. email or SMS).
-//
-//  curl -X POST -H "Content-Type: application/json" \
-//    -d @- http://localhost:3000/verify_request/test <<EOF
-//  {
-//    "login_id_key": "email",
-//    "login_id": "user@example.com",
-//    "user":  {
-//      "user_id": "5bf1e4d2-e1c4-4517-93c7-7dae89261da6",
-//      "metadata": {
-//        "email": "user@example.com"
-//      }
-//    },
-//    "text": "testing",
-//    "html": "testing html",
-//    "message_config": {
-//      "subject": "Test"
-//    },
-//  }
-//  EOF
-//
-type VerifyRequestTestHandler struct {
-	RequireAuthz          handler.RequireAuthz             `dependency:"RequireAuthz"`
-	Validator             *validation.Validator            `dependency:"Validator"`
-	TestCodeSenderFactory userverify.TestCodeSenderFactory `dependency:"UserVerifyTestCodeSenderFactory"`
-	Logger                *logrus.Entry                    `dependency:"HandlerLogger"`
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (h VerifyRequestTestHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireMasterKey),
-	)
-}
-
-func (h VerifyRequestTestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var response handler.APIResponse
-	result, err := h.Handle(w, r)
-	if err != nil {
-		response.Error = err
-	} else {
-		response.Result = result
-	}
-	handler.WriteResponse(w, response)
-}
-
-func (h VerifyRequestTestHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
-	var payload VerifyRequestTestPayload
-	if err := handler.BindJSONBody(r, w, h.Validator, "#VerifyTestRequest", &payload); err != nil {
-		return nil, err
-	}
-
-	sender := h.TestCodeSenderFactory.NewTestCodeSender(
-		payload.MessageConfig,
-		payload.LoginIDKey,
-		payload.Text,
-		payload.HTML,
-	)
-
-	user := payload.User
-	if user.ID == "" {
-		user.ID = "test-user-id"
-	}
-
-	verifyCode := userverify.NewVerifyCode()
-	verifyCode.UserID = user.ID
-	verifyCode.LoginIDKey = payload.LoginIDKey
-	verifyCode.LoginID = payload.LoginID
-	verifyCode.Code = "TEST1234"
-	verifyCode.Consumed = false
-	verifyCode.CreatedAt = time.Now().UTC()
-
-	err = sender.Send(verifyCode, user)
-	if err != nil {
-		return
-	}
-
-	resp = struct{}{}
-
 	return
 }
