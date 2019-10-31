@@ -32,8 +32,7 @@ func TestValidator(t *testing.T) {
 		}
 		`
 		err = validator.ParseReader("#A", bytes.NewReader([]byte(data)), &goValue)
-		So(err, ShouldBeError, `#/a: Invalid type. Expected: integer, given: string
-`)
+		So(err, ShouldBeError)
 
 		data = `
 		{
