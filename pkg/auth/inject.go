@@ -308,8 +308,6 @@ func (m DependencyMap) Provide(
 		return newUserProfileStore()
 	case "ForgotPasswordEmailSender":
 		return forgotpwdemail.NewDefaultSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender(), newTemplateEngine())
-	case "TestForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultTestSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender())
 	case "ForgotPasswordCodeGenerator":
 		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.UserConfig.MasterKey}
 	case "ForgotPasswordSecureMatch":

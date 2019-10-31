@@ -102,7 +102,6 @@ func main() {
 
 		forgotpwdhandler.ForgotPasswordRequestSchema,
 		forgotpwdhandler.ForgotPasswordResetFormSchema,
-		forgotpwdhandler.ForgotPasswordTestRequestSchema,
 		forgotpwdhandler.ForgotPasswordResetRequestSchema,
 
 		mfaHandler.ActivateOOBRequestSchema,
