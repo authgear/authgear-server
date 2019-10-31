@@ -11,52 +11,52 @@ import (
 )
 
 type CodeSenderFactory interface {
-	NewCodeSender(loginIDKey string) CodeSender
+	NewCodeSender(urlPrefix *url.URL, loginIDKey string) CodeSender
 }
 
 type defaultCodeSenderFactory struct {
-	CodeSenderMap map[string]CodeSender
+	Config         config.TenantConfiguration
+	TemplateEngine *template.Engine
+	MailSender     mail.Sender
+	SMSClient      sms.Client
 }
 
 func NewDefaultUserVerifyCodeSenderFactory(
 	c config.TenantConfiguration,
-	urlPrefix *url.URL,
 	templateEngine *template.Engine,
 	mailSender mail.Sender,
 	smsClient sms.Client,
 ) CodeSenderFactory {
-	userVerifyConfig := c.UserConfig.UserVerification
-	f := defaultCodeSenderFactory{
-		CodeSenderMap: map[string]CodeSender{},
+	return &defaultCodeSenderFactory{
+		Config:         c,
+		TemplateEngine: templateEngine,
+		SMSClient:      smsClient,
+		MailSender:     mailSender,
 	}
-
-	for key, verifyConfig := range userVerifyConfig.LoginIDKeys {
-		var codeSender CodeSender
-		keyType := c.UserConfig.Auth.LoginIDKeys[key].Type
-		metadataKey, _ := keyType.MetadataKey()
-		switch metadataKey {
-		case metadata.Email:
-			codeSender = &EmailCodeSender{
-				AppName:        c.AppName,
-				URLPrefix:      urlPrefix,
-				ProviderConfig: verifyConfig.ProviderConfig,
-				Sender:         mailSender,
-				TemplateEngine: templateEngine,
-			}
-		case metadata.Phone:
-			codeSender = &SMSCodeSender{
-				AppName:        c.AppName,
-				URLPrefix:      urlPrefix,
-				SMSClient:      smsClient,
-				TemplateEngine: templateEngine,
-			}
-		}
-		f.CodeSenderMap[key] = codeSender
-	}
-
-	return &f
 }
 
-func (d *defaultCodeSenderFactory) NewCodeSender(loginIDKey string) CodeSender {
-	return d.CodeSenderMap[loginIDKey]
+func (d *defaultCodeSenderFactory) NewCodeSender(urlPrefix *url.URL, loginIDKey string) CodeSender {
+	verifyConfig := d.Config.UserConfig.UserVerification.LoginIDKeys[loginIDKey]
+	keyType := d.Config.UserConfig.Auth.LoginIDKeys[loginIDKey].Type
+
+	metadataKey, _ := keyType.MetadataKey()
+	switch metadataKey {
+	case metadata.Email:
+		return &EmailCodeSender{
+			AppName:        d.Config.AppName,
+			URLPrefix:      urlPrefix,
+			ProviderConfig: verifyConfig.ProviderConfig,
+			Sender:         d.MailSender,
+			TemplateEngine: d.TemplateEngine,
+		}
+	case metadata.Phone:
+		return &SMSCodeSender{
+			AppName:        d.Config.AppName,
+			URLPrefix:      urlPrefix,
+			SMSClient:      d.SMSClient,
+			TemplateEngine: d.TemplateEngine,
+		}
+	}
+
+	return nil
 }

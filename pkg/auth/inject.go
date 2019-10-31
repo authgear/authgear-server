@@ -323,7 +323,6 @@ func (m DependencyMap) Provide(
 	case "UserVerifyCodeSenderFactory":
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(
 			tConfig,
-			urlprefix.NewProvider(request).Value(),
 			newTemplateEngine(),
 			newMailSender(),
 			newSMSClient(),
@@ -380,6 +379,8 @@ func (m DependencyMap) Provide(
 		return tConfig.UserConfig.MFA
 	case "APIClientConfigurationProvider":
 		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
+	case "URLPrefix":
+		return urlprefix.NewProvider(request).Value()
 	default:
 		return nil
 	}
