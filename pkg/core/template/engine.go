@@ -35,6 +35,20 @@ func NewEngine(
 	}
 }
 
+func (e *Engine) Clone() *Engine {
+	items := make([]config.TemplateItem, len(e.TemplateItems))
+	tags := make([]string, len(e.PreferredLanguageTags))
+	copy(items, e.TemplateItems)
+	copy(tags, e.PreferredLanguageTags)
+
+	return &Engine{
+		DefaultLoader:         e.DefaultLoader.Clone(),
+		URILoader:             e.URILoader.Clone(),
+		TemplateItems:         items,
+		PreferredLanguageTags: tags,
+	}
+}
+
 func (e *Engine) SetDefault(templateType config.TemplateItemType, template string) {
 	e.DefaultLoader.StringMap[string(templateType)] = template
 }
