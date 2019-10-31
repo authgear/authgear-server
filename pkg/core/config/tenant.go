@@ -16,7 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/name"
-	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 //go:generate msgp -tests=false
@@ -208,9 +207,6 @@ func (c *TenantConfiguration) Validate() error {
 
 	// Validate UserConfiguration
 	if err := ValidateUserConfiguration(c.UserConfig); err != nil {
-		if validationError, ok := err.(validation.Error); ok {
-			return validationError.SkyErrInvalidArgument("Invalid UserConfiguration")
-		}
 		return err
 	}
 

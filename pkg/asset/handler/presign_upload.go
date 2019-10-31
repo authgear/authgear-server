@@ -148,9 +148,6 @@ func (h *PresignUploadHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 	var payload cloudstorage.PresignUploadRequest
 	err = handler.ParseJSONBody(r, w, h.ParsePresignUploadRequest, &payload)
 	if err != nil {
-		if validationError, ok := err.(validation.Error); ok {
-			err = validationError.SkyErrInvalidArgument("Validation Error")
-		}
 		return
 	}
 	payload.SetDefaultValue()

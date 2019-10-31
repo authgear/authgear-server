@@ -144,9 +144,6 @@ func (h *SignHandler) Handle(w http.ResponseWriter, r *http.Request) (result int
 	var payload cloudstorage.SignRequest
 	err = handler.ParseJSONBody(r, w, h.ParseSignRequest, &payload)
 	if err != nil {
-		if validationError, ok := err.(validation.Error); ok {
-			err = validationError.SkyErrInvalidArgument("Validation Error")
-		}
 		return
 	}
 

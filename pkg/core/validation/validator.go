@@ -98,7 +98,9 @@ func (v *Validator) validateWithLoader(schemaID string, loader gojsonschema.JSON
 		return err
 	}
 	if !result.Valid() {
-		return ConvertErrors(result.Errors())
+		causes := toCauses(result.Errors())
+		// TODO(error): custom message
+		return NewValidationFailed("validation failed", causes)
 	}
 	return nil
 }
