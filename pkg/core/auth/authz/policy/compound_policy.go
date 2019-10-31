@@ -8,3 +8,9 @@ var RequireValidUser = AllOf(
 	authz.PolicyFunc(requireAuthenticated),
 	authz.PolicyFunc(DenyDisabledUser),
 )
+
+var RequireVerifiedUser = AllOf(
+	authz.PolicyFunc(requireAuthenticated),
+	authz.PolicyFunc(DenyDisabledUser),
+	authz.PolicyFunc(denyNotVerifiedUser),
+)
