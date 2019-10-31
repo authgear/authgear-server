@@ -16,7 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachAuthenticateOOBHandler(
@@ -45,22 +45,14 @@ type AuthenticateOOBRequest struct {
 	RequestBearerToken bool   `json:"request_bearer_token"`
 }
 
-func (r AuthenticateOOBRequest) Validate() error {
-	// TODO(error): JSON schema
-	if r.Code == "" {
-		return skyerr.NewInvalid("missing code")
-	}
-	return nil
-}
-
 // @JSONSchema
 const AuthenticateOOBRequestSchema = `
 {
 	"$id": "#AuthenticateOOBRequest",
 	"type": "object",
 	"properties": {
-		"authn_session_token": { "type": "string" },
-		"code": { "type": "string" },
+		"authn_session_token": { "type": "string", "minLength": 1 },
+		"code": { "type": "string", "minLength": 1 },
 		"request_bearer_token": { "type": "boolean" }
 	},
 	"required": ["code"]
@@ -85,6 +77,7 @@ const AuthenticateOOBRequestSchema = `
 */
 type AuthenticateOOBHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
+	Validator            *validation.Validator   `dependency:"Validator"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
 	SessionProvider      session.Provider        `dependency:"SessionProvider"`
@@ -101,9 +94,9 @@ func (h *AuthenticateOOBHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *AuthenticateOOBHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
+func (h *AuthenticateOOBHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (AuthenticateOOBRequest, error) {
 	payload := AuthenticateOOBRequest{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
+	err := handler.BindJSONBody(request, resp, h.Validator, "#AuthenticateOOBRequest", &payload)
 	return payload, err
 }
 
@@ -111,12 +104,6 @@ func (h *AuthenticateOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	var err error
 
 	payload, err := h.DecodeRequest(r, w)
-	if err != nil {
-		h.AuthnSessionProvider.WriteResponse(w, nil, err)
-		return
-	}
-
-	err = payload.Validate()
 	if err != nil {
 		h.AuthnSessionProvider.WriteResponse(w, nil, err)
 		return

@@ -12,7 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachDeleteAuthenticatorHandler(
@@ -32,7 +32,7 @@ type DeleteAuthenticatorHandlerFactory struct {
 func (f DeleteAuthenticatorHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &DeleteAuthenticatorHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type DeleteAuthenticatorRequest struct {
@@ -45,18 +45,11 @@ const DeleteAuthenticatorRequestSchema = `
 	"$id": "#DeleteAuthenticatorRequest",
 	"type": "object",
 	"properties": {
-		"authenticator_id": { "type": "string" }
-	}
+		"authenticator_id": { "type": "string", "minLength": 1 }
+	},
+	"required": ["authenticator_id"]
 }
 `
-
-func (r DeleteAuthenticatorRequest) Validate() error {
-	// TODO(error): JSON schema
-	if r.AuthenticatorID == "" {
-		return skyerr.NewInvalid("missing authenticator ID")
-	}
-	return nil
-}
 
 /*
 	@Operation POST /mfa/authenticator/delete - Delete authenticator.
@@ -72,6 +65,7 @@ func (r DeleteAuthenticatorRequest) Validate() error {
 */
 type DeleteAuthenticatorHandler struct {
 	TxContext    db.TxContext           `dependency:"TxContext"`
+	Validator    *validation.Validator  `dependency:"Validator"`
 	AuthContext  coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	RequireAuthz handler.RequireAuthz   `dependency:"RequireAuthz"`
 	MFAProvider  mfa.Provider           `dependency:"MFAProvider"`
@@ -84,24 +78,28 @@ func (h *DeleteAuthenticatorHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *DeleteAuthenticatorHandler) WithTx() bool {
-	return true
-}
-
-func (h *DeleteAuthenticatorHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := DeleteAuthenticatorRequest{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h *DeleteAuthenticatorHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(DeleteAuthenticatorRequest)
-	authInfo, _ := h.AuthContext.AuthInfo()
-	userID := authInfo.ID
-	err = h.MFAProvider.DeleteAuthenticator(userID, payload.AuthenticatorID)
+func (h *DeleteAuthenticatorHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
 	if err != nil {
-		return
+		response.Error = err
+	} else {
+		response.Result = result
 	}
-	resp = map[string]interface{}{}
+	handler.WriteResponse(w, response)
+}
+
+func (h *DeleteAuthenticatorHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload DeleteAuthenticatorRequest
+	if err := handler.BindJSONBody(r, w, h.Validator, "#DeleteAuthenticatorRequest", &payload); err != nil {
+		return nil, err
+	}
+
+	err = db.WithTx(h.TxContext, func() error {
+		authInfo, _ := h.AuthContext.AuthInfo()
+		userID := authInfo.ID
+		return h.MFAProvider.DeleteAuthenticator(userID, payload.AuthenticatorID)
+	})
+	resp = struct{}{}
 	return
 }

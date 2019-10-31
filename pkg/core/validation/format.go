@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/xeipuuv/gojsonschema"
+
+	"github.com/skygeario/skygear-server/pkg/core/phone"
 )
 
 func addFormatChecker(name string, f gojsonschema.FormatChecker) {
@@ -30,6 +32,7 @@ func init() {
 		Relative: true,
 		File:     true,
 	})
+	addFormatChecker("phone", E164Phone{})
 }
 
 type URLVariant int
@@ -125,4 +128,14 @@ func (f FilePath) IsFormat(input interface{}) bool {
 	}
 
 	return true
+}
+
+type E164Phone struct{}
+
+func (f E164Phone) IsFormat(input interface{}) bool {
+	str, ok := input.(string)
+	if !ok {
+		return false
+	}
+	return phone.EnsureE164(str) == nil
 }

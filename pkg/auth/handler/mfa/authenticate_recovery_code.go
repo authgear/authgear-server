@@ -16,7 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachAuthenticateRecoveryCodeHandler(
@@ -44,22 +44,14 @@ type AuthenticateRecoveryCodeRequest struct {
 	Code              string `json:"code"`
 }
 
-func (r AuthenticateRecoveryCodeRequest) Validate() error {
-	// TODO(error): JSON schema
-	if r.Code == "" {
-		return skyerr.NewInvalid("missing recovery code")
-	}
-	return nil
-}
-
 // @JSONSchema
 const AuthenticateRecoveryCodeRequestSchema = `
 {
 	"$id": "#AuthenticateRecoveryCodeRequest",
 	"type": "object",
 	"properties": {
-		"authn_session_token": { "type": "string" },
-		"code": { "type": "string" }
+		"authn_session_token": { "type": "string", "minLength": 1 },
+		"code": { "type": "string", "minLength": 1 }
 	},
 	"required": ["code"]
 }
@@ -83,6 +75,7 @@ const AuthenticateRecoveryCodeRequestSchema = `
 */
 type AuthenticateRecoveryCodeHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
+	Validator            *validation.Validator   `dependency:"Validator"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
 	SessionProvider      session.Provider        `dependency:"SessionProvider"`
@@ -99,9 +92,9 @@ func (h *AuthenticateRecoveryCodeHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *AuthenticateRecoveryCodeHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
+func (h *AuthenticateRecoveryCodeHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (AuthenticateRecoveryCodeRequest, error) {
 	payload := AuthenticateRecoveryCodeRequest{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
+	err := handler.BindJSONBody(request, resp, h.Validator, "#AuthenticateRecoveryCodeRequest", &payload)
 	return payload, err
 }
 
@@ -109,12 +102,6 @@ func (h *AuthenticateRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 	var err error
 
 	payload, err := h.DecodeRequest(r, w)
-	if err != nil {
-		h.AuthnSessionProvider.WriteResponse(w, nil, err)
-		return
-	}
-
-	err = payload.Validate()
 	if err != nil {
 		h.AuthnSessionProvider.WriteResponse(w, nil, err)
 		return

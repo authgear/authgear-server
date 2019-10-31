@@ -13,10 +13,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/mail"
-	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachCreateOOBHandler(
@@ -36,7 +34,7 @@ type CreateOOBHandlerFactory struct {
 func (f CreateOOBHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &CreateOOBHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 func (h *CreateOOBHandler) ProvideAuthzPolicy() authz.Policy {
@@ -51,18 +49,6 @@ type CreateOOBRequest struct {
 	Phone             string                           `json:"phone"`
 	Email             string                           `json:"email"`
 	AuthnSessionToken string                           `json:"authn_session_token"`
-}
-
-func (r CreateOOBRequest) Validate() error {
-	// TODO(error): JSON schema
-	switch r.Channel {
-	case coreAuth.AuthenticatorOOBChannelSMS:
-		return phone.EnsureE164(r.Phone)
-	case coreAuth.AuthenticatorOOBChannelEmail:
-		return mail.EnsureAddressOnly(r.Email)
-	default:
-		return skyerr.NewInvalid("invalid channel")
-	}
 }
 
 type CreateOOBResponse struct {
@@ -80,8 +66,8 @@ const CreateOOBRequestSchema = `
 			"additionalProperties": false,
 			"properties": {
 				"channel": { "enum": ["sms"] },
-				"phone": { "type": "string" },
-				"authn_session_token": { "type": "string" }
+				"phone": { "type": "string", "format": "phone" },
+				"authn_session_token": { "type": "string", "minLength": 1 }
 			},
 			"required": ["channel", "phone"]
 		},
@@ -89,8 +75,8 @@ const CreateOOBRequestSchema = `
 			"additionalProperties": false,
 			"properties": {
 				"channel": { "enum": ["email"] },
-				"email": { "type": "string" },
-				"authn_session_token": { "type": "string" }
+				"email": { "type": "string", "format": "email" },
+				"authn_session_token": { "type": "string", "minLength": 1 }
 			},
 			"required": ["channel", "email"]
 		}
@@ -132,6 +118,7 @@ const CreateOOBResponseSchema = `
 */
 type CreateOOBHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
+	Validator            *validation.Validator   `dependency:"Validator"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
 	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
@@ -139,32 +126,40 @@ type CreateOOBHandler struct {
 	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
 }
 
-func (h *CreateOOBHandler) WithTx() bool {
-	return true
-}
-
-func (h *CreateOOBHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := CreateOOBRequest{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h *CreateOOBHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(CreateOOBRequest)
-	userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
-		MFAOption: authnsession.ResolveMFAOptionOnlyWhenNoAuthenticators,
-	})
+func (h *CreateOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
 	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
+}
+
+func (h *CreateOOBHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload CreateOOBRequest
+	if err := handler.BindJSONBody(r, w, h.Validator, "#CreateOOBRequest", &payload); err != nil {
 		return nil, err
 	}
-	a, err := h.MFAProvider.CreateOOB(userID, payload.Channel, payload.Phone, payload.Email)
-	if err != nil {
-		return
-	}
-	resp = CreateOOBResponse{
-		AuthenticatorID:   a.ID,
-		AuthenticatorType: string(a.Type),
-		Channel:           string(payload.Channel),
-	}
+
+	err = db.WithTx(h.TxContext, func() error {
+		userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
+			MFAOption: authnsession.ResolveMFAOptionOnlyWhenNoAuthenticators,
+		})
+		if err != nil {
+			return err
+		}
+		a, err := h.MFAProvider.CreateOOB(userID, payload.Channel, payload.Phone, payload.Email)
+		if err != nil {
+			return err
+		}
+		resp = CreateOOBResponse{
+			AuthenticatorID:   a.ID,
+			AuthenticatorType: string(a.Type),
+			Channel:           string(payload.Channel),
+		}
+		return nil
+	})
 	return
 }

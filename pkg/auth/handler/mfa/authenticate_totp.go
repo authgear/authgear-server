@@ -16,7 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachAuthenticateTOTPHandler(
@@ -45,22 +45,14 @@ type AuthenticateTOTPRequest struct {
 	RequestBearerToken bool   `json:"request_bearer_token"`
 }
 
-func (r AuthenticateTOTPRequest) Validate() error {
-	// TODO(error): JSON schema
-	if r.OTP == "" {
-		return skyerr.NewInvalid("missing OTP")
-	}
-	return nil
-}
-
 // @JSONSchema
 const AuthenticateTOTPRequestSchema = `
 {
 	"$id": "#AuthenticateTOTPRequest",
 	"type": "object",
 	"properties": {
-		"authn_session_token": { "type": "string" },
-		"otp": { "type": "string" },
+		"authn_session_token": { "type": "string", "minLength": 1 },
+		"otp": { "type": "string", "minLength": 1 },
 		"request_bearer_token": { "type": "boolean" }
 	},
 	"required": ["otp"]
@@ -85,6 +77,7 @@ const AuthenticateTOTPRequestSchema = `
 */
 type AuthenticateTOTPHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
+	Validator            *validation.Validator   `dependency:"Validator"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
 	SessionProvider      session.Provider        `dependency:"SessionProvider"`
@@ -101,9 +94,9 @@ func (h *AuthenticateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *AuthenticateTOTPHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
+func (h *AuthenticateTOTPHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (AuthenticateTOTPRequest, error) {
 	payload := AuthenticateTOTPRequest{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
+	err := handler.BindJSONBody(request, resp, h.Validator, "#AuthenticateTOTPRequest", &payload)
 	return payload, err
 }
 
@@ -111,12 +104,6 @@ func (h *AuthenticateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	var err error
 
 	payload, err := h.DecodeRequest(r, w)
-	if err != nil {
-		h.AuthnSessionProvider.WriteResponse(w, nil, err)
-		return
-	}
-
-	err = payload.Validate()
 	if err != nil {
 		h.AuthnSessionProvider.WriteResponse(w, nil, err)
 		return

@@ -14,7 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachActivateTOTPHandler(
@@ -34,20 +34,12 @@ type ActivateTOTPHandlerFactory struct {
 func (f ActivateTOTPHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ActivateTOTPHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type ActivateTOTPRequest struct {
 	OTP               string `json:"otp"`
 	AuthnSessionToken string `json:"authn_session_token"`
-}
-
-func (r ActivateTOTPRequest) Validate() error {
-	// TODO(error): JSON schema
-	if r.OTP == "" {
-		return skyerr.NewInvalid("missing OTP")
-	}
-	return nil
 }
 
 type ActivateTOTPResponse struct {
@@ -60,8 +52,8 @@ const ActivateTOTPRequestSchema = `
 	"$id": "#ActivateTOTPRequest",
 	"type": "object",
 	"properties": {
-		"otp": { "type": "string" },
-		"authn_session_token": { "type": "string" }
+		"otp": { "type": "string", "minLength": 1 },
+		"authn_session_token": { "type": "string", "minLength": 1 }
 	},
 	"required": ["otp"]
 }
@@ -104,6 +96,7 @@ const ActivateTOTPResponseSchema = `
 */
 type ActivateTOTPHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
+	Validator            *validation.Validator   `dependency:"Validator"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
 	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
@@ -118,30 +111,39 @@ func (h *ActivateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *ActivateTOTPHandler) WithTx() bool {
-	return true
-}
-
-func (h *ActivateTOTPHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := ActivateTOTPRequest{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h *ActivateTOTPHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(ActivateTOTPRequest)
-	userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
-		MFAOption: authnsession.ResolveMFAOptionOnlyWhenNoAuthenticators,
-	})
+func (h *ActivateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
 	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
+}
+
+func (h *ActivateTOTPHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload ActivateTOTPRequest
+	if err := handler.BindJSONBody(r, w, h.Validator, "#ActivateTOTPRequest", &payload); err != nil {
 		return nil, err
 	}
-	recoveryCodes, err := h.MFAProvider.ActivateTOTP(userID, payload.OTP)
-	if err != nil {
-		return
-	}
-	resp = ActivateTOTPResponse{
-		RecoveryCodes: recoveryCodes,
-	}
+
+	err = db.WithTx(h.TxContext, func() error {
+		userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
+			MFAOption: authnsession.ResolveMFAOptionOnlyWhenNoAuthenticators,
+		})
+		if err != nil {
+			return err
+		}
+		recoveryCodes, err := h.MFAProvider.ActivateTOTP(userID, payload.OTP)
+		if err != nil {
+			return err
+		}
+
+		resp = ActivateTOTPResponse{
+			RecoveryCodes: recoveryCodes,
+		}
+		return nil
+	})
 	return
 }
