@@ -98,7 +98,6 @@ func main() {
 		handler.LoginRequestSchema,
 		handler.SignupRequestSchema,
 		handler.UpdateMetadataRequestSchema,
-		handler.WelcomeEmailTestRequestSchema,
 
 		forgotpwdhandler.ForgotPasswordRequestSchema,
 		forgotpwdhandler.ForgotPasswordResetFormSchema,
@@ -192,7 +191,6 @@ func main() {
 	handler.AttachSetDisableHandler(&srv, authDependency)
 	handler.AttachChangePasswordHandler(&srv, authDependency)
 	handler.AttachResetPasswordHandler(&srv, authDependency)
-	handler.AttachWelcomeEmailHandler(&srv, authDependency)
 	handler.AttachUpdateMetadataHandler(&srv, authDependency)
 	forgotpwdhandler.AttachForgotPasswordHandler(&srv, authDependency)
 	forgotpwdhandler.AttachForgotPasswordResetHandler(&srv, authDependency)

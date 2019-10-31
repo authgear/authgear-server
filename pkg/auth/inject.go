@@ -320,8 +320,6 @@ func (m DependencyMap) Provide(
 		return tConfig.UserConfig.WelcomeEmail.Destination
 	case "WelcomeEmailSender":
 		return welcemail.NewDefaultSender(tConfig, newMailSender(), newTemplateEngine())
-	case "TestWelcomeEmailSender":
-		return welcemail.NewDefaultTestSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender())
 	case "IFrameHTMLProvider":
 		return sso.NewIFrameHTMLProvider(urlprefix.NewProvider(request).Value())
 	case "UserVerifyCodeSenderFactory":
