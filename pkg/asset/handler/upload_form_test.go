@@ -99,10 +99,19 @@ func TestUploadFormHandler(t *testing.T) {
 			h.ServeHTTP(recorder, req)
 
 			So(recorder.Result().StatusCode, ShouldEqual, 400)
-			// TODO(error): validation
-			So(recorder.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":400,"message":"Validation Error","name":"Invalid","reason":"Invalid"}}
-			`)
+			So(recorder.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid pre-signed request",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "ExtraEntry", "message": "Additional property unknown is not allowed", "pointer":"/headers/unknown" }
+						]
+					}
+				}
+			}`)
 		})
 
 		Convey("Success", func() {

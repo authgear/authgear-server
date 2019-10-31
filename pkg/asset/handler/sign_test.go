@@ -31,10 +31,19 @@ func TestSignHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			So(w.Code, ShouldEqual, 400)
-			// TODO(error): validation
-			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":400,"message":"Validation Error","name":"Invalid","reason":"Invalid"}}
-			`)
+			So(w.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "Required", "message": "assets is required", "pointer":"/assets" }
+						]
+					}
+				}
+			}`)
 		})
 
 		Convey("asset_name is required and non-empty", func() {
@@ -52,10 +61,20 @@ func TestSignHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			So(w.Code, ShouldEqual, 400)
-			// TODO(error): validation
-			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":400,"message":"Validation Error","name":"Invalid","reason":"Invalid"}}
-			`)
+			So(w.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "Required", "message": "asset_name is required", "pointer":"/assets/0/asset_name" },
+							{ "kind": "StringLength", "message": "String length must be greater than or equal to 1", "pointer":"/assets/1/asset_name", "details": { "gte": 1 } }
+						]
+					}
+				}
+			}`)
 		})
 
 		Convey("success", func() {
