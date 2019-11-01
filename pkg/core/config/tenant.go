@@ -6,16 +6,18 @@ import (
 	"database/sql/driver"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 
 	"gopkg.in/yaml.v2"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/name"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 //go:generate msgp -tests=false
@@ -176,80 +178,126 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	return values
 }
 
-// nolint: gocyclo
 func (c *TenantConfiguration) Validate() error {
-	// TODO(error): return validation error using WithDetails
+	err := c.doValidate()
+	if err == nil {
+		return nil
+	}
+
+	causes := validation.ErrorCauses(err)
+	msgs := make([]string, len(causes))
+	for i, c := range causes {
+		msgs[i] = fmt.Sprintf("%s: %s", c.Pointer, c.Message)
+	}
+	err = errors.WithDetails(
+		err,
+		errors.Details{"validation_error": errors.SafeDetail.Value(msgs)},
+	)
+	return err
+}
+
+// nolint: gocyclo
+func (c *TenantConfiguration) doValidate() error {
+	fail := func(kind validation.ErrorCauseKind, msg string, pointer string) error {
+		return validation.NewValidationFailed("invalid tenant config", []validation.ErrorCause{{
+			Kind:    kind,
+			Pointer: pointer,
+			Message: msg,
+		}})
+	}
 
 	if c.Version != "1" {
-		return errors.New("Only version 1 is supported")
+		return fail(validation.ErrorGeneral, "only version 1 is supported", "/version")
 	}
 
 	// Validate AppConfiguration
 	if c.AppConfig.DatabaseURL == "" {
-		return errors.New("DATABASE_URL is not set")
+		return fail(validation.ErrorRequired, "database_url is required", "/database_url")
 	}
 	if c.AppConfig.DatabaseSchema == "" {
-		return errors.New("DATABASE_SCHEMA is not set")
+		return fail(validation.ErrorRequired, "database_schema is required", "/database_schema")
 	}
 
 	// Validate AppName
 	if c.AppName == "" {
-		return errors.New("APP_NAME is not set")
+		return fail(validation.ErrorRequired, "app_name is required", "/app_name")
 	}
 	if err := name.ValidateAppName(c.AppName); err != nil {
-		return err
+		return fail(validation.ErrorGeneral, err.Error(), "/app_name")
 	}
 
 	// Validate AppID
 	if c.AppID == "" {
-		return errors.New("APP_ID is not set")
+		return fail(validation.ErrorRequired, "app_id is required", "/app_id")
 	}
 
 	// Validate UserConfiguration
 	if err := ValidateUserConfiguration(c.UserConfig); err != nil {
-		return err
+		causes := validation.ErrorCauses(err)
+		for i := range causes {
+			causes[i].Pointer = "/user_config" + causes[i].Pointer
+		}
+		return validation.NewValidationFailed("invalid user configuration", causes)
 	}
 
 	// Validate complex UserConfiguration
-	for _, clientConfig := range c.UserConfig.Clients {
+	for key, clientConfig := range c.UserConfig.Clients {
 		if clientConfig.APIKey == c.UserConfig.MasterKey {
-			return errors.New("Master key must not be same as API key")
+			return fail(validation.ErrorGeneral, "master key must not be same as API key", "/user_config/master_key")
 		}
 
 		if clientConfig.SessionTransport == SessionTransportTypeCookie && !clientConfig.RefreshTokenDisabled {
-			return errors.New("Refresh token must be disabled when cookie is used as session token transport")
+			return fail(
+				validation.ErrorGeneral,
+				"refresh token must be disabled when cookie is used as session token transport",
+				"/user_config/clients/"+key+"/refresh_token_disabled")
 		}
 
 		if !clientConfig.RefreshTokenDisabled &&
 			clientConfig.RefreshTokenLifetime < clientConfig.AccessTokenLifetime {
-			return errors.New("Refresh token lifetime must be greater than or equal to access token lifetime")
+			return fail(
+				validation.ErrorGeneral,
+				"refresh token lifetime must be greater than or equal to access token lifetime",
+				"/user_config/clients/"+key+"/refresh_token_lifetime")
 		}
 
 		if clientConfig.SessionIdleTimeoutEnabled &&
 			clientConfig.SessionIdleTimeout > clientConfig.AccessTokenLifetime {
-			return errors.New("Session idle timeout must be less than or equal to access token lifetime")
+			return fail(
+				validation.ErrorGeneral,
+				"session idle timeout must be less than or equal to access token lifetime",
+				"/user_config/clients/"+key+"/session_idle_timeout")
 		}
 	}
 
-	for _, loginIDKeyConfig := range c.UserConfig.Auth.LoginIDKeys {
+	for key, loginIDKeyConfig := range c.UserConfig.Auth.LoginIDKeys {
 		if *loginIDKeyConfig.Minimum > *loginIDKeyConfig.Maximum || *loginIDKeyConfig.Maximum <= 0 {
-			return errors.New("Invalid LoginIDKeys amount range: " + string(loginIDKeyConfig.Type))
+			return fail(
+				validation.ErrorGeneral,
+				"invalid login ID amount range",
+				"/user_config/auth/login_id_keys/"+key)
 		}
 	}
 
 	for key := range c.UserConfig.UserVerification.LoginIDKeys {
 		_, ok := c.UserConfig.Auth.LoginIDKeys[key]
 		if !ok {
-			return errors.New("Cannot verify disallowed login ID key: " + key)
+			return fail(
+				validation.ErrorGeneral,
+				"cannot verify disallowed login ID key",
+				"/user_config/user_verification/login_id_keys/"+key)
 		}
 	}
 
 	// Validate OAuth
 	seenOAuthProviderID := map[string]struct{}{}
-	for _, provider := range c.UserConfig.SSO.OAuth.Providers {
+	for i, provider := range c.UserConfig.SSO.OAuth.Providers {
 		// Ensure ID is not duplicate.
 		if _, ok := seenOAuthProviderID[provider.ID]; ok {
-			return fmt.Errorf("Duplicate OAuth Provider: %s", provider.ID)
+			return fail(
+				validation.ErrorGeneral,
+				"duplicated OAuth provider",
+				fmt.Sprintf("/user_config/sso/oauth/providers/%d", i))
 		}
 		seenOAuthProviderID[provider.ID] = struct{}{}
 	}

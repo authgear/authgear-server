@@ -59,6 +59,9 @@ type CustomTokenLoginPayload struct {
 	MergeRealm      string                           `json:"merge_realm"`
 	OnUserDuplicate model.OnUserDuplicate            `json:"on_user_duplicate"`
 	Claims          customtoken.SSOCustomTokenClaims `json:"-"`
+
+	PasswordAuthProvider     password.Provider               `json:"-"`
+	CustomTokenConfiguration config.CustomTokenConfiguration `json:"-"`
 }
 
 func (p *CustomTokenLoginPayload) SetDefaultValue() {
@@ -68,6 +71,30 @@ func (p *CustomTokenLoginPayload) SetDefaultValue() {
 	if p.OnUserDuplicate == "" {
 		p.OnUserDuplicate = model.OnUserDuplicateDefault
 	}
+}
+
+func (p *CustomTokenLoginPayload) Validate() []validation.ErrorCause {
+	if !p.PasswordAuthProvider.IsRealmValid(p.MergeRealm) {
+		return []validation.ErrorCause{{
+			Kind:    validation.ErrorGeneral,
+			Pointer: "/merge_realm",
+			Message: "merge_realm is not a valid realm",
+		}}
+	}
+
+	if !model.IsAllowedOnUserDuplicate(
+		p.CustomTokenConfiguration.OnUserDuplicateAllowMerge,
+		p.CustomTokenConfiguration.OnUserDuplicateAllowCreate,
+		p.OnUserDuplicate,
+	) {
+		return []validation.ErrorCause{{
+			Kind:    validation.ErrorGeneral,
+			Pointer: "/on_user_duplicate",
+			Message: "on_user_duplicate is not allowed",
+		}}
+	}
+
+	return nil
 }
 
 // nolint: gosec
@@ -162,6 +189,8 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request, resp http.
 		}
 	}()
 
+	payload.PasswordAuthProvider = h.PasswordAuthProvider
+	payload.CustomTokenConfiguration = h.CustomTokenConfiguration
 	if err = handler.BindJSONBody(request, resp, h.Validator, "#CustomTokenLoginRequest", &payload); err != nil {
 		return
 	}
@@ -202,21 +231,6 @@ func (h CustomTokenLoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.R
 func (h CustomTokenLoginHandler) Handle(payload CustomTokenLoginPayload) (resp interface{}, err error) {
 	if !h.CustomTokenConfiguration.Enabled {
 		err = skyerr.NewNotFound("custom token is disabled")
-		return
-	}
-
-	// TODO(error): JSON schema
-	if !h.PasswordAuthProvider.IsRealmValid(payload.MergeRealm) {
-		err = skyerr.NewInvalid("invalid MergeRealm")
-		return
-	}
-
-	if !model.IsAllowedOnUserDuplicate(
-		h.CustomTokenConfiguration.OnUserDuplicateAllowMerge,
-		h.CustomTokenConfiguration.OnUserDuplicateAllowCreate,
-		payload.OnUserDuplicate,
-	) {
-		err = skyerr.NewInvalid("disallowed OnUserDuplicate")
 		return
 	}
 

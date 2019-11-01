@@ -8,6 +8,8 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/yaml.v2"
+
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 const inputMinimalYAML = `version: '1'
@@ -356,7 +358,11 @@ user_config:
   master_key: masterkey
 `
 			_, err := NewTenantConfigurationFromYAML(strings.NewReader(invalidInput))
-			So(err, ShouldBeError, "Only version 1 is supported")
+			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Message: "only version 1 is supported",
+				Pointer: "/version",
+			}})
 		})
 		// JSON
 		Convey("should have default value when load from JSON", func() {
@@ -389,7 +395,11 @@ user_config:
 		}
 					`
 			_, err := NewTenantConfigurationFromJSON(strings.NewReader(invalidInput), false)
-			So(err, ShouldBeError, "Only version 1 is supported")
+			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Message: "only version 1 is supported",
+				Pointer: "/version",
+			}})
 		})
 		// Conversion
 		Convey("should be losslessly converted between Go and msgpack", func() {
@@ -439,7 +449,11 @@ user_config:
 			c.UserConfig.Clients["web-app"] = clientConfig
 
 			err := c.Validate()
-			So(err, ShouldBeError, "Master key must not be same as API key")
+			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Message: "master key must not be same as API key",
+				Pointer: "/user_config/master_key",
+			}})
 		})
 		Convey("should validate minimum <= maximum", func() {
 			c := makeFullTenantConfig()
@@ -448,14 +462,22 @@ user_config:
 			email.Maximum = newInt(1)
 			c.UserConfig.Auth.LoginIDKeys["email"] = email
 			err := c.Validate()
-			So(err, ShouldBeError, "Invalid LoginIDKeys amount range: email")
+			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Message: "invalid login ID amount range",
+				Pointer: "/user_config/auth/login_id_keys/email",
+			}})
 		})
 		Convey("UserVerification.LoginIDKeys is subset of Auth.LoginIDKeys", func() {
 			c := makeFullTenantConfig()
 			invalid := c.UserConfig.UserVerification.LoginIDKeys["email"]
 			c.UserConfig.UserVerification.LoginIDKeys["invalid"] = invalid
 			err := c.Validate()
-			So(err, ShouldBeError, "Cannot verify disallowed login ID key: invalid")
+			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Message: "cannot verify disallowed login ID key",
+				Pointer: "/user_config/user_verification/login_id_keys/invalid",
+			}})
 		})
 		Convey("should validate OAuth Provider", func() {
 			c := makeFullTenantConfig()
@@ -476,7 +498,12 @@ user_config:
 				},
 			}
 
-			So(c.Validate(), ShouldBeError, "Duplicate OAuth Provider: azure")
+			err := c.Validate()
+			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Message: "duplicated OAuth provider",
+				Pointer: "/user_config/sso/oauth/providers/1",
+			}})
 		})
 	})
 }
