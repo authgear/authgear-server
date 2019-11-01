@@ -109,7 +109,6 @@ func (h ResetPasswordHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
 		authz.PolicyFunc(policy.RequireMasterKey),
-		policy.RequireValidUser,
 	)
 }
 
