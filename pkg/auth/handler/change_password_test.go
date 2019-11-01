@@ -25,6 +25,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func TestChangePasswordHandler(t *testing.T) {
@@ -41,6 +42,11 @@ func TestChangePasswordHandler(t *testing.T) {
 		mockTaskQueue := async.NewMockQueue()
 
 		lh := &ChangePasswordHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			ChangePasswordRequestSchema,
+		)
+		lh.Validator = validator
 		lh.AuditTrail = audit.NewMockTrail(t)
 		lh.AuthContext = authtest.NewMockContext().UseUser(userID, "john.doe.principal.id0").MarkVerified()
 		lh.AuthInfoStore = authinfo.NewMockStoreWithUser(userID)

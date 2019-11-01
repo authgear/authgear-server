@@ -3,6 +3,8 @@ package handler
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/validation"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -60,23 +62,12 @@ const ChangePasswordRequestSchema = `
 	"$id": "#ChangePasswordRequest",
 	"type": "object",
 	"properties": {
-		"password": { "type": "string" },
-		"old_password": { "type": "string" }
-	}
+		"password": { "type": "string", "minLength": 1 },
+		"old_password": { "type": "string", "minLength": 1 }
+	},
+	"required": ["password", "old_password"]
 }
 `
-
-func (p ChangePasswordRequestPayload) Validate() error {
-	if p.OldPassword == "" {
-		// TODO(error): use JSON schema
-		return skyerr.NewBadRequest("empty old password")
-	}
-	if p.NewPassword == "" {
-		// TODO(error): use JSON schema
-		return skyerr.NewBadRequest("empty new password")
-	}
-	return nil
-}
 
 /*
 	@Operation POST /change_password - Change password
@@ -98,6 +89,7 @@ func (p ChangePasswordRequestPayload) Validate() error {
 		@Callback user_sync {UserSyncEvent}
 */
 type ChangePasswordHandler struct {
+	Validator            *validation.Validator      `dependency:"Validator"`
 	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
@@ -121,120 +113,99 @@ func (h ChangePasswordHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h ChangePasswordHandler) WithTx() bool {
-	return true
-}
-
-// DecodeRequest decode the request payload
-func (h ChangePasswordHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload ChangePasswordRequestPayload, err error) {
-	err = handler.DecodeJSONBody(request, resp, &payload)
-	return
-}
-
-func (h ChangePasswordHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+func (h ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	payload, err := h.DecodeRequest(req, resp)
-	if err != nil {
-		handler.WriteResponse(resp, handler.APIResponse{Error: err})
-		return
-	}
-
-	if err = payload.Validate(); err != nil {
-		handler.WriteResponse(resp, handler.APIResponse{Error: err})
-		return
-	}
-
-	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
-		result, err = h.Handle(payload)
-		if err == nil {
-			err = h.HookProvider.WillCommitTx()
-		}
-		return
-	})
+	result, err := h.Handle(w, r)
 	if err == nil {
-		h.HookProvider.DidCommitTx()
-		authResp := result.(model.AuthResponse)
-		h.SessionWriter.WriteSession(resp, &authResp.AccessToken, nil)
-		handler.WriteResponse(resp, handler.APIResponse{Result: authResp})
+		h.SessionWriter.WriteSession(w, &result.AccessToken, nil)
+		handler.WriteResponse(w, handler.APIResponse{Result: result})
 	} else {
-		handler.WriteResponse(resp, handler.APIResponse{Error: err})
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
 	}
 }
 
-func (h ChangePasswordHandler) Handle(payload ChangePasswordRequestPayload) (resp model.AuthResponse, err error) {
-	authinfo, _ := h.AuthContext.AuthInfo()
-	sess, _ := h.AuthContext.Session()
-
-	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
-		PlainPassword: payload.NewPassword,
-		AuthID:        authinfo.ID,
-	}); err != nil {
+func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (resp model.AuthResponse, err error) {
+	var payload ChangePasswordRequestPayload
+	if err = handler.BindJSONBody(r, w, h.Validator, "#ChangePasswordRequest", &payload); err != nil {
 		return
 	}
 
-	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authinfo.ID)
-	if err != nil {
-		return
-	}
-	if len(principals) == 0 {
-		err = skyerr.NewInvalid("user has no password")
-		return
-	}
+	err = hook.WithTx(h.HookProvider, h.TxContext, func() error {
+		authinfo, _ := h.AuthContext.AuthInfo()
+		sess, _ := h.AuthContext.Session()
 
-	principal := principals[0]
-	for _, p := range principals {
-		if p.ID == sess.PrincipalID {
-			principal = p
+		if err := h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
+			PlainPassword: payload.NewPassword,
+			AuthID:        authinfo.ID,
+		}); err != nil {
+			return err
 		}
-		err = p.VerifyPassword(payload.OldPassword)
+
+		principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authinfo.ID)
 		if err != nil {
-			return
+			return err
 		}
-		err = h.PasswordAuthProvider.UpdatePassword(p, payload.NewPassword)
+		if len(principals) == 0 {
+			err = skyerr.NewInvalid("user has no password")
+			return err
+		}
+
+		principal := principals[0]
+		for _, p := range principals {
+			if p.ID == sess.PrincipalID {
+				principal = p
+			}
+			err = p.VerifyPassword(payload.OldPassword)
+			if err != nil {
+				return err
+			}
+			err = h.PasswordAuthProvider.UpdatePassword(p, payload.NewPassword)
+			if err != nil {
+				return err
+			}
+		}
+
+		// refresh session
+		accessToken, err := h.SessionProvider.Refresh(sess)
 		if err != nil {
-			return
+			return err
 		}
-	}
+		tokens := coreAuth.SessionTokens{ID: sess.ID, AccessToken: accessToken}
 
-	// refresh session
-	accessToken, err := h.SessionProvider.Refresh(sess)
-	if err != nil {
-		return
-	}
-	tokens := coreAuth.SessionTokens{ID: sess.ID, AccessToken: accessToken}
+		// Get Profile
+		userProfile, err := h.UserProfileStore.GetUserProfile(authinfo.ID)
+		if err != nil {
+			return err
+		}
 
-	// Get Profile
-	userProfile, err := h.UserProfileStore.GetUserProfile(authinfo.ID)
-	if err != nil {
-		return
-	}
+		user := model.NewUser(*authinfo, userProfile)
+		identity := model.NewIdentity(h.IdentityProvider, principal)
 
-	user := model.NewUser(*authinfo, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, principal)
+		err = h.HookProvider.DispatchEvent(
+			event.PasswordUpdateEvent{
+				Reason: event.PasswordUpdateReasonChangePassword,
+				User:   user,
+			},
+			&user,
+		)
+		if err != nil {
+			return err
+		}
 
-	err = h.HookProvider.DispatchEvent(
-		event.PasswordUpdateEvent{
-			Reason: event.PasswordUpdateReasonChangePassword,
-			User:   user,
-		},
-		&user,
-	)
-	if err != nil {
-		return
-	}
+		resp = model.NewAuthResponse(user, identity, tokens, "")
 
-	resp = model.NewAuthResponse(user, identity, tokens, "")
+		h.AuditTrail.Log(audit.Entry{
+			UserID: authinfo.ID,
+			Event:  audit.EventChangePassword,
+		})
 
-	h.AuditTrail.Log(audit.Entry{
-		UserID: authinfo.ID,
-		Event:  audit.EventChangePassword,
+		// password house keeper
+		h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
+			AuthID: authinfo.ID,
+		}, nil)
+
+		return nil
 	})
-
-	// password house keeper
-	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
-		AuthID: authinfo.ID,
-	}, nil)
-
 	return
 }

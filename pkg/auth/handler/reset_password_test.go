@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
@@ -14,34 +17,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/db"
+	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestResetPasswordPayload(t *testing.T) {
-	Convey("Test ResetPasswordRequestPayload", t, func() {
-		Convey("validate valid payload", func() {
-			payload := ResetPasswordRequestPayload{
-				UserID:   "1",
-				Password: "123456",
-			}
-			So(payload.Validate(), ShouldBeNil)
-		})
-
-		Convey("validate payload without user id", func() {
-			payload := ResetPasswordRequestPayload{
-				Password: "123456",
-			}
-			So(payload.Validate(), ShouldBeError)
-		})
-
-		Convey("validate payload without password", func() {
-			payload := ResetPasswordRequestPayload{
-				UserID: "1",
-			}
-			So(payload.Validate(), ShouldBeError)
-		})
-	})
-}
 func TestResetPasswordHandler(t *testing.T) {
 	Convey("Test ResetPasswordHandler", t, func() {
 		// fixture
@@ -85,6 +66,12 @@ func TestResetPasswordHandler(t *testing.T) {
 		mockTaskQueue := async.NewMockQueue()
 
 		h := &ResetPasswordHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			ResetPasswordRequestSchema,
+		)
+		h.TxContext = db.NewMockTxContext()
+		h.Validator = validator
 		h.AuthInfoStore = authInfoStore
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.PasswordChecker = passwordChecker
@@ -94,36 +81,57 @@ func TestResetPasswordHandler(t *testing.T) {
 		h.HookProvider = hookProvider
 		h.TaskQueue = mockTaskQueue
 
-		Convey("should reset password by user id", func() {
-			userID := "john.doe.id"
-			newPassword := "234567"
-			payload := ResetPasswordRequestPayload{
-				UserID:   userID,
-				Password: newPassword,
-			}
+		Convey("should reject invalid request", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
 
-			resp, err := h.Handle(payload)
-			So(err, ShouldBeNil)
-			So(resp, ShouldResemble, map[string]string{})
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "Required", "message": "password is required", "pointer": "/password" },
+							{ "kind": "Required", "message": "user_id is required", "pointer": "/user_id" }
+						]
+					}
+				}
+			}`)
+		})
+
+		Convey("should reset password by user id", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"user_id": "john.doe.id",
+				"password": "234567"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 200)
 
 			// should update all principals of a user
-			principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(userID)
+			principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID("john.doe.id")
 			So(err, ShouldBeNil)
 			for _, p := range principals {
-				So(p.IsSamePassword(newPassword), ShouldEqual, true)
+				So(p.IsSamePassword("234567"), ShouldEqual, true)
 			}
 
 			// should enqueue pw housekeeper task
 			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)
 			So(mockTaskQueue.TasksParam[0], ShouldResemble, task.PwHousekeeperTaskParam{
-				AuthID: userID,
+				AuthID: "john.doe.id",
 			})
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.PasswordUpdateEvent{
 					Reason: event.PasswordUpdateReasonAdministrative,
 					User: model.User{
-						ID:         userID,
+						ID:         "john.doe.id",
 						VerifyInfo: map[string]bool{},
 						Metadata:   userprofile.Data{},
 					},
@@ -132,38 +140,48 @@ func TestResetPasswordHandler(t *testing.T) {
 		})
 
 		Convey("should not reset password by wrong user id", func() {
-			userID := "john.doe.id.wrong"
-			payload := ResetPasswordRequestPayload{
-				UserID:   userID,
-				Password: "123456",
-			}
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"user_id": "john.doe.id.wrong",
+				"password": "123456"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
 
-			_, err := h.Handle(payload)
-			So(err, ShouldBeError, "user not found")
+			So(resp.Code, ShouldEqual, 404)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "NotFound",
+					"reason": "UserNotFound",
+					"message": "user not found",
+					"code": 404
+				}
+			}`)
 		})
 
 		Convey("should not reset password with password violates password policy", func() {
-			userID := "john.doe.id"
-			payload := ResetPasswordRequestPayload{
-				UserID:   userID,
-				Password: "1234",
-			}
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"user_id": "john.doe.id",
+				"password": "1234"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
 
-			_, err := h.Handle(payload)
-			So(err, ShouldBeError, "password policy violated")
-		})
-
-		Convey("should have audit trail when reset password", func() {
-			userID := "john.doe.id"
-			payload := ResetPasswordRequestPayload{
-				UserID:   userID,
-				Password: "123456",
-			}
-
-			h.Handle(payload)
-			mockTrail, _ := h.AuditTrail.(*audit.MockTrail)
-			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
-			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "reset_password")
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "PasswordPolicyViolated",
+					"message": "password policy violated",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "PasswordTooShort", "min_length" : 6, "pw_length": 4 }
+						]
+					}
+				}
+			}`)
 		})
 	})
 }

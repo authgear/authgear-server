@@ -10,7 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 // AttachWelcomeEmailHandler attaches WelcomeEmailHandler to server
@@ -33,7 +33,7 @@ type WelcomeEmailHandlerFactory struct {
 func (f WelcomeEmailHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &WelcomeEmailHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, nil), h)
+	return h.RequireAuthz(h, h)
 }
 
 type WelcomeEmailPayload struct {
@@ -45,13 +45,20 @@ type WelcomeEmailPayload struct {
 	ReplyTo      string `json:"reply_to"`
 }
 
-func (payload WelcomeEmailPayload) Validate() error {
-	if payload.Email == "" {
-		return skyerr.NewInvalid("empty email")
+const WelcomeEmailTestRequestSchema = `
+{
+	"$id": "#WelcomeEmailTestRequest",
+	"type": "object",
+	"properties": {
+		"email": { "type": "string", "format": "email" },
+		"text_template": { "type": "string", "minLength": 1 },
+		"html_template": { "type": "string", "minLength": 1 },
+		"subject": { "type": "string", "minLength": 1 },
+		"sender": { "type": "string", "minLength": 1 },
+		"reply_to": { "type": "string", "minLength": 1 }
 	}
-
-	return nil
 }
+`
 
 // WelcomeEmailHandler send a dummy welcome email to given email.
 //
@@ -67,8 +74,9 @@ func (payload WelcomeEmailPayload) Validate() error {
 //  }
 //  EOF
 type WelcomeEmailHandler struct {
-	RequireAuthz       handler.RequireAuthz `dependency:"RequireAuthz"`
-	WelcomeEmailSender welcemail.TestSender `dependency:"TestWelcomeEmailSender"`
+	RequireAuthz       handler.RequireAuthz  `dependency:"RequireAuthz"`
+	Validator          *validation.Validator `dependency:"Validator"`
+	WelcomeEmailSender welcemail.TestSender  `dependency:"TestWelcomeEmailSender"`
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -78,23 +86,22 @@ func (h WelcomeEmailHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h WelcomeEmailHandler) WithTx() bool {
-	return false
+func (h WelcomeEmailHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
+	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
 }
 
-// DecodeRequest decode request payload
-func (h WelcomeEmailHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := WelcomeEmailPayload{}
-	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
+func (h WelcomeEmailHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload WelcomeEmailPayload
+	if err := handler.BindJSONBody(r, w, h.Validator, "#WelcomeEmailTestRequest", &payload); err != nil {
 		return nil, err
 	}
-
-	return payload, nil
-}
-
-// Handle function handle set disabled request
-func (h WelcomeEmailHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(WelcomeEmailPayload)
 	if err = h.WelcomeEmailSender.Send(
 		payload.Email,
 		payload.TextTemplate,
@@ -103,7 +110,7 @@ func (h WelcomeEmailHandler) Handle(req interface{}) (resp interface{}, err erro
 		payload.Sender,
 		payload.ReplyTo,
 	); err == nil {
-		resp = map[string]string{}
+		resp = struct{}{}
 	}
 
 	return

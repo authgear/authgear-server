@@ -1,9 +1,10 @@
 package password
 
 import (
+	"errors"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type LoginID struct {
@@ -26,16 +27,15 @@ type defaultLoginIDChecker struct {
 }
 
 func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
-	// TODO(error): integrate JSON schema
 	amounts := map[string]int{}
 	for _, loginID := range loginIDs {
 		_, allowed := c.loginIDsKeys[loginID.Key]
 		if !allowed {
-			return skyerr.NewInvalid("login ID key is not allowed")
+			return errors.New("login ID key is not allowed")
 		}
 
 		if loginID.Value == "" {
-			return skyerr.NewInvalid("login ID is empty")
+			return errors.New("login ID is empty")
 		}
 		amounts[loginID.Key]++
 	}
@@ -43,12 +43,12 @@ func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
 	for key, keyConfig := range c.loginIDsKeys {
 		amount := amounts[key]
 		if amount > *keyConfig.Maximum || amount < *keyConfig.Minimum {
-			return skyerr.NewInvalid("login ID is not valid")
+			return errors.New("login ID is not valid")
 		}
 	}
 
 	if len(loginIDs) == 0 {
-		return skyerr.NewInvalid("no login ID is present")
+		return errors.New("no login ID is present")
 	}
 
 	return nil

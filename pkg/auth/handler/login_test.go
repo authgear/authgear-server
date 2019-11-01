@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -30,49 +31,6 @@ import (
 )
 
 func TestLoginHandler(t *testing.T) {
-	Convey("Test LoginRequestPayload", t, func() {
-		Convey("validate valid payload", func() {
-			payload := LoginRequestPayload{
-				LoginIDKey: "username",
-				LoginID:    "john.doe",
-				Password:   "123456",
-			}
-			So(payload.Validate(), ShouldBeNil)
-		})
-
-		Convey("validate payload without login_id", func() {
-			payload := LoginRequestPayload{
-				Password: "123456",
-			}
-			So(payload.Validate(), ShouldBeError)
-		})
-
-		Convey("validate payload without password", func() {
-			payload := LoginRequestPayload{
-				LoginIDKey: "username",
-				LoginID:    "john.doe",
-			}
-			So(payload.Validate(), ShouldBeError)
-		})
-
-		Convey("validate payload without login ID key", func() {
-			payload := LoginRequestPayload{
-				LoginID:  "john.doe",
-				Password: "123456",
-			}
-			So(payload.Validate(), ShouldBeNil)
-		})
-
-		Convey("validate valid payload with realm", func() {
-			payload := LoginRequestPayload{
-				LoginID:  "john.doe",
-				Realm:    "admin",
-				Password: "123456",
-			}
-			So(payload.Validate(), ShouldBeNil)
-		})
-	})
-
 	Convey("Test LoginHandler", t, func() {
 		realTime := timeNow
 		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
@@ -135,6 +93,12 @@ func TestLoginHandler(t *testing.T) {
 		)
 
 		h := &LoginHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			LoginRequestSchema,
+		)
+		h.Validator = validator
+		h.TxContext = db.NewMockTxContext()
 		h.AuthInfoStore = authInfoStore
 		sessionProvider := session.NewMockProvider()
 		sessionWriter := session.NewMockWriter()
@@ -165,69 +129,126 @@ func TestLoginHandler(t *testing.T) {
 		)
 
 		Convey("login user without login ID key", func() {
-			payload := LoginRequestPayload{
-				LoginID:  "john.doe@example.com",
-				Realm:    password.DefaultRealm,
-				Password: "123456",
-			}
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_id": "john.doe@example.com",
+				"password": "123456"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
 
-			_, err := h.Handle(payload)
-			So(err, ShouldBeNil)
+			So(resp.Code, ShouldEqual, 200)
 		})
 
 		Convey("login user with login_id and realm", func() {
-			payload := LoginRequestPayload{
-				LoginID:  "john.doe+1@example.com",
-				Realm:    "admin",
-				Password: "123456",
-			}
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_id": "john.doe+1@example.com",
+				"realm": "admin",
+				"password": "123456"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
 
-			_, err := h.Handle(payload)
-			So(err, ShouldBeNil)
+			So(resp.Code, ShouldEqual, 200)
 		})
 
 		Convey("login user with incorrect realm", func() {
-			payload := LoginRequestPayload{
-				LoginID:  "john.doe+1@example.com",
-				Realm:    password.DefaultRealm,
-				Password: "123456",
-			}
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_id": "john.doe+1@example.com",
+				"password": "123456"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
 
-			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "invalid credentials")
+			So(resp.Code, ShouldEqual, 401)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Unauthorized",
+					"reason": "InvalidCredentials",
+					"message": "invalid credentials",
+					"code": 401
+				}
+			}`)
 		})
 
 		Convey("login user with incorrect password", func() {
-			payload := LoginRequestPayload{
-				LoginIDKey: "email",
-				LoginID:    "john.doe@example.com",
-				Realm:      password.DefaultRealm,
-				Password:   "wrong_password",
-			}
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_id": "john.doe@example.com",
+				"password": "wrong_password"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
 
-			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "invalid credentials")
+			So(resp.Code, ShouldEqual, 401)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Unauthorized",
+					"reason": "InvalidCredentials",
+					"message": "invalid credentials",
+					"code": 401
+				}
+			}`)
 		})
 
 		Convey("login with incorrect login_id", func() {
-			payload := LoginRequestPayload{
-				LoginIDKey: "phone",
-				LoginID:    "202-111-2222",
-				Realm:      password.DefaultRealm,
-				Password:   "123456",
-			}
-			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "login ID key is not allowed")
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_id_key": "phone",
+				"login_id": "202-111-2222",
+				"password": "123456"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "General", "message": "login ID key is not allowed", "pointer": "/login_id" }
+						]
+					}
+				}
+			}`)
 		})
 
 		Convey("login with disallowed realm", func() {
-			payload := LoginRequestPayload{
-				LoginID:  "john.doe+1@example.com",
-				Realm:    "test",
-				Password: "123456",
-			}
-			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "realm is not allowed")
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_id": "john.doe+1@example.com",
+				"realm": "test",
+				"password": "123456"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "General", "message": "realm is not a valid realm", "pointer": "/realm" }
+						]
+					}
+				}
+			}`)
 		})
 
 		Convey("log audit trail when login success", func() {
@@ -311,8 +332,12 @@ func TestLoginHandler(t *testing.T) {
 		)
 
 		lh := &LoginHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			LoginRequestSchema,
+		)
+		lh.Validator = validator
 		lh.AuthInfoStore = authInfoStore
-
 		lh.PasswordAuthProvider = passwordAuthProvider
 		identityProvider := principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
 		lh.AuditTrail = coreAudit.NewMockTrail(t)

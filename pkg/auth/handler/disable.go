@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -17,7 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 // AttachSetDisableHandler attaches SetDisableHandler to server
@@ -41,7 +42,7 @@ func (f SetDisableHandlerFactory) NewHandler(request *http.Request) http.Handler
 	h := &SetDisableHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type setDisableUserPayload struct {
@@ -52,27 +53,31 @@ type setDisableUserPayload struct {
 	expiry       *time.Time
 }
 
+func (p *setDisableUserPayload) SetDefaultValue() {
+	if p.ExpiryString != "" {
+		expiry, err := time.Parse(time.RFC3339, p.ExpiryString)
+		if err != nil {
+			// should be already validated, so panic if unexpected.
+			panic(err)
+		}
+		p.expiry = &expiry
+	}
+}
+
 // @JSONSchema
 const SetDisableRequestSchema = `
 {
 	"$id": "#SetDisableRequest",
 	"type": "object",
 	"properties": {
-		"auth_id": { "type": "string" },
+		"user_id": { "type": "string", "minLength": 1 },
 		"disabled": { "type": "boolean" },
-		"message": { "type": "string" },
-		"expiry": { "type": "string" }
-	}
+		"message": { "type": "string", "minLength": 1 },
+		"expiry": { "type": "string", "format": "date-time" }
+	},
+	"required": ["user_id", "disabled"]
 }
 `
-
-func (payload setDisableUserPayload) Validate() error {
-	if payload.UserID == "" {
-		// TODO(error): JSON schema
-		return skyerr.NewInvalid("invalid user ID")
-	}
-	return nil
-}
 
 /*
 	@Operation POST /disable/set - Set user disabled status
@@ -109,12 +114,14 @@ func (payload setDisableUserPayload) Validate() error {
 		@Callback user_sync {UserSyncEvent}
 */
 type SetDisableHandler struct {
-	RequireAuthz     handler.RequireAuthz `dependency:"RequireAuthz"`
-	AuthInfoStore    authinfo.Store       `dependency:"AuthInfoStore"`
-	UserProfileStore userprofile.Store    `dependency:"UserProfileStore"`
-	AuditTrail       audit.Trail          `dependency:"AuditTrail"`
-	HookProvider     hook.Provider        `dependency:"HookProvider"`
-	TxContext        db.TxContext         `dependency:"TxContext"`
+	Validator        *validation.Validator  `dependency:"Validator"`
+	AuthContext      coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	RequireAuthz     handler.RequireAuthz   `dependency:"RequireAuthz"`
+	AuthInfoStore    authinfo.Store         `dependency:"AuthInfoStore"`
+	UserProfileStore userprofile.Store      `dependency:"UserProfileStore"`
+	AuditTrail       audit.Trail            `dependency:"AuditTrail"`
+	HookProvider     hook.Provider          `dependency:"HookProvider"`
+	TxContext        db.TxContext           `dependency:"TxContext"`
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -125,76 +132,66 @@ func (h SetDisableHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h SetDisableHandler) WithTx() bool {
-	return true
-}
-
-// DecodeRequest decode request payload
-func (h SetDisableHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := setDisableUserPayload{}
-	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
-		return nil, err
-	}
-
-	if payload.ExpiryString != "" {
-		if expiry, err := time.Parse(time.RFC3339, payload.ExpiryString); err == nil {
-			payload.expiry = &expiry
-		} else {
-			// TODO(error): JSON schema
-			return nil, skyerr.NewInvalid("invalid expiry")
-		}
-	}
-
-	return payload, nil
-}
-
-// Handle function handle set disabled request
-func (h SetDisableHandler) Handle(req interface{}) (resp interface{}, err error) {
-	p := req.(setDisableUserPayload)
-
-	info := authinfo.AuthInfo{}
-	if err = h.AuthInfoStore.GetAuth(p.UserID, &info); err != nil {
-		return
-	}
-
-	profile, err := h.UserProfileStore.GetUserProfile(info.ID)
-	if err != nil {
-		return
-	}
-
-	oldUser := authModel.NewUser(info, profile)
-
-	info.Disabled = p.Disabled
-	if !info.Disabled {
-		info.DisabledMessage = ""
-		info.DisabledExpiry = nil
+func (h SetDisableHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	result, err := h.Handle(w, r)
+	if err == nil {
+		handler.WriteResponse(w, handler.APIResponse{Result: result})
 	} else {
-		info.DisabledMessage = p.Message
-		info.DisabledExpiry = p.expiry
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
 	}
+}
 
-	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
+func (h SetDisableHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload setDisableUserPayload
+	if err = handler.BindJSONBody(r, w, h.Validator, "#SetDisableRequest", &payload); err != nil {
 		return
 	}
 
-	user := authModel.NewUser(info, profile)
+	err = hook.WithTx(h.HookProvider, h.TxContext, func() error {
+		info := authinfo.AuthInfo{}
+		if err = h.AuthInfoStore.GetAuth(payload.UserID, &info); err != nil {
+			return err
+		}
 
-	err = h.HookProvider.DispatchEvent(
-		event.UserUpdateEvent{
-			Reason:     event.UserUpdateReasonAdministrative,
-			User:       oldUser,
-			IsDisabled: &p.Disabled,
-		},
-		&user,
-	)
-	if err != nil {
-		return
-	}
+		profile, err := h.UserProfileStore.GetUserProfile(info.ID)
+		if err != nil {
+			return err
+		}
 
-	h.logAuditTrail(p)
+		oldUser := authModel.NewUser(info, profile)
 
-	resp = map[string]string{}
+		info.Disabled = payload.Disabled
+		if !info.Disabled {
+			info.DisabledMessage = ""
+			info.DisabledExpiry = nil
+		} else {
+			info.DisabledMessage = payload.Message
+			info.DisabledExpiry = payload.expiry
+		}
 
+		if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
+			return err
+		}
+
+		user := authModel.NewUser(info, profile)
+
+		err = h.HookProvider.DispatchEvent(
+			event.UserUpdateEvent{
+				Reason:     event.UserUpdateReasonAdministrative,
+				User:       oldUser,
+				IsDisabled: &payload.Disabled,
+			},
+			&user,
+		)
+		if err != nil {
+			return err
+		}
+
+		h.logAuditTrail(payload)
+
+		resp = struct{}{}
+		return nil
+	})
 	return
 }
 

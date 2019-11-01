@@ -9,6 +9,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
@@ -18,7 +19,11 @@ import (
 func TestRefreshHandler(t *testing.T) {
 	Convey("RefreshHandler", t, func() {
 		h := &RefreshHandler{}
-
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			RefreshRequestSchema,
+		)
+		h.Validator = validator
 		h.TxContext = db.NewMockTxContext()
 		sessionProvider := session.NewMockProvider()
 		h.SessionProvider = sessionProvider

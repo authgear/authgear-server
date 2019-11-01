@@ -20,7 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 // AttachLoginHandler attach login handler to server
@@ -52,6 +52,39 @@ type LoginRequestPayload struct {
 	LoginID    string `json:"login_id"`
 	Realm      string `json:"realm"`
 	Password   string `json:"password"`
+
+	PasswordAuthProvider password.Provider `json:"-"`
+}
+
+func (p *LoginRequestPayload) SetDefaultValue() {
+	if p.Realm == "" {
+		p.Realm = password.DefaultRealm
+	}
+}
+
+func (p *LoginRequestPayload) Validate() []validation.ErrorCause {
+	if p.LoginIDKey != "" {
+		loginIDs := []password.LoginID{
+			password.LoginID{Key: p.LoginIDKey, Value: p.LoginID},
+		}
+		if err := p.PasswordAuthProvider.ValidateLoginIDs(loginIDs); err != nil {
+			return []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Pointer: "/login_id",
+				Message: err.Error(),
+			}}
+		}
+	}
+
+	if !p.PasswordAuthProvider.IsRealmValid(p.Realm) {
+		return []validation.ErrorCause{{
+			Kind:    validation.ErrorGeneral,
+			Pointer: "/realm",
+			Message: "realm is not a valid realm",
+		}}
+	}
+
+	return nil
 }
 
 // @JSONSchema
@@ -60,27 +93,14 @@ const LoginRequestSchema = `
 	"$id": "#LoginRequest",
 	"type": "object",
 	"properties": {
-		"login_id_key": { "type": "string" },
-		"login_id": { "type": "string" },
-		"realm": { "type": "string" },
-		"password": { "type": "string" }
-	}
+		"login_id_key": { "type": "string", "minLength": 1 },
+		"login_id": { "type": "string", "minLength": 1 },
+		"realm": { "type": "string", "minLength": 1 },
+		"password": { "type": "string", "minLength": 1 }
+	},
+	"required": ["login_id", "password"]
 }
 `
-
-// Validate request payload
-func (p LoginRequestPayload) Validate() error {
-	// TODO(error): JSON schema
-	if p.LoginID == "" {
-		return skyerr.NewInvalid("empty login ID")
-	}
-
-	if p.Password == "" {
-		return skyerr.NewInvalid("empty password")
-	}
-
-	return nil
-}
 
 /*
 	@Operation POST /login - Login using password
@@ -101,6 +121,7 @@ func (p LoginRequestPayload) Validate() error {
 */
 type LoginHandler struct {
 	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
+	Validator            *validation.Validator `dependency:"Validator"`
 	AuthInfoStore        authinfo.Store        `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider     `dependency:"PasswordAuthProvider"`
 	AuditTrail           audit.Trail           `dependency:"AuditTrail"`
@@ -117,16 +138,8 @@ func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
 
 // DecodeRequest decode request payload
 func (h LoginHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload LoginRequestPayload, err error) {
-	err = handler.DecodeJSONBody(request, resp, &payload)
-
-	if err != nil {
-		return
-	}
-
-	if payload.Realm == "" {
-		payload.Realm = password.DefaultRealm
-	}
-
+	payload.PasswordAuthProvider = h.PasswordAuthProvider
+	err = handler.BindJSONBody(request, resp, h.Validator, "#LoginRequest", &payload)
 	return
 }
 
@@ -139,21 +152,11 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err = payload.Validate(); err != nil {
-		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
-		return
-	}
-
-	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+	var result interface{}
+	err = hook.WithTx(h.HookProvider, h.TxContext, func() (err error) {
 		result, err = h.Handle(payload)
-		if err == nil {
-			err = h.HookProvider.WillCommitTx()
-		}
 		return
 	})
-	if err == nil {
-		h.HookProvider.DidCommitTx()
-	}
 	h.AuthnSessionProvider.WriteResponse(resp, result, err)
 }
 
@@ -174,21 +177,6 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 			})
 		}
 	}()
-
-	if payload.LoginIDKey != "" {
-		loginIDs := []password.LoginID{
-			password.LoginID{Key: payload.LoginIDKey, Value: payload.LoginID},
-		}
-		if err = h.PasswordAuthProvider.ValidateLoginIDs(loginIDs); err != nil {
-			return
-		}
-	}
-
-	if valid := h.PasswordAuthProvider.IsRealmValid(payload.Realm); !valid {
-		// TODO(error): validation
-		err = skyerr.NewInvalid("realm is not allowed")
-		return
-	}
 
 	principal, err := h.getPrincipal(payload.Password, payload.LoginIDKey, payload.LoginID, payload.Realm)
 	if err != nil {

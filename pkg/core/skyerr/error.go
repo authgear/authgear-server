@@ -114,6 +114,10 @@ func NewInvalid(msg string) error {
 	return Invalid.WithReason(string(Invalid)).New(msg)
 }
 
+func NewForbidden(msg string) error {
+	return Forbidden.WithReason(string(Forbidden)).New(msg)
+}
+
 func NewInternalError(msg string) error {
 	return InternalError.WithReason(string(InternalError)).New(msg)
 }

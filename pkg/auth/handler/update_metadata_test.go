@@ -18,8 +18,8 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -36,6 +36,11 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		userID := "john.doe.id"
 
 		uh := &UpdateMetadataHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			UpdateMetadataRequestSchema,
+		)
+		uh.Validator = validator
 		uh.AuthContext = authtest.NewMockContext().
 			UseUser(userID, "john.doe.principal.id0").
 			MarkVerified()
@@ -85,7 +90,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		uh.HookProvider = hookProvider
 		uh.TxContext = db.NewMockTxContext()
-		h := handler.APIHandlerToHandler(uh, uh.TxContext)
 
 		Convey("should update metadata", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -98,7 +102,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			uh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -152,7 +156,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			uh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -182,7 +186,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp = httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			uh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -214,16 +218,16 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			uh.ServeHTTP(resp, req)
 
-			So(resp.Code, ShouldEqual, 400)
+			So(resp.Code, ShouldEqual, 403)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"name": "Invalid",
-					"reason": "Invalid",
+					"name": "Forbidden",
+					"reason": "Forbidden",
 					"message": "must not specify user_id",
-					"code": 400
+					"code": 403
 				}
 			}`)
 		})
@@ -234,6 +238,11 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		userID := "john.doe.id"
 
 		uh := &UpdateMetadataHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			UpdateMetadataRequestSchema,
+		)
+		uh.Validator = validator
 		uh.AuthContext = authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified().
@@ -280,7 +289,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		uh.PasswordAuthProvider = passwordAuthProvider
 		uh.TxContext = db.NewMockTxContext()
 		uh.HookProvider = hook.NewMockProvider()
-		h := handler.APIHandlerToHandler(uh, uh.TxContext)
 
 		Convey("able to update another user's metadata", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(fmt.Sprintf(`
@@ -295,7 +303,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 				userID)))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			uh.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
