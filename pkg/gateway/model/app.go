@@ -8,7 +8,8 @@ type Gear string
 
 // Gear constant specific gear name
 const (
-	AuthGear Gear = "auth"
+	AuthGear  Gear = "auth"
+	AssetGear Gear = "asset"
 )
 
 type GearVersion string
@@ -38,6 +39,8 @@ func (a *App) GetGearVersion(gear Gear) GearVersion {
 	switch gear {
 	case AuthGear:
 		return a.AuthVersion
+	case AssetGear:
+		return LiveVersion
 	default:
 		return SuspendedVersion
 	}
