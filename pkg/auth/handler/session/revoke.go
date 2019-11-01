@@ -88,8 +88,7 @@ type RevokeHandler struct {
 func (h RevokeHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
+		policy.RequireValidUser,
 	)
 }
 
