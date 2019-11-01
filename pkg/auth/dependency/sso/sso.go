@@ -136,7 +136,8 @@ type ProviderFactory struct {
 
 func NewProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider) *ProviderFactory {
 	return &ProviderFactory{
-		tenantConfig: tenantConfig,
+		tenantConfig:      tenantConfig,
+		urlPrefixProvider: urlPrefixProvider,
 	}
 }
 

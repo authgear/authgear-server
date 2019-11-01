@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -48,8 +49,9 @@ type WelcomeEmailSendTask struct {
 }
 
 type WelcomeEmailSendTaskParam struct {
-	Email string
-	User  model.User
+	URLPrefix *url.URL
+	Email     string
+	User      model.User
 }
 
 func (w *WelcomeEmailSendTask) WithTx() bool {
@@ -61,7 +63,7 @@ func (w *WelcomeEmailSendTask) Run(param interface{}) (err error) {
 
 	w.Logger.WithFields(logrus.Fields{"user_id": taskParam.User.ID}).Debug("Sending welcome email")
 
-	if err = w.WelcomeEmailSender.Send(taskParam.Email, taskParam.User); err != nil {
+	if err = w.WelcomeEmailSender.Send(taskParam.URLPrefix, taskParam.Email, taskParam.User); err != nil {
 		err = errors.WithDetails(err, errors.Details{"user_id": taskParam.User.ID})
 		return
 	}

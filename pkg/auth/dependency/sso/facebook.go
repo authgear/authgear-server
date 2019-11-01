@@ -40,6 +40,7 @@ func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthI
 
 func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
+		urlPrefix:      f.URLPrefix,
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: facebookTokenURL,
@@ -55,6 +56,7 @@ func (f *FacebookImpl) DecodeState(encodedState string) (*State, error) {
 
 func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
+		urlPrefix:      f.URLPrefix,
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: facebookTokenURL,

@@ -105,6 +105,7 @@ type AuthHandler struct {
 	OAuthConfiguration             config.OAuthConfiguration   `dependency:"OAuthConfiguration"`
 	WelcomeEmailEnabled            bool                        `dependency:"WelcomeEmailEnabled"`
 	TaskQueue                      async.Queue                 `dependency:"AsyncTaskQueue"`
+	URLPrefix                      *url.URL                    `dependency:"URLPrefix"`
 	Provider                       sso.OAuthProvider
 	ProviderID                     string
 }
@@ -225,6 +226,7 @@ func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (resp i
 		HookProvider:         h.HookProvider,
 		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
 		TaskQueue:            h.TaskQueue,
+		URLPrefix:            h.URLPrefix,
 	}
 
 	if state.Action == "login" {

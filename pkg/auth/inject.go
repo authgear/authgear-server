@@ -315,7 +315,7 @@ func (m DependencyMap) Provide(
 	case "WelcomeEmailDestination":
 		return tConfig.UserConfig.WelcomeEmail.Destination
 	case "WelcomeEmailSender":
-		return welcemail.NewDefaultSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender(), newTemplateEngine())
+		return welcemail.NewDefaultSender(tConfig, newMailSender(), newTemplateEngine())
 	case "TestWelcomeEmailSender":
 		return welcemail.NewDefaultTestSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender())
 	case "IFrameHTMLProvider":
@@ -323,7 +323,6 @@ func (m DependencyMap) Provide(
 	case "UserVerifyCodeSenderFactory":
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(
 			tConfig,
-			urlprefix.NewProvider(request).Value(),
 			newTemplateEngine(),
 			newMailSender(),
 			newSMSClient(),
@@ -380,6 +379,8 @@ func (m DependencyMap) Provide(
 		return tConfig.UserConfig.MFA
 	case "APIClientConfigurationProvider":
 		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
+	case "URLPrefix":
+		return urlprefix.NewProvider(request).Value()
 	default:
 		return nil
 	}

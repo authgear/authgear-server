@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/sirupsen/logrus"
 
@@ -166,6 +167,7 @@ type SignupHandler struct {
 	Logger                  *logrus.Entry                                      `dependency:"HandlerLogger"`
 	TaskQueue               async.Queue                                        `dependency:"AsyncTaskQueue"`
 	HookProvider            hook.Provider                                      `dependency:"HookProvider"`
+	URLPrefix               *url.URL                                           `dependency:"URLPrefix"`
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
@@ -395,8 +397,9 @@ func (h SignupHandler) sendWelcomeEmail(user model.User, loginIDs []password.Log
 	for _, loginID := range destinationLoginIDs {
 		email := loginID.Value
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
-			Email: email,
-			User:  user,
+			URLPrefix: h.URLPrefix,
+			Email:     email,
+			User:      user,
 		}, nil)
 	}
 }
@@ -406,8 +409,9 @@ func (h SignupHandler) sendUserVerifyRequest(user model.User, loginIDs []passwor
 		for key := range h.UserVerifyLoginIDKeys {
 			if key == loginID.Key {
 				h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
-					LoginID: loginID.Value,
-					UserID:  user.ID,
+					URLPrefix: h.URLPrefix,
+					LoginID:   loginID.Value,
+					UserID:    user.ID,
 				}, nil)
 			}
 		}

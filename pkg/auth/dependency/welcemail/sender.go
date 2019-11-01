@@ -12,12 +12,11 @@ import (
 )
 
 type Sender interface {
-	Send(email string, user model.User) error
+	Send(urlPrefix *url.URL, email string, user model.User) error
 }
 
 type DefaultSender struct {
 	AppName        string
-	URLPrefix      *url.URL
 	Config         config.WelcomeEmailConfiguration
 	Sender         mail.Sender
 	TemplateEngine *template.Engine
@@ -25,25 +24,23 @@ type DefaultSender struct {
 
 func NewDefaultSender(
 	config config.TenantConfiguration,
-	urlPrefix *url.URL,
 	sender mail.Sender,
 	templateEngine *template.Engine,
 ) Sender {
 	return &DefaultSender{
 		AppName:        config.AppName,
-		URLPrefix:      urlPrefix,
 		Config:         config.UserConfig.WelcomeEmail,
 		Sender:         sender,
 		TemplateEngine: templateEngine,
 	}
 }
 
-func (d *DefaultSender) Send(email string, user model.User) (err error) {
+func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) (err error) {
 	context := map[string]interface{}{
 		"appname":    d.AppName,
 		"email":      email,
 		"user":       user,
-		"url_prefix": d.URLPrefix.String(),
+		"url_prefix": urlPrefix.String(),
 	}
 
 	var textBody string

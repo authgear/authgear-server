@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"net/url"
 
 	"github.com/sirupsen/logrus"
 
@@ -55,8 +56,9 @@ type VerifyCodeSendTask struct {
 }
 
 type VerifyCodeSendTaskParam struct {
-	LoginID string
-	UserID  string
+	URLPrefix *url.URL
+	LoginID   string
+	UserID    string
 }
 
 func (v *VerifyCodeSendTask) WithTx() bool {
@@ -105,7 +107,7 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 		return
 	}
 
-	codeSender := v.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
+	codeSender := v.CodeSenderFactory.NewCodeSender(taskParam.URLPrefix, userPrincipal.LoginIDKey)
 	user := model.NewUser(authInfo, userProfile)
 	if err = codeSender.Send(*verifyCode, user); err != nil {
 		err = errors.WithDetails(err, errors.Details{"user_id": userID})

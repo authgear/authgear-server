@@ -40,6 +40,7 @@ func (f *InstagramImpl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo Auth
 
 func (f *InstagramImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
+		urlPrefix:      f.URLPrefix,
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: instagramTokenURL,
@@ -50,6 +51,7 @@ func (f *InstagramImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse
 }
 func (f *InstagramImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
+		urlPrefix:      f.URLPrefix,
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: instagramTokenURL,

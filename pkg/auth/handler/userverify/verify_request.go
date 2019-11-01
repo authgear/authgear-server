@@ -2,6 +2,7 @@ package userverify
 
 import (
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -123,6 +124,7 @@ type VerifyRequestHandler struct {
 	AuthContext              coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
 	RequireAuthz             handler.RequireAuthz         `dependency:"RequireAuthz"`
 	CodeSenderFactory        userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
+	URLPrefix                *url.URL                     `dependency:"URLPrefix"`
 	UserVerificationProvider userverify.Provider          `dependency:"UserVerificationProvider"`
 	UserProfileStore         userprofile.Store            `dependency:"UserProfileStore"`
 	PasswordAuthProvider     password.Provider            `dependency:"PasswordAuthProvider"`
@@ -188,7 +190,7 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	codeSender := h.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
+	codeSender := h.CodeSenderFactory.NewCodeSender(h.URLPrefix, userPrincipal.LoginIDKey)
 	user := model.NewUser(*authInfo, userProfile)
 	if err = codeSender.Send(*verifyCode, user); err != nil {
 		return
