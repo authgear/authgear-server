@@ -21,6 +21,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachAuthURLHandler(
@@ -101,13 +102,15 @@ type ssoOnUserDuplicate string
 */
 const AuthURLRequestSchema = `
 {
+	"$id": "#AuthURLRequest",
 	"type": "object",
 	"properties": {
-		"callback_url": { "type": "string" },
-		"ux_mode": { "type": "string" },
-		"merge_realm": { "type": "string" },
-		"on_user_duplicate": { "type": "string" }
-	}
+		"callback_url": { "type": "string", "format": "uri" },
+		"ux_mode": { "type": "string", "enum": ["web_redirect", "web_popup", "mobile_app"] },
+		"merge_realm": { "type": "string", "minLength": 1 },
+		"on_user_duplicate": {"type": "string", "enum": ["abort", "merge", "create"] }
+	},
+	"required": ["callback_url", "ux_mode"]
 }
 `
 
@@ -136,24 +139,51 @@ type AuthURLRequestPayload struct {
 	UXMode          sso.UXMode            `json:"ux_mode"`
 	MergeRealm      string                `json:"merge_realm"`
 	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
+
+	PasswordAuthProvider password.Provider         `json:"-"`
+	OAuthConfiguration   config.OAuthConfiguration `json:"-"`
 }
 
-func (p AuthURLRequestPayload) Validate() (err error) {
-	// TODO(error): JSON schema
-	if p.CallbackURL == "" {
-		err = skyerr.NewInvalid("callback url is required")
-		return
-	}
-	if !sso.IsValidUXMode(p.UXMode) {
-		err = skyerr.NewInvalid("invalid UX mode")
-		return
+func (p *AuthURLRequestPayload) SetDefaultValue() {
+	if p.MergeRealm == "" {
+		p.MergeRealm = password.DefaultRealm
 	}
 
-	if !model.IsValidOnUserDuplicateForSSO(p.OnUserDuplicate) {
-		err = skyerr.NewInvalid("invalid OnUserDuplicate")
-		return
+	if p.OnUserDuplicate == "" {
+		p.OnUserDuplicate = model.OnUserDuplicateDefault
 	}
-	return
+}
+
+func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
+	if !p.PasswordAuthProvider.IsRealmValid(p.MergeRealm) {
+		return []validation.ErrorCause{{
+			Kind:    validation.ErrorGeneral,
+			Pointer: "/merge_realm",
+			Message: "merge_realm is not a valid realm",
+		}}
+	}
+
+	if !model.IsAllowedOnUserDuplicate(
+		p.OAuthConfiguration.OnUserDuplicateAllowMerge,
+		p.OAuthConfiguration.OnUserDuplicateAllowCreate,
+		p.OnUserDuplicate,
+	) {
+		return []validation.ErrorCause{{
+			Kind:    validation.ErrorGeneral,
+			Pointer: "/on_user_duplicate",
+			Message: "on_user_duplicate is not allowed",
+		}}
+	}
+
+	if err := sso.ValidateCallbackURL(p.OAuthConfiguration.AllowedCallbackURLs, p.CallbackURL); err != nil {
+		return []validation.ErrorCause{{
+			Kind:    validation.ErrorGeneral,
+			Pointer: "/callback_url",
+			Message: "callback_url is not allowed",
+		}}
+	}
+
+	return nil
 }
 
 /*
@@ -235,6 +265,7 @@ func (p AuthURLRequestPayload) Validate() (err error) {
 */
 type AuthURLHandler struct {
 	TxContext                      db.TxContext              `dependency:"TxContext"`
+	Validator                      *validation.Validator     `dependency:"Validator"`
 	AuthContext                    coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
 	RequireAuthz                   handler.RequireAuthz      `dependency:"RequireAuthz"`
 	APIClientConfigurationProvider apiclientconfig.Provider  `dependency:"APIClientConfigurationProvider"`
@@ -270,9 +301,16 @@ func (h *AuthURLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
+	if h.Provider == nil {
+		err = skyerr.NewNotFound("unknown provider")
+		return
+	}
+
 	payload := AuthURLRequestPayload{}
+	payload.PasswordAuthProvider = h.PasswordAuthProvider
+	payload.OAuthConfiguration = h.OAuthConfiguration
 	if r.Method == http.MethodPost {
-		err = handler.DecodeJSONBody(r, w, &payload)
+		err = handler.BindJSONBody(r, w, h.Validator, "#AuthURLRequest", &payload)
 		if err != nil {
 			return
 		}
@@ -281,48 +319,30 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		if err != nil {
 			return
 		}
+
+		params := map[string]string{}
+		for k, v := range r.Form {
+			if len(v) == 0 {
+				continue
+			}
+			params[k] = v[0]
+		}
+		err = h.Validator.WithMessage("invalid parameters").ValidateGoValue("#AuthURLRequest", params)
+		if err != nil {
+			return
+		}
+
 		payload.CallbackURL = r.Form.Get("callback_url")
 		payload.UXMode = sso.UXMode(r.Form.Get("ux_mode"))
 		payload.MergeRealm = r.Form.Get("merge_realm")
 		payload.OnUserDuplicate = model.OnUserDuplicate(r.Form.Get("on_user_duplicate"))
-	}
 
-	if payload.MergeRealm == "" {
-		payload.MergeRealm = password.DefaultRealm
-	}
-
-	if payload.OnUserDuplicate == "" {
-		payload.OnUserDuplicate = model.OnUserDuplicateDefault
-	}
-
-	err = payload.Validate()
-	if err != nil {
-		return
-	}
-
-	if h.Provider == nil {
-		err = skyerr.NewNotFound("unknown provider")
-		return
-	}
-
-	if !h.PasswordAuthProvider.IsRealmValid(payload.MergeRealm) {
-		// TODO(error): JSON schema
-		err = skyerr.NewInvalid("invalid MergeRealm")
-		return
-	}
-
-	if !model.IsAllowedOnUserDuplicate(
-		h.OAuthConfiguration.OnUserDuplicateAllowMerge,
-		h.OAuthConfiguration.OnUserDuplicateAllowCreate,
-		payload.OnUserDuplicate,
-	) {
-		// TODO(error): JSON schema
-		err = skyerr.NewInvalid("disallowed OnUserDuplicate")
-		return
-	}
-
-	if err = sso.ValidateCallbackURL(h.OAuthConfiguration.AllowedCallbackURLs, payload.CallbackURL); err != nil {
-		return
+		payload.SetDefaultValue()
+		causes := payload.Validate()
+		if len(causes) > 0 {
+			err = validation.NewValidationFailed("invalid parameters", causes)
+			return
+		}
 	}
 
 	// Always generate a new nonce to ensure it is unpredictable.

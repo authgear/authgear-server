@@ -25,6 +25,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachLoginHandler(
@@ -57,34 +58,28 @@ type LoginRequestPayload struct {
 	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 }
 
+func (p *LoginRequestPayload) SetDefaultValue() {
+	if p.MergeRealm == "" {
+		p.MergeRealm = password.DefaultRealm
+	}
+	if p.OnUserDuplicate == "" {
+		p.OnUserDuplicate = model.OnUserDuplicateDefault
+	}
+}
+
 // @JSONSchema
 const LoginRequestSchema = `
 {
 	"$id": "#SSOLoginRequest",
 	"type": "object",
 	"properties": {
-		"access_token": { "type": "string" },
-		"merge_realm": { "type": "string" },
-		"on_user_duplicate": { "type": "string" }
-	}
+		"access_token": { "type": "string", "minLength": 1 },
+		"merge_realm": { "type": "string", "minLength": 1 },
+		"on_user_duplicate": {"type": "string", "enum": ["abort", "merge", "create"] }
+	},
+	"required": ["access_token"]
 }
 `
-
-// Validate request payload
-func (p LoginRequestPayload) Validate() (err error) {
-	// TODO(error): JSON schema
-	if p.AccessToken == "" {
-		err = skyerr.NewInvalid("empty access token")
-		return
-	}
-
-	if !model.IsValidOnUserDuplicateForSSO(p.OnUserDuplicate) {
-		err = skyerr.NewInvalid("invalid OnUserDuplicate")
-		return
-	}
-
-	return
-}
 
 /*
 	@Operation POST /sso/{provider_id}/login - Login SSO provider with token
@@ -105,6 +100,7 @@ func (p LoginRequestPayload) Validate() (err error) {
 */
 type LoginHandler struct {
 	TxContext            db.TxContext               `dependency:"TxContext"`
+	Validator            *validation.Validator      `dependency:"Validator"`
 	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	OAuthAuthProvider    oauth.Provider             `dependency:"OAuthAuthProvider"`
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
@@ -125,22 +121,8 @@ func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
-func (h LoginHandler) WithTx() bool {
-	return true
-}
-
 func (h LoginHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload LoginRequestPayload, err error) {
-	err = handler.DecodeJSONBody(request, resp, &payload)
-	if err != nil {
-		return
-	}
-
-	if payload.MergeRealm == "" {
-		payload.MergeRealm = password.DefaultRealm
-	}
-	if payload.OnUserDuplicate == "" {
-		payload.OnUserDuplicate = model.OnUserDuplicateDefault
-	}
+	err = handler.BindJSONBody(request, resp, h.Validator, "#SSOLoginRequest", &payload)
 	return
 }
 
@@ -153,21 +135,11 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err = payload.Validate(); err != nil {
-		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
-		return
-	}
-
-	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+	var result interface{}
+	err = hook.WithTx(h.HookProvider, h.TxContext, func() (err error) {
 		result, err = h.Handle(payload)
-		if err == nil {
-			err = h.HookProvider.WillCommitTx()
-		}
 		return
 	})
-	if err == nil {
-		h.HookProvider.DidCommitTx()
-	}
 	h.AuthnSessionProvider.WriteResponse(resp, result, err)
 }
 

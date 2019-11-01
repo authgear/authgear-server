@@ -28,6 +28,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 // AttachCustomTokenLoginHandler attaches CustomTokenLoginHandler to server
@@ -54,12 +55,19 @@ func (f CustomTokenLoginHandlerFactory) NewHandler(request *http.Request) http.H
 }
 
 type CustomTokenLoginPayload struct {
-	TokenString      string                           `json:"token"`
-	MergeRealm       string                           `json:"merge_realm"`
-	OnUserDuplicate  model.OnUserDuplicate            `json:"on_user_duplicate"`
-	Claims           customtoken.SSOCustomTokenClaims `json:"-"`
-	ExpectedIssuer   string                           `json:"-"`
-	ExpectedAudience string                           `json:"-"`
+	TokenString     string                           `json:"token"`
+	MergeRealm      string                           `json:"merge_realm"`
+	OnUserDuplicate model.OnUserDuplicate            `json:"on_user_duplicate"`
+	Claims          customtoken.SSOCustomTokenClaims `json:"-"`
+}
+
+func (p *CustomTokenLoginPayload) SetDefaultValue() {
+	if p.MergeRealm == "" {
+		p.MergeRealm = password.DefaultRealm
+	}
+	if p.OnUserDuplicate == "" {
+		p.OnUserDuplicate = model.OnUserDuplicateDefault
+	}
 }
 
 // nolint: gosec
@@ -69,25 +77,13 @@ const CustomTokenLoginRequestSchema = `
 	"$id": "#CustomTokenLoginRequest",
 	"type": "object",
 	"properties": {
-		"token": { "type": "string" },
-		"merge_realm": { "type": "string" },
-		"on_user_duplicate": { "type": "string" }
-	}
+		"token": { "type": "string", "minLength": 1 },
+		"merge_realm": { "type": "string", "minLength": 1 },
+		"on_user_duplicate": {"type": "string", "enum": ["abort", "merge", "create"] }
+	},
+	"required": ["token"]
 }
 `
-
-func (payload CustomTokenLoginPayload) Validate() error {
-	// TODO(error): JSON schema
-	if err := payload.Claims.Validate(payload.ExpectedIssuer, payload.ExpectedAudience); err != nil {
-		return sso.NewSSOFailed(sso.SSOUnauthorized, "invalid token")
-	}
-
-	if !model.IsValidOnUserDuplicateForSSO(payload.OnUserDuplicate) {
-		return skyerr.NewInvalid("invalid OnUserDuplicate")
-	}
-
-	return nil
-}
 
 // nolint: gosec
 /*
@@ -132,6 +128,7 @@ func (payload CustomTokenLoginPayload) Validate() error {
 */
 type CustomTokenLoginHandler struct {
 	TxContext                db.TxContext                    `dependency:"TxContext"`
+	Validator                *validation.Validator           `dependency:"Validator"`
 	RequireAuthz             handler.RequireAuthz            `dependency:"RequireAuthz"`
 	AuthnSessionProvider     authnsession.Provider           `dependency:"AuthnSessionProvider"`
 	UserProfileStore         userprofile.Store               `dependency:"UserProfileStore"`
@@ -165,24 +162,20 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request, resp http.
 		}
 	}()
 
-	if err = handler.DecodeJSONBody(request, resp, &payload); err != nil {
+	if err = handler.BindJSONBody(request, resp, h.Validator, "#CustomTokenLoginRequest", &payload); err != nil {
 		return
-	}
-
-	payload.ExpectedIssuer = h.CustomTokenConfiguration.Issuer
-	payload.ExpectedAudience = h.CustomTokenConfiguration.Audience
-
-	if payload.MergeRealm == "" {
-		payload.MergeRealm = password.DefaultRealm
-	}
-
-	if payload.OnUserDuplicate == "" {
-		payload.OnUserDuplicate = model.OnUserDuplicateDefault
 	}
 
 	payload.Claims, err = h.CustomTokenAuthProvider.Decode(payload.TokenString)
 	if err != nil {
-		err = sso.NewSSOFailed(sso.SSOUnauthorized, "invalid token")
+		err = sso.NewSSOFailed(sso.SSOUnauthorized, "unauthorized token")
+		return
+	}
+
+	expectedIssuer := h.CustomTokenConfiguration.Issuer
+	expectedAudience := h.CustomTokenConfiguration.Audience
+	if err = payload.Claims.Validate(expectedIssuer, expectedAudience); err != nil {
+		err = sso.NewSSOFailed(sso.SSOUnauthorized, "unauthorized token")
 		return
 	}
 	return
@@ -197,21 +190,11 @@ func (h CustomTokenLoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.R
 		return
 	}
 
-	if err = payload.Validate(); err != nil {
-		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
-		return
-	}
-
-	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+	var result interface{}
+	err = hook.WithTx(h.HookProvider, h.TxContext, func() (err error) {
 		result, err = h.Handle(payload)
-		if err == nil {
-			err = h.HookProvider.WillCommitTx()
-		}
 		return
 	})
-	if err == nil {
-		h.HookProvider.DidCommitTx()
-	}
 	h.AuthnSessionProvider.WriteResponse(resp, result, err)
 }
 

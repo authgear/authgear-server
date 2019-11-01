@@ -11,11 +11,11 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -23,47 +23,14 @@ import (
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 )
 
-func TestAuthURLPayload(t *testing.T) {
-	Convey("Test AuthURLRequestPayload", t, func() {
-		// callback URL and ux_mode is required
-		Convey("validate valid payload", func() {
-			payload := AuthURLRequestPayload{
-				CallbackURL:     "callbackURL",
-				UXMode:          sso.UXModeWebRedirect,
-				OnUserDuplicate: model.OnUserDuplicateAbort,
-			}
-			So(payload.Validate(), ShouldBeNil)
-		})
-
-		Convey("validate payload without callback url", func() {
-			payload := AuthURLRequestPayload{
-				UXMode:          sso.UXModeWebRedirect,
-				OnUserDuplicate: model.OnUserDuplicateAbort,
-			}
-			So(payload.Validate(), ShouldBeError)
-		})
-
-		Convey("validate payload without UX mode", func() {
-			payload := AuthURLRequestPayload{
-				CallbackURL:     "callbackURL",
-				OnUserDuplicate: model.OnUserDuplicateAbort,
-			}
-			So(payload.Validate(), ShouldBeError)
-		})
-
-		Convey("validate payload without OnUserDuplicate", func() {
-			payload := AuthURLRequestPayload{
-				CallbackURL: "callbackURL",
-				UXMode:      sso.UXModeWebRedirect,
-			}
-			So(payload.Validate(), ShouldBeError)
-		})
-	})
-}
-
 func TestAuthURLHandler(t *testing.T) {
 	Convey("Test TestAuthURLHandler", t, func() {
 		h := &AuthURLHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			AuthURLRequestSchema,
+		)
+		h.Validator = validator
 		h.APIClientConfigurationProvider = apiclientconfig.NewMockProvider("api_key")
 		h.AuthContext = authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
@@ -71,7 +38,7 @@ func TestAuthURLHandler(t *testing.T) {
 		oauthConfig := coreconfig.OAuthConfiguration{
 			StateJWTSecret: "secret",
 			AllowedCallbackURLs: []string{
-				"callbackURL",
+				"http://example.com/sso",
 			},
 		}
 		providerConfig := coreconfig.OAuthProviderConfiguration{
@@ -97,10 +64,32 @@ func TestAuthURLHandler(t *testing.T) {
 		h.Action = "login"
 		h.OAuthConfiguration = oauthConfig
 
+		Convey("should reject without required parameters", func() {
+			req, _ := http.NewRequest("GET", "auth_url", nil)
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid parameters",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "Required", "message": "callback_url is required", "pointer": "/callback_url" },
+							{ "kind": "Required", "message": "ux_mode is required", "pointer": "/ux_mode" }
+						]
+					}
+				}
+			}`)
+		})
+
 		Convey("should return login_auth_url", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"callback_url": "callbackURL",
+				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_redirect"
 			}
 			`))
@@ -138,7 +127,7 @@ func TestAuthURLHandler(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 			So(claims.State.UXMode, ShouldEqual, sso.UXModeWebRedirect)
-			So(claims.State.CallbackURL, ShouldEqual, "callbackURL")
+			So(claims.State.CallbackURL, ShouldEqual, "http://example.com/sso")
 			So(claims.State.Action, ShouldEqual, "login")
 			So(claims.State.UserID, ShouldEqual, "faseng.cat.id")
 		})
@@ -147,7 +136,7 @@ func TestAuthURLHandler(t *testing.T) {
 			h.Action = "link"
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"callback_url": "callbackURL",
+				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_redirect"
 			}
 			`))
@@ -176,7 +165,7 @@ func TestAuthURLHandler(t *testing.T) {
 		Convey("should reject invalid realm", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"callback_url": "http://localhost:3000",
+				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_popup",
 				"merge_realm": "nonsense"
 			}
@@ -191,18 +180,22 @@ func TestAuthURLHandler(t *testing.T) {
 			{
 				"error": {
 					"name": "Invalid",
-					"reason": "Invalid",
-					"message": "invalid MergeRealm",
-					"code": 400
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "General", "message": "merge_realm is not a valid realm", "pointer": "/merge_realm" }
+						]
+					}
 				}
-			}
-			`)
+			}`)
 		})
 
 		Convey("should reject disallowed OnUserDuplicate", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"callback_url": "http://localhost:3000",
+				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_popup",
 				"on_user_duplicate": "merge"
 			}
@@ -217,12 +210,16 @@ func TestAuthURLHandler(t *testing.T) {
 			{
 				"error": {
 					"name": "Invalid",
-					"reason": "Invalid",
-					"message": "disallowed OnUserDuplicate",
-					"code": 400
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "General", "message": "on_user_duplicate is not allowed", "pointer": "/on_user_duplicate" }
+						]
+					}
 				}
-			}
-			`)
+			}`)
 		})
 	})
 }

@@ -43,7 +43,7 @@ func (f UnlinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 /*
@@ -80,87 +80,94 @@ func (h UnlinkHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h UnlinkHandler) WithTx() bool {
-	return true
-}
-
-func (h UnlinkHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := handler.EmptyRequestPayload{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
-	providerConfig, ok := h.ProviderFactory.GetProviderConfig(h.ProviderID)
-	if !ok {
-		err = skyerr.NewNotFound("unknown SSO provider")
-		return
-	}
-
-	authInfo, _ := h.AuthContext.AuthInfo()
-	sess, _ := h.AuthContext.Session()
-	userID := authInfo.ID
-	principal, err := h.OAuthAuthProvider.GetPrincipalByUser(oauth.GetByUserOptions{
-		ProviderType: string(providerConfig.Type),
-		ProviderKeys: oauth.ProviderKeysFromProviderConfig(providerConfig),
-		UserID:       userID,
-	})
-	if err != nil {
-		return
-	}
-
-	// principalID can be missing
-	principalID := sess.PrincipalID
-	if principalID != "" && principalID == principal.ID {
-		err = authprincipal.ErrCurrentIdentityBeingDeleted
-		return
-	}
-
-	err = h.OAuthAuthProvider.DeletePrincipal(principal)
-	if err != nil {
-		return
-	}
-
-	sessions, err := h.SessionProvider.List(userID)
-	if err != nil {
-		return
-	}
-
-	// filter sessions of deleted principal
-	n := 0
-	for _, session := range sessions {
-		if session.PrincipalID == principal.ID {
-			sessions[n] = session
-			n++
+func (h UnlinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	var payload struct{}
+	if err := handler.DecodeJSONBody(r, w, &payload); err != nil {
+		response.Error = err
+	} else {
+		result, err := h.Handle()
+		if err != nil {
+			response.Error = err
+		} else {
+			response.Result = result
 		}
 	}
-	sessions = sessions[:n]
+	handler.WriteResponse(w, response)
+}
 
-	err = h.SessionProvider.InvalidateBatch(sessions)
-	if err != nil {
-		return
-	}
+func (h UnlinkHandler) Handle() (resp interface{}, err error) {
+	err = hook.WithTx(h.HookProvider, h.TxContext, func() error {
+		providerConfig, ok := h.ProviderFactory.GetProviderConfig(h.ProviderID)
+		if !ok {
+			return skyerr.NewNotFound("unknown SSO provider")
+		}
 
-	var userProfile userprofile.UserProfile
-	userProfile, err = h.UserProfileStore.GetUserProfile(userID)
-	if err != nil {
-		return
-	}
+		authInfo, _ := h.AuthContext.AuthInfo()
+		sess, _ := h.AuthContext.Session()
+		userID := authInfo.ID
+		principal, err := h.OAuthAuthProvider.GetPrincipalByUser(oauth.GetByUserOptions{
+			ProviderType: string(providerConfig.Type),
+			ProviderKeys: oauth.ProviderKeysFromProviderConfig(providerConfig),
+			UserID:       userID,
+		})
+		if err != nil {
+			return err
+		}
 
-	user := model.NewUser(*authInfo, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, principal)
-	err = h.HookProvider.DispatchEvent(
-		event.IdentityDeleteEvent{
-			User:     user,
-			Identity: identity,
-		},
-		&user,
-	)
-	if err != nil {
-		return
-	}
+		// principalID can be missing
+		principalID := sess.PrincipalID
+		if principalID != "" && principalID == principal.ID {
+			err = authprincipal.ErrCurrentIdentityBeingDeleted
+			return err
+		}
 
-	resp = map[string]string{}
+		err = h.OAuthAuthProvider.DeletePrincipal(principal)
+		if err != nil {
+			return err
+		}
 
+		sessions, err := h.SessionProvider.List(userID)
+		if err != nil {
+			return err
+		}
+
+		// filter sessions of deleted principal
+		n := 0
+		for _, session := range sessions {
+			if session.PrincipalID == principal.ID {
+				sessions[n] = session
+				n++
+			}
+		}
+		sessions = sessions[:n]
+
+		err = h.SessionProvider.InvalidateBatch(sessions)
+		if err != nil {
+			return err
+		}
+
+		var userProfile userprofile.UserProfile
+		userProfile, err = h.UserProfileStore.GetUserProfile(userID)
+		if err != nil {
+			return err
+		}
+
+		user := model.NewUser(*authInfo, userProfile)
+		identity := model.NewIdentity(h.IdentityProvider, principal)
+		err = h.HookProvider.DispatchEvent(
+			event.IdentityDeleteEvent{
+				User:     user,
+				Identity: identity,
+			},
+			&user,
+		)
+		if err != nil {
+			return err
+		}
+
+		resp = struct{}{}
+		return nil
+	})
 	return
 }

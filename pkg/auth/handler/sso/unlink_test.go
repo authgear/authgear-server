@@ -19,7 +19,6 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -83,12 +82,11 @@ func TestUnlinkHandler(t *testing.T) {
 		}
 
 		Convey("should unlink user id with oauth principal", func() {
-			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {}
@@ -133,13 +131,12 @@ func TestUnlinkHandler(t *testing.T) {
 			sh.AuthContext = authtest.NewMockContext().
 				UseUser("faseng.cat.id", "oauth-principal-id").
 				MarkVerified()
-			h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 400)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {

@@ -31,6 +31,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func TestCustomTokenLoginHandler(t *testing.T) {
@@ -43,6 +44,11 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 
 	Convey("Test CustomTokenLoginHandler", t, func() {
 		lh := &CustomTokenLoginHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			CustomTokenLoginRequestSchema,
+		)
+		lh.Validator = validator
 		issuer := "myissuer"
 		audience := "myaudience"
 		mockPasswordProvider := password.NewMockProvider(
@@ -371,6 +377,11 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 
 	Convey("Test OnUserDuplicate", t, func() {
 		lh := &CustomTokenLoginHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			CustomTokenLoginRequestSchema,
+		)
+		lh.Validator = validator
 		issuer := "myissuer"
 		audience := "myaudience"
 		zero := 0
