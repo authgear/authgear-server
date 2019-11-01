@@ -180,13 +180,13 @@ func (s *S3Storage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, er
 	}
 
 	for _, object := range output.Contents {
-		resp.Assets = append(resp.Assets, AssetItem{
+		resp.Assets = append(resp.Assets, ListAssetItem{
 			AssetName: *object.Key,
 			Size:      *object.Size,
 		})
 	}
 	if resp.Assets == nil {
-		resp.Assets = []AssetItem{}
+		resp.Assets = []ListAssetItem{}
 	}
 
 	return resp, nil

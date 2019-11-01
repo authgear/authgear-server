@@ -195,13 +195,13 @@ func (s GCSStorage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse, er
 	resp.PaginationToken = objects.NextPageToken
 
 	for _, item := range objects.Items {
-		resp.Assets = append(resp.Assets, AssetItem{
+		resp.Assets = append(resp.Assets, ListAssetItem{
 			AssetName: item.Name,
 			Size:      int64(item.Size),
 		})
 	}
 	if resp.Assets == nil {
-		resp.Assets = []AssetItem{}
+		resp.Assets = []ListAssetItem{}
 	}
 
 	return resp, nil
