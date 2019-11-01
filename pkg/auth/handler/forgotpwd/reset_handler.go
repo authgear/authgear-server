@@ -73,7 +73,8 @@ const ForgotPasswordResetRequestSchema = `
 		"code": { "type": "string", "minLength": 1 },
 		"expire_at": { "type": "integer", "minimum": 1 },
 		"new_password": { "type": "string", "minLength": 1 }
-	}
+	},
+	"required": ["user_id", "code", "expire_at", "new_password"]
 }
 `
 

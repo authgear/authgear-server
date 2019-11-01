@@ -30,7 +30,7 @@ const HookResponseSchema = `
 		{
 			"additionalProperties": false,
 			"properties": {
-				"is_allowed": { "type": "boolean", "const": true },
+				"is_allowed": { "type": "boolean", "enum": [true] },
 				"mutations": {
 					"type": "object",
 					"properties": {
@@ -46,7 +46,7 @@ const HookResponseSchema = `
 		{
 			"additionalProperties": false,
 			"properties": {
-				"is_allowed": { "type": "boolean", "const": false },
+				"is_allowed": { "type": "boolean", "enum": [false] },
 				"reason": { "type": "string" },
 				"data": { "type": "object" }
 			},

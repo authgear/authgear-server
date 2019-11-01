@@ -78,7 +78,8 @@ const SignupRequestSchema = `
 				"properties": {
 					"key": { "type": "string", "minLength": 1 },
 					"value": { "type": "string", "minLength": 1 }
-				}
+				},
+				"required": ["key", "value"]
 			},
 			"minItems": 1
 		},
@@ -89,7 +90,8 @@ const SignupRequestSchema = `
 			"type": "string",
 			"enum": ["abort", "create"]
 		}
-	}
+	},
+	"required": ["login_ids", "password"]
 }
 `
 

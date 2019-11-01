@@ -58,7 +58,7 @@ const VerifyCodeRequestSchema = `
 	"$id": "#VerifyCodeRequest",
 	"type": "object",
 	"properties": {
-		"code": { "type": "string" }
+		"code": { "type": "string", "minLength": 1 }
 	},
 	"required": ["code"]
 }

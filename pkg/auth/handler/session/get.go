@@ -49,7 +49,8 @@ const GetRequestSchema = `
 	"type": "object",
 	"properties": {
 		"session_id": { "type": "string", "minLength": 1 }
-	}
+	},
+	"required": ["session_id"]
 }
 `
 

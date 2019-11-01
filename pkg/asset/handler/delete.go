@@ -39,6 +39,11 @@ func (f *DeleteHandlerFactory) NewHandler(request *http.Request) http.Handler {
 
 		@SecurityRequirement master_key
 
+		@Parameter asset_name path
+			Name of asset
+			@JSONSchema
+				{ "type": "string" }
+
 		@Response 200
 */
 type DeleteHandler struct {

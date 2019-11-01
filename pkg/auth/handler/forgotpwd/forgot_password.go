@@ -60,7 +60,8 @@ const ForgotPasswordRequestSchema = `
 	"type": "object",
 	"properties": {
 		"email": { "type": "string", "format": "email" }
-	}
+	},
+	"required": ["email"]
 }
 `
 
@@ -197,7 +198,8 @@ const ForgotPasswordTestRequestSchema = `
 		"subject": { "type": "string", "minLength": 1 },
 		"sender": { "type": "string", "minLength": 1 },
 		"reply_to": { "type": "string", "minLength": 1 }
-	}
+	},
+	"required": ["email", "text_template", "html_template", "subject", "sender", "reply_to"]
 }
 `
 
