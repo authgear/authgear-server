@@ -19,11 +19,17 @@ func (p *MockProvider) PresignPutRequest(r *PresignUploadRequest) (*PresignUploa
 	return p.PresignUploadResponse, nil
 }
 
-func (p *MockProvider) Sign(scheme string, host string, r *SignRequest) error {
-	for i, assetItem := range r.Assets {
-		r.Assets[i].URL = fmt.Sprintf("%s://%s/_asset/get/%s", scheme, host, assetItem.AssetName)
+func (p *MockProvider) Sign(scheme string, host string, r *SignRequest) (*SignResponse, error) {
+	output := &SignResponse{
+		Assets: make([]SignedAssetItem, len(r.Assets)),
 	}
-	return nil
+	for i, assetItem := range r.Assets {
+		output.Assets[i] = SignedAssetItem{
+			AssetName: assetItem.AssetName,
+			URL:       fmt.Sprintf("%s://%s/_asset/get/%s", scheme, host, assetItem.AssetName),
+		}
+	}
+	return output, nil
 }
 
 func (p *MockProvider) Verify(r *http.Request) error {

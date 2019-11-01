@@ -88,7 +88,10 @@ func (p *providerImpl) checkDuplicate(assetID string) error {
 	return ErrDuplicateAsset
 }
 
-func (p *providerImpl) Sign(scheme string, host string, r *SignRequest) error {
+func (p *providerImpl) Sign(scheme string, host string, r *SignRequest) (*SignResponse, error) {
+	output := &SignResponse{
+		Assets: make([]SignedAssetItem, len(r.Assets)),
+	}
 	now := p.timeProvider.NowUTC()
 	for i, assetItem := range r.Assets {
 		u := &url.URL{
@@ -97,10 +100,17 @@ func (p *providerImpl) Sign(scheme string, host string, r *SignRequest) error {
 			Path:   fmt.Sprintf("/_asset/get/%s", assetItem.AssetName),
 		}
 		httpRequest, _ := http.NewRequest("GET", u.String(), nil)
-		httpsigning.Sign(p.secret, httpRequest, now, int(PresignGetExpires.Seconds()))
-		r.Assets[i].URL = httpRequest.URL.String()
+		expire := int(PresignGetExpires.Seconds())
+		if assetItem.Expire != 0 {
+			expire = assetItem.Expire
+		}
+		httpsigning.Sign(p.secret, httpRequest, now, expire)
+		output.Assets[i] = SignedAssetItem{
+			AssetName: assetItem.AssetName,
+			URL:       httpRequest.URL.String(),
+		}
 	}
-	return nil
+	return output, nil
 }
 
 func (p *providerImpl) Verify(r *http.Request) error {

@@ -135,13 +135,13 @@ func (s *AzureStorage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse,
 	}
 
 	for _, blob := range output.Segment.BlobItems {
-		resp.Assets = append(resp.Assets, AssetItem{
+		resp.Assets = append(resp.Assets, ListAssetItem{
 			AssetName: blob.Name,
 			Size:      *blob.Properties.ContentLength,
 		})
 	}
 	if resp.Assets == nil {
-		resp.Assets = []AssetItem{}
+		resp.Assets = []ListAssetItem{}
 	}
 
 	return resp, nil

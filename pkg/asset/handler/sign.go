@@ -61,6 +61,7 @@ const SignAssetItemSchema = `
 	"type": "object",
 	"properties": {
 		"asset_name": { "type": "string" },
+		"expire": { "type": "integer" },
 		"url": { "type": "string" }
 	},
 	"required": ["asset_name", "url"]
@@ -109,6 +110,11 @@ const SignRequestSchema = `
 					"asset_name": {
 						"type": "string",
 						"minLength": 1
+					},
+					"expire": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 604800
 					}
 				},
 				"required": ["asset_name"]
@@ -146,11 +152,11 @@ func (h *SignHandler) Handle(w http.ResponseWriter, r *http.Request) (result int
 
 	scheme := coreHttp.GetProto(r)
 	host := coreHttp.GetHost(r)
-	err = h.CloudStorageProvider.Sign(scheme, host, &payload)
+	signResponse, err := h.CloudStorageProvider.Sign(scheme, host, &payload)
 	if err != nil {
 		return
 	}
 
-	result = &payload
+	result = signResponse
 	return
 }

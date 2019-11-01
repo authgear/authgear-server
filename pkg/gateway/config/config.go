@@ -16,6 +16,7 @@ type Configuration struct {
 	Host                              string              `envconfig:"SERVER_HOST" default:"localhost:3001"`
 	ConnectionStr                     string              `envconfig:"DATABASE_URL"`
 	Auth                              GearURLConfig       `envconfig:"AUTH"`
+	Asset                             GearURLConfig       `envconfig:"ASSET"`
 	Redis                             redis.Configuration `envconfig:"REDIS"`
 	UseInsecureCookie                 bool                `envconfig:"INSECURE_COOKIE"`
 }
@@ -40,6 +41,8 @@ func (c *Configuration) GetGearURL(gear model.Gear, version model.GearVersion) (
 	switch gear {
 	case model.AuthGear:
 		g = c.Auth
+	case model.AssetGear:
+		g = c.Asset
 	default:
 		return "", errors.New("invalid gear")
 	}

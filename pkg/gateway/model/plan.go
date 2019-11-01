@@ -19,6 +19,8 @@ func (p *Plan) CanAccessGear(gear Gear) bool {
 	switch gear {
 	case AuthGear:
 		return p.AuthEnabled
+	case AssetGear:
+		return true
 	default:
 		return false
 	}
