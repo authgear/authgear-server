@@ -98,7 +98,7 @@ func (r *ResetPasswordHTMLProvider) SuccessRedirect(context map[string]interface
 	}
 
 	output := *r.successRedirect
-	r.setURLQueryFromMap(&output, context)
+	template.SetContextToURLQuery(&output, context)
 	return &output
 }
 
@@ -112,17 +112,6 @@ func (r *ResetPasswordHTMLProvider) ErrorRedirect(context map[string]interface{}
 	}
 
 	output := *r.errorRedirect
-	r.setURLQueryFromMap(&output, context)
+	template.SetContextToURLQuery(&output, context)
 	return &output
-}
-
-func (r *ResetPasswordHTMLProvider) setURLQueryFromMap(u *url.URL, values map[string]interface{}) {
-	queryValues := url.Values{}
-	for key, value := range values {
-		if str, ok := value.(string); ok {
-			queryValues.Set(key, str)
-		}
-	}
-
-	u.RawQuery = queryValues.Encode()
 }

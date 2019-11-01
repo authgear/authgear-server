@@ -90,7 +90,7 @@ func (v *VerifyHTMLProvider) SuccessRedirect(key string, context map[string]inte
 	}
 
 	output := *successRedirect
-	v.setURLQueryFromMap(&output, context)
+	template.SetContextToURLQuery(&output, context)
 	return &output
 }
 
@@ -104,7 +104,7 @@ func (v *VerifyHTMLProvider) ErrorRedirect(key string, context map[string]interf
 	defer func() {
 		if errorRedirect != nil {
 			outputURL := *errorRedirect
-			v.setURLQueryFromMap(&outputURL, context)
+			template.SetContextToURLQuery(&outputURL, context)
 			output = &outputURL
 		} else {
 			output = nil
@@ -122,15 +122,4 @@ func (v *VerifyHTMLProvider) ErrorRedirect(key string, context map[string]interf
 
 	errorRedirect = v.errorRedirect
 	return
-}
-
-func (v *VerifyHTMLProvider) setURLQueryFromMap(u *url.URL, values map[string]interface{}) {
-	queryValues := url.Values{}
-	for key, value := range values {
-		if str, ok := value.(string); ok {
-			queryValues.Set(key, str)
-		}
-	}
-
-	u.RawQuery = queryValues.Encode()
 }
