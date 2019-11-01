@@ -19,7 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 // AttachVerifyCodeHandler attaches VerifyCodeHandler to server
@@ -45,7 +45,7 @@ type VerifyCodeHandlerFactory struct {
 func (f VerifyCodeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyCodeHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type VerifyCodePayload struct {
@@ -59,18 +59,10 @@ const VerifyCodeRequestSchema = `
 	"type": "object",
 	"properties": {
 		"code": { "type": "string" }
-	}
+	},
+	"required": ["code"]
 }
 `
-
-func (payload VerifyCodePayload) Validate() error {
-	// TODO(error): JSON schema
-	if payload.Code == "" {
-		return skyerr.NewInvalid("empty code")
-	}
-
-	return nil
-}
 
 /*
 	@Operation POST /verify_code - Submit verification code
@@ -90,6 +82,7 @@ func (payload VerifyCodePayload) Validate() error {
 */
 type VerifyCodeHandler struct {
 	TxContext                db.TxContext           `dependency:"TxContext"`
+	Validator                *validation.Validator  `dependency:"Validator"`
 	AuthContext              coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	RequireAuthz             handler.RequireAuthz   `dependency:"RequireAuthz"`
 	UserVerificationProvider userverify.Provider    `dependency:"UserVerificationProvider"`
@@ -108,49 +101,53 @@ func (h VerifyCodeHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h VerifyCodeHandler) WithTx() bool {
-	return true
+func (h VerifyCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
+	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
 }
 
-// DecodeRequest decode request payload
-func (h VerifyCodeHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := VerifyCodePayload{}
-	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
+func (h VerifyCodeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload VerifyCodePayload
+	if err := handler.BindJSONBody(r, w, h.Validator, "#VerifyCodeRequest", &payload); err != nil {
 		return nil, err
 	}
 
-	return payload, nil
-}
+	err = hook.WithTx(h.HookProvider, h.TxContext, func() (err error) {
+		authInfo, _ := h.AuthContext.AuthInfo()
 
-func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(VerifyCodePayload)
-	authInfo, _ := h.AuthContext.AuthInfo()
+		var userProfile userprofile.UserProfile
+		userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID)
+		if err != nil {
+			return
+		}
 
-	var userProfile userprofile.UserProfile
-	userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID)
-	if err != nil {
+		oldUser := model.NewUser(*authInfo, userProfile)
+
+		_, err = h.UserVerificationProvider.VerifyUser(h.PasswordAuthProvider, h.AuthInfoStore, authInfo, payload.Code)
+		if err != nil {
+			return
+		}
+
+		user := model.NewUser(*authInfo, userProfile)
+
+		err = h.HookProvider.DispatchEvent(
+			event.UserUpdateEvent{
+				Reason:     event.UserUpdateReasonVerification,
+				User:       oldUser,
+				VerifyInfo: &authInfo.VerifyInfo,
+				IsVerified: &authInfo.Verified,
+			},
+			&user,
+		)
+
+		resp = struct{}{}
 		return
-	}
-
-	oldUser := model.NewUser(*authInfo, userProfile)
-
-	_, err = h.UserVerificationProvider.VerifyUser(h.PasswordAuthProvider, h.AuthInfoStore, authInfo, payload.Code)
-	if err != nil {
-		return
-	}
-
-	user := model.NewUser(*authInfo, userProfile)
-
-	err = h.HookProvider.DispatchEvent(
-		event.UserUpdateEvent{
-			Reason:     event.UserUpdateReasonVerification,
-			User:       oldUser,
-			VerifyInfo: &authInfo.VerifyInfo,
-			IsVerified: &authInfo.Verified,
-		},
-		&user,
-	)
-
-	resp = map[string]string{}
+	})
 	return
 }

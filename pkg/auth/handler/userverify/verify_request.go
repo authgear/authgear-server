@@ -8,7 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/utils"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -24,7 +24,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 // AttachVerifyRequestHandler attaches VerifyRequestHandler to server
@@ -50,7 +49,7 @@ type VerifyRequestHandlerFactory struct {
 func (f VerifyRequestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyRequestHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type loginIDType string
@@ -59,11 +58,6 @@ const (
 	loginIDTypeEmail loginIDType = "email"
 	loginIDTypePhone loginIDType = "phone"
 )
-
-var allLoginIDTypes = []string{
-	string(loginIDTypeEmail),
-	string(loginIDTypePhone),
-}
 
 func (t loginIDType) MatchPrincipal(principal *password.Principal, provider password.Provider) bool {
 	switch t {
@@ -85,26 +79,26 @@ type VerifyRequestPayload struct {
 const VerifyRequestSchema = `
 {
 	"$id": "#VerifyRequest",
-	"type": "object",
-	"properties": {
-		"login_id_type": { "type": "string" },
-		"login_id": { "type": "string" }
-	}
+	"oneOf": [
+		{
+			"type": "object",
+			"properties": {
+				"login_id_type": { "enum": ["phone"] },
+				"login_id": { "type": "string", "format": "phone" }
+			},
+			"required": ["login_id_type", "login_id"]
+		},
+		{
+			"type": "object",
+			"properties": {
+				"login_id_type": { "enum": ["email"] },
+				"login_id": { "type": "string", "format": "email" }
+			},
+			"required": ["login_id_type", "login_id"]
+		}
+	]
 }
 `
-
-func (payload VerifyRequestPayload) Validate() error {
-	// TODO(error): JSON schema
-	if !utils.StringSliceContains(allLoginIDTypes, string(payload.LoginIDType)) {
-		return skyerr.NewInvalid("invalid login ID type")
-	}
-
-	if payload.LoginID == "" {
-		return skyerr.NewInvalid("empty login ID")
-	}
-
-	return nil
-}
 
 /*
 	@Operation POST /verify_request - Request verification
@@ -121,6 +115,7 @@ func (payload VerifyRequestPayload) Validate() error {
 */
 type VerifyRequestHandler struct {
 	TxContext                db.TxContext                 `dependency:"TxContext"`
+	Validator                *validation.Validator        `dependency:"Validator"`
 	AuthContext              coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
 	RequireAuthz             handler.RequireAuthz         `dependency:"RequireAuthz"`
 	CodeSenderFactory        userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
@@ -140,62 +135,69 @@ func (h VerifyRequestHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h VerifyRequestHandler) WithTx() bool {
-	return true
+func (h VerifyRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
+	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
 }
 
-// DecodeRequest decode request payload
-func (h VerifyRequestHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := VerifyRequestPayload{}
-	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
+func (h VerifyRequestHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload VerifyRequestPayload
+	if err := handler.BindJSONBody(r, w, h.Validator, "#VerifyRequest", &payload); err != nil {
 		return nil, err
 	}
 
-	return payload, nil
-}
+	err = db.WithTx(h.TxContext, func() (err error) {
+		authInfo, _ := h.AuthContext.AuthInfo()
 
-func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(VerifyRequestPayload)
-	authInfo, _ := h.AuthContext.AuthInfo()
-
-	// Get Profile
-	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
-		return
-	}
-
-	// We don't check realms. i.e. Verifying a email means every email login IDs
-	// of that email is verified, regardless the realm.
-	principals, err := h.PasswordAuthProvider.GetPrincipalsByLoginID("", payload.LoginID)
-	if err != nil {
-		return
-	}
-
-	var userPrincipal *password.Principal
-	for _, principal := range principals {
-		if principal.UserID == authInfo.ID && payload.LoginIDType.MatchPrincipal(principal, h.PasswordAuthProvider) {
-			userPrincipal = principal
-			break
+		// Get Profile
+		var userProfile userprofile.UserProfile
+		if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
+			return
 		}
-	}
-	if userPrincipal == nil {
-		// TODO(error): JSON schema
-		err = skyerr.NewInvalid("login ID is not owned by this user")
-		return
-	}
 
-	verifyCode, err := h.UserVerificationProvider.CreateVerifyCode(userPrincipal)
-	if err != nil {
-		return
-	}
+		// We don't check realms. i.e. Verifying a email means every email login IDs
+		// of that email is verified, regardless the realm.
+		principals, err := h.PasswordAuthProvider.GetPrincipalsByLoginID("", payload.LoginID)
+		if err != nil {
+			return
+		}
 
-	codeSender := h.CodeSenderFactory.NewCodeSender(h.URLPrefix, userPrincipal.LoginIDKey)
-	user := model.NewUser(*authInfo, userProfile)
-	if err = codeSender.Send(*verifyCode, user); err != nil {
-		return
-	}
+		var userPrincipal *password.Principal
+		for _, principal := range principals {
+			if principal.UserID == authInfo.ID && payload.LoginIDType.MatchPrincipal(principal, h.PasswordAuthProvider) {
+				userPrincipal = principal
+				break
+			}
+		}
+		if userPrincipal == nil {
+			err = validation.NewValidationFailed("invalid request body", []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Pointer: "/login_id",
+				Message: "login ID is not owned by this user",
+			}})
+			return
+		}
 
-	resp = map[string]string{}
+		verifyCode, err := h.UserVerificationProvider.CreateVerifyCode(userPrincipal)
+		if err != nil {
+			return
+		}
+
+		codeSender := h.CodeSenderFactory.NewCodeSender(h.URLPrefix, userPrincipal.LoginIDKey)
+		user := model.NewUser(*authInfo, userProfile)
+		if err = codeSender.Send(*verifyCode, user); err != nil {
+			return
+		}
+
+		resp = struct{}{}
+		return
+	})
 	return
 }
 
@@ -208,7 +210,7 @@ type VerifyRequestTestHandlerFactory struct {
 func (f VerifyRequestTestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyRequestTestHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, nil), h)
+	return h.RequireAuthz(h, h)
 }
 
 type VerifyRequestTestPayload struct {
@@ -219,18 +221,21 @@ type VerifyRequestTestPayload struct {
 	Templates     map[string]string                            `json:"templates"`
 }
 
-func (payload VerifyRequestTestPayload) Validate() error {
-	// TODO(error): JSON schema
-	if payload.LoginIDKey == "" {
-		return skyerr.NewInvalid("empty login_id_key")
-	}
-
-	if payload.LoginID == "" {
-		return skyerr.NewInvalid("empty login_id")
-	}
-
-	return nil
+const VerifyTestRequestSchema = `
+{
+	"$id": "#VerifyTestRequest",
+	"type": "object",
+	"properties": {
+		"login_id_key": { "type": "string", "minLength": 1 },
+		"login_id": { "type": "string", "minLength": 1 },
+		"user": { "type": "object" },
+		"html_template": { "type": "string", "minLength": 1 },
+		"message_config": { "type": "object" },
+		"templates": { "type": "object" }
+	},
+	"required": ["login_id_key", "login_id", "user", "html_template", "message_config", "templates"]
 }
+`
 
 // VerifyRequestTestHandler sends a dummy verification request (i.e. email or SMS).
 //
@@ -257,6 +262,7 @@ func (payload VerifyRequestTestPayload) Validate() error {
 //
 type VerifyRequestTestHandler struct {
 	RequireAuthz          handler.RequireAuthz             `dependency:"RequireAuthz"`
+	Validator             *validation.Validator            `dependency:"Validator"`
 	TestCodeSenderFactory userverify.TestCodeSenderFactory `dependency:"UserVerifyTestCodeSenderFactory"`
 	Logger                *logrus.Entry                    `dependency:"HandlerLogger"`
 }
@@ -268,22 +274,23 @@ func (h VerifyRequestTestHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h VerifyRequestTestHandler) WithTx() bool {
-	return false
+func (h VerifyRequestTestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
+	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
 }
 
-// DecodeRequest decode request payload
-func (h VerifyRequestTestHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := VerifyRequestTestPayload{}
-	if err := handler.DecodeJSONBody(request, resp, &payload); err != nil {
+func (h VerifyRequestTestHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload VerifyRequestTestPayload
+	if err := handler.BindJSONBody(r, w, h.Validator, "#VerifyTestRequest", &payload); err != nil {
 		return nil, err
 	}
 
-	return payload, nil
-}
-
-func (h VerifyRequestTestHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(VerifyRequestTestPayload)
 	sender := h.TestCodeSenderFactory.NewTestCodeSender(
 		payload.MessageConfig,
 		payload.LoginIDKey,
@@ -308,7 +315,7 @@ func (h VerifyRequestTestHandler) Handle(req interface{}) (resp interface{}, err
 		return
 	}
 
-	resp = map[string]string{}
+	resp = struct{}{}
 
 	return
 }
