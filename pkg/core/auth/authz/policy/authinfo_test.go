@@ -12,12 +12,12 @@ import (
 )
 
 func TestRequireAuthenticated(t *testing.T) {
-	Convey("Test RequireAuthenticated", t, func() {
+	Convey("Test requireAuthenticated", t, func() {
 		Convey("should return error if auth context has no auth info", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
 			ctx := MemoryContextGetter{}
 
-			err := RequireAuthenticated(req, ctx)
+			err := requireAuthenticated(req, ctx)
 			So(err, ShouldNotBeEmpty)
 		})
 
@@ -32,7 +32,7 @@ func TestRequireAuthenticated(t *testing.T) {
 				},
 			}
 
-			err := RequireAuthenticated(req, ctx)
+			err := requireAuthenticated(req, ctx)
 			So(err, ShouldBeEmpty)
 		})
 	})

@@ -99,8 +99,7 @@ func (h UpdateMetadataHandler) ProvideAuthzPolicy() authz.Policy {
 		authz.PolicyFunc(policy.RequireMasterKey),
 		policy.AllOf(
 			authz.PolicyFunc(policy.DenyNoAccessKey),
-			authz.PolicyFunc(policy.RequireAuthenticated),
-			authz.PolicyFunc(policy.DenyDisabledUser),
+			policy.RequireValidUser,
 		),
 	)
 }

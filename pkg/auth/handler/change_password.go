@@ -117,8 +117,7 @@ type ChangePasswordHandler struct {
 func (h ChangePasswordHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
+		policy.RequireValidUser,
 	)
 }
 

@@ -102,8 +102,7 @@ type GetHandler struct {
 func (h GetHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
+		policy.RequireValidUser,
 	)
 }
 

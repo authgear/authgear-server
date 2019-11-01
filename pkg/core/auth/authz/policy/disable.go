@@ -11,7 +11,7 @@ import (
 
 // DenyDisabledUser denies disabled user.
 // It is not an error if the request does not have an associated user.
-// If you want to enforce enabled user, use both RequireAuthenticated and DenyDisabledUser.
+// If you want to enforce enabled user, use RequireValidUser.
 func DenyDisabledUser(r *http.Request, ctx auth.ContextGetter) error {
 	authInfo, _ := ctx.AuthInfo()
 	if authInfo != nil && authInfo.IsDisabled() {
