@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"net/mail"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -11,6 +12,7 @@ import (
 )
 
 func addFormatChecker(name string, f gojsonschema.FormatChecker) {
+	gojsonschema.FormatCheckers.Remove(name)
 	gojsonschema.FormatCheckers.Add(name, f)
 }
 
@@ -33,6 +35,7 @@ func init() {
 		File:     true,
 	})
 	addFormatChecker("phone", E164Phone{})
+	addFormatChecker("email", Email{})
 }
 
 type URLVariant int
@@ -138,4 +141,31 @@ func (f E164Phone) IsFormat(input interface{}) bool {
 		return false
 	}
 	return phone.EnsureE164(str) == nil
+}
+
+type Email struct{}
+
+func (f Email) IsFormat(input interface{}) bool {
+	s, ok := input.(string)
+	if !ok {
+		return false
+	}
+
+	addr, err := mail.ParseAddress(s)
+	if err != nil {
+		return false
+	}
+
+	if addr.Name != "" {
+		return false
+	}
+
+	ss := addr.String()
+	// Remove <>
+	ss = ss[1 : len(ss)-1]
+	if s != ss {
+		return false
+	}
+
+	return true
 }

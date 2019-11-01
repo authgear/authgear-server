@@ -198,3 +198,13 @@ func TestFilePath(t *testing.T) {
 		})
 	})
 }
+
+func TestEmail(t *testing.T) {
+	Convey("Email", t, func() {
+		f := Email{}.IsFormat
+		So(f("user@example.com"), ShouldBeTrue)
+		So(f("User <user@example.com>"), ShouldBeFalse)
+		So(f(" user@example.com "), ShouldBeFalse)
+		So(f("nonsense"), ShouldBeFalse)
+	})
+}
