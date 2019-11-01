@@ -41,6 +41,7 @@ func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInf
 
 func (f *GoogleImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
+		urlPrefix:      f.URLPrefix,
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: googleTokenURL,
@@ -52,6 +53,7 @@ func (f *GoogleImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 
 func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
+		urlPrefix:      f.URLPrefix,
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: googleTokenURL,

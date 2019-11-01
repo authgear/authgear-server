@@ -40,6 +40,7 @@ func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthI
 
 func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
+		urlPrefix:      f.URLPrefix,
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: linkedinTokenURL,
@@ -51,6 +52,7 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 
 func (f *LinkedInImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
+		urlPrefix:      f.URLPrefix,
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: linkedinTokenURL,
