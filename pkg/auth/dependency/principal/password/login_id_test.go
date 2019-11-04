@@ -11,8 +11,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func newLoginIDKeyConfig(t config.LoginIDKeyType, min int, max int) config.LoginIDKeyConfiguration {
+func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, min int, max int) config.LoginIDKeyConfiguration {
 	return config.LoginIDKeyConfiguration{
+		Key:     key,
 		Type:    t,
 		Minimum: &min,
 		Maximum: &max,
@@ -23,10 +24,10 @@ func TestLoginID(t *testing.T) {
 	Convey("Test isValid", t, func() {
 		Convey("validate by config: username (0-1), email (0-1)", func() {
 			checker := defaultLoginIDChecker{
-				loginIDsKeys: map[string]config.LoginIDKeyConfiguration{
-					"username": newLoginIDKeyConfig(config.LoginIDKeyTypeRaw, 0, 1),
-					"email":    newLoginIDKeyConfig(config.LoginIDKeyType(metadata.Email), 0, 1),
-					"phone":    newLoginIDKeyConfig(config.LoginIDKeyType(metadata.Phone), 0, 1),
+				loginIDsKeys: []config.LoginIDKeyConfiguration{
+					newLoginIDKeyConfig("username", config.LoginIDKeyTypeRaw, 0, 1),
+					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 0, 1),
+					newLoginIDKeyConfig("phone", config.LoginIDKeyType(metadata.Phone), 0, 1),
 				},
 			}
 			var loginIDs []LoginID

@@ -27,12 +27,12 @@ user_config:
     authentication_session:
       secret: authnsessionsecret
     login_id_keys:
-      email:
-        type: email
-      phone:
-        type: phone
-      username:
-        type: raw
+    - key: email
+      type: email
+    - key: phone
+      type: phone
+    - key: username
+      type: raw
   hook:
     secret: hooksecret
   sso:
@@ -61,17 +61,20 @@ const inputMinimalJSON = `
 			"authentication_session": {
 				"secret": "authnsessionsecret"
 			},
-			"login_id_keys": {
-				"email": {
+			"login_id_keys": [
+				{
+					"key": "email",
 					"type": "email"
 				},
-				"phone": {
+				{
+					"key": "phone",
 					"type": "phone"
 				},
-				"username": {
+				{
+					"key": "username",
 					"type": "raw"
 				}
-			},
+			],
 			"allowed_realms": ["default"]
 		},
 		"hook": {
@@ -131,18 +134,21 @@ func makeFullTenantConfig() TenantConfiguration {
 				AuthenticationSession: AuthenticationSessionConfiguration{
 					Secret: "authnsessionsecret",
 				},
-				LoginIDKeys: map[string]LoginIDKeyConfiguration{
-					"email": LoginIDKeyConfiguration{
+				LoginIDKeys: []LoginIDKeyConfiguration{
+					LoginIDKeyConfiguration{
+						Key:     "email",
 						Type:    LoginIDKeyType("email"),
 						Minimum: newInt(0),
 						Maximum: newInt(1),
 					},
-					"phone": LoginIDKeyConfiguration{
+					LoginIDKeyConfiguration{
+						Key:     "phone",
 						Type:    LoginIDKeyType("phone"),
 						Minimum: newInt(0),
 						Maximum: newInt(1),
 					},
-					"username": LoginIDKeyConfiguration{
+					LoginIDKeyConfiguration{
+						Key:     "username",
 						Type:    LoginIDKeyTypeRaw,
 						Minimum: newInt(0),
 						Maximum: newInt(1),
@@ -255,9 +261,9 @@ func makeFullTenantConfig() TenantConfiguration {
 				Criteria:         "any",
 				ErrorRedirect:    "http://localhost:3000/userverification/error",
 				ErrorHTMLURL:     "http://localhost:3000/userverification/error.html",
-				LoginIDKeys: map[string]UserVerificationKeyConfiguration{
-					"email": UserVerificationKeyConfiguration{
-
+				LoginIDKeys: []UserVerificationKeyConfiguration{
+					UserVerificationKeyConfiguration{
+						Key:             "email",
 						CodeFormat:      "complex",
 						Expiry:          3600,
 						SuccessRedirect: "http://localhost:3000/userverification/success",
@@ -459,21 +465,29 @@ user_config:
 		})
 		Convey("should validate minimum <= maximum", func() {
 			c := makeFullTenantConfig()
-			email := c.UserConfig.Auth.LoginIDKeys["email"]
-			email.Minimum = newInt(2)
-			email.Maximum = newInt(1)
-			c.UserConfig.Auth.LoginIDKeys["email"] = email
+			loginIDKeys := c.UserConfig.Auth.LoginIDKeys
+			for i := range loginIDKeys {
+				if loginIDKeys[i].Key == "email" {
+					loginIDKeys[i].Minimum = newInt(2)
+					loginIDKeys[i].Maximum = newInt(1)
+				}
+			}
+			c.UserConfig.Auth.LoginIDKeys = loginIDKeys
 			err := c.Validate()
 			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
 				Message: "invalid login ID amount range",
-				Pointer: "/user_config/auth/login_id_keys/email",
+				Pointer: "/user_config/auth/login_id_keys/0",
 			}})
 		})
 		Convey("UserVerification.LoginIDKeys is subset of Auth.LoginIDKeys", func() {
 			c := makeFullTenantConfig()
-			invalid := c.UserConfig.UserVerification.LoginIDKeys["email"]
-			c.UserConfig.UserVerification.LoginIDKeys["invalid"] = invalid
+			c.UserConfig.UserVerification.LoginIDKeys = append(
+				c.UserConfig.UserVerification.LoginIDKeys,
+				UserVerificationKeyConfiguration{
+					Key: "invalid",
+				},
+			)
 			err := c.Validate()
 			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,

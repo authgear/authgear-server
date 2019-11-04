@@ -9,7 +9,7 @@ func IsUserVerified(
 	verifyInfo map[string]bool,
 	principals []*password.Principal,
 	criteria config.UserVerificationCriteria,
-	verifyConfigs map[string]config.UserVerificationKeyConfiguration,
+	verifyConfigs []config.UserVerificationKeyConfiguration,
 ) (verified bool) {
 	verified = false
 	if len(verifyConfigs) == 0 {
@@ -21,8 +21,8 @@ func IsUserVerified(
 		// Login IDs to verify exist and all are verified
 		loginIDToVerify := 0
 		for _, principal := range principals {
-			for key := range verifyConfigs {
-				if principal.LoginIDKey != key {
+			for _, c := range verifyConfigs {
+				if principal.LoginIDKey != c.Key {
 					continue
 				}
 				loginIDToVerify++
@@ -37,8 +37,8 @@ func IsUserVerified(
 	case config.UserVerificationCriteriaAny:
 		// Login IDs to verify exist and some are verified
 		for _, principal := range principals {
-			for key := range verifyConfigs {
-				if principal.LoginIDKey != key {
+			for _, c := range verifyConfigs {
+				if principal.LoginIDKey != c.Key {
 					continue
 				}
 				if verifyInfo[principal.LoginID] {

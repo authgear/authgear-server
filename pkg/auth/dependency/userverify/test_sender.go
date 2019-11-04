@@ -55,7 +55,8 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 	templateEngine := d.TemplateEngine
 	templateEngine.PrependLoader(loader)
 
-	keyType := d.Config.UserConfig.Auth.LoginIDKeys[loginIDKey].Type
+	authLoginIDKey, _ := d.Config.UserConfig.Auth.GetLoginIDKey(loginIDKey)
+	keyType := authLoginIDKey.Type
 	metadataKey, _ := keyType.MetadataKey()
 
 	switch metadataKey {

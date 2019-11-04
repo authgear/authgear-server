@@ -279,13 +279,19 @@ func (c *TenantConfiguration) doValidate() error {
 		}
 	}
 
-	for key := range c.UserConfig.UserVerification.LoginIDKeys {
-		_, ok := c.UserConfig.Auth.LoginIDKeys[key]
+	for _, verifyKeyConfig := range c.UserConfig.UserVerification.LoginIDKeys {
+		ok := false
+		for _, loginIDKey := range c.UserConfig.Auth.LoginIDKeys {
+			if loginIDKey.Key == verifyKeyConfig.Key {
+				ok = true
+				break
+			}
+		}
 		if !ok {
 			return fail(
 				validation.ErrorGeneral,
 				"cannot verify disallowed login ID key",
-				"user_config", "user_verification", "login_id_keys", key)
+				"user_config", "user_verification", "login_id_keys", verifyKeyConfig.Key)
 		}
 	}
 
@@ -345,17 +351,17 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 
 	// Set default AuthConfiguration
 	if c.UserConfig.Auth.LoginIDKeys == nil {
-		c.UserConfig.Auth.LoginIDKeys = map[string]LoginIDKeyConfiguration{
-			"username": LoginIDKeyConfiguration{Type: LoginIDKeyTypeRaw},
-			"email":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Email)},
-			"phone":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Phone)},
+		c.UserConfig.Auth.LoginIDKeys = []LoginIDKeyConfiguration{
+			LoginIDKeyConfiguration{Key: "username", Type: LoginIDKeyTypeRaw},
+			LoginIDKeyConfiguration{Key: "email", Type: LoginIDKeyType(metadata.Email)},
+			LoginIDKeyConfiguration{Key: "phone", Type: LoginIDKeyType(metadata.Phone)},
 		}
 	}
 	if c.UserConfig.Auth.AllowedRealms == nil {
 		c.UserConfig.Auth.AllowedRealms = []string{"default"}
 	}
 	// Set default minimum and maximum
-	for key, config := range c.UserConfig.Auth.LoginIDKeys {
+	for i, config := range c.UserConfig.Auth.LoginIDKeys {
 		if config.Minimum == nil {
 			config.Minimum = new(int)
 			*config.Minimum = 0
@@ -368,7 +374,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 				*config.Maximum = *config.Minimum
 			}
 		}
-		c.UserConfig.Auth.LoginIDKeys[key] = config
+		c.UserConfig.Auth.LoginIDKeys[i] = config
 	}
 
 	// Set default MFAConfiguration
@@ -390,7 +396,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.UserConfig.UserVerification.Criteria == "" {
 		c.UserConfig.UserVerification.Criteria = UserVerificationCriteriaAny
 	}
-	for key, config := range c.UserConfig.UserVerification.LoginIDKeys {
+	for i, config := range c.UserConfig.UserVerification.LoginIDKeys {
 		if config.CodeFormat == "" {
 			config.CodeFormat = UserVerificationCodeFormatComplex
 		}
@@ -403,7 +409,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		if config.ProviderConfig.Subject == "" {
 			config.ProviderConfig.Subject = "Verification instruction"
 		}
-		c.UserConfig.UserVerification.LoginIDKeys[key] = config
+		c.UserConfig.UserVerification.LoginIDKeys[i] = config
 	}
 
 	// Set default WelcomeEmailConfiguration
@@ -573,9 +579,19 @@ type CORSConfiguration struct {
 
 type AuthConfiguration struct {
 	AuthenticationSession      AuthenticationSessionConfiguration `json:"authentication_session,omitempty" yaml:"authentication_session" msg:"authentication_session"`
-	LoginIDKeys                map[string]LoginIDKeyConfiguration `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
+	LoginIDKeys                []LoginIDKeyConfiguration          `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
 	AllowedRealms              []string                           `json:"allowed_realms,omitempty" yaml:"allowed_realms" msg:"allowed_realms"`
 	OnUserDuplicateAllowCreate bool                               `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
+}
+
+func (c *AuthConfiguration) GetLoginIDKey(key string) (LoginIDKeyConfiguration, bool) {
+	for _, config := range c.LoginIDKeys {
+		if config.Key == key {
+			return config, true
+		}
+	}
+
+	return LoginIDKeyConfiguration{}, false
 }
 
 type AuthenticationSessionConfiguration struct {
@@ -601,6 +617,7 @@ func (t LoginIDKeyType) IsValid() bool {
 }
 
 type LoginIDKeyConfiguration struct {
+	Key     string         `json:"key" yaml:"key" msg:"key"`
 	Type    LoginIDKeyType `json:"type,omitempty" yaml:"type" msg:"type"`
 	Minimum *int           `json:"minimum,omitempty" yaml:"minimum" msg:"minimum"`
 	Maximum *int           `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
@@ -765,11 +782,11 @@ func (criteria UserVerificationCriteria) IsValid() bool {
 }
 
 type UserVerificationConfiguration struct {
-	AutoSendOnSignup bool                                        `json:"auto_send_on_signup,omitempty" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
-	Criteria         UserVerificationCriteria                    `json:"criteria,omitempty" yaml:"criteria" msg:"criteria"`
-	ErrorRedirect    string                                      `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
-	ErrorHTMLURL     string                                      `json:"error_html_url,omitempty" yaml:"error_html_url" msg:"error_html_url"`
-	LoginIDKeys      map[string]UserVerificationKeyConfiguration `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
+	AutoSendOnSignup bool                               `json:"auto_send_on_signup,omitempty" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
+	Criteria         UserVerificationCriteria           `json:"criteria,omitempty" yaml:"criteria" msg:"criteria"`
+	ErrorRedirect    string                             `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
+	ErrorHTMLURL     string                             `json:"error_html_url,omitempty" yaml:"error_html_url" msg:"error_html_url"`
+	LoginIDKeys      []UserVerificationKeyConfiguration `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
 }
 
 type UserVerificationCodeFormat string
@@ -784,6 +801,7 @@ func (format UserVerificationCodeFormat) IsValid() bool {
 }
 
 type UserVerificationKeyConfiguration struct {
+	Key             string                                `json:"key" yaml:"key" msg:"key"`
 	CodeFormat      UserVerificationCodeFormat            `json:"code_format,omitempty" yaml:"code_format" msg:"code_format"`
 	Expiry          int64                                 `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
 	SuccessRedirect string                                `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
@@ -791,6 +809,16 @@ type UserVerificationKeyConfiguration struct {
 	ErrorRedirect   string                                `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
 	ErrorHTMLURL    string                                `json:"error_html_url,omitempty" yaml:"error_html_url" msg:"error_html_url"`
 	ProviderConfig  UserVerificationProviderConfiguration `json:"provider_config,omitempty" yaml:"provider_config" msg:"provider_config"`
+}
+
+func (c *UserVerificationConfiguration) GetLoginIDKey(key string) (UserVerificationKeyConfiguration, bool) {
+	for _, config := range c.LoginIDKeys {
+		if config.Key == key {
+			return config, true
+		}
+	}
+
+	return UserVerificationKeyConfiguration{}, false
 }
 
 type UserVerificationProviderConfiguration struct {

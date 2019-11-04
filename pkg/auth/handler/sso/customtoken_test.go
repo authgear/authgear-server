@@ -386,8 +386,9 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		audience := "myaudience"
 		zero := 0
 		one := 1
-		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
-			"email": config.LoginIDKeyConfiguration{
+		loginIDsKeys := []config.LoginIDKeyConfiguration{
+			config.LoginIDKeyConfiguration{
+				Key:     "email",
 				Type:    config.LoginIDKeyType(metadata.Email),
 				Minimum: &zero,
 				Maximum: &one,

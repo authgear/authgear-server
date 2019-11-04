@@ -89,11 +89,9 @@ const (
 		"properties": {
 			"authentication_session": { "$ref": "#AuthenticationSessionConfiguration" },
 			"login_id_keys": {
-				"type": "object",
-				"minProperties": 1,
-				"additionalProperties": {
-					"$ref": "#LoginIDKeyConfiguration"
-				}
+				"type": "array",
+				"minItems": 1,
+				"items": { "$ref": "#LoginIDKeyConfiguration" }
 			},
 			"allowed_realms": {
 				"type": "array",
@@ -188,6 +186,7 @@ const (
 		"$id": "#LoginIDKeyConfiguration",
 		"type": "object",
 		"properties": {
+			"key": { "$ref": "#NonEmptyString" },
 			"type": {
 				"type": "string",
 				"enum": ["raw", "email", "phone"]
@@ -385,8 +384,8 @@ const (
 			"error_redirect": { "type": "string" },
 			"error_html_url": { "type": "string" },
 			"login_id_keys": {
-				"type": "object",
-				"additionalProperties": { "$ref": "#UserVerificationKeyConfiguration" }
+				"type": "array",
+				"items": { "$ref": "#UserVerificationKeyConfiguration" }
 			}
 		}
 	},
@@ -394,6 +393,7 @@ const (
 		"$id": "#UserVerificationKeyConfiguration",
 		"type": "object",
 		"properties": {
+			"key": { "$ref": "#NonEmptyString" },
 			"code_format": {
 				"type": "string",
 				"enum": ["numeric", "complex"]

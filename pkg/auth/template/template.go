@@ -49,7 +49,8 @@ func NewEngineWithConfig(engine *template.Engine, tConfig config.TenantConfigura
 		loader.URLMap[TemplateNameVerifyErrorHTML] = tConfig.UserConfig.UserVerification.ErrorHTMLURL
 	}
 
-	for key, config := range tConfig.UserConfig.UserVerification.LoginIDKeys {
+	for i, config := range tConfig.UserConfig.UserVerification.LoginIDKeys {
+		key := tConfig.UserConfig.UserVerification.LoginIDKeys[i].Key
 		if config.SuccessHTMLURL != "" {
 			loader.URLMap[VerifySuccessHTMLTemplateNameForKey(key)] = config.SuccessHTMLURL
 		}

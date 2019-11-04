@@ -44,7 +44,7 @@ func NewProvider(
 }
 
 func (provider *providerImpl) CreateVerifyCode(principal *password.Principal) (*VerifyCode, error) {
-	_, isValid := provider.config.LoginIDKeys[principal.LoginIDKey]
+	_, isValid := provider.config.GetLoginIDKey(principal.LoginIDKey)
 	if !isValid {
 		return nil, ErrUnknownLoginIDKey
 	}
@@ -109,7 +109,8 @@ func (provider *providerImpl) VerifyUser(
 		return nil, NewUserVerificationFailed(InvalidCode, "invalid verification code")
 	}
 
-	expiryTime := provider.config.LoginIDKeys[verifyCode.LoginIDKey].Expiry
+	c, _ := provider.config.GetLoginIDKey(verifyCode.LoginIDKey)
+	expiryTime := c.Expiry
 	expireAt := verifyCode.CreatedAt.Add(gotime.Duration(expiryTime) * gotime.Second)
 	if provider.time.NowUTC().After(expireAt) {
 		return nil, NewUserVerificationFailed(ExpiredCode, "verification code has expired")

@@ -26,8 +26,7 @@ user_config:
     enabled: true
   user_verification:
     login_id_keys:
-      email:
-        provider: smtp
+    - key: email
   auth:
     authentication_session:
       secret: authnsessionsecret

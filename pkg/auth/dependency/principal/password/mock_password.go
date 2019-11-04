@@ -16,12 +16,12 @@ type MockProvider struct {
 }
 
 // NewMockProvider creates a new instance of mock provider
-func NewMockProvider(loginIDsKeys map[string]config.LoginIDKeyConfiguration, allowedRealms []string) *MockProvider {
+func NewMockProvider(loginIDsKeys []config.LoginIDKeyConfiguration, allowedRealms []string) *MockProvider {
 	return NewMockProviderWithPrincipalMap(loginIDsKeys, allowedRealms, map[string]Principal{})
 }
 
 // NewMockProviderWithPrincipalMap creates a new instance of mock provider with PrincipalMap
-func NewMockProviderWithPrincipalMap(loginIDsKeys map[string]config.LoginIDKeyConfiguration, allowedRealms []string, principalMap map[string]Principal) *MockProvider {
+func NewMockProviderWithPrincipalMap(loginIDsKeys []config.LoginIDKeyConfiguration, allowedRealms []string, principalMap map[string]Principal) *MockProvider {
 	return &MockProvider{
 		loginIDChecker: defaultLoginIDChecker{
 			loginIDsKeys: loginIDsKeys,

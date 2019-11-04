@@ -46,13 +46,15 @@ func TestSignupHandler(t *testing.T) {
 
 		zero := 0
 		two := 2
-		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
-			"email": config.LoginIDKeyConfiguration{
+		loginIDsKeys := []config.LoginIDKeyConfiguration{
+			config.LoginIDKeyConfiguration{
+				Key:     "email",
 				Type:    config.LoginIDKeyType(metadata.Email),
 				Minimum: &zero,
 				Maximum: &two,
 			},
-			"username": config.LoginIDKeyConfiguration{
+			config.LoginIDKeyConfiguration{
+				Key:     "username",
 				Type:    config.LoginIDKeyTypeRaw,
 				Minimum: &zero,
 				Maximum: &two,
@@ -647,9 +649,9 @@ func TestSignupHandler(t *testing.T) {
 
 		zero := 0
 		one := 1
-		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
-			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
-			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		loginIDsKeys := []config.LoginIDKeyConfiguration{
+			config.LoginIDKeyConfiguration{Key: "email", Minimum: &zero, Maximum: &one},
+			config.LoginIDKeyConfiguration{Key: "username", Minimum: &zero, Maximum: &one},
 		}
 		allowedRealms := []string{password.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()

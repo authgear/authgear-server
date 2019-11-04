@@ -178,25 +178,25 @@ func (p *SignupRequestPayload) Validate() []validation.ErrorCause {
 		@Callback user_sync {UserSyncEvent}
 */
 type SignupHandler struct {
-	RequireAuthz            handler.RequireAuthz                               `dependency:"RequireAuthz"`
-	Validator               *validation.Validator                              `dependency:"Validator"`
-	AuthnSessionProvider    authnsession.Provider                              `dependency:"AuthnSessionProvider"`
-	PasswordChecker         *authAudit.PasswordChecker                         `dependency:"PasswordChecker"`
-	UserProfileStore        userprofile.Store                                  `dependency:"UserProfileStore"`
-	AuthInfoStore           authinfo.Store                                     `dependency:"AuthInfoStore"`
-	PasswordAuthProvider    password.Provider                                  `dependency:"PasswordAuthProvider"`
-	IdentityProvider        principal.IdentityProvider                         `dependency:"IdentityProvider"`
-	AuditTrail              audit.Trail                                        `dependency:"AuditTrail"`
-	WelcomeEmailEnabled     bool                                               `dependency:"WelcomeEmailEnabled"`
-	WelcomeEmailDestination config.WelcomeEmailDestination                     `dependency:"WelcomeEmailDestination"`
-	AutoSendUserVerifyCode  bool                                               `dependency:"AutoSendUserVerifyCodeOnSignup"`
-	UserVerifyLoginIDKeys   map[string]config.UserVerificationKeyConfiguration `dependency:"UserVerifyLoginIDKeys"`
-	AuthConfiguration       config.AuthConfiguration                           `dependency:"AuthConfiguration"`
-	TxContext               db.TxContext                                       `dependency:"TxContext"`
-	Logger                  *logrus.Entry                                      `dependency:"HandlerLogger"`
-	TaskQueue               async.Queue                                        `dependency:"AsyncTaskQueue"`
-	HookProvider            hook.Provider                                      `dependency:"HookProvider"`
-	URLPrefix               *url.URL                                           `dependency:"URLPrefix"`
+	RequireAuthz            handler.RequireAuthz                      `dependency:"RequireAuthz"`
+	Validator               *validation.Validator                     `dependency:"Validator"`
+	AuthnSessionProvider    authnsession.Provider                     `dependency:"AuthnSessionProvider"`
+	PasswordChecker         *authAudit.PasswordChecker                `dependency:"PasswordChecker"`
+	UserProfileStore        userprofile.Store                         `dependency:"UserProfileStore"`
+	AuthInfoStore           authinfo.Store                            `dependency:"AuthInfoStore"`
+	PasswordAuthProvider    password.Provider                         `dependency:"PasswordAuthProvider"`
+	IdentityProvider        principal.IdentityProvider                `dependency:"IdentityProvider"`
+	AuditTrail              audit.Trail                               `dependency:"AuditTrail"`
+	WelcomeEmailEnabled     bool                                      `dependency:"WelcomeEmailEnabled"`
+	WelcomeEmailDestination config.WelcomeEmailDestination            `dependency:"WelcomeEmailDestination"`
+	AutoSendUserVerifyCode  bool                                      `dependency:"AutoSendUserVerifyCodeOnSignup"`
+	UserVerifyLoginIDKeys   []config.UserVerificationKeyConfiguration `dependency:"UserVerifyLoginIDKeys"`
+	AuthConfiguration       config.AuthConfiguration                  `dependency:"AuthConfiguration"`
+	TxContext               db.TxContext                              `dependency:"TxContext"`
+	Logger                  *logrus.Entry                             `dependency:"HandlerLogger"`
+	TaskQueue               async.Queue                               `dependency:"AsyncTaskQueue"`
+	HookProvider            hook.Provider                             `dependency:"HookProvider"`
+	URLPrefix               *url.URL                                  `dependency:"URLPrefix"`
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
@@ -393,8 +393,8 @@ func (h SignupHandler) sendWelcomeEmail(user model.User, loginIDs []password.Log
 
 func (h SignupHandler) sendUserVerifyRequest(user model.User, loginIDs []password.LoginID) {
 	for _, loginID := range loginIDs {
-		for key := range h.UserVerifyLoginIDKeys {
-			if key == loginID.Key {
+		for _, keyConfig := range h.UserVerifyLoginIDKeys {
+			if keyConfig.Key == loginID.Key {
 				h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
 					URLPrefix: h.URLPrefix,
 					LoginID:   loginID.Value,
