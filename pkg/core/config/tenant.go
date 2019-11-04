@@ -198,37 +198,37 @@ func (c *TenantConfiguration) Validate() error {
 
 // nolint: gocyclo
 func (c *TenantConfiguration) doValidate() error {
-	fail := func(kind validation.ErrorCauseKind, msg string, pointer string) error {
+	fail := func(kind validation.ErrorCauseKind, msg string, pointerTokens ...interface{}) error {
 		return validation.NewValidationFailed("invalid tenant config", []validation.ErrorCause{{
 			Kind:    kind,
-			Pointer: pointer,
+			Pointer: validation.JSONPointer(pointerTokens...),
 			Message: msg,
 		}})
 	}
 
 	if c.Version != "1" {
-		return fail(validation.ErrorGeneral, "only version 1 is supported", "/version")
+		return fail(validation.ErrorGeneral, "only version 1 is supported", "version")
 	}
 
 	// Validate AppConfiguration
 	if c.AppConfig.DatabaseURL == "" {
-		return fail(validation.ErrorRequired, "database_url is required", "/database_url")
+		return fail(validation.ErrorRequired, "database_url is required", "database_url")
 	}
 	if c.AppConfig.DatabaseSchema == "" {
-		return fail(validation.ErrorRequired, "database_schema is required", "/database_schema")
+		return fail(validation.ErrorRequired, "database_schema is required", "database_schema")
 	}
 
 	// Validate AppName
 	if c.AppName == "" {
-		return fail(validation.ErrorRequired, "app_name is required", "/app_name")
+		return fail(validation.ErrorRequired, "app_name is required", "app_name")
 	}
 	if err := name.ValidateAppName(c.AppName); err != nil {
-		return fail(validation.ErrorGeneral, err.Error(), "/app_name")
+		return fail(validation.ErrorGeneral, err.Error(), "app_name")
 	}
 
 	// Validate AppID
 	if c.AppID == "" {
-		return fail(validation.ErrorRequired, "app_id is required", "/app_id")
+		return fail(validation.ErrorRequired, "app_id is required", "app_id")
 	}
 
 	// Validate UserConfiguration
@@ -243,14 +243,14 @@ func (c *TenantConfiguration) doValidate() error {
 	// Validate complex UserConfiguration
 	for key, clientConfig := range c.UserConfig.Clients {
 		if clientConfig.APIKey == c.UserConfig.MasterKey {
-			return fail(validation.ErrorGeneral, "master key must not be same as API key", "/user_config/master_key")
+			return fail(validation.ErrorGeneral, "master key must not be same as API key", "user_config", "master_key")
 		}
 
 		if clientConfig.SessionTransport == SessionTransportTypeCookie && !clientConfig.RefreshTokenDisabled {
 			return fail(
 				validation.ErrorGeneral,
 				"refresh token must be disabled when cookie is used as session token transport",
-				"/user_config/clients/"+key+"/refresh_token_disabled")
+				"user_config", "clients", key, "refresh_token_disabled")
 		}
 
 		if !clientConfig.RefreshTokenDisabled &&
@@ -258,7 +258,7 @@ func (c *TenantConfiguration) doValidate() error {
 			return fail(
 				validation.ErrorGeneral,
 				"refresh token lifetime must be greater than or equal to access token lifetime",
-				"/user_config/clients/"+key+"/refresh_token_lifetime")
+				"user_config", "clients", key, "refresh_token_lifetime")
 		}
 
 		if clientConfig.SessionIdleTimeoutEnabled &&
@@ -266,7 +266,7 @@ func (c *TenantConfiguration) doValidate() error {
 			return fail(
 				validation.ErrorGeneral,
 				"session idle timeout must be less than or equal to access token lifetime",
-				"/user_config/clients/"+key+"/session_idle_timeout")
+				"user_config", "clients", key, "session_idle_timeout")
 		}
 	}
 
@@ -275,7 +275,7 @@ func (c *TenantConfiguration) doValidate() error {
 			return fail(
 				validation.ErrorGeneral,
 				"invalid login ID amount range",
-				"/user_config/auth/login_id_keys/"+key)
+				"user_config", "auth", "login_id_keys", key)
 		}
 	}
 
@@ -285,7 +285,7 @@ func (c *TenantConfiguration) doValidate() error {
 			return fail(
 				validation.ErrorGeneral,
 				"cannot verify disallowed login ID key",
-				"/user_config/user_verification/login_id_keys/"+key)
+				"user_config", "user_verification", "login_id_keys", key)
 		}
 	}
 
@@ -297,7 +297,7 @@ func (c *TenantConfiguration) doValidate() error {
 			return fail(
 				validation.ErrorGeneral,
 				"duplicated OAuth provider",
-				fmt.Sprintf("/user_config/sso/oauth/providers/%d", i))
+				"user_config", "sso", "oauth", "providers", i)
 		}
 		seenOAuthProviderID[provider.ID] = struct{}{}
 	}
