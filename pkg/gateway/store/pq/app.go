@@ -1,6 +1,7 @@
 package pq
 
 import (
+	"bytes"
 	"database/sql"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -61,9 +62,8 @@ func (s *Store) getConfigByID(id string, configValue *config.TenantConfiguration
 		return err
 	}
 
-	err = scanner.Scan(
-		configValue,
-	)
+	var json []byte
+	err = scanner.Scan(&json)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return store.NewNotFoundError("config")
@@ -72,6 +72,12 @@ func (s *Store) getConfigByID(id string, configValue *config.TenantConfiguration
 		return err
 	}
 
+	config, err := config.NewTenantConfigurationFromJSON(bytes.NewReader(json), false)
+	if err != nil {
+		return errors.Newf("failed to scan tenant config: %w", err)
+	}
+
+	*configValue = *config
 	return nil
 }
 
