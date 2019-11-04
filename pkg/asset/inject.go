@@ -17,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -39,7 +40,12 @@ func (m *DependencyMap) Provide(
 ) interface{} {
 	newLoggerFactory := func() logging.Factory {
 		logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
-		return logging.NewFactoryFromRequest(request, logHook)
+		sentryHook := sentry.NewLogHookFromContext(ctx)
+		if request == nil {
+			return logging.NewFactoryFromRequestID(requestID, logHook, sentryHook)
+		} else {
+			return logging.NewFactoryFromRequest(request, logHook, sentryHook)
+		}
 	}
 
 	newAuthContext := func() coreAuth.ContextGetter {

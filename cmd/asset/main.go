@@ -21,6 +21,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
+	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -46,7 +47,10 @@ func main() {
 	defer vips.Shutdown()
 
 	logging.SetModule("asset")
-	loggerFactory := logging.NewFactory(logging.NewDefaultLogHook(nil))
+	loggerFactory := logging.NewFactory(
+		logging.NewDefaultLogHook(nil),
+		&sentry.LogHook{Hub: sentry.DefaultClient.Hub},
+	)
 	logger := loggerFactory.NewLogger("asset")
 
 	if err := godotenv.Load(); err != nil {

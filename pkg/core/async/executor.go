@@ -6,6 +6,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/sentry"
 )
 
 type Executor struct {
@@ -30,7 +31,8 @@ func (e *Executor) Execute(taskCtx TaskContext, name string, param interface{}, 
 	task := factory.NewTask(ctx, taskCtx)
 
 	logHook := logging.NewDefaultLogHook(taskCtx.TenantConfig.DefaultSensitiveLoggerValues())
-	loggerFactory := logging.NewFactoryFromRequestID(taskCtx.RequestID, logHook)
+	sentryHook := &sentry.LogHook{Hub: sentry.DefaultClient.Hub}
+	loggerFactory := logging.NewFactoryFromRequestID(taskCtx.RequestID, logHook, sentryHook)
 	logger := loggerFactory.NewLogger("async-executor")
 	go func() {
 		defer func() {

@@ -4,12 +4,12 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-
-	"github.com/skygeario/skygear-server/pkg/core/middleware"
-
 	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/middleware"
+	"github.com/skygeario/skygear-server/pkg/core/sentry"
 )
 
 // Server embeds a net/http server and has a gorillax mux internally
@@ -56,6 +56,7 @@ func NewServerWithOption(
 		dependencyMap: dependencyMap,
 	}
 
+	srv.Use(sentry.Middleware(sentry.DefaultClient.Hub))
 	if option.RecoverPanic {
 		srv.Use(middleware.RecoverMiddleware{}.Handle)
 	}

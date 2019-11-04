@@ -26,6 +26,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
+	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -72,7 +73,10 @@ type configuration struct {
 func main() {
 	// logging initialization
 	logging.SetModule("auth")
-	loggerFactory := logging.NewFactory(logging.NewDefaultLogHook(nil))
+	loggerFactory := logging.NewFactory(
+		logging.NewDefaultLogHook(nil),
+		&sentry.LogHook{Hub: sentry.DefaultClient.Hub},
+	)
 	logger := loggerFactory.NewLogger("auth")
 
 	envErr := godotenv.Load()
