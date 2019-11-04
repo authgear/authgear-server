@@ -1,4 +1,8 @@
-package validation
+package config
+
+import (
+	"github.com/skygeario/skygear-server/pkg/core/validation"
+)
 
 const (
 	schemaString = `
@@ -459,11 +463,11 @@ const (
 )
 
 var (
-	userConfigurationValidator *Validator
+	userConfigurationValidator *validation.Validator
 )
 
 func init() {
-	userConfigurationValidator = NewValidator("http://v2.skygear.io")
+	userConfigurationValidator = validation.NewValidator("http://v2.skygear.io")
 	userConfigurationValidator.AddSchemaFragments(schemaString)
 }
 

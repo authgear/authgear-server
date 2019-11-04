@@ -18,7 +18,7 @@ import (
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachAuthenticateBearerTokenHandler(
@@ -46,12 +46,15 @@ type AuthenticateBearerTokenRequest struct {
 	BearerToken       string `json:"bearer_token"`
 }
 
-func (r AuthenticateBearerTokenRequest) Validate() error {
-	// TODO(error): JSON schema
-	if r.BearerToken == "" {
-		return skyerr.NewInvalid("missing bearer token")
+func (r *AuthenticateBearerTokenRequest) Validate() []validation.ErrorCause {
+	if len(r.BearerToken) > 0 {
+		return nil
 	}
-	return nil
+	return []validation.ErrorCause{{
+		Kind:    validation.ErrorRequired,
+		Pointer: "/bearer_token",
+		Message: "bearer_token is required",
+	}}
 }
 
 // nolint: gosec
@@ -61,10 +64,9 @@ const AuthenticateBearerTokenRequestSchema = `
 	"$id": "#AuthenticateBearerTokenRequest",
 	"type": "object",
 	"properties": {
-		"authn_session_token": { "type": "string" },
-		"code": { "type": "string" }
-	},
-	"required": ["code"]
+		"authn_session_token": { "type": "string", "minLength": 1 },
+		"bearer_token": { "type": "string", "minLength": 1 }
+	}
 }
 `
 
@@ -86,6 +88,7 @@ const AuthenticateBearerTokenRequestSchema = `
 */
 type AuthenticateBearerTokenHandler struct {
 	TxContext                      db.TxContext             `dependency:"TxContext"`
+	Validator                      *validation.Validator    `dependency:"Validator"`
 	AuthContext                    coreAuth.ContextGetter   `dependency:"AuthContextGetter"`
 	RequireAuthz                   handler.RequireAuthz     `dependency:"RequireAuthz"`
 	SessionProvider                session.Provider         `dependency:"SessionProvider"`
@@ -103,13 +106,7 @@ func (h *AuthenticateBearerTokenHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *AuthenticateBearerTokenHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := AuthenticateBearerTokenRequest{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	if err != nil {
-		return nil, err
-	}
-
+func (h *AuthenticateBearerTokenHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload AuthenticateBearerTokenRequest, err error) {
 	_, apiClientConfig, ok := h.APIClientConfigurationProvider.Get()
 	if ok && apiClientConfig.SessionTransport == config.SessionTransportTypeCookie {
 		cookie, err := request.Cookie(coreHttp.CookieNameMFABearerToken)
@@ -118,18 +115,13 @@ func (h *AuthenticateBearerTokenHandler) DecodeRequest(request *http.Request, re
 		}
 	}
 
-	return payload, nil
+	err = handler.BindJSONBody(request, resp, h.Validator, "#AuthenticateBearerTokenRequest", &payload)
+	return
 }
 
 func (h *AuthenticateBearerTokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	payload, err := h.DecodeRequest(r, w)
-	if err != nil {
-		h.AuthnSessionProvider.WriteResponse(w, nil, err)
-		return
-	}
-
-	err = payload.Validate()
 	if err != nil {
 		h.AuthnSessionProvider.WriteResponse(w, nil, err)
 		return

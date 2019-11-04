@@ -6,8 +6,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/rand"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 const (
@@ -186,10 +186,9 @@ func (p *ProviderFactory) GetProviderConfig(id string) (config.OAuthProviderConf
 }
 
 func ValidateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
-	// TODO(error): integrate JSON schema
 	// The logic of this function must be in sync with the inline javascript implementation.
 	if callbackURL == "" {
-		err = skyerr.NewInvalid("missing callback URL")
+		err = errors.New("missing callback URL")
 		return
 	}
 
@@ -199,7 +198,7 @@ func ValidateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err 
 		}
 	}
 
-	err = skyerr.NewInvalid("callback URL is not whitelisted")
+	err = errors.New("callback URL is not whitelisted")
 	return
 }
 

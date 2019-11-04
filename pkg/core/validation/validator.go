@@ -17,7 +17,9 @@ type Validator struct {
 	RootSchemaID        string
 	definitions         map[string]interface{}
 	schemaLoader        *gojsonschema.SchemaLoader
-	compiledSchemaCache sync.Map
+	compiledSchemaCache *sync.Map
+
+	message string
 }
 
 func NewValidator(rootSchemaID string) *Validator {
@@ -25,8 +27,14 @@ func NewValidator(rootSchemaID string) *Validator {
 		RootSchemaID:        rootSchemaID,
 		definitions:         map[string]interface{}{},
 		schemaLoader:        gojsonschema.NewSchemaLoader(),
-		compiledSchemaCache: sync.Map{},
+		compiledSchemaCache: new(sync.Map),
 	}
+}
+
+func (v *Validator) WithMessage(msg string) *Validator {
+	newV := *v
+	newV.message = msg
+	return &newV
 }
 
 type subschema struct {
@@ -98,7 +106,12 @@ func (v *Validator) validateWithLoader(schemaID string, loader gojsonschema.JSON
 		return err
 	}
 	if !result.Valid() {
-		return ConvertErrors(result.Errors())
+		causes := toCauses(result.Errors())
+		msg := v.message
+		if msg == "" {
+			msg = "validation failed"
+		}
+		return NewValidationFailed(msg, causes)
 	}
 	return nil
 }

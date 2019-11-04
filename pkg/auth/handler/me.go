@@ -36,7 +36,7 @@ type MeHandlerFactory struct {
 func (f MeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &MeHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 /*
@@ -68,36 +68,41 @@ func (h MeHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h MeHandler) WithTx() bool {
-	return true
+func (h MeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	result, err := h.Handle(w, r)
+	if err == nil {
+		handler.WriteResponse(w, handler.APIResponse{Result: result})
+	} else {
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
+	}
 }
 
-func (h MeHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := handler.EmptyRequestPayload{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
-	authInfo, _ := h.AuthContext.AuthInfo()
-	sess, _ := h.AuthContext.Session()
-	principalID := sess.PrincipalID
-
-	// Get Profile
-	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
+func (h MeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	if err = handler.DecodeJSONBody(r, w, &struct{}{}); err != nil {
 		return
 	}
 
-	var principal principal.Principal
-	if principal, err = h.IdentityProvider.GetPrincipalByID(principalID); err != nil {
-		return
-	}
+	err = db.WithTx(h.TxContext, func() error {
+		authInfo, _ := h.AuthContext.AuthInfo()
+		sess, _ := h.AuthContext.Session()
+		principalID := sess.PrincipalID
 
-	identity := model.NewIdentity(h.IdentityProvider, principal)
-	user := model.NewUser(*authInfo, userProfile)
+		// Get Profile
+		var userProfile userprofile.UserProfile
+		if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
+			return err
+		}
 
-	resp = model.NewAuthResponseWithUserIdentity(user, identity)
+		var principal principal.Principal
+		if principal, err = h.IdentityProvider.GetPrincipalByID(principalID); err != nil {
+			return err
+		}
 
+		identity := model.NewIdentity(h.IdentityProvider, principal)
+		user := model.NewUser(*authInfo, userProfile)
+
+		resp = model.NewAuthResponseWithUserIdentity(user, identity)
+		return nil
+	})
 	return
 }

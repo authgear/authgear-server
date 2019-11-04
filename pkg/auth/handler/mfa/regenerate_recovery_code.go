@@ -32,7 +32,7 @@ type RegenerateRecoveryCodeHandlerFactory struct {
 func (f RegenerateRecoveryCodeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &RegenerateRecoveryCodeHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type RegenerateRecoveryCodeResponse struct {
@@ -85,24 +85,34 @@ func (h *RegenerateRecoveryCodeHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *RegenerateRecoveryCodeHandler) WithTx() bool {
-	return true
-}
-
-func (h *RegenerateRecoveryCodeHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := handler.EmptyRequestPayload{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h *RegenerateRecoveryCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
-	authInfo, _ := h.AuthContext.AuthInfo()
-	userID := authInfo.ID
-	codes, err := h.MFAProvider.GenerateRecoveryCode(userID)
+func (h *RegenerateRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
 	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
+}
+
+func (h *RegenerateRecoveryCodeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload struct{}
+	if err := handler.DecodeJSONBody(r, w, &payload); err != nil {
 		return nil, err
 	}
-	return RegenerateRecoveryCodeResponse{
-		RecoveryCodes: codes,
-	}, nil
+
+	err = db.WithTx(h.TxContext, func() error {
+		authInfo, _ := h.AuthContext.AuthInfo()
+		userID := authInfo.ID
+		codes, err := h.MFAProvider.GenerateRecoveryCode(userID)
+		if err != nil {
+			return err
+		}
+		resp = RegenerateRecoveryCodeResponse{
+			RecoveryCodes: codes,
+		}
+		return nil
+	})
+	return
 }

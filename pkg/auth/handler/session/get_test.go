@@ -11,11 +11,17 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func TestGetHandler(t *testing.T) {
 	Convey("Test GetHandler", t, func() {
 		h := &GetHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			GetRequestSchema,
+		)
+		h.Validator = validator
 		h.TxContext = db.NewMockTxContext()
 		authContext := authtest.NewMockContext().
 			UseUser("user-id-1", "principal-id-1")

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -18,6 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 // VerifyCodeFormHandlerFactory creates VerifyCodeFormHandler
@@ -33,9 +35,21 @@ func (f VerifyCodeFormHandlerFactory) NewHandler(request *http.Request) http.Han
 }
 
 type VerifyCodeFormPayload struct {
-	UserID string
-	Code   string
+	UserID string `json:"user_id"`
+	Code   string `json:"code"`
 }
+
+const VerifyCodeFormSchema = `
+{
+	"$id": "#VerifyCodeForm",
+	"type": "object",
+	"properties": {
+		"user_id": { "type": "string", "minLength": 1 },
+		"code": { "type": "string", "minLength": 1 }
+	},
+	"required": ["user_id", "code"]
+}
+`
 
 func decodeVerifyCodeFormRequest(request *http.Request) (payload VerifyCodeFormPayload, err error) {
 	if err = request.ParseForm(); err != nil {
@@ -49,21 +63,9 @@ func decodeVerifyCodeFormRequest(request *http.Request) (payload VerifyCodeFormP
 	return
 }
 
-func (payload *VerifyCodeFormPayload) Validate() error {
-	// TODO(error): JSON schema
-	if payload.UserID == "" {
-		return skyerr.NewInvalid("empty user_id")
-	}
-
-	if payload.Code == "" {
-		return skyerr.NewInvalid("empty code")
-	}
-
-	return nil
-}
-
 // VerifyCodeFormHandler reset user password with given code from email.
 type VerifyCodeFormHandler struct {
+	Validator                *validation.Validator          `dependency:"Validator"`
 	AuthContext              coreAuth.ContextGetter         `dependency:"AuthContextGetter"`
 	VerifyHTMLProvider       *userverify.VerifyHTMLProvider `dependency:"VerifyHTMLProvider"`
 	UserVerificationProvider userverify.Provider            `dependency:"UserVerificationProvider"`
@@ -86,11 +88,11 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 	var payload VerifyCodeFormPayload
 	payload, err = decodeVerifyCodeFormRequest(r)
 	if err != nil {
-		err = skyerr.NewBadRequest("invalid form data")
+		err = skyerr.NewBadRequest("invalid request form")
 		return
 	}
 
-	if err = payload.Validate(); err != nil {
+	if err = h.Validator.WithMessage("invalid request form").ValidateGoValue("#VerifyCodeForm", payload); err != nil {
 		return
 	}
 

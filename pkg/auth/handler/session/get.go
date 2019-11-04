@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachGetHandler(
@@ -34,7 +35,7 @@ type GetHandlerFactory struct {
 func (f GetHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &GetHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type GetRequestPayload struct {
@@ -47,14 +48,11 @@ const GetRequestSchema = `
 	"$id": "#SessionGetRequest",
 	"type": "object",
 	"properties": {
-		"session_id": { "type": "string" }
-	}
+		"session_id": { "type": "string", "minLength": 1 }
+	},
+	"required": ["session_id"]
 }
 `
-
-func (p GetRequestPayload) Validate() error {
-	return nil
-}
 
 type GetResponse struct {
 	Session model.Session `json:"session"`
@@ -94,6 +92,7 @@ const GetResponseSchema = `
 */
 type GetHandler struct {
 	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	Validator       *validation.Validator  `dependency:"Validator"`
 	RequireAuthz    handler.RequireAuthz   `dependency:"RequireAuthz"`
 	TxContext       db.TxContext           `dependency:"TxContext"`
 	SessionProvider session.Provider       `dependency:"SessionProvider"`
@@ -106,33 +105,41 @@ func (h GetHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h GetHandler) WithTx() bool {
-	return true
-}
-
-func (h GetHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := GetRequestPayload{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h GetHandler) Handle(req interface{}) (resp interface{}, err error) {
-	authInfo, _ := h.AuthContext.AuthInfo()
-	userID := authInfo.ID
-	sessionID := req.(GetRequestPayload).SessionID
-
-	s, err := h.SessionProvider.Get(sessionID)
-	if err != nil {
-		if errors.Is(err, session.ErrSessionNotFound) {
-			err = errSessionNotFound
+func (h GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	var payload GetRequestPayload
+	if err := handler.BindJSONBody(r, w, h.Validator, "#SessionGetRequest", &payload); err != nil {
+		response.Error = err
+	} else {
+		result, err := h.Handle(payload)
+		if err != nil {
+			response.Error = err
+		} else {
+			response.Result = result
 		}
-		return
 	}
-	if s.UserID != userID {
-		err = errSessionNotFound
-		return
-	}
+	handler.WriteResponse(w, response)
+}
 
-	resp = GetResponse{Session: authSession.Format(s)}
+func (h GetHandler) Handle(payload GetRequestPayload) (resp interface{}, err error) {
+	err = db.WithTx(h.TxContext, func() error {
+		authInfo, _ := h.AuthContext.AuthInfo()
+		userID := authInfo.ID
+		sessionID := payload.SessionID
+
+		s, err := h.SessionProvider.Get(sessionID)
+		if err != nil {
+			if errors.Is(err, session.ErrSessionNotFound) {
+				err = errSessionNotFound
+			}
+			return err
+		}
+		if s.UserID != userID {
+			return errSessionNotFound
+		}
+
+		resp = GetResponse{Session: authSession.Format(s)}
+		return nil
+	})
 	return
 }

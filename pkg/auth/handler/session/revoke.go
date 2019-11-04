@@ -19,7 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachRevokeHandler(
@@ -39,11 +39,23 @@ type RevokeHandlerFactory struct {
 func (f RevokeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &RevokeHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type RevokeRequestPayload struct {
-	SessionID string `json:"session_id"`
+	CurrentSessionID string `json:"-"`
+	SessionID        string `json:"session_id"`
+}
+
+func (p *RevokeRequestPayload) Validate() []validation.ErrorCause {
+	if p.CurrentSessionID != p.SessionID {
+		return nil
+	}
+	return []validation.ErrorCause{{
+		Kind:    validation.ErrorGeneral,
+		Pointer: "/session_id",
+		Message: "session_id must not be current session",
+	}}
 }
 
 // @JSONSchema
@@ -52,14 +64,11 @@ const RevokeRequestSchema = `
 	"$id": "#SessionRevokeRequest",
 	"type": "object",
 	"properties": {
-		"session_id": { "type": "string" }
-	}
+		"session_id": { "type": "string", "minLength": 1 }
+	},
+	"required": ["session_id"]
 }
 `
-
-func (p RevokeRequestPayload) Validate() error {
-	return nil
-}
 
 /*
 	@Operation POST /session/revoke - Revoke session
@@ -77,6 +86,7 @@ func (p RevokeRequestPayload) Validate() error {
 */
 type RevokeHandler struct {
 	AuthContext      coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	Validator        *validation.Validator      `dependency:"Validator"`
 	RequireAuthz     handler.RequireAuthz       `dependency:"RequireAuthz"`
 	TxContext        db.TxContext               `dependency:"TxContext"`
 	SessionProvider  session.Provider           `dependency:"SessionProvider"`
@@ -92,76 +102,78 @@ func (h RevokeHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h RevokeHandler) WithTx() bool {
-	return true
-}
-
-func (h RevokeHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := RevokeRequestPayload{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h RevokeHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(RevokeRequestPayload)
-
-	authInfo, _ := h.AuthContext.AuthInfo()
-	userID := authInfo.ID
-	sess, _ := h.AuthContext.Session()
-	sessionID := payload.SessionID
-
-	if sess.ID == sessionID {
-		// TODO(error): JSON schema
-		err = skyerr.NewInvalid("must not revoke current session")
-		return
-	}
-
-	// ignore session not found errors
-	s, err := h.SessionProvider.Get(sessionID)
-	if err != nil {
-		if errors.Is(err, session.ErrSessionNotFound) {
-			err = nil
-			resp = map[string]string{}
+func (h RevokeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	var payload RevokeRequestPayload
+	session, _ := h.AuthContext.Session()
+	payload.CurrentSessionID = session.ID
+	if err := handler.BindJSONBody(r, w, h.Validator, "#SessionRevokeRequest", &payload); err != nil {
+		response.Error = err
+	} else {
+		result, err := h.Handle(payload)
+		if err != nil {
+			response.Error = err
+		} else {
+			response.Result = result
 		}
-		return
 	}
-	if s.UserID != userID {
-		resp = map[string]string{}
-		return
-	}
+	handler.WriteResponse(w, response)
+}
 
-	var profile userprofile.UserProfile
-	if profile, err = h.UserProfileStore.GetUserProfile(s.UserID); err != nil {
-		return
-	}
+func (h RevokeHandler) Handle(payload RevokeRequestPayload) (resp interface{}, err error) {
+	err = db.WithTx(h.TxContext, func() error {
+		authInfo, _ := h.AuthContext.AuthInfo()
+		userID := authInfo.ID
+		sessionID := payload.SessionID
 
-	var principal principal.Principal
-	if principal, err = h.IdentityProvider.GetPrincipalByID(s.PrincipalID); err != nil {
-		return
-	}
+		// ignore session not found errors
+		s, err := h.SessionProvider.Get(sessionID)
+		if err != nil {
+			if errors.Is(err, session.ErrSessionNotFound) {
+				err = nil
+				resp = map[string]string{}
+			}
+			return err
+		}
+		if s.UserID != userID {
+			resp = map[string]string{}
+			return err
+		}
 
-	user := model.NewUser(*authInfo, profile)
-	identity := model.NewIdentity(h.IdentityProvider, principal)
-	session := authSession.Format(s)
+		var profile userprofile.UserProfile
+		if profile, err = h.UserProfileStore.GetUserProfile(s.UserID); err != nil {
+			return err
+		}
 
-	err = h.HookProvider.DispatchEvent(
-		event.SessionDeleteEvent{
-			Reason:   event.SessionDeleteReasonRevoke,
-			User:     user,
-			Identity: identity,
-			Session:  session,
-		},
-		&user,
-	)
-	if err != nil {
-		return
-	}
+		var principal principal.Principal
+		if principal, err = h.IdentityProvider.GetPrincipalByID(s.PrincipalID); err != nil {
+			return err
+		}
 
-	err = h.SessionProvider.Invalidate(s)
-	if err != nil {
-		return
-	}
+		user := model.NewUser(*authInfo, profile)
+		identity := model.NewIdentity(h.IdentityProvider, principal)
+		session := authSession.Format(s)
 
-	resp = map[string]string{}
+		err = h.HookProvider.DispatchEvent(
+			event.SessionDeleteEvent{
+				Reason:   event.SessionDeleteReasonRevoke,
+				User:     user,
+				Identity: identity,
+				Session:  session,
+			},
+			&user,
+		)
+		if err != nil {
+			return err
+		}
+
+		err = h.SessionProvider.Invalidate(s)
+		if err != nil {
+			return err
+		}
+
+		resp = struct{}{}
+		return nil
+	})
 	return
 }

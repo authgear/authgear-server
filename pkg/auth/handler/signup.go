@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -28,8 +29,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	"github.com/skygeario/skygear-server/pkg/core/utils"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachSignupHandler(
@@ -59,6 +59,10 @@ type SignupRequestPayload struct {
 	Password        string                 `json:"password"`
 	Metadata        map[string]interface{} `json:"metadata"`
 	OnUserDuplicate model.OnUserDuplicate  `json:"on_user_duplicate"`
+
+	PasswordAuthProvider password.Provider          `json:"-"`
+	AuthConfiguration    config.AuthConfiguration   `json:"-"`
+	PasswordChecker      *authAudit.PasswordChecker `json:"-"`
 }
 
 // @JSONSchema
@@ -72,63 +76,81 @@ const SignupRequestSchema = `
 			"items": {
 				"type": "object",
 				"properties": {
-					"key": { "type": "string" },
-					"value": { "type": "string" }
-				}
-			}
+					"key": { "type": "string", "minLength": 1 },
+					"value": { "type": "string", "minLength": 1 }
+				},
+				"required": ["key", "value"]
+			},
+			"minItems": 1
 		},
-		"realm": { "type": "string" },
-		"password": { "type": "string" },
+		"realm": { "type": "string", "minLength": 1 },
+		"password": { "type": "string", "minLength": 1 },
 		"metadata": { "type": "object" },
 		"on_user_duplicate": {
 			"type": "string",
 			"enum": ["abort", "create"]
 		}
-	}
+	},
+	"required": ["login_ids", "password"]
 }
 `
 
-func (p SignupRequestPayload) Validate() error {
-	// TODO(error): JSON schema
-	if len(p.LoginIDs) == 0 {
-		return skyerr.NewInvalid("empty login_ids")
+func (p *SignupRequestPayload) SetDefaultValue() {
+	if p.Realm == "" {
+		p.Realm = password.DefaultRealm
+	}
+	if p.OnUserDuplicate == "" {
+		p.OnUserDuplicate = model.OnUserDuplicateDefault
+	}
+	if p.Metadata == nil {
+		// Avoid { metadata: null } in the response user object
+		p.Metadata = make(map[string]interface{})
+	}
+}
+
+func (p *SignupRequestPayload) Validate() []validation.ErrorCause {
+	if !model.IsAllowedOnUserDuplicate(
+		false,
+		p.AuthConfiguration.OnUserDuplicateAllowCreate,
+		p.OnUserDuplicate,
+	) {
+		return []validation.ErrorCause{{
+			Kind:    validation.ErrorGeneral,
+			Pointer: "/on_user_duplicate",
+			Message: "on_user_duplicate is not allowed",
+		}}
 	}
 
-	if p.Password == "" {
-		return skyerr.NewInvalid("empty password")
+	if !p.PasswordAuthProvider.IsRealmValid(p.Realm) {
+		return []validation.ErrorCause{{
+			Kind:    validation.ErrorGeneral,
+			Pointer: "/realm",
+			Message: "realm is not a valid realm",
+		}}
 	}
 
-	for _, loginID := range p.LoginIDs {
-		if !loginID.IsValid() {
-			return skyerr.NewInvalid("invalid login_ids")
+	loginIDs := map[string]struct{}{}
+
+	for i, loginID := range p.LoginIDs {
+		if _, found := loginIDs[loginID.Value]; found {
+			return []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Pointer: fmt.Sprintf("/login_ids/%d/value", i),
+				Message: "duplicated login ID",
+			}}
 		}
+		loginIDs[loginID.Value] = struct{}{}
 	}
 
-	if p.duplicatedLoginIDs() {
-		return skyerr.NewInvalid("duplicated login_ids")
-	}
-
-	if !model.IsValidOnUserDuplicateForPassword(p.OnUserDuplicate) {
-		return skyerr.NewInvalid("invalid OnUserDuplicate")
+	if err := p.PasswordAuthProvider.ValidateLoginIDs(p.LoginIDs); err != nil {
+		return []validation.ErrorCause{{
+			Kind:    validation.ErrorGeneral,
+			Pointer: "/login_ids",
+			Message: err.Error(),
+		}}
 	}
 
 	return nil
-}
-
-func (p SignupRequestPayload) duplicatedLoginIDs() bool {
-	loginIDs := []string{}
-
-	for _, loginID := range p.LoginIDs {
-		found := utils.StringSliceContains(loginIDs, loginID.Value)
-
-		if found {
-			return found
-		}
-
-		loginIDs = append(loginIDs, loginID.Value)
-	}
-
-	return false
 }
 
 /*
@@ -151,6 +173,7 @@ func (p SignupRequestPayload) duplicatedLoginIDs() bool {
 */
 type SignupHandler struct {
 	RequireAuthz            handler.RequireAuthz                               `dependency:"RequireAuthz"`
+	Validator               *validation.Validator                              `dependency:"Validator"`
 	AuthnSessionProvider    authnsession.Provider                              `dependency:"AuthnSessionProvider"`
 	PasswordChecker         *authAudit.PasswordChecker                         `dependency:"PasswordChecker"`
 	UserProfileStore        userprofile.Store                                  `dependency:"UserProfileStore"`
@@ -175,21 +198,9 @@ func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
 }
 
 func (h SignupHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload SignupRequestPayload, err error) {
-	err = handler.DecodeJSONBody(request, resp, &payload)
-	if err != nil {
-		return
-	}
-
-	// Avoid { metadata: null } in the response user object
-	if payload.Metadata == nil {
-		payload.Metadata = make(map[string]interface{})
-	}
-	if payload.Realm == "" {
-		payload.Realm = password.DefaultRealm
-	}
-	if payload.OnUserDuplicate == "" {
-		payload.OnUserDuplicate = model.OnUserDuplicateDefault
-	}
+	payload.PasswordAuthProvider = h.PasswordAuthProvider
+	payload.AuthConfiguration = h.AuthConfiguration
+	err = handler.BindJSONBody(request, resp, h.Validator, "#SignupRequest", &payload)
 	return
 }
 
@@ -198,11 +209,6 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
-		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
-		return
-	}
-
-	if err = payload.Validate(); err != nil {
 		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
 		return
 	}
@@ -221,17 +227,10 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, err error) {
-	if !model.IsAllowedOnUserDuplicate(
-		false,
-		h.AuthConfiguration.OnUserDuplicateAllowCreate,
-		payload.OnUserDuplicate,
-	) {
-		err = skyerr.NewInvalid("disallowed OnUserDuplicate")
-		return
-	}
-
-	err = h.verifyPayload(payload)
-	if err != nil {
+	// validate password
+	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
+		PlainPassword: payload.Password,
+	}); err != nil {
 		return
 	}
 
@@ -340,24 +339,6 @@ func (h SignupHandler) findExistingPrincipals(payload SignupRequestPayload) ([]p
 	}
 
 	return filteredPrincipals, nil
-}
-
-func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
-	if err = h.PasswordAuthProvider.ValidateLoginIDs(payload.LoginIDs); err != nil {
-		return
-	}
-
-	if valid := h.PasswordAuthProvider.IsRealmValid(payload.Realm); !valid {
-		err = skyerr.NewInvalid("realm is not allowed")
-		return
-	}
-
-	// validate password
-	err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
-		PlainPassword: payload.Password,
-	})
-
-	return
 }
 
 func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (principals []principal.Principal, err error) {

@@ -14,7 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachActivateOOBHandler(
@@ -34,22 +34,13 @@ type ActivateOOBHandlerFactory struct {
 func (f ActivateOOBHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ActivateOOBHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type ActivateOOBRequest struct {
 	Code              string `json:"code"`
 	AuthnSessionToken string `json:"authn_session_token"`
 }
-
-func (r ActivateOOBRequest) Validate() error {
-	// TODO(error): JSON schema
-	if r.Code == "" {
-		return skyerr.NewInvalid("missing code")
-	}
-	return nil
-}
-
 type ActivateOOBResponse struct {
 	RecoveryCodes []string `json:"recovery_codes,omitempty"`
 }
@@ -60,8 +51,8 @@ const ActivateOOBRequestSchema = `
 	"$id": "#ActivateOOBRequest",
 	"type": "object",
 	"properties": {
-		"code": { "type": "string" },
-		"authn_session_token": { "type": "string" }
+		"code": { "type": "string", "minLength": 1 },
+		"authn_session_token": { "type": "string", "minLength": 1 }
 	},
 	"required": ["code"]
 }
@@ -104,6 +95,7 @@ const ActivateOOBResponseSchema = `
 */
 type ActivateOOBHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
+	Validator            *validation.Validator   `dependency:"Validator"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
 	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
@@ -118,30 +110,39 @@ func (h *ActivateOOBHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *ActivateOOBHandler) WithTx() bool {
-	return true
-}
-
-func (h *ActivateOOBHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := ActivateOOBRequest{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h *ActivateOOBHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(ActivateOOBRequest)
-	userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
-		MFAOption: authnsession.ResolveMFAOptionOnlyWhenNoAuthenticators,
-	})
+func (h *ActivateOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
 	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
+}
+
+func (h *ActivateOOBHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload ActivateOOBRequest
+	if err := handler.BindJSONBody(r, w, h.Validator, "#ActivateOOBRequest", &payload); err != nil {
 		return nil, err
 	}
-	recoveryCodes, err := h.MFAProvider.ActivateOOB(userID, payload.Code)
-	if err != nil {
-		return
-	}
-	resp = ActivateOOBResponse{
-		RecoveryCodes: recoveryCodes,
-	}
+
+	err = db.WithTx(h.TxContext, func() error {
+		userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
+			MFAOption: authnsession.ResolveMFAOptionOnlyWhenNoAuthenticators,
+		})
+		if err != nil {
+			return err
+		}
+		recoveryCodes, err := h.MFAProvider.ActivateOOB(userID, payload.Code)
+		if err != nil {
+			return err
+		}
+
+		resp = ActivateOOBResponse{
+			RecoveryCodes: recoveryCodes,
+		}
+		return nil
+	})
 	return
 }

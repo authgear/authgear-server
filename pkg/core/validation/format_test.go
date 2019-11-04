@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func TestURL(t *testing.T) {
@@ -201,38 +199,12 @@ func TestFilePath(t *testing.T) {
 	})
 }
 
-func TestSkyErrInvalidArgument(t *testing.T) {
-	Convey("SkyErrInvalidArgument", t, func() {
-		expected := map[string]interface{}{
-			"arguments": []string{
-				"#: a",
-				"#/a: b",
-			},
-			"causes": []map[string]interface{}{
-				map[string]interface{}{
-					"pointer": "#",
-					"message": "a",
-				},
-				map[string]interface{}{
-					"pointer": "#/a",
-					"message": "b",
-				},
-			},
-		}
-		e := Error{
-			Causes: []Cause{
-				Cause{
-					InstancePtr: "#",
-					Message:     "a",
-				},
-				Cause{
-					InstancePtr: "#/a",
-					Message:     "b",
-				},
-			},
-		}
-		// TODO(error): JSON schema
-		err := skyerr.AsAPIError(e.SkyErrInvalidArgument("m"))
-		SkipSo(err.Info, ShouldResemble, expected)
+func TestEmail(t *testing.T) {
+	Convey("Email", t, func() {
+		f := Email{}.IsFormat
+		So(f("user@example.com"), ShouldBeTrue)
+		So(f("User <user@example.com>"), ShouldBeFalse)
+		So(f(" user@example.com "), ShouldBeFalse)
+		So(f("nonsense"), ShouldBeFalse)
 	})
 }

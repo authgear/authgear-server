@@ -20,6 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachLinkHandler(
@@ -42,7 +43,7 @@ func (f LinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
-	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 // LinkRequestPayload login handler request payload
@@ -53,23 +54,14 @@ type LinkRequestPayload struct {
 // @JSONSchema
 const LinkRequestSchema = `
 {
-	"$id": "#LinkRequest",
+	"$id": "#SSOLinkRequest",
 	"type": "object",
 	"properties": {
-		"access_token": { "type": "string" }
-	}
+		"access_token": { "type": "string", "minLength": 1 }
+	},
+	"required": ["access_token"]
 }
 `
-
-// Validate request payload
-func (p LinkRequestPayload) Validate() error {
-	// TODO(error): JSON schema
-	if p.AccessToken == "" {
-		return skyerr.NewInvalid("empty access token")
-	}
-
-	return nil
-}
 
 /*
 	@Operation POST /sso/{provider_id}/link - Link SSO provider with token
@@ -83,7 +75,7 @@ func (p LinkRequestPayload) Validate() error {
 		@Parameter {SSOProviderID}
 		@RequestBody
 			Describe the access token of SSO provider.
-			@JSONSchema {LinkRequest}
+			@JSONSchema {SSOLinkRequest}
 		@Response 200 {EmptyResponse}
 
 		@Callback identity_create {UserSyncEvent}
@@ -91,6 +83,7 @@ func (p LinkRequestPayload) Validate() error {
 */
 type LinkHandler struct {
 	TxContext          db.TxContext               `dependency:"TxContext"`
+	Validator          *validation.Validator      `dependency:"Validator"`
 	AuthContext        coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	RequireAuthz       handler.RequireAuthz       `dependency:"RequireAuthz"`
 	OAuthAuthProvider  oauth.Provider             `dependency:"OAuthAuthProvider"`
@@ -111,20 +104,23 @@ func (h LinkHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h LinkHandler) WithTx() bool {
-	return true
-}
-
-func (h LinkHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := LinkRequestPayload{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
+func (h LinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
 	if err != nil {
-		return payload, err
+		response.Error = err
+	} else {
+		response.Result = result
 	}
-	return payload, nil
+	handler.WriteResponse(w, response)
 }
 
-func (h LinkHandler) Handle(req interface{}) (resp interface{}, err error) {
+func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload LinkRequestPayload
+	if err := handler.BindJSONBody(r, w, h.Validator, "#SSOLinkRequest", &payload); err != nil {
+		return nil, err
+	}
+
 	if !h.OAuthConfiguration.ExternalAccessTokenFlowEnabled {
 		err = skyerr.NewNotFound("external access token flow is disabled")
 		return
@@ -136,26 +132,27 @@ func (h LinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	authInfo, _ := h.AuthContext.AuthInfo()
-	userID := authInfo.ID
-	payload := req.(LinkRequestPayload)
+	err = hook.WithTx(h.HookProvider, h.TxContext, func() error {
+		authInfo, _ := h.AuthContext.AuthInfo()
+		userID := authInfo.ID
 
-	linkState := sso.LinkState{
-		UserID: userID,
-	}
-	oauthAuthInfo, err := provider.ExternalAccessTokenGetAuthInfo(sso.NewBearerAccessTokenResp(payload.AccessToken))
-	if err != nil {
-		return
-	}
+		linkState := sso.LinkState{
+			UserID: userID,
+		}
+		oauthAuthInfo, err := provider.ExternalAccessTokenGetAuthInfo(sso.NewBearerAccessTokenResp(payload.AccessToken))
+		if err != nil {
+			return err
+		}
 
-	handler := respHandler{
-		AuthInfoStore:     h.AuthInfoStore,
-		OAuthAuthProvider: h.OAuthAuthProvider,
-		IdentityProvider:  h.IdentityProvider,
-		UserProfileStore:  h.UserProfileStore,
-		HookProvider:      h.HookProvider,
-	}
-	resp, err = handler.linkActionResp(oauthAuthInfo, linkState)
-
+		handler := respHandler{
+			AuthInfoStore:     h.AuthInfoStore,
+			OAuthAuthProvider: h.OAuthAuthProvider,
+			IdentityProvider:  h.IdentityProvider,
+			UserProfileStore:  h.UserProfileStore,
+			HookProvider:      h.HookProvider,
+		}
+		resp, err = handler.linkActionResp(oauthAuthInfo, linkState)
+		return err
+	})
 	return
 }

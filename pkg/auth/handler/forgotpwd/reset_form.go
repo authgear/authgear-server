@@ -24,6 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 // ForgotPasswordResetFormHandlerFactory creates ForgotPasswordResetFormHandler
@@ -39,13 +40,29 @@ func (f ForgotPasswordResetFormHandlerFactory) NewHandler(request *http.Request)
 }
 
 type ForgotPasswordResetFormPayload struct {
-	UserID          string
-	Code            string
-	ExpireAt        int64
+	UserID          string `json:"user_id"`
+	Code            string `json:"code"`
+	ExpireAt        int64  `json:"expire_at"`
 	ExpireAtTime    time.Time
-	NewPassword     string
-	ConfirmPassword string
+	NewPassword     string `json:"new_password"`
+	ConfirmPassword string `json:"confirm_password"`
 }
+
+// nolint: gosec
+const ForgotPasswordResetFormSchema = `
+{
+	"$id": "#ForgotPasswordResetForm",
+	"type": "object",
+	"properties": {
+		"user_id": { "type": "string", "minLength": 1 },
+		"code": { "type": "string", "minLength": 1 },
+		"expire_at": { "type": "integer", "minimum": 1 },
+		"new_password": { "type": "string", "minLength": 1 },
+		"confirm_password": { "type": "string", "minLength": 1 }
+	},
+	"required": ["user_id", "code", "expire_at", "new_password", "confirm_password"]
+}
+`
 
 func decodeForgotPasswordResetFormRequest(request *http.Request) (payload ForgotPasswordResetFormPayload, err error) {
 	if err = request.ParseForm(); err != nil {
@@ -73,24 +90,9 @@ func decodeForgotPasswordResetFormRequest(request *http.Request) (payload Forgot
 	return
 }
 
-func (payload *ForgotPasswordResetFormPayload) Validate() error {
-	if payload.UserID == "" {
-		return skyerr.NewInvalid("empty user_id")
-	}
-
-	if payload.Code == "" {
-		return skyerr.NewInvalid("empty code")
-	}
-
-	if payload.ExpireAt == 0 {
-		return skyerr.NewInvalid("empty expire_at")
-	}
-
-	return nil
-}
-
 // ForgotPasswordResetFormHandler reset user password with given code from email.
 type ForgotPasswordResetFormHandler struct {
+	Validator                 *validation.Validator                     `dependency:"Validator"`
 	CodeGenerator             *forgotpwdemail.CodeGenerator             `dependency:"ForgotPasswordCodeGenerator"`
 	PasswordChecker           *audit.PasswordChecker                    `dependency:"PasswordChecker"`
 	AuthInfoStore             authinfo.Store                            `dependency:"AuthInfoStore"`
@@ -114,11 +116,11 @@ func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Req
 	var payload ForgotPasswordResetFormPayload
 	payload, err = decodeForgotPasswordResetFormRequest(r)
 	if err != nil {
-		err = skyerr.NewBadRequest("invalid form data")
+		err = skyerr.NewBadRequest("invalid request form")
 		return
 	}
 
-	if err = payload.Validate(); err != nil {
+	if err = h.Validator.WithMessage("invalid request form").ValidateGoValue("#ForgotPasswordResetForm", payload); err != nil {
 		return
 	}
 

@@ -149,11 +149,9 @@ func (h *UploadFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err 
 	jsonReader := bytes.NewReader(jsonBytes)
 
 	var validatedPresignUploadRequest cloudstorage.PresignUploadRequest
-	err = h.Validator.ParseReader("#PresignUploadRequest", jsonReader, &validatedPresignUploadRequest)
+	err = h.Validator.WithMessage("invalid pre-signed request").
+		ParseReader("#PresignUploadRequest", jsonReader, &validatedPresignUploadRequest)
 	if err != nil {
-		if validationError, ok := err.(validation.Error); ok {
-			err = validationError.SkyErrInvalidArgument("Validation Error")
-		}
 		return
 	}
 	validatedPresignUploadRequest.SetDefaultValue()

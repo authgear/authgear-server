@@ -11,7 +11,7 @@ var (
 	// start with a letter.
 	// Kubernetes only accepts name of 63 letter long,
 	// so we have to limit the length.
-	ErrInvalidAppName = errors.New("App name must be ^[a-zA-Z][a-zA-Z0-9]{0,11}$")
+	ErrInvalidAppName = errors.New("app name must be ^[a-zA-Z][a-zA-Z0-9]{0,11}$")
 )
 
 var (

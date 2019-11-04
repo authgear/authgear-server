@@ -37,7 +37,7 @@ type RevokeAllHandlerFactory struct {
 func (f RevokeAllHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &RevokeAllHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 /*
@@ -67,68 +67,77 @@ func (h RevokeAllHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h RevokeAllHandler) WithTx() bool {
-	return true
-}
-
-func (h RevokeAllHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := handler.EmptyRequestPayload{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h RevokeAllHandler) Handle(req interface{}) (resp interface{}, err error) {
-	authInfo, _ := h.AuthContext.AuthInfo()
-	userID := authInfo.ID
-	sess, _ := h.AuthContext.Session()
-	sessionID := sess.ID
-
-	profile, err := h.UserProfileStore.GetUserProfile(userID)
-	if err != nil {
-		return
-	}
-	user := model.NewUser(*authInfo, profile)
-
-	sessions, err := h.SessionProvider.List(userID)
-	if err != nil {
-		return
-	}
-
-	n := 0
-	for _, session := range sessions {
-		if session.ID == sessionID {
-			continue
-		}
-		sessions[n] = session
-		n++
-
-		var principal principal.Principal
-		if principal, err = h.IdentityProvider.GetPrincipalByID(session.PrincipalID); err != nil {
-			return
-		}
-		identity := model.NewIdentity(h.IdentityProvider, principal)
-		sessionModel := authSession.Format(session)
-
-		err = h.HookProvider.DispatchEvent(
-			event.SessionDeleteEvent{
-				Reason:   event.SessionDeleteReasonRevoke,
-				User:     user,
-				Identity: identity,
-				Session:  sessionModel,
-			},
-			&user,
-		)
+func (h RevokeAllHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	var payload struct{}
+	if err := handler.DecodeJSONBody(r, w, &payload); err != nil {
+		response.Error = err
+	} else {
+		result, err := h.Handle()
 		if err != nil {
-			return
+			response.Error = err
+		} else {
+			response.Result = result
 		}
 	}
-	sessions = sessions[:n]
+	handler.WriteResponse(w, response)
+}
 
-	err = h.SessionProvider.InvalidateBatch(sessions)
-	if err != nil {
-		return
-	}
+func (h RevokeAllHandler) Handle() (resp interface{}, err error) {
+	err = db.WithTx(h.TxContext, func() error {
+		authInfo, _ := h.AuthContext.AuthInfo()
+		userID := authInfo.ID
+		sess, _ := h.AuthContext.Session()
+		sessionID := sess.ID
 
-	resp = map[string]string{}
+		profile, err := h.UserProfileStore.GetUserProfile(userID)
+		if err != nil {
+			return err
+		}
+		user := model.NewUser(*authInfo, profile)
+
+		sessions, err := h.SessionProvider.List(userID)
+		if err != nil {
+			return err
+		}
+
+		n := 0
+		for _, session := range sessions {
+			if session.ID == sessionID {
+				continue
+			}
+			sessions[n] = session
+			n++
+
+			var principal principal.Principal
+			if principal, err = h.IdentityProvider.GetPrincipalByID(session.PrincipalID); err != nil {
+				return err
+			}
+			identity := model.NewIdentity(h.IdentityProvider, principal)
+			sessionModel := authSession.Format(session)
+
+			err = h.HookProvider.DispatchEvent(
+				event.SessionDeleteEvent{
+					Reason:   event.SessionDeleteReasonRevoke,
+					User:     user,
+					Identity: identity,
+					Session:  sessionModel,
+				},
+				&user,
+			)
+			if err != nil {
+				return err
+			}
+		}
+		sessions = sessions[:n]
+
+		err = h.SessionProvider.InvalidateBatch(sessions)
+		if err != nil {
+			return err
+		}
+
+		resp = struct{}{}
+		return nil
+	})
 	return
 }

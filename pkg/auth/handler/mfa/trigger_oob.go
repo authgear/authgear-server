@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachTriggerOOBHandler(
@@ -33,17 +34,12 @@ type TriggerOOBHandlerFactory struct {
 func (f TriggerOOBHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &TriggerOOBHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type TriggerOOBRequest struct {
 	AuthenticatorID   string `json:"authenticator_id"`
 	AuthnSessionToken string `json:"authn_session_token"`
-}
-
-func (r TriggerOOBRequest) Validate() error {
-	// TODO(error): JSON schema
-	return nil
 }
 
 // @JSONSchema
@@ -52,8 +48,8 @@ const TriggerOOBRequestSchema = `
 	"$id": "#TriggerOOBRequest",
 	"type": "object",
 	"properties": {
-		"authenticator_id": { "type": "string" },
-		"authn_session_token": { "type": "string" }
+		"authenticator_id": { "type": "string", "minLength": 1 },
+		"authn_session_token": { "type": "string", "minLength": 1 }
 	}
 }
 `
@@ -72,6 +68,7 @@ const TriggerOOBRequestSchema = `
 */
 type TriggerOOBHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
+	Validator            *validation.Validator   `dependency:"Validator"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
 	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
@@ -86,28 +83,35 @@ func (h *TriggerOOBHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *TriggerOOBHandler) WithTx() bool {
-	return true
-}
-
-func (h *TriggerOOBHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := TriggerOOBRequest{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h *TriggerOOBHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(TriggerOOBRequest)
-	userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
-		MFAOption: authnsession.ResolveMFAOptionAlwaysAccept,
-	})
+func (h *TriggerOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
 	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
+}
+
+func (h *TriggerOOBHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload TriggerOOBRequest
+	if err := handler.BindJSONBody(r, w, h.Validator, "#TriggerOOBRequest", &payload); err != nil {
 		return nil, err
 	}
-	err = h.MFAProvider.TriggerOOB(userID, payload.AuthenticatorID)
-	if err != nil {
-		return
-	}
-	resp = map[string]interface{}{}
+	err = db.WithTx(h.TxContext, func() error {
+		userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
+			MFAOption: authnsession.ResolveMFAOptionAlwaysAccept,
+		})
+		if err != nil {
+			return err
+		}
+		err = h.MFAProvider.TriggerOOB(userID, payload.AuthenticatorID)
+		if err != nil {
+			return err
+		}
+		resp = struct{}{}
+		return nil
+	})
 	return
 }

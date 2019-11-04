@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"io"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -136,17 +135,10 @@ func (h *SignHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler.WriteResponse(w, response)
 }
 
-func (h *SignHandler) ParseSignRequest(r io.Reader, p interface{}) error {
-	return h.Validator.ParseReader("#SignAssetRequest", r, p)
-}
-
 func (h *SignHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
 	var payload cloudstorage.SignRequest
-	err = handler.ParseJSONBody(r, w, h.ParseSignRequest, &payload)
+	err = handler.BindJSONBody(r, w, h.Validator, "#SignAssetRequest", &payload)
 	if err != nil {
-		if validationError, ok := err.(validation.Error); ok {
-			err = validationError.SkyErrInvalidArgument("Validation Error")
-		}
 		return
 	}
 

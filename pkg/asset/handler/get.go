@@ -48,6 +48,11 @@ func (f *GetHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	@Operation GET /get/{asset_name} - Retrieve the asset
 		Retrieve the asset.
 
+		@Parameter asset_name path
+			Name of asset
+			@JSONSchema
+				{ "type": "string" }
+
 		@Response 200
 			The asset.
 */

@@ -21,7 +21,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachResetPasswordHandler(
@@ -42,7 +42,7 @@ func (f ResetPasswordHandlerFactory) NewHandler(request *http.Request) http.Hand
 	h := &ResetPasswordHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type ResetPasswordRequestPayload struct {
@@ -57,24 +57,12 @@ const ResetPasswordRequestSchema = `
 	"$id": "#ResetPasswordRequest",
 	"type": "object",
 	"properties": {
-		"auth_id": { "type": "string" },
+		"user_id": { "type": "string" },
 		"password": { "type": "string" }
-	}
+	},
+	"required": ["user_id", "password"]
 }
 `
-
-func (p ResetPasswordRequestPayload) Validate() error {
-	// TODO(error): JSON schema
-	if p.UserID == "" {
-		return skyerr.NewInvalid("invalid user id")
-	}
-
-	if p.Password == "" {
-		return skyerr.NewInvalid("empty password")
-	}
-
-	return nil
-}
 
 /*
 	@Operation POST /reset_password - Reset user password
@@ -95,6 +83,7 @@ func (p ResetPasswordRequestPayload) Validate() error {
 */
 type ResetPasswordHandler struct {
 	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
+	Validator            *validation.Validator      `dependency:"Validator"`
 	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
@@ -112,62 +101,68 @@ func (h ResetPasswordHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h ResetPasswordHandler) WithTx() bool {
-	return true
-}
-
-func (h ResetPasswordHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := ResetPasswordRequestPayload{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(ResetPasswordRequestPayload)
-
-	authinfo := authinfo.AuthInfo{}
-	if err = h.AuthInfoStore.GetAuth(payload.UserID, &authinfo); err != nil {
-		return
-	}
-
-	resetPwdCtx := password.ResetPasswordRequestContext{
-		PasswordChecker:      h.PasswordChecker,
-		PasswordAuthProvider: h.PasswordAuthProvider,
-	}
-
-	if err = resetPwdCtx.ExecuteWithUserID(payload.Password, authinfo.ID); err != nil {
-		return
-	}
-
-	var profile userprofile.UserProfile
-	if profile, err = h.UserProfileStore.GetUserProfile(authinfo.ID); err != nil {
-		return
-	}
-
-	user := model.NewUser(authinfo, profile)
-
-	err = h.HookProvider.DispatchEvent(
-		event.PasswordUpdateEvent{
-			Reason: event.PasswordUpdateReasonAdministrative,
-			User:   user,
-		},
-		&user,
-	)
+func (h ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
 	if err != nil {
-		return
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
+}
+
+func (h ResetPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload ResetPasswordRequestPayload
+	if err := handler.BindJSONBody(r, w, h.Validator, "#ResetPasswordRequest", &payload); err != nil {
+		return nil, err
 	}
 
-	h.AuditTrail.Log(audit.Entry{
-		UserID: authinfo.ID,
-		Event:  audit.EventResetPassword,
+	err = hook.WithTx(h.HookProvider, h.TxContext, func() error {
+		authinfo := authinfo.AuthInfo{}
+		if err := h.AuthInfoStore.GetAuth(payload.UserID, &authinfo); err != nil {
+			return err
+		}
+
+		resetPwdCtx := password.ResetPasswordRequestContext{
+			PasswordChecker:      h.PasswordChecker,
+			PasswordAuthProvider: h.PasswordAuthProvider,
+		}
+
+		if err := resetPwdCtx.ExecuteWithUserID(payload.Password, authinfo.ID); err != nil {
+			return err
+		}
+
+		var profile userprofile.UserProfile
+		if profile, err = h.UserProfileStore.GetUserProfile(authinfo.ID); err != nil {
+			return err
+		}
+
+		user := model.NewUser(authinfo, profile)
+
+		err = h.HookProvider.DispatchEvent(
+			event.PasswordUpdateEvent{
+				Reason: event.PasswordUpdateReasonAdministrative,
+				User:   user,
+			},
+			&user,
+		)
+		if err != nil {
+			return err
+		}
+
+		h.AuditTrail.Log(audit.Entry{
+			UserID: authinfo.ID,
+			Event:  audit.EventResetPassword,
+		})
+
+		// password house keeper
+		h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
+			AuthID: authinfo.ID,
+		}, nil)
+
+		resp = struct{}{}
+		return nil
 	})
-
-	// password house keeper
-	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
-		AuthID: authinfo.ID,
-	}, nil)
-
-	resp = map[string]string{}
-
 	return
 }

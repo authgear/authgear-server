@@ -31,10 +31,19 @@ func TestPresignUploadHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			So(w.Code, ShouldEqual, 400)
-			// TODO(error): validation
-			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":400,"message":"Validation Error","name":"Invalid","reason":"Invalid"}}
-			`)
+			So(w.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "Required", "message": "headers is required", "pointer":"/headers" }
+						]
+					}
+				}
+			}`)
 		})
 
 		Convey("content-length is required", func() {
@@ -47,10 +56,19 @@ func TestPresignUploadHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			So(w.Code, ShouldEqual, 400)
-			// TODO(error): validation
-			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":400,"message":"Validation Error","name":"Invalid","reason":"Invalid"}}
-			`)
+			So(w.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "Required", "message": "content-length is required", "pointer":"/headers/content-length" }
+						]
+					}
+				}
+			}`)
 		})
 
 		Convey("prefix must be safe", func() {
@@ -66,10 +84,19 @@ func TestPresignUploadHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			So(w.Code, ShouldEqual, 400)
-			// TODO(error): validation
-			So(w.Body.Bytes(), ShouldEqualJSON, `
-{"error":{"code":400,"message":"Validation Error","name":"Invalid","reason":"Invalid"}}
-			`)
+			So(w.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{ "kind": "StringFormat", "message": "Does not match pattern '^[-_.a-zA-Z0-9]*$'", "pointer":"/prefix", "details": { "pattern": "^[-_.a-zA-Z0-9]*$" } }
+						]
+					}
+				}
+			}`)
 		})
 
 		Convey("success", func() {

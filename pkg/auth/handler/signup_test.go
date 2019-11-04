@@ -31,77 +31,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestSignupHandler(t *testing.T) {
-	Convey("Test SignupRequestPayload", t, func() {
-		Convey("validate valid payload", func() {
-			payload := SignupRequestPayload{
-				LoginIDs: []password.LoginID{
-					password.LoginID{Key: "username", Value: "john.doe"},
-					password.LoginID{Key: "email", Value: "john.doe@example.com"},
-				},
-				Password:        "123456",
-				OnUserDuplicate: model.OnUserDuplicateDefault,
-			}
-			So(payload.Validate(), ShouldBeNil)
-		})
-
-		Convey("validate valid payload with realm", func() {
-			payload := SignupRequestPayload{
-				LoginIDs: []password.LoginID{
-					password.LoginID{Key: "username", Value: "john.doe"},
-					password.LoginID{Key: "email", Value: "john.doe@example.com"},
-				},
-				Realm:           "admin",
-				Password:        "123456",
-				OnUserDuplicate: model.OnUserDuplicateDefault,
-			}
-			So(payload.Validate(), ShouldBeNil)
-		})
-
-		Convey("validate payload without login_id", func() {
-			payload := SignupRequestPayload{
-				Password:        "123456",
-				OnUserDuplicate: model.OnUserDuplicateDefault,
-			}
-			So(payload.Validate(), ShouldBeError)
-		})
-
-		Convey("validate payload without password", func() {
-			payload := SignupRequestPayload{
-				LoginIDs: []password.LoginID{
-					password.LoginID{Key: "username", Value: "john.doe"},
-					password.LoginID{Key: "email", Value: "john.doe@example.com"},
-				},
-				OnUserDuplicate: model.OnUserDuplicateDefault,
-			}
-			So(payload.Validate(), ShouldBeError)
-		})
-
-		Convey("validate payload without on_user_duplicate", func() {
-			payload := SignupRequestPayload{
-				LoginIDs: []password.LoginID{
-					password.LoginID{Key: "username", Value: "john.doe"},
-					password.LoginID{Key: "email", Value: "john.doe@example.com"},
-				},
-				Password: "123456",
-			}
-			So(payload.Validate(), ShouldBeError)
-		})
-
-		Convey("validate payload with duplicated loginIDs", func() {
-			payload := SignupRequestPayload{
-				LoginIDs: []password.LoginID{
-					password.LoginID{Key: "username", Value: "john.doe"},
-					password.LoginID{Key: "email", Value: "john.doe"},
-				},
-			}
-			So(payload.Validate(), ShouldBeError)
-		})
-	})
-
 	Convey("Test SignupHandler", t, func() {
 		realTime := timeNow
 		now := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
@@ -133,6 +67,11 @@ func TestSignupHandler(t *testing.T) {
 		}
 
 		sh := &SignupHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			SignupRequestSchema,
+		)
+		sh.Validator = validator
 		sh.AuthInfoStore = authInfoStore
 		sessionProvider := session.NewMockProvider()
 		sessionWriter := session.NewMockWriter()
@@ -181,6 +120,68 @@ func TestSignupHandler(t *testing.T) {
 			hookProvider,
 			userProfileStore,
 		)
+		Convey("should reject request without login ID", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": [],
+				"password": "123456"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			sh.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{
+								"kind": "EntryAmount",
+								"pointer": "/login_ids",
+								"message": "Array must have at least 1 items",
+								"details": { "gte": 1 }
+							}
+						]
+					}
+				}
+			}`)
+		})
+		Convey("should reject request with duplicated login ID", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": [
+					{ "key": "username", "value": "john.doe" },
+					{ "key": "email", "value": "john.doe" }
+				],
+				"password": "123456"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			sh.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{
+								"kind": "General",
+								"pointer": "/login_ids/1/value",
+								"message": "duplicated login ID"
+							}
+						]
+					}
+				}
+			}`)
+		})
 
 		Convey("abort if user duplicate with oauth", func() {
 			sh.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider, mockOAuthProvider)
@@ -485,9 +486,18 @@ func TestSignupHandler(t *testing.T) {
 			{
 				"error": {
 					"name": "Invalid",
-					"reason": "Invalid",
-					"message": "login ID key is not allowed",
-					"code": 400
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{
+								"kind": "General",
+								"pointer": "/login_ids",
+								"message": "login ID key is not allowed"
+							}
+						]
+					}
 				}
 			}
 			`)
@@ -615,6 +625,11 @@ func TestSignupHandler(t *testing.T) {
 		}
 
 		sh := &SignupHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			SignupRequestSchema,
+		)
+		sh.Validator = validator
 		sh.AuthInfoStore = authInfoStore
 		sessionProvider := session.NewMockProvider()
 		sessionWriter := session.NewMockWriter()
@@ -726,9 +741,18 @@ func TestSignupHandler(t *testing.T) {
 			{
 				"error": {
 					"name": "Invalid",
-					"reason": "Invalid",
-					"message": "realm is not allowed",
-					"code": 400
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{
+								"kind": "General",
+								"pointer": "/realm",
+								"message": "realm is not a valid realm"
+							}
+						]
+					}
 				}
 			}
 			`)

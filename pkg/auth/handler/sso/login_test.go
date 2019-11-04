@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/validation"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -29,23 +31,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestLoginPayload(t *testing.T) {
-	Convey("Test LoginRequestPayload", t, func() {
-		Convey("validate valid payload", func() {
-			payload := LoginRequestPayload{
-				AccessToken:     "token",
-				OnUserDuplicate: model.OnUserDuplicateDefault,
-			}
-			So(payload.Validate(), ShouldBeNil)
-		})
-
-		Convey("validate payload without access token", func() {
-			payload := LoginRequestPayload{}
-			So(payload.Validate(), ShouldBeError)
-		})
-	})
-}
-
 func TestLoginHandler(t *testing.T) {
 	realTime := timeNow
 	now := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
@@ -61,6 +46,11 @@ func TestLoginHandler(t *testing.T) {
 
 		sh := &LoginHandler{}
 		sh.TxContext = db.NewMockTxContext()
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			LoginRequestSchema,
+		)
+		sh.Validator = validator
 		oauthConfig := coreconfig.OAuthConfiguration{
 			StateJWTSecret:                 stateJWTSecret,
 			ExternalAccessTokenFlowEnabled: true,
@@ -119,6 +109,31 @@ func TestLoginHandler(t *testing.T) {
 			hookProvider,
 			userProfileStore,
 		)
+
+		Convey("should reject payload without access token", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			sh.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{
+								"kind": "Required",
+								"message": "access_token is required",
+								"pointer": "/access_token"
+							}
+						]
+					}
+				}
+			}`)
+		})
 
 		Convey("should get auth response", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{

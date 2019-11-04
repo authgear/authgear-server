@@ -1,6 +1,10 @@
 package event
 
-import "github.com/skygeario/skygear-server/pkg/core/skyerr"
+import (
+	"io"
+
+	"github.com/skygeario/skygear-server/pkg/core/validation"
+)
 
 /*
 	@ID HookResponse
@@ -22,23 +26,44 @@ import "github.com/skygeario/skygear-server/pkg/core/skyerr"
 const HookResponseSchema = `
 {
 	"$id": "#HookResponse",
-	"type": "object",
-	"properties": {
-		"is_allowed": { "type": "boolean" },
-		"reason": { "type": "string" },
-		"data": { "type": "object" },
-		"mutations": {
-			"type": "object",
+	"oneOf": [
+		{
+			"additionalProperties": false,
 			"properties": {
-				"is_disabled": { "type": "boolean" },
-				"is_verified": { "type": "boolean" },
-				"verify_info": { "type": "object" },
-				"metadata": { "type": "object" }
-			}
+				"is_allowed": { "type": "boolean", "enum": [true] },
+				"mutations": {
+					"type": "object",
+					"properties": {
+						"is_disabled": { "type": "boolean" },
+						"is_verified": { "type": "boolean" },
+						"verify_info": { "type": "object" },
+						"metadata": { "type": "object" }
+					}
+				}
+			},
+			"required": ["is_allowed"]
+		},
+		{
+			"additionalProperties": false,
+			"properties": {
+				"is_allowed": { "type": "boolean", "enum": [false] },
+				"reason": { "type": "string" },
+				"data": { "type": "object" }
+			},
+			"required": ["is_allowed", "reason"]
 		}
-	}
+	]
 }
 `
+
+var (
+	hookRespValidator *validation.Validator
+)
+
+func init() {
+	hookRespValidator = validation.NewValidator("http://v2.skygear.io")
+	hookRespValidator.AddSchemaFragments(HookResponseSchema)
+}
 
 type HookResponse struct {
 	IsAllowed bool        `json:"is_allowed"`
@@ -47,19 +72,10 @@ type HookResponse struct {
 	Mutations *Mutations  `json:"mutations"`
 }
 
-func (resp HookResponse) Validate() error {
-	// TODO(error): JSON schema
-	if resp.IsAllowed {
-		if resp.Reason != "" {
-			return skyerr.NewInvalid("reason must not exist")
-		}
-	} else {
-		if resp.Mutations != nil {
-			return skyerr.NewInvalid("mutations must not exist")
-		}
-		if resp.Reason == "" {
-			return skyerr.NewInvalid("reason must be provided")
-		}
+func ParseHookResponse(r io.Reader) (*HookResponse, error) {
+	var resp HookResponse
+	if err := hookRespValidator.ParseReader("#HookResponse", r, &resp); err != nil {
+		return nil, err
 	}
-	return nil
+	return &resp, nil
 }

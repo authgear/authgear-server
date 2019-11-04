@@ -22,11 +22,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func AttachAuthHandler(
@@ -57,18 +57,16 @@ type AuthRequestPayload sso.OAuthAuthorizationResponse
 
 // Validate request payload
 func (p AuthRequestPayload) Validate() error {
-	// TODO(error): JSON schema
-
 	if p.Code == "" {
-		return skyerr.NewInvalid("code is required")
+		return errors.New("code is required")
 	}
 
 	if p.State == "" {
-		return skyerr.NewInvalid("state is required")
+		return errors.New("state is required")
 	}
 
 	if p.Nonce == "" {
-		return skyerr.NewInvalid("nonce is required")
+		return errors.New("nonce is required")
 	}
 
 	return nil
@@ -136,16 +134,13 @@ func (authHandlerError) Error() string {
 }
 
 func (h AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	_, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
+	hook.WithTx(h.HookProvider, h.TxContext, func() error {
 		success := h.Handle(w, r)
-		if success {
-			return nil, h.HookProvider.WillCommitTx()
+		if !success {
+			return authHandlerError{}
 		}
-		return nil, authHandlerError{}
+		return nil
 	})
-	if err == nil {
-		h.HookProvider.DidCommitTx()
-	}
 }
 
 func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success bool) {

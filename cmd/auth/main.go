@@ -28,6 +28,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/template"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 type configuration struct {
@@ -89,6 +90,48 @@ func main() {
 	templateEngine := template.NewEngine()
 	authTemplate.RegisterDefaultTemplates(templateEngine)
 
+	validator := validation.NewValidator("http://v2.skgyear.io")
+	validator.AddSchemaFragments(
+		handler.ChangePasswordRequestSchema,
+		handler.SetDisableRequestSchema,
+		handler.RefreshRequestSchema,
+		handler.ResetPasswordRequestSchema,
+		handler.LoginRequestSchema,
+		handler.SignupRequestSchema,
+		handler.UpdateMetadataRequestSchema,
+		handler.WelcomeEmailTestRequestSchema,
+
+		forgotpwdhandler.ForgotPasswordRequestSchema,
+		forgotpwdhandler.ForgotPasswordResetFormSchema,
+		forgotpwdhandler.ForgotPasswordTestRequestSchema,
+		forgotpwdhandler.ForgotPasswordResetRequestSchema,
+
+		mfaHandler.ActivateOOBRequestSchema,
+		mfaHandler.ActivateTOTPRequestSchema,
+		mfaHandler.AuthenticateBearerTokenRequestSchema,
+		mfaHandler.AuthenticateOOBRequestSchema,
+		mfaHandler.AuthenticateRecoveryCodeRequestSchema,
+		mfaHandler.AuthenticateTOTPRequestSchema,
+		mfaHandler.CreateOOBRequestSchema,
+		mfaHandler.CreateTOTPRequestSchema,
+		mfaHandler.DeleteAuthenticatorRequestSchema,
+		mfaHandler.ListAuthenticatorRequestSchema,
+		mfaHandler.TriggerOOBRequestSchema,
+
+		session.GetRequestSchema,
+		session.RevokeRequestSchema,
+
+		ssohandler.AuthURLRequestSchema,
+		ssohandler.LoginRequestSchema,
+		ssohandler.LinkRequestSchema,
+		ssohandler.CustomTokenLoginRequestSchema,
+
+		userverifyhandler.VerifyCodeRequestSchema,
+		userverifyhandler.VerifyTestRequestSchema,
+		userverifyhandler.VerifyRequestSchema,
+		userverifyhandler.VerifyCodeFormSchema,
+	)
+
 	dbPool := db.NewPool()
 	redisPool, err := redis.NewPool(configuration.Redis)
 	if err != nil {
@@ -100,6 +143,7 @@ func main() {
 		TemplateEngine:       templateEngine,
 		UseInsecureCookie:    configuration.UseInsecureCookie,
 		DefaultConfiguration: configuration.Default,
+		Validator:            validator,
 	}
 
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)

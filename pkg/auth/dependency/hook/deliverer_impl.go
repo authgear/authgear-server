@@ -3,7 +3,6 @@ package hook
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"net"
 	gohttp "net/http"
 	"net/url"
@@ -183,21 +182,7 @@ func performRequest(client gohttp.Client, request *gohttp.Request, withResponse 
 		return
 	}
 
-	var body []byte
-	body, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		err = newErrorDeliveryFailed(err)
-		return
-	}
-
-	hookResp = &event.HookResponse{}
-	err = json.Unmarshal(body, &hookResp)
-	if err != nil {
-		err = newErrorDeliveryFailed(err)
-		return
-	}
-
-	err = hookResp.Validate()
+	hookResp, err = event.ParseHookResponse(resp.Body)
 	if err != nil {
 		err = newErrorDeliveryFailed(err)
 		return

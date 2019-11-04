@@ -7,23 +7,22 @@ import (
 	"testing"
 	gotime "time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/time"
-
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -32,6 +31,11 @@ func TestVerifyCodeHandler(t *testing.T) {
 		time := time.MockProvider{TimeNowUTC: gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)}
 
 		vh := &VerifyCodeHandler{}
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			VerifyCodeRequestSchema,
+		)
+		vh.Validator = validator
 		logger, _ := test.NewNullLogger()
 		vh.Logger = logrus.NewEntry(logger)
 		vh.TxContext = db.NewMockTxContext()
@@ -134,8 +138,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(vh, vh.TxContext)
-			h.ServeHTTP(resp, req)
+			vh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {}
 			}`)
@@ -178,8 +181,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(vh, vh.TxContext)
-			h.ServeHTTP(resp, req)
+			vh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {}
 			}`)
@@ -196,8 +198,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(vh, vh.TxContext)
-			h.ServeHTTP(resp, req)
+			vh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"name": "Invalid",
@@ -216,8 +217,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(vh, vh.TxContext)
-			h.ServeHTTP(resp, req)
+			vh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"name": "Invalid",
@@ -236,8 +236,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(vh, vh.TxContext)
-			h.ServeHTTP(resp, req)
+			vh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"name": "Invalid",
@@ -260,8 +259,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(vh, vh.TxContext)
-			h.ServeHTTP(resp, req)
+			vh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"name": "Invalid",
@@ -280,8 +278,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(vh, vh.TxContext)
-			h.ServeHTTP(resp, req)
+			vh.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"name": "Invalid",

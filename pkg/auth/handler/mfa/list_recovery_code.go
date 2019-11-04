@@ -33,7 +33,7 @@ type ListRecoveryCodeHandlerFactory struct {
 func (f ListRecoveryCodeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ListRecoveryCodeHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type ListRecoveryCodeResponse struct {
@@ -86,27 +86,38 @@ func (h *ListRecoveryCodeHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *ListRecoveryCodeHandler) WithTx() bool {
-	return true
+func (h *ListRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
+	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
 }
 
-func (h *ListRecoveryCodeHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := handler.EmptyRequestPayload{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
+func (h *ListRecoveryCodeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload struct{}
+	if err := handler.DecodeJSONBody(r, w, &payload); err != nil {
+		return nil, err
+	}
 
-func (h *ListRecoveryCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	if !h.MFAConfiguration.RecoveryCode.ListEnabled {
 		return nil, skyerr.NewNotFound("listing recovery code is disabled")
 	}
-	authInfo, _ := h.AuthContext.AuthInfo()
-	userID := authInfo.ID
-	codes, err := h.MFAProvider.GetRecoveryCode(userID)
-	if err != nil {
-		return nil, err
-	}
-	return ListRecoveryCodeResponse{
-		RecoveryCodes: codes,
-	}, nil
+
+	err = db.WithTx(h.TxContext, func() error {
+		authInfo, _ := h.AuthContext.AuthInfo()
+		userID := authInfo.ID
+		codes, err := h.MFAProvider.GetRecoveryCode(userID)
+		if err != nil {
+			return err
+		}
+		resp = ListRecoveryCodeResponse{
+			RecoveryCodes: codes,
+		}
+		return nil
+	})
+	return
 }

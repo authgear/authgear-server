@@ -38,10 +38,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 type DependencyMap struct {
 	TemplateEngine       *template.Engine
+	Validator            *validation.Validator
 	AsyncTaskExecutor    *async.Executor
 	UseInsecureCookie    bool
 	DefaultConfiguration config.DefaultConfiguration
@@ -247,6 +249,8 @@ func (m DependencyMap) Provide(
 		return newLoggerFactory()
 	case "RequireAuthz":
 		return handler.NewRequireAuthzFactory(newAuthContext(), newLoggerFactory())
+	case "Validator":
+		return m.Validator
 	case "SessionProvider":
 		return newSessionProvider()
 	case "SessionWriter":

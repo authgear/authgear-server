@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"io"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -139,21 +138,13 @@ func (h *PresignUploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	handler.WriteResponse(w, response)
 }
 
-func (h *PresignUploadHandler) ParsePresignUploadRequest(r io.Reader, p interface{}) error {
-	return h.Validator.ParseReader("#PresignUploadRequest", r, p)
-}
-
 func (h *PresignUploadHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
 	// Parse request
 	var payload cloudstorage.PresignUploadRequest
-	err = handler.ParseJSONBody(r, w, h.ParsePresignUploadRequest, &payload)
+	err = handler.BindJSONBody(r, w, h.Validator, "#PresignUploadRequest", &payload)
 	if err != nil {
-		if validationError, ok := err.(validation.Error); ok {
-			err = validationError.SkyErrInvalidArgument("Validation Error")
-		}
 		return
 	}
-	payload.SetDefaultValue()
 
 	resp, err := h.CloudStorageProvider.PresignPutRequest(&payload)
 	if err != nil {

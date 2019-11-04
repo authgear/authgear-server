@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachListAuthenticatorHandler(
@@ -32,7 +33,7 @@ type ListAuthenticatorHandlerFactory struct {
 func (f ListAuthenticatorHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ListAuthenticatorHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type ListAuthenticatorRequest struct {
@@ -49,7 +50,7 @@ const ListAuthenticatorRequestSchema = `
 	"$id": "#ListAuthenticatorRequest",
 	"type": "object",
 	"properties": {
-		"authn_session_token": { "type": "string" }
+		"authn_session_token": { "type": "string", "minLength": 1 }
 	}
 }
 `
@@ -93,6 +94,7 @@ const ListAuthenticatorResponseSchema = `
 */
 type ListAuthenticatorHandler struct {
 	TxContext            db.TxContext           `dependency:"TxContext"`
+	Validator            *validation.Validator  `dependency:"Validator"`
 	AuthContext          coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz   `dependency:"RequireAuthz"`
 	MFAProvider          mfa.Provider           `dependency:"MFAProvider"`
@@ -106,29 +108,38 @@ func (h *ListAuthenticatorHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h *ListAuthenticatorHandler) WithTx() bool {
-	return true
+func (h *ListAuthenticatorHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
+	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
 }
 
-func (h *ListAuthenticatorHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := ListAuthenticatorRequest{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
+func (h *ListAuthenticatorHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload ListAuthenticatorRequest
+	if err := handler.BindJSONBody(r, w, h.Validator, "#ListAuthenticatorRequest", &payload); err != nil {
+		return nil, err
+	}
 
-func (h *ListAuthenticatorHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(ListAuthenticatorRequest)
-	userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
-		MFAOption: authnsession.ResolveMFAOptionAlwaysAccept,
+	err = db.WithTx(h.TxContext, func() error {
+		userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
+			MFAOption: authnsession.ResolveMFAOptionAlwaysAccept,
+		})
+		if err != nil {
+			return err
+		}
+		authenticators, err := h.MFAProvider.ListAuthenticators(userID)
+		if err != nil {
+			return err
+		}
+		resp = ListAuthenticatorResponse{
+			Authenticators: authenticators,
+		}
+		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-	authenticators, err := h.MFAProvider.ListAuthenticators(userID)
-	if err != nil {
-		return nil, err
-	}
-	return ListAuthenticatorResponse{
-		Authenticators: authenticators,
-	}, nil
+	return
 }

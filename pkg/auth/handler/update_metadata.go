@@ -3,13 +3,12 @@ package handler
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
-
-	"github.com/skygeario/skygear-server/pkg/auth"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -20,6 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachUpdateMetadataHandler(
@@ -39,12 +39,13 @@ type UpdateMetadataHandlerFactory struct {
 func (f UpdateMetadataHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &UpdateMetadataHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(hook.WrapHandler(h.HookProvider, h), h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 type UpdateMetadataRequestPayload struct {
-	UserID   string                 `json:"user_id"`
-	Metadata map[string]interface{} `json:"metadata"`
+	UserID      string                 `json:"user_id"`
+	Metadata    map[string]interface{} `json:"metadata"`
+	isMasterKey bool
 }
 
 // @JSONSchema
@@ -55,11 +56,21 @@ const UpdateMetadataRequestSchema = `
 	"properties": {
 		"user_id": { "type": "string" },
 		"metadata": { "type": "object" }
-	}
+	},
+	"required": ["metadata"]
 }
 `
 
-func (p UpdateMetadataRequestPayload) Validate() error {
+func (p *UpdateMetadataRequestPayload) Validate() []validation.ErrorCause {
+	if p.isMasterKey {
+		if p.UserID == "" {
+			return []validation.ErrorCause{{
+				Kind:    validation.ErrorRequired,
+				Pointer: "/user_id",
+				Message: "user_id is required",
+			}}
+		}
+	}
 	return nil
 }
 
@@ -85,6 +96,7 @@ func (p UpdateMetadataRequestPayload) Validate() error {
 */
 type UpdateMetadataHandler struct {
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	Validator            *validation.Validator      `dependency:"Validator"`
 	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
@@ -104,69 +116,69 @@ func (h UpdateMetadataHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h UpdateMetadataHandler) WithTx() bool {
-	return true
-}
-
-func (h UpdateMetadataHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := UpdateMetadataRequestPayload{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(UpdateMetadataRequestPayload)
-	accessKey := h.AuthContext.AccessKey()
-
-	var targetUserID string
-	// TODO(error): integrate JSON schema
-	if accessKey.IsMasterKey() {
-		if payload.UserID == "" {
-			err = skyerr.NewInvalid("empty user_id")
-			return
-		}
-		targetUserID = payload.UserID
+func (h UpdateMetadataHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	result, err := h.Handle(resp, req)
+	if err == nil {
+		handler.WriteResponse(resp, handler.APIResponse{Result: result})
 	} else {
-		if payload.UserID != "" {
-			err = skyerr.NewInvalid("must not specify user_id")
-			return
+		handler.WriteResponse(resp, handler.APIResponse{Error: err})
+	}
+}
+
+func (h UpdateMetadataHandler) Handle(resp http.ResponseWriter, req *http.Request) (result interface{}, err error) {
+	var payload UpdateMetadataRequestPayload
+	if err = handler.BindJSONBody(req, resp, h.Validator, "#UpdateMetadataRequest", &payload); err != nil {
+		return
+	}
+
+	err = hook.WithTx(h.HookProvider, h.TxContext, func() error {
+		accessKey := h.AuthContext.AccessKey()
+
+		var targetUserID string
+		if accessKey.IsMasterKey() {
+			targetUserID = payload.UserID
+		} else {
+			if payload.UserID != "" {
+				err = skyerr.NewForbidden("must not specify user_id")
+				return err
+			}
+			authInfo, _ := h.AuthContext.AuthInfo()
+			targetUserID = authInfo.ID
 		}
-		authInfo, _ := h.AuthContext.AuthInfo()
-		targetUserID = authInfo.ID
-	}
 
-	newMetadata := payload.Metadata
+		newMetadata := payload.Metadata
 
-	authInfo := authinfo.AuthInfo{}
-	if err = h.AuthInfoStore.GetAuth(targetUserID, &authInfo); err != nil {
-		return
-	}
+		authInfo := authinfo.AuthInfo{}
+		if err = h.AuthInfoStore.GetAuth(targetUserID, &authInfo); err != nil {
+			return err
+		}
 
-	var oldProfile, newProfile userprofile.UserProfile
-	if oldProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
-		return
-	}
+		var oldProfile, newProfile userprofile.UserProfile
+		if oldProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
+			return err
+		}
 
-	if newProfile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, newMetadata); err != nil {
-		return
-	}
+		if newProfile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, newMetadata); err != nil {
+			return err
+		}
 
-	oldUser := authModel.NewUser(authInfo, oldProfile)
-	user := authModel.NewUser(authInfo, newProfile)
+		oldUser := authModel.NewUser(authInfo, oldProfile)
+		user := authModel.NewUser(authInfo, newProfile)
 
-	err = h.HookProvider.DispatchEvent(
-		event.UserUpdateEvent{
-			Reason:   event.UserUpdateReasonUpdateMetadata,
-			User:     oldUser,
-			Metadata: &newProfile.Data,
-		},
-		&user,
-	)
-	if err != nil {
-		return
-	}
+		err = h.HookProvider.DispatchEvent(
+			event.UserUpdateEvent{
+				Reason:   event.UserUpdateReasonUpdateMetadata,
+				User:     oldUser,
+				Metadata: &newProfile.Data,
+			},
+			&user,
+		)
+		if err != nil {
+			return err
+		}
 
-	resp = authModel.NewAuthResponseWithUser(user)
-
+		result = authModel.NewAuthResponseWithUser(user)
+		return nil
+	})
 	return
 }

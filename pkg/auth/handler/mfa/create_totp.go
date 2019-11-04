@@ -14,7 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachCreateTOTPHandler(
@@ -34,7 +34,7 @@ type CreateTOTPHandlerFactory struct {
 func (f CreateTOTPHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &CreateTOTPHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(handler.APIHandlerToHandler(h, h.TxContext), h)
+	return h.RequireAuthz(h, h)
 }
 
 func (h *CreateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
@@ -51,14 +51,6 @@ type CreateTOTPRequest struct {
 	Issuer            string `json:"issuer"`
 }
 
-func (r CreateTOTPRequest) Validate() error {
-	// TODO(error): JSON schema
-	if r.DisplayName == "" {
-		return skyerr.NewInvalid("missing display name")
-	}
-	return nil
-}
-
 type CreateTOTPResponse struct {
 	AuthenticatorID   string `json:"authenticator_id"`
 	AuthenticatorType string `json:"authenticator_type"`
@@ -73,10 +65,10 @@ const CreateTOTPRequestSchema = `
 	"$id": "#CreateTOTPRequest",
 	"type": "object",
 	"properties": {
-		"display_name": { "type": "string" },
-		"account_name": { "type": "string" },
-		"issuer": { "type": "string" },
-		"authn_session_token": { "type": "string" }
+		"display_name": { "type": "string", "minLength": 1 },
+		"account_name": { "type": "string", "minLength": 1 },
+		"issuer": { "type": "string", "minLength": 1 },
+		"authn_session_token": { "type": "string", "minLength": 1 }
 	},
 	"required": ["display_name"]
 }
@@ -118,6 +110,7 @@ const CreateTOTPResponseSchema = `
 */
 type CreateTOTPHandler struct {
 	TxContext            db.TxContext            `dependency:"TxContext"`
+	Validator            *validation.Validator   `dependency:"Validator"`
 	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
 	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
@@ -125,39 +118,47 @@ type CreateTOTPHandler struct {
 	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
 }
 
-func (h *CreateTOTPHandler) WithTx() bool {
-	return true
-}
-
-func (h *CreateTOTPHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (handler.RequestPayload, error) {
-	payload := CreateTOTPRequest{}
-	err := handler.DecodeJSONBody(request, resp, &payload)
-	return payload, err
-}
-
-func (h *CreateTOTPHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(CreateTOTPRequest)
-	userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
-		MFAOption: authnsession.ResolveMFAOptionOnlyWhenNoAuthenticators,
-	})
+func (h *CreateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var response handler.APIResponse
+	result, err := h.Handle(w, r)
 	if err != nil {
+		response.Error = err
+	} else {
+		response.Result = result
+	}
+	handler.WriteResponse(w, response)
+}
+
+func (h *CreateTOTPHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+	var payload CreateTOTPRequest
+	if err := handler.BindJSONBody(r, w, h.Validator, "#CreateTOTPRequest", &payload); err != nil {
 		return nil, err
 	}
-	a, err := h.MFAProvider.CreateTOTP(userID, payload.DisplayName)
-	if err != nil {
-		return
-	}
-	keyURI := mfa.NewKeyURI(payload.Issuer, payload.AccountName, a.Secret)
-	qrCodeImageURI, err := keyURI.QRCodeDataURI()
-	if err != nil {
-		return
-	}
-	resp = CreateTOTPResponse{
-		AuthenticatorID:   a.ID,
-		AuthenticatorType: string(a.Type),
-		Secret:            a.Secret,
-		OTPAuthURI:        keyURI.String(),
-		QRCodeImageURI:    qrCodeImageURI,
-	}
+
+	err = db.WithTx(h.TxContext, func() error {
+		userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
+			MFAOption: authnsession.ResolveMFAOptionOnlyWhenNoAuthenticators,
+		})
+		if err != nil {
+			return err
+		}
+		a, err := h.MFAProvider.CreateTOTP(userID, payload.DisplayName)
+		if err != nil {
+			return err
+		}
+		keyURI := mfa.NewKeyURI(payload.Issuer, payload.AccountName, a.Secret)
+		qrCodeImageURI, err := keyURI.QRCodeDataURI()
+		if err != nil {
+			return err
+		}
+		resp = CreateTOTPResponse{
+			AuthenticatorID:   a.ID,
+			AuthenticatorType: string(a.Type),
+			Secret:            a.Secret,
+			OTPAuthURI:        keyURI.String(),
+			QRCodeImageURI:    qrCodeImageURI,
+		}
+		return nil
+	})
 	return
 }

@@ -19,28 +19,11 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-func TestLinkPayload(t *testing.T) {
-	Convey("Test LinkRequestPayload", t, func() {
-		// callback URL and ux_mode is required
-		Convey("validate valid payload", func() {
-			payload := LinkRequestPayload{
-				AccessToken: "token",
-			}
-			So(payload.Validate(), ShouldBeNil)
-		})
-
-		Convey("validate payload without access token", func() {
-			payload := LinkRequestPayload{}
-			So(payload.Validate(), ShouldBeError)
-		})
-	})
-}
 
 func TestLinkHandler(t *testing.T) {
 	realTime := timeNow
@@ -59,6 +42,11 @@ func TestLinkHandler(t *testing.T) {
 
 		sh := &LinkHandler{}
 		sh.TxContext = db.NewMockTxContext()
+		validator := validation.NewValidator("http://v2.skygear.io")
+		validator.AddSchemaFragments(
+			LinkRequestSchema,
+		)
+		sh.Validator = validator
 		sh.AuthContext = authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
@@ -98,7 +86,31 @@ func TestLinkHandler(t *testing.T) {
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
-		h := handler.APIHandlerToHandler(sh, sh.TxContext)
+
+		Convey("should reject payload without access token", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			sh.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{
+								"kind": "Required",
+								"message": "access_token is required",
+								"pointer": "/access_token"
+							}
+						]
+					}
+				}
+			}`)
+		})
 
 		Convey("should link user id with oauth principal", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
@@ -106,7 +118,7 @@ func TestLinkHandler(t *testing.T) {
 			}`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {
@@ -155,7 +167,6 @@ func TestLinkHandler(t *testing.T) {
 		})
 
 		sh.OAuthConfiguration.ExternalAccessTokenFlowEnabled = false
-		h = handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("should return error if disabled", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
@@ -163,7 +174,7 @@ func TestLinkHandler(t *testing.T) {
                        }`))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 404)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
