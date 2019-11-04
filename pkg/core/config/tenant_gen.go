@@ -24,6 +24,12 @@ func (z *APIClientConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
+		case "id":
+			z.ID, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "ID")
+				return
+			}
 		case "name":
 			z.Name, err = dc.ReadString()
 			if err != nil {
@@ -105,9 +111,19 @@ func (z *APIClientConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *APIClientConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 10
+	// map header, size 11
+	// write "id"
+	err = en.Append(0x8b, 0xa2, 0x69, 0x64)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.ID)
+	if err != nil {
+		err = msgp.WrapError(err, "ID")
+		return
+	}
 	// write "name"
-	err = en.Append(0x8a, 0xa4, 0x6e, 0x61, 0x6d, 0x65)
+	err = en.Append(0xa4, 0x6e, 0x61, 0x6d, 0x65)
 	if err != nil {
 		return
 	}
@@ -212,9 +228,12 @@ func (z *APIClientConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *APIClientConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 10
+	// map header, size 11
+	// string "id"
+	o = append(o, 0x8b, 0xa2, 0x69, 0x64)
+	o = msgp.AppendString(o, z.ID)
 	// string "name"
-	o = append(o, 0x8a, 0xa4, 0x6e, 0x61, 0x6d, 0x65)
+	o = append(o, 0xa4, 0x6e, 0x61, 0x6d, 0x65)
 	o = msgp.AppendString(o, z.Name)
 	// string "disabled"
 	o = append(o, 0xa8, 0x64, 0x69, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x64)
@@ -264,6 +283,12 @@ func (z *APIClientConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 			return
 		}
 		switch msgp.UnsafeString(field) {
+		case "id":
+			z.ID, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "ID")
+				return
+			}
 		case "name":
 			z.Name, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
@@ -346,7 +371,7 @@ func (z *APIClientConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *APIClientConfiguration) Msgsize() (s int) {
-	s = 1 + 5 + msgp.StringPrefixSize + len(z.Name) + 9 + msgp.BoolSize + 8 + msgp.StringPrefixSize + len(z.APIKey) + 18 + msgp.StringPrefixSize + len(string(z.SessionTransport)) + 22 + msgp.IntSize + 29 + msgp.BoolSize + 21 + msgp.IntSize + 23 + msgp.BoolSize + 23 + msgp.IntSize + 10 + msgp.StringPrefixSize + len(string(z.SameSite))
+	s = 1 + 3 + msgp.StringPrefixSize + len(z.ID) + 5 + msgp.StringPrefixSize + len(z.Name) + 9 + msgp.BoolSize + 8 + msgp.StringPrefixSize + len(z.APIKey) + 18 + msgp.StringPrefixSize + len(string(z.SessionTransport)) + 22 + msgp.IntSize + 29 + msgp.BoolSize + 21 + msgp.IntSize + 23 + msgp.BoolSize + 23 + msgp.IntSize + 10 + msgp.StringPrefixSize + len(string(z.SameSite))
 	return
 }
 
@@ -6412,33 +6437,22 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 		switch msgp.UnsafeString(field) {
 		case "clients":
 			var zb0002 uint32
-			zb0002, err = dc.ReadMapHeader()
+			zb0002, err = dc.ReadArrayHeader()
 			if err != nil {
 				err = msgp.WrapError(err, "Clients")
 				return
 			}
-			if z.Clients == nil {
-				z.Clients = make(map[string]APIClientConfiguration, zb0002)
-			} else if len(z.Clients) > 0 {
-				for key := range z.Clients {
-					delete(z.Clients, key)
-				}
+			if cap(z.Clients) >= int(zb0002) {
+				z.Clients = (z.Clients)[:zb0002]
+			} else {
+				z.Clients = make([]APIClientConfiguration, zb0002)
 			}
-			for zb0002 > 0 {
-				zb0002--
-				var za0001 string
-				var za0002 APIClientConfiguration
-				za0001, err = dc.ReadString()
-				if err != nil {
-					err = msgp.WrapError(err, "Clients")
-					return
-				}
-				err = za0002.DecodeMsg(dc)
+			for za0001 := range z.Clients {
+				err = z.Clients[za0001].DecodeMsg(dc)
 				if err != nil {
 					err = msgp.WrapError(err, "Clients", za0001)
 					return
 				}
-				z.Clients[za0001] = za0002
 			}
 		case "master_key":
 			z.MasterKey, err = dc.ReadString()
@@ -6746,18 +6760,13 @@ func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	err = en.WriteMapHeader(uint32(len(z.Clients)))
+	err = en.WriteArrayHeader(uint32(len(z.Clients)))
 	if err != nil {
 		err = msgp.WrapError(err, "Clients")
 		return
 	}
-	for za0001, za0002 := range z.Clients {
-		err = en.WriteString(za0001)
-		if err != nil {
-			err = msgp.WrapError(err, "Clients")
-			return
-		}
-		err = za0002.EncodeMsg(en)
+	for za0001 := range z.Clients {
+		err = z.Clients[za0001].EncodeMsg(en)
 		if err != nil {
 			err = msgp.WrapError(err, "Clients", za0001)
 			return
@@ -6996,10 +7005,9 @@ func (z *UserConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// map header, size 16
 	// string "clients"
 	o = append(o, 0xde, 0x0, 0x10, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
-	o = msgp.AppendMapHeader(o, uint32(len(z.Clients)))
-	for za0001, za0002 := range z.Clients {
-		o = msgp.AppendString(o, za0001)
-		o, err = za0002.MarshalMsg(o)
+	o = msgp.AppendArrayHeader(o, uint32(len(z.Clients)))
+	for za0001 := range z.Clients {
+		o, err = z.Clients[za0001].MarshalMsg(o)
 		if err != nil {
 			err = msgp.WrapError(err, "Clients", za0001)
 			return
@@ -7141,33 +7149,22 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		switch msgp.UnsafeString(field) {
 		case "clients":
 			var zb0002 uint32
-			zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)
+			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "Clients")
 				return
 			}
-			if z.Clients == nil {
-				z.Clients = make(map[string]APIClientConfiguration, zb0002)
-			} else if len(z.Clients) > 0 {
-				for key := range z.Clients {
-					delete(z.Clients, key)
-				}
+			if cap(z.Clients) >= int(zb0002) {
+				z.Clients = (z.Clients)[:zb0002]
+			} else {
+				z.Clients = make([]APIClientConfiguration, zb0002)
 			}
-			for zb0002 > 0 {
-				var za0001 string
-				var za0002 APIClientConfiguration
-				zb0002--
-				za0001, bts, err = msgp.ReadStringBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Clients")
-					return
-				}
-				bts, err = za0002.UnmarshalMsg(bts)
+			for za0001 := range z.Clients {
+				bts, err = z.Clients[za0001].UnmarshalMsg(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Clients", za0001)
 					return
 				}
-				z.Clients[za0001] = za0002
 			}
 		case "master_key":
 			z.MasterKey, bts, err = msgp.ReadStringBytes(bts)
@@ -7470,12 +7467,9 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserConfiguration) Msgsize() (s int) {
-	s = 3 + 8 + msgp.MapHeaderSize
-	if z.Clients != nil {
-		for za0001, za0002 := range z.Clients {
-			_ = za0002
-			s += msgp.StringPrefixSize + len(za0001) + za0002.Msgsize()
-		}
+	s = 3 + 8 + msgp.ArrayHeaderSize
+	for za0001 := range z.Clients {
+		s += z.Clients[za0001].Msgsize()
 	}
 	s += 11 + msgp.StringPrefixSize + len(z.MasterKey) + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin) + 5 + z.Auth.Msgsize() + 4 + z.MFA.Msgsize() + 11 + 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.UserAudit.TrailHandlerURL) + 16 + z.PasswordPolicy.Msgsize() + 16 + z.ForgotPassword.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 4 + 1 + 13 + z.SSO.CustomToken.Msgsize() + 6 + z.SSO.OAuth.Msgsize() + 18 + z.UserVerification.Msgsize() + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.Hook.Secret) + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 7 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From) + 6 + 1 + 7 + msgp.StringPrefixSize + len(z.Asset.Secret)
 	return

@@ -35,12 +35,12 @@ func (p *providerImpl) GetAccessKeyByAPIKey(apiKey string) model.AccessKey {
 		return model.AccessKey{Type: model.MasterAccessKeyType}
 	}
 
-	for id, clientConfig := range p.tenantConfig.UserConfig.Clients {
+	for _, clientConfig := range p.tenantConfig.UserConfig.Clients {
 		if clientConfig.Disabled {
 			continue
 		}
 		if subtle.ConstantTimeCompare([]byte(apiKey), []byte(clientConfig.APIKey)) == 1 {
-			return model.AccessKey{Type: model.APIAccessKeyType, ClientID: id}
+			return model.AccessKey{Type: model.APIAccessKeyType, ClientID: clientConfig.ID}
 		}
 	}
 

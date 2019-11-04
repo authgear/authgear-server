@@ -313,7 +313,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 
 	// Set default APIClientConfiguration values
-	for id, clientConfig := range c.UserConfig.Clients {
+	for i, clientConfig := range c.UserConfig.Clients {
 		if clientConfig.AccessTokenLifetime == 0 {
 			clientConfig.AccessTokenLifetime = 1800
 		}
@@ -335,7 +335,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		if clientConfig.SessionTransport == SessionTransportTypeCookie {
 			clientConfig.RefreshTokenDisabled = true
 		}
-		c.UserConfig.Clients[id] = clientConfig
+		c.UserConfig.Clients[i] = clientConfig
 	}
 
 	// Set default CORSConfiguration
@@ -505,22 +505,22 @@ func WriteTenantConfig(r *http.Request, config *TenantConfiguration) {
 
 // UserConfiguration represents user-editable configuration
 type UserConfiguration struct {
-	Clients          map[string]APIClientConfiguration `json:"clients" yaml:"clients" msg:"clients"`
-	MasterKey        string                            `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
-	CORS             CORSConfiguration                 `json:"cors,omitempty" yaml:"cors" msg:"cors"`
-	Auth             AuthConfiguration                 `json:"auth,omitempty" yaml:"auth" msg:"auth"`
-	MFA              MFAConfiguration                  `json:"mfa,omitempty" yaml:"mfa" msg:"mfa"`
-	UserAudit        UserAuditConfiguration            `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit"`
-	PasswordPolicy   PasswordPolicyConfiguration       `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy"`
-	ForgotPassword   ForgotPasswordConfiguration       `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password"`
-	WelcomeEmail     WelcomeEmailConfiguration         `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email"`
-	SSO              SSOConfiguration                  `json:"sso,omitempty" yaml:"sso" msg:"sso"`
-	UserVerification UserVerificationConfiguration     `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification"`
-	Hook             HookUserConfiguration             `json:"hook,omitempty" yaml:"hook" msg:"hook"`
-	SMTP             SMTPConfiguration                 `json:"smtp,omitempty" yaml:"smtp" msg:"smtp"`
-	Twilio           TwilioConfiguration               `json:"twilio,omitempty" yaml:"twilio" msg:"twilio"`
-	Nexmo            NexmoConfiguration                `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo"`
-	Asset            AssetConfiguration                `json:"asset,omitempty" yaml:"asset" msg:"asset"`
+	Clients          []APIClientConfiguration      `json:"clients" yaml:"clients" msg:"clients"`
+	MasterKey        string                        `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
+	CORS             CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors"`
+	Auth             AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth"`
+	MFA              MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa"`
+	UserAudit        UserAuditConfiguration        `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit"`
+	PasswordPolicy   PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy"`
+	ForgotPassword   ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password"`
+	WelcomeEmail     WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email"`
+	SSO              SSOConfiguration              `json:"sso,omitempty" yaml:"sso" msg:"sso"`
+	UserVerification UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification"`
+	Hook             HookUserConfiguration         `json:"hook,omitempty" yaml:"hook" msg:"hook"`
+	SMTP             SMTPConfiguration             `json:"smtp,omitempty" yaml:"smtp" msg:"smtp"`
+	Twilio           TwilioConfiguration           `json:"twilio,omitempty" yaml:"twilio" msg:"twilio"`
+	Nexmo            NexmoConfiguration            `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo"`
+	Asset            AssetConfiguration            `json:"asset,omitempty" yaml:"asset" msg:"asset"`
 }
 
 type AssetConfiguration struct {
@@ -546,6 +546,7 @@ const (
 )
 
 type APIClientConfiguration struct {
+	ID       string `json:"id" yaml:"id" msg:"id"`
 	Name     string `json:"name" yaml:"name" msg:"name"`
 	Disabled bool   `json:"disabled" yaml:"disabled" msg:"disabled"`
 	APIKey   string `json:"api_key" yaml:"api_key" msg:"api_key"`

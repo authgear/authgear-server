@@ -22,10 +22,8 @@ const (
 		"type": "object",
 		"properties": {
 			"clients": {
-				"type": "object",
-				"additionalProperties": {
-					"$ref": "#APIClientConfiguration"
-				}
+				"type": "array",
+				"items": { "$ref": "#APIClientConfiguration" }
 			},
 			"master_key": { "$ref": "#NonEmptyString" },
 			"url_prefix": {
@@ -61,6 +59,7 @@ const (
 		"$id": "#APIClientConfiguration",
 		"type": "object",
 		"properties": {
+			"id": { "$ref": "#NonEmptyString" },
 			"name": { "$ref": "#NonEmptyString" },
 			"disabled": { "type": "boolean" },
 			"api_key": { "$ref": "#NonEmptyString" },
@@ -74,7 +73,7 @@ const (
 			"refresh_token_disabled": { "type": "boolean" },
 			"refresh_token_lifetime": { "type": "integer", "minimum": 0 }
 		},
-		"required": ["name", "api_key", "session_transport"]
+		"required": ["id", "name", "api_key", "session_transport"]
 	},
 	"CORSConfiguration": {
 		"$id": "#CORSConfiguration",

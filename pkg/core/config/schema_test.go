@@ -119,9 +119,11 @@ func TestValidateUserConfiguration(t *testing.T) {
 		// API Clients
 		test(`
 			{
-				"clients": {
-					"web-app": {}
-				},
+				"clients": [
+					{
+						"key": "web-app"
+					}
+				],
 				"asset": {
 					"secret": "assetsecret"
 				},
@@ -147,9 +149,10 @@ func TestValidateUserConfiguration(t *testing.T) {
 					"secret": "hooksecret"
 				}
 			}`,
-			"/clients/web-app/api_key: Required",
-			"/clients/web-app/name: Required",
-			"/clients/web-app/session_transport: Required",
+			"/clients/0/api_key: Required",
+			"/clients/0/id: Required",
+			"/clients/0/name: Required",
+			"/clients/0/session_transport: Required",
 		)
 		// CORS
 		test(`

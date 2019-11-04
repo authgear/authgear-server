@@ -19,7 +19,7 @@ app_config:
   database_url: postgres://
   database_schema: app
 user_config:
-  clients: {}
+  clients: []
   master_key: masterkey
   asset:
     secret: assetsecret
@@ -52,7 +52,7 @@ const inputMinimalJSON = `
 		"database_schema": "app"
 	},
 	"user_config": {
-		"clients": {},
+		"clients": [],
 		"master_key": "masterkey",
 		"asset": {
 			"secret": "assetsecret"
@@ -107,8 +107,9 @@ func makeFullTenantConfig() TenantConfiguration {
 			},
 		},
 		UserConfig: UserConfiguration{
-			Clients: map[string]APIClientConfiguration{
-				"web-app": APIClientConfiguration{
+			Clients: []APIClientConfiguration{
+				APIClientConfiguration{
+					ID:                   "web-app",
 					Name:                 "Web App",
 					Disabled:             false,
 					APIKey:               "api_key",
@@ -354,7 +355,7 @@ app_config:
   database_url: postgres://
   database_schema: app
 user_config:
-  clients: {}
+  clients: []
   master_key: masterkey
 `
 			_, err := NewTenantConfigurationFromYAML(strings.NewReader(invalidInput))
@@ -444,10 +445,11 @@ user_config:
 		})
 		Convey("should validate api key != master key", func() {
 			c := makeFullTenantConfig()
-			clientConfig := c.UserConfig.Clients["web-app"]
-			clientConfig.APIKey = c.UserConfig.MasterKey
-			c.UserConfig.Clients["web-app"] = clientConfig
-
+			for i := range c.UserConfig.Clients {
+				if c.UserConfig.Clients[i].ID == "web-app" {
+					c.UserConfig.Clients[i].APIKey = c.UserConfig.MasterKey
+				}
+			}
 			err := c.Validate()
 			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
