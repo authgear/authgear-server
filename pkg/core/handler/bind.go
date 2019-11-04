@@ -9,11 +9,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-type bodyDefaulter interface {
+type BodyDefaulter interface {
 	SetDefaultValue()
 }
 
-type bodyValidator interface {
+type BodyValidator interface {
 	Validate() []validation.ErrorCause
 }
 
@@ -27,10 +27,10 @@ func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.Validato
 			}
 			return err
 		}
-		if value, ok := value.(bodyDefaulter); ok {
+		if value, ok := value.(BodyDefaulter); ok {
 			value.SetDefaultValue()
 		}
-		if value, ok := value.(bodyValidator); ok {
+		if value, ok := value.(BodyValidator); ok {
 			causes := value.Validate()
 			if len(causes) > 0 {
 				return validation.NewValidationFailed(message, causes)
