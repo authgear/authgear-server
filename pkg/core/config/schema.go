@@ -61,7 +61,6 @@ const (
 		"properties": {
 			"id": { "$ref": "#NonEmptyString" },
 			"name": { "$ref": "#NonEmptyString" },
-			"disabled": { "type": "boolean" },
 			"api_key": { "$ref": "#NonEmptyString" },
 			"session_transport": {
 				"type": "string",

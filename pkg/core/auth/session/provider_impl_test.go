@@ -235,16 +235,6 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeError, ErrSessionNotFound)
 				So(session, ShouldBeNil)
 			})
-			Convey("should reject if client is disabled", func() {
-				for i, _ := range clientConfigs {
-					if clientConfigs[i].ID == "web-app" {
-						clientConfigs[i].Disabled = true
-					}
-				}
-				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)
-				So(err, ShouldBeError, ErrSessionNotFound)
-				So(session, ShouldBeNil)
-			})
 			Convey("should reject if client does not exists", func(c C) {
 				for i := range clientConfigs {
 					if clientConfigs[i].ID == "web-app" {

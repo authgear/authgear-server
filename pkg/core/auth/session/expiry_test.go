@@ -25,7 +25,6 @@ func TestComputeSessionExpiry(t *testing.T) {
 		}
 		config := config.APIClientConfiguration{
 			Name:                 "Web App",
-			Disabled:             false,
 			APIKey:               "api_key",
 			SessionTransport:     config.SessionTransportTypeHeader,
 			AccessTokenLifetime:  1800,
@@ -82,7 +81,6 @@ func TestCheckSessionExpired(t *testing.T) {
 		}
 		config := config.APIClientConfiguration{
 			Name:                 "Web App",
-			Disabled:             false,
 			APIKey:               "api_key",
 			SessionTransport:     config.SessionTransportTypeHeader,
 			AccessTokenLifetime:  1800,

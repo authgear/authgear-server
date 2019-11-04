@@ -24,9 +24,8 @@ var (
 					APIKey: "web-api-key",
 				},
 				config.APIClientConfiguration{
-					ID:       "mobile-app",
-					APIKey:   "mobile-api-key",
-					Disabled: true,
+					ID:     "mobile-app",
+					APIKey: "mobile-api-key",
 				},
 			},
 			MasterKey: "MasterKey",

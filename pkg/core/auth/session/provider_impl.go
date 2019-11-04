@@ -134,8 +134,8 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 	}
 
 	clientConfig, clientExists := model.GetClientConfig(p.clientConfigs, s.ClientID)
-	// if client does not exist or is disabled, ignore the session
-	if !clientExists || clientConfig.Disabled {
+	// if client does not exist, ignore the session
+	if !clientExists {
 		return nil, ErrSessionNotFound
 	}
 	if checkSessionExpired(s, p.time.NowUTC(), *clientConfig, kind) {
@@ -220,8 +220,8 @@ func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error)
 	currentSession, _ := p.authContext.Session()
 	for _, session := range storedSessions {
 		clientConfig, clientExists := model.GetClientConfig(p.clientConfigs, session.ClientID)
-		// if client does not exist or is disabled, ignore the session
-		if !clientExists || clientConfig.Disabled {
+		// if client does not exist, ignore the session
+		if !clientExists {
 			continue
 		}
 

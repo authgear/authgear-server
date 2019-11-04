@@ -552,10 +552,9 @@ const (
 )
 
 type APIClientConfiguration struct {
-	ID       string `json:"id" yaml:"id" msg:"id"`
-	Name     string `json:"name" yaml:"name" msg:"name"`
-	Disabled bool   `json:"disabled" yaml:"disabled" msg:"disabled"`
-	APIKey   string `json:"api_key" yaml:"api_key" msg:"api_key"`
+	ID     string `json:"id" yaml:"id" msg:"id"`
+	Name   string `json:"name" yaml:"name" msg:"name"`
+	APIKey string `json:"api_key" yaml:"api_key" msg:"api_key"`
 
 	SessionTransport          SessionTransportType `json:"session_transport" yaml:"session_transport" msg:"session_transport"`
 	AccessTokenLifetime       int                  `json:"access_token_lifetime,omitempty" yaml:"access_token_lifetime" msg:"access_token_lifetime"`
