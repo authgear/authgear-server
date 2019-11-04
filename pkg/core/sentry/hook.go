@@ -71,7 +71,7 @@ func makeEvent(entry *logrus.Entry) *sentry.Event {
 		}
 	}
 
-	exception := sentry.Exception{Value: err}
+	exception := sentry.Exception{Value: err, Type: event.Logger}
 	if needStack {
 		exception.Stacktrace = sentry.NewStacktrace()
 	}
