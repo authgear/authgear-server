@@ -111,9 +111,6 @@ var ErrTokenConflict = errors.New("tokens detected in different transports")
 
 func GetAccessToken(r *http.Request) (token string, transport config.SessionTransportType, err error) {
 	headerToken := parseAuthorizationHeader(r)
-	if headerToken == "" {
-		headerToken = r.Header.Get(coreHttp.HeaderAccessToken)
-	}
 
 	var cookieToken string
 	cookie, err := r.Cookie(coreHttp.CookieNameSession)

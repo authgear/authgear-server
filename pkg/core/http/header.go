@@ -9,7 +9,6 @@ import (
 const (
 	// Headers appearing in client request
 	HeaderAPIKey           = "x-skygear-api-key"
-	HeaderAccessToken      = "x-skygear-access-token"
 	HeaderSessionExtraInfo = "x-skygear-extra-info"
 
 	// Headers appearing in server response

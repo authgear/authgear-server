@@ -14,27 +14,8 @@ import (
 func TestGetAccessToken(t *testing.T) {
 	Convey("GetAccessToken", t, func() {
 
-		Convey("should return value of access token header", func() {
-			req, _ := http.NewRequest("", "", nil)
-			req.Header.Add(corehttp.HeaderAccessToken, "access-token")
-			req.Header.Add(httpHeaderAuthorization, "")
-			token, transport, err := GetAccessToken(req)
-			So(err, ShouldBeNil)
-			So(transport, ShouldEqual, config.SessionTransportTypeHeader)
-			So(token, ShouldEqual, "access-token")
-		})
 		Convey("should return value of authorization header", func() {
 			req, _ := http.NewRequest("", "", nil)
-			req.Header.Add(corehttp.HeaderAccessToken, "")
-			req.Header.Add(httpHeaderAuthorization, "Bearer bearer-token")
-			token, transport, err := GetAccessToken(req)
-			So(err, ShouldBeNil)
-			So(transport, ShouldEqual, config.SessionTransportTypeHeader)
-			So(token, ShouldEqual, "bearer-token")
-		})
-		Convey("should prioritize authorization header", func() {
-			req, _ := http.NewRequest("", "", nil)
-			req.Header.Add(corehttp.HeaderAccessToken, "access-token")
 			req.Header.Add(httpHeaderAuthorization, "Bearer bearer-token")
 			token, transport, err := GetAccessToken(req)
 			So(err, ShouldBeNil)
