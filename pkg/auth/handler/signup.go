@@ -143,6 +143,12 @@ func (p *SignupRequestPayload) Validate() []validation.ErrorCause {
 	}
 
 	if err := p.PasswordAuthProvider.ValidateLoginIDs(p.LoginIDs); err != nil {
+		if causes := validation.ErrorCauses(err); len(causes) > 0 {
+			for i := range causes {
+				causes[i].Pointer = fmt.Sprintf("/login_ids%s", causes[i].Pointer)
+			}
+			return causes
+		}
 		return []validation.ErrorCause{{
 			Kind:    validation.ErrorGeneral,
 			Pointer: "/login_ids",

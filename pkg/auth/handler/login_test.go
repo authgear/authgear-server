@@ -25,6 +25,7 @@ import (
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
@@ -50,8 +51,16 @@ func TestLoginHandler(t *testing.T) {
 		zero := 0
 		one := 1
 		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
-			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
-			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+			"email": config.LoginIDKeyConfiguration{
+				Type:    config.LoginIDKeyType(metadata.Email),
+				Minimum: &zero,
+				Maximum: &one,
+			},
+			"username": config.LoginIDKeyConfiguration{
+				Type:    config.LoginIDKeyTypeRaw,
+				Minimum: &zero,
+				Maximum: &one,
+			},
 		}
 		allowedRealms := []string{password.DefaultRealm, "admin"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
@@ -218,6 +227,38 @@ func TestLoginHandler(t *testing.T) {
 					"info": {
 						"causes": [
 							{ "kind": "General", "message": "login ID key is not allowed", "pointer": "/login_id" }
+						]
+					}
+				}
+			}`)
+		})
+
+		Convey("login with invalid login_id", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_id_key": "email",
+				"login_id": "202-111-2222",
+				"password": "123456"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{
+								"kind": "StringFormat",
+								"message": "invalid login ID format",
+								"pointer": "/login_id",
+								"details": { "format": "email" }
+							}
 						]
 					}
 				}

@@ -64,10 +64,14 @@ func (p *LoginRequestPayload) SetDefaultValue() {
 
 func (p *LoginRequestPayload) Validate() []validation.ErrorCause {
 	if p.LoginIDKey != "" {
-		loginIDs := []password.LoginID{
-			password.LoginID{Key: p.LoginIDKey, Value: p.LoginID},
-		}
-		if err := p.PasswordAuthProvider.ValidateLoginIDs(loginIDs); err != nil {
+		loginID := password.LoginID{Key: p.LoginIDKey, Value: p.LoginID}
+		if err := p.PasswordAuthProvider.ValidateLoginID(loginID); err != nil {
+			if causes := validation.ErrorCauses(err); len(causes) > 0 {
+				for i := range causes {
+					causes[i].Pointer = "/login_id"
+				}
+				return causes
+			}
 			return []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
 				Pointer: "/login_id",

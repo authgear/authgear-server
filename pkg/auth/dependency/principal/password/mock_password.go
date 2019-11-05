@@ -34,7 +34,10 @@ func NewMockProviderWithPrincipalMap(loginIDsKeys map[string]config.LoginIDKeyCo
 	}
 }
 
-// ValidateLoginIDs validates loginID
+func (m *MockProvider) ValidateLoginID(loginID LoginID) error {
+	return m.loginIDChecker.validateOne(loginID)
+}
+
 func (m *MockProvider) ValidateLoginIDs(loginIDs []LoginID) error {
 	return m.loginIDChecker.validate(loginIDs)
 }
