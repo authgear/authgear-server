@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	schemaString = `
+	// Schemas is public so that the schemas can be composed in other contexts.
+	Schemas = `
 {
 	"NonEmptyString": {
 		"$id": "#NonEmptyString",
@@ -468,7 +469,7 @@ var (
 
 func init() {
 	userConfigurationValidator = validation.NewValidator("http://v2.skygear.io")
-	userConfigurationValidator.AddSchemaFragments(schemaString)
+	userConfigurationValidator.AddSchemaFragments(Schemas)
 }
 
 func ValidateUserConfiguration(value interface{}) error {
