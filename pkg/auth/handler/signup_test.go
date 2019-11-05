@@ -503,6 +503,41 @@ func TestSignupHandler(t *testing.T) {
 			`)
 		})
 
+		Convey("signup with invalid login_id", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": [
+					{ "key": "email", "value": "202-111-2222" }
+				],
+				"password": "123456"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			sh.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"name": "Invalid",
+					"reason": "ValidationFailed",
+					"message": "invalid request body",
+					"code": 400,
+					"info": {
+						"causes": [
+							{
+								"kind": "StringFormat",
+								"pointer": "/login_ids/0/value",
+								"message": "invalid login ID format",
+								"details": { "format": "email" }
+							}
+						]
+					}
+				}
+			}
+			`)
+		})
+
 		Convey("signup with weak password", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{

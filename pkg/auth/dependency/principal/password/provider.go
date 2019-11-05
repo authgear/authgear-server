@@ -71,6 +71,10 @@ func NewProvider(
 	return newProvider(builder, executor, loggerFactory, loginIDsKeys, allowedRealms, passwordHistoryEnabled)
 }
 
+func (p *providerImpl) ValidateLoginID(loginID LoginID) error {
+	return p.loginIDChecker.validateOne(loginID)
+}
+
 func (p *providerImpl) ValidateLoginIDs(loginIDs []LoginID) error {
 	return p.loginIDChecker.validate(loginIDs)
 }

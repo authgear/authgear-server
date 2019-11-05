@@ -7,6 +7,7 @@ import (
 
 type Provider interface {
 	principal.Provider
+	ValidateLoginID(loginID LoginID) error
 	ValidateLoginIDs(loginIDs []LoginID) error
 	CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool
 	IsRealmValid(realm string) bool
