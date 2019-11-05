@@ -109,7 +109,10 @@ func (provider *providerImpl) VerifyUser(
 		return nil, NewUserVerificationFailed(InvalidCode, "invalid verification code")
 	}
 
-	c, _ := provider.config.GetLoginIDKey(verifyCode.LoginIDKey)
+	c, ok := provider.config.GetLoginIDKey(verifyCode.LoginIDKey)
+	if !ok {
+		panic("invalid login id key: " + verifyCode.LoginIDKey)
+	}
 	expiryTime := c.Expiry
 	expireAt := verifyCode.CreatedAt.Add(gotime.Duration(expiryTime) * gotime.Second)
 	if provider.time.NowUTC().After(expireAt) {

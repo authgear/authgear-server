@@ -583,14 +583,14 @@ type AuthConfiguration struct {
 	OnUserDuplicateAllowCreate bool                               `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
 }
 
-func (c *AuthConfiguration) GetLoginIDKey(key string) (LoginIDKeyConfiguration, bool) {
+func (c *AuthConfiguration) GetLoginIDKey(key string) (*LoginIDKeyConfiguration, bool) {
 	for _, config := range c.LoginIDKeys {
 		if config.Key == key {
-			return config, true
+			return &config, true
 		}
 	}
 
-	return LoginIDKeyConfiguration{}, false
+	return nil, false
 }
 
 type AuthenticationSessionConfiguration struct {
@@ -810,14 +810,14 @@ type UserVerificationKeyConfiguration struct {
 	ProviderConfig  UserVerificationProviderConfiguration `json:"provider_config,omitempty" yaml:"provider_config" msg:"provider_config"`
 }
 
-func (c *UserVerificationConfiguration) GetLoginIDKey(key string) (UserVerificationKeyConfiguration, bool) {
+func (c *UserVerificationConfiguration) GetLoginIDKey(key string) (*UserVerificationKeyConfiguration, bool) {
 	for _, config := range c.LoginIDKeys {
 		if config.Key == key {
-			return config, true
+			return &config, true
 		}
 	}
 
-	return UserVerificationKeyConfiguration{}, false
+	return nil, false
 }
 
 type UserVerificationProviderConfiguration struct {

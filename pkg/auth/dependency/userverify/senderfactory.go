@@ -36,8 +36,14 @@ func NewDefaultUserVerifyCodeSenderFactory(
 }
 
 func (d *defaultCodeSenderFactory) NewCodeSender(urlPrefix *url.URL, loginIDKey string) CodeSender {
-	verifyConfig, _ := d.Config.UserConfig.UserVerification.GetLoginIDKey(loginIDKey)
-	authLoginIDKey, _ := d.Config.UserConfig.Auth.GetLoginIDKey(loginIDKey)
+	verifyConfig, ok := d.Config.UserConfig.UserVerification.GetLoginIDKey(loginIDKey)
+	if !ok {
+		panic("invalid user verification login id key: " + loginIDKey)
+	}
+	authLoginIDKey, ok := d.Config.UserConfig.Auth.GetLoginIDKey(loginIDKey)
+	if !ok {
+		panic("invalid login id key: " + loginIDKey)
+	}
 	keyType := authLoginIDKey.Type
 
 	metadataKey, _ := keyType.MetadataKey()
