@@ -35,6 +35,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -78,10 +79,11 @@ func (m DependencyMap) Provide(
 
 	newLoggerFactory := func() logging.Factory {
 		logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
+		sentryHook := sentry.NewLogHookFromContext(ctx)
 		if request == nil {
-			return logging.NewFactoryFromRequestID(requestID, logHook)
+			return logging.NewFactoryFromRequestID(requestID, logHook, sentryHook)
 		} else {
-			return logging.NewFactoryFromRequest(request, logHook)
+			return logging.NewFactoryFromRequest(request, logHook, sentryHook)
 		}
 	}
 

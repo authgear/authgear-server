@@ -15,6 +15,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/evalphobia/logrus_fluent v0.4.0
 	github.com/fluent/fluent-logger-golang v1.3.0 // indirect
+	github.com/getsentry/sentry-go v0.3.0
 	github.com/go-gomail/gomail v0.0.0-20150902115704-41f357289737
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/golang/mock v1.3.1
@@ -23,7 +24,6 @@ require (
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2
-	github.com/gorilla/schema v1.0.2 // indirect
 	github.com/h2non/gock v1.0.12
 	github.com/iawaknahc/originmatcher v0.0.0-20190816101335-7c3f833688c0
 	github.com/jmoiron/sqlx v0.0.0-20170430194603-d9bd385d68c0
@@ -37,21 +37,18 @@ require (
 	github.com/nbutton23/zxcvbn-go v0.0.0-20171102151520-eafdab6b0663
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/nyaruka/phonenumbers v1.0.45
-	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
 	github.com/pquerna/otp v1.2.0
 	github.com/rifflock/lfshook v0.0.0-20171219153109-1fdc019a3514
 	github.com/sfreiberg/gotwilio v0.0.0-20181012193634-a13e5b0d458a
 	github.com/sirupsen/logrus v1.0.3
 	github.com/smartystreets/assertions v1.0.0 // indirect
-	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
+	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337
 	github.com/tinylib/msgp v1.1.0
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329
-	github.com/xeipuuv/gojsonpointer v0.0.0-20190809123943-df4f5c81cb3b // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
+	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/tools v0.0.0-20190917162342-3b4f30a44f3b
 	google.golang.org/api v0.9.0
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect

@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/sentry"
 )
 
 // RecoverMiddleware recover from panic
@@ -29,7 +30,7 @@ func (m RecoverMiddleware) Handle(next http.Handler) http.Handler {
 				} else {
 					logHook = logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
 				}
-				loggerFactory := logging.NewFactoryFromRequest(r, logHook)
+				loggerFactory := logging.NewFactoryFromRequest(r, logHook, sentry.NewLogHookFromContext(r.Context()))
 				logger := loggerFactory.NewLogger("recovery")
 
 				handled := false

@@ -3,6 +3,8 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/sentry"
+
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -16,20 +18,26 @@ type FindAppMiddleware struct {
 
 func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger := logging.NewFactoryFromRequest(r, logging.NewDefaultLogHook(nil)).NewLogger("app-finder")
+		loggerFactory := logging.NewFactoryFromRequest(r,
+			logging.NewDefaultLogHook(nil),
+			sentry.NewLogHookFromContext(r.Context()),
+		)
+		logger := loggerFactory.NewLogger("app-finder")
 
 		host := r.Host
 		app := gatewayModel.App{}
 		if err := f.Store.GetAppByDomain(host, &app); err != nil {
-			logger.WithError(err).Error("failed to found app")
-			http.Error(w, "Fail to found app", http.StatusBadRequest)
+			if !store.IsNotFound(err) {
+				logger.WithError(err).Error("failed to find app")
+			}
+			http.Error(w, "App not found", http.StatusBadRequest)
 			return
 		}
 
 		routes, err := f.Store.GetLastDeploymentRoutes(app)
 		if err != nil {
 			logger.WithError(err).Error("failed to get deployment routes")
-			http.Error(w, "Fail to get deployment routes", http.StatusInternalServerError)
+			http.Error(w, "Deployment not found", http.StatusInternalServerError)
 			return
 		}
 
