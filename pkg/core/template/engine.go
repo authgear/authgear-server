@@ -23,9 +23,14 @@ type NewEngineOptions struct {
 
 // Engine resolves and renders templates.
 type Engine struct {
-	DefaultLoader         *DefaultLoader
-	URILoader             *URILoader
-	TemplateItems         []config.TemplateItem
+	DefaultLoader *DefaultLoader
+	URILoader     *URILoader
+	TemplateItems []config.TemplateItem
+	// NOTE(louis): PreferredLanguageTags
+	// PreferredLanguageTags is put here instead of receiving it from RenderXXX methods.
+	// It is expected that engine is created per request.
+	// The preferred language tags should be lazily retrieved
+	// from the auth context.
 	PreferredLanguageTags []string
 }
 
