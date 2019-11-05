@@ -136,6 +136,9 @@ func main() {
 		Store:              store,
 	}.Handle)
 
+	// CORS headers should be set right after a proxy backend has been found.
+	cr.Use(coreMiddleware.CORSMiddleware{}.Handle)
+
 	cr.Use(coreMiddleware.Injecter{
 		MiddlewareFactory: coreMiddleware.AuthnMiddlewareFactory{},
 		Dependency:        gatewayDependency,
@@ -145,8 +148,6 @@ func main() {
 		MiddlewareFactory: middleware.AuthInfoMiddlewareFactory{},
 		Dependency:        gatewayDependency,
 	}.Handle)
-
-	cr.Use(coreMiddleware.CORSMiddleware{}.Handle)
 
 	cr.HandleFunc("/{rest:.*}", handler.NewDeploymentRouteHandler())
 
