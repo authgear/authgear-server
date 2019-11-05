@@ -16,14 +16,27 @@ type AssetGearLoader struct {
 	AssetGearMasterKey string
 }
 
+type signAssetRequest struct {
+	Assets []signAssetItem `json:"assets,omitempty"`
+}
+
+type signAssetItem struct {
+	AssetName string `json:"asset_name,omitempty"`
+	URL       string `json:"url,omitempty"`
+}
+
+type responseBody struct {
+	Result signAssetRequest `json:"result,omitempty"`
+}
+
 func (l *AssetGearLoader) Load(u *url.URL) (templateContent string, err error) {
 	// The url is asset-gear:///assetname
 	path := u.Path
 	assetName := strings.TrimPrefix(path, "/")
-	reqBody := map[string]interface{}{
-		"assets": []interface{}{
-			map[string]interface{}{
-				"asset_name": assetName,
+	reqBody := signAssetRequest{
+		Assets: []signAssetItem{
+			signAssetItem{
+				AssetName: assetName,
 			},
 		},
 	}
@@ -48,15 +61,19 @@ func (l *AssetGearLoader) Load(u *url.URL) (templateContent string, err error) {
 	}
 	defer resp.Body.Close()
 
-	respBody := map[string]interface{}{}
+	var respBody responseBody
 	err = json.NewDecoder(resp.Body).Decode(&respBody)
 	if err != nil {
 		err = errors.HandledWithMessage(err, "unexpected response body")
 		return
 	}
 
-	signedURL, ok := respBody["result"].(map[string]interface{})["assets"].([]interface{})[0].(map[string]interface{})["url"].(string)
-	if !ok {
+	if len(respBody.Result.Assets) <= 0 {
+		err = errors.New("failed to get signed template URL")
+		return
+	}
+	signedURL := respBody.Result.Assets[0].URL
+	if signedURL == "" {
 		err = errors.New("failed to get signed template URL")
 		return
 	}
