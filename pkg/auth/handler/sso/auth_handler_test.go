@@ -135,8 +135,8 @@ func TestAuthHandler(t *testing.T) {
 		sh.OAuthConfiguration = oauthConfig
 		zero := 0
 		one := 1
-		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
-			"email": coreconfig.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
+			coreconfig.LoginIDKeyConfiguration{Key: "email", Minimum: &zero, Maximum: &one},
 		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
@@ -411,8 +411,8 @@ func TestAuthHandler(t *testing.T) {
 		sh.OAuthConfiguration = oauthConfig
 		zero := 0
 		one := 1
-		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
-			"email": coreconfig.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
+			coreconfig.LoginIDKeyConfiguration{Type: "email", Minimum: &zero, Maximum: &one},
 		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
@@ -627,8 +627,9 @@ func TestAuthHandler(t *testing.T) {
 		sh.OAuthConfiguration = oauthConfig
 		zero := 0
 		one := 1
-		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
-			"email": coreconfig.LoginIDKeyConfiguration{
+		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
+			coreconfig.LoginIDKeyConfiguration{
+				Key:     "email",
 				Type:    coreconfig.LoginIDKeyType(metadata.Email),
 				Minimum: &zero,
 				Maximum: &one,

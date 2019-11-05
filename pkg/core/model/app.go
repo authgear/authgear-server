@@ -73,9 +73,9 @@ func GetAPIKey(i interface{}) string {
 	return header(i).Get(coreHttp.HeaderAPIKey)
 }
 
-func GetClientConfig(c map[string]config.APIClientConfiguration, clientID string) (*config.APIClientConfiguration, bool) {
-	for id, clientConfig := range c {
-		if id == clientID {
+func GetClientConfig(c []config.APIClientConfiguration, clientID string) (*config.APIClientConfiguration, bool) {
+	for _, clientConfig := range c {
+		if clientConfig.ID == clientID {
 			cc := clientConfig
 			return &cc, true
 		}

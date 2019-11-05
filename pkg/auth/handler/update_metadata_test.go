@@ -61,7 +61,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		}
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
-		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{}
+		loginIDsKeys := []config.LoginIDKeyConfiguration{}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
@@ -264,7 +264,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		}
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
-		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{}
+		loginIDsKeys := []config.LoginIDKeyConfiguration{}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,

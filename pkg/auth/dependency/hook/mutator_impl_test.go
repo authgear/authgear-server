@@ -18,12 +18,12 @@ func TestMutator(t *testing.T) {
 		var err error
 		verifyConfig := config.UserVerificationConfiguration{
 			Criteria: config.UserVerificationCriteriaAll,
-			LoginIDKeys: map[string]config.UserVerificationKeyConfiguration{
-				"email": config.UserVerificationKeyConfiguration{},
+			LoginIDKeys: []config.UserVerificationKeyConfiguration{
+				config.UserVerificationKeyConfiguration{Key: "email"},
 			},
 		}
 		passwordAuthProvider := password.NewMockProvider(
-			map[string]config.LoginIDKeyConfiguration{},
+			[]config.LoginIDKeyConfiguration{},
 			[]string{},
 		)
 		authInfoStore := authinfo.NewMockStore()

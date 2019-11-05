@@ -36,7 +36,7 @@ func TestLogoutHandler(t *testing.T) {
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			map[string]config.LoginIDKeyConfiguration{},
+			[]config.LoginIDKeyConfiguration{},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{
 				"faseng.cat.principal.id": password.Principal{

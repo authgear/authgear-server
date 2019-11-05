@@ -39,7 +39,7 @@ func TestRevokeHandler(t *testing.T) {
 		sessionProvider := session.NewMockProvider()
 		h.SessionProvider = sessionProvider
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			map[string]config.LoginIDKeyConfiguration{},
+			[]config.LoginIDKeyConfiguration{},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{
 				"principal-id-2": password.Principal{

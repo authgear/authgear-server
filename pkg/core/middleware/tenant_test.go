@@ -18,9 +18,15 @@ var (
 			DatabaseURL: "DBConnectionStr",
 		},
 		UserConfig: config.UserConfiguration{
-			Clients: map[string]config.APIClientConfiguration{
-				"web-app":    config.APIClientConfiguration{APIKey: "web-api-key"},
-				"mobile-app": config.APIClientConfiguration{APIKey: "mobile-api-key", Disabled: true},
+			Clients: []config.APIClientConfiguration{
+				config.APIClientConfiguration{
+					ID:     "web-app",
+					APIKey: "web-api-key",
+				},
+				config.APIClientConfiguration{
+					ID:     "mobile-app",
+					APIKey: "mobile-api-key",
+				},
 			},
 			MasterKey: "MasterKey",
 		},

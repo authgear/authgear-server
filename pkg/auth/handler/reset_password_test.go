@@ -35,9 +35,9 @@ func TestResetPasswordHandler(t *testing.T) {
 		)
 		zero := 0
 		one := 1
-		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
-			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
-			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		loginIDsKeys := []config.LoginIDKeyConfiguration{
+			config.LoginIDKeyConfiguration{Key: "email", Minimum: &zero, Maximum: &one},
+			config.LoginIDKeyConfiguration{Key: "username", Minimum: &zero, Maximum: &one},
 		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(

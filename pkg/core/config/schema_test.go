@@ -48,7 +48,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 				"master_key": "master_key",
 				"asset": {},
 				"auth": {
-					"login_id_keys": {},
+					"login_id_keys": [],
 					"allowed_realms": []
 				},
 				"hook": {}
@@ -64,27 +64,31 @@ func TestValidateUserConfiguration(t *testing.T) {
 			{
 				"master_key": "master_key",
 				"auth": {
-				"login_id_keys": {
-						"email": {
+					"login_id_keys": [
+						{
+							"key": "email",
 							"type": "email"
 						},
-						"phone": {
+						{
+							"key": "phone",
 							"type": "phone"
 						},
-						"username": {
+						{
+							"key": "username",
 							"type": "raw"
 						},
-						"invalid": {
+						{
+							"key": "invalid",
 							"type": "invalid"
 						}
-					},
+					],
 					"allowed_realms": ["default"]
 				},
 				"hook": {}
 			}`,
 			"/asset: Required",
 			"/auth/authentication_session: Required",
-			"/auth/login_id_keys/invalid/type: Enum map[expected:[raw email phone]]",
+			"/auth/login_id_keys/3/type: Enum map[expected:[raw email phone]]",
 			"/hook/secret: Required",
 		)
 		// Minimal valid example
@@ -98,17 +102,20 @@ func TestValidateUserConfiguration(t *testing.T) {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
 					},
-					"login_id_keys": {
-						"email": {
+					"login_id_keys": [
+						{
+							"key": "email",
 							"type": "email"
 						},
-						"phone": {
+						{
+							"key": "phone",
 							"type": "phone"
 						},
-						"username": {
+						{
+							"key": "username",
 							"type": "raw"
 						}
-					},
+					],
 					"allowed_realms": ["default"]
 				},
 				"hook": {
@@ -119,9 +126,11 @@ func TestValidateUserConfiguration(t *testing.T) {
 		// API Clients
 		test(`
 			{
-				"clients": {
-					"web-app": {}
-				},
+				"clients": [
+					{
+						"key": "web-app"
+					}
+				],
 				"asset": {
 					"secret": "assetsecret"
 				},
@@ -130,26 +139,30 @@ func TestValidateUserConfiguration(t *testing.T) {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
 					},
-					"login_id_keys": {
-						"email": {
+					"login_id_keys": [
+						{
+							"key": "email",
 							"type": "email"
 						},
-						"phone": {
+						{
+							"key": "phone",
 							"type": "phone"
 						},
-						"username": {
+						{
+							"key": "username",
 							"type": "raw"
 						}
-					},
+					],
 					"allowed_realms": ["default"]
 				},
 				"hook": {
 					"secret": "hooksecret"
 				}
 			}`,
-			"/clients/web-app/api_key: Required",
-			"/clients/web-app/name: Required",
-			"/clients/web-app/session_transport: Required",
+			"/clients/0/api_key: Required",
+			"/clients/0/id: Required",
+			"/clients/0/name: Required",
+			"/clients/0/session_transport: Required",
 		)
 		// CORS
 		test(`
@@ -162,17 +175,20 @@ func TestValidateUserConfiguration(t *testing.T) {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
 					},
-					"login_id_keys": {
-						"email": {
+					"login_id_keys": [
+						{
+							"key": "email",
 							"type": "email"
 						},
-						"phone": {
+						{
+							"key": "phone",
 							"type": "phone"
 						},
-						"username": {
+						{
+							"key": "username",
 							"type": "raw"
 						}
-					},
+					],
 					"allowed_realms": ["default"]
 				},
 				"hook": {
@@ -193,17 +209,20 @@ func TestValidateUserConfiguration(t *testing.T) {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
 					},
-					"login_id_keys": {
-						"email": {
+					"login_id_keys": [
+						{
+							"key": "email",
 							"type": "email"
 						},
-						"phone": {
+						{
+							"key": "phone",
 							"type": "phone"
 						},
-						"username": {
+						{
+							"key": "username",
 							"type": "raw"
 						}
-					},
+					],
 					"allowed_realms": ["default"]
 				},
 				"hook": {
@@ -252,17 +271,20 @@ func TestValidateUserConfiguration(t *testing.T) {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
 					},
-					"login_id_keys": {
-						"email": {
+					"login_id_keys": [
+						{
+							"key": "email",
 							"type": "email"
 						},
-						"phone": {
+						{
+							"key": "phone",
 							"type": "phone"
 						},
-						"username": {
+						{
+							"key": "username",
 							"type": "raw"
 						}
-					},
+					],
 					"allowed_realms": ["default"]
 				},
 				"hook": {
@@ -293,17 +315,20 @@ func TestValidateUserConfiguration(t *testing.T) {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
 					},
-					"login_id_keys": {
-						"email": {
+					"login_id_keys": [
+						{
+							"key": "email",
 							"type": "email"
 						},
-						"phone": {
+						{
+							"key": "phone",
 							"type": "phone"
 						},
-						"username": {
+						{
+							"key": "username",
 							"type": "raw"
 						}
-					},
+					],
 					"allowed_realms": ["default"]
 				},
 				"hook": {
@@ -326,17 +351,20 @@ func TestValidateUserConfiguration(t *testing.T) {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
 					},
-					"login_id_keys": {
-						"email": {
+					"login_id_keys": [
+						{
+							"key": "email",
 							"type": "email"
 						},
-						"phone": {
+						{
+							"key": "phone",
 							"type": "phone"
 						},
-						"username": {
+						{
+							"key": "username",
 							"type": "raw"
 						}
-					},
+					],
 					"allowed_realms": ["default"]
 				},
 				"hook": {
@@ -363,17 +391,20 @@ func TestValidateUserConfiguration(t *testing.T) {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
 					},
-					"login_id_keys": {
-						"email": {
+					"login_id_keys": [
+						{
+							"key": "email",
 							"type": "email"
 						},
-						"phone": {
+						{
+							"key": "phone",
 							"type": "phone"
 						},
-						"username": {
+						{
+							"key": "username",
 							"type": "raw"
 						}
-					},
+					],
 					"allowed_realms": ["default"]
 				},
 				"hook": {
@@ -412,17 +443,20 @@ func TestValidateUserConfiguration(t *testing.T) {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
 					},
-					"login_id_keys": {
-						"email": {
+					"login_id_keys": [
+						{
+							"key": "email",
 							"type": "email"
 						},
-						"phone": {
+						{
+							"key": "phone",
 							"type": "phone"
 						},
-						"username": {
+						{
+							"key": "username",
 							"type": "raw"
 						}
-					},
+					],
 					"allowed_realms": ["default"]
 				},
 				"hook": {
@@ -430,15 +464,16 @@ func TestValidateUserConfiguration(t *testing.T) {
 				},
 				"user_verification": {
 					"criteria": "invalid",
-					"login_id_keys": {
-						"email": {
+					"login_id_keys": [
+						{
+							"key": "email",
 							"code_format": "invalid"
 						}
-					}
+					]
 				}
 			}`,
 			"/user_verification/criteria: Enum map[expected:[any all]]",
-			"/user_verification/login_id_keys/email/code_format: Enum map[expected:[numeric complex]]",
+			"/user_verification/login_id_keys/0/code_format: Enum map[expected:[numeric complex]]",
 		)
 		// SMTP config
 		test(`
@@ -451,17 +486,20 @@ func TestValidateUserConfiguration(t *testing.T) {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
 					},
-					"login_id_keys": {
-						"email": {
+					"login_id_keys": [
+						{
+							"key": "email",
 							"type": "email"
 						},
-						"phone": {
+						{
+							"key": "phone",
 							"type": "phone"
 						},
-						"username": {
+						{
+							"key": "username",
 							"type": "raw"
 						}
-					},
+					],
 					"allowed_realms": ["default"]
 				},
 				"hook": {

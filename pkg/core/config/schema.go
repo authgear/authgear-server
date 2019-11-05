@@ -22,10 +22,8 @@ const (
 		"type": "object",
 		"properties": {
 			"clients": {
-				"type": "object",
-				"additionalProperties": {
-					"$ref": "#APIClientConfiguration"
-				}
+				"type": "array",
+				"items": { "$ref": "#APIClientConfiguration" }
 			},
 			"master_key": { "$ref": "#NonEmptyString" },
 			"url_prefix": {
@@ -61,8 +59,8 @@ const (
 		"$id": "#APIClientConfiguration",
 		"type": "object",
 		"properties": {
+			"id": { "$ref": "#NonEmptyString" },
 			"name": { "$ref": "#NonEmptyString" },
-			"disabled": { "type": "boolean" },
 			"api_key": { "$ref": "#NonEmptyString" },
 			"session_transport": {
 				"type": "string",
@@ -74,7 +72,7 @@ const (
 			"refresh_token_disabled": { "type": "boolean" },
 			"refresh_token_lifetime": { "type": "integer", "minimum": 0 }
 		},
-		"required": ["name", "api_key", "session_transport"]
+		"required": ["id", "name", "api_key", "session_transport"]
 	},
 	"CORSConfiguration": {
 		"$id": "#CORSConfiguration",
@@ -90,11 +88,9 @@ const (
 		"properties": {
 			"authentication_session": { "$ref": "#AuthenticationSessionConfiguration" },
 			"login_id_keys": {
-				"type": "object",
-				"minProperties": 1,
-				"additionalProperties": {
-					"$ref": "#LoginIDKeyConfiguration"
-				}
+				"type": "array",
+				"minItems": 1,
+				"items": { "$ref": "#LoginIDKeyConfiguration" }
 			},
 			"allowed_realms": {
 				"type": "array",
@@ -189,6 +185,7 @@ const (
 		"$id": "#LoginIDKeyConfiguration",
 		"type": "object",
 		"properties": {
+			"key": { "$ref": "#NonEmptyString" },
 			"type": {
 				"type": "string",
 				"enum": ["raw", "email", "phone"]
@@ -386,8 +383,8 @@ const (
 			"error_redirect": { "type": "string" },
 			"error_html_url": { "type": "string" },
 			"login_id_keys": {
-				"type": "object",
-				"additionalProperties": { "$ref": "#UserVerificationKeyConfiguration" }
+				"type": "array",
+				"items": { "$ref": "#UserVerificationKeyConfiguration" }
 			}
 		}
 	},
@@ -395,6 +392,7 @@ const (
 		"$id": "#UserVerificationKeyConfiguration",
 		"type": "object",
 		"properties": {
+			"key": { "$ref": "#NonEmptyString" },
 			"code_format": {
 				"type": "string",
 				"enum": ["numeric", "complex"]

@@ -38,7 +38,7 @@ func newProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	loggerFactory logging.Factory,
-	loginIDsKeys map[string]config.LoginIDKeyConfiguration,
+	loginIDsKeys []config.LoginIDKeyConfiguration,
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
 ) *providerImpl {
@@ -64,7 +64,7 @@ func NewProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	loggerFactory logging.Factory,
-	loginIDsKeys map[string]config.LoginIDKeyConfiguration,
+	loginIDsKeys []config.LoginIDKeyConfiguration,
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
 ) Provider {

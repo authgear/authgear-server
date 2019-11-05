@@ -34,9 +34,9 @@ func TestForgotPasswordHandler(t *testing.T) {
 		fh.Validator = validator
 		fh.TxContext = db.NewMockTxContext()
 		fh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			map[string]config.LoginIDKeyConfiguration{
-				"email": config.LoginIDKeyConfiguration{Type: config.LoginIDKeyType(metadata.Email)},
-				"phone": config.LoginIDKeyConfiguration{Type: config.LoginIDKeyType(metadata.Phone)},
+			[]config.LoginIDKeyConfiguration{
+				config.LoginIDKeyConfiguration{Key: "email", Type: config.LoginIDKeyType(metadata.Email)},
+				config.LoginIDKeyConfiguration{Key: "phone", Type: config.LoginIDKeyType(metadata.Phone)},
 			},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{

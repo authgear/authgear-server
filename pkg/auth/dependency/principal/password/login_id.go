@@ -28,7 +28,7 @@ type loginIDChecker interface {
 }
 
 type defaultLoginIDChecker struct {
-	loginIDsKeys map[string]config.LoginIDKeyConfiguration
+	loginIDsKeys []config.LoginIDKeyConfiguration
 }
 
 func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
@@ -47,21 +47,21 @@ func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
 		}
 	}
 
-	for key, keyConfig := range c.loginIDsKeys {
-		amount := amounts[key]
+	for _, keyConfig := range c.loginIDsKeys {
+		amount := amounts[keyConfig.Key]
 		if amount > *keyConfig.Maximum {
 			return validation.NewValidationFailed("invalid login IDs", []validation.ErrorCause{{
 				Kind:    validation.ErrorEntryAmount,
 				Pointer: "",
 				Message: "too many login IDs",
-				Details: map[string]interface{}{"key": key, "lte": *keyConfig.Maximum},
+				Details: map[string]interface{}{"key": keyConfig.Key, "lte": *keyConfig.Maximum},
 			}})
 		} else if amount < *keyConfig.Minimum {
 			return validation.NewValidationFailed("invalid login IDs", []validation.ErrorCause{{
 				Kind:    validation.ErrorEntryAmount,
 				Pointer: "",
 				Message: "not enough login IDs",
-				Details: map[string]interface{}{"key": key, "gte": *keyConfig.Minimum},
+				Details: map[string]interface{}{"key": keyConfig.Key, "gte": *keyConfig.Minimum},
 			}})
 		}
 	}
@@ -78,7 +78,12 @@ func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
 }
 
 func (c defaultLoginIDChecker) validateOne(loginID LoginID) error {
-	_, allowed := c.loginIDsKeys[loginID.Key]
+	allowed := false
+	for _, keyConfig := range c.loginIDsKeys {
+		if keyConfig.Key == loginID.Key {
+			allowed = true
+		}
+	}
 	if !allowed {
 		return skyerr.NewInvalid("login ID key is not allowed")
 	}
@@ -99,7 +104,14 @@ func (c defaultLoginIDChecker) validateOne(loginID LoginID) error {
 }
 
 func (c defaultLoginIDChecker) standardKey(loginIDKey string) (key metadata.StandardKey, ok bool) {
-	config, ok := c.loginIDsKeys[loginIDKey]
+	var config config.LoginIDKeyConfiguration
+	for _, keyConfig := range c.loginIDsKeys {
+		if keyConfig.Key == loginIDKey {
+			config = keyConfig
+			ok = true
+			break
+		}
+	}
 	if !ok {
 		return
 	}

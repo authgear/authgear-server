@@ -22,9 +22,9 @@ func TestIsUserVerified(t *testing.T) {
 		}
 
 		isUserVerified := func(request verifyRequest) verifyResult {
-			verifyConfigs := map[string]config.UserVerificationKeyConfiguration{}
+			verifyConfigs := []config.UserVerificationKeyConfiguration{}
 			for _, loginIDKey := range request.VerifyLoginIDKeys {
-				verifyConfigs[loginIDKey] = config.UserVerificationKeyConfiguration{}
+				verifyConfigs = append(verifyConfigs, config.UserVerificationKeyConfiguration{Key: loginIDKey})
 			}
 
 			verifyInfo := map[string]bool{}

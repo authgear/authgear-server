@@ -55,7 +55,11 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 	templateEngine := d.TemplateEngine
 	templateEngine.PrependLoader(loader)
 
-	keyType := d.Config.UserConfig.Auth.LoginIDKeys[loginIDKey].Type
+	authLoginIDKey, ok := d.Config.UserConfig.Auth.GetLoginIDKey(loginIDKey)
+	if !ok {
+		panic("userverify: invalid login id key: " + loginIDKey)
+	}
+	keyType := authLoginIDKey.Type
 	metadataKey, _ := keyType.MetadataKey()
 
 	switch metadataKey {

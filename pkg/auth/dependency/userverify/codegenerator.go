@@ -32,8 +32,8 @@ type defaultCodeGenerator struct {
 
 func NewCodeGenerator(c config.TenantConfiguration) CodeGenerator {
 	formats := map[string]config.UserVerificationCodeFormat{}
-	for key, config := range c.UserConfig.UserVerification.LoginIDKeys {
-		formats[key] = config.CodeFormat
+	for _, config := range c.UserConfig.UserVerification.LoginIDKeys {
+		formats[config.Key] = config.CodeFormat
 	}
 
 	return &defaultCodeGenerator{LoginIDKeyCodeFormats: formats}

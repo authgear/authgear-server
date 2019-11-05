@@ -61,7 +61,7 @@ func TestChangePasswordHandler(t *testing.T) {
 			PwMinLength: 6,
 		}
 		lh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			map[string]config.LoginIDKeyConfiguration{},
+			[]config.LoginIDKeyConfiguration{},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{

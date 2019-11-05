@@ -44,8 +44,8 @@ func TestVerifyCodeHandler(t *testing.T) {
 
 		zero := 0
 		one := 1
-		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
-			"email": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		loginIDsKeys := []config.LoginIDKeyConfiguration{
+			config.LoginIDKeyConfiguration{Key: "email", Minimum: &zero, Maximum: &one},
 		}
 		vh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,
@@ -93,8 +93,9 @@ func TestVerifyCodeHandler(t *testing.T) {
 
 		verifyConfig := config.UserVerificationConfiguration{
 			Criteria: config.UserVerificationCriteriaAll,
-			LoginIDKeys: map[string]config.UserVerificationKeyConfiguration{
-				"email": config.UserVerificationKeyConfiguration{
+			LoginIDKeys: []config.UserVerificationKeyConfiguration{
+				config.UserVerificationKeyConfiguration{
+					Key:    "email",
 					Expiry: 12 * 60 * 60,
 				},
 			},
@@ -165,9 +166,9 @@ func TestVerifyCodeHandler(t *testing.T) {
 
 		Convey("verify with correct code but not all verified", func() {
 			newVerifyConfig := verifyConfig
-			newVerifyConfig.LoginIDKeys = map[string]config.UserVerificationKeyConfiguration{
-				"email": config.UserVerificationKeyConfiguration{Expiry: 12 * 60 * 60},
-				"phone": config.UserVerificationKeyConfiguration{Expiry: 12 * 60 * 60},
+			newVerifyConfig.LoginIDKeys = []config.UserVerificationKeyConfiguration{
+				config.UserVerificationKeyConfiguration{Key: "email", Expiry: 12 * 60 * 60},
+				config.UserVerificationKeyConfiguration{Key: "phone", Expiry: 12 * 60 * 60},
 			}
 			provider := userverify.NewProvider(nil, &store, newVerifyConfig, &time)
 			oldProvider := vh.UserVerificationProvider

@@ -12,11 +12,10 @@ app_config:
 user_config:
   url_prefix: http://localhost:3000/_auth
   clients:
-    test-app:
-      name: Test App
-      disabled: false
-      api_key: api_key
-      session_transport: header
+  - id: test-app
+    name: Test App
+    api_key: api_key
+    session_transport: header
   master_key: master_key
   asset:
     secret: assetsecret
@@ -26,8 +25,7 @@ user_config:
     enabled: true
   user_verification:
     login_id_keys:
-      email:
-        provider: smtp
+    - key: email
   auth:
     authentication_session:
       secret: authnsessionsecret
