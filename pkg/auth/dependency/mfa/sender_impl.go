@@ -1,7 +1,6 @@
 package mfa
 
 import (
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
@@ -37,7 +36,7 @@ func (s *senderImpl) Send(code string, phone string, email string) error {
 
 func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error {
 	body, err := s.templateEngine.RenderTextTemplate(
-		authTemplate.TemplateItemTypeMFAOOBCodeSMSTXT,
+		TemplateItemTypeMFAOOBCodeSMSTXT,
 		context,
 		template.RenderOptions{Required: true},
 	)
@@ -55,7 +54,7 @@ func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error
 
 func (s *senderImpl) SendEmail(context map[string]interface{}, email string) error {
 	textBody, err := s.templateEngine.RenderTextTemplate(
-		authTemplate.TemplateItemTypeMFAOOBCodeEmailTXT,
+		TemplateItemTypeMFAOOBCodeEmailTXT,
 		context,
 		template.RenderOptions{Required: true},
 	)
@@ -65,7 +64,7 @@ func (s *senderImpl) SendEmail(context map[string]interface{}, email string) err
 	}
 
 	htmlBody, err := s.templateEngine.RenderHTMLTemplate(
-		authTemplate.TemplateItemTypeMFAOOBCodeEmailHTML,
+		TemplateItemTypeMFAOOBCodeEmailHTML,
 		context,
 		template.RenderOptions{Required: false},
 	)

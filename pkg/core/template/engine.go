@@ -60,8 +60,8 @@ func (e *Engine) Clone() *Engine {
 	}
 }
 
-func (e *Engine) SetDefault(templateType config.TemplateItemType, template string) {
-	e.DefaultLoader.Map[string(templateType)] = template
+func (e *Engine) Register(t T) {
+	e.DefaultLoader.Map[t.Type] = t
 }
 
 func (e *Engine) RenderTextTemplate(templateType config.TemplateItemType, context map[string]interface{}, option RenderOptions) (out string, err error) {
@@ -86,7 +86,7 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options R
 	templateItem, err := e.resolveTemplateItem(templateType, options.Key)
 	// No template item can be resolved. Fallback to default.
 	if err != nil {
-		templateBody, err := e.DefaultLoader.Load(string(templateType))
+		templateBody, err := e.DefaultLoader.Load(templateType)
 		if err != nil {
 			if !options.Required {
 				err = nil

@@ -3,7 +3,6 @@ package userverify
 import (
 	"net/url"
 
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
@@ -58,7 +57,7 @@ func NewVerifyHTMLProvider(c config.UserVerificationConfiguration, templateEngin
 
 func (v *VerifyHTMLProvider) SuccessHTML(key string, context map[string]interface{}) (string, error) {
 	return v.templateEngine.RenderHTMLTemplate(
-		authTemplate.TemplateItemTypeUserVerificationSuccessHTML,
+		TemplateItemTypeUserVerificationSuccessHTML,
 		context,
 		template.RenderOptions{
 			Required: true,
@@ -69,7 +68,7 @@ func (v *VerifyHTMLProvider) SuccessHTML(key string, context map[string]interfac
 
 func (v *VerifyHTMLProvider) ErrorHTML(key string, context map[string]interface{}) (string, error) {
 	return v.templateEngine.RenderHTMLTemplate(
-		authTemplate.TemplateItemTypeUserVerificationErrorHTML,
+		TemplateItemTypeUserVerificationErrorHTML,
 		context,
 		template.RenderOptions{
 			Required: true,

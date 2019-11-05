@@ -5,7 +5,6 @@ import (
 	"path"
 
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -35,7 +34,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 
 	var textBody string
 	if textBody, err = e.TemplateEngine.RenderTextTemplate(
-		authTemplate.TemplateItemTypeUserVerificationEmailTXT,
+		TemplateItemTypeUserVerificationEmailTXT,
 		context,
 		template.RenderOptions{
 			Required: true,
@@ -48,7 +47,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 
 	var htmlBody string
 	if htmlBody, err = e.TemplateEngine.RenderHTMLTemplate(
-		authTemplate.TemplateItemTypeUserVerificationEmailHTML,
+		TemplateItemTypeUserVerificationEmailHTML,
 		context,
 		template.RenderOptions{
 			Required: false,
@@ -91,7 +90,7 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user model.User) (err error)
 
 	var textBody string
 	if textBody, err = t.TemplateEngine.RenderTextTemplate(
-		authTemplate.TemplateItemTypeUserVerificationSMSTXT,
+		TemplateItemTypeUserVerificationSMSTXT,
 		context,
 		template.RenderOptions{
 			Required: true,

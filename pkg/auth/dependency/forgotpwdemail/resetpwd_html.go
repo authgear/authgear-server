@@ -4,7 +4,6 @@ import (
 	"net/url"
 	"path"
 
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/template"
@@ -57,7 +56,7 @@ func NewResetPasswordHTMLProvider(urlPrefix *url.URL, c config.ForgotPasswordCon
 func (r *ResetPasswordHTMLProvider) SuccessHTML(context map[string]interface{}) (string, error) {
 	r.injectContext(context)
 	return r.TemplateEngine.RenderHTMLTemplate(
-		authTemplate.TemplateItemTypeForgotPasswordSuccessHTML,
+		TemplateItemTypeForgotPasswordSuccessHTML,
 		context,
 		template.RenderOptions{Required: true},
 	)
@@ -66,7 +65,7 @@ func (r *ResetPasswordHTMLProvider) SuccessHTML(context map[string]interface{}) 
 func (r *ResetPasswordHTMLProvider) ErrorHTML(context map[string]interface{}) (string, error) {
 	r.injectContext(context)
 	return r.TemplateEngine.RenderHTMLTemplate(
-		authTemplate.TemplateItemTypeForgotPasswordErrorHTML,
+		TemplateItemTypeForgotPasswordErrorHTML,
 		context,
 		template.RenderOptions{Required: true},
 	)
@@ -75,7 +74,7 @@ func (r *ResetPasswordHTMLProvider) ErrorHTML(context map[string]interface{}) (s
 func (r *ResetPasswordHTMLProvider) FormHTML(context map[string]interface{}) (string, error) {
 	r.injectContext(context)
 	return r.TemplateEngine.RenderHTMLTemplate(
-		authTemplate.TemplateItemTypeForgotPasswordResetHTML,
+		TemplateItemTypeForgotPasswordResetHTML,
 		context,
 		template.RenderOptions{Required: true},
 	)

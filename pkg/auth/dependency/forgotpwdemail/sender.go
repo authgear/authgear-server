@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -77,7 +76,7 @@ func (d *DefaultSender) Send(
 
 	var textBody string
 	if textBody, err = d.TemplateEngine.RenderTextTemplate(
-		authTemplate.TemplateItemTypeForgotPasswordEmailTXT,
+		TemplateItemTypeForgotPasswordEmailTXT,
 		context,
 		template.RenderOptions{Required: true},
 	); err != nil {
@@ -87,7 +86,7 @@ func (d *DefaultSender) Send(
 
 	var htmlBody string
 	if htmlBody, err = d.TemplateEngine.RenderHTMLTemplate(
-		authTemplate.TemplateItemTypeForgotPasswordEmailHTML,
+		TemplateItemTypeForgotPasswordEmailHTML,
 		context,
 		template.RenderOptions{Required: false},
 	); err != nil {

@@ -1,11 +1,15 @@
 package template
 
+import (
+	"github.com/skygeario/skygear-server/pkg/core/config"
+)
+
 type DefaultLoader struct {
-	Map map[string]string
+	Map map[config.TemplateItemType]T
 }
 
 func NewDefaultLoader() *DefaultLoader {
-	return &DefaultLoader{Map: make(map[string]string)}
+	return &DefaultLoader{Map: make(map[config.TemplateItemType]T)}
 }
 
 func (s *DefaultLoader) Clone() *DefaultLoader {
@@ -16,11 +20,11 @@ func (s *DefaultLoader) Clone() *DefaultLoader {
 	return cloned
 }
 
-func (s *DefaultLoader) Load(name string) (string, error) {
-	template, found := s.Map[name]
+func (s *DefaultLoader) Load(templateType config.TemplateItemType) (string, error) {
+	template, found := s.Map[templateType]
 	if !found {
-		return "", &errNotFound{name}
+		return "", &errNotFound{string(templateType)}
 	}
 
-	return template, nil
+	return template.Default, nil
 }

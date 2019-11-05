@@ -1,9 +1,19 @@
 package template
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
+
+const DefaultErrorHTML = `<!DOCTYPE html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<p>{{ .error.Message }}</p>`
 
 func NewEngineWithConfig(
 	tConfig config.TenantConfiguration,
@@ -16,17 +26,26 @@ func NewEngineWithConfig(
 		AssetGearLoader:  assetGearLoader,
 	})
 
-	e.SetDefault(TemplateItemTypeForgotPasswordEmailTXT, DefaultForgotPasswordEmailTXT)
-	e.SetDefault(TemplateItemTypeForgotPasswordResetHTML, DefaultForgotPasswordResetHTML)
-	e.SetDefault(TemplateItemTypeForgotPasswordSuccessHTML, DefaultForgotPasswordSuccessHTML)
-	e.SetDefault(TemplateItemTypeForgotPasswordErrorHTML, DefaultErrorHTML)
-	e.SetDefault(TemplateItemTypeWelcomeEmailTXT, DefaultWelcomeEmailTXT)
-	e.SetDefault(TemplateItemTypeUserVerificationSMSTXT, DefaultUserVerificationSMSTXT)
-	e.SetDefault(TemplateItemTypeUserVerificationEmailTXT, DefaultUserVerificationEmailTXT)
-	e.SetDefault(TemplateItemTypeUserVerificationSuccessHTML, DefaultUserVerificationSuccessHTML)
-	e.SetDefault(TemplateItemTypeUserVerificationErrorHTML, DefaultErrorHTML)
-	e.SetDefault(TemplateItemTypeMFAOOBCodeSMSTXT, DefaultMFAOOBCodeSMSTXT)
-	e.SetDefault(TemplateItemTypeMFAOOBCodeEmailTXT, DefaultMFAOOBCodeEmailTXT)
+	e.Register(forgotpwdemail.TemplatePasswordEmailTXT)
+	e.Register(forgotpwdemail.TemplateForgotPasswordResetHTML)
+	e.Register(forgotpwdemail.TemplateForgotPasswordSuccessHTML)
+	e.Register(template.T{
+		Type:    forgotpwdemail.TemplateItemTypeForgotPasswordErrorHTML,
+		Default: DefaultErrorHTML,
+	})
+
+	e.Register(welcemail.TemplateWelcomeEmailTXT)
+
+	e.Register(userverify.TemplateUserVerificationSMSTXT)
+	e.Register(userverify.TemplateUserVerificationEmailTXT)
+	e.Register(userverify.TemplateUserVerificationSuccessHTML)
+	e.Register(template.T{
+		Type:    userverify.TemplateItemTypeUserVerificationErrorHTML,
+		Default: DefaultErrorHTML,
+	})
+
+	e.Register(mfa.TemplateMFAOOBCodeSMSTXT)
+	e.Register(mfa.TemplateMFAOOBCodeEmailTXT)
 
 	return e
 }

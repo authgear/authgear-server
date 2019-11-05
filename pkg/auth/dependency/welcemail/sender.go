@@ -4,7 +4,6 @@ import (
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -45,7 +44,7 @@ func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) 
 
 	var textBody string
 	if textBody, err = d.TemplateEngine.RenderTextTemplate(
-		authTemplate.TemplateItemTypeWelcomeEmailTXT,
+		TemplateItemTypeWelcomeEmailTXT,
 		context,
 		template.RenderOptions{Required: true},
 	); err != nil {
@@ -55,7 +54,7 @@ func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) 
 
 	var htmlBody string
 	if htmlBody, err = d.TemplateEngine.RenderHTMLTemplate(
-		authTemplate.TemplateItemTypeWelcomeEmailHTML,
+		TemplateItemTypeWelcomeEmailHTML,
 		context,
 		template.RenderOptions{Required: false},
 	); err != nil {
