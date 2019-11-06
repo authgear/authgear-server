@@ -24,8 +24,7 @@ make -C "$PROJ_ROOT" -e DOC_PATH="$PWD/apis/asset/$VERSION.yaml" generate-doc-as
 AUTH_URL="https://generator.swagger.io/?url=https://skygeario.github.io/skygear-server/apis/auth/$VERSION.yaml"
 ASSET_URL="https://generator.swagger.io/?url=https://skygeario.github.io/skygear-server/apis/asset/$VERSION.yaml"
 
-sed "s|{AUTH_URL}|$AUTH_URL|g" "$PROJ_ROOT/scripts/template/index.html" > index.html
-sed "s|{ASSET_URL}|$ASSET_URL|g" "$PROJ_ROOT/scripts/template/index.html" > index.html
+sed -e "s|{AUTH_URL}|$AUTH_URL|g" -e "s|{ASSET_URL}|$ASSET_URL|g" "$PROJ_ROOT/scripts/template/index.html" > index.html
 
 git add .
 if git commit -m "Update documentation for $VERSION"; then
