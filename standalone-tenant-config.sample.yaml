@@ -29,22 +29,16 @@ user_config:
   auth:
     authentication_session:
       secret: authnsessionsecret
-    on_user_duplicate_allow_create: true
   sso:
     custom_token:
       enabled: true
       issuer: myissuer
       audience: myaudience
       secret: mysecret
-      on_user_duplicate_allow_create: true
-      on_user_duplicate_allow_merge: true
     oauth:
-      external_access_token_flow_enabled: true
       state_jwt_secret: statesecret
       allowed_callback_urls:
       - "http://localhost:9999"
-      on_user_duplicate_allow_create: true
-      on_user_duplicate_allow_merge: true
       providers:
       - type: google
         client_id: 'client_id'
