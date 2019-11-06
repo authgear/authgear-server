@@ -108,5 +108,5 @@ req.send(null);
 		"api_endpoint": i.APIEndPoint.String(),
 	}
 
-	return template.ParseHTMLTemplate("iframe_html", templateString, context)
+	return template.RenderHTMLTemplate("iframe_html", templateString, context)
 }

@@ -1,96 +1,155 @@
 package template
 
 import (
-	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"sort"
+
+	"golang.org/x/text/language"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-// Engine parse templates with given url, and fallback to a default one if the
-// given one not found
-//
-// load order follow the same order of loaders
+type RenderOptions struct {
+	Required bool
+	Key      string
+}
+
+type NewEngineOptions struct {
+	EnableFileLoader      bool
+	EnableDataLoader      bool
+	AssetGearLoader       *AssetGearLoader
+	TemplateItems         []config.TemplateItem
+	PreferredLanguageTags []string
+}
+
+// Engine resolves and renders templates.
 type Engine struct {
-	defaultLoader *StringLoader
-	loaders       []Loader
+	DefaultLoader *DefaultLoader
+	URILoader     *URILoader
+	TemplateItems []config.TemplateItem
+	// NOTE(louis): PreferredLanguageTags
+	// PreferredLanguageTags is put here instead of receiving it from RenderXXX methods.
+	// It is expected that engine is created per request.
+	// The preferred language tags should be lazily retrieved
+	// from the auth context.
+	PreferredLanguageTags []string
 }
 
-type ParseOption struct {
-	Required             bool
-	FallbackTemplateName string
-}
-
-func NewEngine() *Engine {
+func NewEngine(opts NewEngineOptions) *Engine {
+	uriLoader := NewURILoader(opts.AssetGearLoader)
+	uriLoader.EnableFileLoader = opts.EnableFileLoader
+	uriLoader.EnableDataLoader = opts.EnableDataLoader
 	return &Engine{
-		defaultLoader: NewStringLoader(),
-		loaders:       []Loader{},
+		DefaultLoader:         NewDefaultLoader(),
+		URILoader:             uriLoader,
+		TemplateItems:         opts.TemplateItems,
+		PreferredLanguageTags: opts.PreferredLanguageTags,
 	}
 }
 
-func (e *Engine) CopyDefaultToEngine(engine *Engine) {
-	for k, v := range e.defaultLoader.StringMap {
-		engine.defaultLoader.StringMap[k] = v
+func (e *Engine) Clone() *Engine {
+	items := make([]config.TemplateItem, len(e.TemplateItems))
+	tags := make([]string, len(e.PreferredLanguageTags))
+	copy(items, e.TemplateItems)
+	copy(tags, e.PreferredLanguageTags)
+
+	return &Engine{
+		DefaultLoader:         e.DefaultLoader.Clone(),
+		URILoader:             e.URILoader.Clone(),
+		TemplateItems:         items,
+		PreferredLanguageTags: tags,
 	}
 }
 
-func (e *Engine) SetLoaders(loaders []Loader) {
-	e.loaders = loaders
+func (e *Engine) Register(t T) {
+	e.DefaultLoader.Map[t.Type] = t
 }
 
-func (e *Engine) PrependLoader(loader Loader) {
-	e.loaders = append([]Loader{loader}, e.loaders...)
-}
-
-func (e *Engine) RegisterDefaultTemplate(templateName string, template string) {
-	e.defaultLoader.StringMap[templateName] = template
-}
-
-func (e *Engine) ParseTextTemplate(templateName string, context map[string]interface{}, option ParseOption) (out string, err error) {
+func (e *Engine) RenderTextTemplate(templateType config.TemplateItemType, context map[string]interface{}, option RenderOptions) (out string, err error) {
 	var templateBody string
-	if templateBody, err = e.downloadContent(templateName, option); err != nil {
+	if templateBody, err = e.resolveTemplate(templateType, option); err != nil {
 		return
 	}
 
-	return ParseTextTemplate(templateName, templateBody, context)
+	return RenderTextTemplate(string(templateType), templateBody, context)
 }
 
-func (e *Engine) ParseHTMLTemplate(templateName string, context map[string]interface{}, option ParseOption) (out string, err error) {
+func (e *Engine) RenderHTMLTemplate(templateType config.TemplateItemType, context map[string]interface{}, option RenderOptions) (out string, err error) {
 	var templateBody string
-	if templateBody, err = e.downloadContent(templateName, option); err != nil {
+	if templateBody, err = e.resolveTemplate(templateType, option); err != nil {
 		return
 	}
 
-	return ParseHTMLTemplate(templateName, templateBody, context)
+	return RenderHTMLTemplate(string(templateType), templateBody, context)
 }
 
-func (e *Engine) downloadContent(templateName string, option ParseOption) (templateBody string, err error) {
-	// skip error handling if there is a fallback template name
-	if option.FallbackTemplateName == "" {
-		defer func() {
-			if !option.Required && IsNotFound(err) {
-				// no error if not required
+func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options RenderOptions) (string, error) {
+	templateItem, err := e.resolveTemplateItem(templateType, options.Key)
+	// No template item can be resolved. Fallback to default.
+	if err != nil {
+		templateBody, err := e.DefaultLoader.Load(templateType)
+		if err != nil {
+			if !options.Required {
 				err = nil
-				templateBody = ""
-			} else if err != nil {
-				err = errors.Newf("failed to load template '%s': %w", templateName, err)
 			}
-		}()
+		}
+		return templateBody, err
 	}
+	return e.URILoader.Load(templateItem.URI)
+}
 
-	for _, loader := range e.loaders {
-		if templateBody, err = loader.Load(templateName); err == nil {
-			return
+func (e *Engine) resolveTemplateItem(templateType config.TemplateItemType, key string) (templateItem *config.TemplateItem, err error) {
+	input := e.TemplateItems
+	var output []config.TemplateItem
+
+	// The first step is to find out templates with the target type.
+	for _, item := range input {
+		if item.Type == templateType {
+			i := item
+			output = append(output, i)
 		}
 	}
+	input = output
+	output = nil
 
-	// try with default loader
-	templateBody, err = e.defaultLoader.Load(templateName)
-
-	if option.FallbackTemplateName != "" && err != nil {
-		// download with fallback template name
-		templateBody, err = e.downloadContent(option.FallbackTemplateName, ParseOption{
-			Required:             option.Required,
-			FallbackTemplateName: "",
-		})
+	// The second step is to find out templates with the target key, if key is specified
+	if key != "" {
+		for _, item := range input {
+			if item.Key == key {
+				i := item
+				output = append(output, i)
+			}
+		}
+		input = output
 	}
 
-	return
+	// We have either have a list of templates of different language tags or an empty list.
+	if len(input) <= 0 {
+		err = &errNotFound{name: string(templateType)}
+		return
+	}
+
+	// We have a list of templates of different language tags.
+	// The first item in tags is used as fallback.
+	// So we have sort the templates so that template with empty
+	// language tag comes first.
+	//
+	// language.Make("") is "und"
+	sort.Slice(input, func(i, j int) bool {
+		return input[i].LanguageTag < input[j].LanguageTag
+	})
+
+	supportedTags := make([]language.Tag, len(input))
+	for i, item := range input {
+		supportedTags[i] = language.Make(item.LanguageTag)
+	}
+	matcher := language.NewMatcher(supportedTags)
+
+	preferredTags := make([]language.Tag, len(e.PreferredLanguageTags))
+	for i, tagStr := range e.PreferredLanguageTags {
+		preferredTags[i] = language.Make(tagStr)
+	}
+
+	_, idx, _ := matcher.Match(preferredTags...)
+
+	return &input[idx], nil
 }

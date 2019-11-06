@@ -2,41 +2,92 @@ package template
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	htmlTemplate "html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	textTemplate "text/template"
+	"unicode/utf8"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 const MaxTemplateSize = 1024 * 1024 * 1
 
-func DownloadTemplateFromURL(url string) (string, error) {
-	// FIXME(sec): validate URL to be trusted URL
+// DownloadStringFromAssuminglyTrustedURL downloads the content of url.
+// url is assumed to be trusted.
+func DownloadStringFromAssuminglyTrustedURL(url string) (content string, err error) {
 	// nolint: gosec
 	resp, err := http.Get(url)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
 	if err != nil {
-		return "", err
+		return
 	}
+	defer resp.Body.Close()
 
-	if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
-		return "", errors.Newf("failed to request: %s", resp.Status)
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		err = errors.Newf("unexpected status code: %d", resp.StatusCode)
+		return
 	}
 
 	body, err := ioutil.ReadAll(io.LimitReader(resp.Body, MaxTemplateSize))
 	if err != nil {
-		return "", err
+		return
 	}
 
-	return string(body), nil
+	if !utf8.Valid(body) {
+		err = errors.New("expected content to be UTF-8 encoded")
+		return
+	}
+
+	content = string(body)
+	return
 }
 
-func ParseTextTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
+// EncodeContextToURLQueryParamValue encodes context into URL query param value.
+// Specifially, the context is first encoded into JSON and then base64url encoded.
+func EncodeContextToURLQueryParamValue(context map[string]interface{}) (val string, err error) {
+	if context == nil {
+		return
+	}
+	bytes, err := json.Marshal(context)
+	if err != nil {
+		return
+	}
+	val = base64.RawURLEncoding.EncodeToString(bytes)
+	return
+}
+
+// DecodeURLQueryParamValueToContext is the inverse of EncodeContextToURLQueryParamValue.
+func DecodeURLQueryParamValueToContext(val string) (context map[string]interface{}, err error) {
+	if val == "" {
+		return
+	}
+	bytes, err := base64.RawURLEncoding.DecodeString(val)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(bytes, &context)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func SetContextToURLQuery(u *url.URL, context map[string]interface{}) error {
+	encoded, err := EncodeContextToURLQueryParamValue(context)
+	if err != nil {
+		return err
+	}
+	query := u.Query()
+	query.Set("x-skygear-redirect-data", encoded)
+	u.RawQuery = query.Encode()
+	return nil
+}
+
+func RenderTextTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
 	if templateString == "" {
 		return
 	}
@@ -63,7 +114,7 @@ func ParseTextTemplate(id string, templateString string, context map[string]inte
 	return
 }
 
-func ParseHTMLTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
+func RenderHTMLTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
 	if templateString == "" {
 		return
 	}

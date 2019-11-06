@@ -4,7 +4,6 @@ import (
 	"net/url"
 	"path"
 
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/template"
@@ -56,28 +55,28 @@ func NewResetPasswordHTMLProvider(urlPrefix *url.URL, c config.ForgotPasswordCon
 
 func (r *ResetPasswordHTMLProvider) SuccessHTML(context map[string]interface{}) (string, error) {
 	r.injectContext(context)
-	return r.TemplateEngine.ParseHTMLTemplate(
-		authTemplate.TemplateNameResetPasswordSuccessHTML,
+	return r.TemplateEngine.RenderHTMLTemplate(
+		TemplateItemTypeForgotPasswordSuccessHTML,
 		context,
-		template.ParseOption{Required: true},
+		template.RenderOptions{Required: true},
 	)
 }
 
 func (r *ResetPasswordHTMLProvider) ErrorHTML(context map[string]interface{}) (string, error) {
 	r.injectContext(context)
-	return r.TemplateEngine.ParseHTMLTemplate(
-		authTemplate.TemplateNameResetPasswordErrorHTML,
+	return r.TemplateEngine.RenderHTMLTemplate(
+		TemplateItemTypeForgotPasswordErrorHTML,
 		context,
-		template.ParseOption{Required: true},
+		template.RenderOptions{Required: true},
 	)
 }
 
 func (r *ResetPasswordHTMLProvider) FormHTML(context map[string]interface{}) (string, error) {
 	r.injectContext(context)
-	return r.TemplateEngine.ParseHTMLTemplate(
-		authTemplate.TemplateNameResetPasswordHTML,
+	return r.TemplateEngine.RenderHTMLTemplate(
+		TemplateItemTypeForgotPasswordResetHTML,
 		context,
-		template.ParseOption{Required: true},
+		template.RenderOptions{Required: true},
 	)
 }
 
@@ -98,7 +97,7 @@ func (r *ResetPasswordHTMLProvider) SuccessRedirect(context map[string]interface
 	}
 
 	output := *r.successRedirect
-	r.setURLQueryFromMap(&output, context)
+	template.SetContextToURLQuery(&output, context)
 	return &output
 }
 
@@ -112,17 +111,6 @@ func (r *ResetPasswordHTMLProvider) ErrorRedirect(context map[string]interface{}
 	}
 
 	output := *r.errorRedirect
-	r.setURLQueryFromMap(&output, context)
+	template.SetContextToURLQuery(&output, context)
 	return &output
-}
-
-func (r *ResetPasswordHTMLProvider) setURLQueryFromMap(u *url.URL, values map[string]interface{}) {
-	queryValues := url.Values{}
-	for key, value := range values {
-		if str, ok := value.(string); ok {
-			queryValues.Set(key, str)
-		}
-	}
-
-	u.RawQuery = queryValues.Encode()
 }

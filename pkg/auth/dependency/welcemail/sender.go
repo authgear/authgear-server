@@ -4,7 +4,6 @@ import (
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -44,20 +43,20 @@ func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) 
 	}
 
 	var textBody string
-	if textBody, err = d.TemplateEngine.ParseTextTemplate(
-		authTemplate.TemplateNameWelcomeEmailText,
+	if textBody, err = d.TemplateEngine.RenderTextTemplate(
+		TemplateItemTypeWelcomeEmailTXT,
 		context,
-		template.ParseOption{Required: true},
+		template.RenderOptions{Required: true},
 	); err != nil {
 		err = errors.Newf("failed to render text welcome email: %w", err)
 		return
 	}
 
 	var htmlBody string
-	if htmlBody, err = d.TemplateEngine.ParseHTMLTemplate(
-		authTemplate.TemplateNameWelcomeEmailHTML,
+	if htmlBody, err = d.TemplateEngine.RenderHTMLTemplate(
+		TemplateItemTypeWelcomeEmailHTML,
 		context,
-		template.ParseOption{Required: false},
+		template.RenderOptions{Required: false},
 	); err != nil {
 		err = errors.Newf("failed to render HTML welcome email: %w", err)
 		return

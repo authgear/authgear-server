@@ -27,6 +27,7 @@ type TenantConfiguration struct {
 	AppName          string            `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
 	AppConfig        AppConfiguration  `json:"app_config,omitempty" yaml:"app_config" msg:"app_config"`
 	UserConfig       UserConfiguration `json:"user_config,omitempty" yaml:"user_config" msg:"user_config"`
+	TemplateItems    []TemplateItem    `json:"template_items,omitempty" yaml:"template_items" msg:"template_items"`
 	Hooks            []Hook            `json:"hooks,omitempty" yaml:"hooks" msg:"hooks"`
 	DeploymentRoutes []DeploymentRoute `json:"deployment_routes,omitempty" yaml:"deployment_routes" msg:"deployment_routes"`
 }
@@ -41,6 +42,16 @@ type DeploymentRoute struct {
 	Path       string                 `json:"path,omitempty" yaml:"path" msg:"path"`
 	Type       string                 `json:"type,omitempty" yaml:"type" msg:"type"`
 	TypeConfig map[string]interface{} `json:"type_config,omitempty" yaml:"type_config" msg:"type_config"`
+}
+
+type TemplateItemType string
+
+type TemplateItem struct {
+	Type        TemplateItemType `json:"type,omitempty" yaml:"type" msg:"type"`
+	LanguageTag string           `json:"language_tag,omitempty" yaml:"language_tag" msg:"language_tag"`
+	Key         string           `json:"key,omitempty" yaml:"key" msg:"key"`
+	URI         string           `json:"uri,omitempty" yaml:"uri" msg:"uri"`
+	ContentMD5  string           `json:"content_md5,omitempty" yaml:"content_md5" msg:"content_md5"`
 }
 
 func NewTenantConfiguration() TenantConfiguration {
@@ -403,11 +414,11 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		if config.Expiry == 0 {
 			config.Expiry = 3600 // 1 hour
 		}
-		if config.ProviderConfig.Sender == "" {
-			config.ProviderConfig.Sender = "no-reply@skygeario.com"
+		if config.Sender == "" {
+			config.Sender = "no-reply@skygeario.com"
 		}
-		if config.ProviderConfig.Subject == "" {
-			config.ProviderConfig.Subject = "Verification instruction"
+		if config.Subject == "" {
+			config.Subject = "Verification instruction"
 		}
 		c.UserConfig.UserVerification.LoginIDKeys[i] = config
 	}
@@ -688,19 +699,14 @@ type PasswordPolicyConfiguration struct {
 }
 
 type ForgotPasswordConfiguration struct {
-	AppName             string `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
-	SecureMatch         bool   `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
-	Sender              string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	Subject             string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	ReplyTo             string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-	ResetURLLifetime    int    `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
-	SuccessRedirect     string `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
-	ErrorRedirect       string `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
-	EmailTextURL        string `json:"email_text_url,omitempty" yaml:"email_text_url" msg:"email_text_url"`
-	EmailHTMLURL        string `json:"email_html_url,omitempty" yaml:"email_html_url" msg:"email_html_url"`
-	ResetHTMLURL        string `json:"reset_html_url,omitempty" yaml:"reset_html_url" msg:"reset_html_url"`
-	ResetSuccessHTMLURL string `json:"reset_success_html_url,omitempty" yaml:"reset_success_html_url" msg:"reset_success_html_url"`
-	ResetErrorHTMLURL   string `json:"reset_error_html_url,omitempty" yaml:"reset_error_html_url" msg:"reset_error_html_url"`
+	AppName          string `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
+	SecureMatch      bool   `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
+	Sender           string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
+	Subject          string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
+	ReplyTo          string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
+	ResetURLLifetime int    `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
+	SuccessRedirect  string `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
+	ErrorRedirect    string `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
 }
 
 type WelcomeEmailDestination string
@@ -719,8 +725,6 @@ type WelcomeEmailConfiguration struct {
 	Sender      string                  `json:"sender,omitempty" yaml:"sender" msg:"sender"`
 	Subject     string                  `json:"subject,omitempty" yaml:"subject" msg:"subject"`
 	ReplyTo     string                  `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-	TextURL     string                  `json:"text_url,omitempty" yaml:"text_url" msg:"text_url"`
-	HTMLURL     string                  `json:"html_url,omitempty" yaml:"html_url" msg:"html_url"`
 	Destination WelcomeEmailDestination `json:"destination,omitempty" yaml:"destination" msg:"destination"`
 }
 
@@ -784,7 +788,6 @@ type UserVerificationConfiguration struct {
 	AutoSendOnSignup bool                               `json:"auto_send_on_signup,omitempty" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
 	Criteria         UserVerificationCriteria           `json:"criteria,omitempty" yaml:"criteria" msg:"criteria"`
 	ErrorRedirect    string                             `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
-	ErrorHTMLURL     string                             `json:"error_html_url,omitempty" yaml:"error_html_url" msg:"error_html_url"`
 	LoginIDKeys      []UserVerificationKeyConfiguration `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
 }
 
@@ -795,19 +798,19 @@ const (
 	UserVerificationCodeFormatComplex UserVerificationCodeFormat = "complex"
 )
 
-func (format UserVerificationCodeFormat) IsValid() bool {
-	return format == UserVerificationCodeFormatNumeric || format == UserVerificationCodeFormatComplex
+type UserVerificationKeyConfiguration struct {
+	Key             string                     `json:"key,omitempty" yaml:"key" msg:"key"`
+	CodeFormat      UserVerificationCodeFormat `json:"code_format,omitempty" yaml:"code_format" msg:"code_format"`
+	Expiry          int64                      `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
+	SuccessRedirect string                     `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
+	ErrorRedirect   string                     `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
+	Subject         string                     `json:"subject,omitempty" yaml:"subject" msg:"subject"`
+	Sender          string                     `json:"sender,omitempty" yaml:"sender" msg:"sender"`
+	ReplyTo         string                     `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
 }
 
-type UserVerificationKeyConfiguration struct {
-	Key             string                                `json:"key" yaml:"key" msg:"key"`
-	CodeFormat      UserVerificationCodeFormat            `json:"code_format,omitempty" yaml:"code_format" msg:"code_format"`
-	Expiry          int64                                 `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
-	SuccessRedirect string                                `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
-	SuccessHTMLURL  string                                `json:"success_html_url,omitempty" yaml:"success_html_url" msg:"success_html_url"`
-	ErrorRedirect   string                                `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
-	ErrorHTMLURL    string                                `json:"error_html_url,omitempty" yaml:"error_html_url" msg:"error_html_url"`
-	ProviderConfig  UserVerificationProviderConfiguration `json:"provider_config,omitempty" yaml:"provider_config" msg:"provider_config"`
+func (format UserVerificationCodeFormat) IsValid() bool {
+	return format == UserVerificationCodeFormatNumeric || format == UserVerificationCodeFormatComplex
 }
 
 func (c *UserVerificationConfiguration) GetLoginIDKey(key string) (*UserVerificationKeyConfiguration, bool) {
@@ -820,12 +823,12 @@ func (c *UserVerificationConfiguration) GetLoginIDKey(key string) (*UserVerifica
 	return nil, false
 }
 
-type UserVerificationProviderConfiguration struct {
-	Subject string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	Sender  string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	ReplyTo string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-	TextURL string `json:"text_url,omitempty" yaml:"text_url" msg:"text_url"`
-	HTMLURL string `json:"html_url,omitempty" yaml:"html_url" msg:"html_url"`
+func (c *UserVerificationKeyConfiguration) MessageHeader() MessageHeader {
+	return MessageHeader{
+		Subject: c.Subject,
+		Sender:  c.Sender,
+		ReplyTo: c.ReplyTo,
+	}
 }
 
 type HookUserConfiguration struct {

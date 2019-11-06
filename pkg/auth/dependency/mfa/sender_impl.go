@@ -1,7 +1,6 @@
 package mfa
 
 import (
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
@@ -36,10 +35,10 @@ func (s *senderImpl) Send(code string, phone string, email string) error {
 }
 
 func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error {
-	body, err := s.templateEngine.ParseTextTemplate(
-		authTemplate.TemplateNameMFAOOBCodeSMSText,
+	body, err := s.templateEngine.RenderTextTemplate(
+		TemplateItemTypeMFAOOBCodeSMSTXT,
 		context,
-		template.ParseOption{Required: true},
+		template.RenderOptions{Required: true},
 	)
 	if err != nil {
 		err = errors.Newf("failed to render MFA SMS message: %w", err)
@@ -54,20 +53,20 @@ func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error
 }
 
 func (s *senderImpl) SendEmail(context map[string]interface{}, email string) error {
-	textBody, err := s.templateEngine.ParseTextTemplate(
-		authTemplate.TemplateNameMFAOOBCodeEmailText,
+	textBody, err := s.templateEngine.RenderTextTemplate(
+		TemplateItemTypeMFAOOBCodeEmailTXT,
 		context,
-		template.ParseOption{Required: true},
+		template.RenderOptions{Required: true},
 	)
 	if err != nil {
 		err = errors.Newf("failed to render MFA text email: %w", err)
 		return err
 	}
 
-	htmlBody, err := s.templateEngine.ParseHTMLTemplate(
-		authTemplate.TemplateNameMFAOOBCodeEmailHTML,
+	htmlBody, err := s.templateEngine.RenderHTMLTemplate(
+		TemplateItemTypeMFAOOBCodeEmailHTML,
 		context,
-		template.ParseOption{Required: false},
+		template.RenderOptions{Required: false},
 	)
 	if err != nil {
 		err = errors.Newf("failed to render MFA HTML email: %w", err)

@@ -19,7 +19,6 @@ import (
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
 	userverifyhandler "github.com/skygeario/skygear-server/pkg/auth/handler/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -39,7 +38,14 @@ type configuration struct {
 	ValidHosts                        string                      `envconfig:"VALID_HOSTS"`
 	Redis                             redis.Configuration         `envconfig:"REDIS"`
 	UseInsecureCookie                 bool                        `envconfig:"INSECURE_COOKIE"`
+	Template                          TemplateConfiguration       `envconfig:"TEMPLATE"`
 	Default                           config.DefaultConfiguration `envconfig:"DEFAULT"`
+}
+
+type TemplateConfiguration struct {
+	EnableFileLoader   bool   `envconfig:"ENABLE_FILE_LOADER"`
+	AssetGearEndpoint  string `envconfig:"ASSET_GEAR_ENDPOINT"`
+	AssetGearMasterKey string `envconfig:"ASSET_GEAR_MASTER_KEY"`
 }
 
 /*
@@ -90,10 +96,6 @@ func main() {
 		configuration.ValidHosts = configuration.Host
 	}
 
-	// default template initialization
-	templateEngine := template.NewEngine()
-	authTemplate.RegisterDefaultTemplates(templateEngine)
-
 	validator := validation.NewValidator("http://v2.skgyear.io")
 	validator.AddSchemaFragments(
 		handler.ChangePasswordRequestSchema,
@@ -103,11 +105,9 @@ func main() {
 		handler.LoginRequestSchema,
 		handler.SignupRequestSchema,
 		handler.UpdateMetadataRequestSchema,
-		handler.WelcomeEmailTestRequestSchema,
 
 		forgotpwdhandler.ForgotPasswordRequestSchema,
 		forgotpwdhandler.ForgotPasswordResetFormSchema,
-		forgotpwdhandler.ForgotPasswordTestRequestSchema,
 		forgotpwdhandler.ForgotPasswordResetRequestSchema,
 
 		mfaHandler.ActivateOOBRequestSchema,
@@ -131,7 +131,6 @@ func main() {
 		ssohandler.CustomTokenLoginRequestSchema,
 
 		userverifyhandler.VerifyCodeRequestSchema,
-		userverifyhandler.VerifyTestRequestSchema,
 		userverifyhandler.VerifyRequestSchema,
 		userverifyhandler.VerifyCodeFormSchema,
 	)
@@ -142,12 +141,20 @@ func main() {
 		logger.Fatalf("fail to create redis pool: %v", err.Error())
 	}
 	asyncTaskExecutor := async.NewExecutor(dbPool)
+	var assetGearLoader *template.AssetGearLoader
+	if configuration.Template.AssetGearEndpoint != "" && configuration.Template.AssetGearMasterKey != "" {
+		assetGearLoader = &template.AssetGearLoader{
+			AssetGearEndpoint:  configuration.Template.AssetGearEndpoint,
+			AssetGearMasterKey: configuration.Template.AssetGearMasterKey,
+		}
+	}
 	authDependency := auth.DependencyMap{
-		AsyncTaskExecutor:    asyncTaskExecutor,
-		TemplateEngine:       templateEngine,
-		UseInsecureCookie:    configuration.UseInsecureCookie,
-		DefaultConfiguration: configuration.Default,
-		Validator:            validator,
+		EnableFileSystemTemplate: configuration.Template.EnableFileLoader,
+		AssetGearLoader:          assetGearLoader,
+		AsyncTaskExecutor:        asyncTaskExecutor,
+		UseInsecureCookie:        configuration.UseInsecureCookie,
+		DefaultConfiguration:     configuration.Default,
+		Validator:                validator,
 	}
 
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
@@ -199,7 +206,6 @@ func main() {
 	handler.AttachSetDisableHandler(&srv, authDependency)
 	handler.AttachChangePasswordHandler(&srv, authDependency)
 	handler.AttachResetPasswordHandler(&srv, authDependency)
-	handler.AttachWelcomeEmailHandler(&srv, authDependency)
 	handler.AttachUpdateMetadataHandler(&srv, authDependency)
 	forgotpwdhandler.AttachForgotPasswordHandler(&srv, authDependency)
 	forgotpwdhandler.AttachForgotPasswordResetHandler(&srv, authDependency)

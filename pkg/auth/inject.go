@@ -43,11 +43,12 @@ import (
 )
 
 type DependencyMap struct {
-	TemplateEngine       *template.Engine
-	Validator            *validation.Validator
-	AsyncTaskExecutor    *async.Executor
-	UseInsecureCookie    bool
-	DefaultConfiguration config.DefaultConfiguration
+	EnableFileSystemTemplate bool
+	Validator                *validation.Validator
+	AssetGearLoader          *template.AssetGearLoader
+	AsyncTaskExecutor        *async.Executor
+	UseInsecureCookie        bool
+	DefaultConfiguration     config.DefaultConfiguration
 }
 
 // Provide provides dependency instance by name
@@ -112,7 +113,11 @@ func (m DependencyMap) Provide(
 	}
 
 	newTemplateEngine := func() *template.Engine {
-		return authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
+		return authTemplate.NewEngineWithConfig(
+			tConfig,
+			m.EnableFileSystemTemplate,
+			m.AssetGearLoader,
+		)
 	}
 
 	newAuthInfoStore := func() authinfo.Store {
@@ -308,8 +313,6 @@ func (m DependencyMap) Provide(
 		return newUserProfileStore()
 	case "ForgotPasswordEmailSender":
 		return forgotpwdemail.NewDefaultSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender(), newTemplateEngine())
-	case "TestForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultTestSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender())
 	case "ForgotPasswordCodeGenerator":
 		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.UserConfig.MasterKey}
 	case "ForgotPasswordSecureMatch":
@@ -322,21 +325,11 @@ func (m DependencyMap) Provide(
 		return tConfig.UserConfig.WelcomeEmail.Destination
 	case "WelcomeEmailSender":
 		return welcemail.NewDefaultSender(tConfig, newMailSender(), newTemplateEngine())
-	case "TestWelcomeEmailSender":
-		return welcemail.NewDefaultTestSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender())
 	case "IFrameHTMLProvider":
 		return sso.NewIFrameHTMLProvider(urlprefix.NewProvider(request).Value())
 	case "UserVerifyCodeSenderFactory":
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(
 			tConfig,
-			newTemplateEngine(),
-			newMailSender(),
-			newSMSClient(),
-		)
-	case "UserVerifyTestCodeSenderFactory":
-		return userverify.NewDefaultUserVerifyTestCodeSenderFactory(
-			tConfig,
-			urlprefix.NewProvider(request).Value(),
 			newTemplateEngine(),
 			newMailSender(),
 			newSMSClient(),

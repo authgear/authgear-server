@@ -5,7 +5,6 @@ import (
 	"path"
 
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -20,7 +19,7 @@ type CodeSender interface {
 type EmailCodeSender struct {
 	AppName        string
 	URLPrefix      *url.URL
-	ProviderConfig config.UserVerificationProviderConfiguration
+	MessageHeader  config.MessageHeader
 	Sender         mail.Sender
 	TemplateEngine *template.Engine
 }
@@ -33,33 +32,37 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 		user,
 	)
 
-	providerConfig := e.ProviderConfig
-
 	var textBody string
-	if textBody, err = e.TemplateEngine.ParseTextTemplate(
-		authTemplate.VerifyTextTemplateNameForKey(verifyCode.LoginIDKey),
+	if textBody, err = e.TemplateEngine.RenderTextTemplate(
+		TemplateItemTypeUserVerificationEmailTXT,
 		context,
-		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifyEmailText},
+		template.RenderOptions{
+			Required: true,
+			Key:      verifyCode.LoginIDKey,
+		},
 	); err != nil {
 		err = errors.Newf("failed to render user verification text email: %w", err)
 		return
 	}
 
 	var htmlBody string
-	if htmlBody, err = e.TemplateEngine.ParseHTMLTemplate(
-		authTemplate.VerifyHTMLTemplateNameForKey(verifyCode.LoginIDKey),
+	if htmlBody, err = e.TemplateEngine.RenderHTMLTemplate(
+		TemplateItemTypeUserVerificationEmailHTML,
 		context,
-		template.ParseOption{Required: false, FallbackTemplateName: authTemplate.TemplateNameVerifyEmailHTML},
+		template.RenderOptions{
+			Required: false,
+			Key:      verifyCode.LoginIDKey,
+		},
 	); err != nil {
 		err = errors.Newf("failed to render user verification HTML email: %w", err)
 		return
 	}
 
 	err = e.Sender.Send(mail.SendOptions{
-		Sender:    providerConfig.Sender,
+		Sender:    e.MessageHeader.Sender,
 		Recipient: verifyCode.LoginID,
-		Subject:   providerConfig.Subject,
-		ReplyTo:   providerConfig.ReplyTo,
+		Subject:   e.MessageHeader.Subject,
+		ReplyTo:   e.MessageHeader.ReplyTo,
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
 	})
@@ -86,10 +89,13 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user model.User) (err error)
 	)
 
 	var textBody string
-	if textBody, err = t.TemplateEngine.ParseTextTemplate(
-		authTemplate.VerifyTextTemplateNameForKey(verifyCode.LoginIDKey),
+	if textBody, err = t.TemplateEngine.RenderTextTemplate(
+		TemplateItemTypeUserVerificationSMSTXT,
 		context,
-		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifySMSText},
+		template.RenderOptions{
+			Required: true,
+			Key:      verifyCode.LoginIDKey,
+		},
 	); err != nil {
 		err = errors.Newf("failed to render user verification SMS message: %w", err)
 		return

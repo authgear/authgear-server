@@ -3,7 +3,6 @@ package userverify
 import (
 	"net/url"
 
-	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
@@ -57,26 +56,24 @@ func NewVerifyHTMLProvider(c config.UserVerificationConfiguration, templateEngin
 }
 
 func (v *VerifyHTMLProvider) SuccessHTML(key string, context map[string]interface{}) (string, error) {
-	return v.templateEngine.ParseHTMLTemplate(
-		authTemplate.VerifySuccessHTMLTemplateNameForKey(key),
+	return v.templateEngine.RenderHTMLTemplate(
+		TemplateItemTypeUserVerificationSuccessHTML,
 		context,
-		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifySuccessHTML},
+		template.RenderOptions{
+			Required: true,
+			Key:      key,
+		},
 	)
 }
 
 func (v *VerifyHTMLProvider) ErrorHTML(key string, context map[string]interface{}) (string, error) {
-	if key != "" {
-		return v.templateEngine.ParseHTMLTemplate(
-			authTemplate.VerifyErrorHTMLTemplateNameForKey(key),
-			context,
-			template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifyErrorHTML},
-		)
-	}
-
-	return v.templateEngine.ParseHTMLTemplate(
-		authTemplate.TemplateNameVerifyErrorHTML,
+	return v.templateEngine.RenderHTMLTemplate(
+		TemplateItemTypeUserVerificationErrorHTML,
 		context,
-		template.ParseOption{Required: true},
+		template.RenderOptions{
+			Required: true,
+			Key:      key,
+		},
 	)
 }
 
@@ -92,7 +89,7 @@ func (v *VerifyHTMLProvider) SuccessRedirect(key string, context map[string]inte
 	}
 
 	output := *successRedirect
-	v.setURLQueryFromMap(&output, context)
+	template.SetContextToURLQuery(&output, context)
 	return &output
 }
 
@@ -106,7 +103,7 @@ func (v *VerifyHTMLProvider) ErrorRedirect(key string, context map[string]interf
 	defer func() {
 		if errorRedirect != nil {
 			outputURL := *errorRedirect
-			v.setURLQueryFromMap(&outputURL, context)
+			template.SetContextToURLQuery(&outputURL, context)
 			output = &outputURL
 		} else {
 			output = nil
@@ -124,15 +121,4 @@ func (v *VerifyHTMLProvider) ErrorRedirect(key string, context map[string]interf
 
 	errorRedirect = v.errorRedirect
 	return
-}
-
-func (v *VerifyHTMLProvider) setURLQueryFromMap(u *url.URL, values map[string]interface{}) {
-	queryValues := url.Values{}
-	for key, value := range values {
-		if str, ok := value.(string); ok {
-			queryValues.Set(key, str)
-		}
-	}
-
-	u.RawQuery = queryValues.Encode()
 }
