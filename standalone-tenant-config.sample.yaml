@@ -12,7 +12,7 @@ app_config:
 user_config:
   url_prefix: http://localhost:3000/_auth
   clients:
-  - id: test-app
+  - id: default
     name: Test App
     api_key: api_key
     session_transport: header
