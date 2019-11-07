@@ -112,7 +112,7 @@ func main() {
 	}.Handle)
 	gr.Use(coreMiddleware.CORSMiddleware{}.Handle)
 
-	gr.HandleFunc("/{rest:.*}", handler.NewGearHandler("rest"))
+	gr.Handle("/{rest:.*}", handler.NewGearHandler())
 
 	cr := r.PathPrefix("/").Subrouter()
 

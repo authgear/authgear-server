@@ -5,16 +5,15 @@ import (
 	"net/http/httputil"
 	"net/url"
 
-	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
 // NewGearHandler takes an incoming request and sends it to coresponding
 // gear server
-func NewGearHandler(restPathIdentifier string) http.HandlerFunc {
+func NewGearHandler() http.Handler {
 	proxy := newGearReverseProxy()
-	return rewriteHandler(proxy, restPathIdentifier)
+	return proxy
 }
 
 func newGearReverseProxy() *httputil.ReverseProxy {
@@ -46,11 +45,4 @@ func newGearReverseProxy() *httputil.ReverseProxy {
 	}
 
 	return &httputil.ReverseProxy{Director: director, ModifyResponse: modifyResponse}
-}
-
-func rewriteHandler(p *httputil.ReverseProxy, restPathIdentifier string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = "/" + mux.Vars(r)[restPathIdentifier]
-		p.ServeHTTP(w, r)
-	}
 }
