@@ -107,6 +107,7 @@ func main() {
 		handler.UpdateMetadataRequestSchema,
 
 		forgotpwdhandler.ForgotPasswordRequestSchema,
+		forgotpwdhandler.ForgotPasswordResetPageSchema,
 		forgotpwdhandler.ForgotPasswordResetFormSchema,
 		forgotpwdhandler.ForgotPasswordResetRequestSchema,
 
