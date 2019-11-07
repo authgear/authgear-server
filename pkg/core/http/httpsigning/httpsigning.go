@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
 const (
@@ -197,10 +199,6 @@ func CanonicalQueryString(u *url.URL) string {
 // CanonicalHeaders computes CANONICAL_HEADERS and SIGNED_HEADERS.
 // Currently only Host is signed.
 func CanonicalHeaders(r *http.Request) (canonicalHeaders string) {
-	if r.Host != "" {
-		canonicalHeaders = fmt.Sprintf("host:%s", r.Host)
-	} else {
-		canonicalHeaders = fmt.Sprintf("host:%s", r.URL.Host)
-	}
+	canonicalHeaders = fmt.Sprintf("host:%s", coreHttp.GetHost(r))
 	return
 }
