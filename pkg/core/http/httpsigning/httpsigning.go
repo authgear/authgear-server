@@ -5,7 +5,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,6 +14,7 @@ import (
 	"time"
 
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 const (
@@ -31,10 +31,9 @@ const (
 	signedHeaders = "host"
 )
 
-var (
-	ErrInvalidSignature = errors.New("invalid signature")
-	ErrExpiredSignature = errors.New("expired signature")
-)
+var InvalidSignatureQueryParam = skyerr.Invalid.WithReason("InvalidSignatureQueryParam")
+var InvalidSignature = skyerr.Invalid.WithReason("InvalidSignature")
+var ErrExpiredSignature = skyerr.Invalid.WithReason("ExpiredSignature").New("expired signature")
 
 func IsSigned(r *http.Request) bool {
 	q := r.URL.Query()
@@ -51,7 +50,7 @@ func Sign(key []byte, r *http.Request, t time.Time, expires int) {
 	q.Set("x-skygear-signedheaders", signedHeaders)
 	r.URL.RawQuery = q.Encode()
 
-	stringToSign := StringToSign(r, t)
+	stringToSign, _ := StringToSign(r, t)
 
 	q = r.URL.Query()
 	q.Set("x-skygear-signature", Hex(HMACSHA256(key, stringToSign)))
@@ -65,29 +64,31 @@ func Verify(key []byte, r *http.Request, now time.Time) error {
 	xSkygearSignature := q.Get("x-skygear-signature")
 	claimedSig, err := hex.DecodeString(xSkygearSignature)
 	if err != nil {
-		return ErrInvalidSignature
+		return InvalidSignatureQueryParam.New("invalid x-skygear-signature")
 	}
 
 	xSkygearDate := q.Get("x-skygear-date")
 	t, err := time.Parse(TimeFormat, xSkygearDate)
 	if err != nil {
-		return ErrInvalidSignature
+		return InvalidSignatureQueryParam.New("invalid x-skygear-date")
 	}
 
 	xSkygearExpires := q.Get("x-skygear-expires")
 	expires, err := strconv.Atoi(xSkygearExpires)
 	if err != nil {
-		return ErrInvalidSignature
+		return InvalidSignatureQueryParam.New("invalid x-skygear-expires")
 	}
 
-	stringToSign := StringToSign(r, t)
+	stringToSign, canonicalRequest := StringToSign(r, t)
 	mac := hmac.New(sha256.New, key)
 	mac.Write(stringToSign)
 	expectedSig := mac.Sum(nil)
 
 	eq := hmac.Equal(claimedSig, expectedSig)
 	if !eq {
-		return ErrInvalidSignature
+		return InvalidSignature.NewWithInfo("invalid signature", skyerr.Details{
+			"canonical_request": string(canonicalRequest),
+		})
 	}
 
 	if now.After(t.Add(time.Duration(expires) * time.Second)) {
@@ -121,14 +122,17 @@ func FormatTime(t time.Time) string {
 }
 
 // StringToSign computes StringToSign.
-func StringToSign(r *http.Request, t time.Time) []byte {
-	s := fmt.Sprintf("%s\n%s\n%s", SigningAlgorithm, FormatTime(t), HashedCanonicalRequest(r))
-	return []byte(s)
+func StringToSign(r *http.Request, t time.Time) (stringToSign []byte, canonicalRequest []byte) {
+	hashded, canonicalRequest := HashedCanonicalRequest(r)
+	s := fmt.Sprintf("%s\n%s\n%s", SigningAlgorithm, FormatTime(t), hashded)
+	return []byte(s), canonicalRequest
 }
 
 // HashedCanonicalRequest is HEX(SHA256(CanonicalRequest(r))).
-func HashedCanonicalRequest(r *http.Request) string {
-	return Hex(SHA256(CanonicalRequest(r)))
+func HashedCanonicalRequest(r *http.Request) (hashed string, canonicalRequest []byte) {
+	canonicalRequest = CanonicalRequest(r)
+	hashed = Hex(SHA256(canonicalRequest))
+	return
 }
 
 // CanonicalRequest turns r into bytes.
