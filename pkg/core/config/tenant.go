@@ -590,7 +590,7 @@ type CORSConfiguration struct {
 type AuthConfiguration struct {
 	AuthenticationSession      AuthenticationSessionConfiguration `json:"authentication_session,omitempty" yaml:"authentication_session" msg:"authentication_session"`
 	LoginIDKeys                []LoginIDKeyConfiguration          `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
-	AllowedRealms              []string                           `json:"allowed_realms,omitempty" yaml:"allowed_realms" msg:"allowed_realms"`
+	AllowedRealms              []string                           `json:"-"`
 	OnUserDuplicateAllowCreate bool                               `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
 }
 

@@ -50,7 +50,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 type LoginRequestPayload struct {
 	LoginIDKey string `json:"login_id_key"`
 	LoginID    string `json:"login_id"`
-	Realm      string `json:"realm"`
+	Realm      string `json:"-"`
 	Password   string `json:"password"`
 
 	PasswordAuthProvider password.Provider `json:"-"`
@@ -99,7 +99,6 @@ const LoginRequestSchema = `
 	"properties": {
 		"login_id_key": { "type": "string", "minLength": 1 },
 		"login_id": { "type": "string", "minLength": 1 },
-		"realm": { "type": "string", "minLength": 1 },
 		"password": { "type": "string", "minLength": 1 }
 	},
 	"required": ["login_id", "password"]

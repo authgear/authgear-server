@@ -115,7 +115,6 @@ func TestChangePasswordHandler(t *testing.T) {
 						"id": "john.doe.principal.id0",
 						"login_id": "john.doe",
 						"login_id_key": "username",
-						"realm": "",
 						"type": "password"
 					},
 					"access_token": "access-token-john.doe.id-john.doe.principal.id0-0",

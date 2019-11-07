@@ -76,16 +76,6 @@ type ssoUXMode string
 
 // nolint: deadcode
 /*
-	@ID SSOMergeRealm
-	@Parameter merge_realm query
-		Realm to merge when duplicated user is detected
-		@JSONSchema
-			{ "type": "string" }
-*/
-type ssoMergeRealm string
-
-// nolint: deadcode
-/*
 	@ID SSOOnUserDuplicate
 	@Parameter on_user_duplicate query
 		Behavior when duplicated user is detected
@@ -107,7 +97,6 @@ const AuthURLRequestSchema = `
 	"properties": {
 		"callback_url": { "type": "string", "format": "uri" },
 		"ux_mode": { "type": "string", "enum": ["web_redirect", "web_popup", "mobile_app"] },
-		"merge_realm": { "type": "string", "minLength": 1 },
 		"on_user_duplicate": {"type": "string", "enum": ["abort", "merge", "create"] }
 	},
 	"required": ["callback_url", "ux_mode"]
@@ -137,7 +126,7 @@ const AuthURLResponseSchema = `
 type AuthURLRequestPayload struct {
 	CallbackURL     string                `json:"callback_url"`
 	UXMode          sso.UXMode            `json:"ux_mode"`
-	MergeRealm      string                `json:"merge_realm"`
+	MergeRealm      string                `json:"-"`
 	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 
 	PasswordAuthProvider password.Provider         `json:"-"`
@@ -215,7 +204,6 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		@Parameter {SSOProviderID}
 		@Parameter {SSOCallbackURL}
 		@Parameter {SSOUXMode}
-		@Parameter {SSOMergeRealm}
 		@Parameter {SSOOnUserDuplicate}
 		@Response 302
 			Redirect to SSO login flow
@@ -253,7 +241,6 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		@Parameter {SSOProviderID}
 		@Parameter {SSOCallbackURL}
 		@Parameter {SSOUXMode}
-		@Parameter {SSOMergeRealm}
 		@Parameter {SSOOnUserDuplicate}
 		@Response 302
 			Redirect to SSO link flow
@@ -334,7 +321,6 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 
 		payload.CallbackURL = r.Form.Get("callback_url")
 		payload.UXMode = sso.UXMode(r.Form.Get("ux_mode"))
-		payload.MergeRealm = r.Form.Get("merge_realm")
 		payload.OnUserDuplicate = model.OnUserDuplicate(r.Form.Get("on_user_duplicate"))
 
 		payload.SetDefaultValue()
