@@ -448,7 +448,7 @@ const (
 		"type": "object",
 		"properties": {
 			"api_key": { "type": "string" },
-			"secret": { "type": "string" },
+			"api_secret": { "type": "string" },
 			"from": { "type": "string" }
 		}
 	}

@@ -873,7 +873,7 @@ func (c TwilioConfiguration) IsValid() bool {
 
 type NexmoConfiguration struct {
 	APIKey    string `json:"api_key,omitempty" yaml:"api_key" msg:"api_key" envconfig:"API_KEY"`
-	APISecret string `json:"secret,omitempty" yaml:"secret" msg:"secret" envconfig:"API_SECRET"`
+	APISecret string `json:"api_secret,omitempty" yaml:"api_secret" msg:"api_secret" envconfig:"API_SECRET"`
 	From      string `json:"from,omitempty" yaml:"from" msg:"from" envconfig:"FROM"`
 }
 
