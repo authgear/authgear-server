@@ -49,6 +49,20 @@ type ForgotPasswordResetFormPayload struct {
 }
 
 // nolint: gosec
+const ForgotPasswordResetPageSchema = `
+{
+	"$id": "#ForgotPasswordResetPage",
+	"type": "object",
+	"properties": {
+		"user_id": { "type": "string", "minLength": 1 },
+		"code": { "type": "string", "minLength": 1 },
+		"expire_at": { "type": "integer", "minimum": 1 }
+	},
+	"required": ["user_id", "code", "expire_at"]
+}
+`
+
+// nolint: gosec
 const ForgotPasswordResetFormSchema = `
 {
 	"$id": "#ForgotPasswordResetForm",
@@ -120,7 +134,13 @@ func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Req
 		return
 	}
 
-	if err = h.Validator.WithMessage("invalid request form").ValidateGoValue("#ForgotPasswordResetForm", payload); err != nil {
+	var schema string
+	if r.Method == http.MethodGet {
+		schema = "#ForgotPasswordResetPage"
+	} else {
+		schema = "#ForgotPasswordResetForm"
+	}
+	if err = h.Validator.WithMessage("invalid request form").ValidateGoValue(schema, payload); err != nil {
 		return
 	}
 
