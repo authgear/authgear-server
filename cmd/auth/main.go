@@ -162,6 +162,8 @@ func main() {
 	task.AttachPwHousekeeperTask(asyncTaskExecutor, authDependency)
 	task.AttachWelcomeEmailSendTask(asyncTaskExecutor, authDependency)
 
+	serverOption := server.DefaultOption()
+	serverOption.GearPathPrefix = "/_auth"
 	var srv server.Server
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
@@ -174,8 +176,6 @@ func main() {
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
-		serverOption := server.DefaultOption()
-		serverOption.GearPathPrefix = "/_auth"
 		srv = server.NewServerWithOption(configuration.Host, authDependency, serverOption)
 		srv.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
@@ -186,7 +186,7 @@ func main() {
 		srv.Use(middleware.RequestIDMiddleware{}.Handle)
 		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		srv = server.NewServer(configuration.Host, authDependency)
+		srv = server.NewServerWithOption(configuration.Host, authDependency, serverOption)
 		srv.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 	}
 

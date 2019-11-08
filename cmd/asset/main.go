@@ -104,6 +104,8 @@ func main() {
 		Validator:         validator,
 	}
 
+	serverOption := server.DefaultOption()
+	serverOption.GearPathPrefix = "/_asset"
 	var srv server.Server
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
@@ -116,8 +118,6 @@ func main() {
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
-		serverOption := server.DefaultOption()
-		serverOption.GearPathPrefix = "/_asset"
 		srv = server.NewServerWithOption(configuration.ServerHost, dependencyMap, serverOption)
 		srv.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (coreConfig.TenantConfiguration, error) {
@@ -127,7 +127,7 @@ func main() {
 		srv.Use(middleware.RequestIDMiddleware{}.Handle)
 		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		srv = server.NewServer(configuration.ServerHost, dependencyMap)
+		srv = server.NewServerWithOption(configuration.ServerHost, dependencyMap, serverOption)
 		srv.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 	}
 

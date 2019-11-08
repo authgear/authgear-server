@@ -29,11 +29,11 @@ func TestHTTPSigning(t *testing.T) {
 			Sign(key, r, signTime, 5)
 
 			q := r.URL.Query()
-			q.Set("x-skygear-signature", q.Get("x-skygear-signature")+"1")
+			q.Set("x-skygear-algorithm", q.Get("x-skygear-algorithm")+"1")
 			r.URL.RawQuery = q.Encode()
 
 			err := Verify(key, r, verifyTime)
-			So(err, ShouldBeError, ErrInvalidSignature)
+			So(err, ShouldBeError, "invalid signature")
 		})
 
 		Convey("Expired signature", func() {
