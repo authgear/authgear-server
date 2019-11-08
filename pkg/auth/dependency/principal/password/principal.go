@@ -69,7 +69,6 @@ func (p *Principal) Attributes() principal.Attributes {
 	return principal.Attributes{
 		"login_id_key": p.LoginIDKey,
 		"login_id":     p.LoginID,
-		"realm":        p.Realm,
 	}
 }
 

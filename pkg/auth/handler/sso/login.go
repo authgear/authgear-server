@@ -54,7 +54,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 // LoginRequestPayload login handler request payload
 type LoginRequestPayload struct {
 	AccessToken     string                `json:"access_token"`
-	MergeRealm      string                `json:"merge_realm"`
+	MergeRealm      string                `json:"-"`
 	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 }
 
@@ -74,7 +74,6 @@ const LoginRequestSchema = `
 	"type": "object",
 	"properties": {
 		"access_token": { "type": "string", "minLength": 1 },
-		"merge_realm": { "type": "string", "minLength": 1 },
 		"on_user_duplicate": {"type": "string", "enum": ["abort", "merge", "create"] }
 	},
 	"required": ["access_token"]

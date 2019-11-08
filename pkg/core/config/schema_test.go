@@ -42,19 +42,17 @@ func TestValidateUserConfiguration(t *testing.T) {
 			"/auth/authentication_session: Required",
 			"/hook/secret: Required",
 		)
-		// Empty auth.login_id_keys and auth.allowed_realms
+		// Empty auth.login_id_keys
 		test(`
 			{
 				"master_key": "master_key",
 				"asset": {},
 				"auth": {
-					"login_id_keys": [],
-					"allowed_realms": []
+					"login_id_keys": []
 				},
 				"hook": {}
 			}`,
 			"/asset/secret: Required",
-			"/auth/allowed_realms: EntryAmount map[gte:1]",
 			"/auth/authentication_session: Required",
 			"/auth/login_id_keys: EntryAmount map[gte:1]",
 			"/hook/secret: Required",
@@ -81,8 +79,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 							"key": "invalid",
 							"type": "invalid"
 						}
-					],
-					"allowed_realms": ["default"]
+					]
 				},
 				"hook": {}
 			}`,
@@ -115,8 +112,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 							"key": "username",
 							"type": "raw"
 						}
-					],
-					"allowed_realms": ["default"]
+					]
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -152,8 +148,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 							"key": "username",
 							"type": "raw"
 						}
-					],
-					"allowed_realms": ["default"]
+					]
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -188,8 +183,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 							"key": "username",
 							"type": "raw"
 						}
-					],
-					"allowed_realms": ["default"]
+					]
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -222,8 +216,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 							"key": "username",
 							"type": "raw"
 						}
-					],
-					"allowed_realms": ["default"]
+					]
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -284,8 +277,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 							"key": "username",
 							"type": "raw"
 						}
-					],
-					"allowed_realms": ["default"]
+					]
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -328,8 +320,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 							"key": "username",
 							"type": "raw"
 						}
-					],
-					"allowed_realms": ["default"]
+					]
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -364,8 +355,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 							"key": "username",
 							"type": "raw"
 						}
-					],
-					"allowed_realms": ["default"]
+					]
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -404,8 +394,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 							"key": "username",
 							"type": "raw"
 						}
-					],
-					"allowed_realms": ["default"]
+					]
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -456,8 +445,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 							"key": "username",
 							"type": "raw"
 						}
-					],
-					"allowed_realms": ["default"]
+					]
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -499,8 +487,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 							"key": "username",
 							"type": "raw"
 						}
-					],
-					"allowed_realms": ["default"]
+					]
 				},
 				"hook": {
 					"secret": "hooksecret"

@@ -74,8 +74,7 @@ const inputMinimalJSON = `
 					"key": "username",
 					"type": "raw"
 				}
-			],
-			"allowed_realms": ["default"]
+			]
 		},
 		"hook": {
 			"secret": "hooksecret"

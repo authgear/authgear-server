@@ -111,7 +111,6 @@ func TestRevokeHandler(t *testing.T) {
 						Attributes: principal.Attributes{
 							"login_id_key": "email",
 							"login_id":     "user@example.com",
-							"realm":        "default",
 						},
 						Claims: principal.Claims{
 							"email": "user@example.com",

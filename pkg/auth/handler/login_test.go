@@ -152,7 +152,7 @@ func TestLoginHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 		})
 
-		Convey("login user with login_id and realm", func() {
+		SkipConvey("login user with login_id and realm", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_id": "john.doe+1@example.com",
@@ -166,7 +166,7 @@ func TestLoginHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 		})
 
-		Convey("login user with incorrect realm", func() {
+		SkipConvey("login user with incorrect realm", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_id": "john.doe+1@example.com",
@@ -267,7 +267,7 @@ func TestLoginHandler(t *testing.T) {
 			}`)
 		})
 
-		Convey("login with disallowed realm", func() {
+		SkipConvey("login with disallowed realm", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_id": "john.doe+1@example.com",
@@ -440,7 +440,6 @@ func TestLoginHandler(t *testing.T) {
 						"type": "password",
 						"login_id_key": "email",
 						"login_id": "john.doe@example.com",
-						"realm": "default",
 						"claims": {
 							"email": "john.doe@example.com"
 						}
@@ -465,7 +464,6 @@ func TestLoginHandler(t *testing.T) {
 						Attributes: principal.Attributes{
 							"login_id_key": "email",
 							"login_id":     "john.doe@example.com",
-							"realm":        "default",
 						},
 						Claims: principal.Claims{
 							"email": "john.doe@example.com",

@@ -55,7 +55,7 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 
 type SignupRequestPayload struct {
 	LoginIDs        []password.LoginID     `json:"login_ids"`
-	Realm           string                 `json:"realm"`
+	Realm           string                 `json:"-"`
 	Password        string                 `json:"password"`
 	Metadata        map[string]interface{} `json:"metadata"`
 	OnUserDuplicate model.OnUserDuplicate  `json:"on_user_duplicate"`
@@ -83,7 +83,6 @@ const SignupRequestSchema = `
 			},
 			"minItems": 1
 		},
-		"realm": { "type": "string", "minLength": 1 },
 		"password": { "type": "string", "minLength": 1 },
 		"metadata": { "type": "object" },
 		"on_user_duplicate": {

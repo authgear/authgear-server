@@ -56,7 +56,7 @@ func (f CustomTokenLoginHandlerFactory) NewHandler(request *http.Request) http.H
 
 type CustomTokenLoginPayload struct {
 	TokenString     string                           `json:"token"`
-	MergeRealm      string                           `json:"merge_realm"`
+	MergeRealm      string                           `json:"-"`
 	OnUserDuplicate model.OnUserDuplicate            `json:"on_user_duplicate"`
 	Claims          customtoken.SSOCustomTokenClaims `json:"-"`
 
@@ -105,7 +105,6 @@ const CustomTokenLoginRequestSchema = `
 	"type": "object",
 	"properties": {
 		"token": { "type": "string", "minLength": 1 },
-		"merge_realm": { "type": "string", "minLength": 1 },
 		"on_user_duplicate": {"type": "string", "enum": ["abort", "merge", "create"] }
 	},
 	"required": ["token"]

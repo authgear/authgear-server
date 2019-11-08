@@ -92,11 +92,6 @@ const (
 				"type": "array",
 				"minItems": 1,
 				"items": { "$ref": "#LoginIDKeyConfiguration" }
-			},
-			"allowed_realms": {
-				"type": "array",
-				"minItems": 1,
-				"items": { "$ref": "#NonEmptyString" }
 			}
 		},
 		"required": ["authentication_session"]

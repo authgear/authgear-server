@@ -292,7 +292,6 @@ func TestSignupHandler(t *testing.T) {
 						"type": "password",
 						"login_id_key": "email",
 						"login_id": "john.doe@example.com",
-						"realm": "default",
 						"claims": {
 							"email": "john.doe@example.com"
 						}
@@ -319,7 +318,6 @@ func TestSignupHandler(t *testing.T) {
 							Attributes: principal.Attributes{
 								"login_id_key": "email",
 								"login_id":     "john.doe@example.com",
-								"realm":        "default",
 							},
 							Claims: principal.Claims{
 								"email": "john.doe@example.com",
@@ -331,7 +329,6 @@ func TestSignupHandler(t *testing.T) {
 							Attributes: principal.Attributes{
 								"login_id_key": "username",
 								"login_id":     "john.doe",
-								"realm":        "default",
 							},
 							Claims: principal.Claims{},
 						},
@@ -353,7 +350,6 @@ func TestSignupHandler(t *testing.T) {
 						Attributes: principal.Attributes{
 							"login_id_key": "email",
 							"login_id":     "john.doe@example.com",
-							"realm":        "default",
 						},
 						Claims: principal.Claims{
 							"email": "john.doe@example.com",
@@ -369,7 +365,7 @@ func TestSignupHandler(t *testing.T) {
 			})
 		})
 
-		Convey("signup user with login_id with realm", func() {
+		SkipConvey("signup user with login_id with realm", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
@@ -404,7 +400,6 @@ func TestSignupHandler(t *testing.T) {
 						"type": "password",
 						"login_id_key": "email",
 						"login_id": "john.doe@example.com",
-						"realm": "admin",
 						"claims": {
 							"email": "john.doe@example.com"
 						}
@@ -431,7 +426,6 @@ func TestSignupHandler(t *testing.T) {
 							Attributes: principal.Attributes{
 								"login_id_key": "email",
 								"login_id":     "john.doe@example.com",
-								"realm":        "admin",
 							},
 							Claims: principal.Claims{
 								"email": "john.doe@example.com",
@@ -455,7 +449,6 @@ func TestSignupHandler(t *testing.T) {
 						Attributes: principal.Attributes{
 							"login_id_key": "email",
 							"login_id":     "john.doe@example.com",
-							"realm":        "admin",
 						},
 						Claims: principal.Claims{
 							"email": "john.doe@example.com",
@@ -758,38 +751,6 @@ func TestSignupHandler(t *testing.T) {
 					"reason": "LoginIDAlreadyUsed",
 					"message": "login ID is used by another user",
 					"code": 409
-				}
-			}
-			`)
-
-			req, _ = http.NewRequest("POST", "", strings.NewReader(`
-			{
-				"login_ids": [
-					{ "key": "username", "value": "john.doe" }
-				],
-				"realm": "test",
-				"password": "1234567"
-			}`))
-			req.Header.Set("Content-Type", "application/json")
-			resp = httptest.NewRecorder()
-			sh.ServeHTTP(resp, req)
-			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `
-			{
-				"error": {
-					"name": "Invalid",
-					"reason": "ValidationFailed",
-					"message": "invalid request body",
-					"code": 400,
-					"info": {
-						"causes": [
-							{
-								"kind": "General",
-								"pointer": "/realm",
-								"message": "realm is not a valid realm"
-							}
-						]
-					}
 				}
 			}
 			`)

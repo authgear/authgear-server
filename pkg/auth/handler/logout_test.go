@@ -75,7 +75,6 @@ func TestLogoutHandler(t *testing.T) {
 						Attributes: principal.Attributes{
 							"login_id_key": "email",
 							"login_id":     "faseng@example.com",
-							"realm":        "default",
 						},
 						Claims: principal.Claims{
 							"email": "faseng@example.com",
