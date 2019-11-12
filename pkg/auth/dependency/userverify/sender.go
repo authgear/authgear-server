@@ -124,6 +124,7 @@ func prepareVerifyRequestContext(
 		"login_id_key": verifyCode.LoginIDKey,
 		"login_id":     verifyCode.LoginID,
 		"user":         user,
+		"user_id":      user.ID,
 		"code":         verifyCode.Code,
 		"link":         verifyLink.String(),
 	}

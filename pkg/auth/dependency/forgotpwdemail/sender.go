@@ -69,9 +69,10 @@ func (d *DefaultSender) Send(
 		"link":       link.String(),
 		"email":      email,
 		"user":       user,
+		"user_id":    authInfo.ID,
 		"url_prefix": d.URLPrefix.String(),
 		"code":       code,
-		"expire_at":  expireAt,
+		"expire_at":  strconv.FormatInt(expireAt.UTC().Unix(), 10),
 	}
 
 	var textBody string
