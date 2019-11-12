@@ -498,5 +498,40 @@ func TestValidateUserConfiguration(t *testing.T) {
 			}`,
 			"/smtp/mode: Enum map[expected:[normal ssl]]",
 		)
+		// Nexmo config
+		test(`
+			{
+				"master_key": "master_key",
+				"asset": {
+					"secret": "assetsecret"
+				},
+				"auth": {
+					"authentication_session": {
+						"secret": "authnsessionsecret"
+					},
+					"login_id_keys": [
+						{
+							"key": "email",
+							"type": "email"
+						},
+						{
+							"key": "phone",
+							"type": "phone"
+						},
+						{
+							"key": "username",
+							"type": "raw"
+						}
+					]
+				},
+				"hook": {
+					"secret": "hooksecret"
+				},
+				"nexmo": {
+					"api_secret": 1
+				}
+			}`,
+			"/nexmo/api_secret: Type map[expected:string]",
+		)
 	})
 }
