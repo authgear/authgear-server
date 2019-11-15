@@ -324,6 +324,63 @@ func (c *TenantConfiguration) doValidate() error {
 
 // nolint: gocyclo
 func (c *TenantConfiguration) AfterUnmarshal() {
+
+	if c.UserConfig.CORS == nil {
+		c.UserConfig.CORS = &CORSConfiguration{}
+	}
+
+	if c.UserConfig.Auth == nil {
+		c.UserConfig.Auth = &AuthConfiguration{}
+	}
+
+	if c.UserConfig.MFA == nil {
+		c.UserConfig.MFA = &MFAConfiguration{}
+	}
+
+	if c.UserConfig.UserAudit == nil {
+		c.UserConfig.UserAudit = &UserAuditConfiguration{}
+	}
+
+	if c.UserConfig.PasswordPolicy == nil {
+		c.UserConfig.PasswordPolicy = &PasswordPolicyConfiguration{}
+	}
+
+	if c.UserConfig.ForgotPassword == nil {
+		c.UserConfig.ForgotPassword = &ForgotPasswordConfiguration{}
+	}
+
+	if c.UserConfig.WelcomeEmail == nil {
+		c.UserConfig.WelcomeEmail = &WelcomeEmailConfiguration{}
+	}
+
+	if c.UserConfig.SSO == nil {
+		c.UserConfig.SSO = &SSOConfiguration{}
+	}
+
+	if c.UserConfig.UserVerification == nil {
+		c.UserConfig.UserVerification = &UserVerificationConfiguration{}
+	}
+
+	if c.UserConfig.Hook == nil {
+		c.UserConfig.Hook = &HookUserConfiguration{}
+	}
+
+	if c.UserConfig.SMTP == nil {
+		c.UserConfig.SMTP = &SMTPConfiguration{}
+	}
+
+	if c.UserConfig.Twilio == nil {
+		c.UserConfig.Twilio = &TwilioConfiguration{}
+	}
+
+	if c.UserConfig.Nexmo == nil {
+		c.UserConfig.Nexmo = &NexmoConfiguration{}
+	}
+
+	if c.UserConfig.Asset == nil {
+		c.UserConfig.Asset = &AssetConfiguration{}
+	}
+
 	// Propagate AppName
 	if c.UserConfig.ForgotPassword.AppName == "" {
 		c.UserConfig.ForgotPassword.AppName = c.AppName
@@ -522,22 +579,22 @@ func WriteTenantConfig(r *http.Request, config *TenantConfiguration) {
 
 // UserConfiguration represents user-editable configuration
 type UserConfiguration struct {
-	Clients          []APIClientConfiguration      `json:"clients" yaml:"clients" msg:"clients"`
-	MasterKey        string                        `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
-	CORS             CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors"`
-	Auth             AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth"`
-	MFA              MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa"`
-	UserAudit        UserAuditConfiguration        `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit"`
-	PasswordPolicy   PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy"`
-	ForgotPassword   ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password"`
-	WelcomeEmail     WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email"`
-	SSO              SSOConfiguration              `json:"sso,omitempty" yaml:"sso" msg:"sso"`
-	UserVerification UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification"`
-	Hook             HookUserConfiguration         `json:"hook,omitempty" yaml:"hook" msg:"hook"`
-	SMTP             SMTPConfiguration             `json:"smtp,omitempty" yaml:"smtp" msg:"smtp"`
-	Twilio           TwilioConfiguration           `json:"twilio,omitempty" yaml:"twilio" msg:"twilio"`
-	Nexmo            NexmoConfiguration            `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo"`
-	Asset            AssetConfiguration            `json:"asset,omitempty" yaml:"asset" msg:"asset"`
+	Clients          []APIClientConfiguration       `json:"clients,omitempty" yaml:"clients" msg:"clients"`
+	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
+	CORS             *CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors"`
+	Auth             *AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth"`
+	MFA              *MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa"`
+	UserAudit        *UserAuditConfiguration        `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit"`
+	PasswordPolicy   *PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy"`
+	ForgotPassword   *ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password"`
+	WelcomeEmail     *WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email"`
+	SSO              *SSOConfiguration              `json:"sso,omitempty" yaml:"sso" msg:"sso"`
+	UserVerification *UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification"`
+	Hook             *HookUserConfiguration         `json:"hook,omitempty" yaml:"hook" msg:"hook"`
+	SMTP             *SMTPConfiguration             `json:"smtp,omitempty" yaml:"smtp" msg:"smtp"`
+	Twilio           *TwilioConfiguration           `json:"twilio,omitempty" yaml:"twilio" msg:"twilio"`
+	Nexmo            *NexmoConfiguration            `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo"`
+	Asset            *AssetConfiguration            `json:"asset,omitempty" yaml:"asset" msg:"asset"`
 }
 
 type AssetConfiguration struct {

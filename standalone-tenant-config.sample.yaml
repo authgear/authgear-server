@@ -26,6 +26,7 @@ user_config:
   user_verification:
     login_id_keys:
     - key: email
+    - key: phone
   auth:
     authentication_session:
       secret: authnsessionsecret

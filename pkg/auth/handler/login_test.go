@@ -121,7 +121,7 @@ func TestLoginHandler(t *testing.T) {
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		h.HookProvider = hookProvider
 		mfaStore := mfa.NewMockStore(timeProvider)
-		mfaConfiguration := config.MFAConfiguration{
+		mfaConfiguration := &config.MFAConfiguration{
 			Enabled:     false,
 			Enforcement: config.MFAEnforcementOptional,
 		}
@@ -395,7 +395,7 @@ func TestLoginHandler(t *testing.T) {
 		userProfileStore := userprofile.NewMockUserProfileStoreByData(profileData)
 		lh.TxContext = db.NewMockTxContext()
 		mfaStore := mfa.NewMockStore(timeProvider)
-		mfaConfiguration := config.MFAConfiguration{
+		mfaConfiguration := &config.MFAConfiguration{
 			Enabled:     false,
 			Enforcement: config.MFAEnforcementOptional,
 		}

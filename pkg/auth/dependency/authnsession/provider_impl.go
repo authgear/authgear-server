@@ -56,7 +56,7 @@ func parseAuthnSessionToken(secret string, tokenString string) (*Claims, error) 
 
 type providerImpl struct {
 	authContextGetter                  auth.ContextGetter
-	mfaConfiguration                   config.MFAConfiguration
+	mfaConfiguration                   *config.MFAConfiguration
 	authenticationSessionConfiguration config.AuthenticationSessionConfiguration
 	timeProvider                       time.Provider
 	mfaProvider                        mfa.Provider
@@ -70,7 +70,7 @@ type providerImpl struct {
 
 func NewProvider(
 	authContextGetter auth.ContextGetter,
-	mfaConfiguration config.MFAConfiguration,
+	mfaConfiguration *config.MFAConfiguration,
 	authenticationSessionConfiguration config.AuthenticationSessionConfiguration,
 	timeProvider time.Provider,
 	mfaProvider mfa.Provider,

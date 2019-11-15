@@ -13,9 +13,9 @@ type NexmoClient struct {
 	NexmoClient *nexmo.Client
 }
 
-func NewNexmoClient(c config.NexmoConfiguration) *NexmoClient {
+func NewNexmoClient(c *config.NexmoConfiguration) *NexmoClient {
 	var nexmoClient *nexmo.Client
-	if c.IsValid() {
+	if c != nil && c.IsValid() {
 		nexmoClient, _ = nexmo.NewClient(c.APIKey, c.APISecret)
 	}
 	return &NexmoClient{

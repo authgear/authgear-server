@@ -13,7 +13,7 @@ import (
 )
 
 func NewMockProvider(
-	mfaConfiguration config.MFAConfiguration,
+	mfaConfiguration *config.MFAConfiguration,
 	timeProvider time.Provider,
 	mfaProvider mfa.Provider,
 	authInfoStore authinfo.Store,

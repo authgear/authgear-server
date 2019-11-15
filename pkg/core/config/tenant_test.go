@@ -9,6 +9,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/yaml.v2"
 
+	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -49,10 +50,10 @@ const inputMinimalJSON = `
 	"app_name": "myapp",
 	"app_config": {
 		"database_url": "postgres://",
-		"database_schema": "app"
+		"database_schema": "app",
+		"hook":{}
 	},
 	"user_config": {
-		"clients": [],
 		"master_key": "masterkey",
 		"asset": {
 			"secret": "assetsecret"
@@ -122,13 +123,13 @@ func makeFullTenantConfig() TenantConfiguration {
 				},
 			},
 			MasterKey: "mymasterkey",
-			CORS: CORSConfiguration{
+			CORS: &CORSConfiguration{
 				Origin: "localhost:3000",
 			},
-			Asset: AssetConfiguration{
+			Asset: &AssetConfiguration{
 				Secret: "assetsecret",
 			},
-			Auth: AuthConfiguration{
+			Auth: &AuthConfiguration{
 				AuthenticationSession: AuthenticationSessionConfiguration{
 					Secret: "authnsessionsecret",
 				},
@@ -155,7 +156,7 @@ func makeFullTenantConfig() TenantConfiguration {
 				AllowedRealms:              []string{"default"},
 				OnUserDuplicateAllowCreate: true,
 			},
-			MFA: MFAConfiguration{
+			MFA: &MFAConfiguration{
 				Enabled:     true,
 				Enforcement: MFAEnforcementOptional,
 				Maximum:     newInt(3),
@@ -178,11 +179,11 @@ func makeFullTenantConfig() TenantConfiguration {
 					ListEnabled: true,
 				},
 			},
-			UserAudit: UserAuditConfiguration{
+			UserAudit: &UserAuditConfiguration{
 				Enabled:         true,
 				TrailHandlerURL: "http://localhost:3000/useraudit",
 			},
-			PasswordPolicy: PasswordPolicyConfiguration{
+			PasswordPolicy: &PasswordPolicyConfiguration{
 				MinLength:             8,
 				UppercaseRequired:     true,
 				LowercaseRequired:     true,
@@ -194,7 +195,7 @@ func makeFullTenantConfig() TenantConfiguration {
 				HistoryDays:           90,
 				ExpiryDays:            30,
 			},
-			ForgotPassword: ForgotPasswordConfiguration{
+			ForgotPassword: &ForgotPasswordConfiguration{
 				AppName:          "myapp",
 				SecureMatch:      true,
 				Sender:           "myforgotpasswordsender",
@@ -204,14 +205,14 @@ func makeFullTenantConfig() TenantConfiguration {
 				SuccessRedirect:  "http://localhost:3000/forgotpassword/success",
 				ErrorRedirect:    "http://localhost:3000/forgotpassword/error",
 			},
-			WelcomeEmail: WelcomeEmailConfiguration{
+			WelcomeEmail: &WelcomeEmailConfiguration{
 				Enabled:     true,
 				Sender:      "welcomeemailsender",
 				Subject:     "welcomeemailsubject",
 				ReplyTo:     "welcomeemailreplyto",
 				Destination: "first",
 			},
-			SSO: SSOConfiguration{
+			SSO: &SSOConfiguration{
 				CustomToken: CustomTokenConfiguration{
 					Enabled:                    true,
 					Issuer:                     "customtokenissuer",
@@ -247,7 +248,7 @@ func makeFullTenantConfig() TenantConfiguration {
 					},
 				},
 			},
-			UserVerification: UserVerificationConfiguration{
+			UserVerification: &UserVerificationConfiguration{
 				AutoSendOnSignup: true,
 				Criteria:         "any",
 				ErrorRedirect:    "http://localhost:3000/userverification/error",
@@ -264,22 +265,22 @@ func makeFullTenantConfig() TenantConfiguration {
 					},
 				},
 			},
-			Hook: HookUserConfiguration{
+			Hook: &HookUserConfiguration{
 				Secret: "hook-secret",
 			},
-			SMTP: SMTPConfiguration{
+			SMTP: &SMTPConfiguration{
 				Host:     "localhost",
 				Port:     465,
 				Mode:     "ssl",
 				Login:    "user",
 				Password: "password",
 			},
-			Twilio: TwilioConfiguration{
+			Twilio: &TwilioConfiguration{
 				AccountSID: "mytwilioaccountsid",
 				AuthToken:  "mytwilioauthtoken",
 				From:       "mytwilio",
 			},
-			Nexmo: NexmoConfiguration{
+			Nexmo: &NexmoConfiguration{
 				APIKey:    "mynexmoapikey",
 				APISecret: "mynexmoapisecret",
 				From:      "mynexmo",
@@ -513,6 +514,11 @@ user_config:
 				Message: "duplicated OAuth provider",
 				Pointer: "/user_config/sso/oauth/providers/1",
 			}})
+		})
+		Convey("should omit empty", func() {
+			config, _ := NewTenantConfigurationFromJSON(strings.NewReader(inputMinimalJSON), true)
+			bodyBytes, _ := json.Marshal(config)
+			So(string(bodyBytes), ShouldEqualJSON, inputMinimalJSON)
 		})
 	})
 }

@@ -30,7 +30,7 @@ type delivererImpl struct {
 func NewDeliverer(config *config.TenantConfiguration, timeProvider time.Provider, mutator Mutator) Deliverer {
 	return &delivererImpl{
 		Hooks:        &config.Hooks,
-		UserConfig:   &config.UserConfig.Hook,
+		UserConfig:   config.UserConfig.Hook,
 		AppConfig:    &config.AppConfig.Hook,
 		TimeProvider: timeProvider,
 		Mutator:      mutator,

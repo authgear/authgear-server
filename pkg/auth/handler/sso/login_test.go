@@ -92,7 +92,7 @@ func TestLoginHandler(t *testing.T) {
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 		mfaStore := mfa.NewMockStore(timeProvider)
-		mfaConfiguration := coreconfig.MFAConfiguration{
+		mfaConfiguration := &coreconfig.MFAConfiguration{
 			Enabled:     false,
 			Enforcement: coreconfig.MFAEnforcementOptional,
 		}

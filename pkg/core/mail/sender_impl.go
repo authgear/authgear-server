@@ -14,9 +14,9 @@ type senderImpl struct {
 	GomailDialer *gomail.Dialer
 }
 
-func NewSender(c config.SMTPConfiguration) Sender {
+func NewSender(c *config.SMTPConfiguration) Sender {
 	var dialer *gomail.Dialer
-	if c.IsValid() {
+	if c != nil && c.IsValid() {
 		dialer = gomail.NewPlainDialer(c.Host, c.Port, c.Login, c.Password)
 	}
 	switch c.Mode {

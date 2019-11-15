@@ -180,7 +180,7 @@ func (m DependencyMap) Provide(
 				&tConfig,
 				newTimeProvider(),
 				hook.NewMutator(
-					&tConfig.UserConfig.UserVerification,
+					tConfig.UserConfig.UserVerification,
 					newPasswordAuthProvider(),
 					newAuthInfoStore(),
 					newUserProfileStore(),

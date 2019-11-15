@@ -228,7 +228,7 @@ func MaskAuthenticators(authenticators []Authenticator) []Authenticator {
 	return output
 }
 
-func CanAddAuthenticator(authenticators []Authenticator, newA Authenticator, mfaConfiguration config.MFAConfiguration) bool {
+func CanAddAuthenticator(authenticators []Authenticator, newA Authenticator, mfaConfiguration *config.MFAConfiguration) bool {
 	// Always return false if MFA is off.
 	if !mfaConfiguration.Enabled {
 		return false

@@ -39,7 +39,7 @@ func TestUnlinkHandler(t *testing.T) {
 			MarkVerified()
 		sh.ProviderFactory = sso.NewProviderFactory(config.TenantConfiguration{
 			UserConfig: config.UserConfiguration{
-				SSO: config.SSOConfiguration{
+				SSO: &config.SSOConfiguration{
 					OAuth: config.OAuthConfiguration{
 						Providers: []config.OAuthProviderConfiguration{
 							config.OAuthProviderConfiguration{

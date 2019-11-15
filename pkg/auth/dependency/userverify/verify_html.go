@@ -43,7 +43,7 @@ func newVerifyHTMLConfig(c config.UserVerificationKeyConfiguration) verifyHTMLCo
 	}
 }
 
-func NewVerifyHTMLProvider(c config.UserVerificationConfiguration, templateEngine *template.Engine) *VerifyHTMLProvider {
+func NewVerifyHTMLProvider(c *config.UserVerificationConfiguration, templateEngine *template.Engine) *VerifyHTMLProvider {
 	configMap := map[string]verifyHTMLConfig{}
 	for _, config := range c.LoginIDKeys {
 		configMap[config.Key] = newVerifyHTMLConfig(config)
