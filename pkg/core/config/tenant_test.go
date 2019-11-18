@@ -130,7 +130,7 @@ func makeFullTenantConfig() TenantConfiguration {
 				Secret: "assetsecret",
 			},
 			Auth: &AuthConfiguration{
-				AuthenticationSession: AuthenticationSessionConfiguration{
+				AuthenticationSession: &AuthenticationSessionConfiguration{
 					Secret: "authnsessionsecret",
 				},
 				LoginIDKeys: []LoginIDKeyConfiguration{

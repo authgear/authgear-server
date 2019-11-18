@@ -25,7 +25,7 @@ func NewMockProvider(
 ) Provider {
 	authContext := authTesting.NewMockContext()
 	authenticationSessionConfiguration :=
-		config.AuthenticationSessionConfiguration{
+		&config.AuthenticationSessionConfiguration{
 			Secret: "authnsessionsecret",
 		}
 	return NewProvider(

@@ -700,31 +700,43 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 		}
 		switch msgp.UnsafeString(field) {
 		case "authentication_session":
-			var zb0002 uint32
-			zb0002, err = dc.ReadMapHeader()
-			if err != nil {
-				err = msgp.WrapError(err, "AuthenticationSession")
-				return
-			}
-			for zb0002 > 0 {
-				zb0002--
-				field, err = dc.ReadMapKeyPtr()
+			if dc.IsNil() {
+				err = dc.ReadNil()
 				if err != nil {
 					err = msgp.WrapError(err, "AuthenticationSession")
 					return
 				}
-				switch msgp.UnsafeString(field) {
-				case "secret":
-					z.AuthenticationSession.Secret, err = dc.ReadString()
-					if err != nil {
-						err = msgp.WrapError(err, "AuthenticationSession", "Secret")
-						return
-					}
-				default:
-					err = dc.Skip()
+				z.AuthenticationSession = nil
+			} else {
+				if z.AuthenticationSession == nil {
+					z.AuthenticationSession = new(AuthenticationSessionConfiguration)
+				}
+				var zb0002 uint32
+				zb0002, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "AuthenticationSession")
+					return
+				}
+				for zb0002 > 0 {
+					zb0002--
+					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "AuthenticationSession")
 						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "secret":
+						z.AuthenticationSession.Secret, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "AuthenticationSession", "Secret")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "AuthenticationSession")
+							return
+						}
 					}
 				}
 			}
@@ -787,16 +799,27 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 func (z *AuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 4
 	// write "authentication_session"
-	// map header, size 1
-	// write "secret"
-	err = en.Append(0x84, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+	err = en.Append(0x84, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.AuthenticationSession.Secret)
-	if err != nil {
-		err = msgp.WrapError(err, "AuthenticationSession", "Secret")
-		return
+	if z.AuthenticationSession == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		// map header, size 1
+		// write "secret"
+		err = en.Append(0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.AuthenticationSession.Secret)
+		if err != nil {
+			err = msgp.WrapError(err, "AuthenticationSession", "Secret")
+			return
+		}
 	}
 	// write "login_id_keys"
 	err = en.Append(0xad, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x73)
@@ -850,10 +873,15 @@ func (z *AuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 4
 	// string "authentication_session"
-	// map header, size 1
-	// string "secret"
-	o = append(o, 0x84, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
-	o = msgp.AppendString(o, z.AuthenticationSession.Secret)
+	o = append(o, 0x84, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
+	if z.AuthenticationSession == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		// map header, size 1
+		// string "secret"
+		o = append(o, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+		o = msgp.AppendString(o, z.AuthenticationSession.Secret)
+	}
 	// string "login_id_keys"
 	o = append(o, 0xad, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x73)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.LoginIDKeys)))
@@ -895,31 +923,42 @@ func (z *AuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		}
 		switch msgp.UnsafeString(field) {
 		case "authentication_session":
-			var zb0002 uint32
-			zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "AuthenticationSession")
-				return
-			}
-			for zb0002 > 0 {
-				zb0002--
-				field, bts, err = msgp.ReadMapKeyZC(bts)
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.AuthenticationSession = nil
+			} else {
+				if z.AuthenticationSession == nil {
+					z.AuthenticationSession = new(AuthenticationSessionConfiguration)
+				}
+				var zb0002 uint32
+				zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "AuthenticationSession")
 					return
 				}
-				switch msgp.UnsafeString(field) {
-				case "secret":
-					z.AuthenticationSession.Secret, bts, err = msgp.ReadStringBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "AuthenticationSession", "Secret")
-						return
-					}
-				default:
-					bts, err = msgp.Skip(bts)
+				for zb0002 > 0 {
+					zb0002--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "AuthenticationSession")
 						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "secret":
+						z.AuthenticationSession.Secret, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "AuthenticationSession", "Secret")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "AuthenticationSession")
+							return
+						}
 					}
 				}
 			}
@@ -981,7 +1020,13 @@ func (z *AuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *AuthConfiguration) Msgsize() (s int) {
-	s = 1 + 23 + 1 + 7 + msgp.StringPrefixSize + len(z.AuthenticationSession.Secret) + 14 + msgp.ArrayHeaderSize
+	s = 1 + 23
+	if z.AuthenticationSession == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 7 + msgp.StringPrefixSize + len(z.AuthenticationSession.Secret)
+	}
+	s += 14 + msgp.ArrayHeaderSize
 	for za0001 := range z.LoginIDKeys {
 		s += z.LoginIDKeys[za0001].Msgsize()
 	}
