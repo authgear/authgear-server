@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 
@@ -112,6 +113,24 @@ func NewTenantConfigurationFromStdBase64Msgpack(s string) (*TenantConfiguration,
 		return nil, err
 	}
 	return &config, nil
+}
+
+func updateNilFieldsWithZeroValue(i interface{}) {
+	t := reflect.TypeOf(i).Elem()
+	v := reflect.ValueOf(i).Elem()
+
+	numField := t.NumField()
+	for i := 0; i < numField; i++ {
+		field := v.Field(i)
+		ft := t.Field(i)
+		if field.Kind() == reflect.Ptr {
+			ele := field.Elem()
+			if !ele.IsValid() {
+				ele = reflect.New(ft.Type.Elem())
+				field.Set(ele)
+			}
+		}
+	}
 }
 
 func (c *TenantConfiguration) Value() (driver.Value, error) {
@@ -325,61 +344,7 @@ func (c *TenantConfiguration) doValidate() error {
 // nolint: gocyclo
 func (c *TenantConfiguration) AfterUnmarshal() {
 
-	if c.UserConfig.CORS == nil {
-		c.UserConfig.CORS = &CORSConfiguration{}
-	}
-
-	if c.UserConfig.Auth == nil {
-		c.UserConfig.Auth = &AuthConfiguration{}
-	}
-
-	if c.UserConfig.MFA == nil {
-		c.UserConfig.MFA = &MFAConfiguration{}
-	}
-
-	if c.UserConfig.UserAudit == nil {
-		c.UserConfig.UserAudit = &UserAuditConfiguration{}
-	}
-
-	if c.UserConfig.PasswordPolicy == nil {
-		c.UserConfig.PasswordPolicy = &PasswordPolicyConfiguration{}
-	}
-
-	if c.UserConfig.ForgotPassword == nil {
-		c.UserConfig.ForgotPassword = &ForgotPasswordConfiguration{}
-	}
-
-	if c.UserConfig.WelcomeEmail == nil {
-		c.UserConfig.WelcomeEmail = &WelcomeEmailConfiguration{}
-	}
-
-	if c.UserConfig.SSO == nil {
-		c.UserConfig.SSO = &SSOConfiguration{}
-	}
-
-	if c.UserConfig.UserVerification == nil {
-		c.UserConfig.UserVerification = &UserVerificationConfiguration{}
-	}
-
-	if c.UserConfig.Hook == nil {
-		c.UserConfig.Hook = &HookUserConfiguration{}
-	}
-
-	if c.UserConfig.SMTP == nil {
-		c.UserConfig.SMTP = &SMTPConfiguration{}
-	}
-
-	if c.UserConfig.Twilio == nil {
-		c.UserConfig.Twilio = &TwilioConfiguration{}
-	}
-
-	if c.UserConfig.Nexmo == nil {
-		c.UserConfig.Nexmo = &NexmoConfiguration{}
-	}
-
-	if c.UserConfig.Asset == nil {
-		c.UserConfig.Asset = &AssetConfiguration{}
-	}
+	updateNilFieldsWithZeroValue(&c.UserConfig)
 
 	// Propagate AppName
 	if c.UserConfig.ForgotPassword.AppName == "" {
