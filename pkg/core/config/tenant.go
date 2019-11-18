@@ -760,8 +760,8 @@ type WelcomeEmailConfiguration struct {
 }
 
 type SSOConfiguration struct {
-	CustomToken CustomTokenConfiguration `json:"custom_token,omitempty" yaml:"custom_token" msg:"custom_token"`
-	OAuth       OAuthConfiguration       `json:"oauth,omitempty" yaml:"oauth" msg:"oauth"`
+	CustomToken *CustomTokenConfiguration `json:"custom_token,omitempty" yaml:"custom_token" msg:"custom_token" default_zero_value:"true"`
+	OAuth       *OAuthConfiguration       `json:"oauth,omitempty" yaml:"oauth" msg:"oauth" default_zero_value:"true"`
 }
 
 type CustomTokenConfiguration struct {

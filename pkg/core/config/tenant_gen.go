@@ -5643,16 +5643,40 @@ func (z *SSOConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 		}
 		switch msgp.UnsafeString(field) {
 		case "custom_token":
-			err = z.CustomToken.DecodeMsg(dc)
-			if err != nil {
-				err = msgp.WrapError(err, "CustomToken")
-				return
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "CustomToken")
+					return
+				}
+				z.CustomToken = nil
+			} else {
+				if z.CustomToken == nil {
+					z.CustomToken = new(CustomTokenConfiguration)
+				}
+				err = z.CustomToken.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "CustomToken")
+					return
+				}
 			}
 		case "oauth":
-			err = z.OAuth.DecodeMsg(dc)
-			if err != nil {
-				err = msgp.WrapError(err, "OAuth")
-				return
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "OAuth")
+					return
+				}
+				z.OAuth = nil
+			} else {
+				if z.OAuth == nil {
+					z.OAuth = new(OAuthConfiguration)
+				}
+				err = z.OAuth.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "OAuth")
+					return
+				}
 			}
 		default:
 			err = dc.Skip()
@@ -5673,20 +5697,34 @@ func (z *SSOConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	err = z.CustomToken.EncodeMsg(en)
-	if err != nil {
-		err = msgp.WrapError(err, "CustomToken")
-		return
+	if z.CustomToken == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.CustomToken.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "CustomToken")
+			return
+		}
 	}
 	// write "oauth"
 	err = en.Append(0xa5, 0x6f, 0x61, 0x75, 0x74, 0x68)
 	if err != nil {
 		return
 	}
-	err = z.OAuth.EncodeMsg(en)
-	if err != nil {
-		err = msgp.WrapError(err, "OAuth")
-		return
+	if z.OAuth == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.OAuth.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "OAuth")
+			return
+		}
 	}
 	return
 }
@@ -5697,17 +5735,25 @@ func (z *SSOConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// map header, size 2
 	// string "custom_token"
 	o = append(o, 0x82, 0xac, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
-	o, err = z.CustomToken.MarshalMsg(o)
-	if err != nil {
-		err = msgp.WrapError(err, "CustomToken")
-		return
+	if z.CustomToken == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.CustomToken.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "CustomToken")
+			return
+		}
 	}
 	// string "oauth"
 	o = append(o, 0xa5, 0x6f, 0x61, 0x75, 0x74, 0x68)
-	o, err = z.OAuth.MarshalMsg(o)
-	if err != nil {
-		err = msgp.WrapError(err, "OAuth")
-		return
+	if z.OAuth == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.OAuth.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "OAuth")
+			return
+		}
 	}
 	return
 }
@@ -5731,16 +5777,38 @@ func (z *SSOConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		}
 		switch msgp.UnsafeString(field) {
 		case "custom_token":
-			bts, err = z.CustomToken.UnmarshalMsg(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "CustomToken")
-				return
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.CustomToken = nil
+			} else {
+				if z.CustomToken == nil {
+					z.CustomToken = new(CustomTokenConfiguration)
+				}
+				bts, err = z.CustomToken.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "CustomToken")
+					return
+				}
 			}
 		case "oauth":
-			bts, err = z.OAuth.UnmarshalMsg(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "OAuth")
-				return
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.OAuth = nil
+			} else {
+				if z.OAuth == nil {
+					z.OAuth = new(OAuthConfiguration)
+				}
+				bts, err = z.OAuth.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "OAuth")
+					return
+				}
 			}
 		default:
 			bts, err = msgp.Skip(bts)
@@ -5756,7 +5824,18 @@ func (z *SSOConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *SSOConfiguration) Msgsize() (s int) {
-	s = 1 + 13 + z.CustomToken.Msgsize() + 6 + z.OAuth.Msgsize()
+	s = 1 + 13
+	if z.CustomToken == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.CustomToken.Msgsize()
+	}
+	s += 6
+	if z.OAuth == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.OAuth.Msgsize()
+	}
 	return
 }
 
@@ -7134,39 +7213,10 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.SSO == nil {
 					z.SSO = new(SSOConfiguration)
 				}
-				var zb0005 uint32
-				zb0005, err = dc.ReadMapHeader()
+				err = z.SSO.DecodeMsg(dc)
 				if err != nil {
 					err = msgp.WrapError(err, "SSO")
 					return
-				}
-				for zb0005 > 0 {
-					zb0005--
-					field, err = dc.ReadMapKeyPtr()
-					if err != nil {
-						err = msgp.WrapError(err, "SSO")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "custom_token":
-						err = z.SSO.CustomToken.DecodeMsg(dc)
-						if err != nil {
-							err = msgp.WrapError(err, "SSO", "CustomToken")
-							return
-						}
-					case "oauth":
-						err = z.SSO.OAuth.DecodeMsg(dc)
-						if err != nil {
-							err = msgp.WrapError(err, "SSO", "OAuth")
-							return
-						}
-					default:
-						err = dc.Skip()
-						if err != nil {
-							err = msgp.WrapError(err, "SSO")
-							return
-						}
-					}
 				}
 			}
 		case "user_verification":
@@ -7199,14 +7249,14 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Hook == nil {
 					z.Hook = new(HookUserConfiguration)
 				}
-				var zb0006 uint32
-				zb0006, err = dc.ReadMapHeader()
+				var zb0005 uint32
+				zb0005, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Hook")
 					return
 				}
-				for zb0006 > 0 {
-					zb0006--
+				for zb0005 > 0 {
+					zb0005--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Hook")
@@ -7258,14 +7308,14 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Twilio == nil {
 					z.Twilio = new(TwilioConfiguration)
 				}
-				var zb0007 uint32
-				zb0007, err = dc.ReadMapHeader()
+				var zb0006 uint32
+				zb0006, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Twilio")
 					return
 				}
-				for zb0007 > 0 {
-					zb0007--
+				for zb0006 > 0 {
+					zb0006--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Twilio")
@@ -7311,14 +7361,14 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Nexmo == nil {
 					z.Nexmo = new(NexmoConfiguration)
 				}
-				var zb0008 uint32
-				zb0008, err = dc.ReadMapHeader()
+				var zb0007 uint32
+				zb0007, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Nexmo")
 					return
 				}
-				for zb0008 > 0 {
-					zb0008--
+				for zb0007 > 0 {
+					zb0007--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Nexmo")
@@ -7364,14 +7414,14 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Asset == nil {
 					z.Asset = new(AssetConfiguration)
 				}
-				var zb0009 uint32
-				zb0009, err = dc.ReadMapHeader()
+				var zb0008 uint32
+				zb0008, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Asset")
 					return
 				}
-				for zb0009 > 0 {
-					zb0009--
+				for zb0008 > 0 {
+					zb0008--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Asset")
@@ -7586,25 +7636,9 @@ func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	} else {
-		// map header, size 2
-		// write "custom_token"
-		err = en.Append(0x82, 0xac, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
+		err = z.SSO.EncodeMsg(en)
 		if err != nil {
-			return
-		}
-		err = z.SSO.CustomToken.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "SSO", "CustomToken")
-			return
-		}
-		// write "oauth"
-		err = en.Append(0xa5, 0x6f, 0x61, 0x75, 0x74, 0x68)
-		if err != nil {
-			return
-		}
-		err = z.SSO.OAuth.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "SSO", "OAuth")
+			err = msgp.WrapError(err, "SSO")
 			return
 		}
 	}
@@ -7877,19 +7911,9 @@ func (z *UserConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	if z.SSO == nil {
 		o = msgp.AppendNil(o)
 	} else {
-		// map header, size 2
-		// string "custom_token"
-		o = append(o, 0x82, 0xac, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
-		o, err = z.SSO.CustomToken.MarshalMsg(o)
+		o, err = z.SSO.MarshalMsg(o)
 		if err != nil {
-			err = msgp.WrapError(err, "SSO", "CustomToken")
-			return
-		}
-		// string "oauth"
-		o = append(o, 0xa5, 0x6f, 0x61, 0x75, 0x74, 0x68)
-		o, err = z.SSO.OAuth.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "SSO", "OAuth")
+			err = msgp.WrapError(err, "SSO")
 			return
 		}
 	}
@@ -8195,39 +8219,10 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.SSO == nil {
 					z.SSO = new(SSOConfiguration)
 				}
-				var zb0005 uint32
-				zb0005, bts, err = msgp.ReadMapHeaderBytes(bts)
+				bts, err = z.SSO.UnmarshalMsg(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "SSO")
 					return
-				}
-				for zb0005 > 0 {
-					zb0005--
-					field, bts, err = msgp.ReadMapKeyZC(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "SSO")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "custom_token":
-						bts, err = z.SSO.CustomToken.UnmarshalMsg(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "SSO", "CustomToken")
-							return
-						}
-					case "oauth":
-						bts, err = z.SSO.OAuth.UnmarshalMsg(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "SSO", "OAuth")
-							return
-						}
-					default:
-						bts, err = msgp.Skip(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "SSO")
-							return
-						}
-					}
 				}
 			}
 		case "user_verification":
@@ -8258,14 +8253,14 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Hook == nil {
 					z.Hook = new(HookUserConfiguration)
 				}
-				var zb0006 uint32
-				zb0006, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0005 uint32
+				zb0005, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Hook")
 					return
 				}
-				for zb0006 > 0 {
-					zb0006--
+				for zb0005 > 0 {
+					zb0005--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Hook")
@@ -8315,14 +8310,14 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Twilio == nil {
 					z.Twilio = new(TwilioConfiguration)
 				}
-				var zb0007 uint32
-				zb0007, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0006 uint32
+				zb0006, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Twilio")
 					return
 				}
-				for zb0007 > 0 {
-					zb0007--
+				for zb0006 > 0 {
+					zb0006--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Twilio")
@@ -8367,14 +8362,14 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Nexmo == nil {
 					z.Nexmo = new(NexmoConfiguration)
 				}
-				var zb0008 uint32
-				zb0008, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0007 uint32
+				zb0007, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Nexmo")
 					return
 				}
-				for zb0008 > 0 {
-					zb0008--
+				for zb0007 > 0 {
+					zb0007--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Nexmo")
@@ -8419,14 +8414,14 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Asset == nil {
 					z.Asset = new(AssetConfiguration)
 				}
-				var zb0009 uint32
-				zb0009, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0008 uint32
+				zb0008, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Asset")
 					return
 				}
-				for zb0009 > 0 {
-					zb0009--
+				for zb0008 > 0 {
+					zb0008--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Asset")
@@ -8512,7 +8507,7 @@ func (z *UserConfiguration) Msgsize() (s int) {
 	if z.SSO == nil {
 		s += msgp.NilSize
 	} else {
-		s += 1 + 13 + z.SSO.CustomToken.Msgsize() + 6 + z.SSO.OAuth.Msgsize()
+		s += z.SSO.Msgsize()
 	}
 	s += 18
 	if z.UserVerification == nil {

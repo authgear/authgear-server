@@ -96,7 +96,7 @@ func TestAuthHandler(t *testing.T) {
 			MarkVerified()
 		sh.AuthContext = authContext
 		sh.AuthContextSetter = authContext
-		oauthConfig := coreconfig.OAuthConfiguration{
+		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
@@ -362,7 +362,7 @@ func TestAuthHandler(t *testing.T) {
 			MarkVerified()
 		sh.AuthContext = authContext
 		sh.AuthContextSetter = authContext
-		oauthConfig := coreconfig.OAuthConfiguration{
+		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
@@ -582,7 +582,7 @@ func TestAuthHandler(t *testing.T) {
 			MarkVerified()
 		sh.AuthContext = authContext
 		sh.AuthContextSetter = authContext
-		oauthConfig := coreconfig.OAuthConfiguration{
+		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
 				"http://localhost",

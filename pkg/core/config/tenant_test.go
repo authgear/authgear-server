@@ -213,7 +213,7 @@ func makeFullTenantConfig() TenantConfiguration {
 				Destination: "first",
 			},
 			SSO: &SSOConfiguration{
-				CustomToken: CustomTokenConfiguration{
+				CustomToken: &CustomTokenConfiguration{
 					Enabled:                    true,
 					Issuer:                     "customtokenissuer",
 					Audience:                   "customtokenaudience",
@@ -221,7 +221,7 @@ func makeFullTenantConfig() TenantConfiguration {
 					OnUserDuplicateAllowMerge:  true,
 					OnUserDuplicateAllowCreate: true,
 				},
-				OAuth: OAuthConfiguration{
+				OAuth: &OAuthConfiguration{
 					StateJWTSecret: "oauthstatejwtsecret",
 					AllowedCallbackURLs: []string{
 						"http://localhost:3000/oauth/callback",

@@ -92,7 +92,7 @@ type LinkHandler struct {
 	UserProfileStore   userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider       hook.Provider              `dependency:"HookProvider"`
 	ProviderFactory    *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
-	OAuthConfiguration config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
+	OAuthConfiguration *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
 	Provider           sso.OAuthProvider
 	ProviderID         string
 }

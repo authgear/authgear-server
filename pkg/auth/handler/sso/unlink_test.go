@@ -40,7 +40,7 @@ func TestUnlinkHandler(t *testing.T) {
 		sh.ProviderFactory = sso.NewProviderFactory(config.TenantConfiguration{
 			UserConfig: config.UserConfiguration{
 				SSO: &config.SSOConfiguration{
-					OAuth: config.OAuthConfiguration{
+					OAuth: &config.OAuthConfiguration{
 						Providers: []config.OAuthProviderConfiguration{
 							config.OAuthProviderConfiguration{
 								Type: "google",

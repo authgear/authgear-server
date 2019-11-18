@@ -35,7 +35,7 @@ func TestAuthURLHandler(t *testing.T) {
 		h.AuthContext = authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
-		oauthConfig := coreconfig.OAuthConfiguration{
+		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: "secret",
 			AllowedCallbackURLs: []string{
 				"http://example.com/sso",

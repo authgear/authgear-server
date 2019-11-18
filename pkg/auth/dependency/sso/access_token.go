@@ -92,7 +92,7 @@ func fetchAccessTokenResp(
 	code string,
 	accessTokenURL string,
 	urlPrefix *url.URL,
-	oauthConfig config.OAuthConfiguration,
+	oauthConfig *config.OAuthConfiguration,
 	providerConfig config.OAuthProviderConfiguration,
 ) (r AccessTokenResp, err error) {
 	v := url.Values{}

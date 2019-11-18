@@ -51,7 +51,7 @@ func TestLoginHandler(t *testing.T) {
 			LoginRequestSchema,
 		)
 		sh.Validator = validator
-		oauthConfig := coreconfig.OAuthConfiguration{
+		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret:                 stateJWTSecret,
 			ExternalAccessTokenFlowEnabled: true,
 			AllowedCallbackURLs: []string{

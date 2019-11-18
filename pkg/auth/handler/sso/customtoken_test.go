@@ -56,7 +56,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			[]string{password.DefaultRealm},
 		)
 		lh.PasswordAuthProvider = mockPasswordProvider
-		lh.CustomTokenConfiguration = config.CustomTokenConfiguration{
+		lh.CustomTokenConfiguration = &config.CustomTokenConfiguration{
 			Enabled:  true,
 			Issuer:   issuer,
 			Audience: audience,
@@ -413,7 +413,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			},
 		)
 		lh.PasswordAuthProvider = passwordAuthProvider
-		lh.CustomTokenConfiguration = config.CustomTokenConfiguration{
+		lh.CustomTokenConfiguration = &config.CustomTokenConfiguration{
 			Enabled:                    true,
 			Issuer:                     issuer,
 			Audience:                   audience,

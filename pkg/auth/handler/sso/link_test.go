@@ -50,7 +50,7 @@ func TestLinkHandler(t *testing.T) {
 		sh.AuthContext = authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
-		oauthConfig := coreconfig.OAuthConfiguration{
+		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret:                 stateJWTSecret,
 			ExternalAccessTokenFlowEnabled: true,
 			AllowedCallbackURLs: []string{

@@ -11,7 +11,7 @@ import (
 
 type getAuthInfoRequest struct {
 	urlPrefix      *url.URL
-	oauthConfig    config.OAuthConfiguration
+	oauthConfig    *config.OAuthConfiguration
 	providerConfig config.OAuthProviderConfiguration
 	accessTokenURL string
 	userProfileURL string
