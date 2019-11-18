@@ -351,6 +351,9 @@ func (c *TenantConfiguration) doValidate() error {
 }
 
 // nolint: gocyclo
+// AfterUnmarshal should not be called before persisting the tenant config
+// This function updates the tenant config with default value which provide
+// features default behavior
 func (c *TenantConfiguration) AfterUnmarshal() {
 
 	updateNilFieldsWithZeroValue(&c.UserConfig)
