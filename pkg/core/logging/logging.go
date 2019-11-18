@@ -15,49 +15,19 @@
 package logging
 
 import (
-	"sync"
-
 	"github.com/sirupsen/logrus"
 )
 
 var (
-	loggers                sync.Map
-	configureLoggerHandler func(string, *logrus.Logger)
-	gearModule             string
+	gearModule string
 )
-
-func SetConfigureLoggerHandler(handler func(string, *logrus.Logger)) {
-	configureLoggerHandler = handler
-}
 
 func SetModule(module string) {
 	gearModule = module
 }
 
-func getLogger(name string) *logrus.Logger {
-	l, ok := loggers.Load(name)
-	var logger *logrus.Logger
-	if !ok {
-		logger = logrus.New()
-
-		if logger == nil {
-			panic("logrus.New() returns nil")
-		}
-
-		handler := configureLoggerHandler
-		if handler != nil {
-			handler(name, logger)
-		}
-
-		l, _ = loggers.LoadOrStore(name, logger)
-	}
-	logger = l.(*logrus.Logger)
-
-	return logger
-}
-
 func LoggerEntry(name string) *logrus.Entry {
-	logger := getLogger(name)
+	logger := logrus.New()
 	fields := logrus.Fields{}
 	if name != "" {
 		fields["logger"] = name
