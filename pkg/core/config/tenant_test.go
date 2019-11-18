@@ -521,4 +521,20 @@ user_config:
 			So(string(bodyBytes), ShouldEqualJSON, inputMinimalJSON)
 		})
 	})
+
+	Convey("Test updateNilFieldsWithZeroValue", t, func() {
+		type ChildStruct struct {
+		}
+
+		type TestStruct struct {
+			ChildNode1 *ChildStruct `default_zero_value:"true"`
+			ChildNode2 *ChildStruct
+		}
+
+		s := &TestStruct{}
+		updateNilFieldsWithZeroValue(s)
+
+		So(s.ChildNode1, ShouldNotBeNil)
+		So(s.ChildNode2, ShouldBeNil)
+	})
 }

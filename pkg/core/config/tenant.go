@@ -119,8 +119,16 @@ func updateNilFieldsWithZeroValue(i interface{}) {
 	t := reflect.TypeOf(i).Elem()
 	v := reflect.ValueOf(i).Elem()
 
+	if t.Kind() != reflect.Struct {
+		return
+	}
 	numField := t.NumField()
 	for i := 0; i < numField; i++ {
+		zerovalueTag := t.Field(i).Tag.Get("default_zero_value")
+		if zerovalueTag != "true" {
+			continue
+		}
+
 		field := v.Field(i)
 		ft := t.Field(i)
 		if field.Kind() == reflect.Ptr {
@@ -129,6 +137,7 @@ func updateNilFieldsWithZeroValue(i interface{}) {
 				ele = reflect.New(ft.Type.Elem())
 				field.Set(ele)
 			}
+			updateNilFieldsWithZeroValue(field.Interface())
 		}
 	}
 }
@@ -546,20 +555,20 @@ func WriteTenantConfig(r *http.Request, config *TenantConfiguration) {
 type UserConfiguration struct {
 	Clients          []APIClientConfiguration       `json:"clients,omitempty" yaml:"clients" msg:"clients"`
 	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
-	CORS             *CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors"`
-	Auth             *AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth"`
-	MFA              *MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa"`
-	UserAudit        *UserAuditConfiguration        `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit"`
-	PasswordPolicy   *PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy"`
-	ForgotPassword   *ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password"`
-	WelcomeEmail     *WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email"`
-	SSO              *SSOConfiguration              `json:"sso,omitempty" yaml:"sso" msg:"sso"`
-	UserVerification *UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification"`
-	Hook             *HookUserConfiguration         `json:"hook,omitempty" yaml:"hook" msg:"hook"`
-	SMTP             *SMTPConfiguration             `json:"smtp,omitempty" yaml:"smtp" msg:"smtp"`
-	Twilio           *TwilioConfiguration           `json:"twilio,omitempty" yaml:"twilio" msg:"twilio"`
-	Nexmo            *NexmoConfiguration            `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo"`
-	Asset            *AssetConfiguration            `json:"asset,omitempty" yaml:"asset" msg:"asset"`
+	CORS             *CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors" default_zero_value:"true"`
+	Auth             *AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth" default_zero_value:"true"`
+	MFA              *MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa" default_zero_value:"true"`
+	UserAudit        *UserAuditConfiguration        `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit" default_zero_value:"true"`
+	PasswordPolicy   *PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy" default_zero_value:"true"`
+	ForgotPassword   *ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password" default_zero_value:"true"`
+	WelcomeEmail     *WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email" default_zero_value:"true"`
+	SSO              *SSOConfiguration              `json:"sso,omitempty" yaml:"sso" msg:"sso" default_zero_value:"true"`
+	UserVerification *UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification" default_zero_value:"true"`
+	Hook             *HookUserConfiguration         `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
+	SMTP             *SMTPConfiguration             `json:"smtp,omitempty" yaml:"smtp" msg:"smtp" default_zero_value:"true"`
+	Twilio           *TwilioConfiguration           `json:"twilio,omitempty" yaml:"twilio" msg:"twilio" default_zero_value:"true"`
+	Nexmo            *NexmoConfiguration            `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo" default_zero_value:"true"`
+	Asset            *AssetConfiguration            `json:"asset,omitempty" yaml:"asset" msg:"asset" default_zero_value:"true"`
 }
 
 type AssetConfiguration struct {
