@@ -673,13 +673,13 @@ const (
 )
 
 type MFAConfiguration struct {
-	Enabled      bool                         `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
-	Enforcement  MFAEnforcement               `json:"enforcement,omitempty" yaml:"enforcement" msg:"enforcement"`
-	Maximum      *int                         `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
-	TOTP         MFATOTPConfiguration         `json:"totp,omitempty" yaml:"totp" msg:"totp"`
-	OOB          MFAOOBConfiguration          `json:"oob,omitempty" yaml:"oob" msg:"oob"`
-	BearerToken  MFABearerTokenConfiguration  `json:"bearer_token,omitempty" yaml:"bearer_token" msg:"bearer_token"`
-	RecoveryCode MFARecoveryCodeConfiguration `json:"recovery_code,omitempty" yaml:"recovery_code" msg:"recovery_code"`
+	Enabled      bool                          `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
+	Enforcement  MFAEnforcement                `json:"enforcement,omitempty" yaml:"enforcement" msg:"enforcement"`
+	Maximum      *int                          `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+	TOTP         *MFATOTPConfiguration         `json:"totp,omitempty" yaml:"totp" msg:"totp" default_zero_value:"true"`
+	OOB          *MFAOOBConfiguration          `json:"oob,omitempty" yaml:"oob" msg:"oob" default_zero_value:"true"`
+	BearerToken  *MFABearerTokenConfiguration  `json:"bearer_token,omitempty" yaml:"bearer_token" msg:"bearer_token" default_zero_value:"true"`
+	RecoveryCode *MFARecoveryCodeConfiguration `json:"recovery_code,omitempty" yaml:"recovery_code" msg:"recovery_code" default_zero_value:"true"`
 }
 
 type MFATOTPConfiguration struct {
@@ -687,8 +687,8 @@ type MFATOTPConfiguration struct {
 }
 
 type MFAOOBConfiguration struct {
-	SMS   MFAOOBSMSConfiguration   `json:"sms,omitempty" yaml:"sms" msg:"sms"`
-	Email MFAOOBEmailConfiguration `json:"email,omitempty" yaml:"email" msg:"email"`
+	SMS   *MFAOOBSMSConfiguration   `json:"sms,omitempty" yaml:"sms" msg:"sms" default_zero_value:"true"`
+	Email *MFAOOBEmailConfiguration `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
 }
 
 type MFAOOBSMSConfiguration struct {

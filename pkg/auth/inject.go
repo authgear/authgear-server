@@ -375,7 +375,7 @@ func (m DependencyMap) Provide(
 	case "AuthConfiguration":
 		return *tConfig.UserConfig.Auth
 	case "MFAConfiguration":
-		return tConfig.UserConfig.MFA
+		return *tConfig.UserConfig.MFA
 	case "APIClientConfigurationProvider":
 		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
 	case "URLPrefix":

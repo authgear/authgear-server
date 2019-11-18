@@ -160,21 +160,21 @@ func makeFullTenantConfig() TenantConfiguration {
 				Enabled:     true,
 				Enforcement: MFAEnforcementOptional,
 				Maximum:     newInt(3),
-				TOTP: MFATOTPConfiguration{
+				TOTP: &MFATOTPConfiguration{
 					Maximum: 1,
 				},
-				OOB: MFAOOBConfiguration{
-					SMS: MFAOOBSMSConfiguration{
+				OOB: &MFAOOBConfiguration{
+					SMS: &MFAOOBSMSConfiguration{
 						Maximum: 1,
 					},
-					Email: MFAOOBEmailConfiguration{
+					Email: &MFAOOBEmailConfiguration{
 						Maximum: 1,
 					},
 				},
-				BearerToken: MFABearerTokenConfiguration{
+				BearerToken: &MFABearerTokenConfiguration{
 					ExpireInDays: 60,
 				},
-				RecoveryCode: MFARecoveryCodeConfiguration{
+				RecoveryCode: &MFARecoveryCodeConfiguration{
 					Count:       24,
 					ListEnabled: true,
 				},
