@@ -115,6 +115,14 @@ func NewTenantConfigurationFromStdBase64Msgpack(s string) (*TenantConfiguration,
 	return &config, nil
 }
 
+// updateNilFieldsWithZeroValue checks the fields with tag
+// `default_zero_value:"true"` and updates the fields with zero value if they
+// are nil
+// This function will walk through the struct recursively, if the tagged fields
+// of struct have duplicated type in the same path. The function may cause
+// infinite loop.
+// Before calling this function, please make sure the struct get pass with
+// function `shouldNotHaveDuplicatedTypeInSamePath` in the test case.
 func updateNilFieldsWithZeroValue(i interface{}) {
 	t := reflect.TypeOf(i).Elem()
 	v := reflect.ValueOf(i).Elem()

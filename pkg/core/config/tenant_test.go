@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -328,6 +329,53 @@ func makeFullTenantConfig() TenantConfiguration {
 	return fullTenantConfig
 }
 
+func copySet(input map[string]interface{}) map[string]interface{} {
+	output := map[string]interface{}{}
+	for k := range input {
+		output[k] = input[k]
+	}
+
+	return output
+}
+
+func shouldNotHaveDuplicatedTypeInSamePath(i interface{}, pathSet map[string]interface{}) bool {
+	t := reflect.TypeOf(i).Elem()
+	v := reflect.ValueOf(i).Elem()
+
+	if t.Kind() != reflect.Struct {
+		return true
+	}
+	numField := t.NumField()
+	for i := 0; i < numField; i++ {
+		zerovalueTag := t.Field(i).Tag.Get("default_zero_value")
+		if zerovalueTag != "true" {
+			continue
+		}
+
+		field := v.Field(i)
+		ft := t.Field(i)
+		if field.Kind() == reflect.Ptr {
+			ele := field.Elem()
+			if !ele.IsValid() {
+				ele = reflect.New(ft.Type.Elem())
+				field.Set(ele)
+			}
+			typeName := ft.Type.String()
+			if _, ok := pathSet[typeName]; ok {
+				return false
+			}
+			newSet := copySet(pathSet)
+			newSet[ft.Type.String()] = struct{}{}
+			pass := shouldNotHaveDuplicatedTypeInSamePath(field.Interface(), newSet)
+			if !pass {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
 func TestTenantConfig(t *testing.T) {
 	Convey("Test TenantConfiguration", t, func() {
 		// YAML
@@ -523,7 +571,6 @@ user_config:
 	})
 
 	Convey("Test updateNilFieldsWithZeroValue", t, func() {
-
 		Convey("should update nil fields with tag", func() {
 			type ChildStruct struct {
 				Num1 *int
@@ -580,6 +627,47 @@ user_config:
 			So(userConfig.Asset, ShouldNotBeNil)
 
 			So(userConfig.Auth.AuthenticationSession, ShouldNotBeNil)
+		})
+
+	})
+
+	Convey("Test shouldNotHaveDuplicatedTypeInSamePath", t, func() {
+		Convey("should pass for normal struct", func() {
+			type SubConfigItem struct {
+				Num1 *int `default_zero_value:"true"`
+			}
+
+			type ConfigItem struct {
+				SubItem *SubConfigItem `default_zero_value:"true"`
+			}
+
+			type RootConfig struct {
+				Item *ConfigItem `default_zero_value:"true"`
+			}
+
+			pathSet := map[string]interface{}{}
+			pass := shouldNotHaveDuplicatedTypeInSamePath(&RootConfig{}, pathSet)
+			So(pass, ShouldBeTrue)
+		})
+
+		Convey("should fail for struct with self reference", func() {
+			type ConfigItem struct {
+				SubItem *ConfigItem `default_zero_value:"true"`
+			}
+
+			type RootConfig struct {
+				Item *ConfigItem `default_zero_value:"true"`
+			}
+
+			pathSet := map[string]interface{}{}
+			pass := shouldNotHaveDuplicatedTypeInSamePath(&RootConfig{}, pathSet)
+			So(pass, ShouldBeFalse)
+		})
+
+		Convey("should pass for user config", func() {
+			pathSet := map[string]interface{}{}
+			pass := shouldNotHaveDuplicatedTypeInSamePath(&UserConfiguration{}, pathSet)
+			So(pass, ShouldBeTrue)
 		})
 
 	})
