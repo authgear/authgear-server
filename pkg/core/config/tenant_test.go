@@ -523,18 +523,64 @@ user_config:
 	})
 
 	Convey("Test updateNilFieldsWithZeroValue", t, func() {
-		type ChildStruct struct {
-		}
 
-		type TestStruct struct {
-			ChildNode1 *ChildStruct `default_zero_value:"true"`
-			ChildNode2 *ChildStruct
-		}
+		Convey("should update nil fields with tag", func() {
+			type ChildStruct struct {
+				Num1 *int
+				Num2 *int `default_zero_value:"true"`
+			}
 
-		s := &TestStruct{}
-		updateNilFieldsWithZeroValue(s)
+			type TestStruct struct {
+				ChildNode1 *ChildStruct `default_zero_value:"true"`
+				ChildNode2 *ChildStruct
+			}
 
-		So(s.ChildNode1, ShouldNotBeNil)
-		So(s.ChildNode2, ShouldBeNil)
+			s := &TestStruct{}
+			updateNilFieldsWithZeroValue(s)
+
+			So(s.ChildNode1, ShouldNotBeNil)
+			So(s.ChildNode2, ShouldBeNil)
+
+			So(s.ChildNode1.Num1, ShouldBeNil)
+			So(s.ChildNode1.Num2, ShouldNotBeNil)
+		})
+
+		Convey("should update nil fields in user config", func() {
+			userConfig := &UserConfiguration{}
+			So(userConfig.CORS, ShouldBeNil)
+			So(userConfig.Auth, ShouldBeNil)
+			So(userConfig.MFA, ShouldBeNil)
+			So(userConfig.UserAudit, ShouldBeNil)
+			So(userConfig.PasswordPolicy, ShouldBeNil)
+			So(userConfig.ForgotPassword, ShouldBeNil)
+			So(userConfig.WelcomeEmail, ShouldBeNil)
+			So(userConfig.SSO, ShouldBeNil)
+			So(userConfig.UserVerification, ShouldBeNil)
+			So(userConfig.Hook, ShouldBeNil)
+			So(userConfig.SMTP, ShouldBeNil)
+			So(userConfig.Twilio, ShouldBeNil)
+			So(userConfig.Nexmo, ShouldBeNil)
+			So(userConfig.Asset, ShouldBeNil)
+
+			updateNilFieldsWithZeroValue(userConfig)
+
+			So(userConfig.CORS, ShouldNotBeNil)
+			So(userConfig.Auth, ShouldNotBeNil)
+			So(userConfig.MFA, ShouldNotBeNil)
+			So(userConfig.UserAudit, ShouldNotBeNil)
+			So(userConfig.PasswordPolicy, ShouldNotBeNil)
+			So(userConfig.ForgotPassword, ShouldNotBeNil)
+			So(userConfig.WelcomeEmail, ShouldNotBeNil)
+			So(userConfig.SSO, ShouldNotBeNil)
+			So(userConfig.UserVerification, ShouldNotBeNil)
+			So(userConfig.Hook, ShouldNotBeNil)
+			So(userConfig.SMTP, ShouldNotBeNil)
+			So(userConfig.Twilio, ShouldNotBeNil)
+			So(userConfig.Nexmo, ShouldNotBeNil)
+			So(userConfig.Asset, ShouldNotBeNil)
+
+			So(userConfig.Auth.AuthenticationSession, ShouldNotBeNil)
+		})
+
 	})
 }
