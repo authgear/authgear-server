@@ -96,7 +96,7 @@ func TestAuthHandler(t *testing.T) {
 			MarkVerified()
 		sh.AuthContext = authContext
 		sh.AuthContextSetter = authContext
-		oauthConfig := coreconfig.OAuthConfiguration{
+		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
@@ -150,7 +150,7 @@ func TestAuthHandler(t *testing.T) {
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 		mfaStore := mfa.NewMockStore(timeProvider)
-		mfaConfiguration := coreconfig.MFAConfiguration{
+		mfaConfiguration := &coreconfig.MFAConfiguration{
 			Enabled:     false,
 			Enforcement: coreconfig.MFAEnforcementOptional,
 		}
@@ -362,7 +362,7 @@ func TestAuthHandler(t *testing.T) {
 			MarkVerified()
 		sh.AuthContext = authContext
 		sh.AuthContextSetter = authContext
-		oauthConfig := coreconfig.OAuthConfiguration{
+		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
@@ -426,7 +426,7 @@ func TestAuthHandler(t *testing.T) {
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 		mfaStore := mfa.NewMockStore(timeProvider)
-		mfaConfiguration := coreconfig.MFAConfiguration{
+		mfaConfiguration := &coreconfig.MFAConfiguration{
 			Enabled:     false,
 			Enforcement: coreconfig.MFAEnforcementOptional,
 		}
@@ -582,7 +582,7 @@ func TestAuthHandler(t *testing.T) {
 			MarkVerified()
 		sh.AuthContext = authContext
 		sh.AuthContextSetter = authContext
-		oauthConfig := coreconfig.OAuthConfiguration{
+		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
@@ -659,7 +659,7 @@ func TestAuthHandler(t *testing.T) {
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 		mfaStore := mfa.NewMockStore(timeProvider)
-		mfaConfiguration := coreconfig.MFAConfiguration{
+		mfaConfiguration := &coreconfig.MFAConfiguration{
 			Enabled:     false,
 			Enforcement: coreconfig.MFAEnforcementOptional,
 		}

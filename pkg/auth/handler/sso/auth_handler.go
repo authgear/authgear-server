@@ -100,7 +100,7 @@ type AuthHandler struct {
 	ProviderFactory                *sso.ProviderFactory        `dependency:"SSOProviderFactory"`
 	UserProfileStore               userprofile.Store           `dependency:"UserProfileStore"`
 	HookProvider                   hook.Provider               `dependency:"HookProvider"`
-	OAuthConfiguration             config.OAuthConfiguration   `dependency:"OAuthConfiguration"`
+	OAuthConfiguration             *config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
 	WelcomeEmailEnabled            bool                        `dependency:"WelcomeEmailEnabled"`
 	TaskQueue                      async.Queue                 `dependency:"AsyncTaskQueue"`
 	URLPrefix                      *url.URL                    `dependency:"URLPrefix"`

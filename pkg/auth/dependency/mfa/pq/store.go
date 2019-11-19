@@ -16,14 +16,14 @@ import (
 )
 
 type storeImpl struct {
-	mfaConfig    config.MFAConfiguration
+	mfaConfig    *config.MFAConfiguration
 	sqlBuilder   db.SQLBuilder
 	sqlExecutor  db.SQLExecutor
 	timeProvider time.Provider
 }
 
 func NewStore(
-	mfaConfig config.MFAConfiguration,
+	mfaConfig *config.MFAConfiguration,
 	sqlBuilder db.SQLBuilder,
 	sqlExecutor db.SQLExecutor,
 	timeProvider time.Provider,

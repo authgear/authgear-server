@@ -15,7 +15,7 @@ const (
 
 type FacebookImpl struct {
 	URLPrefix      *url.URL
-	OAuthConfig    config.OAuthConfiguration
+	OAuthConfig    *config.OAuthConfiguration
 	ProviderConfig config.OAuthProviderConfiguration
 }
 

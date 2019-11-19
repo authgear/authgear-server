@@ -3,12 +3,14 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"reflect"
 	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/yaml.v2"
 
+	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -49,10 +51,10 @@ const inputMinimalJSON = `
 	"app_name": "myapp",
 	"app_config": {
 		"database_url": "postgres://",
-		"database_schema": "app"
+		"database_schema": "app",
+		"hook":{}
 	},
 	"user_config": {
-		"clients": [],
 		"master_key": "masterkey",
 		"asset": {
 			"secret": "assetsecret"
@@ -122,14 +124,14 @@ func makeFullTenantConfig() TenantConfiguration {
 				},
 			},
 			MasterKey: "mymasterkey",
-			CORS: CORSConfiguration{
+			CORS: &CORSConfiguration{
 				Origin: "localhost:3000",
 			},
-			Asset: AssetConfiguration{
+			Asset: &AssetConfiguration{
 				Secret: "assetsecret",
 			},
-			Auth: AuthConfiguration{
-				AuthenticationSession: AuthenticationSessionConfiguration{
+			Auth: &AuthConfiguration{
+				AuthenticationSession: &AuthenticationSessionConfiguration{
 					Secret: "authnsessionsecret",
 				},
 				LoginIDKeys: []LoginIDKeyConfiguration{
@@ -155,34 +157,34 @@ func makeFullTenantConfig() TenantConfiguration {
 				AllowedRealms:              []string{"default"},
 				OnUserDuplicateAllowCreate: true,
 			},
-			MFA: MFAConfiguration{
+			MFA: &MFAConfiguration{
 				Enabled:     true,
 				Enforcement: MFAEnforcementOptional,
 				Maximum:     newInt(3),
-				TOTP: MFATOTPConfiguration{
+				TOTP: &MFATOTPConfiguration{
 					Maximum: 1,
 				},
-				OOB: MFAOOBConfiguration{
-					SMS: MFAOOBSMSConfiguration{
+				OOB: &MFAOOBConfiguration{
+					SMS: &MFAOOBSMSConfiguration{
 						Maximum: 1,
 					},
-					Email: MFAOOBEmailConfiguration{
+					Email: &MFAOOBEmailConfiguration{
 						Maximum: 1,
 					},
 				},
-				BearerToken: MFABearerTokenConfiguration{
+				BearerToken: &MFABearerTokenConfiguration{
 					ExpireInDays: 60,
 				},
-				RecoveryCode: MFARecoveryCodeConfiguration{
+				RecoveryCode: &MFARecoveryCodeConfiguration{
 					Count:       24,
 					ListEnabled: true,
 				},
 			},
-			UserAudit: UserAuditConfiguration{
+			UserAudit: &UserAuditConfiguration{
 				Enabled:         true,
 				TrailHandlerURL: "http://localhost:3000/useraudit",
 			},
-			PasswordPolicy: PasswordPolicyConfiguration{
+			PasswordPolicy: &PasswordPolicyConfiguration{
 				MinLength:             8,
 				UppercaseRequired:     true,
 				LowercaseRequired:     true,
@@ -194,7 +196,7 @@ func makeFullTenantConfig() TenantConfiguration {
 				HistoryDays:           90,
 				ExpiryDays:            30,
 			},
-			ForgotPassword: ForgotPasswordConfiguration{
+			ForgotPassword: &ForgotPasswordConfiguration{
 				AppName:          "myapp",
 				SecureMatch:      true,
 				Sender:           "myforgotpasswordsender",
@@ -204,15 +206,15 @@ func makeFullTenantConfig() TenantConfiguration {
 				SuccessRedirect:  "http://localhost:3000/forgotpassword/success",
 				ErrorRedirect:    "http://localhost:3000/forgotpassword/error",
 			},
-			WelcomeEmail: WelcomeEmailConfiguration{
+			WelcomeEmail: &WelcomeEmailConfiguration{
 				Enabled:     true,
 				Sender:      "welcomeemailsender",
 				Subject:     "welcomeemailsubject",
 				ReplyTo:     "welcomeemailreplyto",
 				Destination: "first",
 			},
-			SSO: SSOConfiguration{
-				CustomToken: CustomTokenConfiguration{
+			SSO: &SSOConfiguration{
+				CustomToken: &CustomTokenConfiguration{
 					Enabled:                    true,
 					Issuer:                     "customtokenissuer",
 					Audience:                   "customtokenaudience",
@@ -220,7 +222,7 @@ func makeFullTenantConfig() TenantConfiguration {
 					OnUserDuplicateAllowMerge:  true,
 					OnUserDuplicateAllowCreate: true,
 				},
-				OAuth: OAuthConfiguration{
+				OAuth: &OAuthConfiguration{
 					StateJWTSecret: "oauthstatejwtsecret",
 					AllowedCallbackURLs: []string{
 						"http://localhost:3000/oauth/callback",
@@ -247,7 +249,7 @@ func makeFullTenantConfig() TenantConfiguration {
 					},
 				},
 			},
-			UserVerification: UserVerificationConfiguration{
+			UserVerification: &UserVerificationConfiguration{
 				AutoSendOnSignup: true,
 				Criteria:         "any",
 				ErrorRedirect:    "http://localhost:3000/userverification/error",
@@ -264,22 +266,22 @@ func makeFullTenantConfig() TenantConfiguration {
 					},
 				},
 			},
-			Hook: HookUserConfiguration{
+			Hook: &HookUserConfiguration{
 				Secret: "hook-secret",
 			},
-			SMTP: SMTPConfiguration{
+			SMTP: &SMTPConfiguration{
 				Host:     "localhost",
 				Port:     465,
 				Mode:     "ssl",
 				Login:    "user",
 				Password: "password",
 			},
-			Twilio: TwilioConfiguration{
+			Twilio: &TwilioConfiguration{
 				AccountSID: "mytwilioaccountsid",
 				AuthToken:  "mytwilioauthtoken",
 				From:       "mytwilio",
 			},
-			Nexmo: NexmoConfiguration{
+			Nexmo: &NexmoConfiguration{
 				APIKey:    "mynexmoapikey",
 				APISecret: "mynexmoapisecret",
 				From:      "mynexmo",
@@ -325,6 +327,53 @@ func makeFullTenantConfig() TenantConfiguration {
 	}
 
 	return fullTenantConfig
+}
+
+func copySet(input map[string]interface{}) map[string]interface{} {
+	output := map[string]interface{}{}
+	for k := range input {
+		output[k] = input[k]
+	}
+
+	return output
+}
+
+func shouldNotHaveDuplicatedTypeInSamePath(i interface{}, pathSet map[string]interface{}) bool {
+	t := reflect.TypeOf(i).Elem()
+	v := reflect.ValueOf(i).Elem()
+
+	if t.Kind() != reflect.Struct {
+		return true
+	}
+	numField := t.NumField()
+	for i := 0; i < numField; i++ {
+		zerovalueTag := t.Field(i).Tag.Get("default_zero_value")
+		if zerovalueTag != "true" {
+			continue
+		}
+
+		field := v.Field(i)
+		ft := t.Field(i)
+		if field.Kind() == reflect.Ptr {
+			ele := field.Elem()
+			if !ele.IsValid() {
+				ele = reflect.New(ft.Type.Elem())
+				field.Set(ele)
+			}
+			typeName := ft.Type.String()
+			if _, ok := pathSet[typeName]; ok {
+				return false
+			}
+			newSet := copySet(pathSet)
+			newSet[ft.Type.String()] = struct{}{}
+			pass := shouldNotHaveDuplicatedTypeInSamePath(field.Interface(), newSet)
+			if !pass {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 func TestTenantConfig(t *testing.T) {
@@ -514,5 +563,112 @@ user_config:
 				Pointer: "/user_config/sso/oauth/providers/1",
 			}})
 		})
+		Convey("should omit empty", func() {
+			config, _ := NewTenantConfigurationFromJSON(strings.NewReader(inputMinimalJSON), true)
+			bodyBytes, _ := json.Marshal(config)
+			So(string(bodyBytes), ShouldEqualJSON, inputMinimalJSON)
+		})
+	})
+
+	Convey("Test updateNilFieldsWithZeroValue", t, func() {
+		Convey("should update nil fields with tag", func() {
+			type ChildStruct struct {
+				Num1 *int
+				Num2 *int `default_zero_value:"true"`
+			}
+
+			type TestStruct struct {
+				ChildNode1 *ChildStruct `default_zero_value:"true"`
+				ChildNode2 *ChildStruct
+			}
+
+			s := &TestStruct{}
+			updateNilFieldsWithZeroValue(s)
+
+			So(s.ChildNode1, ShouldNotBeNil)
+			So(s.ChildNode2, ShouldBeNil)
+
+			So(s.ChildNode1.Num1, ShouldBeNil)
+			So(s.ChildNode1.Num2, ShouldNotBeNil)
+		})
+
+		Convey("should update nil fields in user config", func() {
+			userConfig := &UserConfiguration{}
+			So(userConfig.CORS, ShouldBeNil)
+			So(userConfig.Auth, ShouldBeNil)
+			So(userConfig.MFA, ShouldBeNil)
+			So(userConfig.UserAudit, ShouldBeNil)
+			So(userConfig.PasswordPolicy, ShouldBeNil)
+			So(userConfig.ForgotPassword, ShouldBeNil)
+			So(userConfig.WelcomeEmail, ShouldBeNil)
+			So(userConfig.SSO, ShouldBeNil)
+			So(userConfig.UserVerification, ShouldBeNil)
+			So(userConfig.Hook, ShouldBeNil)
+			So(userConfig.SMTP, ShouldBeNil)
+			So(userConfig.Twilio, ShouldBeNil)
+			So(userConfig.Nexmo, ShouldBeNil)
+			So(userConfig.Asset, ShouldBeNil)
+
+			updateNilFieldsWithZeroValue(userConfig)
+
+			So(userConfig.CORS, ShouldNotBeNil)
+			So(userConfig.Auth, ShouldNotBeNil)
+			So(userConfig.MFA, ShouldNotBeNil)
+			So(userConfig.UserAudit, ShouldNotBeNil)
+			So(userConfig.PasswordPolicy, ShouldNotBeNil)
+			So(userConfig.ForgotPassword, ShouldNotBeNil)
+			So(userConfig.WelcomeEmail, ShouldNotBeNil)
+			So(userConfig.SSO, ShouldNotBeNil)
+			So(userConfig.UserVerification, ShouldNotBeNil)
+			So(userConfig.Hook, ShouldNotBeNil)
+			So(userConfig.SMTP, ShouldNotBeNil)
+			So(userConfig.Twilio, ShouldNotBeNil)
+			So(userConfig.Nexmo, ShouldNotBeNil)
+			So(userConfig.Asset, ShouldNotBeNil)
+
+			So(userConfig.Auth.AuthenticationSession, ShouldNotBeNil)
+		})
+
+	})
+
+	Convey("Test shouldNotHaveDuplicatedTypeInSamePath", t, func() {
+		Convey("should pass for normal struct", func() {
+			type SubConfigItem struct {
+				Num1 *int `default_zero_value:"true"`
+			}
+
+			type ConfigItem struct {
+				SubItem *SubConfigItem `default_zero_value:"true"`
+			}
+
+			type RootConfig struct {
+				Item *ConfigItem `default_zero_value:"true"`
+			}
+
+			pathSet := map[string]interface{}{}
+			pass := shouldNotHaveDuplicatedTypeInSamePath(&RootConfig{}, pathSet)
+			So(pass, ShouldBeTrue)
+		})
+
+		Convey("should fail for struct with self reference", func() {
+			type ConfigItem struct {
+				SubItem *ConfigItem `default_zero_value:"true"`
+			}
+
+			type RootConfig struct {
+				Item *ConfigItem `default_zero_value:"true"`
+			}
+
+			pathSet := map[string]interface{}{}
+			pass := shouldNotHaveDuplicatedTypeInSamePath(&RootConfig{}, pathSet)
+			So(pass, ShouldBeFalse)
+		})
+
+		Convey("should pass for user config", func() {
+			pathSet := map[string]interface{}{}
+			pass := shouldNotHaveDuplicatedTypeInSamePath(&UserConfiguration{}, pathSet)
+			So(pass, ShouldBeTrue)
+		})
+
 	})
 }

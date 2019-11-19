@@ -13,7 +13,7 @@ import (
 )
 
 func NewMockProvider(
-	mfaConfiguration config.MFAConfiguration,
+	mfaConfiguration *config.MFAConfiguration,
 	timeProvider time.Provider,
 	mfaProvider mfa.Provider,
 	authInfoStore authinfo.Store,
@@ -25,7 +25,7 @@ func NewMockProvider(
 ) Provider {
 	authContext := authTesting.NewMockContext()
 	authenticationSessionConfiguration :=
-		config.AuthenticationSessionConfiguration{
+		&config.AuthenticationSessionConfiguration{
 			Secret: "authnsessionsecret",
 		}
 	return NewProvider(

@@ -105,7 +105,7 @@ func TestSignupHandler(t *testing.T) {
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 
 		mfaStore := mfa.NewMockStore(timeProvider)
-		mfaConfiguration := config.MFAConfiguration{
+		mfaConfiguration := &config.MFAConfiguration{
 			Enabled:     false,
 			Enforcement: config.MFAEnforcementOptional,
 		}
@@ -679,7 +679,7 @@ func TestSignupHandler(t *testing.T) {
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 
 		mfaStore := mfa.NewMockStore(timeProvider)
-		mfaConfiguration := config.MFAConfiguration{
+		mfaConfiguration := &config.MFAConfiguration{
 			Enabled:     false,
 			Enforcement: config.MFAEnforcementOptional,
 		}

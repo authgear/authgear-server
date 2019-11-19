@@ -14,12 +14,12 @@ import (
 
 type providerImpl struct {
 	store            Store
-	mfaConfiguration config.MFAConfiguration
+	mfaConfiguration *config.MFAConfiguration
 	timeProvider     time.Provider
 	sender           Sender
 }
 
-func NewProvider(store Store, mfaConfiguration config.MFAConfiguration, timeProvider time.Provider, sender Sender) Provider {
+func NewProvider(store Store, mfaConfiguration *config.MFAConfiguration, timeProvider time.Provider, sender Sender) Provider {
 	return &providerImpl{
 		store:            store,
 		mfaConfiguration: mfaConfiguration,

@@ -16,7 +16,7 @@ import (
 func TestMutator(t *testing.T) {
 	Convey("Hook Mutator", t, func() {
 		var err error
-		verifyConfig := config.UserVerificationConfiguration{
+		verifyConfig := &config.UserVerificationConfiguration{
 			Criteria: config.UserVerificationCriteriaAll,
 			LoginIDKeys: []config.UserVerificationKeyConfiguration{
 				config.UserVerificationKeyConfiguration{Key: "email"},
@@ -72,7 +72,7 @@ func TestMutator(t *testing.T) {
 
 		newBool := func(v bool) *bool { return &v }
 
-		mutator := NewMutator(&verifyConfig, passwordAuthProvider, authInfoStore, userProfileStore)
+		mutator := NewMutator(verifyConfig, passwordAuthProvider, authInfoStore, userProfileStore)
 
 		Convey("should do nothing", func() {
 			user := model.User{

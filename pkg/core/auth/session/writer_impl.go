@@ -13,14 +13,14 @@ import (
 type writerImpl struct {
 	authContext       auth.ContextGetter
 	clientConfigs     []config.APIClientConfiguration
-	mfaConfiguration  config.MFAConfiguration
+	mfaConfiguration  *config.MFAConfiguration
 	useInsecureCookie bool
 }
 
 func NewWriter(
 	authContext auth.ContextGetter,
 	clientConfigs []config.APIClientConfiguration,
-	mfaConfiguration config.MFAConfiguration,
+	mfaConfiguration *config.MFAConfiguration,
 	useInsecureCookie bool,
 ) Writer {
 	return &writerImpl{

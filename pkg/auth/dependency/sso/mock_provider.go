@@ -9,7 +9,7 @@ import (
 
 type MockSSOProvider struct {
 	BaseURL        string
-	OAuthConfig    config.OAuthConfiguration
+	OAuthConfig    *config.OAuthConfiguration
 	URLPrefix      *url.URL
 	ProviderConfig config.OAuthProviderConfiguration
 	UserInfo       ProviderUserInfo

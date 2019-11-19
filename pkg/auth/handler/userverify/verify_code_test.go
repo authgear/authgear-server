@@ -91,7 +91,7 @@ func TestVerifyCodeHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		vh.HookProvider = hookProvider
 
-		verifyConfig := config.UserVerificationConfiguration{
+		verifyConfig := &config.UserVerificationConfiguration{
 			Criteria: config.UserVerificationCriteriaAll,
 			LoginIDKeys: []config.UserVerificationKeyConfiguration{
 				config.UserVerificationKeyConfiguration{

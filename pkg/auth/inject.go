@@ -180,7 +180,7 @@ func (m DependencyMap) Provide(
 				&tConfig,
 				newTimeProvider(),
 				hook.NewMutator(
-					&tConfig.UserConfig.UserVerification,
+					tConfig.UserConfig.UserVerification,
 					newPasswordAuthProvider(),
 					newAuthInfoStore(),
 					newUserProfileStore(),
@@ -373,9 +373,9 @@ func (m DependencyMap) Provide(
 	case "OAuthConfiguration":
 		return tConfig.UserConfig.SSO.OAuth
 	case "AuthConfiguration":
-		return tConfig.UserConfig.Auth
+		return *tConfig.UserConfig.Auth
 	case "MFAConfiguration":
-		return tConfig.UserConfig.MFA
+		return *tConfig.UserConfig.MFA
 	case "APIClientConfigurationProvider":
 		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
 	case "URLPrefix":

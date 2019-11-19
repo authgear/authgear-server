@@ -129,8 +129,8 @@ type AuthURLRequestPayload struct {
 	MergeRealm      string                `json:"-"`
 	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 
-	PasswordAuthProvider password.Provider         `json:"-"`
-	OAuthConfiguration   config.OAuthConfiguration `json:"-"`
+	PasswordAuthProvider password.Provider          `json:"-"`
+	OAuthConfiguration   *config.OAuthConfiguration `json:"-"`
 }
 
 func (p *AuthURLRequestPayload) SetDefaultValue() {
@@ -251,14 +251,14 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		@Callback user_sync {UserSyncEvent}
 */
 type AuthURLHandler struct {
-	TxContext                      db.TxContext              `dependency:"TxContext"`
-	Validator                      *validation.Validator     `dependency:"Validator"`
-	AuthContext                    coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
-	RequireAuthz                   handler.RequireAuthz      `dependency:"RequireAuthz"`
-	APIClientConfigurationProvider apiclientconfig.Provider  `dependency:"APIClientConfigurationProvider"`
-	ProviderFactory                *sso.ProviderFactory      `dependency:"SSOProviderFactory"`
-	PasswordAuthProvider           password.Provider         `dependency:"PasswordAuthProvider"`
-	OAuthConfiguration             config.OAuthConfiguration `dependency:"OAuthConfiguration"`
+	TxContext                      db.TxContext               `dependency:"TxContext"`
+	Validator                      *validation.Validator      `dependency:"Validator"`
+	AuthContext                    coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz                   handler.RequireAuthz       `dependency:"RequireAuthz"`
+	APIClientConfigurationProvider apiclientconfig.Provider   `dependency:"APIClientConfigurationProvider"`
+	ProviderFactory                *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
+	PasswordAuthProvider           password.Provider          `dependency:"PasswordAuthProvider"`
+	OAuthConfiguration             *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
 	Provider                       sso.OAuthProvider
 	ProviderID                     string
 	Action                         string

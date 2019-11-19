@@ -10,7 +10,7 @@ import (
 )
 
 type authURLParams struct {
-	oauthConfig    config.OAuthConfiguration
+	oauthConfig    *config.OAuthConfiguration
 	urlPrefix      *url.URL
 	providerConfig config.OAuthProviderConfiguration
 	state          State

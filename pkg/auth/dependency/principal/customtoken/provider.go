@@ -18,13 +18,13 @@ import (
 type providerImpl struct {
 	sqlBuilder        db.SQLBuilder
 	sqlExecutor       db.SQLExecutor
-	customTokenConfig config.CustomTokenConfiguration
+	customTokenConfig *config.CustomTokenConfiguration
 }
 
 func newProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
-	customTokenConfig config.CustomTokenConfiguration,
+	customTokenConfig *config.CustomTokenConfiguration,
 ) *providerImpl {
 	return &providerImpl{
 		sqlBuilder:        builder,
@@ -36,7 +36,7 @@ func newProvider(
 func NewProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
-	customTokenConfig config.CustomTokenConfiguration,
+	customTokenConfig *config.CustomTokenConfiguration,
 ) Provider {
 	return newProvider(builder, executor, customTokenConfig)
 }

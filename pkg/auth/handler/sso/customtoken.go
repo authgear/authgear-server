@@ -60,8 +60,8 @@ type CustomTokenLoginPayload struct {
 	OnUserDuplicate model.OnUserDuplicate            `json:"on_user_duplicate"`
 	Claims          customtoken.SSOCustomTokenClaims `json:"-"`
 
-	PasswordAuthProvider     password.Provider               `json:"-"`
-	CustomTokenConfiguration config.CustomTokenConfiguration `json:"-"`
+	PasswordAuthProvider     password.Provider                `json:"-"`
+	CustomTokenConfiguration *config.CustomTokenConfiguration `json:"-"`
 }
 
 func (p *CustomTokenLoginPayload) SetDefaultValue() {
@@ -153,21 +153,21 @@ const CustomTokenLoginRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type CustomTokenLoginHandler struct {
-	TxContext                db.TxContext                    `dependency:"TxContext"`
-	Validator                *validation.Validator           `dependency:"Validator"`
-	RequireAuthz             handler.RequireAuthz            `dependency:"RequireAuthz"`
-	AuthnSessionProvider     authnsession.Provider           `dependency:"AuthnSessionProvider"`
-	UserProfileStore         userprofile.Store               `dependency:"UserProfileStore"`
-	AuthInfoStore            authinfo.Store                  `dependency:"AuthInfoStore"`
-	CustomTokenAuthProvider  customtoken.Provider            `dependency:"CustomTokenAuthProvider"`
-	IdentityProvider         principal.IdentityProvider      `dependency:"IdentityProvider"`
-	HookProvider             hook.Provider                   `dependency:"HookProvider"`
-	PasswordAuthProvider     password.Provider               `dependency:"PasswordAuthProvider"`
-	CustomTokenConfiguration config.CustomTokenConfiguration `dependency:"CustomTokenConfiguration"`
-	WelcomeEmailEnabled      bool                            `dependency:"WelcomeEmailEnabled"`
-	AuditTrail               audit.Trail                     `dependency:"AuditTrail"`
-	TaskQueue                async.Queue                     `dependency:"AsyncTaskQueue"`
-	URLPrefix                *url.URL                        `dependency:"URLPrefix"`
+	TxContext                db.TxContext                     `dependency:"TxContext"`
+	Validator                *validation.Validator            `dependency:"Validator"`
+	RequireAuthz             handler.RequireAuthz             `dependency:"RequireAuthz"`
+	AuthnSessionProvider     authnsession.Provider            `dependency:"AuthnSessionProvider"`
+	UserProfileStore         userprofile.Store                `dependency:"UserProfileStore"`
+	AuthInfoStore            authinfo.Store                   `dependency:"AuthInfoStore"`
+	CustomTokenAuthProvider  customtoken.Provider             `dependency:"CustomTokenAuthProvider"`
+	IdentityProvider         principal.IdentityProvider       `dependency:"IdentityProvider"`
+	HookProvider             hook.Provider                    `dependency:"HookProvider"`
+	PasswordAuthProvider     password.Provider                `dependency:"PasswordAuthProvider"`
+	CustomTokenConfiguration *config.CustomTokenConfiguration `dependency:"CustomTokenConfiguration"`
+	WelcomeEmailEnabled      bool                             `dependency:"WelcomeEmailEnabled"`
+	AuditTrail               audit.Trail                      `dependency:"AuditTrail"`
+	TaskQueue                async.Queue                      `dependency:"AsyncTaskQueue"`
+	URLPrefix                *url.URL                         `dependency:"URLPrefix"`
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler

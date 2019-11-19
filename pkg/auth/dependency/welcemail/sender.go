@@ -16,7 +16,7 @@ type Sender interface {
 
 type DefaultSender struct {
 	AppName        string
-	Config         config.WelcomeEmailConfiguration
+	Config         *config.WelcomeEmailConfiguration
 	Sender         mail.Sender
 	TemplateEngine *template.Engine
 }

@@ -107,17 +107,17 @@ func TestCanAddAuthenticator(t *testing.T) {
 		newA := c.New
 
 		maximum := &c.Limit.Total
-		mfaConfiguration := config.MFAConfiguration{
+		mfaConfiguration := &config.MFAConfiguration{
 			Enabled: c.Enabled,
 			Maximum: maximum,
-			TOTP: config.MFATOTPConfiguration{
+			TOTP: &config.MFATOTPConfiguration{
 				Maximum: c.Limit.TOTP,
 			},
-			OOB: config.MFAOOBConfiguration{
-				SMS: config.MFAOOBSMSConfiguration{
+			OOB: &config.MFAOOBConfiguration{
+				SMS: &config.MFAOOBSMSConfiguration{
 					Maximum: c.Limit.OOBSMS,
 				},
-				Email: config.MFAOOBEmailConfiguration{
+				Email: &config.MFAOOBEmailConfiguration{
 					Maximum: c.Limit.OOBEmail,
 				},
 			},

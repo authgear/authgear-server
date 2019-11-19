@@ -24,7 +24,7 @@ type Sender interface {
 }
 
 type DefaultSender struct {
-	Config         config.ForgotPasswordConfiguration
+	Config         *config.ForgotPasswordConfiguration
 	URLPrefix      *url.URL
 	Sender         mail.Sender
 	CodeGenerator  *CodeGenerator

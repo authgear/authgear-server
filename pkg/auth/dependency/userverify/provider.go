@@ -25,14 +25,14 @@ type Provider interface {
 type providerImpl struct {
 	codeGenerator CodeGenerator
 	store         Store
-	config        config.UserVerificationConfiguration
+	config        *config.UserVerificationConfiguration
 	time          time.Provider
 }
 
 func NewProvider(
 	codeGenerator CodeGenerator,
 	store Store,
-	config config.UserVerificationConfiguration,
+	config *config.UserVerificationConfiguration,
 	time time.Provider,
 ) Provider {
 	return &providerImpl{
