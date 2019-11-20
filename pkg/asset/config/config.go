@@ -46,6 +46,7 @@ type GCSConfiguration struct {
 }
 
 type S3Configuration struct {
+	Endpoint  string `envconfig:"ENDPOINT"`
 	Region    string `envconfig:"REGION"`
 	Bucket    string `envconfig:"BUCKET"`
 	AccessKey string `envconfig:"ACCESS_KEY"`
