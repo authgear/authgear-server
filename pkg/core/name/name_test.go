@@ -8,19 +8,15 @@ import (
 
 func TestValidateAppName(t *testing.T) {
 	Convey("ValidateAppName", t, func() {
-		cases := []struct {
-			input    string
-			expected bool
-		}{
-			{"", false},              // at least 1 letter
-			{"1", false},             // cannot start with digit
-			{"a", true},              // good
-			{"a23456789012", true},   // longest possible
-			{"a234567890123", false}, // too long
+		test := func(name string, ok bool) {
+			So(ValidateAppName(name) == nil, ShouldEqual, ok)
 		}
-		for _, c := range cases {
-			actual := ValidateAppName(c.input) == nil
-			So(actual, ShouldEqual, c.expected)
-		}
+		test("", false)                                          // at least 1 alphanumeric char
+		test("-a", false)                                        // cannot start/end with dash
+		test("a-", false)                                        // cannot start/end with dash
+		test("a", true)                                          // good
+		test("123app-production", true)                          // good
+		test("a234567890123456789012345678901234567890", true)   // longest possible
+		test("a2345678901234567890123456789012345678901", false) // too long
 	})
 }
