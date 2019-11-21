@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
+	gearHandler "github.com/skygeario/skygear-server/pkg/auth/handler/gear"
 	mfaHandler "github.com/skygeario/skygear-server/pkg/auth/handler/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
@@ -238,6 +239,7 @@ func main() {
 	mfaHandler.AttachTriggerOOBHandler(&srv, authDependency)
 	mfaHandler.AttachActivateOOBHandler(&srv, authDependency)
 	mfaHandler.AttachAuthenticateOOBHandler(&srv, authDependency)
+	gearHandler.AttachTemplatesHandler(&srv, authDependency)
 
 	go func() {
 		logger.Info("Starting auth gear")

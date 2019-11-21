@@ -24,7 +24,7 @@ type NewEngineOptions struct {
 // Engine resolves and renders templates.
 type Engine struct {
 	uriLoader     *URILoader
-	templateSpecs map[config.TemplateItemType]Spec
+	TemplateSpecs map[config.TemplateItemType]Spec
 	templateItems []config.TemplateItem
 	// NOTE(louis): PreferredLanguageTags
 	// preferredLanguageTags is put here instead of receiving it from RenderXXX methods.
@@ -41,13 +41,13 @@ func NewEngine(opts NewEngineOptions) *Engine {
 	return &Engine{
 		uriLoader:             uriLoader,
 		templateItems:         opts.TemplateItems,
-		templateSpecs:         map[config.TemplateItemType]Spec{},
+		TemplateSpecs:         map[config.TemplateItemType]Spec{},
 		preferredLanguageTags: opts.PreferredLanguageTags,
 	}
 }
 
 func (e *Engine) Register(spec Spec) {
-	e.templateSpecs[spec.Type] = spec
+	e.TemplateSpecs[spec.Type] = spec
 }
 
 func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, option RenderOptions) (out string, err error) {
@@ -62,7 +62,7 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context ma
 }
 
 func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options RenderOptions) (string, Spec, error) {
-	spec, found := e.templateSpecs[templateType]
+	spec, found := e.TemplateSpecs[templateType]
 	if !found {
 		panic("template: unregistered template type: " + templateType)
 	}
