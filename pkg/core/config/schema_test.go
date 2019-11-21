@@ -159,39 +159,6 @@ func TestValidateUserConfiguration(t *testing.T) {
 			"/clients/0/name: Required",
 			"/clients/0/session_transport: Required",
 		)
-		// CORS
-		test(`
-			{
-				"master_key": "master_key",
-				"asset": {
-					"secret": "assetsecret"
-				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "raw"
-						}
-					]
-				},
-				"hook": {
-					"secret": "hooksecret"
-				},
-				"cors": {}
-			}`,
-			"/cors/origin: Required",
-		)
 		// MFA
 		test(`
 			{
