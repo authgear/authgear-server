@@ -79,9 +79,8 @@ const (
 		"$id": "#CORSConfiguration",
 		"type": "object",
 		"properties": {
-			"origin": { "$ref": "#NonEmptyString" }
-		},
-		"required": ["origin"]
+			"origin": { "type": "string" }
+		}
 	},
 	"AuthConfiguration": {
 		"$id": "#AuthConfiguration",

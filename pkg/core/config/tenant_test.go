@@ -392,7 +392,6 @@ func TestTenantConfig(t *testing.T) {
 		Convey("should have default value when load from YAML", func() {
 			c, err := NewTenantConfigurationFromYAML(strings.NewReader(inputMinimalYAML))
 			So(err, ShouldBeNil)
-			So(c.UserConfig.CORS.Origin, ShouldEqual, "*")
 			So(c.UserConfig.SMTP.Port, ShouldEqual, 25)
 		})
 		Convey("should validate when load from YAML", func() {
@@ -422,7 +421,6 @@ user_config:
 			So(c.AppConfig.DatabaseURL, ShouldEqual, "postgres://")
 			So(c.UserConfig.Clients, ShouldBeEmpty)
 			So(c.UserConfig.MasterKey, ShouldEqual, "masterkey")
-			So(c.UserConfig.CORS.Origin, ShouldEqual, "*")
 			So(c.UserConfig.SMTP.Port, ShouldEqual, 25)
 		})
 		Convey("should validate when load from JSON", func() {

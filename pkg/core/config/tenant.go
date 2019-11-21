@@ -397,11 +397,6 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.UserConfig.Clients[i] = clientConfig
 	}
 
-	// Set default CORSConfiguration
-	if c.UserConfig.CORS.Origin == "" {
-		c.UserConfig.CORS.Origin = "*"
-	}
-
 	// Set default AuthConfiguration
 	if c.UserConfig.Auth.LoginIDKeys == nil {
 		c.UserConfig.Auth.LoginIDKeys = []LoginIDKeyConfiguration{
