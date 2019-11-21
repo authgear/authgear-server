@@ -13,6 +13,7 @@ func TestEngine(t *testing.T) {
 	const typeB config.TemplateItemType = "typeB"
 	const keyA = "keyA"
 	const keyB = "keyB"
+	specA := Spec{Type: typeA, IsKeyed: true}
 
 	Convey("Engine", t, func() {
 		Convey("resolveTemplateItem", func() {
@@ -20,15 +21,15 @@ func TestEngine(t *testing.T) {
 				TemplateItems         []config.TemplateItem
 				PreferredLanguageTags []string
 
-				TemplateType config.TemplateItemType
-				Key          string
+				Spec Spec
+				Key  string
 
 				Expected *config.TemplateItem
 			}{
 				{
 					// No TemplateItems
-					TemplateType: typeA,
-					Expected:     nil,
+					Spec:     specA,
+					Expected: nil,
 				},
 				{
 					// Select type
@@ -40,7 +41,7 @@ func TestEngine(t *testing.T) {
 							Type: typeB,
 						},
 					},
-					TemplateType: typeA,
+					Spec: specA,
 					Expected: &config.TemplateItem{
 						Type: typeA,
 					},
@@ -63,8 +64,8 @@ func TestEngine(t *testing.T) {
 							Key:  keyB,
 						},
 					},
-					TemplateType: typeA,
-					Key:          keyA,
+					Spec: specA,
+					Key:  keyA,
 					Expected: &config.TemplateItem{
 						Type: typeA,
 						Key:  keyA,
@@ -89,7 +90,7 @@ func TestEngine(t *testing.T) {
 							URI:         "Traditional Chinese in Hong Kong",
 						},
 					},
-					TemplateType: typeA,
+					Spec: specA,
 					Expected: &config.TemplateItem{
 						Type: typeA,
 						URI:  "default",
@@ -115,7 +116,7 @@ func TestEngine(t *testing.T) {
 						},
 					},
 					PreferredLanguageTags: []string{"ja-JP"},
-					TemplateType:          typeA,
+					Spec:                  specA,
 					Expected: &config.TemplateItem{
 						Type: typeA,
 						URI:  "default",
@@ -140,7 +141,7 @@ func TestEngine(t *testing.T) {
 						},
 					},
 					PreferredLanguageTags: []string{"en"},
-					TemplateType:          typeA,
+					Spec:                  specA,
 					Expected: &config.TemplateItem{
 						Type:        typeA,
 						LanguageTag: "en-US",
@@ -166,7 +167,7 @@ func TestEngine(t *testing.T) {
 						},
 					},
 					PreferredLanguageTags: []string{"ja-JP", "en-GB"},
-					TemplateType:          typeA,
+					Spec:                  specA,
 					Expected: &config.TemplateItem{
 						Type:        typeA,
 						LanguageTag: "en-US",
@@ -180,7 +181,7 @@ func TestEngine(t *testing.T) {
 					PreferredLanguageTags: c.PreferredLanguageTags,
 				})
 
-				actual, err := e.resolveTemplateItem(c.TemplateType, c.Key)
+				actual, err := e.resolveTemplateItem(c.Spec, c.Key)
 				if c.Expected == nil {
 					So(err, ShouldBeError)
 				} else {

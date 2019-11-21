@@ -33,7 +33,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 	)
 
 	var textBody string
-	if textBody, err = e.TemplateEngine.RenderTextTemplate(
+	if textBody, err = e.TemplateEngine.RenderTemplate(
 		TemplateItemTypeUserVerificationEmailTXT,
 		context,
 		template.RenderOptions{
@@ -46,7 +46,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 	}
 
 	var htmlBody string
-	if htmlBody, err = e.TemplateEngine.RenderHTMLTemplate(
+	if htmlBody, err = e.TemplateEngine.RenderTemplate(
 		TemplateItemTypeUserVerificationEmailHTML,
 		context,
 		template.RenderOptions{
@@ -89,7 +89,7 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user model.User) (err error)
 	)
 
 	var textBody string
-	if textBody, err = t.TemplateEngine.RenderTextTemplate(
+	if textBody, err = t.TemplateEngine.RenderTemplate(
 		TemplateItemTypeUserVerificationSMSTXT,
 		context,
 		template.RenderOptions{

@@ -76,7 +76,7 @@ func (d *DefaultSender) Send(
 	}
 
 	var textBody string
-	if textBody, err = d.TemplateEngine.RenderTextTemplate(
+	if textBody, err = d.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordEmailTXT,
 		context,
 		template.RenderOptions{Required: true},
@@ -86,7 +86,7 @@ func (d *DefaultSender) Send(
 	}
 
 	var htmlBody string
-	if htmlBody, err = d.TemplateEngine.RenderHTMLTemplate(
+	if htmlBody, err = d.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordEmailHTML,
 		context,
 		template.RenderOptions{Required: false},

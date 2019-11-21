@@ -27,25 +27,23 @@ func NewEngineWithConfig(
 	})
 
 	e.Register(forgotpwdemail.TemplatePasswordEmailTXT)
+	e.Register(forgotpwdemail.TemplatePasswordEmailHTML)
 	e.Register(forgotpwdemail.TemplateForgotPasswordResetHTML)
 	e.Register(forgotpwdemail.TemplateForgotPasswordSuccessHTML)
-	e.Register(template.T{
-		Type:    forgotpwdemail.TemplateItemTypeForgotPasswordErrorHTML,
-		Default: DefaultErrorHTML,
-	})
+	e.Register(forgotpwdemail.TemplateForgotPasswordErrorHTML)
 
 	e.Register(welcemail.TemplateWelcomeEmailTXT)
+	e.Register(welcemail.TemplateWelcomeEmailHTML)
 
 	e.Register(userverify.TemplateUserVerificationSMSTXT)
 	e.Register(userverify.TemplateUserVerificationEmailTXT)
+	e.Register(userverify.TemplateUserVerificationEmailHTML)
 	e.Register(userverify.TemplateUserVerificationSuccessHTML)
-	e.Register(template.T{
-		Type:    userverify.TemplateItemTypeUserVerificationErrorHTML,
-		Default: DefaultErrorHTML,
-	})
+	e.Register(userverify.TemplateUserVerificationErrorHTML)
 
 	e.Register(mfa.TemplateMFAOOBCodeSMSTXT)
 	e.Register(mfa.TemplateMFAOOBCodeEmailTXT)
+	e.Register(mfa.TemplateMFAOOBCodeEmailHTML)
 
 	return e
 }

@@ -11,12 +11,17 @@ const (
 	TemplateItemTypeMFAOOBCodeEmailHTML config.TemplateItemType = "mfa_oob_code_email.html"
 )
 
-var TemplateMFAOOBCodeSMSTXT = template.T{
+var TemplateMFAOOBCodeSMSTXT = template.Spec{
 	Type:    TemplateItemTypeMFAOOBCodeSMSTXT,
 	Default: `Your MFA code is: {{ .code }}`,
 }
 
-var TemplateMFAOOBCodeEmailTXT = template.T{
+var TemplateMFAOOBCodeEmailTXT = template.Spec{
 	Type:    TemplateItemTypeMFAOOBCodeEmailTXT,
 	Default: `Your MFA code is: {{ .code }}`,
+}
+
+var TemplateMFAOOBCodeEmailHTML = template.Spec{
+	Type:   TemplateItemTypeMFAOOBCodeEmailHTML,
+	IsHTML: true,
 }
