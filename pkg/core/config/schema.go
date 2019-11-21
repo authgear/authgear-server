@@ -27,10 +27,6 @@ const (
 				"items": { "$ref": "#APIClientConfiguration" }
 			},
 			"master_key": { "$ref": "#NonEmptyString" },
-			"url_prefix": {
-				"type": "string",
-				"format": "URLFullOnly"
-			},
 			"cors": { "$ref": "#CORSConfiguration" },
 			"auth": { "$ref": "#AuthConfiguration" },
 			"mfa": { "$ref": "#MFAConfiguration" },
@@ -227,22 +223,13 @@ const (
 		"type": "object",
 		"properties": {
 			"app_name": { "type": "string" },
-			"url_prefix": {
-				"type": "string",
-				"format": "URLFullOnly"
-			},
 			"secure_match": { "type": "boolean" },
 			"sender": { "type": "string" },
 			"reply_to": { "type": "string" },
 			"subject": { "type": "string" },
 			"reset_url_lifetime": { "$ref": "#NonNegativeInteger" },
 			"success_redirect": { "type": "string" },
-			"error_redirect": { "type": "string" },
-			"email_text_url": { "type": "string" },
-			"email_html_url": { "type": "string" },
-			"reset_html_url": { "type": "string" },
-			"reset_success_html_url": { "type": "string" },
-			"reset_error_html_url": { "type": "string" }
+			"error_redirect": { "type": "string" }
 		}
 	},
 	"WelcomeEmailConfiguration": {
@@ -250,12 +237,9 @@ const (
 		"type": "object",
 		"properties": {
 			"enabled": { "type": "boolean" },
-			"url_prefix": { "type": "string" },
 			"sender": { "type": "string" },
 			"reply_to": { "type": "string" },
 			"subject": { "type": "string" },
-			"text_url": { "type": "string" },
-			"html_url": { "type": "string" },
 			"destination": {
 				"type": "string",
 				"enum": ["first", "all"]
@@ -301,7 +285,6 @@ const (
 		"$id": "#OAuthConfiguration",
 		"type": "object",
 		"properties": {
-			"url_prefix": { "type": "string" },
 			"state_jwt_secret": { "type": "string" },
 			"allowed_callback_urls": {
 				"type": "array",
@@ -367,17 +350,12 @@ const (
 		"$id": "#UserVerificationConfiguration",
 		"type": "object",
 		"properties": {
-			"url_prefix": {
-				"type": "string",
-				"format": "URLFullOnly"
-			},
 			"auto_send_on_signup": { "type": "boolean" },
 			"criteria": {
 				"type": "string",
 				"enum": ["any", "all"]
 			},
 			"error_redirect": { "type": "string" },
-			"error_html_url": { "type": "string" },
 			"login_id_keys": {
 				"type": "array",
 				"items": { "$ref": "#UserVerificationKeyConfiguration" }
@@ -395,21 +373,10 @@ const (
 			},
 			"expiry": { "$ref": "#NonNegativeInteger" },
 			"success_redirect": { "type": "string" },
-			"success_html_url": { "type": "string" },
 			"error_redirect": { "type": "string" },
-			"error_html_url": { "type": "string" },
-			"provider_config": { "$ref": "#UserVerificationProviderConfiguration" }
-		}
-	},
-	"UserVerificationProviderConfiguration": {
-		"$id": "#UserVerificationProviderConfiguration",
-		"type": "object",
-		"properties": {
 			"subject": { "type": "string" },
 			"sender": { "type": "string" },
-			"reply_to": { "type": "string" },
-			"text_url": { "type": "string" },
-			"html_url": { "type": "string" }
+			"reply_to": { "type": "string" }
 		}
 	},
 	"HookUserConfiguration": {
