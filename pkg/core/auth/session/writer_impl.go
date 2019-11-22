@@ -53,12 +53,12 @@ func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string, m
 	if useCookie {
 		cookieSession.Value = *accessToken
 		*accessToken = ""
-		cookieSession.MaxAge = int(time.Duration(clientConfig.AccessTokenLifetime).Seconds())
+		cookieSession.MaxAge = clientConfig.AccessTokenLifetime
 
 		if mfaBearerToken != nil {
 			cookieMFABearerToken.Value = *mfaBearerToken
 			*mfaBearerToken = ""
-			cookieMFABearerToken.MaxAge = int(time.Duration(w.mfaConfiguration.BearerToken.ExpireInDays).Seconds())
+			cookieMFABearerToken.MaxAge = 86400 * w.mfaConfiguration.BearerToken.ExpireInDays
 		}
 	} else {
 		cookieSession.Expires = time.Unix(0, 0)
