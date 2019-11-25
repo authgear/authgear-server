@@ -60,34 +60,13 @@ func TestAuthURLHandler(t *testing.T) {
 		)
 		h.TxContext = db.NewMockTxContext()
 		h.Provider = &mockProvider
+		h.ProviderID = "google"
 		h.PasswordAuthProvider = mockPasswordProvider
 		h.Action = "login"
 		h.OAuthConfiguration = oauthConfig
 
-		Convey("should reject without required parameters", func() {
-			req, _ := http.NewRequest("GET", "auth_url", nil)
-			req.Header.Set("Content-Type", "application/json")
-			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"error": {
-					"name": "Invalid",
-					"reason": "ValidationFailed",
-					"message": "invalid parameters",
-					"code": 400,
-					"info": {
-						"causes": [
-							{ "kind": "Required", "message": "callback_url is required", "pointer": "/callback_url" },
-							{ "kind": "Required", "message": "ux_mode is required", "pointer": "/ux_mode" }
-						]
-					}
-				}
-			}`)
-		})
-
 		Convey("should return login_auth_url", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			req, _ := http.NewRequest("POST", "http://mock", strings.NewReader(`
 			{
 				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_redirect"
@@ -106,18 +85,10 @@ func TestAuthURLHandler(t *testing.T) {
 			// check base url
 			u, _ := url.Parse(body["result"].(string))
 			So(u.Host, ShouldEqual, "mock")
-			So(u.Path, ShouldEqual, "/auth")
+			So(u.Path, ShouldEqual, "/_auth/sso/google/auth_redirect")
 
 			// check querys
 			q := u.Query()
-			So(q.Get("response_type"), ShouldEqual, "code")
-			So(q.Get("client_id"), ShouldEqual, "mock_client_id")
-			So(q.Get("scope"), ShouldEqual, "openid profile email")
-
-			// check redirect_uri
-			r, _ := url.Parse(q.Get("redirect_uri"))
-			So(r.Host, ShouldEqual, "localhost:3000")
-			So(r.Path, ShouldEqual, "/_auth/sso/mock/auth_handler")
 
 			// check encoded state
 			s := q.Get("state")

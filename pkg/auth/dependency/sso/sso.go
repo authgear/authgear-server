@@ -104,6 +104,7 @@ type OAuthAuthorizationResponse struct {
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
+	EncodeState(state State) (encodedState string, err error)
 	DecodeState(encodedState string) (*State, error)
 	GetAuthInfo(r OAuthAuthorizationResponse) (AuthInfo, error)
 }

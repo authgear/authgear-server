@@ -123,6 +123,10 @@ func (f *Azureadv2Impl) GetAuthURL(params GetURLParams) (string, error) {
 	return authURL(p)
 }
 
+func (f *Azureadv2Impl) EncodeState(state State) (encodedState string, err error) {
+	return EncodeState(f.OAuthConfig.StateJWTSecret, state)
+}
+
 func (f *Azureadv2Impl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }

@@ -1,7 +1,9 @@
 package sso
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/gorilla/mux"
 
@@ -14,7 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
@@ -31,11 +32,11 @@ func AttachAuthURLHandler(
 	server.Handle("/sso/{provider}/login_auth_url", &AuthURLHandlerFactory{
 		Dependency: authDependency,
 		Action:     "login",
-	}).Methods("OPTIONS", "POST", "GET")
+	}).Methods("OPTIONS", "POST")
 	server.Handle("/sso/{provider}/link_auth_url", &AuthURLHandlerFactory{
 		Dependency: authDependency,
 		Action:     "link",
-	}).Methods("OPTIONS", "POST", "GET")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 
@@ -180,33 +181,11 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		Returns SSO auth URL. Client should redirect user agent to this URL to
 		initiate SSO login flow.
 
-		If you are experimenting with an OpenID Connect provider, you should
-		use GET method instead visit it in a browser. In this way, nonce is set
-		in the session cookie and automatically redirected to the provider
-		authorization URL.
-
 		@Tag SSO
 
 		@Parameter {SSOProviderID}
 		@RequestBody {AuthURLRequest}
 		@Response 200 {AuthURLResponse}
-
-		@Callback user_create {UserSyncEvent}
-		@Callback identity_create {UserSyncEvent}
-		@Callback session_create {UserSyncEvent}
-		@Callback user_sync {UserSyncEvent}
-
-	@Operation GET /sso/{provider_id}/login_auth_url - Begin SSO login flow with provider
-		Redirect user to SSO login flow.
-
-		@Tag SSO
-
-		@Parameter {SSOProviderID}
-		@Parameter {SSOCallbackURL}
-		@Parameter {SSOUXMode}
-		@Parameter {SSOOnUserDuplicate}
-		@Response 302
-			Redirect to SSO login flow
 
 		@Callback user_create {UserSyncEvent}
 		@Callback identity_create {UserSyncEvent}
@@ -217,33 +196,11 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		Returns SSO auth URL. Client should redirect user agent to this URL to
 		initiate SSO link flow.
 
-		If you are experimenting with an OpenID Connect provider, you should
-		use GET method instead visit it in a browser. In this way, nonce is set
-		in the session cookie and automatically redirected to the provider
-		authorization URL.
-
 		@Tag SSO
 
 		@Parameter {SSOProviderID}
 		@RequestBody {AuthURLRequest}
 		@Response 200 {AuthURLResponse}
-
-		@Callback user_create {UserSyncEvent}
-		@Callback identity_create {UserSyncEvent}
-		@Callback session_create {UserSyncEvent}
-		@Callback user_sync {UserSyncEvent}
-
-	@Operation GET /sso/{provider_id}/link_auth_url - Begin SSO link flow with provider
-		Redirect user to SSO link flow.
-
-		@Tag SSO
-
-		@Parameter {SSOProviderID}
-		@Parameter {SSOCallbackURL}
-		@Parameter {SSOUXMode}
-		@Parameter {SSOOnUserDuplicate}
-		@Response 302
-			Redirect to SSO link flow
 
 		@Callback user_create {UserSyncEvent}
 		@Callback identity_create {UserSyncEvent}
@@ -280,11 +237,7 @@ func (h *AuthURLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		handler.WriteResponse(w, handler.APIResponse{Error: err})
 		return
 	}
-	if r.Method == http.MethodPost {
-		handler.WriteResponse(w, handler.APIResponse{Result: result})
-		return
-	}
-	http.Redirect(w, r, result.(string), http.StatusFound)
+	handler.WriteResponse(w, handler.APIResponse{Result: result})
 }
 
 func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
@@ -296,79 +249,49 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	payload := AuthURLRequestPayload{}
 	payload.PasswordAuthProvider = h.PasswordAuthProvider
 	payload.OAuthConfiguration = h.OAuthConfiguration
-	if r.Method == http.MethodPost {
-		err = handler.BindJSONBody(r, w, h.Validator, "#AuthURLRequest", &payload)
-		if err != nil {
-			return
-		}
-	} else {
-		err = r.ParseForm()
-		if err != nil {
-			return
-		}
-
-		params := map[string]string{}
-		for k, v := range r.Form {
-			if len(v) == 0 {
-				continue
-			}
-			params[k] = v[0]
-		}
-		err = h.Validator.WithMessage("invalid parameters").ValidateGoValue("#AuthURLRequest", params)
-		if err != nil {
-			return
-		}
-
-		payload.CallbackURL = r.Form.Get("callback_url")
-		payload.UXMode = sso.UXMode(r.Form.Get("ux_mode"))
-		payload.OnUserDuplicate = model.OnUserDuplicate(r.Form.Get("on_user_duplicate"))
-
-		payload.SetDefaultValue()
-		causes := payload.Validate()
-		if len(causes) > 0 {
-			err = validation.NewValidationFailed("invalid parameters", causes)
-			return
-		}
-	}
-
-	// Always generate a new nonce to ensure it is unpredictable.
-	// The developer is expected to call auth_url just before they need to perform the flow.
-	// If they call auth_url multiple times ahead of time,
-	// only the last auth URL is valid because the nonce of the previous auth URLs are all overwritten.
-	nonce := sso.GenerateOpenIDConnectNonce()
-	cookie := &http.Cookie{
-		Name:     coreHttp.CookieNameOpenIDConnectNonce,
-		Value:    nonce,
-		Path:     "/",
-		HttpOnly: true,
-	}
-	http.SetCookie(w, cookie)
-
-	apiClientID, _, _ := h.APIClientConfigurationProvider.Get()
-
-	params := sso.GetURLParams{
-		State: sso.State{
-			LoginState: sso.LoginState{
-				MergeRealm:      payload.MergeRealm,
-				OnUserDuplicate: payload.OnUserDuplicate,
-			},
-			OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-				CallbackURL: payload.CallbackURL,
-				UXMode:      payload.UXMode,
-				Action:      h.Action,
-			},
-			Nonce:       crypto.SHA256String(nonce),
-			APIClientID: apiClientID,
-		},
-	}
-	authInfo, _ := h.AuthContext.AuthInfo()
-	if authInfo != nil {
-		params.State.UserID = authInfo.ID
-	}
-	url, err := h.Provider.GetAuthURL(params)
+	err = handler.BindJSONBody(r, w, h.Validator, "#AuthURLRequest", &payload)
 	if err != nil {
 		return
 	}
-	result = url
+
+	apiClientID, _, _ := h.APIClientConfigurationProvider.Get()
+
+	// The information in the state are mostly from the client.
+	// APIClientID is derived from the API key used by the client.
+	// UserID is derived from the access token.
+	// The state is then signed but no encrypted and returned to the client.
+	state := sso.State{
+		LoginState: sso.LoginState{
+			MergeRealm:      payload.MergeRealm,
+			OnUserDuplicate: payload.OnUserDuplicate,
+		},
+		OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
+			CallbackURL: payload.CallbackURL,
+			UXMode:      payload.UXMode,
+			Action:      h.Action,
+		},
+		APIClientID: apiClientID,
+	}
+	authInfo, _ := h.AuthContext.AuthInfo()
+	if authInfo != nil {
+		state.UserID = authInfo.ID
+	}
+
+	encodedState, err := h.Provider.EncodeState(state)
+	if err != nil {
+		return
+	}
+
+	q := url.Values{}
+	q.Set("state", encodedState)
+
+	u := &url.URL{
+		Host:     coreHttp.GetHost(r),
+		Scheme:   coreHttp.GetProto(r),
+		Path:     fmt.Sprintf("/_auth/sso/%s/auth_redirect", h.ProviderID),
+		RawQuery: q.Encode(),
+	}
+
+	result = u.String()
 	return
 }

@@ -214,6 +214,7 @@ func main() {
 	userverifyhandler.AttachVerifyRequestHandler(&srv, authDependency)
 	userverifyhandler.AttachVerifyCodeHandler(&srv, authDependency)
 	ssohandler.AttachAuthURLHandler(&srv, authDependency)
+	ssohandler.AttachAuthRedirectHandler(&srv, authDependency)
 	ssohandler.AttachConfigHandler(&srv, authDependency)
 	ssohandler.AttachIFrameHandlerFactory(&srv, authDependency)
 	ssohandler.AttachCustomTokenLoginHandler(&srv, authDependency)

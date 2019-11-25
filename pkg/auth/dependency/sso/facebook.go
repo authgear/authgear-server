@@ -50,6 +50,10 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 	return h.getAuthInfo(r)
 }
 
+func (f *FacebookImpl) EncodeState(state State) (encodedState string, err error) {
+	return EncodeState(f.OAuthConfig.StateJWTSecret, state)
+}
+
 func (f *FacebookImpl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }

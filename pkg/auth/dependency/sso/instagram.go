@@ -30,6 +30,10 @@ func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 	return authURL(p)
 }
 
+func (f *InstagramImpl) EncodeState(state State) (encodedState string, err error) {
+	return EncodeState(f.OAuthConfig.StateJWTSecret, state)
+}
+
 func (f *InstagramImpl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }

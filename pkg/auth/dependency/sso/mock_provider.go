@@ -53,6 +53,10 @@ func (f *MockSSOProvider) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 	return f.GetAuthInfo(r)
 }
 
+func (f *MockSSOProvider) EncodeState(state State) (encodedState string, err error) {
+	return EncodeState(f.OAuthConfig.StateJWTSecret, state)
+}
+
 func (f *MockSSOProvider) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }

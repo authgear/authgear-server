@@ -30,6 +30,10 @@ func (f *LinkedInImpl) GetAuthURL(params GetURLParams) (string, error) {
 	return authURL(p)
 }
 
+func (f *LinkedInImpl) EncodeState(state State) (encodedState string, err error) {
+	return EncodeState(f.OAuthConfig.StateJWTSecret, state)
+}
+
 func (f *LinkedInImpl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }

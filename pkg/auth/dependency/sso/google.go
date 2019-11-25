@@ -31,6 +31,10 @@ func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
 	return authURL(p)
 }
 
+func (f *GoogleImpl) EncodeState(state State) (encodedState string, err error) {
+	return EncodeState(f.OAuthConfig.StateJWTSecret, state)
+}
+
 func (f *GoogleImpl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
