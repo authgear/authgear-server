@@ -61,7 +61,7 @@ func newPool(
 ) *redis.Pool {
 	// TODO(pool): configurable / profile for good value?
 	return &redis.Pool{
-		MaxIdle:      5,
+		MaxIdle:      30,
 		IdleTimeout:  5 * time.Minute,
 		Dial:         dialFunc,
 		TestOnBorrow: testOnBorrowFunc,
