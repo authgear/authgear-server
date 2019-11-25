@@ -127,6 +127,7 @@ func main() {
 			r = db.InitRequestDBContext(r, dbPool)
 			r = auth.InitRequestAuthContext(r)
 			r = r.WithContext(redis.WithRedis(r.Context(), redisPool))
+			defer redis.CloseConn(r.Context())
 			next.ServeHTTP(w, r)
 		})
 	})
