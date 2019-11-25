@@ -96,11 +96,12 @@ const AuthURLRequestSchema = `
 	"$id": "#AuthURLRequest",
 	"type": "object",
 	"properties": {
+		"code_challenge": { "type": "string", "minLength": 1 },
 		"callback_url": { "type": "string", "format": "uri" },
 		"ux_mode": { "type": "string", "enum": ["web_redirect", "web_popup", "mobile_app"] },
 		"on_user_duplicate": {"type": "string", "enum": ["abort", "merge", "create"] }
 	},
-	"required": ["callback_url", "ux_mode"]
+	"required": ["code_challenge", "callback_url", "ux_mode"]
 }
 `
 
@@ -125,6 +126,7 @@ const AuthURLResponseSchema = `
 
 // AuthURLRequestPayload login handler request payload
 type AuthURLRequestPayload struct {
+	CodeChallenge   string                `json:"code_challenge"`
 	CallbackURL     string                `json:"callback_url"`
 	UXMode          sso.UXMode            `json:"ux_mode"`
 	MergeRealm      string                `json:"-"`
@@ -270,7 +272,8 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 			UXMode:      payload.UXMode,
 			Action:      h.Action,
 		},
-		APIClientID: apiClientID,
+		APIClientID:   apiClientID,
+		CodeChallenge: payload.CodeChallenge,
 	}
 	authInfo, _ := h.AuthContext.AuthInfo()
 	if authInfo != nil {

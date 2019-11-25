@@ -39,8 +39,11 @@ type State struct {
 	LoginState
 	LinkState
 	OAuthAuthorizationCodeFlowState
-	Nonce       string `json:"nonce,omitempty"`
-	APIClientID string `json:"api_client_id"`
+	// CodeChallenge is borrowed from PKCE.
+	// See https://www.oauth.com/oauth2-servers/pkce/authorization-request/
+	CodeChallenge string `json:"code_challenge"`
+	Nonce         string `json:"nonce"`
+	APIClientID   string `json:"api_client_id"`
 }
 
 // UXMode indicates how the URL is used

@@ -68,6 +68,7 @@ func TestAuthURLHandler(t *testing.T) {
 		Convey("should return login_auth_url", func() {
 			req, _ := http.NewRequest("POST", "http://mock", strings.NewReader(`
 			{
+				"code_challenge": "a",
 				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_redirect"
 			}
@@ -107,6 +108,7 @@ func TestAuthURLHandler(t *testing.T) {
 			h.Action = "link"
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
+				"code_challenge": "a",
 				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_redirect"
 			}
@@ -136,6 +138,7 @@ func TestAuthURLHandler(t *testing.T) {
 		SkipConvey("should reject invalid realm", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
+				"code_challenge": "a",
 				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_popup",
 				"merge_realm": "nonsense"
@@ -163,9 +166,44 @@ func TestAuthURLHandler(t *testing.T) {
 			}`)
 		})
 
+		Convey("should reject missing code_challenge", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"callback_url": "http://example.com/sso",
+				"ux_mode": "web_popup"
+			}
+			`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			httpHandler := h
+			httpHandler.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"code": 400,
+					"info": {
+						"causes": [
+						{
+							"kind": "Required",
+							"message": "code_challenge is required",
+							"pointer": "/code_challenge"
+						}
+						]
+					},
+					"message": "invalid request body",
+					"name": "Invalid",
+					"reason": "ValidationFailed"
+				}
+			}`)
+
+		})
+
 		Convey("should reject disallowed OnUserDuplicate", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
+				"code_challenge": "a",
 				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_popup",
 				"on_user_duplicate": "merge"
