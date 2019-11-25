@@ -38,6 +38,14 @@ func (f *LinkedInImpl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
+func (f *LinkedInImpl) EncodeSkygearAuthorizationCode(code SkygearAuthorizationCode) (encoded string, err error) {
+	return EncodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, code)
+}
+
+func (f *LinkedInImpl) DecodeSkygearAuthorizationCode(encoded string) (*SkygearAuthorizationCode, error) {
+	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, encoded)
+}
+
 func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
 	return f.NonOpenIDConnectGetAuthInfo(r)
 }

@@ -175,7 +175,15 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 		TaskQueue:            h.TaskQueue,
 		URLPrefix:            h.URLPrefix,
 	}
-	resp, err = handler.loginActionResp(oauthAuthInfo, loginState)
+	code, err := handler.LoginCode(oauthAuthInfo, "", loginState)
+	if err != nil {
+		return
+	}
+
+	resp, err = handler.CodeToResponse(code)
+	if err != nil {
+		return
+	}
 
 	return
 }

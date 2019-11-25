@@ -279,19 +279,6 @@ func (p *providerImpl) WriteResponse(w http.ResponseWriter, resp interface{}, er
 	}
 }
 
-func (p *providerImpl) AlterResponse(w http.ResponseWriter, resp interface{}, err error) interface{} {
-	if v, ok := resp.(model.AuthResponse); ok && err == nil {
-		// Do not touch the cookie if it is not in the response.
-		if v.MFABearerToken == "" {
-			p.sessionWriter.WriteSession(w, &v.AccessToken, nil)
-		} else {
-			p.sessionWriter.WriteSession(w, &v.AccessToken, &v.MFABearerToken)
-		}
-		return v
-	}
-	return resp
-}
-
 func (p *providerImpl) Resolve(authContext auth.ContextGetter, authnSessionToken string, options ResolveOptions) (userID string, sess *auth.Session, authnSession *auth.AuthnSession, err error) {
 	// Simple case
 	sess, _ = authContext.Session()

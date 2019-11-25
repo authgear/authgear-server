@@ -6,8 +6,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
-// CustomClaims is the type for jwt encoded
-type CustomClaims struct {
+type StateClaims struct {
 	State
 	jwt.StandardClaims
 }
@@ -19,7 +18,7 @@ func NewState(params GetURLParams) State {
 
 // EncodeState encodes state by JWT
 func EncodeState(secret string, state State) (string, error) {
-	claims := CustomClaims{
+	claims := StateClaims{
 		state,
 		jwt.StandardClaims{},
 	}
@@ -29,7 +28,7 @@ func EncodeState(secret string, state State) (string, error) {
 
 // DecodeState decodes state by JWT
 func DecodeState(secret string, encoded string) (*State, error) {
-	claims := CustomClaims{}
+	claims := StateClaims{}
 	_, err := jwt.ParseWithClaims(encoded, &claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected JWT alg")
@@ -40,4 +39,32 @@ func DecodeState(secret string, encoded string) (*State, error) {
 		return nil, NewSSOFailed(InvalidParams, "invalid sso state")
 	}
 	return &claims.State, nil
+}
+
+type CodeClaims struct {
+	SkygearAuthorizationCode
+	jwt.StandardClaims
+}
+
+func EncodeSkygearAuthorizationCode(secret string, code SkygearAuthorizationCode) (string, error) {
+	claims := CodeClaims{
+		code,
+		jwt.StandardClaims{},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(secret))
+}
+
+func DecodeSkygearAuthorizationCode(secret string, encoded string) (*SkygearAuthorizationCode, error) {
+	claims := CodeClaims{}
+	_, err := jwt.ParseWithClaims(encoded, &claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected JWT alg")
+		}
+		return []byte(secret), nil
+	})
+	if err != nil {
+		return nil, NewSSOFailed(InvalidParams, "invalid authorization code")
+	}
+	return &claims.SkygearAuthorizationCode, nil
 }

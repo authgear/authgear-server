@@ -131,6 +131,14 @@ func (f *Azureadv2Impl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
+func (f *Azureadv2Impl) EncodeSkygearAuthorizationCode(code SkygearAuthorizationCode) (encoded string, err error) {
+	return EncodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, code)
+}
+
+func (f *Azureadv2Impl) DecodeSkygearAuthorizationCode(encoded string) (*SkygearAuthorizationCode, error) {
+	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, encoded)
+}
+
 func (f *Azureadv2Impl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
 	return f.OpenIDConnectGetAuthInfo(r)
 }

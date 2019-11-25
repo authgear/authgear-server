@@ -151,8 +151,17 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interf
 			UserProfileStore:  h.UserProfileStore,
 			HookProvider:      h.HookProvider,
 		}
-		resp, err = handler.linkActionResp(oauthAuthInfo, linkState)
-		return err
+		code, err := handler.LinkCode(oauthAuthInfo, "", linkState)
+		if err != nil {
+			return err
+		}
+
+		resp, err = handler.CodeToResponse(code)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 	return
 }

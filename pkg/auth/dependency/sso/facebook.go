@@ -58,6 +58,14 @@ func (f *FacebookImpl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
+func (f *FacebookImpl) EncodeSkygearAuthorizationCode(code SkygearAuthorizationCode) (encoded string, err error) {
+	return EncodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, code)
+}
+
+func (f *FacebookImpl) DecodeSkygearAuthorizationCode(encoded string) (*SkygearAuthorizationCode, error) {
+	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, encoded)
+}
+
 func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		urlPrefix:      f.URLPrefix,

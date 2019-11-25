@@ -2,7 +2,7 @@ package sso
 
 import (
 	"encoding/base64"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -35,18 +35,32 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func decodeCookie(resp *httptest.ResponseRecorder) ([]byte, error) {
-	cookies := resp.Result().Cookies()
-	for _, c := range cookies {
-		if c.Name == "sso_data" {
-			decoded, err := base64.StdEncoding.DecodeString(c.Value)
-			if err != nil {
-				return nil, err
-			}
-			return decoded, nil
-		}
+func decodeResultInURL(urlString string) ([]byte, error) {
+	u, err := url.Parse(urlString)
+	if err != nil {
+		return nil, err
 	}
-	return nil, errors.New("not_found")
+	result := u.Query().Get("result")
+	bytes, err := base64.StdEncoding.DecodeString(result)
+	if err != nil {
+		return nil, err
+	}
+	var j map[string]interface{}
+	err = json.Unmarshal(bytes, &j)
+	if err != nil {
+		return nil, err
+	}
+	innerResult := j["result"].(map[string]interface{})
+	actualResult, ok := innerResult["result"]
+	if !ok {
+		return bytes, nil
+	}
+	code, err := sso.DecodeSkygearAuthorizationCode("secret", actualResult.(string))
+	if err != nil {
+		return nil, err
+	}
+	innerResult["result"] = code
+	return json.Marshal(j)
 }
 
 func TestAuthPayload(t *testing.T) {
@@ -204,10 +218,10 @@ func TestAuthHandler(t *testing.T) {
 			sh.ServeHTTP(resp, req)
 			// for web_redirect, it should redirect to original callback url
 			So(resp.Code, ShouldEqual, 302)
-			So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
-
-			actual, err := decodeCookie(resp)
+			location := resp.Result().Header.Get("Location")
+			actual, err := decodeResultInURL(location)
 			So(err, ShouldBeNil)
+
 			p, err := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
 				ProviderType:   "google",
 				ProviderUserID: providerUserID,
@@ -218,34 +232,14 @@ func TestAuthHandler(t *testing.T) {
 				"callback_url": "http://localhost:3000",
 				"result": {
 					"result": {
-						"user": {
-							"id": "%s",
-							"is_verified": false,
-							"is_disabled": false,
-							"last_login_at": "2006-01-02T15:04:05Z",
-							"created_at": "0001-01-01T00:00:00Z",
-							"verify_info": {},
-							"metadata": {}
-						},
-						"identity": {
-							"id": "%s",
-							"type": "oauth",
-							"provider_keys": {},
-							"provider_type": "google",
-							"provider_user_id": "mock_user_id",
-							"raw_profile": {
-								"id": "mock_user_id",
-								"email": "mock@example.com"
-							},
-							"claims": {
-								"email": "mock@example.com"
-							}
-						},
-						"access_token": "access-token-%s-%s-0",
-						"session_id": "%s-%s-0"
+						"action": "login",
+						"code_challenge": "",
+						"user_id": "%s",
+						"principal_id": "%s",
+						"session_create_reason": "signup"
 					}
 				}
-			}`, p.UserID, p.ID, p.UserID, p.ID, p.UserID, p.ID))
+			}`, p.UserID, p.ID))
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
@@ -311,49 +305,31 @@ func TestAuthHandler(t *testing.T) {
 			// for mobile app, it should redirect to original callback url
 			So(resp.Code, ShouldEqual, 302)
 			// check location result query parameter
-			location, _ := url.Parse(resp.Header().Get("Location"))
-			q := location.Query()
-			result := q.Get("result")
-			decoded, _ := base64.StdEncoding.DecodeString(result)
+			actual, err := decodeResultInURL(resp.Header().Get("Location"))
+			So(err, ShouldBeNil)
 			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
 				ProviderType:   "google",
 				ProviderUserID: providerUserID,
 			})
-			So(decoded, ShouldEqualJSON, fmt.Sprintf(`{
+			So(actual, ShouldEqualJSON, fmt.Sprintf(`{
+				"callback_url": "http://localhost:3000",
 				"result": {
-					"user": {
-						"id": "%s",
-						"is_verified": false,
-						"is_disabled": false,
-						"last_login_at": "2006-01-02T15:04:05Z",
-						"created_at": "0001-01-01T00:00:00Z",
-						"verify_info": {},
-						"metadata": {}
-					},
-					"identity": {
-						"id": "%s",
-						"type": "oauth",
-						"provider_keys": {},
-						"provider_type": "google",
-						"provider_user_id": "mock_user_id",
-						"raw_profile": {
-							"id": "mock_user_id",
-							"email": "mock@example.com"
-						},
-						"claims": {
-							"email": "mock@example.com"
-						}
-					},
-					"access_token": "access-token-%s-%s-0",
-					"session_id": "%s-%s-0"
+					"result": {
+						"action": "login",
+						"code_challenge": "",
+						"user_id": "%s",
+						"principal_id": "%s",
+						"session_create_reason": "signup"
+					}
 				}
-			}`, p.UserID, p.ID, p.UserID, p.ID, p.UserID, p.ID))
+			}`, p.UserID, p.ID))
 		})
 	})
 
 	Convey("Test AuthHandler with link action", t, func() {
 		action := "link"
 		stateJWTSecret := "secret"
+		providerUserID := "mock_user_id"
 		sh := &AuthHandler{}
 		sh.APIClientConfigurationProvider = apiclientconfig.NewMockProvider("api_key")
 		sh.TxContext = db.NewMockTxContext()
@@ -379,6 +355,10 @@ func TestAuthHandler(t *testing.T) {
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,
 			ProviderConfig: providerConfig,
+			UserInfo: sso.ProviderUserInfo{
+				ID:    providerUserID,
+				Email: "mock@example.com",
+			},
 		}
 		sh.Provider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
@@ -484,37 +464,37 @@ func TestAuthHandler(t *testing.T) {
 			sh.ServeHTTP(resp, req)
 			// for web_redirect, it should redirect to original callback url
 			So(resp.Code, ShouldEqual, 302)
-			So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
 
-			actual, err := decodeCookie(resp)
+			actual, err := decodeResultInURL(resp.Header().Get("Location"))
 			So(err, ShouldBeNil)
-			So(actual, ShouldEqualJSON, `
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+				ProviderType:   "google",
+				ProviderUserID: providerUserID,
+			})
+			So(actual, ShouldEqualJSON, fmt.Sprintf(`
 			{
 				"callback_url": "http://localhost:3000",
 				"result": {
 					"result": {
-						"user": {
-							"id": "john.doe.id",
-							"is_verified": false,
-							"is_disabled": false,
-							"created_at": "0001-01-01T00:00:00Z",
-							"verify_info": {},
-							"metadata": {}
-						}
+						"action": "link",
+						"code_challenge": "",
+						"user_id": "john.doe.id",
+						"principal_id": "%s"
 					}
 				}
 			}
-			`)
+			`, p.ID))
 		})
 
 		Convey("should get err if user is already linked", func() {
 			uxMode := sso.UXModeWebRedirect
 			mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
 				&oauth.Principal{
-					ID:           "jane.doe.id",
-					UserID:       "jane.doe.id",
-					ProviderType: "google",
-					ProviderKeys: map[string]interface{}{},
+					ID:             "jane.doe.id",
+					UserID:         "jane.doe.id",
+					ProviderType:   "google",
+					ProviderKeys:   map[string]interface{}{},
+					ProviderUserID: providerUserID,
 				},
 			})
 			sh.OAuthAuthProvider = mockOAuthProvider
@@ -546,9 +526,8 @@ func TestAuthHandler(t *testing.T) {
 
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 302)
-			So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
 
-			actual, err := decodeCookie(resp)
+			actual, err := decodeResultInURL(resp.Header().Get("Location"))
 			So(err, ShouldBeNil)
 			So(actual, ShouldEqualJSON, `
 			{
@@ -712,7 +691,7 @@ func TestAuthHandler(t *testing.T) {
 
 			So(resp.Code, ShouldEqual, 302)
 
-			actual, err := decodeCookie(resp)
+			actual, err := decodeResultInURL(resp.Result().Header.Get("Location"))
 			So(err, ShouldBeNil)
 			So(actual, ShouldEqualJSON, `
 			{
@@ -757,7 +736,7 @@ func TestAuthHandler(t *testing.T) {
 
 			So(resp.Code, ShouldEqual, 302)
 
-			actual, err := decodeCookie(resp)
+			actual, err := decodeResultInURL(resp.Result().Header.Get("Location"))
 			So(err, ShouldBeNil)
 			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
 				ProviderType:   "google",
@@ -768,41 +747,15 @@ func TestAuthHandler(t *testing.T) {
 				"callback_url": "http://localhost:3000",
 				"result": {
 					"result": {
-						"user": {
-							"created_at": "0001-01-01T00:00:00Z",
-							"id": "%s",
-							"is_disabled": false,
-							"is_verified": false,
-							"metadata": {},
-							"verify_info": {}
-						},
-						"identity": {
-							"type": "oauth",
-							"id": "%s",
-							"provider_keys": {},
-							"provider_type": "google",
-							"provider_user_id": "%s",
-							"raw_profile": {
-								"id": "%s",
-								"email": "john.doe@example.com"
-							},
-							"claims": {
-								"email": "john.doe@example.com"
-							}
-						},
-						"access_token": "access-token-%s-%s-0",
-						"session_id": "%s-%s-0"
+						"action": "login",
+						"code_challenge": "",
+						"session_create_reason": "login",
+						"user_id": "%s",
+						"principal_id": "%s"
 					}
 				}
 			}
-			`, p.UserID,
-				p.ID,
-				providerUserID,
-				providerUserID,
-				p.UserID,
-				p.ID,
-				p.UserID,
-				p.ID))
+			`, p.UserID, p.ID))
 		})
 
 		Convey("OnUserDuplicate == create", func() {
@@ -833,7 +786,7 @@ func TestAuthHandler(t *testing.T) {
 
 			So(resp.Code, ShouldEqual, 302)
 
-			actual, err := decodeCookie(resp)
+			actual, err := decodeResultInURL(resp.Result().Header.Get("Location"))
 			So(err, ShouldBeNil)
 			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
 				ProviderType:   "google",
@@ -845,42 +798,15 @@ func TestAuthHandler(t *testing.T) {
 				"callback_url": "http://localhost:3000",
 				"result": {
 					"result": {
-						"user": {
-							"created_at": "0001-01-01T00:00:00Z",
-							"id": "%s",
-							"is_disabled": false,
-							"is_verified": false,
-							"last_login_at": "2006-01-02T15:04:05Z",
-							"metadata": {},
-							"verify_info": {}
-						},
-						"identity": {
-							"type": "oauth",
-							"id": "%s",
-							"provider_keys": {},
-							"provider_type": "google",
-							"provider_user_id": "%s",
-							"raw_profile": {
-								"id": "%s",
-								"email": "john.doe@example.com"
-							},
-							"claims": {
-								"email": "john.doe@example.com"
-							}
-						},
-						"access_token": "access-token-%s-%s-0",
-						"session_id": "%s-%s-0"
+						"action": "login",
+						"code_challenge": "",
+						"session_create_reason": "signup",
+						"user_id": "%s",
+						"principal_id": "%s"
 					}
 				}
 			}
-			`, p.UserID,
-				p.ID,
-				providerUserID,
-				providerUserID,
-				p.UserID,
-				p.ID,
-				p.UserID,
-				p.ID))
+			`, p.UserID, p.ID))
 		})
 	})
 }

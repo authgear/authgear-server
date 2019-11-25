@@ -74,19 +74,16 @@ func (p AuthRequestPayload) Validate() error {
 
 // AuthHandler decodes code response and fetch access token from provider.
 //
-// curl http://localhost:3000/sso/<provider>/auth_handler?code=<code>&state=<state>
-//
 // For ux_mode is 'mobile_app',
-// it creates a 302 response, and Location points to:
-// myapp://user.skygear.io/sso/{provider}/auth_handler?result=
+// it returns a 302 response with Location set to
+// <callback_url>?x-skgyear-result=...
 //
 // Fox ux_mode is 'web_redirect',
-// it creates a 302 response, and Location points to: sso_callback_url
-// and set cookie in the response.
+// it returns a 302 response with Location set to
+// <callback_url>?x-skygear-result=...
 //
 // For ux_mode is 'web_popup',
-// it will render a html page and set cookie in the response.
-//
+// it renders a html page with embedded result.
 type AuthHandler struct {
 	TxContext                      db.TxContext                `dependency:"TxContext"`
 	AuthContext                    coreAuth.ContextGetter      `dependency:"AuthContextGetter"`
@@ -144,7 +141,7 @@ func (h AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success bool) {
-	var resp interface{}
+	var code string
 	var oauthAuthInfo sso.AuthInfo
 	success = false
 
@@ -186,12 +183,11 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	// From now on, we must return response by respecting CallbackURL and UXMode.
 	defer func() {
 		success = err == nil
-		resp = h.AuthnSessionProvider.AlterResponse(w, resp, err)
 		switch state.UXMode {
 		case sso.UXModeWebRedirect, sso.UXModeWebPopup:
-			err = h.handleSessionResp(w, r, state.UXMode, state.CallbackURL, resp, err)
+			err = h.handleWebAppResponse(w, r, state.UXMode, state.CallbackURL, code, err)
 		case sso.UXModeMobileApp:
-			err = h.handleRedirectResp(w, r, state.CallbackURL, resp, err)
+			err = h.handleMobileAppResponse(w, r, state.CallbackURL, code, err)
 		default:
 			success = false
 			http.Error(w, "Invalid UXMode", http.StatusBadRequest)
@@ -202,7 +198,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	if err != nil {
 		return
 	}
-	resp, err = h.handle(oauthAuthInfo, *state)
+	code, err = h.handle(oauthAuthInfo, *state)
 	return
 }
 
@@ -211,7 +207,7 @@ func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.
 	return
 }
 
-func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (resp interface{}, err error) {
+func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encodedCode string, err error) {
 	respHandler := respHandler{
 		AuthnSessionProvider: h.AuthnSessionProvider,
 		AuthInfoStore:        h.AuthInfoStore,
@@ -224,11 +220,22 @@ func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (resp i
 		URLPrefix:            h.URLPrefix,
 	}
 
+	var code *sso.SkygearAuthorizationCode
 	if state.Action == "login" {
-		return respHandler.loginActionResp(oauthAuthInfo, state.LoginState)
+		code, err = respHandler.LoginCode(oauthAuthInfo, state.CodeChallenge, state.LoginState)
+	} else {
+		code, err = respHandler.LinkCode(oauthAuthInfo, state.CodeChallenge, state.LinkState)
+	}
+	if err != nil {
+		return
 	}
 
-	return respHandler.linkActionResp(oauthAuthInfo, state.LinkState)
+	encodedCode, err = h.Provider.EncodeSkygearAuthorizationCode(*code)
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
@@ -236,32 +243,34 @@ func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackU
 	return
 }
 
-func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, uxMode sso.UXMode, callbackURL string, resp interface{}, inputErr error) (err error) {
-	//
-	// In JS oauth flow, result send through cookies and handler by js script
-	//
-	// Session data:
-	// sso_callback_url -- callback url for ux_mode == web_redirect
-	// sso_result       -- response json
-	//
+func (h AuthHandler) handleWebAppResponse(
+	rw http.ResponseWriter,
+	r *http.Request,
+	uxMode sso.UXMode,
+	callbackURL string,
+	code string,
+	inputErr error,
+) (err error) {
 	data := make(map[string]interface{})
-	data["result"] = makeJSONResponse(resp, inputErr)
+	data["result"] = makeJSONResponse(code, inputErr)
 	data["callback_url"] = callbackURL
-	msg, err := json.Marshal(data)
-	if err != nil {
-		return
-	}
-	encoded := base64.StdEncoding.EncodeToString([]byte(msg))
-	cookie := http.Cookie{
-		Name:  coreHttp.CookieNameSSOData,
-		Value: encoded,
-		Path:  "/",
-	}
-	http.SetCookie(rw, &cookie)
+
 	if uxMode == sso.UXModeWebRedirect {
-		http.Redirect(rw, r, callbackURL, http.StatusFound)
+		resultBytes, err := json.Marshal(data)
+		if err != nil {
+			return err
+		}
+		encodedResult := base64.StdEncoding.EncodeToString(resultBytes)
+		v := url.Values{}
+		v.Set("result", encodedResult)
+		u, err := url.Parse(callbackURL)
+		if err != nil {
+			return err
+		}
+		u.RawQuery = v.Encode()
+		http.Redirect(rw, r, u.String(), http.StatusFound)
 	} else {
-		html, err := h.AuthHandlerHTMLProvider.HTML()
+		html, err := h.AuthHandlerHTMLProvider.HTML(data)
 		if err != nil {
 			return err
 		}
@@ -271,24 +280,24 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 	return
 }
 
-func (h AuthHandler) handleRedirectResp(
+func (h AuthHandler) handleMobileAppResponse(
 	rw http.ResponseWriter,
 	r *http.Request,
 	callbackURL string,
-	resp interface{},
+	code string,
 	inputErr error,
 ) error {
-	// In mobile app oauth flow, after auth flow complete will redirect
-	// client back to the app with custom scheme
-	// result will be added to the url by query
-	//
-	// Example:
-	// myapp://user.skygear.io/sso/{provider}/auth_handler?result=
-	authRespBytes, err := json.Marshal(makeJSONResponse(resp, inputErr))
+	data := make(map[string]interface{})
+	data["result"] = makeJSONResponse(code, inputErr)
+	data["callback_url"] = callbackURL
+
+	resultBytes, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
-	encodedResult := base64.StdEncoding.EncodeToString(authRespBytes)
+
+	encodedResult := base64.StdEncoding.EncodeToString(resultBytes)
+
 	v := url.Values{}
 	v.Set("result", encodedResult)
 	u, err := url.Parse(callbackURL)
@@ -300,9 +309,9 @@ func (h AuthHandler) handleRedirectResp(
 	return nil
 }
 
-func makeJSONResponse(ok interface{}, err error) handler.APIResponse {
+func makeJSONResponse(code string, err error) handler.APIResponse {
 	if err != nil {
 		return handler.APIResponse{Error: err}
 	}
-	return handler.APIResponse{Result: ok}
+	return handler.APIResponse{Result: code}
 }

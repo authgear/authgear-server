@@ -46,6 +46,16 @@ type State struct {
 	APIClientID   string `json:"api_client_id"`
 }
 
+// SkygearAuthorizationCode is a OAuth authorization code like value
+// that can be used to exchange access token.
+type SkygearAuthorizationCode struct {
+	Action              string `json:"action"`
+	CodeChallenge       string `json:"code_challenge"`
+	UserID              string `json:"user_id"`
+	PrincipalID         string `json:"principal_id,omitempty"`
+	SessionCreateReason string `json:"session_create_reason,omitempty"`
+}
+
 // UXMode indicates how the URL is used
 type UXMode string
 
@@ -107,9 +117,14 @@ type OAuthAuthorizationResponse struct {
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
+
 	EncodeState(state State) (encodedState string, err error)
 	DecodeState(encodedState string) (*State, error)
+
 	GetAuthInfo(r OAuthAuthorizationResponse) (AuthInfo, error)
+
+	EncodeSkygearAuthorizationCode(SkygearAuthorizationCode) (code string, err error)
+	DecodeSkygearAuthorizationCode(code string) (*SkygearAuthorizationCode, error)
 }
 
 // NonOpenIDConnectProvider are OAuth 2.0 provider that does not

@@ -216,7 +216,6 @@ func main() {
 	ssohandler.AttachAuthURLHandler(&srv, authDependency)
 	ssohandler.AttachAuthRedirectHandler(&srv, authDependency)
 	ssohandler.AttachConfigHandler(&srv, authDependency)
-	ssohandler.AttachIFrameHandlerFactory(&srv, authDependency)
 	ssohandler.AttachCustomTokenLoginHandler(&srv, authDependency)
 	ssohandler.AttachAuthHandler(&srv, authDependency)
 	ssohandler.AttachLoginHandler(&srv, authDependency)

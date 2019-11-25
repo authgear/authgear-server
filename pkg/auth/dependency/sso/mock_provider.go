@@ -61,6 +61,14 @@ func (f *MockSSOProvider) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
+func (f *MockSSOProvider) EncodeSkygearAuthorizationCode(code SkygearAuthorizationCode) (encoded string, err error) {
+	return EncodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, code)
+}
+
+func (f *MockSSOProvider) DecodeSkygearAuthorizationCode(encoded string) (*SkygearAuthorizationCode, error) {
+	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, encoded)
+}
+
 func (f *MockSSOProvider) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	rawProfile := map[string]interface{}{
 		"id": f.UserInfo.ID,
