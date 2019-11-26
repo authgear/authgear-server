@@ -10,11 +10,16 @@ const (
 	TemplateItemTypeWelcomeEmailHTML config.TemplateItemType = "welcome_email.html"
 )
 
-var TemplateWelcomeEmailTXT = template.T{
+var TemplateWelcomeEmailTXT = template.Spec{
 	Type: TemplateItemTypeWelcomeEmailTXT,
 	Default: `Hello {{ .email }},
 
 Welcome to Skygear.
 
 Thanks.`,
+}
+
+var TemplateWelcomeEmailHTML = template.Spec{
+	Type:   TemplateItemTypeWelcomeEmailHTML,
+	IsHTML: true,
 }

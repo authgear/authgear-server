@@ -380,6 +380,8 @@ func (m DependencyMap) Provide(
 		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
 	case "URLPrefix":
 		return urlprefix.NewProvider(request).Value()
+	case "TemplateEngine":
+		return newTemplateEngine()
 	default:
 		return nil
 	}

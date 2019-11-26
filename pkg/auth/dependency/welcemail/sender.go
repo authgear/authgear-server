@@ -43,7 +43,7 @@ func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) 
 	}
 
 	var textBody string
-	if textBody, err = d.TemplateEngine.RenderTextTemplate(
+	if textBody, err = d.TemplateEngine.RenderTemplate(
 		TemplateItemTypeWelcomeEmailTXT,
 		context,
 		template.RenderOptions{Required: true},
@@ -53,7 +53,7 @@ func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) 
 	}
 
 	var htmlBody string
-	if htmlBody, err = d.TemplateEngine.RenderHTMLTemplate(
+	if htmlBody, err = d.TemplateEngine.RenderTemplate(
 		TemplateItemTypeWelcomeEmailHTML,
 		context,
 		template.RenderOptions{Required: false},

@@ -56,7 +56,7 @@ func NewVerifyHTMLProvider(c *config.UserVerificationConfiguration, templateEngi
 }
 
 func (v *VerifyHTMLProvider) SuccessHTML(key string, context map[string]interface{}) (string, error) {
-	return v.templateEngine.RenderHTMLTemplate(
+	return v.templateEngine.RenderTemplate(
 		TemplateItemTypeUserVerificationSuccessHTML,
 		context,
 		template.RenderOptions{
@@ -67,7 +67,7 @@ func (v *VerifyHTMLProvider) SuccessHTML(key string, context map[string]interfac
 }
 
 func (v *VerifyHTMLProvider) ErrorHTML(key string, context map[string]interface{}) (string, error) {
-	return v.templateEngine.RenderHTMLTemplate(
+	return v.templateEngine.RenderTemplate(
 		TemplateItemTypeUserVerificationErrorHTML,
 		context,
 		template.RenderOptions{

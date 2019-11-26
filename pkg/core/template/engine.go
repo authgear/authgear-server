@@ -23,15 +23,15 @@ type NewEngineOptions struct {
 
 // Engine resolves and renders templates.
 type Engine struct {
-	DefaultLoader *DefaultLoader
-	URILoader     *URILoader
-	TemplateItems []config.TemplateItem
+	uriLoader     *URILoader
+	TemplateSpecs map[config.TemplateItemType]Spec
+	templateItems []config.TemplateItem
 	// NOTE(louis): PreferredLanguageTags
-	// PreferredLanguageTags is put here instead of receiving it from RenderXXX methods.
+	// preferredLanguageTags is put here instead of receiving it from RenderXXX methods.
 	// It is expected that engine is created per request.
 	// The preferred language tags should be lazily retrieved
 	// from the auth context.
-	PreferredLanguageTags []string
+	preferredLanguageTags []string
 }
 
 func NewEngine(opts NewEngineOptions) *Engine {
@@ -39,71 +39,57 @@ func NewEngine(opts NewEngineOptions) *Engine {
 	uriLoader.EnableFileLoader = opts.EnableFileLoader
 	uriLoader.EnableDataLoader = opts.EnableDataLoader
 	return &Engine{
-		DefaultLoader:         NewDefaultLoader(),
-		URILoader:             uriLoader,
-		TemplateItems:         opts.TemplateItems,
-		PreferredLanguageTags: opts.PreferredLanguageTags,
+		uriLoader:             uriLoader,
+		templateItems:         opts.TemplateItems,
+		TemplateSpecs:         map[config.TemplateItemType]Spec{},
+		preferredLanguageTags: opts.PreferredLanguageTags,
 	}
 }
 
-func (e *Engine) Clone() *Engine {
-	items := make([]config.TemplateItem, len(e.TemplateItems))
-	tags := make([]string, len(e.PreferredLanguageTags))
-	copy(items, e.TemplateItems)
-	copy(tags, e.PreferredLanguageTags)
-
-	return &Engine{
-		DefaultLoader:         e.DefaultLoader.Clone(),
-		URILoader:             e.URILoader.Clone(),
-		TemplateItems:         items,
-		PreferredLanguageTags: tags,
-	}
+func (e *Engine) Register(spec Spec) {
+	e.TemplateSpecs[spec.Type] = spec
 }
 
-func (e *Engine) Register(t T) {
-	e.DefaultLoader.Map[t.Type] = t
-}
-
-func (e *Engine) RenderTextTemplate(templateType config.TemplateItemType, context map[string]interface{}, option RenderOptions) (out string, err error) {
-	var templateBody string
-	if templateBody, err = e.resolveTemplate(templateType, option); err != nil {
+func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, option RenderOptions) (out string, err error) {
+	templateBody, spec, err := e.resolveTemplate(templateType, option)
+	if err != nil {
 		return
 	}
-
+	if spec.IsHTML {
+		return RenderHTMLTemplate(string(templateType), templateBody, context)
+	}
 	return RenderTextTemplate(string(templateType), templateBody, context)
 }
 
-func (e *Engine) RenderHTMLTemplate(templateType config.TemplateItemType, context map[string]interface{}, option RenderOptions) (out string, err error) {
-	var templateBody string
-	if templateBody, err = e.resolveTemplate(templateType, option); err != nil {
-		return
+func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options RenderOptions) (string, Spec, error) {
+	spec, found := e.TemplateSpecs[templateType]
+	if !found {
+		panic("template: unregistered template type: " + templateType)
 	}
 
-	return RenderHTMLTemplate(string(templateType), templateBody, context)
-}
-
-func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options RenderOptions) (string, error) {
-	templateItem, err := e.resolveTemplateItem(templateType, options.Key)
+	templateItem, err := e.resolveTemplateItem(spec, options.Key)
+	var templateBody string
 	// No template item can be resolved. Fallback to default.
 	if err != nil {
-		templateBody, err := e.DefaultLoader.Load(templateType)
-		if err != nil {
-			if !options.Required {
-				err = nil
-			}
+		err = nil
+		if spec.Default != "" {
+			templateBody = spec.Default
+		} else if options.Required {
+			err = &errNotFound{string(templateType)}
 		}
-		return templateBody, err
+	} else {
+		templateBody, err = e.uriLoader.Load(templateItem.URI)
 	}
-	return e.URILoader.Load(templateItem.URI)
+	return templateBody, spec, err
 }
 
-func (e *Engine) resolveTemplateItem(templateType config.TemplateItemType, key string) (templateItem *config.TemplateItem, err error) {
-	input := e.TemplateItems
+func (e *Engine) resolveTemplateItem(spec Spec, key string) (templateItem *config.TemplateItem, err error) {
+	input := e.templateItems
 	var output []config.TemplateItem
 
 	// The first step is to find out templates with the target type.
 	for _, item := range input {
-		if item.Type == templateType {
+		if item.Type == spec.Type {
 			i := item
 			output = append(output, i)
 		}
@@ -112,7 +98,7 @@ func (e *Engine) resolveTemplateItem(templateType config.TemplateItemType, key s
 	output = nil
 
 	// The second step is to find out templates with the target key, if key is specified
-	if key != "" {
+	if spec.IsKeyed && key != "" {
 		for _, item := range input {
 			if item.Key == key {
 				i := item
@@ -124,7 +110,7 @@ func (e *Engine) resolveTemplateItem(templateType config.TemplateItemType, key s
 
 	// We have either have a list of templates of different language tags or an empty list.
 	if len(input) <= 0 {
-		err = &errNotFound{name: string(templateType)}
+		err = &errNotFound{name: string(spec.Type)}
 		return
 	}
 
@@ -144,8 +130,8 @@ func (e *Engine) resolveTemplateItem(templateType config.TemplateItemType, key s
 	}
 	matcher := language.NewMatcher(supportedTags)
 
-	preferredTags := make([]language.Tag, len(e.PreferredLanguageTags))
-	for i, tagStr := range e.PreferredLanguageTags {
+	preferredTags := make([]language.Tag, len(e.preferredLanguageTags))
+	for i, tagStr := range e.preferredLanguageTags {
 		preferredTags[i] = language.Make(tagStr)
 	}
 

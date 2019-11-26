@@ -24,11 +24,6 @@ func NewURILoader(assetGearLoader *AssetGearLoader) *URILoader {
 	}
 }
 
-func (l *URILoader) Clone() *URILoader {
-	cloned := *l
-	return &cloned
-}
-
 func (l *URILoader) Load(uri string) (templateContent string, err error) {
 	u, err := url.Parse(uri)
 	if err != nil {

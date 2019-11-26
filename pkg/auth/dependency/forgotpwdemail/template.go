@@ -13,7 +13,7 @@ const (
 	TemplateItemTypeForgotPasswordErrorHTML   config.TemplateItemType = "forgot_password_error.html"
 )
 
-var TemplatePasswordEmailTXT = template.T{
+var TemplatePasswordEmailTXT = template.Spec{
 	Type: TemplateItemTypeForgotPasswordEmailTXT,
 	Default: `Dear {{ .email }},
 
@@ -26,8 +26,14 @@ If you did not request to reset your account password, Please ignore this email.
 Thanks.`,
 }
 
-var TemplateForgotPasswordResetHTML = template.T{
-	Type: TemplateItemTypeForgotPasswordResetHTML,
+var TemplatePasswordEmailHTML = template.Spec{
+	Type:   TemplateItemTypeForgotPasswordEmailHTML,
+	IsHTML: true,
+}
+
+var TemplateForgotPasswordResetHTML = template.Spec{
+	Type:   TemplateItemTypeForgotPasswordResetHTML,
+	IsHTML: true,
 	Default: `<!DOCTYPE html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -47,11 +53,22 @@ var TemplateForgotPasswordResetHTML = template.T{
 </form>`,
 }
 
-var TemplateForgotPasswordSuccessHTML = template.T{
-	Type: TemplateItemTypeForgotPasswordSuccessHTML,
+var TemplateForgotPasswordSuccessHTML = template.Spec{
+	Type:   TemplateItemTypeForgotPasswordSuccessHTML,
+	IsHTML: true,
 	Default: `<!DOCTYPE html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <p>Your password is reset successfully.</p>`,
+}
+
+var TemplateForgotPasswordErrorHTML = template.Spec{
+	Type:   TemplateItemTypeForgotPasswordErrorHTML,
+	IsHTML: true,
+	Default: `<!DOCTYPE html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<p>{{ .error.Message }}</p>`,
 }
