@@ -7,7 +7,7 @@ import (
 
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
-	GetAuthURL(params GetURLParams) (url string, err error)
+	GetAuthURL(state State) (url string, err error)
 
 	EncodeState(state State) (encodedState string, err error)
 	DecodeState(encodedState string) (*State, error)

@@ -19,12 +19,12 @@ type InstagramImpl struct {
 	ProviderConfig config.OAuthProviderConfiguration
 }
 
-func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
+func (f *InstagramImpl) GetAuthURL(state State) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
 		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
-		state:          NewState(params),
+		state:          state,
 		baseURL:        instagramAuthorizationURL,
 	}
 	return authURL(p)

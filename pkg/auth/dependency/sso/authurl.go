@@ -9,11 +9,6 @@ import (
 	coreUrl "github.com/skygeario/skygear-server/pkg/core/url"
 )
 
-// GetURLParams is the argument of getAuthURL
-type GetURLParams struct {
-	State State
-}
-
 type authURLParams struct {
 	oauthConfig    *config.OAuthConfiguration
 	urlPrefix      *url.URL

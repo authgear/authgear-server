@@ -106,7 +106,7 @@ func (f *Azureadv2Impl) getKeys(endpoint string) (*jwk.Set, error) {
 	return jwk.Parse(resp.Body)
 }
 
-func (f *Azureadv2Impl) GetAuthURL(params GetURLParams) (string, error) {
+func (f *Azureadv2Impl) GetAuthURL(state State) (string, error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return "", err
@@ -115,10 +115,10 @@ func (f *Azureadv2Impl) GetAuthURL(params GetURLParams) (string, error) {
 		oauthConfig:    f.OAuthConfig,
 		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
-		state:          NewState(params),
+		state:          state,
 		baseURL:        c.AuthorizationEndpoint,
 		responseMode:   "form_post",
-		nonce:          params.State.Nonce,
+		nonce:          state.Nonce,
 	}
 	return authURL(p)
 }

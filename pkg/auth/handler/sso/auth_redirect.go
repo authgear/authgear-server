@@ -94,10 +94,7 @@ func (h *AuthRedirectHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 
 	state.Nonce = crypto.SHA256String(nonce)
 
-	params := sso.GetURLParams{
-		State: *state,
-	}
-	url, err := h.Provider.GetAuthURL(params)
+	url, err := h.Provider.GetAuthURL(*state)
 	if err != nil {
 		return
 	}

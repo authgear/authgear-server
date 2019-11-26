@@ -19,15 +19,15 @@ type FacebookImpl struct {
 	ProviderConfig config.OAuthProviderConfiguration
 }
 
-func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
+func (f *FacebookImpl) GetAuthURL(state State) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
 		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
-		state:          NewState(params),
+		state:          state,
 		baseURL:        facebookAuthorizationURL,
 	}
-	if params.State.UXMode == UXModeWebPopup {
+	if state.UXMode == UXModeWebPopup {
 		// https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow
 		p.display = "popup"
 	}

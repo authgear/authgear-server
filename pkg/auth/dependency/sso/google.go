@@ -19,12 +19,12 @@ type GoogleImpl struct {
 	ProviderConfig config.OAuthProviderConfiguration
 }
 
-func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
+func (f *GoogleImpl) GetAuthURL(state State) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
 		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
-		state:          NewState(params),
+		state:          state,
 		baseURL:        googleAuthorizationURL,
 		prompt:         "select_account",
 	}

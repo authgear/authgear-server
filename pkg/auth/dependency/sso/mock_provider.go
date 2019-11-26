@@ -15,7 +15,7 @@ type MockSSOProvider struct {
 	UserInfo       ProviderUserInfo
 }
 
-func (f *MockSSOProvider) GetAuthURL(params GetURLParams) (string, error) {
+func (f *MockSSOProvider) GetAuthURL(state State) (string, error) {
 	if f.ProviderConfig.ClientID == "" {
 		return "", errors.New("must provide ClientID")
 	}
@@ -23,7 +23,7 @@ func (f *MockSSOProvider) GetAuthURL(params GetURLParams) (string, error) {
 		oauthConfig:    f.OAuthConfig,
 		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
-		state:          NewState(params),
+		state:          state,
 		baseURL:        f.BaseURL,
 	}
 	return authURL(p)

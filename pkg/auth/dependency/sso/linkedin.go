@@ -19,12 +19,12 @@ type LinkedInImpl struct {
 	ProviderConfig config.OAuthProviderConfiguration
 }
 
-func (f *LinkedInImpl) GetAuthURL(params GetURLParams) (string, error) {
+func (f *LinkedInImpl) GetAuthURL(state State) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
 		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
-		state:          NewState(params),
+		state:          state,
 		baseURL:        linkedinAuthorizationURL,
 	}
 	return authURL(p)

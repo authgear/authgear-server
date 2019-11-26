@@ -11,11 +11,6 @@ type StateClaims struct {
 	jwt.StandardClaims
 }
 
-// NewState constructs a new state
-func NewState(params GetURLParams) State {
-	return params.State
-}
-
 // EncodeState encodes state by JWT
 func EncodeState(secret string, state State) (string, error) {
 	claims := StateClaims{
