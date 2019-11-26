@@ -3,6 +3,7 @@ package sso
 import (
 	"net/url"
 
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
@@ -53,6 +54,22 @@ func (f *MockSSOProvider) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 	return f.GetAuthInfo(r)
 }
 
+func (f *MockSSOProvider) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+	rawProfile := map[string]interface{}{
+		"id": f.UserInfo.ID,
+	}
+	if f.UserInfo.Email != "" {
+		rawProfile["email"] = f.UserInfo.Email
+	}
+	authInfo = AuthInfo{
+		ProviderConfig:          f.ProviderConfig,
+		ProviderAccessTokenResp: map[string]interface{}{},
+		ProviderRawProfile:      rawProfile,
+		ProviderUserInfo:        f.UserInfo,
+	}
+	return
+}
+
 func (f *MockSSOProvider) EncodeState(state State) (encodedState string, err error) {
 	return EncodeState(f.OAuthConfig.StateJWTSecret, state)
 }
@@ -69,20 +86,22 @@ func (f *MockSSOProvider) DecodeSkygearAuthorizationCode(encoded string) (*Skyge
 	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, encoded)
 }
 
-func (f *MockSSOProvider) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
-	rawProfile := map[string]interface{}{
-		"id": f.UserInfo.ID,
-	}
-	if f.UserInfo.Email != "" {
-		rawProfile["email"] = f.UserInfo.Email
-	}
-	authInfo = AuthInfo{
-		ProviderConfig:          f.ProviderConfig,
-		ProviderAccessTokenResp: map[string]interface{}{},
-		ProviderRawProfile:      rawProfile,
-		ProviderUserInfo:        f.UserInfo,
-	}
-	return
+func (f *MockSSOProvider) IsAllowedOnUserDuplicate(a model.OnUserDuplicate) bool {
+	return model.IsAllowedOnUserDuplicate(
+		f.OAuthConfig.OnUserDuplicateAllowMerge,
+		f.OAuthConfig.OnUserDuplicateAllowCreate,
+		a,
+	)
+}
+
+func (f *MockSSOProvider) IsValidCallbackURL(u string) bool {
+	err := ValidateCallbackURL(f.OAuthConfig.AllowedCallbackURLs, u)
+	return err == nil
+
+}
+
+func (f *MockSSOProvider) IsExternalAccessTokenFlowEnabled() bool {
+	return f.OAuthConfig.ExternalAccessTokenFlowEnabled
 }
 
 var (

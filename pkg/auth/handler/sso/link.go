@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -82,19 +81,19 @@ const LinkRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type LinkHandler struct {
-	TxContext          db.TxContext               `dependency:"TxContext"`
-	Validator          *validation.Validator      `dependency:"Validator"`
-	AuthContext        coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
-	RequireAuthz       handler.RequireAuthz       `dependency:"RequireAuthz"`
-	OAuthAuthProvider  oauth.Provider             `dependency:"OAuthAuthProvider"`
-	IdentityProvider   principal.IdentityProvider `dependency:"IdentityProvider"`
-	AuthInfoStore      authinfo.Store             `dependency:"AuthInfoStore"`
-	UserProfileStore   userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider       hook.Provider              `dependency:"HookProvider"`
-	ProviderFactory    *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
-	OAuthConfiguration *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
-	OAuthProvider      sso.OAuthProvider
-	ProviderID         string
+	TxContext         db.TxContext               `dependency:"TxContext"`
+	Validator         *validation.Validator      `dependency:"Validator"`
+	AuthContext       coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz      handler.RequireAuthz       `dependency:"RequireAuthz"`
+	OAuthAuthProvider oauth.Provider             `dependency:"OAuthAuthProvider"`
+	IdentityProvider  principal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore     authinfo.Store             `dependency:"AuthInfoStore"`
+	UserProfileStore  userprofile.Store          `dependency:"UserProfileStore"`
+	HookProvider      hook.Provider              `dependency:"HookProvider"`
+	ProviderFactory   *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
+	SSOProvider       sso.Provider               `dependency:"SSOProvider"`
+	OAuthProvider     sso.OAuthProvider
+	ProviderID        string
 }
 
 func (h LinkHandler) ProvideAuthzPolicy() authz.Policy {
@@ -121,7 +120,7 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interf
 		return nil, err
 	}
 
-	if !h.OAuthConfiguration.ExternalAccessTokenFlowEnabled {
+	if !h.SSOProvider.IsExternalAccessTokenFlowEnabled() {
 		err = skyerr.NewNotFound("external access token flow is disabled")
 		return
 	}

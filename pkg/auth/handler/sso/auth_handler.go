@@ -20,7 +20,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -97,7 +96,6 @@ type AuthHandler struct {
 	ProviderFactory                *sso.OAuthProviderFactory   `dependency:"SSOOAuthProviderFactory"`
 	UserProfileStore               userprofile.Store           `dependency:"UserProfileStore"`
 	HookProvider                   hook.Provider               `dependency:"HookProvider"`
-	OAuthConfiguration             *config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
 	WelcomeEmailEnabled            bool                        `dependency:"WelcomeEmailEnabled"`
 	TaskQueue                      async.Queue                 `dependency:"AsyncTaskQueue"`
 	URLPrefix                      *url.URL                    `dependency:"URLPrefix"`
@@ -176,7 +174,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	key := h.APIClientConfigurationProvider.GetAccessKeyByClientID(state.APIClientID)
 	h.AuthContextSetter.SetAccessKey(key)
 
-	if err = h.validateCallbackURL(h.OAuthConfiguration.AllowedCallbackURLs, state.CallbackURL); err != nil {
+	if !h.SSOProvider.IsValidCallbackURL(state.CallbackURL) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -236,11 +234,6 @@ func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encode
 		return
 	}
 
-	return
-}
-
-func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
-	err = sso.ValidateCallbackURL(allowedCallbackURLs, callbackURL)
 	return
 }
 

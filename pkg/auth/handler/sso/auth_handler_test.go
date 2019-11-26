@@ -147,7 +147,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
-		sh.OAuthConfiguration = oauthConfig
 		zero := 0
 		one := 1
 		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
@@ -390,7 +389,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
-		sh.OAuthConfiguration = oauthConfig
 		zero := 0
 		one := 1
 		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
@@ -606,7 +604,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
-		sh.OAuthConfiguration = oauthConfig
 		zero := 0
 		one := 1
 		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
@@ -811,26 +808,5 @@ func TestAuthHandler(t *testing.T) {
 			}
 			`, p.UserID, p.ID))
 		})
-	})
-}
-
-func TestValidateCallbackURL(t *testing.T) {
-	Convey("Test ValidateCallbackURL", t, func() {
-		sh := &AuthHandler{}
-		callbackURL := "http://localhost:3000"
-		allowedCallbackURLs := []string{
-			"http://localhost",
-			"http://127.0.0.1",
-		}
-
-		e := sh.validateCallbackURL(allowedCallbackURLs, callbackURL)
-		So(e, ShouldBeNil)
-
-		callbackURL = "http://oursky"
-		e = sh.validateCallbackURL(allowedCallbackURLs, callbackURL)
-		So(e, ShouldNotBeNil)
-
-		e = sh.validateCallbackURL(allowedCallbackURLs, "")
-		So(e, ShouldNotBeNil)
 	})
 }

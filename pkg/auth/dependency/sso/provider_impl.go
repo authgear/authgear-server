@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -30,4 +31,21 @@ func (f *providerImpl) EncodeSkygearAuthorizationCode(code SkygearAuthorizationC
 
 func (f *providerImpl) DecodeSkygearAuthorizationCode(encoded string) (*SkygearAuthorizationCode, error) {
 	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, encoded)
+}
+
+func (f *providerImpl) IsAllowedOnUserDuplicate(a model.OnUserDuplicate) bool {
+	return model.IsAllowedOnUserDuplicate(
+		f.OAuthConfig.OnUserDuplicateAllowMerge,
+		f.OAuthConfig.OnUserDuplicateAllowCreate,
+		a,
+	)
+}
+
+func (f *providerImpl) IsValidCallbackURL(u string) bool {
+	err := ValidateCallbackURL(f.OAuthConfig.AllowedCallbackURLs, u)
+	return err == nil
+}
+
+func (f *providerImpl) IsExternalAccessTokenFlowEnabled() bool {
+	return f.OAuthConfig.ExternalAccessTokenFlowEnabled
 }

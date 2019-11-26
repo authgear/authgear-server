@@ -15,7 +15,6 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
@@ -132,8 +131,8 @@ type AuthURLRequestPayload struct {
 	MergeRealm      string                `json:"-"`
 	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 
-	PasswordAuthProvider password.Provider          `json:"-"`
-	OAuthConfiguration   *config.OAuthConfiguration `json:"-"`
+	PasswordAuthProvider password.Provider `json:"-"`
+	SSOProvider          sso.Provider      `json:"-"`
 }
 
 func (p *AuthURLRequestPayload) SetDefaultValue() {
@@ -155,11 +154,7 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		}}
 	}
 
-	if !model.IsAllowedOnUserDuplicate(
-		p.OAuthConfiguration.OnUserDuplicateAllowMerge,
-		p.OAuthConfiguration.OnUserDuplicateAllowCreate,
-		p.OnUserDuplicate,
-	) {
+	if !p.SSOProvider.IsAllowedOnUserDuplicate(p.OnUserDuplicate) {
 		return []validation.ErrorCause{{
 			Kind:    validation.ErrorGeneral,
 			Pointer: "/on_user_duplicate",
@@ -167,7 +162,7 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		}}
 	}
 
-	if err := sso.ValidateCallbackURL(p.OAuthConfiguration.AllowedCallbackURLs, p.CallbackURL); err != nil {
+	if !p.SSOProvider.IsValidCallbackURL(p.CallbackURL) {
 		return []validation.ErrorCause{{
 			Kind:    validation.ErrorGeneral,
 			Pointer: "/callback_url",
@@ -210,15 +205,14 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		@Callback user_sync {UserSyncEvent}
 */
 type AuthURLHandler struct {
-	TxContext                      db.TxContext               `dependency:"TxContext"`
-	Validator                      *validation.Validator      `dependency:"Validator"`
-	AuthContext                    coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
-	RequireAuthz                   handler.RequireAuthz       `dependency:"RequireAuthz"`
-	APIClientConfigurationProvider apiclientconfig.Provider   `dependency:"APIClientConfigurationProvider"`
-	ProviderFactory                *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
-	PasswordAuthProvider           password.Provider          `dependency:"PasswordAuthProvider"`
-	OAuthConfiguration             *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
-	SSOProvider                    sso.Provider               `dependency:"SSOProvider"`
+	TxContext                      db.TxContext              `dependency:"TxContext"`
+	Validator                      *validation.Validator     `dependency:"Validator"`
+	AuthContext                    coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
+	RequireAuthz                   handler.RequireAuthz      `dependency:"RequireAuthz"`
+	APIClientConfigurationProvider apiclientconfig.Provider  `dependency:"APIClientConfigurationProvider"`
+	ProviderFactory                *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
+	PasswordAuthProvider           password.Provider         `dependency:"PasswordAuthProvider"`
+	SSOProvider                    sso.Provider              `dependency:"SSOProvider"`
 	OAuthProvider                  sso.OAuthProvider
 	ProviderID                     string
 	Action                         string
@@ -251,7 +245,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 
 	payload := AuthURLRequestPayload{}
 	payload.PasswordAuthProvider = h.PasswordAuthProvider
-	payload.OAuthConfiguration = h.OAuthConfiguration
+	payload.SSOProvider = h.SSOProvider
 	err = handler.BindJSONBody(r, w, h.Validator, "#AuthURLRequest", &payload)
 	if err != nil {
 		return

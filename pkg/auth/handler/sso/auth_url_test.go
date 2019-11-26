@@ -64,7 +64,6 @@ func TestAuthURLHandler(t *testing.T) {
 		h.ProviderID = "google"
 		h.PasswordAuthProvider = mockPasswordProvider
 		h.Action = "login"
-		h.OAuthConfiguration = oauthConfig
 
 		Convey("should return login_auth_url", func() {
 			req, _ := http.NewRequest("POST", "http://mock", strings.NewReader(`

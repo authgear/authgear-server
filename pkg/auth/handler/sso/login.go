@@ -19,7 +19,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -108,10 +107,10 @@ type LoginHandler struct {
 	ProviderFactory      *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider         hook.Provider              `dependency:"HookProvider"`
-	OAuthConfiguration   *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
 	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
 	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
 	URLPrefix            *url.URL                   `dependency:"URLPrefix"`
+	SSOProvider          sso.Provider               `dependency:"SSOProvider"`
 	OAuthProvider        sso.OAuthProvider
 	ProviderID           string
 }
@@ -143,7 +142,7 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err error) {
-	if !h.OAuthConfiguration.ExternalAccessTokenFlowEnabled {
+	if !h.SSOProvider.IsExternalAccessTokenFlowEnabled() {
 		err = skyerr.NewNotFound("external access token flow is disabled")
 		return
 	}
