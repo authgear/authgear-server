@@ -15,4 +15,6 @@ type Provider interface {
 	IsValidCallbackURL(string) bool
 
 	IsExternalAccessTokenFlowEnabled() bool
+
+	VerifyPKCE(code *SkygearAuthorizationCode, codeVerifier string) error
 }

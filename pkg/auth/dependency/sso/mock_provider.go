@@ -1,6 +1,9 @@
 package sso
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/base64"
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -102,6 +105,16 @@ func (f *MockSSOProvider) IsValidCallbackURL(u string) bool {
 
 func (f *MockSSOProvider) IsExternalAccessTokenFlowEnabled() bool {
 	return f.OAuthConfig.ExternalAccessTokenFlowEnabled
+}
+
+func (f *MockSSOProvider) VerifyPKCE(code *SkygearAuthorizationCode, codeVerifier string) error {
+	sha256Arr := sha256.Sum256([]byte(codeVerifier))
+	sha256Slice := sha256Arr[:]
+	codeChallenge := base64.RawURLEncoding.EncodeToString(sha256Slice)
+	if subtle.ConstantTimeCompare([]byte(code.CodeChallenge), []byte(codeChallenge)) != 1 {
+		return NewSSOFailed(InvalidCodeVerifier, "invalid code verifier")
+	}
+	return nil
 }
 
 var (

@@ -9,10 +9,11 @@ var SSOFailed = skyerr.Unauthorized.WithReason("SSOFailed")
 type ssoFailCause string
 
 const (
-	SSOUnauthorized ssoFailCause = "Unauthorized"
-	NetworkFailed   ssoFailCause = "NetworkFailed"
-	InvalidParams   ssoFailCause = "InvalidParams"
-	AlreadyLinked   ssoFailCause = "AlreadyLinked"
+	SSOUnauthorized     ssoFailCause = "Unauthorized"
+	NetworkFailed       ssoFailCause = "NetworkFailed"
+	InvalidParams       ssoFailCause = "InvalidParams"
+	AlreadyLinked       ssoFailCause = "AlreadyLinked"
+	InvalidCodeVerifier ssoFailCause = "InvalidCodeVerifier"
 )
 
 func NewSSOFailed(cause ssoFailCause, msg string) error {
