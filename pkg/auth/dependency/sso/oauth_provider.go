@@ -39,19 +39,19 @@ type OpenIDConnectProvider interface {
 	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error)
 }
 
-type ProviderFactory struct {
+type OAuthProviderFactory struct {
 	urlPrefixProvider urlprefix.Provider
 	tenantConfig      config.TenantConfiguration
 }
 
-func NewProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider) *ProviderFactory {
-	return &ProviderFactory{
+func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider) *OAuthProviderFactory {
+	return &OAuthProviderFactory{
 		tenantConfig:      tenantConfig,
 		urlPrefixProvider: urlPrefixProvider,
 	}
 }
 
-func (p *ProviderFactory) NewProvider(id string) OAuthProvider {
+func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	providerConfig, ok := p.tenantConfig.GetOAuthProviderByID(id)
 	if !ok {
 		return nil
@@ -91,6 +91,6 @@ func (p *ProviderFactory) NewProvider(id string) OAuthProvider {
 	return nil
 }
 
-func (p *ProviderFactory) GetProviderConfig(id string) (config.OAuthProviderConfiguration, bool) {
+func (p *OAuthProviderFactory) GetOAuthProviderConfig(id string) (config.OAuthProviderConfiguration, bool) {
 	return p.tenantConfig.GetOAuthProviderByID(id)
 }

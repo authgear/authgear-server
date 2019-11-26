@@ -69,7 +69,7 @@ type UnlinkHandler struct {
 	IdentityProvider  authprincipal.IdentityProvider `dependency:"IdentityProvider"`
 	UserProfileStore  userprofile.Store              `dependency:"UserProfileStore"`
 	HookProvider      hook.Provider                  `dependency:"HookProvider"`
-	ProviderFactory   *sso.ProviderFactory           `dependency:"SSOProviderFactory"`
+	ProviderFactory   *sso.OAuthProviderFactory      `dependency:"SSOProviderFactory"`
 	ProviderID        string
 }
 
@@ -98,7 +98,7 @@ func (h UnlinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h UnlinkHandler) Handle() (resp interface{}, err error) {
 	err = hook.WithTx(h.HookProvider, h.TxContext, func() error {
-		providerConfig, ok := h.ProviderFactory.GetProviderConfig(h.ProviderID)
+		providerConfig, ok := h.ProviderFactory.GetOAuthProviderConfig(h.ProviderID)
 		if !ok {
 			return skyerr.NewNotFound("unknown SSO provider")
 		}

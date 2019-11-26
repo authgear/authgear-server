@@ -47,7 +47,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
+	h.Provider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
 	return h.RequireAuthz(h, h)
 }
 
@@ -105,7 +105,7 @@ type LoginHandler struct {
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	AuthnSessionProvider authnsession.Provider      `dependency:"AuthnSessionProvider"`
-	ProviderFactory      *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
+	ProviderFactory      *sso.OAuthProviderFactory  `dependency:"SSOProviderFactory"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider         hook.Provider              `dependency:"HookProvider"`
 	OAuthConfiguration   *config.OAuthConfiguration `dependency:"OAuthConfiguration"`

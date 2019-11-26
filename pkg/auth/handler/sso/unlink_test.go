@@ -37,7 +37,7 @@ func TestUnlinkHandler(t *testing.T) {
 		sh.AuthContext = authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
-		sh.ProviderFactory = sso.NewProviderFactory(config.TenantConfiguration{
+		sh.ProviderFactory = sso.NewOAuthProviderFactory(config.TenantConfiguration{
 			UserConfig: config.UserConfiguration{
 				SSO: &config.SSOConfiguration{
 					OAuth: &config.OAuthConfiguration{

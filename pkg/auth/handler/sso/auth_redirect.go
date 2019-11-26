@@ -43,12 +43,12 @@ func (f AuthRedirectHandlerFactory) NewHandler(request *http.Request) http.Handl
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
+	h.Provider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
 	return h
 }
 
 type AuthRedirectHandler struct {
-	ProviderFactory *sso.ProviderFactory `dependency:"SSOProviderFactory"`
+	ProviderFactory *sso.OAuthProviderFactory `dependency:"SSOProviderFactory"`
 	Provider        sso.OAuthProvider
 	ProviderID      string
 }

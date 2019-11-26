@@ -42,7 +42,7 @@ func (f LinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
+	h.Provider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
 	return h.RequireAuthz(h, h)
 }
 
@@ -91,7 +91,7 @@ type LinkHandler struct {
 	AuthInfoStore      authinfo.Store             `dependency:"AuthInfoStore"`
 	UserProfileStore   userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider       hook.Provider              `dependency:"HookProvider"`
-	ProviderFactory    *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
+	ProviderFactory    *sso.OAuthProviderFactory  `dependency:"SSOProviderFactory"`
 	OAuthConfiguration *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
 	Provider           sso.OAuthProvider
 	ProviderID         string

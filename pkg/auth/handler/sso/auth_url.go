@@ -50,7 +50,7 @@ func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
+	h.Provider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
 	h.Action = f.Action
 	return h.RequireAuthz(h, h)
 }
@@ -215,7 +215,7 @@ type AuthURLHandler struct {
 	AuthContext                    coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	RequireAuthz                   handler.RequireAuthz       `dependency:"RequireAuthz"`
 	APIClientConfigurationProvider apiclientconfig.Provider   `dependency:"APIClientConfigurationProvider"`
-	ProviderFactory                *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
+	ProviderFactory                *sso.OAuthProviderFactory  `dependency:"SSOProviderFactory"`
 	PasswordAuthProvider           password.Provider          `dependency:"PasswordAuthProvider"`
 	OAuthConfiguration             *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
 	Provider                       sso.OAuthProvider
