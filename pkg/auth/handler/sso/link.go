@@ -42,7 +42,7 @@ func (f LinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	h.Provider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
+	h.OAuthProvider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
 	return h.RequireAuthz(h, h)
 }
 
@@ -93,7 +93,7 @@ type LinkHandler struct {
 	HookProvider       hook.Provider              `dependency:"HookProvider"`
 	ProviderFactory    *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
 	OAuthConfiguration *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
-	Provider           sso.OAuthProvider
+	OAuthProvider      sso.OAuthProvider
 	ProviderID         string
 }
 
@@ -126,7 +126,7 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interf
 		return
 	}
 
-	provider, ok := h.Provider.(sso.ExternalAccessTokenFlowProvider)
+	provider, ok := h.OAuthProvider.(sso.ExternalAccessTokenFlowProvider)
 	if !ok {
 		err = skyerr.NewNotFound("unknown provider")
 		return

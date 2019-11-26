@@ -50,22 +50,6 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 	return h.getAuthInfo(r)
 }
 
-func (f *FacebookImpl) EncodeState(state State) (encodedState string, err error) {
-	return EncodeState(f.OAuthConfig.StateJWTSecret, state)
-}
-
-func (f *FacebookImpl) DecodeState(encodedState string) (*State, error) {
-	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
-}
-
-func (f *FacebookImpl) EncodeSkygearAuthorizationCode(code SkygearAuthorizationCode) (encoded string, err error) {
-	return EncodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, code)
-}
-
-func (f *FacebookImpl) DecodeSkygearAuthorizationCode(encoded string) (*SkygearAuthorizationCode, error) {
-	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, encoded)
-}
-
 func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		urlPrefix:      f.URLPrefix,

@@ -132,7 +132,8 @@ func TestAuthHandler(t *testing.T) {
 				Email: "mock@example.com",
 			},
 		}
-		sh.Provider = &mockProvider
+		sh.OAuthProvider = &mockProvider
+		sh.SSOProvider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(nil)
 		sh.OAuthAuthProvider = mockOAuthProvider
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
@@ -360,7 +361,8 @@ func TestAuthHandler(t *testing.T) {
 				Email: "mock@example.com",
 			},
 		}
-		sh.Provider = &mockProvider
+		sh.OAuthProvider = &mockProvider
+		sh.SSOProvider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
 			&oauth.Principal{
 				ID:           "jane.doe.id",
@@ -581,7 +583,8 @@ func TestAuthHandler(t *testing.T) {
 			UserInfo: sso.ProviderUserInfo{ID: providerUserID,
 				Email: "john.doe@example.com"},
 		}
-		sh.Provider = &mockProvider
+		sh.OAuthProvider = &mockProvider
+		sh.SSOProvider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(nil)
 		sh.OAuthAuthProvider = mockOAuthProvider
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(

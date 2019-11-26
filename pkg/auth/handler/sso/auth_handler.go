@@ -48,7 +48,7 @@ func (f AuthHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	h.Provider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
+	h.OAuthProvider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
 	return h
 }
 
@@ -101,7 +101,8 @@ type AuthHandler struct {
 	WelcomeEmailEnabled            bool                        `dependency:"WelcomeEmailEnabled"`
 	TaskQueue                      async.Queue                 `dependency:"AsyncTaskQueue"`
 	URLPrefix                      *url.URL                    `dependency:"URLPrefix"`
-	Provider                       sso.OAuthProvider
+	SSOProvider                    sso.Provider                `dependency:"SSOProvider"`
+	OAuthProvider                  sso.OAuthProvider
 	ProviderID                     string
 }
 
@@ -147,7 +148,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 
 	// We have to return error by directly writing to response at this stage
 	// because we do not have valid state.
-	if h.Provider == nil {
+	if h.OAuthProvider == nil {
 		http.Error(w, "Unknown provider", http.StatusBadRequest)
 		return
 	}
@@ -165,7 +166,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 
 	reqPayload := payload.(AuthRequestPayload)
 
-	state, err := h.Provider.DecodeState(reqPayload.State)
+	state, err := h.SSOProvider.DecodeState(reqPayload.State)
 	if err != nil {
 		http.Error(w, "Failed to decode state", http.StatusBadRequest)
 		return
@@ -203,7 +204,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 }
 
 func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.AuthInfo, err error) {
-	oauthAuthInfo, err = h.Provider.GetAuthInfo(sso.OAuthAuthorizationResponse(payload))
+	oauthAuthInfo, err = h.OAuthProvider.GetAuthInfo(sso.OAuthAuthorizationResponse(payload))
 	return
 }
 
@@ -230,7 +231,7 @@ func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encode
 		return
 	}
 
-	encodedCode, err = h.Provider.EncodeSkygearAuthorizationCode(*code)
+	encodedCode, err = h.SSOProvider.EncodeSkygearAuthorizationCode(*code)
 	if err != nil {
 		return
 	}

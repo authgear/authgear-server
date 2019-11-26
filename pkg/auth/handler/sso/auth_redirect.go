@@ -43,13 +43,14 @@ func (f AuthRedirectHandlerFactory) NewHandler(request *http.Request) http.Handl
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	h.Provider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
+	h.OAuthProvider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
 	return h
 }
 
 type AuthRedirectHandler struct {
 	ProviderFactory *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
-	Provider        sso.OAuthProvider
+	SSOProvider     sso.Provider              `dependency:"SSOProvider"`
+	OAuthProvider   sso.OAuthProvider
 	ProviderID      string
 }
 
@@ -63,7 +64,7 @@ func (h *AuthRedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *AuthRedirectHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
-	if h.Provider == nil {
+	if h.OAuthProvider == nil {
 		err = skyerr.NewNotFound("unknown provider")
 		return
 	}
@@ -74,7 +75,7 @@ func (h *AuthRedirectHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 	}
 
 	encodedState := r.Form.Get("state")
-	state, err := h.Provider.DecodeState(encodedState)
+	state, err := h.SSOProvider.DecodeState(encodedState)
 	if err != nil {
 		return
 	}
@@ -94,7 +95,7 @@ func (h *AuthRedirectHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 
 	state.Nonce = crypto.SHA256String(nonce)
 
-	url, err := h.Provider.GetAuthURL(*state)
+	url, err := h.OAuthProvider.GetAuthURL(*state)
 	if err != nil {
 		return
 	}

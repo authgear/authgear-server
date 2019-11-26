@@ -74,7 +74,7 @@ func TestLoginHandler(t *testing.T) {
 				Email: "mock@example.com",
 			},
 		}
-		sh.Provider = &mockProvider
+		sh.OAuthProvider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(nil)
 		sh.OAuthAuthProvider = mockOAuthProvider
 		identityProvider := principal.NewMockIdentityProvider(sh.OAuthAuthProvider)

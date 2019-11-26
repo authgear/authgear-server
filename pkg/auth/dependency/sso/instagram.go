@@ -30,22 +30,6 @@ func (f *InstagramImpl) GetAuthURL(state State) (string, error) {
 	return authURL(p)
 }
 
-func (f *InstagramImpl) EncodeState(state State) (encodedState string, err error) {
-	return EncodeState(f.OAuthConfig.StateJWTSecret, state)
-}
-
-func (f *InstagramImpl) DecodeState(encodedState string) (*State, error) {
-	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
-}
-
-func (f *InstagramImpl) EncodeSkygearAuthorizationCode(code SkygearAuthorizationCode) (encoded string, err error) {
-	return EncodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, code)
-}
-
-func (f *InstagramImpl) DecodeSkygearAuthorizationCode(encoded string) (*SkygearAuthorizationCode, error) {
-	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, encoded)
-}
-
 func (f *InstagramImpl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
 	return f.NonOpenIDConnectGetAuthInfo(r)
 }

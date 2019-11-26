@@ -90,4 +90,5 @@ var (
 	_ NonOpenIDConnectProvider        = &MockSSOProvider{}
 	_ OpenIDConnectProvider           = &MockSSOProvider{}
 	_ ExternalAccessTokenFlowProvider = &MockSSOProvider{}
+	_ Provider                        = &MockSSOProvider{}
 )

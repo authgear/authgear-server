@@ -47,7 +47,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	h.Provider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
+	h.OAuthProvider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
 	return h.RequireAuthz(h, h)
 }
 
@@ -112,7 +112,7 @@ type LoginHandler struct {
 	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
 	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
 	URLPrefix            *url.URL                   `dependency:"URLPrefix"`
-	Provider             sso.OAuthProvider
+	OAuthProvider        sso.OAuthProvider
 	ProviderID           string
 }
 
@@ -148,7 +148,7 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 		return
 	}
 
-	provider, ok := h.Provider.(sso.ExternalAccessTokenFlowProvider)
+	provider, ok := h.OAuthProvider.(sso.ExternalAccessTokenFlowProvider)
 	if !ok {
 		err = skyerr.NewNotFound("unknown provider")
 		return

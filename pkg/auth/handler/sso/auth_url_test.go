@@ -59,7 +59,8 @@ func TestAuthURLHandler(t *testing.T) {
 			[]string{password.DefaultRealm},
 		)
 		h.TxContext = db.NewMockTxContext()
-		h.Provider = &mockProvider
+		h.OAuthProvider = &mockProvider
+		h.SSOProvider = &mockProvider
 		h.ProviderID = "google"
 		h.PasswordAuthProvider = mockPasswordProvider
 		h.Action = "login"

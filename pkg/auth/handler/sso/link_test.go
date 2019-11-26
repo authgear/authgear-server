@@ -70,7 +70,7 @@ func TestLinkHandler(t *testing.T) {
 			ProviderConfig: providerConfig,
 			UserInfo:       providerUserInfo,
 		}
-		sh.Provider = &mockProvider
+		sh.OAuthProvider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(nil)
 		sh.OAuthAuthProvider = mockOAuthProvider
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider)

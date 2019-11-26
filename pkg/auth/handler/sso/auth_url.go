@@ -50,7 +50,7 @@ func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	h.Provider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
+	h.OAuthProvider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
 	h.Action = f.Action
 	return h.RequireAuthz(h, h)
 }
@@ -218,7 +218,8 @@ type AuthURLHandler struct {
 	ProviderFactory                *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
 	PasswordAuthProvider           password.Provider          `dependency:"PasswordAuthProvider"`
 	OAuthConfiguration             *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
-	Provider                       sso.OAuthProvider
+	SSOProvider                    sso.Provider               `dependency:"SSOProvider"`
+	OAuthProvider                  sso.OAuthProvider
 	ProviderID                     string
 	Action                         string
 }
@@ -243,7 +244,7 @@ func (h *AuthURLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
-	if h.Provider == nil {
+	if h.OAuthProvider == nil {
 		err = skyerr.NewNotFound("unknown provider")
 		return
 	}
@@ -280,7 +281,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		state.UserID = authInfo.ID
 	}
 
-	encodedState, err := h.Provider.EncodeState(state)
+	encodedState, err := h.SSOProvider.EncodeState(state)
 	if err != nil {
 		return
 	}
