@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -112,6 +113,13 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// We only know how to modify 2xx response.
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			return nil
+		}
+
+		// Remove existing CORS header in response
+		for name := range w.Header() {
+			if strings.HasPrefix(name, "Access-Control-") {
+				w.Header().Del(name)
+			}
 		}
 
 		resp.Header = h.CloudStorageProvider.ProprietaryToStandard(resp.Header)
