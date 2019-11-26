@@ -94,7 +94,7 @@ type AuthHandler struct {
 	AuthInfoStore                  authinfo.Store              `dependency:"AuthInfoStore"`
 	AuthnSessionProvider           authnsession.Provider       `dependency:"AuthnSessionProvider"`
 	AuthHandlerHTMLProvider        sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
-	ProviderFactory                *sso.OAuthProviderFactory   `dependency:"SSOProviderFactory"`
+	ProviderFactory                *sso.OAuthProviderFactory   `dependency:"SSOOAuthProviderFactory"`
 	UserProfileStore               userprofile.Store           `dependency:"UserProfileStore"`
 	HookProvider                   hook.Provider               `dependency:"HookProvider"`
 	OAuthConfiguration             *config.OAuthConfiguration  `dependency:"OAuthConfiguration"`

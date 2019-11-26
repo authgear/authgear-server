@@ -215,7 +215,7 @@ type AuthURLHandler struct {
 	AuthContext                    coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	RequireAuthz                   handler.RequireAuthz       `dependency:"RequireAuthz"`
 	APIClientConfigurationProvider apiclientconfig.Provider   `dependency:"APIClientConfigurationProvider"`
-	ProviderFactory                *sso.OAuthProviderFactory  `dependency:"SSOProviderFactory"`
+	ProviderFactory                *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
 	PasswordAuthProvider           password.Provider          `dependency:"PasswordAuthProvider"`
 	OAuthConfiguration             *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
 	Provider                       sso.OAuthProvider

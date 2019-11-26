@@ -354,7 +354,7 @@ func (m DependencyMap) Provide(
 			panic(err)
 		}
 		return trail
-	case "SSOProviderFactory":
+	case "SSOOAuthProviderFactory":
 		return sso.NewOAuthProviderFactory(tConfig, urlprefix.NewProvider(request))
 	case "OAuthAuthProvider":
 		return newOAuthAuthProvider()

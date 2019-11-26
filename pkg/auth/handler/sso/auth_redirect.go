@@ -48,7 +48,7 @@ func (f AuthRedirectHandlerFactory) NewHandler(request *http.Request) http.Handl
 }
 
 type AuthRedirectHandler struct {
-	ProviderFactory *sso.OAuthProviderFactory `dependency:"SSOProviderFactory"`
+	ProviderFactory *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
 	Provider        sso.OAuthProvider
 	ProviderID      string
 }

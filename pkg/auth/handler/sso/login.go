@@ -105,7 +105,7 @@ type LoginHandler struct {
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	AuthnSessionProvider authnsession.Provider      `dependency:"AuthnSessionProvider"`
-	ProviderFactory      *sso.OAuthProviderFactory  `dependency:"SSOProviderFactory"`
+	ProviderFactory      *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider         hook.Provider              `dependency:"HookProvider"`
 	OAuthConfiguration   *config.OAuthConfiguration `dependency:"OAuthConfiguration"`

@@ -69,7 +69,7 @@ type UnlinkHandler struct {
 	IdentityProvider  authprincipal.IdentityProvider `dependency:"IdentityProvider"`
 	UserProfileStore  userprofile.Store              `dependency:"UserProfileStore"`
 	HookProvider      hook.Provider                  `dependency:"HookProvider"`
-	ProviderFactory   *sso.OAuthProviderFactory      `dependency:"SSOProviderFactory"`
+	ProviderFactory   *sso.OAuthProviderFactory      `dependency:"SSOOAuthProviderFactory"`
 	ProviderID        string
 }
 

@@ -91,7 +91,7 @@ type LinkHandler struct {
 	AuthInfoStore      authinfo.Store             `dependency:"AuthInfoStore"`
 	UserProfileStore   userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider       hook.Provider              `dependency:"HookProvider"`
-	ProviderFactory    *sso.OAuthProviderFactory  `dependency:"SSOProviderFactory"`
+	ProviderFactory    *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
 	OAuthConfiguration *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
 	Provider           sso.OAuthProvider
 	ProviderID         string
