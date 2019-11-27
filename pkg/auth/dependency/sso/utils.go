@@ -1,6 +1,8 @@
 package sso
 
 import (
+	"time"
+
 	jwt "github.com/dgrijalva/jwt-go"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -11,11 +13,32 @@ type StateClaims struct {
 	jwt.StandardClaims
 }
 
+const jwtAudience = "skygear-server"
+
+func makeStandardClaims() jwt.StandardClaims {
+	return jwt.StandardClaims{
+		Audience:  jwtAudience,
+		ExpiresAt: time.Now().UTC().Add(5 * time.Minute).Unix(),
+	}
+}
+
+func isValidStandardClaims(claims jwt.StandardClaims) bool {
+	err := claims.Valid()
+	if err != nil {
+		return false
+	}
+	ok := claims.VerifyAudience(jwtAudience, true)
+	if !ok {
+		return false
+	}
+	return true
+}
+
 // EncodeState encodes state by JWT
 func EncodeState(secret string, state State) (string, error) {
 	claims := StateClaims{
 		state,
-		jwt.StandardClaims{},
+		makeStandardClaims(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))
@@ -33,6 +56,10 @@ func DecodeState(secret string, encoded string) (*State, error) {
 	if err != nil {
 		return nil, NewSSOFailed(InvalidParams, "invalid sso state")
 	}
+	ok := isValidStandardClaims(claims.StandardClaims)
+	if !ok {
+		return nil, NewSSOFailed(InvalidParams, "invalid sso state")
+	}
 	return &claims.State, nil
 }
 
@@ -44,7 +71,7 @@ type CodeClaims struct {
 func EncodeSkygearAuthorizationCode(secret string, code SkygearAuthorizationCode) (string, error) {
 	claims := CodeClaims{
 		code,
-		jwt.StandardClaims{},
+		makeStandardClaims(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))
@@ -59,6 +86,10 @@ func DecodeSkygearAuthorizationCode(secret string, encoded string) (*SkygearAuth
 		return []byte(secret), nil
 	})
 	if err != nil {
+		return nil, NewSSOFailed(InvalidParams, "invalid authorization code")
+	}
+	ok := isValidStandardClaims(claims.StandardClaims)
+	if !ok {
 		return nil, NewSSOFailed(InvalidParams, "invalid authorization code")
 	}
 	return &claims.SkygearAuthorizationCode, nil
