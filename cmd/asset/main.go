@@ -81,6 +81,7 @@ func main() {
 		storage = cloudstorage.NewS3Storage(
 			configuration.Storage.S3.AccessKey,
 			configuration.Storage.S3.SecretKey,
+			configuration.Storage.S3.Endpoint,
 			configuration.Storage.S3.Region,
 			configuration.Storage.S3.Bucket,
 		)

@@ -50,13 +50,16 @@ var S3StandardToProprietaryMap = map[string]string{
 	"access-control-allow-headers":     "x-amz-meta-accesscontrolallowheaders",
 }
 
-func NewS3Storage(accessKey string, secretKey string, region string, bucket string) *S3Storage {
+func NewS3Storage(accessKey, secretKey, endpoint, region, bucket string) *S3Storage {
 	cred := credentials.NewStaticCredentials(accessKey, secretKey, "")
+	usePathStyle := endpoint != "" // for minio compatibility
 	// FIXME(cloudstorage): Use session.NewSession instead of session.New
 	// nolint: staticcheck
 	sess := session.New(&aws.Config{
-		Credentials: cred,
-		Region:      aws.String(region),
+		Credentials:      cred,
+		Region:           aws.String(region),
+		Endpoint:         &endpoint,
+		S3ForcePathStyle: &usePathStyle,
 	})
 	s3 := s3.New(sess)
 
