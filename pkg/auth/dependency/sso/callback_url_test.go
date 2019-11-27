@@ -20,10 +20,11 @@ func TestValidateCallbackURL(t *testing.T) {
 			{nil, "a", false},
 			{[]string{}, "a", false},
 			{[]string{"b"}, "a", false},
-			{[]string{"a"}, "a", true},
-			{[]string{"/a"}, "/a/b", true},
+			{[]string{"/a"}, "/a/b", false},
 			{[]string{"/a/c"}, "/a/b", false},
 			{[]string{"/A/B"}, "/a/b", false},
+
+			{[]string{"a"}, "a", true},
 		}
 
 		for _, c := range cases {

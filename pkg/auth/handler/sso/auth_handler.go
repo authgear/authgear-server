@@ -175,7 +175,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	h.AuthContextSetter.SetAccessKey(key)
 
 	if !h.SSOProvider.IsValidCallbackURL(state.CallbackURL) {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid callback URL", http.StatusBadRequest)
 		return
 	}
 

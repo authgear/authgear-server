@@ -22,16 +22,13 @@ func (i *AuthHandlerHTMLProvider) HTML(data map[string]interface{}) (out string,
 <html>
 <head>
 <script type="text/javascript">
-function StringStartsWith(s, search) {
-	return s.substring(0, search.length) === search;
-}
 
 function validateCallbackURL(callbackURL, authorizedURLs) {
 	if (!callbackURL) {
 		return false;
 	}
 	for (var i = 0; i < authorizedURLs.length; ++i) {
-		if (StringStartsWith(callbackURL, authorizedURLs[i])) {
+		if (callbackURL === authorizedURLs[i]) {
 			return true;
 		}
 	}

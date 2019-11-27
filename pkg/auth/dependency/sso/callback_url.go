@@ -1,8 +1,6 @@
 package sso
 
 import (
-	"strings"
-
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
@@ -14,7 +12,7 @@ func ValidateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err 
 	}
 
 	for _, v := range allowedCallbackURLs {
-		if strings.HasPrefix(callbackURL, v) {
+		if callbackURL == v {
 			return nil
 		}
 	}

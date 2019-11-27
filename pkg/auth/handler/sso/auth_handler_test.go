@@ -113,7 +113,7 @@ func TestAuthHandler(t *testing.T) {
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
-				"http://localhost",
+				"http://localhost:3000",
 			},
 		}
 		providerConfig := coreconfig.OAuthProviderConfiguration{
@@ -341,7 +341,7 @@ func TestAuthHandler(t *testing.T) {
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
-				"http://localhost",
+				"http://localhost:3000",
 			},
 		}
 		providerConfig := coreconfig.OAuthProviderConfiguration{
@@ -564,7 +564,7 @@ func TestAuthHandler(t *testing.T) {
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
-				"http://localhost",
+				"http://localhost:3000",
 			},
 		}
 		providerConfig := coreconfig.OAuthProviderConfiguration{
