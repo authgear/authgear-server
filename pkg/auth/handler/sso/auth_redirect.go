@@ -81,9 +81,6 @@ func (h *AuthRedirectHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 	}
 
 	// Always generate a new nonce to ensure it is unpredictable.
-	// The developer is expected to call auth_url just before they need to perform the flow.
-	// If they call auth_url multiple times ahead of time,
-	// only the last auth URL is valid because the nonce of the previous auth URLs are all overwritten.
 	nonce := sso.GenerateOpenIDConnectNonce()
 	cookie := &http.Cookie{
 		Name:     coreHttp.CookieNameOpenIDConnectNonce,
