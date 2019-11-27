@@ -40,7 +40,7 @@ func decodeResultInURL(urlString string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := u.Query().Get("result")
+	result := u.Query().Get("x-skygear-result")
 	bytes, err := base64.StdEncoding.DecodeString(result)
 	if err != nil {
 		return nil, err

@@ -256,7 +256,7 @@ func (h AuthHandler) handleWebAppResponse(
 		}
 		encodedResult := base64.StdEncoding.EncodeToString(resultBytes)
 		v := url.Values{}
-		v.Set("result", encodedResult)
+		v.Set("x-skygear-result", encodedResult)
 		u, err := url.Parse(callbackURL)
 		if err != nil {
 			return err
@@ -293,7 +293,7 @@ func (h AuthHandler) handleMobileAppResponse(
 	encodedResult := base64.StdEncoding.EncodeToString(resultBytes)
 
 	v := url.Values{}
-	v.Set("result", encodedResult)
+	v.Set("x-skygear-result", encodedResult)
 	u, err := url.Parse(callbackURL)
 	if err != nil {
 		return err
