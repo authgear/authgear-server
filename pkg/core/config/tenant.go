@@ -52,7 +52,7 @@ type TemplateItem struct {
 	LanguageTag string           `json:"language_tag,omitempty" yaml:"language_tag" msg:"language_tag"`
 	Key         string           `json:"key,omitempty" yaml:"key" msg:"key"`
 	URI         string           `json:"uri,omitempty" yaml:"uri" msg:"uri"`
-	ContentMD5  string           `json:"content_md5,omitempty" yaml:"content_md5" msg:"content_md5"`
+	Digest      string           `json:"digest" yaml:"digest" msg:"digest"`
 }
 
 func NewTenantConfiguration() TenantConfiguration {

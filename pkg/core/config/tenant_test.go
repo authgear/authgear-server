@@ -293,7 +293,7 @@ func makeFullTenantConfig() TenantConfiguration {
 				LanguageTag: "en",
 				Key:         "templatekey",
 				URI:         "file:///template.html",
-				ContentMD5:  "base64",
+				Digest:      "base64",
 			},
 		},
 		Hooks: []Hook{

@@ -5989,10 +5989,10 @@ func (z *TemplateItem) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "URI")
 				return
 			}
-		case "content_md5":
-			z.ContentMD5, err = dc.ReadString()
+		case "digest":
+			z.Digest, err = dc.ReadString()
 			if err != nil {
-				err = msgp.WrapError(err, "ContentMD5")
+				err = msgp.WrapError(err, "Digest")
 				return
 			}
 		default:
@@ -6049,14 +6049,14 @@ func (z *TemplateItem) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "URI")
 		return
 	}
-	// write "content_md5"
-	err = en.Append(0xab, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x5f, 0x6d, 0x64, 0x35)
+	// write "digest"
+	err = en.Append(0xa6, 0x64, 0x69, 0x67, 0x65, 0x73, 0x74)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.ContentMD5)
+	err = en.WriteString(z.Digest)
 	if err != nil {
-		err = msgp.WrapError(err, "ContentMD5")
+		err = msgp.WrapError(err, "Digest")
 		return
 	}
 	return
@@ -6078,9 +6078,9 @@ func (z *TemplateItem) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "uri"
 	o = append(o, 0xa3, 0x75, 0x72, 0x69)
 	o = msgp.AppendString(o, z.URI)
-	// string "content_md5"
-	o = append(o, 0xab, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x5f, 0x6d, 0x64, 0x35)
-	o = msgp.AppendString(o, z.ContentMD5)
+	// string "digest"
+	o = append(o, 0xa6, 0x64, 0x69, 0x67, 0x65, 0x73, 0x74)
+	o = msgp.AppendString(o, z.Digest)
 	return
 }
 
@@ -6130,10 +6130,10 @@ func (z *TemplateItem) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "URI")
 				return
 			}
-		case "content_md5":
-			z.ContentMD5, bts, err = msgp.ReadStringBytes(bts)
+		case "digest":
+			z.Digest, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "ContentMD5")
+				err = msgp.WrapError(err, "Digest")
 				return
 			}
 		default:
@@ -6150,7 +6150,7 @@ func (z *TemplateItem) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *TemplateItem) Msgsize() (s int) {
-	s = 1 + 5 + msgp.StringPrefixSize + len(string(z.Type)) + 13 + msgp.StringPrefixSize + len(z.LanguageTag) + 4 + msgp.StringPrefixSize + len(z.Key) + 4 + msgp.StringPrefixSize + len(z.URI) + 12 + msgp.StringPrefixSize + len(z.ContentMD5)
+	s = 1 + 5 + msgp.StringPrefixSize + len(string(z.Type)) + 13 + msgp.StringPrefixSize + len(z.LanguageTag) + 4 + msgp.StringPrefixSize + len(z.Key) + 4 + msgp.StringPrefixSize + len(z.URI) + 7 + msgp.StringPrefixSize + len(z.Digest)
 	return
 }
 
