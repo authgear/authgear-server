@@ -50,12 +50,7 @@ type getAuthInfoRequest struct {
 	processor      UserInfoDecoder
 }
 
-func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
-	state, err := DecodeState(h.oauthConfig.StateJWTSecret, r.State)
-	if err != nil {
-		return
-	}
-
+func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
 		err = errors.WithSecondaryError(
 			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),

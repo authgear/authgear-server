@@ -91,8 +91,12 @@ func (h *AuthRedirectHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 	http.SetCookie(w, cookie)
 
 	state.Nonce = crypto.SHA256String(nonce)
+	encodedState, err = h.SSOProvider.EncodeState(*state)
+	if err != nil {
+		return
+	}
 
-	url, err := h.OAuthProvider.GetAuthURL(*state)
+	url, err := h.OAuthProvider.GetAuthURL(*state, encodedState)
 	if err != nil {
 		return
 	}

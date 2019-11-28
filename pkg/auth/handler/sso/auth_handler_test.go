@@ -55,7 +55,7 @@ func decodeResultInURL(urlString string) ([]byte, error) {
 	if !ok {
 		return bytes, nil
 	}
-	code, err := sso.DecodeSkygearAuthorizationCode("secret", actualResult.(string))
+	code, err := sso.DecodeSkygearAuthorizationCode("secret", "myapp", actualResult.(string))
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func TestAuthHandler(t *testing.T) {
 				},
 				Nonce: hashedNonce,
 			}
-			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+			encodedState, _ := mockProvider.EncodeState(state)
 
 			v := url.Values{}
 			v.Set("code", "code")
@@ -254,7 +254,7 @@ func TestAuthHandler(t *testing.T) {
 				},
 				Nonce: hashedNonce,
 			}
-			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+			encodedState, _ := mockProvider.EncodeState(state)
 
 			v := url.Values{}
 			v.Set("code", "code")
@@ -288,7 +288,7 @@ func TestAuthHandler(t *testing.T) {
 				},
 				Nonce: hashedNonce,
 			}
-			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+			encodedState, _ := mockProvider.EncodeState(state)
 
 			v := url.Values{}
 			v.Set("code", "code")
@@ -448,7 +448,7 @@ func TestAuthHandler(t *testing.T) {
 				},
 				Nonce: hashedNonce,
 			}
-			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+			encodedState, _ := mockProvider.EncodeState(state)
 
 			v := url.Values{}
 			v.Set("code", "code")
@@ -511,7 +511,7 @@ func TestAuthHandler(t *testing.T) {
 				},
 				Nonce: hashedNonce,
 			}
-			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+			encodedState, _ := mockProvider.EncodeState(state)
 
 			v := url.Values{}
 			v.Set("code", "code")
@@ -676,7 +676,7 @@ func TestAuthHandler(t *testing.T) {
 				},
 				Nonce: hashedNonce,
 			}
-			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+			encodedState, _ := mockProvider.EncodeState(state)
 
 			v := url.Values{}
 			v.Set("code", "code")
@@ -721,7 +721,7 @@ func TestAuthHandler(t *testing.T) {
 				},
 				Nonce: hashedNonce,
 			}
-			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+			encodedState, _ := mockProvider.EncodeState(state)
 
 			v := url.Values{}
 			v.Set("code", "code")
@@ -771,7 +771,7 @@ func TestAuthHandler(t *testing.T) {
 				},
 				Nonce: hashedNonce,
 			}
-			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+			encodedState, _ := mockProvider.EncodeState(state)
 
 			v := url.Values{}
 			v.Set("code", "code")

@@ -147,7 +147,7 @@ func TestAuthResultHandler(t *testing.T) {
 				PrincipalID:         "john.doe.id",
 				SessionCreateReason: "login",
 			}
-			encodedCode, err := sso.EncodeSkygearAuthorizationCode(stateJWTSecret, *code)
+			encodedCode, err := mockProvider.EncodeSkygearAuthorizationCode(*code)
 			So(err, ShouldBeNil)
 
 			reqBody := map[string]interface{}{
@@ -191,7 +191,7 @@ func TestAuthResultHandler(t *testing.T) {
 				PrincipalID:         "john.doe.id",
 				SessionCreateReason: "login",
 			}
-			encodedCode, err := sso.EncodeSkygearAuthorizationCode(stateJWTSecret, *code)
+			encodedCode, err := mockProvider.EncodeSkygearAuthorizationCode(*code)
 			So(err, ShouldBeNil)
 
 			reqBody := map[string]interface{}{
@@ -243,7 +243,7 @@ func TestAuthResultHandler(t *testing.T) {
 				UserID:        "john.doe.id",
 				PrincipalID:   "john.doe.id",
 			}
-			encodedCode, err := sso.EncodeSkygearAuthorizationCode(stateJWTSecret, *code)
+			encodedCode, err := mockProvider.EncodeSkygearAuthorizationCode(*code)
 			So(err, ShouldBeNil)
 
 			reqBody := map[string]interface{}{

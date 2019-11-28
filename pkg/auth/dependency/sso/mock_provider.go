@@ -19,7 +19,7 @@ type MockSSOProvider struct {
 	UserInfo       ProviderUserInfo
 }
 
-func (f *MockSSOProvider) GetAuthURL(state State) (string, error) {
+func (f *MockSSOProvider) GetAuthURL(state State, encodedState string) (string, error) {
 	if f.ProviderConfig.ClientID == "" {
 		return "", errors.New("must provide ClientID")
 	}
@@ -27,13 +27,13 @@ func (f *MockSSOProvider) GetAuthURL(state State) (string, error) {
 		oauthConfig:    f.OAuthConfig,
 		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
-		state:          state,
+		encodedState:   encodedState,
 		baseURL:        f.BaseURL,
 	}
 	return authURL(p)
 }
 
-func (f *MockSSOProvider) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+func (f *MockSSOProvider) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	rawProfile := map[string]interface{}{
 		"id": f.UserInfo.ID,
 	}
@@ -49,12 +49,12 @@ func (f *MockSSOProvider) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo Au
 	return
 }
 
-func (f *MockSSOProvider) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
-	return f.GetAuthInfo(r)
+func (f *MockSSOProvider) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
+	return f.GetAuthInfo(r, state)
 }
 
-func (f *MockSSOProvider) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
-	return f.GetAuthInfo(r)
+func (f *MockSSOProvider) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
+	return f.GetAuthInfo(r, state)
 }
 
 func (f *MockSSOProvider) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
@@ -74,19 +74,19 @@ func (f *MockSSOProvider) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessT
 }
 
 func (f *MockSSOProvider) EncodeState(state State) (encodedState string, err error) {
-	return EncodeState(f.OAuthConfig.StateJWTSecret, state)
+	return EncodeState(f.OAuthConfig.StateJWTSecret, "myapp", state)
 }
 
 func (f *MockSSOProvider) DecodeState(encodedState string) (*State, error) {
-	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
+	return DecodeState(f.OAuthConfig.StateJWTSecret, "myapp", encodedState)
 }
 
 func (f *MockSSOProvider) EncodeSkygearAuthorizationCode(code SkygearAuthorizationCode) (encoded string, err error) {
-	return EncodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, code)
+	return EncodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, "myapp", code)
 }
 
 func (f *MockSSOProvider) DecodeSkygearAuthorizationCode(encoded string) (*SkygearAuthorizationCode, error) {
-	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, encoded)
+	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, "myapp", encoded)
 }
 
 func (f *MockSSOProvider) IsAllowedOnUserDuplicate(a model.OnUserDuplicate) bool {

@@ -7,15 +7,15 @@ import (
 
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
-	GetAuthURL(state State) (url string, err error)
-	GetAuthInfo(r OAuthAuthorizationResponse) (AuthInfo, error)
+	GetAuthURL(state State, encodedState string) (url string, err error)
+	GetAuthInfo(r OAuthAuthorizationResponse, state State) (AuthInfo, error)
 }
 
 // NonOpenIDConnectProvider are OAuth 2.0 provider that does not
 // implement OpenID Connect or we do not implement yet.
 // They are Google, Facebook, Instagram and LinkedIn.
 type NonOpenIDConnectProvider interface {
-	NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error)
+	NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error)
 }
 
 // ExternalAccessTokenFlowProvider is provider that the developer
@@ -29,7 +29,7 @@ type ExternalAccessTokenFlowProvider interface {
 // OpenIDConnectProvider are OpenID Connect provider.
 // They are Azure AD v2.
 type OpenIDConnectProvider interface {
-	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error)
+	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error)
 }
 
 type OAuthProviderFactory struct {

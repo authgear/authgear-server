@@ -106,7 +106,7 @@ func (f *Azureadv2Impl) getKeys(endpoint string) (*jwk.Set, error) {
 	return jwk.Parse(resp.Body)
 }
 
-func (f *Azureadv2Impl) GetAuthURL(state State) (string, error) {
+func (f *Azureadv2Impl) GetAuthURL(state State, encodedState string) (string, error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return "", err
@@ -115,7 +115,7 @@ func (f *Azureadv2Impl) GetAuthURL(state State) (string, error) {
 		oauthConfig:    f.OAuthConfig,
 		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
-		state:          state,
+		encodedState:   encodedState,
 		baseURL:        c.AuthorizationEndpoint,
 		responseMode:   "form_post",
 		nonce:          state.Nonce,
@@ -123,16 +123,11 @@ func (f *Azureadv2Impl) GetAuthURL(state State) (string, error) {
 	return authURL(p)
 }
 
-func (f *Azureadv2Impl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
-	return f.OpenIDConnectGetAuthInfo(r)
+func (f *Azureadv2Impl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
+	return f.OpenIDConnectGetAuthInfo(r, state)
 }
 
-func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
-	state, err := DecodeState(f.OAuthConfig.StateJWTSecret, r.State)
-	if err != nil {
-		return
-	}
-
+func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
 		err = NewSSOFailed(InvalidParams, "invalid sso state")
 		return

@@ -193,16 +193,14 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 		}
 	}()
 
-	oauthAuthInfo, err = h.getAuthInfo(reqPayload)
+	oauthAuthInfo, err = h.OAuthProvider.GetAuthInfo(
+		sso.OAuthAuthorizationResponse(reqPayload),
+		*state,
+	)
 	if err != nil {
 		return
 	}
 	code, err = h.handle(oauthAuthInfo, *state)
-	return
-}
-
-func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.AuthInfo, err error) {
-	oauthAuthInfo, err = h.OAuthProvider.GetAuthInfo(sso.OAuthAuthorizationResponse(payload))
 	return
 }
 

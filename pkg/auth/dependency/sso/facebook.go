@@ -19,12 +19,12 @@ type FacebookImpl struct {
 	ProviderConfig config.OAuthProviderConfiguration
 }
 
-func (f *FacebookImpl) GetAuthURL(state State) (string, error) {
+func (f *FacebookImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
 		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
-		state:          state,
+		encodedState:   encodedState,
 		baseURL:        facebookAuthorizationURL,
 	}
 	if state.UXMode == UXModeWebPopup {
@@ -34,11 +34,11 @@ func (f *FacebookImpl) GetAuthURL(state State) (string, error) {
 	return authURL(p)
 }
 
-func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
-	return f.NonOpenIDConnectGetAuthInfo(r)
+func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
+	return f.NonOpenIDConnectGetAuthInfo(r, state)
 }
 
-func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		urlPrefix:      f.URLPrefix,
 		oauthConfig:    f.OAuthConfig,
@@ -47,7 +47,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 		userProfileURL: facebookUserInfoURL,
 		processor:      NewDefaultUserInfoDecoder(),
 	}
-	return h.getAuthInfo(r)
+	return h.getAuthInfo(r, state)
 }
 
 func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {

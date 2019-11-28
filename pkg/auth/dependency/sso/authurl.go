@@ -13,7 +13,7 @@ type authURLParams struct {
 	oauthConfig    *config.OAuthConfiguration
 	urlPrefix      *url.URL
 	providerConfig config.OAuthProviderConfiguration
-	state          State
+	encodedState   string
 	baseURL        string
 	nonce          string
 	responseMode   string
@@ -29,11 +29,6 @@ func redirectURI(urlPrefix *url.URL, providerConfig config.OAuthProviderConfigur
 }
 
 func authURL(params authURLParams) (string, error) {
-	encodedState, err := EncodeState(params.oauthConfig.StateJWTSecret, params.state)
-	if err != nil {
-		return "", err
-	}
-
 	v := coreUrl.Query{}
 	v.Add("response_type", "code")
 	v.Add("client_id", params.providerConfig.ClientID)
@@ -58,7 +53,7 @@ func authURL(params authURLParams) (string, error) {
 	// state must be the last parameter otherwise
 	// it will be converted to lowercase when
 	// redirecting user to login page if user has not logged in before
-	v.Add("state", encodedState)
+	v.Add("state", params.encodedState)
 
 	return params.baseURL + "?" + v.Encode(), nil
 }
