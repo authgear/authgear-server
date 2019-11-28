@@ -408,6 +408,33 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.UserConfig.Auth.AllowedRealms == nil {
 		c.UserConfig.Auth.AllowedRealms = []string{"default"}
 	}
+
+	if c.UserConfig.Auth.LoginIDTypes.Email.CaseSensitive == nil {
+		d := false
+		c.UserConfig.Auth.LoginIDTypes.Email.CaseSensitive = &d
+	}
+	if c.UserConfig.Auth.LoginIDTypes.Email.IgnoreLocalPartAfterPlusSign == nil {
+		d := false
+		c.UserConfig.Auth.LoginIDTypes.Email.IgnoreLocalPartAfterPlusSign = &d
+	}
+	if c.UserConfig.Auth.LoginIDTypes.Email.IgnoreDot == nil {
+		d := false
+		c.UserConfig.Auth.LoginIDTypes.Email.IgnoreDot = &d
+	}
+
+	if c.UserConfig.Auth.LoginIDTypes.Username.BlockReservedKeywords == nil {
+		d := true
+		c.UserConfig.Auth.LoginIDTypes.Username.BlockReservedKeywords = &d
+	}
+	if c.UserConfig.Auth.LoginIDTypes.Username.ASCIIOnly == nil {
+		d := false
+		c.UserConfig.Auth.LoginIDTypes.Username.ASCIIOnly = &d
+	}
+	if c.UserConfig.Auth.LoginIDTypes.Username.CaseSensitive == nil {
+		d := false
+		c.UserConfig.Auth.LoginIDTypes.Username.CaseSensitive = &d
+	}
+
 	// Set default minimum and maximum
 	for i, config := range c.UserConfig.Auth.LoginIDKeys {
 		if config.Minimum == nil {
@@ -626,6 +653,7 @@ type CORSConfiguration struct {
 
 type AuthConfiguration struct {
 	AuthenticationSession      *AuthenticationSessionConfiguration `json:"authentication_session,omitempty" yaml:"authentication_session" msg:"authentication_session" default_zero_value:"true"`
+	LoginIDTypes               *LoginIDTypesConfiguration          `json:"login_id_types,omitempty" yaml:"login_id_types" msg:"login_id_types" default_zero_value:"true"`
 	LoginIDKeys                []LoginIDKeyConfiguration           `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
 	AllowedRealms              []string                            `json:"-"`
 	OnUserDuplicateAllowCreate bool                                `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
@@ -661,6 +689,24 @@ func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
 func (t LoginIDKeyType) IsValid() bool {
 	_, validKey := t.MetadataKey()
 	return t == LoginIDKeyTypeRaw || validKey
+}
+
+type LoginIDTypesConfiguration struct {
+	Email    *LoginIDTypeEmailConfiguration    `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
+	Username *LoginIDTypeUsernameConfiguration `json:"username,omitempty" yaml:"username" msg:"username" default_zero_value:"true"`
+}
+
+type LoginIDTypeEmailConfiguration struct {
+	CaseSensitive                *bool `json:"case_sensitive" yaml:"case_sensitive" msg:"case_sensitive"`
+	IgnoreLocalPartAfterPlusSign *bool `json:"ignore_local_part_after_plus_sign" yaml:"ignore_local_part_after_plus_sign" msg:"ignore_local_part_after_plus_sign"`
+	IgnoreDot                    *bool `json:"ignore_dot" yaml:"ignore_dot" msg:"ignore_dot"`
+}
+
+type LoginIDTypeUsernameConfiguration struct {
+	BlockReservedKeywords *bool    `json:"block_reserved_keywords" yaml:"block_reserved_keywords" msg:"block_reserved_keywords"`
+	ExcludedKeywords      []string `json:"excluded_keywords,omitempty" yaml:"excluded_keywords" msg:"excluded_keywords"`
+	ASCIIOnly             *bool    `json:"ascii_only" yaml:"ascii_only" msg:"ascii_only"`
+	CaseSensitive         *bool    `json:"case_sensitive" yaml:"case_sensitive" msg:"case_sensitive"`
 }
 
 type LoginIDKeyConfiguration struct {

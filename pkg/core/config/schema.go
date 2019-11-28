@@ -179,12 +179,22 @@ const (
 			"key": { "$ref": "#NonEmptyString" },
 			"type": {
 				"type": "string",
-				"enum": ["raw", "email", "phone"]
+				"enum": ["raw", "email", "phone", "username"]
 			},
 			"minimum": { "$ref": "#NonNegativeInteger" },
-			"maximum": { "$ref": "#NonNegativeInteger" }
+			"maximum": { "$ref": "#NonNegativeInteger" },
+			"email": { "$ref": "#LoginIDKeyEmailConfiguration" }
 		},
 		"required": ["type"]
+	},
+	"LoginIDKeyEmailConfiguration": {
+		"$id": "#LoginIDKeyEmailConfiguration",
+		"type": "object",
+		"properties": {
+			"case_sensitive": { "type": "boolean" },
+			"ignore_local_part_after_plus_sign": { "type": "boolean" },
+			"ignore_dot": { "type": "boolean" }
+		}
 	},
 	"UserAuditConfiguration": {
 		"$id": "#UserAuditConfiguration",

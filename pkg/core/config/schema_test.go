@@ -85,7 +85,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 			}`,
 			"/asset: Required",
 			"/auth/authentication_session: Required",
-			"/auth/login_id_keys/3/type: Enum map[expected:[raw email phone]]",
+			"/auth/login_id_keys/3/type: Enum map[expected:[raw email phone username]]",
 			"/hook/secret: Required",
 		)
 		// Minimal valid example

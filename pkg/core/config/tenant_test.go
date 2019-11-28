@@ -98,6 +98,14 @@ func newInt(i int) *int {
 }
 
 func makeFullTenantConfig() TenantConfiguration {
+	newFalse := func() *bool {
+		b := false
+		return &b
+	}
+	newTrue := func() *bool {
+		b := true
+		return &b
+	}
 	var fullTenantConfig = TenantConfiguration{
 		Version: "1",
 		AppName: "myapp",
@@ -152,6 +160,19 @@ func makeFullTenantConfig() TenantConfiguration {
 						Type:    LoginIDKeyTypeRaw,
 						Minimum: newInt(0),
 						Maximum: newInt(1),
+					},
+				},
+				LoginIDTypes: &LoginIDTypesConfiguration{
+					Email: &LoginIDTypeEmailConfiguration{
+						CaseSensitive:                newFalse(),
+						IgnoreLocalPartAfterPlusSign: newFalse(),
+						IgnoreDot:                    newFalse(),
+					},
+					Username: &LoginIDTypeUsernameConfiguration{
+						BlockReservedKeywords: newTrue(),
+						ExcludedKeywords:      []string{"skygear"},
+						ASCIIOnly:             newFalse(),
+						CaseSensitive:         newFalse(),
 					},
 				},
 				AllowedRealms:              []string{"default"},
