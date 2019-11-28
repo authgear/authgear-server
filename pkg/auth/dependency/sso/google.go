@@ -19,27 +19,23 @@ type GoogleImpl struct {
 	ProviderConfig config.OAuthProviderConfiguration
 }
 
-func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
+func (f *GoogleImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
 		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
-		state:          NewState(params),
+		encodedState:   encodedState,
 		baseURL:        googleAuthorizationURL,
 		prompt:         "select_account",
 	}
 	return authURL(p)
 }
 
-func (f *GoogleImpl) DecodeState(encodedState string) (*State, error) {
-	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
+func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
+	return f.NonOpenIDConnectGetAuthInfo(r, state)
 }
 
-func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
-	return f.NonOpenIDConnectGetAuthInfo(r)
-}
-
-func (f *GoogleImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+func (f *GoogleImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		urlPrefix:      f.URLPrefix,
 		oauthConfig:    f.OAuthConfig,
@@ -48,7 +44,7 @@ func (f *GoogleImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 		userProfileURL: googleUserInfoURL,
 		processor:      NewDefaultUserInfoDecoder(),
 	}
-	return h.getAuthInfo(r)
+	return h.getAuthInfo(r, state)
 }
 
 func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {

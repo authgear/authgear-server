@@ -70,7 +70,8 @@ func TestLinkHandler(t *testing.T) {
 			ProviderConfig: providerConfig,
 			UserInfo:       providerUserInfo,
 		}
-		sh.Provider = &mockProvider
+		sh.OAuthProvider = &mockProvider
+		sh.SSOProvider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(nil)
 		sh.OAuthAuthProvider = mockOAuthProvider
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider)
@@ -82,7 +83,6 @@ func TestLinkHandler(t *testing.T) {
 			},
 		)
 		sh.AuthInfoStore = authInfoStore
-		sh.OAuthConfiguration = oauthConfig
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
@@ -166,7 +166,7 @@ func TestLinkHandler(t *testing.T) {
 			})
 		})
 
-		sh.OAuthConfiguration.ExternalAccessTokenFlowEnabled = false
+		mockProvider.OAuthConfig.ExternalAccessTokenFlowEnabled = false
 
 		Convey("should return error if disabled", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{

@@ -35,9 +35,6 @@ type Provider interface {
 	// WriteResponse alters the response, write Cookies and write HTTP Body. It should be used in a defer block.
 	// It should be used in most cases.
 	WriteResponse(w http.ResponseWriter, resp interface{}, err error)
-	// AlterResponse alters the response and write Cookies.
-	// It should only be used when the response is not given in HTTP Body.
-	AlterResponse(w http.ResponseWriter, resp interface{}, err error) interface{}
 
 	// Resolve resolves session or authentication session.
 	Resolve(authContext auth.ContextGetter, authnSessionToken string, options ResolveOptions) (userID string, sess *auth.Session, authnSession *auth.AuthnSession, err error)

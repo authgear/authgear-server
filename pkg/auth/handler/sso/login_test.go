@@ -74,7 +74,8 @@ func TestLoginHandler(t *testing.T) {
 				Email: "mock@example.com",
 			},
 		}
-		sh.Provider = &mockProvider
+		sh.OAuthProvider = &mockProvider
+		sh.SSOProvider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(nil)
 		sh.OAuthAuthProvider = mockOAuthProvider
 		identityProvider := principal.NewMockIdentityProvider(sh.OAuthAuthProvider)
@@ -87,7 +88,6 @@ func TestLoginHandler(t *testing.T) {
 		sessionWriter := session.NewMockWriter()
 		userProfileStore := userprofile.NewMockUserProfileStore()
 		sh.UserProfileStore = userProfileStore
-		sh.OAuthConfiguration = oauthConfig
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
@@ -238,7 +238,7 @@ func TestLoginHandler(t *testing.T) {
 			})
 		})
 
-		sh.OAuthConfiguration.ExternalAccessTokenFlowEnabled = false
+		mockProvider.OAuthConfig.ExternalAccessTokenFlowEnabled = false
 
 		Convey("should return error if disabled", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{

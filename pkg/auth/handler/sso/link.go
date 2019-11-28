@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -42,7 +41,7 @@ func (f LinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
+	h.OAuthProvider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
 	return h.RequireAuthz(h, h)
 }
 
@@ -82,19 +81,19 @@ const LinkRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type LinkHandler struct {
-	TxContext          db.TxContext               `dependency:"TxContext"`
-	Validator          *validation.Validator      `dependency:"Validator"`
-	AuthContext        coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
-	RequireAuthz       handler.RequireAuthz       `dependency:"RequireAuthz"`
-	OAuthAuthProvider  oauth.Provider             `dependency:"OAuthAuthProvider"`
-	IdentityProvider   principal.IdentityProvider `dependency:"IdentityProvider"`
-	AuthInfoStore      authinfo.Store             `dependency:"AuthInfoStore"`
-	UserProfileStore   userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider       hook.Provider              `dependency:"HookProvider"`
-	ProviderFactory    *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
-	OAuthConfiguration *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
-	Provider           sso.OAuthProvider
-	ProviderID         string
+	TxContext         db.TxContext               `dependency:"TxContext"`
+	Validator         *validation.Validator      `dependency:"Validator"`
+	AuthContext       coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz      handler.RequireAuthz       `dependency:"RequireAuthz"`
+	OAuthAuthProvider oauth.Provider             `dependency:"OAuthAuthProvider"`
+	IdentityProvider  principal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore     authinfo.Store             `dependency:"AuthInfoStore"`
+	UserProfileStore  userprofile.Store          `dependency:"UserProfileStore"`
+	HookProvider      hook.Provider              `dependency:"HookProvider"`
+	ProviderFactory   *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
+	SSOProvider       sso.Provider               `dependency:"SSOProvider"`
+	OAuthProvider     sso.OAuthProvider
+	ProviderID        string
 }
 
 func (h LinkHandler) ProvideAuthzPolicy() authz.Policy {
@@ -121,12 +120,12 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interf
 		return nil, err
 	}
 
-	if !h.OAuthConfiguration.ExternalAccessTokenFlowEnabled {
+	if !h.SSOProvider.IsExternalAccessTokenFlowEnabled() {
 		err = skyerr.NewNotFound("external access token flow is disabled")
 		return
 	}
 
-	provider, ok := h.Provider.(sso.ExternalAccessTokenFlowProvider)
+	provider, ok := h.OAuthProvider.(sso.ExternalAccessTokenFlowProvider)
 	if !ok {
 		err = skyerr.NewNotFound("unknown provider")
 		return
@@ -151,8 +150,17 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interf
 			UserProfileStore:  h.UserProfileStore,
 			HookProvider:      h.HookProvider,
 		}
-		resp, err = handler.linkActionResp(oauthAuthInfo, linkState)
-		return err
+		code, err := handler.LinkCode(oauthAuthInfo, "", linkState)
+		if err != nil {
+			return err
+		}
+
+		resp, err = handler.CodeToResponse(code)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 	return
 }

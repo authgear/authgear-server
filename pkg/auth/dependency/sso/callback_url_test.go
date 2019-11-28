@@ -6,17 +6,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestIsValidUXmode(t *testing.T) {
-	Convey("Test IsValidUXMode", t, func() {
-		So(IsValidUXMode(""), ShouldBeFalse)
-		So(IsValidUXMode("nonsense"), ShouldBeFalse)
-
-		So(IsValidUXMode(UXModeWebRedirect), ShouldBeTrue)
-		So(IsValidUXMode(UXModeWebPopup), ShouldBeTrue)
-		So(IsValidUXMode(UXModeMobileApp), ShouldBeTrue)
-	})
-}
-
 func TestValidateCallbackURL(t *testing.T) {
 	Convey("Test ValidateCallbackURL", t, func() {
 		f := ValidateCallbackURL
@@ -31,10 +20,11 @@ func TestValidateCallbackURL(t *testing.T) {
 			{nil, "a", false},
 			{[]string{}, "a", false},
 			{[]string{"b"}, "a", false},
-			{[]string{"a"}, "a", true},
-			{[]string{"/a"}, "/a/b", true},
+			{[]string{"/a"}, "/a/b", false},
 			{[]string{"/a/c"}, "/a/b", false},
 			{[]string{"/A/B"}, "/a/b", false},
+
+			{[]string{"a"}, "a", true},
 		}
 
 		for _, c := range cases {

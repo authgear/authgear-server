@@ -16,43 +16,19 @@ func NewAuthHandlerHTMLProvider(APIEndPoint *url.URL) AuthHandlerHTMLProvider {
 	}
 }
 
-func (i *AuthHandlerHTMLProvider) HTML() (out string, err error) {
+func (i *AuthHandlerHTMLProvider) HTML(data map[string]interface{}) (out string, err error) {
 	const templateString = `
 <!DOCTYPE html>
 <html>
 <head>
 <script type="text/javascript">
-function cookieJarGet(name) {
-	var jar = [];
-	var pairs = document.cookie.split("; ");
-	var i = 0;
-	for (; i < pairs.length; ++i) {
-		var parts = pairs[i].split("=");
-		var key = parts[0];
-		var value = parts.slice(1).join("=");
-		jar.push([key, value]);
-	}
-	for (var i = 0; i < jar.length; ++i) {
-		if (jar[i][0] === name) {
-			return jar[i][1];
-		}
-	}
-}
-
-function cookieJarDelete(name) {
-	document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-}
-
-function StringStartsWith(s, search) {
-	return s.substring(0, search.length) === search;
-}
 
 function validateCallbackURL(callbackURL, authorizedURLs) {
 	if (!callbackURL) {
 		return false;
 	}
 	for (var i = 0; i < authorizedURLs.length; ++i) {
-		if (StringStartsWith(callbackURL, authorizedURLs[i])) {
+		if (callbackURL === authorizedURLs[i]) {
 			return true;
 		}
 	}
@@ -60,11 +36,8 @@ function validateCallbackURL(callbackURL, authorizedURLs) {
 }
 
 function postSSOResultMessageToWindow(windowObject, authorizedURLs) {
-	var resultStr = cookieJarGet("sso_data");
-	cookieJarDelete("sso_data");
-	var data = resultStr && JSON.parse(atob(resultStr));
-	var callbackURL = data && data.callback_url;
-	var result = data && data.result;
+	var callbackURL = {{ .callback_url }};
+	var result = {{ .result }};
 	var error = null;
 	if (!result) {
 		error = 'Fail to retrieve result';
@@ -110,6 +83,8 @@ req.send(null);
 	`
 	context := map[string]interface{}{
 		"api_endpoint": i.APIEndPoint.String(),
+		"result":       data["result"],
+		"callback_url": data["callback_url"],
 	}
 
 	return template.RenderHTMLTemplate("auth_handler", templateString, context)

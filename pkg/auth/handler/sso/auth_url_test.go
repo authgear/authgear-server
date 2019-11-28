@@ -59,36 +59,16 @@ func TestAuthURLHandler(t *testing.T) {
 			[]string{password.DefaultRealm},
 		)
 		h.TxContext = db.NewMockTxContext()
-		h.Provider = &mockProvider
+		h.OAuthProvider = &mockProvider
+		h.SSOProvider = &mockProvider
+		h.ProviderID = "google"
 		h.PasswordAuthProvider = mockPasswordProvider
 		h.Action = "login"
-		h.OAuthConfiguration = oauthConfig
-
-		Convey("should reject without required parameters", func() {
-			req, _ := http.NewRequest("GET", "auth_url", nil)
-			req.Header.Set("Content-Type", "application/json")
-			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"error": {
-					"name": "Invalid",
-					"reason": "ValidationFailed",
-					"message": "invalid parameters",
-					"code": 400,
-					"info": {
-						"causes": [
-							{ "kind": "Required", "message": "callback_url is required", "pointer": "/callback_url" },
-							{ "kind": "Required", "message": "ux_mode is required", "pointer": "/ux_mode" }
-						]
-					}
-				}
-			}`)
-		})
 
 		Convey("should return login_auth_url", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			req, _ := http.NewRequest("POST", "http://mock", strings.NewReader(`
 			{
+				"code_challenge": "a",
 				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_redirect"
 			}
@@ -106,22 +86,14 @@ func TestAuthURLHandler(t *testing.T) {
 			// check base url
 			u, _ := url.Parse(body["result"].(string))
 			So(u.Host, ShouldEqual, "mock")
-			So(u.Path, ShouldEqual, "/auth")
+			So(u.Path, ShouldEqual, "/_auth/sso/google/auth_redirect")
 
 			// check querys
 			q := u.Query()
-			So(q.Get("response_type"), ShouldEqual, "code")
-			So(q.Get("client_id"), ShouldEqual, "mock_client_id")
-			So(q.Get("scope"), ShouldEqual, "openid profile email")
-
-			// check redirect_uri
-			r, _ := url.Parse(q.Get("redirect_uri"))
-			So(r.Host, ShouldEqual, "localhost:3000")
-			So(r.Path, ShouldEqual, "/_auth/sso/mock/auth_handler")
 
 			// check encoded state
 			s := q.Get("state")
-			claims := sso.CustomClaims{}
+			claims := sso.StateClaims{}
 			_, err := jwt.ParseWithClaims(s, &claims, func(token *jwt.Token) (interface{}, error) {
 				return []byte("secret"), nil
 			})
@@ -136,6 +108,7 @@ func TestAuthURLHandler(t *testing.T) {
 			h.Action = "link"
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
+				"code_challenge": "a",
 				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_redirect"
 			}
@@ -155,7 +128,7 @@ func TestAuthURLHandler(t *testing.T) {
 			q := u.Query()
 			// check encoded state
 			s := q.Get("state")
-			claims := sso.CustomClaims{}
+			claims := sso.StateClaims{}
 			jwt.ParseWithClaims(s, &claims, func(token *jwt.Token) (interface{}, error) {
 				return []byte("secret"), nil
 			})
@@ -165,6 +138,7 @@ func TestAuthURLHandler(t *testing.T) {
 		SkipConvey("should reject invalid realm", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
+				"code_challenge": "a",
 				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_popup",
 				"merge_realm": "nonsense"
@@ -192,9 +166,44 @@ func TestAuthURLHandler(t *testing.T) {
 			}`)
 		})
 
+		Convey("should reject missing code_challenge", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"callback_url": "http://example.com/sso",
+				"ux_mode": "web_popup"
+			}
+			`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			httpHandler := h
+			httpHandler.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"code": 400,
+					"info": {
+						"causes": [
+						{
+							"kind": "Required",
+							"message": "code_challenge is required",
+							"pointer": "/code_challenge"
+						}
+						]
+					},
+					"message": "invalid request body",
+					"name": "Invalid",
+					"reason": "ValidationFailed"
+				}
+			}`)
+
+		})
+
 		Convey("should reject disallowed OnUserDuplicate", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
+				"code_challenge": "a",
 				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_popup",
 				"on_user_duplicate": "merge"

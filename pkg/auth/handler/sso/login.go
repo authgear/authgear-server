@@ -19,7 +19,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -47,7 +46,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderID = vars["provider"]
-	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
+	h.OAuthProvider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
 	return h.RequireAuthz(h, h)
 }
 
@@ -105,14 +104,14 @@ type LoginHandler struct {
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	AuthnSessionProvider authnsession.Provider      `dependency:"AuthnSessionProvider"`
-	ProviderFactory      *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
+	ProviderFactory      *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider         hook.Provider              `dependency:"HookProvider"`
-	OAuthConfiguration   *config.OAuthConfiguration `dependency:"OAuthConfiguration"`
 	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
 	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
 	URLPrefix            *url.URL                   `dependency:"URLPrefix"`
-	Provider             sso.OAuthProvider
+	SSOProvider          sso.Provider               `dependency:"SSOProvider"`
+	OAuthProvider        sso.OAuthProvider
 	ProviderID           string
 }
 
@@ -143,12 +142,12 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err error) {
-	if !h.OAuthConfiguration.ExternalAccessTokenFlowEnabled {
+	if !h.SSOProvider.IsExternalAccessTokenFlowEnabled() {
 		err = skyerr.NewNotFound("external access token flow is disabled")
 		return
 	}
 
-	provider, ok := h.Provider.(sso.ExternalAccessTokenFlowProvider)
+	provider, ok := h.OAuthProvider.(sso.ExternalAccessTokenFlowProvider)
 	if !ok {
 		err = skyerr.NewNotFound("unknown provider")
 		return
@@ -175,7 +174,15 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 		TaskQueue:            h.TaskQueue,
 		URLPrefix:            h.URLPrefix,
 	}
-	resp, err = handler.loginActionResp(oauthAuthInfo, loginState)
+	code, err := handler.LoginCode(oauthAuthInfo, "", loginState)
+	if err != nil {
+		return
+	}
+
+	resp, err = handler.CodeToResponse(code)
+	if err != nil {
+		return
+	}
 
 	return
 }

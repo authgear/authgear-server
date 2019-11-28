@@ -19,26 +19,22 @@ type InstagramImpl struct {
 	ProviderConfig config.OAuthProviderConfiguration
 }
 
-func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
+func (f *InstagramImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
 		urlPrefix:      f.URLPrefix,
 		providerConfig: f.ProviderConfig,
-		state:          NewState(params),
+		encodedState:   encodedState,
 		baseURL:        instagramAuthorizationURL,
 	}
 	return authURL(p)
 }
 
-func (f *InstagramImpl) DecodeState(encodedState string) (*State, error) {
-	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
+func (f *InstagramImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
+	return f.NonOpenIDConnectGetAuthInfo(r, state)
 }
 
-func (f *InstagramImpl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
-	return f.NonOpenIDConnectGetAuthInfo(r)
-}
-
-func (f *InstagramImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+func (f *InstagramImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		urlPrefix:      f.URLPrefix,
 		oauthConfig:    f.OAuthConfig,
@@ -47,7 +43,7 @@ func (f *InstagramImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse
 		userProfileURL: instagramUserInfoURL,
 		processor:      NewInstagramUserInfoDecoder(),
 	}
-	return h.getAuthInfo(r)
+	return h.getAuthInfo(r, state)
 }
 func (f *InstagramImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{

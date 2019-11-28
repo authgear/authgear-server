@@ -41,7 +41,7 @@ type respHandler struct {
 	URLPrefix            *url.URL
 }
 
-func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.LoginState) (resp interface{}, err error) {
+func (h respHandler) LoginCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (resp *sso.SkygearAuthorizationCode, err error) {
 	// action => login
 	var info authinfo.AuthInfo
 	createNewUser, principal, err := h.handleLogin(oauthAuthInfo, &info, loginState)
@@ -83,13 +83,13 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 	} else {
 		sessionCreateReason = coreAuth.SessionCreateReasonLogin
 	}
-	sess, err := h.AuthnSessionProvider.NewFromScratch(principal.UserID, principal, sessionCreateReason)
-	if err != nil {
-		return
-	}
-	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
-	if err != nil {
-		return
+
+	resp = &sso.SkygearAuthorizationCode{
+		Action:              "login",
+		CodeChallenge:       codeChallenge,
+		UserID:              user.ID,
+		PrincipalID:         principal.ID,
+		SessionCreateReason: string(sessionCreateReason),
 	}
 
 	if createNewUser &&
@@ -106,7 +106,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 	return
 }
 
-func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo, linkState sso.LinkState) (resp interface{}, err error) {
+func (h respHandler) LinkCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (resp *sso.SkygearAuthorizationCode, err error) {
 	// action => link
 	// We only need to check if we can find such principal.
 	// If such principal exists, it does not matter whether the principal
@@ -157,7 +157,46 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo, linkState sso.Li
 		return
 	}
 
-	resp = model.NewAuthResponseWithUser(user)
+	resp = &sso.SkygearAuthorizationCode{
+		Action:        "link",
+		CodeChallenge: codeChallenge,
+		UserID:        user.ID,
+		PrincipalID:   principal.ID,
+	}
+	return
+}
+
+func (h respHandler) CodeToResponse(code *sso.SkygearAuthorizationCode) (resp interface{}, err error) {
+	if code.Action == "link" {
+		var info authinfo.AuthInfo
+		if err = h.AuthInfoStore.GetAuth(code.UserID, &info); err != nil {
+			return
+		}
+		var userProfile userprofile.UserProfile
+		userProfile, err = h.UserProfileStore.GetUserProfile(info.ID)
+		if err != nil {
+			return
+		}
+		user := model.NewUser(info, userProfile)
+		resp = model.NewAuthResponseWithUser(user)
+		return
+	}
+
+	principal, err := h.IdentityProvider.GetPrincipalByID(code.PrincipalID)
+	if err != nil {
+		return
+	}
+
+	sess, err := h.AuthnSessionProvider.NewFromScratch(code.UserID, principal, coreAuth.SessionCreateReason(code.SessionCreateReason))
+	if err != nil {
+		return
+	}
+
+	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
+	if err != nil {
+		return
+	}
+
 	return
 }
 

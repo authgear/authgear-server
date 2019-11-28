@@ -325,8 +325,6 @@ func (m DependencyMap) Provide(
 		return tConfig.UserConfig.WelcomeEmail.Destination
 	case "WelcomeEmailSender":
 		return welcemail.NewDefaultSender(tConfig, newMailSender(), newTemplateEngine())
-	case "IFrameHTMLProvider":
-		return sso.NewIFrameHTMLProvider(urlprefix.NewProvider(request).Value())
 	case "UserVerifyCodeSenderFactory":
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(
 			tConfig,
@@ -356,8 +354,13 @@ func (m DependencyMap) Provide(
 			panic(err)
 		}
 		return trail
-	case "SSOProviderFactory":
-		return sso.NewProviderFactory(tConfig, urlprefix.NewProvider(request))
+	case "SSOOAuthProviderFactory":
+		return sso.NewOAuthProviderFactory(tConfig, urlprefix.NewProvider(request))
+	case "SSOProvider":
+		return sso.NewProvider(
+			tConfig.AppID,
+			tConfig.UserConfig.SSO.OAuth,
+		)
 	case "OAuthAuthProvider":
 		return newOAuthAuthProvider()
 	case "IdentityProvider":

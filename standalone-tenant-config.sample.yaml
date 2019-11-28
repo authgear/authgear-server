@@ -39,7 +39,7 @@ user_config:
     oauth:
       state_jwt_secret: statesecret
       allowed_callback_urls:
-      - "http://localhost:9999"
+      - "http://localhost:9999/sso.html"
       providers:
       - type: google
         client_id: 'client_id'
