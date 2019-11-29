@@ -25,6 +25,10 @@ Next is the V2 of Skygear that aim to follow
         └── main.go
 ```
 
+## Troubleshooting
+
+If you encounter a build error look like `invalid flag in pkg-config --cflags: -Xpreprocessor`, `export CGO_CFLAGS_ALLOW=-Xpreprocessor`.
+
 ## Dependencies
 
 If you plan to build and run locally, you need to install the following dependencies.
