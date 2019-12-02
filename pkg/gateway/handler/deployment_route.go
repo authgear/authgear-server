@@ -14,11 +14,10 @@ import (
 )
 
 func NewDeploymentRouteHandler() http.HandlerFunc {
-	proxy := newDeploymentRouteReverseProxy()
-	return proxy.ServeHTTP
+	return http.HandlerFunc(handleDeploymentRoute)
 }
 
-func newDeploymentRouteReverseProxy() *httputil.ReverseProxy {
+func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
 	director := func(req *http.Request) {
 		originalPath := req.URL.Path
 		coreHttp.SetForwardedHeaders(req)
@@ -39,8 +38,18 @@ func newDeploymentRouteReverseProxy() *httputil.ReverseProxy {
 		// Remove tenant config from header.
 		coreConfig.WriteTenantConfig(req, nil)
 	}
+	modifyResponse := func(resp *http.Response) error {
+		// Remove CORS headers if upstream provides them
+		for name := range resp.Header {
+			if strings.HasPrefix(name, "Access-Control-") {
+				rw.Header().Del(name)
+			}
+		}
+		return nil
+	}
 
-	return &httputil.ReverseProxy{Director: director}
+	proxy := &httputil.ReverseProxy{Director: director, ModifyResponse: modifyResponse}
+	proxy.ServeHTTP(rw, r)
 }
 
 func getForwardURL(reqURL *url.URL, route coreConfig.DeploymentRoute) (*url.URL, error) {

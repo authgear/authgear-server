@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
@@ -12,11 +13,10 @@ import (
 // NewGearHandler takes an incoming request and sends it to coresponding
 // gear server
 func NewGearHandler() http.Handler {
-	proxy := newGearReverseProxy()
-	return proxy
+	return http.HandlerFunc(handleGear)
 }
 
-func newGearReverseProxy() *httputil.ReverseProxy {
+func handleGear(rw http.ResponseWriter, r *http.Request) {
 	director := func(req *http.Request) {
 		path := req.URL.Path
 		query := req.URL.RawQuery
@@ -33,16 +33,16 @@ func newGearReverseProxy() *httputil.ReverseProxy {
 		req.URL.RawQuery = query
 		req.URL.Fragment = fragment
 	}
-	modifyResponse := func(r *http.Response) error {
-		// Remove CORS headers because they are managed by this gateway.
-		// Auth gear in standalone mode mounts CORS middleware.
-		// If we do not remove CORS headers, then the headers will duplicate.
-		r.Header.Del("Access-Control-Allow-Origin")
-		r.Header.Del("Access-Control-Allow-Credentials")
-		r.Header.Del("Access-Control-Allow-Methods")
-		r.Header.Del("Access-Control-Allow-Headers")
+	modifyResponse := func(resp *http.Response) error {
+		// Remove CORS headers if upstream provides them
+		for name := range resp.Header {
+			if strings.HasPrefix(name, "Access-Control-") {
+				rw.Header().Del(name)
+			}
+		}
 		return nil
 	}
 
-	return &httputil.ReverseProxy{Director: director, ModifyResponse: modifyResponse}
+	proxy := &httputil.ReverseProxy{Director: director, ModifyResponse: modifyResponse}
+	proxy.ServeHTTP(rw, r)
 }
