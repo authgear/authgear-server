@@ -39,12 +39,7 @@ func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
 		coreConfig.WriteTenantConfig(req, nil)
 	}
 	modifyResponse := func(resp *http.Response) error {
-		// Remove CORS headers if upstream provides them
-		for name := range resp.Header {
-			if strings.HasPrefix(name, "Access-Control-") {
-				rw.Header().Del(name)
-			}
-		}
+		coreHttp.FixupCORSHeaders(rw, resp)
 		return nil
 	}
 

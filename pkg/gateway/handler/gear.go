@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
@@ -34,12 +33,7 @@ func handleGear(rw http.ResponseWriter, r *http.Request) {
 		req.URL.Fragment = fragment
 	}
 	modifyResponse := func(resp *http.Response) error {
-		// Remove CORS headers if upstream provides them
-		for name := range resp.Header {
-			if strings.HasPrefix(name, "Access-Control-") {
-				rw.Header().Del(name)
-			}
-		}
+		coreHttp.FixupCORSHeaders(rw, resp)
 		return nil
 	}
 

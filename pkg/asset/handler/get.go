@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
-	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -121,12 +120,7 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			resp.Header.Del("Accept-Ranges")
 		}
 
-		// Delete existing CORS header if exists in response
-		for name := range resp.Header {
-			if strings.HasPrefix(name, "Access-Control-") {
-				w.Header().Del(name)
-			}
-		}
+		coreHttp.FixupCORSHeaders(w, resp)
 
 		// Check access
 		accessType := h.CloudStorageProvider.AccessType(resp.Header)
