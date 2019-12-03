@@ -613,6 +613,38 @@ func TestSignupHandler(t *testing.T) {
 			So(param.User, ShouldNotBeNil)
 		})
 
+		Convey("signup with email, send verification emails to all login IDs", func() {
+			sh.AutoSendUserVerifyCode = true
+			sh.UserVerifyLoginIDKeys = []config.UserVerificationKeyConfiguration{
+				config.UserVerificationKeyConfiguration{
+					Key: "email",
+				},
+			}
+
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": [
+					{ "key": "email", "value": "john.doe+1@example.com" },
+					{ "key": "username", "value": "john.doe" },
+					{ "key": "email", "value": "john.doe+2@example.com" }
+				],
+				"password": "12345678"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			sh.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 200)
+
+			So(mockTaskQueue.TasksName, ShouldResemble, []string{task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskName})
+			So(mockTaskQueue.TasksParam, ShouldHaveLength, 2)
+			param, _ := mockTaskQueue.TasksParam[0].(task.VerifyCodeSendTaskParam)
+			So(param.LoginID, ShouldEqual, "john.doe+1@example.com")
+			So(param.UserID, ShouldNotBeNil)
+			param, _ = mockTaskQueue.TasksParam[1].(task.VerifyCodeSendTaskParam)
+			So(param.LoginID, ShouldEqual, "john.doe+2@example.com")
+			So(param.UserID, ShouldNotBeNil)
+		})
+
 		Convey("log audit trail when signup success", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
