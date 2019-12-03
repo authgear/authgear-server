@@ -42,7 +42,7 @@ func TestValidateHostMiddleware(t *testing.T) {
 			resp = httptest.NewRecorder()
 			handler.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, http.StatusBadRequest)
-			So(resp.Body.Bytes(), ShouldBeEmpty)
+			So(string(resp.Body.Bytes()), ShouldEqual, "invalid host: example.com\n")
 		})
 
 		Convey("should check ports", func() {
@@ -52,7 +52,7 @@ func TestValidateHostMiddleware(t *testing.T) {
 			resp = httptest.NewRecorder()
 			handler.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, http.StatusBadRequest)
-			So(resp.Body.Bytes(), ShouldBeEmpty)
+			So(string(resp.Body.Bytes()), ShouldEqual, "invalid host: 127.0.0.1\n")
 
 			req, _ = http.NewRequest("GET", "http://127.0.0.1:3000/", nil)
 			resp = httptest.NewRecorder()
@@ -76,7 +76,7 @@ func TestValidateHostMiddleware(t *testing.T) {
 			resp = httptest.NewRecorder()
 			handler.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, http.StatusBadRequest)
-			So(resp.Body.Bytes(), ShouldBeEmpty)
+			So(string(resp.Body.Bytes()), ShouldEqual, "invalid host: internal.com\n")
 		})
 
 		Convey("should skip validating hosts", func() {
