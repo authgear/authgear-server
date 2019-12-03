@@ -130,8 +130,8 @@ github.com/hashicorp/golang-lru v0.5.1 h1:0hERBMJE1eitiLkihrMvRVBYAkpHzc/J3QdDN+
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hpcloud/tail v1.0.0 h1:nfCOvKYfkgYP8hkirhJocXT2+zOD8yUNjXaWfTlyFKI=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
-github.com/iawaknahc/originmatcher v0.0.0-20190816101335-7c3f833688c0 h1:GGpJr0mDp93sn3EeCrjPA+PHNTbtHLzMgjeRDgpz0uw=
-github.com/iawaknahc/originmatcher v0.0.0-20190816101335-7c3f833688c0/go.mod h1:8X/ZoqWR+bbWh69x3/zCvd7WGZJ67v6eaGFd6m5jsXQ=
+github.com/iawaknahc/originmatcher v0.0.0-20191203065535-c77f92cc0a75 h1:vJn+79f9mOMHm15ad4JKf/8ejpf8hxCG2PKHSkiWPfk=
+github.com/iawaknahc/originmatcher v0.0.0-20191203065535-c77f92cc0a75/go.mod h1:8X/ZoqWR+bbWh69x3/zCvd7WGZJ67v6eaGFd6m5jsXQ=
 github.com/imkira/go-interpol v1.1.0/go.mod h1:z0h2/2T3XF8kyEPpRgJ3kmNv+C43p+I/CoI+jC3w2iA=
 github.com/iris-contrib/blackfriday v2.0.0+incompatible/go.mod h1:UzZ2bDEoaSGPbkg6SAB4att1aAwTmVIx/5gCVqeyUdI=
 github.com/iris-contrib/formBinder v5.0.0+incompatible/go.mod h1:i8kTYUOEstd/S8TG0ChTXQdf4ermA/e8vJX0+QruD9w=
