@@ -54,6 +54,12 @@ func (e *Executor) Execute(taskCtx TaskContext, name string, param interface{}, 
 		}()
 
 		err := task.Run(param)
+		if err != nil {
+			logger.WithFields(map[string]interface{}{
+				"task_name": name,
+				"error":     err,
+			}).Error("error occurred when running async task")
+		}
 		if response != nil {
 			response <- err
 		}

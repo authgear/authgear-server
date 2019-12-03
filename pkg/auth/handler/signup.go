@@ -158,6 +158,11 @@ func (p *SignupRequestPayload) Validate() []validation.ErrorCause {
 	return nil
 }
 
+type Task struct {
+	Name  string
+	Param interface{}
+}
+
 /*
 	@Operation POST /signup - Signup using password
 		Signup user with login IDs and password.
@@ -218,8 +223,9 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	var tasks []Task
 	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
-		result, err = h.Handle(payload)
+		result, tasks, err = h.Handle(payload)
 		if err == nil {
 			err = h.HookProvider.WillCommitTx()
 		}
@@ -227,11 +233,12 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	})
 	if err == nil {
 		h.HookProvider.DidCommitTx()
+		h.EnqueueTasks(tasks)
 	}
 	h.AuthnSessionProvider.WriteResponse(resp, result, err)
 }
 
-func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, err error) {
+func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, tasks []Task, err error) {
 	// validate password
 	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
 		PlainPassword: payload.Password,
@@ -304,14 +311,20 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, e
 	}
 
 	if h.WelcomeEmailEnabled {
-		h.sendWelcomeEmail(user, payload.LoginIDs)
+		tasks = append(tasks, h.sendWelcomeEmail(user, payload.LoginIDs)...)
 	}
 
 	if h.AutoSendUserVerifyCode {
-		h.sendUserVerifyRequest(user, payload.LoginIDs)
+		tasks = append(tasks, h.sendUserVerifyRequest(user, payload.LoginIDs)...)
 	}
 
 	return
+}
+
+func (h SignupHandler) EnqueueTasks(tasks []Task) {
+	for _, t := range tasks {
+		h.TaskQueue.Enqueue(t.Name, t.Param, nil)
+	}
 }
 
 func (h SignupHandler) findExistingPrincipals(payload SignupRequestPayload) ([]principal.Principal, error) {
@@ -363,7 +376,8 @@ func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo a
 	return
 }
 
-func (h SignupHandler) sendWelcomeEmail(user model.User, loginIDs []password.LoginID) {
+func (h SignupHandler) sendWelcomeEmail(user model.User, loginIDs []password.LoginID) []Task {
+	tasks := []Task{}
 	supportedLoginIDs := []password.LoginID{}
 	for _, loginID := range loginIDs {
 		if h.PasswordAuthProvider.CheckLoginIDKeyType(loginID.Key, metadata.Email) {
@@ -382,24 +396,34 @@ func (h SignupHandler) sendWelcomeEmail(user model.User, loginIDs []password.Log
 
 	for _, loginID := range destinationLoginIDs {
 		email := loginID.Value
-		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
-			URLPrefix: h.URLPrefix,
-			Email:     email,
-			User:      user,
-		}, nil)
+		tasks = append(tasks, Task{
+			Name: task.WelcomeEmailSendTaskName,
+			Param: task.WelcomeEmailSendTaskParam{
+				URLPrefix: h.URLPrefix,
+				Email:     email,
+				User:      user,
+			},
+		})
 	}
+	return tasks
 }
 
-func (h SignupHandler) sendUserVerifyRequest(user model.User, loginIDs []password.LoginID) {
+func (h SignupHandler) sendUserVerifyRequest(user model.User, loginIDs []password.LoginID) []Task {
+	tasks := []Task{}
 	for _, loginID := range loginIDs {
 		for _, keyConfig := range h.UserVerifyLoginIDKeys {
 			if keyConfig.Key == loginID.Key {
-				h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
-					URLPrefix: h.URLPrefix,
-					LoginID:   loginID.Value,
-					UserID:    user.ID,
-				}, nil)
+				tasks = append(tasks, Task{
+					Name: task.VerifyCodeSendTaskName,
+					Param: task.VerifyCodeSendTaskParam{
+						URLPrefix: h.URLPrefix,
+						LoginID:   loginID.Value,
+						UserID:    user.ID,
+					},
+				})
 			}
 		}
 	}
+
+	return tasks
 }
