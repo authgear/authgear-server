@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -28,8 +29,7 @@ func (m ValidateHostMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		host := coreHttp.GetHost(r)
 		if !utils.StringSliceContains(validateHosts, host) {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte{})
+			http.Error(w, fmt.Sprintf("invalid host: %s", host), http.StatusBadRequest)
 			return
 		}
 
