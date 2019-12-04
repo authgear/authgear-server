@@ -51,6 +51,10 @@ func (f *factoryImpl) newNormalizer(loginIDKeyType config.LoginIDKeyType) LoginI
 		return &LoginIDEmailNormalizer{
 			config: f.loginIDTypes.Email,
 		}
+	case metadata.Username:
+		return &LoginIDUsernameNormalizer{
+			config: f.loginIDTypes.Username,
+		}
 	}
 
 	return &LoginIDNullNormalizer{}
@@ -92,6 +96,21 @@ func (n *LoginIDEmailNormalizer) Normalize(loginID string) (string, error) {
 	}
 
 	return local + "@" + domain, nil
+}
+
+type LoginIDUsernameNormalizer struct {
+	config *config.LoginIDTypeUsernameConfiguration
+}
+
+func (n *LoginIDUsernameNormalizer) Normalize(loginID string) (string, error) {
+	loginID = norm.NFKC.String(loginID)
+
+	c := cases.Fold()
+	if !*n.config.CaseSensitive {
+		loginID = c.String(loginID)
+	}
+
+	return loginID, nil
 }
 
 type LoginIDNullNormalizer struct{}
