@@ -11,6 +11,7 @@ import (
 
 type Pool interface {
 	Open(tConfig config.TenantConfiguration) (*sqlx.DB, error)
+	OpenURL(url string) (*sqlx.DB, error)
 	Close() error
 }
 
@@ -27,14 +28,12 @@ func NewPool() Pool {
 	return p
 }
 
-func (p *poolImpl) Open(tConfig config.TenantConfiguration) (db *sqlx.DB, err error) {
+func (p *poolImpl) OpenURL(source string) (db *sqlx.DB, err error) {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
 		return nil, errors.New("skydb: pool is closed")
 	}
-
-	source := tConfig.AppConfig.DatabaseURL
 
 	p.cacheMutex.RLock()
 	db, exists := p.cache[source]
@@ -53,6 +52,10 @@ func (p *poolImpl) Open(tConfig config.TenantConfiguration) (db *sqlx.DB, err er
 	}
 
 	return
+}
+
+func (p *poolImpl) Open(tConfig config.TenantConfiguration) (*sqlx.DB, error) {
+	return p.OpenURL(tConfig.AppConfig.DatabaseURL)
 }
 
 func (p *poolImpl) Close() (err error) {

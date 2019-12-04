@@ -6,21 +6,22 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
 
 // NewGatewayStore create new gateway store by db connection url
-func NewGatewayStore(ctx context.Context, connString string, loggerFactory logging.Factory) (*Store, error) {
-	s, err := Connect(ctx, connString)
+func NewGatewayStore(ctx context.Context, pool db.Pool, connString string) (*Store, error) {
+	db, err := pool.OpenURL(connString)
 	if err != nil {
 		return nil, err
 	}
-	s.logger = loggerFactory.NewLogger("gateway-store")
-	return s, nil
+
+	return &Store{
+		DB:      db,
+		context: ctx,
+	}, nil
 }
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
@@ -28,7 +29,6 @@ var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 type Store struct {
 	DB      *sqlx.DB
 	context context.Context
-	logger  *logrus.Entry
 }
 
 func (s *Store) Close() error { return s.DB.Close() }
@@ -42,19 +42,6 @@ func (s *Store) schemaName() string {
 // "schema"."table")
 func (s *Store) tableName(table string) string {
 	return pq.QuoteIdentifier(s.schemaName()) + "." + pq.QuoteIdentifier(table)
-}
-
-// Connect returns a new connection to postgresql implementation
-func Connect(ctx context.Context, connString string) (*Store, error) {
-	db, err := sqlx.Connect("postgres", connString)
-	if err != nil {
-		return nil, errors.HandledWithMessage(err, "failed to connect to database")
-	}
-
-	return &Store{
-		DB:      db,
-		context: ctx,
-	}, nil
 }
 
 // this ensures that our structure conform to certain interfaces.

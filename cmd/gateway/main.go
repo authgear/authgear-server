@@ -53,9 +53,10 @@ func init() {
 }
 
 func main() {
+	dbPool := db.NewPool()
+
 	// create gateway store
 	var store store.GatewayStore
-	var connErr error
 	if config.Standalone {
 		filename := config.StandaloneTenantConfigurationFile
 		reader, err := os.Open(filename)
@@ -70,13 +71,14 @@ func main() {
 			TenantConfig: *tenantConfig,
 		}
 	} else {
-		store, connErr = pqStore.NewGatewayStore(
+		var err error
+		store, err = pqStore.NewGatewayStore(
 			context.Background(),
+			dbPool,
 			config.ConnectionStr,
-			loggerFactory,
 		)
-		if connErr != nil {
-			logger.WithError(connErr).Panic("Fail to create db conn")
+		if err != nil {
+			logger.WithError(err).Panic("Fail to create gateway store")
 		}
 	}
 	defer store.Close()
@@ -84,7 +86,6 @@ func main() {
 	gatewayDependency := gateway.DependencyMap{
 		UseInsecureCookie: config.UseInsecureCookie,
 	}
-	dbPool := db.NewPool()
 	redisPool, err := redis.NewPool(config.Redis)
 	if err != nil {
 		logger.Fatalf("fail to create redis pool: %v", err.Error())
