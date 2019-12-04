@@ -147,6 +147,7 @@ func (m DependencyMap) Provide(
 			newSQLExecutor(),
 			newLoggerFactory(),
 			tConfig.UserConfig.Auth.LoginIDKeys,
+			tConfig.UserConfig.Auth.LoginIDTypes,
 			tConfig.UserConfig.Auth.AllowedRealms,
 			isPasswordHistoryEnabled(),
 		)
