@@ -27,9 +27,28 @@ type loginIDChecker interface {
 	standardKey(loginIDKey string) (metadata.StandardKey, bool)
 }
 
+func newDefaultLoginIDChecker(
+	loginIDsKeys []config.LoginIDKeyConfiguration,
+	loginIDTypes *config.LoginIDTypesConfiguration,
+	reservedNameSourceFile string,
+) loginIDChecker {
+	return defaultLoginIDChecker{
+		loginIDsKeys:           loginIDsKeys,
+		loginIDTypes:           loginIDTypes,
+		reservedNameSourceFile: reservedNameSourceFile,
+		loginIDTypeCheckerFactory: NewLoginIDTypeCheckerFactory(
+			loginIDsKeys,
+			loginIDTypes,
+			reservedNameSourceFile,
+		),
+	}
+}
+
 type defaultLoginIDChecker struct {
-	loginIDsKeys []config.LoginIDKeyConfiguration
-	loginIDTypes *config.LoginIDTypesConfiguration
+	loginIDsKeys              []config.LoginIDKeyConfiguration
+	loginIDTypes              *config.LoginIDTypesConfiguration
+	reservedNameSourceFile    string
+	loginIDTypeCheckerFactory LoginIDTypeCheckerFactory
 }
 
 func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
@@ -97,11 +116,7 @@ func (c defaultLoginIDChecker) validateOne(loginID LoginID) error {
 		}})
 	}
 
-	checkerFactory := NewLoginIDTypeCheckerFactory(
-		c.loginIDsKeys,
-		c.loginIDTypes,
-	)
-	if err := checkerFactory.NewChecker(loginID.Key).Validate(loginID.Value); err != nil {
+	if err := c.loginIDTypeCheckerFactory.NewChecker(loginID.Key).Validate(loginID.Value); err != nil {
 		return err
 	}
 

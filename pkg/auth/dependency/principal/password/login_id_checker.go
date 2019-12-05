@@ -1,6 +1,8 @@
 package password
 
 import (
+	"unicode"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -17,16 +19,19 @@ type LoginIDTypeCheckerFactory interface {
 func NewLoginIDTypeCheckerFactory(
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
+	reservedNameSourceFile string,
 ) LoginIDTypeCheckerFactory {
 	return &checkerFactoryImpl{
-		loginIDsKeys: loginIDsKeys,
-		loginIDTypes: loginIDTypes,
+		loginIDsKeys:           loginIDsKeys,
+		loginIDTypes:           loginIDTypes,
+		reservedNameSourceFile: reservedNameSourceFile,
 	}
 }
 
 type checkerFactoryImpl struct {
-	loginIDsKeys []config.LoginIDKeyConfiguration
-	loginIDTypes *config.LoginIDTypesConfiguration
+	loginIDsKeys           []config.LoginIDKeyConfiguration
+	loginIDTypes           *config.LoginIDTypesConfiguration
+	reservedNameSourceFile string
 }
 
 func (f *checkerFactoryImpl) NewChecker(loginIDKey string) LoginIDTypeChecker {
@@ -45,7 +50,10 @@ func (f *checkerFactoryImpl) newChecker(loginIDKeyType config.LoginIDKeyType) Lo
 	case metadata.Email:
 		return &LoginIDEmailChecker{}
 	case metadata.Username:
-		return &LoginIDUsernameChecker{}
+		return &LoginIDUsernameChecker{
+			config:                 f.loginIDTypes.Username,
+			reservedNameSourceFile: f.reservedNameSourceFile,
+		}
 	case metadata.Phone:
 		return &LoginIDPhoneChecker{}
 	}
@@ -69,9 +77,50 @@ func (c *LoginIDEmailChecker) Validate(loginID string) error {
 	}})
 }
 
-type LoginIDUsernameChecker struct{}
+type LoginIDUsernameChecker struct {
+	config                 *config.LoginIDTypeUsernameConfiguration
+	reservedNameSourceFile string
+}
 
 func (c *LoginIDUsernameChecker) Validate(loginID string) error {
+	if *c.config.BlockReservedKeywords {
+		checker := ReservedNameChecker{c.reservedNameSourceFile}
+		reserved, err := checker.isReserved(loginID)
+		if err != nil {
+			return err
+		}
+		if reserved {
+			return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Pointer: "/value",
+				Message: "username is not allowed",
+			}})
+		}
+	}
+
+	for _, item := range c.config.ExcludedKeywords {
+		if item == loginID {
+			return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Pointer: "/value",
+				Message: "username is not allowed",
+			}})
+		}
+	}
+
+	if *c.config.ASCIIOnly {
+		for _, c := range loginID {
+			if c > unicode.MaxASCII {
+				return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
+					Kind:    validation.ErrorStringFormat,
+					Pointer: "/value",
+					Message: "invalid login ID format",
+					Details: map[string]interface{}{"format": "username"},
+				}})
+			}
+		}
+	}
+
 	return nil
 }
 

@@ -22,10 +22,28 @@ func NewMockProvider(loginIDsKeys []config.LoginIDKeyConfiguration, allowedRealm
 
 // NewMockProviderWithPrincipalMap creates a new instance of mock provider with PrincipalMap
 func NewMockProviderWithPrincipalMap(loginIDsKeys []config.LoginIDKeyConfiguration, allowedRealms []string, principalMap map[string]Principal) *MockProvider {
+	newFalse := func() *bool {
+		t := false
+		return &t
+	}
 	return &MockProvider{
-		loginIDChecker: defaultLoginIDChecker{
-			loginIDsKeys: loginIDsKeys,
-		},
+		loginIDChecker: newDefaultLoginIDChecker(
+			loginIDsKeys,
+			&config.LoginIDTypesConfiguration{
+				Email: &config.LoginIDTypeEmailConfiguration{
+					CaseSensitive:                newFalse(),
+					IgnoreLocalPartAfterPlusSign: newFalse(),
+					IgnoreDot:                    newFalse(),
+				},
+				Username: &config.LoginIDTypeUsernameConfiguration{
+					BlockReservedKeywords: newFalse(),
+					ExcludedKeywords:      []string{},
+					ASCIIOnly:             newFalse(),
+					CaseSensitive:         newFalse(),
+				},
+			},
+			"../../../../../reserved_name.txt",
+		),
 		realmChecker: defaultRealmChecker{
 			allowedRealms: allowedRealms,
 		},

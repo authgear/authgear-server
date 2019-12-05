@@ -41,6 +41,7 @@ type configuration struct {
 	UseInsecureCookie                 bool                        `envconfig:"INSECURE_COOKIE"`
 	Template                          TemplateConfiguration       `envconfig:"TEMPLATE"`
 	Default                           config.DefaultConfiguration `envconfig:"DEFAULT"`
+	ReservedNameSourceFile            string                      `envconfig:"RESERVED_NAME_SOURCE_FILE" default:"reserved_name.txt"`
 }
 
 type TemplateConfiguration struct {
@@ -158,6 +159,7 @@ func main() {
 		UseInsecureCookie:        configuration.UseInsecureCookie,
 		DefaultConfiguration:     configuration.Default,
 		Validator:                validator,
+		ReservedNameSourceFile:   configuration.ReservedNameSourceFile,
 	}
 
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
