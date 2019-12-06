@@ -31,9 +31,9 @@ func NewMockProviderWithPrincipalMap(loginIDsKeys []config.LoginIDKeyConfigurati
 			loginIDsKeys,
 			&config.LoginIDTypesConfiguration{
 				Email: &config.LoginIDTypeEmailConfiguration{
-					CaseSensitive:                newFalse(),
-					IgnoreLocalPartAfterPlusSign: newFalse(),
-					IgnoreDot:                    newFalse(),
+					CaseSensitive: newFalse(),
+					BlockPlusSign: newFalse(),
+					IgnoreDot:     newFalse(),
 				},
 				Username: &config.LoginIDTypeUsernameConfiguration{
 					BlockReservedKeywords: newFalse(),

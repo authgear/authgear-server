@@ -1,6 +1,7 @@
 package password
 
 import (
+	"strings"
 	"unicode"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
@@ -48,7 +49,9 @@ func (f *checkerFactoryImpl) newChecker(loginIDKeyType config.LoginIDKeyType) Lo
 	metadataKey, _ := loginIDKeyType.MetadataKey()
 	switch metadataKey {
 	case metadata.Email:
-		return &LoginIDEmailChecker{}
+		return &LoginIDEmailChecker{
+			config: f.loginIDTypes.Email,
+		}
 	case metadata.Username:
 		return &LoginIDUsernameChecker{
 			config:                 f.loginIDTypes.Username,
@@ -61,20 +64,31 @@ func (f *checkerFactoryImpl) newChecker(loginIDKeyType config.LoginIDKeyType) Lo
 	return &LoginIDNullChecker{}
 }
 
-type LoginIDEmailChecker struct{}
+type LoginIDEmailChecker struct {
+	config *config.LoginIDTypeEmailConfiguration
+}
 
 func (c *LoginIDEmailChecker) Validate(loginID string) error {
-	ok := validation.Email{}.IsFormat(loginID)
-	if ok {
-		return nil
-	}
-
-	return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
+	invalidFormatError := validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
 		Kind:    validation.ErrorStringFormat,
 		Pointer: "/value",
 		Message: "invalid login ID format",
 		Details: map[string]interface{}{"format": "email"},
 	}})
+	ok := validation.Email{}.IsFormat(loginID)
+	if !ok {
+		return invalidFormatError
+	}
+
+	if *c.config.BlockPlusSign {
+		parts := strings.Split(loginID, "@")
+		local := parts[0]
+		if strings.Contains(local, "+") {
+			return invalidFormatError
+		}
+	}
+
+	return nil
 }
 
 type LoginIDUsernameChecker struct {

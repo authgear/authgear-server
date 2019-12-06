@@ -85,12 +85,6 @@ func (n *LoginIDEmailNormalizer) Normalize(loginID string) (string, error) {
 		local = c.String(local)
 	}
 
-	if *n.config.IgnoreLocalPartAfterPlusSign {
-		if i := strings.LastIndex(local, "+"); i != -1 {
-			local = local[0:i]
-		}
-	}
-
 	if *n.config.IgnoreDot {
 		local = strings.Replace(local, ".", "", -1)
 	}

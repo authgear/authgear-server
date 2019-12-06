@@ -37,9 +37,9 @@ func TestLoginIDNormalizer(t *testing.T) {
 
 			n := &LoginIDEmailNormalizer{
 				config: &config.LoginIDTypeEmailConfiguration{
-					CaseSensitive:                newFalse(),
-					IgnoreLocalPartAfterPlusSign: newFalse(),
-					IgnoreDot:                    newFalse(),
+					CaseSensitive: newFalse(),
+					BlockPlusSign: newFalse(),
+					IgnoreDot:     newFalse(),
 				},
 			}
 
@@ -57,9 +57,9 @@ func TestLoginIDNormalizer(t *testing.T) {
 
 			n := &LoginIDEmailNormalizer{
 				config: &config.LoginIDTypeEmailConfiguration{
-					CaseSensitive:                newTrue(),
-					IgnoreLocalPartAfterPlusSign: newFalse(),
-					IgnoreDot:                    newFalse(),
+					CaseSensitive: newTrue(),
+					BlockPlusSign: newFalse(),
+					IgnoreDot:     newFalse(),
 				},
 			}
 
@@ -68,18 +68,17 @@ func TestLoginIDNormalizer(t *testing.T) {
 			}
 		})
 
-		Convey("ingore plus and dot", func() {
+		Convey("ingore dot", func() {
 			cases := []Case{
 				{"Faseng@Example.com", "faseng@example.com"},
-				{"Faseng+Chima@example.com", "faseng@example.com"},
 				{"Faseng.The.Cat@example.com", "fasengthecat@example.com"},
 			}
 
 			n := &LoginIDEmailNormalizer{
 				config: &config.LoginIDTypeEmailConfiguration{
-					CaseSensitive:                newFalse(),
-					IgnoreLocalPartAfterPlusSign: newTrue(),
-					IgnoreDot:                    newTrue(),
+					CaseSensitive: newFalse(),
+					BlockPlusSign: newTrue(),
+					IgnoreDot:     newTrue(),
 				},
 			}
 

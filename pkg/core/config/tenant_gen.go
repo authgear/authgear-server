@@ -2783,25 +2783,25 @@ func (z *LoginIDTypeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					return
 				}
 			}
-		case "ignore_local_part_after_plus_sign":
+		case "block_plus_sign":
 			if dc.IsNil() {
 				err = dc.ReadNil()
 				if err != nil {
-					err = msgp.WrapError(err, "IgnoreLocalPartAfterPlusSign")
+					err = msgp.WrapError(err, "BlockPlusSign")
 					return
 				}
-				z.IgnoreLocalPartAfterPlusSign = nil
+				z.BlockPlusSign = nil
 			} else {
-				if z.IgnoreLocalPartAfterPlusSign == nil {
-					z.IgnoreLocalPartAfterPlusSign = new(bool)
+				if z.BlockPlusSign == nil {
+					z.BlockPlusSign = new(bool)
 				}
-				*z.IgnoreLocalPartAfterPlusSign, err = dc.ReadBool()
+				*z.BlockPlusSign, err = dc.ReadBool()
 				if err != nil {
-					err = msgp.WrapError(err, "IgnoreLocalPartAfterPlusSign")
+					err = msgp.WrapError(err, "BlockPlusSign")
 					return
 				}
 			}
-		case "ignore_dot":
+		case "ignore_dot_sign":
 			if dc.IsNil() {
 				err = dc.ReadNil()
 				if err != nil {
@@ -2850,25 +2850,25 @@ func (z *LoginIDTypeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	}
-	// write "ignore_local_part_after_plus_sign"
-	err = en.Append(0xd9, 0x21, 0x69, 0x67, 0x6e, 0x6f, 0x72, 0x65, 0x5f, 0x6c, 0x6f, 0x63, 0x61, 0x6c, 0x5f, 0x70, 0x61, 0x72, 0x74, 0x5f, 0x61, 0x66, 0x74, 0x65, 0x72, 0x5f, 0x70, 0x6c, 0x75, 0x73, 0x5f, 0x73, 0x69, 0x67, 0x6e)
+	// write "block_plus_sign"
+	err = en.Append(0xaf, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x70, 0x6c, 0x75, 0x73, 0x5f, 0x73, 0x69, 0x67, 0x6e)
 	if err != nil {
 		return
 	}
-	if z.IgnoreLocalPartAfterPlusSign == nil {
+	if z.BlockPlusSign == nil {
 		err = en.WriteNil()
 		if err != nil {
 			return
 		}
 	} else {
-		err = en.WriteBool(*z.IgnoreLocalPartAfterPlusSign)
+		err = en.WriteBool(*z.BlockPlusSign)
 		if err != nil {
-			err = msgp.WrapError(err, "IgnoreLocalPartAfterPlusSign")
+			err = msgp.WrapError(err, "BlockPlusSign")
 			return
 		}
 	}
-	// write "ignore_dot"
-	err = en.Append(0xaa, 0x69, 0x67, 0x6e, 0x6f, 0x72, 0x65, 0x5f, 0x64, 0x6f, 0x74)
+	// write "ignore_dot_sign"
+	err = en.Append(0xaf, 0x69, 0x67, 0x6e, 0x6f, 0x72, 0x65, 0x5f, 0x64, 0x6f, 0x74, 0x5f, 0x73, 0x69, 0x67, 0x6e)
 	if err != nil {
 		return
 	}
@@ -2898,15 +2898,15 @@ func (z *LoginIDTypeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err erro
 	} else {
 		o = msgp.AppendBool(o, *z.CaseSensitive)
 	}
-	// string "ignore_local_part_after_plus_sign"
-	o = append(o, 0xd9, 0x21, 0x69, 0x67, 0x6e, 0x6f, 0x72, 0x65, 0x5f, 0x6c, 0x6f, 0x63, 0x61, 0x6c, 0x5f, 0x70, 0x61, 0x72, 0x74, 0x5f, 0x61, 0x66, 0x74, 0x65, 0x72, 0x5f, 0x70, 0x6c, 0x75, 0x73, 0x5f, 0x73, 0x69, 0x67, 0x6e)
-	if z.IgnoreLocalPartAfterPlusSign == nil {
+	// string "block_plus_sign"
+	o = append(o, 0xaf, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x70, 0x6c, 0x75, 0x73, 0x5f, 0x73, 0x69, 0x67, 0x6e)
+	if z.BlockPlusSign == nil {
 		o = msgp.AppendNil(o)
 	} else {
-		o = msgp.AppendBool(o, *z.IgnoreLocalPartAfterPlusSign)
+		o = msgp.AppendBool(o, *z.BlockPlusSign)
 	}
-	// string "ignore_dot"
-	o = append(o, 0xaa, 0x69, 0x67, 0x6e, 0x6f, 0x72, 0x65, 0x5f, 0x64, 0x6f, 0x74)
+	// string "ignore_dot_sign"
+	o = append(o, 0xaf, 0x69, 0x67, 0x6e, 0x6f, 0x72, 0x65, 0x5f, 0x64, 0x6f, 0x74, 0x5f, 0x73, 0x69, 0x67, 0x6e)
 	if z.IgnoreDot == nil {
 		o = msgp.AppendNil(o)
 	} else {
@@ -2950,24 +2950,24 @@ func (z *LoginIDTypeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err 
 					return
 				}
 			}
-		case "ignore_local_part_after_plus_sign":
+		case "block_plus_sign":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
 				if err != nil {
 					return
 				}
-				z.IgnoreLocalPartAfterPlusSign = nil
+				z.BlockPlusSign = nil
 			} else {
-				if z.IgnoreLocalPartAfterPlusSign == nil {
-					z.IgnoreLocalPartAfterPlusSign = new(bool)
+				if z.BlockPlusSign == nil {
+					z.BlockPlusSign = new(bool)
 				}
-				*z.IgnoreLocalPartAfterPlusSign, bts, err = msgp.ReadBoolBytes(bts)
+				*z.BlockPlusSign, bts, err = msgp.ReadBoolBytes(bts)
 				if err != nil {
-					err = msgp.WrapError(err, "IgnoreLocalPartAfterPlusSign")
+					err = msgp.WrapError(err, "BlockPlusSign")
 					return
 				}
 			}
-		case "ignore_dot":
+		case "ignore_dot_sign":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
 				if err != nil {
@@ -3004,13 +3004,13 @@ func (z *LoginIDTypeEmailConfiguration) Msgsize() (s int) {
 	} else {
 		s += msgp.BoolSize
 	}
-	s += 35
-	if z.IgnoreLocalPartAfterPlusSign == nil {
+	s += 16
+	if z.BlockPlusSign == nil {
 		s += msgp.NilSize
 	} else {
 		s += msgp.BoolSize
 	}
-	s += 11
+	s += 16
 	if z.IgnoreDot == nil {
 		s += msgp.NilSize
 	} else {
