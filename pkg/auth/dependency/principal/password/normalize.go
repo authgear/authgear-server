@@ -13,6 +13,7 @@ import (
 
 type LoginIDNormalizer interface {
 	Normalize(loginID string) (string, error)
+	ComputeUniqueKey(normalizeLoginID string) (string, error)
 }
 
 type LoginIDNormalizerFactory interface {
@@ -72,12 +73,6 @@ func (n *LoginIDEmailNormalizer) Normalize(loginID string) (string, error) {
 	c := cases.Fold()
 	domain = c.String(domain)
 
-	punycode, err := idna.ToASCII(domain)
-	if err != nil {
-		return "", err
-	}
-	domain = punycode
-
 	// convert the local part
 	local = norm.NFKC.String(local)
 
@@ -89,6 +84,17 @@ func (n *LoginIDEmailNormalizer) Normalize(loginID string) (string, error) {
 		local = strings.Replace(local, ".", "", -1)
 	}
 
+	return local + "@" + domain, nil
+}
+
+func (n *LoginIDEmailNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, error) {
+	parts := strings.Split(normalizeLoginID, "@")
+	local, domain := parts[0], parts[1]
+	punycode, err := idna.ToASCII(domain)
+	if err != nil {
+		return "", err
+	}
+	domain = punycode
 	return local + "@" + domain, nil
 }
 
@@ -107,8 +113,23 @@ func (n *LoginIDUsernameNormalizer) Normalize(loginID string) (string, error) {
 	return loginID, nil
 }
 
+func (n *LoginIDUsernameNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, error) {
+	return normalizeLoginID, nil
+}
+
 type LoginIDNullNormalizer struct{}
 
 func (n *LoginIDNullNormalizer) Normalize(loginID string) (string, error) {
 	return loginID, nil
 }
+
+func (n *LoginIDNullNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, error) {
+	return normalizeLoginID, nil
+}
+
+// this ensures that our structure conform to certain interfaces.
+var (
+	_ LoginIDNormalizer = &LoginIDEmailNormalizer{}
+	_ LoginIDNormalizer = &LoginIDUsernameNormalizer{}
+	_ LoginIDNormalizer = &LoginIDNullNormalizer{}
+)

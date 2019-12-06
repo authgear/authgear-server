@@ -10,12 +10,12 @@ import (
 
 func TestLoginIDNormalizer(t *testing.T) {
 	type Case struct {
-		Email           string
-		NormalizedEmail string
+		LoginID           string
+		NormalizedLoginID string
 	}
 	f := func(c Case, n LoginIDNormalizer) {
-		result, _ := n.Normalize(c.Email)
-		So(result, ShouldEqual, c.NormalizedEmail)
+		result, _ := n.Normalize(c.LoginID)
+		So(result, ShouldEqual, c.NormalizedLoginID)
 	}
 	newTrue := func() *bool {
 		b := true
@@ -32,7 +32,7 @@ func TestLoginIDNormalizer(t *testing.T) {
 				{"Faseng+Chima@example.com", "faseng+chima@example.com"},
 				{"faseng.the.cat@example.com", "faseng.the.cat@example.com"},
 				{"faseng.ℌ𝒌@example.com", "faseng.hk@example.com"},
-				{"faseng.ℌ𝒌@測試.香港", "faseng.hk@xn--g6w251d.xn--j6w193g"},
+				{"faseng.ℌ𝒌@測試.香港", "faseng.hk@測試.香港"},
 			}
 
 			n := &LoginIDEmailNormalizer{
@@ -85,6 +85,18 @@ func TestLoginIDNormalizer(t *testing.T) {
 			for _, c := range cases {
 				f(c, n)
 			}
+		})
+
+		Convey("compute unique key", func() {
+			n := &LoginIDEmailNormalizer{}
+			var uniqueKey string
+
+			uniqueKey, _ = n.ComputeUniqueKey("Faseng+Chima@example.com")
+			So(uniqueKey, ShouldEqual, "Faseng+Chima@example.com")
+
+			uniqueKey, _ = n.ComputeUniqueKey("Faseng.The.Cat@測試.香港")
+			So(uniqueKey, ShouldEqual, "Faseng.The.Cat@xn--g6w251d.xn--j6w193g")
+
 		})
 	})
 
