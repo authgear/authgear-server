@@ -8,13 +8,15 @@ import (
 )
 
 type Principal struct {
-	ID             string
-	UserID         string
-	LoginIDKey     string
-	LoginID        string
-	Realm          string
-	HashedPassword []byte
-	ClaimsValue    map[string]interface{}
+	ID              string
+	UserID          string
+	LoginIDKey      string
+	LoginID         string
+	OriginalLoginID string
+	UniqueKey       string
+	Realm           string
+	HashedPassword  []byte
+	ClaimsValue     map[string]interface{}
 }
 
 func NewPrincipal() Principal {

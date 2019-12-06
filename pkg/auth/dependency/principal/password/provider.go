@@ -24,14 +24,15 @@ var (
 )
 
 type providerImpl struct {
-	sqlBuilder             db.SQLBuilder
-	sqlExecutor            db.SQLExecutor
-	logger                 *logrus.Entry
-	loginIDChecker         loginIDChecker
-	realmChecker           realmChecker
-	allowedRealms          []string
-	passwordHistoryEnabled bool
-	passwordHistoryStore   passwordhistory.Store
+	sqlBuilder               db.SQLBuilder
+	sqlExecutor              db.SQLExecutor
+	logger                   *logrus.Entry
+	loginIDChecker           loginIDChecker
+	loginIDNormalizerFactory LoginIDNormalizerFactory
+	realmChecker             realmChecker
+	allowedRealms            []string
+	passwordHistoryEnabled   bool
+	passwordHistoryStore     passwordhistory.Store
 }
 
 func newProvider(
@@ -56,8 +57,9 @@ func newProvider(
 		realmChecker: defaultRealmChecker{
 			allowedRealms: allowedRealms,
 		},
-		allowedRealms:          allowedRealms,
-		passwordHistoryEnabled: passwordHistoryEnabled,
+		loginIDNormalizerFactory: NewLoginIDNormalizerFactory(loginIDsKeys, loginIDTypes),
+		allowedRealms:            allowedRealms,
+		passwordHistoryEnabled:   passwordHistoryEnabled,
 		passwordHistoryStore: pqPWHistory.NewPasswordHistoryStore(
 			builder, executor, loggerFactory,
 		),
@@ -97,6 +99,23 @@ func (p *providerImpl) IsDefaultAllowedRealms() bool {
 	return len(p.allowedRealms) == 1 && p.allowedRealms[0] == DefaultRealm
 }
 
+func (p *providerImpl) selectBuilder() db.SelectBuilder {
+	return p.sqlBuilder.Tenant().
+		Select(
+			"p.id",
+			"p.user_id",
+			"pp.login_id_key",
+			"pp.login_id",
+			"pp.original_login_id",
+			"pp.unique_key",
+			"pp.realm",
+			"pp.password",
+			"pp.claims",
+		).
+		From(p.sqlBuilder.FullTableName("principal"), "p").
+		Join(p.sqlBuilder.FullTableName("provider_password"), "pp", "p.id = pp.principal_id")
+}
+
 func (p *providerImpl) scan(scanner db.Scanner, principal *Principal) error {
 	var claimsValueBytes []byte
 
@@ -105,6 +124,8 @@ func (p *providerImpl) scan(scanner db.Scanner, principal *Principal) error {
 		&principal.UserID,
 		&principal.LoginIDKey,
 		&principal.LoginID,
+		&principal.OriginalLoginID,
+		&principal.UniqueKey,
 		&principal.Realm,
 		&principal.HashedPassword,
 		&claimsValueBytes,
@@ -138,10 +159,26 @@ func (p *providerImpl) CreatePrincipalsByLoginID(authInfoID string, password str
 	}
 
 	for _, loginID := range loginIDs {
+		normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginID.Key)
+		loginIDValue := loginID.Value
+		normalizedloginIDValue, e := normalizer.Normalize(loginID.Value)
+		if e != nil {
+			err = errors.HandledWithMessage(err, "failed to normalized login id")
+			return
+		}
+
+		uniqueKey, e := normalizer.GenerateUniqueKey(loginID.Value)
+		if e != nil {
+			err = errors.HandledWithMessage(e, "failed to genterate login id unique key")
+			return
+		}
+
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
 		principal.LoginIDKey = loginID.Key
-		principal.LoginID = loginID.Value
+		principal.LoginID = normalizedloginIDValue
+		principal.OriginalLoginID = loginIDValue
+		principal.UniqueKey = uniqueKey
 		principal.Realm = realm
 		principal.deriveClaims(p.loginIDChecker)
 		principal.setPassword(password)
@@ -188,6 +225,8 @@ func (p *providerImpl) createPrincipal(principal Principal) (err error) {
 			"principal_id",
 			"login_id_key",
 			"login_id",
+			"original_login_id",
+			"unique_key",
 			"realm",
 			"password",
 			"claims",
@@ -196,6 +235,8 @@ func (p *providerImpl) createPrincipal(principal Principal) (err error) {
 			principal.ID,
 			principal.LoginIDKey,
 			principal.LoginID,
+			principal.OriginalLoginID,
+			principal.UniqueKey,
 			principal.Realm,
 			principal.HashedPassword,
 			claimsValueBytes,
@@ -224,18 +265,7 @@ func (p *providerImpl) savePasswordHistory(principal *Principal) error {
 }
 
 func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, pp *Principal) (err error) {
-	builder := p.sqlBuilder.Tenant().
-		Select(
-			"p.id",
-			"p.user_id",
-			"pp.login_id_key",
-			"pp.login_id",
-			"pp.realm",
-			"pp.password",
-			"pp.claims",
-		).
-		From(p.sqlBuilder.FullTableName("principal"), "p").
-		Join(p.sqlBuilder.FullTableName("provider_password"), "pp", "p.id = pp.principal_id").
+	builder := p.selectBuilder().
 		Where(`pp.login_id = ? AND pp.realm = ?`, loginID, realm)
 	if loginIDKey != "" {
 		builder = builder.Where("pp.login_id_key = ?", loginIDKey)
@@ -260,18 +290,7 @@ func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID
 }
 
 func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
-	builder := p.sqlBuilder.Tenant().
-		Select(
-			"p.id",
-			"p.user_id",
-			"pp.login_id_key",
-			"pp.login_id",
-			"pp.realm",
-			"pp.password",
-			"pp.claims",
-		).
-		From(p.sqlBuilder.FullTableName("principal"), "p").
-		Join(p.sqlBuilder.FullTableName("provider_password"), "pp", "p.id = pp.principal_id").
+	builder := p.selectBuilder().
 		Where("p.user_id = ?", userID)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
@@ -295,18 +314,7 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 }
 
 func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string) (principals []*Principal, err error) {
-	builder := p.sqlBuilder.Tenant().
-		Select(
-			"p.id",
-			"p.user_id",
-			"pp.login_id_key",
-			"pp.login_id",
-			"pp.realm",
-			"pp.password",
-			"pp.claims",
-		).
-		From(p.sqlBuilder.FullTableName("principal"), "p").
-		Join(p.sqlBuilder.FullTableName("provider_password"), "pp", "p.id = pp.principal_id").
+	builder := p.selectBuilder().
 		Where("(pp.claims #>> ?) = ?", pq.Array([]string{claimName}), claimValue)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
@@ -330,18 +338,7 @@ func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string)
 }
 
 func (p *providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string) (principals []*Principal, err error) {
-	builder := p.sqlBuilder.Tenant().
-		Select(
-			"p.id",
-			"p.user_id",
-			"pp.login_id_key",
-			"pp.login_id",
-			"pp.realm",
-			"pp.password",
-			"pp.claims",
-		).
-		From(p.sqlBuilder.FullTableName("principal"), "p").
-		Join(p.sqlBuilder.FullTableName("provider_password"), "pp", "p.id = pp.principal_id").
+	builder := p.selectBuilder().
 		Where(`pp.login_id = ?`, loginID)
 	if loginIDKey != "" {
 		builder = builder.Where("pp.login_id_key = ?", loginIDKey)
@@ -426,18 +423,7 @@ func (p *providerImpl) ID() string {
 }
 
 func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
-	builder := p.sqlBuilder.Tenant().
-		Select(
-			"p.id",
-			"p.user_id",
-			"pp.login_id_key",
-			"pp.login_id",
-			"pp.realm",
-			"pp.password",
-			"pp.claims",
-		).
-		From(p.sqlBuilder.FullTableName("principal"), "p").
-		Join(p.sqlBuilder.FullTableName("provider_password"), "pp", "p.id = pp.principal_id").
+	builder := p.selectBuilder().
 		Where(`p.id = ?`, principalID)
 
 	scanner, err := p.sqlExecutor.QueryRowWith(builder)
