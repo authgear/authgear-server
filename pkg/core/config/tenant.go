@@ -400,7 +400,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	// Set default AuthConfiguration
 	if c.UserConfig.Auth.LoginIDKeys == nil {
 		c.UserConfig.Auth.LoginIDKeys = []LoginIDKeyConfiguration{
-			LoginIDKeyConfiguration{Key: "username", Type: LoginIDKeyTypeRaw},
+			LoginIDKeyConfiguration{Key: "username", Type: LoginIDKeyType(metadata.Username)},
 			LoginIDKeyConfiguration{Key: "email", Type: LoginIDKeyType(metadata.Email)},
 			LoginIDKeyConfiguration{Key: "phone", Type: LoginIDKeyType(metadata.Phone)},
 		}
