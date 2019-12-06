@@ -8,23 +8,29 @@ import (
 )
 
 type ReservedNameChecker struct {
-	sourceFile string
+	reservedWords []string
+}
+
+func NewReservedNameChecker(sourceFile string) (*ReservedNameChecker, error) {
+	f, err := os.Open(sourceFile)
+	if err != nil {
+		return nil, err
+	}
+	content, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+
+	reservedWords := strings.Split(string(content), "\n")
+
+	return &ReservedNameChecker{
+		reservedWords: reservedWords,
+	}, nil
 }
 
 func (c *ReservedNameChecker) isReserved(name string) (bool, error) {
-	f, err := os.Open(c.sourceFile)
-	if err != nil {
-		return false, err
-	}
-
-	content, err := ioutil.ReadAll(f)
-	if err != nil {
-		return false, err
-	}
-
-	lists := strings.Split(string(content), "\n")
-	for i := 0; i < len(lists); i++ {
-		if lists[i] == name {
+	for i := 0; i < len(c.reservedWords); i++ {
+		if c.reservedWords[i] == name {
 			return true, nil
 		}
 	}

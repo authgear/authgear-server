@@ -12,6 +12,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
 	gearHandler "github.com/skygeario/skygear-server/pkg/auth/handler/gear"
@@ -152,6 +153,13 @@ func main() {
 			AssetGearMasterKey: configuration.Template.AssetGearMasterKey,
 		}
 	}
+
+	var reservedNameChecker *password.ReservedNameChecker
+	reservedNameChecker, err = password.NewReservedNameChecker(configuration.ReservedNameSourceFile)
+	if err != nil {
+		logger.Fatalf("fail to load reserved name source file: %v", err.Error())
+	}
+
 	authDependency := auth.DependencyMap{
 		EnableFileSystemTemplate: configuration.Template.EnableFileLoader,
 		AssetGearLoader:          assetGearLoader,
@@ -159,7 +167,7 @@ func main() {
 		UseInsecureCookie:        configuration.UseInsecureCookie,
 		DefaultConfiguration:     configuration.Default,
 		Validator:                validator,
-		ReservedNameSourceFile:   configuration.ReservedNameSourceFile,
+		ReservedNameChecker:      reservedNameChecker,
 	}
 
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)

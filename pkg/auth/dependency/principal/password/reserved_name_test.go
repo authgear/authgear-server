@@ -9,9 +9,7 @@ import (
 func TestReservedNameChecker(t *testing.T) {
 
 	Convey("TestReservedNameChecker", t, func() {
-		checker := &ReservedNameChecker{
-			sourceFile: "../../../../../reserved_name.txt",
-		}
+		checker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
 
 		var result bool
 		var err error

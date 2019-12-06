@@ -49,7 +49,7 @@ type DependencyMap struct {
 	AsyncTaskExecutor        *async.Executor
 	UseInsecureCookie        bool
 	DefaultConfiguration     config.DefaultConfiguration
-	ReservedNameSourceFile   string
+	ReservedNameChecker      *password.ReservedNameChecker
 }
 
 // Provide provides dependency instance by name
@@ -151,7 +151,7 @@ func (m DependencyMap) Provide(
 			tConfig.UserConfig.Auth.LoginIDTypes,
 			tConfig.UserConfig.Auth.AllowedRealms,
 			isPasswordHistoryEnabled(),
-			m.ReservedNameSourceFile,
+			m.ReservedNameChecker,
 		)
 	}
 

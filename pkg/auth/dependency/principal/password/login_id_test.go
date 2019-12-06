@@ -44,6 +44,7 @@ func newLoginIDTypesConfig() *config.LoginIDTypesConfiguration {
 func TestLoginID(t *testing.T) {
 	Convey("Test isValid", t, func() {
 		Convey("validate by config: username (0-1), email (0-1)", func() {
+			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
 			checker := newDefaultLoginIDChecker(
 				[]config.LoginIDKeyConfiguration{
 					newLoginIDKeyConfig("username", config.LoginIDKeyTypeRaw, 0, 1),
@@ -51,7 +52,7 @@ func TestLoginID(t *testing.T) {
 					newLoginIDKeyConfig("phone", config.LoginIDKeyType(metadata.Phone), 0, 1),
 				},
 				newLoginIDTypesConfig(),
-				"../../../../../reserved_name.txt",
+				reversedNameChecker,
 			)
 			var loginIDs []LoginID
 

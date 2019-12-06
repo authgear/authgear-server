@@ -565,7 +565,7 @@ mailer-daemon
 nobody
 noreply
 no-reply
-clientaccesspolicy.xml'
+clientaccesspolicy.xml
 crossdomain.xml
 favicon.ico
 humans.txt

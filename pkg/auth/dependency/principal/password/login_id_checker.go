@@ -20,19 +20,19 @@ type LoginIDTypeCheckerFactory interface {
 func NewLoginIDTypeCheckerFactory(
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
-	reservedNameSourceFile string,
+	reservedNameChecker *ReservedNameChecker,
 ) LoginIDTypeCheckerFactory {
 	return &checkerFactoryImpl{
-		loginIDsKeys:           loginIDsKeys,
-		loginIDTypes:           loginIDTypes,
-		reservedNameSourceFile: reservedNameSourceFile,
+		loginIDsKeys:        loginIDsKeys,
+		loginIDTypes:        loginIDTypes,
+		reservedNameChecker: reservedNameChecker,
 	}
 }
 
 type checkerFactoryImpl struct {
-	loginIDsKeys           []config.LoginIDKeyConfiguration
-	loginIDTypes           *config.LoginIDTypesConfiguration
-	reservedNameSourceFile string
+	loginIDsKeys        []config.LoginIDKeyConfiguration
+	loginIDTypes        *config.LoginIDTypesConfiguration
+	reservedNameChecker *ReservedNameChecker
 }
 
 func (f *checkerFactoryImpl) NewChecker(loginIDKeyType config.LoginIDKeyType) LoginIDTypeChecker {
@@ -44,8 +44,8 @@ func (f *checkerFactoryImpl) NewChecker(loginIDKeyType config.LoginIDKeyType) Lo
 		}
 	case metadata.Username:
 		return &LoginIDUsernameChecker{
-			config:                 f.loginIDTypes.Username,
-			reservedNameSourceFile: f.reservedNameSourceFile,
+			config:              f.loginIDTypes.Username,
+			reservedNameChecker: f.reservedNameChecker,
 		}
 	case metadata.Phone:
 		return &LoginIDPhoneChecker{}
@@ -82,14 +82,13 @@ func (c *LoginIDEmailChecker) Validate(loginID string) error {
 }
 
 type LoginIDUsernameChecker struct {
-	config                 *config.LoginIDTypeUsernameConfiguration
-	reservedNameSourceFile string
+	config              *config.LoginIDTypeUsernameConfiguration
+	reservedNameChecker *ReservedNameChecker
 }
 
 func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 	if *c.config.BlockReservedKeywords {
-		checker := ReservedNameChecker{c.reservedNameSourceFile}
-		reserved, err := checker.isReserved(loginID)
+		reserved, err := c.reservedNameChecker.isReserved(loginID)
 		if err != nil {
 			return err
 		}

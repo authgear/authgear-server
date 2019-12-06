@@ -30,16 +30,15 @@ type loginIDChecker interface {
 func newDefaultLoginIDChecker(
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
-	reservedNameSourceFile string,
+	reservedNameChecker *ReservedNameChecker,
 ) loginIDChecker {
 	return defaultLoginIDChecker{
-		loginIDsKeys:           loginIDsKeys,
-		loginIDTypes:           loginIDTypes,
-		reservedNameSourceFile: reservedNameSourceFile,
+		loginIDsKeys: loginIDsKeys,
+		loginIDTypes: loginIDTypes,
 		loginIDTypeCheckerFactory: NewLoginIDTypeCheckerFactory(
 			loginIDsKeys,
 			loginIDTypes,
-			reservedNameSourceFile,
+			reservedNameChecker,
 		),
 	}
 }
@@ -47,7 +46,6 @@ func newDefaultLoginIDChecker(
 type defaultLoginIDChecker struct {
 	loginIDsKeys              []config.LoginIDKeyConfiguration
 	loginIDTypes              *config.LoginIDTypesConfiguration
-	reservedNameSourceFile    string
 	loginIDTypeCheckerFactory LoginIDTypeCheckerFactory
 }
 

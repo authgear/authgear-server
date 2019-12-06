@@ -44,7 +44,7 @@ func newProvider(
 	loginIDTypes *config.LoginIDTypesConfiguration,
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
-	reservedNameSourceFile string,
+	reservedNameChecker *ReservedNameChecker,
 ) *providerImpl {
 	return &providerImpl{
 		sqlBuilder:   builder,
@@ -54,7 +54,7 @@ func newProvider(
 		loginIDChecker: newDefaultLoginIDChecker(
 			loginIDsKeys,
 			loginIDTypes,
-			reservedNameSourceFile,
+			reservedNameChecker,
 		),
 		realmChecker: defaultRealmChecker{
 			allowedRealms: allowedRealms,
@@ -76,9 +76,9 @@ func NewProvider(
 	loginIDTypes *config.LoginIDTypesConfiguration,
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
-	reservedNameSourceFile string,
+	reservedNameChecker *ReservedNameChecker,
 ) Provider {
-	return newProvider(builder, executor, loggerFactory, loginIDsKeys, loginIDTypes, allowedRealms, passwordHistoryEnabled, reservedNameSourceFile)
+	return newProvider(builder, executor, loggerFactory, loginIDsKeys, loginIDTypes, allowedRealms, passwordHistoryEnabled, reservedNameChecker)
 }
 
 func (p *providerImpl) ValidateLoginID(loginID LoginID) error {

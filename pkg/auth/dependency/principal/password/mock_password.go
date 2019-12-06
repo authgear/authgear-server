@@ -26,6 +26,7 @@ func NewMockProviderWithPrincipalMap(loginIDsKeys []config.LoginIDKeyConfigurati
 		t := false
 		return &t
 	}
+	reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
 	return &MockProvider{
 		loginIDChecker: newDefaultLoginIDChecker(
 			loginIDsKeys,
@@ -42,7 +43,7 @@ func NewMockProviderWithPrincipalMap(loginIDsKeys []config.LoginIDKeyConfigurati
 					CaseSensitive:         newFalse(),
 				},
 			},
-			"../../../../../reserved_name.txt",
+			reversedNameChecker,
 		),
 		realmChecker: defaultRealmChecker{
 			allowedRealms: allowedRealms,

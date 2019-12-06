@@ -101,13 +101,14 @@ func TestLoginIDChecker(t *testing.T) {
 				{"faseng", ""},
 			}
 
+			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
 			n := &LoginIDUsernameChecker{
 				config: &config.LoginIDTypeUsernameConfiguration{
 					BlockReservedKeywords: newTrue(),
 					ExcludedKeywords:      []string{"skygear"},
 					ASCIIOnly:             newTrue(),
 				},
-				reservedNameSourceFile: "../../../../../reserved_name.txt",
+				reservedNameChecker: reversedNameChecker,
 			}
 
 			for _, c := range cases {
