@@ -209,6 +209,10 @@ func (h LoginHandler) getPrincipal(pwd string, loginIDKey string, loginID string
 		if errors.Is(err, principal.ErrNotFound) {
 			err = password.ErrInvalidCredentials
 		}
+		if errors.Is(err, principal.ErrMultipleResultsFound) {
+			h.Logger.WithError(err).Warn("Multiple results found for password principal query")
+			err = password.ErrInvalidCredentials
+		}
 		return nil, err
 	}
 

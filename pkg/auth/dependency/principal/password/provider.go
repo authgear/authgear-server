@@ -27,6 +27,7 @@ type providerImpl struct {
 	sqlBuilder               db.SQLBuilder
 	sqlExecutor              db.SQLExecutor
 	logger                   *logrus.Entry
+	loginIDsKeys             []config.LoginIDKeyConfiguration
 	loginIDChecker           loginIDChecker
 	loginIDNormalizerFactory LoginIDNormalizerFactory
 	realmChecker             realmChecker
@@ -46,9 +47,10 @@ func newProvider(
 	reservedNameSourceFile string,
 ) *providerImpl {
 	return &providerImpl{
-		sqlBuilder:  builder,
-		sqlExecutor: executor,
-		logger:      loggerFactory.NewLogger("password-provider"),
+		sqlBuilder:   builder,
+		sqlExecutor:  executor,
+		logger:       loggerFactory.NewLogger("password-provider"),
+		loginIDsKeys: loginIDsKeys,
 		loginIDChecker: newDefaultLoginIDChecker(
 			loginIDsKeys,
 			loginIDTypes,
@@ -143,21 +145,6 @@ func (p *providerImpl) scan(scanner db.Scanner, principal *Principal) error {
 }
 
 func (p *providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (principals []*Principal, err error) {
-	// do not create principal when there is login ID belongs to another user.
-	for _, loginID := range loginIDs {
-		loginIDPrincipals, principalErr := p.GetPrincipalsByLoginID("", loginID.Value)
-		if principalErr != nil && principalErr != principal.ErrNotFound {
-			err = principalErr
-			return
-		}
-		for _, principal := range loginIDPrincipals {
-			if principal.UserID != authInfoID {
-				err = ErrLoginIDAlreadyUsed
-				return
-			}
-		}
-	}
-
 	for _, loginID := range loginIDs {
 		normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginID.Key)
 		loginIDValue := loginID.Value
@@ -167,9 +154,9 @@ func (p *providerImpl) CreatePrincipalsByLoginID(authInfoID string, password str
 			return
 		}
 
-		uniqueKey, e := normalizer.GenerateUniqueKey(loginID.Value)
+		uniqueKey, e := normalizer.ComputeUniqueKey(normalizedloginIDValue)
 		if e != nil {
-			err = errors.HandledWithMessage(e, "failed to genterate login id unique key")
+			err = errors.HandledWithMessage(e, "failed to compute login id unique key")
 			return
 		}
 
@@ -185,13 +172,26 @@ func (p *providerImpl) CreatePrincipalsByLoginID(authInfoID string, password str
 		err = p.createPrincipal(principal)
 
 		if err != nil {
-			err = errors.HandledWithMessage(err, "failed to create principal")
+			if isUniqueViolated(err) {
+				err = ErrLoginIDAlreadyUsed
+			} else {
+				err = errors.HandledWithMessage(err, "failed to create principal")
+			}
 			return
 		}
 		principals = append(principals, &principal)
 	}
 
 	return
+}
+
+func isUniqueViolated(err error) bool {
+	for ; err != nil; err = errors.Unwrap(err) {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			return true
+		}
+	}
+	return false
 }
 
 func (p *providerImpl) createPrincipal(principal Principal) (err error) {
@@ -264,26 +264,66 @@ func (p *providerImpl) savePasswordHistory(principal *Principal) error {
 	return nil
 }
 
-func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, pp *Principal) (err error) {
+func (p *providerImpl) getPrincipals(loginIDKey string, loginID string, realm *string) (principals []*Principal, err error) {
 	builder := p.selectBuilder().
-		Where(`pp.login_id = ? AND pp.realm = ?`, loginID, realm)
-	if loginIDKey != "" {
-		builder = builder.Where("pp.login_id_key = ?", loginIDKey)
+		Where(`pp.login_id = ? AND pp.login_id_key = ?`, loginID, loginIDKey)
+	if realm != nil {
+		builder = builder.Where("pp.realm = ?", *realm)
 	}
 
-	scanner, err := p.sqlExecutor.QueryRowWith(builder)
+	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
-		err = errors.HandledWithMessage(err, "failed to get principal by login ID & realm")
 		return
 	}
+	defer rows.Close()
 
-	err = p.scan(scanner, pp)
-	if err == sql.ErrNoRows {
+	for rows.Next() {
+		var principal Principal
+		err = p.scan(rows, &principal)
+		if err != nil {
+			return
+		}
+		principals = append(principals, &principal)
+	}
+
+	return
+}
+
+func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, pp *Principal) (err error) {
+	var principals []*Principal
+	for _, loginIDKeyConfig := range p.loginIDsKeys {
+		if loginIDKey == "" || loginIDKeyConfig.Key == loginIDKey {
+			invalid := p.loginIDChecker.validateOne(LoginID{
+				Key:   loginIDKeyConfig.Key,
+				Value: loginID,
+			})
+			if invalid != nil {
+				continue
+			}
+
+			normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginIDKeyConfig.Key)
+			normalizedloginID, e := normalizer.Normalize(loginID)
+			if e != nil {
+				err = errors.HandledWithMessage(e, "failed to normalized login id")
+				return
+			}
+			ps, e := p.getPrincipals(loginIDKeyConfig.Key, normalizedloginID, &realm)
+			if e != nil {
+				err = errors.HandledWithMessage(e, "failed to get principal by login ID & realm")
+				return
+			}
+			if len(ps) > 0 {
+				principals = append(principals, ps...)
+			}
+		}
+	}
+
+	if len(principals) == 0 {
 		err = principal.ErrNotFound
-		return
-	} else if err != nil {
-		err = errors.HandledWithMessage(err, "failed to get principal by login ID & realm")
-		return
+	} else if len(principals) > 1 {
+		err = principal.ErrMultipleResultsFound
+	} else {
+		*pp = *principals[0]
 	}
 
 	return
@@ -338,29 +378,27 @@ func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string)
 }
 
 func (p *providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string) (principals []*Principal, err error) {
-	builder := p.selectBuilder().
-		Where(`pp.login_id = ?`, loginID)
-	if loginIDKey != "" {
-		builder = builder.Where("pp.login_id_key = ?", loginIDKey)
-	}
-
-	rows, err := p.sqlExecutor.QueryWith(builder)
-	if err != nil {
-		err = errors.HandledWithMessage(err, "failed to get principal by login ID")
-		return
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var principal Principal
-		err = p.scan(rows, &principal)
-		if err != nil {
-			err = errors.HandledWithMessage(err, "failed to get principal by login ID")
-			return
+	var result []*Principal
+	for _, loginIDKeyConfig := range p.loginIDsKeys {
+		if loginIDKey == "" || loginIDKeyConfig.Key == loginIDKey {
+			normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginIDKeyConfig.Key)
+			normalizedloginID, e := normalizer.Normalize(loginID)
+			if e != nil {
+				err = errors.HandledWithMessage(e, "failed to normalized login id")
+				return
+			}
+			ps, e := p.getPrincipals(loginIDKeyConfig.Key, normalizedloginID, nil)
+			if e != nil {
+				err = errors.HandledWithMessage(e, "failed to get principal by login ID")
+				return
+			}
+			if len(ps) > 0 {
+				result = append(result, ps...)
+			}
 		}
-		principals = append(principals, &principal)
 	}
 
+	principals = result
 	return
 }
 
