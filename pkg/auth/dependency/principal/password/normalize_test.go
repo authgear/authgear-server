@@ -28,11 +28,23 @@ func TestLoginIDNormalizer(t *testing.T) {
 	Convey("TestLoginIDEmailNormalizer", t, func() {
 		Convey("default setting", func() {
 			cases := []Case{
+				// no change
+				{"faseng+chima@example.com", "faseng+chima@example.com"},
+
+				// case fold
 				{"Faseng@Example.com", "faseng@example.com"},
 				{"Faseng+Chima@example.com", "faseng+chima@example.com"},
-				{"faseng.the.cat@example.com", "faseng.the.cat@example.com"},
+				{"grüßen@example.com", "grüssen@example.com"},
+
+				// NFKC + case fold
 				{"faseng.ℌ𝒌@example.com", "faseng.hk@example.com"},
-				{"faseng.ℌ𝒌@測試.香港", "faseng.hk@測試.香港"},
+				{
+					string([]byte{102, 97, 115, 101, 110, 103, 46, 226, 132, 140, 240, 157, 146, 140, 64, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109}),
+					string([]byte{102, 97, 115, 101, 110, 103, 46, 104, 107, 64, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109}),
+				},
+
+				// no change for unicode domain
+				{"faseng@測試.香港", "faseng@測試.香港"},
 			}
 
 			n := &LoginIDEmailNormalizer{
@@ -103,7 +115,14 @@ func TestLoginIDNormalizer(t *testing.T) {
 	Convey("TestLoginIDEmailNormalizer", t, func() {
 		Convey("case insensitive username", func() {
 			cases := []Case{
+				// NFKC + case fold
 				{"Faseng.ℌ𝒌", "faseng.hk"},
+				{
+					string([]byte{70, 97, 115, 101, 110, 103, 46, 226, 132, 140, 240, 157, 146, 140}),
+					string([]byte{102, 97, 115, 101, 110, 103, 46, 104, 107}),
+				},
+
+				// case fold
 				{"fasengChima", "fasengchima"},
 				{"grüßen", "grüssen"},
 			}
@@ -121,7 +140,14 @@ func TestLoginIDNormalizer(t *testing.T) {
 
 		Convey("case sensitive username", func() {
 			cases := []Case{
+				// NFKC
 				{"Faseng.ℌ𝒌", "Faseng.Hk"},
+				{
+					string([]byte{70, 97, 115, 101, 110, 103, 46, 226, 132, 140, 240, 157, 146, 140}),
+					string([]byte{70, 97, 115, 101, 110, 103, 46, 72, 107}),
+				},
+
+				// no change
 				{"fasengChima", "fasengChima"},
 				{"grüßen", "grüßen"},
 			}
