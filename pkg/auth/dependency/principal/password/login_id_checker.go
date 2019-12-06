@@ -14,7 +14,7 @@ type LoginIDTypeChecker interface {
 }
 
 type LoginIDTypeCheckerFactory interface {
-	NewChecker(loginIDKey string) LoginIDTypeChecker
+	NewChecker(loginIDKey config.LoginIDKeyType) LoginIDTypeChecker
 }
 
 func NewLoginIDTypeCheckerFactory(
@@ -35,17 +35,7 @@ type checkerFactoryImpl struct {
 	reservedNameSourceFile string
 }
 
-func (f *checkerFactoryImpl) NewChecker(loginIDKey string) LoginIDTypeChecker {
-	for _, c := range f.loginIDsKeys {
-		if c.Key == loginIDKey {
-			return f.newChecker(c.Type)
-		}
-	}
-
-	panic("password: invalid login id key: " + loginIDKey)
-}
-
-func (f *checkerFactoryImpl) newChecker(loginIDKeyType config.LoginIDKeyType) LoginIDTypeChecker {
+func (f *checkerFactoryImpl) NewChecker(loginIDKeyType config.LoginIDKeyType) LoginIDTypeChecker {
 	metadataKey, _ := loginIDKeyType.MetadataKey()
 	switch metadataKey {
 	case metadata.Email:

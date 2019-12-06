@@ -99,8 +99,10 @@ func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
 
 func (c defaultLoginIDChecker) validateOne(loginID LoginID) error {
 	allowed := false
+	var loginIDType config.LoginIDKeyType
 	for _, keyConfig := range c.loginIDsKeys {
 		if keyConfig.Key == loginID.Key {
+			loginIDType = keyConfig.Type
 			allowed = true
 		}
 	}
@@ -116,7 +118,7 @@ func (c defaultLoginIDChecker) validateOne(loginID LoginID) error {
 		}})
 	}
 
-	if err := c.loginIDTypeCheckerFactory.NewChecker(loginID.Key).Validate(loginID.Value); err != nil {
+	if err := c.loginIDTypeCheckerFactory.NewChecker(loginIDType).Validate(loginID.Value); err != nil {
 		return err
 	}
 
