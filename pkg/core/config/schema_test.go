@@ -73,19 +73,34 @@ func TestValidateUserConfiguration(t *testing.T) {
 						},
 						{
 							"key": "username",
-							"type": "raw"
+							"type": "username"
 						},
 						{
 							"key": "invalid",
 							"type": "invalid"
 						}
-					]
+					],
+					"login_id_types": {
+						"email": {
+							"case_sensitive": false,
+							"block_plus_sign": false,
+							"ignore_dot_sign": false
+						},
+						"username": {
+							"block_reserved_keywords": true,
+							"excluded_keywords": [ "skygear" ],
+							"ascii_only": false,
+							"case_sensitive": false
+						},
+						"phone": {}
+					}
 				},
 				"hook": {}
 			}`,
 			"/asset: Required",
 			"/auth/authentication_session: Required",
 			"/auth/login_id_keys/3/type: Enum map[expected:[raw email phone username]]",
+			"/auth/login_id_types/phone: ExtraEntry",
 			"/hook/secret: Required",
 		)
 		// Minimal valid example
@@ -110,7 +125,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 						},
 						{
 							"key": "username",
-							"type": "raw"
+							"type": "username"
 						}
 					]
 				},
@@ -146,7 +161,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 						},
 						{
 							"key": "username",
-							"type": "raw"
+							"type": "username"
 						}
 					]
 				},
@@ -181,7 +196,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 						},
 						{
 							"key": "username",
-							"type": "raw"
+							"type": "username"
 						}
 					]
 				},
@@ -242,7 +257,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 						},
 						{
 							"key": "username",
-							"type": "raw"
+							"type": "username"
 						}
 					]
 				},
@@ -285,7 +300,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 						},
 						{
 							"key": "username",
-							"type": "raw"
+							"type": "username"
 						}
 					]
 				},
@@ -320,7 +335,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 						},
 						{
 							"key": "username",
-							"type": "raw"
+							"type": "username"
 						}
 					]
 				},
@@ -359,7 +374,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 						},
 						{
 							"key": "username",
-							"type": "raw"
+							"type": "username"
 						}
 					]
 				},
@@ -410,7 +425,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 						},
 						{
 							"key": "username",
-							"type": "raw"
+							"type": "username"
 						}
 					]
 				},
@@ -452,7 +467,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 						},
 						{
 							"key": "username",
-							"type": "raw"
+							"type": "username"
 						}
 					]
 				},
@@ -487,7 +502,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 						},
 						{
 							"key": "username",
-							"type": "raw"
+							"type": "username"
 						}
 					]
 				},
