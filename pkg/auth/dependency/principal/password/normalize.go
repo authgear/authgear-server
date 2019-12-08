@@ -66,8 +66,13 @@ type LoginIDEmailNormalizer struct {
 }
 
 func (n *LoginIDEmailNormalizer) Normalize(loginID string) (string, error) {
-	parts := strings.Split(loginID, "@")
-	local, domain := parts[0], parts[1]
+	// refs from stdlib
+	// https://golang.org/src/net/mail/message.go?s=5217:5250#L172
+	at := strings.LastIndex(loginID, "@")
+	if at < 0 {
+		panic("password: malformed address, should be rejected by the email format checker")
+	}
+	local, domain := loginID[:at], loginID[at+1:]
 
 	// convert the domain part
 	c := cases.Fold()
@@ -88,8 +93,11 @@ func (n *LoginIDEmailNormalizer) Normalize(loginID string) (string, error) {
 }
 
 func (n *LoginIDEmailNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, error) {
-	parts := strings.Split(normalizeLoginID, "@")
-	local, domain := parts[0], parts[1]
+	at := strings.LastIndex(normalizeLoginID, "@")
+	if at < 0 {
+		panic("password: malformed address, should be rejected by the email format checker")
+	}
+	local, domain := normalizeLoginID[:at], normalizeLoginID[at+1:]
 	punycode, err := idna.ToASCII(domain)
 	if err != nil {
 		return "", err

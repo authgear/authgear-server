@@ -30,6 +30,7 @@ func TestLoginIDNormalizer(t *testing.T) {
 			cases := []Case{
 				// no change
 				{"faseng+chima@example.com", "faseng+chima@example.com"},
+				{`"faseng@cat"@example.com`, `"faseng@cat"@example.com`},
 
 				// case fold
 				{"Faseng@Example.com", "faseng@example.com"},

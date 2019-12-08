@@ -36,8 +36,13 @@ func TestLoginIDChecker(t *testing.T) {
 				{"Faseng@Example.com", ""},
 				{"Faseng+Chima@example.com", ""},
 				{"faseng.the.cat", "invalid login ID"},
+				{"fasengthecat", "invalid login ID"},
+				{"fasengthecat@", "invalid login ID"},
+				{"@fasengthecat", "invalid login ID"},
 				{"Faseng <faseng@example>", "invalid login ID"},
 				{"faseng.ℌ𝒌@測試.香港", ""},
+				{`"faseng@cat"@example.com`, ""},
+				{`"faseng@"@example.com`, ""},
 			}
 
 			check := &LoginIDEmailChecker{
@@ -55,6 +60,7 @@ func TestLoginIDChecker(t *testing.T) {
 			cases := []Case{
 				{"Faseng@Example.com", ""},
 				{"Faseng+Chima@example.com", "invalid login ID"},
+				{`"faseng@cat+123"@example.com`, "invalid login ID"},
 			}
 
 			checker := &LoginIDEmailChecker{

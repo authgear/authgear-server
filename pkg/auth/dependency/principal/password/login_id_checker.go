@@ -71,8 +71,14 @@ func (c *LoginIDEmailChecker) Validate(loginID string) error {
 	}
 
 	if *c.config.BlockPlusSign {
-		parts := strings.Split(loginID, "@")
-		local := parts[0]
+		// refs from stdlib
+		// https://golang.org/src/net/mail/message.go?s=5217:5250#L172
+		at := strings.LastIndex(loginID, "@")
+		if at < 0 {
+			panic("password: malformed address, should be rejected by the email format checker")
+		}
+
+		local := loginID[:at]
 		if strings.Contains(local, "+") {
 			return invalidFormatError
 		}
