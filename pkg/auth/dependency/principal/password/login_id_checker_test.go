@@ -41,7 +41,7 @@ func TestLoginIDChecker(t *testing.T) {
 				{"@fasengthecat", "invalid login ID"},
 				{"Faseng <faseng@example>", "invalid login ID"},
 				{"faseng.ℌ𝒌@測試.香港", ""},
-				{`"faseng@cat"@example.com`, ""},
+				{`"fase ng@cat"@example.com`, ""},
 				{`"faseng@"@example.com`, ""},
 			}
 
@@ -83,6 +83,9 @@ func TestLoginIDChecker(t *testing.T) {
 				{"skygear", ""},
 				{"花生thecat", ""},
 				{"faseng", ""},
+
+				// space is not allowed in Identifier class
+				{"Test ID", "invalid login ID"},
 			}
 
 			n := &LoginIDUsernameChecker{

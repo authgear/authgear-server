@@ -4,11 +4,12 @@ import (
 	"strings"
 
 	"golang.org/x/net/idna"
-	"golang.org/x/text/cases"
+	"golang.org/x/text/secure/precis"
 	"golang.org/x/text/unicode/norm"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type LoginIDNormalizer interface {
@@ -75,14 +76,21 @@ func (n *LoginIDEmailNormalizer) Normalize(loginID string) (string, error) {
 	local, domain := loginID[:at], loginID[at+1:]
 
 	// convert the domain part
-	c := cases.Fold()
-	domain = c.String(domain)
+	var err error
+	p := precis.NewFreeform(precis.FoldCase())
+	domain, err = p.String(domain)
+	if err != nil {
+		return "", errors.HandledWithMessage(err, "failed to case fold email")
+	}
 
 	// convert the local part
 	local = norm.NFKC.String(local)
 
 	if !*n.config.CaseSensitive {
-		local = c.String(local)
+		local, err = p.String(local)
+		if err != nil {
+			return "", errors.HandledWithMessage(err, "failed to case fold email")
+		}
 	}
 
 	if *n.config.IgnoreDot {
@@ -113,9 +121,13 @@ type LoginIDUsernameNormalizer struct {
 func (n *LoginIDUsernameNormalizer) Normalize(loginID string) (string, error) {
 	loginID = norm.NFKC.String(loginID)
 
-	c := cases.Fold()
+	var err error
 	if !*n.config.CaseSensitive {
-		loginID = c.String(loginID)
+		p := precis.NewIdentifier(precis.FoldCase())
+		loginID, err = p.String(loginID)
+		if err != nil {
+			return "", errors.HandledWithMessage(err, "failed to case fold username")
+		}
 	}
 
 	return loginID, nil

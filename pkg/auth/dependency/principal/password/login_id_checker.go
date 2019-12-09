@@ -4,8 +4,11 @@ import (
 	"regexp"
 	"strings"
 
+	"golang.org/x/text/secure/precis"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -97,8 +100,24 @@ type LoginIDUsernameChecker struct {
 }
 
 func (c *LoginIDUsernameChecker) Validate(loginID string) error {
+	invalidFormatError := validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
+		Kind:    validation.ErrorStringFormat,
+		Pointer: "/value",
+		Message: "invalid login ID format",
+		Details: map[string]interface{}{"format": "username"},
+	}})
+
+	// Ensure the login id is valid for Identifier profile
+	// and use the casefolded value for checking blacklist
+	// https://godoc.org/golang.org/x/text/secure/precis#NewIdentifier
+	p := precis.NewIdentifier(precis.FoldCase())
+	cfLoginID, err := p.String(loginID)
+	if err != nil {
+		return invalidFormatError
+	}
+
 	if *c.config.BlockReservedKeywords {
-		reserved, err := c.reservedNameChecker.isReserved(loginID)
+		reserved, err := c.reservedNameChecker.isReserved(cfLoginID)
 		if err != nil {
 			return err
 		}
@@ -112,7 +131,12 @@ func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 	}
 
 	for _, item := range c.config.ExcludedKeywords {
-		if item == loginID {
+		cfItem, err := p.String(item)
+		if err != nil {
+			panic(errors.Newf("password: invalid exclude keywords: %s", item))
+		}
+
+		if cfItem == cfLoginID {
 			return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
 				Pointer: "/value",
@@ -123,12 +147,7 @@ func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 
 	if *c.config.ASCIIOnly {
 		if !usernameRegex.MatchString(loginID) {
-			return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
-				Kind:    validation.ErrorStringFormat,
-				Pointer: "/value",
-				Message: "invalid login ID format",
-				Details: map[string]interface{}{"format": "username"},
-			}})
+			return invalidFormatError
 		}
 	}
 
