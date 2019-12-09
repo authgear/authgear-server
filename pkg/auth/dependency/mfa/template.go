@@ -24,4 +24,11 @@ var TemplateMFAOOBCodeEmailTXT = template.Spec{
 var TemplateMFAOOBCodeEmailHTML = template.Spec{
 	Type:   TemplateItemTypeMFAOOBCodeEmailHTML,
 	IsHTML: true,
+	Default: `<!DOCTYPE html>
+<html>
+<body>
+<p>Your MFA code is: {{ .code }}</p>
+</body>
+</html>
+`,
 }

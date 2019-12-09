@@ -29,6 +29,17 @@ Thanks.`,
 var TemplatePasswordEmailHTML = template.Spec{
 	Type:   TemplateItemTypeForgotPasswordEmailHTML,
 	IsHTML: true,
+	Default: `<!DOCTYPE html>
+<html>
+<body>
+<p>Dear {{ .email }},</p>
+<p>You received this email because someone tries to reset your account password on {{ .appname }}. To reset your account password, click this link:</p>
+<p>{{ .link }}</p>
+<p>If you did not request to reset your account password, Please ignore this email.</p>
+<p>Thanks.</p>
+</body>
+</html>
+`,
 }
 
 var TemplateForgotPasswordResetHTML = template.Spec{
