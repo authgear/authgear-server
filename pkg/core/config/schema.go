@@ -110,7 +110,7 @@ const (
 			"maximum": {
 				"type": "integer",
 				"minimum": 0,
-				"maximum": 15
+				"maximum": 999
 			},
 			"totp": {
 				"type": "object",
@@ -118,7 +118,7 @@ const (
 					"maximum": {
 						"type": "integer",
 						"minimum": 0,
-						"maximum": 5
+						"maximum": 999
 					}
 				}
 			},
@@ -131,7 +131,7 @@ const (
 							"maximum": {
 								"type": "integer",
 								"minimum": 0,
-								"maximum": 5
+								"maximum": 999
 							}
 						}
 					},
@@ -141,7 +141,7 @@ const (
 							"maximum": {
 								"type": "integer",
 								"minimum": 0,
-								"maximum": 5
+								"maximum": 999
 							}
 						}
 					}
