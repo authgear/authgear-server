@@ -105,6 +105,7 @@ func TestLoginIDChecker(t *testing.T) {
 				{"skygear", "invalid login ID"},
 				{"花生thecat", "invalid login ID"},
 				{"faseng", ""},
+				{"faseng_chima-the.cat", ""},
 			}
 
 			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")

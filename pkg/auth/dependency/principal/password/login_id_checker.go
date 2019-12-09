@@ -1,13 +1,17 @@
 package password
 
 import (
+	"regexp"
 	"strings"
-	"unicode"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
+
+const usernameFormat = `^[a-zA-Z0-9_\-.]*$`
+
+var usernameRegex = regexp.MustCompile(usernameFormat)
 
 type LoginIDTypeChecker interface {
 	Validate(loginID string) error
@@ -118,15 +122,13 @@ func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 	}
 
 	if *c.config.ASCIIOnly {
-		for _, c := range loginID {
-			if c > unicode.MaxASCII {
-				return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
-					Kind:    validation.ErrorStringFormat,
-					Pointer: "/value",
-					Message: "invalid login ID format",
-					Details: map[string]interface{}{"format": "username"},
-				}})
-			}
+		if !usernameRegex.MatchString(loginID) {
+			return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
+				Kind:    validation.ErrorStringFormat,
+				Pointer: "/value",
+				Message: "invalid login ID format",
+				Details: map[string]interface{}{"format": "username"},
+			}})
 		}
 	}
 
