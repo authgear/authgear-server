@@ -824,7 +824,6 @@ func (criteria UserVerificationCriteria) IsValid() bool {
 type UserVerificationConfiguration struct {
 	AutoSendOnSignup bool                               `json:"auto_send_on_signup,omitempty" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
 	Criteria         UserVerificationCriteria           `json:"criteria,omitempty" yaml:"criteria" msg:"criteria"`
-	ErrorRedirect    string                             `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
 	LoginIDKeys      []UserVerificationKeyConfiguration `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
 }
 

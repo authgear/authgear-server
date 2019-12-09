@@ -8634,12 +8634,6 @@ func (z *UserVerificationConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				}
 				z.Criteria = UserVerificationCriteria(zb0002)
 			}
-		case "error_redirect":
-			z.ErrorRedirect, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "ErrorRedirect")
-				return
-			}
 		case "login_id_keys":
 			var zb0003 uint32
 			zb0003, err = dc.ReadArrayHeader()
@@ -8672,9 +8666,9 @@ func (z *UserVerificationConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *UserVerificationConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 4
+	// map header, size 3
 	// write "auto_send_on_signup"
-	err = en.Append(0x84, 0xb3, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x73, 0x65, 0x6e, 0x64, 0x5f, 0x6f, 0x6e, 0x5f, 0x73, 0x69, 0x67, 0x6e, 0x75, 0x70)
+	err = en.Append(0x83, 0xb3, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x73, 0x65, 0x6e, 0x64, 0x5f, 0x6f, 0x6e, 0x5f, 0x73, 0x69, 0x67, 0x6e, 0x75, 0x70)
 	if err != nil {
 		return
 	}
@@ -8691,16 +8685,6 @@ func (z *UserVerificationConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	err = en.WriteString(string(z.Criteria))
 	if err != nil {
 		err = msgp.WrapError(err, "Criteria")
-		return
-	}
-	// write "error_redirect"
-	err = en.Append(0xae, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x5f, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.ErrorRedirect)
-	if err != nil {
-		err = msgp.WrapError(err, "ErrorRedirect")
 		return
 	}
 	// write "login_id_keys"
@@ -8726,16 +8710,13 @@ func (z *UserVerificationConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *UserVerificationConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 4
+	// map header, size 3
 	// string "auto_send_on_signup"
-	o = append(o, 0x84, 0xb3, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x73, 0x65, 0x6e, 0x64, 0x5f, 0x6f, 0x6e, 0x5f, 0x73, 0x69, 0x67, 0x6e, 0x75, 0x70)
+	o = append(o, 0x83, 0xb3, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x73, 0x65, 0x6e, 0x64, 0x5f, 0x6f, 0x6e, 0x5f, 0x73, 0x69, 0x67, 0x6e, 0x75, 0x70)
 	o = msgp.AppendBool(o, z.AutoSendOnSignup)
 	// string "criteria"
 	o = append(o, 0xa8, 0x63, 0x72, 0x69, 0x74, 0x65, 0x72, 0x69, 0x61)
 	o = msgp.AppendString(o, string(z.Criteria))
-	// string "error_redirect"
-	o = append(o, 0xae, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x5f, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74)
-	o = msgp.AppendString(o, z.ErrorRedirect)
 	// string "login_id_keys"
 	o = append(o, 0xad, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x73)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.LoginIDKeys)))
@@ -8783,12 +8764,6 @@ func (z *UserVerificationConfiguration) UnmarshalMsg(bts []byte) (o []byte, err 
 				}
 				z.Criteria = UserVerificationCriteria(zb0002)
 			}
-		case "error_redirect":
-			z.ErrorRedirect, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "ErrorRedirect")
-				return
-			}
 		case "login_id_keys":
 			var zb0003 uint32
 			zb0003, bts, err = msgp.ReadArrayHeaderBytes(bts)
@@ -8822,7 +8797,7 @@ func (z *UserVerificationConfiguration) UnmarshalMsg(bts []byte) (o []byte, err 
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserVerificationConfiguration) Msgsize() (s int) {
-	s = 1 + 20 + msgp.BoolSize + 9 + msgp.StringPrefixSize + len(string(z.Criteria)) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 14 + msgp.ArrayHeaderSize
+	s = 1 + 20 + msgp.BoolSize + 9 + msgp.StringPrefixSize + len(string(z.Criteria)) + 14 + msgp.ArrayHeaderSize
 	for za0001 := range z.LoginIDKeys {
 		s += z.LoginIDKeys[za0001].Msgsize()
 	}
