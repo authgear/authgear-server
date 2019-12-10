@@ -273,7 +273,6 @@ func makeFullTenantConfig() TenantConfiguration {
 			UserVerification: &UserVerificationConfiguration{
 				AutoSendOnSignup: true,
 				Criteria:         "any",
-				ErrorRedirect:    "http://localhost:3000/userverification/error",
 				LoginIDKeys: []UserVerificationKeyConfiguration{
 					UserVerificationKeyConfiguration{
 						Key:             "email",
