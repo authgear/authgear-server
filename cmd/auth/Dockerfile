@@ -15,6 +15,8 @@ FROM alpine:3.8
 RUN apk add --update --no-cache libc6-compat ca-certificates && \
     ln -s /lib /lib64
 
+COPY ./reserved_name.txt /reserved_name.txt
+
 COPY --from=godev /tmp/skygear-auth /
 RUN chmod a+x /skygear-auth
 USER nobody
