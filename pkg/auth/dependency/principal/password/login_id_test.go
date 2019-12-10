@@ -20,16 +20,40 @@ func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, min int, max int) 
 	}
 }
 
+func newLoginIDTypesConfig() *config.LoginIDTypesConfiguration {
+	newFalse := func() *bool {
+		t := false
+		return &t
+	}
+	return &config.LoginIDTypesConfiguration{
+		Email: &config.LoginIDTypeEmailConfiguration{
+			CaseSensitive: newFalse(),
+			BlockPlusSign: newFalse(),
+			IgnoreDotSign: newFalse(),
+		},
+		Username: &config.LoginIDTypeUsernameConfiguration{
+			BlockReservedUsernames: newFalse(),
+			ExcludedKeywords:       []string{},
+			ASCIIOnly:              newFalse(),
+			CaseSensitive:          newFalse(),
+		},
+	}
+
+}
+
 func TestLoginID(t *testing.T) {
 	Convey("Test isValid", t, func() {
 		Convey("validate by config: username (0-1), email (0-1)", func() {
-			checker := defaultLoginIDChecker{
-				loginIDsKeys: []config.LoginIDKeyConfiguration{
+			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
+			checker := newDefaultLoginIDChecker(
+				[]config.LoginIDKeyConfiguration{
 					newLoginIDKeyConfig("username", config.LoginIDKeyTypeRaw, 0, 1),
 					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 0, 1),
 					newLoginIDKeyConfig("phone", config.LoginIDKeyType(metadata.Phone), 0, 1),
 				},
-			}
+				newLoginIDTypesConfig(),
+				reversedNameChecker,
+			)
 			var loginIDs []LoginID
 
 			loginIDs = []LoginID{

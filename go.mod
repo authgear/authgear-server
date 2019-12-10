@@ -49,6 +49,7 @@ require (
 	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
+	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	golang.org/x/text v0.3.2
 	golang.org/x/tools v0.0.0-20190917162342-3b4f30a44f3b
 	google.golang.org/api v0.9.0

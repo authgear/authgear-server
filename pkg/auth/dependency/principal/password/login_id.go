@@ -27,8 +27,26 @@ type loginIDChecker interface {
 	standardKey(loginIDKey string) (metadata.StandardKey, bool)
 }
 
+func newDefaultLoginIDChecker(
+	loginIDsKeys []config.LoginIDKeyConfiguration,
+	loginIDTypes *config.LoginIDTypesConfiguration,
+	reservedNameChecker *ReservedNameChecker,
+) loginIDChecker {
+	return defaultLoginIDChecker{
+		loginIDsKeys: loginIDsKeys,
+		loginIDTypes: loginIDTypes,
+		loginIDTypeCheckerFactory: NewLoginIDTypeCheckerFactory(
+			loginIDsKeys,
+			loginIDTypes,
+			reservedNameChecker,
+		),
+	}
+}
+
 type defaultLoginIDChecker struct {
-	loginIDsKeys []config.LoginIDKeyConfiguration
+	loginIDsKeys              []config.LoginIDKeyConfiguration
+	loginIDTypes              *config.LoginIDTypesConfiguration
+	loginIDTypeCheckerFactory LoginIDTypeCheckerFactory
 }
 
 func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
@@ -79,8 +97,10 @@ func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
 
 func (c defaultLoginIDChecker) validateOne(loginID LoginID) error {
 	allowed := false
+	var loginIDType config.LoginIDKeyType
 	for _, keyConfig := range c.loginIDsKeys {
 		if keyConfig.Key == loginID.Key {
+			loginIDType = keyConfig.Type
 			allowed = true
 		}
 	}
@@ -96,7 +116,7 @@ func (c defaultLoginIDChecker) validateOne(loginID LoginID) error {
 		}})
 	}
 
-	if err := c.validateLoginIDFormat(loginID); err != nil {
+	if err := c.loginIDTypeCheckerFactory.NewChecker(loginIDType).Validate(loginID.Value); err != nil {
 		return err
 	}
 
@@ -123,33 +143,6 @@ func (c defaultLoginIDChecker) standardKey(loginIDKey string) (key metadata.Stan
 func (c defaultLoginIDChecker) checkType(loginIDKey string, standardKey metadata.StandardKey) bool {
 	loginIDKeyStandardKey, ok := c.standardKey(loginIDKey)
 	return ok && loginIDKeyStandardKey == standardKey
-}
-
-func (c defaultLoginIDChecker) validateLoginIDFormat(id LoginID) error {
-	key, ok := c.standardKey(id.Key)
-	if !ok {
-		return nil
-	}
-
-	ok = false
-	var details map[string]interface{}
-	switch key {
-	case metadata.Email:
-		ok = validation.Email{}.IsFormat(id.Value)
-		details = map[string]interface{}{"format": "email"}
-	case metadata.Phone:
-		ok = validation.E164Phone{}.IsFormat(id.Value)
-		details = map[string]interface{}{"format": "phone"}
-	}
-	if ok {
-		return nil
-	}
-	return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
-		Kind:    validation.ErrorStringFormat,
-		Pointer: "/value",
-		Message: "invalid login ID format",
-		Details: details,
-	}})
 }
 
 // this ensures that our structure conform to certain interfaces.
