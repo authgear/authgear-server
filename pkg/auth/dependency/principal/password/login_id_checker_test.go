@@ -106,6 +106,8 @@ func TestLoginIDChecker(t *testing.T) {
 				{"admin", "invalid login ID"},
 				{"settings", "invalid login ID"},
 				{"skygear", "invalid login ID"},
+				{"skygearcloud", "invalid login ID"},
+				{"myskygearapp", "invalid login ID"},
 				{"花生thecat", "invalid login ID"},
 				{"faseng", ""},
 				{"faseng_chima-the.cat", ""},

@@ -136,7 +136,7 @@ func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 			panic(errors.Newf("password: invalid exclude keywords: %s", item))
 		}
 
-		if cfItem == cfLoginID {
+		if strings.Contains(cfLoginID, cfItem) {
 			return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
 				Pointer: "/value",
