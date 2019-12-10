@@ -29,7 +29,7 @@ func newLoginIDTypesConfig() *config.LoginIDTypesConfiguration {
 		Email: &config.LoginIDTypeEmailConfiguration{
 			CaseSensitive: newFalse(),
 			BlockPlusSign: newFalse(),
-			IgnoreDot:     newFalse(),
+			IgnoreDotSign: newFalse(),
 		},
 		Username: &config.LoginIDTypeUsernameConfiguration{
 			BlockReservedKeywords: newFalse(),

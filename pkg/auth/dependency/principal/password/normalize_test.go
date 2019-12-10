@@ -52,7 +52,7 @@ func TestLoginIDNormalizer(t *testing.T) {
 				config: &config.LoginIDTypeEmailConfiguration{
 					CaseSensitive: newFalse(),
 					BlockPlusSign: newFalse(),
-					IgnoreDot:     newFalse(),
+					IgnoreDotSign: newFalse(),
 				},
 			}
 
@@ -72,7 +72,7 @@ func TestLoginIDNormalizer(t *testing.T) {
 				config: &config.LoginIDTypeEmailConfiguration{
 					CaseSensitive: newTrue(),
 					BlockPlusSign: newFalse(),
-					IgnoreDot:     newFalse(),
+					IgnoreDotSign: newFalse(),
 				},
 			}
 
@@ -91,7 +91,7 @@ func TestLoginIDNormalizer(t *testing.T) {
 				config: &config.LoginIDTypeEmailConfiguration{
 					CaseSensitive: newFalse(),
 					BlockPlusSign: newTrue(),
-					IgnoreDot:     newTrue(),
+					IgnoreDotSign: newTrue(),
 				},
 			}
 

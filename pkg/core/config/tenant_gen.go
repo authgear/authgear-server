@@ -2805,17 +2805,17 @@ func (z *LoginIDTypeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if dc.IsNil() {
 				err = dc.ReadNil()
 				if err != nil {
-					err = msgp.WrapError(err, "IgnoreDot")
+					err = msgp.WrapError(err, "IgnoreDotSign")
 					return
 				}
-				z.IgnoreDot = nil
+				z.IgnoreDotSign = nil
 			} else {
-				if z.IgnoreDot == nil {
-					z.IgnoreDot = new(bool)
+				if z.IgnoreDotSign == nil {
+					z.IgnoreDotSign = new(bool)
 				}
-				*z.IgnoreDot, err = dc.ReadBool()
+				*z.IgnoreDotSign, err = dc.ReadBool()
 				if err != nil {
-					err = msgp.WrapError(err, "IgnoreDot")
+					err = msgp.WrapError(err, "IgnoreDotSign")
 					return
 				}
 			}
@@ -2872,15 +2872,15 @@ func (z *LoginIDTypeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	if z.IgnoreDot == nil {
+	if z.IgnoreDotSign == nil {
 		err = en.WriteNil()
 		if err != nil {
 			return
 		}
 	} else {
-		err = en.WriteBool(*z.IgnoreDot)
+		err = en.WriteBool(*z.IgnoreDotSign)
 		if err != nil {
-			err = msgp.WrapError(err, "IgnoreDot")
+			err = msgp.WrapError(err, "IgnoreDotSign")
 			return
 		}
 	}
@@ -2907,10 +2907,10 @@ func (z *LoginIDTypeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err erro
 	}
 	// string "ignore_dot_sign"
 	o = append(o, 0xaf, 0x69, 0x67, 0x6e, 0x6f, 0x72, 0x65, 0x5f, 0x64, 0x6f, 0x74, 0x5f, 0x73, 0x69, 0x67, 0x6e)
-	if z.IgnoreDot == nil {
+	if z.IgnoreDotSign == nil {
 		o = msgp.AppendNil(o)
 	} else {
-		o = msgp.AppendBool(o, *z.IgnoreDot)
+		o = msgp.AppendBool(o, *z.IgnoreDotSign)
 	}
 	return
 }
@@ -2973,14 +2973,14 @@ func (z *LoginIDTypeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err 
 				if err != nil {
 					return
 				}
-				z.IgnoreDot = nil
+				z.IgnoreDotSign = nil
 			} else {
-				if z.IgnoreDot == nil {
-					z.IgnoreDot = new(bool)
+				if z.IgnoreDotSign == nil {
+					z.IgnoreDotSign = new(bool)
 				}
-				*z.IgnoreDot, bts, err = msgp.ReadBoolBytes(bts)
+				*z.IgnoreDotSign, bts, err = msgp.ReadBoolBytes(bts)
 				if err != nil {
-					err = msgp.WrapError(err, "IgnoreDot")
+					err = msgp.WrapError(err, "IgnoreDotSign")
 					return
 				}
 			}
@@ -3011,7 +3011,7 @@ func (z *LoginIDTypeEmailConfiguration) Msgsize() (s int) {
 		s += msgp.BoolSize
 	}
 	s += 16
-	if z.IgnoreDot == nil {
+	if z.IgnoreDotSign == nil {
 		s += msgp.NilSize
 	} else {
 		s += msgp.BoolSize

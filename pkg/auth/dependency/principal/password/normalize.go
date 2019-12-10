@@ -93,7 +93,7 @@ func (n *LoginIDEmailNormalizer) Normalize(loginID string) (string, error) {
 		}
 	}
 
-	if *n.config.IgnoreDot {
+	if *n.config.IgnoreDotSign {
 		local = strings.Replace(local, ".", "", -1)
 	}
 

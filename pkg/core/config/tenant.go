@@ -417,9 +417,9 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		d := false
 		c.UserConfig.Auth.LoginIDTypes.Email.BlockPlusSign = &d
 	}
-	if c.UserConfig.Auth.LoginIDTypes.Email.IgnoreDot == nil {
+	if c.UserConfig.Auth.LoginIDTypes.Email.IgnoreDotSign == nil {
 		d := false
-		c.UserConfig.Auth.LoginIDTypes.Email.IgnoreDot = &d
+		c.UserConfig.Auth.LoginIDTypes.Email.IgnoreDotSign = &d
 	}
 
 	if c.UserConfig.Auth.LoginIDTypes.Username.BlockReservedKeywords == nil {
@@ -699,7 +699,7 @@ type LoginIDTypesConfiguration struct {
 type LoginIDTypeEmailConfiguration struct {
 	CaseSensitive *bool `json:"case_sensitive" yaml:"case_sensitive" msg:"case_sensitive"`
 	BlockPlusSign *bool `json:"block_plus_sign" yaml:"block_plus_sign" msg:"block_plus_sign"`
-	IgnoreDot     *bool `json:"ignore_dot_sign" yaml:"ignore_dot_sign" msg:"ignore_dot_sign"`
+	IgnoreDotSign *bool `json:"ignore_dot_sign" yaml:"ignore_dot_sign" msg:"ignore_dot_sign"`
 }
 
 type LoginIDTypeUsernameConfiguration struct {

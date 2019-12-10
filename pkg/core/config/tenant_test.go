@@ -166,7 +166,7 @@ func makeFullTenantConfig() TenantConfiguration {
 					Email: &LoginIDTypeEmailConfiguration{
 						CaseSensitive: newFalse(),
 						BlockPlusSign: newFalse(),
-						IgnoreDot:     newFalse(),
+						IgnoreDotSign: newFalse(),
 					},
 					Username: &LoginIDTypeUsernameConfiguration{
 						BlockReservedKeywords: newTrue(),
