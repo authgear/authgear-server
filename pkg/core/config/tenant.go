@@ -427,7 +427,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.UserConfig.Auth.LoginIDTypes.Username.BlockReservedKeywords = &d
 	}
 	if c.UserConfig.Auth.LoginIDTypes.Username.ASCIIOnly == nil {
-		d := false
+		d := true
 		c.UserConfig.Auth.LoginIDTypes.Username.ASCIIOnly = &d
 	}
 	if c.UserConfig.Auth.LoginIDTypes.Username.CaseSensitive == nil {
