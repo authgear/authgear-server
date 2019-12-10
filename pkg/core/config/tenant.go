@@ -458,7 +458,19 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 	if c.UserConfig.MFA.Maximum == nil {
 		c.UserConfig.MFA.Maximum = new(int)
-		*c.UserConfig.MFA.Maximum = 1
+		*c.UserConfig.MFA.Maximum = 99
+	}
+	if c.UserConfig.MFA.TOTP.Maximum == nil {
+		c.UserConfig.MFA.TOTP.Maximum = new(int)
+		*c.UserConfig.MFA.TOTP.Maximum = 99
+	}
+	if c.UserConfig.MFA.OOB.SMS.Maximum == nil {
+		c.UserConfig.MFA.OOB.SMS.Maximum = new(int)
+		*c.UserConfig.MFA.OOB.SMS.Maximum = 99
+	}
+	if c.UserConfig.MFA.OOB.Email.Maximum == nil {
+		c.UserConfig.MFA.OOB.Email.Maximum = new(int)
+		*c.UserConfig.MFA.OOB.Email.Maximum = 99
 	}
 	if c.UserConfig.MFA.BearerToken.ExpireInDays == 0 {
 		c.UserConfig.MFA.BearerToken.ExpireInDays = 30
@@ -735,7 +747,7 @@ type MFAConfiguration struct {
 }
 
 type MFATOTPConfiguration struct {
-	Maximum int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+	Maximum *int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
 }
 
 type MFAOOBConfiguration struct {
@@ -744,11 +756,11 @@ type MFAOOBConfiguration struct {
 }
 
 type MFAOOBSMSConfiguration struct {
-	Maximum int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+	Maximum *int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
 }
 
 type MFAOOBEmailConfiguration struct {
-	Maximum int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+	Maximum *int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
 }
 
 type MFABearerTokenConfiguration struct {

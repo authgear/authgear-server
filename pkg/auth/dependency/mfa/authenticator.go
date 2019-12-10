@@ -269,13 +269,13 @@ func CanAddAuthenticator(authenticators []Authenticator, newA Authenticator, mfa
 	if totalCount > *mfaConfiguration.Maximum {
 		return false
 	}
-	if totpCount > mfaConfiguration.TOTP.Maximum {
+	if totpCount > *mfaConfiguration.TOTP.Maximum {
 		return false
 	}
-	if oobSMSCount > mfaConfiguration.OOB.SMS.Maximum {
+	if oobSMSCount > *mfaConfiguration.OOB.SMS.Maximum {
 		return false
 	}
-	if oobEmailCount > mfaConfiguration.OOB.Email.Maximum {
+	if oobEmailCount > *mfaConfiguration.OOB.Email.Maximum {
 		return false
 	}
 

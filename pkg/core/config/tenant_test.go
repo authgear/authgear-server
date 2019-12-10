@@ -181,16 +181,16 @@ func makeFullTenantConfig() TenantConfiguration {
 			MFA: &MFAConfiguration{
 				Enabled:     true,
 				Enforcement: MFAEnforcementOptional,
-				Maximum:     newInt(3),
+				Maximum:     newInt(99),
 				TOTP: &MFATOTPConfiguration{
-					Maximum: 1,
+					Maximum: newInt(99),
 				},
 				OOB: &MFAOOBConfiguration{
 					SMS: &MFAOOBSMSConfiguration{
-						Maximum: 1,
+						Maximum: newInt(99),
 					},
 					Email: &MFAOOBEmailConfiguration{
-						Maximum: 1,
+						Maximum: newInt(99),
 					},
 				},
 				BearerToken: &MFABearerTokenConfiguration{

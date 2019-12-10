@@ -3753,10 +3753,22 @@ func (z *MFAConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 					switch msgp.UnsafeString(field) {
 					case "maximum":
-						z.TOTP.Maximum, err = dc.ReadInt()
-						if err != nil {
-							err = msgp.WrapError(err, "TOTP", "Maximum")
-							return
+						if dc.IsNil() {
+							err = dc.ReadNil()
+							if err != nil {
+								err = msgp.WrapError(err, "TOTP", "Maximum")
+								return
+							}
+							z.TOTP.Maximum = nil
+						} else {
+							if z.TOTP.Maximum == nil {
+								z.TOTP.Maximum = new(int)
+							}
+							*z.TOTP.Maximum, err = dc.ReadInt()
+							if err != nil {
+								err = msgp.WrapError(err, "TOTP", "Maximum")
+								return
+							}
 						}
 					default:
 						err = dc.Skip()
@@ -3941,10 +3953,17 @@ func (z *MFAConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		if err != nil {
 			return
 		}
-		err = en.WriteInt(z.TOTP.Maximum)
-		if err != nil {
-			err = msgp.WrapError(err, "TOTP", "Maximum")
-			return
+		if z.TOTP.Maximum == nil {
+			err = en.WriteNil()
+			if err != nil {
+				return
+			}
+		} else {
+			err = en.WriteInt(*z.TOTP.Maximum)
+			if err != nil {
+				err = msgp.WrapError(err, "TOTP", "Maximum")
+				return
+			}
 		}
 	}
 	// write "oob"
@@ -4048,7 +4067,11 @@ func (z *MFAConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		// map header, size 1
 		// string "maximum"
 		o = append(o, 0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
-		o = msgp.AppendInt(o, z.TOTP.Maximum)
+		if z.TOTP.Maximum == nil {
+			o = msgp.AppendNil(o)
+		} else {
+			o = msgp.AppendInt(o, *z.TOTP.Maximum)
+		}
 	}
 	// string "oob"
 	o = append(o, 0xa3, 0x6f, 0x6f, 0x62)
@@ -4164,10 +4187,21 @@ func (z *MFAConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 					switch msgp.UnsafeString(field) {
 					case "maximum":
-						z.TOTP.Maximum, bts, err = msgp.ReadIntBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "TOTP", "Maximum")
-							return
+						if msgp.IsNil(bts) {
+							bts, err = msgp.ReadNilBytes(bts)
+							if err != nil {
+								return
+							}
+							z.TOTP.Maximum = nil
+						} else {
+							if z.TOTP.Maximum == nil {
+								z.TOTP.Maximum = new(int)
+							}
+							*z.TOTP.Maximum, bts, err = msgp.ReadIntBytes(bts)
+							if err != nil {
+								err = msgp.WrapError(err, "TOTP", "Maximum")
+								return
+							}
 						}
 					default:
 						bts, err = msgp.Skip(bts)
@@ -4305,7 +4339,12 @@ func (z *MFAConfiguration) Msgsize() (s int) {
 	if z.TOTP == nil {
 		s += msgp.NilSize
 	} else {
-		s += 1 + 8 + msgp.IntSize
+		s += 1 + 8
+		if z.TOTP.Maximum == nil {
+			s += msgp.NilSize
+		} else {
+			s += msgp.IntSize
+		}
 	}
 	s += 4
 	if z.OOB == nil {
@@ -4425,10 +4464,22 @@ func (z *MFAOOBConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 					switch msgp.UnsafeString(field) {
 					case "maximum":
-						z.SMS.Maximum, err = dc.ReadInt()
-						if err != nil {
-							err = msgp.WrapError(err, "SMS", "Maximum")
-							return
+						if dc.IsNil() {
+							err = dc.ReadNil()
+							if err != nil {
+								err = msgp.WrapError(err, "SMS", "Maximum")
+								return
+							}
+							z.SMS.Maximum = nil
+						} else {
+							if z.SMS.Maximum == nil {
+								z.SMS.Maximum = new(int)
+							}
+							*z.SMS.Maximum, err = dc.ReadInt()
+							if err != nil {
+								err = msgp.WrapError(err, "SMS", "Maximum")
+								return
+							}
 						}
 					default:
 						err = dc.Skip()
@@ -4466,10 +4517,22 @@ func (z *MFAOOBConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 					switch msgp.UnsafeString(field) {
 					case "maximum":
-						z.Email.Maximum, err = dc.ReadInt()
-						if err != nil {
-							err = msgp.WrapError(err, "Email", "Maximum")
-							return
+						if dc.IsNil() {
+							err = dc.ReadNil()
+							if err != nil {
+								err = msgp.WrapError(err, "Email", "Maximum")
+								return
+							}
+							z.Email.Maximum = nil
+						} else {
+							if z.Email.Maximum == nil {
+								z.Email.Maximum = new(int)
+							}
+							*z.Email.Maximum, err = dc.ReadInt()
+							if err != nil {
+								err = msgp.WrapError(err, "Email", "Maximum")
+								return
+							}
 						}
 					default:
 						err = dc.Skip()
@@ -4511,10 +4574,17 @@ func (z *MFAOOBConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		if err != nil {
 			return
 		}
-		err = en.WriteInt(z.SMS.Maximum)
-		if err != nil {
-			err = msgp.WrapError(err, "SMS", "Maximum")
-			return
+		if z.SMS.Maximum == nil {
+			err = en.WriteNil()
+			if err != nil {
+				return
+			}
+		} else {
+			err = en.WriteInt(*z.SMS.Maximum)
+			if err != nil {
+				err = msgp.WrapError(err, "SMS", "Maximum")
+				return
+			}
 		}
 	}
 	// write "email"
@@ -4534,10 +4604,17 @@ func (z *MFAOOBConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		if err != nil {
 			return
 		}
-		err = en.WriteInt(z.Email.Maximum)
-		if err != nil {
-			err = msgp.WrapError(err, "Email", "Maximum")
-			return
+		if z.Email.Maximum == nil {
+			err = en.WriteNil()
+			if err != nil {
+				return
+			}
+		} else {
+			err = en.WriteInt(*z.Email.Maximum)
+			if err != nil {
+				err = msgp.WrapError(err, "Email", "Maximum")
+				return
+			}
 		}
 	}
 	return
@@ -4555,7 +4632,11 @@ func (z *MFAOOBConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		// map header, size 1
 		// string "maximum"
 		o = append(o, 0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
-		o = msgp.AppendInt(o, z.SMS.Maximum)
+		if z.SMS.Maximum == nil {
+			o = msgp.AppendNil(o)
+		} else {
+			o = msgp.AppendInt(o, *z.SMS.Maximum)
+		}
 	}
 	// string "email"
 	o = append(o, 0xa5, 0x65, 0x6d, 0x61, 0x69, 0x6c)
@@ -4565,7 +4646,11 @@ func (z *MFAOOBConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		// map header, size 1
 		// string "maximum"
 		o = append(o, 0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
-		o = msgp.AppendInt(o, z.Email.Maximum)
+		if z.Email.Maximum == nil {
+			o = msgp.AppendNil(o)
+		} else {
+			o = msgp.AppendInt(o, *z.Email.Maximum)
+		}
 	}
 	return
 }
@@ -4614,10 +4699,21 @@ func (z *MFAOOBConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 					switch msgp.UnsafeString(field) {
 					case "maximum":
-						z.SMS.Maximum, bts, err = msgp.ReadIntBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "SMS", "Maximum")
-							return
+						if msgp.IsNil(bts) {
+							bts, err = msgp.ReadNilBytes(bts)
+							if err != nil {
+								return
+							}
+							z.SMS.Maximum = nil
+						} else {
+							if z.SMS.Maximum == nil {
+								z.SMS.Maximum = new(int)
+							}
+							*z.SMS.Maximum, bts, err = msgp.ReadIntBytes(bts)
+							if err != nil {
+								err = msgp.WrapError(err, "SMS", "Maximum")
+								return
+							}
 						}
 					default:
 						bts, err = msgp.Skip(bts)
@@ -4654,10 +4750,21 @@ func (z *MFAOOBConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 					switch msgp.UnsafeString(field) {
 					case "maximum":
-						z.Email.Maximum, bts, err = msgp.ReadIntBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Email", "Maximum")
-							return
+						if msgp.IsNil(bts) {
+							bts, err = msgp.ReadNilBytes(bts)
+							if err != nil {
+								return
+							}
+							z.Email.Maximum = nil
+						} else {
+							if z.Email.Maximum == nil {
+								z.Email.Maximum = new(int)
+							}
+							*z.Email.Maximum, bts, err = msgp.ReadIntBytes(bts)
+							if err != nil {
+								err = msgp.WrapError(err, "Email", "Maximum")
+								return
+							}
 						}
 					default:
 						bts, err = msgp.Skip(bts)
@@ -4686,13 +4793,23 @@ func (z *MFAOOBConfiguration) Msgsize() (s int) {
 	if z.SMS == nil {
 		s += msgp.NilSize
 	} else {
-		s += 1 + 8 + msgp.IntSize
+		s += 1 + 8
+		if z.SMS.Maximum == nil {
+			s += msgp.NilSize
+		} else {
+			s += msgp.IntSize
+		}
 	}
 	s += 6
 	if z.Email == nil {
 		s += msgp.NilSize
 	} else {
-		s += 1 + 8 + msgp.IntSize
+		s += 1 + 8
+		if z.Email.Maximum == nil {
+			s += msgp.NilSize
+		} else {
+			s += msgp.IntSize
+		}
 	}
 	return
 }
@@ -4716,10 +4833,22 @@ func (z *MFAOOBEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 		}
 		switch msgp.UnsafeString(field) {
 		case "maximum":
-			z.Maximum, err = dc.ReadInt()
-			if err != nil {
-				err = msgp.WrapError(err, "Maximum")
-				return
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "Maximum")
+					return
+				}
+				z.Maximum = nil
+			} else {
+				if z.Maximum == nil {
+					z.Maximum = new(int)
+				}
+				*z.Maximum, err = dc.ReadInt()
+				if err != nil {
+					err = msgp.WrapError(err, "Maximum")
+					return
+				}
 			}
 		default:
 			err = dc.Skip()
@@ -4733,28 +4862,39 @@ func (z *MFAOOBEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z MFAOOBEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+func (z *MFAOOBEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 1
 	// write "maximum"
 	err = en.Append(0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
 	if err != nil {
 		return
 	}
-	err = en.WriteInt(z.Maximum)
-	if err != nil {
-		err = msgp.WrapError(err, "Maximum")
-		return
+	if z.Maximum == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = en.WriteInt(*z.Maximum)
+		if err != nil {
+			err = msgp.WrapError(err, "Maximum")
+			return
+		}
 	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z MFAOOBEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+func (z *MFAOOBEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 1
 	// string "maximum"
 	o = append(o, 0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
-	o = msgp.AppendInt(o, z.Maximum)
+	if z.Maximum == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o = msgp.AppendInt(o, *z.Maximum)
+	}
 	return
 }
 
@@ -4777,10 +4917,21 @@ func (z *MFAOOBEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error
 		}
 		switch msgp.UnsafeString(field) {
 		case "maximum":
-			z.Maximum, bts, err = msgp.ReadIntBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Maximum")
-				return
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Maximum = nil
+			} else {
+				if z.Maximum == nil {
+					z.Maximum = new(int)
+				}
+				*z.Maximum, bts, err = msgp.ReadIntBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Maximum")
+					return
+				}
 			}
 		default:
 			bts, err = msgp.Skip(bts)
@@ -4795,8 +4946,13 @@ func (z *MFAOOBEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z MFAOOBEmailConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.IntSize
+func (z *MFAOOBEmailConfiguration) Msgsize() (s int) {
+	s = 1 + 8
+	if z.Maximum == nil {
+		s += msgp.NilSize
+	} else {
+		s += msgp.IntSize
+	}
 	return
 }
 
@@ -4819,10 +4975,22 @@ func (z *MFAOOBSMSConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 		}
 		switch msgp.UnsafeString(field) {
 		case "maximum":
-			z.Maximum, err = dc.ReadInt()
-			if err != nil {
-				err = msgp.WrapError(err, "Maximum")
-				return
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "Maximum")
+					return
+				}
+				z.Maximum = nil
+			} else {
+				if z.Maximum == nil {
+					z.Maximum = new(int)
+				}
+				*z.Maximum, err = dc.ReadInt()
+				if err != nil {
+					err = msgp.WrapError(err, "Maximum")
+					return
+				}
 			}
 		default:
 			err = dc.Skip()
@@ -4836,28 +5004,39 @@ func (z *MFAOOBSMSConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z MFAOOBSMSConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+func (z *MFAOOBSMSConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 1
 	// write "maximum"
 	err = en.Append(0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
 	if err != nil {
 		return
 	}
-	err = en.WriteInt(z.Maximum)
-	if err != nil {
-		err = msgp.WrapError(err, "Maximum")
-		return
+	if z.Maximum == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = en.WriteInt(*z.Maximum)
+		if err != nil {
+			err = msgp.WrapError(err, "Maximum")
+			return
+		}
 	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z MFAOOBSMSConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+func (z *MFAOOBSMSConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 1
 	// string "maximum"
 	o = append(o, 0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
-	o = msgp.AppendInt(o, z.Maximum)
+	if z.Maximum == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o = msgp.AppendInt(o, *z.Maximum)
+	}
 	return
 }
 
@@ -4880,10 +5059,21 @@ func (z *MFAOOBSMSConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 		}
 		switch msgp.UnsafeString(field) {
 		case "maximum":
-			z.Maximum, bts, err = msgp.ReadIntBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Maximum")
-				return
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Maximum = nil
+			} else {
+				if z.Maximum == nil {
+					z.Maximum = new(int)
+				}
+				*z.Maximum, bts, err = msgp.ReadIntBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Maximum")
+					return
+				}
 			}
 		default:
 			bts, err = msgp.Skip(bts)
@@ -4898,8 +5088,13 @@ func (z *MFAOOBSMSConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z MFAOOBSMSConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.IntSize
+func (z *MFAOOBSMSConfiguration) Msgsize() (s int) {
+	s = 1 + 8
+	if z.Maximum == nil {
+		s += msgp.NilSize
+	} else {
+		s += msgp.IntSize
+	}
 	return
 }
 
@@ -5050,10 +5245,22 @@ func (z *MFATOTPConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 		}
 		switch msgp.UnsafeString(field) {
 		case "maximum":
-			z.Maximum, err = dc.ReadInt()
-			if err != nil {
-				err = msgp.WrapError(err, "Maximum")
-				return
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "Maximum")
+					return
+				}
+				z.Maximum = nil
+			} else {
+				if z.Maximum == nil {
+					z.Maximum = new(int)
+				}
+				*z.Maximum, err = dc.ReadInt()
+				if err != nil {
+					err = msgp.WrapError(err, "Maximum")
+					return
+				}
 			}
 		default:
 			err = dc.Skip()
@@ -5067,28 +5274,39 @@ func (z *MFATOTPConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z MFATOTPConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+func (z *MFATOTPConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 1
 	// write "maximum"
 	err = en.Append(0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
 	if err != nil {
 		return
 	}
-	err = en.WriteInt(z.Maximum)
-	if err != nil {
-		err = msgp.WrapError(err, "Maximum")
-		return
+	if z.Maximum == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = en.WriteInt(*z.Maximum)
+		if err != nil {
+			err = msgp.WrapError(err, "Maximum")
+			return
+		}
 	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z MFATOTPConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+func (z *MFATOTPConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 1
 	// string "maximum"
 	o = append(o, 0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
-	o = msgp.AppendInt(o, z.Maximum)
+	if z.Maximum == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o = msgp.AppendInt(o, *z.Maximum)
+	}
 	return
 }
 
@@ -5111,10 +5329,21 @@ func (z *MFATOTPConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		}
 		switch msgp.UnsafeString(field) {
 		case "maximum":
-			z.Maximum, bts, err = msgp.ReadIntBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Maximum")
-				return
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Maximum = nil
+			} else {
+				if z.Maximum == nil {
+					z.Maximum = new(int)
+				}
+				*z.Maximum, bts, err = msgp.ReadIntBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Maximum")
+					return
+				}
 			}
 		default:
 			bts, err = msgp.Skip(bts)
@@ -5129,8 +5358,13 @@ func (z *MFATOTPConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z MFATOTPConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.IntSize
+func (z *MFATOTPConfiguration) Msgsize() (s int) {
+	s = 1 + 8
+	if z.Maximum == nil {
+		s += msgp.NilSize
+	} else {
+		s += msgp.IntSize
+	}
 	return
 }
 

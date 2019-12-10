@@ -205,16 +205,16 @@ func TestValidateUserConfiguration(t *testing.T) {
 				},
 				"mfa": {
 					"enforcement": "",
-					"maximum": 16,
+					"maximum": 1000,
 					"totp": {
-						"maximum": 6
+						"maximum": 1000
 					},
 					"oob": {
 						"sms": {
-							"maximum": 6
+							"maximum": 1000
 						},
 						"email": {
-							"maximum": 6
+							"maximum": 1000
 						}
 					},
 					"bearer_token": {
@@ -228,12 +228,12 @@ func TestValidateUserConfiguration(t *testing.T) {
 			}`,
 			"/mfa/bearer_token/expire_in_days: NumberRange map[gte:1]",
 			"/mfa/enforcement: Enum map[expected:[off optional required]]",
-			"/mfa/maximum: NumberRange map[lte:15]",
-			"/mfa/oob/email/maximum: NumberRange map[lte:5]",
-			"/mfa/oob/sms/maximum: NumberRange map[lte:5]",
+			"/mfa/maximum: NumberRange map[lte:999]",
+			"/mfa/oob/email/maximum: NumberRange map[lte:999]",
+			"/mfa/oob/sms/maximum: NumberRange map[lte:999]",
 			"/mfa/recovery_code/count: NumberRange map[lte:24]",
 			"/mfa/recovery_code/list_enabled: Type map[expected:boolean]",
-			"/mfa/totp/maximum: NumberRange map[lte:5]",
+			"/mfa/totp/maximum: NumberRange map[lte:999]",
 		)
 		// User Audit
 		test(`

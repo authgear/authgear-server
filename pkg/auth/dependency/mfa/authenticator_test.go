@@ -106,19 +106,18 @@ func TestCanAddAuthenticator(t *testing.T) {
 
 		newA := c.New
 
-		maximum := &c.Limit.Total
 		mfaConfiguration := &config.MFAConfiguration{
 			Enabled: c.Enabled,
-			Maximum: maximum,
+			Maximum: &c.Limit.Total,
 			TOTP: &config.MFATOTPConfiguration{
-				Maximum: c.Limit.TOTP,
+				Maximum: &c.Limit.TOTP,
 			},
 			OOB: &config.MFAOOBConfiguration{
 				SMS: &config.MFAOOBSMSConfiguration{
-					Maximum: c.Limit.OOBSMS,
+					Maximum: &c.Limit.OOBSMS,
 				},
 				Email: &config.MFAOOBEmailConfiguration{
-					Maximum: c.Limit.OOBEmail,
+					Maximum: &c.Limit.OOBEmail,
 				},
 			},
 		}
@@ -250,6 +249,39 @@ func TestCanAddAuthenticator(t *testing.T) {
 			New: OOBAuthenticator{
 				Channel: coreAuth.AuthenticatorOOBChannelSMS,
 			},
+			Expected: false,
+		},
+
+		Case{
+			Enabled: true,
+			Existing: Existing{
+				TOTP:     98,
+				OOBSMS:   0,
+				OOBEmail: 0,
+			},
+			Limit: Limit{
+				Total:    99,
+				TOTP:     99,
+				OOBSMS:   99,
+				OOBEmail: 99,
+			},
+			New:      TOTPAuthenticator{},
+			Expected: true,
+		},
+		Case{
+			Enabled: true,
+			Existing: Existing{
+				TOTP:     99,
+				OOBSMS:   0,
+				OOBEmail: 0,
+			},
+			Limit: Limit{
+				Total:    99,
+				TOTP:     99,
+				OOBSMS:   99,
+				OOBEmail: 99,
+			},
+			New:      TOTPAuthenticator{},
 			Expected: false,
 		},
 	}
