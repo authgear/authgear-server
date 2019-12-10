@@ -32,10 +32,10 @@ func newLoginIDTypesConfig() *config.LoginIDTypesConfiguration {
 			IgnoreDotSign: newFalse(),
 		},
 		Username: &config.LoginIDTypeUsernameConfiguration{
-			BlockReservedKeywords: newFalse(),
-			ExcludedKeywords:      []string{},
-			ASCIIOnly:             newFalse(),
-			CaseSensitive:         newFalse(),
+			BlockReservedUsernames: newFalse(),
+			ExcludedKeywords:       []string{},
+			ASCIIOnly:              newFalse(),
+			CaseSensitive:          newFalse(),
 		},
 	}
 

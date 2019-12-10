@@ -90,9 +90,9 @@ func TestLoginIDChecker(t *testing.T) {
 
 			n := &LoginIDUsernameChecker{
 				config: &config.LoginIDTypeUsernameConfiguration{
-					BlockReservedKeywords: newFalse(),
-					ExcludedKeywords:      []string{},
-					ASCIIOnly:             newFalse(),
+					BlockReservedUsernames: newFalse(),
+					ExcludedKeywords:       []string{},
+					ASCIIOnly:              newFalse(),
 				},
 			}
 
@@ -116,9 +116,9 @@ func TestLoginIDChecker(t *testing.T) {
 			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
 			n := &LoginIDUsernameChecker{
 				config: &config.LoginIDTypeUsernameConfiguration{
-					BlockReservedKeywords: newTrue(),
-					ExcludedKeywords:      []string{"skygear"},
-					ASCIIOnly:             newTrue(),
+					BlockReservedUsernames: newTrue(),
+					ExcludedKeywords:       []string{"skygear"},
+					ASCIIOnly:              newTrue(),
 				},
 				reservedNameChecker: reversedNameChecker,
 			}

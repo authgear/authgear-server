@@ -116,7 +116,7 @@ func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 		return invalidFormatError
 	}
 
-	if *c.config.BlockReservedKeywords {
+	if *c.config.BlockReservedUsernames {
 		reserved, err := c.reservedNameChecker.isReserved(cfLoginID)
 		if err != nil {
 			return err

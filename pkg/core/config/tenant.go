@@ -422,9 +422,9 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.UserConfig.Auth.LoginIDTypes.Email.IgnoreDotSign = &d
 	}
 
-	if c.UserConfig.Auth.LoginIDTypes.Username.BlockReservedKeywords == nil {
+	if c.UserConfig.Auth.LoginIDTypes.Username.BlockReservedUsernames == nil {
 		d := true
-		c.UserConfig.Auth.LoginIDTypes.Username.BlockReservedKeywords = &d
+		c.UserConfig.Auth.LoginIDTypes.Username.BlockReservedUsernames = &d
 	}
 	if c.UserConfig.Auth.LoginIDTypes.Username.ASCIIOnly == nil {
 		d := true
@@ -703,10 +703,10 @@ type LoginIDTypeEmailConfiguration struct {
 }
 
 type LoginIDTypeUsernameConfiguration struct {
-	BlockReservedKeywords *bool    `json:"block_reserved_keywords" yaml:"block_reserved_keywords" msg:"block_reserved_keywords"`
-	ExcludedKeywords      []string `json:"excluded_keywords,omitempty" yaml:"excluded_keywords" msg:"excluded_keywords"`
-	ASCIIOnly             *bool    `json:"ascii_only" yaml:"ascii_only" msg:"ascii_only"`
-	CaseSensitive         *bool    `json:"case_sensitive" yaml:"case_sensitive" msg:"case_sensitive"`
+	BlockReservedUsernames *bool    `json:"block_reserved_usernames" yaml:"block_reserved_usernames" msg:"block_reserved_usernames"`
+	ExcludedKeywords       []string `json:"excluded_keywords,omitempty" yaml:"excluded_keywords" msg:"excluded_keywords"`
+	ASCIIOnly              *bool    `json:"ascii_only" yaml:"ascii_only" msg:"ascii_only"`
+	CaseSensitive          *bool    `json:"case_sensitive" yaml:"case_sensitive" msg:"case_sensitive"`
 }
 
 type LoginIDKeyConfiguration struct {

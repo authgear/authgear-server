@@ -3037,21 +3037,21 @@ func (z *LoginIDTypeUsernameConfiguration) DecodeMsg(dc *msgp.Reader) (err error
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "block_reserved_keywords":
+		case "block_reserved_usernames":
 			if dc.IsNil() {
 				err = dc.ReadNil()
 				if err != nil {
-					err = msgp.WrapError(err, "BlockReservedKeywords")
+					err = msgp.WrapError(err, "BlockReservedUsernames")
 					return
 				}
-				z.BlockReservedKeywords = nil
+				z.BlockReservedUsernames = nil
 			} else {
-				if z.BlockReservedKeywords == nil {
-					z.BlockReservedKeywords = new(bool)
+				if z.BlockReservedUsernames == nil {
+					z.BlockReservedUsernames = new(bool)
 				}
-				*z.BlockReservedKeywords, err = dc.ReadBool()
+				*z.BlockReservedUsernames, err = dc.ReadBool()
 				if err != nil {
-					err = msgp.WrapError(err, "BlockReservedKeywords")
+					err = msgp.WrapError(err, "BlockReservedUsernames")
 					return
 				}
 			}
@@ -3124,20 +3124,20 @@ func (z *LoginIDTypeUsernameConfiguration) DecodeMsg(dc *msgp.Reader) (err error
 // EncodeMsg implements msgp.Encodable
 func (z *LoginIDTypeUsernameConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 4
-	// write "block_reserved_keywords"
-	err = en.Append(0x84, 0xb7, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x73)
+	// write "block_reserved_usernames"
+	err = en.Append(0x84, 0xb8, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x64, 0x5f, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x73)
 	if err != nil {
 		return
 	}
-	if z.BlockReservedKeywords == nil {
+	if z.BlockReservedUsernames == nil {
 		err = en.WriteNil()
 		if err != nil {
 			return
 		}
 	} else {
-		err = en.WriteBool(*z.BlockReservedKeywords)
+		err = en.WriteBool(*z.BlockReservedUsernames)
 		if err != nil {
-			err = msgp.WrapError(err, "BlockReservedKeywords")
+			err = msgp.WrapError(err, "BlockReservedUsernames")
 			return
 		}
 	}
@@ -3199,12 +3199,12 @@ func (z *LoginIDTypeUsernameConfiguration) EncodeMsg(en *msgp.Writer) (err error
 func (z *LoginIDTypeUsernameConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 4
-	// string "block_reserved_keywords"
-	o = append(o, 0x84, 0xb7, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x73)
-	if z.BlockReservedKeywords == nil {
+	// string "block_reserved_usernames"
+	o = append(o, 0x84, 0xb8, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x64, 0x5f, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x73)
+	if z.BlockReservedUsernames == nil {
 		o = msgp.AppendNil(o)
 	} else {
-		o = msgp.AppendBool(o, *z.BlockReservedKeywords)
+		o = msgp.AppendBool(o, *z.BlockReservedUsernames)
 	}
 	// string "excluded_keywords"
 	o = append(o, 0xb1, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x73)
@@ -3247,20 +3247,20 @@ func (z *LoginIDTypeUsernameConfiguration) UnmarshalMsg(bts []byte) (o []byte, e
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "block_reserved_keywords":
+		case "block_reserved_usernames":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
 				if err != nil {
 					return
 				}
-				z.BlockReservedKeywords = nil
+				z.BlockReservedUsernames = nil
 			} else {
-				if z.BlockReservedKeywords == nil {
-					z.BlockReservedKeywords = new(bool)
+				if z.BlockReservedUsernames == nil {
+					z.BlockReservedUsernames = new(bool)
 				}
-				*z.BlockReservedKeywords, bts, err = msgp.ReadBoolBytes(bts)
+				*z.BlockReservedUsernames, bts, err = msgp.ReadBoolBytes(bts)
 				if err != nil {
-					err = msgp.WrapError(err, "BlockReservedKeywords")
+					err = msgp.WrapError(err, "BlockReservedUsernames")
 					return
 				}
 			}
@@ -3331,8 +3331,8 @@ func (z *LoginIDTypeUsernameConfiguration) UnmarshalMsg(bts []byte) (o []byte, e
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *LoginIDTypeUsernameConfiguration) Msgsize() (s int) {
-	s = 1 + 24
-	if z.BlockReservedKeywords == nil {
+	s = 1 + 25
+	if z.BlockReservedUsernames == nil {
 		s += msgp.NilSize
 	} else {
 		s += msgp.BoolSize

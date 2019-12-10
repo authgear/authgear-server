@@ -209,7 +209,7 @@ const (
 		"$id": "#LoginIDTypeUsernameConfiguration",
 		"type": "object",
 		"properties": {
-			"block_reserved_keywords": { "type": "boolean" },
+			"block_reserved_usernames": { "type": "boolean" },
 			"excluded_keywords": {
 				"type": "array",
 				"items": { "type": "string" }

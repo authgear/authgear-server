@@ -87,7 +87,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 							"ignore_dot_sign": false
 						},
 						"username": {
-							"block_reserved_keywords": true,
+							"block_reserved_usernames": true,
 							"excluded_keywords": [ "skygear" ],
 							"ascii_only": false,
 							"case_sensitive": false
