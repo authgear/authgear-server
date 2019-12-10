@@ -75,10 +75,10 @@ func (s *senderImpl) SendEmail(context map[string]interface{}, email string) err
 
 	err = s.mailSender.Send(mail.SendOptions{
 		// TODO(mfa): configurable email headers
-		Sender:    "no-reply@skygeario.com",
+		Sender:    "no-reply@skygear.io",
 		Recipient: email,
 		Subject:   "MFA Code",
-		ReplyTo:   "no-reply@skygeario.com",
+		ReplyTo:   "no-reply@skygear.io",
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
 	})

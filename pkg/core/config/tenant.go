@@ -491,7 +491,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 			config.Expiry = 3600 // 1 hour
 		}
 		if config.Sender == "" {
-			config.Sender = "no-reply@skygeario.com"
+			config.Sender = "no-reply@skygear.io"
 		}
 		if config.Subject == "" {
 			config.Subject = "Verification instruction"
@@ -504,7 +504,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.UserConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
 	}
 	if c.UserConfig.WelcomeEmail.Sender == "" {
-		c.UserConfig.WelcomeEmail.Sender = "no-reply@skygeario.com"
+		c.UserConfig.WelcomeEmail.Sender = "no-reply@skygear.io"
 	}
 	if c.UserConfig.WelcomeEmail.Subject == "" {
 		c.UserConfig.WelcomeEmail.Subject = "Welcome!"
@@ -512,7 +512,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 
 	// Set default ForgotPasswordConfiguration
 	if c.UserConfig.ForgotPassword.Sender == "" {
-		c.UserConfig.ForgotPassword.Sender = "no-reply@skygeario.com"
+		c.UserConfig.ForgotPassword.Sender = "no-reply@skygear.io"
 	}
 	if c.UserConfig.ForgotPassword.Subject == "" {
 		c.UserConfig.ForgotPassword.Subject = "Reset password instruction"
