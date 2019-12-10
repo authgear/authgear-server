@@ -22,4 +22,13 @@ Thanks.`,
 var TemplateWelcomeEmailHTML = template.Spec{
 	Type:   TemplateItemTypeWelcomeEmailHTML,
 	IsHTML: true,
+	Default: `<!DOCTYPE html>
+<html>
+<body>
+<p>Hello {{ .email }},</p>
+<p>Welcome to Skygear.</p>
+<p>Thanks.</p>
+</body>
+</html>
+`,
 }
