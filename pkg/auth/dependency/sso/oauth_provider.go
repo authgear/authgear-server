@@ -3,6 +3,7 @@ package sso
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 // OAuthProvider is OAuth 2.0 based provider.
@@ -35,12 +36,14 @@ type OpenIDConnectProvider interface {
 type OAuthProviderFactory struct {
 	urlPrefixProvider urlprefix.Provider
 	tenantConfig      config.TenantConfiguration
+	timeProvider      coreTime.Provider
 }
 
-func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider) *OAuthProviderFactory {
+func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider, timeProvider coreTime.Provider) *OAuthProviderFactory {
 	return &OAuthProviderFactory{
 		tenantConfig:      tenantConfig,
 		urlPrefixProvider: urlPrefixProvider,
+		timeProvider:      timeProvider,
 	}
 }
 
@@ -79,6 +82,13 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 			URLPrefix:      p.urlPrefixProvider.Value(),
 			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
 			ProviderConfig: providerConfig,
+		}
+	case config.OAuthProviderTypeApple:
+		return &AppleImpl{
+			URLPrefix:      p.urlPrefixProvider.Value(),
+			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
+			ProviderConfig: providerConfig,
+			TimeProvider:   p.timeProvider,
 		}
 	}
 	return nil
