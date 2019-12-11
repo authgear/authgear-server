@@ -574,6 +574,10 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 				// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
 				c.UserConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
 			}
+		case OAuthProviderTypeApple:
+			if provider.Scope == "" {
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "email"
+			}
 		}
 	}
 
@@ -869,6 +873,7 @@ const (
 	OAuthProviderTypeInstagram OAuthProviderType = "instagram"
 	OAuthProviderTypeLinkedIn  OAuthProviderType = "linkedin"
 	OAuthProviderTypeAzureADv2 OAuthProviderType = "azureadv2"
+	OAuthProviderTypeApple     OAuthProviderType = "apple"
 )
 
 type OAuthProviderConfiguration struct {
@@ -877,8 +882,11 @@ type OAuthProviderConfiguration struct {
 	ClientID     string            `json:"client_id,omitempty" yaml:"client_id" msg:"client_id"`
 	ClientSecret string            `json:"client_secret,omitempty" yaml:"client_secret" msg:"client_secret"`
 	Scope        string            `json:"scope,omitempty" yaml:"scope" msg:"scope"`
-	// Type specific fields
+	// Tenant is specific to azureadv2
 	Tenant string `json:"tenant,omitempty" yaml:"tenant" msg:"tenant"`
+	// KeyID and TeamID are specific to apple
+	KeyID  string `json:"key_id,omitempty" yaml:"key_id" msg:"key_id"`
+	TeamID string `json:"team_id,omitempty" yaml:"team_id" msg:"team_id"`
 }
 
 type UserVerificationCriteria string

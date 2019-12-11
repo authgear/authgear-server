@@ -5991,6 +5991,18 @@ func (z *OAuthProviderConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "Tenant")
 				return
 			}
+		case "key_id":
+			z.KeyID, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "KeyID")
+				return
+			}
+		case "team_id":
+			z.TeamID, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "TeamID")
+				return
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -6004,9 +6016,9 @@ func (z *OAuthProviderConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *OAuthProviderConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 6
+	// map header, size 8
 	// write "id"
-	err = en.Append(0x86, 0xa2, 0x69, 0x64)
+	err = en.Append(0x88, 0xa2, 0x69, 0x64)
 	if err != nil {
 		return
 	}
@@ -6065,15 +6077,35 @@ func (z *OAuthProviderConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "Tenant")
 		return
 	}
+	// write "key_id"
+	err = en.Append(0xa6, 0x6b, 0x65, 0x79, 0x5f, 0x69, 0x64)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.KeyID)
+	if err != nil {
+		err = msgp.WrapError(err, "KeyID")
+		return
+	}
+	// write "team_id"
+	err = en.Append(0xa7, 0x74, 0x65, 0x61, 0x6d, 0x5f, 0x69, 0x64)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.TeamID)
+	if err != nil {
+		err = msgp.WrapError(err, "TeamID")
+		return
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *OAuthProviderConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 6
+	// map header, size 8
 	// string "id"
-	o = append(o, 0x86, 0xa2, 0x69, 0x64)
+	o = append(o, 0x88, 0xa2, 0x69, 0x64)
 	o = msgp.AppendString(o, z.ID)
 	// string "type"
 	o = append(o, 0xa4, 0x74, 0x79, 0x70, 0x65)
@@ -6090,6 +6122,12 @@ func (z *OAuthProviderConfiguration) MarshalMsg(b []byte) (o []byte, err error) 
 	// string "tenant"
 	o = append(o, 0xa6, 0x74, 0x65, 0x6e, 0x61, 0x6e, 0x74)
 	o = msgp.AppendString(o, z.Tenant)
+	// string "key_id"
+	o = append(o, 0xa6, 0x6b, 0x65, 0x79, 0x5f, 0x69, 0x64)
+	o = msgp.AppendString(o, z.KeyID)
+	// string "team_id"
+	o = append(o, 0xa7, 0x74, 0x65, 0x61, 0x6d, 0x5f, 0x69, 0x64)
+	o = msgp.AppendString(o, z.TeamID)
 	return
 }
 
@@ -6151,6 +6189,18 @@ func (z *OAuthProviderConfiguration) UnmarshalMsg(bts []byte) (o []byte, err err
 				err = msgp.WrapError(err, "Tenant")
 				return
 			}
+		case "key_id":
+			z.KeyID, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "KeyID")
+				return
+			}
+		case "team_id":
+			z.TeamID, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "TeamID")
+				return
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -6165,7 +6215,7 @@ func (z *OAuthProviderConfiguration) UnmarshalMsg(bts []byte) (o []byte, err err
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *OAuthProviderConfiguration) Msgsize() (s int) {
-	s = 1 + 3 + msgp.StringPrefixSize + len(z.ID) + 5 + msgp.StringPrefixSize + len(string(z.Type)) + 10 + msgp.StringPrefixSize + len(z.ClientID) + 14 + msgp.StringPrefixSize + len(z.ClientSecret) + 6 + msgp.StringPrefixSize + len(z.Scope) + 7 + msgp.StringPrefixSize + len(z.Tenant)
+	s = 1 + 3 + msgp.StringPrefixSize + len(z.ID) + 5 + msgp.StringPrefixSize + len(string(z.Type)) + 10 + msgp.StringPrefixSize + len(z.ClientID) + 14 + msgp.StringPrefixSize + len(z.ClientSecret) + 6 + msgp.StringPrefixSize + len(z.Scope) + 7 + msgp.StringPrefixSize + len(z.Tenant) + 7 + msgp.StringPrefixSize + len(z.KeyID) + 8 + msgp.StringPrefixSize + len(z.TeamID)
 	return
 }
 
