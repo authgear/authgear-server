@@ -226,6 +226,10 @@ github.com/sfreiberg/gotwilio v0.0.0-20181012193634-a13e5b0d458a/go.mod h1:60PiR
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
 github.com/sirupsen/logrus v1.0.3 h1:B5C/igNWoiULof20pKfY4VntcIPqKuwEmoLZrabbUrc=
 github.com/sirupsen/logrus v1.0.3/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
+github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212034346-7b2ace6d4c59 h1:YEEbBAWiPxPu2A5XPwm+9RecrSH/LlEeU5wT8zFcSbA=
+github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212034346-7b2ace6d4c59/go.mod h1:jtRQO9YC/yD/E5FqG0RWijzCrrXPvNKsMf4/lGv7sUI=
+github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110 h1:DWSits/O+2QUbvRsCpy8zol+5QWpx0PWDkjIQVMf7kE=
+github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110/go.mod h1:jtRQO9YC/yD/E5FqG0RWijzCrrXPvNKsMf4/lGv7sUI=
 github.com/skygeario/gojsonschema v1.2.1-0.20191031025230-d708aabc60f3 h1:wKMW/bVaRiDPux4DUFLhMHpI2eRgDgk6aV+9ePQFeHQ=
 github.com/skygeario/gojsonschema v1.2.1-0.20191031025230-d708aabc60f3/go.mod h1:anYRn/JVcOK2ZgGU+IjEV4nwlhoK5sQluxsYJ78Id3Y=
 github.com/skygeario/govips v0.0.0-20191017114550-b7b5b9596467 h1:BckNBGk1auBtDaost4Jg8ZoQdgyRcF023AhRg4Z0wuY=

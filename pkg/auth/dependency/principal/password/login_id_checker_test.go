@@ -86,6 +86,13 @@ func TestLoginIDChecker(t *testing.T) {
 
 				// space is not allowed in Identifier class
 				{"Test ID", "invalid login ID"},
+
+				// confusable homoglyphs
+				{"microsoft", ""},
+				{"microsоft", "invalid login ID"},
+				// byte array versions
+				{string([]byte{109, 105, 99, 114, 111, 115, 111, 102, 116}), ""},
+				{string([]byte{109, 105, 99, 114, 111, 115, 208, 190, 102, 116}), "invalid login ID"},
 			}
 
 			n := &LoginIDUsernameChecker{
