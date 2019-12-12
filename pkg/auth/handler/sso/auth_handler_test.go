@@ -195,10 +195,10 @@ func TestAuthHandler(t *testing.T) {
 
 			// oauth state
 			state := sso.State{
+				Action: action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
 					UXMode:      uxMode,
-					Action:      action,
 				},
 				Nonce: hashedNonce,
 			}
@@ -247,10 +247,10 @@ func TestAuthHandler(t *testing.T) {
 
 			// oauth state
 			state := sso.State{
+				Action: action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
 					UXMode:      uxMode,
-					Action:      action,
 				},
 				Nonce: hashedNonce,
 			}
@@ -281,10 +281,10 @@ func TestAuthHandler(t *testing.T) {
 
 			// oauth state
 			state := sso.State{
+				Action: action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
 					UXMode:      uxMode,
-					Action:      action,
 				},
 				Nonce: hashedNonce,
 			}
@@ -438,10 +438,10 @@ func TestAuthHandler(t *testing.T) {
 
 			// oauth state
 			state := sso.State{
+				Action: action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
 					UXMode:      uxMode,
-					Action:      action,
 				},
 				LinkState: sso.LinkState{
 					UserID: "john.doe.id",
@@ -501,10 +501,10 @@ func TestAuthHandler(t *testing.T) {
 
 			// oauth state
 			state := sso.State{
+				Action: action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
 					UXMode:      uxMode,
-					Action:      action,
 				},
 				LinkState: sso.LinkState{
 					UserID: "jane.doe.id",
@@ -665,10 +665,10 @@ func TestAuthHandler(t *testing.T) {
 
 		Convey("OnUserDuplicate == abort", func() {
 			state := sso.State{
+				Action: action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
 					UXMode:      UXMode,
-					Action:      action,
 				},
 				LoginState: sso.LoginState{
 					MergeRealm:      password.DefaultRealm,
@@ -710,10 +710,10 @@ func TestAuthHandler(t *testing.T) {
 
 		Convey("OnUserDuplicate == merge", func() {
 			state := sso.State{
+				Action: action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
 					UXMode:      UXMode,
-					Action:      action,
 				},
 				LoginState: sso.LoginState{
 					MergeRealm:      password.DefaultRealm,
@@ -760,10 +760,10 @@ func TestAuthHandler(t *testing.T) {
 
 		Convey("OnUserDuplicate == create", func() {
 			state := sso.State{
+				Action: action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
 					UXMode:      UXMode,
-					Action:      action,
 				},
 				LoginState: sso.LoginState{
 					MergeRealm:      password.DefaultRealm,

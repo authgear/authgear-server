@@ -265,8 +265,8 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 			CallbackURL: payload.CallbackURL,
 			UXMode:      payload.UXMode,
-			Action:      h.Action,
 		},
+		Action:        h.Action,
 		APIClientID:   apiClientID,
 		CodeChallenge: payload.CodeChallenge,
 	}

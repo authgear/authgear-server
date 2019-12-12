@@ -19,7 +19,6 @@ type LinkState struct {
 type OAuthAuthorizationCodeFlowState struct {
 	UXMode      UXMode `json:"ux_mode,omitempty"`
 	CallbackURL string `json:"callback_url,omitempty"`
-	Action      string `json:"action,omitempty"`
 }
 
 // State is an opaque value used by the client to maintain
@@ -29,6 +28,7 @@ type State struct {
 	LoginState
 	LinkState
 	OAuthAuthorizationCodeFlowState
+	Action string `json:"action,omitempty"`
 	// CodeChallenge is borrowed from PKCE.
 	// See https://www.oauth.com/oauth2-servers/pkce/authorization-request/
 	CodeChallenge string `json:"code_challenge"`
