@@ -26,7 +26,7 @@ type storeImpl struct {
 	sqlExecutor db.SQLExecutor
 }
 
-func newStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
+func NewStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
 	return &storeImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,

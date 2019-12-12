@@ -6,12 +6,10 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
-	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
@@ -33,8 +31,8 @@ type providerImpl struct {
 }
 
 func newProvider(
-	builder db.SQLBuilder,
-	executor db.SQLExecutor,
+	passwordStore Store,
+	passwordHistoryStore passwordhistory.Store,
 	loggerFactory logging.Factory,
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
@@ -43,7 +41,7 @@ func newProvider(
 	reservedNameChecker *ReservedNameChecker,
 ) *providerImpl {
 	return &providerImpl{
-		store:        newStore(builder, executor),
+		store:        passwordStore,
 		logger:       loggerFactory.NewLogger("password-provider"),
 		loginIDsKeys: loginIDsKeys,
 		loginIDChecker: newDefaultLoginIDChecker(
@@ -57,15 +55,13 @@ func newProvider(
 		loginIDNormalizerFactory: NewLoginIDNormalizerFactory(loginIDsKeys, loginIDTypes),
 		allowedRealms:            allowedRealms,
 		passwordHistoryEnabled:   passwordHistoryEnabled,
-		passwordHistoryStore: pqPWHistory.NewPasswordHistoryStore(
-			builder, executor, loggerFactory,
-		),
+		passwordHistoryStore:     passwordHistoryStore,
 	}
 }
 
 func NewProvider(
-	builder db.SQLBuilder,
-	executor db.SQLExecutor,
+	passwordStore Store,
+	passwordHistoryStore passwordhistory.Store,
 	loggerFactory logging.Factory,
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
@@ -73,7 +69,7 @@ func NewProvider(
 	passwordHistoryEnabled bool,
 	reservedNameChecker *ReservedNameChecker,
 ) Provider {
-	return newProvider(builder, executor, loggerFactory, loginIDsKeys, loginIDTypes, allowedRealms, passwordHistoryEnabled, reservedNameChecker)
+	return newProvider(passwordStore, passwordHistoryStore, loggerFactory, loginIDsKeys, loginIDTypes, allowedRealms, passwordHistoryEnabled, reservedNameChecker)
 }
 
 func (p *providerImpl) ValidateLoginID(loginID LoginID) error {
