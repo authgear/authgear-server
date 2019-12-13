@@ -370,6 +370,9 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.UserConfig.ForgotPassword.AppName == "" {
 		c.UserConfig.ForgotPassword.AppName = c.AppName
 	}
+	if c.UserConfig.MFA.OOB.AppName == "" {
+		c.UserConfig.MFA.OOB.AppName = c.AppName
+	}
 
 	// Set default APIClientConfiguration values
 	for i, clientConfig := range c.UserConfig.Clients {
@@ -519,6 +522,14 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 	if c.UserConfig.ForgotPassword.ResetURLLifetime == 0 {
 		c.UserConfig.ForgotPassword.ResetURLLifetime = 43200
+	}
+
+	// Set default MFAOOBConfiguration
+	if c.UserConfig.MFA.OOB.Sender == "" {
+		c.UserConfig.MFA.OOB.Sender = "no-reply@skygear.io"
+	}
+	if c.UserConfig.MFA.OOB.Subject == "" {
+		c.UserConfig.MFA.OOB.Subject = "Two Factor Auth Verification instruction"
 	}
 
 	// Set default SMTPConfiguration
@@ -751,8 +762,12 @@ type MFATOTPConfiguration struct {
 }
 
 type MFAOOBConfiguration struct {
-	SMS   *MFAOOBSMSConfiguration   `json:"sms,omitempty" yaml:"sms" msg:"sms" default_zero_value:"true"`
-	Email *MFAOOBEmailConfiguration `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
+	SMS     *MFAOOBSMSConfiguration   `json:"sms,omitempty" yaml:"sms" msg:"sms" default_zero_value:"true"`
+	Email   *MFAOOBEmailConfiguration `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
+	AppName string                    `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
+	Sender  string                    `json:"sender,omitempty" yaml:"sender" msg:"sender"`
+	Subject string                    `json:"subject,omitempty" yaml:"subject" msg:"subject"`
+	ReplyTo string                    `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
 }
 
 type MFAOOBSMSConfiguration struct {

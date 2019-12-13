@@ -186,6 +186,10 @@ func makeFullTenantConfig() TenantConfiguration {
 					Maximum: newInt(99),
 				},
 				OOB: &MFAOOBConfiguration{
+					AppName: "myapp",
+					Sender:  "mfaoobsender",
+					Subject: "mfaoobsubject",
+					ReplyTo: "mfaoobreplyto",
 					SMS: &MFAOOBSMSConfiguration{
 						Maximum: newInt(99),
 					},

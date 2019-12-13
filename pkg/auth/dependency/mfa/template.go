@@ -12,13 +12,23 @@ const (
 )
 
 var TemplateMFAOOBCodeSMSTXT = template.Spec{
-	Type:    TemplateItemTypeMFAOOBCodeSMSTXT,
-	Default: `Your MFA code is: {{ .code }}`,
+	Type: TemplateItemTypeMFAOOBCodeSMSTXT,
+	Default: `Your {{ .appname }} Two Factor Auth Verification code is: {{ .code }}
+
+Please enter the Verification Code on the Sign-in screen.
+
+Please ignore this code if this Sign-in was not initiated by you.
+`,
 }
 
 var TemplateMFAOOBCodeEmailTXT = template.Spec{
-	Type:    TemplateItemTypeMFAOOBCodeEmailTXT,
-	Default: `Your MFA code is: {{ .code }}`,
+	Type: TemplateItemTypeMFAOOBCodeEmailTXT,
+	Default: `Your {{ .appname }} Two Factor Auth Verification code is: {{ .code }}
+
+Please enter the Verification Code on the Sign-in screen.
+
+Please ignore this code if this Sign-in was not initiated by you.
+`,
 }
 
 var TemplateMFAOOBCodeEmailHTML = template.Spec{
@@ -27,7 +37,9 @@ var TemplateMFAOOBCodeEmailHTML = template.Spec{
 	Default: `<!DOCTYPE html>
 <html>
 <body>
-<p>Your MFA code is: {{ .code }}</p>
+<p>Your {{ .appname }} Two Factor Auth Verification code is: {{ .code }}</p>
+<p>Please enter the Verification Code on the Sign-in screen.</p>
+<p>Please ignore this code if this Sign-in was not initiated by you.</p>
 </body>
 </html>
 `,

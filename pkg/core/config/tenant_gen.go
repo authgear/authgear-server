@@ -4543,6 +4543,30 @@ func (z *MFAOOBConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
+		case "app_name":
+			z.AppName, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "AppName")
+				return
+			}
+		case "sender":
+			z.Sender, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Sender")
+				return
+			}
+		case "subject":
+			z.Subject, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Subject")
+				return
+			}
+		case "reply_to":
+			z.ReplyTo, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "ReplyTo")
+				return
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -4556,9 +4580,9 @@ func (z *MFAOOBConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *MFAOOBConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 2
+	// map header, size 6
 	// write "sms"
-	err = en.Append(0x82, 0xa3, 0x73, 0x6d, 0x73)
+	err = en.Append(0x86, 0xa3, 0x73, 0x6d, 0x73)
 	if err != nil {
 		return
 	}
@@ -4617,15 +4641,55 @@ func (z *MFAOOBConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			}
 		}
 	}
+	// write "app_name"
+	err = en.Append(0xa8, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.AppName)
+	if err != nil {
+		err = msgp.WrapError(err, "AppName")
+		return
+	}
+	// write "sender"
+	err = en.Append(0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Sender)
+	if err != nil {
+		err = msgp.WrapError(err, "Sender")
+		return
+	}
+	// write "subject"
+	err = en.Append(0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Subject)
+	if err != nil {
+		err = msgp.WrapError(err, "Subject")
+		return
+	}
+	// write "reply_to"
+	err = en.Append(0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.ReplyTo)
+	if err != nil {
+		err = msgp.WrapError(err, "ReplyTo")
+		return
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *MFAOOBConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 2
+	// map header, size 6
 	// string "sms"
-	o = append(o, 0x82, 0xa3, 0x73, 0x6d, 0x73)
+	o = append(o, 0x86, 0xa3, 0x73, 0x6d, 0x73)
 	if z.SMS == nil {
 		o = msgp.AppendNil(o)
 	} else {
@@ -4652,6 +4716,18 @@ func (z *MFAOOBConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 			o = msgp.AppendInt(o, *z.Email.Maximum)
 		}
 	}
+	// string "app_name"
+	o = append(o, 0xa8, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
+	o = msgp.AppendString(o, z.AppName)
+	// string "sender"
+	o = append(o, 0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
+	o = msgp.AppendString(o, z.Sender)
+	// string "subject"
+	o = append(o, 0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
+	o = msgp.AppendString(o, z.Subject)
+	// string "reply_to"
+	o = append(o, 0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
+	o = msgp.AppendString(o, z.ReplyTo)
 	return
 }
 
@@ -4775,6 +4851,30 @@ func (z *MFAOOBConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 				}
 			}
+		case "app_name":
+			z.AppName, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "AppName")
+				return
+			}
+		case "sender":
+			z.Sender, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Sender")
+				return
+			}
+		case "subject":
+			z.Subject, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Subject")
+				return
+			}
+		case "reply_to":
+			z.ReplyTo, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "ReplyTo")
+				return
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -4811,6 +4911,7 @@ func (z *MFAOOBConfiguration) Msgsize() (s int) {
 			s += msgp.IntSize
 		}
 	}
+	s += 9 + msgp.StringPrefixSize + len(z.AppName) + 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 9 + msgp.StringPrefixSize + len(z.ReplyTo)
 	return
 }
 
