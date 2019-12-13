@@ -1,6 +1,7 @@
 package mfa
 
 import (
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
@@ -8,13 +9,20 @@ import (
 )
 
 type senderImpl struct {
+	oobConfig      *config.MFAOOBConfiguration
 	smsClient      sms.Client
 	mailSender     mail.Sender
 	templateEngine *template.Engine
 }
 
-func NewSender(smsClient sms.Client, mailSender mail.Sender, templateEngine *template.Engine) Sender {
+func NewSender(
+	oobConfig *config.MFAOOBConfiguration,
+	smsClient sms.Client,
+	mailSender mail.Sender,
+	templateEngine *template.Engine,
+) Sender {
 	return &senderImpl{
+		oobConfig:      oobConfig,
 		smsClient:      smsClient,
 		mailSender:     mailSender,
 		templateEngine: templateEngine,
@@ -23,7 +31,8 @@ func NewSender(smsClient sms.Client, mailSender mail.Sender, templateEngine *tem
 
 func (s *senderImpl) Send(code string, phone string, email string) error {
 	context := map[string]interface{}{
-		"code": code,
+		"appname": s.oobConfig.AppName,
+		"code":    code,
 	}
 	if phone != "" {
 		return s.SendSMS(context, phone)
@@ -74,11 +83,10 @@ func (s *senderImpl) SendEmail(context map[string]interface{}, email string) err
 	}
 
 	err = s.mailSender.Send(mail.SendOptions{
-		// TODO(mfa): configurable email headers
-		Sender:    "no-reply@skygear.io",
+		Sender:    s.oobConfig.Sender,
 		Recipient: email,
-		Subject:   "MFA Code",
-		ReplyTo:   "no-reply@skygear.io",
+		Subject:   s.oobConfig.Subject,
+		ReplyTo:   s.oobConfig.ReplyTo,
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
 	})
