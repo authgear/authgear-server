@@ -88,7 +88,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 
 	keySet, err := f.getKeys()
 	if err != nil {
-		err = errors.Newf("failed to get OIDC JWKS: %w", err)
+		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWTs")
 		return
 	}
 
@@ -135,77 +135,56 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 	keyFunc := func(token *jwt.Token) (interface{}, error) {
 		keyID, ok := token.Header["kid"].(string)
 		if !ok {
-			return nil, errors.New("no key id")
+			return nil, NewSSOFailed(SSOUnauthorized, "no kid")
 		}
 		if key := keySet.LookupKeyID(keyID); len(key) == 1 {
 			return key[0].Materialize()
 		}
-		return nil, errors.New("unable to find key")
+		return nil, NewSSOFailed(SSOUnauthorized, "failed to find signing key")
 	}
 
 	mapClaims := jwt.MapClaims{}
 	// Verify the signature
 	_, err = jwt.ParseWithClaims(idToken, mapClaims, keyFunc)
 	if err != nil {
-		err = errors.HandledWithMessage(
-			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
-			err.Error(),
-		)
+		err = NewSSOFailed(SSOUnauthorized, "invalid JWT signature")
 		return
 	}
 
 	// Verify the nonce
 	hashedNonce, ok := mapClaims["nonce"].(string)
 	if !ok {
-		err = errors.HandledWithMessage(
-			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
-			"no nonce",
-		)
+		err = NewSSOFailed(InvalidParams, "no nonce")
 		return
 	}
 	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
-		err = errors.HandledWithMessage(
-			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
-			"invalid nonce",
-		)
+		err = NewSSOFailed(SSOUnauthorized, "invalid nonce")
 		return
 	}
 
 	// Verify the issuer
 	if !mapClaims.VerifyIssuer("https://appleid.apple.com", true) {
-		err = errors.HandledWithMessage(
-			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
-			"invalid issuer",
-		)
+		err = NewSSOFailed(SSOUnauthorized, "invalid iss")
 		return
 	}
 
 	// Verify the audience
 	if !mapClaims.VerifyAudience(f.ProviderConfig.ClientID, true) {
-		err = errors.HandledWithMessage(
-			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
-			"invalid audience",
-		)
+		err = NewSSOFailed(SSOUnauthorized, "invalid aud")
 		return
 	}
 
 	// Verify exp
 	now := f.TimeProvider.NowUTC().Unix()
 	if !mapClaims.VerifyExpiresAt(now, true) {
-		err = errors.HandledWithMessage(
-			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
-			"invalid expires at",
-		)
+		err = NewSSOFailed(SSOUnauthorized, "invalid exp")
 		return
 	}
 
 	// Ensure sub exists
 	sub, ok := mapClaims["sub"].(string)
 	if !ok {
-		err = errors.HandledWithMessage(
-			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
-			"cannot find sub",
-		)
+		err = NewSSOFailed(SSOUnauthorized, "no sub")
 		return
 	}
 
