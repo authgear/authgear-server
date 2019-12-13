@@ -119,6 +119,7 @@ func makeFullTenantConfig() TenantConfiguration {
 			},
 		},
 		UserConfig: UserConfiguration{
+			DisplayAppName: "MyApp",
 			Clients: []APIClientConfiguration{
 				APIClientConfiguration{
 					ID:                   "web-app",
@@ -186,7 +187,6 @@ func makeFullTenantConfig() TenantConfiguration {
 					Maximum: newInt(99),
 				},
 				OOB: &MFAOOBConfiguration{
-					AppName: "myapp",
 					Sender:  "mfaoobsender",
 					Subject: "mfaoobsubject",
 					ReplyTo: "mfaoobreplyto",
@@ -222,7 +222,6 @@ func makeFullTenantConfig() TenantConfiguration {
 				ExpiryDays:            30,
 			},
 			ForgotPassword: &ForgotPasswordConfiguration{
-				AppName:          "myapp",
 				SecureMatch:      true,
 				Sender:           "myforgotpasswordsender",
 				Subject:          "myforgotpasswordsubject",

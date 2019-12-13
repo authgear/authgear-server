@@ -24,6 +24,7 @@ type Sender interface {
 }
 
 type DefaultSender struct {
+	AppName        string
 	Config         *config.ForgotPasswordConfiguration
 	URLPrefix      *url.URL
 	Sender         mail.Sender
@@ -38,6 +39,7 @@ func NewDefaultSender(
 	templateEngine *template.Engine,
 ) Sender {
 	return &DefaultSender{
+		AppName:        config.UserConfig.DisplayAppName,
 		Config:         config.UserConfig.ForgotPassword,
 		URLPrefix:      urlPrefix,
 		Sender:         sender,
@@ -65,7 +67,7 @@ func (d *DefaultSender) Send(
 		"expire_at": []string{strconv.FormatInt(expireAt.UTC().Unix(), 10)},
 	}.Encode()
 	context := map[string]interface{}{
-		"appname":    d.Config.AppName,
+		"appname":    d.AppName,
 		"link":       link.String(),
 		"email":      email,
 		"user":       user,

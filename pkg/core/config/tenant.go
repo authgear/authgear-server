@@ -366,12 +366,9 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 
 	updateNilFieldsWithZeroValue(&c.UserConfig)
 
-	// Propagate AppName
-	if c.UserConfig.ForgotPassword.AppName == "" {
-		c.UserConfig.ForgotPassword.AppName = c.AppName
-	}
-	if c.UserConfig.MFA.OOB.AppName == "" {
-		c.UserConfig.MFA.OOB.AppName = c.AppName
+	// Set default dislay app name
+	if c.UserConfig.DisplayAppName == "" {
+		c.UserConfig.DisplayAppName = c.AppName
 	}
 
 	// Set default APIClientConfiguration values
@@ -609,6 +606,7 @@ func WriteTenantConfig(r *http.Request, config *TenantConfiguration) {
 
 // UserConfiguration represents user-editable configuration
 type UserConfiguration struct {
+	DisplayAppName   string                         `json:"display_app_name,omitempty" yaml:"display_app_name" msg:"display_app_name"`
 	Clients          []APIClientConfiguration       `json:"clients,omitempty" yaml:"clients" msg:"clients"`
 	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
 	CORS             *CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors" default_zero_value:"true"`
@@ -764,7 +762,6 @@ type MFATOTPConfiguration struct {
 type MFAOOBConfiguration struct {
 	SMS     *MFAOOBSMSConfiguration   `json:"sms,omitempty" yaml:"sms" msg:"sms" default_zero_value:"true"`
 	Email   *MFAOOBEmailConfiguration `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
-	AppName string                    `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
 	Sender  string                    `json:"sender,omitempty" yaml:"sender" msg:"sender"`
 	Subject string                    `json:"subject,omitempty" yaml:"subject" msg:"subject"`
 	ReplyTo string                    `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
@@ -809,7 +806,6 @@ type PasswordPolicyConfiguration struct {
 }
 
 type ForgotPasswordConfiguration struct {
-	AppName          string `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
 	SecureMatch      bool   `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
 	Sender           string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
 	Subject          string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
