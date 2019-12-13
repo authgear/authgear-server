@@ -41,7 +41,7 @@ var TemplateUserVerificationEmailHTML = template.Spec{
 <body>
 <p>Dear {{ .login_id }},</p>
 <p>You received this email because {{ .appname }} would like to verify your email address. If you have recently signed up for this app or if you have recently made changes to your account, click the following link:</p>
-<p>{{ .link }}</p>
+<p><a href="{{ .link }}">{{ .link }}</a></p>
 <p>If you are unsure why you received this email, please ignore this email and you do not need to take any action.</p>
 <p>Thanks.</p>
 </body>
