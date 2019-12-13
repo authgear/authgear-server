@@ -110,7 +110,7 @@ func makeFullTenantConfig() TenantConfiguration {
 		Version: "1",
 		AppName: "myapp",
 		AppID:   "66EAFE32-BF5C-4878-8FC8-DD0EEA440981",
-		AppConfig: AppConfiguration{
+		AppConfig: &AppConfiguration{
 			DatabaseURL:    "postgres://user:password@localhost:5432/db?sslmode=disable",
 			DatabaseSchema: "app",
 			Hook: HookAppConfiguration{
@@ -118,7 +118,7 @@ func makeFullTenantConfig() TenantConfiguration {
 				SyncHookTotalTimeout: 60,
 			},
 		},
-		UserConfig: UserConfiguration{
+		UserConfig: &UserConfiguration{
 			DisplayAppName: "MyApp",
 			Clients: []APIClientConfiguration{
 				APIClientConfiguration{
@@ -417,24 +417,6 @@ func TestTenantConfig(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(c.UserConfig.SMTP.Port, ShouldEqual, 25)
 		})
-		Convey("should validate when load from YAML", func() {
-			invalidInput := `
-app_id: 66EAFE32-BF5C-4878-8FC8-DD0EEA440981
-app_name: myapp
-app_config:
-  database_url: postgres://
-  database_schema: app
-user_config:
-  clients: []
-  master_key: masterkey
-`
-			_, err := NewTenantConfigurationFromYAML(strings.NewReader(invalidInput))
-			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
-				Kind:    validation.ErrorGeneral,
-				Message: "only version 1 is supported",
-				Pointer: "/version",
-			}})
-		})
 		// JSON
 		Convey("should have default value when load from JSON", func() {
 			c, err := NewTenantConfigurationFromJSON(strings.NewReader(inputMinimalJSON), false)
@@ -445,31 +427,6 @@ user_config:
 			So(c.UserConfig.Clients, ShouldBeEmpty)
 			So(c.UserConfig.MasterKey, ShouldEqual, "masterkey")
 			So(c.UserConfig.SMTP.Port, ShouldEqual, 25)
-		})
-		Convey("should validate when load from JSON", func() {
-			invalidInput := `
-		{
-		  "app_id": "66EAFE32-BF5C-4878-8FC8-DD0EEA440981",
-		  "app_name": "myapp",
-		  "app_config": {
-		    "database_url": "postgres://",
-		    "database_schema": "app"
-		  },
-		  "user_config": {
-		    "api_key": "apikey",
-		    "master_key": "masterkey",
-		    "welcome_email": {
-		      "enabled": true
-		    }
-		  }
-		}
-					`
-			_, err := NewTenantConfigurationFromJSON(strings.NewReader(invalidInput), false)
-			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
-				Kind:    validation.ErrorGeneral,
-				Message: "only version 1 is supported",
-				Pointer: "/version",
-			}})
 		})
 		// Conversion
 		Convey("should be losslessly converted between Go and msgpack", func() {
@@ -512,6 +469,15 @@ user_config:
 			So(google.ID, ShouldEqual, OAuthProviderTypeGoogle)
 			So(google.Scope, ShouldEqual, "profile email")
 		})
+
+		testValidation := func(c *TenantConfiguration, causes []validation.ErrorCause) {
+			b, err := json.Marshal(c)
+			So(err, ShouldBeNil)
+			_, err = NewTenantConfigurationFromJSON(bytes.NewReader(b), false)
+			So(err, ShouldNotBeNil)
+			So(validation.ErrorCauses(err), ShouldResemble, causes)
+		}
+
 		Convey("should validate api key != master key", func() {
 			c := makeFullTenantConfig()
 			for i := range c.UserConfig.Clients {
@@ -519,8 +485,8 @@ user_config:
 					c.UserConfig.Clients[i].APIKey = c.UserConfig.MasterKey
 				}
 			}
-			err := c.Validate()
-			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
+
+			testValidation(&c, []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
 				Message: "master key must not be same as API key",
 				Pointer: "/user_config/master_key",
@@ -536,8 +502,8 @@ user_config:
 				}
 			}
 			c.UserConfig.Auth.LoginIDKeys = loginIDKeys
-			err := c.Validate()
-			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
+
+			testValidation(&c, []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
 				Message: "invalid login ID amount range",
 				Pointer: "/user_config/auth/login_id_keys/0",
@@ -551,8 +517,8 @@ user_config:
 					Key: "invalid",
 				},
 			)
-			err := c.Validate()
-			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
+
+			testValidation(&c, []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
 				Message: "cannot verify disallowed login ID key",
 				Pointer: "/user_config/user_verification/login_id_keys/invalid",
@@ -577,8 +543,7 @@ user_config:
 				},
 			}
 
-			err := c.Validate()
-			So(validation.ErrorCauses(err), ShouldResemble, []validation.ErrorCause{{
+			testValidation(&c, []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
 				Message: "duplicated OAuth provider",
 				Pointer: "/user_config/sso/oauth/providers/1",

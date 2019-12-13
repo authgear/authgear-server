@@ -1,6 +1,8 @@
 package config
 
 import (
+	"io"
+
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -17,6 +19,24 @@ const (
 		"$id": "#NonNegativeInteger",
 		"type": "integer",
 		"minimum": 0
+	},
+	"TenantConfiguration": {
+		"$id": "#TenantConfiguration",
+		"type": "object",
+		"properties": {
+			"version": { "const": "1" },
+			"app_id": { "$ref": "#NonEmptyString" },
+			"app_name": { "$ref": "#NonEmptyString" },
+			"app_config": {
+				"type": "object",
+				"properties": {
+					"database_url": { "$ref": "#NonEmptyString" },
+					"database_schema": { "$ref": "#NonEmptyString" }
+				}
+			},
+			"user_config": { "$ref": "#UserConfiguration" }
+		},
+		"required": ["version", "app_id", "app_name", "app_config", "user_config"]
 	},
 	"UserConfiguration": {
 		"$id": "#UserConfiguration",
@@ -455,14 +475,28 @@ const (
 )
 
 var (
-	userConfigurationValidator *validation.Validator
+	tenantConfigurationValidator *validation.Validator
 )
 
 func init() {
-	userConfigurationValidator = validation.NewValidator("http://v2.skygear.io")
-	userConfigurationValidator.AddSchemaFragments(Schemas)
+	tenantConfigurationValidator = validation.NewValidator("http://v2.skygear.io")
+	tenantConfigurationValidator.AddSchemaFragments(Schemas)
 }
 
-func ValidateUserConfiguration(value interface{}) error {
-	return userConfigurationValidator.ValidateGoValue("#UserConfiguration", value)
+func ParseTenantConfiguration(r io.Reader) (*TenantConfiguration, error) {
+	config := TenantConfiguration{}
+	err := tenantConfigurationValidator.ParseReader("#TenantConfiguration", r, &config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+func ParseUserConfiguration(r io.Reader) (*UserConfiguration, error) {
+	config := UserConfiguration{}
+	err := tenantConfigurationValidator.ParseReader("#UserConfiguration", r, &config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
 }

@@ -16,7 +16,7 @@ var (
 		"http://127.0.0.1",
 	}
 	sampleConfig = config.TenantConfiguration{
-		UserConfig: config.UserConfiguration{
+		UserConfig: &config.UserConfiguration{
 			SSO: &config.SSOConfiguration{
 				OAuth: &config.OAuthConfiguration{
 					AllowedCallbackURLs: allowedCallbackURLs,

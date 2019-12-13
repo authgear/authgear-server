@@ -58,7 +58,7 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.2.7
 )
 
 // The reason why we have to use a fork is to support background color in the embed() operation.
@@ -66,3 +66,5 @@ require (
 replace github.com/davidbyttow/govips => github.com/skygeario/govips v0.0.0-20191017114550-b7b5b9596467
 
 replace github.com/xeipuuv/gojsonschema => github.com/skygeario/gojsonschema v1.2.1-0.20191031025230-d708aabc60f3
+
+replace gopkg.in/yaml.v2 => github.com/skygeario/go-yaml v0.0.0-20191213113752-45105225b50d

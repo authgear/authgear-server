@@ -38,7 +38,7 @@ func TestUnlinkHandler(t *testing.T) {
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
 		sh.ProviderFactory = sso.NewOAuthProviderFactory(config.TenantConfiguration{
-			UserConfig: config.UserConfiguration{
+			UserConfig: &config.UserConfiguration{
 				SSO: &config.SSOConfiguration{
 					OAuth: &config.OAuthConfiguration{
 						Providers: []config.OAuthProviderConfiguration{

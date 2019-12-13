@@ -7421,16 +7421,40 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				return
 			}
 		case "app_config":
-			err = z.AppConfig.DecodeMsg(dc)
-			if err != nil {
-				err = msgp.WrapError(err, "AppConfig")
-				return
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "AppConfig")
+					return
+				}
+				z.AppConfig = nil
+			} else {
+				if z.AppConfig == nil {
+					z.AppConfig = new(AppConfiguration)
+				}
+				err = z.AppConfig.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "AppConfig")
+					return
+				}
 			}
 		case "user_config":
-			err = z.UserConfig.DecodeMsg(dc)
-			if err != nil {
-				err = msgp.WrapError(err, "UserConfig")
-				return
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "UserConfig")
+					return
+				}
+				z.UserConfig = nil
+			} else {
+				if z.UserConfig == nil {
+					z.UserConfig = new(UserConfiguration)
+				}
+				err = z.UserConfig.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "UserConfig")
+					return
+				}
 			}
 		case "template_items":
 			var zb0002 uint32
@@ -7567,20 +7591,34 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	err = z.AppConfig.EncodeMsg(en)
-	if err != nil {
-		err = msgp.WrapError(err, "AppConfig")
-		return
+	if z.AppConfig == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.AppConfig.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "AppConfig")
+			return
+		}
 	}
 	// write "user_config"
 	err = en.Append(0xab, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
 	if err != nil {
 		return
 	}
-	err = z.UserConfig.EncodeMsg(en)
-	if err != nil {
-		err = msgp.WrapError(err, "UserConfig")
-		return
+	if z.UserConfig == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.UserConfig.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "UserConfig")
+			return
+		}
 	}
 	// write "template_items"
 	err = en.Append(0xae, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x5f, 0x69, 0x74, 0x65, 0x6d, 0x73)
@@ -7667,17 +7705,25 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.AppendString(o, z.AppName)
 	// string "app_config"
 	o = append(o, 0xaa, 0x61, 0x70, 0x70, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
-	o, err = z.AppConfig.MarshalMsg(o)
-	if err != nil {
-		err = msgp.WrapError(err, "AppConfig")
-		return
+	if z.AppConfig == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.AppConfig.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "AppConfig")
+			return
+		}
 	}
 	// string "user_config"
 	o = append(o, 0xab, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
-	o, err = z.UserConfig.MarshalMsg(o)
-	if err != nil {
-		err = msgp.WrapError(err, "UserConfig")
-		return
+	if z.UserConfig == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.UserConfig.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "UserConfig")
+			return
+		}
 	}
 	// string "template_items"
 	o = append(o, 0xae, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x5f, 0x69, 0x74, 0x65, 0x6d, 0x73)
@@ -7751,16 +7797,38 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				return
 			}
 		case "app_config":
-			bts, err = z.AppConfig.UnmarshalMsg(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "AppConfig")
-				return
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.AppConfig = nil
+			} else {
+				if z.AppConfig == nil {
+					z.AppConfig = new(AppConfiguration)
+				}
+				bts, err = z.AppConfig.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "AppConfig")
+					return
+				}
 			}
 		case "user_config":
-			bts, err = z.UserConfig.UnmarshalMsg(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "UserConfig")
-				return
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.UserConfig = nil
+			} else {
+				if z.UserConfig == nil {
+					z.UserConfig = new(UserConfiguration)
+				}
+				bts, err = z.UserConfig.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "UserConfig")
+					return
+				}
 			}
 		case "template_items":
 			var zb0002 uint32
@@ -7862,7 +7930,19 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *TenantConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 7 + msgp.StringPrefixSize + len(z.AppID) + 9 + msgp.StringPrefixSize + len(z.AppName) + 11 + z.AppConfig.Msgsize() + 12 + z.UserConfig.Msgsize() + 15 + msgp.ArrayHeaderSize
+	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 7 + msgp.StringPrefixSize + len(z.AppID) + 9 + msgp.StringPrefixSize + len(z.AppName) + 11
+	if z.AppConfig == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.AppConfig.Msgsize()
+	}
+	s += 12
+	if z.UserConfig == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.UserConfig.Msgsize()
+	}
+	s += 15 + msgp.ArrayHeaderSize
 	for za0001 := range z.TemplateItems {
 		s += z.TemplateItems[za0001].Msgsize()
 	}
