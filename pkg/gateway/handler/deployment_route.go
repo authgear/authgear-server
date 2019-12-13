@@ -43,7 +43,11 @@ func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
 		return nil
 	}
 
-	proxy := &httputil.ReverseProxy{Director: director, ModifyResponse: modifyResponse}
+	proxy := &httputil.ReverseProxy{
+		Director:       director,
+		ModifyResponse: modifyResponse,
+		ErrorHandler:   reverseProxyErrorHandler,
+	}
 	proxy.ServeHTTP(rw, r)
 }
 
