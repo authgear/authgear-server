@@ -105,6 +105,13 @@ func (m DependencyMap) Provide(
 		return coreAuth.NewContextGetterWithContext(ctx)
 	}
 
+	newPasswordStore := func() password.Store {
+		return password.NewStore(
+			newSQLBuilder(),
+			newSQLExecutor(),
+		)
+	}
+
 	newPasswordHistoryStore := func() passwordhistory.Store {
 		return pqPWHistory.NewPasswordHistoryStore(
 			newSQLBuilder(),
@@ -144,8 +151,8 @@ func (m DependencyMap) Provide(
 
 	newPasswordAuthProvider := func() password.Provider {
 		return password.NewProvider(
-			newSQLBuilder(),
-			newSQLExecutor(),
+			newPasswordStore(),
+			newPasswordHistoryStore(),
 			newLoggerFactory(),
 			tConfig.UserConfig.Auth.LoginIDKeys,
 			tConfig.UserConfig.Auth.LoginIDTypes,
