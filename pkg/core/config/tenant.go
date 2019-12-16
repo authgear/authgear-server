@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 
 	"gopkg.in/yaml.v2"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
+	"github.com/skygeario/skygear-server/pkg/core/marshal"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -57,7 +57,7 @@ func NewTenantConfiguration() *TenantConfiguration {
 	c := &TenantConfiguration{
 		Version: "1",
 	}
-	updateNilFieldsWithZeroValue(c)
+	marshal.UpdateNilFieldsWithZeroValue(c)
 	return c
 }
 
@@ -125,41 +125,6 @@ func NewTenantConfigurationFromStdBase64Msgpack(s string) (*TenantConfiguration,
 		return nil, err
 	}
 	return &config, nil
-}
-
-// updateNilFieldsWithZeroValue checks the fields with tag
-// `default_zero_value:"true"` and updates the fields with zero value if they
-// are nil
-// This function will walk through the struct recursively, if the tagged fields
-// of struct have duplicated type in the same path. The function may cause
-// infinite loop.
-// Before calling this function, please make sure the struct get pass with
-// function `shouldNotHaveDuplicatedTypeInSamePath` in the test case.
-func updateNilFieldsWithZeroValue(i interface{}) {
-	t := reflect.TypeOf(i).Elem()
-	v := reflect.ValueOf(i).Elem()
-
-	if t.Kind() != reflect.Struct {
-		return
-	}
-	numField := t.NumField()
-	for i := 0; i < numField; i++ {
-		zerovalueTag := t.Field(i).Tag.Get("default_zero_value")
-		if zerovalueTag != "true" {
-			continue
-		}
-
-		field := v.Field(i)
-		ft := t.Field(i)
-		if field.Kind() == reflect.Ptr {
-			ele := field.Elem()
-			if !ele.IsValid() {
-				ele = reflect.New(ft.Type.Elem())
-				field.Set(ele)
-			}
-			updateNilFieldsWithZeroValue(field.Interface())
-		}
-	}
 }
 
 func (c *TenantConfiguration) Value() (driver.Value, error) {
@@ -324,7 +289,7 @@ func (c *TenantConfiguration) PostValidate() error {
 // features default behavior
 func (c *TenantConfiguration) AfterUnmarshal() {
 
-	updateNilFieldsWithZeroValue(c)
+	marshal.UpdateNilFieldsWithZeroValue(c)
 
 	// Set default dislay app name
 	if c.UserConfig.DisplayAppName == "" {

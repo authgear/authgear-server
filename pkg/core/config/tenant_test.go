@@ -3,13 +3,13 @@ package config
 import (
 	"bytes"
 	"encoding/json"
-	"reflect"
 	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/yaml.v2"
 
+	"github.com/skygeario/skygear-server/pkg/core/marshal"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -352,53 +352,6 @@ func makeFullTenantConfig() TenantConfiguration {
 	return fullTenantConfig
 }
 
-func copySet(input map[string]interface{}) map[string]interface{} {
-	output := map[string]interface{}{}
-	for k := range input {
-		output[k] = input[k]
-	}
-
-	return output
-}
-
-func shouldNotHaveDuplicatedTypeInSamePath(i interface{}, pathSet map[string]interface{}) bool {
-	t := reflect.TypeOf(i).Elem()
-	v := reflect.ValueOf(i).Elem()
-
-	if t.Kind() != reflect.Struct {
-		return true
-	}
-	numField := t.NumField()
-	for i := 0; i < numField; i++ {
-		zerovalueTag := t.Field(i).Tag.Get("default_zero_value")
-		if zerovalueTag != "true" {
-			continue
-		}
-
-		field := v.Field(i)
-		ft := t.Field(i)
-		if field.Kind() == reflect.Ptr {
-			ele := field.Elem()
-			if !ele.IsValid() {
-				ele = reflect.New(ft.Type.Elem())
-				field.Set(ele)
-			}
-			typeName := ft.Type.String()
-			if _, ok := pathSet[typeName]; ok {
-				return false
-			}
-			newSet := copySet(pathSet)
-			newSet[ft.Type.String()] = struct{}{}
-			pass := shouldNotHaveDuplicatedTypeInSamePath(field.Interface(), newSet)
-			if !pass {
-				return false
-			}
-		}
-	}
-
-	return true
-}
-
 func TestTenantConfig(t *testing.T) {
 	Convey("Test TenantConfiguration", t, func() {
 		// YAML
@@ -554,31 +507,14 @@ func TestTenantConfig(t *testing.T) {
 			bodyBytes, _ := json.Marshal(config)
 			So(string(bodyBytes), ShouldEqualJSON, inputMinimalJSON)
 		})
-	})
 
-	Convey("Test updateNilFieldsWithZeroValue", t, func() {
-		Convey("should update nil fields with tag", func() {
-			type ChildStruct struct {
-				Num1 *int
-				Num2 *int `default_zero_value:"true"`
-			}
-
-			type TestStruct struct {
-				ChildNode1 *ChildStruct `default_zero_value:"true"`
-				ChildNode2 *ChildStruct
-			}
-
-			s := &TestStruct{}
-			updateNilFieldsWithZeroValue(s)
-
-			So(s.ChildNode1, ShouldNotBeNil)
-			So(s.ChildNode2, ShouldBeNil)
-
-			So(s.ChildNode1.Num1, ShouldBeNil)
-			So(s.ChildNode1.Num2, ShouldNotBeNil)
+		Convey("ShouldNotHaveDuplicatedTypeInSamePath", func() {
+			pathSet := map[string]interface{}{}
+			pass := marshal.ShouldNotHaveDuplicatedTypeInSamePath(&UserConfiguration{}, pathSet)
+			So(pass, ShouldBeTrue)
 		})
 
-		Convey("should update nil fields in user config", func() {
+		Convey("UpdateNilFieldsWithZeroValue", func() {
 			userConfig := &UserConfiguration{}
 			So(userConfig.CORS, ShouldBeNil)
 			So(userConfig.Auth, ShouldBeNil)
@@ -595,7 +531,7 @@ func TestTenantConfig(t *testing.T) {
 			So(userConfig.Nexmo, ShouldBeNil)
 			So(userConfig.Asset, ShouldBeNil)
 
-			updateNilFieldsWithZeroValue(userConfig)
+			marshal.UpdateNilFieldsWithZeroValue(userConfig)
 
 			So(userConfig.CORS, ShouldNotBeNil)
 			So(userConfig.Auth, ShouldNotBeNil)
@@ -614,47 +550,6 @@ func TestTenantConfig(t *testing.T) {
 
 			So(userConfig.Auth.AuthenticationSession, ShouldNotBeNil)
 		})
-
 	})
 
-	Convey("Test shouldNotHaveDuplicatedTypeInSamePath", t, func() {
-		Convey("should pass for normal struct", func() {
-			type SubConfigItem struct {
-				Num1 *int `default_zero_value:"true"`
-			}
-
-			type ConfigItem struct {
-				SubItem *SubConfigItem `default_zero_value:"true"`
-			}
-
-			type RootConfig struct {
-				Item *ConfigItem `default_zero_value:"true"`
-			}
-
-			pathSet := map[string]interface{}{}
-			pass := shouldNotHaveDuplicatedTypeInSamePath(&RootConfig{}, pathSet)
-			So(pass, ShouldBeTrue)
-		})
-
-		Convey("should fail for struct with self reference", func() {
-			type ConfigItem struct {
-				SubItem *ConfigItem `default_zero_value:"true"`
-			}
-
-			type RootConfig struct {
-				Item *ConfigItem `default_zero_value:"true"`
-			}
-
-			pathSet := map[string]interface{}{}
-			pass := shouldNotHaveDuplicatedTypeInSamePath(&RootConfig{}, pathSet)
-			So(pass, ShouldBeFalse)
-		})
-
-		Convey("should pass for user config", func() {
-			pathSet := map[string]interface{}{}
-			pass := shouldNotHaveDuplicatedTypeInSamePath(&UserConfiguration{}, pathSet)
-			So(pass, ShouldBeTrue)
-		})
-
-	})
 }
