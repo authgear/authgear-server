@@ -777,7 +777,7 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					return
 				}
 			}
-		case "AllowedRealms":
+		case "allowed_realms":
 			var zb0004 uint32
 			zb0004, err = dc.ReadArrayHeader()
 			if err != nil {
@@ -873,8 +873,8 @@ func (z *AuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	}
-	// write "AllowedRealms"
-	err = en.Append(0xad, 0x41, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x52, 0x65, 0x61, 0x6c, 0x6d, 0x73)
+	// write "allowed_realms"
+	err = en.Append(0xae, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x73)
 	if err != nil {
 		return
 	}
@@ -938,8 +938,8 @@ func (z *AuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 			return
 		}
 	}
-	// string "AllowedRealms"
-	o = append(o, 0xad, 0x41, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x52, 0x65, 0x61, 0x6c, 0x6d, 0x73)
+	// string "allowed_realms"
+	o = append(o, 0xae, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x73)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.AllowedRealms)))
 	for za0002 := range z.AllowedRealms {
 		o = msgp.AppendString(o, z.AllowedRealms[za0002])
@@ -1044,7 +1044,7 @@ func (z *AuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					return
 				}
 			}
-		case "AllowedRealms":
+		case "allowed_realms":
 			var zb0004 uint32
 			zb0004, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
@@ -1099,7 +1099,7 @@ func (z *AuthConfiguration) Msgsize() (s int) {
 	for za0001 := range z.LoginIDKeys {
 		s += z.LoginIDKeys[za0001].Msgsize()
 	}
-	s += 14 + msgp.ArrayHeaderSize
+	s += 15 + msgp.ArrayHeaderSize
 	for za0002 := range z.AllowedRealms {
 		s += msgp.StringPrefixSize + len(z.AllowedRealms[za0002])
 	}

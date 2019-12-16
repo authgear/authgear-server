@@ -168,6 +168,7 @@ func TestParseUserConfiguration(t *testing.T) {
 			}`,
 			"/clients/0/api_key: Required",
 			"/clients/0/id: Required",
+			"/clients/0/key: ExtraEntry",
 			"/clients/0/name: Required",
 			"/clients/0/session_transport: Required",
 		)
