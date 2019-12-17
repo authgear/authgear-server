@@ -55,15 +55,19 @@ type AuthRedirectHandler struct {
 }
 
 func (h *AuthRedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	result, err := h.Handle(w, r)
+	uxMode, result, err := h.Handle(w, r)
 	if err != nil {
 		handler.WriteResponse(w, handler.APIResponse{Error: err})
 		return
 	}
-	http.Redirect(w, r, result.(string), http.StatusFound)
+	if uxMode == sso.UXModeManual {
+		handler.WriteResponse(w, handler.APIResponse{Result: result})
+	} else {
+		http.Redirect(w, r, result.(string), http.StatusFound)
+	}
 }
 
-func (h *AuthRedirectHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
+func (h *AuthRedirectHandler) Handle(w http.ResponseWriter, r *http.Request) (uxMode sso.UXMode, result interface{}, err error) {
 	if h.OAuthProvider == nil {
 		err = skyerr.NewNotFound("unknown provider")
 		return
@@ -79,6 +83,7 @@ func (h *AuthRedirectHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 	if err != nil {
 		return
 	}
+	uxMode = state.UXMode
 
 	// Always generate a new nonce to ensure it is unpredictable.
 	nonce := sso.GenerateOpenIDConnectNonce()
