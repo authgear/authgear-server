@@ -106,6 +106,10 @@ func (f *Azureadv2Impl) getKeys(endpoint string) (*jwk.Set, error) {
 	return jwk.Parse(resp.Body)
 }
 
+func (f *Azureadv2Impl) Type() config.OAuthProviderType {
+	return config.OAuthProviderTypeAzureADv2
+}
+
 func (f *Azureadv2Impl) GetAuthURL(state State, encodedState string) (string, error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {

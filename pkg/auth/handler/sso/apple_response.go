@@ -18,6 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -124,8 +125,8 @@ func (h *AppleResponseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *AppleResponseHandler) Handle(payload *AppleResponseRequest) (result interface{}, err error) {
-	if h.OAuthProvider == nil {
-		err = skyerr.NewNotFound("unknown provider")
+	if h.OAuthProvider == nil || h.OAuthProvider.Type() != config.OAuthProviderTypeApple {
+		err = skyerr.NewBadRequest("expected OAuth provider to be Apple")
 		return
 	}
 

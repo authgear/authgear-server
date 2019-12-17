@@ -8,6 +8,7 @@ import (
 
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
+	Type() config.OAuthProviderType
 	GetAuthURL(state State, encodedState string) (url string, err error)
 	GetAuthInfo(r OAuthAuthorizationResponse, state State) (AuthInfo, error)
 }

@@ -63,6 +63,10 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	return
 }
 
+func (f *AppleImpl) Type() config.OAuthProviderType {
+	return config.OAuthProviderTypeApple
+}
+
 func (f *AppleImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
