@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -167,7 +168,16 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 	}
 
 	// Verify the issuer
-	if !mapClaims.VerifyIssuer("https://appleid.apple.com", true) {
+	// https://developer.apple.com/documentation/signinwithapplerestapi/verifying_a_user
+	// The exact spec is
+	// Verify that the iss field contains https://appleid.apple.com
+	// Therefore, we use strings.Contains here.
+	iss, ok := mapClaims["iss"].(string)
+	if !ok {
+		err = NewSSOFailed(SSOUnauthorized, "invalid iss")
+		return
+	}
+	if !strings.Contains(iss, "https://appleid.apple.com") {
 		err = NewSSOFailed(SSOUnauthorized, "invalid iss")
 		return
 	}
