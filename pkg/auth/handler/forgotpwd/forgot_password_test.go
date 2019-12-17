@@ -121,6 +121,21 @@ func TestForgotPasswordHandler(t *testing.T) {
 			})
 		})
 
+		Convey("should send email to correct user email", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"email": "chIma@example.com"
+			}`))
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			fh.ServeHTTP(resp, req)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {}
+			}`)
+			So(sender.emails, ShouldResemble, []string{"chima@example.com"})
+			So(sender.userObjects, ShouldHaveLength, 1)
+			So(sender.userObjectIDs, ShouldContain, "chima.id")
+		})
+
 		Convey("send email to users with the same email", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"email": "john.doe@example.com"

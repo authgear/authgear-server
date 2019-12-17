@@ -1,6 +1,8 @@
 package password
 
 import (
+	"strings"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
@@ -128,7 +130,7 @@ func (m *MockProvider) createPrincipal(p Principal) error {
 // GetPrincipalByLoginID get principal in PrincipalMap by login_id
 func (m *MockProvider) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, p *Principal) (err error) {
 	for _, pp := range m.PrincipalMap {
-		if (loginIDKey == "" || pp.LoginIDKey == loginIDKey) && pp.LoginID == loginID && pp.Realm == realm {
+		if (loginIDKey == "" || pp.LoginIDKey == loginIDKey) && strings.EqualFold(pp.LoginID, loginID) && pp.Realm == realm {
 			*p = pp
 			return
 		}
@@ -152,7 +154,7 @@ func (m *MockProvider) GetPrincipalsByUserID(userID string) (principals []*Princ
 // GetPrincipalsByLoginID get principals in PrincipalMap by login ID
 func (m *MockProvider) GetPrincipalsByLoginID(loginIDKey string, loginID string) (principals []*Principal, err error) {
 	for _, p := range m.PrincipalMap {
-		if (loginIDKey == "" || p.LoginIDKey == loginIDKey) && p.LoginID == loginID {
+		if (loginIDKey == "" || p.LoginIDKey == loginIDKey) && strings.EqualFold(p.LoginID, loginID) {
 			principal := p
 			principals = append(principals, &principal)
 		}

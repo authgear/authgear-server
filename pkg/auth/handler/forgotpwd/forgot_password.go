@@ -145,7 +145,7 @@ func (h ForgotPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 			user := model.NewUser(fetchedAuthInfo, userProfile)
 
 			if err = h.ForgotPasswordEmailSender.Send(
-				payload.Email,
+				principal.LoginID,
 				fetchedAuthInfo,
 				user,
 				hashedPassword,
