@@ -134,8 +134,6 @@ func main() {
 		ssohandler.LinkRequestSchema,
 		ssohandler.CustomTokenLoginRequestSchema,
 		ssohandler.AuthResultRequestSchema,
-		ssohandler.AppleRequestRequestSchema,
-		ssohandler.AppleResponseRequestSchema,
 
 		userverifyhandler.VerifyCodeRequestSchema,
 		userverifyhandler.VerifyRequestSchema,
@@ -228,8 +226,6 @@ func main() {
 	userverifyhandler.AttachVerifyCodeHandler(&srv, authDependency)
 	ssohandler.AttachAuthURLHandler(&srv, authDependency)
 	ssohandler.AttachAuthRedirectHandler(&srv, authDependency)
-	ssohandler.AttachAppleRequestHandler(&srv, authDependency)
-	ssohandler.AttachAppleResponseHandler(&srv, authDependency)
 	ssohandler.AttachAuthHandler(&srv, authDependency)
 	ssohandler.AttachAuthResultHandler(&srv, authDependency)
 	ssohandler.AttachConfigHandler(&srv, authDependency)
