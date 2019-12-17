@@ -88,7 +88,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 
 	keySet, err := f.getKeys()
 	if err != nil {
-		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWTs")
+		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")
 		return
 	}
 

@@ -140,7 +140,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 	}
 	keySet, err := f.getKeys(c.JWKSUri)
 	if err != nil {
-		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWTs")
+		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")
 		return
 	}
 
