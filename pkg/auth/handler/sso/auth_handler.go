@@ -176,6 +176,8 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 			err = h.handleWebAppResponse(w, r, state.UXMode, state.CallbackURL, code, err)
 		case sso.UXModeMobileApp:
 			err = h.handleMobileAppResponse(w, r, state.CallbackURL, code, err)
+		case sso.UXModeManual:
+			err = h.handleManualResponse(w, code, err)
 		default:
 			success = false
 			http.Error(w, "Invalid UXMode", http.StatusBadRequest)
@@ -287,6 +289,16 @@ func (h AuthHandler) handleMobileAppResponse(
 	}
 	u.RawQuery = v.Encode()
 	http.Redirect(rw, r, u.String(), http.StatusFound)
+	return nil
+}
+
+func (h AuthHandler) handleManualResponse(
+	w http.ResponseWriter,
+	code string,
+	inputErr error,
+) error {
+	resp := makeJSONResponse(code, inputErr)
+	handler.WriteResponse(w, resp)
 	return nil
 }
 

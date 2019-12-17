@@ -63,6 +63,21 @@ func decodeResultInURL(urlString string) ([]byte, error) {
 	return json.Marshal(j)
 }
 
+func decodeUXModeManualResult(bytes []byte) ([]byte, error) {
+	var j map[string]interface{}
+	err := json.Unmarshal(bytes, &j)
+	if err != nil {
+		return nil, err
+	}
+	code := j["result"].(string)
+	authCode, err := sso.DecodeSkygearAuthorizationCode("secret", "myapp", code)
+	if err != nil {
+		return nil, err
+	}
+	j["result"] = authCode
+	return json.Marshal(j)
+}
+
 func TestAuthPayload(t *testing.T) {
 	Convey("Test AuthRequestPayload", t, func() {
 		Convey("validate valid payload", func() {
@@ -189,6 +204,51 @@ func TestAuthHandler(t *testing.T) {
 			Name:  coreHttp.CookieNameOpenIDConnectNonce,
 			Value: nonce,
 		}
+
+		Convey("should write code in the response body if ux_mode is manual", func() {
+			uxMode := sso.UXModeManual
+
+			// oauth state
+			state := sso.State{
+				Action: action,
+				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
+					CallbackURL: "http://localhost:3000",
+					UXMode:      uxMode,
+				},
+				Nonce: hashedNonce,
+			}
+			encodedState, _ := mockProvider.EncodeState(state)
+			v := url.Values{}
+			v.Set("code", "code")
+			v.Add("state", encodedState)
+			u := url.URL{
+				RawQuery: v.Encode(),
+			}
+
+			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req.AddCookie(nonceCookie)
+			resp := httptest.NewRecorder()
+			sh.ServeHTTP(resp, req)
+
+			p, err := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+				ProviderType:   "google",
+				ProviderUserID: providerUserID,
+			})
+			So(err, ShouldBeNil)
+
+			actual, err := decodeUXModeManualResult(resp.Body.Bytes())
+			So(err, ShouldBeNil)
+			So(actual, ShouldEqualJSON, fmt.Sprintf(`
+			{
+				"result": {
+					"action": "login",
+					"code_challenge": "",
+					"user_id": "%s",
+					"principal_id": "%s",
+					"session_create_reason": "signup"
+				}
+			}`, p.UserID, p.ID))
+		})
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
 			uxMode := sso.UXModeWebRedirect
