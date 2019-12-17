@@ -72,17 +72,6 @@ func (p AuthRequestPayload) Validate() error {
 }
 
 // AuthHandler decodes code response and fetch access token from provider.
-//
-// For ux_mode is 'mobile_app',
-// it returns a 302 response with Location set to
-// <callback_url>?x-skgyear-result=...
-//
-// Fox ux_mode is 'web_redirect',
-// it returns a 302 response with Location set to
-// <callback_url>?x-skygear-result=...
-//
-// For ux_mode is 'web_popup',
-// it renders a html page with embedded result.
 type AuthHandler struct {
 	TxContext                      db.TxContext                `dependency:"TxContext"`
 	AuthContext                    coreAuth.ContextGetter      `dependency:"AuthContextGetter"`
