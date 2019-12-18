@@ -9,6 +9,7 @@ import (
 )
 
 type senderImpl struct {
+	appName        string
 	oobConfig      *config.MFAOOBConfiguration
 	smsClient      sms.Client
 	mailSender     mail.Sender
@@ -16,13 +17,14 @@ type senderImpl struct {
 }
 
 func NewSender(
-	oobConfig *config.MFAOOBConfiguration,
+	tConfig config.TenantConfiguration,
 	smsClient sms.Client,
 	mailSender mail.Sender,
 	templateEngine *template.Engine,
 ) Sender {
 	return &senderImpl{
-		oobConfig:      oobConfig,
+		appName:        tConfig.UserConfig.DisplayAppName,
+		oobConfig:      tConfig.UserConfig.MFA.OOB,
 		smsClient:      smsClient,
 		mailSender:     mailSender,
 		templateEngine: templateEngine,
@@ -31,7 +33,7 @@ func NewSender(
 
 func (s *senderImpl) Send(code string, phone string, email string) error {
 	context := map[string]interface{}{
-		"appname": s.oobConfig.AppName,
+		"appname": s.appName,
 		"code":    code,
 	}
 	if phone != "" {

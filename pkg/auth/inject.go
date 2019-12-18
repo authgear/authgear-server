@@ -248,7 +248,7 @@ func (m DependencyMap) Provide(
 			tConfig.UserConfig.MFA,
 			newTimeProvider(),
 			mfa.NewSender(
-				tConfig.UserConfig.MFA.OOB,
+				tConfig,
 				newSMSClient(),
 				newMailSender(),
 				newTemplateEngine(),
