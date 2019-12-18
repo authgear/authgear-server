@@ -33,6 +33,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
@@ -178,26 +179,28 @@ func (m DependencyMap) Provide(
 	}
 
 	newHookProvider := func() hook.Provider {
-		return hook.NewProvider(
-			requestID,
-			urlprefix.NewProvider(request),
-			hook.NewStore(newSQLBuilder(), newSQLExecutor()),
-			newAuthContext(),
-			newTimeProvider(),
-			newAuthInfoStore(),
-			newUserProfileStore(),
-			hook.NewDeliverer(
-				&tConfig,
+		return inject.Scoped(ctx, "HookProvider", func() interface{} {
+			return hook.NewProvider(
+				requestID,
+				urlprefix.NewProvider(request),
+				hook.NewStore(newSQLBuilder(), newSQLExecutor()),
+				newAuthContext(),
 				newTimeProvider(),
-				hook.NewMutator(
-					tConfig.UserConfig.UserVerification,
-					newPasswordAuthProvider(),
-					newAuthInfoStore(),
-					newUserProfileStore(),
+				newAuthInfoStore(),
+				newUserProfileStore(),
+				hook.NewDeliverer(
+					&tConfig,
+					newTimeProvider(),
+					hook.NewMutator(
+						tConfig.UserConfig.UserVerification,
+						newPasswordAuthProvider(),
+						newAuthInfoStore(),
+						newUserProfileStore(),
+					),
 				),
-			),
-			newLoggerFactory(),
-		)
+				newLoggerFactory(),
+			)
+		})().(hook.Provider)
 	}
 
 	newSessionProvider := func() session.Provider {
