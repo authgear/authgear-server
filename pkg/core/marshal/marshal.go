@@ -2,8 +2,6 @@ package marshal
 
 import (
 	"reflect"
-
-	coreReflect "github.com/skygeario/skygear-server/pkg/core/reflect"
 )
 
 // UpdateNilFieldsWithZeroValue checks the fields with tag
@@ -36,105 +34,6 @@ func UpdateNilFieldsWithZeroValue(i interface{}) {
 				field.Set(ele)
 			}
 			UpdateNilFieldsWithZeroValue(field.Interface())
-		}
-	}
-}
-
-// OmitEmpty traverses the given struct and set pointer to struct to nil if
-// the value IsRecursivelyZero.
-func OmitEmpty(i interface{}) {
-	OmitEmptyValue(reflect.ValueOf(i))
-}
-
-// nolint: gocyclo
-func OmitEmptyValue(v reflect.Value) {
-	if !v.IsValid() {
-		return
-	}
-
-	switch v.Type().Kind() {
-	case reflect.Bool:
-		fallthrough
-	case reflect.Int:
-		fallthrough
-	case reflect.Int8:
-		fallthrough
-	case reflect.Int16:
-		fallthrough
-	case reflect.Int32:
-		fallthrough
-	case reflect.Int64:
-		fallthrough
-	case reflect.Uint:
-		fallthrough
-	case reflect.Uint8:
-		fallthrough
-	case reflect.Uint16:
-		fallthrough
-	case reflect.Uint32:
-		fallthrough
-	case reflect.Uint64:
-		fallthrough
-	case reflect.Uintptr:
-		fallthrough
-	case reflect.Float32:
-		fallthrough
-	case reflect.Float64:
-		fallthrough
-	case reflect.Complex64:
-		fallthrough
-	case reflect.Complex128:
-		fallthrough
-	case reflect.String:
-		fallthrough
-	case reflect.Chan:
-		fallthrough
-	case reflect.Func:
-		// Primitives can be omit-empty automatically.
-		return
-	case reflect.Array:
-		numItems := v.Len()
-		for i := 0; i < numItems; i++ {
-			elem := v.Index(i)
-			OmitEmptyValue(elem)
-		}
-	case reflect.Map:
-		iter := v.MapRange()
-		for iter.Next() {
-			if coreReflect.IsRecursivelyZero(iter.Value().Interface()) {
-				v.SetMapIndex(iter.Key(), reflect.Value{})
-			} else {
-				OmitEmptyValue(iter.Value())
-			}
-		}
-	case reflect.Slice:
-		numItems := v.Len()
-		for i := 0; i < numItems; i++ {
-			elem := v.Index(i)
-			if coreReflect.IsRecursivelyZero(elem.Interface()) {
-				elem.Set(reflect.Zero(elem.Type()))
-			} else {
-				OmitEmptyValue(elem)
-			}
-		}
-	case reflect.Interface:
-		fallthrough
-	case reflect.Ptr:
-		fallthrough
-	case reflect.UnsafePointer:
-		if v.IsNil() {
-			return
-		}
-		OmitEmptyValue(v.Elem())
-	case reflect.Struct:
-		numField := v.NumField()
-		for i := 0; i < numField; i++ {
-			f := v.Field(i)
-			if coreReflect.IsRecursivelyZero(f.Interface()) {
-				f.Set(reflect.Zero(f.Type()))
-			} else {
-				OmitEmptyValue(f)
-			}
 		}
 	}
 }

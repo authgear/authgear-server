@@ -65,35 +65,3 @@ func TestUpdateNilFieldsWithZeroValue(t *testing.T) {
 		})
 	})
 }
-
-func TestOmitEmpty(t *testing.T) {
-	type A struct {
-		Str string
-	}
-	type B struct {
-		A *A
-	}
-	Convey("OmitEmpty", t, func() {
-		Convey("Map", func() {
-			zero := 0
-			m1 := map[string]*int{
-				"a": &zero,
-			}
-			OmitEmpty(m1)
-			So(len(m1), ShouldEqual, 0)
-		})
-		Convey("Slice", func() {
-			slice := []*A{&A{}, &A{}}
-			OmitEmpty(slice)
-			So(slice[0], ShouldBeNil)
-			So(slice[1], ShouldBeNil)
-		})
-		Convey("Struct", func() {
-			b := &B{
-				A: &A{},
-			}
-			OmitEmpty(b)
-			So(b.A, ShouldBeNil)
-		})
-	})
-}
