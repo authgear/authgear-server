@@ -9,13 +9,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type contextKey string
-
-var (
-	// nolint:deadcode
-	configurationKey = contextKey("configuration")
-)
-
 type istore interface {
 	get() string
 }

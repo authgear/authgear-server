@@ -21,11 +21,12 @@ func DefaultRequestInject(
 	dependencyMap DependencyMap,
 	request *http.Request,
 ) (err error) {
+	ctx := WithInject(request.Context())
 	return injectDependency(i, func(name string) interface{} {
 		return dependencyMap.Provide(
 			name,
 			request,
-			request.Context(),
+			ctx,
 			request.Header.Get(coreHttp.HeaderRequestID),
 			*config.GetTenantConfig(request.Context()),
 		)
@@ -38,6 +39,7 @@ func DefaultTaskInject( // nolint: golint
 	ctx context.Context,
 	taskCtx async.TaskContext,
 ) (err error) {
+	ctx = WithInject(ctx)
 	return injectDependency(i, func(name string) interface{} {
 		return dependencyMap.Provide(name, nil, ctx, taskCtx.RequestID, taskCtx.TenantConfig)
 	})
