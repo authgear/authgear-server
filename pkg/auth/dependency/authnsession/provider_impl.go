@@ -176,21 +176,19 @@ func (p *providerImpl) GenerateResponseAndUpdateLastLoginAt(authnSess auth.Authn
 		}
 		identity := model.NewIdentity(p.identityProvider, prin)
 
-		sess, tokens, err := p.sessionProvider.Create(&authnSess)
-		if err != nil {
-			return nil, err
+		beforeCreate := func(sess *auth.Session) error {
+			sessionModel := authSession.Format(sess)
+			return p.hookProvider.DispatchEvent(
+				event.SessionCreateEvent{
+					Reason:   auth.SessionCreateReason(authnSess.SessionCreateReason),
+					User:     user,
+					Identity: identity,
+					Session:  sessionModel,
+				},
+				&user,
+			)
 		}
-
-		sessionModel := authSession.Format(sess)
-		err = p.hookProvider.DispatchEvent(
-			event.SessionCreateEvent{
-				Reason:   auth.SessionCreateReason(authnSess.SessionCreateReason),
-				User:     user,
-				Identity: identity,
-				Session:  sessionModel,
-			},
-			&user,
-		)
+		_, tokens, err := p.sessionProvider.Create(&authnSess, beforeCreate)
 		if err != nil {
 			return nil, err
 		}

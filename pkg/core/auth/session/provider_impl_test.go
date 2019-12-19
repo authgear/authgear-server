@@ -64,7 +64,7 @@ func TestProvider(t *testing.T) {
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 					ClientID:    "web-app",
-				})
+				}, nil)
 				So(err, ShouldBeNil)
 				So(session, ShouldResemble, &auth.Session{
 					ID:                   session.ID,
@@ -89,7 +89,7 @@ func TestProvider(t *testing.T) {
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 					ClientID:    "web-app",
-				})
+				}, nil)
 				So(err, ShouldBeNil)
 				So(session1, ShouldResemble, &auth.Session{
 					ID:                   session1.ID,
@@ -109,7 +109,7 @@ func TestProvider(t *testing.T) {
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 					ClientID:    "web-app",
-				})
+				}, nil)
 				So(err, ShouldBeNil)
 				So(session2, ShouldResemble, &auth.Session{
 					ID:                   session2.ID,
@@ -137,7 +137,7 @@ func TestProvider(t *testing.T) {
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 					ClientID:    "web-app",
-				})
+				}, nil)
 				So(err, ShouldBeNil)
 				So(session.RefreshTokenHash, ShouldNotBeEmpty)
 				So(tokens.RefreshToken, ShouldHaveLength, tokenLength+len(session.ID)+1)
@@ -152,9 +152,20 @@ func TestProvider(t *testing.T) {
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 					ClientID:    "web-app",
-				})
+				}, nil)
 				So(err, ShouldBeNil)
 				So(session.RefreshTokenHash, ShouldBeEmpty)
+			})
+			Convey("should not create session is disallowed", func() {
+				hookErr := fmt.Errorf("session create disallowed")
+				session, _, err := provider.Create(&auth.AuthnSession{
+					UserID:      "user-id",
+					PrincipalID: "principal-id",
+					ClientID:    "web-app",
+				}, func(*auth.Session) error { return hookErr })
+				So(session, ShouldBeNil)
+				So(err, ShouldEqual, hookErr)
+				So(store.Sessions, ShouldBeEmpty)
 			})
 		})
 

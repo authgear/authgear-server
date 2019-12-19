@@ -24,7 +24,7 @@ func NewMockProvider() *MockProvider {
 	}
 }
 
-func (p *MockProvider) Create(authnSess *auth.AuthnSession) (*auth.Session, auth.SessionTokens, error) {
+func (p *MockProvider) Create(authnSess *auth.AuthnSession, beforeCreate func(*auth.Session) error) (*auth.Session, auth.SessionTokens, error) {
 	now := p.Time.NowUTC()
 	id := fmt.Sprintf("%s-%s-%d", authnSess.UserID, authnSess.PrincipalID, p.counter)
 	sess := auth.Session{
@@ -45,6 +45,13 @@ func (p *MockProvider) Create(authnSess *auth.AuthnSession) (*auth.Session, auth
 	}
 	tok := auth.SessionTokens{ID: id, AccessToken: "access-token-" + id}
 	p.counter++
+
+	if beforeCreate != nil {
+		err := beforeCreate(&sess)
+		if err != nil {
+			return nil, tok, err
+		}
+	}
 
 	p.Sessions[sess.ID] = sess
 
