@@ -19,6 +19,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
+// TenantConfigurationVersion is the latest version of TenantConfiguration.
+const TenantConfigurationVersion = "1"
+
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
 	Version          string             `json:"version,omitempty" yaml:"version" msg:"version"`
@@ -51,14 +54,6 @@ type TemplateItem struct {
 	Key         string           `json:"key,omitempty" yaml:"key" msg:"key"`
 	URI         string           `json:"uri,omitempty" yaml:"uri" msg:"uri"`
 	Digest      string           `json:"digest" yaml:"digest" msg:"digest"`
-}
-
-func NewTenantConfiguration() *TenantConfiguration {
-	c := &TenantConfiguration{
-		Version: "1",
-	}
-	marshal.UpdateNilFieldsWithZeroValue(c)
-	return c
 }
 
 func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
