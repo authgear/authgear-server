@@ -43,6 +43,7 @@ const (
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
+			"display_app_name": { "type": "string" },
 			"clients": {
 				"type": "array",
 				"items": { "$ref": "#APIClientConfiguration" }
