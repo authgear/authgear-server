@@ -33,6 +33,10 @@ func getContext(ctx context.Context) *injectContext {
 	return injectCtx
 }
 
+// Singleton returns the named dependency from root context, and construct it
+// if not yet created.
+// This function should not be used at the moment, since we don't have a root
+// context yet, so effectively it is same as Scoped.
 func Singleton(ctx context.Context, name string, factory func() interface{}) func() interface{} {
 	return func() interface{} {
 		injectCtx := getContext(ctx)
@@ -50,10 +54,16 @@ func Singleton(ctx context.Context, name string, factory func() interface{}) fun
 	}
 }
 
+// Transient returns a newly created named dependency, existing singleton and
+// scoped dependencies are ignored.
 func Transient(ctx context.Context, name string, factory func() interface{}) func() interface{} {
 	return func() interface{} { return factory() }
 }
 
+// Scoped returns the named dependency from current context, and construct
+// it if not yet created.
+// This function should be used in DependencyMap.Provide function only, since
+// we do not update the request context yet.
 func Scoped(ctx context.Context, name string, factory func() interface{}) func() interface{} {
 	return func() interface{} {
 		injectCtx := getContext(ctx)
