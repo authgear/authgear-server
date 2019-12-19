@@ -110,9 +110,6 @@ func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 func (h LogoutHandler) Handle() (resp interface{}, err error) {
 	authInfo, _ := h.AuthContext.AuthInfo()
 	sess, _ := h.AuthContext.Session()
-	if err = h.SessionProvider.Invalidate(sess); err != nil {
-		return
-	}
 
 	resp = map[string]string{}
 
@@ -140,6 +137,10 @@ func (h LogoutHandler) Handle() (resp interface{}, err error) {
 		&user,
 	)
 	if err != nil {
+		return
+	}
+
+	if err = h.SessionProvider.Invalidate(sess); err != nil {
 		return
 	}
 
