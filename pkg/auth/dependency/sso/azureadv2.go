@@ -106,6 +106,10 @@ func (f *Azureadv2Impl) getKeys(endpoint string) (*jwk.Set, error) {
 	return jwk.Parse(resp.Body)
 }
 
+func (f *Azureadv2Impl) Type() config.OAuthProviderType {
+	return config.OAuthProviderTypeAzureADv2
+}
+
 func (f *Azureadv2Impl) GetAuthURL(state State, encodedState string) (string, error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
@@ -135,12 +139,12 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
-		err = errors.Newf("failed to get OIDC discovery document: %w", err)
+		err = NewSSOFailed(NetworkFailed, "failed to get OIDC discovery document")
 		return
 	}
 	keySet, err := f.getKeys(c.JWKSUri)
 	if err != nil {
-		err = errors.Newf("failed to get OIDC JWKS: %w", err)
+		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")
 		return
 	}
 
@@ -178,53 +182,38 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 	keyFunc := func(token *jwt.Token) (interface{}, error) {
 		keyID, ok := token.Header["kid"].(string)
 		if !ok {
-			return nil, errors.New("no key id")
+			return nil, NewSSOFailed(SSOUnauthorized, "no kid")
 		}
 		if key := keySet.LookupKeyID(keyID); len(key) == 1 {
 			return key[0].Materialize()
 		}
-		return nil, errors.New("unable to find key")
+		return nil, NewSSOFailed(SSOUnauthorized, "failed to find signing key")
 	}
 
 	mapClaims := jwt.MapClaims{}
 	_, err = jwt.ParseWithClaims(idToken, mapClaims, keyFunc)
 	if err != nil {
-		err = errors.WithSecondaryError(
-			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
-			err,
-		)
+		err = NewSSOFailed(SSOUnauthorized, "invalid JWT signature")
 		return
 	}
 
 	if !mapClaims.VerifyAudience(f.ProviderConfig.ClientID, true) {
-		err = errors.WithSecondaryError(
-			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
-			errors.New("invalid audience"),
-		)
+		err = NewSSOFailed(SSOUnauthorized, "invalid aud")
 		return
 	}
 	hashedNonce, ok := mapClaims["nonce"].(string)
 	if !ok {
-		err = errors.WithSecondaryError(
-			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
-			errors.New("no nonce"),
-		)
+		err = NewSSOFailed(InvalidParams, "no nonce")
 		return
 	}
 	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
-		err = errors.WithSecondaryError(
-			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
-			errors.New("invalid nonce"),
-		)
+		err = NewSSOFailed(SSOUnauthorized, "invalid nonce")
 		return
 	}
 
 	oid, ok := mapClaims["oid"].(string)
 	if !ok {
-		err = errors.WithSecondaryError(
-			NewSSOFailed(SSOUnauthorized, "unexpected authorization response"),
-			errors.New("cannot find oid"),
-		)
+		err = NewSSOFailed(SSOUnauthorized, "no oid")
 		return
 	}
 	// For "Microsoft Account", email usually exists.

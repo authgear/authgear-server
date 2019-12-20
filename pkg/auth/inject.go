@@ -369,7 +369,7 @@ func (m DependencyMap) Provide(
 		}
 		return trail
 	case "SSOOAuthProviderFactory":
-		return sso.NewOAuthProviderFactory(tConfig, urlprefix.NewProvider(request))
+		return sso.NewOAuthProviderFactory(tConfig, urlprefix.NewProvider(request), newTimeProvider())
 	case "SSOProvider":
 		return sso.NewProvider(
 			tConfig.AppID,

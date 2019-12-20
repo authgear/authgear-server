@@ -19,6 +19,10 @@ type FacebookImpl struct {
 	ProviderConfig config.OAuthProviderConfiguration
 }
 
+func (f *FacebookImpl) Type() config.OAuthProviderType {
+	return config.OAuthProviderTypeFacebook
+}
+
 func (f *FacebookImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,

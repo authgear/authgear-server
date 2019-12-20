@@ -384,12 +384,9 @@ func TestValidateUserConfiguration(t *testing.T) {
 				"sso": {
 					"oauth": {
 						"providers": [
-							{
-								"type": "azureadv2"
-							},
-							{
-								"type": "google"
-							}
+							{ "type": "azureadv2" },
+							{ "type": "google" },
+							{ "type": "apple" }
 						]
 					}
 				}
@@ -401,6 +398,10 @@ func TestValidateUserConfiguration(t *testing.T) {
 			"/sso/oauth/providers/0/tenant: Required",
 			"/sso/oauth/providers/1/client_id: Required",
 			"/sso/oauth/providers/1/client_secret: Required",
+			"/sso/oauth/providers/2/client_id: Required",
+			"/sso/oauth/providers/2/client_secret: Required",
+			"/sso/oauth/providers/2/key_id: Required",
+			"/sso/oauth/providers/2/team_id: Required",
 			"/sso/oauth/state_jwt_secret: Required",
 		)
 		// UserVerificationConfiguration

@@ -19,6 +19,10 @@ type InstagramImpl struct {
 	ProviderConfig config.OAuthProviderConfiguration
 }
 
+func (f *InstagramImpl) Type() config.OAuthProviderType {
+	return config.OAuthProviderTypeInstagram
+}
+
 func (f *InstagramImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,

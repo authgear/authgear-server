@@ -63,6 +63,22 @@ func (d AzureADv2UserInfoDecoder) DecodeUserInfo(userProfile map[string]interfac
 	}
 }
 
+type AppleUserInfoDecoder struct{}
+
+func NewAppleUserInfoDecoder() AppleUserInfoDecoder {
+	return AppleUserInfoDecoder{}
+}
+
+func (d AppleUserInfoDecoder) DecodeUserInfo(userProfile map[string]interface{}) ProviderUserInfo {
+	id, _ := userProfile["sub"].(string)
+	email, _ := userProfile["email"].(string)
+
+	return ProviderUserInfo{
+		ID:    id,
+		Email: email,
+	}
+}
+
 func GetUserInfoDecoder(providerType config.OAuthProviderType) UserInfoDecoder {
 	switch providerType {
 	case config.OAuthProviderTypeGoogle:
@@ -75,6 +91,8 @@ func GetUserInfoDecoder(providerType config.OAuthProviderType) UserInfoDecoder {
 		return NewDefaultUserInfoDecoder()
 	case config.OAuthProviderTypeAzureADv2:
 		return NewAzureADv2UserInfoDecoder()
+	case config.OAuthProviderTypeApple:
+		return NewAppleUserInfoDecoder()
 	}
 	panic(fmt.Sprintf("sso: unknown provider type: %v", providerType))
 }

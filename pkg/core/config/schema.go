@@ -357,25 +357,40 @@ const (
 			"id": { "type": "string" },
 			"type": {
 				"type": "string",
-				"enum": ["google", "facebook", "instagram", "linkedin", "azureadv2"]
+				"enum": ["google", "facebook", "instagram", "linkedin", "azureadv2", "apple"]
 			},
 			"client_id": { "type": "string" },
 			"client_secret": { "type": "string" },
-			"scope": { "type": "string" },
-			"tenant": { "type": "string" }
+			"tenant": { "type": "string" },
+			"key_id": { "type": "string" },
+			"team_id": { "type": "string" }
 		},
-		"if": {
-			"properties": {
-				"type": { "const": "azureadv2" }
+		"allOf": [
+			{
+				"if": {
+					"properties": { "type": { "const": "azureadv2" } }
+				},
+				"then": {
+					"required": ["client_id", "client_secret", "tenant"]
+				}
 			},
-			"required": ["type"]
-		},
-		"then": {
-			"required": ["type", "client_id", "client_secret", "tenant"]
-		},
-		"else": {
-			"required": ["type", "client_id", "client_secret"]
-		}
+			{
+				"if": {
+					"properties": { "type": { "const": "apple" } }
+				},
+				"then": {
+					"required": ["client_id", "client_secret", "key_id", "team_id"]
+				}
+			},
+			{
+				"if": {
+					"properties": { "type": { "enum": ["google", "facebook", "instagram", "linkedin"] } }
+				},
+				"then": {
+					"required": ["client_id", "client_secret"]
+				}
+			}
+		]
 	},
 	"UserVerificationConfiguration": {
 		"$id": "#UserVerificationConfiguration",

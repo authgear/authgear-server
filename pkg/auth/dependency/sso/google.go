@@ -31,6 +31,10 @@ func (f *GoogleImpl) GetAuthURL(state State, encodedState string) (string, error
 	return authURL(p)
 }
 
+func (f *GoogleImpl) Type() config.OAuthProviderType {
+	return config.OAuthProviderTypeGoogle
+}
+
 func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	return f.NonOpenIDConnectGetAuthInfo(r, state)
 }

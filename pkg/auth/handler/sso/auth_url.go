@@ -97,7 +97,7 @@ const AuthURLRequestSchema = `
 	"properties": {
 		"code_challenge": { "type": "string", "minLength": 1 },
 		"callback_url": { "type": "string", "format": "uri" },
-		"ux_mode": { "type": "string", "enum": ["web_redirect", "web_popup", "mobile_app"] },
+		"ux_mode": { "type": "string", "enum": ["web_redirect", "web_popup", "mobile_app", "manual"] },
 		"on_user_duplicate": {"type": "string", "enum": ["abort", "merge", "create"] }
 	},
 	"required": ["code_challenge", "callback_url", "ux_mode"]
@@ -265,8 +265,8 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 			CallbackURL: payload.CallbackURL,
 			UXMode:      payload.UXMode,
-			Action:      h.Action,
 		},
+		Action:        h.Action,
 		APIClientID:   apiClientID,
 		CodeChallenge: payload.CodeChallenge,
 	}

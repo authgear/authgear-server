@@ -19,6 +19,7 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -37,6 +38,7 @@ func TestUnlinkHandler(t *testing.T) {
 		sh.AuthContext = authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
+		timeProvider := &coreTime.MockProvider{}
 		sh.ProviderFactory = sso.NewOAuthProviderFactory(config.TenantConfiguration{
 			UserConfig: config.UserConfiguration{
 				SSO: &config.SSOConfiguration{
@@ -50,7 +52,7 @@ func TestUnlinkHandler(t *testing.T) {
 					},
 				},
 			},
-		}, urlprefix.NewProvider(req))
+		}, urlprefix.NewProvider(req), timeProvider)
 		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
 			&oauth.Principal{
 				ID:             "oauth-principal-id",

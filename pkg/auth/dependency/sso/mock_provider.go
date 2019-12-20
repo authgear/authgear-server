@@ -19,6 +19,10 @@ type MockSSOProvider struct {
 	UserInfo       ProviderUserInfo
 }
 
+func (f *MockSSOProvider) Type() config.OAuthProviderType {
+	return config.OAuthProviderTypeGoogle
+}
+
 func (f *MockSSOProvider) GetAuthURL(state State, encodedState string) (string, error) {
 	if f.ProviderConfig.ClientID == "" {
 		return "", errors.New("must provide ClientID")

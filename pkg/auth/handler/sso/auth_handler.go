@@ -72,17 +72,6 @@ func (p AuthRequestPayload) Validate() error {
 }
 
 // AuthHandler decodes code response and fetch access token from provider.
-//
-// For ux_mode is 'mobile_app',
-// it returns a 302 response with Location set to
-// <callback_url>?x-skgyear-result=...
-//
-// Fox ux_mode is 'web_redirect',
-// it returns a 302 response with Location set to
-// <callback_url>?x-skygear-result=...
-//
-// For ux_mode is 'web_popup',
-// it renders a html page with embedded result.
 type AuthHandler struct {
 	TxContext                      db.TxContext                `dependency:"TxContext"`
 	AuthContext                    coreAuth.ContextGetter      `dependency:"AuthContextGetter"`
@@ -187,6 +176,8 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 			err = h.handleWebAppResponse(w, r, state.UXMode, state.CallbackURL, code, err)
 		case sso.UXModeMobileApp:
 			err = h.handleMobileAppResponse(w, r, state.CallbackURL, code, err)
+		case sso.UXModeManual:
+			err = h.handleManualResponse(w, code, err)
 		default:
 			success = false
 			http.Error(w, "Invalid UXMode", http.StatusBadRequest)
@@ -298,6 +289,16 @@ func (h AuthHandler) handleMobileAppResponse(
 	}
 	u.RawQuery = v.Encode()
 	http.Redirect(rw, r, u.String(), http.StatusFound)
+	return nil
+}
+
+func (h AuthHandler) handleManualResponse(
+	w http.ResponseWriter,
+	code string,
+	inputErr error,
+) error {
+	resp := makeJSONResponse(code, inputErr)
+	handler.WriteResponse(w, resp)
 	return nil
 }
 
