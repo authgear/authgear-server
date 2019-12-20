@@ -51,7 +51,7 @@ func NewProvider(req *http.Request, store Store, eventStore EventStore, authCont
 	}
 }
 
-func (p *providerImpl) Create(authnSess *auth.AuthnSession) (*auth.Session, auth.SessionTokens, error) {
+func (p *providerImpl) Create(authnSess *auth.AuthnSession, beforeCreate func(*auth.Session) error) (*auth.Session, auth.SessionTokens, error) {
 	now := p.time.NowUTC()
 	clientID := p.authContext.AccessKey().ClientID
 	clientConfig, _ := model.GetClientConfig(p.clientConfigs, clientID)
@@ -79,6 +79,13 @@ func (p *providerImpl) Create(authnSess *auth.AuthnSession) (*auth.Session, auth
 		tok.RefreshToken = p.generateRefreshToken(&sess)
 	}
 	tok.AccessToken = p.generateAccessToken(&sess)
+
+	if beforeCreate != nil {
+		err := beforeCreate(&sess)
+		if err != nil {
+			return nil, tok, err
+		}
+	}
 
 	expiry := computeSessionStorageExpiry(&sess, *clientConfig)
 	err := p.store.Create(&sess, expiry)
