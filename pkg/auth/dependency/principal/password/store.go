@@ -14,6 +14,7 @@ import (
 
 type Store interface {
 	CreatePrincipal(principal *Principal) error
+	DeletePrincipal(principal *Principal) error
 	GetPrincipals(loginIDKey string, loginID string, realm *string) ([]*Principal, error)
 	GetPrincipalByID(principalID string) (principal.Principal, error)
 	GetPrincipalsByUserID(userID string) ([]*Principal, error)
@@ -88,6 +89,28 @@ func (s *storeImpl) CreatePrincipal(principal *Principal) (err error) {
 	}
 
 	return
+}
+
+func (s *storeImpl) DeletePrincipal(principal *Principal) error {
+	builder := s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("provider_password")).
+		Where("principal_id = ?", principal.ID)
+
+	_, err := s.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	builder = s.sqlBuilder.Tenant().
+		Delete(s.sqlBuilder.FullTableName("principal")).
+		Where("id = ?", principal.ID)
+
+	_, err = s.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *storeImpl) GetPrincipals(loginIDKey string, loginID string, realm *string) (principals []*Principal, err error) {

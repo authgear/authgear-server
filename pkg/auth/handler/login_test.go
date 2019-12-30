@@ -228,7 +228,7 @@ func TestLoginHandler(t *testing.T) {
 					"code": 400,
 					"info": {
 						"causes": [
-							{ "kind": "General", "message": "login ID key is not allowed", "pointer": "/login_id" }
+							{ "kind": "General", "message": "login ID key is not allowed", "pointer": "/login_id/key" }
 						]
 					}
 				}
@@ -258,7 +258,7 @@ func TestLoginHandler(t *testing.T) {
 							{
 								"kind": "StringFormat",
 								"message": "invalid login ID format",
-								"pointer": "/login_id",
+								"pointer": "/login_id/value",
 								"details": { "format": "email" }
 							}
 						]

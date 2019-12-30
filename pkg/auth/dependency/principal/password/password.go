@@ -15,6 +15,7 @@ type Provider interface {
 	MakePrincipal(userID string, password string, loginID LoginID, realm string) (*Principal, error)
 	CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) ([]*Principal, error)
 	CreatePrincipal(principal *Principal) (err error)
+	DeletePrincipal(principal *Principal) (err error)
 	GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error)
 	GetPrincipalsByUserID(userID string) ([]*Principal, error)
 	GetPrincipalsByLoginID(loginIDKey string, loginID string) ([]*Principal, error)

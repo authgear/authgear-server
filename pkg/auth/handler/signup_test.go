@@ -488,7 +488,7 @@ func TestSignupHandler(t *testing.T) {
 						"causes": [
 							{
 								"kind": "General",
-								"pointer": "/login_ids",
+								"pointer": "/login_ids/0/key",
 								"message": "login ID key is not allowed"
 							}
 						]

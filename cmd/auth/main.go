@@ -16,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
 	gearHandler "github.com/skygeario/skygear-server/pkg/auth/handler/gear"
+	loginidhandler "github.com/skygeario/skygear-server/pkg/auth/handler/loginid"
 	mfaHandler "github.com/skygeario/skygear-server/pkg/auth/handler/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
@@ -138,6 +139,9 @@ func main() {
 		userverifyhandler.VerifyCodeRequestSchema,
 		userverifyhandler.VerifyRequestSchema,
 		userverifyhandler.VerifyCodeFormSchema,
+
+		loginidhandler.AddLoginIDRequestSchema,
+		loginidhandler.RemoveLoginIDRequestSchema,
 	)
 
 	dbPool := db.NewPool()
@@ -252,6 +256,8 @@ func main() {
 	mfaHandler.AttachActivateOOBHandler(&srv, authDependency)
 	mfaHandler.AttachAuthenticateOOBHandler(&srv, authDependency)
 	gearHandler.AttachTemplatesHandler(&srv, authDependency)
+	loginidhandler.AttachAddLoginIDHandler(&srv, authDependency)
+	loginidhandler.AttachRemoveLoginIDHandler(&srv, authDependency)
 
 	go func() {
 		logger.Info("Starting auth gear")

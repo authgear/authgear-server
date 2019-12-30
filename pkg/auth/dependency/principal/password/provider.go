@@ -155,6 +155,14 @@ func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 	return
 }
 
+func (p *providerImpl) DeletePrincipal(principal *Principal) error {
+	err := p.store.DeletePrincipal(principal)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (p *providerImpl) savePasswordHistory(principal *Principal) error {
 	if p.passwordHistoryEnabled {
 		err := p.passwordHistoryStore.CreatePasswordHistory(

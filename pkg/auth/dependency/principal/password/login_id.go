@@ -3,12 +3,9 @@ package password
 import (
 	"fmt"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-
-	"github.com/skygeario/skygear-server/pkg/core/validation"
-
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 type LoginID struct {
@@ -105,7 +102,11 @@ func (c defaultLoginIDChecker) validateOne(loginID LoginID) error {
 		}
 	}
 	if !allowed {
-		return skyerr.NewInvalid("login ID key is not allowed")
+		return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
+			Kind:    validation.ErrorGeneral,
+			Pointer: "/key",
+			Message: "login ID key is not allowed",
+		}})
 	}
 
 	if loginID.Value == "" {

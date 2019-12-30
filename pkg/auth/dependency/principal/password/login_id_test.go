@@ -86,7 +86,11 @@ func TestLoginID(t *testing.T) {
 			loginIDs = []LoginID{
 				LoginID{Key: "nickname", Value: "johndoe"},
 			}
-			So(checker.validate(loginIDs), ShouldBeError, "login ID key is not allowed")
+			So(validation.ErrorCauses(checker.validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Pointer: "/0/key",
+				Message: "login ID key is not allowed",
+			}})
 
 			loginIDs = []LoginID{
 				LoginID{Key: "email", Value: ""},

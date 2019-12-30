@@ -33,6 +33,11 @@ func (s *MockStore) CreatePrincipal(principal *Principal) error {
 	return nil
 }
 
+func (s *MockStore) DeletePrincipal(principal *Principal) error {
+	delete(s.PrincipalMap, principal.ID)
+	return nil
+}
+
 func (s *MockStore) GetPrincipals(loginIDKey string, loginID string, realm *string) ([]*Principal, error) {
 	principals := []*Principal{}
 	for _, p := range s.PrincipalMap {

@@ -119,16 +119,21 @@ func (m *MockProvider) CreatePrincipalsByLoginID(userID string, password string,
 // CreatePrincipal creates principal in PrincipalMap
 func (m *MockProvider) CreatePrincipal(p *Principal) error {
 	if _, existed := m.PrincipalMap[p.ID]; existed {
-		return principal.ErrAlreadyExists
+		return ErrLoginIDAlreadyUsed
 	}
 
 	for _, pp := range m.PrincipalMap {
 		if p.LoginID == pp.LoginID && p.Realm == pp.Realm {
-			return principal.ErrAlreadyExists
+			return ErrLoginIDAlreadyUsed
 		}
 	}
 
 	m.PrincipalMap[p.ID] = *p
+	return nil
+}
+
+func (m *MockProvider) DeletePrincipal(p *Principal) error {
+	delete(m.PrincipalMap, p.ID)
 	return nil
 }
 
