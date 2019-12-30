@@ -14,8 +14,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
@@ -34,12 +36,20 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 		h.Validator = validator
 		h.TxContext = db.NewMockTxContext()
 		authContext := authtest.NewMockContext().
-			UseUser("user-id-1", "principal-id-1")
+			UseUser("user-id-1", "principal-id-1").
+			SetVerifyInfo(map[string]bool{"user1@example.com": true}).
+			MarkVerified()
 		h.AuthContext = authContext
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
+			map[string]authinfo.AuthInfo{
+				"user-id-1": *authContext.MustAuthInfo(),
+			},
+		)
+		h.AuthInfoStore = authInfoStore
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			[]config.LoginIDKeyConfiguration{
-				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 1, 1),
-				newLoginIDKeyConfig("username", config.LoginIDKeyType(metadata.Username), 0, 1),
+				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 0, 1),
+				newLoginIDKeyConfig("username", config.LoginIDKeyType(metadata.Username), 1, 1),
 			},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{
@@ -78,13 +88,19 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider)
 		sessionProvider := session.NewMockProvider()
-		sessionProvider.Sessions["user-id-1-principal-id-2"] = auth.Session{
-			ID:          "user-id-1-principal-id-2",
+		sessionProvider.Sessions["session-id"] = auth.Session{
+			ID:          "session-id",
 			ClientID:    "web-app",
 			UserID:      "user-id-1",
-			PrincipalID: "principal-id-2",
+			PrincipalID: "principal-id-1",
 		}
 		h.SessionProvider = sessionProvider
+		h.UserVerificationProvider = userverify.NewProvider(nil, nil, &config.UserVerificationConfiguration{
+			Criteria: config.UserVerificationCriteriaAll,
+			LoginIDKeys: []config.UserVerificationKeyConfiguration{
+				config.UserVerificationKeyConfiguration{Key: "email"},
+			},
+		}, nil)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		hookProvider := hook.NewMockProvider()
 		h.HookProvider = hookProvider
@@ -144,9 +160,8 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 		})
 
 		Convey("should fail if there are not enough login ID", func() {
-			authContext.UseUser("user-id-1", "principal-id-2")
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"key": "email", "value": "user1@example.com"
+				"key": "username", "value": "user1"
 			}`))
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
@@ -164,7 +179,7 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 								"kind": "EntryAmount",
 								"message": "not enough login IDs",
 								"pointer": "",
-								"details": { "key": "email", "gte": 1 }
+								"details": { "key": "username", "gte": 1 }
 							}
 						]
 					}
@@ -173,8 +188,11 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 		})
 
 		Convey("should remove login ID", func() {
+			authContext.UseUser("user-id-1", "principal-id-2").
+				SetVerifyInfo(map[string]bool{"user1@example.com": true}).
+				MarkVerified()
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"key": "username", "value": "user1"
+				"key": "email", "value": "user1@example.com"
 			}`))
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
@@ -186,7 +204,7 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 
 			So(passwordAuthProvider.PrincipalMap, ShouldHaveLength, 2)
 			var p password.Principal
-			err := passwordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "user1", password.DefaultRealm, &p)
+			err := passwordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "user1@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeError, "principal not found")
 
 			So(sessionProvider.Sessions, ShouldBeEmpty)
@@ -195,24 +213,42 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 				event.IdentityDeleteEvent{
 					User: model.User{
 						ID:         "user-id-1",
-						Verified:   false,
+						Verified:   true,
 						Disabled:   false,
-						VerifyInfo: map[string]bool{},
+						VerifyInfo: map[string]bool{"user1@example.com": true},
 						Metadata:   userprofile.Data{},
 					},
 					Identity: model.Identity{
-						ID:   "principal-id-2",
+						ID:   "principal-id-1",
 						Type: "password",
 						Attributes: principal.Attributes{
-							"login_id_key": "username",
-							"login_id":     "user1",
+							"login_id_key": "email",
+							"login_id":     "user1@example.com",
 						},
 						Claims: principal.Claims{
-							"username": "user1",
+							"email": "user1@example.com",
 						},
 					},
 				},
 			})
+		})
+
+		Convey("should invalidate verify state", func() {
+			authContext.UseUser("user-id-1", "principal-id-2").
+				SetVerifyInfo(map[string]bool{"user1@example.com": true}).
+				MarkVerified()
+			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"key": "email", "value": "user1@example.com"
+			}`))
+			r.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, r)
+
+			So(w.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {}
+			}`)
+
+			So(authInfoStore.AuthInfoMap["user-id-1"].Verified, ShouldBeFalse)
 		})
 	})
 }

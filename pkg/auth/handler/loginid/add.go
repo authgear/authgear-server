@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -76,15 +77,16 @@ const AddLoginIDRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type AddLoginIDHandler struct {
-	Validator            *validation.Validator      `dependency:"Validator"`
-	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
-	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
-	TxContext            db.TxContext               `dependency:"TxContext"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider         hook.Provider              `dependency:"HookProvider"`
+	Validator                *validation.Validator      `dependency:"Validator"`
+	AuthContext              coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	RequireAuthz             handler.RequireAuthz       `dependency:"RequireAuthz"`
+	AuthInfoStore            authinfo.Store             `dependency:"AuthInfoStore"`
+	PasswordAuthProvider     password.Provider          `dependency:"PasswordAuthProvider"`
+	IdentityProvider         principal.IdentityProvider `dependency:"IdentityProvider"`
+	UserVerificationProvider userverify.Provider        `dependency:"UserVerificationProvider"`
+	TxContext                db.TxContext               `dependency:"TxContext"`
+	UserProfileStore         userprofile.Store          `dependency:"UserProfileStore"`
+	HookProvider             hook.Provider              `dependency:"HookProvider"`
 }
 
 func (h AddLoginIDHandler) ProvideAuthzPolicy() authz.Policy {
@@ -137,14 +139,20 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 		if err != nil {
 			return err
 		}
+		principals = append(principals, newPrincipal)
 
 		var userProfile userprofile.UserProfile
 		userProfile, err = h.UserProfileStore.GetUserProfile(userID)
 		if err != nil {
 			return err
 		}
-
 		user := model.NewUser(*authInfo, userProfile)
+
+		err = h.UserVerificationProvider.UpdateVerificationState(authInfo, h.AuthInfoStore, principals)
+		if err != nil {
+			return err
+		}
+
 		identity := model.NewIdentity(h.IdentityProvider, newPrincipal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityCreateEvent{

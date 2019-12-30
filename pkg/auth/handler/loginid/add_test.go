@@ -13,8 +13,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -41,8 +43,16 @@ func TestAddLoginIDHandler(t *testing.T) {
 		h.Validator = validator
 		h.TxContext = db.NewMockTxContext()
 		authContext := authtest.NewMockContext().
-			UseUser("user-id-1", "principal-id-1")
+			UseUser("user-id-1", "principal-id-1").
+			SetVerifyInfo(map[string]bool{"user1@example.com": true}).
+			MarkVerified()
 		h.AuthContext = authContext
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
+			map[string]authinfo.AuthInfo{
+				"user-id-1": *authContext.MustAuthInfo(),
+			},
+		)
+		h.AuthInfoStore = authInfoStore
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			[]config.LoginIDKeyConfiguration{
 				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 0, 1),
@@ -74,6 +84,12 @@ func TestAddLoginIDHandler(t *testing.T) {
 		)
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider)
+		h.UserVerificationProvider = userverify.NewProvider(nil, nil, &config.UserVerificationConfiguration{
+			Criteria: config.UserVerificationCriteriaAll,
+			LoginIDKeys: []config.UserVerificationKeyConfiguration{
+				config.UserVerificationKeyConfiguration{Key: "email"},
+			},
+		}, nil)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		hookProvider := hook.NewMockProvider()
 		h.HookProvider = hookProvider
@@ -171,9 +187,9 @@ func TestAddLoginIDHandler(t *testing.T) {
 				event.IdentityCreateEvent{
 					User: model.User{
 						ID:         "user-id-1",
-						Verified:   false,
+						Verified:   true,
 						Disabled:   false,
-						VerifyInfo: map[string]bool{},
+						VerifyInfo: map[string]bool{"user1@example.com": true},
 						Metadata:   userprofile.Data{},
 					},
 					Identity: model.Identity{
@@ -189,6 +205,41 @@ func TestAddLoginIDHandler(t *testing.T) {
 					},
 				},
 			})
+		})
+
+		Convey("should invalidate verify state", func() {
+			passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+				[]config.LoginIDKeyConfiguration{
+					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 0, 2),
+				},
+				[]string{password.DefaultRealm},
+				map[string]password.Principal{
+					"principal-id-1": password.Principal{
+						ID:         "principal-id-1",
+						UserID:     "user-id-1",
+						LoginIDKey: "email",
+						LoginID:    "user1@example.com",
+						Realm:      password.DefaultRealm,
+						ClaimsValue: map[string]interface{}{
+							"email": "user1@example.com",
+						},
+					},
+				},
+			)
+			h.PasswordAuthProvider = passwordAuthProvider
+
+			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"key": "email", "value": "user1+a@example.com"
+			}`))
+			r.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, r)
+
+			So(w.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {}
+			}`)
+
+			So(authInfoStore.AuthInfoMap["user-id-1"].Verified, ShouldBeFalse)
 		})
 	})
 }

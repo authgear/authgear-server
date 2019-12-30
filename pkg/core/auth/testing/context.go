@@ -32,6 +32,10 @@ func (m *MockContext) AuthInfo() (*authinfo.AuthInfo, error) {
 	return m.authInfo, m.err
 }
 
+func (m *MockContext) MustAuthInfo() *authinfo.AuthInfo {
+	return m.authInfo
+}
+
 func (m *MockContext) Session() (*auth.Session, error) {
 	return m.session, m.err
 }
@@ -83,6 +87,11 @@ func (m *MockContext) UseSession(sess *auth.Session) *MockContext {
 
 func (m *MockContext) MarkVerified() *MockContext {
 	m.authInfo.Verified = true
+	return m
+}
+
+func (m *MockContext) SetVerifyInfo(info map[string]bool) *MockContext {
+	m.authInfo.VerifyInfo = info
 	return m
 }
 
