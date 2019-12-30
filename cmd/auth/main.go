@@ -142,6 +142,7 @@ func main() {
 
 		loginidhandler.AddLoginIDRequestSchema,
 		loginidhandler.RemoveLoginIDRequestSchema,
+		loginidhandler.UpdateLoginIDRequestSchema,
 	)
 
 	dbPool := db.NewPool()
@@ -259,6 +260,7 @@ func main() {
 	gearHandler.AttachTemplatesHandler(&srv, authDependency)
 	loginidhandler.AttachAddLoginIDHandler(&srv, authDependency)
 	loginidhandler.AttachRemoveLoginIDHandler(&srv, authDependency)
+	loginidhandler.AttachUpdateLoginIDHandler(&srv, authDependency)
 
 	go func() {
 		logger.Info("Starting auth gear")

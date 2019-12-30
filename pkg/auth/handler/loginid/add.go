@@ -119,7 +119,10 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 		}
 
 		newLoginID := password.LoginID{Key: payload.Key, Value: payload.Value}
-		err = validateLoginIDs(h.PasswordAuthProvider, extractLoginIDs(principals), &newLoginID)
+		loginIDs := extractLoginIDs(principals)
+		newLoginIDIndex := len(loginIDs)
+		loginIDs = append(loginIDs, newLoginID)
+		err = validateLoginIDs(h.PasswordAuthProvider, loginIDs, newLoginIDIndex)
 		if err != nil {
 			return err
 		}

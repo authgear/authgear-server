@@ -25,61 +25,79 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-func AttachRemoveLoginIDHandler(
+func AttachUpdateLoginIDHandler(
 	server *server.Server,
 	authDependency auth.DependencyMap,
 ) *server.Server {
-	server.Handle("/login_id/remove", &RemoveLoginIDHandlerFactory{
+	server.Handle("/login_id/update", &UpdateLoginIDHandlerFactory{
 		authDependency,
 	}).Methods("OPTIONS", "POST")
 	return server
 }
 
-type RemoveLoginIDHandlerFactory struct {
+type UpdateLoginIDHandlerFactory struct {
 	Dependency auth.DependencyMap
 }
 
-func (f RemoveLoginIDHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &RemoveLoginIDHandler{}
+func (f UpdateLoginIDHandlerFactory) NewHandler(request *http.Request) http.Handler {
+	h := &UpdateLoginIDHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	return h.RequireAuthz(h, h)
 }
 
-type RemoveLoginIDRequestPayload struct {
-	password.LoginID
+type UpdateLoginIDRequestPayload struct {
+	OldLoginID password.LoginID `json:"old_login_id"`
+	NewLoginID password.LoginID `json:"new_login_id"`
 }
 
 // @JSONSchema
-const RemoveLoginIDRequestSchema = `
+const UpdateLoginIDRequestSchema = `
 {
-	"$id": "#RemoveLoginIDRequest",
+	"$id": "#UpdateLoginIDRequest",
 	"type": "object",
 	"properties": {
-		"key": { "type": "string", "minLength": 1 },
-		"value": { "type": "string", "minLength": 1 }
+		"old_login_id": {
+			"type": "object",
+			"properties": {
+				"key": { "type": "string", "minLength": 1 },
+				"value": { "type": "string", "minLength": 1 }
+			},
+			"required": ["key", "value"]
+		},
+		"new_login_id": {
+			"type": "object",
+			"properties": {
+				"key": { "type": "string", "minLength": 1 },
+				"value": { "type": "string", "minLength": 1 }
+			},
+			"required": ["key", "value"]
+		}
 	},
-	"required": ["key", "value"]
+	"required": ["old_login_id", "new_login_id"]
 }
 `
 
 /*
-	@Operation POST /login_id/remove - Remove login ID
-		Remove login ID from current user.
+	@Operation POST /login_id/update - update login ID
+		Update the specified login ID for current user.
+		This operation is same as adding the new login ID and then deleting
+		old login ID atomically.
 
 		@Tag User
 		@SecurityRequirement access_key
 		@SecurityRequirement access_token
 
 		@RequestBody
-			Describe the login ID to remove.
-			@JSONSchema {RemoveLoginIDRequest}
+			Describe the new login ID.
+			@JSONSchema {UpdateLoginIDRequest}
 
 		@Response 200 {EmptyResponse}
 
+		@Callback identity_create {UserSyncEvent}
 		@Callback identity_delete {UserSyncEvent}
 		@Callback user_sync {UserSyncEvent}
 */
-type RemoveLoginIDHandler struct {
+type UpdateLoginIDHandler struct {
 	Validator            *validation.Validator      `dependency:"Validator"`
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
@@ -93,14 +111,14 @@ type RemoveLoginIDHandler struct {
 	Logger               *logrus.Entry              `dependency:"HandlerLogger"`
 }
 
-func (h RemoveLoginIDHandler) ProvideAuthzPolicy() authz.Policy {
+func (h UpdateLoginIDHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
 		policy.RequireValidUser,
 	)
 }
 
-func (h RemoveLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h UpdateLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := h.Handle(w, r)
 	if err == nil {
 		handler.WriteResponse(w, handler.APIResponse{Result: struct{}{}})
@@ -109,35 +127,45 @@ func (h RemoveLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error {
-	var payload RemoveLoginIDRequestPayload
-	if err := handler.BindJSONBody(r, w, h.Validator, "#RemoveLoginIDRequest", &payload); err != nil {
+func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error {
+	var payload UpdateLoginIDRequestPayload
+	if err := handler.BindJSONBody(r, w, h.Validator, "#UpdateLoginIDRequest", &payload); err != nil {
 		return err
 	}
 
 	err := hook.WithTx(h.HookProvider, h.TxContext, func() error {
 		authInfo, _ := h.AuthContext.AuthInfo()
-		session, _ := h.AuthContext.Session()
 		userID := authInfo.ID
 
-		var p password.Principal
-		err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(payload.Key, payload.Value, password.DefaultRealm, &p)
+		var oldPrincipal password.Principal
+		err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(
+			payload.OldLoginID.Key,
+			payload.OldLoginID.Value,
+			password.DefaultRealm,
+			&oldPrincipal,
+		)
 		if err != nil {
 			if errors.Is(err, principal.ErrNotFound) {
 				err = password.ErrLoginIDNotFound
 			}
 			return err
 		}
-		if p.UserID != userID {
+		if oldPrincipal.UserID != userID {
 			return password.ErrLoginIDNotFound
 		}
 
-		if session.PrincipalID != "" && session.PrincipalID == p.ID {
-			err = principal.ErrCurrentIdentityBeingDeleted
+		newPrincipal, err := h.PasswordAuthProvider.MakePrincipal(userID, "", payload.NewLoginID, password.DefaultRealm)
+		if err != nil {
+			return err
+		}
+		newPrincipal.HashedPassword = oldPrincipal.HashedPassword
+
+		err = h.PasswordAuthProvider.CreatePrincipal(newPrincipal)
+		if err != nil {
 			return err
 		}
 
-		err = h.PasswordAuthProvider.DeletePrincipal(&p)
+		err = h.PasswordAuthProvider.DeletePrincipal(&oldPrincipal)
 		if err != nil {
 			return err
 		}
@@ -146,7 +174,17 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 		if err != nil {
 			return err
 		}
-		err = validateLoginIDs(h.PasswordAuthProvider, extractLoginIDs(principals), -1)
+		newPrincipalIndex := -1
+		for i, principal := range principals {
+			if principal.ID == newPrincipal.ID {
+				newPrincipalIndex = i
+				break
+			}
+		}
+		if newPrincipalIndex == -1 {
+			panic("login_id_update: cannot find new principal")
+		}
+		err = validateLoginIDs(h.PasswordAuthProvider, extractLoginIDs(principals), newPrincipalIndex)
 		if err != nil {
 			return err
 		}
@@ -158,7 +196,18 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 		}
 
 		user := model.NewUser(*authInfo, userProfile)
-		identity := model.NewIdentity(h.IdentityProvider, &p)
+		identity := model.NewIdentity(h.IdentityProvider, newPrincipal)
+		err = h.HookProvider.DispatchEvent(
+			event.IdentityCreateEvent{
+				User:     user,
+				Identity: identity,
+			},
+			&user,
+		)
+		if err != nil {
+			return err
+		}
+		identity = model.NewIdentity(h.IdentityProvider, &oldPrincipal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityDeleteEvent{
 				User:     user,
@@ -175,20 +224,14 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 			return err
 		}
 
-		// filter sessions of deleted principal
-		n := 0
 		for _, session := range sessions {
-			if session.PrincipalID == p.ID {
-				sessions[n] = session
-				n++
+			if session.PrincipalID == oldPrincipal.ID {
+				err = h.SessionProvider.UpdatePrincipal(session, newPrincipal.ID)
+				if err != nil {
+					// log and ignore error
+					h.Logger.WithError(err).Error("Cannot update session principal ID")
+				}
 			}
-		}
-		sessions = sessions[:n]
-
-		err = h.SessionProvider.InvalidateBatch(sessions)
-		if err != nil {
-			// log and ignore error
-			h.Logger.WithError(err).Error("Cannot update session principal ID")
 		}
 
 		return nil

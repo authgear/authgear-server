@@ -17,11 +17,10 @@ func extractLoginIDs(principals []*password.Principal) []password.LoginID {
 	return loginIDs
 }
 
-func validateLoginIDs(provider password.Provider, loginIDs []password.LoginID, newLoginID *password.LoginID) error {
+func validateLoginIDs(provider password.Provider, loginIDs []password.LoginID, newLoginIDIndex int) error {
 	removePointerPrefix := ""
-	if newLoginID != nil {
-		removePointerPrefix = fmt.Sprintf("/%d/", len(loginIDs))
-		loginIDs = append(loginIDs, *newLoginID)
+	if newLoginIDIndex >= 0 {
+		removePointerPrefix = fmt.Sprintf("/%d/", newLoginIDIndex)
 	}
 
 	err := provider.ValidateLoginIDs(loginIDs)

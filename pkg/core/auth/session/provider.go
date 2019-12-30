@@ -25,4 +25,6 @@ type Provider interface {
 
 	// UpdateMFA updates the session MFA.
 	UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepMFAOptions) error
+	// UpdatePrincipal updates the principal ID of the session
+	UpdatePrincipal(sess *auth.Session, principalID string) error
 }
