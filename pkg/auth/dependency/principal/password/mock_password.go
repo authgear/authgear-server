@@ -75,8 +75,19 @@ func (m *MockProvider) IsDefaultAllowedRealms() bool {
 	return len(m.allowedRealms) == 1 && m.allowedRealms[0] == DefaultRealm
 }
 
+func (m *MockProvider) MakePrincipal(userID string, password string, loginID LoginID, realm string) (*Principal, error) {
+	principal := NewPrincipal()
+	principal.UserID = userID
+	principal.LoginIDKey = loginID.Key
+	principal.LoginID = loginID.Value
+	principal.Realm = realm
+	principal.setPassword(password)
+	principal.deriveClaims(m.loginIDChecker)
+	return &principal, nil
+}
+
 // CreatePrincipalsByLoginID creates principals by loginID
-func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (principals []*Principal, err error) {
+func (m *MockProvider) CreatePrincipalsByLoginID(userID string, password string, loginIDs []LoginID, realm string) (principals []*Principal, err error) {
 	// do not create principal when there is login ID belongs to another user.
 	for _, loginID := range loginIDs {
 		loginIDPrincipals, principalErr := m.GetPrincipalsByLoginID("", loginID.Value)
@@ -85,7 +96,7 @@ func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password str
 			return
 		}
 		for _, p := range loginIDPrincipals {
-			if p.UserID != authInfoID {
+			if p.UserID != userID {
 				err = ErrLoginIDAlreadyUsed
 				return
 			}
@@ -93,26 +104,20 @@ func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password str
 	}
 
 	for _, loginID := range loginIDs {
-		principal := NewPrincipal()
-		principal.UserID = authInfoID
-		principal.LoginIDKey = loginID.Key
-		principal.LoginID = loginID.Value
-		principal.Realm = realm
-		principal.setPassword(password)
-		principal.deriveClaims(m.loginIDChecker)
-		err = m.createPrincipal(principal)
+		principal, _ := m.MakePrincipal(userID, password, loginID, realm)
+		err = m.CreatePrincipal(principal)
 
 		if err != nil {
 			return
 		}
-		principals = append(principals, &principal)
+		principals = append(principals, principal)
 	}
 
 	return
 }
 
 // CreatePrincipal creates principal in PrincipalMap
-func (m *MockProvider) createPrincipal(p Principal) error {
+func (m *MockProvider) CreatePrincipal(p *Principal) error {
 	if _, existed := m.PrincipalMap[p.ID]; existed {
 		return principal.ErrAlreadyExists
 	}
@@ -123,7 +128,7 @@ func (m *MockProvider) createPrincipal(p Principal) error {
 		}
 	}
 
-	m.PrincipalMap[p.ID] = p
+	m.PrincipalMap[p.ID] = *p
 	return nil
 }
 

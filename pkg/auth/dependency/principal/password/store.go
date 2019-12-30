@@ -13,7 +13,7 @@ import (
 )
 
 type Store interface {
-	CreatePrincipal(principal Principal) error
+	CreatePrincipal(principal *Principal) error
 	GetPrincipals(loginIDKey string, loginID string, realm *string) ([]*Principal, error)
 	GetPrincipalByID(principalID string) (principal.Principal, error)
 	GetPrincipalsByUserID(userID string) ([]*Principal, error)
@@ -33,7 +33,7 @@ func NewStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
 	}
 }
 
-func (s *storeImpl) CreatePrincipal(principal Principal) (err error) {
+func (s *storeImpl) CreatePrincipal(principal *Principal) (err error) {
 	builder := s.sqlBuilder.Tenant().
 		Insert(s.sqlBuilder.FullTableName("principal")).
 		Columns(
