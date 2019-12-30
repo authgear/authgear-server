@@ -92,7 +92,9 @@ const UpdateLoginIDRequestSchema = `
 			Describe the new login ID.
 			@JSONSchema {UpdateLoginIDRequest}
 
-		@Response 200 {EmptyResponse}
+		@Response 200
+			Updated user and identity info.
+			@JSONSchema {UserIdentityResponse}
 
 		@Callback identity_create {UserSyncEvent}
 		@Callback identity_delete {UserSyncEvent}
@@ -121,20 +123,21 @@ func (h UpdateLoginIDHandler) ProvideAuthzPolicy() authz.Policy {
 }
 
 func (h UpdateLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := h.Handle(w, r)
+	resp, err := h.Handle(w, r)
 	if err == nil {
-		handler.WriteResponse(w, handler.APIResponse{Result: struct{}{}})
+		handler.WriteResponse(w, handler.APIResponse{Result: resp})
 	} else {
 		handler.WriteResponse(w, handler.APIResponse{Error: err})
 	}
 }
 
-func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error {
+func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	var payload UpdateLoginIDRequestPayload
 	if err := handler.BindJSONBody(r, w, h.Validator, "#UpdateLoginIDRequest", &payload); err != nil {
-		return err
+		return nil, err
 	}
 
+	var resp interface{}
 	err := hook.WithTx(h.HookProvider, h.TxContext, func() error {
 		authInfo, _ := h.AuthContext.AuthInfo()
 		userID := authInfo.ID
@@ -203,22 +206,22 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 			return err
 		}
 
-		identity := model.NewIdentity(h.IdentityProvider, newPrincipal)
+		newIdentity := model.NewIdentity(h.IdentityProvider, newPrincipal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityCreateEvent{
 				User:     user,
-				Identity: identity,
+				Identity: newIdentity,
 			},
 			&user,
 		)
 		if err != nil {
 			return err
 		}
-		identity = model.NewIdentity(h.IdentityProvider, &oldPrincipal)
+		oldIdentity := model.NewIdentity(h.IdentityProvider, &oldPrincipal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityDeleteEvent{
 				User:     user,
-				Identity: identity,
+				Identity: oldIdentity,
 			},
 			&user,
 		)
@@ -241,7 +244,9 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 			}
 		}
 
+		user = model.NewUser(*authInfo, userProfile)
+		resp = model.NewAuthResponseWithUserIdentity(user, newIdentity)
 		return nil
 	})
-	return err
+	return resp, err
 }

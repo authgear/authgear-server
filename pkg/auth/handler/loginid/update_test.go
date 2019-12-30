@@ -1,6 +1,7 @@
 package loginid
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -200,9 +201,7 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
 
-			So(w.Body.Bytes(), ShouldEqualJSON, `{
-				"result": {}
-			}`)
+			So(w.Code, ShouldEqual, 200)
 
 			So(passwordAuthProvider.PrincipalMap, ShouldHaveLength, 3)
 			var p password.Principal
@@ -213,6 +212,30 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 			So(p.UserID, ShouldEqual, "user-id-1")
 			So(p.LoginIDKey, ShouldEqual, "email")
 			So(p.LoginID, ShouldEqual, "user1+a@example.com")
+
+			So(w.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+				"result": {
+					"user": {
+						"id": "user-id-1",
+						"created_at": "0001-01-01T00:00:00Z",
+						"is_disabled": false,
+						"is_verified": false,
+						"verify_info": {
+							"user1@example.com": true
+						},
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id": "user1+a@example.com",
+						"login_id_key": "email",
+						"claims": {
+							"email": "user1+a@example.com"
+						}
+					}
+				}
+			}`, p.ID))
 
 			So(sessionProvider.Sessions, ShouldHaveLength, 1)
 			So(sessionProvider.Sessions["session-id"].PrincipalID, ShouldEqual, p.ID)
@@ -270,9 +293,7 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
 
-			So(w.Body.Bytes(), ShouldEqualJSON, `{
-				"result": {}
-			}`)
+			So(w.Code, ShouldEqual, 200)
 
 			So(authInfoStore.AuthInfoMap["user-id-1"].Verified, ShouldBeFalse)
 		})
