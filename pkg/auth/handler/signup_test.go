@@ -215,7 +215,7 @@ func TestSignupHandler(t *testing.T) {
 				"error": {
 					"name": "AlreadyExists",
 					"reason": "LoginIDAlreadyUsed",
-					"message": "login ID is used by another user",
+					"message": "login ID is already used",
 					"code": 409
 				}
 			}`)
@@ -758,7 +758,7 @@ func TestSignupHandler(t *testing.T) {
 				"error": {
 					"name": "AlreadyExists",
 					"reason": "LoginIDAlreadyUsed",
-					"message": "login ID is used by another user",
+					"message": "login ID is already used",
 					"code": 409
 				}
 			}
@@ -781,7 +781,7 @@ func TestSignupHandler(t *testing.T) {
 				"error": {
 					"name": "AlreadyExists",
 					"reason": "LoginIDAlreadyUsed",
-					"message": "login ID is used by another user",
+					"message": "login ID is already used",
 					"code": 409
 				}
 			}

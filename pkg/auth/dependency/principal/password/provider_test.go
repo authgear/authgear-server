@@ -76,7 +76,7 @@ func TestProvider(t *testing.T) {
 				}
 
 				_, err = pwProvider.CreatePrincipalsByLoginID("user2", "password", loginIDs, DefaultRealm)
-				So(err, ShouldBeError, "login ID is used by another user")
+				So(err, ShouldBeError, "login ID is already used")
 			})
 
 			Convey("should reject email with same punycode encoded domain", func() {
@@ -98,7 +98,7 @@ func TestProvider(t *testing.T) {
 				}
 
 				_, err = pwProvider.CreatePrincipalsByLoginID("user2", "password", loginIDs, DefaultRealm)
-				So(err, ShouldBeError, "login ID is used by another user")
+				So(err, ShouldBeError, "login ID is already used")
 			})
 		})
 
