@@ -32,5 +32,8 @@ func ProviderKeysFromProviderConfig(c config.OAuthProviderConfiguration) map[str
 	if c.Tenant != "" {
 		m["tenant"] = c.Tenant
 	}
+	if c.TeamID != "" {
+		m["team_id"] = c.TeamID
+	}
 	return m
 }
