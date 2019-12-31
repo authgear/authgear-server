@@ -133,7 +133,14 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 		if err != nil {
 			return err
 		}
-		newPrincipal.HashedPassword = principals[0].HashedPassword
+		if len(principals) > 0 {
+			newPrincipal.HashedPassword = principals[0].HashedPassword
+		} else {
+			// NOTE: if there is no existing password principals,
+			// we use a empty password hash to make it unable to be used
+			// to login.
+			newPrincipal.HashedPassword = nil
+		}
 
 		err = h.PasswordAuthProvider.CreatePrincipal(newPrincipal)
 		if err != nil {

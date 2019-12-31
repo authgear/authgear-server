@@ -241,5 +241,31 @@ func TestAddLoginIDHandler(t *testing.T) {
 
 			So(authInfoStore.AuthInfoMap["user-id-1"].Verified, ShouldBeFalse)
 		})
+
+		Convey("should use empty password hash if no principal exists", func() {
+			passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+				[]config.LoginIDKeyConfiguration{
+					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 0, 2),
+				},
+				[]string{password.DefaultRealm},
+				map[string]password.Principal{},
+			)
+			h.PasswordAuthProvider = passwordAuthProvider
+
+			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"key": "email", "value": "user1+a@example.com"
+			}`))
+			r.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, r)
+
+			So(w.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {}
+			}`)
+
+			principals, _ := passwordAuthProvider.GetPrincipalsByUserID("user-id-1")
+			So(principals, ShouldHaveLength, 1)
+			So(principals[0].HashedPassword, ShouldBeEmpty)
+		})
 	})
 }
