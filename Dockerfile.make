@@ -5,7 +5,7 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /go/src/github.com/skygeario/skygear-server
 
-RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.19.1
+RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.22.2
 
 COPY go.mod go.sum ./
 RUN go mod download
