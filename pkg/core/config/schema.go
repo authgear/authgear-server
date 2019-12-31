@@ -1,6 +1,8 @@
 package config
 
 import (
+	"io"
+
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -18,10 +20,30 @@ const (
 		"type": "integer",
 		"minimum": 0
 	},
+	"TenantConfiguration": {
+		"$id": "#TenantConfiguration",
+		"type": "object",
+		"properties": {
+			"version": { "const": "1" },
+			"app_id": { "$ref": "#NonEmptyString" },
+			"app_name": { "$ref": "#NonEmptyString" },
+			"app_config": {
+				"type": "object",
+				"properties": {
+					"database_url": { "$ref": "#NonEmptyString" },
+					"database_schema": { "$ref": "#NonEmptyString" }
+				}
+			},
+			"user_config": { "$ref": "#UserConfiguration" }
+		},
+		"required": ["version", "app_id", "app_name", "app_config", "user_config"]
+	},
 	"UserConfiguration": {
 		"$id": "#UserConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
+			"display_app_name": { "type": "string" },
 			"clients": {
 				"type": "array",
 				"items": { "$ref": "#APIClientConfiguration" }
@@ -47,6 +69,7 @@ const (
 	"AssetConfiguration": {
 		"$id": "#AssetConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"secret": { "$ref": "#NonEmptyString" }
 		},
@@ -55,6 +78,7 @@ const (
 	"APIClientConfiguration": {
 		"$id": "#APIClientConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"id": { "$ref": "#NonEmptyString" },
 			"name": { "$ref": "#NonEmptyString" },
@@ -67,13 +91,15 @@ const (
 			"session_idle_timeout_enabled": { "type": "boolean" },
 			"session_idle_timeout": { "type": "integer", "minimum": 0 },
 			"refresh_token_disabled": { "type": "boolean" },
-			"refresh_token_lifetime": { "type": "integer", "minimum": 0 }
+			"refresh_token_lifetime": { "type": "integer", "minimum": 0 },
+			"same_site": { "enum": ["none", "lax", "strict"] }
 		},
 		"required": ["id", "name", "api_key", "session_transport"]
 	},
 	"CORSConfiguration": {
 		"$id": "#CORSConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"origin": { "type": "string" }
 		}
@@ -81,6 +107,7 @@ const (
 	"AuthConfiguration": {
 		"$id": "#AuthConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"authentication_session": { "$ref": "#AuthenticationSessionConfiguration" },
 			"login_id_keys": {
@@ -88,13 +115,15 @@ const (
 				"minItems": 1,
 				"items": { "$ref": "#LoginIDKeyConfiguration" }
 			},
-			"login_id_types": { "$ref": "#LoginIDTypesConfiguration" }
+			"login_id_types": { "$ref": "#LoginIDTypesConfiguration" },
+			"on_user_duplicate_allow_create": { "type": "boolean" }
 		},
 		"required": ["authentication_session"]
 	},
 	"AuthenticationSessionConfiguration": {
 		"$id": "#AuthenticationSessionConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"secret": { "$ref": "#NonEmptyString" }
 		},
@@ -103,7 +132,9 @@ const (
 	"MFAConfiguration": {
 		"$id": "#MFAConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
+			"enabled": { "type": "boolean" },
 			"enforcement": {
 				"type": "string",
 				"enum": ["off", "optional", "required"]
@@ -115,6 +146,7 @@ const (
 			},
 			"totp": {
 				"type": "object",
+				"additionalProperties": false,
 				"properties": {
 					"maximum": {
 						"type": "integer",
@@ -125,9 +157,15 @@ const (
 			},
 			"oob": {
 				"type": "object",
+				"additionalProperties": false,
 				"properties": {
+					"app_name": { "type": "string" },
+					"sender": { "type": "string" },
+					"subject": { "type": "string" },
+					"reply_to": { "type": "string" },
 					"sms": {
 						"type": "object",
+						"additionalProperties": false,
 						"properties": {
 							"maximum": {
 								"type": "integer",
@@ -138,6 +176,7 @@ const (
 					},
 					"email": {
 						"type": "object",
+						"additionalProperties": false,
 						"properties": {
 							"maximum": {
 								"type": "integer",
@@ -150,6 +189,7 @@ const (
 			},
 			"bearer_token": {
 				"type": "object",
+				"additionalProperties": false,
 				"properties": {
 					"expire_in_days": {
 						"type": "integer",
@@ -160,6 +200,7 @@ const (
 			},
 			"recovery_code": {
 				"type": "object",
+				"additionalProperties": false,
 				"properties": {
 					"count": {
 						"type": "integer",
@@ -176,6 +217,7 @@ const (
 	"LoginIDKeyConfiguration": {
 		"$id": "#LoginIDKeyConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"key": { "$ref": "#NonEmptyString" },
 			"type": {
@@ -199,6 +241,7 @@ const (
 	"LoginIDTypeEmailConfiguration": {
 		"$id": "#LoginIDTypeEmailConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"case_sensitive": { "type": "boolean" },
 			"block_plus_sign": { "type": "boolean" },
@@ -208,6 +251,7 @@ const (
 	"LoginIDTypeUsernameConfiguration": {
 		"$id": "#LoginIDTypeUsernameConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"block_reserved_usernames": { "type": "boolean" },
 			"excluded_keywords": {
@@ -221,6 +265,7 @@ const (
 	"UserAuditConfiguration": {
 		"$id": "#UserAuditConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"enabled": { "type": "boolean" },
 			"trail_handler_url": { "type": "string" }
@@ -229,6 +274,7 @@ const (
 	"PasswordPolicyConfiguration": {
 		"$id": "#PasswordPolicyConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"min_length": { "$ref": "#NonNegativeInteger" },
 			"uppercase_required": { "type": "boolean" },
@@ -252,6 +298,7 @@ const (
 	"ForgotPasswordConfiguration": {
 		"$id": "#ForgotPasswordConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"app_name": { "type": "string" },
 			"secure_match": { "type": "boolean" },
@@ -266,6 +313,7 @@ const (
 	"WelcomeEmailConfiguration": {
 		"$id": "#WelcomeEmailConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"enabled": { "type": "boolean" },
 			"sender": { "type": "string" },
@@ -280,6 +328,7 @@ const (
 	"SSOConfiguration": {
 		"$id": "#SSOConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"custom_token": { "$ref": "#CustomTokenConfiguration" },
 			"oauth": { "$ref": "#OAuthConfiguration" }
@@ -289,6 +338,7 @@ const (
 	"CustomTokenConfiguration": {
 		"$id": "#CustomTokenConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"enabled": { "type": "boolean" },
 			"issuer": { "$ref": "#NonEmptyString" },
@@ -315,6 +365,7 @@ const (
 	"OAuthConfiguration": {
 		"$id": "#OAuthConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"state_jwt_secret": { "type": "string" },
 			"allowed_callback_urls": {
@@ -353,6 +404,7 @@ const (
 	"OAuthProviderConfiguration": {
 		"$id": "#OAuthProviderConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"id": { "type": "string" },
 			"type": {
@@ -395,6 +447,7 @@ const (
 	"UserVerificationConfiguration": {
 		"$id": "#UserVerificationConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"auto_send_on_signup": { "type": "boolean" },
 			"criteria": {
@@ -411,6 +464,7 @@ const (
 	"UserVerificationKeyConfiguration": {
 		"$id": "#UserVerificationKeyConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"key": { "$ref": "#NonEmptyString" },
 			"code_format": {
@@ -428,6 +482,7 @@ const (
 	"HookUserConfiguration": {
 		"$id": "#HookUserConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"secret": { "$ref": "#NonEmptyString" }
 		},
@@ -436,6 +491,7 @@ const (
 	"SMTPConfiguration": {
 		"$id": "#SMTPConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"host": { "type": "string" },
 			"port": { "$ref": "#NonNegativeInteger" },
@@ -450,6 +506,7 @@ const (
 	"TwilioConfiguration": {
 		"$id": "#TwilioConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"account_sid": { "type": "string" },
 			"auth_token": { "type": "string" },
@@ -459,6 +516,7 @@ const (
 	"NexmoConfiguration": {
 		"$id": "#NexmoConfiguration",
 		"type": "object",
+		"additionalProperties": false,
 		"properties": {
 			"api_key": { "type": "string" },
 			"api_secret": { "type": "string" },
@@ -470,14 +528,28 @@ const (
 )
 
 var (
-	userConfigurationValidator *validation.Validator
+	tenantConfigurationValidator *validation.Validator
 )
 
 func init() {
-	userConfigurationValidator = validation.NewValidator("http://v2.skygear.io")
-	userConfigurationValidator.AddSchemaFragments(Schemas)
+	tenantConfigurationValidator = validation.NewValidator("http://v2.skygear.io")
+	tenantConfigurationValidator.AddSchemaFragments(Schemas)
 }
 
-func ValidateUserConfiguration(value interface{}) error {
-	return userConfigurationValidator.ValidateGoValue("#UserConfiguration", value)
+func ParseTenantConfiguration(r io.Reader) (*TenantConfiguration, error) {
+	config := TenantConfiguration{}
+	err := tenantConfigurationValidator.ParseReader("#TenantConfiguration", r, &config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+func ParseUserConfiguration(r io.Reader) (*UserConfiguration, error) {
+	config := UserConfiguration{}
+	err := tenantConfigurationValidator.ParseReader("#UserConfiguration", r, &config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
 }

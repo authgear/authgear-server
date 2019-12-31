@@ -1,7 +1,7 @@
 package config
 
 import (
-	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -9,13 +9,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestValidateUserConfiguration(t *testing.T) {
-	Convey("ValidateUserConfiguration", t, func() {
+func TestParseUserConfiguration(t *testing.T) {
+	Convey("ParseUserConfiguration", t, func() {
 		test := func(input string, errors ...string) {
-			var value interface{}
-			err := json.Unmarshal([]byte(input), &value)
-			So(err, ShouldBeNil)
-			err = ValidateUserConfiguration(value)
+			_, err := ParseUserConfiguration(strings.NewReader(input))
 			if len(errors) == 0 {
 				So(err, ShouldBeNil)
 			} else {
@@ -171,6 +168,7 @@ func TestValidateUserConfiguration(t *testing.T) {
 			}`,
 			"/clients/0/api_key: Required",
 			"/clients/0/id: Required",
+			"/clients/0/key: ExtraEntry",
 			"/clients/0/name: Required",
 			"/clients/0/session_transport: Required",
 		)

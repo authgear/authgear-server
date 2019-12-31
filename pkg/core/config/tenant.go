@@ -9,28 +9,29 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
-
-	"github.com/skygeario/skygear-server/pkg/core/errors"
 
 	"gopkg.in/yaml.v2"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
-	"github.com/skygeario/skygear-server/pkg/core/name"
+	"github.com/skygeario/skygear-server/pkg/core/marshal"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
+// TenantConfigurationVersion is the latest version of TenantConfiguration.
+const TenantConfigurationVersion = "1"
+
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
-	Version          string            `json:"version,omitempty" yaml:"version" msg:"version"`
-	AppID            string            `json:"app_id,omitempty" yaml:"app_id" msg:"app_id"`
-	AppName          string            `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
-	AppConfig        AppConfiguration  `json:"app_config,omitempty" yaml:"app_config" msg:"app_config"`
-	UserConfig       UserConfiguration `json:"user_config,omitempty" yaml:"user_config" msg:"user_config"`
-	TemplateItems    []TemplateItem    `json:"template_items,omitempty" yaml:"template_items" msg:"template_items"`
-	Hooks            []Hook            `json:"hooks,omitempty" yaml:"hooks" msg:"hooks"`
-	DeploymentRoutes []DeploymentRoute `json:"deployment_routes,omitempty" yaml:"deployment_routes" msg:"deployment_routes"`
+	Version          string             `json:"version,omitempty" yaml:"version" msg:"version"`
+	AppID            string             `json:"app_id,omitempty" yaml:"app_id" msg:"app_id"`
+	AppName          string             `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
+	AppConfig        *AppConfiguration  `json:"app_config,omitempty" yaml:"app_config" msg:"app_config" default_zero_value:"true"`
+	UserConfig       *UserConfiguration `json:"user_config,omitempty" yaml:"user_config" msg:"user_config" default_zero_value:"true"`
+	TemplateItems    []TemplateItem     `json:"template_items,omitempty" yaml:"template_items" msg:"template_items"`
+	Hooks            []Hook             `json:"hooks,omitempty" yaml:"hooks" msg:"hooks"`
+	DeploymentRoutes []DeploymentRoute  `json:"deployment_routes,omitempty" yaml:"deployment_routes" msg:"deployment_routes"`
 }
 
 type Hook struct {
@@ -55,51 +56,57 @@ type TemplateItem struct {
 	Digest      string           `json:"digest" yaml:"digest" msg:"digest"`
 }
 
-func NewTenantConfiguration() TenantConfiguration {
-	return TenantConfiguration{
-		Version: "1",
-	}
-}
-
-func loadTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
-	decoder := yaml.NewDecoder(r)
-	config := TenantConfiguration{}
-	err := decoder.Decode(&config)
-	if err != nil {
-		return nil, err
-	}
-	return &config, nil
-}
-
 func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
-	config, err := loadTenantConfigurationFromYAML(r)
+	decoder := yaml.NewDecoder(r)
+	var j map[string]interface{}
+	err := decoder.Decode(&j)
 	if err != nil {
 		return nil, err
 	}
-
-	config.AfterUnmarshal()
-	err = config.Validate()
+	b, err := json.Marshal(j)
 	if err != nil {
 		return nil, err
 	}
-	return config, nil
+	return NewTenantConfigurationFromJSON(bytes.NewReader(b), false)
 }
 
 func NewTenantConfigurationFromJSON(r io.Reader, raw bool) (*TenantConfiguration, error) {
-	decoder := json.NewDecoder(r)
-	config := TenantConfiguration{}
-	err := decoder.Decode(&config)
-	if err != nil {
-		return nil, err
-	}
-	if !raw {
-		config.AfterUnmarshal()
-		err = config.Validate()
+	if raw {
+		decoder := json.NewDecoder(r)
+		config := TenantConfiguration{}
+		err := decoder.Decode(&config)
 		if err != nil {
 			return nil, err
 		}
+		return &config, nil
 	}
-	return &config, nil
+
+	addDetails := func(err error) error {
+		causes := validation.ErrorCauses(err)
+		msgs := make([]string, len(causes))
+		for i, c := range causes {
+			msgs[i] = fmt.Sprintf("%s: %s", c.Pointer, c.Message)
+		}
+		err = errors.WithDetails(
+			err,
+			errors.Details{"validation_error": errors.SafeDetail.Value(msgs)},
+		)
+		return err
+	}
+
+	config, err := ParseTenantConfiguration(r)
+	if err != nil {
+		return nil, addDetails(err)
+	}
+
+	config.AfterUnmarshal()
+
+	err = config.PostValidate()
+	if err != nil {
+		return nil, addDetails(err)
+	}
+
+	return config, nil
 }
 
 func NewTenantConfigurationFromStdBase64Msgpack(s string) (*TenantConfiguration, error) {
@@ -113,41 +120,6 @@ func NewTenantConfigurationFromStdBase64Msgpack(s string) (*TenantConfiguration,
 		return nil, err
 	}
 	return &config, nil
-}
-
-// updateNilFieldsWithZeroValue checks the fields with tag
-// `default_zero_value:"true"` and updates the fields with zero value if they
-// are nil
-// This function will walk through the struct recursively, if the tagged fields
-// of struct have duplicated type in the same path. The function may cause
-// infinite loop.
-// Before calling this function, please make sure the struct get pass with
-// function `shouldNotHaveDuplicatedTypeInSamePath` in the test case.
-func updateNilFieldsWithZeroValue(i interface{}) {
-	t := reflect.TypeOf(i).Elem()
-	v := reflect.ValueOf(i).Elem()
-
-	if t.Kind() != reflect.Struct {
-		return
-	}
-	numField := t.NumField()
-	for i := 0; i < numField; i++ {
-		zerovalueTag := t.Field(i).Tag.Get("default_zero_value")
-		if zerovalueTag != "true" {
-			continue
-		}
-
-		field := v.Field(i)
-		ft := t.Field(i)
-		if field.Kind() == reflect.Ptr {
-			ele := field.Elem()
-			if !ele.IsValid() {
-				ele = reflect.New(ft.Type.Elem())
-				field.Set(ele)
-			}
-			updateNilFieldsWithZeroValue(field.Interface())
-		}
-	}
 }
 
 func (c *TenantConfiguration) Value() (driver.Value, error) {
@@ -225,66 +197,14 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	return values
 }
 
-func (c *TenantConfiguration) Validate() error {
-	err := c.doValidate()
-	if err == nil {
-		return nil
-	}
-
-	causes := validation.ErrorCauses(err)
-	msgs := make([]string, len(causes))
-	for i, c := range causes {
-		msgs[i] = fmt.Sprintf("%s: %s", c.Pointer, c.Message)
-	}
-	err = errors.WithDetails(
-		err,
-		errors.Details{"validation_error": errors.SafeDetail.Value(msgs)},
-	)
-	return err
-}
-
 // nolint: gocyclo
-func (c *TenantConfiguration) doValidate() error {
+func (c *TenantConfiguration) PostValidate() error {
 	fail := func(kind validation.ErrorCauseKind, msg string, pointerTokens ...interface{}) error {
 		return validation.NewValidationFailed("invalid tenant config", []validation.ErrorCause{{
 			Kind:    kind,
 			Pointer: validation.JSONPointer(pointerTokens...),
 			Message: msg,
 		}})
-	}
-
-	if c.Version != "1" {
-		return fail(validation.ErrorGeneral, "only version 1 is supported", "version")
-	}
-
-	// Validate AppConfiguration
-	if c.AppConfig.DatabaseURL == "" {
-		return fail(validation.ErrorRequired, "database_url is required", "database_url")
-	}
-	if c.AppConfig.DatabaseSchema == "" {
-		return fail(validation.ErrorRequired, "database_schema is required", "database_schema")
-	}
-
-	// Validate AppName
-	if c.AppName == "" {
-		return fail(validation.ErrorRequired, "app_name is required", "app_name")
-	}
-	if err := name.ValidateAppName(c.AppName); err != nil {
-		return fail(validation.ErrorGeneral, err.Error(), "app_name")
-	}
-
-	// Validate AppID
-	if c.AppID == "" {
-		return fail(validation.ErrorRequired, "app_id is required", "app_id")
-	}
-
-	// Validate UserConfiguration
-	if err := ValidateUserConfiguration(c.UserConfig); err != nil {
-		causes := validation.ErrorCauses(err)
-		for i := range causes {
-			causes[i].Pointer = "/user_config" + causes[i].Pointer
-		}
-		return validation.NewValidationFailed("invalid user configuration", causes)
 	}
 
 	// Validate complex UserConfiguration
@@ -364,7 +284,7 @@ func (c *TenantConfiguration) doValidate() error {
 // features default behavior
 func (c *TenantConfiguration) AfterUnmarshal() {
 
-	updateNilFieldsWithZeroValue(&c.UserConfig)
+	marshal.UpdateNilFieldsWithZeroValue(c)
 
 	// Set default dislay app name
 	if c.UserConfig.DisplayAppName == "" {
@@ -680,7 +600,7 @@ type AuthConfiguration struct {
 	AuthenticationSession      *AuthenticationSessionConfiguration `json:"authentication_session,omitempty" yaml:"authentication_session" msg:"authentication_session" default_zero_value:"true"`
 	LoginIDTypes               *LoginIDTypesConfiguration          `json:"login_id_types,omitempty" yaml:"login_id_types" msg:"login_id_types" default_zero_value:"true"`
 	LoginIDKeys                []LoginIDKeyConfiguration           `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
-	AllowedRealms              []string                            `json:"-"`
+	AllowedRealms              []string                            `json:"-" yaml:"-" msg:"allowed_realms"`
 	OnUserDuplicateAllowCreate bool                                `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
 }
 
