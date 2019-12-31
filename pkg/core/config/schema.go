@@ -413,6 +413,7 @@ const (
 			},
 			"client_id": { "type": "string" },
 			"client_secret": { "type": "string" },
+			"scope": { "type": "string" },
 			"tenant": { "type": "string" },
 			"key_id": { "type": "string" },
 			"team_id": { "type": "string" }
