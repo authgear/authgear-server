@@ -14,7 +14,7 @@ func NewMockStore() Store {
 	}
 }
 
-func (s *MockStore) CreatePrincipal(principal Principal) error {
+func (s *MockStore) CreatePrincipal(principal *Principal) error {
 	if _, ok := s.PrincipalMap[principal.ID]; ok {
 		return ErrLoginIDAlreadyUsed
 	}
@@ -28,8 +28,13 @@ func (s *MockStore) CreatePrincipal(principal Principal) error {
 		}
 	}
 
-	s.PrincipalMap[principal.ID] = principal
+	s.PrincipalMap[principal.ID] = *principal
 
+	return nil
+}
+
+func (s *MockStore) DeletePrincipal(principal *Principal) error {
+	delete(s.PrincipalMap, principal.ID)
 	return nil
 }
 

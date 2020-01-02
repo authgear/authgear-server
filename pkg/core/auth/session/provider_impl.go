@@ -270,6 +270,18 @@ func (p *providerImpl) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepM
 	return err
 }
 
+func (p *providerImpl) UpdatePrincipal(sess *auth.Session, principalID string) error {
+	sess.PrincipalID = principalID
+
+	clientConfig, _ := model.GetClientConfig(p.clientConfigs, sess.ClientID)
+	expiry := computeSessionStorageExpiry(sess, *clientConfig)
+	err := p.store.Update(sess, expiry)
+	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to update session")
+	}
+	return err
+}
+
 func (p *providerImpl) generateAccessToken(s *auth.Session) string {
 	accessToken := encodeToken(s.ID, corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand))
 	s.AccessTokenHash = crypto.SHA256String(accessToken)

@@ -68,7 +68,7 @@ func (p *LoginRequestPayload) Validate() []validation.ErrorCause {
 		if err := p.PasswordAuthProvider.ValidateLoginID(loginID); err != nil {
 			if causes := validation.ErrorCauses(err); len(causes) > 0 {
 				for i := range causes {
-					causes[i].Pointer = "/login_id"
+					causes[i].Pointer = "/login_id" + causes[i].Pointer
 				}
 				return causes
 			}

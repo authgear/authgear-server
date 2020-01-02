@@ -141,3 +141,9 @@ func (p *MockProvider) UpdateMFA(sess *auth.Session, opts auth.AuthnSessionStepM
 	p.Sessions[sess.ID] = *sess
 	return nil
 }
+
+func (p *MockProvider) UpdatePrincipal(sess *auth.Session, principalID string) error {
+	sess.PrincipalID = principalID
+	p.Sessions[sess.ID] = *sess
+	return nil
+}

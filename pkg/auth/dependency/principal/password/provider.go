@@ -92,55 +92,75 @@ func (p *providerImpl) IsDefaultAllowedRealms() bool {
 	return len(p.allowedRealms) == 1 && p.allowedRealms[0] == DefaultRealm
 }
 
-func (p *providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (principals []*Principal, err error) {
+func (p *providerImpl) MakePrincipal(userID string, password string, loginID LoginID, realm string) (*Principal, error) {
+	normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginID.Key)
+	loginIDValue := loginID.Value
+	normalizedloginIDValue, err := normalizer.Normalize(loginID.Value)
+	if err != nil {
+		return nil, errors.HandledWithMessage(err, "failed to normalized login id")
+	}
+
+	uniqueKey, err := normalizer.ComputeUniqueKey(normalizedloginIDValue)
+	if err != nil {
+		return nil, errors.HandledWithMessage(err, "failed to compute login id unique key")
+	}
+
+	principal := NewPrincipal()
+	principal.UserID = userID
+	principal.LoginIDKey = loginID.Key
+	principal.LoginID = normalizedloginIDValue
+	principal.OriginalLoginID = loginIDValue
+	principal.UniqueKey = uniqueKey
+	principal.Realm = realm
+	principal.deriveClaims(p.loginIDChecker)
+	err = principal.setPassword(password)
+	if err != nil {
+		return nil, errors.HandledWithMessage(err, "failed to set password")
+	}
+
+	return &principal, nil
+}
+
+func (p *providerImpl) CreatePrincipalsByLoginID(userID string, password string, loginIDs []LoginID, realm string) ([]*Principal, error) {
+	var principals []*Principal
 	for _, loginID := range loginIDs {
-		normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginID.Key)
-		loginIDValue := loginID.Value
-		normalizedloginIDValue, e := normalizer.Normalize(loginID.Value)
-		if e != nil {
-			err = errors.HandledWithMessage(err, "failed to normalized login id")
-			return
+		principal, err := p.MakePrincipal(userID, password, loginID, realm)
+		if err != nil {
+			return nil, err
 		}
 
-		uniqueKey, e := normalizer.ComputeUniqueKey(normalizedloginIDValue)
-		if e != nil {
-			err = errors.HandledWithMessage(e, "failed to compute login id unique key")
-			return
-		}
-
-		principal := NewPrincipal()
-		principal.UserID = authInfoID
-		principal.LoginIDKey = loginID.Key
-		principal.LoginID = normalizedloginIDValue
-		principal.OriginalLoginID = loginIDValue
-		principal.UniqueKey = uniqueKey
-		principal.Realm = realm
-		principal.deriveClaims(p.loginIDChecker)
-		principal.setPassword(password)
-		err = p.createPrincipal(principal)
+		err = p.CreatePrincipal(principal)
 		if err != nil {
 			if !errors.Is(err, ErrLoginIDAlreadyUsed) {
 				err = errors.HandledWithMessage(err, "failed to create principal")
 			}
-			return
+			return nil, err
 		}
 
-		principals = append(principals, &principal)
+		principals = append(principals, principal)
 	}
 
-	return
+	return principals, nil
 }
 
-func (p *providerImpl) createPrincipal(principal Principal) (err error) {
+func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 	// Create principal
 	err = p.store.CreatePrincipal(principal)
 	if err != nil {
 		return
 	}
 
-	err = p.savePasswordHistory(&principal)
+	err = p.savePasswordHistory(principal)
 
 	return
+}
+
+func (p *providerImpl) DeletePrincipal(principal *Principal) error {
+	err := p.store.DeletePrincipal(principal)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (p *providerImpl) savePasswordHistory(principal *Principal) error {

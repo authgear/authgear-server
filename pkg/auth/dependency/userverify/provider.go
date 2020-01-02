@@ -20,6 +20,11 @@ type Provider interface {
 		authInfo *authinfo.AuthInfo,
 		code string,
 	) (*VerifyCode, error)
+	UpdateVerificationState(
+		authInfo *authinfo.AuthInfo,
+		authStore authinfo.Store,
+		principals []*password.Principal,
+	) error
 }
 
 type providerImpl struct {
@@ -144,16 +149,32 @@ func (provider *providerImpl) markUserVerified(
 
 	// Update user
 	authInfo.VerifyInfo[verifyCode.LoginID] = true
-	authInfo.Verified = IsUserVerified(
+	if err = provider.UpdateVerificationState(authInfo, authStore, principals); err != nil {
+		return
+	}
+
+	return
+}
+
+func (provider *providerImpl) UpdateVerificationState(
+	authInfo *authinfo.AuthInfo,
+	authStore authinfo.Store,
+	principals []*password.Principal,
+) error {
+	isVerified := IsUserVerified(
 		authInfo.VerifyInfo,
 		principals,
 		provider.config.Criteria,
 		provider.config.LoginIDKeys,
 	)
-
-	if err = authStore.UpdateAuth(authInfo); err != nil {
-		return
+	if isVerified == authInfo.Verified {
+		return nil
 	}
 
-	return
+	authInfo.Verified = isVerified
+	if err := authStore.UpdateAuth(authInfo); err != nil {
+		return err
+	}
+
+	return nil
 }
