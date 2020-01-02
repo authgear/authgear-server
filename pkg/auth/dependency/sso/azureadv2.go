@@ -2,33 +2,23 @@ package sso
 
 import (
 	"crypto/subtle"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 
-	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/lestrrat-go/jwx/jwk"
-
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type Azureadv2Impl struct {
 	URLPrefix      *url.URL
 	OAuthConfig    *config.OAuthConfiguration
 	ProviderConfig config.OAuthProviderConfiguration
+	TimeProvider   coreTime.Provider
 }
 
-type azureadv2OpenIDConfiguration struct {
-	AuthorizationEndpoint string `json:"authorization_endpoint"`
-	TokenEndpoint         string `json:"token_endpoint"`
-	JWKSUri               string `json:"jwks_uri"`
-	UserInfoEndpoint      string `json:"userinfo_endpoint"`
-}
-
-func (f *Azureadv2Impl) getOpenIDConfiguration() (c azureadv2OpenIDConfiguration, err error) {
+func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
 	// TODO(sso): Cache OpenID configuration
 
 	tenant := f.ProviderConfig.Tenant
@@ -71,39 +61,7 @@ func (f *Azureadv2Impl) getOpenIDConfiguration() (c azureadv2OpenIDConfiguration
 		endpoint = fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0/.well-known/openid-configuration", tenant)
 	}
 
-	// nolint: gosec
-	resp, err := http.Get(endpoint)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-	if err != nil {
-		return
-	}
-	if resp.StatusCode != http.StatusOK {
-		err = errors.Newf("unexpected status code: %d", resp.StatusCode)
-		return
-	}
-	err = json.NewDecoder(resp.Body).Decode(&c)
-	if err != nil {
-		return
-	}
-	return
-}
-
-func (f *Azureadv2Impl) getKeys(endpoint string) (*jwk.Set, error) {
-	// TODO(sso): Cache JWKs
-	// nolint: gosec
-	resp, err := http.Get(endpoint)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Newf("unexpected status code: %d", resp.StatusCode)
-	}
-	return jwk.Parse(resp.Body)
+	return FetchOIDCDiscoveryDocument(http.DefaultClient, endpoint)
 }
 
 func (f *Azureadv2Impl) Type() config.OAuthProviderType {
@@ -115,16 +73,12 @@ func (f *Azureadv2Impl) GetAuthURL(state State, encodedState string) (string, er
 	if err != nil {
 		return "", err
 	}
-	p := authURLParams{
-		oauthConfig:    f.OAuthConfig,
-		urlPrefix:      f.URLPrefix,
-		providerConfig: f.ProviderConfig,
-		encodedState:   encodedState,
-		baseURL:        c.AuthorizationEndpoint,
-		responseMode:   "form_post",
-		nonce:          state.Nonce,
-	}
-	return authURL(p)
+	return c.MakeOAuthURL(OIDCAuthParams{
+		ProviderConfig: f.ProviderConfig,
+		URLPrefix:      f.URLPrefix,
+		Nonce:          state.Nonce,
+		EncodedState:   encodedState,
+	}), nil
 }
 
 func (f *Azureadv2Impl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
@@ -142,76 +96,31 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC discovery document")
 		return
 	}
-	keySet, err := f.getKeys(c.JWKSUri)
+	// TODO(sso): Cache JWKs
+	keySet, err := c.FetchJWKs(http.DefaultClient)
 	if err != nil {
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")
 		return
 	}
 
-	body := url.Values{}
-	body.Set("grant_type", "authorization_code")
-	body.Set("client_id", f.ProviderConfig.ClientID)
-	body.Set("code", r.Code)
-	body.Set("redirect_uri", redirectURI(f.URLPrefix, f.ProviderConfig))
-	body.Set("client_secret", f.ProviderConfig.ClientSecret)
-
-	resp, err := http.PostForm(c.TokenEndpoint, body)
-	if err != nil {
-		err = NewSSOFailed(NetworkFailed, "failed to connect authorization server")
-		return
-	}
-	defer resp.Body.Close()
-
 	var tokenResp AccessTokenResp
-	if resp.StatusCode == 200 {
-		err = json.NewDecoder(resp.Body).Decode(&tokenResp)
-		if err != nil {
-			return
-		}
-	} else {
-		var errorResp oauthErrorResp
-		err = json.NewDecoder(resp.Body).Decode(&errorResp)
-		if err != nil {
-			return
-		}
-		err = errorResp.AsError()
-		return
-	}
-
-	idToken := tokenResp.IDToken()
-	keyFunc := func(token *jwt.Token) (interface{}, error) {
-		keyID, ok := token.Header["kid"].(string)
-		if !ok {
-			return nil, NewSSOFailed(SSOUnauthorized, "no kid")
-		}
-		if key := keySet.LookupKeyID(keyID); len(key) == 1 {
-			return key[0].Materialize()
-		}
-		return nil, NewSSOFailed(SSOUnauthorized, "failed to find signing key")
-	}
-
-	mapClaims := jwt.MapClaims{}
-	_, err = jwt.ParseWithClaims(idToken, mapClaims, keyFunc)
+	claims, err := c.ExchangeCode(
+		http.DefaultClient,
+		r.Code,
+		keySet,
+		f.URLPrefix,
+		f.ProviderConfig.ClientID,
+		f.ProviderConfig.ClientSecret,
+		redirectURI(f.URLPrefix, f.ProviderConfig),
+		r.Nonce,
+		f.TimeProvider.NowUTC,
+		&tokenResp,
+	)
 	if err != nil {
-		err = NewSSOFailed(SSOUnauthorized, "invalid JWT signature")
 		return
 	}
 
-	if !mapClaims.VerifyAudience(f.ProviderConfig.ClientID, true) {
-		err = NewSSOFailed(SSOUnauthorized, "invalid aud")
-		return
-	}
-	hashedNonce, ok := mapClaims["nonce"].(string)
-	if !ok {
-		err = NewSSOFailed(InvalidParams, "no nonce")
-		return
-	}
-	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
-		err = NewSSOFailed(SSOUnauthorized, "invalid nonce")
-		return
-	}
-
-	oid, ok := mapClaims["oid"].(string)
+	oid, ok := claims["oid"].(string)
 	if !ok {
 		err = NewSSOFailed(SSOUnauthorized, "no oid")
 		return
@@ -219,10 +128,10 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 	// For "Microsoft Account", email usually exists.
 	// For "AD guest user", email usually exists because to invite an user, the inviter must provide email.
 	// For "AD user", email never exists even one is provided in "Authentication Methods".
-	email, _ := mapClaims["email"].(string)
+	email, _ := claims["email"].(string)
 
 	authInfo.ProviderConfig = f.ProviderConfig
-	authInfo.ProviderRawProfile = mapClaims
+	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderAccessTokenResp = tokenResp
 	authInfo.ProviderUserInfo = ProviderUserInfo{
 		ID:    oid,

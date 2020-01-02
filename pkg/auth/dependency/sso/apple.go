@@ -2,14 +2,12 @@ package sso
 
 import (
 	"crypto/subtle"
-	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/lestrrat-go/jwx/jwk"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
@@ -17,26 +15,17 @@ import (
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
+var appleOIDCConfig = OIDCDiscoveryDocument{
+	JWKSUri:               "https://appleid.apple.com/auth/keys",
+	TokenEndpoint:         "https://appleid.apple.com/auth/token",
+	AuthorizationEndpoint: "https://appleid.apple.com/auth/authorize",
+}
+
 type AppleImpl struct {
 	URLPrefix      *url.URL
 	OAuthConfig    *config.OAuthConfiguration
 	ProviderConfig config.OAuthProviderConfiguration
 	TimeProvider   coreTime.Provider
-}
-
-func (f *AppleImpl) getKeys() (*jwk.Set, error) {
-	// TODO(sso): Cache JWKs
-	resp, err := http.Get("https://appleid.apple.com/auth/keys")
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Newf("unexpected status code: %d", resp.StatusCode)
-	}
-	return jwk.Parse(resp.Body)
 }
 
 func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
@@ -69,16 +58,12 @@ func (f *AppleImpl) Type() config.OAuthProviderType {
 }
 
 func (f *AppleImpl) GetAuthURL(state State, encodedState string) (string, error) {
-	p := authURLParams{
-		oauthConfig:    f.OAuthConfig,
-		urlPrefix:      f.URLPrefix,
-		providerConfig: f.ProviderConfig,
-		encodedState:   encodedState,
-		baseURL:        "https://appleid.apple.com/auth/authorize",
-		responseMode:   "form_post",
-		nonce:          state.Nonce,
-	}
-	return authURL(p)
+	return appleOIDCConfig.MakeOAuthURL(OIDCAuthParams{
+		ProviderConfig: f.ProviderConfig,
+		URLPrefix:      f.URLPrefix,
+		Nonce:          state.Nonce,
+		EncodedState:   encodedState,
+	}), nil
 }
 
 func (f *AppleImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
@@ -91,7 +76,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 		return
 	}
 
-	keySet, err := f.getKeys()
+	keySet, err := appleOIDCConfig.FetchJWKs(http.DefaultClient)
 	if err != nil {
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")
 		return
@@ -103,67 +88,20 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 		return
 	}
 
-	body := url.Values{}
-	body.Set("grant_type", "authorization_code")
-	body.Set("client_id", f.ProviderConfig.ClientID)
-	body.Set("code", r.Code)
-	body.Set("redirect_uri", redirectURI(f.URLPrefix, f.ProviderConfig))
-	body.Set("client_secret", clientSecret)
-
-	resp, err := http.PostForm("https://appleid.apple.com/auth/token", body)
-	if err != nil {
-		err = NewSSOFailed(NetworkFailed, "failed to connect authorization server")
-		return
-	}
-	defer resp.Body.Close()
-
 	var tokenResp AccessTokenResp
-	if resp.StatusCode == 200 {
-		err = json.NewDecoder(resp.Body).Decode(&tokenResp)
-		if err != nil {
-			return
-		}
-	} else {
-		var errorResp oauthErrorResp
-		err = json.NewDecoder(resp.Body).Decode(&errorResp)
-		if err != nil {
-			return
-		}
-		err = errorResp.AsError()
-		return
-	}
-
-	// https://developer.apple.com/documentation/signinwithapplerestapi/verifying_a_user
-	// The following code verify the id token according to the docs.
-
-	idToken := tokenResp.IDToken()
-	keyFunc := func(token *jwt.Token) (interface{}, error) {
-		keyID, ok := token.Header["kid"].(string)
-		if !ok {
-			return nil, NewSSOFailed(SSOUnauthorized, "no kid")
-		}
-		if key := keySet.LookupKeyID(keyID); len(key) == 1 {
-			return key[0].Materialize()
-		}
-		return nil, NewSSOFailed(SSOUnauthorized, "failed to find signing key")
-	}
-
-	mapClaims := jwt.MapClaims{}
-	// Verify the signature
-	_, err = jwt.ParseWithClaims(idToken, mapClaims, keyFunc)
+	claims, err := appleOIDCConfig.ExchangeCode(
+		http.DefaultClient,
+		r.Code,
+		keySet,
+		f.URLPrefix,
+		f.ProviderConfig.ClientID,
+		clientSecret,
+		redirectURI(f.URLPrefix, f.ProviderConfig),
+		r.Nonce,
+		f.TimeProvider.NowUTC,
+		&tokenResp,
+	)
 	if err != nil {
-		err = NewSSOFailed(SSOUnauthorized, "invalid JWT signature")
-		return
-	}
-
-	// Verify the nonce
-	hashedNonce, ok := mapClaims["nonce"].(string)
-	if !ok {
-		err = NewSSOFailed(InvalidParams, "no nonce")
-		return
-	}
-	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
-		err = NewSSOFailed(SSOUnauthorized, "invalid nonce")
 		return
 	}
 
@@ -172,7 +110,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 	// The exact spec is
 	// Verify that the iss field contains https://appleid.apple.com
 	// Therefore, we use strings.Contains here.
-	iss, ok := mapClaims["iss"].(string)
+	iss, ok := claims["iss"].(string)
 	if !ok {
 		err = NewSSOFailed(SSOUnauthorized, "invalid iss")
 		return
@@ -182,30 +120,17 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 		return
 	}
 
-	// Verify the audience
-	if !mapClaims.VerifyAudience(f.ProviderConfig.ClientID, true) {
-		err = NewSSOFailed(SSOUnauthorized, "invalid aud")
-		return
-	}
-
-	// Verify exp
-	now := f.TimeProvider.NowUTC().Unix()
-	if !mapClaims.VerifyExpiresAt(now, true) {
-		err = NewSSOFailed(SSOUnauthorized, "invalid exp")
-		return
-	}
-
 	// Ensure sub exists
-	sub, ok := mapClaims["sub"].(string)
+	sub, ok := claims["sub"].(string)
 	if !ok {
 		err = NewSSOFailed(SSOUnauthorized, "no sub")
 		return
 	}
 
-	email, _ := mapClaims["email"].(string)
+	email, _ := claims["email"].(string)
 
 	authInfo.ProviderConfig = f.ProviderConfig
-	authInfo.ProviderRawProfile = mapClaims
+	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderAccessTokenResp = tokenResp
 	authInfo.ProviderUserInfo = ProviderUserInfo{
 		ID:    sub,
