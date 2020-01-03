@@ -36,7 +36,8 @@ func init() {
 		File:     true,
 	})
 	addFormatChecker("phone", E164Phone{})
-	addFormatChecker("email", Email{})
+	addFormatChecker("email", Email{AllowName: false})
+	addFormatChecker("NameEmailAddr", Email{AllowName: true})
 }
 
 type URLVariant int
@@ -167,7 +168,9 @@ func (f E164Phone) ValidateFormat(input interface{}) error {
 // If the input is not a string or is an empty string, it is not an error.
 // To enforce string or non-empty string, use other JSON schema constructs.
 // This design allows this format to validate optional email.
-type Email struct{}
+type Email struct {
+	AllowName bool
+}
 
 func (f Email) IsFormat(input interface{}) bool {
 	return f.ValidateFormat(input) == nil
@@ -188,15 +191,17 @@ func (f Email) ValidateFormat(input interface{}) error {
 		return err
 	}
 
-	if addr.Name != "" {
+	if !f.AllowName && addr.Name != "" {
 		return errors.New("input email must not have name")
 	}
 
 	ss := addr.String()
 	// Remove <>
-	ss = ss[1 : len(ss)-1]
+	if len(ss) >= 2 && ss[0] == '<' && ss[len(ss)-1] == '>' {
+		ss = ss[1 : len(ss)-1]
+	}
 	if s != ss {
-		return errors.New("input email must be in expected format")
+		return errors.New("input email must be normalized")
 	}
 
 	return nil
