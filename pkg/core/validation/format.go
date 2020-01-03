@@ -143,12 +143,20 @@ func (f E164Phone) IsFormat(input interface{}) bool {
 	return phone.EnsureE164(str) == nil
 }
 
+// Email checks if input is an email address.
+// If the input is not a string or is an empty string, it is not an error.
+// To enforce string or non-empty string, use other JSON schema constructs.
+// This design allows this format to validate optional email.
 type Email struct{}
 
 func (f Email) IsFormat(input interface{}) bool {
 	s, ok := input.(string)
 	if !ok {
-		return false
+		return true
+	}
+
+	if s == "" {
+		return true
 	}
 
 	addr, err := mail.ParseAddress(s)
