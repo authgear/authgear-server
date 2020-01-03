@@ -133,22 +133,37 @@ func (f FilePath) IsFormat(input interface{}) bool {
 	return true
 }
 
+// E164Phone checks if input is a phone number in E.164 format.
+// If the input is not a string or is an empty string, it is not an error.
+// To enforce string or non-empty string, use other JSON schema constructs.
+// This design allows this format to validate optional phone number.
 type E164Phone struct{}
 
 func (f E164Phone) IsFormat(input interface{}) bool {
 	str, ok := input.(string)
 	if !ok {
-		return false
+		return true
+	}
+	if str == "" {
+		return true
 	}
 	return phone.EnsureE164(str) == nil
 }
 
+// Email checks if input is an email address.
+// If the input is not a string or is an empty string, it is not an error.
+// To enforce string or non-empty string, use other JSON schema constructs.
+// This design allows this format to validate optional email.
 type Email struct{}
 
 func (f Email) IsFormat(input interface{}) bool {
 	s, ok := input.(string)
 	if !ok {
-		return false
+		return true
+	}
+
+	if s == "" {
+		return true
 	}
 
 	addr, err := mail.ParseAddress(s)
