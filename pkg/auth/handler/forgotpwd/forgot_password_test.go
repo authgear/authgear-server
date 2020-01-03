@@ -166,22 +166,25 @@ func TestForgotPasswordHandler(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			fh.ServeHTTP(resp, req)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
 				"error": {
-					"name": "Invalid",
-					"reason": "ValidationFailed",
-					"message": "invalid request body",
 					"code": 400,
 					"info": {
 						"causes": [
-							{
-								"kind": "StringFormat",
-								"pointer": "/email",
-								"message": "Does not match format 'email'",
-								"details": { "format": "email" }
-							}
+						{
+							"details": {
+								"gte": 1
+							},
+							"kind": "StringLength",
+							"message": "String length must be greater than or equal to 1",
+							"pointer": "/email"
+						}
 						]
-					}
+					},
+					"message": "invalid request body",
+					"name": "Invalid",
+					"reason": "ValidationFailed"
 				}
 			}`)
 		})
