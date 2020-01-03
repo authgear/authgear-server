@@ -420,7 +420,7 @@ func TestTenantConfig(t *testing.T) {
 			google := c.UserConfig.SSO.OAuth.Providers[0]
 
 			So(google.ID, ShouldEqual, OAuthProviderTypeGoogle)
-			So(google.Scope, ShouldEqual, "profile email")
+			So(google.Scope, ShouldEqual, "openid profile email")
 		})
 
 		testValidation := func(c *TenantConfiguration, causes []validation.ErrorCause) {

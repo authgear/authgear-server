@@ -59,6 +59,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 			URLPrefix:      p.urlPrefixProvider.Value(),
 			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
 			ProviderConfig: providerConfig,
+			TimeProvider:   p.timeProvider,
 		}
 	case config.OAuthProviderTypeFacebook:
 		return &FacebookImpl{
@@ -83,6 +84,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 			URLPrefix:      p.urlPrefixProvider.Value(),
 			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
 			ProviderConfig: providerConfig,
+			TimeProvider:   p.timeProvider,
 		}
 	case config.OAuthProviderTypeApple:
 		return &AppleImpl{

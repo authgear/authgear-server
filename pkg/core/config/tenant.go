@@ -467,7 +467,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		case OAuthProviderTypeGoogle:
 			if provider.Scope == "" {
 				// https://developers.google.com/identity/protocols/googlescopes#google_sign-in
-				c.UserConfig.SSO.OAuth.Providers[i].Scope = "profile email"
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
 			}
 		case OAuthProviderTypeFacebook:
 			if provider.Scope == "" {
