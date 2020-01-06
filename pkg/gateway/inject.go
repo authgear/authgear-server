@@ -54,18 +54,18 @@ func (m DependencyMap) Provide(
 			redisSession.NewStore(ctx, tConfig.AppID, time.NewProvider(), newLoggerFactory()),
 			redisSession.NewEventStore(ctx, tConfig.AppID),
 			newAuthContext(),
-			tConfig.UserConfig.Clients,
+			tConfig.AppConfig.Clients,
 		)
 	case "SessionWriter":
 		return session.NewWriter(
 			newAuthContext(),
-			tConfig.UserConfig.Clients,
-			tConfig.UserConfig.MFA,
+			tConfig.AppConfig.Clients,
+			tConfig.AppConfig.MFA,
 			m.UseInsecureCookie,
 		)
 	case "AuthInfoStore":
 		return pqAuthInfo.NewAuthInfoStore(
-			db.NewSQLBuilder("core", tConfig.AppConfig.DatabaseSchema, tConfig.AppID),
+			db.NewSQLBuilder("core", tConfig.DatabaseConfig.DatabaseSchema, tConfig.AppID),
 			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
 		)
 	case "TxContext":

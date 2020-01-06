@@ -26,16 +26,16 @@ func (p *providerImpl) Get() (string, *config.APIClientConfiguration, bool) {
 		return "", nil, false
 	}
 	clientID := accessKey.ClientID
-	c, ok := model.GetClientConfig(p.tenantConfig.UserConfig.Clients, clientID)
+	c, ok := model.GetClientConfig(p.tenantConfig.AppConfig.Clients, clientID)
 	return clientID, c, ok
 }
 
 func (p *providerImpl) GetAccessKeyByAPIKey(apiKey string) model.AccessKey {
-	if subtle.ConstantTimeCompare([]byte(apiKey), []byte(p.tenantConfig.UserConfig.MasterKey)) == 1 {
+	if subtle.ConstantTimeCompare([]byte(apiKey), []byte(p.tenantConfig.AppConfig.MasterKey)) == 1 {
 		return model.AccessKey{Type: model.MasterAccessKeyType}
 	}
 
-	for _, clientConfig := range p.tenantConfig.UserConfig.Clients {
+	for _, clientConfig := range p.tenantConfig.AppConfig.Clients {
 		if subtle.ConstantTimeCompare([]byte(apiKey), []byte(clientConfig.APIKey)) == 1 {
 			return model.AccessKey{Type: model.APIAccessKeyType, ClientID: clientConfig.ID}
 		}

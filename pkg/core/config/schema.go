@@ -24,22 +24,33 @@ const (
 		"$id": "#TenantConfiguration",
 		"type": "object",
 		"properties": {
-			"version": { "const": "1" },
+			"version": { "const": "2" },
 			"app_id": { "$ref": "#NonEmptyString" },
 			"app_name": { "$ref": "#NonEmptyString" },
-			"app_config": {
-				"type": "object",
-				"properties": {
-					"database_url": { "$ref": "#NonEmptyString" },
-					"database_schema": { "$ref": "#NonEmptyString" }
-				}
-			},
-			"user_config": { "$ref": "#UserConfiguration" }
+			"database_config": { "$ref": "#DatabaseConfiguration" },
+			"hook": { "$ref": "#HookTimeoutConfiguration" },
+			"app_config": { "$ref": "#AppConfiguration" }
 		},
-		"required": ["version", "app_id", "app_name", "app_config", "user_config"]
+		"required": ["version", "app_id", "app_name", "database_config", "app_config"]
 	},
-	"UserConfiguration": {
-		"$id": "#UserConfiguration",
+	"DatabaseConfiguration": {
+		"$id": "#DatabaseConfiguration",
+		"type": "object",
+		"properties": {
+			"database_url": { "$ref": "#NonEmptyString" },
+			"database_schema": { "$ref": "#NonEmptyString" }
+		}
+	},
+	"HookTimeoutConfiguration": {
+		"$id": "#HookTimeoutConfiguration",
+		"type": "object",
+		"properties": {
+			"sync_hook_timeout_second": { "type": "integer" },
+			"sync_hook_total_timeout_second": { "type": "integer" }
+		}
+	},
+	"AppConfiguration": {
+		"$id": "#AppConfiguration",
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
@@ -58,7 +69,7 @@ const (
 			"welcome_email": { "$ref": "#WelcomeEmailConfiguration" },
 			"sso": { "$ref": "#SSOConfiguration" },
 			"user_verification": { "$ref": "#UserVerificationConfiguration" },
-			"hook": { "$ref": "#HookUserConfiguration" },
+			"hook": { "$ref": "#HookConfiguration" },
 			"smtp" : { "$ref": "#SMTPConfiguration" },
 			"twilio" : { "$ref": "#TwilioConfiguration" },
 			"nexmo" : { "$ref": "#NexmoConfiguration" },
@@ -479,8 +490,8 @@ const (
 			"reply_to": { "type": "string", "format": "NameEmailAddr" }
 		}
 	},
-	"HookUserConfiguration": {
-		"$id": "#HookUserConfiguration",
+	"HookConfiguration": {
+		"$id": "#HookConfiguration",
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
@@ -545,9 +556,9 @@ func ParseTenantConfiguration(r io.Reader) (*TenantConfiguration, error) {
 	return &config, nil
 }
 
-func ParseUserConfiguration(r io.Reader) (*UserConfiguration, error) {
-	config := UserConfiguration{}
-	err := tenantConfigurationValidator.ParseReader("#UserConfiguration", r, &config)
+func ParseAppConfiguration(r io.Reader) (*AppConfiguration, error) {
+	config := AppConfiguration{}
+	err := tenantConfigurationValidator.ParseReader("#AppConfiguration", r, &config)
 	if err != nil {
 		return nil, err
 	}

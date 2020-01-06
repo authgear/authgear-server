@@ -14,10 +14,10 @@ import (
 var (
 	sampleConfig = config.TenantConfiguration{
 		AppName: "AppName",
-		AppConfig: &config.AppConfiguration{
+		DatabaseConfig: &config.DatabaseConfiguration{
 			DatabaseURL: "DBConnectionStr",
 		},
-		UserConfig: &config.UserConfiguration{
+		AppConfig: &config.AppConfiguration{
 			Clients: []config.APIClientConfiguration{
 				config.APIClientConfiguration{
 					ID:     "web-app",

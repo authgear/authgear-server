@@ -66,22 +66,22 @@ func (m *DependencyMap) Provide(
 			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider(), newLoggerFactory()),
 			redisSession.NewEventStore(ctx, tConfig.AppID),
 			newAuthContext(),
-			tConfig.UserConfig.Clients,
+			tConfig.AppConfig.Clients,
 		)
 	}
 
 	newSessionWriter := func() session.Writer {
 		return session.NewWriter(
 			newAuthContext(),
-			tConfig.UserConfig.Clients,
-			tConfig.UserConfig.MFA,
+			tConfig.AppConfig.Clients,
+			tConfig.AppConfig.MFA,
 			m.UseInsecureCookie,
 		)
 	}
 
 	newAuthInfoStore := func() authinfo.Store {
 		return pqAuthInfo.NewAuthInfoStore(
-			db.NewSQLBuilder("core", tConfig.AppConfig.DatabaseSchema, tConfig.AppID),
+			db.NewSQLBuilder("core", tConfig.DatabaseConfig.DatabaseSchema, tConfig.AppID),
 			newSQLExecutor(),
 		)
 	}
@@ -109,13 +109,13 @@ func (m *DependencyMap) Provide(
 		return cloudstorage.NewProvider(
 			tConfig.AppID,
 			m.Storage,
-			tConfig.UserConfig.Asset.Secret,
+			tConfig.AppConfig.Asset.Secret,
 			newTimeProvider(),
 		)
 	case "Validator":
 		return m.Validator
 	case "PresignProvider":
-		return presign.NewProvider(tConfig.UserConfig.Asset.Secret, newTimeProvider())
+		return presign.NewProvider(tConfig.AppConfig.Asset.Secret, newTimeProvider())
 	default:
 		return nil
 	}

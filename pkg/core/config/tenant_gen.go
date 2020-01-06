@@ -368,17 +368,250 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "database_url":
-			z.DatabaseURL, err = dc.ReadString()
+		case "display_app_name":
+			z.DisplayAppName, err = dc.ReadString()
 			if err != nil {
-				err = msgp.WrapError(err, "DatabaseURL")
+				err = msgp.WrapError(err, "DisplayAppName")
 				return
 			}
-		case "database_schema":
-			z.DatabaseSchema, err = dc.ReadString()
+		case "clients":
+			var zb0002 uint32
+			zb0002, err = dc.ReadArrayHeader()
 			if err != nil {
-				err = msgp.WrapError(err, "DatabaseSchema")
+				err = msgp.WrapError(err, "Clients")
 				return
+			}
+			if cap(z.Clients) >= int(zb0002) {
+				z.Clients = (z.Clients)[:zb0002]
+			} else {
+				z.Clients = make([]APIClientConfiguration, zb0002)
+			}
+			for za0001 := range z.Clients {
+				err = z.Clients[za0001].DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "Clients", za0001)
+					return
+				}
+			}
+		case "master_key":
+			z.MasterKey, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "MasterKey")
+				return
+			}
+		case "cors":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "CORS")
+					return
+				}
+				z.CORS = nil
+			} else {
+				if z.CORS == nil {
+					z.CORS = new(CORSConfiguration)
+				}
+				var zb0003 uint32
+				zb0003, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "CORS")
+					return
+				}
+				for zb0003 > 0 {
+					zb0003--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "CORS")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "origin":
+						z.CORS.Origin, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "CORS", "Origin")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "CORS")
+							return
+						}
+					}
+				}
+			}
+		case "auth":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "Auth")
+					return
+				}
+				z.Auth = nil
+			} else {
+				if z.Auth == nil {
+					z.Auth = new(AuthConfiguration)
+				}
+				err = z.Auth.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "Auth")
+					return
+				}
+			}
+		case "mfa":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "MFA")
+					return
+				}
+				z.MFA = nil
+			} else {
+				if z.MFA == nil {
+					z.MFA = new(MFAConfiguration)
+				}
+				err = z.MFA.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "MFA")
+					return
+				}
+			}
+		case "user_audit":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "UserAudit")
+					return
+				}
+				z.UserAudit = nil
+			} else {
+				if z.UserAudit == nil {
+					z.UserAudit = new(UserAuditConfiguration)
+				}
+				var zb0004 uint32
+				zb0004, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "UserAudit")
+					return
+				}
+				for zb0004 > 0 {
+					zb0004--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "UserAudit")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "enabled":
+						z.UserAudit.Enabled, err = dc.ReadBool()
+						if err != nil {
+							err = msgp.WrapError(err, "UserAudit", "Enabled")
+							return
+						}
+					case "trail_handler_url":
+						z.UserAudit.TrailHandlerURL, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "UserAudit", "TrailHandlerURL")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "UserAudit")
+							return
+						}
+					}
+				}
+			}
+		case "password_policy":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "PasswordPolicy")
+					return
+				}
+				z.PasswordPolicy = nil
+			} else {
+				if z.PasswordPolicy == nil {
+					z.PasswordPolicy = new(PasswordPolicyConfiguration)
+				}
+				err = z.PasswordPolicy.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "PasswordPolicy")
+					return
+				}
+			}
+		case "forgot_password":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "ForgotPassword")
+					return
+				}
+				z.ForgotPassword = nil
+			} else {
+				if z.ForgotPassword == nil {
+					z.ForgotPassword = new(ForgotPasswordConfiguration)
+				}
+				err = z.ForgotPassword.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "ForgotPassword")
+					return
+				}
+			}
+		case "welcome_email":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "WelcomeEmail")
+					return
+				}
+				z.WelcomeEmail = nil
+			} else {
+				if z.WelcomeEmail == nil {
+					z.WelcomeEmail = new(WelcomeEmailConfiguration)
+				}
+				err = z.WelcomeEmail.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "WelcomeEmail")
+					return
+				}
+			}
+		case "sso":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "SSO")
+					return
+				}
+				z.SSO = nil
+			} else {
+				if z.SSO == nil {
+					z.SSO = new(SSOConfiguration)
+				}
+				err = z.SSO.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "SSO")
+					return
+				}
+			}
+		case "user_verification":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "UserVerification")
+					return
+				}
+				z.UserVerification = nil
+			} else {
+				if z.UserVerification == nil {
+					z.UserVerification = new(UserVerificationConfiguration)
+				}
+				err = z.UserVerification.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "UserVerification")
+					return
+				}
 			}
 		case "hook":
 			if dc.IsNil() {
@@ -390,38 +623,197 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				z.Hook = nil
 			} else {
 				if z.Hook == nil {
-					z.Hook = new(HookAppConfiguration)
+					z.Hook = new(HookConfiguration)
 				}
-				var zb0002 uint32
-				zb0002, err = dc.ReadMapHeader()
+				var zb0005 uint32
+				zb0005, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Hook")
 					return
 				}
-				for zb0002 > 0 {
-					zb0002--
+				for zb0005 > 0 {
+					zb0005--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Hook")
 						return
 					}
 					switch msgp.UnsafeString(field) {
-					case "sync_hook_timeout_second":
-						z.Hook.SyncHookTimeout, err = dc.ReadInt()
+					case "secret":
+						z.Hook.Secret, err = dc.ReadString()
 						if err != nil {
-							err = msgp.WrapError(err, "Hook", "SyncHookTimeout")
-							return
-						}
-					case "sync_hook_total_timeout_second":
-						z.Hook.SyncHookTotalTimeout, err = dc.ReadInt()
-						if err != nil {
-							err = msgp.WrapError(err, "Hook", "SyncHookTotalTimeout")
+							err = msgp.WrapError(err, "Hook", "Secret")
 							return
 						}
 					default:
 						err = dc.Skip()
 						if err != nil {
 							err = msgp.WrapError(err, "Hook")
+							return
+						}
+					}
+				}
+			}
+		case "smtp":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "SMTP")
+					return
+				}
+				z.SMTP = nil
+			} else {
+				if z.SMTP == nil {
+					z.SMTP = new(SMTPConfiguration)
+				}
+				err = z.SMTP.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "SMTP")
+					return
+				}
+			}
+		case "twilio":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "Twilio")
+					return
+				}
+				z.Twilio = nil
+			} else {
+				if z.Twilio == nil {
+					z.Twilio = new(TwilioConfiguration)
+				}
+				var zb0006 uint32
+				zb0006, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "Twilio")
+					return
+				}
+				for zb0006 > 0 {
+					zb0006--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "Twilio")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "account_sid":
+						z.Twilio.AccountSID, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "Twilio", "AccountSID")
+							return
+						}
+					case "auth_token":
+						z.Twilio.AuthToken, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "Twilio", "AuthToken")
+							return
+						}
+					case "from":
+						z.Twilio.From, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "Twilio", "From")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "Twilio")
+							return
+						}
+					}
+				}
+			}
+		case "nexmo":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "Nexmo")
+					return
+				}
+				z.Nexmo = nil
+			} else {
+				if z.Nexmo == nil {
+					z.Nexmo = new(NexmoConfiguration)
+				}
+				var zb0007 uint32
+				zb0007, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "Nexmo")
+					return
+				}
+				for zb0007 > 0 {
+					zb0007--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "Nexmo")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "api_key":
+						z.Nexmo.APIKey, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "Nexmo", "APIKey")
+							return
+						}
+					case "api_secret":
+						z.Nexmo.APISecret, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "Nexmo", "APISecret")
+							return
+						}
+					case "from":
+						z.Nexmo.From, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "Nexmo", "From")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "Nexmo")
+							return
+						}
+					}
+				}
+			}
+		case "asset":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "Asset")
+					return
+				}
+				z.Asset = nil
+			} else {
+				if z.Asset == nil {
+					z.Asset = new(AssetConfiguration)
+				}
+				var zb0008 uint32
+				zb0008, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "Asset")
+					return
+				}
+				for zb0008 > 0 {
+					zb0008--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "Asset")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "secret":
+						z.Asset.Secret, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "Asset", "Secret")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "Asset")
 							return
 						}
 					}
@@ -440,26 +832,218 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 3
-	// write "database_url"
-	err = en.Append(0x83, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
+	// map header, size 17
+	// write "display_app_name"
+	err = en.Append(0xde, 0x0, 0x11, 0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.DatabaseURL)
+	err = en.WriteString(z.DisplayAppName)
 	if err != nil {
-		err = msgp.WrapError(err, "DatabaseURL")
+		err = msgp.WrapError(err, "DisplayAppName")
 		return
 	}
-	// write "database_schema"
-	err = en.Append(0xaf, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61)
+	// write "clients"
+	err = en.Append(0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.DatabaseSchema)
+	err = en.WriteArrayHeader(uint32(len(z.Clients)))
 	if err != nil {
-		err = msgp.WrapError(err, "DatabaseSchema")
+		err = msgp.WrapError(err, "Clients")
 		return
+	}
+	for za0001 := range z.Clients {
+		err = z.Clients[za0001].EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "Clients", za0001)
+			return
+		}
+	}
+	// write "master_key"
+	err = en.Append(0xaa, 0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x6b, 0x65, 0x79)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.MasterKey)
+	if err != nil {
+		err = msgp.WrapError(err, "MasterKey")
+		return
+	}
+	// write "cors"
+	err = en.Append(0xa4, 0x63, 0x6f, 0x72, 0x73)
+	if err != nil {
+		return
+	}
+	if z.CORS == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		// map header, size 1
+		// write "origin"
+		err = en.Append(0x81, 0xa6, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.CORS.Origin)
+		if err != nil {
+			err = msgp.WrapError(err, "CORS", "Origin")
+			return
+		}
+	}
+	// write "auth"
+	err = en.Append(0xa4, 0x61, 0x75, 0x74, 0x68)
+	if err != nil {
+		return
+	}
+	if z.Auth == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.Auth.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "Auth")
+			return
+		}
+	}
+	// write "mfa"
+	err = en.Append(0xa3, 0x6d, 0x66, 0x61)
+	if err != nil {
+		return
+	}
+	if z.MFA == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.MFA.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "MFA")
+			return
+		}
+	}
+	// write "user_audit"
+	err = en.Append(0xaa, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x61, 0x75, 0x64, 0x69, 0x74)
+	if err != nil {
+		return
+	}
+	if z.UserAudit == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		// map header, size 2
+		// write "enabled"
+		err = en.Append(0x82, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+		if err != nil {
+			return
+		}
+		err = en.WriteBool(z.UserAudit.Enabled)
+		if err != nil {
+			err = msgp.WrapError(err, "UserAudit", "Enabled")
+			return
+		}
+		// write "trail_handler_url"
+		err = en.Append(0xb1, 0x74, 0x72, 0x61, 0x69, 0x6c, 0x5f, 0x68, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x72, 0x5f, 0x75, 0x72, 0x6c)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.UserAudit.TrailHandlerURL)
+		if err != nil {
+			err = msgp.WrapError(err, "UserAudit", "TrailHandlerURL")
+			return
+		}
+	}
+	// write "password_policy"
+	err = en.Append(0xaf, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79)
+	if err != nil {
+		return
+	}
+	if z.PasswordPolicy == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.PasswordPolicy.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "PasswordPolicy")
+			return
+		}
+	}
+	// write "forgot_password"
+	err = en.Append(0xaf, 0x66, 0x6f, 0x72, 0x67, 0x6f, 0x74, 0x5f, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64)
+	if err != nil {
+		return
+	}
+	if z.ForgotPassword == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.ForgotPassword.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "ForgotPassword")
+			return
+		}
+	}
+	// write "welcome_email"
+	err = en.Append(0xad, 0x77, 0x65, 0x6c, 0x63, 0x6f, 0x6d, 0x65, 0x5f, 0x65, 0x6d, 0x61, 0x69, 0x6c)
+	if err != nil {
+		return
+	}
+	if z.WelcomeEmail == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.WelcomeEmail.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "WelcomeEmail")
+			return
+		}
+	}
+	// write "sso"
+	err = en.Append(0xa3, 0x73, 0x73, 0x6f)
+	if err != nil {
+		return
+	}
+	if z.SSO == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.SSO.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "SSO")
+			return
+		}
+	}
+	// write "user_verification"
+	err = en.Append(0xb1, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x76, 0x65, 0x72, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e)
+	if err != nil {
+		return
+	}
+	if z.UserVerification == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.UserVerification.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "UserVerification")
+			return
+		}
 	}
 	// write "hook"
 	err = en.Append(0xa4, 0x68, 0x6f, 0x6f, 0x6b)
@@ -472,25 +1056,141 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	} else {
-		// map header, size 2
-		// write "sync_hook_timeout_second"
-		err = en.Append(0x82, 0xb8, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
+		// map header, size 1
+		// write "secret"
+		err = en.Append(0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 		if err != nil {
 			return
 		}
-		err = en.WriteInt(z.Hook.SyncHookTimeout)
+		err = en.WriteString(z.Hook.Secret)
 		if err != nil {
-			err = msgp.WrapError(err, "Hook", "SyncHookTimeout")
+			err = msgp.WrapError(err, "Hook", "Secret")
 			return
 		}
-		// write "sync_hook_total_timeout_second"
-		err = en.Append(0xbe, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
+	}
+	// write "smtp"
+	err = en.Append(0xa4, 0x73, 0x6d, 0x74, 0x70)
+	if err != nil {
+		return
+	}
+	if z.SMTP == nil {
+		err = en.WriteNil()
 		if err != nil {
 			return
 		}
-		err = en.WriteInt(z.Hook.SyncHookTotalTimeout)
+	} else {
+		err = z.SMTP.EncodeMsg(en)
 		if err != nil {
-			err = msgp.WrapError(err, "Hook", "SyncHookTotalTimeout")
+			err = msgp.WrapError(err, "SMTP")
+			return
+		}
+	}
+	// write "twilio"
+	err = en.Append(0xa6, 0x74, 0x77, 0x69, 0x6c, 0x69, 0x6f)
+	if err != nil {
+		return
+	}
+	if z.Twilio == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		// map header, size 3
+		// write "account_sid"
+		err = en.Append(0x83, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.Twilio.AccountSID)
+		if err != nil {
+			err = msgp.WrapError(err, "Twilio", "AccountSID")
+			return
+		}
+		// write "auth_token"
+		err = en.Append(0xaa, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.Twilio.AuthToken)
+		if err != nil {
+			err = msgp.WrapError(err, "Twilio", "AuthToken")
+			return
+		}
+		// write "from"
+		err = en.Append(0xa4, 0x66, 0x72, 0x6f, 0x6d)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.Twilio.From)
+		if err != nil {
+			err = msgp.WrapError(err, "Twilio", "From")
+			return
+		}
+	}
+	// write "nexmo"
+	err = en.Append(0xa5, 0x6e, 0x65, 0x78, 0x6d, 0x6f)
+	if err != nil {
+		return
+	}
+	if z.Nexmo == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		// map header, size 3
+		// write "api_key"
+		err = en.Append(0x83, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.Nexmo.APIKey)
+		if err != nil {
+			err = msgp.WrapError(err, "Nexmo", "APIKey")
+			return
+		}
+		// write "api_secret"
+		err = en.Append(0xaa, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.Nexmo.APISecret)
+		if err != nil {
+			err = msgp.WrapError(err, "Nexmo", "APISecret")
+			return
+		}
+		// write "from"
+		err = en.Append(0xa4, 0x66, 0x72, 0x6f, 0x6d)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.Nexmo.From)
+		if err != nil {
+			err = msgp.WrapError(err, "Nexmo", "From")
+			return
+		}
+	}
+	// write "asset"
+	err = en.Append(0xa5, 0x61, 0x73, 0x73, 0x65, 0x74)
+	if err != nil {
+		return
+	}
+	if z.Asset == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		// map header, size 1
+		// write "secret"
+		err = en.Append(0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.Asset.Secret)
+		if err != nil {
+			err = msgp.WrapError(err, "Asset", "Secret")
 			return
 		}
 	}
@@ -500,25 +1200,185 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 3
-	// string "database_url"
-	o = append(o, 0x83, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
-	o = msgp.AppendString(o, z.DatabaseURL)
-	// string "database_schema"
-	o = append(o, 0xaf, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61)
-	o = msgp.AppendString(o, z.DatabaseSchema)
+	// map header, size 17
+	// string "display_app_name"
+	o = append(o, 0xde, 0x0, 0x11, 0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
+	o = msgp.AppendString(o, z.DisplayAppName)
+	// string "clients"
+	o = append(o, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
+	o = msgp.AppendArrayHeader(o, uint32(len(z.Clients)))
+	for za0001 := range z.Clients {
+		o, err = z.Clients[za0001].MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "Clients", za0001)
+			return
+		}
+	}
+	// string "master_key"
+	o = append(o, 0xaa, 0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x6b, 0x65, 0x79)
+	o = msgp.AppendString(o, z.MasterKey)
+	// string "cors"
+	o = append(o, 0xa4, 0x63, 0x6f, 0x72, 0x73)
+	if z.CORS == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		// map header, size 1
+		// string "origin"
+		o = append(o, 0x81, 0xa6, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e)
+		o = msgp.AppendString(o, z.CORS.Origin)
+	}
+	// string "auth"
+	o = append(o, 0xa4, 0x61, 0x75, 0x74, 0x68)
+	if z.Auth == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.Auth.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "Auth")
+			return
+		}
+	}
+	// string "mfa"
+	o = append(o, 0xa3, 0x6d, 0x66, 0x61)
+	if z.MFA == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.MFA.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "MFA")
+			return
+		}
+	}
+	// string "user_audit"
+	o = append(o, 0xaa, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x61, 0x75, 0x64, 0x69, 0x74)
+	if z.UserAudit == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		// map header, size 2
+		// string "enabled"
+		o = append(o, 0x82, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+		o = msgp.AppendBool(o, z.UserAudit.Enabled)
+		// string "trail_handler_url"
+		o = append(o, 0xb1, 0x74, 0x72, 0x61, 0x69, 0x6c, 0x5f, 0x68, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x72, 0x5f, 0x75, 0x72, 0x6c)
+		o = msgp.AppendString(o, z.UserAudit.TrailHandlerURL)
+	}
+	// string "password_policy"
+	o = append(o, 0xaf, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79)
+	if z.PasswordPolicy == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.PasswordPolicy.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "PasswordPolicy")
+			return
+		}
+	}
+	// string "forgot_password"
+	o = append(o, 0xaf, 0x66, 0x6f, 0x72, 0x67, 0x6f, 0x74, 0x5f, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64)
+	if z.ForgotPassword == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.ForgotPassword.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "ForgotPassword")
+			return
+		}
+	}
+	// string "welcome_email"
+	o = append(o, 0xad, 0x77, 0x65, 0x6c, 0x63, 0x6f, 0x6d, 0x65, 0x5f, 0x65, 0x6d, 0x61, 0x69, 0x6c)
+	if z.WelcomeEmail == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.WelcomeEmail.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "WelcomeEmail")
+			return
+		}
+	}
+	// string "sso"
+	o = append(o, 0xa3, 0x73, 0x73, 0x6f)
+	if z.SSO == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.SSO.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "SSO")
+			return
+		}
+	}
+	// string "user_verification"
+	o = append(o, 0xb1, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x76, 0x65, 0x72, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e)
+	if z.UserVerification == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.UserVerification.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "UserVerification")
+			return
+		}
+	}
 	// string "hook"
 	o = append(o, 0xa4, 0x68, 0x6f, 0x6f, 0x6b)
 	if z.Hook == nil {
 		o = msgp.AppendNil(o)
 	} else {
-		// map header, size 2
-		// string "sync_hook_timeout_second"
-		o = append(o, 0x82, 0xb8, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
-		o = msgp.AppendInt(o, z.Hook.SyncHookTimeout)
-		// string "sync_hook_total_timeout_second"
-		o = append(o, 0xbe, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
-		o = msgp.AppendInt(o, z.Hook.SyncHookTotalTimeout)
+		// map header, size 1
+		// string "secret"
+		o = append(o, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+		o = msgp.AppendString(o, z.Hook.Secret)
+	}
+	// string "smtp"
+	o = append(o, 0xa4, 0x73, 0x6d, 0x74, 0x70)
+	if z.SMTP == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.SMTP.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "SMTP")
+			return
+		}
+	}
+	// string "twilio"
+	o = append(o, 0xa6, 0x74, 0x77, 0x69, 0x6c, 0x69, 0x6f)
+	if z.Twilio == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		// map header, size 3
+		// string "account_sid"
+		o = append(o, 0x83, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
+		o = msgp.AppendString(o, z.Twilio.AccountSID)
+		// string "auth_token"
+		o = append(o, 0xaa, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
+		o = msgp.AppendString(o, z.Twilio.AuthToken)
+		// string "from"
+		o = append(o, 0xa4, 0x66, 0x72, 0x6f, 0x6d)
+		o = msgp.AppendString(o, z.Twilio.From)
+	}
+	// string "nexmo"
+	o = append(o, 0xa5, 0x6e, 0x65, 0x78, 0x6d, 0x6f)
+	if z.Nexmo == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		// map header, size 3
+		// string "api_key"
+		o = append(o, 0x83, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
+		o = msgp.AppendString(o, z.Nexmo.APIKey)
+		// string "api_secret"
+		o = append(o, 0xaa, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+		o = msgp.AppendString(o, z.Nexmo.APISecret)
+		// string "from"
+		o = append(o, 0xa4, 0x66, 0x72, 0x6f, 0x6d)
+		o = msgp.AppendString(o, z.Nexmo.From)
+	}
+	// string "asset"
+	o = append(o, 0xa5, 0x61, 0x73, 0x73, 0x65, 0x74)
+	if z.Asset == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		// map header, size 1
+		// string "secret"
+		o = append(o, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+		o = msgp.AppendString(o, z.Asset.Secret)
 	}
 	return
 }
@@ -541,17 +1401,241 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "database_url":
-			z.DatabaseURL, bts, err = msgp.ReadStringBytes(bts)
+		case "display_app_name":
+			z.DisplayAppName, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "DatabaseURL")
+				err = msgp.WrapError(err, "DisplayAppName")
 				return
 			}
-		case "database_schema":
-			z.DatabaseSchema, bts, err = msgp.ReadStringBytes(bts)
+		case "clients":
+			var zb0002 uint32
+			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "DatabaseSchema")
+				err = msgp.WrapError(err, "Clients")
 				return
+			}
+			if cap(z.Clients) >= int(zb0002) {
+				z.Clients = (z.Clients)[:zb0002]
+			} else {
+				z.Clients = make([]APIClientConfiguration, zb0002)
+			}
+			for za0001 := range z.Clients {
+				bts, err = z.Clients[za0001].UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Clients", za0001)
+					return
+				}
+			}
+		case "master_key":
+			z.MasterKey, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "MasterKey")
+				return
+			}
+		case "cors":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.CORS = nil
+			} else {
+				if z.CORS == nil {
+					z.CORS = new(CORSConfiguration)
+				}
+				var zb0003 uint32
+				zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "CORS")
+					return
+				}
+				for zb0003 > 0 {
+					zb0003--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "CORS")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "origin":
+						z.CORS.Origin, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "CORS", "Origin")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "CORS")
+							return
+						}
+					}
+				}
+			}
+		case "auth":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Auth = nil
+			} else {
+				if z.Auth == nil {
+					z.Auth = new(AuthConfiguration)
+				}
+				bts, err = z.Auth.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Auth")
+					return
+				}
+			}
+		case "mfa":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.MFA = nil
+			} else {
+				if z.MFA == nil {
+					z.MFA = new(MFAConfiguration)
+				}
+				bts, err = z.MFA.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "MFA")
+					return
+				}
+			}
+		case "user_audit":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.UserAudit = nil
+			} else {
+				if z.UserAudit == nil {
+					z.UserAudit = new(UserAuditConfiguration)
+				}
+				var zb0004 uint32
+				zb0004, bts, err = msgp.ReadMapHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "UserAudit")
+					return
+				}
+				for zb0004 > 0 {
+					zb0004--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "UserAudit")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "enabled":
+						z.UserAudit.Enabled, bts, err = msgp.ReadBoolBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "UserAudit", "Enabled")
+							return
+						}
+					case "trail_handler_url":
+						z.UserAudit.TrailHandlerURL, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "UserAudit", "TrailHandlerURL")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "UserAudit")
+							return
+						}
+					}
+				}
+			}
+		case "password_policy":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.PasswordPolicy = nil
+			} else {
+				if z.PasswordPolicy == nil {
+					z.PasswordPolicy = new(PasswordPolicyConfiguration)
+				}
+				bts, err = z.PasswordPolicy.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "PasswordPolicy")
+					return
+				}
+			}
+		case "forgot_password":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.ForgotPassword = nil
+			} else {
+				if z.ForgotPassword == nil {
+					z.ForgotPassword = new(ForgotPasswordConfiguration)
+				}
+				bts, err = z.ForgotPassword.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "ForgotPassword")
+					return
+				}
+			}
+		case "welcome_email":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.WelcomeEmail = nil
+			} else {
+				if z.WelcomeEmail == nil {
+					z.WelcomeEmail = new(WelcomeEmailConfiguration)
+				}
+				bts, err = z.WelcomeEmail.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "WelcomeEmail")
+					return
+				}
+			}
+		case "sso":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.SSO = nil
+			} else {
+				if z.SSO == nil {
+					z.SSO = new(SSOConfiguration)
+				}
+				bts, err = z.SSO.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "SSO")
+					return
+				}
+			}
+		case "user_verification":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.UserVerification = nil
+			} else {
+				if z.UserVerification == nil {
+					z.UserVerification = new(UserVerificationConfiguration)
+				}
+				bts, err = z.UserVerification.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "UserVerification")
+					return
+				}
 			}
 		case "hook":
 			if msgp.IsNil(bts) {
@@ -562,38 +1646,193 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				z.Hook = nil
 			} else {
 				if z.Hook == nil {
-					z.Hook = new(HookAppConfiguration)
+					z.Hook = new(HookConfiguration)
 				}
-				var zb0002 uint32
-				zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0005 uint32
+				zb0005, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Hook")
 					return
 				}
-				for zb0002 > 0 {
-					zb0002--
+				for zb0005 > 0 {
+					zb0005--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Hook")
 						return
 					}
 					switch msgp.UnsafeString(field) {
-					case "sync_hook_timeout_second":
-						z.Hook.SyncHookTimeout, bts, err = msgp.ReadIntBytes(bts)
+					case "secret":
+						z.Hook.Secret, bts, err = msgp.ReadStringBytes(bts)
 						if err != nil {
-							err = msgp.WrapError(err, "Hook", "SyncHookTimeout")
-							return
-						}
-					case "sync_hook_total_timeout_second":
-						z.Hook.SyncHookTotalTimeout, bts, err = msgp.ReadIntBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Hook", "SyncHookTotalTimeout")
+							err = msgp.WrapError(err, "Hook", "Secret")
 							return
 						}
 					default:
 						bts, err = msgp.Skip(bts)
 						if err != nil {
 							err = msgp.WrapError(err, "Hook")
+							return
+						}
+					}
+				}
+			}
+		case "smtp":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.SMTP = nil
+			} else {
+				if z.SMTP == nil {
+					z.SMTP = new(SMTPConfiguration)
+				}
+				bts, err = z.SMTP.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "SMTP")
+					return
+				}
+			}
+		case "twilio":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Twilio = nil
+			} else {
+				if z.Twilio == nil {
+					z.Twilio = new(TwilioConfiguration)
+				}
+				var zb0006 uint32
+				zb0006, bts, err = msgp.ReadMapHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Twilio")
+					return
+				}
+				for zb0006 > 0 {
+					zb0006--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Twilio")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "account_sid":
+						z.Twilio.AccountSID, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Twilio", "AccountSID")
+							return
+						}
+					case "auth_token":
+						z.Twilio.AuthToken, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Twilio", "AuthToken")
+							return
+						}
+					case "from":
+						z.Twilio.From, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Twilio", "From")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Twilio")
+							return
+						}
+					}
+				}
+			}
+		case "nexmo":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Nexmo = nil
+			} else {
+				if z.Nexmo == nil {
+					z.Nexmo = new(NexmoConfiguration)
+				}
+				var zb0007 uint32
+				zb0007, bts, err = msgp.ReadMapHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Nexmo")
+					return
+				}
+				for zb0007 > 0 {
+					zb0007--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Nexmo")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "api_key":
+						z.Nexmo.APIKey, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Nexmo", "APIKey")
+							return
+						}
+					case "api_secret":
+						z.Nexmo.APISecret, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Nexmo", "APISecret")
+							return
+						}
+					case "from":
+						z.Nexmo.From, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Nexmo", "From")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Nexmo")
+							return
+						}
+					}
+				}
+			}
+		case "asset":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Asset = nil
+			} else {
+				if z.Asset == nil {
+					z.Asset = new(AssetConfiguration)
+				}
+				var zb0008 uint32
+				zb0008, bts, err = msgp.ReadMapHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Asset")
+					return
+				}
+				for zb0008 > 0 {
+					zb0008--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Asset")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "secret":
+						z.Asset.Secret, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Asset", "Secret")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Asset")
 							return
 						}
 					}
@@ -613,11 +1852,93 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *AppConfiguration) Msgsize() (s int) {
-	s = 1 + 13 + msgp.StringPrefixSize + len(z.DatabaseURL) + 16 + msgp.StringPrefixSize + len(z.DatabaseSchema) + 5
+	s = 3 + 17 + msgp.StringPrefixSize + len(z.DisplayAppName) + 8 + msgp.ArrayHeaderSize
+	for za0001 := range z.Clients {
+		s += z.Clients[za0001].Msgsize()
+	}
+	s += 11 + msgp.StringPrefixSize + len(z.MasterKey) + 5
+	if z.CORS == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin)
+	}
+	s += 5
+	if z.Auth == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.Auth.Msgsize()
+	}
+	s += 4
+	if z.MFA == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.MFA.Msgsize()
+	}
+	s += 11
+	if z.UserAudit == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.UserAudit.TrailHandlerURL)
+	}
+	s += 16
+	if z.PasswordPolicy == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.PasswordPolicy.Msgsize()
+	}
+	s += 16
+	if z.ForgotPassword == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.ForgotPassword.Msgsize()
+	}
+	s += 14
+	if z.WelcomeEmail == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.WelcomeEmail.Msgsize()
+	}
+	s += 4
+	if z.SSO == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.SSO.Msgsize()
+	}
+	s += 18
+	if z.UserVerification == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.UserVerification.Msgsize()
+	}
+	s += 5
 	if z.Hook == nil {
 		s += msgp.NilSize
 	} else {
-		s += 1 + 25 + msgp.IntSize + 31 + msgp.IntSize
+		s += 1 + 7 + msgp.StringPrefixSize + len(z.Hook.Secret)
+	}
+	s += 5
+	if z.SMTP == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.SMTP.Msgsize()
+	}
+	s += 7
+	if z.Twilio == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From)
+	}
+	s += 6
+	if z.Nexmo == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 11 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From)
+	}
+	s += 6
+	if z.Asset == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 7 + msgp.StringPrefixSize + len(z.Asset.Secret)
 	}
 	return
 }
@@ -1586,6 +2907,134 @@ func (z *CustomTokenConfiguration) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
+func (z *DatabaseConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "database_url":
+			z.DatabaseURL, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "DatabaseURL")
+				return
+			}
+		case "database_schema":
+			z.DatabaseSchema, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "DatabaseSchema")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z DatabaseConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 2
+	// write "database_url"
+	err = en.Append(0x82, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.DatabaseURL)
+	if err != nil {
+		err = msgp.WrapError(err, "DatabaseURL")
+		return
+	}
+	// write "database_schema"
+	err = en.Append(0xaf, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.DatabaseSchema)
+	if err != nil {
+		err = msgp.WrapError(err, "DatabaseSchema")
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z DatabaseConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 2
+	// string "database_url"
+	o = append(o, 0x82, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
+	o = msgp.AppendString(o, z.DatabaseURL)
+	// string "database_schema"
+	o = append(o, 0xaf, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61)
+	o = msgp.AppendString(o, z.DatabaseSchema)
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *DatabaseConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "database_url":
+			z.DatabaseURL, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "DatabaseURL")
+				return
+			}
+		case "database_schema":
+			z.DatabaseSchema, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "DatabaseSchema")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z DatabaseConfiguration) Msgsize() (s int) {
+	s = 1 + 13 + msgp.StringPrefixSize + len(z.DatabaseURL) + 16 + msgp.StringPrefixSize + len(z.DatabaseSchema)
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
 func (z *DeploymentRoute) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
@@ -2219,7 +3668,110 @@ func (z Hook) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
-func (z *HookAppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
+func (z *HookConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "secret":
+			z.Secret, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Secret")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z HookConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 1
+	// write "secret"
+	err = en.Append(0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Secret)
+	if err != nil {
+		err = msgp.WrapError(err, "Secret")
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z HookConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 1
+	// string "secret"
+	o = append(o, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+	o = msgp.AppendString(o, z.Secret)
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *HookConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "secret":
+			z.Secret, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Secret")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z HookConfiguration) Msgsize() (s int) {
+	s = 1 + 7 + msgp.StringPrefixSize + len(z.Secret)
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
+func (z *HookTimeoutConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -2260,7 +3812,7 @@ func (z *HookAppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z HookAppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+func (z HookTimeoutConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 2
 	// write "sync_hook_timeout_second"
 	err = en.Append(0x82, 0xb8, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
@@ -2286,7 +3838,7 @@ func (z HookAppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z HookAppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+func (z HookTimeoutConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 2
 	// string "sync_hook_timeout_second"
@@ -2299,7 +3851,7 @@ func (z HookAppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
-func (z *HookAppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
+func (z *HookTimeoutConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -2341,111 +3893,8 @@ func (z *HookAppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z HookAppConfiguration) Msgsize() (s int) {
+func (z HookTimeoutConfiguration) Msgsize() (s int) {
 	s = 1 + 25 + msgp.IntSize + 31 + msgp.IntSize
-	return
-}
-
-// DecodeMsg implements msgp.Decodable
-func (z *HookUserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, err = dc.ReadMapHeader()
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, err = dc.ReadMapKeyPtr()
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "secret":
-			z.Secret, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "Secret")
-				return
-			}
-		default:
-			err = dc.Skip()
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	return
-}
-
-// EncodeMsg implements msgp.Encodable
-func (z HookUserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 1
-	// write "secret"
-	err = en.Append(0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Secret)
-	if err != nil {
-		err = msgp.WrapError(err, "Secret")
-		return
-	}
-	return
-}
-
-// MarshalMsg implements msgp.Marshaler
-func (z HookUserConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
-	o = msgp.Require(b, z.Msgsize())
-	// map header, size 1
-	// string "secret"
-	o = append(o, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
-	o = msgp.AppendString(o, z.Secret)
-	return
-}
-
-// UnmarshalMsg implements msgp.Unmarshaler
-func (z *HookUserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, bts, err = msgp.ReadMapKeyZC(bts)
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "secret":
-			z.Secret, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Secret")
-				return
-			}
-		default:
-			bts, err = msgp.Skip(bts)
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	o = bts
-	return
-}
-
-// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z HookUserConfiguration) Msgsize() (s int) {
-	s = 1 + 7 + msgp.StringPrefixSize + len(z.Secret)
 	return
 }
 
@@ -7449,6 +8898,100 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "AppName")
 				return
 			}
+		case "hook":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "Hook")
+					return
+				}
+				z.Hook = nil
+			} else {
+				if z.Hook == nil {
+					z.Hook = new(HookTimeoutConfiguration)
+				}
+				var zb0002 uint32
+				zb0002, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "Hook")
+					return
+				}
+				for zb0002 > 0 {
+					zb0002--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "Hook")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "sync_hook_timeout_second":
+						z.Hook.SyncHookTimeout, err = dc.ReadInt()
+						if err != nil {
+							err = msgp.WrapError(err, "Hook", "SyncHookTimeout")
+							return
+						}
+					case "sync_hook_total_timeout_second":
+						z.Hook.SyncHookTotalTimeout, err = dc.ReadInt()
+						if err != nil {
+							err = msgp.WrapError(err, "Hook", "SyncHookTotalTimeout")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "Hook")
+							return
+						}
+					}
+				}
+			}
+		case "database_config":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "DatabaseConfig")
+					return
+				}
+				z.DatabaseConfig = nil
+			} else {
+				if z.DatabaseConfig == nil {
+					z.DatabaseConfig = new(DatabaseConfiguration)
+				}
+				var zb0003 uint32
+				zb0003, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "DatabaseConfig")
+					return
+				}
+				for zb0003 > 0 {
+					zb0003--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "DatabaseConfig")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "database_url":
+						z.DatabaseConfig.DatabaseURL, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "DatabaseConfig", "DatabaseURL")
+							return
+						}
+					case "database_schema":
+						z.DatabaseConfig.DatabaseSchema, err = dc.ReadString()
+						if err != nil {
+							err = msgp.WrapError(err, "DatabaseConfig", "DatabaseSchema")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "DatabaseConfig")
+							return
+						}
+					}
+				}
+			}
 		case "app_config":
 			if dc.IsNil() {
 				err = dc.ReadNil()
@@ -7467,35 +9010,17 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					return
 				}
 			}
-		case "user_config":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "UserConfig")
-					return
-				}
-				z.UserConfig = nil
-			} else {
-				if z.UserConfig == nil {
-					z.UserConfig = new(UserConfiguration)
-				}
-				err = z.UserConfig.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "UserConfig")
-					return
-				}
-			}
 		case "template_items":
-			var zb0002 uint32
-			zb0002, err = dc.ReadArrayHeader()
+			var zb0004 uint32
+			zb0004, err = dc.ReadArrayHeader()
 			if err != nil {
 				err = msgp.WrapError(err, "TemplateItems")
 				return
 			}
-			if cap(z.TemplateItems) >= int(zb0002) {
-				z.TemplateItems = (z.TemplateItems)[:zb0002]
+			if cap(z.TemplateItems) >= int(zb0004) {
+				z.TemplateItems = (z.TemplateItems)[:zb0004]
 			} else {
-				z.TemplateItems = make([]TemplateItem, zb0002)
+				z.TemplateItems = make([]TemplateItem, zb0004)
 			}
 			for za0001 := range z.TemplateItems {
 				err = z.TemplateItems[za0001].DecodeMsg(dc)
@@ -7505,26 +9030,26 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				}
 			}
 		case "hooks":
-			var zb0003 uint32
-			zb0003, err = dc.ReadArrayHeader()
+			var zb0005 uint32
+			zb0005, err = dc.ReadArrayHeader()
 			if err != nil {
 				err = msgp.WrapError(err, "Hooks")
 				return
 			}
-			if cap(z.Hooks) >= int(zb0003) {
-				z.Hooks = (z.Hooks)[:zb0003]
+			if cap(z.Hooks) >= int(zb0005) {
+				z.Hooks = (z.Hooks)[:zb0005]
 			} else {
-				z.Hooks = make([]Hook, zb0003)
+				z.Hooks = make([]Hook, zb0005)
 			}
 			for za0002 := range z.Hooks {
-				var zb0004 uint32
-				zb0004, err = dc.ReadMapHeader()
+				var zb0006 uint32
+				zb0006, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Hooks", za0002)
 					return
 				}
-				for zb0004 > 0 {
-					zb0004--
+				for zb0006 > 0 {
+					zb0006--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Hooks", za0002)
@@ -7553,16 +9078,16 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				}
 			}
 		case "deployment_routes":
-			var zb0005 uint32
-			zb0005, err = dc.ReadArrayHeader()
+			var zb0007 uint32
+			zb0007, err = dc.ReadArrayHeader()
 			if err != nil {
 				err = msgp.WrapError(err, "DeploymentRoutes")
 				return
 			}
-			if cap(z.DeploymentRoutes) >= int(zb0005) {
-				z.DeploymentRoutes = (z.DeploymentRoutes)[:zb0005]
+			if cap(z.DeploymentRoutes) >= int(zb0007) {
+				z.DeploymentRoutes = (z.DeploymentRoutes)[:zb0007]
 			} else {
-				z.DeploymentRoutes = make([]DeploymentRoute, zb0005)
+				z.DeploymentRoutes = make([]DeploymentRoute, zb0007)
 			}
 			for za0003 := range z.DeploymentRoutes {
 				err = z.DeploymentRoutes[za0003].DecodeMsg(dc)
@@ -7584,9 +9109,9 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 8
+	// map header, size 9
 	// write "version"
-	err = en.Append(0x88, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0x89, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
@@ -7615,6 +9140,72 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "AppName")
 		return
 	}
+	// write "hook"
+	err = en.Append(0xa4, 0x68, 0x6f, 0x6f, 0x6b)
+	if err != nil {
+		return
+	}
+	if z.Hook == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		// map header, size 2
+		// write "sync_hook_timeout_second"
+		err = en.Append(0x82, 0xb8, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
+		if err != nil {
+			return
+		}
+		err = en.WriteInt(z.Hook.SyncHookTimeout)
+		if err != nil {
+			err = msgp.WrapError(err, "Hook", "SyncHookTimeout")
+			return
+		}
+		// write "sync_hook_total_timeout_second"
+		err = en.Append(0xbe, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
+		if err != nil {
+			return
+		}
+		err = en.WriteInt(z.Hook.SyncHookTotalTimeout)
+		if err != nil {
+			err = msgp.WrapError(err, "Hook", "SyncHookTotalTimeout")
+			return
+		}
+	}
+	// write "database_config"
+	err = en.Append(0xaf, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
+	if err != nil {
+		return
+	}
+	if z.DatabaseConfig == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		// map header, size 2
+		// write "database_url"
+		err = en.Append(0x82, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.DatabaseConfig.DatabaseURL)
+		if err != nil {
+			err = msgp.WrapError(err, "DatabaseConfig", "DatabaseURL")
+			return
+		}
+		// write "database_schema"
+		err = en.Append(0xaf, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(z.DatabaseConfig.DatabaseSchema)
+		if err != nil {
+			err = msgp.WrapError(err, "DatabaseConfig", "DatabaseSchema")
+			return
+		}
+	}
 	// write "app_config"
 	err = en.Append(0xaa, 0x61, 0x70, 0x70, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
 	if err != nil {
@@ -7629,23 +9220,6 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = z.AppConfig.EncodeMsg(en)
 		if err != nil {
 			err = msgp.WrapError(err, "AppConfig")
-			return
-		}
-	}
-	// write "user_config"
-	err = en.Append(0xab, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
-	if err != nil {
-		return
-	}
-	if z.UserConfig == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.UserConfig.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "UserConfig")
 			return
 		}
 	}
@@ -7722,9 +9296,9 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 8
+	// map header, size 9
 	// string "version"
-	o = append(o, 0x88, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0x89, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	o = msgp.AppendString(o, z.Version)
 	// string "app_id"
 	o = append(o, 0xa6, 0x61, 0x70, 0x70, 0x5f, 0x69, 0x64)
@@ -7732,6 +9306,32 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "app_name"
 	o = append(o, 0xa8, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	o = msgp.AppendString(o, z.AppName)
+	// string "hook"
+	o = append(o, 0xa4, 0x68, 0x6f, 0x6f, 0x6b)
+	if z.Hook == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		// map header, size 2
+		// string "sync_hook_timeout_second"
+		o = append(o, 0x82, 0xb8, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
+		o = msgp.AppendInt(o, z.Hook.SyncHookTimeout)
+		// string "sync_hook_total_timeout_second"
+		o = append(o, 0xbe, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
+		o = msgp.AppendInt(o, z.Hook.SyncHookTotalTimeout)
+	}
+	// string "database_config"
+	o = append(o, 0xaf, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
+	if z.DatabaseConfig == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		// map header, size 2
+		// string "database_url"
+		o = append(o, 0x82, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
+		o = msgp.AppendString(o, z.DatabaseConfig.DatabaseURL)
+		// string "database_schema"
+		o = append(o, 0xaf, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61)
+		o = msgp.AppendString(o, z.DatabaseConfig.DatabaseSchema)
+	}
 	// string "app_config"
 	o = append(o, 0xaa, 0x61, 0x70, 0x70, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
 	if z.AppConfig == nil {
@@ -7740,17 +9340,6 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		o, err = z.AppConfig.MarshalMsg(o)
 		if err != nil {
 			err = msgp.WrapError(err, "AppConfig")
-			return
-		}
-	}
-	// string "user_config"
-	o = append(o, 0xab, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
-	if z.UserConfig == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.UserConfig.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "UserConfig")
 			return
 		}
 	}
@@ -7825,6 +9414,98 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "AppName")
 				return
 			}
+		case "hook":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Hook = nil
+			} else {
+				if z.Hook == nil {
+					z.Hook = new(HookTimeoutConfiguration)
+				}
+				var zb0002 uint32
+				zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Hook")
+					return
+				}
+				for zb0002 > 0 {
+					zb0002--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Hook")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "sync_hook_timeout_second":
+						z.Hook.SyncHookTimeout, bts, err = msgp.ReadIntBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Hook", "SyncHookTimeout")
+							return
+						}
+					case "sync_hook_total_timeout_second":
+						z.Hook.SyncHookTotalTimeout, bts, err = msgp.ReadIntBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Hook", "SyncHookTotalTimeout")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Hook")
+							return
+						}
+					}
+				}
+			}
+		case "database_config":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.DatabaseConfig = nil
+			} else {
+				if z.DatabaseConfig == nil {
+					z.DatabaseConfig = new(DatabaseConfiguration)
+				}
+				var zb0003 uint32
+				zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "DatabaseConfig")
+					return
+				}
+				for zb0003 > 0 {
+					zb0003--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "DatabaseConfig")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "database_url":
+						z.DatabaseConfig.DatabaseURL, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "DatabaseConfig", "DatabaseURL")
+							return
+						}
+					case "database_schema":
+						z.DatabaseConfig.DatabaseSchema, bts, err = msgp.ReadStringBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "DatabaseConfig", "DatabaseSchema")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "DatabaseConfig")
+							return
+						}
+					}
+				}
+			}
 		case "app_config":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
@@ -7842,34 +9523,17 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					return
 				}
 			}
-		case "user_config":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.UserConfig = nil
-			} else {
-				if z.UserConfig == nil {
-					z.UserConfig = new(UserConfiguration)
-				}
-				bts, err = z.UserConfig.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "UserConfig")
-					return
-				}
-			}
 		case "template_items":
-			var zb0002 uint32
-			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			var zb0004 uint32
+			zb0004, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "TemplateItems")
 				return
 			}
-			if cap(z.TemplateItems) >= int(zb0002) {
-				z.TemplateItems = (z.TemplateItems)[:zb0002]
+			if cap(z.TemplateItems) >= int(zb0004) {
+				z.TemplateItems = (z.TemplateItems)[:zb0004]
 			} else {
-				z.TemplateItems = make([]TemplateItem, zb0002)
+				z.TemplateItems = make([]TemplateItem, zb0004)
 			}
 			for za0001 := range z.TemplateItems {
 				bts, err = z.TemplateItems[za0001].UnmarshalMsg(bts)
@@ -7879,26 +9543,26 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				}
 			}
 		case "hooks":
-			var zb0003 uint32
-			zb0003, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			var zb0005 uint32
+			zb0005, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "Hooks")
 				return
 			}
-			if cap(z.Hooks) >= int(zb0003) {
-				z.Hooks = (z.Hooks)[:zb0003]
+			if cap(z.Hooks) >= int(zb0005) {
+				z.Hooks = (z.Hooks)[:zb0005]
 			} else {
-				z.Hooks = make([]Hook, zb0003)
+				z.Hooks = make([]Hook, zb0005)
 			}
 			for za0002 := range z.Hooks {
-				var zb0004 uint32
-				zb0004, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0006 uint32
+				zb0006, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Hooks", za0002)
 					return
 				}
-				for zb0004 > 0 {
-					zb0004--
+				for zb0006 > 0 {
+					zb0006--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Hooks", za0002)
@@ -7927,16 +9591,16 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				}
 			}
 		case "deployment_routes":
-			var zb0005 uint32
-			zb0005, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			var zb0007 uint32
+			zb0007, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "DeploymentRoutes")
 				return
 			}
-			if cap(z.DeploymentRoutes) >= int(zb0005) {
-				z.DeploymentRoutes = (z.DeploymentRoutes)[:zb0005]
+			if cap(z.DeploymentRoutes) >= int(zb0007) {
+				z.DeploymentRoutes = (z.DeploymentRoutes)[:zb0007]
 			} else {
-				z.DeploymentRoutes = make([]DeploymentRoute, zb0005)
+				z.DeploymentRoutes = make([]DeploymentRoute, zb0007)
 			}
 			for za0003 := range z.DeploymentRoutes {
 				bts, err = z.DeploymentRoutes[za0003].UnmarshalMsg(bts)
@@ -7959,17 +9623,23 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *TenantConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 7 + msgp.StringPrefixSize + len(z.AppID) + 9 + msgp.StringPrefixSize + len(z.AppName) + 11
+	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 7 + msgp.StringPrefixSize + len(z.AppID) + 9 + msgp.StringPrefixSize + len(z.AppName) + 5
+	if z.Hook == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 25 + msgp.IntSize + 31 + msgp.IntSize
+	}
+	s += 16
+	if z.DatabaseConfig == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 13 + msgp.StringPrefixSize + len(z.DatabaseConfig.DatabaseURL) + 16 + msgp.StringPrefixSize + len(z.DatabaseConfig.DatabaseSchema)
+	}
+	s += 11
 	if z.AppConfig == nil {
 		s += msgp.NilSize
 	} else {
 		s += z.AppConfig.Msgsize()
-	}
-	s += 12
-	if z.UserConfig == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.UserConfig.Msgsize()
 	}
 	s += 15 + msgp.ArrayHeaderSize
 	for za0001 := range z.TemplateItems {
@@ -8264,1599 +9934,6 @@ func (z *UserAuditConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z UserAuditConfiguration) Msgsize() (s int) {
 	s = 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.TrailHandlerURL)
-	return
-}
-
-// DecodeMsg implements msgp.Decodable
-func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, err = dc.ReadMapHeader()
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, err = dc.ReadMapKeyPtr()
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "display_app_name":
-			z.DisplayAppName, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "DisplayAppName")
-				return
-			}
-		case "clients":
-			var zb0002 uint32
-			zb0002, err = dc.ReadArrayHeader()
-			if err != nil {
-				err = msgp.WrapError(err, "Clients")
-				return
-			}
-			if cap(z.Clients) >= int(zb0002) {
-				z.Clients = (z.Clients)[:zb0002]
-			} else {
-				z.Clients = make([]APIClientConfiguration, zb0002)
-			}
-			for za0001 := range z.Clients {
-				err = z.Clients[za0001].DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "Clients", za0001)
-					return
-				}
-			}
-		case "master_key":
-			z.MasterKey, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "MasterKey")
-				return
-			}
-		case "cors":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "CORS")
-					return
-				}
-				z.CORS = nil
-			} else {
-				if z.CORS == nil {
-					z.CORS = new(CORSConfiguration)
-				}
-				var zb0003 uint32
-				zb0003, err = dc.ReadMapHeader()
-				if err != nil {
-					err = msgp.WrapError(err, "CORS")
-					return
-				}
-				for zb0003 > 0 {
-					zb0003--
-					field, err = dc.ReadMapKeyPtr()
-					if err != nil {
-						err = msgp.WrapError(err, "CORS")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "origin":
-						z.CORS.Origin, err = dc.ReadString()
-						if err != nil {
-							err = msgp.WrapError(err, "CORS", "Origin")
-							return
-						}
-					default:
-						err = dc.Skip()
-						if err != nil {
-							err = msgp.WrapError(err, "CORS")
-							return
-						}
-					}
-				}
-			}
-		case "auth":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "Auth")
-					return
-				}
-				z.Auth = nil
-			} else {
-				if z.Auth == nil {
-					z.Auth = new(AuthConfiguration)
-				}
-				err = z.Auth.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "Auth")
-					return
-				}
-			}
-		case "mfa":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "MFA")
-					return
-				}
-				z.MFA = nil
-			} else {
-				if z.MFA == nil {
-					z.MFA = new(MFAConfiguration)
-				}
-				err = z.MFA.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "MFA")
-					return
-				}
-			}
-		case "user_audit":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "UserAudit")
-					return
-				}
-				z.UserAudit = nil
-			} else {
-				if z.UserAudit == nil {
-					z.UserAudit = new(UserAuditConfiguration)
-				}
-				var zb0004 uint32
-				zb0004, err = dc.ReadMapHeader()
-				if err != nil {
-					err = msgp.WrapError(err, "UserAudit")
-					return
-				}
-				for zb0004 > 0 {
-					zb0004--
-					field, err = dc.ReadMapKeyPtr()
-					if err != nil {
-						err = msgp.WrapError(err, "UserAudit")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "enabled":
-						z.UserAudit.Enabled, err = dc.ReadBool()
-						if err != nil {
-							err = msgp.WrapError(err, "UserAudit", "Enabled")
-							return
-						}
-					case "trail_handler_url":
-						z.UserAudit.TrailHandlerURL, err = dc.ReadString()
-						if err != nil {
-							err = msgp.WrapError(err, "UserAudit", "TrailHandlerURL")
-							return
-						}
-					default:
-						err = dc.Skip()
-						if err != nil {
-							err = msgp.WrapError(err, "UserAudit")
-							return
-						}
-					}
-				}
-			}
-		case "password_policy":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "PasswordPolicy")
-					return
-				}
-				z.PasswordPolicy = nil
-			} else {
-				if z.PasswordPolicy == nil {
-					z.PasswordPolicy = new(PasswordPolicyConfiguration)
-				}
-				err = z.PasswordPolicy.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "PasswordPolicy")
-					return
-				}
-			}
-		case "forgot_password":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "ForgotPassword")
-					return
-				}
-				z.ForgotPassword = nil
-			} else {
-				if z.ForgotPassword == nil {
-					z.ForgotPassword = new(ForgotPasswordConfiguration)
-				}
-				err = z.ForgotPassword.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "ForgotPassword")
-					return
-				}
-			}
-		case "welcome_email":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "WelcomeEmail")
-					return
-				}
-				z.WelcomeEmail = nil
-			} else {
-				if z.WelcomeEmail == nil {
-					z.WelcomeEmail = new(WelcomeEmailConfiguration)
-				}
-				err = z.WelcomeEmail.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "WelcomeEmail")
-					return
-				}
-			}
-		case "sso":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "SSO")
-					return
-				}
-				z.SSO = nil
-			} else {
-				if z.SSO == nil {
-					z.SSO = new(SSOConfiguration)
-				}
-				err = z.SSO.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "SSO")
-					return
-				}
-			}
-		case "user_verification":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "UserVerification")
-					return
-				}
-				z.UserVerification = nil
-			} else {
-				if z.UserVerification == nil {
-					z.UserVerification = new(UserVerificationConfiguration)
-				}
-				err = z.UserVerification.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "UserVerification")
-					return
-				}
-			}
-		case "hook":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "Hook")
-					return
-				}
-				z.Hook = nil
-			} else {
-				if z.Hook == nil {
-					z.Hook = new(HookUserConfiguration)
-				}
-				var zb0005 uint32
-				zb0005, err = dc.ReadMapHeader()
-				if err != nil {
-					err = msgp.WrapError(err, "Hook")
-					return
-				}
-				for zb0005 > 0 {
-					zb0005--
-					field, err = dc.ReadMapKeyPtr()
-					if err != nil {
-						err = msgp.WrapError(err, "Hook")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "secret":
-						z.Hook.Secret, err = dc.ReadString()
-						if err != nil {
-							err = msgp.WrapError(err, "Hook", "Secret")
-							return
-						}
-					default:
-						err = dc.Skip()
-						if err != nil {
-							err = msgp.WrapError(err, "Hook")
-							return
-						}
-					}
-				}
-			}
-		case "smtp":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "SMTP")
-					return
-				}
-				z.SMTP = nil
-			} else {
-				if z.SMTP == nil {
-					z.SMTP = new(SMTPConfiguration)
-				}
-				err = z.SMTP.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "SMTP")
-					return
-				}
-			}
-		case "twilio":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "Twilio")
-					return
-				}
-				z.Twilio = nil
-			} else {
-				if z.Twilio == nil {
-					z.Twilio = new(TwilioConfiguration)
-				}
-				var zb0006 uint32
-				zb0006, err = dc.ReadMapHeader()
-				if err != nil {
-					err = msgp.WrapError(err, "Twilio")
-					return
-				}
-				for zb0006 > 0 {
-					zb0006--
-					field, err = dc.ReadMapKeyPtr()
-					if err != nil {
-						err = msgp.WrapError(err, "Twilio")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "account_sid":
-						z.Twilio.AccountSID, err = dc.ReadString()
-						if err != nil {
-							err = msgp.WrapError(err, "Twilio", "AccountSID")
-							return
-						}
-					case "auth_token":
-						z.Twilio.AuthToken, err = dc.ReadString()
-						if err != nil {
-							err = msgp.WrapError(err, "Twilio", "AuthToken")
-							return
-						}
-					case "from":
-						z.Twilio.From, err = dc.ReadString()
-						if err != nil {
-							err = msgp.WrapError(err, "Twilio", "From")
-							return
-						}
-					default:
-						err = dc.Skip()
-						if err != nil {
-							err = msgp.WrapError(err, "Twilio")
-							return
-						}
-					}
-				}
-			}
-		case "nexmo":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "Nexmo")
-					return
-				}
-				z.Nexmo = nil
-			} else {
-				if z.Nexmo == nil {
-					z.Nexmo = new(NexmoConfiguration)
-				}
-				var zb0007 uint32
-				zb0007, err = dc.ReadMapHeader()
-				if err != nil {
-					err = msgp.WrapError(err, "Nexmo")
-					return
-				}
-				for zb0007 > 0 {
-					zb0007--
-					field, err = dc.ReadMapKeyPtr()
-					if err != nil {
-						err = msgp.WrapError(err, "Nexmo")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "api_key":
-						z.Nexmo.APIKey, err = dc.ReadString()
-						if err != nil {
-							err = msgp.WrapError(err, "Nexmo", "APIKey")
-							return
-						}
-					case "api_secret":
-						z.Nexmo.APISecret, err = dc.ReadString()
-						if err != nil {
-							err = msgp.WrapError(err, "Nexmo", "APISecret")
-							return
-						}
-					case "from":
-						z.Nexmo.From, err = dc.ReadString()
-						if err != nil {
-							err = msgp.WrapError(err, "Nexmo", "From")
-							return
-						}
-					default:
-						err = dc.Skip()
-						if err != nil {
-							err = msgp.WrapError(err, "Nexmo")
-							return
-						}
-					}
-				}
-			}
-		case "asset":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "Asset")
-					return
-				}
-				z.Asset = nil
-			} else {
-				if z.Asset == nil {
-					z.Asset = new(AssetConfiguration)
-				}
-				var zb0008 uint32
-				zb0008, err = dc.ReadMapHeader()
-				if err != nil {
-					err = msgp.WrapError(err, "Asset")
-					return
-				}
-				for zb0008 > 0 {
-					zb0008--
-					field, err = dc.ReadMapKeyPtr()
-					if err != nil {
-						err = msgp.WrapError(err, "Asset")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "secret":
-						z.Asset.Secret, err = dc.ReadString()
-						if err != nil {
-							err = msgp.WrapError(err, "Asset", "Secret")
-							return
-						}
-					default:
-						err = dc.Skip()
-						if err != nil {
-							err = msgp.WrapError(err, "Asset")
-							return
-						}
-					}
-				}
-			}
-		default:
-			err = dc.Skip()
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	return
-}
-
-// EncodeMsg implements msgp.Encodable
-func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 17
-	// write "display_app_name"
-	err = en.Append(0xde, 0x0, 0x11, 0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.DisplayAppName)
-	if err != nil {
-		err = msgp.WrapError(err, "DisplayAppName")
-		return
-	}
-	// write "clients"
-	err = en.Append(0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
-	if err != nil {
-		return
-	}
-	err = en.WriteArrayHeader(uint32(len(z.Clients)))
-	if err != nil {
-		err = msgp.WrapError(err, "Clients")
-		return
-	}
-	for za0001 := range z.Clients {
-		err = z.Clients[za0001].EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "Clients", za0001)
-			return
-		}
-	}
-	// write "master_key"
-	err = en.Append(0xaa, 0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x6b, 0x65, 0x79)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.MasterKey)
-	if err != nil {
-		err = msgp.WrapError(err, "MasterKey")
-		return
-	}
-	// write "cors"
-	err = en.Append(0xa4, 0x63, 0x6f, 0x72, 0x73)
-	if err != nil {
-		return
-	}
-	if z.CORS == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		// map header, size 1
-		// write "origin"
-		err = en.Append(0x81, 0xa6, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e)
-		if err != nil {
-			return
-		}
-		err = en.WriteString(z.CORS.Origin)
-		if err != nil {
-			err = msgp.WrapError(err, "CORS", "Origin")
-			return
-		}
-	}
-	// write "auth"
-	err = en.Append(0xa4, 0x61, 0x75, 0x74, 0x68)
-	if err != nil {
-		return
-	}
-	if z.Auth == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.Auth.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "Auth")
-			return
-		}
-	}
-	// write "mfa"
-	err = en.Append(0xa3, 0x6d, 0x66, 0x61)
-	if err != nil {
-		return
-	}
-	if z.MFA == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.MFA.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "MFA")
-			return
-		}
-	}
-	// write "user_audit"
-	err = en.Append(0xaa, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x61, 0x75, 0x64, 0x69, 0x74)
-	if err != nil {
-		return
-	}
-	if z.UserAudit == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		// map header, size 2
-		// write "enabled"
-		err = en.Append(0x82, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
-		if err != nil {
-			return
-		}
-		err = en.WriteBool(z.UserAudit.Enabled)
-		if err != nil {
-			err = msgp.WrapError(err, "UserAudit", "Enabled")
-			return
-		}
-		// write "trail_handler_url"
-		err = en.Append(0xb1, 0x74, 0x72, 0x61, 0x69, 0x6c, 0x5f, 0x68, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x72, 0x5f, 0x75, 0x72, 0x6c)
-		if err != nil {
-			return
-		}
-		err = en.WriteString(z.UserAudit.TrailHandlerURL)
-		if err != nil {
-			err = msgp.WrapError(err, "UserAudit", "TrailHandlerURL")
-			return
-		}
-	}
-	// write "password_policy"
-	err = en.Append(0xaf, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79)
-	if err != nil {
-		return
-	}
-	if z.PasswordPolicy == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.PasswordPolicy.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "PasswordPolicy")
-			return
-		}
-	}
-	// write "forgot_password"
-	err = en.Append(0xaf, 0x66, 0x6f, 0x72, 0x67, 0x6f, 0x74, 0x5f, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64)
-	if err != nil {
-		return
-	}
-	if z.ForgotPassword == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.ForgotPassword.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "ForgotPassword")
-			return
-		}
-	}
-	// write "welcome_email"
-	err = en.Append(0xad, 0x77, 0x65, 0x6c, 0x63, 0x6f, 0x6d, 0x65, 0x5f, 0x65, 0x6d, 0x61, 0x69, 0x6c)
-	if err != nil {
-		return
-	}
-	if z.WelcomeEmail == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.WelcomeEmail.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "WelcomeEmail")
-			return
-		}
-	}
-	// write "sso"
-	err = en.Append(0xa3, 0x73, 0x73, 0x6f)
-	if err != nil {
-		return
-	}
-	if z.SSO == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.SSO.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "SSO")
-			return
-		}
-	}
-	// write "user_verification"
-	err = en.Append(0xb1, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x76, 0x65, 0x72, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e)
-	if err != nil {
-		return
-	}
-	if z.UserVerification == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.UserVerification.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "UserVerification")
-			return
-		}
-	}
-	// write "hook"
-	err = en.Append(0xa4, 0x68, 0x6f, 0x6f, 0x6b)
-	if err != nil {
-		return
-	}
-	if z.Hook == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		// map header, size 1
-		// write "secret"
-		err = en.Append(0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
-		if err != nil {
-			return
-		}
-		err = en.WriteString(z.Hook.Secret)
-		if err != nil {
-			err = msgp.WrapError(err, "Hook", "Secret")
-			return
-		}
-	}
-	// write "smtp"
-	err = en.Append(0xa4, 0x73, 0x6d, 0x74, 0x70)
-	if err != nil {
-		return
-	}
-	if z.SMTP == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.SMTP.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "SMTP")
-			return
-		}
-	}
-	// write "twilio"
-	err = en.Append(0xa6, 0x74, 0x77, 0x69, 0x6c, 0x69, 0x6f)
-	if err != nil {
-		return
-	}
-	if z.Twilio == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		// map header, size 3
-		// write "account_sid"
-		err = en.Append(0x83, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
-		if err != nil {
-			return
-		}
-		err = en.WriteString(z.Twilio.AccountSID)
-		if err != nil {
-			err = msgp.WrapError(err, "Twilio", "AccountSID")
-			return
-		}
-		// write "auth_token"
-		err = en.Append(0xaa, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
-		if err != nil {
-			return
-		}
-		err = en.WriteString(z.Twilio.AuthToken)
-		if err != nil {
-			err = msgp.WrapError(err, "Twilio", "AuthToken")
-			return
-		}
-		// write "from"
-		err = en.Append(0xa4, 0x66, 0x72, 0x6f, 0x6d)
-		if err != nil {
-			return
-		}
-		err = en.WriteString(z.Twilio.From)
-		if err != nil {
-			err = msgp.WrapError(err, "Twilio", "From")
-			return
-		}
-	}
-	// write "nexmo"
-	err = en.Append(0xa5, 0x6e, 0x65, 0x78, 0x6d, 0x6f)
-	if err != nil {
-		return
-	}
-	if z.Nexmo == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		// map header, size 3
-		// write "api_key"
-		err = en.Append(0x83, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
-		if err != nil {
-			return
-		}
-		err = en.WriteString(z.Nexmo.APIKey)
-		if err != nil {
-			err = msgp.WrapError(err, "Nexmo", "APIKey")
-			return
-		}
-		// write "api_secret"
-		err = en.Append(0xaa, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
-		if err != nil {
-			return
-		}
-		err = en.WriteString(z.Nexmo.APISecret)
-		if err != nil {
-			err = msgp.WrapError(err, "Nexmo", "APISecret")
-			return
-		}
-		// write "from"
-		err = en.Append(0xa4, 0x66, 0x72, 0x6f, 0x6d)
-		if err != nil {
-			return
-		}
-		err = en.WriteString(z.Nexmo.From)
-		if err != nil {
-			err = msgp.WrapError(err, "Nexmo", "From")
-			return
-		}
-	}
-	// write "asset"
-	err = en.Append(0xa5, 0x61, 0x73, 0x73, 0x65, 0x74)
-	if err != nil {
-		return
-	}
-	if z.Asset == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		// map header, size 1
-		// write "secret"
-		err = en.Append(0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
-		if err != nil {
-			return
-		}
-		err = en.WriteString(z.Asset.Secret)
-		if err != nil {
-			err = msgp.WrapError(err, "Asset", "Secret")
-			return
-		}
-	}
-	return
-}
-
-// MarshalMsg implements msgp.Marshaler
-func (z *UserConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
-	o = msgp.Require(b, z.Msgsize())
-	// map header, size 17
-	// string "display_app_name"
-	o = append(o, 0xde, 0x0, 0x11, 0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
-	o = msgp.AppendString(o, z.DisplayAppName)
-	// string "clients"
-	o = append(o, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
-	o = msgp.AppendArrayHeader(o, uint32(len(z.Clients)))
-	for za0001 := range z.Clients {
-		o, err = z.Clients[za0001].MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "Clients", za0001)
-			return
-		}
-	}
-	// string "master_key"
-	o = append(o, 0xaa, 0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x6b, 0x65, 0x79)
-	o = msgp.AppendString(o, z.MasterKey)
-	// string "cors"
-	o = append(o, 0xa4, 0x63, 0x6f, 0x72, 0x73)
-	if z.CORS == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		// map header, size 1
-		// string "origin"
-		o = append(o, 0x81, 0xa6, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e)
-		o = msgp.AppendString(o, z.CORS.Origin)
-	}
-	// string "auth"
-	o = append(o, 0xa4, 0x61, 0x75, 0x74, 0x68)
-	if z.Auth == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.Auth.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "Auth")
-			return
-		}
-	}
-	// string "mfa"
-	o = append(o, 0xa3, 0x6d, 0x66, 0x61)
-	if z.MFA == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.MFA.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "MFA")
-			return
-		}
-	}
-	// string "user_audit"
-	o = append(o, 0xaa, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x61, 0x75, 0x64, 0x69, 0x74)
-	if z.UserAudit == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		// map header, size 2
-		// string "enabled"
-		o = append(o, 0x82, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
-		o = msgp.AppendBool(o, z.UserAudit.Enabled)
-		// string "trail_handler_url"
-		o = append(o, 0xb1, 0x74, 0x72, 0x61, 0x69, 0x6c, 0x5f, 0x68, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x72, 0x5f, 0x75, 0x72, 0x6c)
-		o = msgp.AppendString(o, z.UserAudit.TrailHandlerURL)
-	}
-	// string "password_policy"
-	o = append(o, 0xaf, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79)
-	if z.PasswordPolicy == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.PasswordPolicy.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "PasswordPolicy")
-			return
-		}
-	}
-	// string "forgot_password"
-	o = append(o, 0xaf, 0x66, 0x6f, 0x72, 0x67, 0x6f, 0x74, 0x5f, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64)
-	if z.ForgotPassword == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.ForgotPassword.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "ForgotPassword")
-			return
-		}
-	}
-	// string "welcome_email"
-	o = append(o, 0xad, 0x77, 0x65, 0x6c, 0x63, 0x6f, 0x6d, 0x65, 0x5f, 0x65, 0x6d, 0x61, 0x69, 0x6c)
-	if z.WelcomeEmail == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.WelcomeEmail.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "WelcomeEmail")
-			return
-		}
-	}
-	// string "sso"
-	o = append(o, 0xa3, 0x73, 0x73, 0x6f)
-	if z.SSO == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.SSO.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "SSO")
-			return
-		}
-	}
-	// string "user_verification"
-	o = append(o, 0xb1, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x76, 0x65, 0x72, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e)
-	if z.UserVerification == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.UserVerification.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "UserVerification")
-			return
-		}
-	}
-	// string "hook"
-	o = append(o, 0xa4, 0x68, 0x6f, 0x6f, 0x6b)
-	if z.Hook == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		// map header, size 1
-		// string "secret"
-		o = append(o, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
-		o = msgp.AppendString(o, z.Hook.Secret)
-	}
-	// string "smtp"
-	o = append(o, 0xa4, 0x73, 0x6d, 0x74, 0x70)
-	if z.SMTP == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.SMTP.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "SMTP")
-			return
-		}
-	}
-	// string "twilio"
-	o = append(o, 0xa6, 0x74, 0x77, 0x69, 0x6c, 0x69, 0x6f)
-	if z.Twilio == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		// map header, size 3
-		// string "account_sid"
-		o = append(o, 0x83, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
-		o = msgp.AppendString(o, z.Twilio.AccountSID)
-		// string "auth_token"
-		o = append(o, 0xaa, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
-		o = msgp.AppendString(o, z.Twilio.AuthToken)
-		// string "from"
-		o = append(o, 0xa4, 0x66, 0x72, 0x6f, 0x6d)
-		o = msgp.AppendString(o, z.Twilio.From)
-	}
-	// string "nexmo"
-	o = append(o, 0xa5, 0x6e, 0x65, 0x78, 0x6d, 0x6f)
-	if z.Nexmo == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		// map header, size 3
-		// string "api_key"
-		o = append(o, 0x83, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
-		o = msgp.AppendString(o, z.Nexmo.APIKey)
-		// string "api_secret"
-		o = append(o, 0xaa, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
-		o = msgp.AppendString(o, z.Nexmo.APISecret)
-		// string "from"
-		o = append(o, 0xa4, 0x66, 0x72, 0x6f, 0x6d)
-		o = msgp.AppendString(o, z.Nexmo.From)
-	}
-	// string "asset"
-	o = append(o, 0xa5, 0x61, 0x73, 0x73, 0x65, 0x74)
-	if z.Asset == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		// map header, size 1
-		// string "secret"
-		o = append(o, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
-		o = msgp.AppendString(o, z.Asset.Secret)
-	}
-	return
-}
-
-// UnmarshalMsg implements msgp.Unmarshaler
-func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, bts, err = msgp.ReadMapKeyZC(bts)
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "display_app_name":
-			z.DisplayAppName, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "DisplayAppName")
-				return
-			}
-		case "clients":
-			var zb0002 uint32
-			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Clients")
-				return
-			}
-			if cap(z.Clients) >= int(zb0002) {
-				z.Clients = (z.Clients)[:zb0002]
-			} else {
-				z.Clients = make([]APIClientConfiguration, zb0002)
-			}
-			for za0001 := range z.Clients {
-				bts, err = z.Clients[za0001].UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Clients", za0001)
-					return
-				}
-			}
-		case "master_key":
-			z.MasterKey, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "MasterKey")
-				return
-			}
-		case "cors":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.CORS = nil
-			} else {
-				if z.CORS == nil {
-					z.CORS = new(CORSConfiguration)
-				}
-				var zb0003 uint32
-				zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "CORS")
-					return
-				}
-				for zb0003 > 0 {
-					zb0003--
-					field, bts, err = msgp.ReadMapKeyZC(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "CORS")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "origin":
-						z.CORS.Origin, bts, err = msgp.ReadStringBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "CORS", "Origin")
-							return
-						}
-					default:
-						bts, err = msgp.Skip(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "CORS")
-							return
-						}
-					}
-				}
-			}
-		case "auth":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.Auth = nil
-			} else {
-				if z.Auth == nil {
-					z.Auth = new(AuthConfiguration)
-				}
-				bts, err = z.Auth.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Auth")
-					return
-				}
-			}
-		case "mfa":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.MFA = nil
-			} else {
-				if z.MFA == nil {
-					z.MFA = new(MFAConfiguration)
-				}
-				bts, err = z.MFA.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "MFA")
-					return
-				}
-			}
-		case "user_audit":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.UserAudit = nil
-			} else {
-				if z.UserAudit == nil {
-					z.UserAudit = new(UserAuditConfiguration)
-				}
-				var zb0004 uint32
-				zb0004, bts, err = msgp.ReadMapHeaderBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "UserAudit")
-					return
-				}
-				for zb0004 > 0 {
-					zb0004--
-					field, bts, err = msgp.ReadMapKeyZC(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "UserAudit")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "enabled":
-						z.UserAudit.Enabled, bts, err = msgp.ReadBoolBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "UserAudit", "Enabled")
-							return
-						}
-					case "trail_handler_url":
-						z.UserAudit.TrailHandlerURL, bts, err = msgp.ReadStringBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "UserAudit", "TrailHandlerURL")
-							return
-						}
-					default:
-						bts, err = msgp.Skip(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "UserAudit")
-							return
-						}
-					}
-				}
-			}
-		case "password_policy":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.PasswordPolicy = nil
-			} else {
-				if z.PasswordPolicy == nil {
-					z.PasswordPolicy = new(PasswordPolicyConfiguration)
-				}
-				bts, err = z.PasswordPolicy.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "PasswordPolicy")
-					return
-				}
-			}
-		case "forgot_password":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.ForgotPassword = nil
-			} else {
-				if z.ForgotPassword == nil {
-					z.ForgotPassword = new(ForgotPasswordConfiguration)
-				}
-				bts, err = z.ForgotPassword.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "ForgotPassword")
-					return
-				}
-			}
-		case "welcome_email":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.WelcomeEmail = nil
-			} else {
-				if z.WelcomeEmail == nil {
-					z.WelcomeEmail = new(WelcomeEmailConfiguration)
-				}
-				bts, err = z.WelcomeEmail.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "WelcomeEmail")
-					return
-				}
-			}
-		case "sso":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.SSO = nil
-			} else {
-				if z.SSO == nil {
-					z.SSO = new(SSOConfiguration)
-				}
-				bts, err = z.SSO.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "SSO")
-					return
-				}
-			}
-		case "user_verification":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.UserVerification = nil
-			} else {
-				if z.UserVerification == nil {
-					z.UserVerification = new(UserVerificationConfiguration)
-				}
-				bts, err = z.UserVerification.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "UserVerification")
-					return
-				}
-			}
-		case "hook":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.Hook = nil
-			} else {
-				if z.Hook == nil {
-					z.Hook = new(HookUserConfiguration)
-				}
-				var zb0005 uint32
-				zb0005, bts, err = msgp.ReadMapHeaderBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Hook")
-					return
-				}
-				for zb0005 > 0 {
-					zb0005--
-					field, bts, err = msgp.ReadMapKeyZC(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Hook")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "secret":
-						z.Hook.Secret, bts, err = msgp.ReadStringBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Hook", "Secret")
-							return
-						}
-					default:
-						bts, err = msgp.Skip(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Hook")
-							return
-						}
-					}
-				}
-			}
-		case "smtp":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.SMTP = nil
-			} else {
-				if z.SMTP == nil {
-					z.SMTP = new(SMTPConfiguration)
-				}
-				bts, err = z.SMTP.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "SMTP")
-					return
-				}
-			}
-		case "twilio":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.Twilio = nil
-			} else {
-				if z.Twilio == nil {
-					z.Twilio = new(TwilioConfiguration)
-				}
-				var zb0006 uint32
-				zb0006, bts, err = msgp.ReadMapHeaderBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Twilio")
-					return
-				}
-				for zb0006 > 0 {
-					zb0006--
-					field, bts, err = msgp.ReadMapKeyZC(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Twilio")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "account_sid":
-						z.Twilio.AccountSID, bts, err = msgp.ReadStringBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Twilio", "AccountSID")
-							return
-						}
-					case "auth_token":
-						z.Twilio.AuthToken, bts, err = msgp.ReadStringBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Twilio", "AuthToken")
-							return
-						}
-					case "from":
-						z.Twilio.From, bts, err = msgp.ReadStringBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Twilio", "From")
-							return
-						}
-					default:
-						bts, err = msgp.Skip(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Twilio")
-							return
-						}
-					}
-				}
-			}
-		case "nexmo":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.Nexmo = nil
-			} else {
-				if z.Nexmo == nil {
-					z.Nexmo = new(NexmoConfiguration)
-				}
-				var zb0007 uint32
-				zb0007, bts, err = msgp.ReadMapHeaderBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Nexmo")
-					return
-				}
-				for zb0007 > 0 {
-					zb0007--
-					field, bts, err = msgp.ReadMapKeyZC(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Nexmo")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "api_key":
-						z.Nexmo.APIKey, bts, err = msgp.ReadStringBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Nexmo", "APIKey")
-							return
-						}
-					case "api_secret":
-						z.Nexmo.APISecret, bts, err = msgp.ReadStringBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Nexmo", "APISecret")
-							return
-						}
-					case "from":
-						z.Nexmo.From, bts, err = msgp.ReadStringBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Nexmo", "From")
-							return
-						}
-					default:
-						bts, err = msgp.Skip(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Nexmo")
-							return
-						}
-					}
-				}
-			}
-		case "asset":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.Asset = nil
-			} else {
-				if z.Asset == nil {
-					z.Asset = new(AssetConfiguration)
-				}
-				var zb0008 uint32
-				zb0008, bts, err = msgp.ReadMapHeaderBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Asset")
-					return
-				}
-				for zb0008 > 0 {
-					zb0008--
-					field, bts, err = msgp.ReadMapKeyZC(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Asset")
-						return
-					}
-					switch msgp.UnsafeString(field) {
-					case "secret":
-						z.Asset.Secret, bts, err = msgp.ReadStringBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Asset", "Secret")
-							return
-						}
-					default:
-						bts, err = msgp.Skip(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Asset")
-							return
-						}
-					}
-				}
-			}
-		default:
-			bts, err = msgp.Skip(bts)
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	o = bts
-	return
-}
-
-// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *UserConfiguration) Msgsize() (s int) {
-	s = 3 + 17 + msgp.StringPrefixSize + len(z.DisplayAppName) + 8 + msgp.ArrayHeaderSize
-	for za0001 := range z.Clients {
-		s += z.Clients[za0001].Msgsize()
-	}
-	s += 11 + msgp.StringPrefixSize + len(z.MasterKey) + 5
-	if z.CORS == nil {
-		s += msgp.NilSize
-	} else {
-		s += 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin)
-	}
-	s += 5
-	if z.Auth == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.Auth.Msgsize()
-	}
-	s += 4
-	if z.MFA == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.MFA.Msgsize()
-	}
-	s += 11
-	if z.UserAudit == nil {
-		s += msgp.NilSize
-	} else {
-		s += 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.UserAudit.TrailHandlerURL)
-	}
-	s += 16
-	if z.PasswordPolicy == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.PasswordPolicy.Msgsize()
-	}
-	s += 16
-	if z.ForgotPassword == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.ForgotPassword.Msgsize()
-	}
-	s += 14
-	if z.WelcomeEmail == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.WelcomeEmail.Msgsize()
-	}
-	s += 4
-	if z.SSO == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.SSO.Msgsize()
-	}
-	s += 18
-	if z.UserVerification == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.UserVerification.Msgsize()
-	}
-	s += 5
-	if z.Hook == nil {
-		s += msgp.NilSize
-	} else {
-		s += 1 + 7 + msgp.StringPrefixSize + len(z.Hook.Secret)
-	}
-	s += 5
-	if z.SMTP == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.SMTP.Msgsize()
-	}
-	s += 7
-	if z.Twilio == nil {
-		s += msgp.NilSize
-	} else {
-		s += 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From)
-	}
-	s += 6
-	if z.Nexmo == nil {
-		s += msgp.NilSize
-	} else {
-		s += 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 11 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From)
-	}
-	s += 6
-	if z.Asset == nil {
-		s += msgp.NilSize
-	} else {
-		s += 1 + 7 + msgp.StringPrefixSize + len(z.Asset.Secret)
-	}
 	return
 }
 

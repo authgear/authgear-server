@@ -55,7 +55,7 @@ func (p *poolImpl) OpenURL(source string) (db *sqlx.DB, err error) {
 }
 
 func (p *poolImpl) Open(tConfig config.TenantConfiguration) (*sqlx.DB, error) {
-	return p.OpenURL(tConfig.AppConfig.DatabaseURL)
+	return p.OpenURL(tConfig.DatabaseConfig.DatabaseURL)
 }
 
 func (p *poolImpl) Close() (err error) {
