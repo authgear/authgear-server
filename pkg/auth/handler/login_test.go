@@ -48,19 +48,16 @@ func TestLoginHandler(t *testing.T) {
 			},
 		)
 
-		zero := 0
 		one := 1
 		loginIDsKeys := []config.LoginIDKeyConfiguration{
 			config.LoginIDKeyConfiguration{
 				Key:     "email",
 				Type:    config.LoginIDKeyType(metadata.Email),
-				Minimum: &zero,
 				Maximum: &one,
 			},
 			config.LoginIDKeyConfiguration{
 				Key:     "username",
 				Type:    config.LoginIDKeyTypeRaw,
-				Minimum: &zero,
 				Maximum: &one,
 			},
 		}
@@ -340,11 +337,10 @@ func TestLoginHandler(t *testing.T) {
 				},
 			},
 		)
-		zero := 0
 		one := 1
 		loginIDsKeys := []config.LoginIDKeyConfiguration{
-			config.LoginIDKeyConfiguration{Key: "email", Minimum: &zero, Maximum: &one},
-			config.LoginIDKeyConfiguration{Key: "username", Minimum: &zero, Maximum: &one},
+			config.LoginIDKeyConfiguration{Key: "email", Maximum: &one},
+			config.LoginIDKeyConfiguration{Key: "username", Maximum: &one},
 		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(

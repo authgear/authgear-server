@@ -162,10 +162,9 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
-		zero := 0
 		one := 1
 		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
-			coreconfig.LoginIDKeyConfiguration{Key: "email", Minimum: &zero, Maximum: &one},
+			coreconfig.LoginIDKeyConfiguration{Key: "email", Maximum: &one},
 		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
@@ -449,10 +448,9 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
-		zero := 0
 		one := 1
 		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
-			coreconfig.LoginIDKeyConfiguration{Type: "email", Minimum: &zero, Maximum: &one},
+			coreconfig.LoginIDKeyConfiguration{Type: "email", Maximum: &one},
 		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
@@ -664,13 +662,11 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
-		zero := 0
 		one := 1
 		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
 			coreconfig.LoginIDKeyConfiguration{
 				Key:     "email",
 				Type:    coreconfig.LoginIDKeyType(metadata.Email),
-				Minimum: &zero,
 				Maximum: &one,
 			},
 		}

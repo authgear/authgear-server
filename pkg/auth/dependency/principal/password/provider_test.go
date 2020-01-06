@@ -16,13 +16,12 @@ func TestProvider(t *testing.T) {
 		logger, _ := test.NewNullLogger()
 		loggerEntry := logrus.NewEntry(logger)
 		allowedRealms := []string{DefaultRealm}
-		zero := 0
 		one := 1
 		on := true
 		off := false
 		loginIDsKeys := []config.LoginIDKeyConfiguration{
-			config.LoginIDKeyConfiguration{Key: "email", Type: "email", Minimum: &zero, Maximum: &one},
-			config.LoginIDKeyConfiguration{Key: "username", Type: "username", Minimum: &zero, Maximum: &one},
+			config.LoginIDKeyConfiguration{Key: "email", Type: "email", Maximum: &one},
+			config.LoginIDKeyConfiguration{Key: "username", Type: "username", Maximum: &one},
 		}
 		loginIDTypes := &config.LoginIDTypesConfiguration{
 			Email: &config.LoginIDTypeEmailConfiguration{

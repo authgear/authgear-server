@@ -42,10 +42,9 @@ func TestVerifyCodeHandler(t *testing.T) {
 		vh.AuthContext = authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id")
 
-		zero := 0
 		one := 1
 		loginIDsKeys := []config.LoginIDKeyConfiguration{
-			config.LoginIDKeyConfiguration{Key: "email", Minimum: &zero, Maximum: &one},
+			config.LoginIDKeyConfiguration{Key: "email", Maximum: &one},
 		}
 		vh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
 			loginIDsKeys,

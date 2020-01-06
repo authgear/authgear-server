@@ -97,10 +97,9 @@ func TestAuthResultHandler(t *testing.T) {
 		sessionWriter := session.NewMockWriter()
 		userProfileStore := userprofile.NewMockUserProfileStore()
 		sh.UserProfileStore = userProfileStore
-		zero := 0
 		one := 1
 		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
-			coreconfig.LoginIDKeyConfiguration{Key: "email", Minimum: &zero, Maximum: &one},
+			coreconfig.LoginIDKeyConfiguration{Key: "email", Maximum: &one},
 		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(

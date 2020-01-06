@@ -2439,24 +2439,6 @@ func (z *LoginIDKeyConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				}
 				z.Type = LoginIDKeyType(zb0002)
 			}
-		case "minimum":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "Minimum")
-					return
-				}
-				z.Minimum = nil
-			} else {
-				if z.Minimum == nil {
-					z.Minimum = new(int)
-				}
-				*z.Minimum, err = dc.ReadInt()
-				if err != nil {
-					err = msgp.WrapError(err, "Minimum")
-					return
-				}
-			}
 		case "maximum":
 			if dc.IsNil() {
 				err = dc.ReadNil()
@@ -2488,9 +2470,9 @@ func (z *LoginIDKeyConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *LoginIDKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 4
+	// map header, size 3
 	// write "key"
-	err = en.Append(0x84, 0xa3, 0x6b, 0x65, 0x79)
+	err = en.Append(0x83, 0xa3, 0x6b, 0x65, 0x79)
 	if err != nil {
 		return
 	}
@@ -2508,23 +2490,6 @@ func (z *LoginIDKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		err = msgp.WrapError(err, "Type")
 		return
-	}
-	// write "minimum"
-	err = en.Append(0xa7, 0x6d, 0x69, 0x6e, 0x69, 0x6d, 0x75, 0x6d)
-	if err != nil {
-		return
-	}
-	if z.Minimum == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = en.WriteInt(*z.Minimum)
-		if err != nil {
-			err = msgp.WrapError(err, "Minimum")
-			return
-		}
 	}
 	// write "maximum"
 	err = en.Append(0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
@@ -2549,20 +2514,13 @@ func (z *LoginIDKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *LoginIDKeyConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 4
+	// map header, size 3
 	// string "key"
-	o = append(o, 0x84, 0xa3, 0x6b, 0x65, 0x79)
+	o = append(o, 0x83, 0xa3, 0x6b, 0x65, 0x79)
 	o = msgp.AppendString(o, z.Key)
 	// string "type"
 	o = append(o, 0xa4, 0x74, 0x79, 0x70, 0x65)
 	o = msgp.AppendString(o, string(z.Type))
-	// string "minimum"
-	o = append(o, 0xa7, 0x6d, 0x69, 0x6e, 0x69, 0x6d, 0x75, 0x6d)
-	if z.Minimum == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o = msgp.AppendInt(o, *z.Minimum)
-	}
 	// string "maximum"
 	o = append(o, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
 	if z.Maximum == nil {
@@ -2607,23 +2565,6 @@ func (z *LoginIDKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error)
 				}
 				z.Type = LoginIDKeyType(zb0002)
 			}
-		case "minimum":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.Minimum = nil
-			} else {
-				if z.Minimum == nil {
-					z.Minimum = new(int)
-				}
-				*z.Minimum, bts, err = msgp.ReadIntBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Minimum")
-					return
-				}
-			}
 		case "maximum":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
@@ -2656,12 +2597,6 @@ func (z *LoginIDKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error)
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *LoginIDKeyConfiguration) Msgsize() (s int) {
 	s = 1 + 4 + msgp.StringPrefixSize + len(z.Key) + 5 + msgp.StringPrefixSize + len(string(z.Type)) + 8
-	if z.Minimum == nil {
-		s += msgp.NilSize
-	} else {
-		s += msgp.IntSize
-	}
-	s += 8
 	if z.Maximum == nil {
 		s += msgp.NilSize
 	} else {

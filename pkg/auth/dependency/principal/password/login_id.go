@@ -71,13 +71,6 @@ func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
 				Message: "too many login IDs",
 				Details: map[string]interface{}{"key": keyConfig.Key, "lte": *keyConfig.Maximum},
 			}})
-		} else if amount < *keyConfig.Minimum {
-			return validation.NewValidationFailed("invalid login IDs", []validation.ErrorCause{{
-				Kind:    validation.ErrorEntryAmount,
-				Pointer: "",
-				Message: "not enough login IDs",
-				Details: map[string]interface{}{"key": keyConfig.Key, "gte": *keyConfig.Minimum},
-			}})
 		}
 	}
 

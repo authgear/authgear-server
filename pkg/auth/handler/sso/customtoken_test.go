@@ -384,13 +384,11 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		lh.Validator = validator
 		issuer := "myissuer"
 		audience := "myaudience"
-		zero := 0
 		one := 1
 		loginIDsKeys := []config.LoginIDKeyConfiguration{
 			config.LoginIDKeyConfiguration{
 				Key:     "email",
 				Type:    config.LoginIDKeyType(metadata.Email),
-				Minimum: &zero,
 				Maximum: &one,
 			},
 		}

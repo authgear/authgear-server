@@ -224,7 +224,6 @@ const (
 				"type": "string",
 				"enum": ["raw", "email", "phone", "username"]
 			},
-			"minimum": { "$ref": "#NonNegativeInteger" },
 			"maximum": { "$ref": "#NonNegativeInteger" }
 		},
 		"required": ["type"]

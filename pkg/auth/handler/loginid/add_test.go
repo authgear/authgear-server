@@ -24,11 +24,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, min int, max int) config.LoginIDKeyConfiguration {
+func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, max int) config.LoginIDKeyConfiguration {
 	return config.LoginIDKeyConfiguration{
 		Key:     key,
 		Type:    t,
-		Minimum: &min,
 		Maximum: &max,
 	}
 }
@@ -55,8 +54,8 @@ func TestAddLoginIDHandler(t *testing.T) {
 		h.AuthInfoStore = authInfoStore
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			[]config.LoginIDKeyConfiguration{
-				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 0, 1),
-				newLoginIDKeyConfig("username", config.LoginIDKeyType(metadata.Username), 0, 1),
+				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 1),
+				newLoginIDKeyConfig("username", config.LoginIDKeyType(metadata.Username), 1),
 			},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{
@@ -210,7 +209,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 		Convey("should invalidate verify state", func() {
 			passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 				[]config.LoginIDKeyConfiguration{
-					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 0, 2),
+					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 2),
 				},
 				[]string{password.DefaultRealm},
 				map[string]password.Principal{
@@ -245,7 +244,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 		Convey("should use empty password hash if no principal exists", func() {
 			passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 				[]config.LoginIDKeyConfiguration{
-					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 0, 2),
+					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 2),
 				},
 				[]string{password.DefaultRealm},
 				map[string]password.Principal{},

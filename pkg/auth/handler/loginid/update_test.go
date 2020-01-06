@@ -49,8 +49,8 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 		h.AuthInfoStore = authInfoStore
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			[]config.LoginIDKeyConfiguration{
-				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 1, 1),
-				newLoginIDKeyConfig("username", config.LoginIDKeyType(metadata.Username), 0, 1),
+				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 1),
+				newLoginIDKeyConfig("username", config.LoginIDKeyType(metadata.Username), 1),
 			},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{
@@ -182,9 +182,9 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 						"causes": [
 							{
 								"kind": "EntryAmount",
-								"message": "not enough login IDs",
+								"message": "too many login IDs",
 								"pointer": "",
-								"details": { "key": "email", "gte": 1 }
+								"details": { "key": "username", "lte": 1 }
 							}
 						]
 					}

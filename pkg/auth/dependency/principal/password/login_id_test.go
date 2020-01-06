@@ -11,11 +11,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, min int, max int) config.LoginIDKeyConfiguration {
+func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, max int) config.LoginIDKeyConfiguration {
 	return config.LoginIDKeyConfiguration{
 		Key:     key,
 		Type:    t,
-		Minimum: &min,
 		Maximum: &max,
 	}
 }
@@ -47,9 +46,9 @@ func TestLoginID(t *testing.T) {
 			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
 			checker := newDefaultLoginIDChecker(
 				[]config.LoginIDKeyConfiguration{
-					newLoginIDKeyConfig("username", config.LoginIDKeyTypeRaw, 0, 1),
-					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 0, 1),
-					newLoginIDKeyConfig("phone", config.LoginIDKeyType(metadata.Phone), 0, 1),
+					newLoginIDKeyConfig("username", config.LoginIDKeyTypeRaw, 1),
+					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 1),
+					newLoginIDKeyConfig("phone", config.LoginIDKeyType(metadata.Phone), 1),
 				},
 				newLoginIDTypesConfig(),
 				reversedNameChecker,

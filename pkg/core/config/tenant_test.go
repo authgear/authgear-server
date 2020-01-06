@@ -147,19 +147,16 @@ func makeFullTenantConfig() TenantConfiguration {
 					LoginIDKeyConfiguration{
 						Key:     "email",
 						Type:    LoginIDKeyType("email"),
-						Minimum: newInt(0),
 						Maximum: newInt(1),
 					},
 					LoginIDKeyConfiguration{
 						Key:     "phone",
 						Type:    LoginIDKeyType("phone"),
-						Minimum: newInt(0),
 						Maximum: newInt(1),
 					},
 					LoginIDKeyConfiguration{
 						Key:     "username",
 						Type:    LoginIDKeyTypeRaw,
-						Minimum: newInt(0),
 						Maximum: newInt(1),
 					},
 				},
@@ -443,23 +440,6 @@ func TestTenantConfig(t *testing.T) {
 				Kind:    validation.ErrorGeneral,
 				Message: "master key must not be same as API key",
 				Pointer: "/user_config/master_key",
-			}})
-		})
-		Convey("should validate minimum <= maximum", func() {
-			c := makeFullTenantConfig()
-			loginIDKeys := c.UserConfig.Auth.LoginIDKeys
-			for i := range loginIDKeys {
-				if loginIDKeys[i].Key == "email" {
-					loginIDKeys[i].Minimum = newInt(2)
-					loginIDKeys[i].Maximum = newInt(1)
-				}
-			}
-			c.UserConfig.Auth.LoginIDKeys = loginIDKeys
-
-			testValidation(&c, []validation.ErrorCause{{
-				Kind:    validation.ErrorGeneral,
-				Message: "invalid login ID amount range",
-				Pointer: "/user_config/auth/login_id_keys/0",
 			}})
 		})
 		Convey("UserVerification.LoginIDKeys is subset of Auth.LoginIDKeys", func() {

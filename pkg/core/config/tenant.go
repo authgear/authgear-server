@@ -237,15 +237,6 @@ func (c *TenantConfiguration) PostValidate() error {
 		}
 	}
 
-	for key, loginIDKeyConfig := range c.UserConfig.Auth.LoginIDKeys {
-		if *loginIDKeyConfig.Minimum > *loginIDKeyConfig.Maximum || *loginIDKeyConfig.Maximum <= 0 {
-			return fail(
-				validation.ErrorGeneral,
-				"invalid login ID amount range",
-				"user_config", "auth", "login_id_keys", key)
-		}
-	}
-
 	for _, verifyKeyConfig := range c.UserConfig.UserVerification.LoginIDKeys {
 		ok := false
 		for _, loginIDKey := range c.UserConfig.Auth.LoginIDKeys {
@@ -357,17 +348,9 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 
 	// Set default minimum and maximum
 	for i, config := range c.UserConfig.Auth.LoginIDKeys {
-		if config.Minimum == nil {
-			config.Minimum = new(int)
-			*config.Minimum = 0
-		}
 		if config.Maximum == nil {
 			config.Maximum = new(int)
-			if *config.Minimum == 0 {
-				*config.Maximum = 1
-			} else {
-				*config.Maximum = *config.Minimum
-			}
+			*config.Maximum = 1
 		}
 		c.UserConfig.Auth.LoginIDKeys[i] = config
 	}
@@ -657,7 +640,6 @@ type LoginIDTypeUsernameConfiguration struct {
 type LoginIDKeyConfiguration struct {
 	Key     string         `json:"key" yaml:"key" msg:"key"`
 	Type    LoginIDKeyType `json:"type,omitempty" yaml:"type" msg:"type"`
-	Minimum *int           `json:"minimum,omitempty" yaml:"minimum" msg:"minimum"`
 	Maximum *int           `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
 }
 

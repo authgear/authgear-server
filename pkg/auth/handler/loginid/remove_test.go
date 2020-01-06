@@ -48,8 +48,8 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 		h.AuthInfoStore = authInfoStore
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			[]config.LoginIDKeyConfiguration{
-				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 0, 1),
-				newLoginIDKeyConfig("username", config.LoginIDKeyType(metadata.Username), 1, 1),
+				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 1),
+				newLoginIDKeyConfig("username", config.LoginIDKeyType(metadata.Username), 1),
 			},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{
@@ -155,34 +155,6 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 					"reason": "CurrentIdentityBeingDeleted",
 					"message": "must not delete current identity",
 					"code": 400
-				}
-			}`)
-		})
-
-		Convey("should fail if there are not enough login ID", func() {
-			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"key": "username", "value": "user1"
-			}`))
-			r.Header.Set("Content-Type", "application/json")
-			w := httptest.NewRecorder()
-			h.ServeHTTP(w, r)
-
-			So(w.Body.Bytes(), ShouldEqualJSON, `{
-				"error": {
-					"name": "Invalid",
-					"reason": "ValidationFailed",
-					"message": "invalid login ID",
-					"code": 400,
-					"info": {
-						"causes": [
-							{
-								"kind": "EntryAmount",
-								"message": "not enough login IDs",
-								"pointer": "",
-								"details": { "key": "username", "gte": 1 }
-							}
-						]
-					}
 				}
 			}`)
 		})
