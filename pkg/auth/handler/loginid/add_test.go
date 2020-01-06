@@ -55,7 +55,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			[]config.LoginIDKeyConfiguration{
 				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 1),
-				newLoginIDKeyConfig("username", config.LoginIDKeyType(metadata.Username), 1),
+				newLoginIDKeyConfig("username", config.LoginIDKeyType(metadata.Username), 2),
 			},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{
@@ -95,7 +95,9 @@ func TestAddLoginIDHandler(t *testing.T) {
 
 		Convey("should validate request", func() {
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"key": "id", "value": "user1"
+				"login_ids": [
+					{ "key": "id", "value": "user1" }
+				]
 			}`))
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
@@ -109,7 +111,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 					"code": 400,
 					"info": {
 						"causes": [
-							{ "kind": "General", "message": "login ID key is not allowed", "pointer": "/key" }
+							{ "kind": "General", "message": "login ID key is not allowed", "pointer": "/login_ids/0/key" }
 						]
 					}
 				}
@@ -118,7 +120,9 @@ func TestAddLoginIDHandler(t *testing.T) {
 
 		Convey("should fail if login ID is already used", func() {
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"key": "username", "value": "user2"
+				"login_ids": [
+					{ "key": "username", "value": "user2" }
+				]
 			}`))
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
@@ -136,7 +140,9 @@ func TestAddLoginIDHandler(t *testing.T) {
 
 		Convey("should fail if there are too many login ID", func() {
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"key": "email", "value": "user1+a@example.com"
+				"login_ids": [
+					{ "key": "email", "value": "user1+a@example.com" }
+				]
 			}`))
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
@@ -164,7 +170,10 @@ func TestAddLoginIDHandler(t *testing.T) {
 
 		Convey("should add new login ID", func() {
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"key": "username", "value": "user1"
+				"login_ids": [
+					{ "key": "username", "value": "user1a" },
+					{ "key": "username", "value": "user1b" }
+				]
 			}`))
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
@@ -174,13 +183,19 @@ func TestAddLoginIDHandler(t *testing.T) {
 				"result": {}
 			}`)
 
-			So(passwordAuthProvider.PrincipalMap, ShouldHaveLength, 3)
-			var p password.Principal
-			err := passwordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "user1", password.DefaultRealm, &p)
+			So(passwordAuthProvider.PrincipalMap, ShouldHaveLength, 4)
+			var p1 password.Principal
+			err := passwordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "user1a", password.DefaultRealm, &p1)
 			So(err, ShouldBeNil)
-			So(p.UserID, ShouldEqual, "user-id-1")
-			So(p.LoginIDKey, ShouldEqual, "username")
-			So(p.LoginID, ShouldEqual, "user1")
+			So(p1.UserID, ShouldEqual, "user-id-1")
+			So(p1.LoginIDKey, ShouldEqual, "username")
+			So(p1.LoginID, ShouldEqual, "user1a")
+			var p2 password.Principal
+			err = passwordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "user1b", password.DefaultRealm, &p2)
+			So(err, ShouldBeNil)
+			So(p2.UserID, ShouldEqual, "user-id-1")
+			So(p2.LoginIDKey, ShouldEqual, "username")
+			So(p2.LoginID, ShouldEqual, "user1b")
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.IdentityCreateEvent{
@@ -192,14 +207,34 @@ func TestAddLoginIDHandler(t *testing.T) {
 						Metadata:   userprofile.Data{},
 					},
 					Identity: model.Identity{
-						ID:   p.ID,
+						ID:   p1.ID,
 						Type: "password",
 						Attributes: principal.Attributes{
 							"login_id_key": "username",
-							"login_id":     "user1",
+							"login_id":     "user1a",
 						},
 						Claims: principal.Claims{
-							"username": "user1",
+							"username": "user1a",
+						},
+					},
+				},
+				event.IdentityCreateEvent{
+					User: model.User{
+						ID:         "user-id-1",
+						Verified:   true,
+						Disabled:   false,
+						VerifyInfo: map[string]bool{"user1@example.com": true},
+						Metadata:   userprofile.Data{},
+					},
+					Identity: model.Identity{
+						ID:   p2.ID,
+						Type: "password",
+						Attributes: principal.Attributes{
+							"login_id_key": "username",
+							"login_id":     "user1b",
+						},
+						Claims: principal.Claims{
+							"username": "user1b",
 						},
 					},
 				},
@@ -228,7 +263,9 @@ func TestAddLoginIDHandler(t *testing.T) {
 			h.PasswordAuthProvider = passwordAuthProvider
 
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"key": "email", "value": "user1+a@example.com"
+				"login_ids": [
+					{ "key": "email", "value": "user1+a@example.com" }
+				]
 			}`))
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
@@ -252,7 +289,9 @@ func TestAddLoginIDHandler(t *testing.T) {
 			h.PasswordAuthProvider = passwordAuthProvider
 
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"key": "email", "value": "user1+a@example.com"
+				"login_ids": [
+					{ "key": "email", "value": "user1+a@example.com" }
+				]
 			}`))
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
