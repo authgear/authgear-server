@@ -31,7 +31,7 @@ func NewDeliverer(config *config.TenantConfiguration, timeProvider time.Provider
 	return &delivererImpl{
 		Hooks:        &config.Hooks,
 		UserConfig:   config.UserConfig.Hook,
-		AppConfig:    &config.AppConfig.Hook,
+		AppConfig:    config.AppConfig.Hook,
 		TimeProvider: timeProvider,
 		Mutator:      mutator,
 		HTTPClient:   gohttp.Client{},

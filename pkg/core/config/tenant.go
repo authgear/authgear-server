@@ -852,9 +852,9 @@ type HookUserConfiguration struct {
 
 // AppConfiguration is configuration kept secret from the developer.
 type AppConfiguration struct {
-	DatabaseURL    string               `json:"database_url,omitempty" yaml:"database_url" msg:"database_url"`
-	DatabaseSchema string               `json:"database_schema,omitempty" yaml:"database_schema" msg:"database_schema"`
-	Hook           HookAppConfiguration `json:"hook,omitempty" yaml:"hook" msg:"hook"`
+	DatabaseURL    string                `json:"database_url,omitempty" yaml:"database_url" msg:"database_url"`
+	DatabaseSchema string                `json:"database_schema,omitempty" yaml:"database_schema" msg:"database_schema"`
+	Hook           *HookAppConfiguration `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
 }
 
 type SMTPMode string

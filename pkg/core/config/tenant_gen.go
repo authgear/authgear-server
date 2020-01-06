@@ -381,37 +381,49 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				return
 			}
 		case "hook":
-			var zb0002 uint32
-			zb0002, err = dc.ReadMapHeader()
-			if err != nil {
-				err = msgp.WrapError(err, "Hook")
-				return
-			}
-			for zb0002 > 0 {
-				zb0002--
-				field, err = dc.ReadMapKeyPtr()
+			if dc.IsNil() {
+				err = dc.ReadNil()
 				if err != nil {
 					err = msgp.WrapError(err, "Hook")
 					return
 				}
-				switch msgp.UnsafeString(field) {
-				case "sync_hook_timeout_second":
-					z.Hook.SyncHookTimeout, err = dc.ReadInt()
-					if err != nil {
-						err = msgp.WrapError(err, "Hook", "SyncHookTimeout")
-						return
-					}
-				case "sync_hook_total_timeout_second":
-					z.Hook.SyncHookTotalTimeout, err = dc.ReadInt()
-					if err != nil {
-						err = msgp.WrapError(err, "Hook", "SyncHookTotalTimeout")
-						return
-					}
-				default:
-					err = dc.Skip()
+				z.Hook = nil
+			} else {
+				if z.Hook == nil {
+					z.Hook = new(HookAppConfiguration)
+				}
+				var zb0002 uint32
+				zb0002, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "Hook")
+					return
+				}
+				for zb0002 > 0 {
+					zb0002--
+					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Hook")
 						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "sync_hook_timeout_second":
+						z.Hook.SyncHookTimeout, err = dc.ReadInt()
+						if err != nil {
+							err = msgp.WrapError(err, "Hook", "SyncHookTimeout")
+							return
+						}
+					case "sync_hook_total_timeout_second":
+						z.Hook.SyncHookTotalTimeout, err = dc.ReadInt()
+						if err != nil {
+							err = msgp.WrapError(err, "Hook", "SyncHookTotalTimeout")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "Hook")
+							return
+						}
 					}
 				}
 			}
@@ -450,26 +462,37 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		return
 	}
 	// write "hook"
-	// map header, size 2
-	// write "sync_hook_timeout_second"
-	err = en.Append(0xa4, 0x68, 0x6f, 0x6f, 0x6b, 0x82, 0xb8, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
+	err = en.Append(0xa4, 0x68, 0x6f, 0x6f, 0x6b)
 	if err != nil {
 		return
 	}
-	err = en.WriteInt(z.Hook.SyncHookTimeout)
-	if err != nil {
-		err = msgp.WrapError(err, "Hook", "SyncHookTimeout")
-		return
-	}
-	// write "sync_hook_total_timeout_second"
-	err = en.Append(0xbe, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
-	if err != nil {
-		return
-	}
-	err = en.WriteInt(z.Hook.SyncHookTotalTimeout)
-	if err != nil {
-		err = msgp.WrapError(err, "Hook", "SyncHookTotalTimeout")
-		return
+	if z.Hook == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		// map header, size 2
+		// write "sync_hook_timeout_second"
+		err = en.Append(0x82, 0xb8, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
+		if err != nil {
+			return
+		}
+		err = en.WriteInt(z.Hook.SyncHookTimeout)
+		if err != nil {
+			err = msgp.WrapError(err, "Hook", "SyncHookTimeout")
+			return
+		}
+		// write "sync_hook_total_timeout_second"
+		err = en.Append(0xbe, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
+		if err != nil {
+			return
+		}
+		err = en.WriteInt(z.Hook.SyncHookTotalTimeout)
+		if err != nil {
+			err = msgp.WrapError(err, "Hook", "SyncHookTotalTimeout")
+			return
+		}
 	}
 	return
 }
@@ -485,13 +508,18 @@ func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = append(o, 0xaf, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61)
 	o = msgp.AppendString(o, z.DatabaseSchema)
 	// string "hook"
-	// map header, size 2
-	// string "sync_hook_timeout_second"
-	o = append(o, 0xa4, 0x68, 0x6f, 0x6f, 0x6b, 0x82, 0xb8, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
-	o = msgp.AppendInt(o, z.Hook.SyncHookTimeout)
-	// string "sync_hook_total_timeout_second"
-	o = append(o, 0xbe, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
-	o = msgp.AppendInt(o, z.Hook.SyncHookTotalTimeout)
+	o = append(o, 0xa4, 0x68, 0x6f, 0x6f, 0x6b)
+	if z.Hook == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		// map header, size 2
+		// string "sync_hook_timeout_second"
+		o = append(o, 0x82, 0xb8, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
+		o = msgp.AppendInt(o, z.Hook.SyncHookTimeout)
+		// string "sync_hook_total_timeout_second"
+		o = append(o, 0xbe, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
+		o = msgp.AppendInt(o, z.Hook.SyncHookTotalTimeout)
+	}
 	return
 }
 
@@ -526,37 +554,48 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				return
 			}
 		case "hook":
-			var zb0002 uint32
-			zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Hook")
-				return
-			}
-			for zb0002 > 0 {
-				zb0002--
-				field, bts, err = msgp.ReadMapKeyZC(bts)
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Hook = nil
+			} else {
+				if z.Hook == nil {
+					z.Hook = new(HookAppConfiguration)
+				}
+				var zb0002 uint32
+				zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Hook")
 					return
 				}
-				switch msgp.UnsafeString(field) {
-				case "sync_hook_timeout_second":
-					z.Hook.SyncHookTimeout, bts, err = msgp.ReadIntBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Hook", "SyncHookTimeout")
-						return
-					}
-				case "sync_hook_total_timeout_second":
-					z.Hook.SyncHookTotalTimeout, bts, err = msgp.ReadIntBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "Hook", "SyncHookTotalTimeout")
-						return
-					}
-				default:
-					bts, err = msgp.Skip(bts)
+				for zb0002 > 0 {
+					zb0002--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Hook")
 						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "sync_hook_timeout_second":
+						z.Hook.SyncHookTimeout, bts, err = msgp.ReadIntBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Hook", "SyncHookTimeout")
+							return
+						}
+					case "sync_hook_total_timeout_second":
+						z.Hook.SyncHookTotalTimeout, bts, err = msgp.ReadIntBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Hook", "SyncHookTotalTimeout")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Hook")
+							return
+						}
 					}
 				}
 			}
@@ -574,7 +613,12 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *AppConfiguration) Msgsize() (s int) {
-	s = 1 + 13 + msgp.StringPrefixSize + len(z.DatabaseURL) + 16 + msgp.StringPrefixSize + len(z.DatabaseSchema) + 5 + 1 + 25 + msgp.IntSize + 31 + msgp.IntSize
+	s = 1 + 13 + msgp.StringPrefixSize + len(z.DatabaseURL) + 16 + msgp.StringPrefixSize + len(z.DatabaseSchema) + 5
+	if z.Hook == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 25 + msgp.IntSize + 31 + msgp.IntSize
+	}
 	return
 }
 
