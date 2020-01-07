@@ -220,9 +220,7 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 						"created_at": "0001-01-01T00:00:00Z",
 						"is_disabled": false,
 						"is_verified": false,
-						"verify_info": {
-							"user1@example.com": true
-						},
+						"verify_info": {},
 						"metadata": {}
 					},
 					"identity": {
@@ -295,6 +293,7 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 
 			So(w.Code, ShouldEqual, 200)
 
+			So(authInfoStore.AuthInfoMap["user-id-1"].VerifyInfo["user1@example.com"], ShouldBeFalse)
 			So(authInfoStore.AuthInfoMap["user-id-1"].Verified, ShouldBeFalse)
 		})
 	})

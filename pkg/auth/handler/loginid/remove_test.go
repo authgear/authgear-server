@@ -220,6 +220,7 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 				"result": {}
 			}`)
 
+			So(authInfoStore.AuthInfoMap["user-id-1"].VerifyInfo["user1@example.com"], ShouldBeFalse)
 			So(authInfoStore.AuthInfoMap["user-id-1"].Verified, ShouldBeFalse)
 		})
 	})
