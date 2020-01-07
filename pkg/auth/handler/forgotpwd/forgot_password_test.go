@@ -172,14 +172,12 @@ func TestForgotPasswordHandler(t *testing.T) {
 					"code": 400,
 					"info": {
 						"causes": [
-						{
-							"details": {
-								"gte": 1
-							},
-							"kind": "StringLength",
-							"message": "String length must be greater than or equal to 1",
-							"pointer": "/email"
-						}
+							{
+								"kind": "StringFormat",
+								"message": "Does not match format 'email': mail: no address",
+								"pointer": "/email",
+								"details": { "format": "email" }
+							}
 						]
 					},
 					"message": "invalid request body",

@@ -65,6 +65,6 @@ require (
 // See https://github.com/SkygearIO/govips/commit/b7b5b9596467e8b6b5f11f2178c754df83e9a35c
 replace github.com/davidbyttow/govips => github.com/skygeario/govips v0.0.0-20191017114550-b7b5b9596467
 
-replace github.com/xeipuuv/gojsonschema => github.com/skygeario/gojsonschema v1.2.1-0.20191031025230-d708aabc60f3
+replace github.com/xeipuuv/gojsonschema => github.com/skygeario/gojsonschema v1.2.1-0.20200107025531-9fad5cb886b4
 
 replace gopkg.in/yaml.v2 => github.com/skygeario/go-yaml v0.0.0-20191213113752-45105225b50d

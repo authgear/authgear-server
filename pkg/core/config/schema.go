@@ -160,9 +160,9 @@ const (
 				"additionalProperties": false,
 				"properties": {
 					"app_name": { "type": "string" },
-					"sender": { "type": "string", "format": "email" },
+					"sender": { "type": "string", "format": "NameEmailAddr" },
 					"subject": { "type": "string" },
-					"reply_to": { "type": "string", "format": "email" },
+					"reply_to": { "type": "string", "format": "NameEmailAddr" },
 					"sms": {
 						"type": "object",
 						"additionalProperties": false,
@@ -301,8 +301,8 @@ const (
 		"properties": {
 			"app_name": { "type": "string" },
 			"secure_match": { "type": "boolean" },
-			"sender": { "type": "string", "format": "email" },
-			"reply_to": { "type": "string", "format": "email" },
+			"sender": { "type": "string", "format": "NameEmailAddr" },
+			"reply_to": { "type": "string", "format": "NameEmailAddr" },
 			"subject": { "type": "string" },
 			"reset_url_lifetime": { "$ref": "#NonNegativeInteger" },
 			"success_redirect": { "type": "string" },
@@ -315,8 +315,8 @@ const (
 		"additionalProperties": false,
 		"properties": {
 			"enabled": { "type": "boolean" },
-			"sender": { "type": "string", "format": "email" },
-			"reply_to": { "type": "string", "format": "email" },
+			"sender": { "type": "string", "format": "NameEmailAddr" },
+			"reply_to": { "type": "string", "format": "NameEmailAddr" },
 			"subject": { "type": "string" },
 			"destination": {
 				"type": "string",
@@ -475,8 +475,8 @@ const (
 			"success_redirect": { "type": "string" },
 			"error_redirect": { "type": "string" },
 			"subject": { "type": "string" },
-			"sender": { "type": "string", "format": "email" },
-			"reply_to": { "type": "string", "format": "email" }
+			"sender": { "type": "string", "format": "NameEmailAddr" },
+			"reply_to": { "type": "string", "format": "NameEmailAddr" }
 		}
 	},
 	"HookUserConfiguration": {
