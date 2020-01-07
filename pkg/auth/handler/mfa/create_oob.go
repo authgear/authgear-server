@@ -66,8 +66,8 @@ const CreateOOBRequestSchema = `
 			"additionalProperties": false,
 			"properties": {
 				"channel": { "enum": ["sms"] },
-				"phone": { "type": "string", "format": "phone", "minLength": 1 },
-				"authn_session_token": { "type": "string", "minLength": 1 }
+				"phone": { "type": "string", "format": "phone" },
+				"authn_session_token": { "type": "string" }
 			},
 			"required": ["channel", "phone"]
 		},
@@ -75,7 +75,7 @@ const CreateOOBRequestSchema = `
 			"additionalProperties": false,
 			"properties": {
 				"channel": { "enum": ["email"] },
-				"email": { "type": "string", "format": "email", "minLength": 1 },
+				"email": { "type": "string", "format": "email" },
 				"authn_session_token": { "type": "string", "minLength": 1 }
 			},
 			"required": ["channel", "email"]

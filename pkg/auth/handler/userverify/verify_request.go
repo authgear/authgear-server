@@ -79,7 +79,7 @@ const VerifyRequestSchema = `
 			"type": "object",
 			"properties": {
 				"login_id_type": { "enum": ["phone"] },
-				"login_id": { "type": "string", "format": "phone", "minLength": 1 }
+				"login_id": { "type": "string", "format": "phone" }
 			},
 			"required": ["login_id_type", "login_id"]
 		},
@@ -87,7 +87,7 @@ const VerifyRequestSchema = `
 			"type": "object",
 			"properties": {
 				"login_id_type": { "enum": ["email"] },
-				"login_id": { "type": "string", "format": "email", "minLength": 1 }
+				"login_id": { "type": "string", "format": "email" }
 			},
 			"required": ["login_id_type", "login_id"]
 		}
