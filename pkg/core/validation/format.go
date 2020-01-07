@@ -122,10 +122,10 @@ func (f FilePath) ValidateFormat(input interface{}) error {
 
 	abs := filepath.IsAbs(str)
 	if f.Relative && abs {
-		return errors.New("input must be an absolute path")
+		return errors.New("input must be a relative path")
 	}
 	if !f.Relative && !abs {
-		return errors.New("input must be a relative path")
+		return errors.New("input must be an absolute path")
 	}
 
 	trailingSlash := strings.HasSuffix(str, "/")
