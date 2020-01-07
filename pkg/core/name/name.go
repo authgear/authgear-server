@@ -14,7 +14,7 @@ const appNameFormat = `^[a-z0-9]([-a-z0-9]{0,38}[a-z0-9])?$`
 var (
 	// ErrInvalidAppName tells the accepted format of app name.
 	// App name will be used in domain name so it must be a valid DNS label.
-	ErrInvalidAppName = errors.Newf("must contain only lowercase alphanumeric characters/dash, at most 40 characters, and not start/end with dash.")
+	ErrInvalidAppName = errors.New("must contain only lowercase alphanumeric characters/dash, at most 40 characters, and not start/end with dash")
 )
 var (
 	appNameRegex = regexp.MustCompile(appNameFormat)
