@@ -107,7 +107,7 @@ func TestFilePath(t *testing.T) {
 				input    string
 				expected bool
 			}{
-				{"", false},
+				{"", true},
 				{"/", false},
 
 				{"a", true},
@@ -157,7 +157,7 @@ func TestFilePath(t *testing.T) {
 				input    string
 				expected bool
 			}{
-				{"", false},
+				{"", true},
 				{"/", false},
 				{"/a", false},
 				{"/a/", false},
@@ -179,7 +179,7 @@ func TestFilePath(t *testing.T) {
 				input    string
 				expected bool
 			}{
-				{"", false},
+				{"", true},
 				{"/", false},
 				{"/a", false},
 				{"/a/", false},
@@ -204,7 +204,7 @@ func TestE164Phone(t *testing.T) {
 		f := E164Phone{}.IsFormat
 		So(f(nil), ShouldBeTrue)
 		So(f(1), ShouldBeTrue)
-		So(f(""), ShouldBeTrue)
+		So(f(""), ShouldBeFalse)
 		So(f("+85222334455"), ShouldBeTrue)
 		So(f(" +85222334455"), ShouldBeFalse)
 		So(f("nonsense"), ShouldBeFalse)
@@ -217,7 +217,7 @@ func TestEmail(t *testing.T) {
 			f := Email{AllowName: false}.ValidateFormat
 			So(f(nil), ShouldBeNil)
 			So(f(1), ShouldBeNil)
-			So(f(""), ShouldBeNil)
+			So(f(""), ShouldBeError, "mail: no address")
 			So(f("user@example.com"), ShouldBeNil)
 			So(f(`"User" <user@example.com>`), ShouldBeError, "input email must not have name")
 			So(f(" user@example.com "), ShouldBeError, "input email must be normalized")
@@ -227,7 +227,7 @@ func TestEmail(t *testing.T) {
 			f := Email{AllowName: true}.ValidateFormat
 			So(f(nil), ShouldBeNil)
 			So(f(1), ShouldBeNil)
-			So(f(""), ShouldBeNil)
+			So(f(""), ShouldBeError, "mail: no address")
 			So(f("user@example.com"), ShouldBeNil)
 			So(f(`"User" <user@example.com>`), ShouldBeNil)
 			So(f(" user@example.com "), ShouldBeError, "input email must be normalized")

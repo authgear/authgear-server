@@ -60,10 +60,7 @@ func (f URL) IsFormat(input interface{}) bool {
 func (f URL) ValidateFormat(input interface{}) error {
 	str, ok := input.(string)
 	if !ok {
-		return errors.New("input must be a string")
-	}
-	if str == "" {
-		return errors.New("input must not be empty")
+		return nil
 	}
 
 	u, err := url.Parse(str)
@@ -120,11 +117,7 @@ func (f FilePath) IsFormat(input interface{}) bool {
 func (f FilePath) ValidateFormat(input interface{}) error {
 	str, ok := input.(string)
 	if !ok {
-		return errors.New("input must be a string")
-	}
-
-	if str == "" {
-		return errors.New("input must not be empty")
+		return nil
 	}
 
 	abs := filepath.IsAbs(str)
@@ -158,9 +151,6 @@ func (f E164Phone) ValidateFormat(input interface{}) error {
 	if !ok {
 		return nil
 	}
-	if str == "" {
-		return nil
-	}
 	return phone.EnsureE164(str)
 }
 
@@ -179,10 +169,6 @@ func (f Email) IsFormat(input interface{}) bool {
 func (f Email) ValidateFormat(input interface{}) error {
 	s, ok := input.(string)
 	if !ok {
-		return nil
-	}
-
-	if s == "" {
 		return nil
 	}
 

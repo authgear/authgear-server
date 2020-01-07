@@ -55,7 +55,7 @@ const ForgotPasswordRequestSchema = `
 	"$id": "#ForgotPasswordRequest",
 	"type": "object",
 	"properties": {
-		"email": { "type": "string", "format": "email", "minLength": 1 }
+		"email": { "type": "string", "format": "email" }
 	},
 	"required": ["email"]
 }

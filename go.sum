@@ -230,8 +230,8 @@ github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
 github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110/go.mod h1:jtRQO9YC/yD/E5FqG0RWijzCrrXPvNKsMf4/lGv7sUI=
 github.com/skygeario/go-yaml v0.0.0-20191213113752-45105225b50d h1:KVsTX3Yi/NtLDbshsovl5XWDV3AB79uRiSKcd/MB1uM=
 github.com/skygeario/go-yaml v0.0.0-20191213113752-45105225b50d/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
-github.com/skygeario/gojsonschema v1.2.1-0.20200103041620-2ff8f1209263 h1:eqA3Lfsw/bfgeynTD8TbVLQpS/4l2pve34LokECPROM=
-github.com/skygeario/gojsonschema v1.2.1-0.20200103041620-2ff8f1209263/go.mod h1:anYRn/JVcOK2ZgGU+IjEV4nwlhoK5sQluxsYJ78Id3Y=
+github.com/skygeario/gojsonschema v1.2.1-0.20200107025531-9fad5cb886b4 h1:k1//MUrm8NjblrgKkQVu8YCDhl2tpH7CUQHKc9ZbQmc=
+github.com/skygeario/gojsonschema v1.2.1-0.20200107025531-9fad5cb886b4/go.mod h1:anYRn/JVcOK2ZgGU+IjEV4nwlhoK5sQluxsYJ78Id3Y=
 github.com/skygeario/govips v0.0.0-20191017114550-b7b5b9596467 h1:BckNBGk1auBtDaost4Jg8ZoQdgyRcF023AhRg4Z0wuY=
 github.com/skygeario/govips v0.0.0-20191017114550-b7b5b9596467/go.mod h1:1N7xhpzu36njBwE3Xz7nvya7ZYkE8sh0caxHChWrDJk=
 github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
