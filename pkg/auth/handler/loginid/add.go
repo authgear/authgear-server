@@ -43,7 +43,7 @@ func (f AddLoginIDHandlerFactory) NewHandler(request *http.Request) http.Handler
 }
 
 type AddLoginIDRequestPayload struct {
-	password.LoginID
+	LoginIDs []password.LoginID `json:"login_ids"`
 }
 
 // @JSONSchema
@@ -52,10 +52,20 @@ const AddLoginIDRequestSchema = `
 	"$id": "#AddLoginIDRequest",
 	"type": "object",
 	"properties": {
-		"key": { "type": "string", "minLength": 1 },
-		"value": { "type": "string", "minLength": 1 }
+		"login_ids": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"key": { "type": "string", "minLength": 1 },
+					"value": { "type": "string", "minLength": 1 }
+				},
+				"required": ["key", "value"]
+			},
+			"minItems": 1
+		}
 	},
-	"required": ["key", "value"]
+	"required": ["login_ids"]
 }
 `
 
@@ -120,33 +130,22 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 			return err
 		}
 
-		newLoginID := password.LoginID{Key: payload.Key, Value: payload.Value}
 		loginIDs := extractLoginIDs(principals)
-		newLoginIDIndex := len(loginIDs)
-		loginIDs = append(loginIDs, newLoginID)
-		err = validateLoginIDs(h.PasswordAuthProvider, loginIDs, newLoginIDIndex)
+		newLoginIDBeginIndex := len(loginIDs)
+		loginIDs = append(loginIDs, payload.LoginIDs...)
+		err = validateLoginIDs(h.PasswordAuthProvider, loginIDs, newLoginIDBeginIndex)
 		if err != nil {
+			if causes := validation.ErrorCauses(err); len(causes) > 0 {
+				for i, cause := range causes {
+					if cause.Pointer != "" {
+						cause.Pointer = "/login_ids" + cause.Pointer
+						causes[i] = cause
+					}
+				}
+				return validation.NewValidationFailed("invalid login ID", causes)
+			}
 			return err
 		}
-
-		newPrincipal, err := h.PasswordAuthProvider.MakePrincipal(userID, "", newLoginID, password.DefaultRealm)
-		if err != nil {
-			return err
-		}
-		if len(principals) > 0 {
-			newPrincipal.HashedPassword = principals[0].HashedPassword
-		} else {
-			// NOTE: if there is no existing password principals,
-			// we use a empty password hash to make it unable to be used
-			// to login.
-			newPrincipal.HashedPassword = nil
-		}
-
-		err = h.PasswordAuthProvider.CreatePrincipal(newPrincipal)
-		if err != nil {
-			return err
-		}
-		principals = append(principals, newPrincipal)
 
 		var userProfile userprofile.UserProfile
 		userProfile, err = h.UserProfileStore.GetUserProfile(userID)
@@ -155,19 +154,40 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 		}
 		user := model.NewUser(*authInfo, userProfile)
 
-		err = h.UserVerificationProvider.UpdateVerificationState(authInfo, h.AuthInfoStore, principals)
-		if err != nil {
-			return err
+		for _, loginID := range payload.LoginIDs {
+			newPrincipal, err := h.PasswordAuthProvider.MakePrincipal(userID, "", loginID, password.DefaultRealm)
+			if err != nil {
+				return err
+			}
+			if len(principals) > 0 {
+				newPrincipal.HashedPassword = principals[0].HashedPassword
+			} else {
+				// NOTE: if there is no existing password principals,
+				// we use a empty password hash to make it unable to be used
+				// to login.
+				newPrincipal.HashedPassword = nil
+			}
+
+			err = h.PasswordAuthProvider.CreatePrincipal(newPrincipal)
+			if err != nil {
+				return err
+			}
+			principals = append(principals, newPrincipal)
+
+			identity := model.NewIdentity(h.IdentityProvider, newPrincipal)
+			err = h.HookProvider.DispatchEvent(
+				event.IdentityCreateEvent{
+					User:     user,
+					Identity: identity,
+				},
+				&user,
+			)
+			if err != nil {
+				return err
+			}
 		}
 
-		identity := model.NewIdentity(h.IdentityProvider, newPrincipal)
-		err = h.HookProvider.DispatchEvent(
-			event.IdentityCreateEvent{
-				User:     user,
-				Identity: identity,
-			},
-			&user,
-		)
+		err = h.UserVerificationProvider.UpdateVerificationState(authInfo, h.AuthInfoStore, principals)
 		if err != nil {
 			return err
 		}

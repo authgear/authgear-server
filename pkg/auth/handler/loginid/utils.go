@@ -2,7 +2,8 @@ package loginid
 
 import (
 	"fmt"
-	"strings"
+	"regexp"
+	"strconv"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -17,19 +18,25 @@ func extractLoginIDs(principals []*password.Principal) []password.LoginID {
 	return loginIDs
 }
 
-func validateLoginIDs(provider password.Provider, loginIDs []password.LoginID, newLoginIDIndex int) error {
-	removePointerPrefix := ""
-	if newLoginIDIndex >= 0 {
-		removePointerPrefix = fmt.Sprintf("/%d/", newLoginIDIndex)
-	}
+var loginIDPointerPrefixRegex = regexp.MustCompile(`^/(\d+)/`)
 
+func validateLoginIDs(provider password.Provider, loginIDs []password.LoginID, newLoginIDBeginIndex int) error {
 	err := provider.ValidateLoginIDs(loginIDs)
 	if err != nil {
 		if causes := validation.ErrorCauses(err); len(causes) > 0 {
 			for i, cause := range causes {
-				if removePointerPrefix != "" && strings.HasPrefix(cause.Pointer, removePointerPrefix) {
-					cause.Pointer = "/" + cause.Pointer[len(removePointerPrefix):]
-				} else {
+				isNewLoginID := false
+
+				matches := loginIDPointerPrefixRegex.FindStringSubmatch(cause.Pointer)
+				if len(matches) > 0 && newLoginIDBeginIndex >= 0 {
+					index, err := strconv.Atoi(matches[1])
+					if err == nil && index >= newLoginIDBeginIndex {
+						cause.Pointer = fmt.Sprintf("/%d/%s", index-newLoginIDBeginIndex, cause.Pointer[len(matches[0]):])
+						isNewLoginID = true
+					}
+				}
+
+				if !isNewLoginID {
 					cause.Pointer = ""
 				}
 				causes[i] = cause
