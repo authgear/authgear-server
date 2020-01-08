@@ -79,6 +79,7 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) error {
 			"disabled",
 			"disabled_message",
 			"disabled_expiry",
+			"manually_verified",
 			"verified",
 			"verify_info",
 		).
@@ -89,6 +90,7 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) error {
 			authinfo.Disabled,
 			disabledReason,
 			disabledExpiry,
+			authinfo.ManuallyVerified,
 			authinfo.Verified,
 			verifyInfo,
 		)
@@ -137,6 +139,7 @@ func (s authInfoStore) UpdateAuth(info *authinfo.AuthInfo) error {
 		Set("disabled", info.Disabled).
 		Set("disabled_message", disabledReason).
 		Set("disabled_expiry", disabledExpiry).
+		Set("manually_verified", info.ManuallyVerified).
 		Set("verified", info.Verified).
 		Set("verify_info", verifyInfo).
 		Where("id = ?", info.ID)
@@ -165,6 +168,7 @@ func (s authInfoStore) baseUserBuilder() db.SelectBuilder {
 			"disabled",
 			"disabled_message",
 			"disabled_expiry",
+			"manually_verified",
 			"verified",
 			"verify_info",
 		).
@@ -173,14 +177,15 @@ func (s authInfoStore) baseUserBuilder() db.SelectBuilder {
 
 func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowScanner) error {
 	var (
-		id             string
-		lastSeenAt     pq.NullTime
-		lastLoginAt    pq.NullTime
-		disabled       bool
-		disabledReason sql.NullString
-		disabledExpiry pq.NullTime
-		verified       bool
-		verifyInfo     dbPq.NullJSONMapBoolean
+		id               string
+		lastSeenAt       pq.NullTime
+		lastLoginAt      pq.NullTime
+		disabled         bool
+		disabledReason   sql.NullString
+		disabledExpiry   pq.NullTime
+		manuallyVerified bool
+		verified         bool
+		verifyInfo       dbPq.NullJSONMapBoolean
 	)
 
 	err := scanner.Scan(
@@ -190,6 +195,7 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		&disabled,
 		&disabledReason,
 		&disabledExpiry,
+		&manuallyVerified,
 		&verified,
 		&verifyInfo,
 	)
@@ -226,6 +232,7 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		authinfo.DisabledExpiry = nil
 	}
 
+	authinfo.ManuallyVerified = manuallyVerified
 	authinfo.Verified = verified
 	authinfo.VerifyInfo = verifyInfo.JSON
 
