@@ -20,6 +20,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
@@ -47,6 +48,9 @@ func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 	}
 	result, err := db.ExecContext(e.context, sql, args...)
 	if err != nil {
+		if isWriteConflict(err) {
+			panic(ErrWriteConflict)
+		}
 		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeDetail.Value(sql)})
 	}
 	return result, nil
@@ -63,6 +67,9 @@ func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 	}
 	result, err := db.QueryxContext(e.context, sql, args...)
 	if err != nil {
+		if isWriteConflict(err) {
+			panic(ErrWriteConflict)
+		}
 		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeDetail.Value(sql)})
 	}
 	return result, nil
@@ -75,7 +82,18 @@ func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) (*sqlx.Row, error) {
 	}
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
+		if isWriteConflict(err) {
+			panic(ErrWriteConflict)
+		}
 		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeDetail.Value(sql)})
 	}
 	return db.QueryRowxContext(e.context, sql, args...), nil
+}
+
+func isWriteConflict(err error) bool {
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) {
+		return pqErr.Code == "40001" || pqErr.Code == "40P01"
+	}
+	return false
 }

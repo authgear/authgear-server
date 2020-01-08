@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
@@ -131,7 +132,9 @@ func (d *dbContext) BeginTx() error {
 	if err != nil {
 		return err
 	}
-	tx, err := db.BeginTxx(d, nil)
+	tx, err := db.BeginTxx(d, &sql.TxOptions{
+		Isolation: sql.LevelRepeatableRead,
+	})
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to begin transaction")
 	}
