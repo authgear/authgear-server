@@ -1,7 +1,7 @@
-version: '1'
+version: '2'
 app_id: myapp
 app_name: myapp
-app_config:
+database_config:
   database_url: postgres://postgres:@localhost:5432/postgres?sslmode=disable
   database_schema: app
   smtp:
@@ -9,7 +9,7 @@ app_config:
     port: 587
     login: your.gmail.account@gmail.com
     password: enable-2fa-and-use-app-password
-user_config:
+app_config:
   url_prefix: http://localhost:3000/_auth
   clients:
   - id: default

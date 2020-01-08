@@ -63,22 +63,22 @@ func (m DependencyMap) Provide(
 	tc config.TenantConfiguration,
 ) interface{} {
 	// populate default
-	userConfig := tc.UserConfig
-	if !userConfig.SMTP.IsValid() {
-		userConfig.SMTP = m.DefaultConfiguration.SMTP
+	appConfig := tc.AppConfig
+	if !appConfig.SMTP.IsValid() {
+		appConfig.SMTP = m.DefaultConfiguration.SMTP
 	}
 
-	if !userConfig.Twilio.IsValid() {
-		userConfig.Twilio = m.DefaultConfiguration.Twilio
+	if !appConfig.Twilio.IsValid() {
+		appConfig.Twilio = m.DefaultConfiguration.Twilio
 	}
 
-	if !userConfig.Nexmo.IsValid() {
-		userConfig.Nexmo = m.DefaultConfiguration.Nexmo
+	if !appConfig.Nexmo.IsValid() {
+		appConfig.Nexmo = m.DefaultConfiguration.Nexmo
 	}
 
 	// To avoid mutating tc
 	tConfig := tc
-	tConfig.UserConfig = userConfig
+	tConfig.AppConfig = appConfig
 
 	newLoggerFactory := func() logging.Factory {
 		logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
@@ -91,7 +91,7 @@ func (m DependencyMap) Provide(
 	}
 
 	newSQLBuilder := func() db.SQLBuilder {
-		return db.NewSQLBuilder("auth", tConfig.AppConfig.DatabaseSchema, tConfig.AppID)
+		return db.NewSQLBuilder("auth", tConfig.DatabaseConfig.DatabaseSchema, tConfig.AppID)
 	}
 
 	newSQLExecutor := func() db.SQLExecutor {
@@ -131,7 +131,7 @@ func (m DependencyMap) Provide(
 
 	newAuthInfoStore := func() authinfo.Store {
 		return pqAuthInfo.NewAuthInfoStore(
-			db.NewSQLBuilder("core", tConfig.AppConfig.DatabaseSchema, tConfig.AppID),
+			db.NewSQLBuilder("core", tConfig.DatabaseConfig.DatabaseSchema, tConfig.AppID),
 			newSQLExecutor(),
 		)
 	}
@@ -146,8 +146,8 @@ func (m DependencyMap) Provide(
 	// TODO:
 	// from tConfig
 	isPasswordHistoryEnabled := func() bool {
-		return tConfig.UserConfig.PasswordPolicy.HistorySize > 0 ||
-			tConfig.UserConfig.PasswordPolicy.HistoryDays > 0
+		return tConfig.AppConfig.PasswordPolicy.HistorySize > 0 ||
+			tConfig.AppConfig.PasswordPolicy.HistoryDays > 0
 	}
 
 	newPasswordAuthProvider := func() password.Provider {
@@ -155,9 +155,9 @@ func (m DependencyMap) Provide(
 			newPasswordStore(),
 			newPasswordHistoryStore(),
 			newLoggerFactory(),
-			tConfig.UserConfig.Auth.LoginIDKeys,
-			tConfig.UserConfig.Auth.LoginIDTypes,
-			tConfig.UserConfig.Auth.AllowedRealms,
+			tConfig.AppConfig.Auth.LoginIDKeys,
+			tConfig.AppConfig.Auth.LoginIDTypes,
+			tConfig.AppConfig.Auth.AllowedRealms,
 			isPasswordHistoryEnabled(),
 			m.ReservedNameChecker,
 		)
@@ -167,7 +167,7 @@ func (m DependencyMap) Provide(
 		return customtoken.NewProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			tConfig.UserConfig.SSO.CustomToken,
+			tConfig.AppConfig.SSO.CustomToken,
 		)
 	}
 
@@ -192,7 +192,7 @@ func (m DependencyMap) Provide(
 					&tConfig,
 					newTimeProvider(),
 					hook.NewMutator(
-						tConfig.UserConfig.UserVerification,
+						tConfig.AppConfig.UserVerification,
 						newPasswordAuthProvider(),
 						newAuthInfoStore(),
 						newUserProfileStore(),
@@ -209,7 +209,7 @@ func (m DependencyMap) Provide(
 			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider(), newLoggerFactory()),
 			redisSession.NewEventStore(ctx, tConfig.AppID),
 			newAuthContext(),
-			tConfig.UserConfig.Clients,
+			tConfig.AppConfig.Clients,
 		)
 	}
 
@@ -226,29 +226,29 @@ func (m DependencyMap) Provide(
 	newSessionWriter := func() session.Writer {
 		return session.NewWriter(
 			newAuthContext(),
-			tConfig.UserConfig.Clients,
-			tConfig.UserConfig.MFA,
+			tConfig.AppConfig.Clients,
+			tConfig.AppConfig.MFA,
 			m.UseInsecureCookie,
 		)
 	}
 
 	newSMSClient := func() sms.Client {
-		return sms.NewClient(tConfig.UserConfig)
+		return sms.NewClient(tConfig.AppConfig)
 	}
 
 	newMailSender := func() mail.Sender {
-		return mail.NewSender(tConfig.UserConfig.SMTP)
+		return mail.NewSender(tConfig.AppConfig.SMTP)
 	}
 
 	newMFAProvider := func() mfa.Provider {
 		return mfa.NewProvider(
 			mfaPQ.NewStore(
-				tConfig.UserConfig.MFA,
+				tConfig.AppConfig.MFA,
 				newSQLBuilder(),
 				newSQLExecutor(),
 				newTimeProvider(),
 			),
-			tConfig.UserConfig.MFA,
+			tConfig.AppConfig.MFA,
 			newTimeProvider(),
 			mfa.NewSender(
 				tConfig,
@@ -281,8 +281,8 @@ func (m DependencyMap) Provide(
 	case "AuthnSessionProvider":
 		return authnsession.NewProvider(
 			newAuthContext(),
-			tConfig.UserConfig.MFA,
-			tConfig.UserConfig.Auth.AuthenticationSession,
+			tConfig.AppConfig.MFA,
+			tConfig.AppConfig.Auth.AuthenticationSession,
 			newTimeProvider(),
 			newMFAProvider(),
 			newAuthInfoStore(),
@@ -296,25 +296,25 @@ func (m DependencyMap) Provide(
 		return newAuthInfoStore()
 	case "PasswordChecker":
 		return &authAudit.PasswordChecker{
-			PwMinLength:         tConfig.UserConfig.PasswordPolicy.MinLength,
-			PwUppercaseRequired: tConfig.UserConfig.PasswordPolicy.UppercaseRequired,
-			PwLowercaseRequired: tConfig.UserConfig.PasswordPolicy.LowercaseRequired,
-			PwDigitRequired:     tConfig.UserConfig.PasswordPolicy.DigitRequired,
-			PwSymbolRequired:    tConfig.UserConfig.PasswordPolicy.SymbolRequired,
-			PwMinGuessableLevel: tConfig.UserConfig.PasswordPolicy.MinimumGuessableLevel,
-			PwExcludedKeywords:  tConfig.UserConfig.PasswordPolicy.ExcludedKeywords,
-			//PwExcludedFields:       tConfig.UserConfig.PasswordPolicy.ExcludedFields,
-			PwHistorySize:          tConfig.UserConfig.PasswordPolicy.HistorySize,
-			PwHistoryDays:          tConfig.UserConfig.PasswordPolicy.HistoryDays,
-			PasswordHistoryEnabled: tConfig.UserConfig.PasswordPolicy.HistorySize > 0 || tConfig.UserConfig.PasswordPolicy.HistoryDays > 0,
+			PwMinLength:         tConfig.AppConfig.PasswordPolicy.MinLength,
+			PwUppercaseRequired: tConfig.AppConfig.PasswordPolicy.UppercaseRequired,
+			PwLowercaseRequired: tConfig.AppConfig.PasswordPolicy.LowercaseRequired,
+			PwDigitRequired:     tConfig.AppConfig.PasswordPolicy.DigitRequired,
+			PwSymbolRequired:    tConfig.AppConfig.PasswordPolicy.SymbolRequired,
+			PwMinGuessableLevel: tConfig.AppConfig.PasswordPolicy.MinimumGuessableLevel,
+			PwExcludedKeywords:  tConfig.AppConfig.PasswordPolicy.ExcludedKeywords,
+			//PwExcludedFields:       tConfig.AppConfig.PasswordPolicy.ExcludedFields,
+			PwHistorySize:          tConfig.AppConfig.PasswordPolicy.HistorySize,
+			PwHistoryDays:          tConfig.AppConfig.PasswordPolicy.HistoryDays,
+			PasswordHistoryEnabled: tConfig.AppConfig.PasswordPolicy.HistorySize > 0 || tConfig.AppConfig.PasswordPolicy.HistoryDays > 0,
 			PasswordHistoryStore:   newPasswordHistoryStore(),
 		}
 	case "PwHousekeeper":
 		return authAudit.NewPwHousekeeper(
 			newPasswordHistoryStore(),
 			newLoggerFactory(),
-			tConfig.UserConfig.PasswordPolicy.HistorySize,
-			tConfig.UserConfig.PasswordPolicy.HistoryDays,
+			tConfig.AppConfig.PasswordPolicy.HistorySize,
+			tConfig.AppConfig.PasswordPolicy.HistoryDays,
 			isPasswordHistoryEnabled(),
 		)
 	case "PasswordAuthProvider":
@@ -328,15 +328,15 @@ func (m DependencyMap) Provide(
 	case "ForgotPasswordEmailSender":
 		return forgotpwdemail.NewDefaultSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender(), newTemplateEngine())
 	case "ForgotPasswordCodeGenerator":
-		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.UserConfig.MasterKey}
+		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.AppConfig.MasterKey}
 	case "ForgotPasswordSecureMatch":
-		return tConfig.UserConfig.ForgotPassword.SecureMatch
+		return tConfig.AppConfig.ForgotPassword.SecureMatch
 	case "ResetPasswordHTMLProvider":
-		return forgotpwdemail.NewResetPasswordHTMLProvider(urlprefix.NewProvider(request).Value(), tConfig.UserConfig.ForgotPassword, newTemplateEngine())
+		return forgotpwdemail.NewResetPasswordHTMLProvider(urlprefix.NewProvider(request).Value(), tConfig.AppConfig.ForgotPassword, newTemplateEngine())
 	case "WelcomeEmailEnabled":
-		return tConfig.UserConfig.WelcomeEmail.Enabled
+		return tConfig.AppConfig.WelcomeEmail.Enabled
 	case "WelcomeEmailDestination":
-		return tConfig.UserConfig.WelcomeEmail.Destination
+		return tConfig.AppConfig.WelcomeEmail.Destination
 	case "WelcomeEmailSender":
 		return welcemail.NewDefaultSender(tConfig, newMailSender(), newTemplateEngine())
 	case "UserVerifyCodeSenderFactory":
@@ -347,9 +347,9 @@ func (m DependencyMap) Provide(
 			newSMSClient(),
 		)
 	case "AutoSendUserVerifyCodeOnSignup":
-		return tConfig.UserConfig.UserVerification.AutoSendOnSignup
+		return tConfig.AppConfig.UserVerification.AutoSendOnSignup
 	case "UserVerifyLoginIDKeys":
-		return tConfig.UserConfig.UserVerification.LoginIDKeys
+		return tConfig.AppConfig.UserVerification.LoginIDKeys
 	case "UserVerificationProvider":
 		return userverify.NewProvider(
 			userverify.NewCodeGenerator(tConfig),
@@ -357,13 +357,13 @@ func (m DependencyMap) Provide(
 				newSQLBuilder(),
 				newSQLExecutor(),
 			),
-			tConfig.UserConfig.UserVerification,
+			tConfig.AppConfig.UserVerification,
 			newTimeProvider(),
 		)
 	case "VerifyHTMLProvider":
-		return userverify.NewVerifyHTMLProvider(tConfig.UserConfig.UserVerification, newTemplateEngine())
+		return userverify.NewVerifyHTMLProvider(tConfig.AppConfig.UserVerification, newTemplateEngine())
 	case "AuditTrail":
-		trail, err := audit.NewTrail(tConfig.UserConfig.UserAudit.Enabled, tConfig.UserConfig.UserAudit.TrailHandlerURL)
+		trail, err := audit.NewTrail(tConfig.AppConfig.UserAudit.Enabled, tConfig.AppConfig.UserAudit.TrailHandlerURL)
 		if err != nil {
 			panic(err)
 		}
@@ -373,7 +373,7 @@ func (m DependencyMap) Provide(
 	case "SSOProvider":
 		return sso.NewProvider(
 			tConfig.AppID,
-			tConfig.UserConfig.SSO.OAuth,
+			tConfig.AppConfig.SSO.OAuth,
 		)
 	case "OAuthAuthProvider":
 		return newOAuthAuthProvider()
@@ -386,13 +386,13 @@ func (m DependencyMap) Provide(
 	case "HookProvider":
 		return newHookProvider()
 	case "CustomTokenConfiguration":
-		return tConfig.UserConfig.SSO.CustomToken
+		return tConfig.AppConfig.SSO.CustomToken
 	case "OAuthConfiguration":
-		return tConfig.UserConfig.SSO.OAuth
+		return tConfig.AppConfig.SSO.OAuth
 	case "AuthConfiguration":
-		return *tConfig.UserConfig.Auth
+		return *tConfig.AppConfig.Auth
 	case "MFAConfiguration":
-		return *tConfig.UserConfig.MFA
+		return *tConfig.AppConfig.MFA
 	case "APIClientConfigurationProvider":
 		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
 	case "URLPrefix":

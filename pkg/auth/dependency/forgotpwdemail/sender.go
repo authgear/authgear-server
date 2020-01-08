@@ -39,11 +39,11 @@ func NewDefaultSender(
 	templateEngine *template.Engine,
 ) Sender {
 	return &DefaultSender{
-		AppName:        config.UserConfig.DisplayAppName,
-		Config:         config.UserConfig.ForgotPassword,
+		AppName:        config.AppConfig.DisplayAppName,
+		Config:         config.AppConfig.ForgotPassword,
 		URLPrefix:      urlPrefix,
 		Sender:         sender,
-		CodeGenerator:  &CodeGenerator{config.UserConfig.MasterKey},
+		CodeGenerator:  &CodeGenerator{config.AppConfig.MasterKey},
 		TemplateEngine: templateEngine,
 	}
 }

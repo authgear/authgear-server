@@ -20,18 +20,19 @@ import (
 )
 
 // TenantConfigurationVersion is the latest version of TenantConfiguration.
-const TenantConfigurationVersion = "1"
+const TenantConfigurationVersion = "2"
 
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
-	Version          string             `json:"version,omitempty" yaml:"version" msg:"version"`
-	AppID            string             `json:"app_id,omitempty" yaml:"app_id" msg:"app_id"`
-	AppName          string             `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
-	AppConfig        *AppConfiguration  `json:"app_config,omitempty" yaml:"app_config" msg:"app_config" default_zero_value:"true"`
-	UserConfig       *UserConfiguration `json:"user_config,omitempty" yaml:"user_config" msg:"user_config" default_zero_value:"true"`
-	TemplateItems    []TemplateItem     `json:"template_items,omitempty" yaml:"template_items" msg:"template_items"`
-	Hooks            []Hook             `json:"hooks,omitempty" yaml:"hooks" msg:"hooks"`
-	DeploymentRoutes []DeploymentRoute  `json:"deployment_routes,omitempty" yaml:"deployment_routes" msg:"deployment_routes"`
+	Version          string                   `json:"version,omitempty" yaml:"version" msg:"version"`
+	AppID            string                   `json:"app_id,omitempty" yaml:"app_id" msg:"app_id"`
+	AppName          string                   `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
+	Hook             *HookTenantConfiguration `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
+	DatabaseConfig   *DatabaseConfiguration   `json:"database_config,omitempty" yaml:"database_config" msg:"database_config" default_zero_value:"true"`
+	AppConfig        *AppConfiguration        `json:"app_config,omitempty" yaml:"app_config" msg:"app_config" default_zero_value:"true"`
+	TemplateItems    []TemplateItem           `json:"template_items,omitempty" yaml:"template_items" msg:"template_items"`
+	Hooks            []Hook                   `json:"hooks,omitempty" yaml:"hooks" msg:"hooks"`
+	DeploymentRoutes []DeploymentRoute        `json:"deployment_routes,omitempty" yaml:"deployment_routes" msg:"deployment_routes"`
 }
 
 type Hook struct {
@@ -156,7 +157,7 @@ func (c *TenantConfiguration) StdBase64Msgpack() (string, error) {
 }
 
 func (c *TenantConfiguration) GetOAuthProviderByID(id string) (OAuthProviderConfiguration, bool) {
-	for _, provider := range c.UserConfig.SSO.OAuth.Providers {
+	for _, provider := range c.AppConfig.SSO.OAuth.Providers {
 		if provider.ID == id {
 			return provider, true
 		}
@@ -165,31 +166,31 @@ func (c *TenantConfiguration) GetOAuthProviderByID(id string) (OAuthProviderConf
 }
 
 func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
-	values := make([]string, len(c.UserConfig.Clients)+1)
-	values[0] = c.UserConfig.MasterKey
+	values := make([]string, len(c.AppConfig.Clients)+1)
+	values[0] = c.AppConfig.MasterKey
 	i := 1
-	for _, clientConfig := range c.UserConfig.Clients {
+	for _, clientConfig := range c.AppConfig.Clients {
 		values[i] = clientConfig.APIKey
 		i++
 	}
 
 	values = append(values,
-		c.UserConfig.Auth.AuthenticationSession.Secret,
-		c.UserConfig.SSO.CustomToken.Secret,
-		c.UserConfig.SSO.OAuth.StateJWTSecret,
-		c.UserConfig.Hook.Secret,
-		c.AppConfig.DatabaseURL,
-		c.AppConfig.DatabaseSchema,
-		c.UserConfig.SMTP.Host,
-		c.UserConfig.SMTP.Login,
-		c.UserConfig.SMTP.Password,
-		c.UserConfig.Twilio.AccountSID,
-		c.UserConfig.Twilio.AuthToken,
-		c.UserConfig.Nexmo.APIKey,
-		c.UserConfig.Nexmo.APISecret,
+		c.AppConfig.Auth.AuthenticationSession.Secret,
+		c.AppConfig.SSO.CustomToken.Secret,
+		c.AppConfig.SSO.OAuth.StateJWTSecret,
+		c.AppConfig.Hook.Secret,
+		c.DatabaseConfig.DatabaseURL,
+		c.DatabaseConfig.DatabaseSchema,
+		c.AppConfig.SMTP.Host,
+		c.AppConfig.SMTP.Login,
+		c.AppConfig.SMTP.Password,
+		c.AppConfig.Twilio.AccountSID,
+		c.AppConfig.Twilio.AuthToken,
+		c.AppConfig.Nexmo.APIKey,
+		c.AppConfig.Nexmo.APISecret,
 	)
-	oauthSecrets := make([]string, len(c.UserConfig.SSO.OAuth.Providers)*2)
-	for i, oauthConfig := range c.UserConfig.SSO.OAuth.Providers {
+	oauthSecrets := make([]string, len(c.AppConfig.SSO.OAuth.Providers)*2)
+	for i, oauthConfig := range c.AppConfig.SSO.OAuth.Providers {
 		oauthSecrets[i*2] = oauthConfig.ClientID
 		oauthSecrets[i*2+1] = oauthConfig.ClientSecret
 	}
@@ -207,9 +208,9 @@ func (c *TenantConfiguration) PostValidate() error {
 		}})
 	}
 
-	// Validate complex UserConfiguration
-	for key, clientConfig := range c.UserConfig.Clients {
-		if clientConfig.APIKey == c.UserConfig.MasterKey {
+	// Validate complex AppConfiguration
+	for key, clientConfig := range c.AppConfig.Clients {
+		if clientConfig.APIKey == c.AppConfig.MasterKey {
 			return fail(validation.ErrorGeneral, "master key must not be same as API key", "user_config", "master_key")
 		}
 
@@ -237,9 +238,9 @@ func (c *TenantConfiguration) PostValidate() error {
 		}
 	}
 
-	for _, verifyKeyConfig := range c.UserConfig.UserVerification.LoginIDKeys {
+	for _, verifyKeyConfig := range c.AppConfig.UserVerification.LoginIDKeys {
 		ok := false
-		for _, loginIDKey := range c.UserConfig.Auth.LoginIDKeys {
+		for _, loginIDKey := range c.AppConfig.Auth.LoginIDKeys {
 			if loginIDKey.Key == verifyKeyConfig.Key {
 				ok = true
 				break
@@ -255,7 +256,7 @@ func (c *TenantConfiguration) PostValidate() error {
 
 	// Validate OAuth
 	seenOAuthProviderID := map[string]struct{}{}
-	for i, provider := range c.UserConfig.SSO.OAuth.Providers {
+	for i, provider := range c.AppConfig.SSO.OAuth.Providers {
 		// Ensure ID is not duplicate.
 		if _, ok := seenOAuthProviderID[provider.ID]; ok {
 			return fail(
@@ -278,12 +279,12 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	marshal.UpdateNilFieldsWithZeroValue(c)
 
 	// Set default dislay app name
-	if c.UserConfig.DisplayAppName == "" {
-		c.UserConfig.DisplayAppName = c.AppName
+	if c.AppConfig.DisplayAppName == "" {
+		c.AppConfig.DisplayAppName = c.AppName
 	}
 
 	// Set default APIClientConfiguration values
-	for i, clientConfig := range c.UserConfig.Clients {
+	for i, clientConfig := range c.AppConfig.Clients {
 		if clientConfig.AccessTokenLifetime == 0 {
 			clientConfig.AccessTokenLifetime = 1800
 		}
@@ -305,88 +306,88 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		if clientConfig.SessionTransport == SessionTransportTypeCookie {
 			clientConfig.RefreshTokenDisabled = true
 		}
-		c.UserConfig.Clients[i] = clientConfig
+		c.AppConfig.Clients[i] = clientConfig
 	}
 
 	// Set default AuthConfiguration
-	if c.UserConfig.Auth.LoginIDKeys == nil {
-		c.UserConfig.Auth.LoginIDKeys = []LoginIDKeyConfiguration{
+	if c.AppConfig.Auth.LoginIDKeys == nil {
+		c.AppConfig.Auth.LoginIDKeys = []LoginIDKeyConfiguration{
 			LoginIDKeyConfiguration{Key: "username", Type: LoginIDKeyType(metadata.Username)},
 			LoginIDKeyConfiguration{Key: "email", Type: LoginIDKeyType(metadata.Email)},
 			LoginIDKeyConfiguration{Key: "phone", Type: LoginIDKeyType(metadata.Phone)},
 		}
 	}
-	if c.UserConfig.Auth.AllowedRealms == nil {
-		c.UserConfig.Auth.AllowedRealms = []string{"default"}
+	if c.AppConfig.Auth.AllowedRealms == nil {
+		c.AppConfig.Auth.AllowedRealms = []string{"default"}
 	}
 
-	if c.UserConfig.Auth.LoginIDTypes.Email.CaseSensitive == nil {
+	if c.AppConfig.Auth.LoginIDTypes.Email.CaseSensitive == nil {
 		d := false
-		c.UserConfig.Auth.LoginIDTypes.Email.CaseSensitive = &d
+		c.AppConfig.Auth.LoginIDTypes.Email.CaseSensitive = &d
 	}
-	if c.UserConfig.Auth.LoginIDTypes.Email.BlockPlusSign == nil {
+	if c.AppConfig.Auth.LoginIDTypes.Email.BlockPlusSign == nil {
 		d := false
-		c.UserConfig.Auth.LoginIDTypes.Email.BlockPlusSign = &d
+		c.AppConfig.Auth.LoginIDTypes.Email.BlockPlusSign = &d
 	}
-	if c.UserConfig.Auth.LoginIDTypes.Email.IgnoreDotSign == nil {
+	if c.AppConfig.Auth.LoginIDTypes.Email.IgnoreDotSign == nil {
 		d := false
-		c.UserConfig.Auth.LoginIDTypes.Email.IgnoreDotSign = &d
+		c.AppConfig.Auth.LoginIDTypes.Email.IgnoreDotSign = &d
 	}
 
-	if c.UserConfig.Auth.LoginIDTypes.Username.BlockReservedUsernames == nil {
+	if c.AppConfig.Auth.LoginIDTypes.Username.BlockReservedUsernames == nil {
 		d := true
-		c.UserConfig.Auth.LoginIDTypes.Username.BlockReservedUsernames = &d
+		c.AppConfig.Auth.LoginIDTypes.Username.BlockReservedUsernames = &d
 	}
-	if c.UserConfig.Auth.LoginIDTypes.Username.ASCIIOnly == nil {
+	if c.AppConfig.Auth.LoginIDTypes.Username.ASCIIOnly == nil {
 		d := true
-		c.UserConfig.Auth.LoginIDTypes.Username.ASCIIOnly = &d
+		c.AppConfig.Auth.LoginIDTypes.Username.ASCIIOnly = &d
 	}
-	if c.UserConfig.Auth.LoginIDTypes.Username.CaseSensitive == nil {
+	if c.AppConfig.Auth.LoginIDTypes.Username.CaseSensitive == nil {
 		d := false
-		c.UserConfig.Auth.LoginIDTypes.Username.CaseSensitive = &d
+		c.AppConfig.Auth.LoginIDTypes.Username.CaseSensitive = &d
 	}
 
 	// Set default minimum and maximum
-	for i, config := range c.UserConfig.Auth.LoginIDKeys {
+	for i, config := range c.AppConfig.Auth.LoginIDKeys {
 		if config.Maximum == nil {
 			config.Maximum = new(int)
 			*config.Maximum = 1
 		}
-		c.UserConfig.Auth.LoginIDKeys[i] = config
+		c.AppConfig.Auth.LoginIDKeys[i] = config
 	}
 
 	// Set default MFAConfiguration
-	if c.UserConfig.MFA.Enforcement == "" {
-		c.UserConfig.MFA.Enforcement = MFAEnforcementOptional
+	if c.AppConfig.MFA.Enforcement == "" {
+		c.AppConfig.MFA.Enforcement = MFAEnforcementOptional
 	}
-	if c.UserConfig.MFA.Maximum == nil {
-		c.UserConfig.MFA.Maximum = new(int)
-		*c.UserConfig.MFA.Maximum = 99
+	if c.AppConfig.MFA.Maximum == nil {
+		c.AppConfig.MFA.Maximum = new(int)
+		*c.AppConfig.MFA.Maximum = 99
 	}
-	if c.UserConfig.MFA.TOTP.Maximum == nil {
-		c.UserConfig.MFA.TOTP.Maximum = new(int)
-		*c.UserConfig.MFA.TOTP.Maximum = 99
+	if c.AppConfig.MFA.TOTP.Maximum == nil {
+		c.AppConfig.MFA.TOTP.Maximum = new(int)
+		*c.AppConfig.MFA.TOTP.Maximum = 99
 	}
-	if c.UserConfig.MFA.OOB.SMS.Maximum == nil {
-		c.UserConfig.MFA.OOB.SMS.Maximum = new(int)
-		*c.UserConfig.MFA.OOB.SMS.Maximum = 99
+	if c.AppConfig.MFA.OOB.SMS.Maximum == nil {
+		c.AppConfig.MFA.OOB.SMS.Maximum = new(int)
+		*c.AppConfig.MFA.OOB.SMS.Maximum = 99
 	}
-	if c.UserConfig.MFA.OOB.Email.Maximum == nil {
-		c.UserConfig.MFA.OOB.Email.Maximum = new(int)
-		*c.UserConfig.MFA.OOB.Email.Maximum = 99
+	if c.AppConfig.MFA.OOB.Email.Maximum == nil {
+		c.AppConfig.MFA.OOB.Email.Maximum = new(int)
+		*c.AppConfig.MFA.OOB.Email.Maximum = 99
 	}
-	if c.UserConfig.MFA.BearerToken.ExpireInDays == 0 {
-		c.UserConfig.MFA.BearerToken.ExpireInDays = 30
+	if c.AppConfig.MFA.BearerToken.ExpireInDays == 0 {
+		c.AppConfig.MFA.BearerToken.ExpireInDays = 30
 	}
-	if c.UserConfig.MFA.RecoveryCode.Count == 0 {
-		c.UserConfig.MFA.RecoveryCode.Count = 16
+	if c.AppConfig.MFA.RecoveryCode.Count == 0 {
+		c.AppConfig.MFA.RecoveryCode.Count = 16
 	}
 
 	// Set default user verification settings
-	if c.UserConfig.UserVerification.Criteria == "" {
-		c.UserConfig.UserVerification.Criteria = UserVerificationCriteriaAny
+	if c.AppConfig.UserVerification.Criteria == "" {
+		c.AppConfig.UserVerification.Criteria = UserVerificationCriteriaAny
 	}
-	for i, config := range c.UserConfig.UserVerification.LoginIDKeys {
+	for i, config := range c.AppConfig.UserVerification.LoginIDKeys {
 		if config.CodeFormat == "" {
 			config.CodeFormat = UserVerificationCodeFormatComplex
 		}
@@ -399,94 +400,94 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		if config.Subject == "" {
 			config.Subject = "Verification instruction"
 		}
-		c.UserConfig.UserVerification.LoginIDKeys[i] = config
+		c.AppConfig.UserVerification.LoginIDKeys[i] = config
 	}
 
 	// Set default WelcomeEmailConfiguration
-	if c.UserConfig.WelcomeEmail.Destination == "" {
-		c.UserConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
+	if c.AppConfig.WelcomeEmail.Destination == "" {
+		c.AppConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
 	}
-	if c.UserConfig.WelcomeEmail.Sender == "" {
-		c.UserConfig.WelcomeEmail.Sender = "no-reply@skygear.io"
+	if c.AppConfig.WelcomeEmail.Sender == "" {
+		c.AppConfig.WelcomeEmail.Sender = "no-reply@skygear.io"
 	}
-	if c.UserConfig.WelcomeEmail.Subject == "" {
-		c.UserConfig.WelcomeEmail.Subject = "Welcome!"
+	if c.AppConfig.WelcomeEmail.Subject == "" {
+		c.AppConfig.WelcomeEmail.Subject = "Welcome!"
 	}
 
 	// Set default ForgotPasswordConfiguration
-	if c.UserConfig.ForgotPassword.Sender == "" {
-		c.UserConfig.ForgotPassword.Sender = "no-reply@skygear.io"
+	if c.AppConfig.ForgotPassword.Sender == "" {
+		c.AppConfig.ForgotPassword.Sender = "no-reply@skygear.io"
 	}
-	if c.UserConfig.ForgotPassword.Subject == "" {
-		c.UserConfig.ForgotPassword.Subject = "Reset password instruction"
+	if c.AppConfig.ForgotPassword.Subject == "" {
+		c.AppConfig.ForgotPassword.Subject = "Reset password instruction"
 	}
-	if c.UserConfig.ForgotPassword.ResetURLLifetime == 0 {
-		c.UserConfig.ForgotPassword.ResetURLLifetime = 43200
+	if c.AppConfig.ForgotPassword.ResetURLLifetime == 0 {
+		c.AppConfig.ForgotPassword.ResetURLLifetime = 43200
 	}
 
 	// Set default MFAOOBConfiguration
-	if c.UserConfig.MFA.OOB.Sender == "" {
-		c.UserConfig.MFA.OOB.Sender = "no-reply@skygear.io"
+	if c.AppConfig.MFA.OOB.Sender == "" {
+		c.AppConfig.MFA.OOB.Sender = "no-reply@skygear.io"
 	}
-	if c.UserConfig.MFA.OOB.Subject == "" {
-		c.UserConfig.MFA.OOB.Subject = "Two Factor Auth Verification instruction"
+	if c.AppConfig.MFA.OOB.Subject == "" {
+		c.AppConfig.MFA.OOB.Subject = "Two Factor Auth Verification instruction"
 	}
 
 	// Set default SMTPConfiguration
-	if c.UserConfig.SMTP.Mode == "" {
-		c.UserConfig.SMTP.Mode = SMTPModeNormal
+	if c.AppConfig.SMTP.Mode == "" {
+		c.AppConfig.SMTP.Mode = SMTPModeNormal
 	}
-	if c.UserConfig.SMTP.Port == 0 {
-		c.UserConfig.SMTP.Port = 25
+	if c.AppConfig.SMTP.Port == 0 {
+		c.AppConfig.SMTP.Port = 25
 	}
 
 	// Set type to id
 	// Set default scope for OAuth Provider
-	for i, provider := range c.UserConfig.SSO.OAuth.Providers {
+	for i, provider := range c.AppConfig.SSO.OAuth.Providers {
 		if provider.ID == "" {
-			c.UserConfig.SSO.OAuth.Providers[i].ID = string(provider.Type)
+			c.AppConfig.SSO.OAuth.Providers[i].ID = string(provider.Type)
 		}
 		switch provider.Type {
 		case OAuthProviderTypeGoogle:
 			if provider.Scope == "" {
 				// https://developers.google.com/identity/protocols/googlescopes#google_sign-in
-				c.UserConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
+				c.AppConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
 			}
 		case OAuthProviderTypeFacebook:
 			if provider.Scope == "" {
 				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-default
 				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
-				c.UserConfig.SSO.OAuth.Providers[i].Scope = "default email"
+				c.AppConfig.SSO.OAuth.Providers[i].Scope = "default email"
 			}
 		case OAuthProviderTypeInstagram:
 			if provider.Scope == "" {
 				// https://www.instagram.com/developer/authorization/
-				c.UserConfig.SSO.OAuth.Providers[i].Scope = "basic"
+				c.AppConfig.SSO.OAuth.Providers[i].Scope = "basic"
 			}
 		case OAuthProviderTypeLinkedIn:
 			if provider.Scope == "" {
 				// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api?context=linkedin/compliance/context
 				// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
-				c.UserConfig.SSO.OAuth.Providers[i].Scope = "r_liteprofile r_emailaddress"
+				c.AppConfig.SSO.OAuth.Providers[i].Scope = "r_liteprofile r_emailaddress"
 			}
 		case OAuthProviderTypeAzureADv2:
 			if provider.Scope == "" {
 				// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
-				c.UserConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
+				c.AppConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
 			}
 		case OAuthProviderTypeApple:
 			if provider.Scope == "" {
-				c.UserConfig.SSO.OAuth.Providers[i].Scope = "email"
+				c.AppConfig.SSO.OAuth.Providers[i].Scope = "email"
 			}
 		}
 	}
 
 	// Set default hook timeout
-	if c.AppConfig.Hook.SyncHookTimeout == 0 {
-		c.AppConfig.Hook.SyncHookTimeout = 5
+	if c.Hook.SyncHookTimeout == 0 {
+		c.Hook.SyncHookTimeout = 5
 	}
-	if c.AppConfig.Hook.SyncHookTotalTimeout == 0 {
-		c.AppConfig.Hook.SyncHookTotalTimeout = 10
+	if c.Hook.SyncHookTotalTimeout == 0 {
+		c.Hook.SyncHookTotalTimeout = 10
 	}
 }
 
@@ -511,8 +512,8 @@ func WriteTenantConfig(r *http.Request, config *TenantConfiguration) {
 	}
 }
 
-// UserConfiguration represents user-editable configuration
-type UserConfiguration struct {
+// AppConfiguration represents user-editable configuration
+type AppConfiguration struct {
 	DisplayAppName   string                         `json:"display_app_name,omitempty" yaml:"display_app_name" msg:"display_app_name"`
 	Clients          []APIClientConfiguration       `json:"clients,omitempty" yaml:"clients" msg:"clients"`
 	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
@@ -525,7 +526,7 @@ type UserConfiguration struct {
 	WelcomeEmail     *WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email" default_zero_value:"true"`
 	SSO              *SSOConfiguration              `json:"sso,omitempty" yaml:"sso" msg:"sso" default_zero_value:"true"`
 	UserVerification *UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification" default_zero_value:"true"`
-	Hook             *HookUserConfiguration         `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
+	Hook             *HookAppConfiguration          `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
 	SMTP             *SMTPConfiguration             `json:"smtp,omitempty" yaml:"smtp" msg:"smtp" default_zero_value:"true"`
 	Twilio           *TwilioConfiguration           `json:"twilio,omitempty" yaml:"twilio" msg:"twilio" default_zero_value:"true"`
 	Nexmo            *NexmoConfiguration            `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo" default_zero_value:"true"`
@@ -846,15 +847,14 @@ func (c *UserVerificationKeyConfiguration) MessageHeader() MessageHeader {
 	}
 }
 
-type HookUserConfiguration struct {
+type HookAppConfiguration struct {
 	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
 }
 
-// AppConfiguration is configuration kept secret from the developer.
-type AppConfiguration struct {
-	DatabaseURL    string               `json:"database_url,omitempty" yaml:"database_url" msg:"database_url"`
-	DatabaseSchema string               `json:"database_schema,omitempty" yaml:"database_schema" msg:"database_schema"`
-	Hook           HookAppConfiguration `json:"hook,omitempty" yaml:"hook" msg:"hook"`
+// DatabaseConfiguration is database configuration.
+type DatabaseConfiguration struct {
+	DatabaseURL    string `json:"database_url,omitempty" yaml:"database_url" msg:"database_url"`
+	DatabaseSchema string `json:"database_schema,omitempty" yaml:"database_schema" msg:"database_schema"`
 }
 
 type SMTPMode string
@@ -896,7 +896,7 @@ func (c NexmoConfiguration) IsValid() bool {
 	return c.APIKey != "" && c.APISecret != ""
 }
 
-type HookAppConfiguration struct {
+type HookTenantConfiguration struct {
 	SyncHookTimeout      int `json:"sync_hook_timeout_second,omitempty" yaml:"sync_hook_timeout_second" msg:"sync_hook_timeout_second"`
 	SyncHookTotalTimeout int `json:"sync_hook_total_timeout_second,omitempty" yaml:"sync_hook_total_timeout_second" msg:"sync_hook_total_timeout_second"`
 }

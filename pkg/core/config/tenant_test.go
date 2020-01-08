@@ -14,13 +14,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-const inputMinimalYAML = `version: '1'
+const inputMinimalYAML = `version: '2'
 app_id: 66EAFE32-BF5C-4878-8FC8-DD0EEA440981
 app_name: myapp
-app_config:
+database_config:
   database_url: postgres://
   database_schema: app
-user_config:
+app_config:
   clients: []
   master_key: masterkey
   asset:
@@ -46,15 +46,14 @@ user_config:
 
 const inputMinimalJSON = `
 {
-	"version": "1",
+	"version": "2",
 	"app_id": "66EAFE32-BF5C-4878-8FC8-DD0EEA440981",
 	"app_name": "myapp",
-	"app_config": {
+	"database_config": {
 		"database_url": "postgres://",
-		"database_schema": "app",
-		"hook":{}
+		"database_schema": "app"
 	},
-	"user_config": {
+	"app_config": {
 		"master_key": "masterkey",
 		"asset": {
 			"secret": "assetsecret"
@@ -107,18 +106,18 @@ func makeFullTenantConfig() TenantConfiguration {
 		return &b
 	}
 	var fullTenantConfig = TenantConfiguration{
-		Version: "1",
+		Version: "2",
 		AppName: "myapp",
 		AppID:   "66EAFE32-BF5C-4878-8FC8-DD0EEA440981",
-		AppConfig: &AppConfiguration{
+		DatabaseConfig: &DatabaseConfiguration{
 			DatabaseURL:    "postgres://user:password@localhost:5432/db?sslmode=disable",
 			DatabaseSchema: "app",
-			Hook: HookAppConfiguration{
-				SyncHookTimeout:      10,
-				SyncHookTotalTimeout: 60,
-			},
 		},
-		UserConfig: &UserConfiguration{
+		Hook: &HookTenantConfiguration{
+			SyncHookTimeout:      10,
+			SyncHookTotalTimeout: 60,
+		},
+		AppConfig: &AppConfiguration{
 			DisplayAppName: "MyApp",
 			Clients: []APIClientConfiguration{
 				APIClientConfiguration{
@@ -286,7 +285,7 @@ func makeFullTenantConfig() TenantConfiguration {
 					},
 				},
 			},
-			Hook: &HookUserConfiguration{
+			Hook: &HookAppConfiguration{
 				Secret: "hook-secret",
 			},
 			SMTP: &SMTPConfiguration{
@@ -356,27 +355,27 @@ func TestTenantConfig(t *testing.T) {
 			c, err := NewTenantConfigurationFromYAML(strings.NewReader(inputMinimalYAML))
 			So(err, ShouldBeNil)
 
-			So(c.Version, ShouldEqual, "1")
+			So(c.Version, ShouldEqual, "2")
 			So(c.AppName, ShouldEqual, "myapp")
-			So(c.AppConfig.DatabaseURL, ShouldEqual, "postgres://")
-			So(c.UserConfig.Clients, ShouldBeEmpty)
-			So(c.UserConfig.MasterKey, ShouldEqual, "masterkey")
+			So(c.DatabaseConfig.DatabaseURL, ShouldEqual, "postgres://")
+			So(c.AppConfig.Clients, ShouldBeEmpty)
+			So(c.AppConfig.MasterKey, ShouldEqual, "masterkey")
 		})
 		Convey("should have default value when load from YAML", func() {
 			c, err := NewTenantConfigurationFromYAML(strings.NewReader(inputMinimalYAML))
 			So(err, ShouldBeNil)
-			So(c.UserConfig.SMTP.Port, ShouldEqual, 25)
+			So(c.AppConfig.SMTP.Port, ShouldEqual, 25)
 		})
 		// JSON
 		Convey("should have default value when load from JSON", func() {
 			c, err := NewTenantConfigurationFromJSON(strings.NewReader(inputMinimalJSON), false)
 			So(err, ShouldBeNil)
-			So(c.Version, ShouldEqual, "1")
+			So(c.Version, ShouldEqual, "2")
 			So(c.AppName, ShouldEqual, "myapp")
-			So(c.AppConfig.DatabaseURL, ShouldEqual, "postgres://")
-			So(c.UserConfig.Clients, ShouldBeEmpty)
-			So(c.UserConfig.MasterKey, ShouldEqual, "masterkey")
-			So(c.UserConfig.SMTP.Port, ShouldEqual, 25)
+			So(c.DatabaseConfig.DatabaseURL, ShouldEqual, "postgres://")
+			So(c.AppConfig.Clients, ShouldBeEmpty)
+			So(c.AppConfig.MasterKey, ShouldEqual, "masterkey")
+			So(c.AppConfig.SMTP.Port, ShouldEqual, 25)
 		})
 		// Conversion
 		Convey("should be losslessly converted between Go and msgpack", func() {
@@ -405,7 +404,7 @@ func TestTenantConfig(t *testing.T) {
 		})
 		Convey("should set OAuth provider id and default scope", func() {
 			c := makeFullTenantConfig()
-			c.UserConfig.SSO.OAuth.Providers = []OAuthProviderConfiguration{
+			c.AppConfig.SSO.OAuth.Providers = []OAuthProviderConfiguration{
 				OAuthProviderConfiguration{
 					Type:         OAuthProviderTypeGoogle,
 					ClientID:     "googleclientid",
@@ -414,7 +413,7 @@ func TestTenantConfig(t *testing.T) {
 			}
 			c.AfterUnmarshal()
 
-			google := c.UserConfig.SSO.OAuth.Providers[0]
+			google := c.AppConfig.SSO.OAuth.Providers[0]
 
 			So(google.ID, ShouldEqual, OAuthProviderTypeGoogle)
 			So(google.Scope, ShouldEqual, "openid profile email")
@@ -430,9 +429,9 @@ func TestTenantConfig(t *testing.T) {
 
 		Convey("should validate api key != master key", func() {
 			c := makeFullTenantConfig()
-			for i := range c.UserConfig.Clients {
-				if c.UserConfig.Clients[i].ID == "web-app" {
-					c.UserConfig.Clients[i].APIKey = c.UserConfig.MasterKey
+			for i := range c.AppConfig.Clients {
+				if c.AppConfig.Clients[i].ID == "web-app" {
+					c.AppConfig.Clients[i].APIKey = c.AppConfig.MasterKey
 				}
 			}
 
@@ -444,8 +443,8 @@ func TestTenantConfig(t *testing.T) {
 		})
 		Convey("UserVerification.LoginIDKeys is subset of Auth.LoginIDKeys", func() {
 			c := makeFullTenantConfig()
-			c.UserConfig.UserVerification.LoginIDKeys = append(
-				c.UserConfig.UserVerification.LoginIDKeys,
+			c.AppConfig.UserVerification.LoginIDKeys = append(
+				c.AppConfig.UserVerification.LoginIDKeys,
 				UserVerificationKeyConfiguration{
 					Key: "invalid",
 				},
@@ -459,7 +458,7 @@ func TestTenantConfig(t *testing.T) {
 		})
 		Convey("should validate OAuth Provider", func() {
 			c := makeFullTenantConfig()
-			c.UserConfig.SSO.OAuth.Providers = []OAuthProviderConfiguration{
+			c.AppConfig.SSO.OAuth.Providers = []OAuthProviderConfiguration{
 				OAuthProviderConfiguration{
 					ID:           "azure",
 					Type:         OAuthProviderTypeAzureADv2,
@@ -490,12 +489,12 @@ func TestTenantConfig(t *testing.T) {
 
 		Convey("ShouldNotHaveDuplicatedTypeInSamePath", func() {
 			pathSet := map[string]interface{}{}
-			pass := marshal.ShouldNotHaveDuplicatedTypeInSamePath(&UserConfiguration{}, pathSet)
+			pass := marshal.ShouldNotHaveDuplicatedTypeInSamePath(&AppConfiguration{}, pathSet)
 			So(pass, ShouldBeTrue)
 		})
 
 		Convey("UpdateNilFieldsWithZeroValue", func() {
-			userConfig := &UserConfiguration{}
+			userConfig := &AppConfiguration{}
 			So(userConfig.CORS, ShouldBeNil)
 			So(userConfig.Auth, ShouldBeNil)
 			So(userConfig.MFA, ShouldBeNil)

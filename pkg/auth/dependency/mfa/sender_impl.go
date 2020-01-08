@@ -23,8 +23,8 @@ func NewSender(
 	templateEngine *template.Engine,
 ) Sender {
 	return &senderImpl{
-		appName:        tConfig.UserConfig.DisplayAppName,
-		oobConfig:      tConfig.UserConfig.MFA.OOB,
+		appName:        tConfig.AppConfig.DisplayAppName,
+		oobConfig:      tConfig.AppConfig.MFA.OOB,
 		smsClient:      smsClient,
 		mailSender:     mailSender,
 		templateEngine: templateEngine,

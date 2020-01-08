@@ -9,14 +9,14 @@ import (
 var ErrNoAvailableClient = errors.New("no available SMS client")
 
 type clientImpl struct {
-	userConfig   *config.UserConfiguration
+	appConfig    *config.AppConfiguration
 	nexmoClient  *NexmoClient
 	twilioClient *TwilioClient
 }
 
-func NewClient(userConfig *config.UserConfiguration) Client {
-	nexmoConfig := userConfig.Nexmo
-	twilioConfig := userConfig.Twilio
+func NewClient(appConfig *config.AppConfiguration) Client {
+	nexmoConfig := appConfig.Nexmo
+	twilioConfig := appConfig.Twilio
 
 	var nexmoClient *NexmoClient
 	if nexmoConfig.IsValid() {
@@ -29,7 +29,7 @@ func NewClient(userConfig *config.UserConfiguration) Client {
 	}
 
 	return &clientImpl{
-		userConfig:   userConfig,
+		appConfig:    appConfig,
 		nexmoClient:  nexmoClient,
 		twilioClient: twilioClient,
 	}

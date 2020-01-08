@@ -9,10 +9,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestParseUserConfiguration(t *testing.T) {
-	Convey("ParseUserConfiguration", t, func() {
+func TestParseAppConfiguration(t *testing.T) {
+	Convey("ParseAppConfiguration", t, func() {
 		test := func(input string, errors ...string) {
-			_, err := ParseUserConfiguration(strings.NewReader(input))
+			_, err := ParseAppConfiguration(strings.NewReader(input))
 			if len(errors) == 0 {
 				So(err, ShouldBeNil)
 			} else {

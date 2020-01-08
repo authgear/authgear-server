@@ -28,7 +28,7 @@ func NewDefaultSender(
 ) Sender {
 	return &DefaultSender{
 		AppName:        config.AppName,
-		Config:         config.UserConfig.WelcomeEmail,
+		Config:         config.AppConfig.WelcomeEmail,
 		Sender:         sender,
 		TemplateEngine: templateEngine,
 	}

@@ -19,22 +19,22 @@ import (
 )
 
 type delivererImpl struct {
-	Hooks        *[]config.Hook
-	UserConfig   *config.HookUserConfiguration
-	AppConfig    *config.HookAppConfiguration
-	TimeProvider time.Provider
-	Mutator      Mutator
-	HTTPClient   gohttp.Client
+	Hooks            *[]config.Hook
+	HookAppConfig    *config.HookAppConfiguration
+	HookTenantConfig *config.HookTenantConfiguration
+	TimeProvider     time.Provider
+	Mutator          Mutator
+	HTTPClient       gohttp.Client
 }
 
 func NewDeliverer(config *config.TenantConfiguration, timeProvider time.Provider, mutator Mutator) Deliverer {
 	return &delivererImpl{
-		Hooks:        &config.Hooks,
-		UserConfig:   config.UserConfig.Hook,
-		AppConfig:    &config.AppConfig.Hook,
-		TimeProvider: timeProvider,
-		Mutator:      mutator,
-		HTTPClient:   gohttp.Client{},
+		Hooks:            &config.Hooks,
+		HookAppConfig:    config.AppConfig.Hook,
+		HookTenantConfig: config.Hook,
+		TimeProvider:     timeProvider,
+		Mutator:          mutator,
+		HTTPClient:       gohttp.Client{},
 	}
 }
 
@@ -49,8 +49,8 @@ func (deliverer *delivererImpl) WillDeliver(eventType event.Type) bool {
 
 func (deliverer *delivererImpl) DeliverBeforeEvent(baseURL *url.URL, e *event.Event, user *model.User) error {
 	startTime := deliverer.TimeProvider.Now()
-	requestTimeout := gotime.Duration(deliverer.AppConfig.SyncHookTimeout) * gotime.Second
-	totalTimeout := gotime.Duration(deliverer.AppConfig.SyncHookTotalTimeout) * gotime.Second
+	requestTimeout := gotime.Duration(deliverer.HookTenantConfig.SyncHookTimeout) * gotime.Second
+	totalTimeout := gotime.Duration(deliverer.HookTenantConfig.SyncHookTotalTimeout) * gotime.Second
 
 	mutator := deliverer.Mutator.New(e, user)
 	client := deliverer.HTTPClient
@@ -139,7 +139,7 @@ func (deliverer *delivererImpl) prepareRequest(baseURL *url.URL, hook config.Hoo
 		return nil, newErrorDeliveryFailed(err)
 	}
 
-	signature := crypto.HMACSHA256String([]byte(deliverer.UserConfig.Secret), body)
+	signature := crypto.HMACSHA256String([]byte(deliverer.HookAppConfig.Secret), body)
 
 	request, err := gohttp.NewRequest("POST", hookURL.String(), bytes.NewReader(body))
 	if err != nil {
