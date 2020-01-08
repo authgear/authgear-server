@@ -21,10 +21,10 @@ import (
 
 func TestDeliverer(t *testing.T) {
 	Convey("Event Deliverer", t, func() {
-		hookConfig := &config.HookConfiguration{
+		hookAppConfig := &config.HookAppConfiguration{
 			Secret: "hook-secret",
 		}
-		timeoutConfig := &config.HookTimeoutConfiguration{
+		hookTenantConfig := &config.HookTenantConfiguration{
 			SyncHookTimeout:      5,
 			SyncHookTotalTimeout: 10,
 		}
@@ -39,11 +39,11 @@ func TestDeliverer(t *testing.T) {
 		httpClient := gohttp.Client{}
 		gock.InterceptClient(&httpClient)
 		deliverer := delivererImpl{
-			HookConfig:    hookConfig,
-			TimeoutConfig: timeoutConfig,
-			TimeProvider:  &timeProvider,
-			Mutator:       mutator,
-			HTTPClient:    httpClient,
+			HookAppConfig:    hookAppConfig,
+			HookTenantConfig: hookTenantConfig,
+			TimeProvider:     &timeProvider,
+			Mutator:          mutator,
+			HTTPClient:       httpClient,
 		}
 
 		defer gock.Off()

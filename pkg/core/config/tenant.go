@@ -24,15 +24,15 @@ const TenantConfigurationVersion = "2"
 
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
-	Version          string                    `json:"version,omitempty" yaml:"version" msg:"version"`
-	AppID            string                    `json:"app_id,omitempty" yaml:"app_id" msg:"app_id"`
-	AppName          string                    `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
-	Hook             *HookTimeoutConfiguration `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
-	DatabaseConfig   *DatabaseConfiguration    `json:"database_config,omitempty" yaml:"database_config" msg:"database_config" default_zero_value:"true"`
-	AppConfig        *AppConfiguration         `json:"app_config,omitempty" yaml:"app_config" msg:"app_config" default_zero_value:"true"`
-	TemplateItems    []TemplateItem            `json:"template_items,omitempty" yaml:"template_items" msg:"template_items"`
-	Hooks            []Hook                    `json:"hooks,omitempty" yaml:"hooks" msg:"hooks"`
-	DeploymentRoutes []DeploymentRoute         `json:"deployment_routes,omitempty" yaml:"deployment_routes" msg:"deployment_routes"`
+	Version          string                   `json:"version,omitempty" yaml:"version" msg:"version"`
+	AppID            string                   `json:"app_id,omitempty" yaml:"app_id" msg:"app_id"`
+	AppName          string                   `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
+	Hook             *HookTenantConfiguration `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
+	DatabaseConfig   *DatabaseConfiguration   `json:"database_config,omitempty" yaml:"database_config" msg:"database_config" default_zero_value:"true"`
+	AppConfig        *AppConfiguration        `json:"app_config,omitempty" yaml:"app_config" msg:"app_config" default_zero_value:"true"`
+	TemplateItems    []TemplateItem           `json:"template_items,omitempty" yaml:"template_items" msg:"template_items"`
+	Hooks            []Hook                   `json:"hooks,omitempty" yaml:"hooks" msg:"hooks"`
+	DeploymentRoutes []DeploymentRoute        `json:"deployment_routes,omitempty" yaml:"deployment_routes" msg:"deployment_routes"`
 }
 
 type Hook struct {
@@ -526,7 +526,7 @@ type AppConfiguration struct {
 	WelcomeEmail     *WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email" default_zero_value:"true"`
 	SSO              *SSOConfiguration              `json:"sso,omitempty" yaml:"sso" msg:"sso" default_zero_value:"true"`
 	UserVerification *UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification" default_zero_value:"true"`
-	Hook             *HookConfiguration             `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
+	Hook             *HookAppConfiguration          `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
 	SMTP             *SMTPConfiguration             `json:"smtp,omitempty" yaml:"smtp" msg:"smtp" default_zero_value:"true"`
 	Twilio           *TwilioConfiguration           `json:"twilio,omitempty" yaml:"twilio" msg:"twilio" default_zero_value:"true"`
 	Nexmo            *NexmoConfiguration            `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo" default_zero_value:"true"`
@@ -847,7 +847,7 @@ func (c *UserVerificationKeyConfiguration) MessageHeader() MessageHeader {
 	}
 }
 
-type HookConfiguration struct {
+type HookAppConfiguration struct {
 	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
 }
 
@@ -896,7 +896,7 @@ func (c NexmoConfiguration) IsValid() bool {
 	return c.APIKey != "" && c.APISecret != ""
 }
 
-type HookTimeoutConfiguration struct {
+type HookTenantConfiguration struct {
 	SyncHookTimeout      int `json:"sync_hook_timeout_second,omitempty" yaml:"sync_hook_timeout_second" msg:"sync_hook_timeout_second"`
 	SyncHookTotalTimeout int `json:"sync_hook_total_timeout_second,omitempty" yaml:"sync_hook_total_timeout_second" msg:"sync_hook_total_timeout_second"`
 }

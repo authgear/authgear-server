@@ -28,7 +28,7 @@ const (
 			"app_id": { "$ref": "#NonEmptyString" },
 			"app_name": { "$ref": "#NonEmptyString" },
 			"database_config": { "$ref": "#DatabaseConfiguration" },
-			"hook": { "$ref": "#HookTimeoutConfiguration" },
+			"hook": { "$ref": "#HookTenantConfiguration" },
 			"app_config": { "$ref": "#AppConfiguration" }
 		},
 		"required": ["version", "app_id", "app_name", "database_config", "app_config"]
@@ -41,8 +41,8 @@ const (
 			"database_schema": { "$ref": "#NonEmptyString" }
 		}
 	},
-	"HookTimeoutConfiguration": {
-		"$id": "#HookTimeoutConfiguration",
+	"HookTenantConfiguration": {
+		"$id": "#HookTenantConfiguration",
 		"type": "object",
 		"properties": {
 			"sync_hook_timeout_second": { "type": "integer" },
@@ -69,7 +69,7 @@ const (
 			"welcome_email": { "$ref": "#WelcomeEmailConfiguration" },
 			"sso": { "$ref": "#SSOConfiguration" },
 			"user_verification": { "$ref": "#UserVerificationConfiguration" },
-			"hook": { "$ref": "#HookConfiguration" },
+			"hook": { "$ref": "#HookAppConfiguration" },
 			"smtp" : { "$ref": "#SMTPConfiguration" },
 			"twilio" : { "$ref": "#TwilioConfiguration" },
 			"nexmo" : { "$ref": "#NexmoConfiguration" },
@@ -490,8 +490,8 @@ const (
 			"reply_to": { "type": "string", "format": "NameEmailAddr" }
 		}
 	},
-	"HookConfiguration": {
-		"$id": "#HookConfiguration",
+	"HookAppConfiguration": {
+		"$id": "#HookAppConfiguration",
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {

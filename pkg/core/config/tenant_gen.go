@@ -623,7 +623,7 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				z.Hook = nil
 			} else {
 				if z.Hook == nil {
-					z.Hook = new(HookConfiguration)
+					z.Hook = new(HookAppConfiguration)
 				}
 				var zb0005 uint32
 				zb0005, err = dc.ReadMapHeader()
@@ -1646,7 +1646,7 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				z.Hook = nil
 			} else {
 				if z.Hook == nil {
-					z.Hook = new(HookConfiguration)
+					z.Hook = new(HookAppConfiguration)
 				}
 				var zb0005 uint32
 				zb0005, bts, err = msgp.ReadMapHeaderBytes(bts)
@@ -3668,7 +3668,7 @@ func (z Hook) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
-func (z *HookConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
+func (z *HookAppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -3703,7 +3703,7 @@ func (z *HookConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z HookConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+func (z HookAppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 1
 	// write "secret"
 	err = en.Append(0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
@@ -3719,7 +3719,7 @@ func (z HookConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z HookConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+func (z HookAppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 1
 	// string "secret"
@@ -3729,7 +3729,7 @@ func (z HookConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
-func (z *HookConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
+func (z *HookAppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -3765,13 +3765,13 @@ func (z *HookConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z HookConfiguration) Msgsize() (s int) {
+func (z HookAppConfiguration) Msgsize() (s int) {
 	s = 1 + 7 + msgp.StringPrefixSize + len(z.Secret)
 	return
 }
 
 // DecodeMsg implements msgp.Decodable
-func (z *HookTimeoutConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
+func (z *HookTenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -3812,7 +3812,7 @@ func (z *HookTimeoutConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z HookTimeoutConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+func (z HookTenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 2
 	// write "sync_hook_timeout_second"
 	err = en.Append(0x82, 0xb8, 0x73, 0x79, 0x6e, 0x63, 0x5f, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64)
@@ -3838,7 +3838,7 @@ func (z HookTimeoutConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z HookTimeoutConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+func (z HookTenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 2
 	// string "sync_hook_timeout_second"
@@ -3851,7 +3851,7 @@ func (z HookTimeoutConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
-func (z *HookTimeoutConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
+func (z *HookTenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -3893,7 +3893,7 @@ func (z *HookTimeoutConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z HookTimeoutConfiguration) Msgsize() (s int) {
+func (z HookTenantConfiguration) Msgsize() (s int) {
 	s = 1 + 25 + msgp.IntSize + 31 + msgp.IntSize
 	return
 }
@@ -8908,7 +8908,7 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				z.Hook = nil
 			} else {
 				if z.Hook == nil {
-					z.Hook = new(HookTimeoutConfiguration)
+					z.Hook = new(HookTenantConfiguration)
 				}
 				var zb0002 uint32
 				zb0002, err = dc.ReadMapHeader()
@@ -9423,7 +9423,7 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				z.Hook = nil
 			} else {
 				if z.Hook == nil {
-					z.Hook = new(HookTimeoutConfiguration)
+					z.Hook = new(HookTenantConfiguration)
 				}
 				var zb0002 uint32
 				zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)

@@ -113,7 +113,7 @@ func makeFullTenantConfig() TenantConfiguration {
 			DatabaseURL:    "postgres://user:password@localhost:5432/db?sslmode=disable",
 			DatabaseSchema: "app",
 		},
-		Hook: &HookTimeoutConfiguration{
+		Hook: &HookTenantConfiguration{
 			SyncHookTimeout:      10,
 			SyncHookTotalTimeout: 60,
 		},
@@ -285,7 +285,7 @@ func makeFullTenantConfig() TenantConfiguration {
 					},
 				},
 			},
-			Hook: &HookConfiguration{
+			Hook: &HookAppConfiguration{
 				Secret: "hook-secret",
 			},
 			SMTP: &SMTPConfiguration{
