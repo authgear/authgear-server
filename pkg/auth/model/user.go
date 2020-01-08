@@ -23,13 +23,14 @@ import (
 
 // User is the unify way of returning a AuthInfo with LoginID to SDK
 type User struct {
-	ID          string           `json:"id,omitempty"`
-	CreatedAt   time.Time        `json:"created_at"`
-	LastLoginAt *time.Time       `json:"last_login_at,omitempty"`
-	Verified    bool             `json:"is_verified"`
-	Disabled    bool             `json:"is_disabled"`
-	VerifyInfo  map[string]bool  `json:"verify_info"`
-	Metadata    userprofile.Data `json:"metadata"`
+	ID               string           `json:"id,omitempty"`
+	CreatedAt        time.Time        `json:"created_at"`
+	LastLoginAt      *time.Time       `json:"last_login_at,omitempty"`
+	Verified         bool             `json:"is_verified"`
+	ManuallyVerified bool             `json:"is_manually_verified"`
+	Disabled         bool             `json:"is_disabled"`
+	VerifyInfo       map[string]bool  `json:"verify_info"`
+	Metadata         userprofile.Data `json:"metadata"`
 }
 
 func NewUser(
@@ -51,13 +52,14 @@ func NewUser(
 	}
 
 	return User{
-		ID:          authInfo.ID,
-		CreatedAt:   userProfile.CreatedAt,
-		LastLoginAt: authInfo.LastLoginAt,
-		Verified:    authInfo.Verified,
-		Disabled:    authInfo.Disabled,
-		VerifyInfo:  verifyInfo,
-		Metadata:    metadata,
+		ID:               authInfo.ID,
+		CreatedAt:        userProfile.CreatedAt,
+		LastLoginAt:      authInfo.LastLoginAt,
+		Verified:         authInfo.IsVerified(),
+		ManuallyVerified: authInfo.ManuallyVerified,
+		Disabled:         authInfo.Disabled,
+		VerifyInfo:       verifyInfo,
+		Metadata:         metadata,
 	}
 }
 
@@ -71,6 +73,7 @@ const UserSchema = `
 		"created_at": { "type": "string" },
 		"last_login_at": { "type": "string" },
 		"is_verified": { "type": "boolean" },
+		"is_manually_verified": { "type": "boolean" },
 		"is_disabled": { "type": "boolean" },
 		"verify_info": { "type": "object" },
 		"metadata": { "type": "object" }
