@@ -27,6 +27,7 @@ func TestParseAppConfiguration(t *testing.T) {
 			"/auth: Required",
 			"/hook: Required",
 			"/master_key: Required",
+			"/version: Required",
 		)
 		// Empty auth
 		test(`
@@ -38,6 +39,7 @@ func TestParseAppConfiguration(t *testing.T) {
 			"/asset: Required",
 			"/auth/authentication_session: Required",
 			"/hook/secret: Required",
+			"/version: Required",
 		)
 		// Empty auth.login_id_keys
 		test(`
@@ -53,6 +55,7 @@ func TestParseAppConfiguration(t *testing.T) {
 			"/auth/authentication_session: Required",
 			"/auth/login_id_keys: EntryAmount map[gte:1]",
 			"/hook/secret: Required",
+			"/version: Required",
 		)
 		// Invalid login id type
 		test(`
@@ -99,10 +102,12 @@ func TestParseAppConfiguration(t *testing.T) {
 			"/auth/login_id_keys/3/type: Enum map[expected:[raw email phone username]]",
 			"/auth/login_id_types/phone: ExtraEntry",
 			"/hook/secret: Required",
+			"/version: Required",
 		)
 		// Minimal valid example
 		test(`
 			{
+				"version": "2",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -134,6 +139,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// API Clients
 		test(`
 			{
+				"version": "2",
 				"clients": [
 					{
 						"key": "web-app"
@@ -175,6 +181,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// MFA
 		test(`
 			{
+				"version": "2",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -236,6 +243,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// User Audit
 		test(`
 			{
+				"version": "2",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -279,6 +287,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// WelcomeEmailConfiguration
 		test(`
 			{
+				"version": "2",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -314,6 +323,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// CustomTokenConfiguration
 		test(`
 			{
+				"version": "2",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -353,6 +363,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// OAuth
 		test(`
 			{
+				"version": "2",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -405,6 +416,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// UserVerificationConfiguration
 		test(`
 			{
+				"version": "2",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -447,6 +459,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// SMTP config
 		test(`
 			{
+				"version": "2",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -482,6 +495,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// Nexmo config
 		test(`
 			{
+				"version": "2",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"

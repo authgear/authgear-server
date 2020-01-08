@@ -54,6 +54,7 @@ const (
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
+			"version": { "const": "2" },
 			"display_app_name": { "type": "string" },
 			"clients": {
 				"type": "array",
@@ -75,7 +76,7 @@ const (
 			"nexmo" : { "$ref": "#NexmoConfiguration" },
 			"asset": { "$ref": "#AssetConfiguration" }
 		},
-		"required": ["master_key", "auth", "hook", "asset"]
+		"required": ["version", "master_key", "auth", "hook", "asset"]
 	},
 	"AssetConfiguration": {
 		"$id": "#AssetConfiguration",

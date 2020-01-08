@@ -10,7 +10,7 @@ database_config:
     login: your.gmail.account@gmail.com
     password: enable-2fa-and-use-app-password
 app_config:
-  url_prefix: http://localhost:3000/_auth
+  version: '2'
   clients:
   - id: default
     name: Test App

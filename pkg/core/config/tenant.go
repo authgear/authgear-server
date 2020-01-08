@@ -22,6 +22,9 @@ import (
 // TenantConfigurationVersion is the latest version of TenantConfiguration.
 const TenantConfigurationVersion = "2"
 
+// AppConfigurationVersion is the latest version of AppConfiguration.
+const AppConfigurationVersion = "2"
+
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
 	Version          string                   `json:"version,omitempty" yaml:"version" msg:"version"`
@@ -514,6 +517,7 @@ func WriteTenantConfig(r *http.Request, config *TenantConfiguration) {
 
 // AppConfiguration represents user-editable configuration
 type AppConfiguration struct {
+	Version          string                         `json:"version,omitempty" yaml:"version" msg:"version"`
 	DisplayAppName   string                         `json:"display_app_name,omitempty" yaml:"display_app_name" msg:"display_app_name"`
 	Clients          []APIClientConfiguration       `json:"clients,omitempty" yaml:"clients" msg:"clients"`
 	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`

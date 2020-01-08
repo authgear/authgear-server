@@ -21,6 +21,7 @@ database_config:
   database_url: postgres://
   database_schema: app
 app_config:
+  version: '2'
   clients: []
   master_key: masterkey
   asset:
@@ -54,6 +55,7 @@ const inputMinimalJSON = `
 		"database_schema": "app"
 	},
 	"app_config": {
+		"version": "2",
 		"master_key": "masterkey",
 		"asset": {
 			"secret": "assetsecret"
@@ -118,6 +120,7 @@ func makeFullTenantConfig() TenantConfiguration {
 			SyncHookTotalTimeout: 60,
 		},
 		AppConfig: &AppConfiguration{
+			Version:        "2",
 			DisplayAppName: "MyApp",
 			Clients: []APIClientConfiguration{
 				APIClientConfiguration{
