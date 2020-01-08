@@ -106,6 +106,7 @@ func TestChangePasswordHandler(t *testing.T) {
 						"id": "john.doe.id",
 						"created_at": "0001-01-01T00:00:00Z",
 						"is_disabled": false,
+						"is_manually_verified": false,
 						"is_verified": true,
 						"metadata": {},
 						"verify_info": {}
