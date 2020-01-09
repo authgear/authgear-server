@@ -11,7 +11,7 @@ import (
 func denyNotVerifiedUser(r *http.Request, ctx auth.ContextGetter) error {
 	authInfo, _ := ctx.AuthInfo()
 
-	if authInfo != nil && !authInfo.Verified {
+	if authInfo != nil && !authInfo.IsVerified() {
 		return authz.UserNotVerified.New("user is not verified")
 	}
 
