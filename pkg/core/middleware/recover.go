@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -33,10 +34,15 @@ func (m RecoverMiddleware) Handle(next http.Handler) http.Handler {
 				loggerFactory := logging.NewFactoryFromRequest(r, logHook, sentry.NewLogHookFromContext(r.Context()))
 				logger := loggerFactory.NewLogger("recovery")
 
-				handled := false
+				const errorTypeUnexpected = 0
+				const errorTypeHandled = 1
+				const errorTypeConflict = 2
+				errorType := errorTypeUnexpected
 				if herr, ok := err.(handler.HandledError); ok {
-					handled = true
+					errorType = errorTypeHandled
 					err = herr.Error
+				} else if err, ok := err.(error); ok && errors.Is(err, db.ErrWriteConflict) {
+					errorType = errorTypeConflict
 				}
 
 				var e error
@@ -46,11 +52,13 @@ func (m RecoverMiddleware) Handle(next http.Handler) http.Handler {
 					e = errors.Newf("%+v", err)
 				}
 
-				if handled {
-					logger.WithError(e).Error("unexpected error occurred")
-				} else {
+				if errorType == errorTypeUnexpected {
 					logger.WithError(e).WithField("stack", errors.Callers(8)).Error("panic occurred")
 					w.WriteHeader(http.StatusInternalServerError)
+				} else if errorType == errorTypeHandled {
+					logger.WithError(e).Error("unexpected error occurred")
+				} else if errorType == errorTypeConflict {
+					w.WriteHeader(http.StatusConflict)
 				}
 			}
 		}()
