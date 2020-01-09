@@ -35,7 +35,7 @@ const HookResponseSchema = `
 					"type": "object",
 					"properties": {
 						"is_disabled": { "type": "boolean" },
-						"is_verified": { "type": "boolean" },
+						"is_manually_verified": { "type": "boolean" },
 						"verify_info": { "type": "object" },
 						"metadata": { "type": "object" }
 					}

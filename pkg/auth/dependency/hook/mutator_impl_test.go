@@ -146,6 +146,46 @@ func TestMutator(t *testing.T) {
 			testStoreData(user)
 		})
 
+		Convey("should mutate manually verified status & auto update verified status", func() {
+			user := model.User{
+				ID:               "user-id",
+				ManuallyVerified: false,
+				Verified:         false,
+				VerifyInfo: map[string]bool{
+					"test-1@example.com": true,
+				},
+			}
+			ev := event.Event{
+				Payload: event.UserSyncEvent{
+					User: user,
+				},
+			}
+			initUser(user)
+			mutator = mutator.New(&ev, &user)
+
+			err = mutator.Add(event.Mutations{
+				IsManuallyVerified: newBool(true),
+			})
+			So(err, ShouldBeNil)
+			So(user, ShouldResemble, model.User{
+				ID:               "user-id",
+				ManuallyVerified: true,
+				Verified:         true,
+				VerifyInfo: map[string]bool{
+					"test-1@example.com": true,
+				},
+			})
+			So(ev, ShouldResemble, event.Event{
+				Payload: event.UserSyncEvent{
+					User: user,
+				},
+			})
+
+			err = mutator.Apply()
+			So(err, ShouldBeNil)
+			testStoreData(user)
+		})
+
 		Convey("should mutate verify info & auto update verified status", func() {
 			user := model.User{
 				ID:       "user-id",

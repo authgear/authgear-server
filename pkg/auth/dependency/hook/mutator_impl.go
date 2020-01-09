@@ -45,8 +45,8 @@ func (mutator *mutatorImpl) New(ev *event.Event, user *model.User) Mutator {
 }
 
 func (mutator *mutatorImpl) Add(mutations event.Mutations) error {
-	// update raw verified status if needed
-	if mutations.VerifyInfo != nil {
+	// update computed verified status if needed
+	if mutations.VerifyInfo != nil || mutations.IsManuallyVerified != nil {
 		// update IsVerified
 		if mutator.UserPasswordPrincipals == nil {
 			principals, err := mutator.PasswordAuthProvider.GetPrincipalsByUserID(mutator.User.ID)
@@ -56,13 +56,17 @@ func (mutator *mutatorImpl) Add(mutations event.Mutations) error {
 			mutator.UserPasswordPrincipals = &principals
 		}
 
+		verifyInfo := mutator.User.VerifyInfo
+		if mutations.VerifyInfo != nil {
+			verifyInfo = *mutations.VerifyInfo
+		}
 		isVerified := userverify.IsUserVerified(
-			*mutations.VerifyInfo,
+			verifyInfo,
 			*mutator.UserPasswordPrincipals,
 			mutator.UserVerificationConfig.Criteria,
 			mutator.UserVerificationConfig.LoginIDKeys,
 		)
-		mutations.IsVerified = &isVerified
+		mutations.IsComputedVerified = &isVerified
 	}
 
 	mutator.Mutations = mutator.Mutations.WithMutationsApplied(mutations)
@@ -104,17 +108,23 @@ func (mutator *mutatorImpl) Apply() error {
 		authInfo.DisabledMessage = ""
 		authInfo.DisabledExpiry = nil // never expire
 	}
+	if mutations.IsManuallyVerified != nil {
+		authInfo.ManuallyVerified = *mutations.IsManuallyVerified
+	}
 	if mutations.VerifyInfo != nil {
 		authInfo.VerifyInfo = *mutations.VerifyInfo
+	}
 
+	if mutations.VerifyInfo != nil {
 		isVerified := userverify.IsUserVerified(
-			*mutations.VerifyInfo,
+			authInfo.VerifyInfo,
 			*mutator.UserPasswordPrincipals,
 			mutator.UserVerificationConfig.Criteria,
 			mutator.UserVerificationConfig.LoginIDKeys,
 		)
 		authInfo.Verified = isVerified
 	}
+
 	err = mutator.AuthInfoStore.UpdateAuth(&authInfo)
 	if err != nil {
 		return err

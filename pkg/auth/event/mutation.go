@@ -6,10 +6,11 @@ import (
 )
 
 type Mutations struct {
-	IsDisabled *bool             `json:"is_disabled,omitempty"`
-	IsVerified *bool             `json:"-"`
-	VerifyInfo *map[string]bool  `json:"verify_info,omitempty"`
-	Metadata   *userprofile.Data `json:"metadata,omitempty"`
+	IsDisabled         *bool             `json:"is_disabled,omitempty"`
+	VerifyInfo         *map[string]bool  `json:"verify_info,omitempty"`
+	IsManuallyVerified *bool             `json:"is_manually_verified,omitempty"`
+	IsComputedVerified *bool             `json:"-"`
+	Metadata           *userprofile.Data `json:"metadata,omitempty"`
 }
 
 func (mutations Mutations) IsNoop() bool {
@@ -23,8 +24,11 @@ func (mutations Mutations) WithMutationsApplied(newMutations Mutations) Mutation
 	if newMutations.VerifyInfo != nil {
 		mutations.VerifyInfo = newMutations.VerifyInfo
 	}
-	if newMutations.IsVerified != nil {
-		mutations.IsVerified = newMutations.IsVerified
+	if newMutations.IsManuallyVerified != nil {
+		mutations.IsManuallyVerified = newMutations.IsManuallyVerified
+	}
+	if newMutations.IsComputedVerified != nil {
+		mutations.IsComputedVerified = newMutations.IsComputedVerified
 	}
 	if newMutations.Metadata != nil {
 		mutations.Metadata = newMutations.Metadata
@@ -39,8 +43,11 @@ func (mutations Mutations) ApplyToUser(user *model.User) {
 	if mutations.VerifyInfo != nil {
 		user.VerifyInfo = *mutations.VerifyInfo
 	}
-	if mutations.IsVerified != nil {
-		user.Verified = *mutations.IsVerified || user.ManuallyVerified
+	if mutations.IsManuallyVerified != nil {
+		user.ManuallyVerified = *mutations.IsManuallyVerified
+	}
+	if mutations.IsComputedVerified != nil {
+		user.Verified = *mutations.IsComputedVerified || user.ManuallyVerified
 	}
 	if mutations.Metadata != nil {
 		user.Metadata = *mutations.Metadata
