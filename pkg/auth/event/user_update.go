@@ -106,8 +106,11 @@ func (event UserUpdateEvent) WithMutationsApplied(mutations Mutations) UserAware
 		newEvent.VerifyInfo = mutations.VerifyInfo
 		// IsComputedVerified will be updated by mutator
 	}
-	if mutations.IsComputedVerified != nil && mutations.IsManuallyVerified != nil {
-		isVerified := *mutations.IsComputedVerified || *mutations.IsManuallyVerified
+	if mutations.IsComputedVerified != nil {
+		isVerified := *mutations.IsComputedVerified
+		if mutations.IsManuallyVerified != nil {
+			isVerified = isVerified || *mutations.IsManuallyVerified
+		}
 		newEvent.IsVerified = &isVerified
 	}
 	if mutations.Metadata != nil {

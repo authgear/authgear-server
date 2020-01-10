@@ -279,5 +279,89 @@ func TestMutator(t *testing.T) {
 			So(err, ShouldBeNil)
 			testStoreData(user)
 		})
+
+		Convey("should accumulate verification state mutations", func() {
+			user := model.User{
+				ID:               "user-id",
+				ManuallyVerified: false,
+				Verified:         false,
+				VerifyInfo:       map[string]bool{},
+			}
+			ev := event.Event{
+				Payload: event.UserUpdateEvent{
+					User: user,
+				},
+			}
+			initUser(user)
+			mutator = mutator.New(&ev, &user)
+			initialUser := user
+
+			err = mutator.Add(event.Mutations{
+				VerifyInfo: &map[string]bool{
+					"test-1@example.com": true,
+					"test-2@example.com": true,
+				},
+			})
+			So(err, ShouldBeNil)
+			So(user, ShouldResemble, model.User{
+				ID:               "user-id",
+				ManuallyVerified: false,
+				Verified:         true,
+				VerifyInfo: map[string]bool{
+					"test-1@example.com": true,
+					"test-2@example.com": true,
+				},
+			})
+			So(ev, ShouldResemble, event.Event{
+				Payload: event.UserUpdateEvent{
+					User:       initialUser,
+					IsVerified: newBool(true),
+					VerifyInfo: &map[string]bool{
+						"test-1@example.com": true,
+						"test-2@example.com": true,
+					},
+				},
+			})
+
+			err = mutator.Add(event.Mutations{
+				VerifyInfo: &map[string]bool{},
+			})
+			So(err, ShouldBeNil)
+			So(user, ShouldResemble, model.User{
+				ID:               "user-id",
+				ManuallyVerified: false,
+				Verified:         false,
+				VerifyInfo:       map[string]bool{},
+			})
+			So(ev, ShouldResemble, event.Event{
+				Payload: event.UserUpdateEvent{
+					User:       initialUser,
+					IsVerified: newBool(false),
+					VerifyInfo: &map[string]bool{},
+				},
+			})
+
+			err = mutator.Add(event.Mutations{
+				IsManuallyVerified: newBool(true),
+			})
+			So(err, ShouldBeNil)
+			So(user, ShouldResemble, model.User{
+				ID:               "user-id",
+				ManuallyVerified: true,
+				Verified:         true,
+				VerifyInfo:       map[string]bool{},
+			})
+			So(ev, ShouldResemble, event.Event{
+				Payload: event.UserUpdateEvent{
+					User:       initialUser,
+					IsVerified: newBool(true),
+					VerifyInfo: &map[string]bool{},
+				},
+			})
+
+			err = mutator.Apply()
+			So(err, ShouldBeNil)
+			testStoreData(user)
+		})
 	})
 }
