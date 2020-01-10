@@ -224,6 +224,7 @@ func TestAuthResultHandler(t *testing.T) {
 						"created_at": "0001-01-01T00:00:00Z",
 						"id": "john.doe.id",
 						"is_disabled": false,
+						"is_manually_verified": false,
 						"is_verified": false,
 						"metadata": {},
 						"verify_info": {}
@@ -265,6 +266,7 @@ func TestAuthResultHandler(t *testing.T) {
 						"created_at": "0001-01-01T00:00:00Z",
 						"id": "john.doe.id",
 						"is_disabled": false,
+						"is_manually_verified": false,
 						"is_verified": false,
 						"metadata": {},
 						"verify_info": {}

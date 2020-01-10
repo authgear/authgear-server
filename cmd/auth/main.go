@@ -139,6 +139,7 @@ func main() {
 		userverifyhandler.VerifyCodeRequestSchema,
 		userverifyhandler.VerifyRequestSchema,
 		userverifyhandler.VerifyCodeFormSchema,
+		userverifyhandler.UpdateVerifyStateRequestSchema,
 
 		loginidhandler.AddLoginIDRequestSchema,
 		loginidhandler.RemoveLoginIDRequestSchema,
@@ -230,6 +231,7 @@ func main() {
 	forgotpwdhandler.AttachForgotPasswordResetHandler(&srv, authDependency)
 	userverifyhandler.AttachVerifyRequestHandler(&srv, authDependency)
 	userverifyhandler.AttachVerifyCodeHandler(&srv, authDependency)
+	userverifyhandler.AttachUpdateHandler(&srv, authDependency)
 	ssohandler.AttachAuthURLHandler(&srv, authDependency)
 	ssohandler.AttachAuthRedirectHandler(&srv, authDependency)
 	ssohandler.AttachAuthHandler(&srv, authDependency)

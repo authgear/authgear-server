@@ -167,9 +167,6 @@ func (provider *providerImpl) UpdateVerificationState(
 		provider.config.Criteria,
 		provider.config.LoginIDKeys,
 	)
-	if isVerified == authInfo.Verified {
-		return nil
-	}
 
 	authInfo.Verified = isVerified
 	if err := authStore.UpdateAuth(authInfo); err != nil {

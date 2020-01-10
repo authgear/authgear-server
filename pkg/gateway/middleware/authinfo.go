@@ -65,7 +65,7 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		if authInfo != nil {
 			id := authInfo.ID
 			disabled := authInfo.Disabled
-			verified := authInfo.Verified
+			verified := authInfo.IsVerified()
 
 			r.Header.Set(coreHttp.HeaderUserID, id)
 			r.Header.Set(coreHttp.HeaderUserVerified, strconv.FormatBool(verified))

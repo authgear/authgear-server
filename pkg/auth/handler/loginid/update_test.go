@@ -219,6 +219,7 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 						"id": "user-id-1",
 						"created_at": "0001-01-01T00:00:00Z",
 						"is_disabled": false,
+						"is_manually_verified": false,
 						"is_verified": false,
 						"verify_info": {},
 						"metadata": {}

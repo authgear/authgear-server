@@ -109,6 +109,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 				"result": {
 					"user": {
 						"id": "%s",
+						"is_manually_verified": false,
 						"is_verified": true,
 						"is_disabled": false,
 						"created_at": "0001-01-01T00:00:00Z",
@@ -163,6 +164,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 				"result": {
 					"user": {
 						"id": "%s",
+						"is_manually_verified": false,
 						"is_verified": true,
 						"is_disabled": false,
 						"created_at": "0001-01-01T00:00:00Z",
@@ -193,6 +195,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 				"result": {
 					"user": {
 						"id": "%s",
+						"is_manually_verified": false,
 						"is_verified": true,
 						"is_disabled": false,
 						"created_at": "0001-01-01T00:00:00Z",
@@ -310,6 +313,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 				"result": {
 					"user": {
 						"id": "%s",
+						"is_manually_verified": false,
 						"is_verified": true,
 						"is_disabled": false,
 						"created_at": "0001-01-01T00:00:00Z",

@@ -57,14 +57,17 @@ func TestMutator(t *testing.T) {
 			}
 		}
 		testStoreData := func(user model.User) {
+			authInfo := authInfoStore.AuthInfoMap[user.ID]
 			So(authInfoStore.AuthInfoMap, ShouldResemble, map[string]authinfo.AuthInfo{
 				user.ID: authinfo.AuthInfo{
-					ID:         user.ID,
-					Disabled:   user.Disabled,
-					Verified:   user.Verified,
-					VerifyInfo: user.VerifyInfo,
+					ID:               user.ID,
+					Disabled:         user.Disabled,
+					Verified:         authInfo.Verified,
+					ManuallyVerified: user.ManuallyVerified,
+					VerifyInfo:       user.VerifyInfo,
 				},
 			})
+			So(authInfo.IsVerified(), ShouldEqual, user.Verified)
 			So(userProfileStore.Data, ShouldResemble, map[string]map[string]interface{}{
 				user.ID: user.Metadata,
 			})
@@ -143,10 +146,11 @@ func TestMutator(t *testing.T) {
 			testStoreData(user)
 		})
 
-		Convey("should mutate verified status", func() {
+		Convey("should mutate manually verified status & auto update verified status", func() {
 			user := model.User{
-				ID:       "user-id",
-				Verified: false,
+				ID:               "user-id",
+				ManuallyVerified: false,
+				Verified:         false,
 				VerifyInfo: map[string]bool{
 					"test-1@example.com": true,
 				},
@@ -160,12 +164,13 @@ func TestMutator(t *testing.T) {
 			mutator = mutator.New(&ev, &user)
 
 			err = mutator.Add(event.Mutations{
-				IsVerified: newBool(true),
+				IsManuallyVerified: newBool(true),
 			})
 			So(err, ShouldBeNil)
 			So(user, ShouldResemble, model.User{
-				ID:       "user-id",
-				Verified: true,
+				ID:               "user-id",
+				ManuallyVerified: true,
+				Verified:         true,
 				VerifyInfo: map[string]bool{
 					"test-1@example.com": true,
 				},
@@ -207,49 +212,6 @@ func TestMutator(t *testing.T) {
 			So(user, ShouldResemble, model.User{
 				ID:       "user-id",
 				Verified: true,
-				VerifyInfo: map[string]bool{
-					"test-1@example.com": true,
-					"test-2@example.com": true,
-				},
-			})
-			So(ev, ShouldResemble, event.Event{
-				Payload: event.UserSyncEvent{
-					User: user,
-				},
-			})
-
-			err = mutator.Apply()
-			So(err, ShouldBeNil)
-			testStoreData(user)
-		})
-
-		Convey("should allow overriding verified status", func() {
-			user := model.User{
-				ID:       "user-id",
-				Verified: false,
-				VerifyInfo: map[string]bool{
-					"test-1@example.com": true,
-				},
-			}
-			ev := event.Event{
-				Payload: event.UserSyncEvent{
-					User: user,
-				},
-			}
-			initUser(user)
-			mutator = mutator.New(&ev, &user)
-
-			err = mutator.Add(event.Mutations{
-				IsVerified: newBool(false),
-				VerifyInfo: &map[string]bool{
-					"test-1@example.com": true,
-					"test-2@example.com": true,
-				},
-			})
-			So(err, ShouldBeNil)
-			So(user, ShouldResemble, model.User{
-				ID:       "user-id",
-				Verified: false,
 				VerifyInfo: map[string]bool{
 					"test-1@example.com": true,
 					"test-2@example.com": true,
@@ -310,6 +272,90 @@ func TestMutator(t *testing.T) {
 			So(ev, ShouldResemble, event.Event{
 				Payload: event.UserSyncEvent{
 					User: user,
+				},
+			})
+
+			err = mutator.Apply()
+			So(err, ShouldBeNil)
+			testStoreData(user)
+		})
+
+		Convey("should accumulate verification state mutations", func() {
+			user := model.User{
+				ID:               "user-id",
+				ManuallyVerified: false,
+				Verified:         false,
+				VerifyInfo:       map[string]bool{},
+			}
+			ev := event.Event{
+				Payload: event.UserUpdateEvent{
+					User: user,
+				},
+			}
+			initUser(user)
+			mutator = mutator.New(&ev, &user)
+			initialUser := user
+
+			err = mutator.Add(event.Mutations{
+				VerifyInfo: &map[string]bool{
+					"test-1@example.com": true,
+					"test-2@example.com": true,
+				},
+			})
+			So(err, ShouldBeNil)
+			So(user, ShouldResemble, model.User{
+				ID:               "user-id",
+				ManuallyVerified: false,
+				Verified:         true,
+				VerifyInfo: map[string]bool{
+					"test-1@example.com": true,
+					"test-2@example.com": true,
+				},
+			})
+			So(ev, ShouldResemble, event.Event{
+				Payload: event.UserUpdateEvent{
+					User:       initialUser,
+					IsVerified: newBool(true),
+					VerifyInfo: &map[string]bool{
+						"test-1@example.com": true,
+						"test-2@example.com": true,
+					},
+				},
+			})
+
+			err = mutator.Add(event.Mutations{
+				VerifyInfo: &map[string]bool{},
+			})
+			So(err, ShouldBeNil)
+			So(user, ShouldResemble, model.User{
+				ID:               "user-id",
+				ManuallyVerified: false,
+				Verified:         false,
+				VerifyInfo:       map[string]bool{},
+			})
+			So(ev, ShouldResemble, event.Event{
+				Payload: event.UserUpdateEvent{
+					User:       initialUser,
+					IsVerified: newBool(false),
+					VerifyInfo: &map[string]bool{},
+				},
+			})
+
+			err = mutator.Add(event.Mutations{
+				IsManuallyVerified: newBool(true),
+			})
+			So(err, ShouldBeNil)
+			So(user, ShouldResemble, model.User{
+				ID:               "user-id",
+				ManuallyVerified: true,
+				Verified:         true,
+				VerifyInfo:       map[string]bool{},
+			})
+			So(ev, ShouldResemble, event.Event{
+				Payload: event.UserUpdateEvent{
+					User:       initialUser,
+					IsVerified: newBool(true),
+					VerifyInfo: &map[string]bool{},
 				},
 			})
 

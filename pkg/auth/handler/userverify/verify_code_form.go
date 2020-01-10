@@ -118,12 +118,13 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 
 	user := model.NewUser(authInfo, userProfile)
 
+	isVerified := authInfo.IsVerified()
 	err = h.HookProvider.DispatchEvent(
 		event.UserUpdateEvent{
 			Reason:     event.UserUpdateReasonVerification,
 			User:       oldUser,
 			VerifyInfo: &authInfo.VerifyInfo,
-			IsVerified: &authInfo.Verified,
+			IsVerified: &isVerified,
 		},
 		&user,
 	)

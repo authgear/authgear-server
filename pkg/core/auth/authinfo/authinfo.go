@@ -24,14 +24,15 @@ var timeNow = func() time.Time { return time.Now().UTC() }
 
 // AuthInfo contains a user's information for authentication purpose
 type AuthInfo struct {
-	ID              string          `json:"_id"`
-	LastSeenAt      *time.Time      `json:"last_seen_at,omitempty"`
-	LastLoginAt     *time.Time      `json:"last_login_at,omitempty"`
-	Disabled        bool            `json:"disabled"`
-	DisabledMessage string          `json:"disabled_message,omitempty"`
-	DisabledExpiry  *time.Time      `json:"disabled_expiry,omitempty"`
-	Verified        bool            `json:"verified,omitempty"`
-	VerifyInfo      map[string]bool `json:"verify_info,omitempty"`
+	ID               string          `json:"_id"`
+	LastSeenAt       *time.Time      `json:"last_seen_at,omitempty"`
+	LastLoginAt      *time.Time      `json:"last_login_at,omitempty"`
+	Disabled         bool            `json:"disabled"`
+	DisabledMessage  string          `json:"disabled_message,omitempty"`
+	DisabledExpiry   *time.Time      `json:"disabled_expiry,omitempty"`
+	ManuallyVerified bool            `json:"manually_verified,omitempty"`
+	Verified         bool            `json:"verified,omitempty"`
+	VerifyInfo       map[string]bool `json:"verify_info,omitempty"`
 }
 
 // NewAuthInfo returns a new AuthInfo with specified password.
@@ -43,6 +44,11 @@ func NewAuthInfo() AuthInfo {
 	}
 
 	return info
+}
+
+// IsVerified returns true if the user is verified.
+func (info *AuthInfo) IsVerified() bool {
+	return info.Verified || info.ManuallyVerified
 }
 
 // IsDisabled returns true if the user is disabled.

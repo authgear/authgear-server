@@ -151,6 +151,7 @@ func TestLoginHandler(t *testing.T) {
 				"result": {
 					"user": {
 						"id": "%s",
+						"is_manually_verified": false,
 						"is_verified": false,
 						"is_disabled": false,
 						"last_login_at": "2006-01-02T15:04:05Z",
