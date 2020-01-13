@@ -1,8 +1,8 @@
 package server
 
 import (
-	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -81,7 +81,9 @@ func (s *Server) Use(mwf ...mux.MiddlewareFunc) {
 
 // HealthCheckHandler is basic handler for server health check
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	body := []byte("OK")
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	io.WriteString(w, "OK")
+	w.Write(body)
 }
