@@ -368,10 +368,10 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "version":
-			z.Version, err = dc.ReadString()
+		case "api_version":
+			z.APIVersion, err = dc.ReadString()
 			if err != nil {
-				err = msgp.WrapError(err, "Version")
+				err = msgp.WrapError(err, "APIVersion")
 				return
 			}
 		case "display_app_name":
@@ -839,14 +839,14 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 18
-	// write "version"
-	err = en.Append(0xde, 0x0, 0x12, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	// write "api_version"
+	err = en.Append(0xde, 0x0, 0x12, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.Version)
+	err = en.WriteString(z.APIVersion)
 	if err != nil {
-		err = msgp.WrapError(err, "Version")
+		err = msgp.WrapError(err, "APIVersion")
 		return
 	}
 	// write "display_app_name"
@@ -1217,9 +1217,9 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 18
-	// string "version"
-	o = append(o, 0xde, 0x0, 0x12, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
-	o = msgp.AppendString(o, z.Version)
+	// string "api_version"
+	o = append(o, 0xde, 0x0, 0x12, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	o = msgp.AppendString(o, z.APIVersion)
 	// string "display_app_name"
 	o = append(o, 0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	o = msgp.AppendString(o, z.DisplayAppName)
@@ -1420,10 +1420,10 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "version":
-			z.Version, bts, err = msgp.ReadStringBytes(bts)
+		case "api_version":
+			z.APIVersion, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "Version")
+				err = msgp.WrapError(err, "APIVersion")
 				return
 			}
 		case "display_app_name":
@@ -1877,7 +1877,7 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *AppConfiguration) Msgsize() (s int) {
-	s = 3 + 8 + msgp.StringPrefixSize + len(z.Version) + 17 + msgp.StringPrefixSize + len(z.DisplayAppName) + 8 + msgp.ArrayHeaderSize
+	s = 3 + 12 + msgp.StringPrefixSize + len(z.APIVersion) + 17 + msgp.StringPrefixSize + len(z.DisplayAppName) + 8 + msgp.ArrayHeaderSize
 	for za0001 := range z.Clients {
 		s += z.Clients[za0001].Msgsize()
 	}
@@ -8905,10 +8905,10 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "version":
-			z.Version, err = dc.ReadString()
+		case "api_version":
+			z.APIVersion, err = dc.ReadString()
 			if err != nil {
-				err = msgp.WrapError(err, "Version")
+				err = msgp.WrapError(err, "APIVersion")
 				return
 			}
 		case "app_id":
@@ -9135,14 +9135,14 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 9
-	// write "version"
-	err = en.Append(0x89, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	// write "api_version"
+	err = en.Append(0x89, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.Version)
+	err = en.WriteString(z.APIVersion)
 	if err != nil {
-		err = msgp.WrapError(err, "Version")
+		err = msgp.WrapError(err, "APIVersion")
 		return
 	}
 	// write "app_id"
@@ -9322,9 +9322,9 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 9
-	// string "version"
-	o = append(o, 0x89, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
-	o = msgp.AppendString(o, z.Version)
+	// string "api_version"
+	o = append(o, 0x89, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	o = msgp.AppendString(o, z.APIVersion)
 	// string "app_id"
 	o = append(o, 0xa6, 0x61, 0x70, 0x70, 0x5f, 0x69, 0x64)
 	o = msgp.AppendString(o, z.AppID)
@@ -9421,10 +9421,10 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "version":
-			z.Version, bts, err = msgp.ReadStringBytes(bts)
+		case "api_version":
+			z.APIVersion, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "Version")
+				err = msgp.WrapError(err, "APIVersion")
 				return
 			}
 		case "app_id":
@@ -9648,7 +9648,7 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *TenantConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 7 + msgp.StringPrefixSize + len(z.AppID) + 9 + msgp.StringPrefixSize + len(z.AppName) + 5
+	s = 1 + 12 + msgp.StringPrefixSize + len(z.APIVersion) + 7 + msgp.StringPrefixSize + len(z.AppID) + 9 + msgp.StringPrefixSize + len(z.AppName) + 5
 	if z.Hook == nil {
 		s += msgp.NilSize
 	} else {

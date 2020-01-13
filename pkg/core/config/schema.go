@@ -24,14 +24,14 @@ const (
 		"$id": "#TenantConfiguration",
 		"type": "object",
 		"properties": {
-			"version": { "const": "2" },
+			"api_version": { "enum": ["v2.0"] },
 			"app_id": { "$ref": "#NonEmptyString" },
 			"app_name": { "$ref": "#NonEmptyString" },
 			"database_config": { "$ref": "#DatabaseConfiguration" },
 			"hook": { "$ref": "#HookTenantConfiguration" },
 			"app_config": { "$ref": "#AppConfiguration" }
 		},
-		"required": ["version", "app_id", "app_name", "database_config", "app_config"]
+		"required": ["api_version", "app_id", "app_name", "database_config", "app_config"]
 	},
 	"DatabaseConfiguration": {
 		"$id": "#DatabaseConfiguration",
@@ -54,7 +54,7 @@ const (
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
-			"version": { "const": "2" },
+			"api_version": { "enum": ["v2.0"] },
 			"display_app_name": { "type": "string" },
 			"clients": {
 				"type": "array",
@@ -76,7 +76,7 @@ const (
 			"nexmo" : { "$ref": "#NexmoConfiguration" },
 			"asset": { "$ref": "#AssetConfiguration" }
 		},
-		"required": ["version", "master_key", "auth", "hook", "asset"]
+		"required": ["api_version", "master_key", "auth", "hook", "asset"]
 	},
 	"AssetConfiguration": {
 		"$id": "#AssetConfiguration",

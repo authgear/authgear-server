@@ -14,14 +14,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-const inputMinimalYAML = `version: '2'
+const inputMinimalYAML = `api_version: v2.0
 app_id: 66EAFE32-BF5C-4878-8FC8-DD0EEA440981
 app_name: myapp
 database_config:
   database_url: postgres://
   database_schema: app
 app_config:
-  version: '2'
+  api_version: v2.0
   clients: []
   master_key: masterkey
   asset:
@@ -47,7 +47,7 @@ app_config:
 
 const inputMinimalJSON = `
 {
-	"version": "2",
+	"api_version": "v2.0",
 	"app_id": "66EAFE32-BF5C-4878-8FC8-DD0EEA440981",
 	"app_name": "myapp",
 	"database_config": {
@@ -55,7 +55,7 @@ const inputMinimalJSON = `
 		"database_schema": "app"
 	},
 	"app_config": {
-		"version": "2",
+		"api_version": "v2.0",
 		"master_key": "masterkey",
 		"asset": {
 			"secret": "assetsecret"
@@ -108,9 +108,9 @@ func makeFullTenantConfig() TenantConfiguration {
 		return &b
 	}
 	var fullTenantConfig = TenantConfiguration{
-		Version: "2",
-		AppName: "myapp",
-		AppID:   "66EAFE32-BF5C-4878-8FC8-DD0EEA440981",
+		APIVersion: "v2.0",
+		AppName:    "myapp",
+		AppID:      "66EAFE32-BF5C-4878-8FC8-DD0EEA440981",
 		DatabaseConfig: &DatabaseConfiguration{
 			DatabaseURL:    "postgres://user:password@localhost:5432/db?sslmode=disable",
 			DatabaseSchema: "app",
@@ -120,7 +120,7 @@ func makeFullTenantConfig() TenantConfiguration {
 			SyncHookTotalTimeout: 60,
 		},
 		AppConfig: &AppConfiguration{
-			Version:        "2",
+			APIVersion:     "v2.0",
 			DisplayAppName: "MyApp",
 			Clients: []APIClientConfiguration{
 				APIClientConfiguration{
@@ -358,7 +358,7 @@ func TestTenantConfig(t *testing.T) {
 			c, err := NewTenantConfigurationFromYAML(strings.NewReader(inputMinimalYAML))
 			So(err, ShouldBeNil)
 
-			So(c.Version, ShouldEqual, "2")
+			So(c.APIVersion, ShouldEqual, "v2.0")
 			So(c.AppName, ShouldEqual, "myapp")
 			So(c.DatabaseConfig.DatabaseURL, ShouldEqual, "postgres://")
 			So(c.AppConfig.Clients, ShouldBeEmpty)
@@ -373,7 +373,7 @@ func TestTenantConfig(t *testing.T) {
 		Convey("should have default value when load from JSON", func() {
 			c, err := NewTenantConfigurationFromJSON(strings.NewReader(inputMinimalJSON), false)
 			So(err, ShouldBeNil)
-			So(c.Version, ShouldEqual, "2")
+			So(c.APIVersion, ShouldEqual, "v2.0")
 			So(c.AppName, ShouldEqual, "myapp")
 			So(c.DatabaseConfig.DatabaseURL, ShouldEqual, "postgres://")
 			So(c.AppConfig.Clients, ShouldBeEmpty)
