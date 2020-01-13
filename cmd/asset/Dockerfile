@@ -1,10 +1,7 @@
-FROM golang:1.13.3-alpine3.10 as godev
+FROM golang:1.13.6-alpine3.11 as godev
 
 # alpine-sdk includes git, make, etc.
 RUN apk add \
-    --repository https://dl-3.alpinelinux.org/alpine/edge/testing \
-    --repository https://dl-3.alpinelinux.org/alpine/edge/main \
-    --repository https://dl-3.alpinelinux.org/alpine/edge/community \
     --update \
     --no-cache \
     alpine-sdk vips vips-dev
@@ -19,15 +16,12 @@ RUN go mod download
 COPY . .
 RUN cd cmd/asset; make build; mv skygear-asset /tmp/
 
-FROM alpine:3.10
+FROM alpine:3.11
 
 # Install mailcap to get /etc/mime.types
 # Golang uses that file to augment mime package.
 # See https://golang.org/pkg/mime/#TypeByExtension
 RUN apk add \
-    --repository https://dl-3.alpinelinux.org/alpine/edge/testing \
-    --repository https://dl-3.alpinelinux.org/alpine/edge/main \
-    --repository https://dl-3.alpinelinux.org/alpine/edge/community \
     --update \
     --no-cache \
     ca-certificates mailcap vips
