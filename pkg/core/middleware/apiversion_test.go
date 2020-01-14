@@ -15,6 +15,7 @@ import (
 func TestAPIVersionMiddleware(t *testing.T) {
 	Convey("APIVersionMiddleware", t, func() {
 		router := mux.NewRouter()
+		// own API version is v3.1
 		m := &APIVersionMiddleware{
 			APIVersionName: "api_version",
 			MajorVersion:   3,
@@ -26,8 +27,14 @@ func TestAPIVersionMiddleware(t *testing.T) {
 			w.Write([]byte("OK"))
 		})
 
-		requestURIs := []string{"/nonsense/foobar", "/v2.0/foobar", "/v3.2/foobar"}
-
+		requestURIs := []string{
+			// nonsense is not in API version format.
+			"/nonsense/foobar",
+			// v2.0 is incompatible because major version mismatches.
+			"/v2.0/foobar",
+			// v3.2 is incompatible because minor version is newer.
+			"/v3.2/foobar",
+		}
 		for _, requestURI := range requestURIs {
 			r, _ := http.NewRequest("GET", requestURI, nil)
 			w := httptest.NewRecorder()
@@ -45,10 +52,18 @@ func TestAPIVersionMiddleware(t *testing.T) {
 			`)
 		}
 
-		r, _ := http.NewRequest("GET", "/v3.1/foobar", nil)
-		w := httptest.NewRecorder()
-		router.ServeHTTP(w, r)
-		So(w.Result().StatusCode, ShouldEqual, 200)
-		So(w.Body.Bytes(), ShouldResemble, []byte("OK"))
+		requestURIs = []string{
+			// v3.0 is compatible because major versions are equal and minor version is older.
+			"/v3.0/foobar",
+			// v3.1 is compatible because it is an exact match.
+			"/v3.1/foobar",
+		}
+		for _, requestURI := range requestURIs {
+			r, _ := http.NewRequest("GET", requestURI, nil)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, r)
+			So(w.Result().StatusCode, ShouldEqual, 200)
+			So(w.Body.Bytes(), ShouldResemble, []byte("OK"))
+		}
 	})
 }
