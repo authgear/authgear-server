@@ -38,24 +38,25 @@ func NewServerWithOption(
 	dependencyMap inject.DependencyMap,
 	option Option,
 ) Server {
-	router := mux.NewRouter()
-	router.HandleFunc("/healthz", HealthCheckHandler)
+	rootRouter := mux.NewRouter()
+	rootRouter.HandleFunc("/healthz", HealthCheckHandler)
 
+	var appRouter *mux.Router
 	if option.GearPathPrefix == "" {
-		router = router.NewRoute().Subrouter()
+		appRouter = rootRouter.NewRoute().Subrouter()
 	} else {
-		router = router.PathPrefix(option.GearPathPrefix).Subrouter()
+		appRouter = rootRouter.PathPrefix(option.GearPathPrefix).Subrouter()
 	}
 
 	if option.IsAPIVersioned {
-		router = router.PathPrefix("/{api_version}").Subrouter()
+		appRouter = appRouter.PathPrefix("/{api_version}").Subrouter()
 	}
 
 	srv := Server{
-		router: router,
+		router: appRouter,
 		Server: &http.Server{
 			Addr:    addr,
-			Handler: router,
+			Handler: rootRouter,
 		},
 		dependencyMap: dependencyMap,
 	}
@@ -86,7 +87,7 @@ func (s *Server) Use(mwf ...mux.MiddlewareFunc) {
 // ServeHTTP makes Server a http.Handler.
 // It is useful in testing.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.router.ServeHTTP(w, r)
+	s.Server.Handler.ServeHTTP(w, r)
 }
 
 // HealthCheckHandler is basic handler for server health check

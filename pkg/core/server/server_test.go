@@ -34,6 +34,20 @@ func (f *HandlerFactory) NewHandler(r *http.Request) http.Handler {
 
 func TestServer(t *testing.T) {
 	Convey("Server", t, func() {
+		Convey("/healthz", func() {
+			s := NewServerWithOption("0.0.0.0:3000", nil, Option{
+				RecoverPanic:   true,
+				GearPathPrefix: "/_mygear",
+			})
+
+			r, _ := http.NewRequest("GET", "/healthz", nil)
+			w := httptest.NewRecorder()
+
+			s.ServeHTTP(w, r)
+
+			So(w.Body.Bytes(), ShouldResemble, []byte("OK"))
+		})
+
 		Convey("IsAPIVersioned = false", func() {
 			s := NewServerWithOption("0.0.0.0:3000", nil, Option{
 				RecoverPanic:   true,
