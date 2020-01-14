@@ -16,17 +16,19 @@ const MinorVersion = 1
 // APIVersion is the current API Version.
 var APIVersion = Format(MajorVersion, MinorVersion)
 
+// SupportedVersions is a slice of supported versions.
+var SupportedVersions []string
+
 // SupportedVersionsJSON is an JSON array of supported versions.
 var SupportedVersionsJSON string
 
 var regexpAPIVersion = regexp.MustCompile(`^v(\d+)\.(\d+)$`)
 
 func init() {
-	var supportedVersions []string
 	for i := 0; i <= MinorVersion; i++ {
-		supportedVersions = append(supportedVersions, Format(MajorVersion, i))
+		SupportedVersions = append(SupportedVersions, Format(MajorVersion, i))
 	}
-	bytes, err := json.Marshal(supportedVersions)
+	bytes, err := json.Marshal(SupportedVersions)
 	if err != nil {
 		panic(err)
 	}

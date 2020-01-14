@@ -17,9 +17,9 @@ func TestAPIVersionMiddleware(t *testing.T) {
 		router := mux.NewRouter()
 		// own API version is v3.1
 		m := &APIVersionMiddleware{
-			APIVersionName: "api_version",
-			MajorVersion:   3,
-			MinorVersion:   1,
+			APIVersionName:        "api_version",
+			SupportedVersions:     []string{"v3.0", "v3.1"},
+			SupportedVersionsJSON: `["v3.0", "v3.1"]`,
 		}
 		router.Use(m.Handle)
 
@@ -44,7 +44,7 @@ func TestAPIVersionMiddleware(t *testing.T) {
 			{
 				"error": {
 					"code": 404,
-					"message": "incompatible API version",
+					"message": "expected API versions: [\"v3.0\", \"v3.1\"]",
 					"name": "NotFound",
 					"reason": "IncompatibleAPIVersion"
 				}
