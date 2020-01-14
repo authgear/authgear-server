@@ -2,10 +2,9 @@ package middleware
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/gateway/model"
 	gatewayModel "github.com/skygeario/skygear-server/pkg/gateway/model"
 	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
@@ -22,46 +21,14 @@ func (f FindDeploymentRouteMiddleware) Handle(next http.Handler) http.Handler {
 
 		path := "/" + mux.Vars(r)[f.RestPathIdentifier]
 
-		matchedRoute := findMatchedRoute(path, app.Config.DeploymentRoutes)
-		if matchedRoute == nil {
+		match := model.MatchRoute(path, app.Config.DeploymentRoutes)
+		if match == nil {
 			http.Error(w, "Fail to match deployment route", http.StatusNotFound)
 			return
 		}
-		ctx.DeploymentRoute = *matchedRoute
+		ctx.RouteMatch = *match
 		r = r.WithContext(gatewayModel.ContextWithGatewayContext(r.Context(), ctx))
 
 		next.ServeHTTP(w, r)
 	})
-}
-
-func findMatchedRoute(reqPath string, routes []config.DeploymentRoute) *config.DeploymentRoute {
-	// convert path to /path/ format
-	testReqPath := appendtrailingSlash(reqPath)
-
-	var matchedRoute *config.DeploymentRoute
-	matchedLen := 0
-	for _, r := range routes {
-		if reqPath == r.Path {
-			return &r
-		}
-		testPath := appendtrailingSlash(r.Path)
-		if !strings.HasPrefix(testReqPath, testPath) {
-			continue
-		}
-		if len(r.Path) > matchedLen {
-			matchedLen = len(r.Path)
-			// We must copy the route because r is
-			// reused in all iterations.
-			copied := r
-			matchedRoute = &copied
-		}
-	}
-	return matchedRoute
-}
-
-func appendtrailingSlash(path string) string {
-	if !strings.HasSuffix(path, "/") {
-		return path + "/"
-	}
-	return path
 }

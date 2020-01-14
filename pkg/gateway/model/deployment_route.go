@@ -5,8 +5,6 @@ import (
 )
 
 const (
-	DeploymentRouteTypeFunction    string = "function"
-	DeploymentRouteTypeHTTPHandler string = "http-handler"
 	DeploymentRouteTypeHTTPService string = "http-service"
 )
 

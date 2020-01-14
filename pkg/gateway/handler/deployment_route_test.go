@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 
@@ -10,157 +11,63 @@ import (
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
-type testItem struct {
-	reqURL     string
-	forwardURL string
-}
-
-var tests = []struct {
-	name         string
-	matchedRoute config.DeploymentRoute
-	tests        []testItem
-}{
-	{
-		"http handler config without trailing slash",
-		config.DeploymentRoute{
-			Path: "/api",
-			Type: model.DeploymentRouteTypeHTTPHandler,
-			TypeConfig: map[string]interface{}{
-				"backend_url": "http://backend-domain/",
-				"target_path": "/backend_function_path",
-			},
-		},
-		[]testItem{
-			{
-				"http://public-domain/api",
-				"http://backend-domain/backend_function_path",
-			},
-			{
-				"http://public-domain/api/",
-				"http://backend-domain/backend_function_path",
-			},
-			{
-				"http://public-domain/api/user",
-				"http://backend-domain/backend_function_path",
-			},
-		},
-	}, {
-		"http handler config with trailing slash",
-		config.DeploymentRoute{
-			Path: "/api/",
-			Type: model.DeploymentRouteTypeHTTPHandler,
-			TypeConfig: map[string]interface{}{
-				"backend_url": "http://backend-domain/",
-				"target_path": "/backend_function_path",
-			},
-		},
-		[]testItem{
-			{
-				"http://public-domain/api",
-				"http://backend-domain/backend_function_path",
-			},
-			{
-				"http://public-domain/api/",
-				"http://backend-domain/backend_function_path",
-			},
-			{
-				"http://public-domain/api/user",
-				"http://backend-domain/backend_function_path",
-			},
-		},
-	}, {
-		"http service config without trailing slash",
-		config.DeploymentRoute{
-			Path: "/api",
-			Type: model.DeploymentRouteTypeHTTPService,
-			TypeConfig: map[string]interface{}{
-				"backend_url": "http://backend-domain/",
-			},
-		},
-		[]testItem{
-			testItem{
-				"http://public-domain/api",
-				"http://backend-domain/",
-			},
-			testItem{
-				"http://public-domain/api/",
-				"http://backend-domain/",
-			},
-			testItem{
-				"http://public-domain/api/user",
-				"http://backend-domain/user",
-			},
-			testItem{
-				"http://public-domain/api/user/",
-				"http://backend-domain/user/",
-			},
-		},
-	}, {
-		"http service config with trailing slash",
-		config.DeploymentRoute{
-			Path: "/api/",
-			Type: model.DeploymentRouteTypeHTTPService,
-			TypeConfig: map[string]interface{}{
-				"backend_url": "http://backend-domain/",
-			},
-		},
-		[]testItem{
-			{
-				"http://public-domain/api",
-				"http://backend-domain/",
-			},
-			{
-				"http://public-domain/api/",
-				"http://backend-domain/",
-			},
-			{
-				"http://public-domain/api/user",
-				"http://backend-domain/user",
-			},
-			{
-				"http://public-domain/api/user/",
-				"http://backend-domain/user/",
-			},
-		},
-	},
-	{
-		"http service with root path",
-		config.DeploymentRoute{
-			Path: "/",
-			Type: model.DeploymentRouteTypeHTTPService,
-			TypeConfig: map[string]interface{}{
-				"backend_url": "http://backend-domain/",
-			},
-		},
-		[]testItem{
-			{
-				"http://public-domain/",
-				"http://backend-domain/",
-			},
-			{
-				"http://public-domain/api",
-				"http://backend-domain/api",
-			},
-			{
-				"http://public-domain/api/",
-				"http://backend-domain/api/",
-			},
-			{
-				"http://public-domain/api/user",
-				"http://backend-domain/api/user",
-			},
-		},
-	},
-}
-
 func TestGetForwardURL(t *testing.T) {
 	Convey("Test getForwardURL", t, func(c C) {
+		type testCase struct {
+			url        string
+			matchPath  string
+			route      config.DeploymentRoute
+			forwardURL string
+		}
+
+		tests := []testCase{
+			{
+				url:       "https://example.com/api/",
+				matchPath: "/",
+				route: config.DeploymentRoute{
+					Type: "http-service",
+					Path: "/api",
+					TypeConfig: map[string]interface{}{
+						"backend_url": "http://backend/",
+					},
+				},
+				forwardURL: "http://backend/",
+			},
+			{
+				url:       "https://example.com/api/login?user=test&password=1234",
+				matchPath: "/login",
+				route: config.DeploymentRoute{
+					Type: "http-service",
+					TypeConfig: map[string]interface{}{
+						"backend_url": "http://backend/",
+					},
+				},
+				forwardURL: "http://backend/login?user=test&password=1234",
+			},
+			{
+				url:       "https://example.com/api/login#form",
+				matchPath: "/login",
+				route: config.DeploymentRoute{
+					Type: "http-service",
+					TypeConfig: map[string]interface{}{
+						"backend_url": "http://backend/",
+					},
+				},
+				forwardURL: "http://backend/login#form",
+			},
+		}
+
 		for _, test := range tests {
-			Convey(test.name, func() {
-				for _, perTest := range test.tests {
-					reqURL, _ := url.Parse(perTest.reqURL)
-					forwardURL, _ := getForwardURL(reqURL, test.matchedRoute)
-					So(forwardURL.String(), ShouldEqual, perTest.forwardURL)
+			Convey(fmt.Sprintf("%s -> %s", test.url, test.forwardURL), func() {
+				for _, test := range tests {
+					url, err := url.Parse(test.url)
+					if err != nil {
+						panic(err)
+					}
+					match := model.RouteMatch{Route: test.route, Path: test.matchPath}
+					forwardURL, err := getForwardURL(url, match)
+					So(err, ShouldBeNil)
+					So(forwardURL.String(), ShouldEqual, test.forwardURL)
 				}
 			})
 		}
