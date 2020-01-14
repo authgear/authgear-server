@@ -19,15 +19,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-// TenantConfigurationVersion is the latest version of TenantConfiguration.
-const TenantConfigurationVersion = "2"
-
-// AppConfigurationVersion is the latest version of AppConfiguration.
-const AppConfigurationVersion = "2"
-
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
-	Version          string                   `json:"version,omitempty" yaml:"version" msg:"version"`
+	APIVersion       string                   `json:"api_version,omitempty" yaml:"api_version" msg:"api_version"`
 	AppID            string                   `json:"app_id,omitempty" yaml:"app_id" msg:"app_id"`
 	AppName          string                   `json:"app_name,omitempty" yaml:"app_name" msg:"app_name"`
 	Hook             *HookTenantConfiguration `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
@@ -517,7 +511,7 @@ func WriteTenantConfig(r *http.Request, config *TenantConfiguration) {
 
 // AppConfiguration represents user-editable configuration
 type AppConfiguration struct {
-	Version          string                         `json:"version,omitempty" yaml:"version" msg:"version"`
+	APIVersion       string                         `json:"api_version,omitempty" yaml:"api_version" msg:"api_version"`
 	DisplayAppName   string                         `json:"display_app_name,omitempty" yaml:"display_app_name" msg:"display_app_name"`
 	Clients          []APIClientConfiguration       `json:"clients,omitempty" yaml:"clients" msg:"clients"`
 	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`

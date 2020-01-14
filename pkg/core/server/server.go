@@ -1,8 +1,8 @@
 package server
 
 import (
-	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -38,20 +38,25 @@ func NewServerWithOption(
 	dependencyMap inject.DependencyMap,
 	option Option,
 ) Server {
-	router := mux.NewRouter()
-	router.HandleFunc("/healthz", HealthCheckHandler)
+	rootRouter := mux.NewRouter()
+	rootRouter.HandleFunc("/healthz", HealthCheckHandler)
 
-	var subRouter *mux.Router
+	var appRouter *mux.Router
 	if option.GearPathPrefix == "" {
-		subRouter = router.NewRoute().Subrouter()
+		appRouter = rootRouter.NewRoute().Subrouter()
 	} else {
-		subRouter = router.PathPrefix(option.GearPathPrefix).Subrouter()
+		appRouter = rootRouter.PathPrefix(option.GearPathPrefix).Subrouter()
 	}
+
+	if option.IsAPIVersioned {
+		appRouter = appRouter.PathPrefix("/{api_version}").Subrouter()
+	}
+
 	srv := Server{
-		router: subRouter,
+		router: appRouter,
 		Server: &http.Server{
 			Addr:    addr,
-			Handler: router,
+			Handler: rootRouter,
 		},
 		dependencyMap: dependencyMap,
 	}
@@ -79,9 +84,17 @@ func (s *Server) Use(mwf ...mux.MiddlewareFunc) {
 	s.router.Use(mwf...)
 }
 
+// ServeHTTP makes Server a http.Handler.
+// It is useful in testing.
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.Server.Handler.ServeHTTP(w, r)
+}
+
 // HealthCheckHandler is basic handler for server health check
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	body := []byte("OK")
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	io.WriteString(w, "OK")
+	w.Write(body)
 }
