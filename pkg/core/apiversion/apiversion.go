@@ -1,6 +1,7 @@
 package apiversion
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -10,12 +11,27 @@ import (
 const MajorVersion = 2
 
 // MinorVersion is the current minor API Version.
-const MinorVersion = 0
+const MinorVersion = 1
 
 // APIVersion is the current API Version.
 var APIVersion = Format(MajorVersion, MinorVersion)
 
+// SupportedVersionsJSON is an JSON array of supported versions.
+var SupportedVersionsJSON string
+
 var regexpAPIVersion = regexp.MustCompile(`^v(\d+)\.(\d+)$`)
+
+func init() {
+	var supportedVersions []string
+	for i := 0; i <= MinorVersion; i++ {
+		supportedVersions = append(supportedVersions, Format(MajorVersion, i))
+	}
+	bytes, err := json.Marshal(supportedVersions)
+	if err != nil {
+		panic(err)
+	}
+	SupportedVersionsJSON = string(bytes)
+}
 
 // Format formats major and minor into `v<major>.<minor>`.
 func Format(major, minor int) string {

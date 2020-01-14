@@ -107,7 +107,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// Minimal valid example
 		test(`
 			{
-				"api_version": "v2.0",
+				"api_version": "v2.1",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -139,7 +139,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// API Clients
 		test(`
 			{
-				"api_version": "v2.0",
+				"api_version": "v2.1",
 				"clients": [
 					{
 						"key": "web-app"
@@ -181,7 +181,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// MFA
 		test(`
 			{
-				"api_version": "v2.0",
+				"api_version": "v2.1",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -243,7 +243,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// User Audit
 		test(`
 			{
-				"api_version": "v2.0",
+				"api_version": "v2.1",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -287,7 +287,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// WelcomeEmailConfiguration
 		test(`
 			{
-				"api_version": "v2.0",
+				"api_version": "v2.1",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -323,7 +323,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// CustomTokenConfiguration
 		test(`
 			{
-				"api_version": "v2.0",
+				"api_version": "v2.1",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -363,7 +363,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// OAuth
 		test(`
 			{
-				"api_version": "v2.0",
+				"api_version": "v2.1",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -416,7 +416,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// UserVerificationConfiguration
 		test(`
 			{
-				"api_version": "v2.0",
+				"api_version": "v2.1",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -459,7 +459,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// SMTP config
 		test(`
 			{
-				"api_version": "v2.0",
+				"api_version": "v2.1",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"
@@ -495,7 +495,7 @@ func TestParseAppConfiguration(t *testing.T) {
 		// Nexmo config
 		test(`
 			{
-				"api_version": "v2.0",
+				"api_version": "v2.1",
 				"master_key": "master_key",
 				"asset": {
 					"secret": "assetsecret"

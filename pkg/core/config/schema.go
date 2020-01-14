@@ -1,14 +1,16 @@
 package config
 
 import (
+	"fmt"
 	"io"
 
+	"github.com/skygeario/skygear-server/pkg/core/apiversion"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-const (
+var (
 	// Schemas is public so that the schemas can be composed in other contexts.
-	Schemas = `
+	Schemas = fmt.Sprintf(`
 {
 	"NonEmptyString": {
 		"$id": "#NonEmptyString",
@@ -24,7 +26,7 @@ const (
 		"$id": "#TenantConfiguration",
 		"type": "object",
 		"properties": {
-			"api_version": { "enum": ["v2.0"] },
+			"api_version": { "enum": %s },
 			"app_id": { "$ref": "#NonEmptyString" },
 			"app_name": { "$ref": "#NonEmptyString" },
 			"database_config": { "$ref": "#DatabaseConfiguration" },
@@ -54,7 +56,7 @@ const (
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
-			"api_version": { "enum": ["v2.0"] },
+			"api_version": { "enum": %s },
 			"display_app_name": { "type": "string" },
 			"clients": {
 				"type": "array",
@@ -536,7 +538,7 @@ const (
 		}
 	}
 }
-`
+`, apiversion.SupportedVersionsJSON, apiversion.SupportedVersionsJSON)
 )
 
 var (
