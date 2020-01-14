@@ -61,6 +61,14 @@ func getForwardURL(reqURL *url.URL, match model.RouteMatch) (*url.URL, error) {
 		forwardURL.RawQuery = reqURL.RawQuery
 		forwardURL.Fragment = reqURL.Fragment
 		break
+	case model.DeploymentRouteTypeStatic:
+		backendURL, err := url.Parse(typeConfig.BackendURL())
+		if err != nil {
+			return nil, errors.Newf("failed to parse backend URL: %w", err)
+		}
+		forwardURL = match.ToURL(backendURL)
+		// query & fragment are not passed to backend
+		break
 	default:
 		panic("unexpected deployment route type")
 	}

@@ -38,6 +38,7 @@ func TestGetForwardURL(t *testing.T) {
 				matchPath: "/login",
 				route: config.DeploymentRoute{
 					Type: "http-service",
+					Path: "/api",
 					TypeConfig: map[string]interface{}{
 						"backend_url": "http://backend/",
 					},
@@ -49,11 +50,29 @@ func TestGetForwardURL(t *testing.T) {
 				matchPath: "/login",
 				route: config.DeploymentRoute{
 					Type: "http-service",
+					Path: "/api",
 					TypeConfig: map[string]interface{}{
 						"backend_url": "http://backend/",
 					},
 				},
 				forwardURL: "http://backend/login#form",
+			},
+			{
+				url:       "https://example.com/login#form",
+				matchPath: "/index-html",
+				route: config.DeploymentRoute{
+					Type: "static",
+					Path: "/",
+					TypeConfig: map[string]interface{}{
+						"backend_url": "https://app.localhost/_asset/get",
+						"asset_path_mapping": map[string]interface{}{
+							"/index.html":              "index-html",
+							"/assets/main.12345678.js": "main-js",
+						},
+						"asset_fallback_path": "/",
+					},
+				},
+				forwardURL: "https://app.localhost/_asset/get/index-html",
 			},
 		}
 

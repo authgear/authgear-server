@@ -53,6 +53,64 @@ func TestRouteMatch(t *testing.T) {
 					{Path: "/api/login/", MatchedRoutePath: "/api", MatchedPath: "/login/"},
 				},
 			},
+			{
+				"match static assets",
+				[]config.DeploymentRoute{
+					{
+						Type: "static",
+						Path: "/",
+						TypeConfig: map[string]interface{}{
+							"asset_path_mapping": map[string]interface{}{
+								"/index.html":       "index",
+								"/login/index.html": "login-index",
+							},
+						},
+					},
+					{Type: "http-service", Path: "/api"},
+				},
+				[]testCase{
+					{Path: "", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/api", MatchedRoutePath: "/api", MatchedPath: "/"},
+					{Path: "/api/", MatchedRoutePath: "/api", MatchedPath: "/"},
+					{Path: "/index.html", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/index.html/", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/login", MatchedRoutePath: "/", MatchedPath: "/login-index"},
+					{Path: "/login/", MatchedRoutePath: "/", MatchedPath: "/login-index"},
+					{Path: "/login/index.html", MatchedRoutePath: "/", MatchedPath: "/login-index"},
+					{Path: "/login/index.html/index.html", MatchedRoutePath: "", MatchedPath: ""},
+					{Path: "/sign-up", MatchedRoutePath: "", MatchedPath: ""},
+				},
+			},
+			{
+				"match static fallback path",
+				[]config.DeploymentRoute{
+					{
+						Type: "static",
+						Path: "/",
+						TypeConfig: map[string]interface{}{
+							"asset_path_mapping": map[string]interface{}{
+								"/index.html":              "index",
+								"/assets/main.12345678.js": "main-js",
+							},
+							"asset_fallback_path": "/",
+						},
+					},
+					{Type: "http-service", Path: "/api"},
+				},
+				[]testCase{
+					{Path: "", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/api", MatchedRoutePath: "/api", MatchedPath: "/"},
+					{Path: "/api/login", MatchedRoutePath: "/api", MatchedPath: "/login"},
+					{Path: "/index.html", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/login.html", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/signup", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/assets", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/assets/main.12345678.js", MatchedRoutePath: "/", MatchedPath: "/main-js"},
+					{Path: "/assets/main.12345678.js/no", MatchedRoutePath: "/", MatchedPath: "/index"},
+				},
+			},
 		}
 
 		for _, test := range tests {
@@ -72,6 +130,19 @@ func TestRouteMatch(t *testing.T) {
 				}
 			})
 		}
+
+		Convey("limit maximum routing attempt", func() {
+			So(func() {
+				MatchRoute("/index.html", []config.DeploymentRoute{{
+					Type: "static",
+					Path: "/",
+					TypeConfig: map[string]interface{}{
+						"asset_path_mapping":  map[string]interface{}{},
+						"asset_fallback_path": "/index.html",
+					},
+				}})
+			}, ShouldPanicWith, "route_match: maximum routing attempt exceeded")
+		})
 	})
 
 	Convey("RouteMatch.ToURL", t, func() {

@@ -8,12 +8,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
+const maxRouteAttempt = 5
+
 type RouteMatch struct {
 	Route config.DeploymentRoute
 	Path  string
 }
 
-func MatchRoute(reqPath string, routes []config.DeploymentRoute) *RouteMatch {
+func matchRoutePath(reqPath string, routes []config.DeploymentRoute) *RouteMatch {
 	// convert path to /path/ format
 	testReqPath := appendtrailingSlash(reqPath)
 
@@ -50,6 +52,39 @@ func MatchRoute(reqPath string, routes []config.DeploymentRoute) *RouteMatch {
 		Route: *matchedRoute,
 		Path:  matchPath,
 	}
+}
+
+func MatchRoute(reqPath string, routes []config.DeploymentRoute) *RouteMatch {
+	attempt := 0
+	for attempt < maxRouteAttempt {
+		attempt++
+
+		match := matchRoutePath(reqPath, routes)
+		if match == nil {
+			return nil
+		}
+		if match.Route.Type == DeploymentRouteTypeStatic {
+			config := RouteTypeConfig(match.Route.TypeConfig)
+			pathMapping := config.AssetPathMapping()
+			assetPath := path.Clean("/" + reqPath)
+			var assetName string
+			if n, ok := pathMapping[assetPath]; ok {
+				assetName = n
+			} else if n, ok := pathMapping[path.Join(assetPath, "index.html")]; ok {
+				assetName = n
+			} else if fallback := config.AssetFallbackPath(); fallback != "" {
+				reqPath = fallback
+				continue
+			} else {
+				return nil
+			}
+			match.Path = "/" + assetName
+			return match
+		}
+		return match
+	}
+
+	panic("route_match: maximum routing attempt exceeded")
 }
 
 func (m RouteMatch) ToURL(baseURL *url.URL) *url.URL {
