@@ -1,4 +1,4 @@
-version: '2'
+api_version: 'v2.1'
 app_id: myapp
 app_name: myapp
 database_config:
@@ -10,7 +10,7 @@ database_config:
     login: your.gmail.account@gmail.com
     password: enable-2fa-and-use-app-password
 app_config:
-  version: '2'
+  api_version: 'v2.1'
   clients:
   - id: default
     name: Test App
