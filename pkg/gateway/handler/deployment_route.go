@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"path"
-	"strings"
 
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -23,9 +21,8 @@ func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
 		coreHttp.SetForwardedHeaders(req)
 
 		ctx := model.GatewayContextFromContext(req.Context())
-		deploymentRoute := ctx.DeploymentRoute
 
-		forwardURL, err := getForwardURL(req.URL, deploymentRoute)
+		forwardURL, err := getForwardURL(req.URL, ctx.RouteMatch)
 		if err != nil {
 			panic(err)
 		}
@@ -51,56 +48,30 @@ func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
 	proxy.ServeHTTP(rw, r)
 }
 
-func getForwardURL(reqURL *url.URL, route coreConfig.DeploymentRoute) (*url.URL, error) {
+func getForwardURL(reqURL *url.URL, match model.RouteMatch) (*url.URL, error) {
 	var forwardURL *url.URL
-	var err error
-	typeConfig := model.RouteTypeConfig(route.TypeConfig)
-	switch route.Type {
-	case model.DeploymentRouteTypeFunction, model.DeploymentRouteTypeHTTPHandler:
-		forwardURL, err = url.Parse(typeConfig.BackendURL())
-		if err != nil {
-			return nil, errors.Newf("failed to parse backend URL: %w", err)
-		}
-		// Handle case that the backend URL does not have trailing slash
-		if forwardURL.Path == "" {
-			forwardURL.Path = "/"
-		}
-		forwardURL.Path = path.Join(
-			forwardURL.Path,
-			typeConfig.TargetPath(),
-		)
-		break
+	typeConfig := model.RouteTypeConfig(match.Route.TypeConfig)
+	switch match.Route.Type {
 	case model.DeploymentRouteTypeHTTPService:
-		forwardURL, err = url.Parse(typeConfig.BackendURL())
+		backendURL, err := url.Parse(typeConfig.BackendURL())
 		if err != nil {
 			return nil, errors.Newf("failed to parse backend URL: %w", err)
 		}
-		// Handle case that the backend URL does not have trailing slash
-		if forwardURL.Path == "" {
-			forwardURL.Path = "/"
+		forwardURL = match.ToURL(backendURL)
+		forwardURL.RawQuery = reqURL.RawQuery
+		forwardURL.Fragment = reqURL.Fragment
+		break
+	case model.DeploymentRouteTypeStatic:
+		backendURL, err := url.Parse(typeConfig.BackendURL())
+		if err != nil {
+			return nil, errors.Newf("failed to parse backend URL: %w", err)
 		}
-		// remove trailing slash to handle the case that route path has
-		// trailing slash but the request path doesn't
-		routePath := strings.TrimSuffix(route.Path, "/")
-		trimmedPath := strings.TrimPrefix(reqURL.Path, routePath)
-		forwardURL.Path = path.Join(
-			forwardURL.Path,
-			trimmedPath,
-		)
-
-		// path.Join will clean the result and the returned path ends in a
-		// slash only if it is the root "/".
-		// check and add back the trailing slash if necessary
-		if trimmedPath != "/" && strings.HasSuffix(trimmedPath, "/") {
-			forwardURL.Path = forwardURL.Path + "/"
-		}
+		forwardURL = match.ToURL(backendURL)
+		// query & fragment are not passed to backend
 		break
 	default:
 		panic("unexpected deployment route type")
 	}
-
-	forwardURL.RawQuery = reqURL.RawQuery
-	forwardURL.Fragment = reqURL.Fragment
 
 	return forwardURL, nil
 }
