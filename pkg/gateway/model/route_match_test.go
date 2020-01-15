@@ -111,6 +111,40 @@ func TestRouteMatch(t *testing.T) {
 					{Path: "/assets/main.12345678.js/no", MatchedRoutePath: "/", MatchedPath: "/index"},
 				},
 			},
+			{
+				"common SPA deployment",
+				[]config.DeploymentRoute{
+					{
+						Type: "static",
+						Path: "/",
+						TypeConfig: map[string]interface{}{
+							"asset_path_mapping": map[string]interface{}{
+								"/index.html":  "index",
+								"/favicon.ico": "icon",
+							},
+							"asset_fallback_path": "/",
+						},
+					},
+					{
+						Type: "static",
+						Path: "/assets",
+						TypeConfig: map[string]interface{}{
+							"asset_path_mapping": map[string]interface{}{
+								"/main.12345678.js": "main-js",
+							},
+						},
+					},
+				},
+				[]testCase{
+					{Path: "/", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/login", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/user/1", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/favicon.ico", MatchedRoutePath: "/", MatchedPath: "/icon"},
+					{Path: "/assets", MatchedRoutePath: "", MatchedPath: ""},
+					{Path: "/assets/main.12345678.css", MatchedRoutePath: "", MatchedPath: ""},
+					{Path: "/assets/main.12345678.js", MatchedRoutePath: "/assets", MatchedPath: "/main-js"},
+				},
+			},
 		}
 
 		for _, test := range tests {

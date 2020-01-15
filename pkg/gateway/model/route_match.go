@@ -66,7 +66,7 @@ func MatchRoute(reqPath string, routes []config.DeploymentRoute) *RouteMatch {
 		if match.Route.Type == DeploymentRouteTypeStatic {
 			config := RouteTypeConfig(match.Route.TypeConfig)
 			pathMapping := config.AssetPathMapping()
-			assetPath := path.Clean("/" + reqPath)
+			assetPath := path.Join("/", match.Path)
 			var assetName string
 			if n, ok := pathMapping[assetPath]; ok {
 				assetName = n
