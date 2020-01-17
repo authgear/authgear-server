@@ -41,6 +41,8 @@ func FixupCORSHeaders(downstream http.ResponseWriter, upstream *http.Response) {
 
 	// Upstream has provided CORS header; upstream will manage all CORS headers
 	// Remove existing CORS headers from response to downstream
+	// `Vary: Origin` is also used to control CORS policy, so upstream
+	// should manage it themselves.
 	headers := downstream.Header()
 	for name, values := range headers {
 		if strings.HasPrefix(name, "Access-Control-") {
