@@ -16,11 +16,11 @@ func NewDeploymentRouteHandler() http.HandlerFunc {
 }
 
 func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
+	ctx := model.GatewayContextFromContext(r.Context())
+
 	director := func(req *http.Request) {
 		originalPath := req.URL.Path
 		coreHttp.SetForwardedHeaders(req)
-
-		ctx := model.GatewayContextFromContext(req.Context())
 
 		forwardURL, err := getForwardURL(req.URL, ctx.RouteMatch)
 		if err != nil {
@@ -36,7 +36,17 @@ func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
 		coreConfig.WriteTenantConfig(req, nil)
 	}
 	modifyResponse := func(resp *http.Response) error {
-		coreHttp.FixupCORSHeaders(rw, resp)
+		if ctx.RouteMatch.Route.Type == model.DeploymentRouteTypeStatic {
+			// For static deployment route, we want to pass through the
+			// response from backing storage without modification:
+			// delete all existing response header.
+			headers := rw.Header()
+			for name := range headers {
+				delete(headers, name)
+			}
+		} else {
+			coreHttp.FixupCORSHeaders(rw, resp)
+		}
 		return nil
 	}
 
