@@ -49,3 +49,10 @@ func (r RouteTypeConfig) AssetFallbackPath() string {
 	}
 	return ""
 }
+
+func (r RouteTypeConfig) AssetIndexFile() string {
+	if f, ok := r["asset_index_file"].(string); ok {
+		return f
+	}
+	return ""
+}
