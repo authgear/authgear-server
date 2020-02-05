@@ -43,8 +43,8 @@ func (r RouteTypeConfig) AssetPathMapping() map[string]string {
 	return mapping
 }
 
-func (r RouteTypeConfig) AssetFallbackPath() string {
-	if p, ok := r["asset_fallback_path"].(string); ok {
+func (r RouteTypeConfig) AssetErrorPagePath() string {
+	if p, ok := r["asset_error_page_path"].(string); ok {
 		return p
 	}
 	return ""

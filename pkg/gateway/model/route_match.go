@@ -77,8 +77,8 @@ func MatchRoute(reqPath string, routes []config.DeploymentRoute) *RouteMatch {
 				assetName = n
 			} else if n, ok := pathMapping[path.Join(assetPath, indexFile)]; ok {
 				assetName = n
-			} else if fallback := config.AssetFallbackPath(); fallback != "" {
-				reqPath = fallback
+			} else if errorPage := config.AssetErrorPagePath(); errorPage != "" {
+				reqPath = errorPage
 				continue
 			} else {
 				return nil

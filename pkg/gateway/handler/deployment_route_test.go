@@ -69,7 +69,7 @@ func TestGetForwardURL(t *testing.T) {
 							"/index.html":              "index-html",
 							"/assets/main.12345678.js": "main-js",
 						},
-						"asset_fallback_path": "/",
+						"asset_error_page_path": "/",
 					},
 				},
 				forwardURL: "https://app.localhost/_asset/get/index-html",
