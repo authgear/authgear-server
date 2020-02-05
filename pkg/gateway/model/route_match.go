@@ -67,13 +67,18 @@ func MatchRoute(reqPath string, routes []config.DeploymentRoute) *RouteMatch {
 			config := RouteTypeConfig(match.Route.TypeConfig)
 			pathMapping := config.AssetPathMapping()
 			assetPath := path.Join("/", match.Path)
+			indexFile := config.AssetIndexFile()
+			if indexFile == "" {
+				indexFile = "index.html"
+			}
+
 			var assetName string
 			if n, ok := pathMapping[assetPath]; ok {
 				assetName = n
-			} else if n, ok := pathMapping[path.Join(assetPath, "index.html")]; ok {
+			} else if n, ok := pathMapping[path.Join(assetPath, indexFile)]; ok {
 				assetName = n
-			} else if fallback := config.AssetFallbackPath(); fallback != "" {
-				reqPath = fallback
+			} else if errorPage := config.AssetErrorPagePath(); errorPage != "" {
+				reqPath = errorPage
 				continue
 			} else {
 				return nil

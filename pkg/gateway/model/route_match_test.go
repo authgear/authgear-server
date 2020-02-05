@@ -83,7 +83,7 @@ func TestRouteMatch(t *testing.T) {
 				},
 			},
 			{
-				"match static fallback path",
+				"match static error page path",
 				[]config.DeploymentRoute{
 					{
 						Type: "static",
@@ -93,7 +93,7 @@ func TestRouteMatch(t *testing.T) {
 								"/index.html":              "index",
 								"/assets/main.12345678.js": "main-js",
 							},
-							"asset_fallback_path": "/",
+							"asset_error_page_path": "/",
 						},
 					},
 					{Type: "http-service", Path: "/api"},
@@ -122,7 +122,7 @@ func TestRouteMatch(t *testing.T) {
 								"/index.html":  "index",
 								"/favicon.ico": "icon",
 							},
-							"asset_fallback_path": "/",
+							"asset_error_page_path": "/",
 						},
 					},
 					{
@@ -171,8 +171,8 @@ func TestRouteMatch(t *testing.T) {
 					Type: "static",
 					Path: "/",
 					TypeConfig: map[string]interface{}{
-						"asset_path_mapping":  map[string]interface{}{},
-						"asset_fallback_path": "/index.html",
+						"asset_path_mapping":    map[string]interface{}{},
+						"asset_error_page_path": "/index.html",
 					},
 				}})
 			}, ShouldPanicWith, "route_match: maximum routing attempt exceeded")
