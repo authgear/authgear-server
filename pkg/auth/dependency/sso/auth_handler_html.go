@@ -27,11 +27,28 @@ function validateCallbackURL(callbackURL, authorizedURLs) {
 	if (!callbackURL) {
 		return false;
 	}
+
+	var u;
+	try {
+		u = new URL(callbackURL);
+		u.search = "";
+		u.hash = "";
+		callbackURL = u.href;
+	} catch (e) {
+		return false;
+	}
+
+	// URL.pathname always has a leading /
+	// So new URL(u).href !== u
+	// The matching here ignore trailing slash.
+	callbackURL = callbackURL.replace(/\/$/, "");
+
 	for (var i = 0; i < authorizedURLs.length; ++i) {
-		if (callbackURL === authorizedURLs[i]) {
+		if (callbackURL === authorizedURLs[i].replace(/\/$/, "")) {
 			return true;
 		}
 	}
+
 	return false;
 }
 
