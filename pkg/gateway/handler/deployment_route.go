@@ -77,7 +77,9 @@ func getForwardURL(reqURL *url.URL, match model.RouteMatch) (*url.URL, error) {
 			return nil, errors.Newf("failed to parse backend URL: %w", err)
 		}
 		forwardURL = match.ToURL(backendURL)
-		// query & fragment are not passed to backend
+		// Pass query & fragment to backend (asset gear), so image pipeline can be used.
+		forwardURL.RawQuery = reqURL.RawQuery
+		forwardURL.Fragment = reqURL.Fragment
 		break
 	default:
 		panic("unexpected deployment route type")
