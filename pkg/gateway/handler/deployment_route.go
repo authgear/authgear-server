@@ -47,6 +47,9 @@ func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
 		} else {
 			coreHttp.FixupCORSHeaders(rw, resp)
 		}
+		if ctx.RouteMatch.StatusCode != 0 {
+			resp.StatusCode = ctx.RouteMatch.StatusCode
+		}
 		return nil
 	}
 

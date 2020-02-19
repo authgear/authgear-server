@@ -15,6 +15,7 @@ func TestRouteMatch(t *testing.T) {
 			Path             string
 			MatchedRoutePath string
 			MatchedPath      string
+			StatusCode       int
 		}
 
 		var tests = []struct {
@@ -83,7 +84,7 @@ func TestRouteMatch(t *testing.T) {
 				},
 			},
 			{
-				"match static error page path",
+				"match static fallback page path",
 				[]config.DeploymentRoute{
 					{
 						Type: "static",
@@ -93,7 +94,7 @@ func TestRouteMatch(t *testing.T) {
 								"/index.html":              "index",
 								"/assets/main.12345678.js": "main-js",
 							},
-							"asset_error_page_path": "/",
+							"asset_fallback_page_path": "/",
 						},
 					},
 					{Type: "http-service", Path: "/api"},
@@ -112,6 +113,43 @@ func TestRouteMatch(t *testing.T) {
 				},
 			},
 			{
+				"match static error page path",
+				[]config.DeploymentRoute{
+					{
+						Type: "static",
+						Path: "/",
+						TypeConfig: map[string]interface{}{
+							"asset_path_mapping": map[string]interface{}{
+								"/index.html":              "index",
+								"/404.html":                "404",
+								"/assets/main.12345678.js": "root-main-js",
+							},
+							"asset_fallback_page_path": "/index.html",
+						},
+					},
+					{
+						Type: "static",
+						Path: "/assets",
+						TypeConfig: map[string]interface{}{
+							"asset_path_mapping": map[string]interface{}{
+								"/main.12345678.js": "assets-main-js",
+							},
+							"asset_error_page_path": "/404.html",
+						},
+					},
+				},
+				[]testCase{
+					{Path: "", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/index.html", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/login.html", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/signup", MatchedRoutePath: "/", MatchedPath: "/index"},
+					{Path: "/assets", MatchedRoutePath: "/", MatchedPath: "/404", StatusCode: 404},
+					{Path: "/assets/main.12345678.js", MatchedRoutePath: "/assets", MatchedPath: "/assets-main-js"},
+					{Path: "/assets/main.12345678.js/no", MatchedRoutePath: "/", MatchedPath: "/404", StatusCode: 404},
+				},
+			},
+			{
 				"common SPA deployment",
 				[]config.DeploymentRoute{
 					{
@@ -122,7 +160,7 @@ func TestRouteMatch(t *testing.T) {
 								"/index.html":  "index",
 								"/favicon.ico": "icon",
 							},
-							"asset_error_page_path": "/",
+							"asset_fallback_page_path": "/",
 						},
 					},
 					{
@@ -154,13 +192,16 @@ func TestRouteMatch(t *testing.T) {
 
 					matchedRoutePath := ""
 					matchedPath := ""
+					statusCode := 0
 					if match != nil {
 						matchedRoutePath = match.Route.Path
 						matchedPath = match.Path
+						statusCode = match.StatusCode
 					}
 
 					So(matchedRoutePath, ShouldEqual, testCase.MatchedRoutePath)
 					So(matchedPath, ShouldEqual, testCase.MatchedPath)
+					So(statusCode, ShouldEqual, testCase.StatusCode)
 				}
 			})
 		}

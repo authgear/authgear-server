@@ -58,7 +58,7 @@ func TestGetForwardURL(t *testing.T) {
 				forwardURL: "http://backend/login#form",
 			},
 			{
-				url:       "https://example.com/login#form",
+				url:       "https://example.com/login?test#form",
 				matchPath: "/index-html",
 				route: config.DeploymentRoute{
 					Type: "static",
@@ -72,7 +72,7 @@ func TestGetForwardURL(t *testing.T) {
 						"asset_error_page_path": "/",
 					},
 				},
-				forwardURL: "https://app.localhost/_asset/get/index-html",
+				forwardURL: "https://app.localhost/_asset/get/index-html?test#form",
 			},
 		}
 
