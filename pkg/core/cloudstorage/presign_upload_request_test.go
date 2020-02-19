@@ -43,7 +43,7 @@ func TestPresignUploadRequest(t *testing.T) {
 				}
 				r.SetCacheControl()
 				So(r.Headers, ShouldResemble, map[string]interface{}{
-					"cache-control": "max-age: 3600",
+					"cache-control": "max-age=3600",
 				})
 			})
 		})
@@ -65,13 +65,13 @@ func TestPresignUploadRequest(t *testing.T) {
 			r := PresignUploadRequest{
 				Headers: map[string]interface{}{
 					"content-length": "123",
-					"cache-control":  "max-age: 3600",
+					"cache-control":  "max-age=3600",
 				},
 			}
 			httpHeader := r.HTTPHeader()
 			So(httpHeader, ShouldResemble, http.Header{
 				"Content-Length": []string{"123"},
-				"Cache-Control":  []string{"max-age: 3600"},
+				"Cache-Control":  []string{"max-age=3600"},
 			})
 		})
 	})

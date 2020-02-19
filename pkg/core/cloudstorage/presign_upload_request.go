@@ -55,7 +55,7 @@ func (r *PresignUploadRequest) DeriveAssetName() (assetName string, err error) {
 
 func (r *PresignUploadRequest) SetCacheControl() {
 	if _, ok := r.Headers["cache-control"]; !ok {
-		r.Headers["cache-control"] = "max-age: 3600"
+		r.Headers["cache-control"] = "max-age=3600"
 	}
 }
 
