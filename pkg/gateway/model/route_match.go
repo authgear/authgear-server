@@ -11,8 +11,9 @@ import (
 const maxRouteAttempt = 5
 
 type RouteMatch struct {
-	Route config.DeploymentRoute
-	Path  string
+	Route      config.DeploymentRoute
+	Path       string
+	StatusCode int
 }
 
 func matchRoutePath(reqPath string, routes []config.DeploymentRoute) *RouteMatch {
@@ -55,6 +56,9 @@ func matchRoutePath(reqPath string, routes []config.DeploymentRoute) *RouteMatch
 }
 
 func MatchRoute(reqPath string, routes []config.DeploymentRoute) *RouteMatch {
+	var result *RouteMatch
+	var statusCode = 0
+
 	attempt := 0
 	for attempt < maxRouteAttempt {
 		attempt++
@@ -79,17 +83,25 @@ func MatchRoute(reqPath string, routes []config.DeploymentRoute) *RouteMatch {
 				assetName = n
 			} else if errorPage := config.AssetErrorPagePath(); errorPage != "" {
 				reqPath = errorPage
+				statusCode = 404
+				continue
+			} else if fallbackPage := config.AssetFallbackPagePath(); fallbackPage != "" {
+				reqPath = fallbackPage
 				continue
 			} else {
 				return nil
 			}
 			match.Path = "/" + assetName
-			return match
 		}
-		return match
+		result = match
+		break
 	}
 
-	panic("route_match: maximum routing attempt exceeded")
+	if result == nil {
+		panic("route_match: maximum routing attempt exceeded")
+	}
+	result.StatusCode = statusCode
+	return result
 }
 
 func (m RouteMatch) ToURL(baseURL *url.URL) *url.URL {
