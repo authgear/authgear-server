@@ -82,13 +82,7 @@ type PresignUploadHandler struct {
 }
 
 func (h *PresignUploadHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AnyOf(
-		authz.PolicyFunc(policy.RequireMasterKey),
-		policy.AllOf(
-			authz.PolicyFunc(policy.DenyNoAccessKey),
-			policy.RequireValidUser,
-		),
-	)
+	return policy.RequireValidUserOrMasterKey
 }
 
 // @JSONSchema

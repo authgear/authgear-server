@@ -79,13 +79,7 @@ type PresignUploadFormHandler struct {
 }
 
 func (h *PresignUploadFormHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AnyOf(
-		authz.PolicyFunc(policy.RequireMasterKey),
-		policy.AllOf(
-			authz.PolicyFunc(policy.DenyNoAccessKey),
-			policy.RequireValidUser,
-		),
-	)
+	return policy.RequireValidUserOrMasterKey
 }
 
 func (h *PresignUploadFormHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
