@@ -34,19 +34,16 @@ func AnyOf(policies ...authz.Policy) authz.Policy {
 }
 
 func (p Any) IsAllowed(r *http.Request, ctx auth.ContextGetter) error {
-	errs := []error{}
-
+	// return the last authz error
+	var err error
 	for _, policy := range p.policies {
-		var err error
-		if err = policy.IsAllowed(r, ctx); err == nil {
+		err = policy.IsAllowed(r, ctx)
+		if err == nil {
 			return nil
 		}
-
-		errs = append(errs, err)
 	}
 
-	// return the first error
-	return errs[0]
+	return err
 }
 
 // this ensures that our structure conform to certain interfaces.

@@ -107,13 +107,7 @@ type UpdateMetadataHandler struct {
 }
 
 func (h UpdateMetadataHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AnyOf(
-		authz.PolicyFunc(policy.RequireMasterKey),
-		policy.AllOf(
-			authz.PolicyFunc(policy.DenyNoAccessKey),
-			policy.RequireValidUser,
-		),
-	)
+	return policy.RequireValidUserOrMasterKey
 }
 
 func (h UpdateMetadataHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {

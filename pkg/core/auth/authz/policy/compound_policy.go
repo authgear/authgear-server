@@ -14,3 +14,11 @@ var RequireVerifiedUser = AllOf(
 	authz.PolicyFunc(DenyDisabledUser),
 	authz.PolicyFunc(denyNotVerifiedUser),
 )
+
+var RequireValidUserOrMasterKey = AnyOf(
+	authz.PolicyFunc(RequireMasterKey),
+	AllOf(
+		authz.PolicyFunc(DenyNoAccessKey),
+		RequireValidUser,
+	),
+)
