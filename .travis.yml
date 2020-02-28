@@ -41,13 +41,6 @@ script:
   - make test
 
 deploy:
-  - provider: releases
-    api-key: "$GITHUB_RELEASE_TOKEN"
-    skip_cleanup: true
-    on:
-      repo: SkygearIO/skygear-server
-      tags: true
-      go: 1.13.3
   - provider: script
     script: ./scripts/deploy-docker-hub.sh
     skip_cleanup: true
