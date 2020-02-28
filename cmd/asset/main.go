@@ -67,6 +67,7 @@ func main() {
 	switch configuration.Storage.Backend {
 	case config.StorageBackendAzure:
 		storage = cloudstorage.NewAzureStorage(
+			configuration.Storage.Azure.ServiceURL,
 			configuration.Storage.Azure.StorageAccount,
 			configuration.Storage.Azure.AccessKey,
 			configuration.Storage.Azure.Container,

@@ -33,6 +33,7 @@ type StorageConfiguration struct {
 }
 
 type AzureConfiguration struct {
+	ServiceURL     string `envconfig:"SERVICE_URL"`
 	StorageAccount string `envconfig:"STORAGE_ACCOUNT"`
 	Container      string `envconfig:"CONTAINER"`
 	AccessKey      string `envconfig:"ACCESS_KEY"`
