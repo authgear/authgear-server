@@ -1,12 +1,8 @@
 package main
 
 import (
-	"context"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -264,29 +260,5 @@ func main() {
 	loginidhandler.AttachRemoveLoginIDHandler(&srv, authDependency)
 	loginidhandler.AttachUpdateLoginIDHandler(&srv, authDependency)
 
-	go func() {
-		logger.Info("Starting auth gear")
-		if err := srv.ListenAndServe(); err != nil {
-			logger.WithError(err).Error("Cannot start HTTP server")
-		}
-	}()
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-
-	// wait interrupt signal
-	select {
-	case <-sig:
-		logger.Info("Stopping HTTP server")
-	}
-
-	// create shutdown context with 10 second timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	// shutdown the server
-	err = srv.Shutdown(ctx)
-	if err != nil {
-		logger.WithError(err).Fatal("Cannot shutdown server")
-	}
+	server.ListenAndServe(srv.Server, logger, "Starting auth gear")
 }
