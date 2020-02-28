@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -15,14 +16,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-const inputMinimalYAML = `api_version: v2.1
+var inputMinimalYAML = fmt.Sprintf(`api_version: %s
 app_id: 66EAFE32-BF5C-4878-8FC8-DD0EEA440981
 app_name: myapp
 database_config:
   database_url: postgres://
   database_schema: app
 app_config:
-  api_version: v2.1
+  api_version: %s
   clients: []
   master_key: masterkey
   asset:
@@ -44,11 +45,11 @@ app_config:
       secret: customtokensecret
     oauth:
       state_jwt_secret: statejwtsecret
-`
+`, apiversion.APIVersion, apiversion.APIVersion)
 
-const inputMinimalJSON = `
+var inputMinimalJSON = fmt.Sprintf(`
 {
-	"api_version": "v2.1",
+	"api_version": "%s",
 	"app_id": "66EAFE32-BF5C-4878-8FC8-DD0EEA440981",
 	"app_name": "myapp",
 	"database_config": {
@@ -56,7 +57,7 @@ const inputMinimalJSON = `
 		"database_schema": "app"
 	},
 	"app_config": {
-		"api_version": "v2.1",
+		"api_version": "%s",
 		"master_key": "masterkey",
 		"asset": {
 			"secret": "assetsecret"
@@ -93,7 +94,7 @@ const inputMinimalJSON = `
 		}
 	}
 }
-`
+`, apiversion.APIVersion, apiversion.APIVersion)
 
 func newInt(i int) *int {
 	return &i
