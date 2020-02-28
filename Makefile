@@ -49,11 +49,10 @@ vendor:
 	go install github.com/mitchellh/gox
 	go install github.com/golang/mock/mockgen
 	go install tools/nextimportslint.go
+	go install github.com/google/wire/cmd/wire
 
 .PHONY: go-generate
 go-generate:
-	$(DOCKER_RUN) find pkg -type f -name "*_gen.go" -delete
-	$(DOCKER_RUN) find pkg -type f -name "mockgen_*.go" -delete
 	$(DOCKER_RUN) go generate ./pkg/...
 
 .PHONY: go-lint
