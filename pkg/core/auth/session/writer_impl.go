@@ -65,9 +65,9 @@ func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string, m
 		cookieMFABearerToken.Expires = time.Unix(0, 0)
 	}
 
-	updateCookie(rw, cookieSession)
+	coreHttp.UpdateCookie(rw, cookieSession)
 	if mfaBearerToken != nil {
-		updateCookie(rw, cookieMFABearerToken)
+		coreHttp.UpdateCookie(rw, cookieMFABearerToken)
 	}
 }
 
@@ -83,7 +83,7 @@ func (w *writerImpl) configureCookieSameSite(cookie *http.Cookie, sameSite confi
 }
 
 func (w *writerImpl) ClearSession(rw http.ResponseWriter) {
-	updateCookie(rw, &http.Cookie{
+	coreHttp.UpdateCookie(rw, &http.Cookie{
 		Name:     coreHttp.CookieNameSession,
 		Path:     "/",
 		HttpOnly: true,
@@ -93,34 +93,11 @@ func (w *writerImpl) ClearSession(rw http.ResponseWriter) {
 }
 
 func (w *writerImpl) ClearMFABearerToken(rw http.ResponseWriter) {
-	updateCookie(rw, &http.Cookie{
+	coreHttp.UpdateCookie(rw, &http.Cookie{
 		Name:     coreHttp.CookieNameMFABearerToken,
 		Path:     "/_auth/mfa/bearer_token/authenticate",
 		HttpOnly: true,
 		Secure:   !w.useInsecureCookie,
 		Expires:  time.Unix(0, 0),
 	})
-}
-
-func updateCookie(rw http.ResponseWriter, cookie *http.Cookie) {
-	header := rw.Header()
-	resp := http.Response{Header: header}
-
-	cookies := resp.Cookies()
-	updated := false
-	for i, c := range cookies {
-		if c.Name == cookie.Name && c.Domain == cookie.Domain && c.Path == cookie.Path {
-			cookies[i] = cookie
-			updated = true
-		}
-	}
-	if !updated {
-		cookies = append(cookies, cookie)
-	}
-
-	setCookies := make([]string, len(cookies))
-	for i, c := range cookies {
-		setCookies[i] = c.String()
-	}
-	header["Set-Cookie"] = setCookies
 }
