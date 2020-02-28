@@ -11,7 +11,7 @@ import (
 const MajorVersion = 2
 
 // MinorVersion is the current minor API Version.
-const MinorVersion = 1
+const MinorVersion = 2
 
 // APIVersion is the current API Version.
 var APIVersion = Format(MajorVersion, MinorVersion)
