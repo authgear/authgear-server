@@ -60,7 +60,7 @@ deploy:
     skip_cleanup: true
     on:
       repo: SkygearIO/skygear-server
-      branch: next
+      branch: master
       go: 1.13.3
 
 notifications:
