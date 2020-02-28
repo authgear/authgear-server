@@ -8,37 +8,55 @@ import (
 	"text/template/parse"
 )
 
-func ValidateTextTemplate(template *text.Template) error {
+type Validator struct {
+	AllowRangeNode    bool
+	AllowTemplateNode bool
+	MaxDepth          int
+}
+
+func NewValidator(opts ...func(*Validator)) *Validator {
+	v := &Validator{}
+	for _, opt := range opts {
+		opt(v)
+	}
+	return v
+}
+
+func (v *Validator) ValidateTextTemplate(template *text.Template) error {
 	tpls := template.Templates()
 	sort.Slice(tpls, func(i, j int) bool {
 		return tpls[i].Name() < tpls[j].Name()
 	})
 
 	for _, tpl := range tpls {
-		if err := validateTree(tpl.Tree); err != nil {
+		if err := v.validateTree(tpl.Tree); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func ValidateHTMLTemplate(template *html.Template) error {
+func (v *Validator) ValidateHTMLTemplate(template *html.Template) error {
 	tpls := template.Templates()
 	sort.Slice(tpls, func(i, j int) bool {
 		return tpls[i].Name() < tpls[j].Name()
 	})
 
 	for _, tpl := range tpls {
-		if err := validateTree(tpl.Tree); err != nil {
+		if err := v.validateTree(tpl.Tree); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func validateTree(tree *parse.Tree) (err error) {
+func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 	validateFn := func(n parse.Node, depth int) (cont bool) {
-		if depth > 4 {
+		maxDepth := v.MaxDepth
+		if maxDepth == 0 {
+			maxDepth = 4
+		}
+		if depth > maxDepth {
 			err = fmt.Errorf("%s: template nested too deep", formatLocation(tree, n))
 		} else {
 			switch n := n.(type) {
@@ -58,6 +76,18 @@ func validateTree(tree *parse.Tree) (err error) {
 							break
 						}
 					}
+				}
+			case *parse.RangeNode:
+				if v.AllowRangeNode {
+					break
+				} else {
+					err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)
+				}
+			case *parse.TemplateNode:
+				if v.AllowTemplateNode {
+					break
+				} else {
+					err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)
 				}
 			default:
 				err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)

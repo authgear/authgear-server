@@ -8,7 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-type RenderOptions struct {
+type ResolveOptions struct {
 	Required bool
 	Key      string
 }
@@ -50,18 +50,30 @@ func (e *Engine) Register(spec Spec) {
 	e.TemplateSpecs[spec.Type] = spec
 }
 
-func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, option RenderOptions) (out string, err error) {
-	templateBody, spec, err := e.resolveTemplate(templateType, option)
+func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, resolveOptions ResolveOptions, validateOpts ...func(*Validator)) (out string, err error) {
+	templateBody, spec, err := e.resolveTemplate(templateType, resolveOptions)
 	if err != nil {
 		return
 	}
 	if spec.IsHTML {
-		return RenderHTMLTemplate(string(templateType), templateBody, context)
+		return RenderHTMLTemplate(RenderOptions{
+			Name:          string(templateType),
+			TemplateBody:  templateBody,
+			Defines:       spec.Defines,
+			Context:       context,
+			ValidatorOpts: validateOpts,
+		})
 	}
-	return RenderTextTemplate(string(templateType), templateBody, context)
+	return RenderTextTemplate(RenderOptions{
+		Name:          string(templateType),
+		TemplateBody:  templateBody,
+		Defines:       spec.Defines,
+		Context:       context,
+		ValidatorOpts: validateOpts,
+	})
 }
 
-func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options RenderOptions) (string, Spec, error) {
+func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options ResolveOptions) (string, Spec, error) {
 	spec, found := e.TemplateSpecs[templateType]
 	if !found {
 		panic("template: unregistered template type: " + templateType)

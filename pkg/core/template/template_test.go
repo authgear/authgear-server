@@ -17,8 +17,39 @@ func TestTemplateRender(t *testing.T) {
 
 			var err error
 
-			_, err = RenderTextTemplate("test", template, nil)
+			_, err = RenderTextTemplate(RenderOptions{
+				Name:         "test",
+				TemplateBody: template,
+				Context:      nil,
+			})
 			So(err, ShouldBeError, "failed to execute template: rendered template is too large")
+		})
+		Convey("should supports defines", func() {
+			actual, err := RenderHTMLTemplate(RenderOptions{
+				Name: "test",
+				TemplateBody: `
+				{{ template "A" }}
+				{{ template "B" }}
+				`,
+				Context: map[string]interface{}{
+					"a": "42",
+				},
+				Defines: []string{
+					`{{ define "A" }}This is A{{ end }}`,
+					`{{ define "B" }}This is B{{ end }}`,
+				},
+				ValidatorOpts: []func(*Validator){
+					func(v *Validator) {
+						v.AllowTemplateNode = true
+					},
+				},
+			})
+			expected := `
+				This is A
+				This is B
+				`
+			So(err, ShouldBeNil)
+			So(actual, ShouldEqual, expected)
 		})
 		Convey("should auto-escape templates", func() {
 			template := `
@@ -88,15 +119,19 @@ func TestTemplateRender(t *testing.T) {
 			</html>
 			`
 
-			out, err := RenderHTMLTemplate("test", template, map[string]interface{}{
-				"URL":             "https://www.example.com",
-				"Title":           "Welcome to <b>My App</b>.",
-				"BackgroundColor": "#101020; /* for contrast */",
-				"ForegroundColor": "#e0e0ff",
-				"Query":           "Lazy dog > Quick brown fox?",
-				"State": map[string]interface{}{
-					"todos": []string{`<b>Important things! \o/</b>`, "Cats & Dogs"},
-					"query": "Lazy dog > Quick brown fox?",
+			out, err := RenderHTMLTemplate(RenderOptions{
+				Name:         "test",
+				TemplateBody: template,
+				Context: map[string]interface{}{
+					"URL":             "https://www.example.com",
+					"Title":           "Welcome to <b>My App</b>.",
+					"BackgroundColor": "#101020; /* for contrast */",
+					"ForegroundColor": "#e0e0ff",
+					"Query":           "Lazy dog > Quick brown fox?",
+					"State": map[string]interface{}{
+						"todos": []string{`<b>Important things! \o/</b>`, "Cats & Dogs"},
+						"query": "Lazy dog > Quick brown fox?",
+					},
 				},
 			})
 			So(err, ShouldBeNil)

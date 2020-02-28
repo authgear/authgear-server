@@ -81,7 +81,7 @@ func (d *DefaultSender) Send(
 	if textBody, err = d.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordEmailTXT,
 		context,
-		template.RenderOptions{Required: true},
+		template.ResolveOptions{Required: true},
 	); err != nil {
 		err = errors.Newf("failed to render forgot password text email: %w", err)
 		return
@@ -91,7 +91,7 @@ func (d *DefaultSender) Send(
 	if htmlBody, err = d.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordEmailHTML,
 		context,
-		template.RenderOptions{Required: false},
+		template.ResolveOptions{Required: false},
 	); err != nil {
 		err = errors.Newf("failed to render forgot password HTML email: %w", err)
 		return

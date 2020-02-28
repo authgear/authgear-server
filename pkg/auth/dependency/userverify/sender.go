@@ -36,7 +36,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 	if textBody, err = e.TemplateEngine.RenderTemplate(
 		TemplateItemTypeUserVerificationEmailTXT,
 		context,
-		template.RenderOptions{
+		template.ResolveOptions{
 			Required: true,
 			Key:      verifyCode.LoginIDKey,
 		},
@@ -49,7 +49,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 	if htmlBody, err = e.TemplateEngine.RenderTemplate(
 		TemplateItemTypeUserVerificationEmailHTML,
 		context,
-		template.RenderOptions{
+		template.ResolveOptions{
 			Required: false,
 			Key:      verifyCode.LoginIDKey,
 		},
@@ -92,7 +92,7 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user model.User) (err error)
 	if textBody, err = t.TemplateEngine.RenderTemplate(
 		TemplateItemTypeUserVerificationSMSTXT,
 		context,
-		template.RenderOptions{
+		template.ResolveOptions{
 			Required: true,
 			Key:      verifyCode.LoginIDKey,
 		},
