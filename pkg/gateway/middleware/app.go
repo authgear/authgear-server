@@ -27,17 +27,19 @@ func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 		host := r.Host
 		app := gatewayModel.App{}
 		if err := f.Store.GetAppByDomain(host, &app); err != nil {
-			if !store.IsNotFound(err) {
+			if store.IsNotFound(err) {
+				http.Error(w, "Not found", http.StatusNotFound)
+			} else {
 				logger.WithError(err).Error("failed to find app")
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
 			}
-			http.Error(w, "App not found", http.StatusBadRequest)
 			return
 		}
 
 		routes, err := f.Store.GetLastDeploymentRoutes(app)
 		if err != nil {
 			logger.WithError(err).Error("failed to get deployment routes")
-			http.Error(w, "Deployment not found", http.StatusInternalServerError)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
@@ -55,7 +57,7 @@ func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 			// no hook exists: ignore error
 		} else if err != nil {
 			logger.WithError(err).Error("failed to get deployment hooks")
-			http.Error(w, "Fail to get deployment hooks", http.StatusInternalServerError)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		} else {
 			for _, hook := range hooks.Hooks {

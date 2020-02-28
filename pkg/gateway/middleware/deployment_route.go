@@ -23,7 +23,7 @@ func (f FindDeploymentRouteMiddleware) Handle(next http.Handler) http.Handler {
 
 		match := model.MatchRoute(path, app.Config.DeploymentRoutes)
 		if match == nil {
-			http.Error(w, "Fail to match deployment route", http.StatusNotFound)
+			http.Error(w, "Not found", http.StatusNotFound)
 			return
 		}
 		ctx.RouteMatch = *match
