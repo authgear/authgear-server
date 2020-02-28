@@ -83,7 +83,8 @@ fmt:
 
 .PHONY: update-version
 update-version:
-	sed -i "" "s/version = \".*\"/version = \"v$(SKYGEAR_VERSION)\"/" pkg/server/skyversion/version.go
+	sed -i "" "s/const MajorVersion = .*/const MajorVersion = $(shell echo $$SKYGEAR_VERSION | cut -d . -f 1)/" pkg/core/apiversion/apiversion.go
+	sed -i "" "s/const MinorVersion = .*/const MinorVersion = $(shell echo $$SKYGEAR_VERSION | cut -d . -f 2)/" pkg/core/apiversion/apiversion.go
 
 .PHONY: docker-build-image
 docker-build-image:
