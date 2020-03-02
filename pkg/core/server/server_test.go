@@ -35,7 +35,7 @@ func (f *HandlerFactory) NewHandler(r *http.Request) http.Handler {
 func TestServer(t *testing.T) {
 	Convey("Server", t, func() {
 		Convey("/healthz", func() {
-			s := NewServerWithOption("0.0.0.0:3000", nil, Option{
+			s := NewServerWithOption("0.0.0.0:3000", Option{
 				RecoverPanic:   true,
 				GearPathPrefix: "/_mygear",
 			})
@@ -49,7 +49,7 @@ func TestServer(t *testing.T) {
 		})
 
 		Convey("IsAPIVersioned = false", func() {
-			s := NewServerWithOption("0.0.0.0:3000", nil, Option{
+			s := NewServerWithOption("0.0.0.0:3000", Option{
 				RecoverPanic:   true,
 				GearPathPrefix: "/_mygear",
 			})
@@ -67,7 +67,7 @@ func TestServer(t *testing.T) {
 		Convey("IsAPIVersioned = true", func() {
 			var apiVersion string
 
-			s := NewServerWithOption("0.0.0.0:3000", nil, Option{
+			s := NewServerWithOption("0.0.0.0:3000", Option{
 				RecoverPanic:   true,
 				GearPathPrefix: "/_mygear",
 				IsAPIVersioned: true,

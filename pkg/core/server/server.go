@@ -7,7 +7,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 )
@@ -16,18 +15,15 @@ import (
 type Server struct {
 	*http.Server
 
-	router        *mux.Router
-	dependencyMap inject.DependencyMap
+	router *mux.Router
 }
 
 // NewServer create a new Server with default option
 func NewServer(
 	addr string,
-	dependencyMap inject.DependencyMap,
 ) Server {
 	return NewServerWithOption(
 		addr,
-		dependencyMap,
 		DefaultOption(),
 	)
 }
@@ -35,7 +31,6 @@ func NewServer(
 // NewServerWithOption create a new Server
 func NewServerWithOption(
 	addr string,
-	dependencyMap inject.DependencyMap,
 	option Option,
 ) Server {
 	rootRouter := mux.NewRouter()
@@ -58,7 +53,6 @@ func NewServerWithOption(
 			Addr:    addr,
 			Handler: rootRouter,
 		},
-		dependencyMap: dependencyMap,
 	}
 
 	srv.Use(sentry.Middleware(sentry.DefaultClient.Hub))

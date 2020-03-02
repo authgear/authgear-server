@@ -116,7 +116,7 @@ func main() {
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
-		srv = server.NewServerWithOption(configuration.ServerHost, dependencyMap, serverOption)
+		srv = server.NewServerWithOption(configuration.ServerHost, serverOption)
 		srv.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (coreConfig.TenantConfiguration, error) {
 				return *tenantConfig, nil
@@ -125,7 +125,7 @@ func main() {
 		srv.Use(middleware.RequestIDMiddleware{}.Handle)
 		srv.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		srv = server.NewServerWithOption(configuration.ServerHost, dependencyMap, serverOption)
+		srv = server.NewServerWithOption(configuration.ServerHost, serverOption)
 		srv.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 	}
 
