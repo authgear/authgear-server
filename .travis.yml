@@ -8,6 +8,8 @@ language: go
 go:
   - 1.13.3
 
+node_js: 12
+
 services:
   - docker
 
@@ -40,6 +42,9 @@ script:
   - make lint
   - make test
 
+before_deploy:
+  - make generate-static-asset
+
 deploy:
   - provider: script
     script: ./scripts/deploy-docker-hub.sh
@@ -61,6 +66,19 @@ deploy:
     on:
       repo: SkygearIO/skygear-server
       branch: master
+      go: 1.13.3
+  - provider: s3
+    access_key_id: "$AWS_ACCESS_KEY"
+    secret_access_key: "$AWS_SECRET_KEY"
+    bucket: "code.skygear.dev"
+    skip_cleanup: true
+    local_dir: ./scripts/deploy-asset/dist
+    # The actual URL looks like
+    # https://code.skygear.dev/skygear-server/git-<commit-hash>/foobar/css/main.css
+    upload-dir: skygear-server
+    on:
+      repo: SkygearIO/skygear-server
+      all_branches: true
       go: 1.13.3
 
 notifications:

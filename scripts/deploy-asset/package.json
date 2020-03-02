@@ -1,0 +1,11 @@
+{
+  "name": "deploy-asset",
+  "version": "1.0.0",
+  "devDependencies": {
+    "cssnano": "4.1.10",
+    "postcss": "7.0.27",
+    "postcss-cli": "7.1.0",
+    "postcss-normalize": "8.0.1",
+    "postcss-preset-env": "6.7.0"
+  }
+}
