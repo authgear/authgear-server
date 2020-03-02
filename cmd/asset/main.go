@@ -1,12 +1,8 @@
 package main
 
 import (
-	"context"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/davidbyttow/govips/pkg/vips"
 	"github.com/joho/godotenv"
@@ -148,29 +144,5 @@ func main() {
 	handler.AttachUploadFormHandler(&srv, dependencyMap)
 	handler.AttachPresignUploadFormHandler(&srv, dependencyMap)
 
-	go func() {
-		logger.Info("Starting asset gear")
-		if err := srv.ListenAndServe(); err != nil {
-			logger.WithError(err).Error("Cannot start HTTP server")
-		}
-	}()
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-
-	// wait interrupt signal
-	select {
-	case <-sig:
-		logger.Info("Stopping HTTP server")
-	}
-
-	// create shutdown context with 10 second timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	// shutdown the server
-	err = srv.Shutdown(ctx)
-	if err != nil {
-		logger.WithError(err).Fatal("Cannot shutdown server")
-	}
+	server.ListenAndServe(srv.Server, logger, "Starting asset gear")
 }
