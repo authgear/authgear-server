@@ -13,6 +13,8 @@ import (
 )
 
 type AzureStorage struct {
+	// ServiceURL is custom Azure blob storage URL. Empty for default URL.
+	ServiceURL     string
 	StorageAccount string
 	Container      string
 	// AccessKey is encoded in standard BASE64.
@@ -21,8 +23,9 @@ type AzureStorage struct {
 
 var _ Storage = &AzureStorage{}
 
-func NewAzureStorage(storageAccount string, accessKey string, container string) *AzureStorage {
+func NewAzureStorage(serviceURL string, storageAccount string, accessKey string, container string) *AzureStorage {
 	return &AzureStorage{
+		ServiceURL:     serviceURL,
 		StorageAccount: storageAccount,
 		Container:      container,
 		AccessKey:      accessKey,
@@ -52,6 +55,20 @@ var AzureStandardToProprietaryMap = map[string]string{
 	"access-control-allow-credentials": "x-ms-meta-accesscontrolallowcredentials",
 	"access-control-allow-methods":     "x-ms-meta-accesscontrolallowmethods",
 	"access-control-allow-headers":     "x-ms-meta-accesscontrolallowheaders",
+}
+
+func (s *AzureStorage) getServiceURL() (*url.URL, error) {
+	serviceURL := s.ServiceURL
+	if serviceURL == "" {
+		serviceURL = fmt.Sprintf("https://%s.blob.core.windows.net", s.StorageAccount)
+	}
+
+	u, err := url.Parse(serviceURL)
+	if err != nil {
+		return nil, errors.HandledWithMessage(err, "invalid Azure blob service URL")
+	}
+
+	return u, nil
 }
 
 func (s *AzureStorage) PresignPutObject(name string, accessType AccessType, header http.Header) (*http.Request, error) {
@@ -98,9 +115,9 @@ func (s *AzureStorage) ListObjects(r *ListObjectsRequest) (*ListObjectsResponse,
 
 	p := azblob.NewPipeline(cred, azblob.PipelineOptions{})
 
-	u, err := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net", s.StorageAccount))
+	u, err := s.getServiceURL()
 	if err != nil {
-		return nil, errors.HandledWithMessage(err, "failed to parse storage account")
+		return nil, err
 	}
 
 	serviceURL := azblob.NewServiceURL(*u, p)
@@ -157,9 +174,9 @@ func (s *AzureStorage) DeleteObject(name string) error {
 
 	p := azblob.NewPipeline(cred, azblob.PipelineOptions{})
 
-	u, err := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net", s.StorageAccount))
+	u, err := s.getServiceURL()
 	if err != nil {
-		return errors.HandledWithMessage(err, "failed to parse storage account")
+		return err
 	}
 
 	serviceURL := azblob.NewServiceURL(*u, p)
@@ -220,9 +237,14 @@ func (s *AzureStorage) SignedURL(name string, now time.Time, duration time.Durat
 		return nil, errors.HandledWithMessage(err, "failed to create SAS query parameters")
 	}
 
+	serviceURL, err := s.getServiceURL()
+	if err != nil {
+		return nil, err
+	}
+
 	parts := azblob.BlobURLParts{
-		Scheme:        "https",
-		Host:          fmt.Sprintf("%s.blob.core.windows.net", s.StorageAccount),
+		Scheme:        serviceURL.Scheme,
+		Host:          serviceURL.Host,
 		ContainerName: s.Container,
 		BlobName:      name,
 		SAS:           q,
