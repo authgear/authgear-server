@@ -14,7 +14,7 @@ import (
 type Server struct {
 	*http.Server
 
-	router *mux.Router
+	Router *mux.Router
 }
 
 // NewServer create a new Server with default option
@@ -47,16 +47,16 @@ func NewServerWithOption(
 	}
 
 	srv := Server{
-		router: appRouter,
+		Router: appRouter,
 		Server: &http.Server{
 			Addr:    addr,
 			Handler: rootRouter,
 		},
 	}
 
-	srv.Use(sentry.Middleware(sentry.DefaultClient.Hub))
+	srv.Router.Use(sentry.Middleware(sentry.DefaultClient.Hub))
 	if option.RecoverPanic {
-		srv.Use(middleware.RecoverMiddleware{}.Handle)
+		srv.Router.Use(middleware.RecoverMiddleware{}.Handle)
 	}
 
 	return srv
@@ -69,12 +69,7 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 		h.ServeHTTP(w, r)
 	})
 
-	return s.router.NewRoute().Path(path).Handler(handler)
-}
-
-// Use set middlewares to underlying router
-func (s *Server) Use(mwf ...mux.MiddlewareFunc) {
-	s.router.Use(mwf...)
+	return s.Router.NewRoute().Path(path).Handler(handler)
 }
 
 // ServeHTTP makes Server a http.Handler.

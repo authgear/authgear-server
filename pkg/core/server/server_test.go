@@ -59,7 +59,7 @@ func TestServer(t *testing.T) {
 				IsAPIVersioned: true,
 			})
 
-			s.Use(func(next http.Handler) http.Handler {
+			s.Router.Use(func(next http.Handler) http.Handler {
 				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					apiVersion = mux.Vars(r)["api_version"]
 					next.ServeHTTP(w, r)

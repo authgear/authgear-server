@@ -117,22 +117,22 @@ func main() {
 		}
 
 		srv = server.NewServerWithOption(configuration.ServerHost, serverOption)
-		srv.Use(middleware.WriteTenantConfigMiddleware{
+		srv.Router.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (coreConfig.TenantConfiguration, error) {
 				return *tenantConfig, nil
 			}),
 		}.Handle)
-		srv.Use(middleware.RequestIDMiddleware{}.Handle)
-		srv.Use(middleware.CORSMiddleware{}.Handle)
+		srv.Router.Use(middleware.RequestIDMiddleware{}.Handle)
+		srv.Router.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
 		srv = server.NewServerWithOption(configuration.ServerHost, serverOption)
-		srv.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
+		srv.Router.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 	}
 
-	srv.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
-	srv.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
-	srv.Use(middleware.AuthMiddleware{}.Handle)
-	srv.Use(middleware.Injecter{
+	srv.Router.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
+	srv.Router.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
+	srv.Router.Use(middleware.AuthMiddleware{}.Handle)
+	srv.Router.Use(middleware.Injecter{
 		MiddlewareFactory: middleware.AuthnMiddlewareFactory{},
 		Dependency:        dependencyMap,
 	}.Handle)
