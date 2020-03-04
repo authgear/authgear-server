@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -25,13 +26,15 @@ import (
 
 // AttachLoginHandler attach login handler to server
 func AttachLoginHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/login", &LoginHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/login").
+		Handler(server.FactoryToHandler(&LoginHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 // LoginHandlerFactory creates new handler

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -27,13 +28,15 @@ import (
 )
 
 func AttachRemoveLoginIDHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/login_id/remove", &RemoveLoginIDHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/login_id/remove").
+		Handler(server.FactoryToHandler(&RemoveLoginIDHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type RemoveLoginIDHandlerFactory struct {

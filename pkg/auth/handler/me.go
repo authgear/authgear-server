@@ -3,9 +3,10 @@ package handler
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -20,13 +21,15 @@ import (
 )
 
 func AttachMeHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/me", &MeHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/me").
+		Handler(server.FactoryToHandler(&MeHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type MeHandlerFactory struct {

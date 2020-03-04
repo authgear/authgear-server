@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -23,13 +25,15 @@ import (
 )
 
 func AttachAuthResultHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/sso/auth_result", &AuthResultHandlerFactory{
-		Dependency: authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/sso/auth_result").
+		Handler(server.FactoryToHandler(&AuthResultHandlerFactory{
+			Dependency: authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type AuthResultHandlerFactory struct {

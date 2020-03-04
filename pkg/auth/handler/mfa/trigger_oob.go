@@ -3,6 +3,8 @@ package mfa
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -18,13 +20,15 @@ import (
 )
 
 func AttachTriggerOOBHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/mfa/oob/trigger", &TriggerOOBHandlerFactory{
-		Dependency: authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/mfa/oob/trigger").
+		Handler(server.FactoryToHandler(&TriggerOOBHandlerFactory{
+			Dependency: authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type TriggerOOBHandlerFactory struct {

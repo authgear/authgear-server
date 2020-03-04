@@ -3,6 +3,8 @@ package mfa
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -20,13 +22,15 @@ import (
 )
 
 func AttachAuthenticateTOTPHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/mfa/totp/authenticate", &AuthenticateTOTPHandlerFactory{
-		Dependency: authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/mfa/totp/authenticate").
+		Handler(server.FactoryToHandler(&AuthenticateTOTPHandlerFactory{
+			Dependency: authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type AuthenticateTOTPHandlerFactory struct {

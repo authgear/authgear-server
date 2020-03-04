@@ -3,6 +3,8 @@ package mfa
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -17,13 +19,15 @@ import (
 )
 
 func AttachListRecoveryCodeHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/mfa/recovery_code/list", &ListRecoveryCodeHandlerFactory{
-		Dependency: authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/mfa/recovery_code/list").
+		Handler(server.FactoryToHandler(&ListRecoveryCodeHandlerFactory{
+			Dependency: authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type ListRecoveryCodeHandlerFactory struct {

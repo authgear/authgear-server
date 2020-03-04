@@ -14,13 +14,15 @@ import (
 )
 
 func AttachDeleteHandler(
-	server *server.Server,
+	router *mux.Router,
 	dependencyMap inject.DependencyMap,
-) *server.Server {
-	server.Handle("/delete/{asset_name}", &DeleteHandlerFactory{
-		dependencyMap,
-	}).Methods("OPTIONS", "DELETE")
-	return server
+) {
+	router.NewRoute().
+		Path("/delete/{asset_name}").
+		Handler(server.FactoryToHandler(&DeleteHandlerFactory{
+			dependencyMap,
+		})).
+		Methods("OPTIONS", "DELETE")
 }
 
 type DeleteHandlerFactory struct {

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	authprincipal "github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -25,13 +26,15 @@ import (
 )
 
 func AttachUnlinkHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/sso/{provider}/unlink", &UnlinkHandlerFactory{
-		Dependency: authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/sso/{provider}/unlink").
+		Handler(server.FactoryToHandler(&UnlinkHandlerFactory{
+			Dependency: authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type UnlinkHandlerFactory struct {

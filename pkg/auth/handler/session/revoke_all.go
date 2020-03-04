@@ -3,6 +3,8 @@ package session
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -21,13 +23,15 @@ import (
 )
 
 func AttachRevokeAllHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/session/revoke_all", &RevokeAllHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/session/revoke_all").
+		Handler(server.FactoryToHandler(&RevokeAllHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type RevokeAllHandlerFactory struct {

@@ -3,6 +3,8 @@ package loginid
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -23,13 +25,15 @@ import (
 )
 
 func AttachAddLoginIDHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/login_id/add", &AddLoginIDHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/login_id/add").
+		Handler(server.FactoryToHandler(&AddLoginIDHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type AddLoginIDHandlerFactory struct {

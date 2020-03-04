@@ -3,7 +3,9 @@ package userverify
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -24,16 +26,21 @@ import (
 
 // AttachVerifyCodeHandler attaches VerifyCodeHandler to server
 func AttachVerifyCodeHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/verify_code", &VerifyCodeHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST")
-	server.Handle("/verify_code_form", &VerifyCodeFormHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST", "GET")
-	return server
+) {
+	router.NewRoute().
+		Path("/verify_code").
+		Handler(server.FactoryToHandler(&VerifyCodeHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST")
+	router.NewRoute().
+		Path("/verify_code_form").
+		Handler(server.FactoryToHandler(&VerifyCodeFormHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST", "GET")
 }
 
 // VerifyCodeHandlerFactory creates VerifyCodeHandler

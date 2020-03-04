@@ -3,6 +3,8 @@ package handler
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
@@ -14,13 +16,15 @@ import (
 )
 
 func AttachSignHandler(
-	server *server.Server,
+	router *mux.Router,
 	dependencyMap inject.DependencyMap,
-) *server.Server {
-	server.Handle("/get_signed_url", &SignHandlerFactory{
-		dependencyMap,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/get_signed_url").
+		Handler(server.FactoryToHandler(&SignHandlerFactory{
+			dependencyMap,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type SignHandlerFactory struct {

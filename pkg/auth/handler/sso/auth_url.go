@@ -25,18 +25,24 @@ import (
 )
 
 func AttachAuthURLHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/sso/{provider}/login_auth_url", &AuthURLHandlerFactory{
-		Dependency: authDependency,
-		Action:     "login",
-	}).Methods("OPTIONS", "POST")
-	server.Handle("/sso/{provider}/link_auth_url", &AuthURLHandlerFactory{
-		Dependency: authDependency,
-		Action:     "link",
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/sso/{provider}/login_auth_url").
+		Handler(server.FactoryToHandler(&AuthURLHandlerFactory{
+			Dependency: authDependency,
+			Action:     "login",
+		})).
+		Methods("OPTIONS", "POST")
+
+	router.NewRoute().
+		Path("/sso/{provider}/link_auth_url").
+		Handler(server.FactoryToHandler(&AuthURLHandlerFactory{
+			Dependency: authDependency,
+			Action:     "link",
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type AuthURLHandlerFactory struct {

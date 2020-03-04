@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/davidbyttow/govips/pkg/vips"
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
@@ -104,7 +105,8 @@ func main() {
 
 	serverOption := server.DefaultOption()
 	serverOption.GearPathPrefix = "/_asset"
-	var srv server.Server
+	var rootRouter *mux.Router
+	var appRouter *mux.Router
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
 		reader, err := os.Open(filename)
@@ -116,34 +118,38 @@ func main() {
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
-		srv = server.NewServerWithOption(configuration.ServerHost, serverOption)
-		srv.Router.Use(middleware.WriteTenantConfigMiddleware{
+		rootRouter, appRouter = server.NewRouterWithOption(serverOption)
+		appRouter.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (coreConfig.TenantConfiguration, error) {
 				return *tenantConfig, nil
 			}),
 		}.Handle)
-		srv.Router.Use(middleware.RequestIDMiddleware{}.Handle)
-		srv.Router.Use(middleware.CORSMiddleware{}.Handle)
+		appRouter.Use(middleware.RequestIDMiddleware{}.Handle)
+		appRouter.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		srv = server.NewServerWithOption(configuration.ServerHost, serverOption)
-		srv.Router.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
+		rootRouter, appRouter = server.NewRouterWithOption(serverOption)
+		appRouter.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 	}
 
-	srv.Router.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
-	srv.Router.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
-	srv.Router.Use(middleware.AuthMiddleware{}.Handle)
-	srv.Router.Use(middleware.Injecter{
+	appRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
+	appRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
+	appRouter.Use(middleware.AuthMiddleware{}.Handle)
+	appRouter.Use(middleware.Injecter{
 		MiddlewareFactory: middleware.AuthnMiddlewareFactory{},
 		Dependency:        dependencyMap,
 	}.Handle)
 
-	handler.AttachPresignUploadHandler(&srv, dependencyMap)
-	handler.AttachSignHandler(&srv, dependencyMap)
-	handler.AttachGetHandler(&srv, dependencyMap)
-	handler.AttachListHandler(&srv, dependencyMap)
-	handler.AttachDeleteHandler(&srv, dependencyMap)
-	handler.AttachUploadFormHandler(&srv, dependencyMap)
-	handler.AttachPresignUploadFormHandler(&srv, dependencyMap)
+	handler.AttachPresignUploadHandler(appRouter, dependencyMap)
+	handler.AttachSignHandler(appRouter, dependencyMap)
+	handler.AttachGetHandler(appRouter, dependencyMap)
+	handler.AttachListHandler(appRouter, dependencyMap)
+	handler.AttachDeleteHandler(appRouter, dependencyMap)
+	handler.AttachUploadFormHandler(appRouter, dependencyMap)
+	handler.AttachPresignUploadFormHandler(appRouter, dependencyMap)
 
-	server.ListenAndServe(srv.Server, logger, "Starting asset gear")
+	srv := &http.Server{
+		Addr:    configuration.ServerHost,
+		Handler: rootRouter,
+	}
+	server.ListenAndServe(srv, logger, "Starting asset gear")
 }

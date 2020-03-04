@@ -3,6 +3,8 @@ package mfa
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -16,13 +18,15 @@ import (
 )
 
 func AttachRevokeAllBearerTokenHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/mfa/bearer_token/revoke_all", &RevokeAllBearerTokenHandlerFactory{
-		Dependency: authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/mfa/bearer_token/revoke_all").
+		Handler(server.FactoryToHandler(&RevokeAllBearerTokenHandlerFactory{
+			Dependency: authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type RevokeAllBearerTokenHandlerFactory struct {

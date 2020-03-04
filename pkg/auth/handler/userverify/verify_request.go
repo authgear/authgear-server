@@ -4,12 +4,11 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-
-	"github.com/skygeario/skygear-server/pkg/core/validation"
-
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
@@ -22,17 +21,20 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 // AttachVerifyRequestHandler attaches VerifyRequestHandler to server
 func AttachVerifyRequestHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/verify_request", &VerifyRequestHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/verify_request").
+		Handler(server.FactoryToHandler(&VerifyRequestHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 // VerifyRequestHandlerFactory creates VerifyRequestHandler

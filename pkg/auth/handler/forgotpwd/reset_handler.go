@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -29,16 +30,21 @@ import (
 
 // AttachForgotPasswordResetHandler attaches ForgotPasswordResetHandler to server
 func AttachForgotPasswordResetHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/forgot_password/reset_password", &ForgotPasswordResetHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST")
-	server.Handle("/forgot_password/reset_password_form", &ForgotPasswordResetFormHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST", "GET")
-	return server
+) {
+	router.NewRoute().
+		Path("/forgot_password/reset_password").
+		Handler(server.FactoryToHandler(&ForgotPasswordResetHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST")
+	router.NewRoute().
+		Path("/forgot_password/reset_password_form").
+		Handler(server.FactoryToHandler(&ForgotPasswordResetFormHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST", "GET")
 }
 
 // ForgotPasswordResetHandlerFactory creates ForgotPasswordResetHandler

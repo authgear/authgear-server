@@ -25,13 +25,15 @@ import (
 // that only support GET.
 
 func AttachAuthRedirectHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/sso/{provider}/auth_redirect", &AuthRedirectHandlerFactory{
-		Dependency: authDependency,
-	}).Methods("OPTIONS", "GET")
-	return server
+) {
+	router.NewRoute().
+		Path("/sso/{provider}/auth_redirect").
+		Handler(server.FactoryToHandler(&AuthRedirectHandlerFactory{
+			Dependency: authDependency,
+		})).
+		Methods("OPTIONS", "GET")
 }
 
 type AuthRedirectHandlerFactory struct {

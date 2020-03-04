@@ -3,6 +3,8 @@ package mfa
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -16,13 +18,15 @@ import (
 )
 
 func AttachDeleteAuthenticatorHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/mfa/authenticator/delete", &DeleteAuthenticatorHandlerFactory{
-		Dependency: authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/mfa/authenticator/delete").
+		Handler(server.FactoryToHandler(&DeleteAuthenticatorHandlerFactory{
+			Dependency: authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type DeleteAuthenticatorHandlerFactory struct {
