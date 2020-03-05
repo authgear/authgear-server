@@ -21,7 +21,6 @@ func TestRouter(t *testing.T) {
 	Convey("Router", t, func() {
 		Convey("/healthz", func() {
 			rootRouter, _ := NewRouterWithOption(Option{
-				RecoverPanic:   true,
 				GearPathPrefix: "/_mygear",
 			})
 
@@ -35,7 +34,6 @@ func TestRouter(t *testing.T) {
 
 		Convey("IsAPIVersioned = false", func() {
 			rootRouter, appRouter := NewRouterWithOption(Option{
-				RecoverPanic:   true,
 				GearPathPrefix: "/_mygear",
 			})
 
@@ -53,7 +51,6 @@ func TestRouter(t *testing.T) {
 			var apiVersion string
 
 			rootRouter, appRouter := NewRouterWithOption(Option{
-				RecoverPanic:   true,
 				GearPathPrefix: "/_mygear",
 				IsAPIVersioned: true,
 			})

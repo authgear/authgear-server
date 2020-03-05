@@ -25,9 +25,7 @@ func NewRouterWithOption(option Option) (rootRouter *mux.Router, appRouter *mux.
 	}
 
 	appRouter.Use(sentry.Middleware(sentry.DefaultClient.Hub))
-	if option.RecoverPanic {
-		appRouter.Use(middleware.RecoverMiddleware{}.Handle)
-	}
+	appRouter.Use(middleware.RecoverMiddleware{}.Handle)
 
 	return
 }
