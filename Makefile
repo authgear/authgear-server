@@ -1,5 +1,6 @@
 VERSION := $(shell git describe --always)
 GIT_SHA := $(shell git rev-parse HEAD)
+GIT_SHORT_SHA := $(shell git rev-parse --short HEAD)
 BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 BUILD_CONTEXT ?= .
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
@@ -152,3 +153,16 @@ generate-doc-auth:
 .PHONY: generate-doc-asset
 generate-doc-asset:
 	@openapi3-gen -output "$(DOC_PATH)" ./cmd/asset/... ./pkg/asset/...
+
+.PHONY: generate-static-asset
+generate-static-asset:
+	cd ./scripts/deploy-asset; \
+	npm ci; \
+	rm -rf dist/; \
+	mkdir -p "dist/git-$(GIT_SHORT_SHA)"; \
+	cp -R ../../static/. "dist/git-$(GIT_SHORT_SHA)"; \
+	npx postcss \
+		'../../static/**/*.css' \
+		--base '../../static' \
+		--dir "dist/git-$(GIT_SHORT_SHA)" \
+		--config postcss.config.js
