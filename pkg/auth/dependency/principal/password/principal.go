@@ -1,6 +1,7 @@
 package password
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	corePassword "github.com/skygeario/skygear-server/pkg/core/password"
@@ -46,8 +47,8 @@ func (p *Principal) VerifyPassword(password string) error {
 	return nil
 }
 
-func (p *Principal) deriveClaims(checker loginIDChecker) {
-	standardKey, hasStandardKey := checker.standardKey(p.LoginIDKey)
+func (p *Principal) deriveClaims(checker loginid.LoginIDChecker) {
+	standardKey, hasStandardKey := checker.StandardKey(p.LoginIDKey)
 	claimsValue := map[string]interface{}{}
 	if hasStandardKey {
 		claimsValue[string(standardKey)] = p.LoginID

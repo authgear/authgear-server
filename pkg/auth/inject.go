@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	mfaPQ "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
@@ -50,7 +51,7 @@ type DependencyMap struct {
 	AsyncTaskExecutor        *async.Executor
 	UseInsecureCookie        bool
 	DefaultConfiguration     config.DefaultConfiguration
-	ReservedNameChecker      *password.ReservedNameChecker
+	ReservedNameChecker      *loginid.ReservedNameChecker
 }
 
 // Provide provides dependency instance by name

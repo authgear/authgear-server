@@ -8,6 +8,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -47,8 +48,8 @@ func (f UpdateLoginIDHandlerFactory) NewHandler(request *http.Request) http.Hand
 }
 
 type UpdateLoginIDRequestPayload struct {
-	OldLoginID password.LoginID `json:"old_login_id"`
-	NewLoginID password.LoginID `json:"new_login_id"`
+	OldLoginID loginid.LoginID `json:"old_login_id"`
+	NewLoginID loginid.LoginID `json:"new_login_id"`
 }
 
 // @JSONSchema

@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus/hooks/test"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -36,12 +37,12 @@ func TestProvider(t *testing.T) {
 				CaseSensitive:          &off,
 			},
 		}
-		reservedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
+		reservedNameChecker, _ := loginid.NewReservedNameChecker("../../../../../reserved_name.txt")
 		pwProvider := &providerImpl{
 			store:        NewMockStore(),
 			logger:       loggerEntry,
 			loginIDsKeys: loginIDsKeys,
-			loginIDChecker: newDefaultLoginIDChecker(
+			loginIDChecker: loginid.NewDefaultLoginIDChecker(
 				loginIDsKeys,
 				loginIDTypes,
 				reservedNameChecker,
@@ -49,7 +50,7 @@ func TestProvider(t *testing.T) {
 			realmChecker: defaultRealmChecker{
 				allowedRealms: allowedRealms,
 			},
-			loginIDNormalizerFactory: NewLoginIDNormalizerFactory(loginIDsKeys, loginIDTypes),
+			loginIDNormalizerFactory: loginid.NewLoginIDNormalizerFactory(loginIDsKeys, loginIDTypes),
 			allowedRealms:            allowedRealms,
 			passwordHistoryEnabled:   false,
 			passwordHistoryStore:     passwordhistory.NewMockPasswordHistoryStore(),
@@ -57,8 +58,8 @@ func TestProvider(t *testing.T) {
 
 		Convey("create principal", func() {
 			Convey("should reject same email with different cases", func() {
-				loginIDs := []LoginID{
-					LoginID{
+				loginIDs := []loginid.LoginID{
+					loginid.LoginID{
 						Key:   "email",
 						Value: "Faseng@example.com",
 					},
@@ -67,8 +68,8 @@ func TestProvider(t *testing.T) {
 				So(principals[0].OriginalLoginID, ShouldEqual, loginIDs[0].Value)
 				So(err, ShouldBeNil)
 
-				loginIDs = []LoginID{
-					LoginID{
+				loginIDs = []loginid.LoginID{
+					loginid.LoginID{
 						Key:   "email",
 						Value: "FASENG@example.com",
 					},
@@ -79,8 +80,8 @@ func TestProvider(t *testing.T) {
 			})
 
 			Convey("should reject email with same punycode encoded domain", func() {
-				loginIDs := []LoginID{
-					LoginID{
+				loginIDs := []loginid.LoginID{
+					loginid.LoginID{
 						Key:   "email",
 						Value: "faseng@測試.com",
 					},
@@ -89,8 +90,8 @@ func TestProvider(t *testing.T) {
 				So(principals[0].OriginalLoginID, ShouldEqual, loginIDs[0].Value)
 				So(err, ShouldBeNil)
 
-				loginIDs = []LoginID{
-					LoginID{
+				loginIDs = []loginid.LoginID{
+					loginid.LoginID{
 						Key:   "email",
 						Value: "faseng@xn--g6w251d.com",
 					},
@@ -103,8 +104,8 @@ func TestProvider(t *testing.T) {
 
 		Convey("get principals", func() {
 			Convey("should be able to get principals with value before normalization", func() {
-				loginIDs := []LoginID{
-					LoginID{
+				loginIDs := []loginid.LoginID{
+					loginid.LoginID{
 						Key:   "email",
 						Value: "Faseng.Cat@example.com",
 					},
@@ -115,8 +116,8 @@ func TestProvider(t *testing.T) {
 
 				principalID := principals[0].ID
 
-				_, err = pwProvider.CreatePrincipalsByLoginID("user2", "password", []LoginID{
-					LoginID{
+				_, err = pwProvider.CreatePrincipalsByLoginID("user2", "password", []loginid.LoginID{
+					loginid.LoginID{
 						Key:   "email",
 						Value: "chima@example.com",
 					},
@@ -149,8 +150,8 @@ func TestProvider(t *testing.T) {
 			})
 
 			Convey("should be able to get principals without login id key", func() {
-				loginIDs := []LoginID{
-					LoginID{
+				loginIDs := []loginid.LoginID{
+					loginid.LoginID{
 						Key:   "email",
 						Value: "Faseng.Cat@example.com",
 					},
@@ -161,8 +162,8 @@ func TestProvider(t *testing.T) {
 
 				principalID := principals[0].ID
 
-				_, err = pwProvider.CreatePrincipalsByLoginID("user2", "password", []LoginID{
-					LoginID{
+				_, err = pwProvider.CreatePrincipalsByLoginID("user2", "password", []loginid.LoginID{
+					loginid.LoginID{
 						Key:   "email",
 						Value: "chima@example.com",
 					},
@@ -185,8 +186,8 @@ func TestProvider(t *testing.T) {
 			})
 
 			Convey("should return error with ambiguous login id", func() {
-				loginIDs := []LoginID{
-					LoginID{
+				loginIDs := []loginid.LoginID{
+					loginid.LoginID{
 						Key:   "email",
 						Value: "Faseng.Cat@example.com",
 					},
@@ -196,8 +197,8 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				// ASCIIOnly of username need to be false for this test
-				_, err = pwProvider.CreatePrincipalsByLoginID("user2", "password", []LoginID{
-					LoginID{
+				_, err = pwProvider.CreatePrincipalsByLoginID("user2", "password", []loginid.LoginID{
+					loginid.LoginID{
 						Key:   "username",
 						Value: "faseng.cat@example.com",
 					},
