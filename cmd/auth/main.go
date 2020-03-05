@@ -177,8 +177,9 @@ func main() {
 	task.AttachPwHousekeeperTask(asyncTaskExecutor, authDependency)
 	task.AttachWelcomeEmailSendTask(asyncTaskExecutor, authDependency)
 
-	serverOption := server.DefaultOption()
-	serverOption.GearPathPrefix = "/_auth"
+	serverOption := server.Option{
+		GearPathPrefix: "/_auth",
+	}
 	var rootRouter *mux.Router
 	var appRouter *mux.Router
 	if configuration.Standalone {

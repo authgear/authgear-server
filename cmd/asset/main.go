@@ -103,8 +103,9 @@ func main() {
 		Validator:         validator,
 	}
 
-	serverOption := server.DefaultOption()
-	serverOption.GearPathPrefix = "/_asset"
+	serverOption := server.Option{
+		GearPathPrefix: "/_asset",
+	}
 	var rootRouter *mux.Router
 	var appRouter *mux.Router
 	if configuration.Standalone {
