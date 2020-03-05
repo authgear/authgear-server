@@ -59,7 +59,7 @@ func (v *VerifyHTMLProvider) SuccessHTML(key string, context map[string]interfac
 	return v.templateEngine.RenderTemplate(
 		TemplateItemTypeUserVerificationSuccessHTML,
 		context,
-		template.RenderOptions{
+		template.ResolveOptions{
 			Required: true,
 			Key:      key,
 		},
@@ -70,7 +70,7 @@ func (v *VerifyHTMLProvider) ErrorHTML(key string, context map[string]interface{
 	return v.templateEngine.RenderTemplate(
 		TemplateItemTypeUserVerificationErrorHTML,
 		context,
-		template.RenderOptions{
+		template.ResolveOptions{
 			Required: true,
 			Key:      key,
 		},

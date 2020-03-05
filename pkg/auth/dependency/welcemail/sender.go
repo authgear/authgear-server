@@ -46,7 +46,7 @@ func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) 
 	if textBody, err = d.TemplateEngine.RenderTemplate(
 		TemplateItemTypeWelcomeEmailTXT,
 		context,
-		template.RenderOptions{Required: true},
+		template.ResolveOptions{Required: true},
 	); err != nil {
 		err = errors.Newf("failed to render text welcome email: %w", err)
 		return
@@ -56,7 +56,7 @@ func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) 
 	if htmlBody, err = d.TemplateEngine.RenderTemplate(
 		TemplateItemTypeWelcomeEmailHTML,
 		context,
-		template.RenderOptions{Required: false},
+		template.ResolveOptions{Required: false},
 	); err != nil {
 		err = errors.Newf("failed to render HTML welcome email: %w", err)
 		return

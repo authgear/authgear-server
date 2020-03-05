@@ -104,5 +104,9 @@ req.send(null);
 		"callback_url": data["callback_url"],
 	}
 
-	return template.RenderHTMLTemplate("auth_handler", templateString, context)
+	return template.RenderHTMLTemplate(template.RenderOptions{
+		Name:         "auth_handler",
+		TemplateBody: templateString,
+		Context:      context,
+	})
 }

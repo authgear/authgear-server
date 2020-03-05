@@ -87,25 +87,50 @@ func SetContextToURLQuery(u *url.URL, context map[string]interface{}) error {
 	return nil
 }
 
-func RenderTextTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
-	if templateString == "" {
+type RenderOptions struct {
+	// The name of the main template
+	Name string
+	// The template body of the main template
+	TemplateBody string
+	// The additional templates to parse.
+	Defines []string
+	// The context for rendering the template
+	Context map[string]interface{}
+	// The options to Validator
+	ValidatorOpts []func(*Validator)
+}
+
+func RenderTextTemplate(opts RenderOptions) (out string, err error) {
+	if opts.TemplateBody == "" {
 		return
 	}
 
-	template, err := textTemplate.New(id).Parse(templateString)
+	validator := NewValidator(opts.ValidatorOpts...)
+
+	// Parse the main template
+	template, err := textTemplate.New(opts.Name).Parse(opts.TemplateBody)
 	if err != nil {
 		err = errors.Newf("failed to parse template: %w", err)
 		return
 	}
+	// Parse defines
+	for _, define := range opts.Defines {
+		_, err = template.Parse(define)
+		if err != nil {
+			err = errors.Newf("failed to parse template: %w", err)
+			return
+		}
+	}
 
-	err = ValidateTextTemplate(template)
+	// Validate all templates
+	err = validator.ValidateTextTemplate(template)
 	if err != nil {
 		err = errors.Newf("failed to validate template: %w", err)
 		return
 	}
 
 	var buf bytes.Buffer
-	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, context); err != nil {
+	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, opts.Context); err != nil {
 		err = errors.Newf("failed to execute template: %w", err)
 		return
 	}
@@ -114,25 +139,37 @@ func RenderTextTemplate(id string, templateString string, context map[string]int
 	return
 }
 
-func RenderHTMLTemplate(id string, templateString string, context map[string]interface{}) (out string, err error) {
-	if templateString == "" {
+func RenderHTMLTemplate(opts RenderOptions) (out string, err error) {
+	if opts.TemplateBody == "" {
 		return
 	}
 
-	template, err := htmlTemplate.New(id).Parse(templateString)
+	validator := NewValidator(opts.ValidatorOpts...)
+
+	// Parse the main template
+	template, err := htmlTemplate.New(opts.Name).Parse(opts.TemplateBody)
 	if err != nil {
 		err = errors.Newf("failed to parse template: %w", err)
 		return
 	}
+	// Parse defines
+	for _, define := range opts.Defines {
+		_, err = template.Parse(define)
+		if err != nil {
+			err = errors.Newf("failed to parse template: %w", err)
+			return
+		}
+	}
 
-	err = ValidateHTMLTemplate(template)
+	// Validate all templates
+	err = validator.ValidateHTMLTemplate(template)
 	if err != nil {
 		err = errors.Newf("failed to validate template: %w", err)
 		return
 	}
 
 	var buf bytes.Buffer
-	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, context); err != nil {
+	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, opts.Context); err != nil {
 		err = errors.Newf("failed to execute template: %w", err)
 		return
 	}
