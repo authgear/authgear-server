@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gorilla/mux"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -32,7 +31,7 @@ func TestRouter(t *testing.T) {
 			So(w.Body.Bytes(), ShouldResemble, []byte("OK"))
 		})
 
-		Convey("IsAPIVersioned = false", func() {
+		Convey("path prefix", func() {
 			rootRouter, appRouter := NewRouterWithOption(Option{
 				GearPathPrefix: "/_mygear",
 			})
@@ -45,32 +44,6 @@ func TestRouter(t *testing.T) {
 			rootRouter.ServeHTTP(w, r)
 
 			So(w.Body.Bytes(), ShouldResemble, []byte("OK"))
-		})
-
-		Convey("IsAPIVersioned = true", func() {
-			var apiVersion string
-
-			rootRouter, appRouter := NewRouterWithOption(Option{
-				GearPathPrefix: "/_mygear",
-				IsAPIVersioned: true,
-			})
-
-			appRouter.Use(func(next http.Handler) http.Handler {
-				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					apiVersion = mux.Vars(r)["api_version"]
-					next.ServeHTTP(w, r)
-				})
-			})
-
-			appRouter.NewRoute().Path("/foobar").Handler(FactoryToHandler(&HandlerFactory{})).Methods("GET")
-
-			r, _ := http.NewRequest("GET", "/_mygear/v2.0/foobar", nil)
-			w := httptest.NewRecorder()
-
-			rootRouter.ServeHTTP(w, r)
-
-			So(w.Body.Bytes(), ShouldResemble, []byte("OK"))
-			So(apiVersion, ShouldEqual, "v2.0")
 		})
 	})
 }

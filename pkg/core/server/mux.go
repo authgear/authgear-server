@@ -20,10 +20,6 @@ func NewRouterWithOption(option Option) (rootRouter *mux.Router, appRouter *mux.
 		appRouter = rootRouter.PathPrefix(option.GearPathPrefix).Subrouter()
 	}
 
-	if option.IsAPIVersioned {
-		appRouter = appRouter.PathPrefix("/{api_version}").Subrouter()
-	}
-
 	appRouter.Use(sentry.Middleware(sentry.DefaultClient.Hub))
 	appRouter.Use(middleware.RecoverMiddleware{}.Handle)
 
