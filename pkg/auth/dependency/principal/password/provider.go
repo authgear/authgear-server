@@ -93,7 +93,7 @@ func (p *providerImpl) IsDefaultAllowedRealms() bool {
 }
 
 func (p *providerImpl) MakePrincipal(userID string, password string, loginID LoginID, realm string) (*Principal, error) {
-	normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginID.Key)
+	normalizer := p.loginIDNormalizerFactory.NormalizerWithLoginIDKey(loginID.Key)
 	loginIDValue := loginID.Value
 	normalizedloginIDValue, err := normalizer.Normalize(loginID.Value)
 	if err != nil {
@@ -187,7 +187,7 @@ func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID
 				continue
 			}
 
-			normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginIDKeyConfig.Key)
+			normalizer := p.loginIDNormalizerFactory.NormalizerWithLoginIDKey(loginIDKeyConfig.Key)
 			normalizedloginID, e := normalizer.Normalize(loginID)
 			if e != nil {
 				err = errors.HandledWithMessage(e, "failed to normalized login id")
@@ -223,7 +223,7 @@ func (p *providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string)
 	var result []*Principal
 	for _, loginIDKeyConfig := range p.loginIDsKeys {
 		if loginIDKey == "" || loginIDKeyConfig.Key == loginIDKey {
-			normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginIDKeyConfig.Key)
+			normalizer := p.loginIDNormalizerFactory.NormalizerWithLoginIDKey(loginIDKeyConfig.Key)
 			normalizedloginID, e := normalizer.Normalize(loginID)
 			if e != nil {
 				err = errors.HandledWithMessage(e, "failed to normalized login id")
