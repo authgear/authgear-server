@@ -4,9 +4,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
@@ -57,19 +55,4 @@ func (p *Principal) Attributes() principal.Attributes {
 
 func (p *Principal) Claims() principal.Claims {
 	return p.ClaimsValue
-}
-
-func (p *Principal) SetRawProfile(rawProfile interface{}) {
-	p.UserProfile = rawProfile
-	rawProfileMap, ok := rawProfile.(map[string]interface{})
-	if !ok {
-		return
-	}
-	decoder := sso.GetUserInfoDecoder(config.OAuthProviderType(p.ProviderType))
-	providerUserInfo := decoder.DecodeUserInfo(rawProfileMap)
-	claimsValue := map[string]interface{}{}
-	if providerUserInfo.Email != "" {
-		claimsValue["email"] = providerUserInfo.Email
-	}
-	p.ClaimsValue = claimsValue
 }

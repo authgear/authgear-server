@@ -14,9 +14,10 @@ const (
 )
 
 type LinkedInImpl struct {
-	URLPrefix      *url.URL
-	OAuthConfig    *config.OAuthConfiguration
-	ProviderConfig config.OAuthProviderConfiguration
+	URLPrefix       *url.URL
+	OAuthConfig     *config.OAuthConfiguration
+	ProviderConfig  config.OAuthProviderConfiguration
+	UserInfoDecoder UserInfoDecoder
 }
 
 func (f *LinkedInImpl) Type() config.OAuthProviderType {
@@ -40,24 +41,24 @@ func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (a
 
 func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:      f.URLPrefix,
-		oauthConfig:    f.OAuthConfig,
-		providerConfig: f.ProviderConfig,
-		accessTokenURL: linkedinTokenURL,
-		userProfileURL: linkedinUserInfoURL,
-		processor:      NewDefaultUserInfoDecoder(),
+		urlPrefix:       f.URLPrefix,
+		oauthConfig:     f.OAuthConfig,
+		providerConfig:  f.ProviderConfig,
+		accessTokenURL:  linkedinTokenURL,
+		userProfileURL:  linkedinUserInfoURL,
+		userInfoDecoder: f.UserInfoDecoder,
 	}
 	return h.getAuthInfo(r, state)
 }
 
 func (f *LinkedInImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:      f.URLPrefix,
-		oauthConfig:    f.OAuthConfig,
-		providerConfig: f.ProviderConfig,
-		accessTokenURL: linkedinTokenURL,
-		userProfileURL: linkedinUserInfoURL,
-		processor:      NewDefaultUserInfoDecoder(),
+		urlPrefix:       f.URLPrefix,
+		oauthConfig:     f.OAuthConfig,
+		providerConfig:  f.ProviderConfig,
+		accessTokenURL:  linkedinTokenURL,
+		userProfileURL:  linkedinUserInfoURL,
+		userInfoDecoder: f.UserInfoDecoder,
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }

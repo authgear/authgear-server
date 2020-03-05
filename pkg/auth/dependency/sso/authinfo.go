@@ -22,6 +22,14 @@ type ProviderUserInfo struct {
 	Email string
 }
 
+func (i ProviderUserInfo) ClaimsValue() map[string]interface{} {
+	claimsValue := map[string]interface{}{}
+	if i.Email != "" {
+		claimsValue["email"] = i.Email
+	}
+	return claimsValue
+}
+
 type OAuthAuthorizationResponse struct {
 	Code  string
 	State string
@@ -42,12 +50,12 @@ type OAuthAuthorizationResponse struct {
 }
 
 type getAuthInfoRequest struct {
-	urlPrefix      *url.URL
-	oauthConfig    *config.OAuthConfiguration
-	providerConfig config.OAuthProviderConfiguration
-	accessTokenURL string
-	userProfileURL string
-	processor      UserInfoDecoder
+	urlPrefix       *url.URL
+	oauthConfig     *config.OAuthConfiguration
+	providerConfig  config.OAuthProviderConfiguration
+	accessTokenURL  string
+	userProfileURL  string
+	userInfoDecoder UserInfoDecoder
 }
 
 func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
@@ -96,7 +104,7 @@ func (h getAuthInfoRequest) getAuthInfoByAccessTokenResp(accessTokenResp AccessT
 		return
 	}
 	authInfo.ProviderRawProfile = userProfile
-	authInfo.ProviderUserInfo = h.processor.DecodeUserInfo(userProfile)
+	authInfo.ProviderUserInfo = h.userInfoDecoder.DecodeUserInfo(h.providerConfig.Type, userProfile)
 
 	return
 }

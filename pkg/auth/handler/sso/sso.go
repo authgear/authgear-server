@@ -239,7 +239,8 @@ func (h respHandler) handleLogin(
 	// We do not need to consider other principals
 	if err == nil {
 		oauthPrincipal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
-		oauthPrincipal.SetRawProfile(oauthAuthInfo.ProviderRawProfile)
+		oauthPrincipal.UserProfile = oauthAuthInfo.ProviderRawProfile
+		oauthPrincipal.ClaimsValue = oauthAuthInfo.ProviderUserInfo.ClaimsValue()
 		oauthPrincipal.UpdatedAt = &now
 		if err = h.OAuthAuthProvider.UpdatePrincipal(oauthPrincipal); err != nil {
 			return
@@ -342,7 +343,8 @@ func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 	principal.ProviderType = string(oauthAuthInfo.ProviderConfig.Type)
 	principal.ProviderUserID = oauthAuthInfo.ProviderUserInfo.ID
 	principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
-	principal.SetRawProfile(oauthAuthInfo.ProviderRawProfile)
+	principal.UserProfile = oauthAuthInfo.ProviderRawProfile
+	principal.ClaimsValue = oauthAuthInfo.ProviderUserInfo.ClaimsValue()
 	principal.CreatedAt = &now
 	principal.UpdatedAt = &now
 	err := h.OAuthAuthProvider.CreatePrincipal(principal)

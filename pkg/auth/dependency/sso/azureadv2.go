@@ -133,6 +133,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderAccessTokenResp = tokenResp
+	// TODO: Normalize email
 	authInfo.ProviderUserInfo = ProviderUserInfo{
 		ID:    oid,
 		Email: email,

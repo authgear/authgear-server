@@ -18,10 +18,11 @@ const (
 )
 
 type GoogleImpl struct {
-	URLPrefix      *url.URL
-	OAuthConfig    *config.OAuthConfiguration
-	ProviderConfig config.OAuthProviderConfiguration
-	TimeProvider   coreTime.Provider
+	URLPrefix       *url.URL
+	OAuthConfig     *config.OAuthConfiguration
+	ProviderConfig  config.OAuthProviderConfiguration
+	TimeProvider    coreTime.Provider
+	UserInfoDecoder UserInfoDecoder
 }
 
 func (f *GoogleImpl) GetAuthURL(state State, encodedState string) (string, error) {
@@ -107,6 +108,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderAccessTokenResp = tokenResp
+	// TODO: Normalize email
 	authInfo.ProviderUserInfo = ProviderUserInfo{
 		ID:    sub,
 		Email: email,
@@ -117,12 +119,12 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 
 func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:      f.URLPrefix,
-		oauthConfig:    f.OAuthConfig,
-		providerConfig: f.ProviderConfig,
-		accessTokenURL: googleTokenURL,
-		userProfileURL: googleUserInfoURL,
-		processor:      NewDefaultUserInfoDecoder(),
+		urlPrefix:       f.URLPrefix,
+		oauthConfig:     f.OAuthConfig,
+		providerConfig:  f.ProviderConfig,
+		accessTokenURL:  googleTokenURL,
+		userProfileURL:  googleUserInfoURL,
+		userInfoDecoder: f.UserInfoDecoder,
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }

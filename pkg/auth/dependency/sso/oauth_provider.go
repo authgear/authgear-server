@@ -56,28 +56,32 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	switch providerConfig.Type {
 	case config.OAuthProviderTypeGoogle:
 		return &GoogleImpl{
-			URLPrefix:      p.urlPrefixProvider.Value(),
-			OAuthConfig:    p.tenantConfig.AppConfig.SSO.OAuth,
-			ProviderConfig: providerConfig,
-			TimeProvider:   p.timeProvider,
+			URLPrefix:       p.urlPrefixProvider.Value(),
+			OAuthConfig:     p.tenantConfig.AppConfig.SSO.OAuth,
+			ProviderConfig:  providerConfig,
+			TimeProvider:    p.timeProvider,
+			UserInfoDecoder: &UserInfoDecoderImpl{},
 		}
 	case config.OAuthProviderTypeFacebook:
 		return &FacebookImpl{
-			URLPrefix:      p.urlPrefixProvider.Value(),
-			OAuthConfig:    p.tenantConfig.AppConfig.SSO.OAuth,
-			ProviderConfig: providerConfig,
+			URLPrefix:       p.urlPrefixProvider.Value(),
+			OAuthConfig:     p.tenantConfig.AppConfig.SSO.OAuth,
+			ProviderConfig:  providerConfig,
+			UserInfoDecoder: &UserInfoDecoderImpl{},
 		}
 	case config.OAuthProviderTypeInstagram:
 		return &InstagramImpl{
-			URLPrefix:      p.urlPrefixProvider.Value(),
-			OAuthConfig:    p.tenantConfig.AppConfig.SSO.OAuth,
-			ProviderConfig: providerConfig,
+			URLPrefix:       p.urlPrefixProvider.Value(),
+			OAuthConfig:     p.tenantConfig.AppConfig.SSO.OAuth,
+			ProviderConfig:  providerConfig,
+			UserInfoDecoder: &UserInfoDecoderImpl{},
 		}
 	case config.OAuthProviderTypeLinkedIn:
 		return &LinkedInImpl{
-			URLPrefix:      p.urlPrefixProvider.Value(),
-			OAuthConfig:    p.tenantConfig.AppConfig.SSO.OAuth,
-			ProviderConfig: providerConfig,
+			URLPrefix:       p.urlPrefixProvider.Value(),
+			OAuthConfig:     p.tenantConfig.AppConfig.SSO.OAuth,
+			ProviderConfig:  providerConfig,
+			UserInfoDecoder: &UserInfoDecoderImpl{},
 		}
 	case config.OAuthProviderTypeAzureADv2:
 		return &Azureadv2Impl{

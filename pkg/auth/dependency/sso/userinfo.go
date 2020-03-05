@@ -8,18 +8,36 @@ import (
 
 // UserInfoDecoder decodes user info.
 type UserInfoDecoder interface {
-	DecodeUserInfo(p map[string]interface{}) ProviderUserInfo
+	DecodeUserInfo(providerType config.OAuthProviderType, userInfo map[string]interface{}) ProviderUserInfo
 }
 
-type DefaultUserInfoDecoder struct{}
+type UserInfoDecoderImpl struct{}
 
-func NewDefaultUserInfoDecoder() DefaultUserInfoDecoder {
-	return DefaultUserInfoDecoder{}
+func (d *UserInfoDecoderImpl) DecodeUserInfo(providerType config.OAuthProviderType, userInfo map[string]interface{}) (providerUserInfo ProviderUserInfo) {
+	switch providerType {
+	case config.OAuthProviderTypeGoogle:
+		providerUserInfo = d.decodeDefault(userInfo)
+	case config.OAuthProviderTypeFacebook:
+		providerUserInfo = d.decodeDefault(userInfo)
+	case config.OAuthProviderTypeInstagram:
+		providerUserInfo = d.decodeInstagram(userInfo)
+	case config.OAuthProviderTypeLinkedIn:
+		providerUserInfo = d.decodeDefault(userInfo)
+	case config.OAuthProviderTypeAzureADv2:
+		providerUserInfo = d.decodeAzureADv2(userInfo)
+	case config.OAuthProviderTypeApple:
+		providerUserInfo = d.decodeApple(userInfo)
+	default:
+		panic(fmt.Sprintf("sso: unknown provider type: %v", providerType))
+	}
+
+	// TODO: Normalize email
+	return
 }
 
-func (d DefaultUserInfoDecoder) DecodeUserInfo(userProfile map[string]interface{}) ProviderUserInfo {
-	id, _ := userProfile["id"].(string)
-	email, _ := userProfile["email"].(string)
+func (d *UserInfoDecoderImpl) decodeDefault(userInfo map[string]interface{}) ProviderUserInfo {
+	id, _ := userInfo["id"].(string)
+	email, _ := userInfo["email"].(string)
 
 	return ProviderUserInfo{
 		ID:    id,
@@ -27,16 +45,10 @@ func (d DefaultUserInfoDecoder) DecodeUserInfo(userProfile map[string]interface{
 	}
 }
 
-type InstagramUserInfoDecoder struct{}
-
-func NewInstagramUserInfoDecoder() InstagramUserInfoDecoder {
-	return InstagramUserInfoDecoder{}
-}
-
-func (d InstagramUserInfoDecoder) DecodeUserInfo(userProfile map[string]interface{}) (info ProviderUserInfo) {
+func (d *UserInfoDecoderImpl) decodeInstagram(userInfo map[string]interface{}) (info ProviderUserInfo) {
 	// Check GET /users/self response
 	// https://www.instagram.com/developer/endpoints/users/
-	data, ok := userProfile["data"].(map[string]interface{})
+	data, ok := userInfo["data"].(map[string]interface{})
 	if !ok {
 		return
 	}
@@ -46,16 +58,9 @@ func (d InstagramUserInfoDecoder) DecodeUserInfo(userProfile map[string]interfac
 	return
 }
 
-type AzureADv2UserInfoDecoder struct{}
-
-func NewAzureADv2UserInfoDecoder() AzureADv2UserInfoDecoder {
-	return AzureADv2UserInfoDecoder{}
-}
-
-func (d AzureADv2UserInfoDecoder) DecodeUserInfo(userProfile map[string]interface{}) ProviderUserInfo {
-
-	id, _ := userProfile["oid"].(string)
-	email, _ := userProfile["email"].(string)
+func (d *UserInfoDecoderImpl) decodeAzureADv2(userInfo map[string]interface{}) ProviderUserInfo {
+	id, _ := userInfo["oid"].(string)
+	email, _ := userInfo["email"].(string)
 
 	return ProviderUserInfo{
 		ID:    id,
@@ -63,36 +68,12 @@ func (d AzureADv2UserInfoDecoder) DecodeUserInfo(userProfile map[string]interfac
 	}
 }
 
-type AppleUserInfoDecoder struct{}
-
-func NewAppleUserInfoDecoder() AppleUserInfoDecoder {
-	return AppleUserInfoDecoder{}
-}
-
-func (d AppleUserInfoDecoder) DecodeUserInfo(userProfile map[string]interface{}) ProviderUserInfo {
-	id, _ := userProfile["sub"].(string)
-	email, _ := userProfile["email"].(string)
+func (d *UserInfoDecoderImpl) decodeApple(userInfo map[string]interface{}) ProviderUserInfo {
+	id, _ := userInfo["sub"].(string)
+	email, _ := userInfo["email"].(string)
 
 	return ProviderUserInfo{
 		ID:    id,
 		Email: email,
 	}
-}
-
-func GetUserInfoDecoder(providerType config.OAuthProviderType) UserInfoDecoder {
-	switch providerType {
-	case config.OAuthProviderTypeGoogle:
-		return NewDefaultUserInfoDecoder()
-	case config.OAuthProviderTypeFacebook:
-		return NewDefaultUserInfoDecoder()
-	case config.OAuthProviderTypeInstagram:
-		return NewInstagramUserInfoDecoder()
-	case config.OAuthProviderTypeLinkedIn:
-		return NewDefaultUserInfoDecoder()
-	case config.OAuthProviderTypeAzureADv2:
-		return NewAzureADv2UserInfoDecoder()
-	case config.OAuthProviderTypeApple:
-		return NewAppleUserInfoDecoder()
-	}
-	panic(fmt.Sprintf("sso: unknown provider type: %v", providerType))
 }
