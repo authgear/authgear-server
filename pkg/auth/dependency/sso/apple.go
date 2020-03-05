@@ -9,6 +9,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -22,10 +23,11 @@ var appleOIDCConfig = OIDCDiscoveryDocument{
 }
 
 type AppleImpl struct {
-	URLPrefix      *url.URL
-	OAuthConfig    *config.OAuthConfiguration
-	ProviderConfig config.OAuthProviderConfiguration
-	TimeProvider   coreTime.Provider
+	URLPrefix                *url.URL
+	OAuthConfig              *config.OAuthConfiguration
+	ProviderConfig           config.OAuthProviderConfiguration
+	TimeProvider             coreTime.Provider
+	LoginIDNormalizerFactory loginid.LoginIDNormalizerFactory
 }
 
 func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
@@ -128,11 +130,17 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 	}
 
 	email, _ := claims["email"].(string)
+	if email != "" {
+		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyType("email"))
+		email, err = normalizer.Normalize(email)
+		if err != nil {
+			return
+		}
+	}
 
 	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderAccessTokenResp = tokenResp
-	// TODO: Normalize email
 	authInfo.ProviderUserInfo = ProviderUserInfo{
 		ID:    sub,
 		Email: email,

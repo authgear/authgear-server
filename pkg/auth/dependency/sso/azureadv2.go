@@ -6,16 +6,18 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type Azureadv2Impl struct {
-	URLPrefix      *url.URL
-	OAuthConfig    *config.OAuthConfiguration
-	ProviderConfig config.OAuthProviderConfiguration
-	TimeProvider   coreTime.Provider
+	URLPrefix                *url.URL
+	OAuthConfig              *config.OAuthConfiguration
+	ProviderConfig           config.OAuthProviderConfiguration
+	TimeProvider             coreTime.Provider
+	LoginIDNormalizerFactory loginid.LoginIDNormalizerFactory
 }
 
 func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
@@ -129,11 +131,17 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 	// For "AD guest user", email usually exists because to invite an user, the inviter must provide email.
 	// For "AD user", email never exists even one is provided in "Authentication Methods".
 	email, _ := claims["email"].(string)
+	if email != "" {
+		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyType("email"))
+		email, err = normalizer.Normalize(email)
+		if err != nil {
+			return
+		}
+	}
 
 	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderAccessTokenResp = tokenResp
-	// TODO: Normalize email
 	authInfo.ProviderUserInfo = ProviderUserInfo{
 		ID:    oid,
 		Email: email,

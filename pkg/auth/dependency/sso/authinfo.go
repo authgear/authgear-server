@@ -18,7 +18,8 @@ type AuthInfo struct {
 }
 
 type ProviderUserInfo struct {
-	ID    string
+	ID string
+	// Email is normalized.
 	Email string
 }
 
@@ -104,7 +105,11 @@ func (h getAuthInfoRequest) getAuthInfoByAccessTokenResp(accessTokenResp AccessT
 		return
 	}
 	authInfo.ProviderRawProfile = userProfile
-	authInfo.ProviderUserInfo = h.userInfoDecoder.DecodeUserInfo(h.providerConfig.Type, userProfile)
+	providerUserInfo, err := h.userInfoDecoder.DecodeUserInfo(h.providerConfig.Type, userProfile)
+	if err != nil {
+		return
+	}
+	authInfo.ProviderUserInfo = *providerUserInfo
 
 	return
 }

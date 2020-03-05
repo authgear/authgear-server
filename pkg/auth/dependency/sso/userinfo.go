@@ -3,35 +3,50 @@ package sso
 import (
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 // UserInfoDecoder decodes user info.
 type UserInfoDecoder interface {
-	DecodeUserInfo(providerType config.OAuthProviderType, userInfo map[string]interface{}) ProviderUserInfo
+	DecodeUserInfo(providerType config.OAuthProviderType, userInfo map[string]interface{}) (*ProviderUserInfo, error)
 }
 
-type UserInfoDecoderImpl struct{}
+type UserInfoDecoderImpl struct {
+	LoginIDNormalizerFactory loginid.LoginIDNormalizerFactory
+}
 
-func (d *UserInfoDecoderImpl) DecodeUserInfo(providerType config.OAuthProviderType, userInfo map[string]interface{}) (providerUserInfo ProviderUserInfo) {
+func NewUserInfoDecoder(loginIDNormalizerFactory loginid.LoginIDNormalizerFactory) *UserInfoDecoderImpl {
+	return &UserInfoDecoderImpl{
+		LoginIDNormalizerFactory: loginIDNormalizerFactory,
+	}
+}
+
+func (d *UserInfoDecoderImpl) DecodeUserInfo(providerType config.OAuthProviderType, userInfo map[string]interface{}) (providerUserInfo *ProviderUserInfo, err error) {
 	switch providerType {
 	case config.OAuthProviderTypeGoogle:
-		providerUserInfo = d.decodeDefault(userInfo)
+		*providerUserInfo = d.decodeDefault(userInfo)
 	case config.OAuthProviderTypeFacebook:
-		providerUserInfo = d.decodeDefault(userInfo)
+		*providerUserInfo = d.decodeDefault(userInfo)
 	case config.OAuthProviderTypeInstagram:
-		providerUserInfo = d.decodeInstagram(userInfo)
+		*providerUserInfo = d.decodeInstagram(userInfo)
 	case config.OAuthProviderTypeLinkedIn:
-		providerUserInfo = d.decodeDefault(userInfo)
+		*providerUserInfo = d.decodeDefault(userInfo)
 	case config.OAuthProviderTypeAzureADv2:
-		providerUserInfo = d.decodeAzureADv2(userInfo)
+		*providerUserInfo = d.decodeAzureADv2(userInfo)
 	case config.OAuthProviderTypeApple:
-		providerUserInfo = d.decodeApple(userInfo)
+		*providerUserInfo = d.decodeApple(userInfo)
 	default:
 		panic(fmt.Sprintf("sso: unknown provider type: %v", providerType))
 	}
 
-	// TODO: Normalize email
+	normalizer := d.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyType("email"))
+	email, err := normalizer.Normalize(providerUserInfo.Email)
+	if err != nil {
+		return
+	}
+	providerUserInfo.Email = email
+
 	return
 }
 

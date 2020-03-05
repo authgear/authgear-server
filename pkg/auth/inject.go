@@ -260,6 +260,17 @@ func (m DependencyMap) Provide(
 		)
 	}
 
+	newLoginIDNormalizerFactory := func() loginid.LoginIDNormalizerFactory {
+		return loginid.NewLoginIDNormalizerFactory(
+			tConfig.AppConfig.Auth.LoginIDKeys,
+			tConfig.AppConfig.Auth.LoginIDTypes,
+		)
+	}
+
+	newOAuthUserInfoDecoder := func() sso.UserInfoDecoder {
+		return sso.NewUserInfoDecoder(newLoginIDNormalizerFactory())
+	}
+
 	switch dependencyName {
 	case "AuthContextGetter":
 		return newAuthContext()
@@ -369,8 +380,12 @@ func (m DependencyMap) Provide(
 			panic(err)
 		}
 		return trail
+	case "LoginIDNormalizerFactory":
+		return newLoginIDNormalizerFactory()
+	case "OAuthUserInfoDecoder":
+		return newOAuthUserInfoDecoder()
 	case "SSOOAuthProviderFactory":
-		return sso.NewOAuthProviderFactory(tConfig, urlprefix.NewProvider(request), newTimeProvider())
+		return sso.NewOAuthProviderFactory(tConfig, urlprefix.NewProvider(request), newTimeProvider(), newOAuthUserInfoDecoder(), newLoginIDNormalizerFactory())
 	case "SSOProvider":
 		return sso.NewProvider(
 			tConfig.AppID,
