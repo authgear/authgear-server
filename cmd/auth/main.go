@@ -130,7 +130,6 @@ func main() {
 		ssohandler.AuthURLRequestSchema,
 		ssohandler.LoginRequestSchema,
 		ssohandler.LinkRequestSchema,
-		ssohandler.CustomTokenLoginRequestSchema,
 		ssohandler.AuthResultRequestSchema,
 
 		userverifyhandler.VerifyCodeRequestSchema,
@@ -236,7 +235,6 @@ func main() {
 	ssohandler.AttachAuthHandler(appRouter, authDependency)
 	ssohandler.AttachAuthResultHandler(appRouter, authDependency)
 	ssohandler.AttachConfigHandler(appRouter, authDependency)
-	ssohandler.AttachCustomTokenLoginHandler(appRouter, authDependency)
 	ssohandler.AttachLoginHandler(appRouter, authDependency)
 	ssohandler.AttachLinkHandler(appRouter, authDependency)
 	ssohandler.AttachUnlinkHandler(appRouter, authDependency)

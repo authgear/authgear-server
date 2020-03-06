@@ -173,7 +173,6 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 
 	values = append(values,
 		c.AppConfig.Auth.AuthenticationSession.Secret,
-		c.AppConfig.SSO.CustomToken.Secret,
 		c.AppConfig.SSO.OAuth.StateJWTSecret,
 		c.AppConfig.Hook.Secret,
 		c.DatabaseConfig.DatabaseURL,
@@ -740,17 +739,7 @@ type WelcomeEmailConfiguration struct {
 }
 
 type SSOConfiguration struct {
-	CustomToken *CustomTokenConfiguration `json:"custom_token,omitempty" yaml:"custom_token" msg:"custom_token" default_zero_value:"true"`
-	OAuth       *OAuthConfiguration       `json:"oauth,omitempty" yaml:"oauth" msg:"oauth" default_zero_value:"true"`
-}
-
-type CustomTokenConfiguration struct {
-	Enabled                    bool   `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
-	Issuer                     string `json:"issuer,omitempty" yaml:"issuer" msg:"issuer"`
-	Audience                   string `json:"audience,omitempty" yaml:"audience" msg:"audience"`
-	Secret                     string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
-	OnUserDuplicateAllowMerge  bool   `json:"on_user_duplicate_allow_merge,omitempty" yaml:"on_user_duplicate_allow_merge" msg:"on_user_duplicate_allow_merge"`
-	OnUserDuplicateAllowCreate bool   `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
+	OAuth *OAuthConfiguration `json:"oauth,omitempty" yaml:"oauth" msg:"oauth" default_zero_value:"true"`
 }
 
 type OAuthConfiguration struct {

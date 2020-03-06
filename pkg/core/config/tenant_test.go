@@ -41,8 +41,6 @@ app_config:
   hook:
     secret: hooksecret
   sso:
-    custom_token:
-      secret: customtokensecret
     oauth:
       state_jwt_secret: statejwtsecret
 `, apiversion.APIVersion, apiversion.APIVersion)
@@ -85,9 +83,6 @@ var inputMinimalJSON = fmt.Sprintf(`
 			"secret": "hooksecret"
 		},
 		"sso": {
-			"custom_token": {
-				"secret": "customtokensecret"
-			},
 			"oauth": {
 				"state_jwt_secret": "statejwtsecret"
 			}
@@ -239,14 +234,6 @@ func makeFullTenantConfig() TenantConfiguration {
 				Destination: "first",
 			},
 			SSO: &SSOConfiguration{
-				CustomToken: &CustomTokenConfiguration{
-					Enabled:                    true,
-					Issuer:                     "customtokenissuer",
-					Audience:                   "customtokenaudience",
-					Secret:                     "customtokensecret",
-					OnUserDuplicateAllowMerge:  true,
-					OnUserDuplicateAllowCreate: true,
-				},
 				OAuth: &OAuthConfiguration{
 					StateJWTSecret: "oauthstatejwtsecret",
 					AllowedCallbackURLs: []string{

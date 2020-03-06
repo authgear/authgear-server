@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -164,14 +163,6 @@ func (m DependencyMap) Provide(
 		)
 	}
 
-	newCustomTokenAuthProvider := func() customtoken.Provider {
-		return customtoken.NewProvider(
-			newSQLBuilder(),
-			newSQLExecutor(),
-			tConfig.AppConfig.SSO.CustomToken,
-		)
-	}
-
 	newOAuthAuthProvider := func() oauth.Provider {
 		return oauth.NewProvider(
 			newSQLBuilder(),
@@ -218,7 +209,6 @@ func (m DependencyMap) Provide(
 		return principal.NewIdentityProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newCustomTokenAuthProvider(),
 			newOAuthAuthProvider(),
 			newPasswordAuthProvider(),
 		)
@@ -331,8 +321,6 @@ func (m DependencyMap) Provide(
 		)
 	case "PasswordAuthProvider":
 		return newPasswordAuthProvider()
-	case "CustomTokenAuthProvider":
-		return newCustomTokenAuthProvider()
 	case "HandlerLogger":
 		return newLoggerFactory().NewLogger("handler")
 	case "UserProfileStore":
@@ -401,8 +389,6 @@ func (m DependencyMap) Provide(
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	case "HookProvider":
 		return newHookProvider()
-	case "CustomTokenConfiguration":
-		return tConfig.AppConfig.SSO.CustomToken
 	case "OAuthConfiguration":
 		return tConfig.AppConfig.SSO.OAuth
 	case "AuthConfiguration":
