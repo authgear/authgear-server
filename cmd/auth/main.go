@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
@@ -176,9 +177,11 @@ func main() {
 	task.AttachPwHousekeeperTask(asyncTaskExecutor, authDependency)
 	task.AttachWelcomeEmailSendTask(asyncTaskExecutor, authDependency)
 
-	serverOption := server.DefaultOption()
-	serverOption.GearPathPrefix = "/_auth"
-	var srv server.Server
+	serverOption := server.Option{
+		GearPathPrefix: "/_auth",
+	}
+	var rootRouter *mux.Router
+	var appRouter *mux.Router
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
 		reader, err := os.Open(filename)
@@ -190,75 +193,79 @@ func main() {
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
-		srv = server.NewServerWithOption(configuration.Host, authDependency, serverOption)
-		srv.Use(middleware.WriteTenantConfigMiddleware{
+		rootRouter, appRouter = server.NewRouterWithOption(serverOption)
+		appRouter.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
 				return *tenantConfig, nil
 			}),
 		}.Handle)
-		srv.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
-		srv.Use(middleware.RequestIDMiddleware{}.Handle)
-		srv.Use(middleware.CORSMiddleware{}.Handle)
+		appRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
+		appRouter.Use(middleware.RequestIDMiddleware{}.Handle)
+		appRouter.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		srv = server.NewServerWithOption(configuration.Host, authDependency, serverOption)
-		srv.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
+		rootRouter, appRouter = server.NewRouterWithOption(serverOption)
+		appRouter.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 	}
 
-	srv.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
-	srv.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
-	srv.Use(middleware.AuthMiddleware{}.Handle)
+	appRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
+	appRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
+	appRouter.Use(middleware.AuthMiddleware{}.Handle)
 
-	srv.Use(middleware.Injecter{
+	appRouter.Use(middleware.Injecter{
 		MiddlewareFactory: middleware.AuthnMiddlewareFactory{},
 		Dependency:        authDependency,
 	}.Handle)
 
-	handler.AttachSignupHandler(&srv, authDependency)
-	handler.AttachLoginHandler(&srv, authDependency)
-	handler.AttachLogoutHandler(&srv, authDependency)
-	handler.AttachRefreshHandler(&srv, authDependency)
-	handler.AttachMeHandler(&srv, authDependency)
-	handler.AttachSetDisableHandler(&srv, authDependency)
-	handler.AttachChangePasswordHandler(&srv, authDependency)
-	handler.AttachResetPasswordHandler(&srv, authDependency)
-	handler.AttachUpdateMetadataHandler(&srv, authDependency)
-	handler.AttachListIdentitiesHandler(&srv, authDependency)
-	forgotpwdhandler.AttachForgotPasswordHandler(&srv, authDependency)
-	forgotpwdhandler.AttachForgotPasswordResetHandler(&srv, authDependency)
-	userverifyhandler.AttachVerifyRequestHandler(&srv, authDependency)
-	userverifyhandler.AttachVerifyCodeHandler(&srv, authDependency)
-	userverifyhandler.AttachUpdateHandler(&srv, authDependency)
-	ssohandler.AttachAuthURLHandler(&srv, authDependency)
-	ssohandler.AttachAuthRedirectHandler(&srv, authDependency)
-	ssohandler.AttachAuthHandler(&srv, authDependency)
-	ssohandler.AttachAuthResultHandler(&srv, authDependency)
-	ssohandler.AttachConfigHandler(&srv, authDependency)
-	ssohandler.AttachCustomTokenLoginHandler(&srv, authDependency)
-	ssohandler.AttachLoginHandler(&srv, authDependency)
-	ssohandler.AttachLinkHandler(&srv, authDependency)
-	ssohandler.AttachUnlinkHandler(&srv, authDependency)
-	session.AttachListHandler(&srv, authDependency)
-	session.AttachGetHandler(&srv, authDependency)
-	session.AttachRevokeHandler(&srv, authDependency)
-	session.AttachRevokeAllHandler(&srv, authDependency)
-	mfaHandler.AttachListRecoveryCodeHandler(&srv, authDependency)
-	mfaHandler.AttachRegenerateRecoveryCodeHandler(&srv, authDependency)
-	mfaHandler.AttachListAuthenticatorHandler(&srv, authDependency)
-	mfaHandler.AttachCreateTOTPHandler(&srv, authDependency)
-	mfaHandler.AttachActivateTOTPHandler(&srv, authDependency)
-	mfaHandler.AttachDeleteAuthenticatorHandler(&srv, authDependency)
-	mfaHandler.AttachAuthenticateTOTPHandler(&srv, authDependency)
-	mfaHandler.AttachRevokeAllBearerTokenHandler(&srv, authDependency)
-	mfaHandler.AttachAuthenticateRecoveryCodeHandler(&srv, authDependency)
-	mfaHandler.AttachAuthenticateBearerTokenHandler(&srv, authDependency)
-	mfaHandler.AttachCreateOOBHandler(&srv, authDependency)
-	mfaHandler.AttachTriggerOOBHandler(&srv, authDependency)
-	mfaHandler.AttachActivateOOBHandler(&srv, authDependency)
-	mfaHandler.AttachAuthenticateOOBHandler(&srv, authDependency)
-	gearHandler.AttachTemplatesHandler(&srv, authDependency)
-	loginidhandler.AttachAddLoginIDHandler(&srv, authDependency)
-	loginidhandler.AttachRemoveLoginIDHandler(&srv, authDependency)
-	loginidhandler.AttachUpdateLoginIDHandler(&srv, authDependency)
+	handler.AttachSignupHandler(appRouter, authDependency)
+	handler.AttachLoginHandler(appRouter, authDependency)
+	handler.AttachLogoutHandler(appRouter, authDependency)
+	handler.AttachRefreshHandler(appRouter, authDependency)
+	handler.AttachMeHandler(appRouter, authDependency)
+	handler.AttachSetDisableHandler(appRouter, authDependency)
+	handler.AttachChangePasswordHandler(appRouter, authDependency)
+	handler.AttachResetPasswordHandler(appRouter, authDependency)
+	handler.AttachUpdateMetadataHandler(appRouter, authDependency)
+	handler.AttachListIdentitiesHandler(appRouter, authDependency)
+	forgotpwdhandler.AttachForgotPasswordHandler(appRouter, authDependency)
+	forgotpwdhandler.AttachForgotPasswordResetHandler(appRouter, authDependency)
+	userverifyhandler.AttachVerifyRequestHandler(appRouter, authDependency)
+	userverifyhandler.AttachVerifyCodeHandler(appRouter, authDependency)
+	userverifyhandler.AttachUpdateHandler(appRouter, authDependency)
+	ssohandler.AttachAuthURLHandler(appRouter, authDependency)
+	ssohandler.AttachAuthRedirectHandler(appRouter, authDependency)
+	ssohandler.AttachAuthHandler(appRouter, authDependency)
+	ssohandler.AttachAuthResultHandler(appRouter, authDependency)
+	ssohandler.AttachConfigHandler(appRouter, authDependency)
+	ssohandler.AttachCustomTokenLoginHandler(appRouter, authDependency)
+	ssohandler.AttachLoginHandler(appRouter, authDependency)
+	ssohandler.AttachLinkHandler(appRouter, authDependency)
+	ssohandler.AttachUnlinkHandler(appRouter, authDependency)
+	session.AttachListHandler(appRouter, authDependency)
+	session.AttachGetHandler(appRouter, authDependency)
+	session.AttachRevokeHandler(appRouter, authDependency)
+	session.AttachRevokeAllHandler(appRouter, authDependency)
+	mfaHandler.AttachListRecoveryCodeHandler(appRouter, authDependency)
+	mfaHandler.AttachRegenerateRecoveryCodeHandler(appRouter, authDependency)
+	mfaHandler.AttachListAuthenticatorHandler(appRouter, authDependency)
+	mfaHandler.AttachCreateTOTPHandler(appRouter, authDependency)
+	mfaHandler.AttachActivateTOTPHandler(appRouter, authDependency)
+	mfaHandler.AttachDeleteAuthenticatorHandler(appRouter, authDependency)
+	mfaHandler.AttachAuthenticateTOTPHandler(appRouter, authDependency)
+	mfaHandler.AttachRevokeAllBearerTokenHandler(appRouter, authDependency)
+	mfaHandler.AttachAuthenticateRecoveryCodeHandler(appRouter, authDependency)
+	mfaHandler.AttachAuthenticateBearerTokenHandler(appRouter, authDependency)
+	mfaHandler.AttachCreateOOBHandler(appRouter, authDependency)
+	mfaHandler.AttachTriggerOOBHandler(appRouter, authDependency)
+	mfaHandler.AttachActivateOOBHandler(appRouter, authDependency)
+	mfaHandler.AttachAuthenticateOOBHandler(appRouter, authDependency)
+	gearHandler.AttachTemplatesHandler(appRouter, authDependency)
+	loginidhandler.AttachAddLoginIDHandler(appRouter, authDependency)
+	loginidhandler.AttachRemoveLoginIDHandler(appRouter, authDependency)
+	loginidhandler.AttachUpdateLoginIDHandler(appRouter, authDependency)
 
-	server.ListenAndServe(srv.Server, logger, "Starting auth gear")
+	srv := &http.Server{
+		Addr:    configuration.Host,
+		Handler: rootRouter,
+	}
+	server.ListenAndServe(srv, logger, "Starting auth gear")
 }

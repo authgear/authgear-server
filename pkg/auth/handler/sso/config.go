@@ -3,6 +3,8 @@ package sso
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -10,13 +12,13 @@ import (
 )
 
 func AttachConfigHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.
-		Handle("/sso/config", &ConfigHandler{}).
+) {
+	router.NewRoute().
+		Path("/sso/config").
+		Handler(server.FactoryToHandler(&ConfigHandler{})).
 		Methods("OPTIONS", "POST")
-	return server
 }
 
 type ConfigHandler struct {

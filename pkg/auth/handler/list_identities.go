@@ -4,9 +4,10 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -18,13 +19,15 @@ import (
 )
 
 func AttachListIdentitiesHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/identity/list", &ListIdentitiesHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/identity/list").
+		Handler(server.FactoryToHandler(&ListIdentitiesHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type ListIdentitiesHandlerFactory struct {

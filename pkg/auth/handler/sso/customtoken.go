@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -33,13 +35,15 @@ import (
 
 // AttachCustomTokenLoginHandler attaches CustomTokenLoginHandler to server
 func AttachCustomTokenLoginHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/sso/custom_token/login", &CustomTokenLoginHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/sso/custom_token/login").
+		Handler(server.FactoryToHandler(&CustomTokenLoginHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 // CustomTokenLoginHandlerFactory creates CustomTokenLoginHandler

@@ -25,13 +25,15 @@ const (
 var ErrBadAccess = errors.New("bad access")
 
 func AttachGetHandler(
-	server *server.Server,
+	router *mux.Router,
 	dependencyMap inject.DependencyMap,
-) *server.Server {
-	server.Handle("/get/{asset_name}", &GetHandlerFactory{
-		dependencyMap,
-	}).Methods("OPTIONS", "HEAD", "GET")
-	return server
+) {
+	router.NewRoute().
+		Path("/get/{asset_name}").
+		Handler(server.FactoryToHandler(&GetHandlerFactory{
+			dependencyMap,
+		})).
+		Methods("OPTIONS", "HEAD", "GET")
 }
 
 type GetHandlerFactory struct {

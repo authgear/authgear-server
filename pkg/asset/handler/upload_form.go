@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/asset/dependency/presign"
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -25,13 +27,15 @@ import (
 var BadAssetUploadForm = skyerr.BadRequest.WithReason("BadAssetUploadForm")
 
 func AttachUploadFormHandler(
-	server *server.Server,
+	router *mux.Router,
 	dependencyMap inject.DependencyMap,
-) *server.Server {
-	server.Handle("/upload_form", &UploadFormHandlerFactory{
-		dependencyMap,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/upload_form").
+		Handler(server.FactoryToHandler(&UploadFormHandlerFactory{
+			dependencyMap,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type UploadFormHandlerFactory struct {

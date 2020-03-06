@@ -3,6 +3,8 @@ package forgotpwd
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -23,13 +25,15 @@ import (
 
 // AttachForgotPasswordHandler attaches ForgotPasswordHandler to server
 func AttachForgotPasswordHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.Handle("/forgot_password", &ForgotPasswordHandlerFactory{
-		authDependency,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/forgot_password").
+		Handler(server.FactoryToHandler(&ForgotPasswordHandlerFactory{
+			authDependency,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 // ForgotPasswordHandlerFactory creates ForgotPasswordHandler

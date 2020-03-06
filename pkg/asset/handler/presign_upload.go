@@ -3,6 +3,8 @@ package handler
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
@@ -13,13 +15,15 @@ import (
 )
 
 func AttachPresignUploadHandler(
-	server *server.Server,
+	router *mux.Router,
 	dependencyMap inject.DependencyMap,
-) *server.Server {
-	server.Handle("/presign_upload", &PresignUploadHandlerFactory{
-		dependencyMap,
-	}).Methods("OPTIONS", "POST")
-	return server
+) {
+	router.NewRoute().
+		Path("/presign_upload").
+		Handler(server.FactoryToHandler(&PresignUploadHandlerFactory{
+			dependencyMap,
+		})).
+		Methods("OPTIONS", "POST")
 }
 
 type PresignUploadHandlerFactory struct {

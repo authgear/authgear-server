@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"sort"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -12,13 +14,13 @@ import (
 )
 
 func AttachTemplatesHandler(
-	server *server.Server,
+	router *mux.Router,
 	authDependency auth.DependencyMap,
-) *server.Server {
-	server.
-		Handle("/.skygear/templates.json", &TemplatesHandlerFactory{}).
+) {
+	router.NewRoute().
+		Path("/.skygear/templates.json").
+		Handler(server.FactoryToHandler(&TemplatesHandlerFactory{})).
 		Methods("GET")
-	return server
 }
 
 type TemplatesHandlerFactory struct {
