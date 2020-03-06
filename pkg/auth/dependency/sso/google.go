@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
@@ -18,10 +19,12 @@ const (
 )
 
 type GoogleImpl struct {
-	URLPrefix      *url.URL
-	OAuthConfig    *config.OAuthConfiguration
-	ProviderConfig config.OAuthProviderConfiguration
-	TimeProvider   coreTime.Provider
+	URLPrefix                *url.URL
+	OAuthConfig              *config.OAuthConfiguration
+	ProviderConfig           config.OAuthProviderConfiguration
+	TimeProvider             coreTime.Provider
+	UserInfoDecoder          UserInfoDecoder
+	LoginIDNormalizerFactory loginid.LoginIDNormalizerFactory
 }
 
 func (f *GoogleImpl) GetAuthURL(state State, encodedState string) (string, error) {
@@ -103,6 +106,13 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 	}
 
 	email, _ := claims["email"].(string)
+	if email != "" {
+		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyType("email"))
+		email, err = normalizer.Normalize(email)
+		if err != nil {
+			return
+		}
+	}
 
 	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = claims
@@ -117,12 +127,12 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 
 func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:      f.URLPrefix,
-		oauthConfig:    f.OAuthConfig,
-		providerConfig: f.ProviderConfig,
-		accessTokenURL: googleTokenURL,
-		userProfileURL: googleUserInfoURL,
-		processor:      NewDefaultUserInfoDecoder(),
+		urlPrefix:       f.URLPrefix,
+		oauthConfig:     f.OAuthConfig,
+		providerConfig:  f.ProviderConfig,
+		accessTokenURL:  googleTokenURL,
+		userProfileURL:  googleUserInfoURL,
+		userInfoDecoder: f.UserInfoDecoder,
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }

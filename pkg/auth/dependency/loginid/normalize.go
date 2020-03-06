@@ -1,4 +1,4 @@
-package password
+package loginid
 
 import (
 	"strings"
@@ -12,13 +12,16 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
+// nolint: golint
 type LoginIDNormalizer interface {
 	Normalize(loginID string) (string, error)
 	ComputeUniqueKey(normalizeLoginID string) (string, error)
 }
 
+// nolint: golint
 type LoginIDNormalizerFactory interface {
-	NewNormalizer(loginIDKey string) LoginIDNormalizer
+	NormalizerWithLoginIDKey(loginIDKey string) LoginIDNormalizer
+	NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) LoginIDNormalizer
 }
 
 func NewLoginIDNormalizerFactory(
@@ -36,17 +39,17 @@ type factoryImpl struct {
 	loginIDTypes *config.LoginIDTypesConfiguration
 }
 
-func (f *factoryImpl) NewNormalizer(loginIDKey string) LoginIDNormalizer {
+func (f *factoryImpl) NormalizerWithLoginIDKey(loginIDKey string) LoginIDNormalizer {
 	for _, c := range f.loginIDsKeys {
 		if c.Key == loginIDKey {
-			return f.newNormalizer(c.Type)
+			return f.NormalizerWithLoginIDType(c.Type)
 		}
 	}
 
 	panic("password: invalid login id key: " + loginIDKey)
 }
 
-func (f *factoryImpl) newNormalizer(loginIDKeyType config.LoginIDKeyType) LoginIDNormalizer {
+func (f *factoryImpl) NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) LoginIDNormalizer {
 	metadataKey, _ := loginIDKeyType.MetadataKey()
 	switch metadataKey {
 	case metadata.Email:
@@ -62,6 +65,7 @@ func (f *factoryImpl) newNormalizer(loginIDKeyType config.LoginIDKeyType) LoginI
 	return &LoginIDNullNormalizer{}
 }
 
+// nolint: golint
 type LoginIDEmailNormalizer struct {
 	config *config.LoginIDTypeEmailConfiguration
 }
@@ -114,6 +118,7 @@ func (n *LoginIDEmailNormalizer) ComputeUniqueKey(normalizeLoginID string) (stri
 	return local + "@" + domain, nil
 }
 
+// nolint: golint
 type LoginIDUsernameNormalizer struct {
 	config *config.LoginIDTypeUsernameConfiguration
 }
@@ -137,6 +142,7 @@ func (n *LoginIDUsernameNormalizer) ComputeUniqueKey(normalizeLoginID string) (s
 	return normalizeLoginID, nil
 }
 
+// nolint: golint
 type LoginIDNullNormalizer struct{}
 
 func (n *LoginIDNullNormalizer) Normalize(loginID string) (string, error) {

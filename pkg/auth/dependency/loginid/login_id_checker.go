@@ -1,4 +1,4 @@
-package password
+package loginid
 
 import (
 	"regexp"
@@ -17,10 +17,12 @@ const usernameFormat = `^[a-zA-Z0-9_\-.]*$`
 
 var usernameRegex = regexp.MustCompile(usernameFormat)
 
+// nolint: golint
 type LoginIDTypeChecker interface {
 	Validate(loginID string) error
 }
 
+// nolint: golint
 type LoginIDTypeCheckerFactory interface {
 	NewChecker(loginIDKey config.LoginIDKeyType) LoginIDTypeChecker
 }
@@ -62,6 +64,7 @@ func (f *checkerFactoryImpl) NewChecker(loginIDKeyType config.LoginIDKeyType) Lo
 	return &LoginIDNullChecker{}
 }
 
+// nolint: golint
 type LoginIDEmailChecker struct {
 	config *config.LoginIDTypeEmailConfiguration
 }
@@ -95,6 +98,7 @@ func (c *LoginIDEmailChecker) Validate(loginID string) error {
 	return nil
 }
 
+// nolint: golint
 type LoginIDUsernameChecker struct {
 	config              *config.LoginIDTypeUsernameConfiguration
 	reservedNameChecker *ReservedNameChecker
@@ -164,6 +168,7 @@ func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 	return nil
 }
 
+// nolint: golint
 type LoginIDPhoneChecker struct{}
 
 func (c *LoginIDPhoneChecker) Validate(loginID string) error {
@@ -179,6 +184,7 @@ func (c *LoginIDPhoneChecker) Validate(loginID string) error {
 	}})
 }
 
+// nolint: golint
 type LoginIDNullChecker struct{}
 
 func (c *LoginIDNullChecker) Validate(loginID string) error {

@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -64,7 +65,7 @@ func (p *LoginRequestPayload) SetDefaultValue() {
 
 func (p *LoginRequestPayload) Validate() []validation.ErrorCause {
 	if p.LoginIDKey != "" {
-		loginID := password.LoginID{Key: p.LoginIDKey, Value: p.LoginID}
+		loginID := loginid.LoginID{Key: p.LoginIDKey, Value: p.LoginID}
 		if err := p.PasswordAuthProvider.ValidateLoginID(loginID); err != nil {
 			if causes := validation.ErrorCauses(err); len(causes) > 0 {
 				for i := range causes {

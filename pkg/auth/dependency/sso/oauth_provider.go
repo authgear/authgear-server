@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
@@ -35,16 +36,20 @@ type OpenIDConnectProvider interface {
 }
 
 type OAuthProviderFactory struct {
-	urlPrefixProvider urlprefix.Provider
-	tenantConfig      config.TenantConfiguration
-	timeProvider      coreTime.Provider
+	urlPrefixProvider        urlprefix.Provider
+	tenantConfig             config.TenantConfiguration
+	timeProvider             coreTime.Provider
+	userInfoDecoder          UserInfoDecoder
+	loginIDNormalizerFactory loginid.LoginIDNormalizerFactory
 }
 
-func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider, timeProvider coreTime.Provider) *OAuthProviderFactory {
+func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider, timeProvider coreTime.Provider, userInfoDecoder UserInfoDecoder, loginIDNormalizerFactory loginid.LoginIDNormalizerFactory) *OAuthProviderFactory {
 	return &OAuthProviderFactory{
-		tenantConfig:      tenantConfig,
-		urlPrefixProvider: urlPrefixProvider,
-		timeProvider:      timeProvider,
+		tenantConfig:             tenantConfig,
+		urlPrefixProvider:        urlPrefixProvider,
+		timeProvider:             timeProvider,
+		userInfoDecoder:          userInfoDecoder,
+		loginIDNormalizerFactory: loginIDNormalizerFactory,
 	}
 }
 
@@ -56,42 +61,49 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	switch providerConfig.Type {
 	case config.OAuthProviderTypeGoogle:
 		return &GoogleImpl{
-			URLPrefix:      p.urlPrefixProvider.Value(),
-			OAuthConfig:    p.tenantConfig.AppConfig.SSO.OAuth,
-			ProviderConfig: providerConfig,
-			TimeProvider:   p.timeProvider,
+			URLPrefix:                p.urlPrefixProvider.Value(),
+			OAuthConfig:              p.tenantConfig.AppConfig.SSO.OAuth,
+			ProviderConfig:           providerConfig,
+			TimeProvider:             p.timeProvider,
+			UserInfoDecoder:          p.userInfoDecoder,
+			LoginIDNormalizerFactory: p.loginIDNormalizerFactory,
 		}
 	case config.OAuthProviderTypeFacebook:
 		return &FacebookImpl{
-			URLPrefix:      p.urlPrefixProvider.Value(),
-			OAuthConfig:    p.tenantConfig.AppConfig.SSO.OAuth,
-			ProviderConfig: providerConfig,
+			URLPrefix:       p.urlPrefixProvider.Value(),
+			OAuthConfig:     p.tenantConfig.AppConfig.SSO.OAuth,
+			ProviderConfig:  providerConfig,
+			UserInfoDecoder: p.userInfoDecoder,
 		}
 	case config.OAuthProviderTypeInstagram:
 		return &InstagramImpl{
-			URLPrefix:      p.urlPrefixProvider.Value(),
-			OAuthConfig:    p.tenantConfig.AppConfig.SSO.OAuth,
-			ProviderConfig: providerConfig,
+			URLPrefix:       p.urlPrefixProvider.Value(),
+			OAuthConfig:     p.tenantConfig.AppConfig.SSO.OAuth,
+			ProviderConfig:  providerConfig,
+			UserInfoDecoder: p.userInfoDecoder,
 		}
 	case config.OAuthProviderTypeLinkedIn:
 		return &LinkedInImpl{
-			URLPrefix:      p.urlPrefixProvider.Value(),
-			OAuthConfig:    p.tenantConfig.AppConfig.SSO.OAuth,
-			ProviderConfig: providerConfig,
+			URLPrefix:       p.urlPrefixProvider.Value(),
+			OAuthConfig:     p.tenantConfig.AppConfig.SSO.OAuth,
+			ProviderConfig:  providerConfig,
+			UserInfoDecoder: p.userInfoDecoder,
 		}
 	case config.OAuthProviderTypeAzureADv2:
 		return &Azureadv2Impl{
-			URLPrefix:      p.urlPrefixProvider.Value(),
-			OAuthConfig:    p.tenantConfig.AppConfig.SSO.OAuth,
-			ProviderConfig: providerConfig,
-			TimeProvider:   p.timeProvider,
+			URLPrefix:                p.urlPrefixProvider.Value(),
+			OAuthConfig:              p.tenantConfig.AppConfig.SSO.OAuth,
+			ProviderConfig:           providerConfig,
+			TimeProvider:             p.timeProvider,
+			LoginIDNormalizerFactory: p.loginIDNormalizerFactory,
 		}
 	case config.OAuthProviderTypeApple:
 		return &AppleImpl{
-			URLPrefix:      p.urlPrefixProvider.Value(),
-			OAuthConfig:    p.tenantConfig.AppConfig.SSO.OAuth,
-			ProviderConfig: providerConfig,
-			TimeProvider:   p.timeProvider,
+			URLPrefix:                p.urlPrefixProvider.Value(),
+			OAuthConfig:              p.tenantConfig.AppConfig.SSO.OAuth,
+			ProviderConfig:           providerConfig,
+			TimeProvider:             p.timeProvider,
+			LoginIDNormalizerFactory: p.loginIDNormalizerFactory,
 		}
 	}
 	return nil

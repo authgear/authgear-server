@@ -1,4 +1,4 @@
-package password
+package loginid
 
 import (
 	"testing"
@@ -120,7 +120,7 @@ func TestLoginIDChecker(t *testing.T) {
 				{"faseng_chima-the.cat", ""},
 			}
 
-			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
+			reversedNameChecker, _ := NewReservedNameChecker("../../../../reserved_name.txt")
 			n := &LoginIDUsernameChecker{
 				config: &config.LoginIDTypeUsernameConfiguration{
 					BlockReservedUsernames: newTrue(),

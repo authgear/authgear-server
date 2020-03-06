@@ -1,4 +1,4 @@
-package password
+package loginid
 
 import (
 	"testing"
@@ -42,9 +42,9 @@ func newLoginIDTypesConfig() *config.LoginIDTypesConfiguration {
 
 func TestLoginID(t *testing.T) {
 	Convey("Test isValid", t, func() {
-		Convey("validate by config: username (0-1), email (0-1)", func() {
+		Convey("Validate by config: username (0-1), email (0-1)", func() {
 			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
-			checker := newDefaultLoginIDChecker(
+			checker := NewDefaultLoginIDChecker(
 				[]config.LoginIDKeyConfiguration{
 					newLoginIDKeyConfig("username", config.LoginIDKeyTypeRaw, 1),
 					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 1),
@@ -59,23 +59,23 @@ func TestLoginID(t *testing.T) {
 				LoginID{Key: "username", Value: "johndoe"},
 				LoginID{Key: "email", Value: "johndoe@example.com"},
 			}
-			So(checker.validate(loginIDs), ShouldBeNil)
+			So(checker.Validate(loginIDs), ShouldBeNil)
 
 			loginIDs = []LoginID{
 				LoginID{Key: "username", Value: "johndoe"},
 			}
-			So(checker.validate(loginIDs), ShouldBeNil)
+			So(checker.Validate(loginIDs), ShouldBeNil)
 
 			loginIDs = []LoginID{
 				LoginID{Key: "email", Value: "johndoe@example.com"},
 			}
-			So(checker.validate(loginIDs), ShouldBeNil)
+			So(checker.Validate(loginIDs), ShouldBeNil)
 
 			loginIDs = []LoginID{
 				LoginID{Key: "email", Value: "johndoe+1@example.com"},
 				LoginID{Key: "email", Value: "johndoe+2@example.com"},
 			}
-			So(validation.ErrorCauses(checker.validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
+			So(validation.ErrorCauses(checker.Validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
 				Kind:    validation.ErrorEntryAmount,
 				Pointer: "",
 				Message: "too many login IDs",
@@ -85,7 +85,7 @@ func TestLoginID(t *testing.T) {
 			loginIDs = []LoginID{
 				LoginID{Key: "nickname", Value: "johndoe"},
 			}
-			So(validation.ErrorCauses(checker.validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
+			So(validation.ErrorCauses(checker.Validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
 				Pointer: "/0/key",
 				Message: "login ID key is not allowed",
@@ -94,7 +94,7 @@ func TestLoginID(t *testing.T) {
 			loginIDs = []LoginID{
 				LoginID{Key: "email", Value: ""},
 			}
-			So(validation.ErrorCauses(checker.validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
+			So(validation.ErrorCauses(checker.Validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
 				Kind:    validation.ErrorRequired,
 				Pointer: "/0/value",
 				Message: "login ID is required",
@@ -103,7 +103,7 @@ func TestLoginID(t *testing.T) {
 			loginIDs = []LoginID{
 				LoginID{Key: "phone", Value: "51234567"},
 			}
-			So(validation.ErrorCauses(checker.validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
+			So(validation.ErrorCauses(checker.Validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
 				Kind:    validation.ErrorStringFormat,
 				Pointer: "/0/value",
 				Message: "invalid login ID format",
@@ -111,7 +111,7 @@ func TestLoginID(t *testing.T) {
 			}})
 
 			loginIDs = []LoginID{}
-			So(validation.ErrorCauses(checker.validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
+			So(validation.ErrorCauses(checker.Validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
 				Kind:    validation.ErrorRequired,
 				Pointer: "",
 				Message: "login ID is required",

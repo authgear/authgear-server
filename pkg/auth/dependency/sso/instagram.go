@@ -14,9 +14,10 @@ const (
 )
 
 type InstagramImpl struct {
-	URLPrefix      *url.URL
-	OAuthConfig    *config.OAuthConfiguration
-	ProviderConfig config.OAuthProviderConfiguration
+	URLPrefix       *url.URL
+	OAuthConfig     *config.OAuthConfiguration
+	ProviderConfig  config.OAuthProviderConfiguration
+	UserInfoDecoder UserInfoDecoder
 }
 
 func (f *InstagramImpl) Type() config.OAuthProviderType {
@@ -40,23 +41,23 @@ func (f *InstagramImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (
 
 func (f *InstagramImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:      f.URLPrefix,
-		oauthConfig:    f.OAuthConfig,
-		providerConfig: f.ProviderConfig,
-		accessTokenURL: instagramTokenURL,
-		userProfileURL: instagramUserInfoURL,
-		processor:      NewInstagramUserInfoDecoder(),
+		urlPrefix:       f.URLPrefix,
+		oauthConfig:     f.OAuthConfig,
+		providerConfig:  f.ProviderConfig,
+		accessTokenURL:  instagramTokenURL,
+		userProfileURL:  instagramUserInfoURL,
+		userInfoDecoder: f.UserInfoDecoder,
 	}
 	return h.getAuthInfo(r, state)
 }
 func (f *InstagramImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:      f.URLPrefix,
-		oauthConfig:    f.OAuthConfig,
-		providerConfig: f.ProviderConfig,
-		accessTokenURL: instagramTokenURL,
-		userProfileURL: instagramUserInfoURL,
-		processor:      NewInstagramUserInfoDecoder(),
+		urlPrefix:       f.URLPrefix,
+		oauthConfig:     f.OAuthConfig,
+		providerConfig:  f.ProviderConfig,
+		accessTokenURL:  instagramTokenURL,
+		userProfileURL:  instagramUserInfoURL,
+		userInfoDecoder: f.UserInfoDecoder,
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }

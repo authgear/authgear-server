@@ -5,6 +5,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -43,7 +44,7 @@ func (f AddLoginIDHandlerFactory) NewHandler(request *http.Request) http.Handler
 }
 
 type AddLoginIDRequestPayload struct {
-	LoginIDs []password.LoginID `json:"login_ids"`
+	LoginIDs []loginid.LoginID `json:"login_ids"`
 }
 
 // @JSONSchema

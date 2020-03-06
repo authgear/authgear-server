@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	mfaPQ "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
@@ -50,7 +51,7 @@ type DependencyMap struct {
 	AsyncTaskExecutor        *async.Executor
 	UseInsecureCookie        bool
 	DefaultConfiguration     config.DefaultConfiguration
-	ReservedNameChecker      *password.ReservedNameChecker
+	ReservedNameChecker      *loginid.ReservedNameChecker
 }
 
 // Provide provides dependency instance by name
@@ -259,6 +260,17 @@ func (m DependencyMap) Provide(
 		)
 	}
 
+	newLoginIDNormalizerFactory := func() loginid.LoginIDNormalizerFactory {
+		return loginid.NewLoginIDNormalizerFactory(
+			tConfig.AppConfig.Auth.LoginIDKeys,
+			tConfig.AppConfig.Auth.LoginIDTypes,
+		)
+	}
+
+	newOAuthUserInfoDecoder := func() sso.UserInfoDecoder {
+		return sso.NewUserInfoDecoder(newLoginIDNormalizerFactory())
+	}
+
 	switch dependencyName {
 	case "AuthContextGetter":
 		return newAuthContext()
@@ -368,8 +380,12 @@ func (m DependencyMap) Provide(
 			panic(err)
 		}
 		return trail
+	case "LoginIDNormalizerFactory":
+		return newLoginIDNormalizerFactory()
+	case "OAuthUserInfoDecoder":
+		return newOAuthUserInfoDecoder()
 	case "SSOOAuthProviderFactory":
-		return sso.NewOAuthProviderFactory(tConfig, urlprefix.NewProvider(request), newTimeProvider())
+		return sso.NewOAuthProviderFactory(tConfig, urlprefix.NewProvider(request), newTimeProvider(), newOAuthUserInfoDecoder(), newLoginIDNormalizerFactory())
 	case "SSOProvider":
 		return sso.NewProvider(
 			tConfig.AppID,

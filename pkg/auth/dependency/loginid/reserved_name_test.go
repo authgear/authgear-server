@@ -1,4 +1,4 @@
-package password
+package loginid
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 func TestReservedNameChecker(t *testing.T) {
 
 	Convey("TestReservedNameChecker", t, func() {
-		checker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
+		checker, _ := NewReservedNameChecker("../../../../reserved_name.txt")
 
 		var result bool
 		var err error

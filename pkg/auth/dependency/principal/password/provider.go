@@ -5,6 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -22,8 +23,8 @@ type providerImpl struct {
 	store                    Store
 	logger                   *logrus.Entry
 	loginIDsKeys             []config.LoginIDKeyConfiguration
-	loginIDChecker           loginIDChecker
-	loginIDNormalizerFactory LoginIDNormalizerFactory
+	loginIDChecker           loginid.LoginIDChecker
+	loginIDNormalizerFactory loginid.LoginIDNormalizerFactory
 	realmChecker             realmChecker
 	allowedRealms            []string
 	passwordHistoryEnabled   bool
@@ -38,13 +39,13 @@ func newProvider(
 	loginIDTypes *config.LoginIDTypesConfiguration,
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
-	reservedNameChecker *ReservedNameChecker,
+	reservedNameChecker *loginid.ReservedNameChecker,
 ) *providerImpl {
 	return &providerImpl{
 		store:        passwordStore,
 		logger:       loggerFactory.NewLogger("password-provider"),
 		loginIDsKeys: loginIDsKeys,
-		loginIDChecker: newDefaultLoginIDChecker(
+		loginIDChecker: loginid.NewDefaultLoginIDChecker(
 			loginIDsKeys,
 			loginIDTypes,
 			reservedNameChecker,
@@ -52,7 +53,7 @@ func newProvider(
 		realmChecker: defaultRealmChecker{
 			allowedRealms: allowedRealms,
 		},
-		loginIDNormalizerFactory: NewLoginIDNormalizerFactory(loginIDsKeys, loginIDTypes),
+		loginIDNormalizerFactory: loginid.NewLoginIDNormalizerFactory(loginIDsKeys, loginIDTypes),
 		allowedRealms:            allowedRealms,
 		passwordHistoryEnabled:   passwordHistoryEnabled,
 		passwordHistoryStore:     passwordHistoryStore,
@@ -67,21 +68,21 @@ func NewProvider(
 	loginIDTypes *config.LoginIDTypesConfiguration,
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
-	reservedNameChecker *ReservedNameChecker,
+	reservedNameChecker *loginid.ReservedNameChecker,
 ) Provider {
 	return newProvider(passwordStore, passwordHistoryStore, loggerFactory, loginIDsKeys, loginIDTypes, allowedRealms, passwordHistoryEnabled, reservedNameChecker)
 }
 
-func (p *providerImpl) ValidateLoginID(loginID LoginID) error {
-	return p.loginIDChecker.validateOne(loginID)
+func (p *providerImpl) ValidateLoginID(loginID loginid.LoginID) error {
+	return p.loginIDChecker.ValidateOne(loginID)
 }
 
-func (p *providerImpl) ValidateLoginIDs(loginIDs []LoginID) error {
-	return p.loginIDChecker.validate(loginIDs)
+func (p *providerImpl) ValidateLoginIDs(loginIDs []loginid.LoginID) error {
+	return p.loginIDChecker.Validate(loginIDs)
 }
 
 func (p *providerImpl) CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool {
-	return p.loginIDChecker.checkType(loginIDKey, standardKey)
+	return p.loginIDChecker.CheckType(loginIDKey, standardKey)
 }
 
 func (p *providerImpl) IsRealmValid(realm string) bool {
@@ -92,8 +93,8 @@ func (p *providerImpl) IsDefaultAllowedRealms() bool {
 	return len(p.allowedRealms) == 1 && p.allowedRealms[0] == DefaultRealm
 }
 
-func (p *providerImpl) MakePrincipal(userID string, password string, loginID LoginID, realm string) (*Principal, error) {
-	normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginID.Key)
+func (p *providerImpl) MakePrincipal(userID string, password string, loginID loginid.LoginID, realm string) (*Principal, error) {
+	normalizer := p.loginIDNormalizerFactory.NormalizerWithLoginIDKey(loginID.Key)
 	loginIDValue := loginID.Value
 	normalizedloginIDValue, err := normalizer.Normalize(loginID.Value)
 	if err != nil {
@@ -121,7 +122,7 @@ func (p *providerImpl) MakePrincipal(userID string, password string, loginID Log
 	return &principal, nil
 }
 
-func (p *providerImpl) CreatePrincipalsByLoginID(userID string, password string, loginIDs []LoginID, realm string) ([]*Principal, error) {
+func (p *providerImpl) CreatePrincipalsByLoginID(userID string, password string, loginIDs []loginid.LoginID, realm string) ([]*Principal, error) {
 	var principals []*Principal
 	for _, loginID := range loginIDs {
 		principal, err := p.MakePrincipal(userID, password, loginID, realm)
@@ -179,7 +180,7 @@ func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID
 	var principals []*Principal
 	for _, loginIDKeyConfig := range p.loginIDsKeys {
 		if loginIDKey == "" || loginIDKeyConfig.Key == loginIDKey {
-			invalid := p.loginIDChecker.validateOne(LoginID{
+			invalid := p.loginIDChecker.ValidateOne(loginid.LoginID{
 				Key:   loginIDKeyConfig.Key,
 				Value: loginID,
 			})
@@ -187,7 +188,7 @@ func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID
 				continue
 			}
 
-			normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginIDKeyConfig.Key)
+			normalizer := p.loginIDNormalizerFactory.NormalizerWithLoginIDKey(loginIDKeyConfig.Key)
 			normalizedloginID, e := normalizer.Normalize(loginID)
 			if e != nil {
 				err = errors.HandledWithMessage(e, "failed to normalized login id")
@@ -223,7 +224,7 @@ func (p *providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string)
 	var result []*Principal
 	for _, loginIDKeyConfig := range p.loginIDsKeys {
 		if loginIDKey == "" || loginIDKeyConfig.Key == loginIDKey {
-			normalizer := p.loginIDNormalizerFactory.NewNormalizer(loginIDKeyConfig.Key)
+			normalizer := p.loginIDNormalizerFactory.NormalizerWithLoginIDKey(loginIDKeyConfig.Key)
 			normalizedloginID, e := normalizer.Normalize(loginID)
 			if e != nil {
 				err = errors.HandledWithMessage(e, "failed to normalized login id")

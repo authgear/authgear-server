@@ -14,9 +14,10 @@ const (
 )
 
 type FacebookImpl struct {
-	URLPrefix      *url.URL
-	OAuthConfig    *config.OAuthConfiguration
-	ProviderConfig config.OAuthProviderConfiguration
+	URLPrefix       *url.URL
+	OAuthConfig     *config.OAuthConfiguration
+	ProviderConfig  config.OAuthProviderConfiguration
+	UserInfoDecoder UserInfoDecoder
 }
 
 func (f *FacebookImpl) Type() config.OAuthProviderType {
@@ -44,24 +45,24 @@ func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (a
 
 func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:      f.URLPrefix,
-		oauthConfig:    f.OAuthConfig,
-		providerConfig: f.ProviderConfig,
-		accessTokenURL: facebookTokenURL,
-		userProfileURL: facebookUserInfoURL,
-		processor:      NewDefaultUserInfoDecoder(),
+		urlPrefix:       f.URLPrefix,
+		oauthConfig:     f.OAuthConfig,
+		providerConfig:  f.ProviderConfig,
+		accessTokenURL:  facebookTokenURL,
+		userProfileURL:  facebookUserInfoURL,
+		userInfoDecoder: f.UserInfoDecoder,
 	}
 	return h.getAuthInfo(r, state)
 }
 
 func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:      f.URLPrefix,
-		oauthConfig:    f.OAuthConfig,
-		providerConfig: f.ProviderConfig,
-		accessTokenURL: facebookTokenURL,
-		userProfileURL: facebookUserInfoURL,
-		processor:      NewDefaultUserInfoDecoder(),
+		urlPrefix:       f.URLPrefix,
+		oauthConfig:     f.OAuthConfig,
+		providerConfig:  f.ProviderConfig,
+		accessTokenURL:  facebookTokenURL,
+		userProfileURL:  facebookUserInfoURL,
+		userInfoDecoder: f.UserInfoDecoder,
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }

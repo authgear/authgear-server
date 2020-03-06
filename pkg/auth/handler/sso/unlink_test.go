@@ -52,7 +52,7 @@ func TestUnlinkHandler(t *testing.T) {
 					},
 				},
 			},
-		}, urlprefix.NewProvider(req), timeProvider)
+		}, urlprefix.NewProvider(req), timeProvider, nil, nil)
 		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
 			&oauth.Principal{
 				ID:             "oauth-principal-id",

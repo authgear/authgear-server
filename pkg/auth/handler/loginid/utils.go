@@ -5,22 +5,23 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-func extractLoginIDs(principals []*password.Principal) []password.LoginID {
-	loginIDs := make([]password.LoginID, len(principals))
+func extractLoginIDs(principals []*password.Principal) []loginid.LoginID {
+	loginIDs := make([]loginid.LoginID, len(principals))
 	for i, p := range principals {
-		loginIDs[i] = password.LoginID{Key: p.LoginIDKey, Value: p.LoginID}
+		loginIDs[i] = loginid.LoginID{Key: p.LoginIDKey, Value: p.LoginID}
 	}
 	return loginIDs
 }
 
 var loginIDPointerPrefixRegex = regexp.MustCompile(`^/(\d+)/`)
 
-func validateLoginIDs(provider password.Provider, loginIDs []password.LoginID, newLoginIDBeginIndex int) error {
+func validateLoginIDs(provider password.Provider, loginIDs []loginid.LoginID, newLoginIDBeginIndex int) error {
 	err := provider.ValidateLoginIDs(loginIDs)
 	if err != nil {
 		if causes := validation.ErrorCauses(err); len(causes) > 0 {
