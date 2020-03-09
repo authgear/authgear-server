@@ -27,23 +27,21 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestForgotPasswordResetHandler(t *testing.T) {
-	realTime := timeNow
-	timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
-	defer func() {
-		timeNow = realTime
-	}()
-
 	codeGenerator := &forgotpwdemail.CodeGenerator{MasterKey: "master_key"}
 
 	Convey("Test ForgotPasswordResetHandler", t, func() {
 		mockTaskQueue := async.NewMockQueue()
 
 		fh := &ForgotPasswordResetHandler{}
+		fh.TimeProvider = &coreTime.MockProvider{
+			TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+		}
 		validator := validation.NewValidator("http://v2.skygear.io")
 		validator.AddSchemaFragments(
 			ForgotPasswordResetRequestSchema,

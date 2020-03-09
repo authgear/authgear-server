@@ -24,6 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -117,6 +118,7 @@ type ForgotPasswordResetFormHandler struct {
 	TxContext                 db.TxContext                              `dependency:"TxContext"`
 	Logger                    *logrus.Entry                             `dependency:"HandlerLogger"`
 	AuditTrail                coreaudit.Trail                           `dependency:"AuditTrail"`
+	TimeProvider              coreTime.Provider                         `dependency:"TimeProvider"`
 	TaskQueue                 async.Queue                               `dependency:"AsyncTaskQueue"`
 }
 
@@ -300,6 +302,7 @@ func (h ForgotPasswordResetFormHandler) resetPassword(
 		return NewPasswordResetFailed(PasswordNotMatched, "confirm password does not match new password")
 	}
 
+	now := h.TimeProvider.NowUTC()
 	err := passwordReseter{
 		CodeGenerator:        h.CodeGenerator,
 		PasswordChecker:      h.PasswordChecker,
@@ -307,6 +310,7 @@ func (h ForgotPasswordResetFormHandler) resetPassword(
 		PasswordAuthProvider: h.PasswordAuthProvider,
 	}.resetPassword(
 		payload.UserID,
+		now,
 		payload.ExpireAtTime,
 		payload.Code,
 		payload.NewPassword,
