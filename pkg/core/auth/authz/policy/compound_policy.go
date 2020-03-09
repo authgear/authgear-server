@@ -17,8 +17,5 @@ var RequireVerifiedUser = AllOf(
 
 var RequireValidUserOrMasterKey = AnyOf(
 	authz.PolicyFunc(RequireMasterKey),
-	AllOf(
-		authz.PolicyFunc(DenyNoAccessKey),
-		RequireValidUser,
-	),
+	RequireValidUser,
 )
