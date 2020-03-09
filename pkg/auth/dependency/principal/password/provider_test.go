@@ -2,6 +2,7 @@ package password
 
 import (
 	"testing"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -10,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func TestProvider(t *testing.T) {
@@ -39,6 +41,7 @@ func TestProvider(t *testing.T) {
 		}
 		reservedNameChecker, _ := loginid.NewReservedNameChecker("../../../../../reserved_name.txt")
 		pwProvider := &providerImpl{
+			timeProvider: &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)},
 			store:        NewMockStore(),
 			logger:       loggerEntry,
 			loginIDsKeys: loginIDsKeys,

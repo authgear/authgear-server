@@ -1,8 +1,6 @@
 package password
 
 import (
-	"time"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
@@ -13,13 +11,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-)
-
-var (
-	timeNow = func() time.Time { return time.Now().UTC() }
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type providerImpl struct {
+	timeProvider             coreTime.Provider
 	store                    Store
 	logger                   *logrus.Entry
 	loginIDsKeys             []config.LoginIDKeyConfiguration
@@ -32,6 +28,7 @@ type providerImpl struct {
 }
 
 func newProvider(
+	timeProvider coreTime.Provider,
 	passwordStore Store,
 	passwordHistoryStore passwordhistory.Store,
 	loggerFactory logging.Factory,
@@ -42,6 +39,7 @@ func newProvider(
 	reservedNameChecker *loginid.ReservedNameChecker,
 ) *providerImpl {
 	return &providerImpl{
+		timeProvider: timeProvider,
 		store:        passwordStore,
 		logger:       loggerFactory.NewLogger("password-provider"),
 		loginIDsKeys: loginIDsKeys,
@@ -61,6 +59,7 @@ func newProvider(
 }
 
 func NewProvider(
+	timeProvider coreTime.Provider,
 	passwordStore Store,
 	passwordHistoryStore passwordhistory.Store,
 	loggerFactory logging.Factory,
@@ -70,7 +69,7 @@ func NewProvider(
 	passwordHistoryEnabled bool,
 	reservedNameChecker *loginid.ReservedNameChecker,
 ) Provider {
-	return newProvider(passwordStore, passwordHistoryStore, loggerFactory, loginIDsKeys, loginIDTypes, allowedRealms, passwordHistoryEnabled, reservedNameChecker)
+	return newProvider(timeProvider, passwordStore, passwordHistoryStore, loggerFactory, loginIDsKeys, loginIDTypes, allowedRealms, passwordHistoryEnabled, reservedNameChecker)
 }
 
 func (p *providerImpl) ValidateLoginID(loginID loginid.LoginID) error {
@@ -165,9 +164,10 @@ func (p *providerImpl) DeletePrincipal(principal *Principal) error {
 }
 
 func (p *providerImpl) savePasswordHistory(principal *Principal) error {
+	now := p.timeProvider.NowUTC()
 	if p.passwordHistoryEnabled {
 		err := p.passwordHistoryStore.CreatePasswordHistory(
-			principal.UserID, principal.HashedPassword, timeNow(),
+			principal.UserID, principal.HashedPassword, now,
 		)
 		if err != nil {
 			return errors.Newf("failed to create password history: %w", err)

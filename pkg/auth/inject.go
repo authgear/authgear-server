@@ -152,6 +152,7 @@ func (m DependencyMap) Provide(
 
 	newPasswordAuthProvider := func() password.Provider {
 		return password.NewProvider(
+			newTimeProvider(),
 			newPasswordStore(),
 			newPasswordHistoryStore(),
 			newLoggerFactory(),
