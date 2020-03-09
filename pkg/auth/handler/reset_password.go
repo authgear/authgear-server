@@ -99,10 +99,7 @@ type ResetPasswordHandler struct {
 }
 
 func (h ResetPasswordHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireMasterKey),
-	)
+	return authz.PolicyFunc(policy.RequireMasterKey)
 }
 
 func (h ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
