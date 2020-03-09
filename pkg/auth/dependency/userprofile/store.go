@@ -7,22 +7,25 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type storeImpl struct {
-	sqlBuilder  db.SQLBuilder
-	sqlExecutor db.SQLExecutor
+	timeProvider coreTime.Provider
+	sqlBuilder   db.SQLBuilder
+	sqlExecutor  db.SQLExecutor
 }
 
-func NewUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
+func NewUserProfileStore(timeProvider coreTime.Provider, builder db.SQLBuilder, executor db.SQLExecutor) Store {
 	return &storeImpl{
-		sqlBuilder:  builder,
-		sqlExecutor: executor,
+		timeProvider: timeProvider,
+		sqlBuilder:   builder,
+		sqlExecutor:  executor,
 	}
 }
 
 func (u storeImpl) CreateUserProfile(userID string, data Data) (profile UserProfile, err error) {
-	now := timeNow()
+	now := u.timeProvider.NowUTC()
 	var dataBytes []byte
 	dataBytes, err = json.Marshal(data)
 	if err != nil {
@@ -108,7 +111,7 @@ func (u storeImpl) UpdateUserProfile(userID string, data Data) (profile UserProf
 		return
 	}
 
-	now := timeNow()
+	now := u.timeProvider.NowUTC()
 	builder := u.sqlBuilder.Tenant().
 		Update(u.sqlBuilder.FullTableName("user_profile")).
 		Set("updated_at", now).
