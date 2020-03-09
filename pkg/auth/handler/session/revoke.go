@@ -100,10 +100,7 @@ type RevokeHandler struct {
 }
 
 func (h RevokeHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		policy.RequireValidUser,
-	)
+	return policy.RequireValidUser
 }
 
 func (h RevokeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -84,10 +84,7 @@ type ListRecoveryCodeHandler struct {
 }
 
 func (h *ListRecoveryCodeHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		policy.RequireValidUser,
-	)
+	return policy.RequireValidUser
 }
 
 func (h *ListRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

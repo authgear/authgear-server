@@ -76,10 +76,7 @@ type DeleteAuthenticatorHandler struct {
 }
 
 func (h *DeleteAuthenticatorHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		policy.RequireValidUser,
-	)
+	return policy.RequireValidUser
 }
 
 func (h *DeleteAuthenticatorHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

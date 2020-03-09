@@ -100,10 +100,7 @@ type LinkHandler struct {
 }
 
 func (h LinkHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		policy.RequireValidUser,
-	)
+	return policy.RequireValidUser
 }
 
 func (h LinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

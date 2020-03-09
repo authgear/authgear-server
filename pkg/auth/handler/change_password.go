@@ -110,10 +110,7 @@ type ChangePasswordHandler struct {
 
 // ProvideAuthzPolicy provides authorization policy of handler
 func (h ChangePasswordHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		policy.RequireValidUser,
-	)
+	return policy.RequireValidUser
 }
 
 func (h ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

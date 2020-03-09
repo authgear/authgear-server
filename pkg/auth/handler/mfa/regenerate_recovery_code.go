@@ -83,10 +83,7 @@ type RegenerateRecoveryCodeHandler struct {
 }
 
 func (h *RegenerateRecoveryCodeHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		policy.RequireValidUser,
-	)
+	return policy.RequireValidUser
 }
 
 func (h *RegenerateRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

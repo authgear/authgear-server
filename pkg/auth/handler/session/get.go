@@ -103,10 +103,7 @@ type GetHandler struct {
 }
 
 func (h GetHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		policy.RequireValidUser,
-	)
+	return policy.RequireValidUser
 }
 
 func (h GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

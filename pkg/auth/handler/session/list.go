@@ -83,10 +83,7 @@ type ListHandler struct {
 }
 
 func (h ListHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		policy.RequireValidUser,
-	)
+	return policy.RequireValidUser
 }
 
 func (h ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
