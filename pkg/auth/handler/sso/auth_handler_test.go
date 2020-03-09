@@ -106,12 +106,6 @@ func TestAuthPayload(t *testing.T) {
 }
 
 func TestAuthHandler(t *testing.T) {
-	realTime := timeNow
-	timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
-	defer func() {
-		timeNow = realTime
-	}()
-
 	Convey("Test AuthHandler with login action", t, func() {
 		action := "login"
 		stateJWTSecret := "secret"
@@ -177,6 +171,7 @@ func TestAuthHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		sh.TimeProvider = timeProvider
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := &coreconfig.MFAConfiguration{
 			Enabled:     false,
@@ -463,6 +458,7 @@ func TestAuthHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		sh.TimeProvider = timeProvider
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := &coreconfig.MFAConfiguration{
 			Enabled:     false,
@@ -693,6 +689,7 @@ func TestAuthHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		sh.TimeProvider = timeProvider
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := &coreconfig.MFAConfiguration{
 			Enabled:     false,

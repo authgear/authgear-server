@@ -24,6 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -113,6 +114,7 @@ type LoginHandler struct {
 	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
 	URLPrefix            *url.URL                   `dependency:"URLPrefix"`
 	SSOProvider          sso.Provider               `dependency:"SSOProvider"`
+	TimeProvider         coreTime.Provider          `dependency:"TimeProvider"`
 	OAuthProvider        sso.OAuthProvider
 	ProviderID           string
 }
@@ -166,6 +168,7 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 	}
 
 	handler := respHandler{
+		TimeProvider:         h.TimeProvider,
 		AuthnSessionProvider: h.AuthnSessionProvider,
 		AuthInfoStore:        h.AuthInfoStore,
 		OAuthAuthProvider:    h.OAuthAuthProvider,

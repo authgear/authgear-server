@@ -21,6 +21,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -60,6 +61,7 @@ type AuthResultHandler struct {
 	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
 	URLPrefix            *url.URL                   `dependency:"URLPrefix"`
 	SSOProvider          sso.Provider               `dependency:"SSOProvider"`
+	TimeProvider         coreTime.Provider          `dependency:"TimeProvider"`
 }
 
 func (h *AuthResultHandler) ProvideAuthzPolicy() authz.Policy {
@@ -118,6 +120,7 @@ func (h *AuthResultHandler) Handle(payload *AuthResultPayload) (result interface
 	}
 
 	respHandler := respHandler{
+		TimeProvider:         h.TimeProvider,
 		AuthnSessionProvider: h.AuthnSessionProvider,
 		AuthInfoStore:        h.AuthInfoStore,
 		OAuthAuthProvider:    h.OAuthAuthProvider,

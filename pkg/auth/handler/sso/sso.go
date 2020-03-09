@@ -17,6 +17,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 // nolint: deadcode
@@ -30,6 +31,7 @@ import (
 type ssoProviderParameter string
 
 type respHandler struct {
+	TimeProvider         coreTime.Provider
 	AuthnSessionProvider authnsession.Provider
 	AuthInfoStore        authinfo.Store
 	OAuthAuthProvider    oauth.Provider
@@ -210,7 +212,7 @@ func (h respHandler) handleLogin(
 		return
 	}
 
-	now := timeNow()
+	now := h.TimeProvider.NowUTC()
 
 	// Two func that closes over the arguments and the return value
 	// and need to be reused.
@@ -336,7 +338,7 @@ func (h respHandler) principalsToUserIDs(principals []principal.Principal) []str
 }
 
 func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
-	now := timeNow()
+	now := h.TimeProvider.NowUTC()
 	providerKeys := oauth.ProviderKeysFromProviderConfig(oauthAuthInfo.ProviderConfig)
 	principal := oauth.NewPrincipal(providerKeys)
 	principal.UserID = userID

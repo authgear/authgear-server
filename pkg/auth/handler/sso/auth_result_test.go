@@ -39,12 +39,6 @@ func codeVerifierToCodeChallenge(codeVerifier string) string {
 }
 
 func TestAuthResultHandler(t *testing.T) {
-	realTime := timeNow
-	timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
-	defer func() {
-		timeNow = realTime
-	}()
-
 	stateJWTSecret := "secret"
 	providerName := "mock"
 	providerUserID := "mock_user_id"
@@ -112,6 +106,7 @@ func TestAuthResultHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		sh.TimeProvider = timeProvider
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := &coreconfig.MFAConfiguration{
 			Enabled:     false,

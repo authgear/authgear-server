@@ -32,13 +32,6 @@ import (
 )
 
 func TestLoginHandler(t *testing.T) {
-	realTime := timeNow
-	now := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
-	timeNow = func() time.Time { return now }
-	defer func() {
-		timeNow = realTime
-	}()
-
 	Convey("Test LoginHandler", t, func() {
 		stateJWTSecret := "secret"
 		providerName := "mock"
@@ -91,6 +84,8 @@ func TestLoginHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		now := timeProvider.NowUTC()
+		sh.TimeProvider = timeProvider
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := &coreconfig.MFAConfiguration{
 			Enabled:     false,
