@@ -20,8 +20,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
-var timeNow = func() time.Time { return time.Now().UTC() }
-
 // AuthInfo contains a user's information for authentication purpose
 type AuthInfo struct {
 	ID               string          `json:"_id"`
@@ -56,10 +54,10 @@ func (info *AuthInfo) IsVerified() bool {
 // This function checks whether the user is disabled by also considering the
 // expiry of disabling the user account. Use this function instead of using
 // the Disabled field.
-func (info *AuthInfo) IsDisabled() bool {
+func (info *AuthInfo) IsDisabled(now time.Time) bool {
 	if info.Disabled {
 		if expiry := info.DisabledExpiry; expiry != nil {
-			return expiry.After(timeNow())
+			return expiry.After(now)
 		}
 		return true
 	}
@@ -67,8 +65,8 @@ func (info *AuthInfo) IsDisabled() bool {
 }
 
 // RefreshDisabledStatus set the auth info as not disabled.
-func (info *AuthInfo) RefreshDisabledStatus() {
-	info.Disabled = info.IsDisabled()
+func (info *AuthInfo) RefreshDisabledStatus(now time.Time) {
+	info.Disabled = info.IsDisabled(now)
 	if !info.Disabled {
 		info.DisabledMessage = ""
 		info.DisabledExpiry = nil

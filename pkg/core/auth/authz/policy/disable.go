@@ -14,7 +14,9 @@ import (
 // If you want to enforce enabled user, use RequireValidUser.
 func DenyDisabledUser(r *http.Request, ctx auth.ContextGetter) error {
 	authInfo, _ := ctx.AuthInfo()
-	if authInfo != nil && authInfo.IsDisabled() {
+	// FIXME(time): Switch to TimeProvider
+	now := time.Now().UTC()
+	if authInfo != nil && authInfo.IsDisabled(now) {
 		details := skyerr.Details{}
 		if authInfo.DisabledExpiry != nil {
 			details["expiry"] = authInfo.DisabledExpiry.Format(time.RFC3339)
