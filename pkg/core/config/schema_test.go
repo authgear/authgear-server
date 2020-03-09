@@ -320,46 +320,6 @@ func TestParseAppConfiguration(t *testing.T) {
 			}`,
 			"/welcome_email/destination: Enum map[expected:[first all]]",
 		)
-		// CustomTokenConfiguration
-		test(`
-			{
-				"api_version": "v2.1",
-				"master_key": "master_key",
-				"asset": {
-					"secret": "assetsecret"
-				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
-				},
-				"hook": {
-					"secret": "hooksecret"
-				},
-				"sso": {
-					"custom_token": {
-						"enabled": true
-					}
-				}
-			}`,
-			"/sso/custom_token/audience: Required",
-			"/sso/custom_token/issuer: Required",
-			"/sso/custom_token/secret: Required",
-		)
 		// OAuth
 		test(`
 			{
@@ -400,7 +360,6 @@ func TestParseAppConfiguration(t *testing.T) {
 					}
 				}
 			}`,
-			"/sso/custom_token: Required",
 			"/sso/oauth/allowed_callback_urls: Required",
 			"/sso/oauth/providers/0/client_id: Required",
 			"/sso/oauth/providers/0/client_secret: Required",

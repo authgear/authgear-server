@@ -343,36 +343,7 @@ var (
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
-			"custom_token": { "$ref": "#CustomTokenConfiguration" },
 			"oauth": { "$ref": "#OAuthConfiguration" }
-		},
-		"required": ["custom_token"]
-	},
-	"CustomTokenConfiguration": {
-		"$id": "#CustomTokenConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"enabled": { "type": "boolean" },
-			"issuer": { "$ref": "#NonEmptyString" },
-			"audience": { "$ref": "#NonEmptyString" },
-			"secret": { "$ref": "#NonEmptyString" },
-			"on_user_duplicate_allow_merge": { "type": "boolean" },
-			"on_user_duplicate_allow_create": { "type": "boolean" }
-		},
-		"if": {
-			"properties": {
-				"enabled": {
-					"const": true
-				}
-			},
-			"required": ["enabled"]
-		},
-		"then": {
-			"required": ["issuer", "audience", "secret"]
-		},
-		"else": {
-			"required": ["secret"]
 		}
 	},
 	"OAuthConfiguration": {
