@@ -31,6 +31,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -204,6 +205,7 @@ type SignupHandler struct {
 	Logger                  *logrus.Entry                             `dependency:"HandlerLogger"`
 	TaskQueue               async.Queue                               `dependency:"AsyncTaskQueue"`
 	HookProvider            hook.Provider                             `dependency:"HookProvider"`
+	TimeProvider            coreTime.Provider                         `dependency:"TimeProvider"`
 	URLPrefix               *url.URL                                  `dependency:"URLPrefix"`
 }
 
@@ -260,7 +262,7 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, t
 		return
 	}
 
-	now := timeNow()
+	now := h.TimeProvider.NowUTC()
 	info := authinfo.NewAuthInfo()
 	info.LastLoginAt = &now
 

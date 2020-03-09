@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -29,13 +28,6 @@ import (
 )
 
 func TestChangePasswordHandler(t *testing.T) {
-	var zeroTime time.Time
-	realTime := timeNow
-	timeNow = func() time.Time { return zeroTime }
-	defer func() {
-		timeNow = realTime
-	}()
-
 	Convey("Test ChangePasswordHandler", t, func() {
 		// fixture
 		userID := "john.doe.id"

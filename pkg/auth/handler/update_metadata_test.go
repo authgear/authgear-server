@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -24,13 +23,6 @@ import (
 )
 
 func TestUpdateMetadataHandler(t *testing.T) {
-	var zeroTime time.Time
-	realTime := timeNow
-	timeNow = func() time.Time { return zeroTime }
-	defer func() {
-		timeNow = realTime
-	}()
-
 	Convey("Test UpdateMetadataHandler", t, func() {
 		// fixture
 		userID := "john.doe.id"
