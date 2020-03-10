@@ -210,27 +210,11 @@ func (c *TenantConfiguration) PostValidate() error {
 			return fail(validation.ErrorGeneral, "master key must not be same as client_id", "user_config", "master_key")
 		}
 
-		if clientConfig.SessionTransport == SessionTransportTypeCookie && !clientConfig.RefreshTokenDisabled {
-			return fail(
-				validation.ErrorGeneral,
-				"refresh token must be disabled when cookie is used as session token transport",
-				"user_config", "clients", key, "refresh_token_disabled")
-		}
-
-		if !clientConfig.RefreshTokenDisabled &&
-			clientConfig.RefreshTokenLifetime < clientConfig.AccessTokenLifetime {
+		if clientConfig.RefreshTokenLifetime < clientConfig.AccessTokenLifetime {
 			return fail(
 				validation.ErrorGeneral,
 				"refresh token lifetime must be greater than or equal to access token lifetime",
 				"user_config", "clients", key, "refresh_token_lifetime")
-		}
-
-		if clientConfig.SessionIdleTimeoutEnabled &&
-			clientConfig.SessionIdleTimeout > clientConfig.AccessTokenLifetime {
-			return fail(
-				validation.ErrorGeneral,
-				"session idle timeout must be less than or equal to access token lifetime",
-				"user_config", "clients", key, "session_idle_timeout")
 		}
 	}
 
@@ -279,6 +263,14 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.AppConfig.DisplayAppName = c.AppName
 	}
 
+	// Set default SessionConfiguration values
+	if c.AppConfig.Session.Lifetime == 0 {
+		c.AppConfig.Session.Lifetime = 86400
+	}
+	if c.AppConfig.Session.IdleTimeout == 0 {
+		c.AppConfig.Session.IdleTimeout = 300
+	}
+
 	// Set default APIClientConfiguration values
 	for i, clientConfig := range c.AppConfig.Clients {
 		if clientConfig.AccessTokenLifetime == 0 {
@@ -289,15 +281,6 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 			if clientConfig.AccessTokenLifetime > clientConfig.RefreshTokenLifetime {
 				clientConfig.RefreshTokenLifetime = clientConfig.AccessTokenLifetime
 			}
-		}
-		if clientConfig.SessionIdleTimeout == 0 {
-			clientConfig.SessionIdleTimeout = 300
-			if clientConfig.AccessTokenLifetime < clientConfig.SessionIdleTimeout {
-				clientConfig.SessionIdleTimeout = clientConfig.AccessTokenLifetime
-			}
-		}
-		if clientConfig.SessionTransport == SessionTransportTypeCookie {
-			clientConfig.RefreshTokenDisabled = true
 		}
 		c.AppConfig.Clients[i] = clientConfig
 	}
@@ -511,6 +494,7 @@ type AppConfiguration struct {
 	DisplayAppName   string                         `json:"display_app_name,omitempty" yaml:"display_app_name" msg:"display_app_name"`
 	Clients          []APIClientConfiguration       `json:"clients,omitempty" yaml:"clients" msg:"clients"`
 	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
+	Session          *SessionConfiguration          `json:"session,omitempty" yaml:"session" msg:"session" default_zero_value:"true"`
 	CORS             *CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors" default_zero_value:"true"`
 	Auth             *AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth" default_zero_value:"true"`
 	MFA              *MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa" default_zero_value:"true"`
@@ -531,27 +515,21 @@ type AssetConfiguration struct {
 	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
 }
 
-// SessionTransportType indicates the transport used for session tokens
-type SessionTransportType string
-
-const (
-	// SessionTransportTypeHeader means session tokens should be transport in Authorization HTTP header
-	SessionTransportTypeHeader SessionTransportType = "header"
-	// SessionTransportTypeCookie means session tokens should be transport in HTTP cookie
-	SessionTransportTypeCookie SessionTransportType = "cookie"
-)
-
 type APIClientConfiguration struct {
-	ClientName string `json:"client_name" yaml:"client_name" msg:"client_name"`
-	ClientID   string `json:"client_id" yaml:"client_id" msg:"client_id"`
+	ClientName string `json:"client_name,omitempty" yaml:"client_name" msg:"client_name"`
+	ClientID   string `json:"client_id,omitempty" yaml:"client_id" msg:"client_id"`
 
-	SessionTransport          SessionTransportType `json:"session_transport" yaml:"session_transport" msg:"session_transport"`
-	AccessTokenLifetime       int                  `json:"access_token_lifetime,omitempty" yaml:"access_token_lifetime" msg:"access_token_lifetime"`
-	SessionIdleTimeoutEnabled bool                 `json:"session_idle_timeout_enabled,omitempty" yaml:"session_idle_timeout_enabled" msg:"session_idle_timeout_enabled"`
-	SessionIdleTimeout        int                  `json:"session_idle_timeout,omitempty" yaml:"session_idle_timeout" msg:"session_idle_timeout"`
-
-	RefreshTokenDisabled bool `json:"refresh_token_disabled,omitempty" yaml:"refresh_token_disabled" msg:"refresh_token_disabled"`
+	AuthAPIUseCookie     bool `json:"auth_api_use_cookie,omitempty" yaml:"auth_api_use_cookie" msg:"auth_api_use_cookie"`
+	AccessTokenLifetime  int  `json:"access_token_lifetime,omitempty" yaml:"access_token_lifetime" msg:"access_token_lifetime"`
 	RefreshTokenLifetime int  `json:"refresh_token_lifetime,omitempty" yaml:"refresh_token_lifetime" msg:"refresh_token_lifetime"`
+}
+
+type SessionConfiguration struct {
+	Lifetime            int     `json:"lifetime,omitempty" yaml:"lifetime" msg:"lifetime"`
+	IdleTimeoutEnabled  bool    `json:"idle_timeout_enabled,omitempty" yaml:"idle_timeout_enabled" msg:"idle_timeout_enabled"`
+	IdleTimeout         int     `json:"idle_timeout" yaml:"idle_timeout" msg:"idle_timeout"`
+	CookieDomain        *string `json:"cookie_domain,omitempty" yaml:"cookie_domain" msg:"cookie_domain"`
+	CookieNonPersistent bool    `json:"cookie_non_persistent,omitempty" yaml:"cookie_non_persistent" msg:"cookie_non_persistent"`
 }
 
 // CORSConfiguration represents CORS configuration.

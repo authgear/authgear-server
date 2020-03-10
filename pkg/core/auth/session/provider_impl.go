@@ -75,9 +75,7 @@ func (p *providerImpl) Create(authnSess *auth.AuthnSession, beforeCreate func(*a
 		AccessedAt:              now,
 	}
 	tok := auth.SessionTokens{ID: sess.ID}
-	if !clientConfig.RefreshTokenDisabled {
-		tok.RefreshToken = p.generateRefreshToken(&sess)
-	}
+	tok.RefreshToken = p.generateRefreshToken(&sess)
 	tok.AccessToken = p.generateAccessToken(&sess)
 
 	if beforeCreate != nil {

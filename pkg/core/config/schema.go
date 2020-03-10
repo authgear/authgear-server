@@ -63,6 +63,7 @@ var (
 				"items": { "$ref": "#APIClientConfiguration" }
 			},
 			"master_key": { "$ref": "#NonEmptyString" },
+			"session": { "$ref": "#SessionConfiguration" },
 			"cors": { "$ref": "#CORSConfiguration" },
 			"auth": { "$ref": "#AuthConfiguration" },
 			"mfa": { "$ref": "#MFAConfiguration" },
@@ -89,6 +90,18 @@ var (
 		},
 		"required": ["secret"]
 	},
+	"SessionConfiguration": {
+		"$id": "#SessionConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"lifetime": { "type": "integer", "minimum": 0 },
+			"idle_timeout_enabled": { "type": "boolean" },
+			"idle_timeout": { "type": "integer", "minimum": 0 },
+			"cookie_domain": { "type": "string" },
+			"cookie_non_persistent": { "type": "boolean" }
+		}
+	},
 	"APIClientConfiguration": {
 		"$id": "#APIClientConfiguration",
 		"type": "object",
@@ -96,17 +109,11 @@ var (
 		"properties": {
 			"client_name": { "$ref": "#NonEmptyString" },
 			"client_id": { "$ref": "#NonEmptyString" },
-			"session_transport": {
-				"type": "string",
-				"enum": ["header", "cookie"]
-			},
+			"auth_api_use_cookie": { "type": "boolean" },
 			"access_token_lifetime": { "type": "integer", "minimum": 0 },
-			"session_idle_timeout_enabled": { "type": "boolean" },
-			"session_idle_timeout": { "type": "integer", "minimum": 0 },
-			"refresh_token_disabled": { "type": "boolean" },
 			"refresh_token_lifetime": { "type": "integer", "minimum": 0 }
 		},
-		"required": ["client_name", "client_id", "session_transport"]
+		"required": ["client_name", "client_id"]
 	},
 	"CORSConfiguration": {
 		"$id": "#CORSConfiguration",

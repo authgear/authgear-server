@@ -104,6 +104,9 @@ func makeFullTenantConfig() TenantConfiguration {
 		b := true
 		return &b
 	}
+	newStr := func(s string) *string {
+		return &s
+	}
 	var fullTenantConfig = TenantConfiguration{
 		APIVersion: apiversion.APIVersion,
 		AppName:    "myapp",
@@ -119,13 +122,18 @@ func makeFullTenantConfig() TenantConfiguration {
 		AppConfig: &AppConfiguration{
 			APIVersion:     apiversion.APIVersion,
 			DisplayAppName: "MyApp",
+			Session: &SessionConfiguration{
+				Lifetime:            86400,
+				IdleTimeoutEnabled:  true,
+				IdleTimeout:         3600,
+				CookieDomain:        newStr("example.com"),
+				CookieNonPersistent: true,
+			},
 			Clients: []APIClientConfiguration{
 				APIClientConfiguration{
 					ClientName:           "Web App",
 					ClientID:             "web_app",
-					SessionTransport:     SessionTransportTypeHeader,
 					AccessTokenLifetime:  1800,
-					SessionIdleTimeout:   300,
 					RefreshTokenLifetime: 86400,
 				},
 			},

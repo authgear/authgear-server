@@ -33,7 +33,7 @@ func NewWriter(
 
 func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string, mfaBearerToken *string) {
 	clientConfig, _ := model.GetClientConfig(w.clientConfigs, w.authContext.AccessKey().ClientID)
-	useCookie := clientConfig.SessionTransport == config.SessionTransportTypeCookie
+	useCookie := clientConfig.AuthAPIUseCookie
 
 	cookieSession := &http.Cookie{
 		Name:     coreHttp.CookieNameSession,

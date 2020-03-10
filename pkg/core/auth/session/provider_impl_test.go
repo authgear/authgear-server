@@ -127,12 +127,7 @@ func TestProvider(t *testing.T) {
 
 				So(session1.ID, ShouldNotEqual, session2.ID)
 			})
-			Convey("should generate refresh token if enabled", func() {
-				for i := range clientConfigs {
-					if clientConfigs[i].ClientID == "web-app" {
-						clientConfigs[i].RefreshTokenDisabled = false
-					}
-				}
+			Convey("should generate refresh token", func() {
 				session, tokens, err := provider.Create(&auth.AuthnSession{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
@@ -141,20 +136,6 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(session.RefreshTokenHash, ShouldNotBeEmpty)
 				So(tokens.RefreshToken, ShouldHaveLength, tokenLength+len(session.ID)+1)
-			})
-			Convey("should not generate refresh token if disabled", func() {
-				for i := range clientConfigs {
-					if clientConfigs[i].ClientID == "web-app" {
-						clientConfigs[i].RefreshTokenDisabled = true
-					}
-				}
-				session, _, err := provider.Create(&auth.AuthnSession{
-					UserID:      "user-id",
-					PrincipalID: "principal-id",
-					ClientID:    "web-app",
-				}, nil)
-				So(err, ShouldBeNil)
-				So(session.RefreshTokenHash, ShouldBeEmpty)
 			})
 			Convey("should not create session is disallowed", func() {
 				hookErr := fmt.Errorf("session create disallowed")
@@ -336,8 +317,8 @@ func TestProvider(t *testing.T) {
 			for i := range clientConfigs {
 				clientConfigs[i] = config.APIClientConfiguration{
 					ClientID:             clientConfigs[i].ClientID,
+					RefreshTokenLifetime: 1000,
 					AccessTokenLifetime:  1000,
-					RefreshTokenDisabled: true,
 				}
 			}
 

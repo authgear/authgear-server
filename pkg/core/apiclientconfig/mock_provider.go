@@ -16,7 +16,6 @@ func NewMockProvider(clientID string) *MockProvider {
 		APIClientConfig: &config.APIClientConfiguration{
 			ClientName:           clientID,
 			ClientID:             clientID,
-			SessionTransport:     config.SessionTransportTypeHeader,
 			AccessTokenLifetime:  1800,
 			RefreshTokenLifetime: 86400,
 		},

@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
@@ -36,13 +37,7 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sess, authInfo, err := m.resolve(r)
 
-		if errors.Is(err, model.ErrTokenConflict) {
-			// Clear session if token conflicts
-			m.SessionWriter.ClearSession(w)
-			// Treat as session not found
-			err = errors.WithSecondaryError(session.ErrSessionNotFound, err)
-
-		} else if errors.Is(err, session.ErrSessionNotFound) {
+		if errors.Is(err, session.ErrSessionNotFound) {
 			// Clear session if session is not found
 			m.SessionWriter.ClearSession(w)
 
@@ -62,11 +57,7 @@ func (m *AuthnMiddleware) resolve(r *http.Request) (s *auth.Session, info *authi
 	key := m.APIClientConfigurationProvider.GetAccessKeyByAPIKey(model.GetAPIKey(r))
 	m.AuthContextSetter.SetAccessKey(key)
 
-	accessToken, transport, err := model.GetAccessToken(r)
-	if err != nil {
-		return
-	}
-
+	accessToken := coreHttp.GetSessionIdentifier(r)
 	// No access token found. Simply proceed.
 	if accessToken == "" {
 		return
@@ -82,8 +73,8 @@ func (m *AuthnMiddleware) resolve(r *http.Request) (s *auth.Session, info *authi
 		return
 	}
 
-	clientConfig, ok := model.GetClientConfig(tenantConfig.AppConfig.Clients, sess.ClientID)
-	if !ok || clientConfig.SessionTransport != transport {
+	_, ok := model.GetClientConfig(tenantConfig.AppConfig.Clients, sess.ClientID)
+	if !ok {
 		err = session.ErrSessionNotFound
 		return
 	}

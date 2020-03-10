@@ -36,38 +36,16 @@ func (z *APIClientConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "ClientID")
 				return
 			}
-		case "session_transport":
-			{
-				var zb0002 string
-				zb0002, err = dc.ReadString()
-				if err != nil {
-					err = msgp.WrapError(err, "SessionTransport")
-					return
-				}
-				z.SessionTransport = SessionTransportType(zb0002)
+		case "auth_api_use_cookie":
+			z.AuthAPIUseCookie, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "AuthAPIUseCookie")
+				return
 			}
 		case "access_token_lifetime":
 			z.AccessTokenLifetime, err = dc.ReadInt()
 			if err != nil {
 				err = msgp.WrapError(err, "AccessTokenLifetime")
-				return
-			}
-		case "session_idle_timeout_enabled":
-			z.SessionIdleTimeoutEnabled, err = dc.ReadBool()
-			if err != nil {
-				err = msgp.WrapError(err, "SessionIdleTimeoutEnabled")
-				return
-			}
-		case "session_idle_timeout":
-			z.SessionIdleTimeout, err = dc.ReadInt()
-			if err != nil {
-				err = msgp.WrapError(err, "SessionIdleTimeout")
-				return
-			}
-		case "refresh_token_disabled":
-			z.RefreshTokenDisabled, err = dc.ReadBool()
-			if err != nil {
-				err = msgp.WrapError(err, "RefreshTokenDisabled")
 				return
 			}
 		case "refresh_token_lifetime":
@@ -89,9 +67,9 @@ func (z *APIClientConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *APIClientConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 8
+	// map header, size 5
 	// write "client_name"
-	err = en.Append(0x88, 0xab, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
+	err = en.Append(0x85, 0xab, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	if err != nil {
 		return
 	}
@@ -110,14 +88,14 @@ func (z *APIClientConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "ClientID")
 		return
 	}
-	// write "session_transport"
-	err = en.Append(0xb1, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x70, 0x6f, 0x72, 0x74)
+	// write "auth_api_use_cookie"
+	err = en.Append(0xb3, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x61, 0x70, 0x69, 0x5f, 0x75, 0x73, 0x65, 0x5f, 0x63, 0x6f, 0x6f, 0x6b, 0x69, 0x65)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(string(z.SessionTransport))
+	err = en.WriteBool(z.AuthAPIUseCookie)
 	if err != nil {
-		err = msgp.WrapError(err, "SessionTransport")
+		err = msgp.WrapError(err, "AuthAPIUseCookie")
 		return
 	}
 	// write "access_token_lifetime"
@@ -128,36 +106,6 @@ func (z *APIClientConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	err = en.WriteInt(z.AccessTokenLifetime)
 	if err != nil {
 		err = msgp.WrapError(err, "AccessTokenLifetime")
-		return
-	}
-	// write "session_idle_timeout_enabled"
-	err = en.Append(0xbc, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x6c, 0x65, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
-	if err != nil {
-		return
-	}
-	err = en.WriteBool(z.SessionIdleTimeoutEnabled)
-	if err != nil {
-		err = msgp.WrapError(err, "SessionIdleTimeoutEnabled")
-		return
-	}
-	// write "session_idle_timeout"
-	err = en.Append(0xb4, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x6c, 0x65, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74)
-	if err != nil {
-		return
-	}
-	err = en.WriteInt(z.SessionIdleTimeout)
-	if err != nil {
-		err = msgp.WrapError(err, "SessionIdleTimeout")
-		return
-	}
-	// write "refresh_token_disabled"
-	err = en.Append(0xb6, 0x72, 0x65, 0x66, 0x72, 0x65, 0x73, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x64, 0x69, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x64)
-	if err != nil {
-		return
-	}
-	err = en.WriteBool(z.RefreshTokenDisabled)
-	if err != nil {
-		err = msgp.WrapError(err, "RefreshTokenDisabled")
 		return
 	}
 	// write "refresh_token_lifetime"
@@ -176,28 +124,19 @@ func (z *APIClientConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *APIClientConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 8
+	// map header, size 5
 	// string "client_name"
-	o = append(o, 0x88, 0xab, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
+	o = append(o, 0x85, 0xab, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	o = msgp.AppendString(o, z.ClientName)
 	// string "client_id"
 	o = append(o, 0xa9, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64)
 	o = msgp.AppendString(o, z.ClientID)
-	// string "session_transport"
-	o = append(o, 0xb1, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x70, 0x6f, 0x72, 0x74)
-	o = msgp.AppendString(o, string(z.SessionTransport))
+	// string "auth_api_use_cookie"
+	o = append(o, 0xb3, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x61, 0x70, 0x69, 0x5f, 0x75, 0x73, 0x65, 0x5f, 0x63, 0x6f, 0x6f, 0x6b, 0x69, 0x65)
+	o = msgp.AppendBool(o, z.AuthAPIUseCookie)
 	// string "access_token_lifetime"
 	o = append(o, 0xb5, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x6c, 0x69, 0x66, 0x65, 0x74, 0x69, 0x6d, 0x65)
 	o = msgp.AppendInt(o, z.AccessTokenLifetime)
-	// string "session_idle_timeout_enabled"
-	o = append(o, 0xbc, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x6c, 0x65, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
-	o = msgp.AppendBool(o, z.SessionIdleTimeoutEnabled)
-	// string "session_idle_timeout"
-	o = append(o, 0xb4, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x6c, 0x65, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74)
-	o = msgp.AppendInt(o, z.SessionIdleTimeout)
-	// string "refresh_token_disabled"
-	o = append(o, 0xb6, 0x72, 0x65, 0x66, 0x72, 0x65, 0x73, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x64, 0x69, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x64)
-	o = msgp.AppendBool(o, z.RefreshTokenDisabled)
 	// string "refresh_token_lifetime"
 	o = append(o, 0xb6, 0x72, 0x65, 0x66, 0x72, 0x65, 0x73, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x6c, 0x69, 0x66, 0x65, 0x74, 0x69, 0x6d, 0x65)
 	o = msgp.AppendInt(o, z.RefreshTokenLifetime)
@@ -234,38 +173,16 @@ func (z *APIClientConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 				err = msgp.WrapError(err, "ClientID")
 				return
 			}
-		case "session_transport":
-			{
-				var zb0002 string
-				zb0002, bts, err = msgp.ReadStringBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "SessionTransport")
-					return
-				}
-				z.SessionTransport = SessionTransportType(zb0002)
+		case "auth_api_use_cookie":
+			z.AuthAPIUseCookie, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "AuthAPIUseCookie")
+				return
 			}
 		case "access_token_lifetime":
 			z.AccessTokenLifetime, bts, err = msgp.ReadIntBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "AccessTokenLifetime")
-				return
-			}
-		case "session_idle_timeout_enabled":
-			z.SessionIdleTimeoutEnabled, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "SessionIdleTimeoutEnabled")
-				return
-			}
-		case "session_idle_timeout":
-			z.SessionIdleTimeout, bts, err = msgp.ReadIntBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "SessionIdleTimeout")
-				return
-			}
-		case "refresh_token_disabled":
-			z.RefreshTokenDisabled, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "RefreshTokenDisabled")
 				return
 			}
 		case "refresh_token_lifetime":
@@ -288,7 +205,7 @@ func (z *APIClientConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *APIClientConfiguration) Msgsize() (s int) {
-	s = 1 + 12 + msgp.StringPrefixSize + len(z.ClientName) + 10 + msgp.StringPrefixSize + len(z.ClientID) + 18 + msgp.StringPrefixSize + len(string(z.SessionTransport)) + 22 + msgp.IntSize + 29 + msgp.BoolSize + 21 + msgp.IntSize + 23 + msgp.BoolSize + 23 + msgp.IntSize
+	s = 1 + 12 + msgp.StringPrefixSize + len(z.ClientName) + 10 + msgp.StringPrefixSize + len(z.ClientID) + 20 + msgp.BoolSize + 22 + msgp.IntSize + 23 + msgp.IntSize
 	return
 }
 
@@ -346,6 +263,24 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				err = msgp.WrapError(err, "MasterKey")
 				return
+			}
+		case "session":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "Session")
+					return
+				}
+				z.Session = nil
+			} else {
+				if z.Session == nil {
+					z.Session = new(SessionConfiguration)
+				}
+				err = z.Session.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "Session")
+					return
+				}
 			}
 		case "cors":
 			if dc.IsNil() {
@@ -815,9 +750,9 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 18
+	// map header, size 19
 	// write "api_version"
-	err = en.Append(0xde, 0x0, 0x12, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0xde, 0x0, 0x13, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
@@ -862,6 +797,23 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		err = msgp.WrapError(err, "MasterKey")
 		return
+	}
+	// write "session"
+	err = en.Append(0xa7, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
+	if err != nil {
+		return
+	}
+	if z.Session == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.Session.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "Session")
+			return
+		}
 	}
 	// write "cors"
 	err = en.Append(0xa4, 0x63, 0x6f, 0x72, 0x73)
@@ -1206,9 +1158,9 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 18
+	// map header, size 19
 	// string "api_version"
-	o = append(o, 0xde, 0x0, 0x12, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0xde, 0x0, 0x13, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	o = msgp.AppendString(o, z.APIVersion)
 	// string "display_app_name"
 	o = append(o, 0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
@@ -1226,6 +1178,17 @@ func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "master_key"
 	o = append(o, 0xaa, 0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x6b, 0x65, 0x79)
 	o = msgp.AppendString(o, z.MasterKey)
+	// string "session"
+	o = append(o, 0xa7, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
+	if z.Session == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.Session.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "Session")
+			return
+		}
+	}
 	// string "cors"
 	o = append(o, 0xa4, 0x63, 0x6f, 0x72, 0x73)
 	if z.CORS == nil {
@@ -1453,6 +1416,23 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			if err != nil {
 				err = msgp.WrapError(err, "MasterKey")
 				return
+			}
+		case "session":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Session = nil
+			} else {
+				if z.Session == nil {
+					z.Session = new(SessionConfiguration)
+				}
+				bts, err = z.Session.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Session")
+					return
+				}
 			}
 		case "cors":
 			if msgp.IsNil(bts) {
@@ -1912,7 +1892,13 @@ func (z *AppConfiguration) Msgsize() (s int) {
 	for za0001 := range z.Clients {
 		s += z.Clients[za0001].Msgsize()
 	}
-	s += 11 + msgp.StringPrefixSize + len(z.MasterKey) + 5
+	s += 11 + msgp.StringPrefixSize + len(z.MasterKey) + 8
+	if z.Session == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.Session.Msgsize()
+	}
+	s += 5
 	if z.CORS == nil {
 		s += msgp.NilSize
 	} else {
@@ -8260,54 +8246,245 @@ func (z *SSOConfiguration) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
-func (z *SessionTransportType) DecodeMsg(dc *msgp.Reader) (err error) {
-	{
-		var zb0001 string
-		zb0001, err = dc.ReadString()
+func (z *SessionConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
 			err = msgp.WrapError(err)
 			return
 		}
-		(*z) = SessionTransportType(zb0001)
+		switch msgp.UnsafeString(field) {
+		case "lifetime":
+			z.Lifetime, err = dc.ReadInt()
+			if err != nil {
+				err = msgp.WrapError(err, "Lifetime")
+				return
+			}
+		case "idle_timeout_enabled":
+			z.IdleTimeoutEnabled, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "IdleTimeoutEnabled")
+				return
+			}
+		case "idle_timeout":
+			z.IdleTimeout, err = dc.ReadInt()
+			if err != nil {
+				err = msgp.WrapError(err, "IdleTimeout")
+				return
+			}
+		case "cookie_domain":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "CookieDomain")
+					return
+				}
+				z.CookieDomain = nil
+			} else {
+				if z.CookieDomain == nil {
+					z.CookieDomain = new(string)
+				}
+				*z.CookieDomain, err = dc.ReadString()
+				if err != nil {
+					err = msgp.WrapError(err, "CookieDomain")
+					return
+				}
+			}
+		case "cookie_non_persistent":
+			z.CookieNonPersistent, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "CookieNonPersistent")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
 	}
 	return
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z SessionTransportType) EncodeMsg(en *msgp.Writer) (err error) {
-	err = en.WriteString(string(z))
+func (z *SessionConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 5
+	// write "lifetime"
+	err = en.Append(0x85, 0xa8, 0x6c, 0x69, 0x66, 0x65, 0x74, 0x69, 0x6d, 0x65)
 	if err != nil {
-		err = msgp.WrapError(err)
+		return
+	}
+	err = en.WriteInt(z.Lifetime)
+	if err != nil {
+		err = msgp.WrapError(err, "Lifetime")
+		return
+	}
+	// write "idle_timeout_enabled"
+	err = en.Append(0xb4, 0x69, 0x64, 0x6c, 0x65, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	if err != nil {
+		return
+	}
+	err = en.WriteBool(z.IdleTimeoutEnabled)
+	if err != nil {
+		err = msgp.WrapError(err, "IdleTimeoutEnabled")
+		return
+	}
+	// write "idle_timeout"
+	err = en.Append(0xac, 0x69, 0x64, 0x6c, 0x65, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74)
+	if err != nil {
+		return
+	}
+	err = en.WriteInt(z.IdleTimeout)
+	if err != nil {
+		err = msgp.WrapError(err, "IdleTimeout")
+		return
+	}
+	// write "cookie_domain"
+	err = en.Append(0xad, 0x63, 0x6f, 0x6f, 0x6b, 0x69, 0x65, 0x5f, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e)
+	if err != nil {
+		return
+	}
+	if z.CookieDomain == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = en.WriteString(*z.CookieDomain)
+		if err != nil {
+			err = msgp.WrapError(err, "CookieDomain")
+			return
+		}
+	}
+	// write "cookie_non_persistent"
+	err = en.Append(0xb5, 0x63, 0x6f, 0x6f, 0x6b, 0x69, 0x65, 0x5f, 0x6e, 0x6f, 0x6e, 0x5f, 0x70, 0x65, 0x72, 0x73, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x74)
+	if err != nil {
+		return
+	}
+	err = en.WriteBool(z.CookieNonPersistent)
+	if err != nil {
+		err = msgp.WrapError(err, "CookieNonPersistent")
 		return
 	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z SessionTransportType) MarshalMsg(b []byte) (o []byte, err error) {
+func (z *SessionConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	o = msgp.AppendString(o, string(z))
+	// map header, size 5
+	// string "lifetime"
+	o = append(o, 0x85, 0xa8, 0x6c, 0x69, 0x66, 0x65, 0x74, 0x69, 0x6d, 0x65)
+	o = msgp.AppendInt(o, z.Lifetime)
+	// string "idle_timeout_enabled"
+	o = append(o, 0xb4, 0x69, 0x64, 0x6c, 0x65, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	o = msgp.AppendBool(o, z.IdleTimeoutEnabled)
+	// string "idle_timeout"
+	o = append(o, 0xac, 0x69, 0x64, 0x6c, 0x65, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74)
+	o = msgp.AppendInt(o, z.IdleTimeout)
+	// string "cookie_domain"
+	o = append(o, 0xad, 0x63, 0x6f, 0x6f, 0x6b, 0x69, 0x65, 0x5f, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e)
+	if z.CookieDomain == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o = msgp.AppendString(o, *z.CookieDomain)
+	}
+	// string "cookie_non_persistent"
+	o = append(o, 0xb5, 0x63, 0x6f, 0x6f, 0x6b, 0x69, 0x65, 0x5f, 0x6e, 0x6f, 0x6e, 0x5f, 0x70, 0x65, 0x72, 0x73, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x74)
+	o = msgp.AppendBool(o, z.CookieNonPersistent)
 	return
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
-func (z *SessionTransportType) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	{
-		var zb0001 string
-		zb0001, bts, err = msgp.ReadStringBytes(bts)
+func (z *SessionConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			err = msgp.WrapError(err)
 			return
 		}
-		(*z) = SessionTransportType(zb0001)
+		switch msgp.UnsafeString(field) {
+		case "lifetime":
+			z.Lifetime, bts, err = msgp.ReadIntBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Lifetime")
+				return
+			}
+		case "idle_timeout_enabled":
+			z.IdleTimeoutEnabled, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "IdleTimeoutEnabled")
+				return
+			}
+		case "idle_timeout":
+			z.IdleTimeout, bts, err = msgp.ReadIntBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "IdleTimeout")
+				return
+			}
+		case "cookie_domain":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.CookieDomain = nil
+			} else {
+				if z.CookieDomain == nil {
+					z.CookieDomain = new(string)
+				}
+				*z.CookieDomain, bts, err = msgp.ReadStringBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "CookieDomain")
+					return
+				}
+			}
+		case "cookie_non_persistent":
+			z.CookieNonPersistent, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "CookieNonPersistent")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
 	}
 	o = bts
 	return
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z SessionTransportType) Msgsize() (s int) {
-	s = msgp.StringPrefixSize + len(string(z))
+func (z *SessionConfiguration) Msgsize() (s int) {
+	s = 1 + 9 + msgp.IntSize + 21 + msgp.BoolSize + 13 + msgp.IntSize + 14
+	if z.CookieDomain == nil {
+		s += msgp.NilSize
+	} else {
+		s += msgp.StringPrefixSize + len(*z.CookieDomain)
+	}
+	s += 22 + msgp.BoolSize
 	return
 }
 
