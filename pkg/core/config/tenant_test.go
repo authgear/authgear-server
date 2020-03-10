@@ -144,7 +144,20 @@ func makeFullTenantConfig() TenantConfiguration {
 			Asset: &AssetConfiguration{
 				Secret: "assetsecret",
 			},
+			OIDC: &OIDCConfiguration{
+				Keys: []OIDCSigningKeyConfiguration{
+					OIDCSigningKeyConfiguration{
+						KID:        "k1",
+						PublicKey:  "content of .pem",
+						PrivateKey: "content of .pem",
+					},
+				},
+			},
+			AuthUI: &AuthUIConfiguration{
+				CSS: "a { color: red; }",
+			},
 			Auth: &AuthConfiguration{
+				EnableAPI: true,
 				AuthenticationSession: &AuthenticationSessionConfiguration{
 					Secret: "authnsessionsecret",
 				},

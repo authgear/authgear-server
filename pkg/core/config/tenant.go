@@ -497,6 +497,8 @@ type AppConfiguration struct {
 	Session          *SessionConfiguration          `json:"session,omitempty" yaml:"session" msg:"session" default_zero_value:"true"`
 	CORS             *CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors" default_zero_value:"true"`
 	Auth             *AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth" default_zero_value:"true"`
+	AuthUI           *AuthUIConfiguration           `json:"auth_ui,omitempty" yaml:"auth_ui" msg:"auth_ui" default_zero_value:"true"`
+	OIDC             *OIDCConfiguration             `json:"oidc,omitempty" yaml:"oidc" msg:"oidc" default_zero_value:"true"`
 	MFA              *MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa" default_zero_value:"true"`
 	UserAudit        *UserAuditConfiguration        `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit" default_zero_value:"true"`
 	PasswordPolicy   *PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy" default_zero_value:"true"`
@@ -542,11 +544,26 @@ type CORSConfiguration struct {
 }
 
 type AuthConfiguration struct {
+	EnableAPI                  bool                                `json:"enable_api,omitempty" yaml:"enable_api" msg:"enable_api"`
 	AuthenticationSession      *AuthenticationSessionConfiguration `json:"authentication_session,omitempty" yaml:"authentication_session" msg:"authentication_session" default_zero_value:"true"`
 	LoginIDTypes               *LoginIDTypesConfiguration          `json:"login_id_types,omitempty" yaml:"login_id_types" msg:"login_id_types" default_zero_value:"true"`
 	LoginIDKeys                []LoginIDKeyConfiguration           `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
 	AllowedRealms              []string                            `json:"-" yaml:"-" msg:"allowed_realms"`
 	OnUserDuplicateAllowCreate bool                                `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
+}
+
+type AuthUIConfiguration struct {
+	CSS string `json:"css,omitempty" yaml:"css" msg:"css"`
+}
+
+type OIDCConfiguration struct {
+	Keys []OIDCSigningKeyConfiguration `json:"keys,omitempty" yaml:"keys" msg:"keys"`
+}
+
+type OIDCSigningKeyConfiguration struct {
+	KID        string `json:"kid,omitempty" yaml:"kid" msg:"kid"`
+	PublicKey  string `json:"public_key,omitempty" yaml:"public_key" msg:"public_key"`
+	PrivateKey string `json:"private_key,omitempty" yaml:"private_key" msg:"private_key"`
 }
 
 func (c *AuthConfiguration) GetLoginIDKey(key string) (*LoginIDKeyConfiguration, bool) {

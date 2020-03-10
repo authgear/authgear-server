@@ -65,7 +65,9 @@ var (
 			"master_key": { "$ref": "#NonEmptyString" },
 			"session": { "$ref": "#SessionConfiguration" },
 			"cors": { "$ref": "#CORSConfiguration" },
+			"oidc": { "$ref": "#OIDCConfiguration" },
 			"auth": { "$ref": "#AuthConfiguration" },
+			"auth_ui": { "$ref": "#AuthUIConfiguration" },
 			"mfa": { "$ref": "#MFAConfiguration" },
 			"user_audit": { "$ref": "#UserAuditConfiguration" },
 			"password_policy": { "$ref": "#PasswordPolicyConfiguration" },
@@ -123,11 +125,39 @@ var (
 			"origin": { "type": "string" }
 		}
 	},
+	"OIDCConfiguration": {
+		"$id": "#OIDCConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"keys": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"kid": { "type": "string" },
+						"public_key": { "type": "string" },
+						"private_key": { "type": "string" }
+					},
+					"required": ["kid", "public_key", "private_key"]
+				}
+			}
+		}
+	},
+	"AuthUIConfiguration": {
+		"$id": "#AuthUIConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"css": { "type": "string" }
+		}
+	},
 	"AuthConfiguration": {
 		"$id": "#AuthConfiguration",
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
+			"enable_api": { "type": "boolean" },
 			"authentication_session": { "$ref": "#AuthenticationSessionConfiguration" },
 			"login_id_keys": {
 				"type": "array",
