@@ -29,7 +29,7 @@ const (
 
 const extraDataSizeLimit = 1024
 
-type providerImpl struct {
+type ProviderImpl struct {
 	req           *http.Request
 	store         Store
 	eventStore    EventStore
@@ -39,8 +39,8 @@ type providerImpl struct {
 	rand *rand.Rand
 }
 
-func NewProvider(req *http.Request, store Store, eventStore EventStore, clientConfigs []config.APIClientConfiguration) Provider {
-	return &providerImpl{
+func NewProvider(req *http.Request, store Store, eventStore EventStore, clientConfigs []config.APIClientConfiguration) *ProviderImpl {
+	return &ProviderImpl{
 		req:           req,
 		store:         store,
 		eventStore:    eventStore,
@@ -50,7 +50,9 @@ func NewProvider(req *http.Request, store Store, eventStore EventStore, clientCo
 	}
 }
 
-func (p *providerImpl) MakeSession(authnSess *auth.AuthnSession) (*Session, string) {
+var _ Provider = &ProviderImpl{}
+
+func (p *ProviderImpl) MakeSession(authnSess *auth.AuthnSession) (*Session, string) {
 	now := p.time.NowUTC()
 	accessEvent := newAccessEvent(now, p.req)
 	// NOTE(louis): remember to update the mock provider
@@ -76,7 +78,7 @@ func (p *providerImpl) MakeSession(authnSess *auth.AuthnSession) (*Session, stri
 	return session, token
 }
 
-func (p *providerImpl) Create(session *Session) error {
+func (p *ProviderImpl) Create(session *Session) error {
 	clientConfig, _ := model.GetClientConfig(p.clientConfigs, session.ClientID)
 	expiry := computeSessionStorageExpiry(session, *clientConfig)
 	err := p.store.Create(session, expiry)
@@ -92,7 +94,7 @@ func (p *providerImpl) Create(session *Session) error {
 	return nil
 }
 
-func (p *providerImpl) GetByToken(token string) (*Session, error) {
+func (p *ProviderImpl) GetByToken(token string) (*Session, error) {
 	id, ok := decodeTokenSessionID(token)
 	if !ok {
 		return nil, ErrSessionNotFound
@@ -126,7 +128,7 @@ func (p *providerImpl) GetByToken(token string) (*Session, error) {
 	return s, nil
 }
 
-func (p *providerImpl) Get(id string) (*Session, error) {
+func (p *ProviderImpl) Get(id string) (*Session, error) {
 	session, err := p.store.Get(id)
 	if err != nil {
 		if !errors.Is(err, ErrSessionNotFound) {
@@ -138,7 +140,7 @@ func (p *providerImpl) Get(id string) (*Session, error) {
 	return session, nil
 }
 
-func (p *providerImpl) Access(s *Session) error {
+func (p *ProviderImpl) Access(s *Session) error {
 	now := p.time.NowUTC()
 	accessEvent := newAccessEvent(now, p.req)
 
@@ -160,7 +162,7 @@ func (p *providerImpl) Access(s *Session) error {
 	return nil
 }
 
-func (p *providerImpl) Invalidate(session *Session) error {
+func (p *ProviderImpl) Invalidate(session *Session) error {
 	err := p.store.Delete(session)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to invalidate session")
@@ -168,7 +170,7 @@ func (p *providerImpl) Invalidate(session *Session) error {
 	return nil
 }
 
-func (p *providerImpl) InvalidateBatch(sessions []*Session) error {
+func (p *ProviderImpl) InvalidateBatch(sessions []*Session) error {
 	err := p.store.DeleteBatch(sessions)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to invalidate sessions")
@@ -176,7 +178,7 @@ func (p *providerImpl) InvalidateBatch(sessions []*Session) error {
 	return nil
 }
 
-func (p *providerImpl) InvalidateAll(userID string, sessionID string) error {
+func (p *ProviderImpl) InvalidateAll(userID string, sessionID string) error {
 	err := p.store.DeleteAll(userID, sessionID)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to invalidate sessions")
@@ -184,7 +186,7 @@ func (p *providerImpl) InvalidateAll(userID string, sessionID string) error {
 	return nil
 }
 
-func (p *providerImpl) List(userID string) (sessions []*Session, err error) {
+func (p *ProviderImpl) List(userID string) (sessions []*Session, err error) {
 	storedSessions, err := p.store.List(userID)
 	if err != nil {
 		err = errors.HandledWithMessage(err, "failed to list sessions")
@@ -210,7 +212,7 @@ func (p *providerImpl) List(userID string) (sessions []*Session, err error) {
 	return
 }
 
-func (p *providerImpl) Update(sess *Session) error {
+func (p *ProviderImpl) Update(sess *Session) error {
 	clientConfig, _ := model.GetClientConfig(p.clientConfigs, sess.ClientID)
 	expiry := computeSessionStorageExpiry(sess, *clientConfig)
 	err := p.store.Update(sess, expiry)
@@ -220,7 +222,7 @@ func (p *providerImpl) Update(sess *Session) error {
 	return err
 }
 
-func (p *providerImpl) generateToken(s *Session) string {
+func (p *ProviderImpl) generateToken(s *Session) string {
 	token := encodeToken(s.ID, corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand))
 	s.TokenHash = crypto.SHA256String(token)
 	return token

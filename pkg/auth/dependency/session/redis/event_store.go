@@ -13,18 +13,18 @@ const maxEventStreamLength = 10
 
 const eventTypeAccessEvent = "access"
 
-type eventStore struct {
+type EventStore struct {
 	ctx   context.Context
 	appID string
 }
 
-var _ session.EventStore = &eventStore{}
+var _ session.EventStore = &EventStore{}
 
-func NewEventStore(ctx context.Context, appID string) session.EventStore {
-	return &eventStore{ctx: ctx, appID: appID}
+func NewEventStore(ctx context.Context, appID string) *EventStore {
+	return &EventStore{ctx: ctx, appID: appID}
 }
 
-func (s *eventStore) AppendAccessEvent(session *session.Session, event *session.AccessEvent) (err error) {
+func (s *EventStore) AppendAccessEvent(session *session.Session, event *session.AccessEvent) (err error) {
 	json, err := json.Marshal(event)
 	if err != nil {
 		return
