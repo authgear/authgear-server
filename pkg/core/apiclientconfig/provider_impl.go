@@ -37,7 +37,7 @@ func (p *providerImpl) GetAccessKeyByAPIKey(apiKey string) model.AccessKey {
 
 	for _, clientConfig := range p.tenantConfig.AppConfig.Clients {
 		if subtle.ConstantTimeCompare([]byte(apiKey), []byte(clientConfig.ClientID)) == 1 {
-			return model.AccessKey{Type: model.APIAccessKeyType, ClientID: clientConfig.ID}
+			return model.AccessKey{Type: model.APIAccessKeyType, ClientID: clientConfig.ClientID}
 		}
 	}
 

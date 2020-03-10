@@ -553,7 +553,6 @@ const (
 )
 
 type APIClientConfiguration struct {
-	ID         string `json:"id" yaml:"id" msg:"id"`
 	ClientName string `json:"client_name" yaml:"client_name" msg:"client_name"`
 	ClientID   string `json:"client_id" yaml:"client_id" msg:"client_id"`
 

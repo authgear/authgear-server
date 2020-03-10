@@ -20,11 +20,9 @@ var (
 		AppConfig: &config.AppConfiguration{
 			Clients: []config.APIClientConfiguration{
 				config.APIClientConfiguration{
-					ID:       "web-app",
 					ClientID: "web-client-id",
 				},
 				config.APIClientConfiguration{
-					ID:       "mobile-app",
 					ClientID: "mobile-client-id",
 				},
 			},

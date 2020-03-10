@@ -82,8 +82,8 @@ func (m *AuthnMiddleware) resolve(r *http.Request) (s *auth.Session, info *authi
 		return
 	}
 
-	clientConfig, _ := model.GetClientConfig(tenantConfig.AppConfig.Clients, sess.ClientID)
-	if clientConfig.SessionTransport != transport {
+	clientConfig, ok := model.GetClientConfig(tenantConfig.AppConfig.Clients, sess.ClientID)
+	if !ok || clientConfig.SessionTransport != transport {
 		err = session.ErrSessionNotFound
 		return
 	}

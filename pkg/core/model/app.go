@@ -75,7 +75,7 @@ func GetAPIKey(i interface{}) string {
 
 func GetClientConfig(c []config.APIClientConfiguration, clientID string) (*config.APIClientConfiguration, bool) {
 	for _, clientConfig := range c {
-		if clientConfig.ID == clientID {
+		if clientConfig.ClientID == clientID {
 			cc := clientConfig
 			return &cc, true
 		}

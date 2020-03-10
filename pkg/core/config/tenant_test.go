@@ -121,7 +121,6 @@ func makeFullTenantConfig() TenantConfiguration {
 			DisplayAppName: "MyApp",
 			Clients: []APIClientConfiguration{
 				APIClientConfiguration{
-					ID:                   "web-app",
 					ClientName:           "Web App",
 					ClientID:             "web_app",
 					SessionTransport:     SessionTransportTypeHeader,
@@ -422,7 +421,7 @@ func TestTenantConfig(t *testing.T) {
 		Convey("should validate client_id != master key", func() {
 			c := makeFullTenantConfig()
 			for i := range c.AppConfig.Clients {
-				if c.AppConfig.Clients[i].ID == "web-app" {
+				if c.AppConfig.Clients[i].ClientID == "web_app" {
 					c.AppConfig.Clients[i].ClientID = c.AppConfig.MasterKey
 				}
 			}
