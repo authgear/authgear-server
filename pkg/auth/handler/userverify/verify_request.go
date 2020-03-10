@@ -126,10 +126,7 @@ type VerifyRequestHandler struct {
 
 // ProvideAuthzPolicy provides authorization policy of handler
 func (h VerifyRequestHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		policy.RequireValidUser,
-	)
+	return policy.RequireValidUser
 }
 
 func (h VerifyRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

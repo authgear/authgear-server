@@ -58,10 +58,7 @@ type RevokeAllBearerTokenHandler struct {
 }
 
 func (h *RevokeAllBearerTokenHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		policy.RequireValidUser,
-	)
+	return policy.RequireValidUser
 }
 
 func (h *RevokeAllBearerTokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

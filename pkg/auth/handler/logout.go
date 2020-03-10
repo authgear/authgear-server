@@ -76,10 +76,7 @@ type LogoutHandler struct {
 
 // ProvideAuthzPolicy provides authorization policy of handler
 func (h LogoutHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		policy.RequireValidUser,
-	)
+	return policy.RequireValidUser
 }
 
 func (h LogoutHandler) WithTx() bool {

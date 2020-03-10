@@ -130,10 +130,7 @@ type SetDisableHandler struct {
 
 // ProvideAuthzPolicy provides authorization policy of handler
 func (h SetDisableHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireMasterKey),
-	)
+	return authz.PolicyFunc(policy.RequireMasterKey)
 }
 
 func (h SetDisableHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

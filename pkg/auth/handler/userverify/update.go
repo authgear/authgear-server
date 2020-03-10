@@ -96,10 +96,7 @@ type UpdateHandler struct {
 
 // ProvideAuthzPolicy provides authorization policy of handler
 func (h UpdateHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireMasterKey),
-	)
+	return authz.PolicyFunc(policy.RequireMasterKey)
 }
 
 func (h UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

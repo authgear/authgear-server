@@ -100,10 +100,7 @@ type RemoveLoginIDHandler struct {
 }
 
 func (h RemoveLoginIDHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		policy.RequireValidUser,
-	)
+	return policy.RequireValidUser
 }
 
 func (h RemoveLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
