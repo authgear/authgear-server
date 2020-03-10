@@ -36,10 +36,10 @@ func (z *APIClientConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "ClientName")
 				return
 			}
-		case "api_key":
-			z.APIKey, err = dc.ReadString()
+		case "client_id":
+			z.ClientID, err = dc.ReadString()
 			if err != nil {
-				err = msgp.WrapError(err, "APIKey")
+				err = msgp.WrapError(err, "ClientID")
 				return
 			}
 		case "session_transport":
@@ -126,14 +126,14 @@ func (z *APIClientConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "ClientName")
 		return
 	}
-	// write "api_key"
-	err = en.Append(0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
+	// write "client_id"
+	err = en.Append(0xa9, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.APIKey)
+	err = en.WriteString(z.ClientID)
 	if err != nil {
-		err = msgp.WrapError(err, "APIKey")
+		err = msgp.WrapError(err, "ClientID")
 		return
 	}
 	// write "session_transport"
@@ -219,9 +219,9 @@ func (z *APIClientConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "client_name"
 	o = append(o, 0xab, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	o = msgp.AppendString(o, z.ClientName)
-	// string "api_key"
-	o = append(o, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
-	o = msgp.AppendString(o, z.APIKey)
+	// string "client_id"
+	o = append(o, 0xa9, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64)
+	o = msgp.AppendString(o, z.ClientID)
 	// string "session_transport"
 	o = append(o, 0xb1, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x70, 0x6f, 0x72, 0x74)
 	o = msgp.AppendString(o, string(z.SessionTransport))
@@ -276,10 +276,10 @@ func (z *APIClientConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 				err = msgp.WrapError(err, "ClientName")
 				return
 			}
-		case "api_key":
-			z.APIKey, bts, err = msgp.ReadStringBytes(bts)
+		case "client_id":
+			z.ClientID, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "APIKey")
+				err = msgp.WrapError(err, "ClientID")
 				return
 			}
 		case "session_transport":
@@ -346,7 +346,7 @@ func (z *APIClientConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *APIClientConfiguration) Msgsize() (s int) {
-	s = 1 + 3 + msgp.StringPrefixSize + len(z.ID) + 12 + msgp.StringPrefixSize + len(z.ClientName) + 8 + msgp.StringPrefixSize + len(z.APIKey) + 18 + msgp.StringPrefixSize + len(string(z.SessionTransport)) + 22 + msgp.IntSize + 29 + msgp.BoolSize + 21 + msgp.IntSize + 23 + msgp.BoolSize + 23 + msgp.IntSize + 10 + msgp.StringPrefixSize + len(string(z.SameSite))
+	s = 1 + 3 + msgp.StringPrefixSize + len(z.ID) + 12 + msgp.StringPrefixSize + len(z.ClientName) + 10 + msgp.StringPrefixSize + len(z.ClientID) + 18 + msgp.StringPrefixSize + len(string(z.SessionTransport)) + 22 + msgp.IntSize + 29 + msgp.BoolSize + 21 + msgp.IntSize + 23 + msgp.BoolSize + 23 + msgp.IntSize + 10 + msgp.StringPrefixSize + len(string(z.SameSite))
 	return
 }
 

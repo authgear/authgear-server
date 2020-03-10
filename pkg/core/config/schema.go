@@ -96,7 +96,7 @@ var (
 		"properties": {
 			"id": { "$ref": "#NonEmptyString" },
 			"client_name": { "$ref": "#NonEmptyString" },
-			"api_key": { "$ref": "#NonEmptyString" },
+			"client_id": { "$ref": "#NonEmptyString" },
 			"session_transport": {
 				"type": "string",
 				"enum": ["header", "cookie"]
@@ -108,7 +108,7 @@ var (
 			"refresh_token_lifetime": { "type": "integer", "minimum": 0 },
 			"same_site": { "enum": ["none", "lax", "strict"] }
 		},
-		"required": ["id", "client_name", "api_key", "session_transport"]
+		"required": ["id", "client_name", "client_id", "session_transport"]
 	},
 	"CORSConfiguration": {
 		"$id": "#CORSConfiguration",

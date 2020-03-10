@@ -167,7 +167,7 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	values[0] = c.AppConfig.MasterKey
 	i := 1
 	for _, clientConfig := range c.AppConfig.Clients {
-		values[i] = clientConfig.APIKey
+		values[i] = clientConfig.ClientID
 		i++
 	}
 
@@ -206,8 +206,8 @@ func (c *TenantConfiguration) PostValidate() error {
 
 	// Validate complex AppConfiguration
 	for key, clientConfig := range c.AppConfig.Clients {
-		if clientConfig.APIKey == c.AppConfig.MasterKey {
-			return fail(validation.ErrorGeneral, "master key must not be same as API key", "user_config", "master_key")
+		if clientConfig.ClientID == c.AppConfig.MasterKey {
+			return fail(validation.ErrorGeneral, "master key must not be same as client_id", "user_config", "master_key")
 		}
 
 		if clientConfig.SessionTransport == SessionTransportTypeCookie && !clientConfig.RefreshTokenDisabled {
@@ -555,7 +555,7 @@ const (
 type APIClientConfiguration struct {
 	ID         string `json:"id" yaml:"id" msg:"id"`
 	ClientName string `json:"client_name" yaml:"client_name" msg:"client_name"`
-	APIKey     string `json:"api_key" yaml:"api_key" msg:"api_key"`
+	ClientID   string `json:"client_id" yaml:"client_id" msg:"client_id"`
 
 	SessionTransport          SessionTransportType `json:"session_transport" yaml:"session_transport" msg:"session_transport"`
 	AccessTokenLifetime       int                  `json:"access_token_lifetime,omitempty" yaml:"access_token_lifetime" msg:"access_token_lifetime"`

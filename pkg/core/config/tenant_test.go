@@ -123,7 +123,7 @@ func makeFullTenantConfig() TenantConfiguration {
 				APIClientConfiguration{
 					ID:                   "web-app",
 					ClientName:           "Web App",
-					APIKey:               "api_key",
+					ClientID:             "web_app",
 					SessionTransport:     SessionTransportTypeHeader,
 					AccessTokenLifetime:  1800,
 					SessionIdleTimeout:   300,
@@ -419,17 +419,17 @@ func TestTenantConfig(t *testing.T) {
 			So(validation.ErrorCauses(err), ShouldResemble, causes)
 		}
 
-		Convey("should validate api key != master key", func() {
+		Convey("should validate client_id != master key", func() {
 			c := makeFullTenantConfig()
 			for i := range c.AppConfig.Clients {
 				if c.AppConfig.Clients[i].ID == "web-app" {
-					c.AppConfig.Clients[i].APIKey = c.AppConfig.MasterKey
+					c.AppConfig.Clients[i].ClientID = c.AppConfig.MasterKey
 				}
 			}
 
 			testValidation(&c, []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
-				Message: "master key must not be same as API key",
+				Message: "master key must not be same as client_id",
 				Pointer: "/user_config/master_key",
 			}})
 		})

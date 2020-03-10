@@ -20,12 +20,12 @@ var (
 		AppConfig: &config.AppConfiguration{
 			Clients: []config.APIClientConfiguration{
 				config.APIClientConfiguration{
-					ID:     "web-app",
-					APIKey: "web-api-key",
+					ID:       "web-app",
+					ClientID: "web-client-id",
 				},
 				config.APIClientConfiguration{
-					ID:     "mobile-app",
-					APIKey: "mobile-api-key",
+					ID:       "mobile-app",
+					ClientID: "mobile-client-id",
 				},
 			},
 			MasterKey: "MasterKey",

@@ -172,7 +172,7 @@ func TestParseAppConfiguration(t *testing.T) {
 					"secret": "hooksecret"
 				}
 			}`,
-			"/clients/0/api_key: Required",
+			"/clients/0/client_id: Required",
 			"/clients/0/client_name: Required",
 			"/clients/0/id: Required",
 			"/clients/0/key: ExtraEntry",
