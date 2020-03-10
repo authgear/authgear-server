@@ -122,7 +122,7 @@ func makeFullTenantConfig() TenantConfiguration {
 			Clients: []APIClientConfiguration{
 				APIClientConfiguration{
 					ID:                   "web-app",
-					Name:                 "Web App",
+					ClientName:           "Web App",
 					APIKey:               "api_key",
 					SessionTransport:     SessionTransportTypeHeader,
 					AccessTokenLifetime:  1800,

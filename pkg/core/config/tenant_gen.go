@@ -30,10 +30,10 @@ func (z *APIClientConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "ID")
 				return
 			}
-		case "name":
-			z.Name, err = dc.ReadString()
+		case "client_name":
+			z.ClientName, err = dc.ReadString()
 			if err != nil {
-				err = msgp.WrapError(err, "Name")
+				err = msgp.WrapError(err, "ClientName")
 				return
 			}
 		case "api_key":
@@ -116,14 +116,14 @@ func (z *APIClientConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "ID")
 		return
 	}
-	// write "name"
-	err = en.Append(0xa4, 0x6e, 0x61, 0x6d, 0x65)
+	// write "client_name"
+	err = en.Append(0xab, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.Name)
+	err = en.WriteString(z.ClientName)
 	if err != nil {
-		err = msgp.WrapError(err, "Name")
+		err = msgp.WrapError(err, "ClientName")
 		return
 	}
 	// write "api_key"
@@ -216,9 +216,9 @@ func (z *APIClientConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "id"
 	o = append(o, 0x8a, 0xa2, 0x69, 0x64)
 	o = msgp.AppendString(o, z.ID)
-	// string "name"
-	o = append(o, 0xa4, 0x6e, 0x61, 0x6d, 0x65)
-	o = msgp.AppendString(o, z.Name)
+	// string "client_name"
+	o = append(o, 0xab, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
+	o = msgp.AppendString(o, z.ClientName)
 	// string "api_key"
 	o = append(o, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
 	o = msgp.AppendString(o, z.APIKey)
@@ -270,10 +270,10 @@ func (z *APIClientConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 				err = msgp.WrapError(err, "ID")
 				return
 			}
-		case "name":
-			z.Name, bts, err = msgp.ReadStringBytes(bts)
+		case "client_name":
+			z.ClientName, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "Name")
+				err = msgp.WrapError(err, "ClientName")
 				return
 			}
 		case "api_key":
@@ -346,7 +346,7 @@ func (z *APIClientConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *APIClientConfiguration) Msgsize() (s int) {
-	s = 1 + 3 + msgp.StringPrefixSize + len(z.ID) + 5 + msgp.StringPrefixSize + len(z.Name) + 8 + msgp.StringPrefixSize + len(z.APIKey) + 18 + msgp.StringPrefixSize + len(string(z.SessionTransport)) + 22 + msgp.IntSize + 29 + msgp.BoolSize + 21 + msgp.IntSize + 23 + msgp.BoolSize + 23 + msgp.IntSize + 10 + msgp.StringPrefixSize + len(string(z.SameSite))
+	s = 1 + 3 + msgp.StringPrefixSize + len(z.ID) + 12 + msgp.StringPrefixSize + len(z.ClientName) + 8 + msgp.StringPrefixSize + len(z.APIKey) + 18 + msgp.StringPrefixSize + len(string(z.SessionTransport)) + 22 + msgp.IntSize + 29 + msgp.BoolSize + 21 + msgp.IntSize + 23 + msgp.BoolSize + 23 + msgp.IntSize + 10 + msgp.StringPrefixSize + len(string(z.SameSite))
 	return
 }
 
