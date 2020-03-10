@@ -32,6 +32,27 @@ func Format(session *auth.Session) (mSession model.Session) {
 	return
 }
 
+func (s *Session) ToAPIModel() (ms model.Session) {
+	ms.ID = s.ID
+
+	ms.IdentityID = s.PrincipalID
+	ms.IdentityType = string(s.PrincipalType)
+	ms.IdentityUpdatedAt = s.PrincipalUpdatedAt
+
+	ms.AuthenticatorID = s.AuthenticatorID
+	ms.AuthenticatorType = string(s.AuthenticatorType)
+	ms.AuthenticatorOOBChannel = string(s.AuthenticatorOOBChannel)
+	ms.AuthenticatorUpdatedAt = s.AuthenticatorUpdatedAt
+
+	ms.CreatedAt = s.CreatedAt
+	ms.LastAccessedAt = s.AccessedAt
+	ms.CreatedByIP = _resolveIP(s.InitialAccess.Remote)
+	ms.LastAccessedByIP = _resolveIP(s.LastAccess.Remote)
+	ms.UserAgent = parseUserAgent(s.LastAccess.UserAgent)
+	ms.UserAgent.DeviceName = s.LastAccess.Extra.DeviceName()
+	return
+}
+
 var uaParser = uaparser.NewFromSaved()
 
 var skygearUARegex = regexp.MustCompile(`^(.*)/(\d+)(?:\.(\d+)|)(?:\.(\d+)|)(?:\.(\d+)|) \(Skygear;`)
@@ -66,6 +87,15 @@ var forwardedForRegex = regexp.MustCompile(`for=([^;]*)(?:[; ]|$)`)
 var ipRegex = regexp.MustCompile(`^(?:(\d+\.\d+\.\d+\.\d+)|\[(.*)\])(?::\d+)?$`)
 
 func resolveIP(conn auth.SessionAccessEventConnInfo) (ip string) {
+	return _resolveIP(AccessEventConnInfo{
+		RemoteAddr:    conn.RemoteAddr,
+		XForwardedFor: conn.XForwardedFor,
+		XRealIP:       conn.XRealIP,
+		Forwarded:     conn.Forwarded,
+	})
+}
+
+func _resolveIP(conn AccessEventConnInfo) (ip string) {
 	defer func() {
 		ip = strings.TrimSpace(ip)
 		// remove ports from IP
