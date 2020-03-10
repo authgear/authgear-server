@@ -104,8 +104,7 @@ var (
 			"session_idle_timeout_enabled": { "type": "boolean" },
 			"session_idle_timeout": { "type": "integer", "minimum": 0 },
 			"refresh_token_disabled": { "type": "boolean" },
-			"refresh_token_lifetime": { "type": "integer", "minimum": 0 },
-			"same_site": { "enum": ["none", "lax", "strict"] }
+			"refresh_token_lifetime": { "type": "integer", "minimum": 0 }
 		},
 		"required": ["client_name", "client_id", "session_transport"]
 	},

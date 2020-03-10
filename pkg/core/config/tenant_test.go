@@ -127,7 +127,6 @@ func makeFullTenantConfig() TenantConfiguration {
 					AccessTokenLifetime:  1800,
 					SessionIdleTimeout:   300,
 					RefreshTokenLifetime: 86400,
-					SameSite:             SessionCookieSameSiteLax,
 				},
 			},
 			MasterKey: "mymasterkey",

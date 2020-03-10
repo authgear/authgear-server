@@ -19,7 +19,6 @@ func NewMockProvider(clientID string) *MockProvider {
 			SessionTransport:     config.SessionTransportTypeHeader,
 			AccessTokenLifetime:  1800,
 			RefreshTokenLifetime: 86400,
-			SameSite:             config.SessionCookieSameSiteLax,
 		},
 	}
 }

@@ -47,8 +47,8 @@ func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string, m
 		HttpOnly: true,
 		Secure:   !w.useInsecureCookie,
 	}
-	w.configureCookieSameSite(cookieSession, clientConfig.SameSite)
-	w.configureCookieSameSite(cookieMFABearerToken, clientConfig.SameSite)
+	cookieSession.SameSite = http.SameSiteLaxMode
+	cookieMFABearerToken.SameSite = http.SameSiteLaxMode
 
 	if useCookie {
 		cookieSession.Value = *accessToken
@@ -68,17 +68,6 @@ func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string, m
 	coreHttp.UpdateCookie(rw, cookieSession)
 	if mfaBearerToken != nil {
 		coreHttp.UpdateCookie(rw, cookieMFABearerToken)
-	}
-}
-
-func (w *writerImpl) configureCookieSameSite(cookie *http.Cookie, sameSite config.SessionCookieSameSite) {
-	switch sameSite {
-	case config.SessionCookieSameSiteNone:
-		cookie.SameSite = http.SameSiteDefaultMode
-	case config.SessionCookieSameSiteLax:
-		cookie.SameSite = http.SameSiteLaxMode
-	case config.SessionCookieSameSiteStrict:
-		cookie.SameSite = http.SameSiteStrictMode
 	}
 }
 

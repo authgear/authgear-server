@@ -296,9 +296,6 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 				clientConfig.SessionIdleTimeout = clientConfig.AccessTokenLifetime
 			}
 		}
-		if clientConfig.SameSite == "" {
-			clientConfig.SameSite = SessionCookieSameSiteLax
-		}
 		if clientConfig.SessionTransport == SessionTransportTypeCookie {
 			clientConfig.RefreshTokenDisabled = true
 		}
@@ -544,14 +541,6 @@ const (
 	SessionTransportTypeCookie SessionTransportType = "cookie"
 )
 
-type SessionCookieSameSite string
-
-const (
-	SessionCookieSameSiteNone   SessionCookieSameSite = "none"
-	SessionCookieSameSiteLax    SessionCookieSameSite = "lax"
-	SessionCookieSameSiteStrict SessionCookieSameSite = "strict"
-)
-
 type APIClientConfiguration struct {
 	ClientName string `json:"client_name" yaml:"client_name" msg:"client_name"`
 	ClientID   string `json:"client_id" yaml:"client_id" msg:"client_id"`
@@ -563,8 +552,6 @@ type APIClientConfiguration struct {
 
 	RefreshTokenDisabled bool `json:"refresh_token_disabled,omitempty" yaml:"refresh_token_disabled" msg:"refresh_token_disabled"`
 	RefreshTokenLifetime int  `json:"refresh_token_lifetime,omitempty" yaml:"refresh_token_lifetime" msg:"refresh_token_lifetime"`
-
-	SameSite SessionCookieSameSite `json:"same_site,omitempty" yaml:"same_site" msg:"same_site"`
 }
 
 // CORSConfiguration represents CORS configuration.
