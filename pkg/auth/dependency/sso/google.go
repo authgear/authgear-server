@@ -1,13 +1,11 @@
 package sso
 
 import (
-	"crypto/subtle"
 	"net/http"
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -35,7 +33,7 @@ func (f *GoogleImpl) GetAuthURL(state State, encodedState string) (string, error
 	return d.MakeOAuthURL(OIDCAuthParams{
 		ProviderConfig: f.ProviderConfig,
 		URLPrefix:      f.URLPrefix,
-		Nonce:          state.Nonce,
+		Nonce:          state.HashedNonce,
 		EncodedState:   encodedState,
 		ExtraParams: map[string]string{
 			"prompt": "select_account",
@@ -52,11 +50,6 @@ func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (aut
 }
 
 func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
-	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
-		err = NewSSOFailed(InvalidParams, "invalid sso state")
-		return
-	}
-
 	d, err := FetchOIDCDiscoveryDocument(http.DefaultClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC discovery document")
@@ -78,7 +71,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 		f.ProviderConfig.ClientID,
 		f.ProviderConfig.ClientSecret,
 		redirectURI(f.URLPrefix, f.ProviderConfig),
-		r.Nonce,
+		state.HashedNonce,
 		f.TimeProvider.NowUTC,
 		&tokenResp,
 	)

@@ -9,7 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -89,15 +88,7 @@ func (h *AuthRedirectHandler) Handle(w http.ResponseWriter, r *http.Request) (ux
 
 	// Always generate a new nonce to ensure it is unpredictable.
 	nonce := sso.GenerateOpenIDConnectNonce()
-	cookie := &http.Cookie{
-		Name:     coreHttp.CookieNameOpenIDConnectNonce,
-		Value:    nonce,
-		Path:     "/",
-		HttpOnly: true,
-	}
-	http.SetCookie(w, cookie)
-
-	state.Nonce = crypto.SHA256String(nonce)
+	state.HashedNonce = crypto.SHA256String(nonce)
 	encodedState, err = h.SSOProvider.EncodeState(*state)
 	if err != nil {
 		return

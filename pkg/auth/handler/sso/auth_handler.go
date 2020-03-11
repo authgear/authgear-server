@@ -23,7 +23,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
@@ -54,7 +53,6 @@ func (f AuthHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	return h
 }
 
-// AuthRequestPayload is sso.OAuthAuthorizationResponse
 type AuthRequestPayload sso.OAuthAuthorizationResponse
 
 // Validate request payload
@@ -65,10 +63,6 @@ func (p AuthRequestPayload) Validate() error {
 
 	if p.State == "" {
 		return errors.New("state is required")
-	}
-
-	if p.Nonce == "" {
-		return errors.New("nonce is required")
 	}
 
 	return nil
@@ -106,11 +100,6 @@ func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 	payload.Code = request.Form.Get("code")
 	payload.Scope = request.Form.Get("scope")
 	payload.State = request.Form.Get("state")
-
-	cookie, cookieErr := request.Cookie(coreHttp.CookieNameOpenIDConnectNonce)
-	if cookieErr != http.ErrNoCookie {
-		payload.Nonce = cookie.Value
-	}
 
 	return payload, nil
 }

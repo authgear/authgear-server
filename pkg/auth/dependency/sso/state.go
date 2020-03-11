@@ -32,6 +32,6 @@ type State struct {
 	// CodeChallenge is borrowed from PKCE.
 	// See https://www.oauth.com/oauth2-servers/pkce/authorization-request/
 	CodeChallenge string `json:"code_challenge"`
-	Nonce         string `json:"nonce"`
+	HashedNonce   string `json:"hashed_nonce"`
 	APIClientID   string `json:"api_client_id"`
 }

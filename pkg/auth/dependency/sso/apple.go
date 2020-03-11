@@ -1,7 +1,6 @@
 package sso
 
 import (
-	"crypto/subtle"
 	"net/http"
 	"net/url"
 	"strings"
@@ -63,7 +62,7 @@ func (f *AppleImpl) GetAuthURL(state State, encodedState string) (string, error)
 	return appleOIDCConfig.MakeOAuthURL(OIDCAuthParams{
 		ProviderConfig: f.ProviderConfig,
 		URLPrefix:      f.URLPrefix,
-		Nonce:          state.Nonce,
+		Nonce:          state.HashedNonce,
 		EncodedState:   encodedState,
 	}), nil
 }
@@ -73,11 +72,6 @@ func (f *AppleImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (auth
 }
 
 func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
-	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
-		err = NewSSOFailed(InvalidParams, "invalid sso state")
-		return
-	}
-
 	keySet, err := appleOIDCConfig.FetchJWKs(http.DefaultClient)
 	if err != nil {
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")
@@ -99,7 +93,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 		f.ProviderConfig.ClientID,
 		clientSecret,
 		redirectURI(f.URLPrefix, f.ProviderConfig),
-		r.Nonce,
+		state.HashedNonce,
 		f.TimeProvider.NowUTC,
 		&tokenResp,
 	)

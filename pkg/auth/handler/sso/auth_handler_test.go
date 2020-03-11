@@ -28,7 +28,6 @@ import (
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -84,7 +83,6 @@ func TestAuthPayload(t *testing.T) {
 			payload := AuthRequestPayload{
 				Code:  "code",
 				State: "state",
-				Nonce: "nonce",
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
@@ -194,10 +192,6 @@ func TestAuthHandler(t *testing.T) {
 
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)
-		nonceCookie := &http.Cookie{
-			Name:  coreHttp.CookieNameOpenIDConnectNonce,
-			Value: nonce,
-		}
 
 		Convey("should write code in the response body if ux_mode is manual", func() {
 			uxMode := sso.UXModeManual
@@ -209,7 +203,7 @@ func TestAuthHandler(t *testing.T) {
 					CallbackURL: "http://localhost:3000",
 					UXMode:      uxMode,
 				},
-				Nonce: hashedNonce,
+				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 			v := url.Values{}
@@ -220,7 +214,6 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
@@ -254,7 +247,7 @@ func TestAuthHandler(t *testing.T) {
 					CallbackURL: "http://localhost:3000",
 					UXMode:      uxMode,
 				},
-				Nonce: hashedNonce,
+				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 
@@ -266,7 +259,6 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -306,7 +298,7 @@ func TestAuthHandler(t *testing.T) {
 					CallbackURL: "http://localhost:3000",
 					UXMode:      uxMode,
 				},
-				Nonce: hashedNonce,
+				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 
@@ -318,7 +310,6 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -340,7 +331,7 @@ func TestAuthHandler(t *testing.T) {
 					CallbackURL: "http://localhost:3000",
 					UXMode:      uxMode,
 				},
-				Nonce: hashedNonce,
+				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 
@@ -352,7 +343,6 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -480,10 +470,6 @@ func TestAuthHandler(t *testing.T) {
 
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)
-		nonceCookie := &http.Cookie{
-			Name:  coreHttp.CookieNameOpenIDConnectNonce,
-			Value: nonce,
-		}
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
 			mockOAuthProvider := oauth.NewMockProvider(nil)
@@ -500,7 +486,7 @@ func TestAuthHandler(t *testing.T) {
 				LinkState: sso.LinkState{
 					UserID: "john.doe.id",
 				},
-				Nonce: hashedNonce,
+				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 
@@ -512,7 +498,6 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -563,7 +548,7 @@ func TestAuthHandler(t *testing.T) {
 				LinkState: sso.LinkState{
 					UserID: "jane.doe.id",
 				},
-				Nonce: hashedNonce,
+				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 
@@ -575,7 +560,6 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -711,10 +695,6 @@ func TestAuthHandler(t *testing.T) {
 
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)
-		nonceCookie := &http.Cookie{
-			Name:  coreHttp.CookieNameOpenIDConnectNonce,
-			Value: nonce,
-		}
 
 		Convey("OnUserDuplicate == abort", func() {
 			state := sso.State{
@@ -727,7 +707,7 @@ func TestAuthHandler(t *testing.T) {
 					MergeRealm:      password.DefaultRealm,
 					OnUserDuplicate: model.OnUserDuplicateAbort,
 				},
-				Nonce: hashedNonce,
+				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 
@@ -738,7 +718,6 @@ func TestAuthHandler(t *testing.T) {
 				RawQuery: v.Encode(),
 			}
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
@@ -772,7 +751,7 @@ func TestAuthHandler(t *testing.T) {
 					MergeRealm:      password.DefaultRealm,
 					OnUserDuplicate: model.OnUserDuplicateMerge,
 				},
-				Nonce: hashedNonce,
+				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 
@@ -783,7 +762,6 @@ func TestAuthHandler(t *testing.T) {
 				RawQuery: v.Encode(),
 			}
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
@@ -822,7 +800,7 @@ func TestAuthHandler(t *testing.T) {
 					MergeRealm:      password.DefaultRealm,
 					OnUserDuplicate: model.OnUserDuplicateCreate,
 				},
-				Nonce: hashedNonce,
+				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 
@@ -833,7 +811,6 @@ func TestAuthHandler(t *testing.T) {
 				RawQuery: v.Encode(),
 			}
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 

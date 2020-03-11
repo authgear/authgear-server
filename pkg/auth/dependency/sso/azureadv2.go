@@ -1,14 +1,12 @@
 package sso
 
 import (
-	"crypto/subtle"
 	"fmt"
 	"net/http"
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -78,7 +76,7 @@ func (f *Azureadv2Impl) GetAuthURL(state State, encodedState string) (string, er
 	return c.MakeOAuthURL(OIDCAuthParams{
 		ProviderConfig: f.ProviderConfig,
 		URLPrefix:      f.URLPrefix,
-		Nonce:          state.Nonce,
+		Nonce:          state.HashedNonce,
 		EncodedState:   encodedState,
 	}), nil
 }
@@ -88,11 +86,6 @@ func (f *Azureadv2Impl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (
 }
 
 func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
-	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(crypto.SHA256String(r.Nonce))) != 1 {
-		err = NewSSOFailed(InvalidParams, "invalid sso state")
-		return
-	}
-
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC discovery document")
@@ -114,7 +107,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 		f.ProviderConfig.ClientID,
 		f.ProviderConfig.ClientSecret,
 		redirectURI(f.URLPrefix, f.ProviderConfig),
-		r.Nonce,
+		state.HashedNonce,
 		f.TimeProvider.NowUTC,
 		&tokenResp,
 	)

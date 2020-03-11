@@ -11,7 +11,6 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	coreUrl "github.com/skygeario/skygear-server/pkg/core/url"
 )
@@ -148,7 +147,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 	if !ok {
 		return nil, NewSSOFailed(InvalidParams, "no nonce")
 	}
-	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(crypto.SHA256String(nonce))) != 1 {
+	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(nonce)) != 1 {
 		return nil, NewSSOFailed(SSOUnauthorized, "invalid nonce")
 	}
 
