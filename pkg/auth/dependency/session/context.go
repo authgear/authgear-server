@@ -46,5 +46,6 @@ func WithSession(ctx context.Context, s *Session, u *authinfo.AuthInfo) context.
 }
 
 func GetContext(ctx context.Context) *Context {
-	return ctx.Value(contextKey).(*Context)
+	sCtx, _ := ctx.Value(contextKey).(*Context)
+	return sCtx
 }
