@@ -34,12 +34,14 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	middleware := session.ProvideMiddleware(cookieConfiguration, sessionProvider, authinfoStore, txContext)
-	handler := provideResolveHandler(middleware)
+	handler := provideResolveHandler(middleware, provider)
 	return handler
 }
 
 // wire.go:
 
-func provideResolveHandler(m *session.Middleware) http.Handler {
-	return m.Handle(&ResolveHandler{})
+func provideResolveHandler(m *session.Middleware, t time.Provider) http.Handler {
+	return m.Handle(&ResolveHandler{
+		TimeProvider: t,
+	})
 }
