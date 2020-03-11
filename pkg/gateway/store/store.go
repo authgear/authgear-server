@@ -6,9 +6,11 @@ import (
 
 // GatewayStore provide functions to query application info from config db
 type GatewayStore interface {
+	// GetDomain fetch domain record
+	GetDomain(domain string) (*model.Domain, error)
 
-	// GetAppByDomain fetches the App with domain
-	GetAppByDomain(domain string, app *model.App) error
+	// GetApp fetch app by id
+	GetApp(id string) (*model.App, error)
 
 	// GetLastDeploymentRoutes return all routes of last deployment
 	GetLastDeploymentRoutes(app model.App) ([]*model.DeploymentRoute, error)

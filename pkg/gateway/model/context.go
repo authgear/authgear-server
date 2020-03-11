@@ -11,6 +11,7 @@ const contextKeyGatewayContext contextKey = "gateway-context"
 type Context struct {
 	App        App
 	RouteMatch RouteMatch
+	Domain     Domain
 }
 
 func ContextWithGatewayContext(ctx context.Context, gatewayContext Context) context.Context {
