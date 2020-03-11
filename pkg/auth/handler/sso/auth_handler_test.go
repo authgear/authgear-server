@@ -121,9 +121,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthContextSetter = authContext
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
-			AllowedCallbackURLs: []string{
-				"http://localhost:3000",
-			},
 		}
 		providerConfig := coreconfig.OAuthProviderConfiguration{
 			ID:           providerName,
@@ -132,6 +129,9 @@ func TestAuthHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
+			RedirectURIs: []string{
+				"http://localhost:3000",
+			},
 			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,
@@ -394,9 +394,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthContextSetter = authContext
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
-			AllowedCallbackURLs: []string{
-				"http://localhost:3000",
-			},
 		}
 		providerConfig := coreconfig.OAuthProviderConfiguration{
 			ID:           "mock",
@@ -405,6 +402,9 @@ func TestAuthHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
+			RedirectURIs: []string{
+				"http://localhost:3000",
+			},
 			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,
@@ -617,9 +617,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthContextSetter = authContext
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
-			AllowedCallbackURLs: []string{
-				"http://localhost:3000",
-			},
 		}
 		providerConfig := coreconfig.OAuthProviderConfiguration{
 			ID:           providerName,
@@ -628,6 +625,9 @@ func TestAuthHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
+			RedirectURIs: []string{
+				"http://localhost:3000",
+			},
 			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,

@@ -136,6 +136,50 @@ func TestParseAppConfiguration(t *testing.T) {
 				}
 			}`,
 		)
+		// Session
+		test(`
+			{
+				"api_version": "v2.1",
+				"asset": {
+					"secret": "assetsecret"
+				},
+				"session": {
+					"lifetime": -1,
+					"idle_timeout_enabled": "foobar",
+					"idle_timeout": -1,
+					"cookie_domain": 1,
+					"cookie_non_persistent": 1
+				},
+				"master_key": "master_key",
+				"auth": {
+					"authentication_session": {
+						"secret": "authnsessionsecret"
+					},
+					"login_id_keys": [
+						{
+							"key": "email",
+							"type": "email"
+						},
+						{
+							"key": "phone",
+							"type": "phone"
+						},
+						{
+							"key": "username",
+							"type": "username"
+						}
+					]
+				},
+				"hook": {
+					"secret": "hooksecret"
+				}
+			}`,
+			"/session/cookie_domain: Type map[expected:string]",
+			"/session/cookie_non_persistent: Type map[expected:boolean]",
+			"/session/idle_timeout: NumberRange map[gte:0]",
+			"/session/idle_timeout_enabled: Type map[expected:boolean]",
+			"/session/lifetime: NumberRange map[gte:0]",
+		)
 		// API Clients
 		test(`
 			{
@@ -172,11 +216,9 @@ func TestParseAppConfiguration(t *testing.T) {
 					"secret": "hooksecret"
 				}
 			}`,
-			"/clients/0/api_key: Required",
-			"/clients/0/id: Required",
+			"/clients/0/client_id: Required",
+			"/clients/0/client_name: Required",
 			"/clients/0/key: ExtraEntry",
-			"/clients/0/name: Required",
-			"/clients/0/session_transport: Required",
 		)
 		// MFA
 		test(`
@@ -360,7 +402,6 @@ func TestParseAppConfiguration(t *testing.T) {
 					}
 				}
 			}`,
-			"/sso/oauth/allowed_callback_urls: Required",
 			"/sso/oauth/providers/0/client_id: Required",
 			"/sso/oauth/providers/0/client_secret: Required",
 			"/sso/oauth/providers/0/tenant: Required",

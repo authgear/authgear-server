@@ -63,8 +63,11 @@ var (
 				"items": { "$ref": "#APIClientConfiguration" }
 			},
 			"master_key": { "$ref": "#NonEmptyString" },
+			"session": { "$ref": "#SessionConfiguration" },
 			"cors": { "$ref": "#CORSConfiguration" },
+			"oidc": { "$ref": "#OIDCConfiguration" },
 			"auth": { "$ref": "#AuthConfiguration" },
+			"auth_ui": { "$ref": "#AuthUIConfiguration" },
 			"mfa": { "$ref": "#MFAConfiguration" },
 			"user_audit": { "$ref": "#UserAuditConfiguration" },
 			"password_policy": { "$ref": "#PasswordPolicyConfiguration" },
@@ -89,26 +92,34 @@ var (
 		},
 		"required": ["secret"]
 	},
+	"SessionConfiguration": {
+		"$id": "#SessionConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"lifetime": { "type": "integer", "minimum": 0 },
+			"idle_timeout_enabled": { "type": "boolean" },
+			"idle_timeout": { "type": "integer", "minimum": 0 },
+			"cookie_domain": { "type": "string" },
+			"cookie_non_persistent": { "type": "boolean" }
+		}
+	},
 	"APIClientConfiguration": {
 		"$id": "#APIClientConfiguration",
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
-			"id": { "$ref": "#NonEmptyString" },
-			"name": { "$ref": "#NonEmptyString" },
-			"api_key": { "$ref": "#NonEmptyString" },
-			"session_transport": {
-				"type": "string",
-				"enum": ["header", "cookie"]
+			"client_name": { "$ref": "#NonEmptyString" },
+			"client_id": { "$ref": "#NonEmptyString" },
+			"redirect_uris": {
+				"type": "array",
+				"items": { "type": "string" }
 			},
+			"auth_api_use_cookie": { "type": "boolean" },
 			"access_token_lifetime": { "type": "integer", "minimum": 0 },
-			"session_idle_timeout_enabled": { "type": "boolean" },
-			"session_idle_timeout": { "type": "integer", "minimum": 0 },
-			"refresh_token_disabled": { "type": "boolean" },
-			"refresh_token_lifetime": { "type": "integer", "minimum": 0 },
-			"same_site": { "enum": ["none", "lax", "strict"] }
+			"refresh_token_lifetime": { "type": "integer", "minimum": 0 }
 		},
-		"required": ["id", "name", "api_key", "session_transport"]
+		"required": ["client_name", "client_id"]
 	},
 	"CORSConfiguration": {
 		"$id": "#CORSConfiguration",
@@ -118,11 +129,39 @@ var (
 			"origin": { "type": "string" }
 		}
 	},
+	"OIDCConfiguration": {
+		"$id": "#OIDCConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"keys": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"kid": { "type": "string" },
+						"public_key": { "type": "string" },
+						"private_key": { "type": "string" }
+					},
+					"required": ["kid", "public_key", "private_key"]
+				}
+			}
+		}
+	},
+	"AuthUIConfiguration": {
+		"$id": "#AuthUIConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"css": { "type": "string" }
+		}
+	},
 	"AuthConfiguration": {
 		"$id": "#AuthConfiguration",
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
+			"enable_api": { "type": "boolean" },
 			"authentication_session": { "$ref": "#AuthenticationSessionConfiguration" },
 			"login_id_keys": {
 				"type": "array",
@@ -352,10 +391,6 @@ var (
 		"additionalProperties": false,
 		"properties": {
 			"state_jwt_secret": { "type": "string" },
-			"allowed_callback_urls": {
-				"type": "array",
-				"items": { "type": "string" }
-			},
 			"external_access_token_flow_enabled": { "type": "boolean" },
 			"on_user_duplicate_allow_merge": { "type": "boolean" },
 			"on_user_duplicate_allow_create": { "type": "boolean" },
@@ -364,26 +399,7 @@ var (
 				"items": { "$ref": "#OAuthProviderConfiguration" }
 			}
 		},
-		"if": {
-			"properties": {
-				"providers": {
-					"type": "array",
-					"minItems": 1
-				}
-			},
-			"required": ["providers"]
-		},
-		"then": {
-			"properties": {
-				"allowed_callback_urls": {
-					"minItems": 1
-				}
-			},
-			"required": ["state_jwt_secret", "allowed_callback_urls"]
-		},
-		"else": {
-			"required": ["state_jwt_secret"]
-		}
+		"required": ["state_jwt_secret"]
 	},
 	"OAuthProviderConfiguration": {
 		"$id": "#OAuthProviderConfiguration",

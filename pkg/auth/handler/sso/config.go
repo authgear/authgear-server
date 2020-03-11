@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
@@ -22,6 +22,7 @@ func AttachConfigHandler(
 }
 
 type ConfigHandler struct {
+	ClientProvider apiclientconfig.Provider `dependency:"APIClientConfigurationProvider"`
 }
 
 type ConfigResp struct {
@@ -51,16 +52,18 @@ type ConfigResp struct {
 // }
 func (f ConfigHandler) NewHandler(request *http.Request) http.Handler {
 	handleAPICall := func(r *http.Request) (apiResp handler.APIResponse) {
-		tConfig := config.GetTenantConfig(r.Context())
-		authorizedURLs := tConfig.AppConfig.SSO.OAuth.AllowedCallbackURLs
-		if authorizedURLs == nil {
-			authorizedURLs = []string{}
+		authorizedURLs := []string{}
+		_, client, ok := f.ClientProvider.Get()
+		if ok {
+			redirectURIs := client.RedirectURIs()
+			if len(redirectURIs) > 0 {
+				authorizedURLs = redirectURIs
+			}
 		}
 		resp := ConfigResp{
 			AuthorizedURLS: authorizedURLs,
 		}
 		apiResp.Result = resp
-
 		return
 	}
 

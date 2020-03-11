@@ -28,12 +28,12 @@ func TestProvider(t *testing.T) {
 		timeProvider.TimeNowUTC = initialTime
 
 		authContext := authtest.NewMockContext().UseAPIAccessKey("web-app")
-		clientConfigs := []config.APIClientConfiguration{
-			config.APIClientConfiguration{
-				ID: "web-app",
+		clientConfigs := []config.OAuthClientConfiguration{
+			config.OAuthClientConfiguration{
+				"client_id": "web-app",
 			},
-			config.APIClientConfiguration{
-				ID: "mobile-app",
+			config.OAuthClientConfiguration{
+				"client_id": "mobile-app",
 			},
 		}
 
@@ -127,12 +127,7 @@ func TestProvider(t *testing.T) {
 
 				So(session1.ID, ShouldNotEqual, session2.ID)
 			})
-			Convey("should generate refresh token if enabled", func() {
-				for i := range clientConfigs {
-					if clientConfigs[i].ID == "web-app" {
-						clientConfigs[i].RefreshTokenDisabled = false
-					}
-				}
+			Convey("should generate refresh token", func() {
 				session, tokens, err := provider.Create(&auth.AuthnSession{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
@@ -141,20 +136,6 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(session.RefreshTokenHash, ShouldNotBeEmpty)
 				So(tokens.RefreshToken, ShouldHaveLength, tokenLength+len(session.ID)+1)
-			})
-			Convey("should not generate refresh token if disabled", func() {
-				for i := range clientConfigs {
-					if clientConfigs[i].ID == "web-app" {
-						clientConfigs[i].RefreshTokenDisabled = true
-					}
-				}
-				session, _, err := provider.Create(&auth.AuthnSession{
-					UserID:      "user-id",
-					PrincipalID: "principal-id",
-					ClientID:    "web-app",
-				}, nil)
-				So(err, ShouldBeNil)
-				So(session.RefreshTokenHash, ShouldBeEmpty)
 			})
 			Convey("should not create session is disallowed", func() {
 				hookErr := fmt.Errorf("session create disallowed")
@@ -248,8 +229,8 @@ func TestProvider(t *testing.T) {
 			})
 			Convey("should reject if client does not exists", func(c C) {
 				for i := range clientConfigs {
-					if clientConfigs[i].ID == "web-app" {
-						clientConfigs[i].ID = "node-app"
+					if clientConfigs[i].ClientID() == "web-app" {
+						clientConfigs[i]["client_id"] = "node-app"
 					}
 				}
 				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)
@@ -334,10 +315,10 @@ func TestProvider(t *testing.T) {
 			makeSession("d", "user-2", "disabled-app", 400)
 			timeProvider.AdvanceSeconds(500)
 			for i := range clientConfigs {
-				clientConfigs[i] = config.APIClientConfiguration{
-					ID:                   clientConfigs[i].ID,
-					AccessTokenLifetime:  1000,
-					RefreshTokenDisabled: true,
+				clientConfigs[i] = config.OAuthClientConfiguration{
+					"client_id":              clientConfigs[i].ClientID(),
+					"refresh_token_lifetime": 1000.0,
+					"access_token_lifetime":  1000.0,
 				}
 			}
 

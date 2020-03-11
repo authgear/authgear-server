@@ -48,13 +48,13 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		r.Header.Del(coreHttp.HeaderSessionAuthenticatorOOBChannel)
 		r.Header.Del(coreHttp.HeaderSessionAuthenticatorUpdatedAt)
 
-		// If refresh token is enabled and the session is invalid,
+		// If header is used and the session is invalid,
 		// do not forward the request and write `x-skygear-try-refresh-token: true`
 		authInfo, err := m.AuthContext.AuthInfo()
 		if errors.Is(err, session.ErrSessionNotFound) {
 			if accessKey.ClientID != "" {
 				clientConfig, ok := model.GetClientConfig(tenantConfig.AppConfig.Clients, accessKey.ClientID)
-				if ok && !clientConfig.RefreshTokenDisabled {
+				if ok && !clientConfig.AuthAPIUseCookie() {
 					w.Header().Set(coreHttp.HeaderTryRefreshToken, "true")
 					w.WriteHeader(401)
 					return

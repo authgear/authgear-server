@@ -104,6 +104,9 @@ func makeFullTenantConfig() TenantConfiguration {
 		b := true
 		return &b
 	}
+	newStr := func(s string) *string {
+		return &s
+	}
 	var fullTenantConfig = TenantConfiguration{
 		APIVersion: apiversion.APIVersion,
 		AppName:    "myapp",
@@ -119,16 +122,22 @@ func makeFullTenantConfig() TenantConfiguration {
 		AppConfig: &AppConfiguration{
 			APIVersion:     apiversion.APIVersion,
 			DisplayAppName: "MyApp",
-			Clients: []APIClientConfiguration{
-				APIClientConfiguration{
-					ID:                   "web-app",
-					Name:                 "Web App",
-					APIKey:               "api_key",
-					SessionTransport:     SessionTransportTypeHeader,
-					AccessTokenLifetime:  1800,
-					SessionIdleTimeout:   300,
-					RefreshTokenLifetime: 86400,
-					SameSite:             SessionCookieSameSiteLax,
+			Session: &SessionConfiguration{
+				Lifetime:            86400,
+				IdleTimeoutEnabled:  true,
+				IdleTimeout:         3600,
+				CookieDomain:        newStr("example.com"),
+				CookieNonPersistent: true,
+			},
+			Clients: []OAuthClientConfiguration{
+				OAuthClientConfiguration{
+					"client_name": "Web App",
+					"client_id":   "web_app",
+					"redirect_uris": []interface{}{
+						"http://localhost:8081/oauth2/continue",
+					},
+					"access_token_lifetime":  1800.0,
+					"refresh_token_lifetime": 86400.0,
 				},
 			},
 			MasterKey: "mymasterkey",
@@ -138,7 +147,20 @@ func makeFullTenantConfig() TenantConfiguration {
 			Asset: &AssetConfiguration{
 				Secret: "assetsecret",
 			},
+			OIDC: &OIDCConfiguration{
+				Keys: []OIDCSigningKeyConfiguration{
+					OIDCSigningKeyConfiguration{
+						KID:        "k1",
+						PublicKey:  "content of .pem",
+						PrivateKey: "content of .pem",
+					},
+				},
+			},
+			AuthUI: &AuthUIConfiguration{
+				CSS: "a { color: red; }",
+			},
 			Auth: &AuthConfiguration{
+				EnableAPI: true,
 				AuthenticationSession: &AuthenticationSessionConfiguration{
 					Secret: "authnsessionsecret",
 				},
@@ -235,10 +257,7 @@ func makeFullTenantConfig() TenantConfiguration {
 			},
 			SSO: &SSOConfiguration{
 				OAuth: &OAuthConfiguration{
-					StateJWTSecret: "oauthstatejwtsecret",
-					AllowedCallbackURLs: []string{
-						"http://localhost:3000/oauth/callback",
-					},
+					StateJWTSecret:                 "oauthstatejwtsecret",
 					ExternalAccessTokenFlowEnabled: true,
 					OnUserDuplicateAllowMerge:      true,
 					OnUserDuplicateAllowCreate:     true,
@@ -419,17 +438,17 @@ func TestTenantConfig(t *testing.T) {
 			So(validation.ErrorCauses(err), ShouldResemble, causes)
 		}
 
-		Convey("should validate api key != master key", func() {
+		Convey("should validate client_id != master key", func() {
 			c := makeFullTenantConfig()
 			for i := range c.AppConfig.Clients {
-				if c.AppConfig.Clients[i].ID == "web-app" {
-					c.AppConfig.Clients[i].APIKey = c.AppConfig.MasterKey
+				if c.AppConfig.Clients[i].ClientID() == "web_app" {
+					c.AppConfig.Clients[i]["client_id"] = c.AppConfig.MasterKey
 				}
 			}
 
 			testValidation(&c, []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
-				Message: "master key must not be same as API key",
+				Message: "master key must not be same as client_id",
 				Pointer: "/user_config/master_key",
 			}})
 		})

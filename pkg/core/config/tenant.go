@@ -167,7 +167,7 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	values[0] = c.AppConfig.MasterKey
 	i := 1
 	for _, clientConfig := range c.AppConfig.Clients {
-		values[i] = clientConfig.APIKey
+		values[i] = clientConfig.ClientID()
 		i++
 	}
 
@@ -206,31 +206,15 @@ func (c *TenantConfiguration) PostValidate() error {
 
 	// Validate complex AppConfiguration
 	for key, clientConfig := range c.AppConfig.Clients {
-		if clientConfig.APIKey == c.AppConfig.MasterKey {
-			return fail(validation.ErrorGeneral, "master key must not be same as API key", "user_config", "master_key")
+		if clientConfig.ClientID() == c.AppConfig.MasterKey {
+			return fail(validation.ErrorGeneral, "master key must not be same as client_id", "user_config", "master_key")
 		}
 
-		if clientConfig.SessionTransport == SessionTransportTypeCookie && !clientConfig.RefreshTokenDisabled {
-			return fail(
-				validation.ErrorGeneral,
-				"refresh token must be disabled when cookie is used as session token transport",
-				"user_config", "clients", key, "refresh_token_disabled")
-		}
-
-		if !clientConfig.RefreshTokenDisabled &&
-			clientConfig.RefreshTokenLifetime < clientConfig.AccessTokenLifetime {
+		if clientConfig.RefreshTokenLifetime() < clientConfig.AccessTokenLifetime() {
 			return fail(
 				validation.ErrorGeneral,
 				"refresh token lifetime must be greater than or equal to access token lifetime",
 				"user_config", "clients", key, "refresh_token_lifetime")
-		}
-
-		if clientConfig.SessionIdleTimeoutEnabled &&
-			clientConfig.SessionIdleTimeout > clientConfig.AccessTokenLifetime {
-			return fail(
-				validation.ErrorGeneral,
-				"session idle timeout must be less than or equal to access token lifetime",
-				"user_config", "clients", key, "session_idle_timeout")
 		}
 	}
 
@@ -279,28 +263,24 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.AppConfig.DisplayAppName = c.AppName
 	}
 
+	// Set default SessionConfiguration values
+	if c.AppConfig.Session.Lifetime == 0 {
+		c.AppConfig.Session.Lifetime = 86400
+	}
+	if c.AppConfig.Session.IdleTimeout == 0 {
+		c.AppConfig.Session.IdleTimeout = 300
+	}
+
 	// Set default APIClientConfiguration values
 	for i, clientConfig := range c.AppConfig.Clients {
-		if clientConfig.AccessTokenLifetime == 0 {
-			clientConfig.AccessTokenLifetime = 1800
+		if clientConfig.AccessTokenLifetime() == 0 {
+			clientConfig.SetAccessTokenLifetime(1800)
 		}
-		if clientConfig.RefreshTokenLifetime == 0 {
-			clientConfig.RefreshTokenLifetime = 86400
-			if clientConfig.AccessTokenLifetime > clientConfig.RefreshTokenLifetime {
-				clientConfig.RefreshTokenLifetime = clientConfig.AccessTokenLifetime
+		if clientConfig.RefreshTokenLifetime() == 0 {
+			clientConfig.SetRefreshTokenLifetime(86400)
+			if clientConfig.AccessTokenLifetime() > clientConfig.RefreshTokenLifetime() {
+				clientConfig.SetRefreshTokenLifetime(clientConfig.AccessTokenLifetime())
 			}
-		}
-		if clientConfig.SessionIdleTimeout == 0 {
-			clientConfig.SessionIdleTimeout = 300
-			if clientConfig.AccessTokenLifetime < clientConfig.SessionIdleTimeout {
-				clientConfig.SessionIdleTimeout = clientConfig.AccessTokenLifetime
-			}
-		}
-		if clientConfig.SameSite == "" {
-			clientConfig.SameSite = SessionCookieSameSiteLax
-		}
-		if clientConfig.SessionTransport == SessionTransportTypeCookie {
-			clientConfig.RefreshTokenDisabled = true
 		}
 		c.AppConfig.Clients[i] = clientConfig
 	}
@@ -512,10 +492,13 @@ func WriteTenantConfig(r *http.Request, config *TenantConfiguration) {
 type AppConfiguration struct {
 	APIVersion       string                         `json:"api_version,omitempty" yaml:"api_version" msg:"api_version"`
 	DisplayAppName   string                         `json:"display_app_name,omitempty" yaml:"display_app_name" msg:"display_app_name"`
-	Clients          []APIClientConfiguration       `json:"clients,omitempty" yaml:"clients" msg:"clients"`
+	Clients          []OAuthClientConfiguration     `json:"clients,omitempty" yaml:"clients" msg:"clients"`
 	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
+	Session          *SessionConfiguration          `json:"session,omitempty" yaml:"session" msg:"session" default_zero_value:"true"`
 	CORS             *CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors" default_zero_value:"true"`
 	Auth             *AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth" default_zero_value:"true"`
+	AuthUI           *AuthUIConfiguration           `json:"auth_ui,omitempty" yaml:"auth_ui" msg:"auth_ui" default_zero_value:"true"`
+	OIDC             *OIDCConfiguration             `json:"oidc,omitempty" yaml:"oidc" msg:"oidc" default_zero_value:"true"`
 	MFA              *MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa" default_zero_value:"true"`
 	UserAudit        *UserAuditConfiguration        `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit" default_zero_value:"true"`
 	PasswordPolicy   *PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy" default_zero_value:"true"`
@@ -534,38 +517,61 @@ type AssetConfiguration struct {
 	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
 }
 
-// SessionTransportType indicates the transport used for session tokens
-type SessionTransportType string
+type OAuthClientConfiguration map[string]interface{}
 
-const (
-	// SessionTransportTypeHeader means session tokens should be transport in Authorization HTTP header
-	SessionTransportTypeHeader SessionTransportType = "header"
-	// SessionTransportTypeCookie means session tokens should be transport in HTTP cookie
-	SessionTransportTypeCookie SessionTransportType = "cookie"
-)
+func (c OAuthClientConfiguration) ClientID() string {
+	if s, ok := c["client_id"].(string); ok {
+		return s
+	}
+	return ""
+}
 
-type SessionCookieSameSite string
+func (c OAuthClientConfiguration) RedirectURIs() (out []string) {
+	if arr, ok := c["redirect_uris"].([]interface{}); ok {
+		for _, item := range arr {
+			if s, ok := item.(string); ok {
+				out = append(out, s)
+			}
+		}
+	}
+	return
+}
 
-const (
-	SessionCookieSameSiteNone   SessionCookieSameSite = "none"
-	SessionCookieSameSiteLax    SessionCookieSameSite = "lax"
-	SessionCookieSameSiteStrict SessionCookieSameSite = "strict"
-)
+func (c OAuthClientConfiguration) AuthAPIUseCookie() bool {
+	if b, ok := c["auth_api_use_cookie"].(bool); ok {
+		return b
+	}
+	return false
+}
 
-type APIClientConfiguration struct {
-	ID     string `json:"id" yaml:"id" msg:"id"`
-	Name   string `json:"name" yaml:"name" msg:"name"`
-	APIKey string `json:"api_key" yaml:"api_key" msg:"api_key"`
+func (c OAuthClientConfiguration) AccessTokenLifetime() int {
+	if f64, ok := c["access_token_lifetime"].(float64); ok {
+		return int(f64)
+	}
+	return 0
+}
 
-	SessionTransport          SessionTransportType `json:"session_transport" yaml:"session_transport" msg:"session_transport"`
-	AccessTokenLifetime       int                  `json:"access_token_lifetime,omitempty" yaml:"access_token_lifetime" msg:"access_token_lifetime"`
-	SessionIdleTimeoutEnabled bool                 `json:"session_idle_timeout_enabled,omitempty" yaml:"session_idle_timeout_enabled" msg:"session_idle_timeout_enabled"`
-	SessionIdleTimeout        int                  `json:"session_idle_timeout,omitempty" yaml:"session_idle_timeout" msg:"session_idle_timeout"`
+func (c OAuthClientConfiguration) SetAccessTokenLifetime(t int) {
+	c["access_token_lifetime"] = float64(t)
+}
 
-	RefreshTokenDisabled bool `json:"refresh_token_disabled,omitempty" yaml:"refresh_token_disabled" msg:"refresh_token_disabled"`
-	RefreshTokenLifetime int  `json:"refresh_token_lifetime,omitempty" yaml:"refresh_token_lifetime" msg:"refresh_token_lifetime"`
+func (c OAuthClientConfiguration) SetRefreshTokenLifetime(t int) {
+	c["refresh_token_lifetime"] = float64(t)
+}
 
-	SameSite SessionCookieSameSite `json:"same_site,omitempty" yaml:"same_site" msg:"same_site"`
+func (c OAuthClientConfiguration) RefreshTokenLifetime() int {
+	if f64, ok := c["refresh_token_lifetime"].(float64); ok {
+		return int(f64)
+	}
+	return 0
+}
+
+type SessionConfiguration struct {
+	Lifetime            int     `json:"lifetime,omitempty" yaml:"lifetime" msg:"lifetime"`
+	IdleTimeoutEnabled  bool    `json:"idle_timeout_enabled,omitempty" yaml:"idle_timeout_enabled" msg:"idle_timeout_enabled"`
+	IdleTimeout         int     `json:"idle_timeout" yaml:"idle_timeout" msg:"idle_timeout"`
+	CookieDomain        *string `json:"cookie_domain,omitempty" yaml:"cookie_domain" msg:"cookie_domain"`
+	CookieNonPersistent bool    `json:"cookie_non_persistent,omitempty" yaml:"cookie_non_persistent" msg:"cookie_non_persistent"`
 }
 
 // CORSConfiguration represents CORS configuration.
@@ -578,11 +584,26 @@ type CORSConfiguration struct {
 }
 
 type AuthConfiguration struct {
+	EnableAPI                  bool                                `json:"enable_api,omitempty" yaml:"enable_api" msg:"enable_api"`
 	AuthenticationSession      *AuthenticationSessionConfiguration `json:"authentication_session,omitempty" yaml:"authentication_session" msg:"authentication_session" default_zero_value:"true"`
 	LoginIDTypes               *LoginIDTypesConfiguration          `json:"login_id_types,omitempty" yaml:"login_id_types" msg:"login_id_types" default_zero_value:"true"`
 	LoginIDKeys                []LoginIDKeyConfiguration           `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
 	AllowedRealms              []string                            `json:"-" yaml:"-" msg:"allowed_realms"`
 	OnUserDuplicateAllowCreate bool                                `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
+}
+
+type AuthUIConfiguration struct {
+	CSS string `json:"css,omitempty" yaml:"css" msg:"css"`
+}
+
+type OIDCConfiguration struct {
+	Keys []OIDCSigningKeyConfiguration `json:"keys,omitempty" yaml:"keys" msg:"keys"`
+}
+
+type OIDCSigningKeyConfiguration struct {
+	KID        string `json:"kid,omitempty" yaml:"kid" msg:"kid"`
+	PublicKey  string `json:"public_key,omitempty" yaml:"public_key" msg:"public_key"`
+	PrivateKey string `json:"private_key,omitempty" yaml:"private_key" msg:"private_key"`
 }
 
 func (c *AuthConfiguration) GetLoginIDKey(key string) (*LoginIDKeyConfiguration, bool) {
@@ -744,7 +765,6 @@ type SSOConfiguration struct {
 
 type OAuthConfiguration struct {
 	StateJWTSecret                 string                       `json:"state_jwt_secret,omitempty" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
-	AllowedCallbackURLs            []string                     `json:"allowed_callback_urls,omitempty" yaml:"allowed_callback_urls" msg:"allowed_callback_urls"`
 	ExternalAccessTokenFlowEnabled bool                         `json:"external_access_token_flow_enabled,omitempty" yaml:"external_access_token_flow_enabled" msg:"external_access_token_flow_enabled"`
 	OnUserDuplicateAllowMerge      bool                         `json:"on_user_duplicate_allow_merge,omitempty" yaml:"on_user_duplicate_allow_merge" msg:"on_user_duplicate_allow_merge"`
 	OnUserDuplicateAllowCreate     bool                         `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`

@@ -93,3 +93,31 @@ func RemoveSkygearHeader(header gohttp.Header) gohttp.Header {
 	}
 	return newHeader
 }
+
+const httpHeaderAuthorization = "authorization"
+const httpAuthzBearerScheme = "bearer"
+
+func parseAuthorizationHeader(r *gohttp.Request) (token string) {
+	authorization := strings.SplitN(r.Header.Get(httpHeaderAuthorization), " ", 2)
+	if len(authorization) != 2 {
+		return
+	}
+
+	scheme := authorization[0]
+	if strings.ToLower(scheme) != httpAuthzBearerScheme {
+		return
+	}
+
+	return authorization[1]
+}
+
+// GetSessionIdentifier extracts session identifier from r.
+// The session identifier is either in cookie or Authorization header.
+// Cookie has higher precedence.
+func GetSessionIdentifier(r *gohttp.Request) string {
+	cookie, err := r.Cookie(CookieNameSession)
+	if err == nil {
+		return cookie.Value
+	}
+	return parseAuthorizationHeader(r)
+}

@@ -7,24 +7,22 @@ import (
 
 type MockProvider struct {
 	ClientID        string
-	APIClientConfig *config.APIClientConfiguration
+	APIClientConfig config.OAuthClientConfiguration
 }
 
 func NewMockProvider(clientID string) *MockProvider {
 	return &MockProvider{
 		ClientID: clientID,
-		APIClientConfig: &config.APIClientConfiguration{
-			Name:                 clientID,
-			APIKey:               clientID,
-			SessionTransport:     config.SessionTransportTypeHeader,
-			AccessTokenLifetime:  1800,
-			RefreshTokenLifetime: 86400,
-			SameSite:             config.SessionCookieSameSiteLax,
+		APIClientConfig: config.OAuthClientConfiguration{
+			"client_name":            clientID,
+			"client_id":              clientID,
+			"access_token_lifetime":  1800.0,
+			"refresh_token_lifetime": 86400.0,
 		},
 	}
 }
 
-func (p *MockProvider) Get() (string, *config.APIClientConfiguration, bool) {
+func (p *MockProvider) Get() (string, config.OAuthClientConfiguration, bool) {
 	if p.APIClientConfig == nil {
 		return "", nil, false
 	}

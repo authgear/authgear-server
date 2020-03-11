@@ -12,14 +12,14 @@ import (
 
 type writerImpl struct {
 	authContext       auth.ContextGetter
-	clientConfigs     []config.APIClientConfiguration
+	clientConfigs     []config.OAuthClientConfiguration
 	mfaConfiguration  *config.MFAConfiguration
 	useInsecureCookie bool
 }
 
 func NewWriter(
 	authContext auth.ContextGetter,
-	clientConfigs []config.APIClientConfiguration,
+	clientConfigs []config.OAuthClientConfiguration,
 	mfaConfiguration *config.MFAConfiguration,
 	useInsecureCookie bool,
 ) Writer {
@@ -33,7 +33,7 @@ func NewWriter(
 
 func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string, mfaBearerToken *string) {
 	clientConfig, _ := model.GetClientConfig(w.clientConfigs, w.authContext.AccessKey().ClientID)
-	useCookie := clientConfig.SessionTransport == config.SessionTransportTypeCookie
+	useCookie := clientConfig.AuthAPIUseCookie()
 
 	cookieSession := &http.Cookie{
 		Name:     coreHttp.CookieNameSession,
@@ -47,13 +47,13 @@ func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string, m
 		HttpOnly: true,
 		Secure:   !w.useInsecureCookie,
 	}
-	w.configureCookieSameSite(cookieSession, clientConfig.SameSite)
-	w.configureCookieSameSite(cookieMFABearerToken, clientConfig.SameSite)
+	cookieSession.SameSite = http.SameSiteLaxMode
+	cookieMFABearerToken.SameSite = http.SameSiteLaxMode
 
 	if useCookie {
 		cookieSession.Value = *accessToken
 		*accessToken = ""
-		cookieSession.MaxAge = clientConfig.AccessTokenLifetime
+		cookieSession.MaxAge = clientConfig.AccessTokenLifetime()
 
 		if mfaBearerToken != nil {
 			cookieMFABearerToken.Value = *mfaBearerToken
@@ -68,17 +68,6 @@ func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string, m
 	coreHttp.UpdateCookie(rw, cookieSession)
 	if mfaBearerToken != nil {
 		coreHttp.UpdateCookie(rw, cookieMFABearerToken)
-	}
-}
-
-func (w *writerImpl) configureCookieSameSite(cookie *http.Cookie, sameSite config.SessionCookieSameSite) {
-	switch sameSite {
-	case config.SessionCookieSameSiteNone:
-		cookie.SameSite = http.SameSiteDefaultMode
-	case config.SessionCookieSameSiteLax:
-		cookie.SameSite = http.SameSiteLaxMode
-	case config.SessionCookieSameSiteStrict:
-		cookie.SameSite = http.SameSiteStrictMode
 	}
 }
 

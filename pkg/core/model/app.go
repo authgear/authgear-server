@@ -1,9 +1,7 @@
 package model
 
 import (
-	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
@@ -73,11 +71,11 @@ func GetAPIKey(i interface{}) string {
 	return header(i).Get(coreHttp.HeaderAPIKey)
 }
 
-func GetClientConfig(c []config.APIClientConfiguration, clientID string) (*config.APIClientConfiguration, bool) {
+func GetClientConfig(c []config.OAuthClientConfiguration, clientID string) (config.OAuthClientConfiguration, bool) {
 	for _, clientConfig := range c {
-		if clientConfig.ID == clientID {
+		if clientConfig.ClientID() == clientID {
 			cc := clientConfig
-			return &cc, true
+			return cc, true
 		}
 	}
 	return nil, false
@@ -88,48 +86,4 @@ func NewAccessKey(clientID string) AccessKey {
 		Type:     APIAccessKeyType,
 		ClientID: clientID,
 	}
-}
-
-const httpHeaderAuthorization = "authorization"
-const httpAuthzBearerScheme = "bearer"
-
-func parseAuthorizationHeader(r *http.Request) (token string) {
-	authorization := strings.SplitN(r.Header.Get(httpHeaderAuthorization), " ", 2)
-	if len(authorization) != 2 {
-		return
-	}
-
-	scheme := authorization[0]
-	if strings.ToLower(scheme) != httpAuthzBearerScheme {
-		return
-	}
-
-	return authorization[1]
-}
-
-var ErrTokenConflict = errors.New("tokens detected in different transports")
-
-func GetAccessToken(r *http.Request) (token string, transport config.SessionTransportType, err error) {
-	headerToken := parseAuthorizationHeader(r)
-
-	var cookieToken string
-	cookie, err := r.Cookie(coreHttp.CookieNameSession)
-	if err == nil {
-		cookieToken = cookie.Value
-	} else {
-		cookieToken = ""
-		err = nil
-	}
-
-	if cookieToken != "" && headerToken != "" {
-		err = ErrTokenConflict
-		return
-	}
-
-	if headerToken != "" {
-		token, transport = headerToken, config.SessionTransportTypeHeader
-	} else {
-		token, transport = cookieToken, config.SessionTransportTypeCookie
-	}
-	return
 }
