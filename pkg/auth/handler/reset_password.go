@@ -15,7 +15,6 @@ import (
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -45,7 +44,6 @@ type ResetPasswordHandlerFactory struct {
 func (f ResetPasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ResetPasswordHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	return h.RequireAuthz(h, h)
 }
 
@@ -92,7 +90,6 @@ type ResetPasswordHandler struct {
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
 	HookProvider         hook.Provider              `dependency:"HookProvider"`
@@ -151,11 +148,6 @@ func (h ResetPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 		if err != nil {
 			return err
 		}
-
-		h.AuditTrail.Log(audit.Entry{
-			UserID: authinfo.ID,
-			Event:  audit.EventResetPassword,
-		})
 
 		// password house keeper
 		h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{

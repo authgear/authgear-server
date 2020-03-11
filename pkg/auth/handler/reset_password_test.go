@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -75,7 +74,6 @@ func TestResetPasswordHandler(t *testing.T) {
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.PasswordChecker = passwordChecker
 		h.PasswordAuthProvider = passwordAuthProvider
-		h.AuditTrail = audit.NewMockTrail(t)
 		hookProvider := hook.NewMockProvider()
 		h.HookProvider = hookProvider
 		h.TaskQueue = mockTaskQueue

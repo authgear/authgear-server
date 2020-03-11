@@ -11,7 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -34,7 +33,6 @@ func TestLogoutHandler(t *testing.T) {
 		h.SessionWriter = session.NewMockWriter()
 
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
-		h.AuditTrail = coreAudit.NewMockTrail(t)
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			[]config.LoginIDKeyConfiguration{},
 			[]string{password.DefaultRealm},
@@ -86,13 +84,6 @@ func TestLogoutHandler(t *testing.T) {
 					},
 				},
 			})
-		})
-
-		Convey("log audit trail when logout", func() {
-			h.Handle()
-			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
-			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
-			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "logout")
 		})
 	})
 }

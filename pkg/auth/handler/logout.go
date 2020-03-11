@@ -12,7 +12,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -45,7 +44,6 @@ type LogoutHandlerFactory struct {
 func (f LogoutHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LogoutHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	return h.RequireAuthz(h, h)
 }
 
@@ -69,7 +67,6 @@ type LogoutHandler struct {
 	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
 	SessionProvider  session.Provider           `dependency:"SessionProvider"`
 	SessionWriter    session.Writer             `dependency:"SessionWriter"`
-	AuditTrail       audit.Trail                `dependency:"AuditTrail"`
 	HookProvider     hook.Provider              `dependency:"HookProvider"`
 	TxContext        db.TxContext               `dependency:"TxContext"`
 }
@@ -144,11 +141,6 @@ func (h LogoutHandler) Handle() (resp interface{}, err error) {
 	if err = h.SessionProvider.Invalidate(sess); err != nil {
 		return
 	}
-
-	h.AuditTrail.Log(audit.Entry{
-		UserID: authInfo.ID,
-		Event:  audit.EventLogout,
-	})
 
 	return
 }

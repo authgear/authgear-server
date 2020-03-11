@@ -9,12 +9,9 @@ require (
 	github.com/FZambia/sentinel v1.1.0
 	github.com/Masterminds/squirrel v1.1.0
 	github.com/aws/aws-sdk-go v1.25.6
-	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
 	github.com/davidbyttow/govips v0.0.0-20190304175058-d272f04c0fea
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/evalphobia/logrus_fluent v0.4.0
-	github.com/fluent/fluent-logger-golang v1.3.0 // indirect
 	github.com/getsentry/sentry-go v0.3.0
 	github.com/go-gomail/gomail v0.0.0-20150902115704-41f357289737
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
@@ -40,7 +37,6 @@ require (
 	github.com/nyaruka/phonenumbers v1.0.45
 	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/pquerna/otp v1.2.0
-	github.com/rifflock/lfshook v0.0.0-20171219153109-1fdc019a3514
 	github.com/sfreiberg/gotwilio v0.0.0-20181012193634-a13e5b0d458a
 	github.com/sirupsen/logrus v1.0.3
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110

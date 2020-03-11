@@ -22,7 +22,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
@@ -86,7 +85,6 @@ func TestSignupHandler(t *testing.T) {
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.IdentityProvider = identityProvider
-		sh.AuditTrail = audit.NewMockTrail(t)
 		sh.UserProfileStore = userProfileStore
 		sh.Logger = logrus.NewEntry(logrus.New())
 		mockTaskQueue := async.NewMockQueue()
@@ -638,25 +636,6 @@ func TestSignupHandler(t *testing.T) {
 			So(param.LoginID, ShouldEqual, "john.doe+2@example.com")
 			So(param.UserID, ShouldNotBeNil)
 		})
-
-		Convey("log audit trail when signup success", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
-			{
-				"login_ids": [
-					{ "key": "username", "value": "john.doe" },
-					{ "key": "email", "value": "john.doe@example.com" }
-				],
-				"password": "123456"
-			}`))
-			req.Header.Set("Content-Type", "application/json")
-			resp := httptest.NewRecorder()
-			sh.ServeHTTP(resp, req)
-			So(resp.Code, ShouldEqual, 200)
-
-			mockTrail, _ := sh.AuditTrail.(*audit.MockTrail)
-			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
-			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "signup")
-		})
 	})
 
 	Convey("Test SignupHandler", t, func() {
@@ -689,7 +668,6 @@ func TestSignupHandler(t *testing.T) {
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.IdentityProvider = identityProvider
-		sh.AuditTrail = audit.NewMockTrail(t)
 		sh.UserProfileStore = userProfileStore
 		sh.Logger = logrus.NewEntry(logrus.New())
 		mockTaskQueue := async.NewMockQueue()

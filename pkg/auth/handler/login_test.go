@@ -22,7 +22,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
@@ -109,7 +108,6 @@ func TestLoginHandler(t *testing.T) {
 		hookProvider := hook.NewMockProvider()
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 		h.PasswordAuthProvider = passwordAuthProvider
-		h.AuditTrail = coreAudit.NewMockTrail(t)
 		h.HookProvider = hookProvider
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := &config.MFAConfiguration{
@@ -284,32 +282,6 @@ func TestLoginHandler(t *testing.T) {
 				}
 			}`)
 		})
-
-		Convey("log audit trail when login success", func() {
-			payload := LoginRequestPayload{
-				LoginIDKey: "email",
-				LoginID:    "john.doe@example.com",
-				Realm:      password.DefaultRealm,
-				Password:   "123456",
-			}
-			h.Handle(payload)
-			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
-			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
-			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "login_success")
-		})
-
-		Convey("log audit trail when login fail", func() {
-			payload := LoginRequestPayload{
-				LoginIDKey: "email",
-				LoginID:    "john.doe@example.com",
-				Realm:      password.DefaultRealm,
-				Password:   "wrong_password",
-			}
-			h.Handle(payload)
-			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
-			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
-			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "login_failure")
-		})
 	})
 
 	Convey("Test LoginHandler response", t, func() {
@@ -366,7 +338,6 @@ func TestLoginHandler(t *testing.T) {
 		lh.AuthInfoStore = authInfoStore
 		lh.PasswordAuthProvider = passwordAuthProvider
 		identityProvider := principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
-		lh.AuditTrail = coreAudit.NewMockTrail(t)
 		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 		hookProvider := hook.NewMockProvider()
 		lh.HookProvider = hookProvider

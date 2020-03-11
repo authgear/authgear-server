@@ -12,7 +12,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -46,7 +45,6 @@ type LoginHandlerFactory struct {
 func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	return h.RequireAuthz(h, h)
 }
 
@@ -131,7 +129,6 @@ type LoginHandler struct {
 	Validator            *validation.Validator `dependency:"Validator"`
 	AuthInfoStore        authinfo.Store        `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider     `dependency:"PasswordAuthProvider"`
-	AuditTrail           audit.Trail           `dependency:"AuditTrail"`
 	Logger               *logrus.Entry         `dependency:"HandlerLogger"`
 	HookProvider         hook.Provider         `dependency:"HookProvider"`
 	AuthnSessionProvider authnsession.Provider `dependency:"AuthnSessionProvider"`
@@ -170,20 +167,6 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 // Handle api request
 func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err error) {
 	fetchedAuthInfo := authinfo.AuthInfo{}
-
-	defer func() {
-		if err != nil {
-			h.AuditTrail.Log(audit.Entry{
-				UserID: fetchedAuthInfo.ID,
-				Event:  audit.EventLoginFailure,
-			})
-		} else {
-			h.AuditTrail.Log(audit.Entry{
-				UserID: fetchedAuthInfo.ID,
-				Event:  audit.EventLoginSuccess,
-			})
-		}
-	}()
 
 	principal, err := h.getPrincipal(payload.Password, payload.LoginIDKey, payload.LoginID, payload.Realm)
 	if err != nil {
