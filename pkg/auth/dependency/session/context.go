@@ -2,37 +2,49 @@ package session
 
 import (
 	"context"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
-type Context interface {
-	Session() *Session
-	User() *authinfo.AuthInfo
+type Context struct {
+	Session *Session
+	User    *authinfo.AuthInfo
+}
+
+func (ctx *Context) ToAuthnInfo(now time.Time) *authn.Info {
+	if ctx == nil {
+		return nil
+	}
+	if ctx.Session == nil || ctx.User == nil {
+		return &authn.Info{IsValid: false}
+	}
+
+	return &authn.Info{
+		IsValid:                        true,
+		UserID:                         ctx.User.ID,
+		UserVerified:                   ctx.User.IsVerified(),
+		UserDisabled:                   ctx.User.IsDisabled(now),
+		SessionIdentityID:              ctx.Session.PrincipalID,
+		SessionIdentityType:            ctx.Session.PrincipalType,
+		SessionIdentityUpdatedAt:       ctx.Session.PrincipalUpdatedAt,
+		SessionAuthenticatorID:         ctx.Session.AuthenticatorID,
+		SessionAuthenticatorType:       ctx.Session.AuthenticatorType,
+		SessionAuthenticatorOOBChannel: ctx.Session.AuthenticatorOOBChannel,
+		SessionAuthenticatorUpdatedAt:  ctx.Session.AuthenticatorUpdatedAt,
+	}
 }
 
 type contextKeyType struct{}
 
 var contextKey = contextKeyType{}
 
-type sessionContext struct {
-	s *Session
-	u *authinfo.AuthInfo
-}
-
-func (c *sessionContext) Session() *Session {
-	return c.s
-}
-
-func (c *sessionContext) User() *authinfo.AuthInfo {
-	return c.u
-}
-
 func WithSession(ctx context.Context, s *Session, u *authinfo.AuthInfo) context.Context {
-	sCtx := &sessionContext{s, u}
+	sCtx := &Context{s, u}
 	return context.WithValue(ctx, contextKey, sCtx)
 }
 
-func GetContext(ctx context.Context) Context {
-	return ctx.Value(contextKey).(*sessionContext)
+func GetContext(ctx context.Context) *Context {
+	return ctx.Value(contextKey).(*Context)
 }
