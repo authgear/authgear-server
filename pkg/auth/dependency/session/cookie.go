@@ -4,36 +4,37 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
 const CookieName = "session"
 
-// FIXME(session): domain, session/permanent cookies
-
-func WriteCookie(rw http.ResponseWriter, token string, useInsecureCookie bool, cfg config.APIClientConfiguration) {
+func WriteCookie(rw http.ResponseWriter, token string, cfg CookieConfiguration) {
 	cookieSession := &http.Cookie{
 		Name:     CookieName,
 		Path:     "/",
+		Domain:   cfg.Domain,
 		HttpOnly: true,
-		Secure:   !useInsecureCookie,
+		Secure:   cfg.Secure,
 		SameSite: http.SameSiteLaxMode,
 	}
 
 	cookieSession.Value = token
-	// FIXME(session): use session lifetime
-	cookieSession.MaxAge = cfg.RefreshTokenLifetime
+	if cfg.MaxAge != nil {
+		cookieSession.MaxAge = *cfg.MaxAge
+	}
 
 	corehttp.UpdateCookie(rw, cookieSession)
 }
 
-func ClearCookie(rw http.ResponseWriter, useInsecureCookie bool) {
+func ClearCookie(rw http.ResponseWriter, cfg CookieConfiguration) {
 	corehttp.UpdateCookie(rw, &http.Cookie{
 		Name:     CookieName,
 		Path:     "/",
+		Domain:   cfg.Domain,
 		HttpOnly: true,
-		Secure:   !useInsecureCookie,
+		Secure:   cfg.Secure,
+		SameSite: http.SameSiteLaxMode,
 		Expires:  time.Unix(0, 0),
 	})
 }

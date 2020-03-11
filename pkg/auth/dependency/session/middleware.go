@@ -10,10 +10,10 @@ import (
 )
 
 type Middleware struct {
-	UseInsecureCookie bool
-	SessionProvider   Provider
-	AuthInfoStore     authinfo.Store
-	TxContext         db.TxContext
+	CookieConfiguration CookieConfiguration
+	SessionProvider     Provider
+	AuthInfoStore       authinfo.Store
+	TxContext           db.TxContext
 }
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
@@ -21,7 +21,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 		s, u, err := m.resolve(r)
 
 		if errors.Is(err, session.ErrSessionNotFound) {
-			ClearCookie(rw, m.UseInsecureCookie)
+			ClearCookie(rw, m.CookieConfiguration)
 		} else if err != nil {
 			panic(err)
 		}

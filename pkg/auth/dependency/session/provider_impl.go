@@ -16,7 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
-	"github.com/skygeario/skygear-server/pkg/core/model"
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -30,23 +29,28 @@ const (
 const extraDataSizeLimit = 1024
 
 type ProviderImpl struct {
-	req           *http.Request
-	store         Store
-	eventStore    EventStore
-	clientConfigs []config.APIClientConfiguration
+	req        *http.Request
+	store      Store
+	eventStore EventStore
+	config     config.SessionConfiguration
 
 	time time.Provider
 	rand *rand.Rand
 }
 
-func NewProvider(req *http.Request, store Store, eventStore EventStore, clientConfigs []config.APIClientConfiguration) *ProviderImpl {
+func NewProvider(
+	req *http.Request,
+	store Store,
+	eventStore EventStore,
+	sessionConfig config.SessionConfiguration,
+) *ProviderImpl {
 	return &ProviderImpl{
-		req:           req,
-		store:         store,
-		eventStore:    eventStore,
-		clientConfigs: clientConfigs,
-		time:          time.NewProvider(),
-		rand:          corerand.SecureRand,
+		req:        req,
+		store:      store,
+		eventStore: eventStore,
+		config:     sessionConfig,
+		time:       time.NewProvider(),
+		rand:       corerand.SecureRand,
 	}
 }
 
@@ -59,7 +63,6 @@ func (p *ProviderImpl) MakeSession(authnSess *auth.AuthnSession) (*Session, stri
 	// if session has new fields.
 	session := &Session{
 		ID:                      uuid.New(),
-		ClientID:                authnSess.ClientID,
 		UserID:                  authnSess.UserID,
 		PrincipalID:             authnSess.PrincipalID,
 		PrincipalType:           authn.PrincipalType(authnSess.PrincipalType),
@@ -79,8 +82,7 @@ func (p *ProviderImpl) MakeSession(authnSess *auth.AuthnSession) (*Session, stri
 }
 
 func (p *ProviderImpl) Create(session *Session) error {
-	clientConfig, _ := model.GetClientConfig(p.clientConfigs, session.ClientID)
-	expiry := computeSessionStorageExpiry(session, *clientConfig)
+	expiry := computeSessionStorageExpiry(session, p.config)
 	err := p.store.Create(session, expiry)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to create session")
@@ -116,12 +118,7 @@ func (p *ProviderImpl) GetByToken(token string) (*Session, error) {
 		return nil, ErrSessionNotFound
 	}
 
-	clientConfig, clientExists := model.GetClientConfig(p.clientConfigs, s.ClientID)
-	// if client does not exist, ignore the session
-	if !clientExists {
-		return nil, ErrSessionNotFound
-	}
-	if checkSessionExpired(s, p.time.NowUTC(), *clientConfig) {
+	if checkSessionExpired(s, p.time.NowUTC(), p.config) {
 		return nil, ErrSessionNotFound
 	}
 
@@ -152,9 +149,7 @@ func (p *ProviderImpl) Access(s *Session) error {
 		return errors.HandledWithMessage(err, "failed to access session")
 	}
 
-	clientConfig, _ := model.GetClientConfig(p.clientConfigs, s.ClientID)
-
-	expiry := computeSessionStorageExpiry(s, *clientConfig)
+	expiry := computeSessionStorageExpiry(s, p.config)
 	err = p.store.Update(s, expiry)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to update session")
@@ -195,13 +190,7 @@ func (p *ProviderImpl) List(userID string) (sessions []*Session, err error) {
 
 	now := p.time.NowUTC()
 	for _, session := range storedSessions {
-		clientConfig, clientExists := model.GetClientConfig(p.clientConfigs, session.ClientID)
-		// if client does not exist, ignore the session
-		if !clientExists {
-			continue
-		}
-
-		maxExpiry := computeSessionStorageExpiry(session, *clientConfig)
+		maxExpiry := computeSessionStorageExpiry(session, p.config)
 		// ignore expired sessions
 		if now.After(maxExpiry) {
 			continue
@@ -213,8 +202,7 @@ func (p *ProviderImpl) List(userID string) (sessions []*Session, err error) {
 }
 
 func (p *ProviderImpl) Update(sess *Session) error {
-	clientConfig, _ := model.GetClientConfig(p.clientConfigs, sess.ClientID)
-	expiry := computeSessionStorageExpiry(sess, *clientConfig)
+	expiry := computeSessionStorageExpiry(sess, p.config)
 	err := p.store.Update(sess, expiry)
 	if err != nil {
 		err = errors.HandledWithMessage(err, "failed to update session")

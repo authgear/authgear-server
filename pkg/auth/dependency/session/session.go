@@ -7,10 +7,9 @@ import (
 )
 
 type Session struct {
-	ID       string `json:"id"`
-	AppID    string `json:"app_id"`
-	ClientID string `json:"client_id"`
-	UserID   string `json:"user_id"`
+	ID     string `json:"id"`
+	AppID  string `json:"app_id"`
+	UserID string `json:"user_id"`
 
 	PrincipalID        string              `json:"principal_id"`
 	PrincipalType      authn.PrincipalType `json:"principal_type"`

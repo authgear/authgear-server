@@ -25,15 +25,6 @@ func TestProvider(t *testing.T) {
 		timeProvider.TimeNow = initialTime
 		timeProvider.TimeNowUTC = initialTime
 
-		clientConfigs := []config.APIClientConfiguration{
-			config.APIClientConfiguration{
-				ID: "web-app",
-			},
-			config.APIClientConfiguration{
-				ID: "mobile-app",
-			},
-		}
-
 		req, _ := http.NewRequest("POST", "", nil)
 		req.Header.Set("User-Agent", "SDK")
 		req.Header.Set("X-Skygear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
@@ -45,13 +36,13 @@ func TestProvider(t *testing.T) {
 			},
 		}
 
-		var provider Provider = &ProviderImpl{
-			req:           req,
-			store:         store,
-			eventStore:    eventStore,
-			clientConfigs: clientConfigs,
-			time:          timeProvider,
-			rand:          rand.New(rand.NewSource(0)),
+		provider := &ProviderImpl{
+			req:        req,
+			store:      store,
+			eventStore: eventStore,
+			config:     config.SessionConfiguration{},
+			time:       timeProvider,
+			rand:       rand.New(rand.NewSource(0)),
 		}
 
 		Convey("creating session", func() {
@@ -67,7 +58,6 @@ func TestProvider(t *testing.T) {
 				So(token, ShouldNotBeEmpty)
 				So(session, ShouldResemble, &Session{
 					ID:            session.ID,
-					ClientID:      "web-app",
 					UserID:        "user-id",
 					PrincipalID:   "principal-id",
 					InitialAccess: accessEvent,
@@ -89,7 +79,6 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(session1, ShouldResemble, &Session{
 					ID:            session1.ID,
-					ClientID:      "web-app",
 					UserID:        "user-id",
 					PrincipalID:   "principal-id",
 					InitialAccess: accessEvent,
@@ -108,7 +97,6 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(session2, ShouldResemble, &Session{
 					ID:            session2.ID,
-					ClientID:      "web-app",
 					UserID:        "user-id",
 					PrincipalID:   "principal-id",
 					InitialAccess: accessEvent,
@@ -126,7 +114,6 @@ func TestProvider(t *testing.T) {
 		Convey("getting session", func() {
 			fixtureSession := Session{
 				ID:          "session-id",
-				ClientID:    "web-app",
 				UserID:      "user-id",
 				PrincipalID: "principal-id",
 				CreatedAt:   initialTime,
@@ -156,16 +143,6 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeError, ErrSessionNotFound)
 				So(session, ShouldBeNil)
 			})
-			Convey("should reject if client does not exists", func(c C) {
-				for i := range clientConfigs {
-					if clientConfigs[i].ID == "web-app" {
-						clientConfigs[i].ID = "node-app"
-					}
-				}
-				session, err := provider.GetByToken("session-id.token")
-				So(err, ShouldBeError, ErrSessionNotFound)
-				So(session, ShouldBeNil)
-			})
 			Convey("should reject if session is expired", func() {
 				timeProvider.AdvanceSeconds(1000000)
 				session, err := provider.GetByToken("session-id.token")
@@ -182,7 +159,6 @@ func TestProvider(t *testing.T) {
 				CreatedAt:   initialTime,
 				AccessedAt:  initialTime,
 				TokenHash:   "token-hash",
-				ClientID:    "web-app",
 			}
 			timeProvider.AdvanceSeconds(100)
 			timeNow := timeProvider.TimeNowUTC
@@ -226,26 +202,20 @@ func TestProvider(t *testing.T) {
 		})
 
 		Convey("listing session", func() {
-			makeSession := func(id string, userID string, clientID string, timeOffset int) {
+			makeSession := func(id string, userID string, timeOffset int) {
 				store.Sessions[id] = Session{
 					ID:         id,
 					UserID:     userID,
-					ClientID:   clientID,
 					CreatedAt:  initialTime.Add(gotime.Duration(timeOffset) * gotime.Second),
 					AccessedAt: initialTime.Add(gotime.Duration(timeOffset) * gotime.Second),
 				}
 			}
-			makeSession("a", "user-1", "web-app", 100)
-			makeSession("b", "user-1", "mobile-app", 200)
-			makeSession("c", "user-2", "web-app", -10000)
-			makeSession("d", "user-2", "disabled-app", 400)
+			makeSession("a", "user-1", 100)
+			makeSession("b", "user-1", 200)
+			makeSession("c", "user-2", -10000)
 			timeProvider.AdvanceSeconds(500)
-			for i := range clientConfigs {
-				clientConfigs[i] = config.APIClientConfiguration{
-					ID:                   clientConfigs[i].ID,
-					RefreshTokenLifetime: 1000,
-					RefreshTokenDisabled: true,
-				}
+			provider.config = config.SessionConfiguration{
+				Lifetime: 1000,
 			}
 
 			list := func(userID string) (ids []string, err error) {
