@@ -408,6 +408,8 @@ func (m DependencyMap) Provide(
 		return urlprefix.NewProvider(request).Value()
 	case "TemplateEngine":
 		return newTemplateEngine()
+	case "TimeProvider":
+		return newTimeProvider()
 	default:
 		return nil
 	}
