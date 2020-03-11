@@ -11,9 +11,6 @@ import (
 
 // NewGearHandler takes an incoming request and sends it to coresponding
 // gear server
-func NewGearHandler() http.Handler {
-	return http.HandlerFunc(handleGear)
-}
 
 func handleGear(rw http.ResponseWriter, r *http.Request) {
 	director := func(req *http.Request) {

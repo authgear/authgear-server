@@ -11,10 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
-func NewDeploymentRouteHandler() http.HandlerFunc {
-	return http.HandlerFunc(handleDeploymentRoute)
-}
-
 func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
 	ctx := model.GatewayContextFromContext(r.Context())
 	routeMatch := model.MatchRoute(r.URL.Path, ctx.App.Config.DeploymentRoutes)

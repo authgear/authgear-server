@@ -100,30 +100,17 @@ func main() {
 	r.Use(coreMiddleware.RequestIDMiddleware{}.Handle)
 	r.Use(middleware.FindAppMiddleware{Store: store}.Handle)
 
-	gr := r.PathPrefix("/_{gear}").Subrouter()
-
-	gr.Use(coreMiddleware.WriteTenantConfigMiddleware{
+	r.Use(coreMiddleware.WriteTenantConfigMiddleware{
 		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
 			Store: store,
 		},
 	}.Handle)
-	gr.Use(middleware.TenantAuthzMiddleware{
+	r.Use(middleware.TenantAuthzMiddleware{
 		Store:         store,
 		Configuration: config,
 	}.Handle)
-	gr.Use(coreMiddleware.CORSMiddleware{}.Handle)
 
-	gr.Handle("/{rest:.*}", handler.NewGearHandler())
-
-	cr := r.PathPrefix("/").Subrouter()
-
-	cr.Use(coreMiddleware.WriteTenantConfigMiddleware{
-		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
-			Store: store,
-		},
-	}.Handle)
-
-	cr.Use(func(next http.Handler) http.Handler {
+	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r = db.InitRequestDBContext(r, dbPool)
 			r = auth.InitRequestAuthContext(r)
@@ -134,19 +121,19 @@ func main() {
 	})
 
 	// CORS headers should be set right after a proxy backend has been found.
-	cr.Use(coreMiddleware.CORSMiddleware{}.Handle)
+	r.Use(coreMiddleware.CORSMiddleware{}.Handle)
 
-	cr.Use(coreMiddleware.Injecter{
+	r.Use(coreMiddleware.Injecter{
 		MiddlewareFactory: coreMiddleware.AuthnMiddlewareFactory{},
 		Dependency:        gatewayDependency,
 	}.Handle)
 
-	cr.Use(coreMiddleware.Injecter{
+	r.Use(coreMiddleware.Injecter{
 		MiddlewareFactory: middleware.AuthInfoMiddlewareFactory{},
 		Dependency:        gatewayDependency,
 	}.Handle)
 
-	cr.HandleFunc("/{rest:.*}", handler.NewDeploymentRouteHandler())
+	r.HandleFunc("/{rest:.*}", handler.NewGatewayHandler())
 
 	srv := &http.Server{
 		Addr:         config.Host,
