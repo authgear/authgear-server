@@ -242,6 +242,7 @@ func main() {
 	session.AttachGetHandler(appRouter, authDependency)
 	session.AttachRevokeHandler(appRouter, authDependency)
 	session.AttachRevokeAllHandler(appRouter, authDependency)
+	session.AttachResolveHandler(appRouter, authDependency)
 	mfaHandler.AttachListRecoveryCodeHandler(appRouter, authDependency)
 	mfaHandler.AttachRegenerateRecoveryCodeHandler(appRouter, authDependency)
 	mfaHandler.AttachListAuthenticatorHandler(appRouter, authDependency)

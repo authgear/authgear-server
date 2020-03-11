@@ -6,12 +6,13 @@ import (
 	"net/http"
 
 	"github.com/google/wire"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 )
 
 func provideResolveHandler(m *session.Middleware) http.Handler {
-	return nil
+	return m.Handle(&ResolveHandler{})
 }
 
 func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
