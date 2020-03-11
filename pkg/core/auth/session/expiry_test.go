@@ -23,12 +23,12 @@ func TestComputeSessionExpiry(t *testing.T) {
 			RefreshTokenHash:     "refresh-token-hash",
 			AccessTokenCreatedAt: time.Date(2006, 1, 1, 0, 20, 0, 0, gotime.UTC),
 		}
-		config := config.APIClientConfiguration{
-			ClientName:           "Web App",
-			ClientID:             "client_id",
-			AuthAPIUseCookie:     false,
-			AccessTokenLifetime:  1800,
-			RefreshTokenLifetime: 86400,
+		config := config.OAuthClientConfiguration{
+			"client_name":            "Web App",
+			"client_id":              "client_id",
+			"auth_api_use_cookie":    false,
+			"access_token_lifetime":  1800.0,
+			"refresh_token_lifetime": 86400.0,
 		}
 
 		Convey("should be correct when refresh token is enabled", func() {
@@ -53,12 +53,12 @@ func TestCheckSessionExpired(t *testing.T) {
 			RefreshTokenHash:     "refresh-token-hash",
 			AccessTokenCreatedAt: time.Date(2006, 1, 1, 0, 20, 0, 0, gotime.UTC),
 		}
-		config := config.APIClientConfiguration{
-			ClientName:           "Web App",
-			ClientID:             "client_id",
-			AuthAPIUseCookie:     false,
-			AccessTokenLifetime:  1800,
-			RefreshTokenLifetime: 86400,
+		config := config.OAuthClientConfiguration{
+			"client_name":            "Web App",
+			"client_id":              "client_id",
+			"auth_api_use_cookie":    false,
+			"access_token_lifetime":  1800.0,
+			"refresh_token_lifetime": 86400.0,
 		}
 
 		doCheckSessionExpired := func(mins int, kind auth.SessionTokenKind) bool {
@@ -75,7 +75,7 @@ func TestCheckSessionExpired(t *testing.T) {
 			So(doCheckSessionExpired(26, auth.SessionTokenKindAccessToken), ShouldBeFalse)
 			So(doCheckSessionExpired(25, auth.SessionTokenKindRefreshToken), ShouldBeFalse)
 			So(doCheckSessionExpired(26, auth.SessionTokenKindRefreshToken), ShouldBeFalse)
-			config.RefreshTokenLifetime = 25 * 60
+			config.SetRefreshTokenLifetime(25 * 60)
 			So(doCheckSessionExpired(25, auth.SessionTokenKindAccessToken), ShouldBeFalse)
 			So(doCheckSessionExpired(26, auth.SessionTokenKindAccessToken), ShouldBeTrue)
 			So(doCheckSessionExpired(25, auth.SessionTokenKindRefreshToken), ShouldBeFalse)

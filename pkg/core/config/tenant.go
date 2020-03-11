@@ -167,7 +167,7 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	values[0] = c.AppConfig.MasterKey
 	i := 1
 	for _, clientConfig := range c.AppConfig.Clients {
-		values[i] = clientConfig.ClientID
+		values[i] = clientConfig.ClientID()
 		i++
 	}
 
@@ -206,11 +206,11 @@ func (c *TenantConfiguration) PostValidate() error {
 
 	// Validate complex AppConfiguration
 	for key, clientConfig := range c.AppConfig.Clients {
-		if clientConfig.ClientID == c.AppConfig.MasterKey {
+		if clientConfig.ClientID() == c.AppConfig.MasterKey {
 			return fail(validation.ErrorGeneral, "master key must not be same as client_id", "user_config", "master_key")
 		}
 
-		if clientConfig.RefreshTokenLifetime < clientConfig.AccessTokenLifetime {
+		if clientConfig.RefreshTokenLifetime() < clientConfig.AccessTokenLifetime() {
 			return fail(
 				validation.ErrorGeneral,
 				"refresh token lifetime must be greater than or equal to access token lifetime",
@@ -273,13 +273,13 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 
 	// Set default APIClientConfiguration values
 	for i, clientConfig := range c.AppConfig.Clients {
-		if clientConfig.AccessTokenLifetime == 0 {
-			clientConfig.AccessTokenLifetime = 1800
+		if clientConfig.AccessTokenLifetime() == 0 {
+			clientConfig.SetAccessTokenLifetime(1800)
 		}
-		if clientConfig.RefreshTokenLifetime == 0 {
-			clientConfig.RefreshTokenLifetime = 86400
-			if clientConfig.AccessTokenLifetime > clientConfig.RefreshTokenLifetime {
-				clientConfig.RefreshTokenLifetime = clientConfig.AccessTokenLifetime
+		if clientConfig.RefreshTokenLifetime() == 0 {
+			clientConfig.SetRefreshTokenLifetime(86400)
+			if clientConfig.AccessTokenLifetime() > clientConfig.RefreshTokenLifetime() {
+				clientConfig.SetRefreshTokenLifetime(clientConfig.AccessTokenLifetime())
 			}
 		}
 		c.AppConfig.Clients[i] = clientConfig
@@ -492,7 +492,7 @@ func WriteTenantConfig(r *http.Request, config *TenantConfiguration) {
 type AppConfiguration struct {
 	APIVersion       string                         `json:"api_version,omitempty" yaml:"api_version" msg:"api_version"`
 	DisplayAppName   string                         `json:"display_app_name,omitempty" yaml:"display_app_name" msg:"display_app_name"`
-	Clients          []APIClientConfiguration       `json:"clients,omitempty" yaml:"clients" msg:"clients"`
+	Clients          []OAuthClientConfiguration     `json:"clients,omitempty" yaml:"clients" msg:"clients"`
 	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
 	Session          *SessionConfiguration          `json:"session,omitempty" yaml:"session" msg:"session" default_zero_value:"true"`
 	CORS             *CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors" default_zero_value:"true"`
@@ -517,14 +517,53 @@ type AssetConfiguration struct {
 	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
 }
 
-type APIClientConfiguration struct {
-	ClientName   string   `json:"client_name,omitempty" yaml:"client_name" msg:"client_name"`
-	ClientID     string   `json:"client_id,omitempty" yaml:"client_id" msg:"client_id"`
-	RedirectURIs []string `json:"redirect_uris,omitempty" yaml:"redirect_uris" msg:"redirect_uris"`
+type OAuthClientConfiguration map[string]interface{}
 
-	AuthAPIUseCookie     bool `json:"auth_api_use_cookie,omitempty" yaml:"auth_api_use_cookie" msg:"auth_api_use_cookie"`
-	AccessTokenLifetime  int  `json:"access_token_lifetime,omitempty" yaml:"access_token_lifetime" msg:"access_token_lifetime"`
-	RefreshTokenLifetime int  `json:"refresh_token_lifetime,omitempty" yaml:"refresh_token_lifetime" msg:"refresh_token_lifetime"`
+func (c OAuthClientConfiguration) ClientID() string {
+	if s, ok := c["client_id"].(string); ok {
+		return s
+	}
+	return ""
+}
+
+func (c OAuthClientConfiguration) RedirectURIs() (out []string) {
+	if arr, ok := c["redirect_uris"].([]interface{}); ok {
+		for _, item := range arr {
+			if s, ok := item.(string); ok {
+				out = append(out, s)
+			}
+		}
+	}
+	return
+}
+
+func (c OAuthClientConfiguration) AuthAPIUseCookie() bool {
+	if b, ok := c["auth_api_use_cookie"].(bool); ok {
+		return b
+	}
+	return false
+}
+
+func (c OAuthClientConfiguration) AccessTokenLifetime() int {
+	if f64, ok := c["access_token_lifetime"].(float64); ok {
+		return int(f64)
+	}
+	return 0
+}
+
+func (c OAuthClientConfiguration) SetAccessTokenLifetime(t int) {
+	c["access_token_lifetime"] = float64(t)
+}
+
+func (c OAuthClientConfiguration) SetRefreshTokenLifetime(t int) {
+	c["refresh_token_lifetime"] = float64(t)
+}
+
+func (c OAuthClientConfiguration) RefreshTokenLifetime() int {
+	if f64, ok := c["refresh_token_lifetime"].(float64); ok {
+		return int(f64)
+	}
+	return 0
 }
 
 type SessionConfiguration struct {

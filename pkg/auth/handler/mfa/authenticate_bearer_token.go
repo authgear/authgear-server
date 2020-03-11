@@ -112,7 +112,7 @@ func (h *AuthenticateBearerTokenHandler) ProvideAuthzPolicy() authz.Policy {
 
 func (h *AuthenticateBearerTokenHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload AuthenticateBearerTokenRequest, err error) {
 	_, apiClientConfig, ok := h.APIClientConfigurationProvider.Get()
-	if ok && apiClientConfig.AuthAPIUseCookie {
+	if ok && apiClientConfig.AuthAPIUseCookie() {
 		cookie, err := request.Cookie(coreHttp.CookieNameMFABearerToken)
 		if err == nil {
 			payload.BearerToken = cookie.Value

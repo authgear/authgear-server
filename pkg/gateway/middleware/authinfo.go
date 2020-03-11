@@ -54,7 +54,7 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		if errors.Is(err, session.ErrSessionNotFound) {
 			if accessKey.ClientID != "" {
 				clientConfig, ok := model.GetClientConfig(tenantConfig.AppConfig.Clients, accessKey.ClientID)
-				if ok && !clientConfig.AuthAPIUseCookie {
+				if ok && !clientConfig.AuthAPIUseCookie() {
 					w.Header().Set(coreHttp.HeaderTryRefreshToken, "true")
 					w.WriteHeader(401)
 					return

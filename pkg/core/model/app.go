@@ -71,11 +71,11 @@ func GetAPIKey(i interface{}) string {
 	return header(i).Get(coreHttp.HeaderAPIKey)
 }
 
-func GetClientConfig(c []config.APIClientConfiguration, clientID string) (*config.APIClientConfiguration, bool) {
+func GetClientConfig(c []config.OAuthClientConfiguration, clientID string) (config.OAuthClientConfiguration, bool) {
 	for _, clientConfig := range c {
-		if clientConfig.ClientID == clientID {
+		if clientConfig.ClientID() == clientID {
 			cc := clientConfig
-			return &cc, true
+			return cc, true
 		}
 	}
 	return nil, false

@@ -18,12 +18,12 @@ var (
 			DatabaseURL: "DBConnectionStr",
 		},
 		AppConfig: &config.AppConfiguration{
-			Clients: []config.APIClientConfiguration{
-				config.APIClientConfiguration{
-					ClientID: "web-client-id",
+			Clients: []config.OAuthClientConfiguration{
+				config.OAuthClientConfiguration{
+					"client_id": "web-client-id",
 				},
-				config.APIClientConfiguration{
-					ClientID: "mobile-client-id",
+				config.OAuthClientConfiguration{
+					"client_id": "mobile-client-id",
 				},
 			},
 			MasterKey: "MasterKey",

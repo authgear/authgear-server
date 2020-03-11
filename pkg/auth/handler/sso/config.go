@@ -54,8 +54,11 @@ func (f ConfigHandler) NewHandler(request *http.Request) http.Handler {
 	handleAPICall := func(r *http.Request) (apiResp handler.APIResponse) {
 		authorizedURLs := []string{}
 		_, client, ok := f.ClientProvider.Get()
-		if ok && len(client.RedirectURIs) > 0 {
-			authorizedURLs = client.RedirectURIs
+		if ok {
+			redirectURIs := client.RedirectURIs()
+			if len(redirectURIs) > 0 {
+				authorizedURLs = redirectURIs
+			}
 		}
 		resp := ConfigResp{
 			AuthorizedURLS: authorizedURLs,

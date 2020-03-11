@@ -20,7 +20,7 @@ func NewProvider(authContext coreAuth.ContextGetter, tenantConfig config.TenantC
 	}
 }
 
-func (p *providerImpl) Get() (string, *config.APIClientConfiguration, bool) {
+func (p *providerImpl) Get() (string, config.OAuthClientConfiguration, bool) {
 	accessKey := p.authContext.AccessKey()
 	if accessKey.ClientID == "" {
 		return "", nil, false
@@ -36,8 +36,8 @@ func (p *providerImpl) GetAccessKeyByAPIKey(apiKey string) model.AccessKey {
 	}
 
 	for _, clientConfig := range p.tenantConfig.AppConfig.Clients {
-		if subtle.ConstantTimeCompare([]byte(apiKey), []byte(clientConfig.ClientID)) == 1 {
-			return model.AccessKey{Type: model.APIAccessKeyType, ClientID: clientConfig.ClientID}
+		if subtle.ConstantTimeCompare([]byte(apiKey), []byte(clientConfig.ClientID())) == 1 {
+			return model.AccessKey{Type: model.APIAccessKeyType, ClientID: clientConfig.ClientID()}
 		}
 	}
 

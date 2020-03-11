@@ -54,7 +54,7 @@ func (f *providerImpl) IsValidCallbackURL(u string) bool {
 	var redirectURIs []string
 	_, client, ok := f.ClientProvider.Get()
 	if ok {
-		redirectURIs = client.RedirectURIs
+		redirectURIs = client.RedirectURIs()
 	}
 	err := ValidateCallbackURL(redirectURIs, u)
 	return err == nil

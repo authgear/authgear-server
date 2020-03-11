@@ -28,12 +28,12 @@ func TestProvider(t *testing.T) {
 		timeProvider.TimeNowUTC = initialTime
 
 		authContext := authtest.NewMockContext().UseAPIAccessKey("web-app")
-		clientConfigs := []config.APIClientConfiguration{
-			config.APIClientConfiguration{
-				ClientID: "web-app",
+		clientConfigs := []config.OAuthClientConfiguration{
+			config.OAuthClientConfiguration{
+				"client_id": "web-app",
 			},
-			config.APIClientConfiguration{
-				ClientID: "mobile-app",
+			config.OAuthClientConfiguration{
+				"client_id": "mobile-app",
 			},
 		}
 
@@ -229,8 +229,8 @@ func TestProvider(t *testing.T) {
 			})
 			Convey("should reject if client does not exists", func(c C) {
 				for i := range clientConfigs {
-					if clientConfigs[i].ClientID == "web-app" {
-						clientConfigs[i].ClientID = "node-app"
+					if clientConfigs[i].ClientID() == "web-app" {
+						clientConfigs[i]["client_id"] = "node-app"
 					}
 				}
 				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)
@@ -315,10 +315,10 @@ func TestProvider(t *testing.T) {
 			makeSession("d", "user-2", "disabled-app", 400)
 			timeProvider.AdvanceSeconds(500)
 			for i := range clientConfigs {
-				clientConfigs[i] = config.APIClientConfiguration{
-					ClientID:             clientConfigs[i].ClientID,
-					RefreshTokenLifetime: 1000,
-					AccessTokenLifetime:  1000,
+				clientConfigs[i] = config.OAuthClientConfiguration{
+					"client_id":              clientConfigs[i].ClientID(),
+					"refresh_token_lifetime": 1000.0,
+					"access_token_lifetime":  1000.0,
 				}
 			}
 

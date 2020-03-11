@@ -12,14 +12,14 @@ import (
 
 type writerImpl struct {
 	authContext       auth.ContextGetter
-	clientConfigs     []config.APIClientConfiguration
+	clientConfigs     []config.OAuthClientConfiguration
 	mfaConfiguration  *config.MFAConfiguration
 	useInsecureCookie bool
 }
 
 func NewWriter(
 	authContext auth.ContextGetter,
-	clientConfigs []config.APIClientConfiguration,
+	clientConfigs []config.OAuthClientConfiguration,
 	mfaConfiguration *config.MFAConfiguration,
 	useInsecureCookie bool,
 ) Writer {
@@ -33,7 +33,7 @@ func NewWriter(
 
 func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string, mfaBearerToken *string) {
 	clientConfig, _ := model.GetClientConfig(w.clientConfigs, w.authContext.AccessKey().ClientID)
-	useCookie := clientConfig.AuthAPIUseCookie
+	useCookie := clientConfig.AuthAPIUseCookie()
 
 	cookieSession := &http.Cookie{
 		Name:     coreHttp.CookieNameSession,
@@ -53,7 +53,7 @@ func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string, m
 	if useCookie {
 		cookieSession.Value = *accessToken
 		*accessToken = ""
-		cookieSession.MaxAge = clientConfig.AccessTokenLifetime
+		cookieSession.MaxAge = clientConfig.AccessTokenLifetime()
 
 		if mfaBearerToken != nil {
 			cookieMFABearerToken.Value = *mfaBearerToken

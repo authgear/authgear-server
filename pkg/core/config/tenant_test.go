@@ -129,15 +129,15 @@ func makeFullTenantConfig() TenantConfiguration {
 				CookieDomain:        newStr("example.com"),
 				CookieNonPersistent: true,
 			},
-			Clients: []APIClientConfiguration{
-				APIClientConfiguration{
-					ClientName: "Web App",
-					ClientID:   "web_app",
-					RedirectURIs: []string{
+			Clients: []OAuthClientConfiguration{
+				OAuthClientConfiguration{
+					"client_name": "Web App",
+					"client_id":   "web_app",
+					"redirect_uris": []interface{}{
 						"http://localhost:8081/oauth2/continue",
 					},
-					AccessTokenLifetime:  1800,
-					RefreshTokenLifetime: 86400,
+					"access_token_lifetime":  1800.0,
+					"refresh_token_lifetime": 86400.0,
 				},
 			},
 			MasterKey: "mymasterkey",
@@ -441,8 +441,8 @@ func TestTenantConfig(t *testing.T) {
 		Convey("should validate client_id != master key", func() {
 			c := makeFullTenantConfig()
 			for i := range c.AppConfig.Clients {
-				if c.AppConfig.Clients[i].ClientID == "web_app" {
-					c.AppConfig.Clients[i].ClientID = c.AppConfig.MasterKey
+				if c.AppConfig.Clients[i].ClientID() == "web_app" {
+					c.AppConfig.Clients[i]["client_id"] = c.AppConfig.MasterKey
 				}
 			}
 

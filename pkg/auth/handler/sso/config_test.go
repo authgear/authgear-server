@@ -20,8 +20,8 @@ func TestConfigHandler(t *testing.T) {
 			var testingHandler ConfigHandler
 			testingHandler.ClientProvider = &apiclientconfig.MockProvider{
 				ClientID: "client_id",
-				APIClientConfig: &config.APIClientConfiguration{
-					RedirectURIs: []string{
+				APIClientConfig: config.OAuthClientConfiguration{
+					"redirect_uris": []interface{}{
 						"http://localhost",
 						"http://127.0.0.1",
 					},
