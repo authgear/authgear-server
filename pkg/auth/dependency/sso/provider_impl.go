@@ -6,20 +6,23 @@ import (
 	"encoding/base64"
 
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type providerImpl struct {
-	AppID       string
-	OAuthConfig *config.OAuthConfiguration
+	AppID          string
+	ClientProvider apiclientconfig.Provider
+	OAuthConfig    *config.OAuthConfiguration
 }
 
 var _ Provider = &providerImpl{}
 
-func NewProvider(appID string, c *config.OAuthConfiguration) Provider {
+func NewProvider(appID string, clientProvider apiclientconfig.Provider, c *config.OAuthConfiguration) Provider {
 	return &providerImpl{
-		AppID:       appID,
-		OAuthConfig: c,
+		AppID:          appID,
+		ClientProvider: clientProvider,
+		OAuthConfig:    c,
 	}
 }
 
@@ -48,7 +51,12 @@ func (f *providerImpl) IsAllowedOnUserDuplicate(a model.OnUserDuplicate) bool {
 }
 
 func (f *providerImpl) IsValidCallbackURL(u string) bool {
-	err := ValidateCallbackURL(f.OAuthConfig.AllowedCallbackURLs, u)
+	var redirectURIs []string
+	_, client, ok := f.ClientProvider.Get()
+	if ok {
+		redirectURIs = client.RedirectURIs
+	}
+	err := ValidateCallbackURL(redirectURIs, u)
 	return err == nil
 }
 

@@ -20,9 +20,6 @@ func TestAuthRedirectHandler(t *testing.T) {
 		providerUserID := "mock_user_id"
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
-			AllowedCallbackURLs: []string{
-				"http://localhost:3000",
-			},
 		}
 		providerConfig := coreconfig.OAuthProviderConfiguration{
 			ID:           providerName,
@@ -31,6 +28,9 @@ func TestAuthRedirectHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := &sso.MockSSOProvider{
+			RedirectURIs: []string{
+				"http://localhost:3000",
+			},
 			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,

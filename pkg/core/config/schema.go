@@ -111,6 +111,10 @@ var (
 		"properties": {
 			"client_name": { "$ref": "#NonEmptyString" },
 			"client_id": { "$ref": "#NonEmptyString" },
+			"redirect_uris": {
+				"type": "array",
+				"items": { "type": "string" }
+			},
 			"auth_api_use_cookie": { "type": "boolean" },
 			"access_token_lifetime": { "type": "integer", "minimum": 0 },
 			"refresh_token_lifetime": { "type": "integer", "minimum": 0 }
@@ -387,10 +391,6 @@ var (
 		"additionalProperties": false,
 		"properties": {
 			"state_jwt_secret": { "type": "string" },
-			"allowed_callback_urls": {
-				"type": "array",
-				"items": { "type": "string" }
-			},
 			"external_access_token_flow_enabled": { "type": "boolean" },
 			"on_user_duplicate_allow_merge": { "type": "boolean" },
 			"on_user_duplicate_allow_create": { "type": "boolean" },
@@ -399,26 +399,7 @@ var (
 				"items": { "$ref": "#OAuthProviderConfiguration" }
 			}
 		},
-		"if": {
-			"properties": {
-				"providers": {
-					"type": "array",
-					"minItems": 1
-				}
-			},
-			"required": ["providers"]
-		},
-		"then": {
-			"properties": {
-				"allowed_callback_urls": {
-					"minItems": 1
-				}
-			},
-			"required": ["state_jwt_secret", "allowed_callback_urls"]
-		},
-		"else": {
-			"required": ["state_jwt_secret"]
-		}
+		"required": ["state_jwt_secret"]
 	},
 	"OAuthProviderConfiguration": {
 		"$id": "#OAuthProviderConfiguration",

@@ -131,8 +131,11 @@ func makeFullTenantConfig() TenantConfiguration {
 			},
 			Clients: []APIClientConfiguration{
 				APIClientConfiguration{
-					ClientName:           "Web App",
-					ClientID:             "web_app",
+					ClientName: "Web App",
+					ClientID:   "web_app",
+					RedirectURIs: []string{
+						"http://localhost:8081/oauth2/continue",
+					},
 					AccessTokenLifetime:  1800,
 					RefreshTokenLifetime: 86400,
 				},
@@ -254,10 +257,7 @@ func makeFullTenantConfig() TenantConfiguration {
 			},
 			SSO: &SSOConfiguration{
 				OAuth: &OAuthConfiguration{
-					StateJWTSecret: "oauthstatejwtsecret",
-					AllowedCallbackURLs: []string{
-						"http://localhost:3000/oauth/callback",
-					},
+					StateJWTSecret:                 "oauthstatejwtsecret",
 					ExternalAccessTokenFlowEnabled: true,
 					OnUserDuplicateAllowMerge:      true,
 					OnUserDuplicateAllowCreate:     true,

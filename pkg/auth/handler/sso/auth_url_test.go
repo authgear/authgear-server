@@ -37,9 +37,6 @@ func TestAuthURLHandler(t *testing.T) {
 			MarkVerified()
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: "secret",
-			AllowedCallbackURLs: []string{
-				"http://example.com/sso",
-			},
 		}
 		providerConfig := coreconfig.OAuthProviderConfiguration{
 			ID:           "mock",
@@ -49,6 +46,9 @@ func TestAuthURLHandler(t *testing.T) {
 			Scope:        "openid profile email",
 		}
 		mockProvider := sso.MockSSOProvider{
+			RedirectURIs: []string{
+				"http://example.com/sso",
+			},
 			URLPrefix:      &url.URL{Scheme: "https", Host: "localhost:3000"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,

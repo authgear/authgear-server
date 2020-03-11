@@ -36,6 +36,25 @@ func (z *APIClientConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "ClientID")
 				return
 			}
+		case "redirect_uris":
+			var zb0002 uint32
+			zb0002, err = dc.ReadArrayHeader()
+			if err != nil {
+				err = msgp.WrapError(err, "RedirectURIs")
+				return
+			}
+			if cap(z.RedirectURIs) >= int(zb0002) {
+				z.RedirectURIs = (z.RedirectURIs)[:zb0002]
+			} else {
+				z.RedirectURIs = make([]string, zb0002)
+			}
+			for za0001 := range z.RedirectURIs {
+				z.RedirectURIs[za0001], err = dc.ReadString()
+				if err != nil {
+					err = msgp.WrapError(err, "RedirectURIs", za0001)
+					return
+				}
+			}
 		case "auth_api_use_cookie":
 			z.AuthAPIUseCookie, err = dc.ReadBool()
 			if err != nil {
@@ -67,9 +86,9 @@ func (z *APIClientConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *APIClientConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 5
+	// map header, size 6
 	// write "client_name"
-	err = en.Append(0x85, 0xab, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
+	err = en.Append(0x86, 0xab, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	if err != nil {
 		return
 	}
@@ -87,6 +106,23 @@ func (z *APIClientConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		err = msgp.WrapError(err, "ClientID")
 		return
+	}
+	// write "redirect_uris"
+	err = en.Append(0xad, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x5f, 0x75, 0x72, 0x69, 0x73)
+	if err != nil {
+		return
+	}
+	err = en.WriteArrayHeader(uint32(len(z.RedirectURIs)))
+	if err != nil {
+		err = msgp.WrapError(err, "RedirectURIs")
+		return
+	}
+	for za0001 := range z.RedirectURIs {
+		err = en.WriteString(z.RedirectURIs[za0001])
+		if err != nil {
+			err = msgp.WrapError(err, "RedirectURIs", za0001)
+			return
+		}
 	}
 	// write "auth_api_use_cookie"
 	err = en.Append(0xb3, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x61, 0x70, 0x69, 0x5f, 0x75, 0x73, 0x65, 0x5f, 0x63, 0x6f, 0x6f, 0x6b, 0x69, 0x65)
@@ -124,13 +160,19 @@ func (z *APIClientConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *APIClientConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 5
+	// map header, size 6
 	// string "client_name"
-	o = append(o, 0x85, 0xab, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
+	o = append(o, 0x86, 0xab, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	o = msgp.AppendString(o, z.ClientName)
 	// string "client_id"
 	o = append(o, 0xa9, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x64)
 	o = msgp.AppendString(o, z.ClientID)
+	// string "redirect_uris"
+	o = append(o, 0xad, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x5f, 0x75, 0x72, 0x69, 0x73)
+	o = msgp.AppendArrayHeader(o, uint32(len(z.RedirectURIs)))
+	for za0001 := range z.RedirectURIs {
+		o = msgp.AppendString(o, z.RedirectURIs[za0001])
+	}
 	// string "auth_api_use_cookie"
 	o = append(o, 0xb3, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x61, 0x70, 0x69, 0x5f, 0x75, 0x73, 0x65, 0x5f, 0x63, 0x6f, 0x6f, 0x6b, 0x69, 0x65)
 	o = msgp.AppendBool(o, z.AuthAPIUseCookie)
@@ -173,6 +215,25 @@ func (z *APIClientConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 				err = msgp.WrapError(err, "ClientID")
 				return
 			}
+		case "redirect_uris":
+			var zb0002 uint32
+			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "RedirectURIs")
+				return
+			}
+			if cap(z.RedirectURIs) >= int(zb0002) {
+				z.RedirectURIs = (z.RedirectURIs)[:zb0002]
+			} else {
+				z.RedirectURIs = make([]string, zb0002)
+			}
+			for za0001 := range z.RedirectURIs {
+				z.RedirectURIs[za0001], bts, err = msgp.ReadStringBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "RedirectURIs", za0001)
+					return
+				}
+			}
 		case "auth_api_use_cookie":
 			z.AuthAPIUseCookie, bts, err = msgp.ReadBoolBytes(bts)
 			if err != nil {
@@ -205,7 +266,11 @@ func (z *APIClientConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) 
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *APIClientConfiguration) Msgsize() (s int) {
-	s = 1 + 12 + msgp.StringPrefixSize + len(z.ClientName) + 10 + msgp.StringPrefixSize + len(z.ClientID) + 20 + msgp.BoolSize + 22 + msgp.IntSize + 23 + msgp.IntSize
+	s = 1 + 12 + msgp.StringPrefixSize + len(z.ClientName) + 10 + msgp.StringPrefixSize + len(z.ClientID) + 14 + msgp.ArrayHeaderSize
+	for za0001 := range z.RedirectURIs {
+		s += msgp.StringPrefixSize + len(z.RedirectURIs[za0001])
+	}
+	s += 20 + msgp.BoolSize + 22 + msgp.IntSize + 23 + msgp.IntSize
 	return
 }
 
@@ -7160,25 +7225,6 @@ func (z *OAuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "StateJWTSecret")
 				return
 			}
-		case "allowed_callback_urls":
-			var zb0002 uint32
-			zb0002, err = dc.ReadArrayHeader()
-			if err != nil {
-				err = msgp.WrapError(err, "AllowedCallbackURLs")
-				return
-			}
-			if cap(z.AllowedCallbackURLs) >= int(zb0002) {
-				z.AllowedCallbackURLs = (z.AllowedCallbackURLs)[:zb0002]
-			} else {
-				z.AllowedCallbackURLs = make([]string, zb0002)
-			}
-			for za0001 := range z.AllowedCallbackURLs {
-				z.AllowedCallbackURLs[za0001], err = dc.ReadString()
-				if err != nil {
-					err = msgp.WrapError(err, "AllowedCallbackURLs", za0001)
-					return
-				}
-			}
 		case "external_access_token_flow_enabled":
 			z.ExternalAccessTokenFlowEnabled, err = dc.ReadBool()
 			if err != nil {
@@ -7198,21 +7244,21 @@ func (z *OAuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				return
 			}
 		case "providers":
-			var zb0003 uint32
-			zb0003, err = dc.ReadArrayHeader()
+			var zb0002 uint32
+			zb0002, err = dc.ReadArrayHeader()
 			if err != nil {
 				err = msgp.WrapError(err, "Providers")
 				return
 			}
-			if cap(z.Providers) >= int(zb0003) {
-				z.Providers = (z.Providers)[:zb0003]
+			if cap(z.Providers) >= int(zb0002) {
+				z.Providers = (z.Providers)[:zb0002]
 			} else {
-				z.Providers = make([]OAuthProviderConfiguration, zb0003)
+				z.Providers = make([]OAuthProviderConfiguration, zb0002)
 			}
-			for za0002 := range z.Providers {
-				err = z.Providers[za0002].DecodeMsg(dc)
+			for za0001 := range z.Providers {
+				err = z.Providers[za0001].DecodeMsg(dc)
 				if err != nil {
-					err = msgp.WrapError(err, "Providers", za0002)
+					err = msgp.WrapError(err, "Providers", za0001)
 					return
 				}
 			}
@@ -7229,9 +7275,9 @@ func (z *OAuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *OAuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 6
+	// map header, size 5
 	// write "state_jwt_secret"
-	err = en.Append(0x86, 0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+	err = en.Append(0x85, 0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 	if err != nil {
 		return
 	}
@@ -7239,23 +7285,6 @@ func (z *OAuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		err = msgp.WrapError(err, "StateJWTSecret")
 		return
-	}
-	// write "allowed_callback_urls"
-	err = en.Append(0xb5, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x63, 0x61, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x5f, 0x75, 0x72, 0x6c, 0x73)
-	if err != nil {
-		return
-	}
-	err = en.WriteArrayHeader(uint32(len(z.AllowedCallbackURLs)))
-	if err != nil {
-		err = msgp.WrapError(err, "AllowedCallbackURLs")
-		return
-	}
-	for za0001 := range z.AllowedCallbackURLs {
-		err = en.WriteString(z.AllowedCallbackURLs[za0001])
-		if err != nil {
-			err = msgp.WrapError(err, "AllowedCallbackURLs", za0001)
-			return
-		}
 	}
 	// write "external_access_token_flow_enabled"
 	err = en.Append(0xd9, 0x22, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x5f, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x66, 0x6c, 0x6f, 0x77, 0x5f, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
@@ -7297,10 +7326,10 @@ func (z *OAuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "Providers")
 		return
 	}
-	for za0002 := range z.Providers {
-		err = z.Providers[za0002].EncodeMsg(en)
+	for za0001 := range z.Providers {
+		err = z.Providers[za0001].EncodeMsg(en)
 		if err != nil {
-			err = msgp.WrapError(err, "Providers", za0002)
+			err = msgp.WrapError(err, "Providers", za0001)
 			return
 		}
 	}
@@ -7310,16 +7339,10 @@ func (z *OAuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *OAuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 6
+	// map header, size 5
 	// string "state_jwt_secret"
-	o = append(o, 0x86, 0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+	o = append(o, 0x85, 0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 	o = msgp.AppendString(o, z.StateJWTSecret)
-	// string "allowed_callback_urls"
-	o = append(o, 0xb5, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x63, 0x61, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x5f, 0x75, 0x72, 0x6c, 0x73)
-	o = msgp.AppendArrayHeader(o, uint32(len(z.AllowedCallbackURLs)))
-	for za0001 := range z.AllowedCallbackURLs {
-		o = msgp.AppendString(o, z.AllowedCallbackURLs[za0001])
-	}
 	// string "external_access_token_flow_enabled"
 	o = append(o, 0xd9, 0x22, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x5f, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x66, 0x6c, 0x6f, 0x77, 0x5f, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	o = msgp.AppendBool(o, z.ExternalAccessTokenFlowEnabled)
@@ -7332,10 +7355,10 @@ func (z *OAuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "providers"
 	o = append(o, 0xa9, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x73)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.Providers)))
-	for za0002 := range z.Providers {
-		o, err = z.Providers[za0002].MarshalMsg(o)
+	for za0001 := range z.Providers {
+		o, err = z.Providers[za0001].MarshalMsg(o)
 		if err != nil {
-			err = msgp.WrapError(err, "Providers", za0002)
+			err = msgp.WrapError(err, "Providers", za0001)
 			return
 		}
 	}
@@ -7366,25 +7389,6 @@ func (z *OAuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "StateJWTSecret")
 				return
 			}
-		case "allowed_callback_urls":
-			var zb0002 uint32
-			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "AllowedCallbackURLs")
-				return
-			}
-			if cap(z.AllowedCallbackURLs) >= int(zb0002) {
-				z.AllowedCallbackURLs = (z.AllowedCallbackURLs)[:zb0002]
-			} else {
-				z.AllowedCallbackURLs = make([]string, zb0002)
-			}
-			for za0001 := range z.AllowedCallbackURLs {
-				z.AllowedCallbackURLs[za0001], bts, err = msgp.ReadStringBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "AllowedCallbackURLs", za0001)
-					return
-				}
-			}
 		case "external_access_token_flow_enabled":
 			z.ExternalAccessTokenFlowEnabled, bts, err = msgp.ReadBoolBytes(bts)
 			if err != nil {
@@ -7404,21 +7408,21 @@ func (z *OAuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				return
 			}
 		case "providers":
-			var zb0003 uint32
-			zb0003, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			var zb0002 uint32
+			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "Providers")
 				return
 			}
-			if cap(z.Providers) >= int(zb0003) {
-				z.Providers = (z.Providers)[:zb0003]
+			if cap(z.Providers) >= int(zb0002) {
+				z.Providers = (z.Providers)[:zb0002]
 			} else {
-				z.Providers = make([]OAuthProviderConfiguration, zb0003)
+				z.Providers = make([]OAuthProviderConfiguration, zb0002)
 			}
-			for za0002 := range z.Providers {
-				bts, err = z.Providers[za0002].UnmarshalMsg(bts)
+			for za0001 := range z.Providers {
+				bts, err = z.Providers[za0001].UnmarshalMsg(bts)
 				if err != nil {
-					err = msgp.WrapError(err, "Providers", za0002)
+					err = msgp.WrapError(err, "Providers", za0001)
 					return
 				}
 			}
@@ -7436,13 +7440,9 @@ func (z *OAuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *OAuthConfiguration) Msgsize() (s int) {
-	s = 1 + 17 + msgp.StringPrefixSize + len(z.StateJWTSecret) + 22 + msgp.ArrayHeaderSize
-	for za0001 := range z.AllowedCallbackURLs {
-		s += msgp.StringPrefixSize + len(z.AllowedCallbackURLs[za0001])
-	}
-	s += 36 + msgp.BoolSize + 30 + msgp.BoolSize + 31 + msgp.BoolSize + 10 + msgp.ArrayHeaderSize
-	for za0002 := range z.Providers {
-		s += z.Providers[za0002].Msgsize()
+	s = 1 + 17 + msgp.StringPrefixSize + len(z.StateJWTSecret) + 36 + msgp.BoolSize + 30 + msgp.BoolSize + 31 + msgp.BoolSize + 10 + msgp.ArrayHeaderSize
+	for za0001 := range z.Providers {
+		s += z.Providers[za0001].Msgsize()
 	}
 	return
 }

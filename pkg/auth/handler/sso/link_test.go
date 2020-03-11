@@ -53,9 +53,6 @@ func TestLinkHandler(t *testing.T) {
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret:                 stateJWTSecret,
 			ExternalAccessTokenFlowEnabled: true,
-			AllowedCallbackURLs: []string{
-				"http://localhost",
-			},
 		}
 		providerConfig := coreconfig.OAuthProviderConfiguration{
 			ID:           providerName,
@@ -64,6 +61,9 @@ func TestLinkHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
+			RedirectURIs: []string{
+				"http://localhost",
+			},
 			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,

@@ -402,7 +402,6 @@ func TestParseAppConfiguration(t *testing.T) {
 					}
 				}
 			}`,
-			"/sso/oauth/allowed_callback_urls: Required",
 			"/sso/oauth/providers/0/client_id: Required",
 			"/sso/oauth/providers/0/client_secret: Required",
 			"/sso/oauth/providers/0/tenant: Required",

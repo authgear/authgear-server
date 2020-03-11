@@ -518,8 +518,9 @@ type AssetConfiguration struct {
 }
 
 type APIClientConfiguration struct {
-	ClientName string `json:"client_name,omitempty" yaml:"client_name" msg:"client_name"`
-	ClientID   string `json:"client_id,omitempty" yaml:"client_id" msg:"client_id"`
+	ClientName   string   `json:"client_name,omitempty" yaml:"client_name" msg:"client_name"`
+	ClientID     string   `json:"client_id,omitempty" yaml:"client_id" msg:"client_id"`
+	RedirectURIs []string `json:"redirect_uris,omitempty" yaml:"redirect_uris" msg:"redirect_uris"`
 
 	AuthAPIUseCookie     bool `json:"auth_api_use_cookie,omitempty" yaml:"auth_api_use_cookie" msg:"auth_api_use_cookie"`
 	AccessTokenLifetime  int  `json:"access_token_lifetime,omitempty" yaml:"access_token_lifetime" msg:"access_token_lifetime"`
@@ -725,7 +726,6 @@ type SSOConfiguration struct {
 
 type OAuthConfiguration struct {
 	StateJWTSecret                 string                       `json:"state_jwt_secret,omitempty" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
-	AllowedCallbackURLs            []string                     `json:"allowed_callback_urls,omitempty" yaml:"allowed_callback_urls" msg:"allowed_callback_urls"`
 	ExternalAccessTokenFlowEnabled bool                         `json:"external_access_token_flow_enabled,omitempty" yaml:"external_access_token_flow_enabled" msg:"external_access_token_flow_enabled"`
 	OnUserDuplicateAllowMerge      bool                         `json:"on_user_duplicate_allow_merge,omitempty" yaml:"on_user_duplicate_allow_merge" msg:"on_user_duplicate_allow_merge"`
 	OnUserDuplicateAllowCreate     bool                         `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`

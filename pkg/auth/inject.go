@@ -261,6 +261,10 @@ func (m DependencyMap) Provide(
 		return sso.NewUserInfoDecoder(newLoginIDNormalizerFactory())
 	}
 
+	newAPIClientConfigurationProvider := func() apiclientconfig.Provider {
+		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
+	}
+
 	switch dependencyName {
 	case "AuthContextGetter":
 		return newAuthContext()
@@ -377,6 +381,7 @@ func (m DependencyMap) Provide(
 	case "SSOProvider":
 		return sso.NewProvider(
 			tConfig.AppID,
+			newAPIClientConfigurationProvider(),
 			tConfig.AppConfig.SSO.OAuth,
 		)
 	case "OAuthAuthProvider":
@@ -396,7 +401,7 @@ func (m DependencyMap) Provide(
 	case "MFAConfiguration":
 		return *tConfig.AppConfig.MFA
 	case "APIClientConfigurationProvider":
-		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
+		return newAPIClientConfigurationProvider()
 	case "URLPrefix":
 		return urlprefix.NewProvider(request).Value()
 	case "TemplateEngine":
