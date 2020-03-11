@@ -12,10 +12,10 @@ database_config:
 app_config:
   api_version: 'v2.1'
   clients:
-  - id: default
-    name: Test App
-    api_key: api_key
-    session_transport: header
+  - client_id: api_key
+    client_name: Test App
+    redirect_uris:
+    - "http://localhost:9999/sso.html"
   master_key: master_key
   asset:
     secret: assetsecret
@@ -31,15 +31,8 @@ app_config:
     authentication_session:
       secret: authnsessionsecret
   sso:
-    custom_token:
-      enabled: true
-      issuer: myissuer
-      audience: myaudience
-      secret: mysecret
     oauth:
       state_jwt_secret: statesecret
-      allowed_callback_urls:
-      - "http://localhost:9999/sso.html"
       providers:
       - type: google
         client_id: 'client_id'
