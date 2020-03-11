@@ -3,13 +3,15 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 
-	"github.com/gorilla/mux"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
 	gatewayModel "github.com/skygeario/skygear-server/pkg/gateway/model"
 	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
+
+var gearPathRegex = regexp.MustCompile(`^/_([^\/]*)`)
 
 // TenantAuthzMiddleware is middleware to check if the current app can access
 // gear
@@ -24,9 +26,22 @@ func (a TenantAuthzMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := gatewayModel.GatewayContextFromContext(r.Context())
 		app := ctx.App
+		domain := ctx.Domain
 
 		// Tenant authorization
-		gear := gatewayModel.Gear(mux.Vars(r)["gear"])
+		var gear gatewayModel.Gear
+		if domain.Assignment == gatewayModel.AssignmentTypeMicroservices {
+			// fallback route to gear by path
+			gear = gatewayModel.Gear(getGearName(r.URL.Path))
+		} else {
+			gear = gatewayModel.Gear(domain.Assignment)
+		}
+		if gear == "" {
+			// microservices
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		gearVersion := app.GetGearVersion(gear)
 		if !app.CanAccessGear(gear) {
 			http.Error(w, fmt.Sprintf("%s is not support in current app plan", gear), http.StatusForbidden)
@@ -50,4 +65,13 @@ func (a TenantAuthzMiddleware) Handle(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func getGearName(path string) string {
+	result := gearPathRegex.FindStringSubmatch(path)
+	if len(result) == 2 {
+		return result[1]
+	}
+
+	return ""
 }
