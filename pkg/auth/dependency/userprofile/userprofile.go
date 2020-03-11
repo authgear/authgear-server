@@ -4,10 +4,6 @@ import (
 	"time"
 )
 
-var (
-	timeNow = func() time.Time { return time.Now().UTC() }
-)
-
 // Data refers the profile info of a user,
 // like username, email, age, phone number
 type Data map[string]interface{}

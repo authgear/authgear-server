@@ -19,6 +19,7 @@ import (
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -26,12 +27,6 @@ import (
 )
 
 func TestLinkHandler(t *testing.T) {
-	realTime := timeNow
-	timeNow = func() time.Time { return zeroTime }
-	defer func() {
-		timeNow = realTime
-	}()
-
 	Convey("Test LinkHandler", t, func() {
 		stateJWTSecret := "secret"
 		providerName := "mock"
@@ -41,6 +36,7 @@ func TestLinkHandler(t *testing.T) {
 		}
 
 		sh := &LinkHandler{}
+		sh.TimeProvider = &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 		sh.TxContext = db.NewMockTxContext()
 		validator := validation.NewValidator("http://v2.skygear.io")
 		validator.AddSchemaFragments(

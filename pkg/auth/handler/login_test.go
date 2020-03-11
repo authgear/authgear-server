@@ -33,12 +33,6 @@ import (
 
 func TestLoginHandler(t *testing.T) {
 	Convey("Test LoginHandler", t, func() {
-		realTime := timeNow
-		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
-		defer func() {
-			timeNow = realTime
-		}()
-
 		// fixture
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
@@ -319,13 +313,6 @@ func TestLoginHandler(t *testing.T) {
 	})
 
 	Convey("Test LoginHandler response", t, func() {
-		realTime := timeNow
-		now := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
-		timeNow = func() time.Time { return now }
-		defer func() {
-			timeNow = realTime
-		}()
-
 		// fixture
 		userID := "john.doe.id"
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(

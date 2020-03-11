@@ -20,6 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -95,6 +96,7 @@ type LinkHandler struct {
 	HookProvider      hook.Provider              `dependency:"HookProvider"`
 	ProviderFactory   *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
 	SSOProvider       sso.Provider               `dependency:"SSOProvider"`
+	TimeProvider      coreTime.Provider          `dependency:"TimeProvider"`
 	OAuthProvider     sso.OAuthProvider
 	ProviderID        string
 }
@@ -144,6 +146,7 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interf
 		}
 
 		handler := respHandler{
+			TimeProvider:      h.TimeProvider,
 			AuthInfoStore:     h.AuthInfoStore,
 			OAuthAuthProvider: h.OAuthAuthProvider,
 			IdentityProvider:  h.IdentityProvider,

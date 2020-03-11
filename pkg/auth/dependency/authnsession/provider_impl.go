@@ -205,7 +205,7 @@ func (p *providerImpl) GenerateResponseAndUpdateLastLoginAt(authnSess auth.Authn
 		now := p.timeProvider.NowUTC()
 		authInfo.LastLoginAt = &now
 		authInfo.LastSeenAt = &now
-		authInfo.RefreshDisabledStatus()
+		authInfo.RefreshDisabledStatus(now)
 		err = p.authInfoStore.UpdateAuth(&authInfo)
 		if err != nil {
 			return nil, err

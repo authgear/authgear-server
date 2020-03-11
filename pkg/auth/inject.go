@@ -115,9 +115,9 @@ func (m DependencyMap) Provide(
 
 	newPasswordHistoryStore := func() passwordhistory.Store {
 		return pqPWHistory.NewPasswordHistoryStore(
+			newTimeProvider(),
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newLoggerFactory(),
 		)
 	}
 
@@ -138,6 +138,7 @@ func (m DependencyMap) Provide(
 
 	newUserProfileStore := func() userprofile.Store {
 		return userprofile.NewUserProfileStore(
+			newTimeProvider(),
 			newSQLBuilder(),
 			newSQLExecutor(),
 		)
@@ -152,6 +153,7 @@ func (m DependencyMap) Provide(
 
 	newPasswordAuthProvider := func() password.Provider {
 		return password.NewProvider(
+			newTimeProvider(),
 			newPasswordStore(),
 			newPasswordHistoryStore(),
 			newLoggerFactory(),

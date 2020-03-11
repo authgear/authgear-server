@@ -3,28 +3,25 @@ package pq
 import (
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/logging"
-
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
-var (
-	timeNow = func() time.Time { return time.Now().UTC() }
-)
-
 type passwordHistoryStore struct {
-	sqlBuilder  db.SQLBuilder
-	sqlExecutor db.SQLExecutor
+	timeProvider coreTime.Provider
+	sqlBuilder   db.SQLBuilder
+	sqlExecutor  db.SQLExecutor
 }
 
-func NewPasswordHistoryStore(builder db.SQLBuilder, executor db.SQLExecutor, loggerFactory logging.Factory) passwordhistory.Store {
+func NewPasswordHistoryStore(timeProvider coreTime.Provider, builder db.SQLBuilder, executor db.SQLExecutor) passwordhistory.Store {
 	return &passwordHistoryStore{
-		sqlBuilder:  builder,
-		sqlExecutor: executor,
+		timeProvider: timeProvider,
+		sqlBuilder:   builder,
+		sqlExecutor:  executor,
 	}
 }
 
@@ -43,7 +40,7 @@ func (p *passwordHistoryStore) CreatePasswordHistory(userID string, hashedPasswo
 func (p *passwordHistoryStore) GetPasswordHistory(userID string, historySize, historyDays int) ([]passwordhistory.PasswordHistory, error) {
 	var err error
 	var sizeHistory, daysHistory []passwordhistory.PasswordHistory
-	t := timeNow()
+	t := p.timeProvider.NowUTC()
 
 	if historySize > 0 {
 		sizeBuilder := p.basePasswordHistoryBuilder(userID).Limit(uint64(historySize))

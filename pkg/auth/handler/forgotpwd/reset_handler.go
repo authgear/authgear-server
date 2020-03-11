@@ -25,6 +25,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -113,6 +114,7 @@ type ForgotPasswordResetHandler struct {
 	PasswordAuthProvider password.Provider             `dependency:"PasswordAuthProvider"`
 	AuditTrail           audit.Trail                   `dependency:"AuditTrail"`
 	TxContext            db.TxContext                  `dependency:"TxContext"`
+	TimeProvider         coreTime.Provider             `dependency:"TimeProvider"`
 	Logger               *logrus.Entry                 `dependency:"HandlerLogger"`
 	TaskQueue            async.Queue                   `dependency:"AsyncTaskQueue"`
 }
@@ -140,6 +142,7 @@ func (h ForgotPasswordResetHandler) Handle(w http.ResponseWriter, r *http.Reques
 	}
 
 	err = hook.WithTx(h.HookProvider, h.TxContext, func() (err error) {
+		now := h.TimeProvider.NowUTC()
 		err = passwordReseter{
 			CodeGenerator:        h.CodeGenerator,
 			PasswordChecker:      h.PasswordChecker,
@@ -147,6 +150,7 @@ func (h ForgotPasswordResetHandler) Handle(w http.ResponseWriter, r *http.Reques
 			PasswordAuthProvider: h.PasswordAuthProvider,
 		}.resetPassword(
 			payload.UserID,
+			now,
 			payload.ExpireAtTime,
 			payload.Code,
 			payload.NewPassword,

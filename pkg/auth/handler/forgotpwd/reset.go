@@ -18,9 +18,9 @@ type passwordReseter struct {
 	PasswordAuthProvider password.Provider
 }
 
-func (r passwordReseter) resetPassword(userID string, expiry time.Time, code string, newPass string) error {
+func (r passwordReseter) resetPassword(userID string, now time.Time, expiry time.Time, code string, newPass string) error {
 	// check code expiration
-	if timeNow().After(expiry) {
+	if now.After(expiry) {
 		return NewPasswordResetFailed(ExpiredCode, "reset code has expired")
 	}
 

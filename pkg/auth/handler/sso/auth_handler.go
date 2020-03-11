@@ -26,6 +26,7 @@ import (
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func AttachAuthHandler(
@@ -91,6 +92,7 @@ type AuthHandler struct {
 	TaskQueue                      async.Queue                 `dependency:"AsyncTaskQueue"`
 	URLPrefix                      *url.URL                    `dependency:"URLPrefix"`
 	SSOProvider                    sso.Provider                `dependency:"SSOProvider"`
+	TimeProvider                   coreTime.Provider           `dependency:"TimeProvider"`
 	OAuthProvider                  sso.OAuthProvider
 	ProviderID                     string
 }
@@ -199,6 +201,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 
 func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encodedCode string, err error) {
 	respHandler := respHandler{
+		TimeProvider:         h.TimeProvider,
 		AuthnSessionProvider: h.AuthnSessionProvider,
 		AuthInfoStore:        h.AuthInfoStore,
 		OAuthAuthProvider:    h.OAuthAuthProvider,

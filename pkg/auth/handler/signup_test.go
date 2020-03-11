@@ -37,13 +37,6 @@ import (
 
 func TestSignupHandler(t *testing.T) {
 	Convey("Test SignupHandler", t, func() {
-		realTime := timeNow
-		now := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
-		timeNow = func() time.Time { return now }
-		defer func() {
-			timeNow = realTime
-		}()
-
 		two := 2
 		loginIDsKeys := []config.LoginIDKeyConfiguration{
 			config.LoginIDKeyConfiguration{
@@ -66,6 +59,9 @@ func TestSignupHandler(t *testing.T) {
 		}
 
 		sh := &SignupHandler{}
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		now := timeProvider.NowUTC()
+		sh.TimeProvider = timeProvider
 		validator := validation.NewValidator("http://v2.skygear.io")
 		validator.AddSchemaFragments(
 			SignupRequestSchema,
@@ -99,7 +95,6 @@ func TestSignupHandler(t *testing.T) {
 		sh.WelcomeEmailEnabled = true
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
-		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := &config.MFAConfiguration{
@@ -665,12 +660,6 @@ func TestSignupHandler(t *testing.T) {
 	})
 
 	Convey("Test SignupHandler", t, func() {
-		realTime := timeNow
-		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
-		defer func() {
-			timeNow = realTime
-		}()
-
 		one := 1
 		loginIDsKeys := []config.LoginIDKeyConfiguration{
 			config.LoginIDKeyConfiguration{Key: "email", Maximum: &one},
@@ -685,6 +674,8 @@ func TestSignupHandler(t *testing.T) {
 		}
 
 		sh := &SignupHandler{}
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		sh.TimeProvider = timeProvider
 		validator := validation.NewValidator("http://v2.skygear.io")
 		validator.AddSchemaFragments(
 			SignupRequestSchema,
@@ -706,7 +697,6 @@ func TestSignupHandler(t *testing.T) {
 		sh.TxContext = db.NewMockTxContext()
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
-		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 
 		mfaStore := mfa.NewMockStore(timeProvider)
 		mfaConfiguration := &config.MFAConfiguration{
