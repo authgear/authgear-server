@@ -133,11 +133,6 @@ func main() {
 		})
 	})
 
-	cr.Use(middleware.FindDeploymentRouteMiddleware{
-		RestPathIdentifier: "rest",
-		Store:              store,
-	}.Handle)
-
 	// CORS headers should be set right after a proxy backend has been found.
 	cr.Use(coreMiddleware.CORSMiddleware{}.Handle)
 

@@ -17,12 +17,17 @@ func NewDeploymentRouteHandler() http.HandlerFunc {
 
 func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
 	ctx := model.GatewayContextFromContext(r.Context())
+	routeMatch := model.MatchRoute(r.URL.Path, ctx.App.Config.DeploymentRoutes)
+	if routeMatch == nil {
+		http.Error(rw, "Not found", http.StatusNotFound)
+		return
+	}
 
 	director := func(req *http.Request) {
 		originalPath := req.URL.Path
 		coreHttp.SetForwardedHeaders(req)
 
-		forwardURL, err := getForwardURL(req.URL, ctx.RouteMatch)
+		forwardURL, err := getForwardURL(req.URL, *routeMatch)
 		if err != nil {
 			panic(err)
 		}
@@ -36,7 +41,7 @@ func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
 		coreConfig.WriteTenantConfig(req, nil)
 	}
 	modifyResponse := func(resp *http.Response) error {
-		if ctx.RouteMatch.Route.Type == model.DeploymentRouteTypeStatic {
+		if routeMatch.Route.Type == model.DeploymentRouteTypeStatic {
 			// For static deployment route, we want to pass through the
 			// response from backing storage without modification:
 			// delete all existing response header.
@@ -47,8 +52,8 @@ func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
 		} else {
 			coreHttp.FixupCORSHeaders(rw, resp)
 		}
-		if ctx.RouteMatch.StatusCode != 0 {
-			resp.StatusCode = ctx.RouteMatch.StatusCode
+		if routeMatch.StatusCode != 0 {
+			resp.StatusCode = routeMatch.StatusCode
 		}
 		return nil
 	}
