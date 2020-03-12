@@ -10,10 +10,13 @@ import (
 )
 
 type Provider interface {
+	// CreateUserWithLoginIDs is sign up.
 	CreateUserWithLoginIDs(
 		loginIDs []loginid.LoginID,
 		plainPassword string,
 		metadata map[string]interface{},
 		onUserDuplicate model.OnUserDuplicate,
 	) (authInfo *authinfo.AuthInfo, userprofile *userprofile.UserProfile, firstPrincipal principal.Principal, tasks []async.TaskSpec, err error)
+	// AuthenticateWithLoginID is sign in.
+	AuthenticateWithLoginID(loginID loginid.LoginID, plainPassword string) (authInfo *authinfo.AuthInfo, principal principal.Principal, err error)
 }

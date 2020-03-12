@@ -294,6 +294,7 @@ func (m DependencyMap) Provide(
 
 	newAuthnProvider := func() authn.Provider {
 		return &authn.ProviderImpl{
+			Logger:                        newLoggerFactory().NewLogger("authnprovider"),
 			PasswordChecker:               newPasswordChecker(),
 			LoginIDChecker:                newLoginIDChecker(),
 			IdentityProvider:              newIdentityProvider(),

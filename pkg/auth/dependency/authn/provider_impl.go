@@ -3,6 +3,8 @@ package authn
 import (
 	"fmt"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
@@ -17,11 +19,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 type ProviderImpl struct {
+	Logger                        *logrus.Entry
 	PasswordChecker               *audit.PasswordChecker
 	LoginIDChecker                loginid.LoginIDChecker
 	IdentityProvider              principal.IdentityProvider
@@ -35,6 +39,8 @@ type ProviderImpl struct {
 	AuthConfiguration             *config.AuthConfiguration
 	URLPrefixProvider             urlprefix.Provider
 }
+
+var _ Provider = &ProviderImpl{}
 
 func (p *ProviderImpl) CreateUserWithLoginIDs(
 	loginIDs []loginid.LoginID,
@@ -260,5 +266,40 @@ func (p *ProviderImpl) generateSendVerificationCodeTasks(user model.User, loginI
 			}
 		}
 	}
+	return
+}
+
+func (p *ProviderImpl) AuthenticateWithLoginID(loginID loginid.LoginID, plainPassword string) (authInfo *authinfo.AuthInfo, prin principal.Principal, err error) {
+	var passwordPrincipal password.Principal
+	realm := password.DefaultRealm
+	err = p.PasswordProvider.GetPrincipalByLoginIDWithRealm(loginID.Key, loginID.Value, realm, &passwordPrincipal)
+	if err != nil {
+		if errors.Is(err, principal.ErrNotFound) {
+			err = password.ErrInvalidCredentials
+		}
+		if errors.Is(err, principal.ErrMultipleResultsFound) {
+			p.Logger.WithError(err).Warn("multiple results found for password principal query")
+			err = password.ErrInvalidCredentials
+		}
+		return
+	}
+
+	err = passwordPrincipal.VerifyPassword(plainPassword)
+	if err != nil {
+		return
+	}
+
+	if err := p.PasswordProvider.MigratePassword(&passwordPrincipal, plainPassword); err != nil {
+		p.Logger.WithError(err).Error("failed to migrate password")
+	}
+
+	var authInfoS authinfo.AuthInfo
+	err = p.AuthInfoStore.GetAuth(passwordPrincipal.UserID, &authInfoS)
+	if err != nil {
+		return
+	}
+
+	authInfo = &authInfoS
+	prin = &passwordPrincipal
 	return
 }
