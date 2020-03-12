@@ -84,7 +84,7 @@ func main() {
 	defer store.Close()
 
 	gatewayDependency := gateway.DependencyMap{
-		UseInsecureCookie: config.UseInsecureCookie,
+		Config: config,
 	}
 	redisPool, err := redis.NewPool(config.Redis)
 	if err != nil {
@@ -104,10 +104,6 @@ func main() {
 		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
 			Store: store,
 		},
-	}.Handle)
-	r.Use(middleware.TenantAuthzMiddleware{
-		Store:         store,
-		Configuration: config,
 	}.Handle)
 
 	r.Use(func(next http.Handler) http.Handler {

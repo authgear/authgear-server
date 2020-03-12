@@ -33,9 +33,6 @@ const (
 	HeaderHTTPPath                       = "x-skygear-http-path"
 
 	// Headers appearing in proxied gear request
-	HeaderGear         = "x-skygear-gear"
-	HeaderGearEndpoint = "x-skygear-gear-endpoint"
-	HeaderGearVersion  = "x-skygear-gear-version"
 	HeaderTenantConfig = "x-skygear-app-config"
 
 	// Internal headers

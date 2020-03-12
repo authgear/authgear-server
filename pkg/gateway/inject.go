@@ -14,10 +14,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/time"
+	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
 )
 
 type DependencyMap struct {
-	UseInsecureCookie bool
+	Config gatewayConfig.Configuration
 }
 
 // nolint: golint
@@ -61,7 +62,7 @@ func (m DependencyMap) Provide(
 			newAuthContext(),
 			tConfig.AppConfig.Clients,
 			tConfig.AppConfig.MFA,
-			m.UseInsecureCookie,
+			m.Config.UseInsecureCookie,
 		)
 	case "AuthInfoStore":
 		return pqAuthInfo.NewAuthInfoStore(
@@ -72,6 +73,8 @@ func (m DependencyMap) Provide(
 		return db.NewTxContextWithContext(ctx, tConfig)
 	case "APIClientConfigurationProvider":
 		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
+	case "GatewayConfiguration":
+		return m.Config
 	default:
 		return nil
 	}

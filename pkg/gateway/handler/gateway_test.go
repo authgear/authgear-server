@@ -1,4 +1,4 @@
-package middleware
+package handler
 
 import (
 	"testing"
