@@ -133,7 +133,7 @@ func main() {
 		Dependency:        gatewayDependency,
 	}.Handle)
 
-	r.HandleFunc("/{rest:.*}", handler.NewGatewayHandler())
+	r.Handle("/{rest:.*}", handler.NewGatewayHandler(gatewayDependency))
 
 	srv := &http.Server{
 		Addr:         config.Host,
