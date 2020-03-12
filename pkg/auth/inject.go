@@ -302,6 +302,7 @@ func (m DependencyMap) Provide(
 			AuthInfoStore:                 newAuthInfoStore(),
 			UserProfileStore:              newUserProfileStore(),
 			PasswordProvider:              newPasswordAuthProvider(),
+			OAuthProvider:                 newOAuthAuthProvider(),
 			HookProvider:                  newHookProvider(),
 			WelcomeEmailConfiguration:     tConfig.AppConfig.WelcomeEmail,
 			UserVerificationConfiguration: tConfig.AppConfig.UserVerification,

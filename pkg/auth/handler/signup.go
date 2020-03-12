@@ -148,7 +148,9 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	})
 	if err == nil {
 		h.HookProvider.DidCommitTx()
-		h.EnqueueTasks(tasks)
+		for _, t := range tasks {
+			h.TaskQueue.Enqueue(t.Name, t.Param, nil)
+		}
 	}
 	h.AuthnSessionProvider.WriteResponse(resp, result, err)
 }
@@ -173,10 +175,4 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, t
 	}
 
 	return
-}
-
-func (h SignupHandler) EnqueueTasks(tasks []async.TaskSpec) {
-	for _, t := range tasks {
-		h.TaskQueue.Enqueue(t.Name, t.Param, nil)
-	}
 }

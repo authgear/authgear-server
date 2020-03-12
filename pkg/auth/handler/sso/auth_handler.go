@@ -10,22 +10,17 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func AttachAuthHandler(
@@ -74,19 +69,12 @@ type AuthHandler struct {
 	AuthContext                    coreAuth.ContextGetter      `dependency:"AuthContextGetter"`
 	AuthContextSetter              coreAuth.ContextSetter      `dependency:"AuthContextSetter"`
 	APIClientConfigurationProvider apiclientconfig.Provider    `dependency:"APIClientConfigurationProvider"`
-	OAuthAuthProvider              oauth.Provider              `dependency:"OAuthAuthProvider"`
-	IdentityProvider               principal.IdentityProvider  `dependency:"IdentityProvider"`
-	AuthInfoStore                  authinfo.Store              `dependency:"AuthInfoStore"`
-	AuthnSessionProvider           authnsession.Provider       `dependency:"AuthnSessionProvider"`
 	AuthHandlerHTMLProvider        sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
 	ProviderFactory                *sso.OAuthProviderFactory   `dependency:"SSOOAuthProviderFactory"`
-	UserProfileStore               userprofile.Store           `dependency:"UserProfileStore"`
 	HookProvider                   hook.Provider               `dependency:"HookProvider"`
-	WelcomeEmailEnabled            bool                        `dependency:"WelcomeEmailEnabled"`
 	TaskQueue                      async.Queue                 `dependency:"AsyncTaskQueue"`
-	URLPrefix                      *url.URL                    `dependency:"URLPrefix"`
 	SSOProvider                    sso.Provider                `dependency:"SSOProvider"`
-	TimeProvider                   coreTime.Provider           `dependency:"TimeProvider"`
+	AuthnProvider                  authn.Provider              `dependency:"AuthnProvider"`
 	OAuthProvider                  sso.OAuthProvider
 	ProviderID                     string
 }
@@ -184,29 +172,25 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	if err != nil {
 		return
 	}
-	code, err = h.handle(oauthAuthInfo, *state)
+
+	code, tasks, err := h.handle(oauthAuthInfo, *state)
+	if err != nil {
+		return
+	}
+
+	for _, t := range tasks {
+		h.TaskQueue.Enqueue(t.Name, t.Param, nil)
+	}
+
 	return
 }
 
-func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encodedCode string, err error) {
-	respHandler := respHandler{
-		TimeProvider:         h.TimeProvider,
-		AuthnSessionProvider: h.AuthnSessionProvider,
-		AuthInfoStore:        h.AuthInfoStore,
-		OAuthAuthProvider:    h.OAuthAuthProvider,
-		IdentityProvider:     h.IdentityProvider,
-		UserProfileStore:     h.UserProfileStore,
-		HookProvider:         h.HookProvider,
-		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
-		TaskQueue:            h.TaskQueue,
-		URLPrefix:            h.URLPrefix,
-	}
-
+func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encodedCode string, tasks []async.TaskSpec, err error) {
 	var code *sso.SkygearAuthorizationCode
 	if state.Action == "login" {
-		code, err = respHandler.LoginCode(oauthAuthInfo, state.CodeChallenge, state.LoginState)
+		code, tasks, err = h.AuthnProvider.AuthenticateWithOAuth(oauthAuthInfo, state.CodeChallenge, state.LoginState)
 	} else {
-		code, err = respHandler.LinkCode(oauthAuthInfo, state.CodeChallenge, state.LinkState)
+		code, err = h.AuthnProvider.LinkOAuth(oauthAuthInfo, state.CodeChallenge, state.LinkState)
 	}
 	if err != nil {
 		return

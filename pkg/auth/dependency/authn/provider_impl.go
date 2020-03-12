@@ -2,6 +2,7 @@ package authn
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -9,13 +10,16 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	task "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -29,10 +33,11 @@ type ProviderImpl struct {
 	PasswordChecker               *audit.PasswordChecker
 	LoginIDChecker                loginid.LoginIDChecker
 	IdentityProvider              principal.IdentityProvider
+	PasswordProvider              password.Provider
+	OAuthProvider                 oauth.Provider
 	TimeProvider                  coreTime.Provider
 	AuthInfoStore                 authinfo.Store
 	UserProfileStore              userprofile.Store
-	PasswordProvider              password.Provider
 	HookProvider                  hook.Provider
 	WelcomeEmailConfiguration     *config.WelcomeEmailConfiguration
 	UserVerificationConfiguration *config.UserVerificationConfiguration
@@ -41,6 +46,20 @@ type ProviderImpl struct {
 }
 
 var _ Provider = &ProviderImpl{}
+
+func principalsToUserIDs(principals []principal.Principal) []string {
+	seen := map[string]struct{}{}
+	var userIDs []string
+	for _, p := range principals {
+		userID := p.PrincipalUserID()
+		_, ok := seen[userID]
+		if !ok {
+			seen[userID] = struct{}{}
+			userIDs = append(userIDs, userID)
+		}
+	}
+	return userIDs
+}
 
 func (p *ProviderImpl) CreateUserWithLoginIDs(
 	loginIDs []loginid.LoginID,
@@ -301,5 +320,287 @@ func (p *ProviderImpl) AuthenticateWithLoginID(loginID loginid.LoginID, plainPas
 
 	authInfo = &authInfoS
 	prin = &passwordPrincipal
+	return
+}
+
+func (p *ProviderImpl) AuthenticateWithOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, tasks []async.TaskSpec, err error) {
+	var authInfo authinfo.AuthInfo
+	createNewUser, principal, err := p.oauthLogin(oauthAuthInfo, &authInfo, loginState)
+	if err != nil {
+		return
+	}
+
+	var userProfile userprofile.UserProfile
+	emptyProfile := map[string]interface{}{}
+	if createNewUser {
+		userProfile, err = p.UserProfileStore.CreateUserProfile(authInfo.ID, emptyProfile)
+	} else {
+		userProfile, err = p.UserProfileStore.GetUserProfile(authInfo.ID)
+	}
+	if err != nil {
+		return
+	}
+
+	user := model.NewUser(authInfo, userProfile)
+	identity := model.NewIdentity(p.IdentityProvider, principal)
+
+	if createNewUser {
+		err = p.HookProvider.DispatchEvent(
+			event.UserCreateEvent{
+				User:       user,
+				Identities: []model.Identity{identity},
+			},
+			&user,
+		)
+		if err != nil {
+			return
+		}
+	}
+
+	var sessionCreateReason coreAuth.SessionCreateReason
+	if createNewUser {
+		sessionCreateReason = coreAuth.SessionCreateReasonSignup
+	} else {
+		sessionCreateReason = coreAuth.SessionCreateReasonLogin
+	}
+
+	code = &sso.SkygearAuthorizationCode{
+		Action:              "login",
+		CodeChallenge:       codeChallenge,
+		UserID:              user.ID,
+		PrincipalID:         principal.ID,
+		SessionCreateReason: string(sessionCreateReason),
+	}
+
+	if createNewUser && p.WelcomeEmailConfiguration.Enabled && oauthAuthInfo.ProviderUserInfo.Email != "" {
+		tasks = append(tasks, async.TaskSpec{
+			Name: task.WelcomeEmailSendTaskName,
+			Param: task.WelcomeEmailSendTaskParam{
+				URLPrefix: p.URLPrefixProvider.Value(),
+				Email:     oauthAuthInfo.ProviderUserInfo.Email,
+				User:      user,
+			},
+		})
+	}
+
+	return
+}
+
+func (p *ProviderImpl) oauthLogin(oauthAuthInfo sso.AuthInfo, authInfo *authinfo.AuthInfo, loginState sso.LoginState) (createNewUser bool, oauthPrincipal *oauth.Principal, err error) {
+	oauthPrincipal, err = p.findExistingOAuthPrincipal(oauthAuthInfo)
+	if err != nil && !errors.Is(err, principal.ErrNotFound) {
+		return
+	}
+
+	now := p.TimeProvider.NowUTC()
+
+	// Two func that closes over the arguments and the return value
+	// and need to be reused.
+
+	// createFunc creates a new user.
+	createFunc := func() {
+		createNewUser = true
+		// if there is no existed user
+		// signup a new user
+		*authInfo = authinfo.NewAuthInfo()
+		authInfo.LastLoginAt = &now
+
+		// Create AuthInfo
+		if err = p.AuthInfoStore.CreateAuth(authInfo); err != nil {
+			return
+		}
+
+		oauthPrincipal, err = p.createOAuthPrincipal(authInfo.ID, now, oauthAuthInfo)
+		if err != nil {
+			return
+		}
+	}
+
+	// Case: OAuth principal was found
+	// => Simple update case
+	// We do not need to consider other principals
+	if err == nil {
+		oauthPrincipal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
+		oauthPrincipal.UserProfile = oauthAuthInfo.ProviderRawProfile
+		oauthPrincipal.ClaimsValue = oauthAuthInfo.ProviderUserInfo.ClaimsValue()
+		oauthPrincipal.UpdatedAt = &now
+		if err = p.OAuthProvider.UpdatePrincipal(oauthPrincipal); err != nil {
+			return
+		}
+		err = p.AuthInfoStore.GetAuth(oauthPrincipal.UserID, authInfo)
+		// Always return here because we are done with this case.
+		return
+	}
+
+	// Case: OAuth principal was not found
+	// We need to consider all principals
+	realm := password.DefaultRealm
+	principals, err := p.findExistingPrincipalsWithEmail(oauthAuthInfo.ProviderUserInfo.Email, realm)
+	if err != nil {
+		return
+	}
+	userIDs := principalsToUserIDs(principals)
+
+	// Case: OAuth principal was not found and no other principals were not found
+	// => Simple create case
+	if len(userIDs) <= 0 {
+		createFunc()
+		return
+	}
+
+	// Case: OAuth principal was not found and some principals were found
+	// => Complex case
+	switch loginState.OnUserDuplicate {
+	case model.OnUserDuplicateAbort:
+		err = password.ErrLoginIDAlreadyUsed
+	case model.OnUserDuplicateCreate:
+		createFunc()
+	case model.OnUserDuplicateMerge:
+		// Case: The same email is shared by multiple users
+		if len(userIDs) > 1 {
+			err = password.ErrLoginIDAlreadyUsed
+			return
+		}
+		// Associate the provider to the existing user
+		userID := userIDs[0]
+		oauthPrincipal, err = p.createOAuthPrincipal(
+			userID,
+			now,
+			oauthAuthInfo,
+		)
+		if err != nil {
+			return
+		}
+		err = p.AuthInfoStore.GetAuth(userID, authInfo)
+	}
+
+	return
+}
+
+func (p *ProviderImpl) findExistingOAuthPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
+	// Find oauth principal from by (provider_id, provider_user_id)
+	return p.OAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+		ProviderType:   string(oauthAuthInfo.ProviderConfig.Type),
+		ProviderKeys:   oauth.ProviderKeysFromProviderConfig(oauthAuthInfo.ProviderConfig),
+		ProviderUserID: oauthAuthInfo.ProviderUserInfo.ID,
+	})
+}
+
+func (p *ProviderImpl) findExistingPrincipalsWithEmail(email string, mergeRealm string) ([]principal.Principal, error) {
+	if email == "" {
+		return nil, nil
+	}
+	principals, err := p.IdentityProvider.ListPrincipalsByClaim("email", email)
+	if err != nil {
+		return nil, err
+	}
+	var filteredPrincipals []principal.Principal
+	for _, p := range principals {
+		if passwordPrincipal, ok := p.(*password.Principal); ok && passwordPrincipal.Realm != mergeRealm {
+			continue
+		}
+		filteredPrincipals = append(filteredPrincipals, p)
+	}
+	return filteredPrincipals, nil
+}
+
+func (p *ProviderImpl) createOAuthPrincipal(userID string, now time.Time, oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
+	providerKeys := oauth.ProviderKeysFromProviderConfig(oauthAuthInfo.ProviderConfig)
+	principal := oauth.NewPrincipal(providerKeys)
+	principal.UserID = userID
+	principal.ProviderType = string(oauthAuthInfo.ProviderConfig.Type)
+	principal.ProviderUserID = oauthAuthInfo.ProviderUserInfo.ID
+	principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
+	principal.UserProfile = oauthAuthInfo.ProviderRawProfile
+	principal.ClaimsValue = oauthAuthInfo.ProviderUserInfo.ClaimsValue()
+	principal.CreatedAt = &now
+	principal.UpdatedAt = &now
+	err := p.OAuthProvider.CreatePrincipal(principal)
+	return principal, err
+}
+
+func (p *ProviderImpl) LinkOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error) {
+	// action => link
+	// We only need to check if we can find such principal.
+	// If such principal exists, it does not matter whether the principal
+	// is associated with the user.
+	// We do not allow the same provider user to be associated with an user
+	// more than once.
+	_, err = p.OAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+		ProviderType:   string(oauthAuthInfo.ProviderConfig.Type),
+		ProviderKeys:   oauth.ProviderKeysFromProviderConfig(oauthAuthInfo.ProviderConfig),
+		ProviderUserID: oauthAuthInfo.ProviderUserInfo.ID,
+	})
+	if err == nil {
+		err = sso.NewSSOFailed(sso.AlreadyLinked, "user is already linked to this provider")
+		return
+	}
+
+	if !errors.Is(err, principal.ErrNotFound) {
+		return
+	}
+
+	var authInfo authinfo.AuthInfo
+	err = p.AuthInfoStore.GetAuth(linkState.UserID, &authInfo)
+	if err != nil {
+		return
+	}
+
+	now := p.TimeProvider.NowUTC()
+
+	var principal *oauth.Principal
+	principal, err = p.createOAuthPrincipal(authInfo.ID, now, oauthAuthInfo)
+	if err != nil {
+		return
+	}
+
+	var userProfile userprofile.UserProfile
+	userProfile, err = p.UserProfileStore.GetUserProfile(authInfo.ID)
+	if err != nil {
+		return
+	}
+
+	user := model.NewUser(authInfo, userProfile)
+	identity := model.NewIdentity(p.IdentityProvider, principal)
+	err = p.HookProvider.DispatchEvent(
+		event.IdentityCreateEvent{
+			User:     user,
+			Identity: identity,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
+
+	code = &sso.SkygearAuthorizationCode{
+		Action:        "link",
+		CodeChallenge: codeChallenge,
+		UserID:        user.ID,
+		PrincipalID:   principal.ID,
+	}
+
+	return
+}
+
+func (p *ProviderImpl) ExtractAuthorizationCode(code *sso.SkygearAuthorizationCode) (authInfo *authinfo.AuthInfo, userProfile *userprofile.UserProfile, prin principal.Principal, err error) {
+	var authInfoS authinfo.AuthInfo
+	if err = p.AuthInfoStore.GetAuth(code.UserID, &authInfoS); err != nil {
+		return
+	}
+	authInfo = &authInfoS
+
+	var userProfileS userprofile.UserProfile
+	userProfileS, err = p.UserProfileStore.GetUserProfile(authInfo.ID)
+	if err != nil {
+		return
+	}
+	userProfile = &userProfileS
+
+	prin, err = p.IdentityProvider.GetPrincipalByID(code.PrincipalID)
+	if err != nil {
+		return
+	}
+
 	return
 }
