@@ -18,7 +18,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	coreaudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -117,7 +116,6 @@ type ForgotPasswordResetFormHandler struct {
 	ResetPasswordHTMLProvider *forgotpwdemail.ResetPasswordHTMLProvider `dependency:"ResetPasswordHTMLProvider"`
 	TxContext                 db.TxContext                              `dependency:"TxContext"`
 	Logger                    *logrus.Entry                             `dependency:"HandlerLogger"`
-	AuditTrail                coreaudit.Trail                           `dependency:"AuditTrail"`
 	TimeProvider              coreTime.Provider                         `dependency:"TimeProvider"`
 	TaskQueue                 async.Queue                               `dependency:"AsyncTaskQueue"`
 }
@@ -329,14 +327,6 @@ func (h ForgotPasswordResetFormHandler) resetPassword(
 	if err != nil {
 		return err
 	}
-
-	h.AuditTrail.Log(coreaudit.Entry{
-		UserID: user.ID,
-		Event:  coreaudit.EventResetPassword,
-		Data: map[string]interface{}{
-			"type": "forgot_password",
-		},
-	})
 
 	// password house keeper
 	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{

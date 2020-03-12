@@ -20,7 +20,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -54,7 +53,6 @@ type SignupHandlerFactory struct {
 func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	return h.RequireAuthz(h, h)
 }
 
@@ -195,7 +193,6 @@ type SignupHandler struct {
 	AuthInfoStore           authinfo.Store                            `dependency:"AuthInfoStore"`
 	PasswordAuthProvider    password.Provider                         `dependency:"PasswordAuthProvider"`
 	IdentityProvider        principal.IdentityProvider                `dependency:"IdentityProvider"`
-	AuditTrail              audit.Trail                               `dependency:"AuditTrail"`
 	WelcomeEmailEnabled     bool                                      `dependency:"WelcomeEmailEnabled"`
 	WelcomeEmailDestination config.WelcomeEmailDestination            `dependency:"WelcomeEmailDestination"`
 	AutoSendUserVerifyCode  bool                                      `dependency:"AutoSendUserVerifyCodeOnSignup"`
@@ -301,11 +298,6 @@ func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, t
 	if err != nil {
 		return
 	}
-
-	h.AuditTrail.Log(audit.Entry{
-		UserID: info.ID,
-		Event:  audit.EventSignup,
-	})
 
 	sess, err := h.AuthnSessionProvider.NewFromScratch(info.ID, loginPrincipal, coreAuth.SessionCreateReasonSignup)
 	if err != nil {

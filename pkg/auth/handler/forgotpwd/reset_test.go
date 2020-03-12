@@ -22,7 +22,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -49,7 +48,6 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		fh.Validator = validator
 		logger, _ := test.NewNullLogger()
 		fh.Logger = logrus.NewEntry(logger)
-		fh.AuditTrail = audit.NewMockTrail(t)
 		fh.TxContext = db.NewMockTxContext()
 		hashedPassword := []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi") // 123456
 		fh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(

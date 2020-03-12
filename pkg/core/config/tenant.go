@@ -500,7 +500,6 @@ type AppConfiguration struct {
 	AuthUI           *AuthUIConfiguration           `json:"auth_ui,omitempty" yaml:"auth_ui" msg:"auth_ui" default_zero_value:"true"`
 	OIDC             *OIDCConfiguration             `json:"oidc,omitempty" yaml:"oidc" msg:"oidc" default_zero_value:"true"`
 	MFA              *MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa" default_zero_value:"true"`
-	UserAudit        *UserAuditConfiguration        `json:"user_audit,omitempty" yaml:"user_audit" msg:"user_audit" default_zero_value:"true"`
 	PasswordPolicy   *PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy" default_zero_value:"true"`
 	ForgotPassword   *ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password" default_zero_value:"true"`
 	WelcomeEmail     *WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email" default_zero_value:"true"`
@@ -707,11 +706,6 @@ type MFABearerTokenConfiguration struct {
 type MFARecoveryCodeConfiguration struct {
 	Count       int  `json:"count,omitempty" yaml:"count" msg:"count"`
 	ListEnabled bool `json:"list_enabled,omitempty" yaml:"list_enabled" msg:"list_enabled"`
-}
-
-type UserAuditConfiguration struct {
-	Enabled         bool   `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
-	TrailHandlerURL string `json:"trail_handler_url,omitempty" yaml:"trail_handler_url" msg:"trail_handler_url"`
 }
 
 type PasswordPolicyConfiguration struct {

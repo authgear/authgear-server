@@ -69,7 +69,6 @@ var (
 			"auth": { "$ref": "#AuthConfiguration" },
 			"auth_ui": { "$ref": "#AuthUIConfiguration" },
 			"mfa": { "$ref": "#MFAConfiguration" },
-			"user_audit": { "$ref": "#UserAuditConfiguration" },
 			"password_policy": { "$ref": "#PasswordPolicyConfiguration" },
 			"forgot_password": { "$ref": "#ForgotPasswordConfiguration" },
 			"welcome_email": { "$ref": "#WelcomeEmailConfiguration" },
@@ -312,15 +311,6 @@ var (
 			},
 			"ascii_only": { "type": "boolean" },
 			"case_sensitive": { "type": "boolean" }
-		}
-	},
-	"UserAuditConfiguration": {
-		"$id": "#UserAuditConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"enabled": { "type": "boolean" },
-			"trail_handler_url": { "type": "string" }
 		}
 	},
 	"PasswordPolicyConfiguration": {

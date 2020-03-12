@@ -13,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -38,7 +37,6 @@ func TestSetDisableHandler(t *testing.T) {
 		h.Validator = validator
 		h.AuthInfoStore = authInfoStore
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
-		h.AuditTrail = coreAudit.NewMockTrail(t)
 		hookProvider := hook.NewMockProvider()
 		h.HookProvider = hookProvider
 		h.TxContext = db.NewMockTxContext()

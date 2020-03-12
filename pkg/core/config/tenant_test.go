@@ -223,10 +223,6 @@ func makeFullTenantConfig() TenantConfiguration {
 					ListEnabled: true,
 				},
 			},
-			UserAudit: &UserAuditConfiguration{
-				Enabled:         true,
-				TrailHandlerURL: "http://localhost:3000/useraudit",
-			},
 			PasswordPolicy: &PasswordPolicyConfiguration{
 				MinLength:             8,
 				UppercaseRequired:     true,
@@ -509,7 +505,6 @@ func TestTenantConfig(t *testing.T) {
 			So(userConfig.CORS, ShouldBeNil)
 			So(userConfig.Auth, ShouldBeNil)
 			So(userConfig.MFA, ShouldBeNil)
-			So(userConfig.UserAudit, ShouldBeNil)
 			So(userConfig.PasswordPolicy, ShouldBeNil)
 			So(userConfig.ForgotPassword, ShouldBeNil)
 			So(userConfig.WelcomeEmail, ShouldBeNil)
@@ -526,7 +521,6 @@ func TestTenantConfig(t *testing.T) {
 			So(userConfig.CORS, ShouldNotBeNil)
 			So(userConfig.Auth, ShouldNotBeNil)
 			So(userConfig.MFA, ShouldNotBeNil)
-			So(userConfig.UserAudit, ShouldNotBeNil)
 			So(userConfig.PasswordPolicy, ShouldNotBeNil)
 			So(userConfig.ForgotPassword, ShouldNotBeNil)
 			So(userConfig.WelcomeEmail, ShouldNotBeNil)

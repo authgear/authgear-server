@@ -11,7 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -45,7 +44,6 @@ type SetDisableHandlerFactory struct {
 func (f SetDisableHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SetDisableHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	return h.RequireAuthz(h, h)
 }
 
@@ -123,7 +121,6 @@ type SetDisableHandler struct {
 	RequireAuthz     handler.RequireAuthz   `dependency:"RequireAuthz"`
 	AuthInfoStore    authinfo.Store         `dependency:"AuthInfoStore"`
 	UserProfileStore userprofile.Store      `dependency:"UserProfileStore"`
-	AuditTrail       audit.Trail            `dependency:"AuditTrail"`
 	HookProvider     hook.Provider          `dependency:"HookProvider"`
 	TxContext        db.TxContext           `dependency:"TxContext"`
 }
@@ -188,24 +185,8 @@ func (h SetDisableHandler) Handle(w http.ResponseWriter, r *http.Request) (resp 
 			return err
 		}
 
-		h.logAuditTrail(payload)
-
 		resp = struct{}{}
 		return nil
 	})
 	return
-}
-
-func (h SetDisableHandler) logAuditTrail(p setDisableUserPayload) {
-	var event audit.Event
-	if p.Disabled {
-		event = audit.EventDisableUser
-	} else {
-		event = audit.EventEnableUser
-	}
-
-	h.AuditTrail.Log(audit.Entry{
-		UserID: p.UserID,
-		Event:  event,
-	})
 }

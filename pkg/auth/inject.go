@@ -24,7 +24,6 @@ import (
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
@@ -368,12 +367,6 @@ func (m DependencyMap) Provide(
 		)
 	case "VerifyHTMLProvider":
 		return userverify.NewVerifyHTMLProvider(tConfig.AppConfig.UserVerification, newTemplateEngine())
-	case "AuditTrail":
-		trail, err := audit.NewTrail(tConfig.AppConfig.UserAudit.Enabled, tConfig.AppConfig.UserAudit.TrailHandlerURL)
-		if err != nil {
-			panic(err)
-		}
-		return trail
 	case "LoginIDNormalizerFactory":
 		return newLoginIDNormalizerFactory()
 	case "OAuthUserInfoDecoder":
