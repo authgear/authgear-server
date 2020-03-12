@@ -10,7 +10,15 @@ type Store struct {
 	TenantConfig config.TenantConfiguration
 }
 
-func (s *Store) GetAppByDomain(domain string, app *model.App) error {
+func (s *Store) GetDomain(domain string) (*model.Domain, error) {
+	d := &model.Domain{}
+	d.Assignment = model.AssignmentTypeMicroservices
+	d.AppID = s.TenantConfig.AppID
+	return d, nil
+}
+
+func (s *Store) GetApp(id string) (*model.App, error) {
+	app := &model.App{}
 	app.ID = s.TenantConfig.AppID
 	app.Name = s.TenantConfig.AppName
 	app.Config = s.TenantConfig
@@ -18,7 +26,7 @@ func (s *Store) GetAppByDomain(domain string, app *model.App) error {
 		AuthEnabled: true,
 	}
 	app.AuthVersion = model.LiveVersion
-	return nil
+	return app, nil
 }
 
 func (s *Store) GetLastDeploymentRoutes(app model.App) ([]*model.DeploymentRoute, error) {

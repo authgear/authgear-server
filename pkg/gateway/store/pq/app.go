@@ -10,14 +10,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
 
-func (s *Store) GetAppByDomain(domain string, app *model.App) error {
-	builder := psql.Select("app.id", "app.name", "app.config_id", "app.plan_id", "app.auth_version").
+func (s *Store) GetApp(id string) (*model.App, error) {
+	builder := psql.Select("id", "name", "config_id", "plan_id", "auth_version").
 		From(s.tableName("app")).
-		Join(s.tableName("domain")+" ON app.id = domain.app_id").
-		Where("domain.domain = ?", domain)
+		Where("id = ?", id)
 	scanner, err := s.QueryRowWith(builder)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var (
@@ -25,6 +24,7 @@ func (s *Store) GetAppByDomain(domain string, app *model.App) error {
 		planID   string
 	)
 
+	app := &model.App{}
 	if err := scanner.Scan(
 		&app.ID,
 		&app.Name,
@@ -33,24 +33,25 @@ func (s *Store) GetAppByDomain(domain string, app *model.App) error {
 		&app.AuthVersion,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return store.NewNotFoundError("app")
+			return nil, store.NewNotFoundError("app")
 		}
-		return err
+		return nil, err
 	}
 
 	configValue := config.TenantConfiguration{}
 	if err := s.getConfigByID(configID, &configValue); err != nil {
-		return err
+		return nil, err
 	}
 	app.Config = configValue
 
 	plan := model.Plan{}
 	if err := s.getPlanByID(planID, &plan); err != nil {
-		return err
+		return nil, err
 	}
 	app.Plan = plan
 
-	return nil
+	return app, nil
+
 }
 
 func (s *Store) getConfigByID(id string, configValue *config.TenantConfiguration) error {
