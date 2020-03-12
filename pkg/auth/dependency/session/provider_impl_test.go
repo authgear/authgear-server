@@ -10,7 +10,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -47,19 +46,20 @@ func TestProvider(t *testing.T) {
 
 		Convey("creating session", func() {
 			Convey("should be successful", func() {
-				session, token := provider.MakeSession(&auth.AuthnSession{
+				session, token := provider.MakeSession(&Attrs{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
-					ClientID:    "web-app",
 				})
 				err := provider.Create(session)
 
 				So(err, ShouldBeNil)
 				So(token, ShouldNotBeEmpty)
 				So(session, ShouldResemble, &Session{
-					ID:            session.ID,
-					UserID:        "user-id",
-					PrincipalID:   "principal-id",
+					ID: session.ID,
+					Attrs: Attrs{
+						UserID:      "user-id",
+						PrincipalID: "principal-id",
+					},
 					InitialAccess: accessEvent,
 					LastAccess:    accessEvent,
 					CreatedAt:     initialTime,
@@ -70,17 +70,18 @@ func TestProvider(t *testing.T) {
 			})
 
 			Convey("should allow creating multiple sessions for same principal", func() {
-				session1, _ := provider.MakeSession(&auth.AuthnSession{
+				session1, _ := provider.MakeSession(&Attrs{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
-					ClientID:    "web-app",
 				})
 				err := provider.Create(session1)
 				So(err, ShouldBeNil)
 				So(session1, ShouldResemble, &Session{
-					ID:            session1.ID,
-					UserID:        "user-id",
-					PrincipalID:   "principal-id",
+					ID: session1.ID,
+					Attrs: Attrs{
+						UserID:      "user-id",
+						PrincipalID: "principal-id",
+					},
 					InitialAccess: accessEvent,
 					LastAccess:    accessEvent,
 					CreatedAt:     initialTime,
@@ -88,17 +89,18 @@ func TestProvider(t *testing.T) {
 					TokenHash:     session1.TokenHash,
 				})
 
-				session2, _ := provider.MakeSession(&auth.AuthnSession{
+				session2, _ := provider.MakeSession(&Attrs{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
-					ClientID:    "web-app",
 				})
 				err = provider.Create(session2)
 				So(err, ShouldBeNil)
 				So(session2, ShouldResemble, &Session{
-					ID:            session2.ID,
-					UserID:        "user-id",
-					PrincipalID:   "principal-id",
+					ID: session2.ID,
+					Attrs: Attrs{
+						UserID:      "user-id",
+						PrincipalID: "principal-id",
+					},
 					InitialAccess: accessEvent,
 					LastAccess:    accessEvent,
 					CreatedAt:     initialTime,
@@ -113,12 +115,14 @@ func TestProvider(t *testing.T) {
 
 		Convey("getting session", func() {
 			fixtureSession := Session{
-				ID:          "session-id",
-				UserID:      "user-id",
-				PrincipalID: "principal-id",
-				CreatedAt:   initialTime,
-				AccessedAt:  initialTime,
-				TokenHash:   "15be5b9c05673532b445d3295a86afd6b2615775e0233e9798cbe3c846a08d05",
+				ID: "session-id",
+				Attrs: Attrs{
+					UserID:      "user-id",
+					PrincipalID: "principal-id",
+				},
+				CreatedAt:  initialTime,
+				AccessedAt: initialTime,
+				TokenHash:  "15be5b9c05673532b445d3295a86afd6b2615775e0233e9798cbe3c846a08d05",
 			}
 			store.Sessions[fixtureSession.ID] = fixtureSession
 
@@ -153,12 +157,14 @@ func TestProvider(t *testing.T) {
 
 		Convey("accessing session", func() {
 			session := Session{
-				ID:          "session-id",
-				UserID:      "user-id",
-				PrincipalID: "principal-id",
-				CreatedAt:   initialTime,
-				AccessedAt:  initialTime,
-				TokenHash:   "token-hash",
+				ID: "session-id",
+				Attrs: Attrs{
+					UserID:      "user-id",
+					PrincipalID: "principal-id",
+				},
+				CreatedAt:  initialTime,
+				AccessedAt: initialTime,
+				TokenHash:  "token-hash",
 			}
 			timeProvider.AdvanceSeconds(100)
 			timeNow := timeProvider.TimeNowUTC
@@ -180,12 +186,14 @@ func TestProvider(t *testing.T) {
 
 		Convey("invalidating session", func() {
 			store.Sessions["session-id"] = Session{
-				ID:          "session-id",
-				UserID:      "user-id",
-				PrincipalID: "principal-id",
-				CreatedAt:   initialTime,
-				AccessedAt:  initialTime,
-				TokenHash:   "token-hash",
+				ID: "session-id",
+				Attrs: Attrs{
+					UserID:      "user-id",
+					PrincipalID: "principal-id",
+				},
+				CreatedAt:  initialTime,
+				AccessedAt: initialTime,
+				TokenHash:  "token-hash",
 			}
 
 			Convey("should be successful", func() {
@@ -204,8 +212,10 @@ func TestProvider(t *testing.T) {
 		Convey("listing session", func() {
 			makeSession := func(id string, userID string, timeOffset int) {
 				store.Sessions[id] = Session{
-					ID:         id,
-					UserID:     userID,
+					ID: id,
+					Attrs: Attrs{
+						UserID: userID,
+					},
 					CreatedAt:  initialTime.Add(gotime.Duration(timeOffset) * gotime.Second),
 					AccessedAt: initialTime.Add(gotime.Duration(timeOffset) * gotime.Second),
 				}

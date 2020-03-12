@@ -45,8 +45,10 @@ func TestMiddleware(t *testing.T) {
 		}
 		resolver.Sessions = []Session{
 			{
-				ID:        "session-id",
-				UserID:    "user-id",
+				ID: "session-id",
+				Attrs: Attrs{
+					UserID: "user-id",
+				},
 				TokenHash: "token",
 			},
 		}

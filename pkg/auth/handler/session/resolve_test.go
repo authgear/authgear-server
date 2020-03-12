@@ -27,14 +27,16 @@ func TestResolveHandler(t *testing.T) {
 			}
 			d := gotime.Date(2020, 1, 1, 0, 0, 0, 0, gotime.UTC)
 			s := &session.Session{
-				ID:                      "session-id",
-				PrincipalID:             "principal-id",
-				PrincipalType:           "password",
-				PrincipalUpdatedAt:      d,
-				AuthenticatorID:         "authenticator-id",
-				AuthenticatorType:       "oob",
-				AuthenticatorOOBChannel: "email",
-				AuthenticatorUpdatedAt:  &d,
+				ID: "session-id",
+				Attrs: session.Attrs{
+					PrincipalID:             "principal-id",
+					PrincipalType:           "password",
+					PrincipalUpdatedAt:      d,
+					AuthenticatorID:         "authenticator-id",
+					AuthenticatorType:       "oob",
+					AuthenticatorOOBChannel: "email",
+					AuthenticatorUpdatedAt:  &d,
+				},
 			}
 			r, _ := http.NewRequest("POST", "/", nil)
 			r = r.WithContext(session.WithSession(r.Context(), s, u))
