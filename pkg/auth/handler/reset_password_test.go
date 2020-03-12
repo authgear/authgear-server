@@ -12,7 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/auth/task"
+	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -119,8 +119,8 @@ func TestResetPasswordHandler(t *testing.T) {
 			}
 
 			// should enqueue pw housekeeper task
-			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)
-			So(mockTaskQueue.TasksParam[0], ShouldResemble, task.PwHousekeeperTaskParam{
+			So(mockTaskQueue.TasksName[0], ShouldEqual, spec.PwHousekeeperTaskName)
+			So(mockTaskQueue.TasksParam[0], ShouldResemble, spec.PwHousekeeperTaskParam{
 				AuthID: "john.doe.id",
 			})
 

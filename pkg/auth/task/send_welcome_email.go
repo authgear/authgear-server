@@ -2,30 +2,24 @@ package task
 
 import (
 	"context"
-	"net/url"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
-
-	"github.com/sirupsen/logrus"
-)
-
-const (
-	// WelcomeEmailSendTaskName provides the name for submiting WelcomeEmailSendTask
-	WelcomeEmailSendTaskName = "WelcomeEmailSendTask"
 )
 
 func AttachWelcomeEmailSendTask(
 	executor *async.Executor,
 	authDependency auth.DependencyMap,
 ) *async.Executor {
-	executor.Register(WelcomeEmailSendTaskName, &WelcomeEmailSendTaskFactory{
+	executor.Register(spec.WelcomeEmailSendTaskName, &WelcomeEmailSendTaskFactory{
 		authDependency,
 	})
 	return executor
@@ -48,18 +42,12 @@ type WelcomeEmailSendTask struct {
 	Logger             *logrus.Entry     `dependency:"HandlerLogger"`
 }
 
-type WelcomeEmailSendTaskParam struct {
-	URLPrefix *url.URL
-	Email     string
-	User      model.User
-}
-
 func (w *WelcomeEmailSendTask) WithTx() bool {
 	return true
 }
 
 func (w *WelcomeEmailSendTask) Run(param interface{}) (err error) {
-	taskParam := param.(WelcomeEmailSendTaskParam)
+	taskParam := param.(spec.WelcomeEmailSendTaskParam)
 
 	w.Logger.WithFields(logrus.Fields{"user_id": taskParam.User.ID}).Debug("Sending welcome email")
 

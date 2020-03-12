@@ -2,7 +2,6 @@ package task
 
 import (
 	"context"
-	"net/url"
 
 	"github.com/sirupsen/logrus"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -19,16 +19,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 )
 
-const (
-	// VerifyCodeSendTaskName provides the name for submiting VerifyCodeSendTask
-	VerifyCodeSendTaskName = "VerifyCodeSendTask"
-)
-
 func AttachVerifyCodeSendTask(
 	executor *async.Executor,
 	authDependency auth.DependencyMap,
 ) *async.Executor {
-	executor.Register(VerifyCodeSendTaskName, &VerifyCodeSendTaskFactory{
+	executor.Register(spec.VerifyCodeSendTaskName, &VerifyCodeSendTaskFactory{
 		authDependency,
 	})
 	return executor
@@ -55,18 +50,12 @@ type VerifyCodeSendTask struct {
 	Logger                   *logrus.Entry                `dependency:"HandlerLogger"`
 }
 
-type VerifyCodeSendTaskParam struct {
-	URLPrefix *url.URL
-	LoginID   string
-	UserID    string
-}
-
 func (v *VerifyCodeSendTask) WithTx() bool {
 	return true
 }
 
 func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
-	taskParam := param.(VerifyCodeSendTaskParam)
+	taskParam := param.(spec.VerifyCodeSendTaskParam)
 	loginID := taskParam.LoginID
 	userID := taskParam.UserID
 
