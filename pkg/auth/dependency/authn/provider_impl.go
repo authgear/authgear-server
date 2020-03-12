@@ -156,7 +156,7 @@ func (p *ProviderImpl) validateCreateUserWithLoginIDs(loginIDs []loginid.LoginID
 	}
 
 	if len(causes) > 0 {
-		err = validation.NewValidationFailed("invalid request", causes)
+		err = validation.NewValidationFailed("invalid request body", causes)
 		return
 	}
 
