@@ -102,7 +102,7 @@ type LoginHandler struct {
 	RequireAuthz         handler.RequireAuthz      `dependency:"RequireAuthz"`
 	AuthnSessionProvider authnsession.Provider     `dependency:"AuthnSessionProvider"`
 	ProviderFactory      *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
-	AuthnProvider        authn.Provider            `dependency:"AuthnProvider"`
+	AuthnOAuthProvider   authn.OAuthProvider       `dependency:"AuthnOAuthProvider"`
 	HookProvider         hook.Provider             `dependency:"HookProvider"`
 	TaskQueue            async.Queue               `dependency:"AsyncTaskQueue"`
 	URLPrefix            *url.URL                  `dependency:"URLPrefix"`
@@ -168,12 +168,12 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, tas
 		return
 	}
 
-	code, tasks, err := h.AuthnProvider.AuthenticateWithOAuth(oauthAuthInfo, "", loginState)
+	code, tasks, err := h.AuthnOAuthProvider.AuthenticateWithOAuth(oauthAuthInfo, "", loginState)
 	if err != nil {
 		return
 	}
 
-	authInfo, _, principal, err := h.AuthnProvider.ExtractAuthorizationCode(code)
+	authInfo, _, principal, err := h.AuthnOAuthProvider.ExtractAuthorizationCode(code)
 	if err != nil {
 		return
 	}

@@ -49,7 +49,7 @@ type AuthResultHandler struct {
 	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
 	HookProvider         hook.Provider         `dependency:"HookProvider"`
 	AuthnSessionProvider authnsession.Provider `dependency:"AuthnSessionProvider"`
-	AuthnProvider        authn.Provider        `dependency:"AuthnProvider"`
+	AuthnOAuthProvider   authn.OAuthProvider   `dependency:"AuthnOAuthProvider"`
 	Validator            *validation.Validator `dependency:"Validator"`
 	TaskQueue            async.Queue           `dependency:"AsyncTaskQueue"`
 	SSOProvider          sso.Provider          `dependency:"SSOProvider"`
@@ -110,7 +110,7 @@ func (h *AuthResultHandler) Handle(payload *AuthResultPayload) (result interface
 		return
 	}
 
-	authInfo, userProfile, prin, err := h.AuthnProvider.ExtractAuthorizationCode(code)
+	authInfo, userProfile, prin, err := h.AuthnOAuthProvider.ExtractAuthorizationCode(code)
 	if err != nil {
 		return
 	}

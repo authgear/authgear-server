@@ -74,7 +74,7 @@ type AuthHandler struct {
 	HookProvider                   hook.Provider               `dependency:"HookProvider"`
 	TaskQueue                      async.Queue                 `dependency:"AsyncTaskQueue"`
 	SSOProvider                    sso.Provider                `dependency:"SSOProvider"`
-	AuthnProvider                  authn.Provider              `dependency:"AuthnProvider"`
+	AuthnOAuthProvider             authn.OAuthProvider         `dependency:"AuthnOAuthProvider"`
 	OAuthProvider                  sso.OAuthProvider
 	ProviderID                     string
 }
@@ -188,9 +188,9 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encodedCode string, tasks []async.TaskSpec, err error) {
 	var code *sso.SkygearAuthorizationCode
 	if state.Action == "login" {
-		code, tasks, err = h.AuthnProvider.AuthenticateWithOAuth(oauthAuthInfo, state.CodeChallenge, state.LoginState)
+		code, tasks, err = h.AuthnOAuthProvider.AuthenticateWithOAuth(oauthAuthInfo, state.CodeChallenge, state.LoginState)
 	} else {
-		code, err = h.AuthnProvider.LinkOAuth(oauthAuthInfo, state.CodeChallenge, state.LinkState)
+		code, err = h.AuthnOAuthProvider.LinkOAuth(oauthAuthInfo, state.CodeChallenge, state.LinkState)
 	}
 	if err != nil {
 		return

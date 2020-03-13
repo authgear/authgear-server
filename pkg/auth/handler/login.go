@@ -88,7 +88,7 @@ type LoginHandler struct {
 	HookProvider         hook.Provider         `dependency:"HookProvider"`
 	AuthnSessionProvider authnsession.Provider `dependency:"AuthnSessionProvider"`
 	TxContext            db.TxContext          `dependency:"TxContext"`
-	AuthnProvider        authn.Provider        `dependency:"AuthnProvider"`
+	AuthnLoginProvider   authn.LoginProvider   `dependency:"AuthnLoginProvider"`
 }
 
 // ProvideAuthzPolicy provides authorization policy
@@ -121,7 +121,7 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 // Handle api request
 func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err error) {
-	authInfo, principal, err := h.AuthnProvider.AuthenticateWithLoginID(loginid.LoginID{
+	authInfo, principal, err := h.AuthnLoginProvider.AuthenticateWithLoginID(loginid.LoginID{
 		Key:   payload.LoginIDKey,
 		Value: payload.LoginID,
 	}, payload.Password)

@@ -292,7 +292,7 @@ func (m DependencyMap) Provide(
 		}
 	}
 
-	newAuthnProvider := func() authn.Provider {
+	newAuthnProvider := func() *authn.ProviderImpl {
 		return &authn.ProviderImpl{
 			Logger:                        newLoggerFactory().NewLogger("authnprovider"),
 			PasswordChecker:               newPasswordChecker(),
@@ -437,7 +437,11 @@ func (m DependencyMap) Provide(
 		return newTemplateEngine()
 	case "TimeProvider":
 		return newTimeProvider()
-	case "AuthnProvider":
+	case "AuthnSignupProvider":
+		return newAuthnProvider()
+	case "AuthnLoginProvider":
+		return newAuthnProvider()
+	case "AuthnOAuthProvider":
 		return newAuthnProvider()
 	default:
 		return nil

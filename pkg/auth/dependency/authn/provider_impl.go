@@ -45,7 +45,9 @@ type ProviderImpl struct {
 	URLPrefixProvider             urlprefix.Provider
 }
 
-var _ Provider = &ProviderImpl{}
+var _ SignupProvider = &ProviderImpl{}
+var _ LoginProvider = &ProviderImpl{}
+var _ OAuthProvider = &ProviderImpl{}
 
 func principalsToUserIDs(principals []principal.Principal) []string {
 	seen := map[string]struct{}{}

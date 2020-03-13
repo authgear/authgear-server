@@ -10,7 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 )
 
-type Provider interface {
+type SignupProvider interface {
 	// CreateUserWithLoginIDs is sign up.
 	CreateUserWithLoginIDs(
 		loginIDs []loginid.LoginID,
@@ -18,10 +18,14 @@ type Provider interface {
 		metadata map[string]interface{},
 		onUserDuplicate model.OnUserDuplicate,
 	) (authInfo *authinfo.AuthInfo, userprofile *userprofile.UserProfile, firstPrincipal principal.Principal, tasks []async.TaskSpec, err error)
+}
 
+type LoginProvider interface {
 	// AuthenticateWithLoginID is sign in.
 	AuthenticateWithLoginID(loginID loginid.LoginID, plainPassword string) (authInfo *authinfo.AuthInfo, principal principal.Principal, err error)
+}
 
+type OAuthProvider interface {
 	// AuthenticateWithOAuth is oauth sign up/sign in.
 	AuthenticateWithOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, tasks []async.TaskSpec, err error)
 

@@ -82,16 +82,16 @@ const LinkRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type LinkHandler struct {
-	TxContext       db.TxContext              `dependency:"TxContext"`
-	Validator       *validation.Validator     `dependency:"Validator"`
-	AuthContext     coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
-	RequireAuthz    handler.RequireAuthz      `dependency:"RequireAuthz"`
-	HookProvider    hook.Provider             `dependency:"HookProvider"`
-	ProviderFactory *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
-	SSOProvider     sso.Provider              `dependency:"SSOProvider"`
-	AuthnProvider   authn.Provider            `dependency:"AuthnProvider"`
-	OAuthProvider   sso.OAuthProvider
-	ProviderID      string
+	TxContext          db.TxContext              `dependency:"TxContext"`
+	Validator          *validation.Validator     `dependency:"Validator"`
+	AuthContext        coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
+	RequireAuthz       handler.RequireAuthz      `dependency:"RequireAuthz"`
+	HookProvider       hook.Provider             `dependency:"HookProvider"`
+	ProviderFactory    *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
+	SSOProvider        sso.Provider              `dependency:"SSOProvider"`
+	AuthnOAuthProvider authn.OAuthProvider       `dependency:"AuthnOAuthProvider"`
+	OAuthProvider      sso.OAuthProvider
+	ProviderID         string
 }
 
 func (h LinkHandler) ProvideAuthzPolicy() authz.Policy {
@@ -138,12 +138,12 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interf
 			return err
 		}
 
-		code, err := h.AuthnProvider.LinkOAuth(oauthAuthInfo, "", linkState)
+		code, err := h.AuthnOAuthProvider.LinkOAuth(oauthAuthInfo, "", linkState)
 		if err != nil {
 			return err
 		}
 
-		authInfo, userProfile, _, err := h.AuthnProvider.ExtractAuthorizationCode(code)
+		authInfo, userProfile, _, err := h.AuthnOAuthProvider.ExtractAuthorizationCode(code)
 		if err != nil {
 			return err
 		}

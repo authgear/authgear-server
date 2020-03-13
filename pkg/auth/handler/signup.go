@@ -112,7 +112,7 @@ func (p *SignupRequestPayload) SetDefaultValue() {
 type SignupHandler struct {
 	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
 	Validator            *validation.Validator `dependency:"Validator"`
-	AuthnProvider        authn.Provider        `dependency:"AuthnProvider"`
+	AuthnSignupProvider  authn.SignupProvider  `dependency:"AuthnSignupProvider"`
 	AuthnSessionProvider authnsession.Provider `dependency:"AuthnSessionProvider"`
 	TxContext            db.TxContext          `dependency:"TxContext"`
 	Logger               *logrus.Entry         `dependency:"HandlerLogger"`
@@ -156,7 +156,7 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, tasks []async.TaskSpec, err error) {
-	authInfo, _, firstPrincipal, tasks, err := h.AuthnProvider.CreateUserWithLoginIDs(
+	authInfo, _, firstPrincipal, tasks, err := h.AuthnSignupProvider.CreateUserWithLoginIDs(
 		payload.LoginIDs,
 		payload.Password,
 		payload.Metadata,
