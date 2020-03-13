@@ -23,36 +23,7 @@ func (i *AuthHandlerHTMLProvider) HTML(data map[string]interface{}) (out string,
 <head>
 <script type="text/javascript">
 
-function validateCallbackURL(callbackURL, authorizedURLs) {
-	if (!callbackURL) {
-		return false;
-	}
-
-	var u;
-	try {
-		u = new URL(callbackURL);
-		u.search = "";
-		u.hash = "";
-		callbackURL = u.href;
-	} catch (e) {
-		return false;
-	}
-
-	// URL.pathname always has a leading /
-	// So new URL(u).href !== u
-	// The matching here ignore trailing slash.
-	callbackURL = callbackURL.replace(/\/$/, "");
-
-	for (var i = 0; i < authorizedURLs.length; ++i) {
-		if (callbackURL === authorizedURLs[i].replace(/\/$/, "")) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-function postSSOResultMessageToWindow(windowObject, authorizedURLs) {
+function postSSOResultMessageToWindow(windowObject) {
 	var callbackURL = {{ .callback_url }};
 	var result = {{ .result }};
 	var error = null;
@@ -60,8 +31,6 @@ function postSSOResultMessageToWindow(windowObject, authorizedURLs) {
 		error = 'Fail to retrieve result';
 	} else if (!callbackURL) {
 		error = 'Fail to retrieve callbackURL';
-	} else if (!validateCallbackURL(callbackURL, authorizedURLs)) {
-		error = "Unauthorized callback URL: " + callbackURL;
 	}
 
 	if (error) {
@@ -80,18 +49,11 @@ function postSSOResultMessageToWindow(windowObject, authorizedURLs) {
 	}, "*");
 }
 
-var req = new XMLHttpRequest();
-req.onload = function() {
-	var jsonResponse = JSON.parse(req.responseText);
-	var authorizedURLs = jsonResponse.result.authorized_urls;
-	if (window.opener) {
-		postSSOResultMessageToWindow(window.opener, authorizedURLs);
-	} else {
-		throw new Error("no window.opener");
-	}
-};
-req.open("POST", "{{ .api_endpoint }}/_auth/sso/config", true);
-req.send(null);
+if (window.opener) {
+	postSSOResultMessageToWindow(window.opener);
+} else {
+	throw new Error("no window.opener");
+}
 </script>
 </head>
 <body>
