@@ -209,7 +209,6 @@ func (m DependencyMap) Provide(
 			request,
 			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider(), newLoggerFactory()),
 			redisSession.NewEventStore(ctx, tConfig.AppID),
-			newAuthContext(),
 			tConfig.AppConfig.Clients,
 		)
 	}
@@ -225,7 +224,7 @@ func (m DependencyMap) Provide(
 
 	newSessionWriter := func() session.Writer {
 		return session.NewWriter(
-			newAuthContext(),
+			ctx,
 			tConfig.AppConfig.Clients,
 			tConfig.AppConfig.MFA,
 			m.UseInsecureCookie,
@@ -327,7 +326,7 @@ func (m DependencyMap) Provide(
 		return newMFAProvider()
 	case "AuthnSessionProvider":
 		return authnsession.NewProvider(
-			newAuthContext(),
+			ctx,
 			tConfig.AppConfig.MFA,
 			tConfig.AppConfig.Auth.AuthenticationSession,
 			newTimeProvider(),

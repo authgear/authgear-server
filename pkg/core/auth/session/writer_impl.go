@@ -1,30 +1,30 @@
 package session
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
-	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
 type writerImpl struct {
-	authContext       auth.ContextGetter
+	ctx               context.Context
 	clientConfigs     []config.OAuthClientConfiguration
 	mfaConfiguration  *config.MFAConfiguration
 	useInsecureCookie bool
 }
 
 func NewWriter(
-	authContext auth.ContextGetter,
+	ctx context.Context,
 	clientConfigs []config.OAuthClientConfiguration,
 	mfaConfiguration *config.MFAConfiguration,
 	useInsecureCookie bool,
 ) Writer {
 	return &writerImpl{
-		authContext:       authContext,
+		ctx:               ctx,
 		clientConfigs:     clientConfigs,
 		mfaConfiguration:  mfaConfiguration,
 		useInsecureCookie: useInsecureCookie,
@@ -32,7 +32,7 @@ func NewWriter(
 }
 
 func (w *writerImpl) WriteSession(rw http.ResponseWriter, accessToken *string, mfaBearerToken *string) {
-	clientConfig, _ := model.GetClientConfig(w.clientConfigs, w.authContext.AccessKey().ClientID)
+	clientConfig := auth.GetAccessKey(w.ctx).Client
 	useCookie := clientConfig.AuthAPIUseCookie()
 
 	cookieSession := &http.Cookie{

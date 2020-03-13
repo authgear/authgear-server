@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -240,8 +241,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		uh.Validator = validator
 		uh.AuthContext = authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
-			MarkVerified().
-			UseMasterKey()
+			MarkVerified()
 		uh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				userID: authinfo.AuthInfo{
@@ -296,6 +296,9 @@ func TestUpdateMetadataHandler(t *testing.T) {
 				}
 			}`,
 				userID)))
+			req = req.WithContext(auth.WithAccessKey(req.Context(), auth.AccessKey{
+				IsMasterKey: true,
+			}))
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			uh.ServeHTTP(resp, req)

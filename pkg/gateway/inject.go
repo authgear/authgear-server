@@ -53,12 +53,11 @@ func (m DependencyMap) Provide(
 			request,
 			redisSession.NewStore(ctx, tConfig.AppID, time.NewProvider(), newLoggerFactory()),
 			redisSession.NewEventStore(ctx, tConfig.AppID),
-			newAuthContext(),
 			tConfig.AppConfig.Clients,
 		)
 	case "SessionWriter":
 		return session.NewWriter(
-			newAuthContext(),
+			ctx,
 			tConfig.AppConfig.Clients,
 			tConfig.AppConfig.MFA,
 			m.Config.UseInsecureCookie,
