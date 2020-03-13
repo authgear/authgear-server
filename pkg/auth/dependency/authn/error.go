@@ -9,4 +9,4 @@ var (
 	AuthenticationSessionRequired skyerr.Kind = skyerr.Unauthorized.WithReason("AuthenticationSession")
 )
 
-var errInvalidToken = InvalidAuthenticationSession.New("invalid authentication session token")
+var ErrInvalidAuthenticationSession = InvalidAuthenticationSession.New("invalid authentication session")

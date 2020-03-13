@@ -24,14 +24,14 @@ func decodeSessionToken(secret string, tokenString string) (*sessionToken, error
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return nil, errInvalidToken
+		return nil, ErrInvalidAuthenticationSession
 	}
 	claims, ok := t.Claims.(*sessionToken)
 	if !ok {
-		return nil, errInvalidToken
+		return nil, ErrInvalidAuthenticationSession
 	}
 	if !t.Valid {
-		return nil, errInvalidToken
+		return nil, ErrInvalidAuthenticationSession
 	}
 	return claims, nil
 }
