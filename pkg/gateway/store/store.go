@@ -9,6 +9,9 @@ type GatewayStore interface {
 	// GetDomain fetch domain record
 	GetDomain(domain string) (*model.Domain, error)
 
+	// GetDomain fetch default domain record
+	GetDefaultDomain(domain string) (*model.Domain, error)
+
 	// GetApp fetch app by id
 	GetApp(id string) (*model.App, error)
 

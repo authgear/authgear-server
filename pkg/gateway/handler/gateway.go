@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"regexp"
+	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -46,6 +47,17 @@ func (h *GatewayHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 func getGearToRoute(domain *model.Domain, r *http.Request) model.Gear {
+	if domain.Assignment == model.AssignmentTypeDefault {
+		host := r.Host
+		if host == domain.Domain {
+			// microservices
+			// fallback route to gear if necessary
+			return model.Gear(getGearName(r.URL.Path))
+		}
+		// get gear from host
+		parts := strings.Split(host, ".")
+		return model.GetGear(parts[0])
+	}
 	if domain.Assignment == model.AssignmentTypeMicroservices {
 		// fallback route to gear by path
 		// return empty string if it is not matched

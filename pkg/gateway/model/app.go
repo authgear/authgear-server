@@ -12,6 +12,19 @@ const (
 	AssetGear Gear = "asset"
 )
 
+// GetGear translate the subdomain to gear if necessary
+// otherwise return the original string
+func GetGear(subdomain string) Gear {
+	switch subdomain {
+	case "accounts":
+		return AuthGear
+	case "assets":
+		return AssetGear
+	}
+
+	return Gear(subdomain)
+}
+
 type GearVersion string
 
 // GearVersion constant specific gear version of app

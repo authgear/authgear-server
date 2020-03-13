@@ -6,6 +6,7 @@ const (
 	AssignmentTypeAuth          AssignmentType = "auth"
 	AssignmentTypeAsset         AssignmentType = "asset"
 	AssignmentTypeMicroservices AssignmentType = "microservices"
+	AssignmentTypeDefault       AssignmentType = "default"
 )
 
 type Domain struct {
