@@ -73,11 +73,12 @@ func newSentinelPool(config Configuration) *redis.Pool {
 		Addrs:      config.Sentinel.Addrs,
 		MasterName: config.Sentinel.MasterName,
 		Dial: func(addr string) (redis.Conn, error) {
+			dialConnectTimeout := 3 * time.Second
 			timeout := 500 * time.Millisecond
 			c, err := redis.Dial(
 				"tcp",
 				addr,
-				redis.DialConnectTimeout(timeout),
+				redis.DialConnectTimeout(dialConnectTimeout),
 				redis.DialReadTimeout(timeout),
 				redis.DialWriteTimeout(timeout),
 			)
