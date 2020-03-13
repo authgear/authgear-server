@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -83,6 +84,7 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 		}
 
 		impl.PasswordChecker = passwordChecker
+		impl.OAuthProvider = oauthProvider
 		impl.LoginIDChecker = loginIDChecker
 		impl.IdentityProvider = identityProvider
 		impl.TimeProvider = timeProvider
@@ -386,6 +388,7 @@ func TestAuthenticateWithLoginID(t *testing.T) {
 				},
 			},
 		)
+		oauthProvider := oauth.NewMockProvider(nil)
 
 		passwordChecker := &authAudit.PasswordChecker{
 			PwMinLength: 6,
@@ -414,6 +417,7 @@ func TestAuthenticateWithLoginID(t *testing.T) {
 		}
 
 		impl.PasswordChecker = passwordChecker
+		impl.OAuthProvider = oauthProvider
 		impl.LoginIDChecker = loginIDChecker
 		impl.IdentityProvider = identityProvider
 		impl.TimeProvider = timeProvider
@@ -488,6 +492,141 @@ func TestAuthenticateWithLoginID(t *testing.T) {
 					"code": 401
 				}
 			}`)
+		})
+	})
+}
+
+func TestAuthenticateWithOAuth(t *testing.T) {
+	Convey("AuthenticateWithOAuth", t, func() {
+		impl := &ProviderImpl{}
+		one := 1
+		loginIDsKeys := []config.LoginIDKeyConfiguration{
+			config.LoginIDKeyConfiguration{
+				Key:     "email",
+				Type:    config.LoginIDKeyType(metadata.Email),
+				Maximum: &one,
+			},
+			config.LoginIDKeyConfiguration{
+				Key:     "username",
+				Type:    config.LoginIDKeyTypeRaw,
+				Maximum: &one,
+			},
+		}
+		allowedRealms := []string{password.DefaultRealm}
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
+			map[string]authinfo.AuthInfo{
+				"john.doe.id": authinfo.AuthInfo{
+					ID: "john.doe.id",
+				},
+			},
+		)
+		passwordProvider := password.NewMockProviderWithPrincipalMap(
+			loginIDsKeys,
+			allowedRealms,
+			map[string]password.Principal{
+				"john.doe.principal.id1": password.Principal{
+					ID:             "john.doe.principal.id1",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe@example.com",
+					Realm:          password.DefaultRealm,
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+					ClaimsValue: map[string]interface{}{
+						"email": "john.doe@example.com",
+					},
+				},
+			},
+		)
+		oauthProvider := oauth.NewMockProvider(nil)
+
+		passwordChecker := &authAudit.PasswordChecker{
+			PwMinLength: 6,
+		}
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		userProfileStore := userprofile.NewMockUserProfileStore()
+		identityProvider := principal.NewMockIdentityProvider(passwordProvider)
+		hookProvider := hook.NewMockProvider()
+		welcomeEmailConfiguration := &config.WelcomeEmailConfiguration{}
+		userVerificationConfiguration := &config.UserVerificationConfiguration{
+			LoginIDKeys: []config.UserVerificationKeyConfiguration{
+				config.UserVerificationKeyConfiguration{
+					Key: "email",
+				},
+			},
+		}
+		authConfiguration := &config.AuthConfiguration{
+			LoginIDKeys: loginIDsKeys,
+		}
+		loginIDChecker := &loginid.MockLoginIDChecker{}
+		urlPrefixProvider := urlprefix.Provider{
+			Prefix: url.URL{
+				Scheme: "http",
+				Host:   "example.com",
+			},
+		}
+
+		impl.PasswordChecker = passwordChecker
+		impl.OAuthProvider = oauthProvider
+		impl.LoginIDChecker = loginIDChecker
+		impl.IdentityProvider = identityProvider
+		impl.TimeProvider = timeProvider
+		impl.AuthInfoStore = authInfoStore
+		impl.UserProfileStore = userProfileStore
+		impl.PasswordProvider = passwordProvider
+		impl.HookProvider = hookProvider
+		impl.WelcomeEmailConfiguration = welcomeEmailConfiguration
+		impl.UserVerificationConfiguration = userVerificationConfiguration
+		impl.AuthConfiguration = authConfiguration
+		impl.URLPrefixProvider = urlPrefixProvider
+
+		checkErr := func(err error, errJSON string) {
+			So(err, ShouldNotBeNil)
+			b, _ := handler.APIResponse{Error: err}.MarshalJSON()
+			So(b, ShouldEqualJSON, errJSON)
+		}
+
+		Convey("OnUserDuplicateAbort == abort", func() {
+			_, _, err := impl.AuthenticateWithOAuth(sso.AuthInfo{
+				ProviderUserInfo: sso.ProviderUserInfo{
+					Email: "john.doe@example.com",
+				},
+			}, "", sso.LoginState{
+				OnUserDuplicate: model.OnUserDuplicateAbort,
+			})
+			checkErr(err, `
+			{
+				"error": {
+					"name": "AlreadyExists",
+					"reason": "LoginIDAlreadyUsed",
+					"message": "login ID is already used",
+					"code": 409
+				}
+			}
+			`)
+		})
+
+		Convey("OnUserDuplicateAbort == merge", func() {
+			code, _, err := impl.AuthenticateWithOAuth(sso.AuthInfo{
+				ProviderUserInfo: sso.ProviderUserInfo{
+					Email: "john.doe@example.com",
+				},
+			}, "", sso.LoginState{
+				OnUserDuplicate: model.OnUserDuplicateMerge,
+			})
+			So(err, ShouldBeNil)
+			So(code.UserID, ShouldEqual, "john.doe.id")
+		})
+
+		Convey("OnUserDuplicateAbort == create", func() {
+			code, _, err := impl.AuthenticateWithOAuth(sso.AuthInfo{
+				ProviderUserInfo: sso.ProviderUserInfo{
+					Email: "john.doe@example.com",
+				},
+			}, "", sso.LoginState{
+				OnUserDuplicate: model.OnUserDuplicateCreate,
+			})
+			So(err, ShouldBeNil)
+			So(code.UserID, ShouldNotEqual, "john.doe.id")
 		})
 	})
 }
