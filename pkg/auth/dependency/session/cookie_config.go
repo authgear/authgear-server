@@ -32,8 +32,8 @@ func NewCookieConfiguration(r *http.Request, useInsecureCookie bool, sConfig con
 		host := corehttp.GetHost(r)
 		etldp1, err := publicsuffix.EffectiveTLDPlusOne(host)
 		if err != nil {
-			// Failed to derive eTLD+1: use host directly
-			cfg.Domain = host
+			// Failed to derive eTLD+1: use host-only cookie
+			cfg.Domain = ""
 		} else {
 			cfg.Domain = etldp1
 		}
