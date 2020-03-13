@@ -23,17 +23,15 @@ func WithAccessKey(ctx context.Context, ak AccessKey) context.Context {
 	if key, ok := ctx.Value(accessKeyContextKey).(*AccessKey); ok {
 		*key = ak
 		return ctx
-	} else {
-		return context.WithValue(ctx, accessKeyContextKey, &ak)
 	}
+	return context.WithValue(ctx, accessKeyContextKey, &ak)
 }
 
 func GetAccessKey(ctx context.Context) AccessKey {
 	if key, ok := ctx.Value(accessKeyContextKey).(*AccessKey); ok {
 		return *key
-	} else {
-		return AccessKey{}
 	}
+	return AccessKey{}
 }
 
 type AccessKeyMiddleware struct {

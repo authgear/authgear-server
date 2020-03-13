@@ -13,10 +13,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/async"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -120,7 +121,19 @@ func TestAuthHandler(t *testing.T) {
 		providerUserID := "mock_user_id"
 		sh := &AuthHandler{}
 		sh.TxContext = db.NewMockTxContext()
-		sh.APIClientConfigurationProvider = apiclientconfig.NewMockProvider("api_key")
+		accessKey := auth.AccessKey{
+			Client: config.OAuthClientConfiguration{
+				"client_name":            "client-id",
+				"client_id":              "client-id",
+				"access_token_lifetime":  1800.0,
+				"refresh_token_lifetime": 86400.0,
+			},
+		}
+		sh.TenantConfiguration = &config.TenantConfiguration{
+			AppConfig: &config.AppConfiguration{
+				Clients: []config.OAuthClientConfiguration{},
+			},
+		}
 		authContext := authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
@@ -187,6 +200,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
@@ -232,6 +246,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -283,6 +298,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -318,6 +334,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)

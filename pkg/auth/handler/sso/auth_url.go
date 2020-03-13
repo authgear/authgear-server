@@ -11,7 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -211,17 +210,16 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		@Callback user_sync {UserSyncEvent}
 */
 type AuthURLHandler struct {
-	TxContext                      db.TxContext              `dependency:"TxContext"`
-	Validator                      *validation.Validator     `dependency:"Validator"`
-	AuthContext                    coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
-	RequireAuthz                   handler.RequireAuthz      `dependency:"RequireAuthz"`
-	APIClientConfigurationProvider apiclientconfig.Provider  `dependency:"APIClientConfigurationProvider"`
-	ProviderFactory                *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
-	PasswordAuthProvider           password.Provider         `dependency:"PasswordAuthProvider"`
-	SSOProvider                    sso.Provider              `dependency:"SSOProvider"`
-	OAuthProvider                  sso.OAuthProvider
-	ProviderID                     string
-	Action                         string
+	TxContext            db.TxContext              `dependency:"TxContext"`
+	Validator            *validation.Validator     `dependency:"Validator"`
+	AuthContext          coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
+	RequireAuthz         handler.RequireAuthz      `dependency:"RequireAuthz"`
+	ProviderFactory      *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
+	PasswordAuthProvider password.Provider         `dependency:"PasswordAuthProvider"`
+	SSOProvider          sso.Provider              `dependency:"SSOProvider"`
+	OAuthProvider        sso.OAuthProvider
+	ProviderID           string
+	Action               string
 }
 
 func (h *AuthURLHandler) ProvideAuthzPolicy() authz.Policy {
@@ -257,7 +255,8 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		return
 	}
 
-	apiClientID, _, _ := h.APIClientConfigurationProvider.Get()
+	accessKey := coreAuth.GetAccessKey(r.Context())
+	apiClientID := accessKey.Client.ClientID()
 
 	// The information in the state are mostly from the client.
 	// APIClientID is derived from the API key used by the client.

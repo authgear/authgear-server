@@ -3,7 +3,6 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -16,12 +15,11 @@ import (
 
 // AuthnMiddleware populate auth context information
 type AuthnMiddleware struct {
-	APIClientConfigurationProvider apiclientconfig.Provider `dependency:"APIClientConfigurationProvider"`
-	AuthContextSetter              auth.ContextSetter       `dependency:"AuthContextSetter"`
-	SessionProvider                session.Provider         `dependency:"SessionProvider"`
-	SessionWriter                  session.Writer           `dependency:"SessionWriter"`
-	AuthInfoStore                  authinfo.Store           `dependency:"AuthInfoStore"`
-	TxContext                      db.TxContext             `dependency:"TxContext"`
+	AuthContextSetter auth.ContextSetter `dependency:"AuthContextSetter"`
+	SessionProvider   session.Provider   `dependency:"SessionProvider"`
+	SessionWriter     session.Writer     `dependency:"SessionWriter"`
+	AuthInfoStore     authinfo.Store     `dependency:"AuthInfoStore"`
+	TxContext         db.TxContext       `dependency:"TxContext"`
 }
 
 // AuthnMiddlewareFactory creates AuthnMiddleware per request.
@@ -53,9 +51,6 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 
 func (m *AuthnMiddleware) resolve(r *http.Request) (s *auth.Session, info *authinfo.AuthInfo, err error) {
 	tenantConfig := config.GetTenantConfig(r.Context())
-
-	key := m.APIClientConfigurationProvider.GetAccessKeyByAPIKey(model.GetAPIKey(r))
-	m.AuthContextSetter.SetAccessKey(key)
 
 	accessToken := coreHttp.GetSessionIdentifier(r)
 	// No access token found. Simply proceed.
@@ -91,9 +86,13 @@ func (m *AuthnMiddleware) resolve(r *http.Request) (s *auth.Session, info *authi
 	info = &ai
 
 	// in case valid session is used, infer access key from session
-	if !key.IsMasterKey() {
-		key = model.NewAccessKey(sess.ClientID)
-		m.AuthContextSetter.SetAccessKey(key)
+	accessKey := auth.GetAccessKey(r.Context())
+	if !accessKey.IsMasterKey {
+		client, ok := model.GetClientConfig(tenantConfig.AppConfig.Clients, sess.ClientID)
+		if ok {
+			accessKey.Client = client
+			auth.WithAccessKey(r.Context(), accessKey)
+		}
 	}
 
 	// should not use new session data in context

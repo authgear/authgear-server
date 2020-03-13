@@ -10,13 +10,14 @@ import (
 	"testing"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 
@@ -31,7 +32,14 @@ func TestAuthURLHandler(t *testing.T) {
 			AuthURLRequestSchema,
 		)
 		h.Validator = validator
-		h.APIClientConfigurationProvider = apiclientconfig.NewMockProvider("api_key")
+		accessKey := auth.AccessKey{
+			Client: config.OAuthClientConfiguration{
+				"client_name":            "client-id",
+				"client_id":              "client-id",
+				"access_token_lifetime":  1800.0,
+				"refresh_token_lifetime": 86400.0,
+			},
+		}
 		h.AuthContext = authtest.NewMockContext().
 			UseUser("faseng.cat.id", "faseng.cat.principal.id").
 			MarkVerified()
@@ -74,6 +82,7 @@ func TestAuthURLHandler(t *testing.T) {
 			}
 			`))
 			req.Header.Set("Content-Type", "application/json")
+			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
 			httpHandler := h
 			httpHandler.ServeHTTP(resp, req)
@@ -114,6 +123,7 @@ func TestAuthURLHandler(t *testing.T) {
 			}
 			`))
 			req.Header.Set("Content-Type", "application/json")
+			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
 			httpHandler := h
 			httpHandler.ServeHTTP(resp, req)
@@ -145,6 +155,7 @@ func TestAuthURLHandler(t *testing.T) {
 			}
 			`))
 			req.Header.Set("Content-Type", "application/json")
+			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
 			httpHandler := h
 			httpHandler.ServeHTTP(resp, req)
@@ -174,6 +185,7 @@ func TestAuthURLHandler(t *testing.T) {
 			}
 			`))
 			req.Header.Set("Content-Type", "application/json")
+			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
 			httpHandler := h
 			httpHandler.ServeHTTP(resp, req)
@@ -210,6 +222,7 @@ func TestAuthURLHandler(t *testing.T) {
 			}
 			`))
 			req.Header.Set("Content-Type", "application/json")
+			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
 			httpHandler := h
 			httpHandler.ServeHTTP(resp, req)

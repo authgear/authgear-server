@@ -1,28 +1,29 @@
 package sso
 
 import (
+	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
 
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type providerImpl struct {
-	AppID          string
-	ClientProvider apiclientconfig.Provider
-	OAuthConfig    *config.OAuthConfiguration
+	AppID       string
+	Context     context.Context
+	OAuthConfig *config.OAuthConfiguration
 }
 
 var _ Provider = &providerImpl{}
 
-func NewProvider(appID string, clientProvider apiclientconfig.Provider, c *config.OAuthConfiguration) Provider {
+func NewProvider(ctx context.Context, appID string, c *config.OAuthConfiguration) Provider {
 	return &providerImpl{
-		AppID:          appID,
-		ClientProvider: clientProvider,
-		OAuthConfig:    c,
+		AppID:       appID,
+		Context:     ctx,
+		OAuthConfig: c,
 	}
 }
 
@@ -52,9 +53,9 @@ func (f *providerImpl) IsAllowedOnUserDuplicate(a model.OnUserDuplicate) bool {
 
 func (f *providerImpl) IsValidCallbackURL(u string) bool {
 	var redirectURIs []string
-	_, client, ok := f.ClientProvider.Get()
-	if ok {
-		redirectURIs = client.RedirectURIs()
+	accessKey := auth.GetAccessKey(f.Context)
+	if accessKey.Client != nil {
+		redirectURIs = accessKey.Client.RedirectURIs()
 	}
 	err := ValidateCallbackURL(redirectURIs, u)
 	return err == nil

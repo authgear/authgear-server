@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/google/wire"
+	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	sessionredis "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
@@ -20,6 +21,16 @@ func MakeHandler(deps DependencyMap, factory func(r *http.Request, m DependencyM
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := factory(r, deps)
 		h.ServeHTTP(w, r)
+	})
+}
+
+func MakeMiddleware(deps DependencyMap, factory func(r *http.Request, m DependencyMap) mux.MiddlewareFunc) mux.MiddlewareFunc {
+	return mux.MiddlewareFunc(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			m := factory(r, deps)
+			h := m(next)
+			h.ServeHTTP(w, r)
+		})
 	})
 }
 

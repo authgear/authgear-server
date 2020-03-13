@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/asset/dependency/presign"
-	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
@@ -87,8 +86,6 @@ func (m *DependencyMap) Provide(
 	}
 
 	switch dependencyName {
-	case "APIClientConfigurationProvider":
-		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
 	case "AuthContextGetter":
 		return newAuthContext()
 	case "AuthContextSetter":
