@@ -1,18 +1,20 @@
 package sso
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -63,6 +65,15 @@ const LinkRequestSchema = `
 }
 `
 
+type LinkAuthnProvider interface {
+	OAuthLink(
+		client config.OAuthClientConfiguration,
+		session *session.Session,
+		authInfo sso.AuthInfo,
+		linkState sso.LinkState,
+	) (authn.Result, error)
+}
+
 /*
 	@Operation POST /sso/{provider_id}/link - Link SSO provider with token
 		Link the specified SSO provider with the current user, using access
@@ -82,16 +93,15 @@ const LinkRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type LinkHandler struct {
-	TxContext          db.TxContext              `dependency:"TxContext"`
-	Validator          *validation.Validator     `dependency:"Validator"`
-	AuthContext        coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
-	RequireAuthz       handler.RequireAuthz      `dependency:"RequireAuthz"`
-	HookProvider       hook.Provider             `dependency:"HookProvider"`
-	ProviderFactory    *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
-	SSOProvider        sso.Provider              `dependency:"SSOProvider"`
-	AuthnOAuthProvider authn.OAuthProvider       `dependency:"AuthnOAuthProvider"`
-	OAuthProvider      sso.OAuthProvider
-	ProviderID         string
+	TxContext       db.TxContext              `dependency:"TxContext"`
+	Validator       *validation.Validator     `dependency:"Validator"`
+	AuthContext     coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
+	RequireAuthz    handler.RequireAuthz      `dependency:"RequireAuthz"`
+	ProviderFactory *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
+	SSOProvider     sso.Provider              `dependency:"SSOProvider"`
+	AuthnProvider   LinkAuthnProvider         `dependency:"AuthnProvider"`
+	OAuthProvider   sso.OAuthProvider
+	ProviderID      string
 }
 
 func (h LinkHandler) ProvideAuthzPolicy() authz.Policy {
@@ -99,34 +109,33 @@ func (h LinkHandler) ProvideAuthzPolicy() authz.Policy {
 }
 
 func (h LinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var response handler.APIResponse
 	result, err := h.Handle(w, r)
 	if err != nil {
-		response.Error = err
-	} else {
-		response.Result = result
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
+		return
 	}
-	handler.WriteResponse(w, response)
+
+	// TODO(authn): write response
+	fmt.Printf("%#v\n", result)
 }
 
-func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (authn.Result, error) {
 	var payload LinkRequestPayload
 	if err := handler.BindJSONBody(r, w, h.Validator, "#SSOLinkRequest", &payload); err != nil {
 		return nil, err
 	}
 
 	if !h.SSOProvider.IsExternalAccessTokenFlowEnabled() {
-		err = skyerr.NewNotFound("external access token flow is disabled")
-		return
+		return nil, skyerr.NewNotFound("external access token flow is disabled")
 	}
 
 	provider, ok := h.OAuthProvider.(sso.ExternalAccessTokenFlowProvider)
 	if !ok {
-		err = skyerr.NewNotFound("unknown provider")
-		return
+		return nil, skyerr.NewNotFound("unknown provider")
 	}
 
-	err = db.WithTx(h.TxContext, func() error {
+	var result authn.Result
+	err := db.WithTx(h.TxContext, func() error {
 		authInfo, _ := h.AuthContext.AuthInfo()
 		userID := authInfo.ID
 
@@ -138,19 +147,16 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interf
 			return err
 		}
 
-		code, err := h.AuthnOAuthProvider.LinkOAuth(oauthAuthInfo, "", linkState)
+		result, err = h.AuthnProvider.OAuthLink(
+			coreauth.GetAccessKey(r.Context()).Client,
+			nil, // TODO(authn): pass session
+			oauthAuthInfo,
+			linkState,
+		)
 		if err != nil {
 			return err
 		}
-
-		authInfo, userProfile, _, err := h.AuthnOAuthProvider.ExtractAuthorizationCode(code)
-		if err != nil {
-			return err
-		}
-
-		user := model.NewUser(*authInfo, *userProfile)
-		resp = model.NewAuthResponseWithUser(user)
 		return nil
 	})
-	return
+	return result, err
 }

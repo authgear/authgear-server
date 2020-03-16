@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -64,6 +63,20 @@ func (p AuthRequestPayload) Validate() error {
 	return nil
 }
 
+type AuthHandlerAuthnProvider interface {
+	OAuthAuthenticate(
+		authInfo sso.AuthInfo,
+		codeChallenge string,
+		loginState sso.LoginState,
+	) (*sso.SkygearAuthorizationCode, error)
+
+	OAuthLink(
+		authInfo sso.AuthInfo,
+		codeChallenge string,
+		linkState sso.LinkState,
+	) (*sso.SkygearAuthorizationCode, error)
+}
+
 // AuthHandler decodes code response and fetch access token from provider.
 type AuthHandler struct {
 	TxContext               db.TxContext                `dependency:"TxContext"`
@@ -75,7 +88,7 @@ type AuthHandler struct {
 	HookProvider            hook.Provider               `dependency:"HookProvider"`
 	TaskQueue               async.Queue                 `dependency:"AsyncTaskQueue"`
 	SSOProvider             sso.Provider                `dependency:"SSOProvider"`
-	AuthnOAuthProvider      authn.OAuthProvider         `dependency:"AuthnOAuthProvider"`
+	AuthnProvider           AuthHandlerAuthnProvider    `dependency:"AuthnProvider"`
 	OAuthProvider           sso.OAuthProvider
 	ProviderID              string
 }
@@ -185,9 +198,9 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encodedCode string, err error) {
 	var code *sso.SkygearAuthorizationCode
 	if state.Action == "login" {
-		code, err = h.AuthnOAuthProvider.AuthenticateWithOAuth(oauthAuthInfo, state.CodeChallenge, state.LoginState)
+		code, err = h.AuthnProvider.OAuthAuthenticate(oauthAuthInfo, state.CodeChallenge, state.LoginState)
 	} else {
-		code, err = h.AuthnOAuthProvider.LinkOAuth(oauthAuthInfo, state.CodeChallenge, state.LinkState)
+		code, err = h.AuthnProvider.OAuthLink(oauthAuthInfo, state.CodeChallenge, state.LinkState)
 	}
 	if err != nil {
 		return

@@ -62,15 +62,27 @@ func (p *Provider) OAuthAuthenticate(
 }
 
 func (p *Provider) OAuthLink(
+	client config.OAuthClientConfiguration,
+	session *session.Session,
 	authInfo sso.AuthInfo,
-	codeChallenge string,
 	linkState sso.LinkState,
-) (*sso.SkygearAuthorizationCode, error) {
-	return p.OAuth.Link(authInfo, codeChallenge, linkState)
+) (Result, error) {
+	code, err := p.OAuth.Link(authInfo, "", linkState)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.OAuth.ExchangeCode(code)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.Session.MakeResult(client, session, "")
 }
 
 func (p *Provider) OAuthExchangeCode(
 	client config.OAuthClientConfiguration,
+	s *session.Session,
 	code *sso.SkygearAuthorizationCode,
 ) (Result, error) {
 	pr, err := p.OAuth.ExchangeCode(code)
@@ -78,11 +90,16 @@ func (p *Provider) OAuthExchangeCode(
 		return nil, err
 	}
 
+	if code.Action == "link" {
+		return p.Session.MakeResult(client, s, "")
+	}
+
+	// code.Action == "login"
 	reason := session.CreateReason(code.SessionCreateReason)
-	s, err := p.Session.BeginSession(client, pr.PrincipalUserID(), pr, reason)
+	as, err := p.Session.BeginSession(client, pr.PrincipalUserID(), pr, reason)
 	if err != nil {
 		return nil, err
 	}
 
-	return p.Session.StepSession(s)
+	return p.Session.StepSession(as)
 }

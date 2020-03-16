@@ -1,18 +1,18 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -65,6 +65,14 @@ const LoginRequestSchema = `
 }
 `
 
+type LoginAuthnProvider interface {
+	LoginWithLoginID(
+		client config.OAuthClientConfiguration,
+		loginID loginid.LoginID,
+		plainPassword string,
+	) (authn.Result, error)
+}
+
 /*
 	@Operation POST /login - Login using password
 		Login user with login ID and password.
@@ -83,12 +91,10 @@ const LoginRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type LoginHandler struct {
-	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
-	Validator            *validation.Validator `dependency:"Validator"`
-	HookProvider         hook.Provider         `dependency:"HookProvider"`
-	AuthnSessionProvider authnsession.Provider `dependency:"AuthnSessionProvider"`
-	TxContext            db.TxContext          `dependency:"TxContext"`
-	AuthnLoginProvider   authn.LoginProvider   `dependency:"AuthnLoginProvider"`
+	RequireAuthz  handler.RequireAuthz  `dependency:"RequireAuthz"`
+	Validator     *validation.Validator `dependency:"Validator"`
+	AuthnProvider LoginAuthnProvider    `dependency:"AuthnProvider"`
+	TxContext     db.TxContext          `dependency:"TxContext"`
 }
 
 // ProvideAuthzPolicy provides authorization policy
@@ -107,36 +113,27 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
-		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
+		handler.WriteResponse(resp, handler.APIResponse{Error: err})
 		return
 	}
 
-	var result interface{}
+	var result authn.Result
 	err = db.WithTx(h.TxContext, func() (err error) {
-		result, err = h.Handle(payload)
+		result, err = h.AuthnProvider.LoginWithLoginID(
+			coreauth.GetAccessKey(req.Context()).Client,
+			loginid.LoginID{
+				Key:   payload.LoginIDKey,
+				Value: payload.LoginID,
+			},
+			payload.Password,
+		)
 		return
 	})
-	h.AuthnSessionProvider.WriteResponse(resp, result, err)
-}
-
-// Handle api request
-func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err error) {
-	authInfo, principal, err := h.AuthnLoginProvider.AuthenticateWithLoginID(loginid.LoginID{
-		Key:   payload.LoginIDKey,
-		Value: payload.LoginID,
-	}, payload.Password)
 	if err != nil {
+		handler.WriteResponse(resp, handler.APIResponse{Error: err})
 		return
 	}
 
-	sess, err := h.AuthnSessionProvider.NewFromScratch(authInfo.ID, principal, coreAuth.SessionCreateReasonLogin)
-	if err != nil {
-		return
-	}
-	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
-	if err != nil {
-		return
-	}
-
-	return
+	// TODO(authn): write response
+	fmt.Printf("%#v\n", result)
 }

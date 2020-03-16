@@ -1,21 +1,19 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/async"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -91,6 +89,16 @@ func (p *SignupRequestPayload) SetDefaultValue() {
 	}
 }
 
+type SignupAuthnProvider interface {
+	SignupWithLoginIDs(
+		client config.OAuthClientConfiguration,
+		loginIDs []loginid.LoginID,
+		plainPassword string,
+		metadata map[string]interface{},
+		onUserDuplicate model.OnUserDuplicate,
+	) (authn.Result, error)
+}
+
 /*
 	@Operation POST /signup - Signup using password
 		Signup user with login IDs and password.
@@ -110,14 +118,10 @@ func (p *SignupRequestPayload) SetDefaultValue() {
 		@Callback user_sync {UserSyncEvent}
 */
 type SignupHandler struct {
-	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
-	Validator            *validation.Validator `dependency:"Validator"`
-	AuthnSignupProvider  authn.SignupProvider  `dependency:"AuthnSignupProvider"`
-	AuthnSessionProvider authnsession.Provider `dependency:"AuthnSessionProvider"`
-	TxContext            db.TxContext          `dependency:"TxContext"`
-	Logger               *logrus.Entry         `dependency:"HandlerLogger"`
-	TaskQueue            async.Queue           `dependency:"AsyncTaskQueue"`
-	HookProvider         hook.Provider         `dependency:"HookProvider"`
+	RequireAuthz  handler.RequireAuthz  `dependency:"RequireAuthz"`
+	Validator     *validation.Validator `dependency:"Validator"`
+	AuthnProvider SignupAuthnProvider   `dependency:"AuthnProvider"`
+	TxContext     db.TxContext          `dependency:"TxContext"`
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
@@ -134,34 +138,26 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
-		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
+		handler.WriteResponse(resp, handler.APIResponse{Error: err})
 		return
 	}
 
-	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
-		return h.Handle(payload)
+	var result authn.Result
+	err = db.WithTx(h.TxContext, func() (err error) {
+		result, err = h.AuthnProvider.SignupWithLoginIDs(
+			coreauth.GetAccessKey(req.Context()).Client,
+			payload.LoginIDs,
+			payload.Password,
+			payload.Metadata,
+			payload.OnUserDuplicate,
+		)
+		return
 	})
-	h.AuthnSessionProvider.WriteResponse(resp, result, err)
-}
-
-func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, err error) {
-	authInfo, _, firstPrincipal, err := h.AuthnSignupProvider.CreateUserWithLoginIDs(
-		payload.LoginIDs,
-		payload.Password,
-		payload.Metadata,
-		payload.OnUserDuplicate,
-	)
 	if err != nil {
-		return
-	}
-	sess, err := h.AuthnSessionProvider.NewFromScratch(authInfo.ID, firstPrincipal, coreAuth.SessionCreateReasonSignup)
-	if err != nil {
-		return
-	}
-	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
-	if err != nil {
+		handler.WriteResponse(resp, handler.APIResponse{Error: err})
 		return
 	}
 
-	return
+	// TODO(authn): write response
+	fmt.Printf("%#v\n", result)
 }

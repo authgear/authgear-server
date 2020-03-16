@@ -9,7 +9,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
@@ -59,8 +58,6 @@ func TestLinkHandler(t *testing.T) {
 		}
 		sh.OAuthProvider = &mockProvider
 		sh.SSOProvider = &mockProvider
-		hookProvider := hook.NewMockProvider()
-		sh.HookProvider = hookProvider
 
 		Convey("should reject payload without access token", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{}`))

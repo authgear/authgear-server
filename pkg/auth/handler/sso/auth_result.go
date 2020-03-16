@@ -1,20 +1,19 @@
 package sso
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/async"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -44,15 +43,20 @@ func (f *AuthResultHandlerFactory) NewHandler(request *http.Request) http.Handle
 	return h.RequireAuthz(h, h)
 }
 
+type AuthResultAuthnProvider interface {
+	OAuthExchangeCode(
+		client config.OAuthClientConfiguration,
+		session *session.Session,
+		code *sso.SkygearAuthorizationCode,
+	) (authn.Result, error)
+}
+
 type AuthResultHandler struct {
-	TxContext            db.TxContext          `dependency:"TxContext"`
-	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
-	HookProvider         hook.Provider         `dependency:"HookProvider"`
-	AuthnSessionProvider authnsession.Provider `dependency:"AuthnSessionProvider"`
-	AuthnOAuthProvider   authn.OAuthProvider   `dependency:"AuthnOAuthProvider"`
-	Validator            *validation.Validator `dependency:"Validator"`
-	TaskQueue            async.Queue           `dependency:"AsyncTaskQueue"`
-	SSOProvider          sso.Provider          `dependency:"SSOProvider"`
+	TxContext     db.TxContext            `dependency:"TxContext"`
+	RequireAuthz  handler.RequireAuthz    `dependency:"RequireAuthz"`
+	AuthnProvider AuthResultAuthnProvider `dependency:"AuthnProvider"`
+	Validator     *validation.Validator   `dependency:"Validator"`
+	SSOProvider   sso.Provider            `dependency:"SSOProvider"`
 }
 
 func (h *AuthResultHandler) ProvideAuthzPolicy() authz.Policy {
@@ -83,54 +87,45 @@ func (h *AuthResultHandler) DecodeRequest(w http.ResponseWriter, r *http.Request
 }
 
 func (h *AuthResultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var result interface{}
-	var err error
-
 	payload, err := h.DecodeRequest(w, r)
 	if err != nil {
-		h.AuthnSessionProvider.WriteResponse(w, nil, err)
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
 		return
 	}
 
+	var result authn.Result
 	err = db.WithTx(h.TxContext, func() (err error) {
-		result, err = h.Handle(payload)
+		result, err = h.Handle(r, payload)
 		return
 	})
-	h.AuthnSessionProvider.WriteResponse(w, result, err)
+	if err != nil {
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
+		return
+	}
+
+	// TODO(authn): write response
+	fmt.Printf("%#v\n", result)
 }
 
-func (h *AuthResultHandler) Handle(payload *AuthResultPayload) (result interface{}, err error) {
+func (h *AuthResultHandler) Handle(r *http.Request, payload *AuthResultPayload) (authn.Result, error) {
 	code, err := h.SSOProvider.DecodeSkygearAuthorizationCode(payload.AuthorizationCode)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	err = h.SSOProvider.VerifyPKCE(code, payload.CodeVerifier)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	authInfo, userProfile, prin, err := h.AuthnOAuthProvider.ExtractAuthorizationCode(code)
+	result, err := h.AuthnProvider.OAuthExchangeCode(
+		coreauth.GetAccessKey(r.Context()).Client,
+		nil, // TODO(authn): pass session
+		code,
+	)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	if code.Action == "link" {
-		user := model.NewUser(*authInfo, *userProfile)
-		result = model.NewAuthResponseWithUser(user)
-		return
-	}
-
-	// code.Action == "login"
-	sess, err := h.AuthnSessionProvider.NewFromScratch(code.UserID, prin, coreAuth.SessionCreateReason(code.SessionCreateReason))
-	if err != nil {
-		return
-	}
-
-	result, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
-	if err != nil {
-		return
-	}
-
-	return
+	return result, nil
 }
