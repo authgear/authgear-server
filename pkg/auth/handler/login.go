@@ -15,8 +15,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -27,21 +25,8 @@ func AttachLoginHandler(
 ) {
 	router.NewRoute().
 		Path("/login").
-		Handler(server.FactoryToHandler(&LoginHandlerFactory{
-			authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newLoginHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-// LoginHandlerFactory creates new handler
-type LoginHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &LoginHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 // LoginRequestPayload login handler request payload
@@ -91,10 +76,9 @@ type LoginAuthnProvider interface {
 		@Callback user_sync {UserSyncEvent}
 */
 type LoginHandler struct {
-	RequireAuthz  handler.RequireAuthz  `dependency:"RequireAuthz"`
-	Validator     *validation.Validator `dependency:"Validator"`
-	AuthnProvider LoginAuthnProvider    `dependency:"AuthnProvider"`
-	TxContext     db.TxContext          `dependency:"TxContext"`
+	Validator     *validation.Validator
+	AuthnProvider LoginAuthnProvider
+	TxContext     db.TxContext
 }
 
 // ProvideAuthzPolicy provides authorization policy
