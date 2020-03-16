@@ -7,7 +7,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/model"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -31,12 +30,10 @@ func TestCompoundPolicy(t *testing.T) {
 
 		Convey("should pass if master key is used", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := MemoryContextGetter{
-				mAccessKey: model.AccessKey{
-					Type:     model.MasterAccessKeyType,
-					ClientID: "",
-				},
-			}
+			req = req.WithContext(auth.WithAccessKey(req.Context(), auth.AccessKey{
+				IsMasterKey: true,
+			}))
+			ctx := MemoryContextGetter{}
 
 			err := RequireValidUserOrMasterKey.IsAllowed(req, ctx)
 			So(err, ShouldBeNil)

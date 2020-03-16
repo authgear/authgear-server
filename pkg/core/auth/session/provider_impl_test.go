@@ -7,8 +7,6 @@ import (
 	"testing"
 	gotime "time"
 
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
-
 	"github.com/skygeario/skygear-server/pkg/core/config"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
@@ -27,7 +25,6 @@ func TestProvider(t *testing.T) {
 		timeProvider.TimeNow = initialTime
 		timeProvider.TimeNowUTC = initialTime
 
-		authContext := authtest.NewMockContext().UseAPIAccessKey("web-app")
 		clientConfigs := []config.OAuthClientConfiguration{
 			config.OAuthClientConfiguration{
 				"client_id": "web-app",
@@ -38,6 +35,9 @@ func TestProvider(t *testing.T) {
 		}
 
 		req, _ := http.NewRequest("POST", "", nil)
+		req = req.WithContext(auth.WithAccessKey(req.Context(), auth.AccessKey{
+			Client: config.OAuthClientConfiguration{"client_id": "web-app"},
+		}))
 		req.Header.Set("User-Agent", "SDK")
 		req.Header.Set("X-Skygear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
 		accessEvent := auth.SessionAccessEvent{
@@ -52,7 +52,6 @@ func TestProvider(t *testing.T) {
 			req:           req,
 			store:         store,
 			eventStore:    eventStore,
-			authContext:   authContext,
 			clientConfigs: clientConfigs,
 			time:          timeProvider,
 			rand:          corerand.InsecureRand,
@@ -206,7 +205,9 @@ func TestProvider(t *testing.T) {
 			})
 
 			Convey("should reject session of other clients", func() {
-				authContext.UseAPIAccessKey("mobile-app")
+				req = req.WithContext(auth.WithAccessKey(req.Context(), auth.AccessKey{
+					Client: config.OAuthClientConfiguration{"client_id": "mobile-app"},
+				}))
 				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)
 				So(err, ShouldBeError, ErrSessionNotFound)
 				So(session, ShouldBeNil)

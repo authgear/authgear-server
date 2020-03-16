@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -54,12 +53,11 @@ func (m DependencyMap) Provide(
 			request,
 			redisSession.NewStore(ctx, tConfig.AppID, time.NewProvider(), newLoggerFactory()),
 			redisSession.NewEventStore(ctx, tConfig.AppID),
-			newAuthContext(),
 			tConfig.AppConfig.Clients,
 		)
 	case "SessionWriter":
 		return session.NewWriter(
-			newAuthContext(),
+			ctx,
 			tConfig.AppConfig.Clients,
 			tConfig.AppConfig.MFA,
 			m.Config.UseInsecureCookie,
@@ -71,8 +69,6 @@ func (m DependencyMap) Provide(
 		)
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
-	case "APIClientConfigurationProvider":
-		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
 	case "GatewayConfiguration":
 		return m.Config
 	default:

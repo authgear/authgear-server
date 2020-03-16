@@ -32,19 +32,17 @@ type providerImpl struct {
 	req           *http.Request
 	store         Store
 	eventStore    EventStore
-	authContext   auth.ContextGetter
 	clientConfigs []config.OAuthClientConfiguration
 
 	time time.Provider
 	rand *rand.Rand
 }
 
-func NewProvider(req *http.Request, store Store, eventStore EventStore, authContext auth.ContextGetter, clientConfigs []config.OAuthClientConfiguration) Provider {
+func NewProvider(req *http.Request, store Store, eventStore EventStore, clientConfigs []config.OAuthClientConfiguration) Provider {
 	return &providerImpl{
 		req:           req,
 		store:         store,
 		eventStore:    eventStore,
-		authContext:   authContext,
 		clientConfigs: clientConfigs,
 		time:          time.NewProvider(),
 		rand:          corerand.SecureRand,
@@ -53,8 +51,7 @@ func NewProvider(req *http.Request, store Store, eventStore EventStore, authCont
 
 func (p *providerImpl) Create(authnSess *auth.AuthnSession, beforeCreate func(*auth.Session) error) (*auth.Session, auth.SessionTokens, error) {
 	now := p.time.NowUTC()
-	clientID := p.authContext.AccessKey().ClientID
-	clientConfig, _ := model.GetClientConfig(p.clientConfigs, clientID)
+	clientConfig := auth.GetAccessKey(p.req.Context()).Client
 	accessEvent := newAccessEvent(now, p.req)
 	// NOTE(louis): remember to update the mock provider
 	// if session has new fields.
@@ -131,10 +128,10 @@ func (p *providerImpl) GetByToken(token string, kind auth.SessionTokenKind) (*au
 		return nil, ErrSessionNotFound
 	}
 
-	accessKey := p.authContext.AccessKey()
+	accessKey := auth.GetAccessKey(p.req.Context())
 	// microservices may allow no access key, when rendering HTML pages at server
 	// check client ID only if client ID is present (i.e. an access key is used)
-	if accessKey.ClientID != "" && s.ClientID != accessKey.ClientID {
+	if accessKey.Client != nil && s.ClientID != accessKey.Client.ClientID() {
 		return nil, ErrSessionNotFound
 	}
 
@@ -157,12 +154,6 @@ func (p *providerImpl) Get(id string) (*auth.Session, error) {
 			err = errors.HandledWithMessage(err, "failed to get session")
 		}
 		return nil, err
-	}
-
-	currentSession, _ := p.authContext.Session()
-	if currentSession != nil && session.ID == currentSession.ID {
-		// should use current session data instead
-		session = currentSession
 	}
 
 	return session, nil
@@ -222,7 +213,6 @@ func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error)
 	}
 
 	now := p.time.NowUTC()
-	currentSession, _ := p.authContext.Session()
 	for _, session := range storedSessions {
 		clientConfig, clientExists := model.GetClientConfig(p.clientConfigs, session.ClientID)
 		// if client does not exist, ignore the session
@@ -234,11 +224,6 @@ func (p *providerImpl) List(userID string) (sessions []*auth.Session, err error)
 		// ignore expired sessions
 		if now.After(maxExpiry) {
 			continue
-		}
-
-		if currentSession != nil && session.ID == currentSession.ID {
-			// should use current session data instead
-			session = currentSession
 		}
 
 		sessions = append(sessions, session)

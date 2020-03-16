@@ -130,10 +130,10 @@ func (h UpdateMetadataHandler) Handle(resp http.ResponseWriter, req *http.Reques
 	}
 
 	err = hook.WithTx(h.HookProvider, h.TxContext, func() error {
-		accessKey := h.AuthContext.AccessKey()
+		accessKey := coreAuth.GetAccessKey(req.Context())
 
 		var targetUserID string
-		if accessKey.IsMasterKey() {
+		if accessKey.IsMasterKey {
 			targetUserID = payload.UserID
 		} else {
 			if payload.UserID != "" {

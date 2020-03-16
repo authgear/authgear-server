@@ -1,6 +1,7 @@
 package authnsession
 
 import (
+	"context"
 	"net/http"
 	gotime "time"
 
@@ -55,7 +56,7 @@ func parseAuthnSessionToken(secret string, tokenString string) (*Claims, error) 
 }
 
 type providerImpl struct {
-	authContextGetter                  auth.ContextGetter
+	ctx                                context.Context
 	mfaConfiguration                   *config.MFAConfiguration
 	authenticationSessionConfiguration *config.AuthenticationSessionConfiguration
 	timeProvider                       time.Provider
@@ -69,7 +70,7 @@ type providerImpl struct {
 }
 
 func NewProvider(
-	authContextGetter auth.ContextGetter,
+	ctx context.Context,
 	mfaConfiguration *config.MFAConfiguration,
 	authenticationSessionConfiguration *config.AuthenticationSessionConfiguration,
 	timeProvider time.Provider,
@@ -82,7 +83,7 @@ func NewProvider(
 	userProfileStore userprofile.Store,
 ) Provider {
 	return &providerImpl{
-		authContextGetter:                  authContextGetter,
+		ctx:                                ctx,
 		mfaConfiguration:                   mfaConfiguration,
 		authenticationSessionConfiguration: authenticationSessionConfiguration,
 		timeProvider:                       timeProvider,
@@ -135,7 +136,7 @@ func (p *providerImpl) getRequiredSteps(userID string) ([]auth.AuthnSessionStep,
 
 func (p *providerImpl) NewFromScratch(userID string, prin principal.Principal, reason auth.SessionCreateReason) (*auth.AuthnSession, error) {
 	now := p.timeProvider.NowUTC()
-	clientID := p.authContextGetter.AccessKey().ClientID
+	clientID := auth.GetAccessKey(p.ctx).Client.ClientID()
 	requiredSteps, err := p.getRequiredSteps(userID)
 	if err != nil {
 		return nil, errors.HandledWithMessage(err, "cannot get required authn steps")

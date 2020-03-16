@@ -9,7 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
-	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -91,28 +90,27 @@ const AuthenticateBearerTokenRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type AuthenticateBearerTokenHandler struct {
-	TxContext                      db.TxContext             `dependency:"TxContext"`
-	Validator                      *validation.Validator    `dependency:"Validator"`
-	AuthContext                    coreAuth.ContextGetter   `dependency:"AuthContextGetter"`
-	RequireAuthz                   handler.RequireAuthz     `dependency:"RequireAuthz"`
-	SessionProvider                session.Provider         `dependency:"SessionProvider"`
-	MFAProvider                    mfa.Provider             `dependency:"MFAProvider"`
-	MFAConfiguration               config.MFAConfiguration  `dependency:"MFAConfiguration"`
-	HookProvider                   hook.Provider            `dependency:"HookProvider"`
-	AuthnSessionProvider           authnsession.Provider    `dependency:"AuthnSessionProvider"`
-	APIClientConfigurationProvider apiclientconfig.Provider `dependency:"APIClientConfigurationProvider"`
+	TxContext            db.TxContext            `dependency:"TxContext"`
+	Validator            *validation.Validator   `dependency:"Validator"`
+	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
+	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
+	SessionProvider      session.Provider        `dependency:"SessionProvider"`
+	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
+	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
+	HookProvider         hook.Provider           `dependency:"HookProvider"`
+	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
 }
 
 func (h *AuthenticateBearerTokenHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireClient),
 		authz.PolicyFunc(policy.DenyInvalidSession),
 	)
 }
 
 func (h *AuthenticateBearerTokenHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload AuthenticateBearerTokenRequest, err error) {
-	_, apiClientConfig, ok := h.APIClientConfigurationProvider.Get()
-	if ok && apiClientConfig.AuthAPIUseCookie() {
+	accessKey := coreAuth.GetAccessKey(request.Context())
+	if accessKey.Client != nil && accessKey.Client.AuthAPIUseCookie() {
 		cookie, err := request.Cookie(coreHttp.CookieNameMFABearerToken)
 		if err == nil {
 			payload.BearerToken = cookie.Value

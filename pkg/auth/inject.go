@@ -23,7 +23,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
-	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -210,7 +209,6 @@ func (m DependencyMap) Provide(
 			request,
 			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider(), newLoggerFactory()),
 			redisSession.NewEventStore(ctx, tConfig.AppID),
-			newAuthContext(),
 			tConfig.AppConfig.Clients,
 		)
 	}
@@ -226,7 +224,7 @@ func (m DependencyMap) Provide(
 
 	newSessionWriter := func() session.Writer {
 		return session.NewWriter(
-			newAuthContext(),
+			ctx,
 			tConfig.AppConfig.Clients,
 			tConfig.AppConfig.MFA,
 			m.UseInsecureCookie,
@@ -269,10 +267,6 @@ func (m DependencyMap) Provide(
 
 	newOAuthUserInfoDecoder := func() sso.UserInfoDecoder {
 		return sso.NewUserInfoDecoder(newLoginIDNormalizerFactory())
-	}
-
-	newAPIClientConfigurationProvider := func() apiclientconfig.Provider {
-		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
 	}
 
 	newPasswordChecker := func() *authAudit.PasswordChecker {
@@ -332,7 +326,7 @@ func (m DependencyMap) Provide(
 		return newMFAProvider()
 	case "AuthnSessionProvider":
 		return authnsession.NewProvider(
-			newAuthContext(),
+			ctx,
 			tConfig.AppConfig.MFA,
 			tConfig.AppConfig.Auth.AuthenticationSession,
 			newTimeProvider(),
@@ -409,8 +403,8 @@ func (m DependencyMap) Provide(
 		return sso.NewOAuthProviderFactory(tConfig, urlprefix.NewProvider(request), newTimeProvider(), newOAuthUserInfoDecoder(), newLoginIDNormalizerFactory())
 	case "SSOProvider":
 		return sso.NewProvider(
+			ctx,
 			tConfig.AppID,
-			newAPIClientConfigurationProvider(),
 			tConfig.AppConfig.SSO.OAuth,
 		)
 	case "OAuthAuthProvider":
@@ -429,8 +423,8 @@ func (m DependencyMap) Provide(
 		return *tConfig.AppConfig.Auth
 	case "MFAConfiguration":
 		return *tConfig.AppConfig.MFA
-	case "APIClientConfigurationProvider":
-		return newAPIClientConfigurationProvider()
+	case "TenantConfiguration":
+		return &tConfig
 	case "URLPrefix":
 		return urlprefix.NewProvider(request).Value()
 	case "TemplateEngine":

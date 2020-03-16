@@ -43,7 +43,7 @@ func (f CreateTOTPHandlerFactory) NewHandler(request *http.Request) http.Handler
 
 func (h *CreateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireClient),
 		authz.PolicyFunc(policy.DenyInvalidSession),
 	)
 }

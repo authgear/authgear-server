@@ -8,9 +8,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 )
 
-func DenyNoAccessKey(r *http.Request, ctx auth.ContextGetter) error {
-	key := ctx.AccessKey()
-	if key.IsNoAccessKey() {
+func RequireClient(r *http.Request, ctx auth.ContextGetter) error {
+	key := auth.GetAccessKey(r.Context())
+	if key.Client == nil {
 		return authz.AccessKeyNotAccepted.New("API key required")
 	}
 
@@ -18,8 +18,8 @@ func DenyNoAccessKey(r *http.Request, ctx auth.ContextGetter) error {
 }
 
 func RequireMasterKey(r *http.Request, ctx auth.ContextGetter) error {
-	key := ctx.AccessKey()
-	if !key.IsMasterKey() {
+	key := auth.GetAccessKey(r.Context())
+	if !key.IsMasterKey {
 		return authz.AccessKeyNotAccepted.New("Master key required")
 	}
 
@@ -28,6 +28,6 @@ func RequireMasterKey(r *http.Request, ctx auth.ContextGetter) error {
 
 // this ensures that our structure conform to certain interfaces.
 var (
-	_ authz.PolicyFunc = DenyNoAccessKey
+	_ authz.PolicyFunc = RequireClient
 	_ authz.PolicyFunc = RequireMasterKey
 )

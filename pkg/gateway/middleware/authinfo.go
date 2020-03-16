@@ -8,10 +8,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
-	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
 // AuthInfoMiddleware injects auth info headers into the request
@@ -31,10 +29,7 @@ func (f AuthInfoMiddlewareFactory) NewInjectableMiddleware() coreMiddleware.Inje
 // Handle implements InjectableMiddleware.
 func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tenantConfig := config.GetTenantConfig(r.Context())
-		accessKey := m.AuthContext.AccessKey()
-
-		model.SetAccessKey(r, accessKey)
+		accessKey := auth.GetAccessKey(r.Context())
 
 		// Remove untrusted headers first.
 		r.Header.Del(coreHttp.HeaderUserID)
@@ -52,13 +47,10 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		// do not forward the request and write `x-skygear-try-refresh-token: true`
 		authInfo, err := m.AuthContext.AuthInfo()
 		if errors.Is(err, session.ErrSessionNotFound) {
-			if accessKey.ClientID != "" {
-				clientConfig, ok := model.GetClientConfig(tenantConfig.AppConfig.Clients, accessKey.ClientID)
-				if ok && !clientConfig.AuthAPIUseCookie() {
-					w.Header().Set(coreHttp.HeaderTryRefreshToken, "true")
-					w.WriteHeader(401)
-					return
-				}
+			if accessKey.Client != nil && !accessKey.Client.AuthAPIUseCookie() {
+				w.Header().Set(coreHttp.HeaderTryRefreshToken, "true")
+				w.WriteHeader(401)
+				return
 			}
 		}
 

@@ -95,7 +95,7 @@ type RefreshHandler struct {
 
 func (h RefreshHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireClient),
 	)
 }
 

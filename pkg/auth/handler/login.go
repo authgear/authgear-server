@@ -93,7 +93,7 @@ type LoginHandler struct {
 
 // ProvideAuthzPolicy provides authorization policy
 func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 // DecodeRequest decode request payload
