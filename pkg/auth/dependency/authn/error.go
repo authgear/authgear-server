@@ -10,3 +10,9 @@ var (
 )
 
 var ErrInvalidAuthenticationSession = InvalidAuthenticationSession.New("invalid authentication session")
+
+type oAuthRequireMergeError struct {
+	UserID string
+}
+
+func (*oAuthRequireMergeError) Error() string { return "require merging oauth user" }
