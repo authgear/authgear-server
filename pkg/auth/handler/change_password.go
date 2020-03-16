@@ -129,7 +129,6 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 		return
 	}
 
-	h.TxContext.UseHook(h.HookProvider)
 	err = db.WithTx(h.TxContext, func() error {
 		authinfo, _ := h.AuthContext.AuthInfo()
 		sess, _ := h.AuthContext.Session()

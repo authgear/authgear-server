@@ -111,7 +111,6 @@ func (h *AuthenticateRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		return
 	}
 
-	h.TxContext.UseHook(h.HookProvider)
 	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
 		return h.Handle(payload)
 	})

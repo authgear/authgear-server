@@ -193,7 +193,6 @@ func (h VerifyCodeFormHandler) HandleVerifySuccess(rw http.ResponseWriter, templ
 }
 
 func (h VerifyCodeFormHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	h.TxContext.UseHook(h.HookProvider)
 	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
 		templateCtx := resultTemplateContext{}
 		err := h.prepareResultTemplateContext(r, &templateCtx)

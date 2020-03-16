@@ -129,7 +129,6 @@ func (h *AuthenticateBearerTokenHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		return
 	}
 
-	h.TxContext.UseHook(h.HookProvider)
 	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
 		return h.Handle(payload)
 	})

@@ -129,7 +129,6 @@ func (h UpdateMetadataHandler) Handle(resp http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	h.TxContext.UseHook(h.HookProvider)
 	err = db.WithTx(h.TxContext, func() error {
 		accessKey := coreAuth.GetAccessKey(req.Context())
 

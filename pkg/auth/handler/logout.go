@@ -88,7 +88,6 @@ func (h LogoutHandler) DecodeRequest(request *http.Request, resp http.ResponseWr
 }
 
 func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	h.TxContext.UseHook(h.HookProvider)
 	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
 		return h.Handle()
 	})

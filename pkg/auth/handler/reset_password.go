@@ -116,7 +116,6 @@ func (h ResetPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 		return nil, err
 	}
 
-	h.TxContext.UseHook(h.HookProvider)
 	err = db.WithTx(h.TxContext, func() error {
 		authinfo := authinfo.AuthInfo{}
 		if err := h.AuthInfoStore.GetAuth(payload.UserID, &authinfo); err != nil {

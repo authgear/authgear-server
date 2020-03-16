@@ -126,7 +126,6 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interf
 		return
 	}
 
-	h.TxContext.UseHook(h.HookProvider)
 	err = db.WithTx(h.TxContext, func() error {
 		authInfo, _ := h.AuthContext.AuthInfo()
 		userID := authInfo.ID

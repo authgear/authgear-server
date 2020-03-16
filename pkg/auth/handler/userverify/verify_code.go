@@ -122,7 +122,6 @@ func (h VerifyCodeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp 
 		return nil, err
 	}
 
-	h.TxContext.UseHook(h.HookProvider)
 	err = db.WithTx(h.TxContext, func() (err error) {
 		authInfo, _ := h.AuthContext.AuthInfo()
 

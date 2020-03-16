@@ -97,7 +97,6 @@ func (h UnlinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h UnlinkHandler) Handle() (resp interface{}, err error) {
-	h.TxContext.UseHook(h.HookProvider)
 	err = db.WithTx(h.TxContext, func() error {
 		providerConfig, ok := h.ProviderFactory.GetOAuthProviderConfig(h.ProviderID)
 		if !ok {

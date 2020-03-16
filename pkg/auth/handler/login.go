@@ -112,7 +112,6 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	var result interface{}
-	h.TxContext.UseHook(h.HookProvider)
 	err = db.WithTx(h.TxContext, func() (err error) {
 		result, err = h.Handle(payload)
 		return

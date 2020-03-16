@@ -257,7 +257,6 @@ func (h ForgotPasswordResetFormHandler) HandleResetSuccess(rw http.ResponseWrite
 }
 
 func (h ForgotPasswordResetFormHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.TxContext.UseHook(h.HookProvider)
 	_, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
 		return nil, h.Handle(w, r)
 	})

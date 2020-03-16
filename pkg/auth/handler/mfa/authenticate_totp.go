@@ -113,7 +113,6 @@ func (h *AuthenticateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	h.TxContext.UseHook(h.HookProvider)
 	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
 		return h.Handle(payload)
 	})

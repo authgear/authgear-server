@@ -114,7 +114,6 @@ func (h UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) (resp inte
 		return
 	}
 
-	h.TxContext.UseHook(h.HookProvider)
 	err = db.WithTx(h.TxContext, func() error {
 		info := authinfo.AuthInfo{}
 		if err = h.AuthInfoStore.GetAuth(payload.UserID, &info); err != nil {

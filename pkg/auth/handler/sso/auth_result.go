@@ -92,7 +92,6 @@ func (h *AuthResultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.TxContext.UseHook(h.HookProvider)
 	err = db.WithTx(h.TxContext, func() (err error) {
 		result, err = h.Handle(payload)
 		return
