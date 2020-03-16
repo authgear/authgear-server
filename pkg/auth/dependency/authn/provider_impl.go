@@ -43,6 +43,7 @@ type ProviderImpl struct {
 	UserVerificationConfiguration *config.UserVerificationConfiguration
 	AuthConfiguration             *config.AuthConfiguration
 	URLPrefixProvider             urlprefix.Provider
+	TaskQueue                     async.Queue
 }
 
 var _ SignupProvider = &ProviderImpl{}
@@ -68,7 +69,7 @@ func (p *ProviderImpl) CreateUserWithLoginIDs(
 	plainPassword string,
 	metadata map[string]interface{},
 	onUserDuplicate model.OnUserDuplicate,
-) (authInfo *authinfo.AuthInfo, userProfile *userprofile.UserProfile, firstPrincipal principal.Principal, tasks []async.TaskSpec, err error) {
+) (authInfo *authinfo.AuthInfo, userProfile *userprofile.UserProfile, firstPrincipal principal.Principal, err error) {
 	err = p.validateCreateUserWithLoginIDs(
 		loginIDs,
 		onUserDuplicate,
@@ -135,11 +136,11 @@ func (p *ProviderImpl) CreateUserWithLoginIDs(
 	}
 
 	if p.WelcomeEmailConfiguration.Enabled {
-		tasks = append(tasks, p.generateSendWelcomeEmailTasks(user, loginIDs)...)
+		p.enqueueSendWelcomeEmailTasks(user, loginIDs)
 	}
 
 	if p.UserVerificationConfiguration.AutoSendOnSignup {
-		tasks = append(tasks, p.generateSendVerificationCodeTasks(user, loginIDs)...)
+		p.enqueueSendVerificationCodeTasks(user, loginIDs)
 	}
 
 	return
@@ -240,7 +241,7 @@ func (p *ProviderImpl) createPrincipalsWithProposedLoginIDs(userID string, plain
 	return
 }
 
-func (p *ProviderImpl) generateSendWelcomeEmailTasks(user model.User, loginIDs []loginid.LoginID) (tasks []async.TaskSpec) {
+func (p *ProviderImpl) enqueueSendWelcomeEmailTasks(user model.User, loginIDs []loginid.LoginID) {
 	supportedLoginIDs := []loginid.LoginID{}
 	for _, loginID := range loginIDs {
 		if p.LoginIDChecker.CheckType(loginID.Key, metadata.Email) {
@@ -259,7 +260,7 @@ func (p *ProviderImpl) generateSendWelcomeEmailTasks(user model.User, loginIDs [
 
 	for _, loginID := range destinationLoginIDs {
 		email := loginID.Value
-		tasks = append(tasks, async.TaskSpec{
+		p.TaskQueue.Enqueue(async.TaskSpec{
 			Name: task.WelcomeEmailSendTaskName,
 			Param: task.WelcomeEmailSendTaskParam{
 				URLPrefix: p.URLPrefixProvider.Value(),
@@ -272,11 +273,11 @@ func (p *ProviderImpl) generateSendWelcomeEmailTasks(user model.User, loginIDs [
 	return
 }
 
-func (p *ProviderImpl) generateSendVerificationCodeTasks(user model.User, loginIDs []loginid.LoginID) (tasks []async.TaskSpec) {
+func (p *ProviderImpl) enqueueSendVerificationCodeTasks(user model.User, loginIDs []loginid.LoginID) {
 	for _, loginID := range loginIDs {
 		for _, keyConfig := range p.UserVerificationConfiguration.LoginIDKeys {
 			if keyConfig.Key == loginID.Key {
-				tasks = append(tasks, async.TaskSpec{
+				p.TaskQueue.Enqueue(async.TaskSpec{
 					Name: task.VerifyCodeSendTaskName,
 					Param: task.VerifyCodeSendTaskParam{
 						URLPrefix: p.URLPrefixProvider.Value(),
@@ -325,7 +326,7 @@ func (p *ProviderImpl) AuthenticateWithLoginID(loginID loginid.LoginID, plainPas
 	return
 }
 
-func (p *ProviderImpl) AuthenticateWithOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, tasks []async.TaskSpec, err error) {
+func (p *ProviderImpl) AuthenticateWithOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, err error) {
 	var authInfo authinfo.AuthInfo
 	createNewUser, principal, err := p.oauthLogin(oauthAuthInfo, &authInfo, loginState)
 	if err != nil {
@@ -375,7 +376,7 @@ func (p *ProviderImpl) AuthenticateWithOAuth(oauthAuthInfo sso.AuthInfo, codeCha
 	}
 
 	if createNewUser && p.WelcomeEmailConfiguration.Enabled && oauthAuthInfo.ProviderUserInfo.Email != "" {
-		tasks = append(tasks, async.TaskSpec{
+		p.TaskQueue.Enqueue(async.TaskSpec{
 			Name: task.WelcomeEmailSendTaskName,
 			Param: task.WelcomeEmailSendTaskParam{
 				URLPrefix: p.URLPrefixProvider.Value(),

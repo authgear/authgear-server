@@ -13,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
@@ -101,8 +100,8 @@ type MockAuthnOAuthProvider struct {
 
 var _ authn.OAuthProvider = &MockAuthnOAuthProvider{}
 
-func (p *MockAuthnOAuthProvider) AuthenticateWithOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, tasks []async.TaskSpec, err error) {
-	return p.Code, nil, nil
+func (p *MockAuthnOAuthProvider) AuthenticateWithOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, err error) {
+	return p.Code, nil
 }
 
 func (p *MockAuthnOAuthProvider) LinkOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error) {

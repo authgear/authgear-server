@@ -182,9 +182,12 @@ func (h ForgotPasswordResetHandler) Handle(w http.ResponseWriter, r *http.Reques
 		}
 
 		// password house keeper
-		h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
-			AuthID: user.ID,
-		}, nil)
+		h.TaskQueue.Enqueue(async.TaskSpec{
+			Name: task.PwHousekeeperTaskName,
+			Param: task.PwHousekeeperTaskParam{
+				AuthID: user.ID,
+			},
+		})
 
 		return
 	})

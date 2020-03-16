@@ -138,22 +138,15 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var tasks []async.TaskSpec
 	h.TxContext.UseHook(h.HookProvider)
-	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
-		result, tasks, err = h.Handle(payload)
-		return
+	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
+		return h.Handle(payload)
 	})
-	if err == nil {
-		for _, t := range tasks {
-			h.TaskQueue.Enqueue(t.Name, t.Param, nil)
-		}
-	}
 	h.AuthnSessionProvider.WriteResponse(resp, result, err)
 }
 
-func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, tasks []async.TaskSpec, err error) {
-	authInfo, _, firstPrincipal, tasks, err := h.AuthnSignupProvider.CreateUserWithLoginIDs(
+func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, err error) {
+	authInfo, _, firstPrincipal, err := h.AuthnSignupProvider.CreateUserWithLoginIDs(
 		payload.LoginIDs,
 		payload.Password,
 		payload.Metadata,

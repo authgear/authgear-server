@@ -17,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -82,6 +83,7 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 				Host:   "example.com",
 			},
 		}
+		taskQueue := async.NewMockQueue()
 
 		impl.PasswordChecker = passwordChecker
 		impl.OAuthProvider = oauthProvider
@@ -96,6 +98,7 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 		impl.UserVerificationConfiguration = userVerificationConfiguration
 		impl.AuthConfiguration = authConfiguration
 		impl.URLPrefixProvider = urlPrefixProvider
+		impl.TaskQueue = taskQueue
 
 		checkErr := func(err error, errJSON string) {
 			So(err, ShouldNotBeNil)
@@ -104,7 +107,7 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 		}
 
 		Convey("detect duplicated login ID", func() {
-			_, _, _, _, err := impl.CreateUserWithLoginIDs(
+			_, _, _, err := impl.CreateUserWithLoginIDs(
 				[]loginid.LoginID{
 					{Key: "username", Value: "john.doe"},
 					{Key: "email", Value: "john.doe"},
@@ -137,7 +140,7 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 				passwordProvider,
 				oauthProvider,
 			)
-			_, _, _, _, err := impl.CreateUserWithLoginIDs(
+			_, _, _, err := impl.CreateUserWithLoginIDs(
 				[]loginid.LoginID{
 					{Key: "email", Value: "john.doe@example.com"},
 					{Key: "username", Value: "john.doe"},
@@ -162,7 +165,7 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 				oauthProvider,
 			)
 			impl.AuthConfiguration.OnUserDuplicateAllowCreate = true
-			_, _, _, _, err := impl.CreateUserWithLoginIDs(
+			_, _, _, err := impl.CreateUserWithLoginIDs(
 				[]loginid.LoginID{
 					{Key: "email", Value: "john.doe@example.com"},
 					{Key: "username", Value: "john.doe"},
@@ -175,7 +178,7 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 		})
 
 		Convey("weak password", func() {
-			_, _, _, _, err := impl.CreateUserWithLoginIDs(
+			_, _, _, err := impl.CreateUserWithLoginIDs(
 				[]loginid.LoginID{
 					{Key: "username", Value: "john.doe"},
 				},
@@ -200,7 +203,7 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 
 		Convey("hook", func() {
 			now := timeProvider.NowUTC()
-			authInfo, _, _, _, err := impl.CreateUserWithLoginIDs(
+			authInfo, _, _, err := impl.CreateUserWithLoginIDs(
 				[]loginid.LoginID{
 					{Key: "email", Value: "john.doe@example.com"},
 					{Key: "username", Value: "john.doe"},
@@ -258,7 +261,7 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 			impl.WelcomeEmailConfiguration.Enabled = true
 			impl.WelcomeEmailConfiguration.Destination = config.WelcomeEmailDestinationFirst
 
-			_, _, _, tasks, err := impl.CreateUserWithLoginIDs(
+			_, _, _, err := impl.CreateUserWithLoginIDs(
 				[]loginid.LoginID{
 					{Key: "email", Value: "john.doe+1@example.com"},
 					{Key: "username", Value: "john.doe"},
@@ -270,9 +273,10 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			So(len(tasks), ShouldEqual, 1)
-			So(tasks[0].Name, ShouldEqual, spec.WelcomeEmailSendTaskName)
-			param := tasks[0].Param.(spec.WelcomeEmailSendTaskParam)
+			So(len(taskQueue.TasksName), ShouldEqual, 1)
+			So(len(taskQueue.TasksParam), ShouldEqual, 1)
+			So(taskQueue.TasksName[0], ShouldEqual, spec.WelcomeEmailSendTaskName)
+			param := taskQueue.TasksParam[0].(spec.WelcomeEmailSendTaskParam)
 			So(param.Email, ShouldEqual, "john.doe+1@example.com")
 		})
 
@@ -280,7 +284,7 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 			impl.WelcomeEmailConfiguration.Enabled = true
 			impl.WelcomeEmailConfiguration.Destination = config.WelcomeEmailDestinationAll
 
-			_, _, _, tasks, err := impl.CreateUserWithLoginIDs(
+			_, _, _, err := impl.CreateUserWithLoginIDs(
 				[]loginid.LoginID{
 					{Key: "email", Value: "john.doe+1@example.com"},
 					{Key: "username", Value: "john.doe"},
@@ -292,19 +296,20 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			So(tasks, ShouldHaveLength, 2)
+			So(taskQueue.TasksName, ShouldHaveLength, 2)
+			So(taskQueue.TasksParam, ShouldHaveLength, 2)
 
-			So(tasks[0].Name, ShouldEqual, spec.WelcomeEmailSendTaskName)
-			So(tasks[1].Name, ShouldEqual, spec.WelcomeEmailSendTaskName)
+			So(taskQueue.TasksName[0], ShouldEqual, spec.WelcomeEmailSendTaskName)
+			So(taskQueue.TasksName[1], ShouldEqual, spec.WelcomeEmailSendTaskName)
 
-			So(tasks[0].Param.(spec.WelcomeEmailSendTaskParam).Email, ShouldEqual, "john.doe+1@example.com")
-			So(tasks[1].Param.(spec.WelcomeEmailSendTaskParam).Email, ShouldEqual, "john.doe+2@example.com")
+			So(taskQueue.TasksParam[0].(spec.WelcomeEmailSendTaskParam).Email, ShouldEqual, "john.doe+1@example.com")
+			So(taskQueue.TasksParam[1].(spec.WelcomeEmailSendTaskParam).Email, ShouldEqual, "john.doe+2@example.com")
 		})
 
 		Convey("send verification code to all login IDs", func() {
 			impl.UserVerificationConfiguration.AutoSendOnSignup = true
 
-			_, _, _, tasks, err := impl.CreateUserWithLoginIDs(
+			_, _, _, err := impl.CreateUserWithLoginIDs(
 				[]loginid.LoginID{
 					{Key: "email", Value: "john.doe+1@example.com"},
 					{Key: "username", Value: "john.doe"},
@@ -316,13 +321,14 @@ func TestCreateUserWithLoginIDs(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			So(tasks, ShouldHaveLength, 2)
+			So(taskQueue.TasksName, ShouldHaveLength, 2)
+			So(taskQueue.TasksParam, ShouldHaveLength, 2)
 
-			So(tasks[0].Name, ShouldEqual, spec.VerifyCodeSendTaskName)
-			So(tasks[1].Name, ShouldEqual, spec.VerifyCodeSendTaskName)
+			So(taskQueue.TasksName[0], ShouldEqual, spec.VerifyCodeSendTaskName)
+			So(taskQueue.TasksName[1], ShouldEqual, spec.VerifyCodeSendTaskName)
 
-			So(tasks[0].Param.(spec.VerifyCodeSendTaskParam).LoginID, ShouldEqual, "john.doe+1@example.com")
-			So(tasks[1].Param.(spec.VerifyCodeSendTaskParam).LoginID, ShouldEqual, "john.doe+2@example.com")
+			So(taskQueue.TasksParam[0].(spec.VerifyCodeSendTaskParam).LoginID, ShouldEqual, "john.doe+1@example.com")
+			So(taskQueue.TasksParam[1].(spec.VerifyCodeSendTaskParam).LoginID, ShouldEqual, "john.doe+2@example.com")
 		})
 	})
 }
@@ -586,7 +592,7 @@ func TestAuthenticateWithOAuth(t *testing.T) {
 		}
 
 		Convey("OnUserDuplicateAbort == abort", func() {
-			_, _, err := impl.AuthenticateWithOAuth(sso.AuthInfo{
+			_, err := impl.AuthenticateWithOAuth(sso.AuthInfo{
 				ProviderUserInfo: sso.ProviderUserInfo{
 					Email: "john.doe@example.com",
 				},
@@ -606,7 +612,7 @@ func TestAuthenticateWithOAuth(t *testing.T) {
 		})
 
 		Convey("OnUserDuplicateAbort == merge", func() {
-			code, _, err := impl.AuthenticateWithOAuth(sso.AuthInfo{
+			code, err := impl.AuthenticateWithOAuth(sso.AuthInfo{
 				ProviderUserInfo: sso.ProviderUserInfo{
 					Email: "john.doe@example.com",
 				},
@@ -618,7 +624,7 @@ func TestAuthenticateWithOAuth(t *testing.T) {
 		})
 
 		Convey("OnUserDuplicateAbort == create", func() {
-			code, _, err := impl.AuthenticateWithOAuth(sso.AuthInfo{
+			code, err := impl.AuthenticateWithOAuth(sso.AuthInfo{
 				ProviderUserInfo: sso.ProviderUserInfo{
 					Email: "john.doe@example.com",
 				},

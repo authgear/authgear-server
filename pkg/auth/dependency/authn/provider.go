@@ -7,7 +7,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -19,7 +18,7 @@ type SignupProvider interface {
 		plainPassword string,
 		metadata map[string]interface{},
 		onUserDuplicate model.OnUserDuplicate,
-	) (authInfo *authinfo.AuthInfo, userprofile *userprofile.UserProfile, firstPrincipal principal.Principal, tasks []async.TaskSpec, err error)
+	) (authInfo *authinfo.AuthInfo, userprofile *userprofile.UserProfile, firstPrincipal principal.Principal, err error)
 }
 
 type LoginProvider interface {
@@ -29,7 +28,7 @@ type LoginProvider interface {
 
 type OAuthProvider interface {
 	// AuthenticateWithOAuth is oauth sign up/sign in.
-	AuthenticateWithOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, tasks []async.TaskSpec, err error)
+	AuthenticateWithOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, err error)
 
 	// LinkOAuth links oauth identity with an existing user.
 	LinkOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error)

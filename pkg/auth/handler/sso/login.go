@@ -130,20 +130,13 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	h.TxContext.UseHook(h.HookProvider)
-	var tasks []async.TaskSpec
-	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
-		result, tasks, err = h.Handle(payload)
-		return
+	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
+		return h.Handle(payload)
 	})
-	if err == nil {
-		for _, t := range tasks {
-			h.TaskQueue.Enqueue(t.Name, t.Param, nil)
-		}
-	}
 	h.AuthnSessionProvider.WriteResponse(resp, result, err)
 }
 
-func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, tasks []async.TaskSpec, err error) {
+func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err error) {
 	if !h.SSOProvider.IsExternalAccessTokenFlowEnabled() {
 		err = skyerr.NewNotFound("external access token flow is disabled")
 		return
@@ -165,7 +158,7 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, tas
 		return
 	}
 
-	code, tasks, err := h.AuthnOAuthProvider.AuthenticateWithOAuth(oauthAuthInfo, "", loginState)
+	code, err := h.AuthnOAuthProvider.AuthenticateWithOAuth(oauthAuthInfo, "", loginState)
 	if err != nil {
 		return
 	}

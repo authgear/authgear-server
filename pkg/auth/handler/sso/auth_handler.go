@@ -175,22 +175,18 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 		return
 	}
 
-	code, tasks, err := h.handle(oauthAuthInfo, *state)
+	code, err = h.handle(oauthAuthInfo, *state)
 	if err != nil {
 		return
-	}
-
-	for _, t := range tasks {
-		h.TaskQueue.Enqueue(t.Name, t.Param, nil)
 	}
 
 	return
 }
 
-func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encodedCode string, tasks []async.TaskSpec, err error) {
+func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encodedCode string, err error) {
 	var code *sso.SkygearAuthorizationCode
 	if state.Action == "login" {
-		code, tasks, err = h.AuthnOAuthProvider.AuthenticateWithOAuth(oauthAuthInfo, state.CodeChallenge, state.LoginState)
+		code, err = h.AuthnOAuthProvider.AuthenticateWithOAuth(oauthAuthInfo, state.CodeChallenge, state.LoginState)
 	} else {
 		code, err = h.AuthnOAuthProvider.LinkOAuth(oauthAuthInfo, state.CodeChallenge, state.LinkState)
 	}

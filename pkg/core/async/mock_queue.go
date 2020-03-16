@@ -12,7 +12,14 @@ func NewMockQueue() *MockQueue {
 	}
 }
 
-func (m *MockQueue) Enqueue(name string, param interface{}, response chan error) {
-	m.TasksName = append(m.TasksName, name)
-	m.TasksParam = append(m.TasksParam, param)
+func (m *MockQueue) Enqueue(spec TaskSpec) {
+	m.TasksName = append(m.TasksName, spec.Name)
+	m.TasksParam = append(m.TasksParam, spec.Param)
+}
+
+func (m *MockQueue) WillCommitTx() error {
+	return nil
+}
+
+func (m *MockQueue) DidCommitTx() {
 }
