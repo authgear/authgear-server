@@ -3,11 +3,13 @@ package authn
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type SignupProvider interface {
@@ -33,4 +35,19 @@ type OAuthProvider interface {
 	LinkOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error)
 
 	ExtractAuthorizationCode(code *sso.SkygearAuthorizationCode) (authInfo *authinfo.AuthInfo, userProfile *userprofile.UserProfile, prin principal.Principal, err error)
+}
+
+// SessionProvider handles authentication process.
+type SessionProvider interface {
+	// BeginSession creates a new authentication session.
+	BeginSession(client config.OAuthClientConfiguration, userID string, prin principal.Principal, reason session.CreateReason) (*Session, error)
+
+	// StepSession update current step of an authentication session and return authentication result.
+	StepSession(s *Session) (Result, error)
+
+	// MakeResult loads related data for an existing session to create authentication result.
+	MakeResult(client config.OAuthClientConfiguration, s *session.Session) (Result, error)
+
+	// Resolve resolves token to authentication session.
+	ResolveSession(token string) (*Session, error)
 }
