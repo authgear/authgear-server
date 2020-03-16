@@ -22,7 +22,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
-type SessionProviderImpl struct {
+type SessionProvider struct {
 	MFAProvider        mfa.Provider
 	SessionProvider    session.Provider
 	ClientConfigs      []config.OAuthClientConfiguration
@@ -35,7 +35,7 @@ type SessionProviderImpl struct {
 	HookProvider       hook.Provider
 }
 
-func (p *SessionProviderImpl) BeginSession(client config.OAuthClientConfiguration, userID string, prin principal.Principal, reason session.CreateReason) (*Session, error) {
+func (p *SessionProvider) BeginSession(client config.OAuthClientConfiguration, userID string, prin principal.Principal, reason session.CreateReason) (*Session, error) {
 	now := p.TimeProvider.NowUTC()
 	requiredSteps, err := p.getRequiredSteps(userID)
 	if err != nil {
@@ -57,7 +57,7 @@ func (p *SessionProviderImpl) BeginSession(client config.OAuthClientConfiguratio
 	}, nil
 }
 
-func (p *SessionProviderImpl) StepSession(s *Session) (Result, error) {
+func (p *SessionProvider) StepSession(s *Session) (Result, error) {
 	client, ok := coremodel.GetClientConfig(p.ClientConfigs, s.ClientID)
 	if !ok {
 		return nil, ErrInvalidAuthenticationSession
@@ -69,7 +69,7 @@ func (p *SessionProviderImpl) StepSession(s *Session) (Result, error) {
 	return p.saveSession(s)
 }
 
-func (p *SessionProviderImpl) MakeResult(client config.OAuthClientConfiguration, s *session.Session, bearerToken string) (Result, error) {
+func (p *SessionProvider) MakeResult(client config.OAuthClientConfiguration, s *session.Session, bearerToken string) (Result, error) {
 	user, identity, err := p.loadData(&s.Attrs)
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (p *SessionProviderImpl) MakeResult(client config.OAuthClientConfiguration,
 	}, nil
 }
 
-func (p *SessionProviderImpl) ResolveSession(jwt string) (*Session, error) {
+func (p *SessionProvider) ResolveSession(jwt string) (*Session, error) {
 	if jwt == "" {
 		return nil, authz.ErrNotAuthenticated
 	}
@@ -100,7 +100,7 @@ func (p *SessionProviderImpl) ResolveSession(jwt string) (*Session, error) {
 	return &s, nil
 }
 
-func (p *SessionProviderImpl) loadData(attrs *session.Attrs) (*model.User, *model.Identity, error) {
+func (p *SessionProvider) loadData(attrs *session.Attrs) (*model.User, *model.Identity, error) {
 	var authInfo authinfo.AuthInfo
 	err := p.AuthInfoStore.GetAuth(attrs.UserID, &authInfo)
 	if err != nil {
@@ -123,7 +123,7 @@ func (p *SessionProviderImpl) loadData(attrs *session.Attrs) (*model.User, *mode
 	return &user, &identity, nil
 }
 
-func (p *SessionProviderImpl) completeSession(s *Session, client config.OAuthClientConfiguration) (Result, error) {
+func (p *SessionProvider) completeSession(s *Session, client config.OAuthClientConfiguration) (Result, error) {
 	user, identity, err := p.loadData(&s.Attrs)
 	if err != nil {
 		return nil, err
@@ -166,7 +166,7 @@ func (p *SessionProviderImpl) completeSession(s *Session, client config.OAuthCli
 	}, nil
 }
 
-func (p *SessionProviderImpl) saveSession(s *Session) (Result, error) {
+func (p *SessionProvider) saveSession(s *Session) (Result, error) {
 	step, ok := s.NextStep()
 	if !ok {
 		panic("authn: attempt to save a completed session")
@@ -193,7 +193,7 @@ func (p *SessionProviderImpl) saveSession(s *Session) (Result, error) {
 	}, nil
 }
 
-func (p *SessionProviderImpl) updateLoginTime(userID string) error {
+func (p *SessionProvider) updateLoginTime(userID string) error {
 	authInfo := &authinfo.AuthInfo{}
 	err := p.AuthInfoStore.GetAuth(userID, authInfo)
 	if err != nil {
@@ -213,7 +213,7 @@ func (p *SessionProviderImpl) updateLoginTime(userID string) error {
 	return nil
 }
 
-func (p *SessionProviderImpl) getRequiredSteps(userID string) ([]SessionStep, error) {
+func (p *SessionProvider) getRequiredSteps(userID string) ([]SessionStep, error) {
 	steps := []SessionStep{SessionStepIdentity}
 	enforcement := p.MFAConfig.Enforcement
 	switch enforcement {

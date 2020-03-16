@@ -46,10 +46,6 @@ type ProviderImpl struct {
 	TaskQueue                     async.Queue
 }
 
-var _ SignupProvider = &ProviderImpl{}
-var _ LoginProvider = &ProviderImpl{}
-var _ OAuthProvider = &ProviderImpl{}
-
 func principalsToUserIDs(principals []principal.Principal) []string {
 	seen := map[string]struct{}{}
 	var userIDs []string

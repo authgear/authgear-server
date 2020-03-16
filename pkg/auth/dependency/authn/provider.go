@@ -12,7 +12,7 @@ type Provider struct {
 	OAuth   *OAuthCoordinator
 	Authn   *AuthenticateProcess
 	Signup  *SignupProcess
-	Session *SessionProviderImpl
+	Session *SessionProvider
 }
 
 func (p *Provider) SignupWithLoginIDs(
