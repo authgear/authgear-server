@@ -3,30 +3,23 @@ package sso
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"regexp"
 	"testing"
-	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/apiclientconfig"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -101,6 +94,24 @@ func TestAuthPayload(t *testing.T) {
 	})
 }
 
+type MockAuthnOAuthProvider struct {
+	Code *sso.SkygearAuthorizationCode
+}
+
+var _ authn.OAuthProvider = &MockAuthnOAuthProvider{}
+
+func (p *MockAuthnOAuthProvider) AuthenticateWithOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, tasks []async.TaskSpec, err error) {
+	return p.Code, nil, nil
+}
+
+func (p *MockAuthnOAuthProvider) LinkOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error) {
+	return p.Code, nil
+}
+
+func (p *MockAuthnOAuthProvider) ExtractAuthorizationCode(code *sso.SkygearAuthorizationCode) (authInfo *authinfo.AuthInfo, userProfile *userprofile.UserProfile, prin principal.Principal, err error) {
+	panic("not mocked")
+}
+
 func TestAuthHandler(t *testing.T) {
 	Convey("Test AuthHandler with login action", t, func() {
 		action := "login"
@@ -139,67 +150,31 @@ func TestAuthHandler(t *testing.T) {
 		}
 		sh.OAuthProvider = &mockProvider
 		sh.SSOProvider = &mockProvider
-		mockOAuthProvider := oauth.NewMockProvider(nil)
-		sh.OAuthAuthProvider = mockOAuthProvider
-		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
-			map[string]authinfo.AuthInfo{},
-		)
-		sh.AuthInfoStore = authInfoStore
-		sessionProvider := session.NewMockProvider()
-		sessionWriter := session.NewMockWriter()
-		userProfileStore := userprofile.NewMockUserProfileStore()
-		sh.UserProfileStore = userProfileStore
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
-		one := 1
-		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
-			coreconfig.LoginIDKeyConfiguration{Key: "email", Maximum: &one},
-		}
-		allowedRealms := []string{password.DefaultRealm}
-		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeys,
-			allowedRealms,
-			map[string]password.Principal{},
-		)
-		identityProvider := principal.NewMockIdentityProvider(sh.OAuthAuthProvider, passwordAuthProvider)
-		sh.IdentityProvider = identityProvider
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
-		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
-		sh.TimeProvider = timeProvider
-		mfaStore := mfa.NewMockStore(timeProvider)
-		mfaConfiguration := &coreconfig.MFAConfiguration{
-			Enabled:     false,
-			Enforcement: coreconfig.MFAEnforcementOptional,
-		}
-		mfaSender := mfa.NewMockSender()
-		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
-
-		sh.AuthnSessionProvider = authnsession.NewMockProvider(
-			mfaConfiguration,
-			timeProvider,
-			mfaProvider,
-			authInfoStore,
-			sessionProvider,
-			sessionWriter,
-			identityProvider,
-			hookProvider,
-			userProfileStore,
-		)
+		authnOAuthProvider := &MockAuthnOAuthProvider{}
+		sh.AuthnOAuthProvider = authnOAuthProvider
 
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)
 
 		Convey("should write code in the response body if ux_mode is manual", func() {
-			uxMode := sso.UXModeManual
-
+			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
+				Action:              "login",
+				CodeChallenge:       "",
+				UserID:              "a",
+				PrincipalID:         "b",
+				SessionCreateReason: "signup",
+			}
 			// oauth state
 			state := sso.State{
 				Action: action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
-					UXMode:      uxMode,
+					UXMode:      sso.UXModeManual,
 				},
 				HashedNonce: hashedNonce,
 			}
@@ -215,35 +190,35 @@ func TestAuthHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
-			p, err := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
-				ProviderType:   "google",
-				ProviderUserID: providerUserID,
-			})
-			So(err, ShouldBeNil)
-
 			actual, err := decodeUXModeManualResult(resp.Body.Bytes())
 			So(err, ShouldBeNil)
-			So(actual, ShouldEqualJSON, fmt.Sprintf(`
+			So(actual, ShouldEqualJSON, `
 			{
 				"result": {
 					"action": "login",
 					"code_challenge": "",
-					"user_id": "%s",
-					"principal_id": "%s",
+					"user_id": "a",
+					"principal_id": "b",
 					"session_create_reason": "signup"
 				}
-			}`, p.UserID, p.ID))
+			}`)
 		})
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
-			uxMode := sso.UXModeWebRedirect
+			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
+				Action:              "login",
+				CodeChallenge:       "",
+				UserID:              "a",
+				PrincipalID:         "b",
+				SessionCreateReason: "signup",
+			}
 
 			// oauth state
 			state := sso.State{
 				Action: action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
-					UXMode:      uxMode,
+					UXMode:      sso.UXModeWebRedirect,
 				},
 				HashedNonce: hashedNonce,
 			}
@@ -266,35 +241,35 @@ func TestAuthHandler(t *testing.T) {
 			actual, err := decodeResultInURL(location)
 			So(err, ShouldBeNil)
 
-			p, err := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
-				ProviderType:   "google",
-				ProviderUserID: providerUserID,
-			})
-			So(err, ShouldBeNil)
-			So(actual, ShouldEqualJSON, fmt.Sprintf(`
+			So(actual, ShouldEqualJSON, `
 			{
 				"callback_url": "http://localhost:3000",
 				"result": {
 					"result": {
 						"action": "login",
 						"code_challenge": "",
-						"user_id": "%s",
-						"principal_id": "%s",
+						"user_id": "a",
+						"principal_id": "b",
 						"session_create_reason": "signup"
 					}
 				}
-			}`, p.UserID, p.ID))
+			}`)
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
-			uxMode := sso.UXModeWebPopup
-
+			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
+				Action:              "login",
+				CodeChallenge:       "",
+				UserID:              "a",
+				PrincipalID:         "b",
+				SessionCreateReason: "signup",
+			}
 			// oauth state
 			state := sso.State{
 				Action: action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
-					UXMode:      uxMode,
+					UXMode:      sso.UXModeWebPopup,
 				},
 				HashedNonce: hashedNonce,
 			}
@@ -311,23 +286,25 @@ func TestAuthHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
-			// for web_redirect, it should redirect to original callback url
 			So(resp.Code, ShouldEqual, 200)
-			apiEndpointPattern := `"https:\\/\\/api.example.com/_auth/sso/config"`
-			matched, err := regexp.MatchString(apiEndpointPattern, resp.Body.String())
-			So(err, ShouldBeNil)
-			So(matched, ShouldBeTrue)
+			So(resp.Result().Header.Get("Content-Type"), ShouldEqual, "text/html; charset=utf-8")
 		})
 
 		Convey("should return callback url with result query parameter when ux_mode is mobile_app", func() {
-			uxMode := sso.UXModeMobileApp
+			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
+				Action:              "login",
+				CodeChallenge:       "",
+				UserID:              "a",
+				PrincipalID:         "b",
+				SessionCreateReason: "signup",
+			}
 
 			// oauth state
 			state := sso.State{
 				Action: action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
-					UXMode:      uxMode,
+					UXMode:      sso.UXModeMobileApp,
 				},
 				HashedNonce: hashedNonce,
 			}
@@ -349,236 +326,18 @@ func TestAuthHandler(t *testing.T) {
 			// check location result query parameter
 			actual, err := decodeResultInURL(resp.Header().Get("Location"))
 			So(err, ShouldBeNil)
-			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
-				ProviderType:   "google",
-				ProviderUserID: providerUserID,
-			})
-			So(actual, ShouldEqualJSON, fmt.Sprintf(`{
+			So(actual, ShouldEqualJSON, `{
 				"callback_url": "http://localhost:3000",
 				"result": {
 					"result": {
 						"action": "login",
 						"code_challenge": "",
-						"user_id": "%s",
-						"principal_id": "%s",
+						"user_id": "a",
+						"principal_id": "b",
 						"session_create_reason": "signup"
 					}
 				}
-			}`, p.UserID, p.ID))
-		})
-	})
-
-	Convey("Test AuthHandler with link action", t, func() {
-		action := "link"
-		stateJWTSecret := "secret"
-		providerUserID := "mock_user_id"
-		sh := &AuthHandler{}
-		sh.APIClientConfigurationProvider = apiclientconfig.NewMockProvider("api_key")
-		sh.TxContext = db.NewMockTxContext()
-		authContext := authtest.NewMockContext().
-			UseUser("faseng.cat.id", "faseng.cat.principal.id").
-			MarkVerified()
-		sh.AuthContext = authContext
-		sh.AuthContextSetter = authContext
-		oauthConfig := &coreconfig.OAuthConfiguration{
-			StateJWTSecret: stateJWTSecret,
-		}
-		providerConfig := coreconfig.OAuthProviderConfiguration{
-			ID:           "mock",
-			Type:         "google",
-			ClientID:     "mock_client_id",
-			ClientSecret: "mock_client_secret",
-		}
-		mockProvider := sso.MockSSOProvider{
-			RedirectURIs: []string{
-				"http://localhost:3000",
-			},
-			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
-			BaseURL:        "http://mock/auth",
-			OAuthConfig:    oauthConfig,
-			ProviderConfig: providerConfig,
-			UserInfo: sso.ProviderUserInfo{
-				ID:    providerUserID,
-				Email: "mock@example.com",
-			},
-		}
-		sh.OAuthProvider = &mockProvider
-		sh.SSOProvider = &mockProvider
-		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
-			&oauth.Principal{
-				ID:           "jane.doe.id",
-				UserID:       "jane.doe.id",
-				ProviderType: "google",
-				ProviderKeys: map[string]interface{}{},
-			},
-		})
-		sh.OAuthAuthProvider = mockOAuthProvider
-		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
-			map[string]authinfo.AuthInfo{
-				"john.doe.id": authinfo.AuthInfo{
-					ID: "john.doe.id",
-				},
-				"jane.doe.id": authinfo.AuthInfo{
-					ID: "jane.doe.id",
-				},
-			},
-		)
-		sh.AuthInfoStore = authInfoStore
-		sessionProvider := session.NewMockProvider()
-		sessionWriter := session.NewMockWriter()
-		userProfileStore := userprofile.NewMockUserProfileStore()
-		sh.UserProfileStore = userProfileStore
-		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
-			&url.URL{Scheme: "https", Host: "api.example.com"},
-		)
-		one := 1
-		loginIDsKeys := []coreconfig.LoginIDKeyConfiguration{
-			coreconfig.LoginIDKeyConfiguration{Type: "email", Maximum: &one},
-		}
-		allowedRealms := []string{password.DefaultRealm}
-		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeys,
-			allowedRealms,
-			map[string]password.Principal{},
-		)
-		identityProvider := principal.NewMockIdentityProvider(sh.OAuthAuthProvider, passwordAuthProvider)
-		sh.IdentityProvider = identityProvider
-		hookProvider := hook.NewMockProvider()
-		sh.HookProvider = hookProvider
-		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
-		sh.TimeProvider = timeProvider
-		mfaStore := mfa.NewMockStore(timeProvider)
-		mfaConfiguration := &coreconfig.MFAConfiguration{
-			Enabled:     false,
-			Enforcement: coreconfig.MFAEnforcementOptional,
-		}
-		mfaSender := mfa.NewMockSender()
-		mfaProvider := mfa.NewProvider(mfaStore, mfaConfiguration, timeProvider, mfaSender)
-		sh.AuthnSessionProvider = authnsession.NewMockProvider(
-			mfaConfiguration,
-			timeProvider,
-			mfaProvider,
-			authInfoStore,
-			sessionProvider,
-			sessionWriter,
-			identityProvider,
-			hookProvider,
-			userProfileStore,
-		)
-
-		nonce := "nonce"
-		hashedNonce := crypto.SHA256String(nonce)
-
-		Convey("should return callback url when ux_mode is web_redirect", func() {
-			mockOAuthProvider := oauth.NewMockProvider(nil)
-			sh.OAuthAuthProvider = mockOAuthProvider
-			uxMode := sso.UXModeWebRedirect
-
-			// oauth state
-			state := sso.State{
-				Action: action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      uxMode,
-				},
-				LinkState: sso.LinkState{
-					UserID: "john.doe.id",
-				},
-				HashedNonce: hashedNonce,
-			}
-			encodedState, _ := mockProvider.EncodeState(state)
-
-			v := url.Values{}
-			v.Set("code", "code")
-			v.Add("state", encodedState)
-			u := url.URL{
-				RawQuery: v.Encode(),
-			}
-
-			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			resp := httptest.NewRecorder()
-
-			sh.ServeHTTP(resp, req)
-			// for web_redirect, it should redirect to original callback url
-			So(resp.Code, ShouldEqual, 302)
-
-			actual, err := decodeResultInURL(resp.Header().Get("Location"))
-			So(err, ShouldBeNil)
-			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
-				ProviderType:   "google",
-				ProviderUserID: providerUserID,
-			})
-			So(actual, ShouldEqualJSON, fmt.Sprintf(`
-			{
-				"callback_url": "http://localhost:3000",
-				"result": {
-					"result": {
-						"action": "link",
-						"code_challenge": "",
-						"user_id": "john.doe.id",
-						"principal_id": "%s"
-					}
-				}
-			}
-			`, p.ID))
-		})
-
-		Convey("should get err if user is already linked", func() {
-			uxMode := sso.UXModeWebRedirect
-			mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
-				&oauth.Principal{
-					ID:             "jane.doe.id",
-					UserID:         "jane.doe.id",
-					ProviderType:   "google",
-					ProviderKeys:   map[string]interface{}{},
-					ProviderUserID: providerUserID,
-				},
-			})
-			sh.OAuthAuthProvider = mockOAuthProvider
-
-			// oauth state
-			state := sso.State{
-				Action: action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      uxMode,
-				},
-				LinkState: sso.LinkState{
-					UserID: "jane.doe.id",
-				},
-				HashedNonce: hashedNonce,
-			}
-			encodedState, _ := mockProvider.EncodeState(state)
-
-			v := url.Values{}
-			v.Set("code", "code")
-			v.Add("state", encodedState)
-			u := url.URL{
-				RawQuery: v.Encode(),
-			}
-
-			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			resp := httptest.NewRecorder()
-
-			sh.ServeHTTP(resp, req)
-			So(resp.Code, ShouldEqual, 302)
-
-			actual, err := decodeResultInURL(resp.Header().Get("Location"))
-			So(err, ShouldBeNil)
-			So(actual, ShouldEqualJSON, `
-			{
-				"callback_url": "http://localhost:3000",
-				"result": {
-					"error": {
-						"name": "Unauthorized",
-						"reason": "SSOFailed",
-						"message": "user is already linked to this provider",
-						"code": 401,
-						"info": { "cause": { "kind": "AlreadyLinked" } }
-					}
-				}
-			}
-			`)
+			}`)
 		})
 	})
 }
