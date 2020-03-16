@@ -630,3 +630,145 @@ func TestAuthenticateWithOAuth(t *testing.T) {
 		})
 	})
 }
+
+func TestLinkOAuth(t *testing.T) {
+	Convey("LinkOAuth", t, func() {
+		impl := &ProviderImpl{}
+		one := 1
+		loginIDsKeys := []config.LoginIDKeyConfiguration{
+			config.LoginIDKeyConfiguration{
+				Key:     "email",
+				Type:    config.LoginIDKeyType(metadata.Email),
+				Maximum: &one,
+			},
+			config.LoginIDKeyConfiguration{
+				Key:     "username",
+				Type:    config.LoginIDKeyTypeRaw,
+				Maximum: &one,
+			},
+		}
+		allowedRealms := []string{password.DefaultRealm}
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
+			map[string]authinfo.AuthInfo{
+				"john.doe.id": authinfo.AuthInfo{
+					ID: "john.doe.id",
+				},
+			},
+		)
+		passwordProvider := password.NewMockProviderWithPrincipalMap(
+			loginIDsKeys,
+			allowedRealms,
+			map[string]password.Principal{
+				"john.doe.principal.id1": password.Principal{
+					ID:             "john.doe.principal.id1",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe@example.com",
+					Realm:          password.DefaultRealm,
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+					ClaimsValue: map[string]interface{}{
+						"email": "john.doe@example.com",
+					},
+				},
+			},
+		)
+		oauthProvider := oauth.NewMockProvider(nil)
+
+		passwordChecker := &authAudit.PasswordChecker{
+			PwMinLength: 6,
+		}
+		timeProvider := &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
+		userProfileStore := userprofile.NewMockUserProfileStore()
+		identityProvider := principal.NewMockIdentityProvider(passwordProvider)
+		hookProvider := hook.NewMockProvider()
+		welcomeEmailConfiguration := &config.WelcomeEmailConfiguration{}
+		userVerificationConfiguration := &config.UserVerificationConfiguration{
+			LoginIDKeys: []config.UserVerificationKeyConfiguration{
+				config.UserVerificationKeyConfiguration{
+					Key: "email",
+				},
+			},
+		}
+		authConfiguration := &config.AuthConfiguration{
+			LoginIDKeys: loginIDsKeys,
+		}
+		loginIDChecker := &loginid.MockLoginIDChecker{}
+		urlPrefixProvider := urlprefix.Provider{
+			Prefix: url.URL{
+				Scheme: "http",
+				Host:   "example.com",
+			},
+		}
+
+		impl.PasswordChecker = passwordChecker
+		impl.OAuthProvider = oauthProvider
+		impl.LoginIDChecker = loginIDChecker
+		impl.IdentityProvider = identityProvider
+		impl.TimeProvider = timeProvider
+		impl.AuthInfoStore = authInfoStore
+		impl.UserProfileStore = userProfileStore
+		impl.PasswordProvider = passwordProvider
+		impl.HookProvider = hookProvider
+		impl.WelcomeEmailConfiguration = welcomeEmailConfiguration
+		impl.UserVerificationConfiguration = userVerificationConfiguration
+		impl.AuthConfiguration = authConfiguration
+		impl.URLPrefixProvider = urlPrefixProvider
+
+		checkErr := func(err error, errJSON string) {
+			So(err, ShouldNotBeNil)
+			b, _ := handler.APIResponse{Error: err}.MarshalJSON()
+			So(b, ShouldEqualJSON, errJSON)
+		}
+
+		Convey("never linked before", func() {
+			_, err := impl.LinkOAuth(sso.AuthInfo{
+				ProviderUserInfo: sso.ProviderUserInfo{
+					Email: "john.doe@example.com",
+				},
+			}, "", sso.LinkState{
+				UserID: "john.doe.id",
+			})
+			So(err, ShouldBeNil)
+		})
+
+		Convey("already linked", func() {
+			providerType := "google"
+			providerUserID := "google.a"
+			impl.OAuthProvider = oauth.NewMockProvider([]*oauth.Principal{
+				&oauth.Principal{
+					ID:             "a",
+					UserID:         "john.doe.id",
+					ProviderType:   providerType,
+					ProviderKeys:   map[string]interface{}{},
+					ProviderUserID: providerUserID,
+				},
+			})
+			_, err := impl.LinkOAuth(sso.AuthInfo{
+				ProviderConfig: config.OAuthProviderConfiguration{
+					Type: config.OAuthProviderType(providerType),
+				},
+				ProviderUserInfo: sso.ProviderUserInfo{
+					ID:    providerUserID,
+					Email: "john.doe@example.com",
+				},
+			}, "", sso.LinkState{
+				UserID: "john.doe.id",
+			})
+			checkErr(err, `
+			{
+				"error": {
+					"code": 401,
+					"info": {
+						"cause": {
+							"kind": "AlreadyLinked"
+						}
+					},
+					"message": "user is already linked to this provider",
+					"name": "Unauthorized",
+					"reason": "SSOFailed"
+				}
+			}
+			`)
+		})
+	})
+}
