@@ -6,24 +6,16 @@ import (
 	"net/url"
 	"strings"
 	"testing"
-	"time"
+
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
-	"github.com/skygeario/skygear-server/pkg/core/validation"
-
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func TestLinkHandler(t *testing.T) {
@@ -36,7 +28,6 @@ func TestLinkHandler(t *testing.T) {
 		}
 
 		sh := &LinkHandler{}
-		sh.TimeProvider = &coreTime.MockProvider{TimeNowUTC: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)}
 		sh.TxContext = db.NewMockTxContext()
 		validator := validation.NewValidator("http://v2.skygear.io")
 		validator.AddSchemaFragments(
@@ -68,18 +59,6 @@ func TestLinkHandler(t *testing.T) {
 		}
 		sh.OAuthProvider = &mockProvider
 		sh.SSOProvider = &mockProvider
-		mockOAuthProvider := oauth.NewMockProvider(nil)
-		sh.OAuthAuthProvider = mockOAuthProvider
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider)
-		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
-			map[string]authinfo.AuthInfo{
-				"faseng.cat.id": authinfo.AuthInfo{
-					ID: "faseng.cat.id",
-				},
-			},
-		)
-		sh.AuthInfoStore = authInfoStore
-		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
 
@@ -108,64 +87,8 @@ func TestLinkHandler(t *testing.T) {
 			}`)
 		})
 
-		Convey("should link user id with oauth principal", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"access_token": "token"
-			}`))
-			req.Header.Set("Content-Type", "application/json")
-			resp := httptest.NewRecorder()
-			sh.ServeHTTP(resp, req)
-			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": {
-					"user": {
-						"id": "faseng.cat.id",
-						"created_at": "0001-01-01T00:00:00Z",
-						"is_disabled": false,
-						"is_manually_verified": false,
-						"is_verified": false,
-						"metadata": {},
-						"verify_info": {}
-					}
-				}
-			}`)
-
-			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
-				ProviderType:   "google",
-				ProviderUserID: providerUserInfo.ID,
-			})
-			So(p.UserID, ShouldEqual, "faseng.cat.id")
-
-			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
-				event.IdentityCreateEvent{
-					User: model.User{
-						ID:         "faseng.cat.id",
-						VerifyInfo: map[string]bool{},
-						Metadata:   userprofile.Data{},
-					},
-					Identity: model.Identity{
-						ID:   p.ID,
-						Type: "oauth",
-						Attributes: principal.Attributes{
-							"provider_keys":    map[string]interface{}{},
-							"provider_type":    "google",
-							"provider_user_id": "mock_user_id",
-							"raw_profile": map[string]interface{}{
-								"id":    "mock_user_id",
-								"email": "john.doe@example.com",
-							},
-						},
-						Claims: principal.Claims{
-							"email": "john.doe@example.com",
-						},
-					},
-				},
-			})
-		})
-
-		mockProvider.OAuthConfig.ExternalAccessTokenFlowEnabled = false
-
 		Convey("should return error if disabled", func() {
+			mockProvider.OAuthConfig.ExternalAccessTokenFlowEnabled = false
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
                                "access_token": "token"
                        }`))
