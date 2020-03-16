@@ -2,26 +2,23 @@ package sso
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -48,20 +45,14 @@ func (f *AuthResultHandlerFactory) NewHandler(request *http.Request) http.Handle
 }
 
 type AuthResultHandler struct {
-	TxContext            db.TxContext               `dependency:"TxContext"`
-	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
-	OAuthAuthProvider    oauth.Provider             `dependency:"OAuthAuthProvider"`
-	HookProvider         hook.Provider              `dependency:"HookProvider"`
-	AuthnSessionProvider authnsession.Provider      `dependency:"AuthnSessionProvider"`
-	Validator            *validation.Validator      `dependency:"Validator"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
-	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
-	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
-	URLPrefix            *url.URL                   `dependency:"URLPrefix"`
-	SSOProvider          sso.Provider               `dependency:"SSOProvider"`
-	TimeProvider         coreTime.Provider          `dependency:"TimeProvider"`
+	TxContext            db.TxContext          `dependency:"TxContext"`
+	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
+	HookProvider         hook.Provider         `dependency:"HookProvider"`
+	AuthnSessionProvider authnsession.Provider `dependency:"AuthnSessionProvider"`
+	AuthnOAuthProvider   authn.OAuthProvider   `dependency:"AuthnOAuthProvider"`
+	Validator            *validation.Validator `dependency:"Validator"`
+	TaskQueue            async.Queue           `dependency:"AsyncTaskQueue"`
+	SSOProvider          sso.Provider          `dependency:"SSOProvider"`
 }
 
 func (h *AuthResultHandler) ProvideAuthzPolicy() authz.Policy {
@@ -119,18 +110,27 @@ func (h *AuthResultHandler) Handle(payload *AuthResultPayload) (result interface
 		return
 	}
 
-	respHandler := respHandler{
-		TimeProvider:         h.TimeProvider,
-		AuthnSessionProvider: h.AuthnSessionProvider,
-		AuthInfoStore:        h.AuthInfoStore,
-		OAuthAuthProvider:    h.OAuthAuthProvider,
-		IdentityProvider:     h.IdentityProvider,
-		UserProfileStore:     h.UserProfileStore,
-		HookProvider:         h.HookProvider,
-		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
-		TaskQueue:            h.TaskQueue,
-		URLPrefix:            h.URLPrefix,
+	authInfo, userProfile, prin, err := h.AuthnOAuthProvider.ExtractAuthorizationCode(code)
+	if err != nil {
+		return
 	}
 
-	return respHandler.CodeToResponse(code)
+	if code.Action == "link" {
+		user := model.NewUser(*authInfo, *userProfile)
+		result = model.NewAuthResponseWithUser(user)
+		return
+	}
+
+	// code.Action == "login"
+	sess, err := h.AuthnSessionProvider.NewFromScratch(code.UserID, prin, coreAuth.SessionCreateReason(code.SessionCreateReason))
+	if err != nil {
+		return
+	}
+
+	result, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
+	if err != nil {
+		return
+	}
+
+	return
 }

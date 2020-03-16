@@ -8,21 +8,19 @@ import (
 )
 
 type Provider struct {
-	prefix url.URL
+	Prefix url.URL
 }
 
 func NewProvider(req *http.Request) Provider {
 	if req == nil {
 		return Provider{}
 	}
-
-	u := url.URL{
+	return Provider{url.URL{
 		Host:   corehttp.GetHost(req),
 		Scheme: corehttp.GetProto(req),
-	}
-	return Provider{u}
+	}}
 }
 
 func (p Provider) Value() *url.URL {
-	return &p.prefix
+	return &p.Prefix
 }

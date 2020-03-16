@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -150,6 +151,14 @@ func (m DependencyMap) Provide(
 			tConfig.AppConfig.PasswordPolicy.HistoryDays > 0
 	}
 
+	newLoginIDChecker := func() loginid.LoginIDChecker {
+		return loginid.NewDefaultLoginIDChecker(
+			tConfig.AppConfig.Auth.LoginIDKeys,
+			tConfig.AppConfig.Auth.LoginIDTypes,
+			m.ReservedNameChecker,
+		)
+	}
+
 	newPasswordAuthProvider := func() password.Provider {
 		return password.NewProvider(
 			newTimeProvider(),
@@ -266,6 +275,42 @@ func (m DependencyMap) Provide(
 		return apiclientconfig.NewProvider(newAuthContext(), tConfig)
 	}
 
+	newPasswordChecker := func() *authAudit.PasswordChecker {
+		return &authAudit.PasswordChecker{
+			PwMinLength:         tConfig.AppConfig.PasswordPolicy.MinLength,
+			PwUppercaseRequired: tConfig.AppConfig.PasswordPolicy.UppercaseRequired,
+			PwLowercaseRequired: tConfig.AppConfig.PasswordPolicy.LowercaseRequired,
+			PwDigitRequired:     tConfig.AppConfig.PasswordPolicy.DigitRequired,
+			PwSymbolRequired:    tConfig.AppConfig.PasswordPolicy.SymbolRequired,
+			PwMinGuessableLevel: tConfig.AppConfig.PasswordPolicy.MinimumGuessableLevel,
+			PwExcludedKeywords:  tConfig.AppConfig.PasswordPolicy.ExcludedKeywords,
+			//PwExcludedFields:       tConfig.AppConfig.PasswordPolicy.ExcludedFields,
+			PwHistorySize:          tConfig.AppConfig.PasswordPolicy.HistorySize,
+			PwHistoryDays:          tConfig.AppConfig.PasswordPolicy.HistoryDays,
+			PasswordHistoryEnabled: tConfig.AppConfig.PasswordPolicy.HistorySize > 0 || tConfig.AppConfig.PasswordPolicy.HistoryDays > 0,
+			PasswordHistoryStore:   newPasswordHistoryStore(),
+		}
+	}
+
+	newAuthnProvider := func() *authn.ProviderImpl {
+		return &authn.ProviderImpl{
+			Logger:                        newLoggerFactory().NewLogger("authnprovider"),
+			PasswordChecker:               newPasswordChecker(),
+			LoginIDChecker:                newLoginIDChecker(),
+			IdentityProvider:              newIdentityProvider(),
+			TimeProvider:                  newTimeProvider(),
+			AuthInfoStore:                 newAuthInfoStore(),
+			UserProfileStore:              newUserProfileStore(),
+			PasswordProvider:              newPasswordAuthProvider(),
+			OAuthProvider:                 newOAuthAuthProvider(),
+			HookProvider:                  newHookProvider(),
+			WelcomeEmailConfiguration:     tConfig.AppConfig.WelcomeEmail,
+			UserVerificationConfiguration: tConfig.AppConfig.UserVerification,
+			AuthConfiguration:             tConfig.AppConfig.Auth,
+			URLPrefixProvider:             urlprefix.NewProvider(request),
+		}
+	}
+
 	switch dependencyName {
 	case "AuthContextGetter":
 		return newAuthContext()
@@ -302,20 +347,7 @@ func (m DependencyMap) Provide(
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "PasswordChecker":
-		return &authAudit.PasswordChecker{
-			PwMinLength:         tConfig.AppConfig.PasswordPolicy.MinLength,
-			PwUppercaseRequired: tConfig.AppConfig.PasswordPolicy.UppercaseRequired,
-			PwLowercaseRequired: tConfig.AppConfig.PasswordPolicy.LowercaseRequired,
-			PwDigitRequired:     tConfig.AppConfig.PasswordPolicy.DigitRequired,
-			PwSymbolRequired:    tConfig.AppConfig.PasswordPolicy.SymbolRequired,
-			PwMinGuessableLevel: tConfig.AppConfig.PasswordPolicy.MinimumGuessableLevel,
-			PwExcludedKeywords:  tConfig.AppConfig.PasswordPolicy.ExcludedKeywords,
-			//PwExcludedFields:       tConfig.AppConfig.PasswordPolicy.ExcludedFields,
-			PwHistorySize:          tConfig.AppConfig.PasswordPolicy.HistorySize,
-			PwHistoryDays:          tConfig.AppConfig.PasswordPolicy.HistoryDays,
-			PasswordHistoryEnabled: tConfig.AppConfig.PasswordPolicy.HistorySize > 0 || tConfig.AppConfig.PasswordPolicy.HistoryDays > 0,
-			PasswordHistoryStore:   newPasswordHistoryStore(),
-		}
+		return newPasswordChecker()
 	case "PwHousekeeper":
 		return authAudit.NewPwHousekeeper(
 			newPasswordHistoryStore(),
@@ -324,6 +356,8 @@ func (m DependencyMap) Provide(
 			tConfig.AppConfig.PasswordPolicy.HistoryDays,
 			isPasswordHistoryEnabled(),
 		)
+	case "LoginIDChecker":
+		return newLoginIDChecker()
 	case "PasswordAuthProvider":
 		return newPasswordAuthProvider()
 	case "HandlerLogger":
@@ -403,6 +437,12 @@ func (m DependencyMap) Provide(
 		return newTemplateEngine()
 	case "TimeProvider":
 		return newTimeProvider()
+	case "AuthnSignupProvider":
+		return newAuthnProvider()
+	case "AuthnLoginProvider":
+		return newAuthnProvider()
+	case "AuthnOAuthProvider":
+		return newAuthnProvider()
 	default:
 		return nil
 	}

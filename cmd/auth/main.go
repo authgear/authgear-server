@@ -234,7 +234,6 @@ func main() {
 	ssohandler.AttachAuthRedirectHandler(appRouter, authDependency)
 	ssohandler.AttachAuthHandler(appRouter, authDependency)
 	ssohandler.AttachAuthResultHandler(appRouter, authDependency)
-	ssohandler.AttachConfigHandler(appRouter, authDependency)
 	ssohandler.AttachLoginHandler(appRouter, authDependency)
 	ssohandler.AttachLinkHandler(appRouter, authDependency)
 	ssohandler.AttachUnlinkHandler(appRouter, authDependency)

@@ -7,16 +7,14 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -24,7 +22,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -100,21 +97,16 @@ const LoginRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type LoginHandler struct {
-	TxContext            db.TxContext               `dependency:"TxContext"`
-	Validator            *validation.Validator      `dependency:"Validator"`
-	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
-	OAuthAuthProvider    oauth.Provider             `dependency:"OAuthAuthProvider"`
-	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	AuthnSessionProvider authnsession.Provider      `dependency:"AuthnSessionProvider"`
-	ProviderFactory      *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider         hook.Provider              `dependency:"HookProvider"`
-	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
-	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
-	URLPrefix            *url.URL                   `dependency:"URLPrefix"`
-	SSOProvider          sso.Provider               `dependency:"SSOProvider"`
-	TimeProvider         coreTime.Provider          `dependency:"TimeProvider"`
+	TxContext            db.TxContext              `dependency:"TxContext"`
+	Validator            *validation.Validator     `dependency:"Validator"`
+	RequireAuthz         handler.RequireAuthz      `dependency:"RequireAuthz"`
+	AuthnSessionProvider authnsession.Provider     `dependency:"AuthnSessionProvider"`
+	ProviderFactory      *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
+	AuthnOAuthProvider   authn.OAuthProvider       `dependency:"AuthnOAuthProvider"`
+	HookProvider         hook.Provider             `dependency:"HookProvider"`
+	TaskQueue            async.Queue               `dependency:"AsyncTaskQueue"`
+	URLPrefix            *url.URL                  `dependency:"URLPrefix"`
+	SSOProvider          sso.Provider              `dependency:"SSOProvider"`
 	OAuthProvider        sso.OAuthProvider
 	ProviderID           string
 }
@@ -137,15 +129,24 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var result interface{}
-	err = hook.WithTx(h.HookProvider, h.TxContext, func() (err error) {
-		result, err = h.Handle(payload)
+	var tasks []async.TaskSpec
+	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
+		result, tasks, err = h.Handle(payload)
+		if err == nil {
+			err = h.HookProvider.WillCommitTx()
+		}
 		return
 	})
+	if err == nil {
+		h.HookProvider.DidCommitTx()
+		for _, t := range tasks {
+			h.TaskQueue.Enqueue(t.Name, t.Param, nil)
+		}
+	}
 	h.AuthnSessionProvider.WriteResponse(resp, result, err)
 }
 
-func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err error) {
+func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, tasks []async.TaskSpec, err error) {
 	if !h.SSOProvider.IsExternalAccessTokenFlowEnabled() {
 		err = skyerr.NewNotFound("external access token flow is disabled")
 		return
@@ -167,24 +168,22 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, err
 		return
 	}
 
-	handler := respHandler{
-		TimeProvider:         h.TimeProvider,
-		AuthnSessionProvider: h.AuthnSessionProvider,
-		AuthInfoStore:        h.AuthInfoStore,
-		OAuthAuthProvider:    h.OAuthAuthProvider,
-		IdentityProvider:     h.IdentityProvider,
-		UserProfileStore:     h.UserProfileStore,
-		HookProvider:         h.HookProvider,
-		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
-		TaskQueue:            h.TaskQueue,
-		URLPrefix:            h.URLPrefix,
-	}
-	code, err := handler.LoginCode(oauthAuthInfo, "", loginState)
+	code, tasks, err := h.AuthnOAuthProvider.AuthenticateWithOAuth(oauthAuthInfo, "", loginState)
 	if err != nil {
 		return
 	}
 
-	resp, err = handler.CodeToResponse(code)
+	authInfo, _, principal, err := h.AuthnOAuthProvider.ExtractAuthorizationCode(code)
+	if err != nil {
+		return
+	}
+
+	sess, err := h.AuthnSessionProvider.NewFromScratch(authInfo.ID, principal, coreAuth.SessionCreateReason(code.SessionCreateReason))
+	if err != nil {
+		return
+	}
+
+	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
 	if err != nil {
 		return
 	}

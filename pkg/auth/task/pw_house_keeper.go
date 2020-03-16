@@ -2,27 +2,22 @@ package task
 
 import (
 	"context"
-	"errors"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
-)
-
-const (
-	// PwHousekeeperTaskName provides the name for submiting PwHousekeeperTask
-	PwHousekeeperTaskName = "PwHousekeeperTask"
 )
 
 func AttachPwHousekeeperTask(
 	executor *async.Executor,
 	authDependency auth.DependencyMap,
 ) *async.Executor {
-	executor.Register(PwHousekeeperTaskName, &PwHousekeeperTaskFactory{
+	executor.Register(spec.PwHousekeeperTaskName, &PwHousekeeperTaskFactory{
 		authDependency,
 	})
 	return executor
@@ -44,24 +39,12 @@ type PwHousekeeperTask struct {
 	PwHousekeeper *audit.PwHousekeeper `dependency:"PwHousekeeper"`
 }
 
-type PwHousekeeperTaskParam struct {
-	AuthID string
-}
-
-func (p PwHousekeeperTaskParam) Validate() error {
-	if p.AuthID == "" {
-		return errors.New("missing user ID")
-	}
-
-	return nil
-}
-
 func (t *PwHousekeeperTask) WithTx() bool {
 	return true
 }
 
 func (t *PwHousekeeperTask) Run(param interface{}) (err error) {
-	taskParam := param.(PwHousekeeperTaskParam)
+	taskParam := param.(spec.PwHousekeeperTaskParam)
 
 	t.Logger.WithFields(logrus.Fields{"user_id": taskParam.AuthID}).Debug("Housekeeping password")
 

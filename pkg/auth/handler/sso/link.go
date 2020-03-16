@@ -6,13 +6,11 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -20,7 +18,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -85,20 +82,16 @@ const LinkRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type LinkHandler struct {
-	TxContext         db.TxContext               `dependency:"TxContext"`
-	Validator         *validation.Validator      `dependency:"Validator"`
-	AuthContext       coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
-	RequireAuthz      handler.RequireAuthz       `dependency:"RequireAuthz"`
-	OAuthAuthProvider oauth.Provider             `dependency:"OAuthAuthProvider"`
-	IdentityProvider  principal.IdentityProvider `dependency:"IdentityProvider"`
-	AuthInfoStore     authinfo.Store             `dependency:"AuthInfoStore"`
-	UserProfileStore  userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider      hook.Provider              `dependency:"HookProvider"`
-	ProviderFactory   *sso.OAuthProviderFactory  `dependency:"SSOOAuthProviderFactory"`
-	SSOProvider       sso.Provider               `dependency:"SSOProvider"`
-	TimeProvider      coreTime.Provider          `dependency:"TimeProvider"`
-	OAuthProvider     sso.OAuthProvider
-	ProviderID        string
+	TxContext          db.TxContext              `dependency:"TxContext"`
+	Validator          *validation.Validator     `dependency:"Validator"`
+	AuthContext        coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
+	RequireAuthz       handler.RequireAuthz      `dependency:"RequireAuthz"`
+	HookProvider       hook.Provider             `dependency:"HookProvider"`
+	ProviderFactory    *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
+	SSOProvider        sso.Provider              `dependency:"SSOProvider"`
+	AuthnOAuthProvider authn.OAuthProvider       `dependency:"AuthnOAuthProvider"`
+	OAuthProvider      sso.OAuthProvider
+	ProviderID         string
 }
 
 func (h LinkHandler) ProvideAuthzPolicy() authz.Policy {
@@ -145,24 +138,18 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interf
 			return err
 		}
 
-		handler := respHandler{
-			TimeProvider:      h.TimeProvider,
-			AuthInfoStore:     h.AuthInfoStore,
-			OAuthAuthProvider: h.OAuthAuthProvider,
-			IdentityProvider:  h.IdentityProvider,
-			UserProfileStore:  h.UserProfileStore,
-			HookProvider:      h.HookProvider,
-		}
-		code, err := handler.LinkCode(oauthAuthInfo, "", linkState)
+		code, err := h.AuthnOAuthProvider.LinkOAuth(oauthAuthInfo, "", linkState)
 		if err != nil {
 			return err
 		}
 
-		resp, err = handler.CodeToResponse(code)
+		authInfo, userProfile, _, err := h.AuthnOAuthProvider.ExtractAuthorizationCode(code)
 		if err != nil {
 			return err
 		}
 
+		user := model.NewUser(*authInfo, *userProfile)
+		resp = model.NewAuthResponseWithUser(user)
 		return nil
 	})
 	return
