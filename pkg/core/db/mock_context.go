@@ -12,6 +12,9 @@ func NewMockTxContext() *MockTxContext {
 	return &MockTxContext{}
 }
 
+func (c *MockTxContext) UseHook(h TransactionHook) {
+}
+
 func (c *MockTxContext) HasTx() bool {
 	return c.DidBegin == true && c.DidCommit == false && c.DidRollback == false
 }

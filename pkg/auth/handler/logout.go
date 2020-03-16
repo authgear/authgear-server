@@ -88,15 +88,11 @@ func (h LogoutHandler) DecodeRequest(request *http.Request, resp http.ResponseWr
 }
 
 func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	result, err := handler.Transactional(h.TxContext, func() (resp interface{}, err error) {
-		resp, err = h.Handle()
-		if err == nil {
-			err = h.HookProvider.WillCommitTx()
-		}
-		return
+	h.TxContext.UseHook(h.HookProvider)
+	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
+		return h.Handle()
 	})
 	if err == nil {
-		h.HookProvider.DidCommitTx()
 		h.SessionWriter.ClearSession(resp)
 		handler.WriteResponse(resp, handler.APIResponse{Result: result})
 	} else {

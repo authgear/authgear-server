@@ -138,7 +138,8 @@ func (h ForgotPasswordResetHandler) Handle(w http.ResponseWriter, r *http.Reques
 		return nil, err
 	}
 
-	err = hook.WithTx(h.HookProvider, h.TxContext, func() (err error) {
+	h.TxContext.UseHook(h.HookProvider)
+	err = db.WithTx(h.TxContext, func() (err error) {
 		now := h.TimeProvider.NowUTC()
 		err = passwordReseter{
 			CodeGenerator:        h.CodeGenerator,

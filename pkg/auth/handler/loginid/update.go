@@ -139,7 +139,8 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 	}
 
 	var resp interface{}
-	err := hook.WithTx(h.HookProvider, h.TxContext, func() error {
+	h.TxContext.UseHook(h.HookProvider)
+	err := db.WithTx(h.TxContext, func() error {
 		authInfo, _ := h.AuthContext.AuthInfo()
 		userID := authInfo.ID
 

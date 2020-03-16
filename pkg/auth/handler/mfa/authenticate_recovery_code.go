@@ -111,16 +111,10 @@ func (h *AuthenticateRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		return
 	}
 
-	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
-		result, err = h.Handle(payload)
-		if err == nil {
-			err = h.HookProvider.WillCommitTx()
-		}
-		return
+	h.TxContext.UseHook(h.HookProvider)
+	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
+		return h.Handle(payload)
 	})
-	if err == nil {
-		h.HookProvider.DidCommitTx()
-	}
 	h.AuthnSessionProvider.WriteResponse(w, result, err)
 }
 

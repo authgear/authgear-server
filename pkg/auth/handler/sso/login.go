@@ -129,16 +129,13 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	h.TxContext.UseHook(h.HookProvider)
 	var tasks []async.TaskSpec
 	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
 		result, tasks, err = h.Handle(payload)
-		if err == nil {
-			err = h.HookProvider.WillCommitTx()
-		}
 		return
 	})
 	if err == nil {
-		h.HookProvider.DidCommitTx()
 		for _, t := range tasks {
 			h.TaskQueue.Enqueue(t.Name, t.Param, nil)
 		}

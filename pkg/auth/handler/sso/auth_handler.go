@@ -101,7 +101,8 @@ func (authHandlerError) Error() string {
 }
 
 func (h AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	hook.WithTx(h.HookProvider, h.TxContext, func() error {
+	h.TxContext.UseHook(h.HookProvider)
+	db.WithTx(h.TxContext, func() error {
 		success := h.Handle(w, r)
 		if !success {
 			return authHandlerError{}
