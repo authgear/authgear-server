@@ -121,7 +121,7 @@ type SignupHandler struct {
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h SignupHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload SignupRequestPayload, err error) {

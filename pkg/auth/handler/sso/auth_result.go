@@ -56,7 +56,7 @@ type AuthResultHandler struct {
 }
 
 func (h *AuthResultHandler) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 type AuthResultPayload struct {

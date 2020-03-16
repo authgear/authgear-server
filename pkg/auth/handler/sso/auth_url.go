@@ -224,7 +224,7 @@ type AuthURLHandler struct {
 
 func (h *AuthURLHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireClient),
 		authz.PolicyFunc(policy.DenyInvalidSession),
 		authz.PolicyFunc(policy.DenyDisabledUser),
 	)

@@ -82,7 +82,7 @@ type TriggerOOBHandler struct {
 
 func (h *TriggerOOBHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireClient),
 		authz.PolicyFunc(policy.DenyInvalidSession),
 	)
 }

@@ -93,7 +93,7 @@ type AuthenticateOOBHandler struct {
 
 func (h *AuthenticateOOBHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireClient),
 		authz.PolicyFunc(policy.DenyInvalidSession),
 	)
 }

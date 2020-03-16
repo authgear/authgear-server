@@ -43,7 +43,7 @@ func (f CreateOOBHandlerFactory) NewHandler(request *http.Request) http.Handler 
 
 func (h *CreateOOBHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireClient),
 		authz.PolicyFunc(policy.DenyInvalidSession),
 	)
 }

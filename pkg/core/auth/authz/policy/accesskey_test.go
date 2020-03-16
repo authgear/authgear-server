@@ -9,13 +9,13 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestDenyNoAccessKey(t *testing.T) {
-	Convey("Test DenyNoAccessKey", t, func() {
+func TestRequireClient(t *testing.T) {
+	Convey("Test RequireClient", t, func() {
 		req, _ := http.NewRequest("POST", "/", nil)
 		ctx := MemoryContextGetter{}
 
 		Convey("should return error if auth context has no access key", func() {
-			err := DenyNoAccessKey(req, ctx)
+			err := RequireClient(req, ctx)
 			So(err, ShouldNotBeEmpty)
 		})
 
@@ -23,7 +23,7 @@ func TestDenyNoAccessKey(t *testing.T) {
 			req = req.WithContext(auth.WithAccessKey(req.Context(), auth.AccessKey{
 				Client: config.OAuthClientConfiguration{},
 			}))
-			err := DenyNoAccessKey(req, ctx)
+			err := RequireClient(req, ctx)
 			So(err, ShouldBeEmpty)
 		})
 
@@ -31,7 +31,7 @@ func TestDenyNoAccessKey(t *testing.T) {
 			req = req.WithContext(auth.WithAccessKey(req.Context(), auth.AccessKey{
 				IsMasterKey: true,
 			}))
-			err := DenyNoAccessKey(req, ctx)
+			err := RequireClient(req, ctx)
 			So(err, ShouldNotBeEmpty)
 		})
 	})

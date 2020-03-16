@@ -90,7 +90,7 @@ type ForgotPasswordHandler struct {
 
 // ProvideAuthzPolicy provides authorization policy of handler
 func (h ForgotPasswordHandler) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
