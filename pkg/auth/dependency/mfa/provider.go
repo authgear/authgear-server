@@ -1,7 +1,6 @@
 package mfa
 
 import (
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -50,8 +49,4 @@ type Provider interface {
 	// It this is the last authenticator,
 	// the recovery codes are also deleted.
 	DeleteAuthenticator(userID string, id string) error
-
-	// StepMFA steps forward the MFA step.
-	// TODO(authn): delete this
-	StepMFA(authnSession *coreAuth.AuthnSession, opts coreAuth.AuthnSessionStepMFAOptions) error
 }

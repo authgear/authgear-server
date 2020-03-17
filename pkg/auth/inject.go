@@ -6,7 +6,6 @@ import (
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
@@ -325,20 +324,6 @@ func (m DependencyMap) Provide(
 		return newSessionWriter()
 	case "MFAProvider":
 		return newMFAProvider()
-	case "AuthnSessionProvider":
-		return authnsession.NewProvider(
-			ctx,
-			tConfig.AppConfig.MFA,
-			tConfig.AppConfig.Auth.AuthenticationSession,
-			newTimeProvider(),
-			newMFAProvider(),
-			newAuthInfoStore(),
-			newSessionProvider(),
-			newSessionWriter(),
-			newIdentityProvider(),
-			newHookProvider(),
-			newUserProfileStore(),
-		)
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "PasswordChecker":

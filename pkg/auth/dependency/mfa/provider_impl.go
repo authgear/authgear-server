@@ -4,11 +4,9 @@ import (
 	"crypto/subtle"
 	gotime "time"
 
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
@@ -580,21 +578,6 @@ func (p *providerImpl) AuthenticateOOB(userID string, code string, generateBeare
 	}
 
 	return nil, "", errInvalidMFACode
-}
-
-func (p *providerImpl) StepMFA(a *coreAuth.AuthnSession, opts coreAuth.AuthnSessionStepMFAOptions) error {
-	now := p.timeProvider.NowUTC()
-	step, ok := a.NextStep()
-	if !ok || step != coreAuth.AuthnSessionStepMFA {
-		return skyerr.NewBadRequest("expected step to be mfa")
-	}
-	a.AuthenticatorID = opts.AuthenticatorID
-	a.AuthenticatorType = opts.AuthenticatorType
-	a.AuthenticatorOOBChannel = opts.AuthenticatorOOBChannel
-	a.AuthenticatorUpdatedAt = &now
-	a.AuthenticatorBearerToken = opts.AuthenticatorBearerToken
-	a.FinishedSteps = append(a.FinishedSteps, step)
-	return nil
 }
 
 var (
