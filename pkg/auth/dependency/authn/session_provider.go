@@ -145,7 +145,7 @@ func (p *SessionProvider) completeSession(s *Session, client config.OAuthClientC
 		return nil, err
 	}
 
-	err = p.updateLoginTime(session.UserID)
+	err = p.updateLoginTime(session.Attrs.UserID)
 	if err != nil {
 		return nil, err
 	}

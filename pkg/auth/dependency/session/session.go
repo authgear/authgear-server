@@ -23,7 +23,7 @@ type Session struct {
 	ID    string `json:"id"`
 	AppID string `json:"app_id"`
 
-	Attrs
+	Attrs Attrs `json:"attrs"`
 
 	InitialAccess AccessEvent `json:"initial_access"`
 	LastAccess    AccessEvent `json:"last_access"`
@@ -32,6 +32,10 @@ type Session struct {
 	AccessedAt time.Time `json:"accessed_at"`
 
 	TokenHash string `json:"token_hash"`
+}
+
+func (s *Session) SessionAttrs() *Attrs {
+	return &s.Attrs
 }
 
 type CreateReason string

@@ -35,14 +35,14 @@ func Format(session *auth.Session) (mSession model.Session) {
 func (s *Session) ToAPIModel() (ms model.Session) {
 	ms.ID = s.ID
 
-	ms.IdentityID = s.PrincipalID
-	ms.IdentityType = string(s.PrincipalType)
-	ms.IdentityUpdatedAt = s.PrincipalUpdatedAt
+	ms.IdentityID = s.Attrs.PrincipalID
+	ms.IdentityType = string(s.Attrs.PrincipalType)
+	ms.IdentityUpdatedAt = s.Attrs.PrincipalUpdatedAt
 
-	ms.AuthenticatorID = s.AuthenticatorID
-	ms.AuthenticatorType = string(s.AuthenticatorType)
-	ms.AuthenticatorOOBChannel = string(s.AuthenticatorOOBChannel)
-	ms.AuthenticatorUpdatedAt = s.AuthenticatorUpdatedAt
+	ms.AuthenticatorID = s.Attrs.AuthenticatorID
+	ms.AuthenticatorType = string(s.Attrs.AuthenticatorType)
+	ms.AuthenticatorOOBChannel = string(s.Attrs.AuthenticatorOOBChannel)
+	ms.AuthenticatorUpdatedAt = s.Attrs.AuthenticatorUpdatedAt
 
 	ms.CreatedAt = s.CreatedAt
 	ms.LastAccessedAt = s.AccessedAt

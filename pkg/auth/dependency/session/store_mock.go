@@ -56,7 +56,7 @@ func (s *MockStore) DeleteBatch(sessions []*Session) error {
 
 func (s *MockStore) DeleteAll(userID string, sessionID string) error {
 	for _, session := range s.Sessions {
-		if session.UserID == userID && session.ID != sessionID {
+		if session.Attrs.UserID == userID && session.ID != sessionID {
 			delete(s.Sessions, session.ID)
 		}
 	}
@@ -65,7 +65,7 @@ func (s *MockStore) DeleteAll(userID string, sessionID string) error {
 
 func (s *MockStore) List(userID string) (sessions []*Session, err error) {
 	for _, session := range s.Sessions {
-		if session.UserID == userID {
+		if session.Attrs.UserID == userID {
 			s := session
 			sessions = append(sessions, &s)
 		}

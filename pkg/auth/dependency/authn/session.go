@@ -21,9 +21,13 @@ type Session struct {
 	FinishedSteps       []SessionStep        `json:"finished_steps"`
 	SessionCreateReason session.CreateReason `json:"session_create_reason"`
 
-	session.Attrs
+	Attrs session.Attrs `json:"attrs"`
 
 	AuthenticatorBearerToken string `json:"authenticator_bearer_token,omitempty"`
+}
+
+func (a *Session) SessionAttrs() *session.Attrs {
+	return &a.Attrs
 }
 
 func (a *Session) IsFinished() bool {

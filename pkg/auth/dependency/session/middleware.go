@@ -59,7 +59,7 @@ func (m *Middleware) resolve(token string) (*Session, *authinfo.AuthInfo, error)
 	}
 
 	user := &authinfo.AuthInfo{}
-	if err = m.AuthInfoStore.GetAuth(session.UserID, user); err != nil {
+	if err = m.AuthInfoStore.GetAuth(session.Attrs.UserID, user); err != nil {
 		return nil, nil, err
 	}
 
