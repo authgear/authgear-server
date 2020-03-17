@@ -1,15 +1,16 @@
 package session
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	sessiontesting "github.com/skygeario/skygear-server/pkg/auth/dependency/session/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
@@ -17,9 +18,6 @@ func TestListHandler(t *testing.T) {
 	Convey("Test GetRequestPayload", t, func() {
 		h := &ListHandler{}
 		h.TxContext = db.NewMockTxContext()
-		authContext := authtest.NewMockContext().
-			UseUser("user-id-1", "principal-id-1")
-		h.AuthContext = authContext
 		sessionProvider := session.NewMockProvider()
 		h.SessionProvider = sessionProvider
 
@@ -48,11 +46,11 @@ func TestListHandler(t *testing.T) {
 			CreatedAt:   now,
 			AccessedAt:  now,
 		}
-		sess := sessionProvider.Sessions["user-id-1-principal-id-1"]
-		authContext.UseSession(&sess)
 
 		Convey("should list sessions", func() {
-			resp, err := h.Handle()
+			r, _ := http.NewRequest("POST", "/", nil)
+			r = sessiontesting.WithSession(r, "user-id-1", "principal-id-1")
+			resp, err := h.Handle(r)
 			So(err, ShouldBeNil)
 			So(resp, ShouldResemble, ListResponse{
 				Sessions: []model.Session{

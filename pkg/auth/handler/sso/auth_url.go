@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -212,7 +213,6 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 type AuthURLHandler struct {
 	TxContext            db.TxContext              `dependency:"TxContext"`
 	Validator            *validation.Validator     `dependency:"Validator"`
-	AuthContext          coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz      `dependency:"RequireAuthz"`
 	ProviderFactory      *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
 	PasswordAuthProvider password.Provider         `dependency:"PasswordAuthProvider"`
@@ -274,9 +274,9 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		APIClientID:   apiClientID,
 		CodeChallenge: payload.CodeChallenge,
 	}
-	authInfo, _ := h.AuthContext.AuthInfo()
-	if authInfo != nil {
-		state.UserID = authInfo.ID
+	user := authn.GetUser(r.Context())
+	if user != nil {
+		state.UserID = user.ID
 	}
 
 	encodedState, err := h.SSOProvider.EncodeState(state)

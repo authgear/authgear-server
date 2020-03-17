@@ -9,8 +9,8 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	sessiontesting "github.com/skygeario/skygear-server/pkg/auth/dependency/session/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -33,9 +33,6 @@ func TestLinkHandler(t *testing.T) {
 			LinkRequestSchema,
 		)
 		sh.Validator = validator
-		sh.AuthContext = authtest.NewMockContext().
-			UseUser("faseng.cat.id", "faseng.cat.principal.id").
-			MarkVerified()
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret:                 stateJWTSecret,
 			ExternalAccessTokenFlowEnabled: true,
@@ -61,6 +58,7 @@ func TestLinkHandler(t *testing.T) {
 
 		Convey("should reject payload without access token", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{}`))
+			req = sessiontesting.WithSession(req, "faseng.cat.id", "faseng.cat.principal.id")
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
@@ -89,6 +87,7 @@ func TestLinkHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
                                "access_token": "token"
                        }`))
+			req = sessiontesting.WithSession(req, "faseng.cat.id", "faseng.cat.principal.id")
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)

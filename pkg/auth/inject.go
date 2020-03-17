@@ -22,7 +22,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -98,10 +97,6 @@ func (m DependencyMap) Provide(
 
 	newTimeProvider := func() time.Provider {
 		return time.NewProvider()
-	}
-
-	newAuthContext := func() coreAuth.ContextGetter {
-		return coreAuth.NewContextGetterWithContext(ctx)
 	}
 
 	newPasswordStore := func() password.Store {
@@ -181,10 +176,10 @@ func (m DependencyMap) Provide(
 	newHookProvider := func() hook.Provider {
 		return inject.Scoped(ctx, "HookProvider", func() interface{} {
 			return hook.NewProvider(
+				ctx,
 				requestID,
 				urlprefix.NewProvider(request),
 				hook.NewStore(newSQLBuilder(), newSQLExecutor()),
-				newAuthContext(),
 				db.NewTxContextWithContext(ctx, tConfig),
 				newTimeProvider(),
 				newAuthInfoStore(),
@@ -287,10 +282,6 @@ func (m DependencyMap) Provide(
 	}
 
 	switch dependencyName {
-	case "AuthContextGetter":
-		return newAuthContext()
-	case "AuthContextSetter":
-		return coreAuth.NewContextSetterWithContext(ctx)
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
 	case "LoggerFactory":

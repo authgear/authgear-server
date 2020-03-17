@@ -6,9 +6,9 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -95,11 +95,10 @@ const GetResponseSchema = `
 			@JSONSchema {SessionGetResponse}
 */
 type GetHandler struct {
-	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	Validator       *validation.Validator  `dependency:"Validator"`
-	RequireAuthz    handler.RequireAuthz   `dependency:"RequireAuthz"`
-	TxContext       db.TxContext           `dependency:"TxContext"`
-	SessionProvider session.Provider       `dependency:"SessionProvider"`
+	Validator       *validation.Validator `dependency:"Validator"`
+	RequireAuthz    handler.RequireAuthz  `dependency:"RequireAuthz"`
+	TxContext       db.TxContext          `dependency:"TxContext"`
+	SessionProvider session.Provider      `dependency:"SessionProvider"`
 }
 
 func (h GetHandler) ProvideAuthzPolicy() authz.Policy {
@@ -112,7 +111,7 @@ func (h GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := handler.BindJSONBody(r, w, h.Validator, "#SessionGetRequest", &payload); err != nil {
 		response.Error = err
 	} else {
-		result, err := h.Handle(payload)
+		result, err := h.Handle(r, payload)
 		if err != nil {
 			response.Error = err
 		} else {
@@ -122,9 +121,9 @@ func (h GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler.WriteResponse(w, response)
 }
 
-func (h GetHandler) Handle(payload GetRequestPayload) (resp interface{}, err error) {
+func (h GetHandler) Handle(r *http.Request, payload GetRequestPayload) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo, _ := h.AuthContext.AuthInfo()
+		authInfo := authn.GetUser(r.Context())
 		userID := authInfo.ID
 		sessionID := payload.SessionID
 

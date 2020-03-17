@@ -7,6 +7,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -92,7 +93,6 @@ const ChangePasswordRequestSchema = `
 */
 type ChangePasswordHandler struct {
 	Validator            *validation.Validator      `dependency:"Validator"`
-	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
@@ -130,8 +130,8 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		authinfo, _ := h.AuthContext.AuthInfo()
-		sess, _ := h.AuthContext.Session()
+		authinfo := authn.GetUser(r.Context())
+		sess := authn.GetSession(r.Context())
 
 		if err := h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
 			PlainPassword: payload.NewPassword,
@@ -151,7 +151,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 
 		principal := principals[0]
 		for _, p := range principals {
-			if p.ID == sess.PrincipalID {
+			if p.ID == sess.SessionAttrs().PrincipalID {
 				principal = p
 			}
 			err = p.VerifyPassword(payload.OldPassword)
@@ -165,11 +165,14 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 		}
 
 		// refresh session
-		accessToken, err := h.SessionProvider.Refresh(sess)
-		if err != nil {
-			return err
-		}
-		tokens := coreAuth.SessionTokens{ID: sess.ID, AccessToken: accessToken}
+		// TODO(authn): use OIDC grants
+		/*
+			accessToken, err := h.SessionProvider.Refresh(sess)
+			if err != nil {
+				return err
+			}
+		*/
+		tokens := coreAuth.SessionTokens{ID: ""}
 
 		// Get Profile
 		userProfile, err := h.UserProfileStore.GetUserProfile(authinfo.ID)

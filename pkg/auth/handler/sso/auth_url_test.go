@@ -11,12 +11,12 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	sessiontesting "github.com/skygeario/skygear-server/pkg/auth/dependency/session/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -40,9 +40,6 @@ func TestAuthURLHandler(t *testing.T) {
 				"refresh_token_lifetime": 86400.0,
 			},
 		}
-		h.AuthContext = authtest.NewMockContext().
-			UseUser("faseng.cat.id", "faseng.cat.principal.id").
-			MarkVerified()
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: "secret",
 		}
@@ -81,6 +78,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"ux_mode": "web_redirect"
 			}
 			`))
+			req = sessiontesting.WithSession(req, "faseng.cat.id", "faseng.cat.principal.id")
 			req.Header.Set("Content-Type", "application/json")
 			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
@@ -122,6 +120,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"ux_mode": "web_redirect"
 			}
 			`))
+			req = sessiontesting.WithSession(req, "faseng.cat.id", "faseng.cat.principal.id")
 			req.Header.Set("Content-Type", "application/json")
 			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
@@ -154,6 +153,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"merge_realm": "nonsense"
 			}
 			`))
+			req = sessiontesting.WithSession(req, "faseng.cat.id", "faseng.cat.principal.id")
 			req.Header.Set("Content-Type", "application/json")
 			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
@@ -184,6 +184,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"ux_mode": "web_popup"
 			}
 			`))
+			req = sessiontesting.WithSession(req, "faseng.cat.id", "faseng.cat.principal.id")
 			req.Header.Set("Content-Type", "application/json")
 			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
@@ -221,6 +222,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"on_user_duplicate": "merge"
 			}
 			`))
+			req = sessiontesting.WithSession(req, "faseng.cat.id", "faseng.cat.principal.id")
 			req.Header.Set("Content-Type", "application/json")
 			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()

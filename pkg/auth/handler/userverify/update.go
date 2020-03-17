@@ -12,7 +12,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -83,15 +82,14 @@ const UpdateVerifyStateRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type UpdateHandler struct {
-	Validator                *validation.Validator  `dependency:"Validator"`
-	AuthContext              coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	RequireAuthz             handler.RequireAuthz   `dependency:"RequireAuthz"`
-	AuthInfoStore            authinfo.Store         `dependency:"AuthInfoStore"`
-	UserProfileStore         userprofile.Store      `dependency:"UserProfileStore"`
-	PasswordAuthProvider     password.Provider      `dependency:"PasswordAuthProvider"`
-	UserVerificationProvider userverify.Provider    `dependency:"UserVerificationProvider"`
-	HookProvider             hook.Provider          `dependency:"HookProvider"`
-	TxContext                db.TxContext           `dependency:"TxContext"`
+	Validator                *validation.Validator `dependency:"Validator"`
+	RequireAuthz             handler.RequireAuthz  `dependency:"RequireAuthz"`
+	AuthInfoStore            authinfo.Store        `dependency:"AuthInfoStore"`
+	UserProfileStore         userprofile.Store     `dependency:"UserProfileStore"`
+	PasswordAuthProvider     password.Provider     `dependency:"PasswordAuthProvider"`
+	UserVerificationProvider userverify.Provider   `dependency:"UserVerificationProvider"`
+	HookProvider             hook.Provider         `dependency:"HookProvider"`
+	TxContext                db.TxContext          `dependency:"TxContext"`
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler

@@ -1,18 +1,17 @@
 package hook
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	gotime "time"
 
 	"github.com/sirupsen/logrus"
 
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -25,7 +24,7 @@ type providerImpl struct {
 	RequestID               string
 	BaseURL                 *url.URL
 	Store                   Store
-	AuthContext             auth.ContextGetter
+	Context                 context.Context
 	TxContext               db.TxContext
 	TimeProvider            time.Provider
 	AuthInfoStore           authinfo.Store
@@ -38,10 +37,10 @@ type providerImpl struct {
 }
 
 func NewProvider(
+	ctx context.Context,
 	requestID string,
 	urlprefix urlprefix.Provider,
 	store Store,
-	authContext auth.ContextGetter,
 	txContext db.TxContext,
 	timeProvider time.Provider,
 	authInfoStore authinfo.Store,
@@ -50,10 +49,10 @@ func NewProvider(
 	loggerFactory logging.Factory,
 ) Provider {
 	return &providerImpl{
+		Context:          ctx,
 		RequestID:        requestID,
 		BaseURL:          urlprefix.Value(),
 		Store:            store,
-		AuthContext:      authContext,
 		TxContext:        txContext,
 		TimeProvider:     timeProvider,
 		AuthInfoStore:    authInfoStore,
@@ -210,18 +209,19 @@ func (provider *providerImpl) makeContext() event.Context {
 		requestID = &provider.RequestID
 	}
 
-	authInfo, _ := provider.AuthContext.AuthInfo()
-	sess, _ := provider.AuthContext.Session()
+	// TODO(authn): fix authn & hook deps
+	/*authInfo := authn.GetUser(provider.Context)
+	sess := authn.GetSession(provider.Context)
 	if authInfo == nil {
 		userID = nil
 		principalID = nil
 		session = nil
 	} else {
 		userID = &authInfo.ID
-		principalID = &sess.PrincipalID
+		principalID = &sess.SessionAttrs().PrincipalID
 		s := authSession.Format(sess)
 		session = &s
-	}
+	}*/
 
 	return event.Context{
 		Timestamp:   provider.TimeProvider.NowUTC().Unix(),

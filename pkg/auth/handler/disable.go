@@ -11,7 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -116,13 +115,12 @@ const SetDisableRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type SetDisableHandler struct {
-	Validator        *validation.Validator  `dependency:"Validator"`
-	AuthContext      coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	RequireAuthz     handler.RequireAuthz   `dependency:"RequireAuthz"`
-	AuthInfoStore    authinfo.Store         `dependency:"AuthInfoStore"`
-	UserProfileStore userprofile.Store      `dependency:"UserProfileStore"`
-	HookProvider     hook.Provider          `dependency:"HookProvider"`
-	TxContext        db.TxContext           `dependency:"TxContext"`
+	Validator        *validation.Validator `dependency:"Validator"`
+	RequireAuthz     handler.RequireAuthz  `dependency:"RequireAuthz"`
+	AuthInfoStore    authinfo.Store        `dependency:"AuthInfoStore"`
+	UserProfileStore userprofile.Store     `dependency:"UserProfileStore"`
+	HookProvider     hook.Provider         `dependency:"HookProvider"`
+	TxContext        db.TxContext          `dependency:"TxContext"`
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler

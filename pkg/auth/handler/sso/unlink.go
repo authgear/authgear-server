@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	authprincipal "github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -65,7 +65,6 @@ func (f UnlinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 */
 type UnlinkHandler struct {
 	TxContext         db.TxContext                   `dependency:"TxContext"`
-	AuthContext       coreAuth.ContextGetter         `dependency:"AuthContextGetter"`
 	RequireAuthz      handler.RequireAuthz           `dependency:"RequireAuthz"`
 	SessionProvider   session.Provider               `dependency:"SessionProvider"`
 	OAuthAuthProvider oauth.Provider                 `dependency:"OAuthAuthProvider"`
@@ -86,7 +85,7 @@ func (h UnlinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := handler.DecodeJSONBody(r, w, &payload); err != nil {
 		response.Error = err
 	} else {
-		result, err := h.Handle()
+		result, err := h.Handle(r)
 		if err != nil {
 			response.Error = err
 		} else {
@@ -96,15 +95,15 @@ func (h UnlinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler.WriteResponse(w, response)
 }
 
-func (h UnlinkHandler) Handle() (resp interface{}, err error) {
+func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() error {
 		providerConfig, ok := h.ProviderFactory.GetOAuthProviderConfig(h.ProviderID)
 		if !ok {
 			return skyerr.NewNotFound("unknown SSO provider")
 		}
 
-		authInfo, _ := h.AuthContext.AuthInfo()
-		sess, _ := h.AuthContext.Session()
+		authInfo := authn.GetUser(r.Context())
+		sess := authn.GetSession(r.Context())
 		userID := authInfo.ID
 		principal, err := h.OAuthAuthProvider.GetPrincipalByUser(oauth.GetByUserOptions{
 			ProviderType: string(providerConfig.Type),
@@ -116,7 +115,7 @@ func (h UnlinkHandler) Handle() (resp interface{}, err error) {
 		}
 
 		// principalID can be missing
-		principalID := sess.PrincipalID
+		principalID := sess.SessionAttrs().PrincipalID
 		if principalID != "" && principalID == principal.ID {
 			err = authprincipal.ErrCurrentIdentityBeingDeleted
 			return err

@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -14,7 +15,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -93,7 +93,6 @@ const AddLoginIDRequestSchema = `
 */
 type AddLoginIDHandler struct {
 	Validator                *validation.Validator      `dependency:"Validator"`
-	AuthContext              coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	RequireAuthz             handler.RequireAuthz       `dependency:"RequireAuthz"`
 	AuthInfoStore            authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider     password.Provider          `dependency:"PasswordAuthProvider"`
@@ -124,7 +123,7 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	err := db.WithTx(h.TxContext, func() error {
-		authInfo, _ := h.AuthContext.AuthInfo()
+		authInfo := authn.GetUser(r.Context())
 		userID := authInfo.ID
 
 		principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(userID)

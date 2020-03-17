@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -99,7 +100,6 @@ func (p *UpdateMetadataRequestPayload) Validate() []validation.ErrorCause {
 		@Callback user_sync {UserSyncEvent}
 */
 type UpdateMetadataHandler struct {
-	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	Validator            *validation.Validator      `dependency:"Validator"`
 	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
@@ -140,7 +140,7 @@ func (h UpdateMetadataHandler) Handle(resp http.ResponseWriter, req *http.Reques
 				err = skyerr.NewForbidden("must not specify user_id")
 				return err
 			}
-			authInfo, _ := h.AuthContext.AuthInfo()
+			authInfo := authn.GetUser(req.Context())
 			targetUserID = authInfo.ID
 		}
 

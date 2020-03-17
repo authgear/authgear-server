@@ -9,7 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -84,7 +83,6 @@ type LinkAuthnProvider interface {
 type LinkHandler struct {
 	TxContext     db.TxContext
 	Validator     *validation.Validator
-	AuthContext   coreAuth.ContextGetter
 	SSOProvider   sso.Provider
 	AuthnProvider LinkAuthnProvider
 	OAuthProvider sso.OAuthProvider
@@ -121,8 +119,7 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (authn.Resul
 
 	var result authn.Result
 	err := db.WithTx(h.TxContext, func() error {
-		authInfo, _ := h.AuthContext.AuthInfo()
-		userID := authInfo.ID
+		userID := authn.GetUser(r.Context()).ID
 
 		linkState := sso.LinkState{
 			UserID: userID,
