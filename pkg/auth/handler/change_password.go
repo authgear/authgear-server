@@ -15,7 +15,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	task "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -116,7 +115,6 @@ func (h ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	result, err := h.Handle(w, r)
 	if err == nil {
-		h.SessionWriter.WriteSession(w, &result.AccessToken, nil)
 		handler.WriteResponse(w, handler.APIResponse{Result: result})
 	} else {
 		handler.WriteResponse(w, handler.APIResponse{Error: err})
@@ -164,16 +162,6 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 			}
 		}
 
-		// refresh session
-		// TODO(authn): use OIDC grants
-		/*
-			accessToken, err := h.SessionProvider.Refresh(sess)
-			if err != nil {
-				return err
-			}
-		*/
-		tokens := coreAuth.SessionTokens{ID: ""}
-
 		// Get Profile
 		userProfile, err := h.UserProfileStore.GetUserProfile(authinfo.ID)
 		if err != nil {
@@ -194,7 +182,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 			return err
 		}
 
-		resp = model.NewAuthResponse(user, identity, tokens, "")
+		resp = model.NewAuthResponseWithUserIdentity(user, identity)
 
 		// password house keeper
 		h.TaskQueue.Enqueue(async.TaskSpec{
