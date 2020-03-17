@@ -1,7 +1,6 @@
 package sso
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -35,6 +34,8 @@ type AuthResultAuthnProvider interface {
 		session *session.Session,
 		code *sso.SkygearAuthorizationCode,
 	) (authn.Result, error)
+
+	WriteResult(rw http.ResponseWriter, result authn.Result)
 }
 
 type AuthResultHandler struct {
@@ -88,8 +89,7 @@ func (h *AuthResultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO(authn): write response
-	fmt.Printf("%#v\n", result)
+	h.AuthnProvider.WriteResult(w, result)
 }
 
 func (h *AuthResultHandler) Handle(r *http.Request, payload *AuthResultPayload) (authn.Result, error) {

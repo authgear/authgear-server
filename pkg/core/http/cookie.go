@@ -2,7 +2,48 @@ package http
 
 import (
 	"net/http"
+	"time"
 )
+
+type CookieConfiguration struct {
+	Name   string
+	Path   string
+	Domain string
+	Secure bool
+	MaxAge *int
+}
+
+func (c *CookieConfiguration) WriteTo(rw http.ResponseWriter, value string) {
+	cookie := &http.Cookie{
+		Name:     c.Name,
+		Path:     c.Path,
+		Domain:   c.Domain,
+		HttpOnly: true,
+		Secure:   c.Secure,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	cookie.Value = c.Name
+	if c.MaxAge != nil {
+		cookie.MaxAge = *c.MaxAge
+	}
+
+	UpdateCookie(rw, cookie)
+}
+
+func (c *CookieConfiguration) Clear(rw http.ResponseWriter) {
+	cookie := &http.Cookie{
+		Name:     c.Name,
+		Path:     c.Path,
+		Domain:   c.Domain,
+		HttpOnly: true,
+		Secure:   c.Secure,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Unix(0, 0),
+	}
+
+	UpdateCookie(rw, cookie)
+}
 
 // Cookie names
 const (

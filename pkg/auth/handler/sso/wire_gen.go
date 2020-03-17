@@ -82,11 +82,17 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, timeProvider, authinfoStore, userprofileStore, identityProvider, hookProvider)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
+	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
 	authnProvider := &authn.Provider{
-		OAuth:   oAuthCoordinator,
-		Authn:   authenticateProcess,
-		Signup:  signupProcess,
-		Session: authnSessionProvider,
+		OAuth:                   oAuthCoordinator,
+		Authn:                   authenticateProcess,
+		Signup:                  signupProcess,
+		Session:                 authnSessionProvider,
+		SessionCookieConfig:     cookieConfiguration,
+		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, provider, timeProvider, loginIDNormalizerFactory)
@@ -137,11 +143,17 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
+	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
 	authnProvider := &authn.Provider{
-		OAuth:   oAuthCoordinator,
-		Authn:   authenticateProcess,
-		Signup:  signupProcess,
-		Session: authnSessionProvider,
+		OAuth:                   oAuthCoordinator,
+		Authn:                   authenticateProcess,
+		Signup:                  signupProcess,
+		Session:                 authnSessionProvider,
+		SessionCookieConfig:     cookieConfiguration,
+		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	validator := auth.ProvideValidator(m)
 	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
@@ -193,11 +205,17 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, timeProvider, authinfoStore, userprofileStore, identityProvider, hookProvider)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
+	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
 	authnProvider := &authn.Provider{
-		OAuth:   oAuthCoordinator,
-		Authn:   authenticateProcess,
-		Signup:  signupProcess,
-		Session: authnSessionProvider,
+		OAuth:                   oAuthCoordinator,
+		Authn:                   authenticateProcess,
+		Signup:                  signupProcess,
+		Session:                 authnSessionProvider,
+		SessionCookieConfig:     cookieConfiguration,
+		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory)
@@ -250,11 +268,17 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, timeProvider, authinfoStore, userprofileStore, identityProvider, hookProvider)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
+	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
 	authnProvider := &authn.Provider{
-		OAuth:   oAuthCoordinator,
-		Authn:   authenticateProcess,
-		Signup:  signupProcess,
-		Session: authnSessionProvider,
+		OAuth:                   oAuthCoordinator,
+		Authn:                   authenticateProcess,
+		Signup:                  signupProcess,
+		Session:                 authnSessionProvider,
+		SessionCookieConfig:     cookieConfiguration,
+		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory)

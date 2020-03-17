@@ -32,9 +32,11 @@ func (r *mockResolver) Access(s *Session) error {
 func TestMiddleware(t *testing.T) {
 	Convey("Middleware", t, func() {
 		config := CookieConfiguration{
+			Name:   CookieName,
+			Path:   "/",
+			Domain: "app.test",
 			Secure: true,
 			MaxAge: nil,
-			Domain: "app.test",
 		}
 		resolver := &mockResolver{}
 		userStore := authinfo.NewMockStore()

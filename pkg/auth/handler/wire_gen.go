@@ -79,11 +79,17 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
+	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
 	authnProvider := &authn.Provider{
-		OAuth:   oAuthCoordinator,
-		Authn:   authenticateProcess,
-		Signup:  signupProcess,
-		Session: authnSessionProvider,
+		OAuth:                   oAuthCoordinator,
+		Authn:                   authenticateProcess,
+		Signup:                  signupProcess,
+		Session:                 authnSessionProvider,
+		SessionCookieConfig:     cookieConfiguration,
+		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	httpHandler := provideLoginHandler(requireAuthz, validator, authnProvider, txContext)
 	return httpHandler
@@ -132,11 +138,17 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
+	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
 	authnProvider := &authn.Provider{
-		OAuth:   oAuthCoordinator,
-		Authn:   authenticateProcess,
-		Signup:  signupProcess,
-		Session: authnSessionProvider,
+		OAuth:                   oAuthCoordinator,
+		Authn:                   authenticateProcess,
+		Signup:                  signupProcess,
+		Session:                 authnSessionProvider,
+		SessionCookieConfig:     cookieConfiguration,
+		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	httpHandler := provideSignupHandler(requireAuthz, validator, authnProvider, txContext)
 	return httpHandler

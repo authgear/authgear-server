@@ -37,6 +37,10 @@ func (p *MockLoginAuthnProvider) OAuthExchangeCode(
 	panic("not mocked")
 }
 
+func (p *MockLoginAuthnProvider) WriteResult(http.ResponseWriter, authn.Result) {
+	panic("not mocked")
+}
+
 func TestLoginHandler(t *testing.T) {
 	Convey("Test LoginHandler", t, func() {
 		stateJWTSecret := "secret"

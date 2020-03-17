@@ -32,7 +32,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 		s, u, err := m.resolve(cookie.Value)
 
 		if errors.Is(err, ErrSessionNotFound) {
-			ClearCookie(rw, m.CookieConfiguration)
+			m.CookieConfiguration.Clear(rw)
 		} else if err != nil {
 			panic(err)
 		}

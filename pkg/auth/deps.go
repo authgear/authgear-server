@@ -63,8 +63,12 @@ func ProvideTenantConfig(ctx context.Context) *config.TenantConfiguration {
 	return config.GetTenantConfig(ctx)
 }
 
-func ProvideInsecureCookieConfig(m DependencyMap) session.InsecureCookieConfig {
+func ProvideSessionInsecureCookieConfig(m DependencyMap) session.InsecureCookieConfig {
 	return session.InsecureCookieConfig(m.UseInsecureCookie)
+}
+
+func ProvideMFAInsecureCookieConfig(m DependencyMap) mfa.InsecureCookieConfig {
+	return mfa.InsecureCookieConfig(m.UseInsecureCookie)
 }
 
 func ProvideValidator(m DependencyMap) *validation.Validator {
@@ -102,7 +106,8 @@ func ProvidePrincipalProviders(oauth oauth.Provider, password password.Provider)
 var DependencySet = wire.NewSet(
 	ProvideContext,
 	ProvideTenantConfig,
-	ProvideInsecureCookieConfig,
+	ProvideSessionInsecureCookieConfig,
+	ProvideMFAInsecureCookieConfig,
 	ProvideValidator,
 	ProvideReservedNameChecker,
 	ProvideTaskExecutor,

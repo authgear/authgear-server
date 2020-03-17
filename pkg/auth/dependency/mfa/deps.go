@@ -1,6 +1,8 @@
 package mfa
 
 import (
+	"net/http"
+
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -8,6 +10,16 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
+
+type InsecureCookieConfig bool
+
+func ProvideBearerTokenCookieConfiguration(
+	r *http.Request,
+	icc InsecureCookieConfig,
+	c *config.TenantConfiguration,
+) BearerTokenCookieConfiguration {
+	return NewBearerTokenCookieConfiguration(r, bool(icc), *c.AppConfig.Session, *c.AppConfig.MFA)
+}
 
 func ProvideMFASender(
 	tConfig *config.TenantConfiguration,
@@ -22,4 +34,8 @@ func ProvideMFAProvider(store Store, config *config.TenantConfiguration, timePro
 	return NewProvider(store, config.AppConfig.MFA, timeProvider, sender)
 }
 
-var DependencySet = wire.NewSet(ProvideMFASender, ProvideMFAProvider)
+var DependencySet = wire.NewSet(
+	ProvideBearerTokenCookieConfiguration,
+	ProvideMFASender,
+	ProvideMFAProvider,
+)

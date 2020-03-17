@@ -1,19 +1,25 @@
 package authn
 
 import (
+	"net/http"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
 
 type Provider struct {
-	OAuth   *OAuthCoordinator
-	Authn   *AuthenticateProcess
-	Signup  *SignupProcess
-	Session *SessionProvider
+	OAuth                   *OAuthCoordinator
+	Authn                   *AuthenticateProcess
+	Signup                  *SignupProcess
+	Session                 *SessionProvider
+	SessionCookieConfig     session.CookieConfiguration
+	BearerTokenCookieConfig mfa.BearerTokenCookieConfiguration
 }
 
 func (p *Provider) SignupWithLoginIDs(
@@ -95,4 +101,33 @@ func (p *Provider) OAuthExchangeCode(
 	}
 
 	return p.Session.StepSession(as)
+}
+
+func (p *Provider) WriteResult(rw http.ResponseWriter, result Result) {
+	r, err := result.result()
+	if err == nil {
+		useCookie := r.Client == nil || r.Client.AuthAPIUseCookie()
+		resp := model.AuthResponse{
+			User:     *r.User,
+			Identity: r.Principal,
+		}
+
+		if r.Session != nil {
+			resp.SessionID = r.Session.ID
+		}
+		if r.SessionToken != "" && useCookie {
+			p.SessionCookieConfig.WriteTo(rw, r.SessionToken)
+		}
+		if r.MFABearerToken != "" {
+			if useCookie {
+				p.BearerTokenCookieConfig.WriteTo(rw, r.MFABearerToken)
+			} else {
+				resp.MFABearerToken = r.MFABearerToken
+			}
+		}
+
+		handler.WriteResponse(rw, handler.APIResponse{Result: resp})
+	} else {
+		handler.WriteResponse(rw, handler.APIResponse{Error: err})
+	}
 }
