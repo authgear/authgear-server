@@ -25,6 +25,20 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
+func principalsToUserIDs(principals []principal.Principal) []string {
+	seen := map[string]struct{}{}
+	var userIDs []string
+	for _, p := range principals {
+		userID := p.PrincipalUserID()
+		_, ok := seen[userID]
+		if !ok {
+			seen[userID] = struct{}{}
+			userIDs = append(userIDs, userID)
+		}
+	}
+	return userIDs
+}
+
 // SignupProcess handle user creation: create principals (and user if needed) according to provided information
 type SignupProcess struct {
 	PasswordChecker               *audit.PasswordChecker

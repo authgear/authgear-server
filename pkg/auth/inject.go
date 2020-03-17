@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
@@ -286,25 +285,6 @@ func (m DependencyMap) Provide(
 		}
 	}
 
-	newAuthnProvider := func() *authn.ProviderImpl {
-		return &authn.ProviderImpl{
-			Logger:                        newLoggerFactory().NewLogger("authnprovider"),
-			PasswordChecker:               newPasswordChecker(),
-			LoginIDChecker:                newLoginIDChecker(),
-			IdentityProvider:              newIdentityProvider(),
-			TimeProvider:                  newTimeProvider(),
-			AuthInfoStore:                 newAuthInfoStore(),
-			UserProfileStore:              newUserProfileStore(),
-			PasswordProvider:              newPasswordAuthProvider(),
-			OAuthProvider:                 newOAuthAuthProvider(),
-			HookProvider:                  newHookProvider(),
-			WelcomeEmailConfiguration:     tConfig.AppConfig.WelcomeEmail,
-			UserVerificationConfiguration: tConfig.AppConfig.UserVerification,
-			AuthConfiguration:             tConfig.AppConfig.Auth,
-			URLPrefixProvider:             urlprefix.NewProvider(request),
-		}
-	}
-
 	switch dependencyName {
 	case "AuthContextGetter":
 		return newAuthContext()
@@ -417,12 +397,6 @@ func (m DependencyMap) Provide(
 		return newTemplateEngine()
 	case "TimeProvider":
 		return newTimeProvider()
-	case "AuthnSignupProvider":
-		return newAuthnProvider()
-	case "AuthnLoginProvider":
-		return newAuthnProvider()
-	case "AuthnOAuthProvider":
-		return newAuthnProvider()
 	default:
 		return nil
 	}
