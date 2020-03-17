@@ -23,7 +23,7 @@ func (c *CookieConfiguration) WriteTo(rw http.ResponseWriter, value string) {
 		SameSite: http.SameSiteLaxMode,
 	}
 
-	cookie.Value = c.Name
+	cookie.Value = value
 	if c.MaxAge != nil {
 		cookie.MaxAge = *c.MaxAge
 	}
