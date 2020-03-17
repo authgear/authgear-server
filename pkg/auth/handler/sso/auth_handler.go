@@ -10,17 +10,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/model"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 )
 
 func AttachAuthHandler(
@@ -29,23 +25,8 @@ func AttachAuthHandler(
 ) {
 	router.NewRoute().
 		Path("/sso/{provider}/auth_handler").
-		Handler(server.FactoryToHandler(&AuthHandlerFactory{
-			Dependency: authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newAuthHandler)).
 		Methods("OPTIONS", "GET", "POST")
-}
-
-type AuthHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f AuthHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &AuthHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	vars := mux.Vars(request)
-	h.ProviderID = vars["provider"]
-	h.OAuthProvider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
-	return h
 }
 
 type AuthRequestPayload sso.OAuthAuthorizationResponse
@@ -79,18 +60,12 @@ type AuthHandlerAuthnProvider interface {
 
 // AuthHandler decodes code response and fetch access token from provider.
 type AuthHandler struct {
-	TxContext               db.TxContext                `dependency:"TxContext"`
-	AuthContext             coreAuth.ContextGetter      `dependency:"AuthContextGetter"`
-	AuthContextSetter       coreAuth.ContextSetter      `dependency:"AuthContextSetter"`
-	TenantConfiguration     *config.TenantConfiguration `dependency:"TenantConfiguration"`
-	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
-	ProviderFactory         *sso.OAuthProviderFactory   `dependency:"SSOOAuthProviderFactory"`
-	HookProvider            hook.Provider               `dependency:"HookProvider"`
-	TaskQueue               async.Queue                 `dependency:"AsyncTaskQueue"`
-	SSOProvider             sso.Provider                `dependency:"SSOProvider"`
-	AuthnProvider           AuthHandlerAuthnProvider    `dependency:"AuthnProvider"`
+	TxContext               db.TxContext
+	TenantConfiguration     *config.TenantConfiguration
+	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider
+	SSOProvider             sso.Provider
+	AuthnProvider           AuthHandlerAuthnProvider
 	OAuthProvider           sso.OAuthProvider
-	ProviderID              string
 }
 
 func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {

@@ -17,8 +17,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -29,23 +27,8 @@ func AttachLinkHandler(
 ) {
 	router.NewRoute().
 		Path("/sso/{provider}/link").
-		Handler(server.FactoryToHandler(&LinkHandlerFactory{
-			Dependency: authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newLinkHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type LinkHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f LinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &LinkHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	vars := mux.Vars(request)
-	h.ProviderID = vars["provider"]
-	h.OAuthProvider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
-	return h.RequireAuthz(h, h)
 }
 
 // LinkRequestPayload login handler request payload
@@ -67,10 +50,15 @@ const LinkRequestSchema = `
 
 type LinkAuthnProvider interface {
 	OAuthLink(
+		authInfo sso.AuthInfo,
+		codeChallenge string,
+		linkState sso.LinkState,
+	) (*sso.SkygearAuthorizationCode, error)
+
+	OAuthExchangeCode(
 		client config.OAuthClientConfiguration,
 		session *session.Session,
-		authInfo sso.AuthInfo,
-		linkState sso.LinkState,
+		code *sso.SkygearAuthorizationCode,
 	) (authn.Result, error)
 }
 
@@ -93,15 +81,12 @@ type LinkAuthnProvider interface {
 		@Callback user_sync {UserSyncEvent}
 */
 type LinkHandler struct {
-	TxContext       db.TxContext              `dependency:"TxContext"`
-	Validator       *validation.Validator     `dependency:"Validator"`
-	AuthContext     coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
-	RequireAuthz    handler.RequireAuthz      `dependency:"RequireAuthz"`
-	ProviderFactory *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
-	SSOProvider     sso.Provider              `dependency:"SSOProvider"`
-	AuthnProvider   LinkAuthnProvider         `dependency:"AuthnProvider"`
-	OAuthProvider   sso.OAuthProvider
-	ProviderID      string
+	TxContext     db.TxContext
+	Validator     *validation.Validator
+	AuthContext   coreAuth.ContextGetter
+	SSOProvider   sso.Provider
+	AuthnProvider LinkAuthnProvider
+	OAuthProvider sso.OAuthProvider
 }
 
 func (h LinkHandler) ProvideAuthzPolicy() authz.Policy {
@@ -147,15 +132,20 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (authn.Resul
 			return err
 		}
 
-		result, err = h.AuthnProvider.OAuthLink(
+		code, err := h.AuthnProvider.OAuthLink(oauthAuthInfo, "", linkState)
+		if err != nil {
+			return err
+		}
+
+		result, err = h.AuthnProvider.OAuthExchangeCode(
 			coreauth.GetAccessKey(r.Context()).Client,
 			nil, // TODO(authn): pass session
-			oauthAuthInfo,
-			linkState,
+			code,
 		)
 		if err != nil {
 			return err
 		}
+
 		return nil
 	})
 	return result, err

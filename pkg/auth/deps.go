@@ -19,6 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	sessionredis "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/template"
@@ -132,6 +133,7 @@ var DependencySet = wire.NewSet(
 	principal.DependencySet,
 	oauth.DependencySet,
 	password.DependencySet,
+	sso.DependencySet,
 	urlprefix.DependencySet,
 	mfa.DependencySet,
 	mfapq.DependencySet,

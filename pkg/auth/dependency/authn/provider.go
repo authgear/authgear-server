@@ -5,6 +5,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -62,22 +63,11 @@ func (p *Provider) OAuthAuthenticate(
 }
 
 func (p *Provider) OAuthLink(
-	client config.OAuthClientConfiguration,
-	session *session.Session,
 	authInfo sso.AuthInfo,
+	codeChallenge string,
 	linkState sso.LinkState,
-) (Result, error) {
-	code, err := p.OAuth.Link(authInfo, "", linkState)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = p.OAuth.ExchangeCode(code)
-	if err != nil {
-		return nil, err
-	}
-
-	return p.Session.MakeResult(client, session, "")
+) (*sso.SkygearAuthorizationCode, error) {
+	return p.OAuth.Link(authInfo, codeChallenge, linkState)
 }
 
 func (p *Provider) OAuthExchangeCode(
@@ -91,6 +81,9 @@ func (p *Provider) OAuthExchangeCode(
 	}
 
 	if code.Action == "link" {
+		if s == nil {
+			return nil, authz.ErrNotAuthenticated
+		}
 		return p.Session.MakeResult(client, s, "")
 	}
 

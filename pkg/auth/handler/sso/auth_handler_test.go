@@ -8,10 +8,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
@@ -123,11 +121,6 @@ func TestAuthHandler(t *testing.T) {
 				Clients: []config.OAuthClientConfiguration{},
 			},
 		}
-		authContext := authtest.NewMockContext().
-			UseUser("faseng.cat.id", "faseng.cat.principal.id").
-			MarkVerified()
-		sh.AuthContext = authContext
-		sh.AuthContextSetter = authContext
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
 		}
@@ -155,8 +148,6 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
-		hookProvider := hook.NewMockProvider()
-		sh.HookProvider = hookProvider
 		authnOAuthProvider := &MockAuthnOAuthProvider{}
 		sh.AuthnProvider = authnOAuthProvider
 

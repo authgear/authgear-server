@@ -36,3 +36,26 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	)
 	return nil
 }
+
+func provideSignupHandler(
+	requireAuthz handler.RequireAuthz,
+	v *validation.Validator,
+	ap SignupAuthnProvider,
+	tx db.TxContext,
+) http.Handler {
+	h := &SignupHandler{
+		Validator:     v,
+		AuthnProvider: ap,
+		TxContext:     tx,
+	}
+	return requireAuthz(h, h)
+}
+
+func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	wire.Build(
+		auth.DependencySet,
+		wire.Bind(new(SignupAuthnProvider), new(*authn.Provider)),
+		provideSignupHandler,
+	)
+	return nil
+}

@@ -16,8 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -27,20 +25,8 @@ func AttachSignupHandler(
 ) {
 	router.NewRoute().
 		Path("/signup").
-		Handler(server.FactoryToHandler(&SignupHandlerFactory{
-			authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newSignupHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type SignupHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &SignupHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type SignupRequestPayload struct {
@@ -118,10 +104,10 @@ type SignupAuthnProvider interface {
 		@Callback user_sync {UserSyncEvent}
 */
 type SignupHandler struct {
-	RequireAuthz  handler.RequireAuthz  `dependency:"RequireAuthz"`
-	Validator     *validation.Validator `dependency:"Validator"`
-	AuthnProvider SignupAuthnProvider   `dependency:"AuthnProvider"`
-	TxContext     db.TxContext          `dependency:"TxContext"`
+	RequireAuthz  handler.RequireAuthz
+	Validator     *validation.Validator
+	AuthnProvider SignupAuthnProvider
+	TxContext     db.TxContext
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {

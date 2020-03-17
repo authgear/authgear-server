@@ -16,4 +16,16 @@ func ProvideLoginIDChecker(
 	)
 }
 
-var DependencySet = wire.NewSet(ProvideLoginIDChecker)
+func ProvideLoginIDNormalizerFactory(
+	config *config.TenantConfiguration,
+) LoginIDNormalizerFactory {
+	return NewLoginIDNormalizerFactory(
+		config.AppConfig.Auth.LoginIDKeys,
+		config.AppConfig.Auth.LoginIDTypes,
+	)
+}
+
+var DependencySet = wire.NewSet(
+	ProvideLoginIDChecker,
+	ProvideLoginIDNormalizerFactory,
+)

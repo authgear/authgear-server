@@ -16,8 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -27,20 +25,8 @@ func AttachAuthResultHandler(
 ) {
 	router.NewRoute().
 		Path("/sso/auth_result").
-		Handler(server.FactoryToHandler(&AuthResultHandlerFactory{
-			Dependency: authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newAuthResultHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type AuthResultHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f *AuthResultHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &AuthResultHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type AuthResultAuthnProvider interface {
@@ -52,11 +38,10 @@ type AuthResultAuthnProvider interface {
 }
 
 type AuthResultHandler struct {
-	TxContext     db.TxContext            `dependency:"TxContext"`
-	RequireAuthz  handler.RequireAuthz    `dependency:"RequireAuthz"`
-	AuthnProvider AuthResultAuthnProvider `dependency:"AuthnProvider"`
-	Validator     *validation.Validator   `dependency:"Validator"`
-	SSOProvider   sso.Provider            `dependency:"SSOProvider"`
+	TxContext     db.TxContext
+	AuthnProvider AuthResultAuthnProvider
+	Validator     *validation.Validator
+	SSOProvider   sso.Provider
 }
 
 func (h *AuthResultHandler) ProvideAuthzPolicy() authz.Policy {
