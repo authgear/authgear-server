@@ -16,7 +16,7 @@ func TestAuthnInfo(t *testing.T) {
 			rw := httptest.NewRecorder()
 
 			Convey("no auth", func() {
-				var i *authn.Info = nil
+				var i *authn.Info
 
 				i.PopulateHeaders(rw)
 				So(rw.Header(), ShouldResemble, http.Header{})
