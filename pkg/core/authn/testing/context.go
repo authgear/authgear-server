@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -40,14 +41,16 @@ func WithAuthn() Builder {
 }
 
 func (b Builder) ToRequest(r *http.Request) *http.Request {
-	return r.WithContext(
-		authn.WithAuthn(r.Context(),
-			&session{
-				ID:    b.sessionID,
-				Attrs: b.attrs,
-			},
-			b.user,
-		),
+	return r.WithContext(b.ToContext(r.Context()))
+}
+
+func (b Builder) ToContext(ctx context.Context) context.Context {
+	return authn.WithAuthn(ctx,
+		&session{
+			ID:    b.sessionID,
+			Attrs: b.attrs,
+		},
+		b.user,
 	)
 }
 
@@ -69,5 +72,15 @@ func (b Builder) SessionID(id string) Builder {
 
 func (b Builder) Disabled(disabled bool) Builder {
 	b.user.Disabled = disabled
+	return b
+}
+
+func (b Builder) Verified(verified bool) Builder {
+	b.user.Verified = verified
+	return b
+}
+
+func (b Builder) VerifyInfo(info map[string]bool) Builder {
+	b.user.VerifyInfo = info
 	return b
 }

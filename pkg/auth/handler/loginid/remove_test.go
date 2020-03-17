@@ -1,8 +1,5 @@
 package loginid
 
-// TODO(authn): use new session
-/*
-
 import (
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	authntesting "github.com/skygeario/skygear-server/pkg/core/authn/testing"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -23,7 +21,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -38,14 +35,17 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 		)
 		h.Validator = validator
 		h.TxContext = db.NewMockTxContext()
-		authContext := authtest.NewMockContext().
-			UseUser("user-id-1", "principal-id-1").
-			SetVerifyInfo(map[string]bool{"user1@example.com": true}).
-			MarkVerified()
-		h.AuthContext = authContext
+		authctx := authntesting.WithAuthn().
+			UserID("user-id-1").
+			PrincipalID("principal-id-1").
+			VerifyInfo(map[string]bool{"user1@example.com": true}).
+			Verified(true)
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
-				"user-id-1": *authContext.MustAuthInfo(),
+				"user-id-1": authinfo.AuthInfo{
+					ID:         "user-id-1",
+					VerifyInfo: map[string]bool{},
+				},
 			},
 		)
 		h.AuthInfoStore = authInfoStore
@@ -112,6 +112,7 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"key": "username", "value": "user"
 			}`))
+			r = authctx.ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
@@ -130,6 +131,7 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"key": "username", "value": "user2"
 			}`))
+			r = authctx.ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
@@ -148,6 +150,7 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"key": "email", "value": "user1@example.com"
 			}`))
+			r = authctx.ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
@@ -163,12 +166,11 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 		})
 
 		Convey("should remove login ID", func() {
-			authContext.UseUser("user-id-1", "principal-id-2").
-				SetVerifyInfo(map[string]bool{"user1@example.com": true}).
-				MarkVerified()
+			authctx = authctx.PrincipalID("principal-id-2")
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"key": "email", "value": "user1@example.com"
 			}`))
+			r = authctx.ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
@@ -209,12 +211,11 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 		})
 
 		Convey("should invalidate verify state", func() {
-			authContext.UseUser("user-id-1", "principal-id-2").
-				SetVerifyInfo(map[string]bool{"user1@example.com": true}).
-				MarkVerified()
+			authctx = authctx.PrincipalID("principal-id-2")
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"key": "email", "value": "user1@example.com"
 			}`))
+			r = authctx.ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
@@ -228,4 +229,3 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 		})
 	})
 }
-*/

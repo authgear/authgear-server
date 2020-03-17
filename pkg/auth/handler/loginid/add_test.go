@@ -1,7 +1,5 @@
 package loginid
 
-// TODO(authn): use new session
-/*
 import (
 	"net/http"
 	"net/http/httptest"
@@ -20,7 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
+	authntesting "github.com/skygeario/skygear-server/pkg/core/authn/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -43,14 +41,16 @@ func TestAddLoginIDHandler(t *testing.T) {
 		)
 		h.Validator = validator
 		h.TxContext = db.NewMockTxContext()
-		authContext := authtest.NewMockContext().
-			UseUser("user-id-1", "principal-id-1").
-			SetVerifyInfo(map[string]bool{"user1@example.com": true}).
-			MarkVerified()
-		h.AuthContext = authContext
+		authctx := authntesting.WithAuthn().
+			UserID("user-id-1").
+			VerifyInfo(map[string]bool{"user1@example.com": true}).
+			Verified(true)
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
-				"user-id-1": *authContext.MustAuthInfo(),
+				"user-id-1": authinfo.AuthInfo{
+					ID:         "user-id-1",
+					VerifyInfo: map[string]bool{},
+				},
 			},
 		)
 		h.AuthInfoStore = authInfoStore
@@ -101,6 +101,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 					{ "key": "id", "value": "user1" }
 				]
 			}`))
+			r = authctx.ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
@@ -126,6 +127,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 					{ "key": "username", "value": "user2" }
 				]
 			}`))
+			r = authctx.ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
@@ -146,6 +148,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 					{ "key": "email", "value": "user1+a@example.com" }
 				]
 			}`))
+			r = authctx.ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
@@ -177,6 +180,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 					{ "key": "username", "value": "user1b" }
 				]
 			}`))
+			r = authctx.ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
@@ -269,6 +273,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 					{ "key": "email", "value": "user1+a@example.com" }
 				]
 			}`))
+			r = authctx.ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
@@ -295,6 +300,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 					{ "key": "email", "value": "user1+a@example.com" }
 				]
 			}`))
+			r = authctx.ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
@@ -309,4 +315,3 @@ func TestAddLoginIDHandler(t *testing.T) {
 		})
 	})
 }
-*/

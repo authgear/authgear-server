@@ -26,6 +26,10 @@ type Session struct {
 	UserAgent        SessionUserAgent `json:"user_agent"`
 }
 
+type SessionModeler interface {
+	ToAPIModel() *Session
+}
+
 // SessionUserAgent is the API model of user agent of session
 type SessionUserAgent model.UserAgent
 

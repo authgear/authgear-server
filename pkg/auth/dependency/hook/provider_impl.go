@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -209,8 +210,7 @@ func (provider *providerImpl) makeContext() event.Context {
 		requestID = &provider.RequestID
 	}
 
-	// TODO(authn): fix authn & hook deps
-	/*authInfo := authn.GetUser(provider.Context)
+	authInfo := authn.GetUser(provider.Context)
 	sess := authn.GetSession(provider.Context)
 	if authInfo == nil {
 		userID = nil
@@ -219,9 +219,8 @@ func (provider *providerImpl) makeContext() event.Context {
 	} else {
 		userID = &authInfo.ID
 		principalID = &sess.AuthnAttrs().PrincipalID
-		s := authSession.Format(sess)
-		session = &s
-	}*/
+		session = sess.(model.SessionModeler).ToAPIModel()
+	}
 
 	return event.Context{
 		Timestamp:   provider.TimeProvider.NowUTC().Unix(),

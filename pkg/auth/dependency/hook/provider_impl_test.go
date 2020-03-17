@@ -1,12 +1,5 @@
 package hook
 
-func _() {
-	newMockDeliverer()
-	newMockStore()
-}
-
-// TODO(authn): use new session provider
-/*
 import (
 	"context"
 	"fmt"
@@ -14,12 +7,14 @@ import (
 	"testing"
 	gotime "time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -158,8 +153,19 @@ func TestDispatchEvent(t *testing.T) {
 			Convey("should include auth info", func() {
 				userID := "user-id"
 				principalID := "principal-id"
-				// TODO(authn): fix me
-				// authContext.UseUser(userID, principalID)
+				provider.Context = authn.WithAuthn(
+					context.Background(),
+					&session.Session{
+						ID: "user-id-principal-id",
+						Attrs: authn.Attrs{
+							UserID:      userID,
+							PrincipalID: principalID,
+						},
+					},
+					&authinfo.AuthInfo{
+						ID: userID,
+					},
+				)
 
 				err := provider.DispatchEvent(
 					payload,
@@ -325,4 +331,3 @@ func TestDispatchEvent(t *testing.T) {
 		})
 	})
 }
-*/
