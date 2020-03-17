@@ -103,11 +103,8 @@ func main() {
 		Validator:         validator,
 	}
 
-	serverOption := server.Option{
-		GearPathPrefix: "/_asset",
-	}
 	var rootRouter *mux.Router
-	var appRouter *mux.Router
+	var apiRouter *mux.Router
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
 		reader, err := os.Open(filename)
@@ -119,34 +116,39 @@ func main() {
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
-		rootRouter, appRouter = server.NewRouterWithOption(serverOption)
-		appRouter.Use(middleware.WriteTenantConfigMiddleware{
+		rootRouter = server.NewRouter()
+		rootRouter.Use(middleware.RequestIDMiddleware{}.Handle)
+		rootRouter.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (coreConfig.TenantConfiguration, error) {
 				return *tenantConfig, nil
 			}),
 		}.Handle)
-		appRouter.Use(middleware.RequestIDMiddleware{}.Handle)
-		appRouter.Use(middleware.CORSMiddleware{}.Handle)
+
+		apiRouter = rootRouter.PathPrefix("/_asset").Subrouter()
+		apiRouter.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		rootRouter, appRouter = server.NewRouterWithOption(serverOption)
-		appRouter.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
+		rootRouter = server.NewRouter()
+		rootRouter.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
+
+		apiRouter = rootRouter.PathPrefix("/_asset").Subrouter()
 	}
 
-	appRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
-	appRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
-	appRouter.Use(middleware.AuthMiddleware{}.Handle)
-	appRouter.Use(middleware.Injecter{
+	rootRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
+	rootRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
+
+	apiRouter.Use(middleware.AuthMiddleware{}.Handle)
+	apiRouter.Use(middleware.Injecter{
 		MiddlewareFactory: middleware.AuthnMiddlewareFactory{},
 		Dependency:        dependencyMap,
 	}.Handle)
 
-	handler.AttachPresignUploadHandler(appRouter, dependencyMap)
-	handler.AttachSignHandler(appRouter, dependencyMap)
-	handler.AttachGetHandler(appRouter, dependencyMap)
-	handler.AttachListHandler(appRouter, dependencyMap)
-	handler.AttachDeleteHandler(appRouter, dependencyMap)
-	handler.AttachUploadFormHandler(appRouter, dependencyMap)
-	handler.AttachPresignUploadFormHandler(appRouter, dependencyMap)
+	handler.AttachPresignUploadHandler(apiRouter, dependencyMap)
+	handler.AttachSignHandler(apiRouter, dependencyMap)
+	handler.AttachGetHandler(apiRouter, dependencyMap)
+	handler.AttachListHandler(apiRouter, dependencyMap)
+	handler.AttachDeleteHandler(apiRouter, dependencyMap)
+	handler.AttachUploadFormHandler(apiRouter, dependencyMap)
+	handler.AttachPresignUploadFormHandler(apiRouter, dependencyMap)
 
 	srv := &http.Server{
 		Addr:    configuration.ServerHost,
