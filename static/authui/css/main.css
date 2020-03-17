@@ -1,0 +1,257 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+html {
+  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.primary-txt {
+  color: #333333;
+}
+
+.secondary-txt {}
+
+.errors {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.error-txt {
+  color: #e30f0f;
+}
+
+.btn {
+  -webkit-appearance: none;
+  border: none;
+  font-size: 14px;
+}
+
+.input {
+  border: none;
+  border-radius: 0;
+  font-size: 14px;
+  border-bottom: solid 1px #a19f9d;
+  height: 32px;
+}
+
+.input:focus, .btn:focus {
+  outline: none;
+}
+
+.input:focus {
+  border-bottom: solid 1px #166bef;
+}
+
+.select {
+  -webkit-appearance: none;
+  background-color: white;
+  height: 32px;
+  border-bottom: solid 1px #a19f9d;
+  padding: 0 28px 0 8px;
+  background-image: url("../image/ic_select_arrow.png");
+  background-position: right 5px center;
+  background-size: 12px auto;
+  background-repeat: no-repeat;
+}
+
+.text-input {
+  padding: 0 8px;
+}
+
+.btn:hover {
+  cursor: pointer;
+}
+
+.primary-btn {
+  height: 32px;
+  border-radius: 2px;
+  color: white;
+  padding: 0 20px;
+  background-color: #166bef;
+}
+
+.secondary-btn {}
+
+.link, .anchor {
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.anchor:link, .anchor:visited {
+  color: #166bef;
+}
+
+.page {
+  background-color: white;
+}
+
+.content {
+  background-color: white;
+}
+
+.logo {
+  height: 139px;
+  background-image: url("../image/ic_app_logo.png");
+  background-position: center;
+  background-size: 66px 66px;
+  background-repeat: no-repeat;
+  background-color: #eaf1fc;
+}
+
+.skygear-logo {
+  height: 80px;
+  background-position: center;
+  background-size: 65px auto;
+  background-repeat: no-repeat;
+  background-image: url("../image/ic_footer_skygear.png");
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  background-color: #f3f2f1;
+  border-radius: 18px;
+  background-image: url("../image/ic_back_arrow.png");
+  background-position: center;
+  background-size: 16px auto;
+  background-repeat: no-repeat;
+}
+
+@media (min-width: 320px) {
+}
+
+@media (min-width: 1025px) {
+  .page {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .content {
+    margin: 52px 0 0 0;
+    min-width: 416px;
+    border-radius: 2px;
+    box-shadow: 0 0.3px 0.9px 0 rgba(0, 0, 0, 0.11), 0 1.6px 3.6px 0 rgba(0, 0, 0, 0.13);
+  }
+}
+
+.authorize-loginid-form {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.authorize-loginid-form .phone-input {
+  display: flex;
+  flex-direction: row;
+}
+
+.authorize-loginid-form .link {
+  display: block;
+  padding: 4px 0;
+}
+
+.authorize-loginid-form [type="submit"] {
+  align-self: flex-end;
+}
+
+.authorize-loginid-form [name="x_calling_code"] {
+  margin: 0 3px 0 0;
+}
+
+.authorize-loginid-form [name="x_national_number"] {
+  flex: 1;
+  margin: 0 0 0 3px;
+}
+
+.sso-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border-radius: 2px;
+  border: solid 1px #d8d8d8;
+  margin: 4px 0;
+  background-position: 6px center;
+  background-size: 24px 24px;
+  background-repeat: no-repeat;
+}
+
+.sso-btn.apple {
+  color: white;
+  background-color: black;
+  background-image: url("../image/ic_idp_apple.png");
+}
+
+.sso-btn.google {
+  color: #333333;
+  background-color: white;
+  background-image: url("../image/ic_idp_google.png");
+}
+
+.sso-btn.facebook {
+  color: white;
+  background-color: #3b5998;
+  background-image: url("../image/ic_idp_facebook.png");
+}
+
+.sso-btn.linkedin {
+  color: white;
+  background-color: #187fb8;
+  background-image: url("../image/ic_idp_linkedin.png");
+}
+
+.sso-btn.azuread {
+  color: #333333;
+  background-color: #e2e2e2;
+  background-image: url("../image/ic_idp_azuread.png");
+}
+
+.sso-loginid-separator {
+  text-align: center;
+  margin: 6px 0 30px 0;
+}
+
+.enter-password-form {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.enter-password-form .title {
+  font-size: 24px;
+  font-weight: 600;
+  padding: 8px 0;
+  margin: 0 0 30px 0;
+}
+
+.enter-password-form .login-id {
+  padding: 0 10px;
+}
+
+.enter-password-form .nav-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.enter-password-form .anchor {
+  display: block;
+  padding: 4px 0;
+}
+
+.enter-password-form #password {
+  display: block;
+}
+
+.enter-password-form [type="submit"] {
+  align-self: flex-end;
+}
