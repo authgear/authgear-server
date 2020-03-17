@@ -18,6 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
 	userverifyhandler "github.com/skygeario/skygear-server/pkg/auth/handler/userverify"
+	webapphandler "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -220,6 +221,8 @@ func main() {
 	apiRouter.Use(middleware.AuthMiddleware{}.Handle)
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
+
+	webapphandler.AttachRootHandler(rootRouter, authDependency)
 
 	if configuration.StaticAssetDir != "" {
 		rootRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(configuration.StaticAssetDir))))
