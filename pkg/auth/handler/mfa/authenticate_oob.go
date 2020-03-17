@@ -73,10 +73,7 @@ type AuthenticateOOBHandler struct {
 }
 
 func (h *AuthenticateOOBHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *AuthenticateOOBHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (AuthenticateOOBRequest, error) {

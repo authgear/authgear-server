@@ -71,10 +71,7 @@ type AuthenticateRecoveryCodeHandler struct {
 }
 
 func (h *AuthenticateRecoveryCodeHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *AuthenticateRecoveryCodeHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (AuthenticateRecoveryCodeRequest, error) {

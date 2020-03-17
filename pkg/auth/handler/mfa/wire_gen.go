@@ -97,7 +97,7 @@ func newActivateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		MFAProvider:   mfaProvider,
 		authnResolver: authnProvider,
 	}
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	httpHandler := provideActivateOOBHandler(activateOOBHandler, requireAuthz)
 	return httpHandler
 }
@@ -163,7 +163,7 @@ func newActivateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 		MFAProvider:   mfaProvider,
 		authnResolver: authnProvider,
 	}
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	httpHandler := provideActivateTOTPHandler(activateTOTPHandler, requireAuthz)
 	return httpHandler
 }
@@ -232,7 +232,7 @@ func newAuthenticateBearerTokenHandler(r *http.Request, m auth.DependencyMap) ht
 		authnResolver:     authnProvider,
 		authnStepper:      authnProvider,
 	}
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	httpHandler := provideAuthenticateBearerTokenHandler(authenticateBearerTokenHandler, requireAuthz)
 	return httpHandler
 }
@@ -300,7 +300,7 @@ func newAuthenticateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handl
 		authnResolver: authnProvider,
 		authnStepper:  authnProvider,
 	}
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	httpHandler := provideAuthenticateOOBHandler(authenticateOOBHandler, requireAuthz)
 	return httpHandler
 }
@@ -368,7 +368,7 @@ func newAuthenticateRecoveryCodeHandler(r *http.Request, m auth.DependencyMap) h
 		authnResolver: authnProvider,
 		authnStepper:  authnProvider,
 	}
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	httpHandler := provideAuthenticateRecoveryCodeHandler(authenticateRecoveryCodeHandler, requireAuthz)
 	return httpHandler
 }
@@ -436,7 +436,7 @@ func newAuthenticateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Hand
 		authnResolver: authnProvider,
 		authnStepper:  authnProvider,
 	}
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	httpHandler := provideAuthenticateTOTPHandler(authenticateTOTPHandler, requireAuthz)
 	return httpHandler
 }
@@ -502,7 +502,7 @@ func newCreateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		MFAProvider:   mfaProvider,
 		authnResolver: authnProvider,
 	}
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	httpHandler := provideCreateOOBHandler(createOOBHandler, requireAuthz)
 	return httpHandler
 }
@@ -568,7 +568,7 @@ func newCreateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		MFAProvider:   mfaProvider,
 		authnResolver: authnProvider,
 	}
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	httpHandler := provideCreateTOTPHandler(createTOTPHandler, requireAuthz)
 	return httpHandler
 }
@@ -634,7 +634,7 @@ func newListAuthenticatorHandler(r *http.Request, m auth.DependencyMap) http.Han
 		MFAProvider:   mfaProvider,
 		authnResolver: authnProvider,
 	}
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	httpHandler := provideListAuthenticatorHandler(listAuthenticatorHandler, requireAuthz)
 	return httpHandler
 }
@@ -700,7 +700,7 @@ func newTriggerOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		MFAProvider:   mfaProvider,
 		authnResolver: authnProvider,
 	}
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	httpHandler := provideTriggerOOBHandler(triggerOOBHandler, requireAuthz)
 	return httpHandler
 }

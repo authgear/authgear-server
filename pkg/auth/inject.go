@@ -296,7 +296,7 @@ func (m DependencyMap) Provide(
 	case "LoggerFactory":
 		return newLoggerFactory()
 	case "RequireAuthz":
-		return handler.NewRequireAuthzFactory(newAuthContext(), newLoggerFactory())
+		return handler.NewRequireAuthzFactory(newLoggerFactory())
 	case "Validator":
 		return m.Validator
 	case "SessionProvider":

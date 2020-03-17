@@ -91,10 +91,7 @@ type ActivateTOTPHandler struct {
 }
 
 func (h *ActivateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *ActivateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

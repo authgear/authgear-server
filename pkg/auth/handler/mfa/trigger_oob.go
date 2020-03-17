@@ -63,10 +63,7 @@ type TriggerOOBHandler struct {
 }
 
 func (h *TriggerOOBHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *TriggerOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

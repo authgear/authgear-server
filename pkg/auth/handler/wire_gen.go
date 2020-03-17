@@ -38,11 +38,10 @@ import (
 
 func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	contextGetter := auth2.ProvideAuthContextGetter(context)
 	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -60,6 +59,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	urlprefixProvider := urlprefix.NewProvider(r)
+	contextGetter := auth2.ProvideAuthContextGetter(context)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	hookProvider := hook.ProvideHookProvider(sqlBuilder, sqlExecutor, requestID, tenantConfiguration, urlprefixProvider, contextGetter, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
 	executor := auth.ProvideTaskExecutor(m)
@@ -98,11 +98,10 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	contextGetter := auth2.ProvideAuthContextGetter(context)
 	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -120,6 +119,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	urlprefixProvider := urlprefix.NewProvider(r)
+	contextGetter := auth2.ProvideAuthContextGetter(context)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	hookProvider := hook.ProvideHookProvider(sqlBuilder, sqlExecutor, requestID, tenantConfiguration, urlprefixProvider, contextGetter, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
 	executor := auth.ProvideTaskExecutor(m)

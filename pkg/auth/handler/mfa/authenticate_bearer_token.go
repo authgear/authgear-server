@@ -84,10 +84,7 @@ type AuthenticateBearerTokenHandler struct {
 }
 
 func (h *AuthenticateBearerTokenHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *AuthenticateBearerTokenHandler) useCookie(r *http.Request) bool {

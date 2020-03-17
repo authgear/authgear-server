@@ -90,10 +90,7 @@ type ListAuthenticatorHandler struct {
 }
 
 func (h *ListAuthenticatorHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *ListAuthenticatorHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -73,10 +73,7 @@ type AuthenticateTOTPHandler struct {
 }
 
 func (h *AuthenticateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *AuthenticateTOTPHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (AuthenticateTOTPRequest, error) {

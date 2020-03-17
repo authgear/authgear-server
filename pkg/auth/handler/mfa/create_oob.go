@@ -107,10 +107,7 @@ type CreateOOBHandler struct {
 }
 
 func (h *CreateOOBHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *CreateOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
