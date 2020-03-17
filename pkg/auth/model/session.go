@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
 // Session is the API model of user sessions
@@ -24,16 +26,8 @@ type Session struct {
 	UserAgent        SessionUserAgent `json:"user_agent"`
 }
 
-// Session is the API model of user agent of session
-type SessionUserAgent struct {
-	Raw         string `json:"raw"`
-	Name        string `json:"name"`
-	Version     string `json:"version"`
-	OS          string `json:"os"`
-	OSVersion   string `json:"os_version"`
-	DeviceName  string `json:"device_name"`
-	DeviceModel string `json:"device_model"`
-}
+// SessionUserAgent is the API model of user agent of session
+type SessionUserAgent model.UserAgent
 
 // @JSONSchema
 const SessionSchema = `

@@ -12,6 +12,7 @@ import (
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -119,7 +120,7 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (authn.Resul
 
 	var result authn.Result
 	err := db.WithTx(h.TxContext, func() error {
-		userID := authn.GetUser(r.Context()).ID
+		userID := coreauthn.GetUser(r.Context()).ID
 
 		linkState := sso.LinkState{
 			UserID: userID,

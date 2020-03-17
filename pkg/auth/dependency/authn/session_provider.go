@@ -45,7 +45,7 @@ func (p *SessionProvider) BeginSession(client config.OAuthClientConfiguration, u
 	finishedSteps := requiredSteps[:1]
 	return &Session{
 		ClientID: client.ClientID(),
-		Attrs: session.Attrs{
+		Attrs: authn.Attrs{
 			UserID:             userID,
 			PrincipalID:        prin.PrincipalID(),
 			PrincipalType:      authn.PrincipalType(prin.ProviderID()),
@@ -87,7 +87,7 @@ func (p *SessionProvider) MakeResult(client config.OAuthClientConfiguration, s *
 		Client:    client,
 		User:      user,
 		Principal: identity,
-		Session:   &sessionModel,
+		Session:   sessionModel,
 
 		MFABearerToken: bearerToken,
 	}, nil
@@ -107,7 +107,7 @@ func (p *SessionProvider) ResolveSession(jwt string) (*Session, error) {
 	return &s, nil
 }
 
-func (p *SessionProvider) loadData(attrs *session.Attrs) (*model.User, *model.Identity, error) {
+func (p *SessionProvider) loadData(attrs *authn.Attrs) (*model.User, *model.Identity, error) {
 	var authInfo authinfo.AuthInfo
 	err := p.AuthInfoStore.GetAuth(attrs.UserID, &authInfo)
 	if err != nil {
@@ -144,7 +144,7 @@ func (p *SessionProvider) completeSession(s *Session, client config.OAuthClientC
 			Reason:   auth.SessionCreateReason(s.SessionCreateReason),
 			User:     *user,
 			Identity: *identity,
-			Session:  sessionModel,
+			Session:  *sessionModel,
 		},
 		user,
 	)
@@ -166,7 +166,7 @@ func (p *SessionProvider) completeSession(s *Session, client config.OAuthClientC
 		Client:    client,
 		User:      user,
 		Principal: identity,
-		Session:   &sessionModel,
+		Session:   sessionModel,
 
 		SessionToken:   token,
 		MFABearerToken: s.AuthenticatorBearerToken,
@@ -244,7 +244,7 @@ func (p *SessionProvider) getRequiredSteps(userID string) ([]SessionStep, error)
 	return steps, nil
 }
 
-func (p *SessionProvider) isStepFinished(step SessionStep, attrs *session.Attrs) bool {
+func (p *SessionProvider) isStepFinished(step SessionStep, attrs *authn.Attrs) bool {
 	switch step {
 	case SessionStepIdentity:
 		return attrs.PrincipalID != ""

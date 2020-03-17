@@ -128,7 +128,7 @@ func (h *CreateOOBHandler) Handle(w http.ResponseWriter, r *http.Request) (resp 
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		session := authn.GetSession(r.Context())
+		var session coreauthn.Attributer = coreauthn.GetSession(r.Context())
 		if session == nil {
 			session, err = h.authnResolver.Resolve(
 				coreAuth.GetAccessKey(r.Context()).Client,
@@ -140,7 +140,7 @@ func (h *CreateOOBHandler) Handle(w http.ResponseWriter, r *http.Request) (resp 
 			}
 		}
 
-		a, err := h.MFAProvider.CreateOOB(session.SessionAttrs().UserID, payload.Channel, payload.Phone, payload.Email)
+		a, err := h.MFAProvider.CreateOOB(session.AuthnAttrs().UserID, payload.Channel, payload.Phone, payload.Email)
 		if err != nil {
 			return err
 		}

@@ -11,6 +11,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -91,7 +92,7 @@ func (h *AuthenticateRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 
 	var result authn.Result
 	err = db.WithTx(h.TxContext, func() error {
-		session := authn.GetSession(r.Context())
+		var session coreauthn.Attributer = coreauthn.GetSession(r.Context())
 		if session == nil {
 			session, err = h.authnResolver.Resolve(
 				coreAuth.GetAccessKey(r.Context()).Client,
@@ -103,7 +104,7 @@ func (h *AuthenticateRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			}
 		}
 
-		attrs := session.SessionAttrs()
+		attrs := session.AuthnAttrs()
 		a, err := h.MFAProvider.AuthenticateRecoveryCode(
 			attrs.UserID,
 			payload.Code,

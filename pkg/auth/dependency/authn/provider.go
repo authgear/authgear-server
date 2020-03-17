@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
@@ -157,7 +158,7 @@ func (p *Provider) Resolve(
 
 func (p *Provider) StepSession(
 	client config.OAuthClientConfiguration,
-	s SessionContainer,
+	s authn.Attributer,
 	mfaBearerToken string,
 ) (Result, error) {
 	switch s := s.(type) {

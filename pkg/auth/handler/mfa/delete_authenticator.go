@@ -6,10 +6,10 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -96,7 +96,7 @@ func (h *DeleteAuthenticatorHandler) Handle(w http.ResponseWriter, r *http.Reque
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		userID := authn.GetUser(r.Context()).ID
+		userID := coreauthn.GetUser(r.Context()).ID
 		return h.MFAProvider.DeleteAuthenticator(userID, payload.AuthenticatorID)
 	})
 	resp = struct{}{}

@@ -3,8 +3,8 @@ package policy
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 func requireAuthenticated(r *http.Request) error {

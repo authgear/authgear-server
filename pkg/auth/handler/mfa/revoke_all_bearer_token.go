@@ -6,10 +6,10 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -78,7 +78,7 @@ func (h *RevokeAllBearerTokenHandler) Handle(w http.ResponseWriter, r *http.Requ
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		userID := authn.GetUser(r.Context()).ID
+		userID := coreauthn.GetUser(r.Context()).ID
 		err = h.MFAProvider.DeleteAllBearerToken(userID)
 		if err != nil {
 			return err

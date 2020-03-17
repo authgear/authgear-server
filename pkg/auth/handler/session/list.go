@@ -6,12 +6,11 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -113,7 +112,9 @@ func (h ListHandler) Handle(r *http.Request) (resp interface{}, err error) {
 
 		sessionModels := make([]model.Session, len(sessions))
 		for i, session := range sessions {
-			sessionModels[i] = authSession.Format(session)
+			// TODO(authn): use new session
+			// sessionModels[i] = authSession.Format(session)
+			_, _ = i, session
 		}
 
 		resp = ListResponse{Sessions: sessionModels}

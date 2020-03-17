@@ -9,8 +9,8 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	sessiontesting "github.com/skygeario/skygear-server/pkg/auth/dependency/session/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	authntesting "github.com/skygeario/skygear-server/pkg/core/authn/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -58,7 +58,10 @@ func TestLinkHandler(t *testing.T) {
 
 		Convey("should reject payload without access token", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{}`))
-			req = sessiontesting.WithSession(req, "faseng.cat.id", "faseng.cat.principal.id")
+			req = authntesting.WithAuthn().
+				UserID("faseng.cat.id").
+				PrincipalID("faseng.cat.principal.id").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
@@ -87,7 +90,10 @@ func TestLinkHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
                                "access_token": "token"
                        }`))
-			req = sessiontesting.WithSession(req, "faseng.cat.id", "faseng.cat.principal.id")
+			req = authntesting.WithAuthn().
+				UserID("faseng.cat.id").
+				PrincipalID("faseng.cat.principal.id").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)

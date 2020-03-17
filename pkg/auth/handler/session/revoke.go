@@ -6,16 +6,15 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -152,7 +151,9 @@ func (h RevokeHandler) Handle(r *http.Request, payload RevokeRequestPayload) (re
 
 		user := model.NewUser(*authInfo, profile)
 		identity := model.NewIdentity(h.IdentityProvider, principal)
-		session := authSession.Format(s)
+		// TODO(authn): use new session provider
+		//session := authSession.Format(s)
+		var session model.Session
 
 		err = h.HookProvider.DispatchEvent(
 			event.SessionDeleteEvent{

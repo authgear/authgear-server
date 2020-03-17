@@ -4,9 +4,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	authntesting "github.com/skygeario/skygear-server/pkg/core/authn/testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -15,13 +14,7 @@ func TestCompoundPolicy(t *testing.T) {
 	Convey("Test RequireValidUserOrMasterKey", t, func() {
 		Convey("should pass if valid user exist", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			req = req.WithContext(session.WithSession(
-				req.Context(),
-				&session.Session{},
-				&authinfo.AuthInfo{
-					ID: "ID",
-				},
-			))
+			req = authntesting.WithAuthn().ToRequest(req)
 
 			err := RequireValidUserOrMasterKey.IsAllowed(req)
 			So(err, ShouldBeNil)

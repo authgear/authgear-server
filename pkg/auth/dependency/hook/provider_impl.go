@@ -218,7 +218,7 @@ func (provider *providerImpl) makeContext() event.Context {
 		session = nil
 	} else {
 		userID = &authInfo.ID
-		principalID = &sess.SessionAttrs().PrincipalID
+		principalID = &sess.AuthnAttrs().PrincipalID
 		s := authSession.Format(sess)
 		session = &s
 	}*/

@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	authprincipal "github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -18,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -115,7 +115,7 @@ func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 		}
 
 		// principalID can be missing
-		principalID := sess.SessionAttrs().PrincipalID
+		principalID := sess.AuthnAttrs().PrincipalID
 		if principalID != "" && principalID == principal.ID {
 			err = authprincipal.ErrCurrentIdentityBeingDeleted
 			return err

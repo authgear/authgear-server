@@ -10,12 +10,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	sessiontesting "github.com/skygeario/skygear-server/pkg/auth/dependency/session/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	authntesting "github.com/skygeario/skygear-server/pkg/core/authn/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -90,7 +90,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"age": 24
 				}
 			}`))
-			req = sessiontesting.WithSession(req, userID, "john.doe.principal.id0")
+			req = authntesting.WithAuthn().
+				UserID(userID).
+				PrincipalID("john.doe.principal.id0").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			uh.ServeHTTP(resp, req)
@@ -146,7 +149,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"love":     "cat"
 				}
 			}`))
-			req = sessiontesting.WithSession(req, userID, "john.doe.principal.id0")
+			req = authntesting.WithAuthn().
+				UserID(userID).
+				PrincipalID("john.doe.principal.id0").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			uh.ServeHTTP(resp, req)
@@ -178,7 +184,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"email":    "john.doe@example.com"
 				}
 			}`))
-			req = sessiontesting.WithSession(req, userID, "john.doe.principal.id0")
+			req = authntesting.WithAuthn().
+				UserID(userID).
+				PrincipalID("john.doe.principal.id0").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp = httptest.NewRecorder()
 			uh.ServeHTTP(resp, req)
@@ -212,7 +221,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"age": 25
 				}
 			}`))
-			req = sessiontesting.WithSession(req, userID, "john.doe.principal.id0")
+			req = authntesting.WithAuthn().
+				UserID(userID).
+				PrincipalID("john.doe.principal.id0").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			uh.ServeHTTP(resp, req)

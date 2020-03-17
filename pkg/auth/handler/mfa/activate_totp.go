@@ -11,6 +11,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -112,7 +113,7 @@ func (h *ActivateTOTPHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		session := authn.GetSession(r.Context())
+		var session coreauthn.Attributer = coreauthn.GetSession(r.Context())
 		if session == nil {
 			session, err = h.authnResolver.Resolve(
 				coreAuth.GetAccessKey(r.Context()).Client,
@@ -124,7 +125,7 @@ func (h *ActivateTOTPHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 			}
 		}
 
-		recoveryCodes, err := h.MFAProvider.ActivateTOTP(session.SessionAttrs().UserID, payload.OTP)
+		recoveryCodes, err := h.MFAProvider.ActivateTOTP(session.AuthnAttrs().UserID, payload.OTP)
 		if err != nil {
 			return err
 		}

@@ -3,30 +3,19 @@ package session
 import (
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
+	coremodel "github.com/skygeario/skygear-server/pkg/core/model"
 )
-
-type Attrs struct {
-	UserID string `json:"user_id"`
-
-	PrincipalID        string              `json:"principal_id"`
-	PrincipalType      authn.PrincipalType `json:"principal_type"`
-	PrincipalUpdatedAt time.Time           `json:"principal_updated_at"`
-
-	AuthenticatorID         string                        `json:"authenticator_id,omitempty"`
-	AuthenticatorType       authn.AuthenticatorType       `json:"authenticator_type,omitempty"`
-	AuthenticatorOOBChannel authn.AuthenticatorOOBChannel `json:"authenticator_oob_channel,omitempty"`
-	AuthenticatorUpdatedAt  *time.Time                    `json:"authenticator_updated_at,omitempty"`
-}
 
 type Session struct {
 	ID    string `json:"id"`
 	AppID string `json:"app_id"`
 
-	Attrs Attrs `json:"attrs"`
+	Attrs authn.Attrs `json:"attrs"`
 
-	InitialAccess AccessEvent `json:"initial_access"`
-	LastAccess    AccessEvent `json:"last_access"`
+	InitialAccess authn.AccessEvent `json:"initial_access"`
+	LastAccess    authn.AccessEvent `json:"last_access"`
 
 	CreatedAt  time.Time `json:"created_at"`
 	AccessedAt time.Time `json:"accessed_at"`
@@ -34,8 +23,33 @@ type Session struct {
 	TokenHash string `json:"token_hash"`
 }
 
-func (s *Session) SessionAttrs() *Attrs {
+func (s *Session) SessionID() string              { return s.ID }
+func (s *Session) SessionType() authn.SessionType { return authn.SessionTypeIdentityProvider }
+
+func (s *Session) AuthnAttrs() *authn.Attrs {
 	return &s.Attrs
+}
+
+func (s *Session) ToAPIModel() *model.Session {
+	ua := coremodel.ParseUserAgent(s.LastAccess.UserAgent)
+	ua.DeviceName = s.LastAccess.Extra.DeviceName()
+	return &model.Session{
+		ID: s.ID,
+
+		IdentityID:        s.Attrs.PrincipalID,
+		IdentityType:      string(s.Attrs.PrincipalType),
+		IdentityUpdatedAt: s.Attrs.PrincipalUpdatedAt,
+
+		AuthenticatorID:         s.Attrs.AuthenticatorID,
+		AuthenticatorType:       string(s.Attrs.AuthenticatorType),
+		AuthenticatorOOBChannel: string(s.Attrs.AuthenticatorOOBChannel),
+		AuthenticatorUpdatedAt:  s.Attrs.AuthenticatorUpdatedAt,
+		CreatedAt:               s.CreatedAt,
+		LastAccessedAt:          s.AccessedAt,
+		CreatedByIP:             s.InitialAccess.Remote.IP(),
+		LastAccessedByIP:        s.LastAccess.Remote.IP(),
+		UserAgent:               model.SessionUserAgent(ua),
+	}
 }
 
 type CreateReason string

@@ -11,6 +11,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -111,7 +112,7 @@ func (h *ActivateOOBHandler) Handle(w http.ResponseWriter, r *http.Request) (res
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		session := authn.GetSession(r.Context())
+		var session coreauthn.Attributer = coreauthn.GetSession(r.Context())
 		if session == nil {
 			session, err = h.authnResolver.Resolve(
 				coreAuth.GetAccessKey(r.Context()).Client,
@@ -123,7 +124,7 @@ func (h *ActivateOOBHandler) Handle(w http.ResponseWriter, r *http.Request) (res
 			}
 		}
 
-		recoveryCodes, err := h.MFAProvider.ActivateOOB(session.SessionAttrs().UserID, payload.Code)
+		recoveryCodes, err := h.MFAProvider.ActivateOOB(session.AuthnAttrs().UserID, payload.Code)
 		if err != nil {
 			return err
 		}

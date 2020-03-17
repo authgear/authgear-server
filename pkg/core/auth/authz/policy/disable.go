@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 

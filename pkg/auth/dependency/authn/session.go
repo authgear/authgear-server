@@ -2,6 +2,7 @@ package authn
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 type SessionStep string
@@ -26,12 +27,12 @@ type Session struct {
 	FinishedSteps       []SessionStep        `json:"finished_steps"`
 	SessionCreateReason session.CreateReason `json:"session_create_reason"`
 
-	Attrs session.Attrs `json:"attrs"`
+	Attrs authn.Attrs `json:"attrs"`
 
 	AuthenticatorBearerToken string `json:"authenticator_bearer_token,omitempty"`
 }
 
-func (a *Session) SessionAttrs() *session.Attrs {
+func (a *Session) AuthnAttrs() *authn.Attrs {
 	return &a.Attrs
 }
 

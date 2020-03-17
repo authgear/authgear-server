@@ -55,23 +55,14 @@ func NewProvider(
 
 var _ Provider = &ProviderImpl{}
 
-func (p *ProviderImpl) MakeSession(attrs *Attrs) (*Session, string) {
+func (p *ProviderImpl) MakeSession(attrs *authn.Attrs) (*Session, string) {
 	now := p.time.NowUTC()
 	accessEvent := newAccessEvent(now, p.req)
 	// NOTE(louis): remember to update the mock provider
 	// if session has new fields.
 	session := &Session{
-		ID: uuid.New(),
-		Attrs: Attrs{
-			UserID:                  attrs.UserID,
-			PrincipalID:             attrs.PrincipalID,
-			PrincipalType:           authn.PrincipalType(attrs.PrincipalType),
-			PrincipalUpdatedAt:      attrs.PrincipalUpdatedAt,
-			AuthenticatorID:         attrs.AuthenticatorID,
-			AuthenticatorType:       authn.AuthenticatorType(attrs.AuthenticatorType),
-			AuthenticatorOOBChannel: authn.AuthenticatorOOBChannel(attrs.AuthenticatorOOBChannel),
-			AuthenticatorUpdatedAt:  attrs.AuthenticatorUpdatedAt,
-		},
+		ID:            uuid.New(),
+		Attrs:         *attrs,
 		InitialAccess: accessEvent,
 		LastAccess:    accessEvent,
 		CreatedAt:     now,
@@ -235,21 +226,21 @@ func decodeTokenSessionID(token string) (id string, ok bool) {
 	return
 }
 
-func newAccessEvent(timestamp gotime.Time, req *http.Request) AccessEvent {
-	remote := AccessEventConnInfo{
+func newAccessEvent(timestamp gotime.Time, req *http.Request) authn.AccessEvent {
+	remote := authn.AccessEventConnInfo{
 		RemoteAddr:    req.RemoteAddr,
 		XForwardedFor: req.Header.Get("X-Forwarded-For"),
 		XRealIP:       req.Header.Get("X-Real-IP"),
 		Forwarded:     req.Header.Get("Forwarded"),
 	}
 
-	extra := AccessEventExtraInfo{}
+	extra := authn.AccessEventExtraInfo{}
 	extraData, err := base64.StdEncoding.DecodeString(req.Header.Get(corehttp.HeaderSessionExtraInfo))
 	if err == nil && len(extraData) <= extraDataSizeLimit {
 		_ = json.Unmarshal(extraData, &extra)
 	}
 
-	return AccessEvent{
+	return authn.AccessEvent{
 		Timestamp: timestamp,
 		Remote:    remote,
 		UserAgent: req.UserAgent(),

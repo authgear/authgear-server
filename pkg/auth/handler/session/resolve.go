@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -24,6 +24,15 @@ type ResolveHandler struct {
 }
 
 func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	ctx := session.GetContext(r.Context())
-	ctx.ToAuthnInfo(h.TimeProvider.NowUTC()).PopulateHeaders(rw)
+	valid := authn.IsValidAuthn(r.Context())
+	user := authn.GetUser(r.Context())
+	session := authn.GetSession(r.Context())
+
+	var info *authn.Info
+	if valid && user != nil && session != nil {
+		info = authn.NewAuthnInfo(h.TimeProvider.NowUTC(), session.AuthnAttrs(), user)
+	} else if !valid {
+		info = &authn.Info{IsValid: false}
+	}
+	info.PopulateHeaders(rw)
 }

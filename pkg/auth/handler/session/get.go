@@ -6,12 +6,11 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -138,7 +137,8 @@ func (h GetHandler) Handle(r *http.Request, payload GetRequestPayload) (resp int
 			return errSessionNotFound
 		}
 
-		resp = GetResponse{Session: authSession.Format(s)}
+		// TODO(authn): use new session
+		// resp = GetResponse{Session: authSession.Format(s)}
 		return nil
 	})
 	return

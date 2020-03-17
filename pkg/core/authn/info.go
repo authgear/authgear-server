@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 )
 
 type Info struct {
@@ -20,6 +22,22 @@ type Info struct {
 	SessionAuthenticatorType       AuthenticatorType
 	SessionAuthenticatorOOBChannel AuthenticatorOOBChannel
 	SessionAuthenticatorUpdatedAt  *time.Time
+}
+
+func NewAuthnInfo(now time.Time, attrs *Attrs, user *authinfo.AuthInfo) *Info {
+	return &Info{
+		IsValid:                        true,
+		UserID:                         user.ID,
+		UserVerified:                   user.IsVerified(),
+		UserDisabled:                   user.IsDisabled(now),
+		SessionIdentityID:              attrs.PrincipalID,
+		SessionIdentityType:            attrs.PrincipalType,
+		SessionIdentityUpdatedAt:       attrs.PrincipalUpdatedAt,
+		SessionAuthenticatorID:         attrs.AuthenticatorID,
+		SessionAuthenticatorType:       attrs.AuthenticatorType,
+		SessionAuthenticatorOOBChannel: attrs.AuthenticatorOOBChannel,
+		SessionAuthenticatorUpdatedAt:  attrs.AuthenticatorUpdatedAt,
+	}
 }
 
 const (

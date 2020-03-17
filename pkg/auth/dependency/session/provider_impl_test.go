@@ -8,6 +8,7 @@ import (
 	"testing"
 	gotime "time"
 
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -27,10 +28,10 @@ func TestProvider(t *testing.T) {
 		req, _ := http.NewRequest("POST", "", nil)
 		req.Header.Set("User-Agent", "SDK")
 		req.Header.Set("X-Skygear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
-		accessEvent := AccessEvent{
+		accessEvent := authn.AccessEvent{
 			Timestamp: initialTime,
 			UserAgent: "SDK",
-			Extra: AccessEventExtraInfo{
+			Extra: authn.AccessEventExtraInfo{
 				"device_name": "Device",
 			},
 		}
@@ -46,7 +47,7 @@ func TestProvider(t *testing.T) {
 
 		Convey("creating session", func() {
 			Convey("should be successful", func() {
-				session, token := provider.MakeSession(&Attrs{
+				session, token := provider.MakeSession(&authn.Attrs{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 				})
@@ -56,7 +57,7 @@ func TestProvider(t *testing.T) {
 				So(token, ShouldNotBeEmpty)
 				So(session, ShouldResemble, &Session{
 					ID: session.ID,
-					Attrs: Attrs{
+					Attrs: authn.Attrs{
 						UserID:      "user-id",
 						PrincipalID: "principal-id",
 					},
@@ -66,11 +67,11 @@ func TestProvider(t *testing.T) {
 					AccessedAt:    initialTime,
 					TokenHash:     session.TokenHash,
 				})
-				So(eventStore.AccessEvents, ShouldResemble, []AccessEvent{accessEvent})
+				So(eventStore.AccessEvents, ShouldResemble, []authn.AccessEvent{accessEvent})
 			})
 
 			Convey("should allow creating multiple sessions for same principal", func() {
-				session1, _ := provider.MakeSession(&Attrs{
+				session1, _ := provider.MakeSession(&authn.Attrs{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 				})
@@ -78,7 +79,7 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(session1, ShouldResemble, &Session{
 					ID: session1.ID,
-					Attrs: Attrs{
+					Attrs: authn.Attrs{
 						UserID:      "user-id",
 						PrincipalID: "principal-id",
 					},
@@ -89,7 +90,7 @@ func TestProvider(t *testing.T) {
 					TokenHash:     session1.TokenHash,
 				})
 
-				session2, _ := provider.MakeSession(&Attrs{
+				session2, _ := provider.MakeSession(&authn.Attrs{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 				})
@@ -97,7 +98,7 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(session2, ShouldResemble, &Session{
 					ID: session2.ID,
-					Attrs: Attrs{
+					Attrs: authn.Attrs{
 						UserID:      "user-id",
 						PrincipalID: "principal-id",
 					},
@@ -116,7 +117,7 @@ func TestProvider(t *testing.T) {
 		Convey("getting session", func() {
 			fixtureSession := Session{
 				ID: "session-id",
-				Attrs: Attrs{
+				Attrs: authn.Attrs{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 				},
@@ -158,7 +159,7 @@ func TestProvider(t *testing.T) {
 		Convey("accessing session", func() {
 			session := Session{
 				ID: "session-id",
-				Attrs: Attrs{
+				Attrs: authn.Attrs{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 				},
@@ -180,14 +181,14 @@ func TestProvider(t *testing.T) {
 				err := provider.Access(&session)
 				So(err, ShouldBeNil)
 				So(session.LastAccess, ShouldResemble, accessEvent)
-				So(eventStore.AccessEvents, ShouldResemble, []AccessEvent{accessEvent})
+				So(eventStore.AccessEvents, ShouldResemble, []authn.AccessEvent{accessEvent})
 			})
 		})
 
 		Convey("invalidating session", func() {
 			store.Sessions["session-id"] = Session{
 				ID: "session-id",
-				Attrs: Attrs{
+				Attrs: authn.Attrs{
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 				},
@@ -213,7 +214,7 @@ func TestProvider(t *testing.T) {
 			makeSession := func(id string, userID string, timeOffset int) {
 				store.Sessions[id] = Session{
 					ID: id,
-					Attrs: Attrs{
+					Attrs: authn.Attrs{
 						UserID: userID,
 					},
 					CreatedAt:  initialTime.Add(gotime.Duration(timeOffset) * gotime.Second),
@@ -263,7 +264,7 @@ func TestProvider(t *testing.T) {
 			req.Header.Set("Forwarded", "for=216.58.197.110;proto=http;by=192.168.1.11")
 
 			event := newAccessEvent(now, req)
-			So(event.Remote, ShouldResemble, AccessEventConnInfo{
+			So(event.Remote, ShouldResemble, authn.AccessEventConnInfo{
 				RemoteAddr:    "192.168.1.11:31035",
 				XForwardedFor: "13.225.103.28, 216.58.197.110",
 				XRealIP:       "216.58.197.110",
@@ -283,7 +284,7 @@ func TestProvider(t *testing.T) {
 			req.Header.Set("X-Skygear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
 
 			event := newAccessEvent(now, req)
-			So(event.Extra, ShouldResemble, AccessEventExtraInfo{
+			So(event.Extra, ShouldResemble, authn.AccessEventExtraInfo{
 				"device_name": "Device",
 			})
 		})
@@ -302,7 +303,7 @@ func TestProvider(t *testing.T) {
 			req.Header.Set("X-Skygear-Extra-Info", extra)
 
 			event := newAccessEvent(now, req)
-			So(event.Extra, ShouldResemble, AccessEventExtraInfo{})
+			So(event.Extra, ShouldResemble, authn.AccessEventExtraInfo{})
 		})
 	})
 }
