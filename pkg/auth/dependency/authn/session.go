@@ -8,8 +8,13 @@ type SessionStep string
 
 const (
 	SessionStepIdentity SessionStep = "identity"
-	SessionStepMFA      SessionStep = "mfa"
+	SessionStepMFASetup SessionStep = "mfa.setup"
+	SessionStepMFAAuthn SessionStep = "mfa.authn"
 )
+
+func (s SessionStep) IsMFA() bool {
+	return s == SessionStepMFASetup || s == SessionStepMFAAuthn
+}
 
 // AuthnSession represents the authentication session.
 // When the authentication session is finished, it converts to Session.

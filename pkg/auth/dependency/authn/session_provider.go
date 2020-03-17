@@ -215,22 +215,24 @@ func (p *SessionProvider) updateLoginTime(userID string) error {
 
 func (p *SessionProvider) getRequiredSteps(userID string) ([]SessionStep, error) {
 	steps := []SessionStep{SessionStepIdentity}
+
+	// MFA
 	enforcement := p.MFAConfig.Enforcement
-	switch enforcement {
-	case config.MFAEnforcementOptional:
+	if enforcement != config.MFAEnforcementOff {
 		authenticators, err := p.MFAProvider.ListAuthenticators(userID)
 		if err != nil {
 			return nil, err
 		}
 		if len(authenticators) > 0 {
-			steps = append(steps, SessionStepMFA)
+			// When there are MFA authenticators:
+			// perform MFA authn if not turned off.
+			steps = append(steps, SessionStepMFAAuthn)
+		} else if enforcement == config.MFAEnforcementRequired {
+			// When there are no MFA authenticator, and MFA is required:
+			// require setup MFA authenticators
+			steps = append(steps, SessionStepMFASetup)
 		}
-	case config.MFAEnforcementRequired:
-		steps = append(steps, SessionStepMFA)
-	case config.MFAEnforcementOff:
-		break
-	default:
-		panic("authn: unknown MFA enforcement")
 	}
+
 	return steps, nil
 }

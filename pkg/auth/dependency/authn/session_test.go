@@ -39,7 +39,7 @@ func TestSession(t *testing.T) {
 			a.FinishedSteps = []SessionStep{}
 			step, ok = a.NextStep()
 			So(ok, ShouldBeTrue)
-			So(step, ShouldEqual, SessionStepIdentity)
+			So(step, ShouldEqual, "identity")
 
 			a.RequiredSteps = []SessionStep{"identity"}
 			a.FinishedSteps = []SessionStep{"identity"}
@@ -50,7 +50,7 @@ func TestSession(t *testing.T) {
 			a.FinishedSteps = []SessionStep{"identity"}
 			step, ok = a.NextStep()
 			So(ok, ShouldBeTrue)
-			So(step, ShouldEqual, SessionStepMFA)
+			So(step, ShouldEqual, "mfa")
 
 			a.RequiredSteps = []SessionStep{"identity", "mfa"}
 			a.FinishedSteps = []SessionStep{"identity", "mfa"}
