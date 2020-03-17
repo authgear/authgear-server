@@ -44,6 +44,9 @@ type configuration struct {
 	// StaticAssetDir is for serving the static asset locally.
 	// It should not be used for production.
 	StaticAssetDir string `envconfig:"STATIC_ASSET_DIR"`
+	// StaticAssetURLPrefix sets the prefix for static asset.
+	// In production, it should look like https://code.skygear.dev/dist/git-<commit-hash>/authui
+	StaticAssetURLPrefix string `envconfig:"STATIC_ASSET_URL_PREFIX"`
 }
 
 type TemplateConfiguration struct {
@@ -170,6 +173,7 @@ func main() {
 		AssetGearLoader:          assetGearLoader,
 		AsyncTaskExecutor:        asyncTaskExecutor,
 		UseInsecureCookie:        configuration.UseInsecureCookie,
+		StaticAssetURLPrefix:     configuration.StaticAssetURLPrefix,
 		DefaultConfiguration:     configuration.Default,
 		Validator:                validator,
 		ReservedNameChecker:      reservedNameChecker,
