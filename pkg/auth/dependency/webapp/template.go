@@ -82,56 +82,78 @@ var TemplateAuthUISignInHTML = template.Spec{
 <body class="page">
 	<div class="content">
 		{{ template "LOGO" . }}
-		<form class="authorize-loginid-form" method="post">
-			{{ template "HIDDEN" . }}
-
-			<a class="btn sso-btn apple">Sign in with Apple</a>
-			<a class="btn sso-btn google">Sign in with Google</a>
-			<a class="btn sso-btn facebook">Sign in with Facebook</a>
-			<a class="btn sso-btn linkedin">Sign in with Linkedin</a>
-			<a class="btn sso-btn azuread">Sign in with Azure AD</a>
+		<div class="authorize-form">
+			<form class="authorize-idp-form" method="post">
+				<input type="hidden" name="x_step" value="choose_idp">
+				{{ range .x_idp_providers }}
+				<button class="btn sso-btn {{ .type }}" type="submit" name="x_idp_id" value="{{ .id }}">
+					{{- if eq .type "apple" -}}
+					Sign in with Apple
+					{{- end -}}
+					{{- if eq .type "google" -}}
+					Sign in with Google
+					{{- end -}}
+					{{- if eq .type "facebook" -}}
+					Sign in with Facebook
+					{{- end -}}
+					{{- if eq .type "instagram" -}}
+					Sign in with Instagram
+					{{- end -}}
+					{{- if eq .type "linkedin" -}}
+					Sign in with LinkedIn
+					{{- end -}}
+					{{- if eq .type "azureadv2" -}}
+					Sign in with Azure AD
+					{{- end -}}
+				</button>
+				{{ end }}
+			</form>
 
 			<div class="primary-txt sso-loginid-separator">or</div>
 
 			{{ template "ERROR" . }}
 
-			{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
-			<div class="phone-input">
-				<select class="input select" name="x_calling_code">
-					<option value="">Code</option>
-					{{ range .x_calling_codes }}
-					<option
-						value="{{ . }}"
-						{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
-						selected
-						{{ end }}{{ end }}
-						>
-						+{{ . }}
-					</option>
-					{{ end }}
-				</select>
-				<input class="input text-input" type="tel" name="x_national_number" placeholder="Phone number" value="{{ .x_national_number }}">
-			</div>
-			{{ end }}{{ end }}
+			<form class="authorize-loginid-form" method="post">
+				{{ template "HIDDEN" . }}
 
-			{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_text }}
-			<input class="input text-input" type="text" name="x_login_id" placeholder="Email or Username" value="{{ .x_login_id }}">
-			{{ end }}{{ end }}
+				{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
+				<div class="phone-input">
+					<select class="input select" name="x_calling_code">
+						<option value="">Code</option>
+						{{ range .x_calling_codes }}
+						<option
+							value="{{ . }}"
+							{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
+							selected
+							{{ end }}{{ end }}
+							>
+							+{{ . }}
+						</option>
+						{{ end }}
+					</select>
+					<input class="input text-input" type="tel" name="x_national_number" placeholder="Phone number" value="{{ .x_national_number }}">
+				</div>
+				{{ end }}{{ end }}
 
-			{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
-			<a class="link anchor" href="{{ .x_use_text_url }}">Use an email or username instead</a>
-			{{ end }}{{ end }}
-			{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone }}
-			<a class="link anchor" href="{{ .x_use_phone_url }}">Use a phone number instead</a>
-			{{ end }}{{ end }}
+				{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_text }}
+				<input class="input text-input" type="text" name="x_login_id" placeholder="Email or Username" value="{{ .x_login_id }}">
+				{{ end }}{{ end }}
 
-			<div class="link"><span class="primary-text">Don't have an account yet? </span><a class="anchor" href="#">Create one!</a></div>
-			<a class="link anchor" href="#">Can't access your account?</a>
+				{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
+				<a class="link anchor" href="{{ .x_use_text_url }}">Use an email or username instead</a>
+				{{ end }}{{ end }}
+				{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone }}
+				<a class="link anchor" href="{{ .x_use_phone_url }}">Use a phone number instead</a>
+				{{ end }}{{ end }}
 
-			{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
-			<button class="btn primary-btn" type="submit" name="x_step" value="submit_login_id">Next</button>
-			{{ end }}
-		</form>
+				<div class="link"><span class="primary-text">Don't have an account yet? </span><a class="anchor" href="#">Create one!</a></div>
+				<a class="link anchor" href="#">Can't access your account?</a>
+
+				{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
+				<button class="btn primary-btn" type="submit" name="x_step" value="submit_login_id">Next</button>
+				{{ end }}
+			</form>
+		</div>
 		{{ template "SKYGEAR_LOGO" . }}
 	</div>
 </body>

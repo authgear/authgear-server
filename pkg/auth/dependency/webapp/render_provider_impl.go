@@ -18,6 +18,7 @@ type RenderProviderImpl struct {
 	StaticAssetURLPrefix string
 	AuthConfiguration    *config.AuthConfiguration
 	AuthUIConfiguration  *config.AuthUIConfiguration
+	OAuthProviders       []config.OAuthProviderConfiguration
 	TemplateEngine       *template.Engine
 }
 
@@ -28,6 +29,15 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	data["logo_uri"] = accessKey.Client["logo_uri"]
 
 	data["x_static_asset_url_prefix"] = p.StaticAssetURLPrefix
+
+	var providers []map[string]interface{}
+	for _, provider := range p.OAuthProviders {
+		providers = append(providers, map[string]interface{}{
+			"id":   provider.ID,
+			"type": provider.Type,
+		})
+	}
+	data["x_idp_providers"] = providers
 
 	// NOTE(authui): We assume the CSS provided by the developer is trusted.
 	data["x_css"] = htmlTemplate.CSS(p.AuthUIConfiguration.CSS)

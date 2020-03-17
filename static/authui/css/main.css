@@ -143,10 +143,20 @@ html {
   }
 }
 
-.authorize-loginid-form {
+.authorize-form {
   display: flex;
   flex-direction: column;
   padding: 20px;
+}
+
+.authorize-idp-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.authorize-loginid-form {
+  display: flex;
+  flex-direction: column;
 }
 
 .authorize-loginid-form .phone-input {
@@ -209,7 +219,7 @@ html {
   background-image: url("../image/ic_idp_linkedin.png");
 }
 
-.sso-btn.azuread {
+.sso-btn.azureadv2 {
   color: #333333;
   background-color: #e2e2e2;
   background-image: url("../image/ic_idp_azuread.png");

@@ -110,6 +110,7 @@ func ProvideWebAppRenderProvider(m DependencyMap, config *config.TenantConfigura
 		StaticAssetURLPrefix: m.StaticAssetURLPrefix,
 		AuthConfiguration:    config.AppConfig.Auth,
 		AuthUIConfiguration:  config.AppConfig.AuthUI,
+		OAuthProviders:       config.AppConfig.SSO.OAuth.Providers,
 		TemplateEngine:       templateEngine,
 	}
 }
