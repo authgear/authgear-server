@@ -41,6 +41,13 @@ func FormToJSON(form url.Values) map[string]interface{} {
 }
 
 func (p *ValidateProviderImpl) Prevalidate(form url.Values) {
+	// Remove empty values to be compatible with JSON Schema.
+	for name := range form {
+		if form.Get(name) == "" {
+			delete(form, name)
+		}
+	}
+
 	// Set x_login_id_input_type to the type of the first login ID.
 	if _, ok := form["x_login_id_input_type"]; !ok {
 		if len(p.AuthConfiguration.LoginIDKeys) > 0 {

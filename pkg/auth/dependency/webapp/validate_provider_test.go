@@ -17,6 +17,15 @@ func TestValidateProvider(t *testing.T) {
 			impl := ValidateProviderImpl{AuthConfiguration: c}
 			var form url.Values
 
+			Convey("remove empty value", func() {
+				form = url.Values{
+					"a": []string{""},
+					"b": []string{"non-empty"},
+				}
+				impl.Prevalidate(form)
+				So(form, ShouldHaveLength, 1)
+			})
+
 			Convey("prefill text if first login id type is not phone", func() {
 				form = url.Values{}
 				c.LoginIDKeys = []config.LoginIDKeyConfiguration{
