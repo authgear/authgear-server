@@ -2,6 +2,7 @@ package pq
 
 import (
 	"database/sql"
+	sq "github.com/Masterminds/squirrel"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
@@ -9,10 +10,27 @@ import (
 )
 
 func (s *Store) GetDomain(domain string) (*model.Domain, error) {
-	builder := psql.Select(
-		"id", "app_id", "domain", "assignment",
-	).From(s.tableName("domain")).
+	builder := s.domainSelectBuilder().
 		Where("domain = ?", domain)
+
+	return s.domainQueryAndScan(builder)
+}
+
+func (s *Store) GetDefaultDomain(domain string) (*model.Domain, error) {
+	builder := s.domainSelectBuilder().
+		Where("domain = ?", domain).
+		Where("assignment = 'default'")
+
+	return s.domainQueryAndScan(builder)
+}
+
+func (s *Store) domainSelectBuilder() sq.SelectBuilder {
+	return psql.Select(
+		"id", "app_id", "domain", "assignment",
+	).From(s.tableName("domain"))
+}
+
+func (s *Store) domainQueryAndScan(builder sq.SelectBuilder) (*model.Domain, error) {
 	scanner, err := s.QueryRowWith(builder)
 	if err != nil {
 		return nil, err

@@ -2,13 +2,14 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	gatewayModel "github.com/skygeario/skygear-server/pkg/gateway/model"
+	"github.com/skygeario/skygear-server/pkg/gateway/model"
 	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
 
@@ -25,7 +26,7 @@ func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 		logger := loggerFactory.NewLogger("app-finder")
 
 		host := r.Host
-		domain, err := f.Store.GetDomain(host)
+		domain, err := f.getDomain(host)
 		if err != nil {
 			if store.IsNotFound(err) {
 				http.Error(w, "Not found", http.StatusNotFound)
@@ -79,12 +80,31 @@ func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 			}
 		}
 
-		ctx := gatewayModel.GatewayContextFromContext(r.Context())
+		ctx := model.GatewayContextFromContext(r.Context())
 		ctx.App = *app
 		ctx.Domain = *domain
 
-		r = r.WithContext(gatewayModel.ContextWithGatewayContext(r.Context(), ctx))
+		r = r.WithContext(model.ContextWithGatewayContext(r.Context(), ctx))
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (f FindAppMiddleware) getDomain(host string) (*model.Domain, error) {
+	domain, err := f.Store.GetDomain(host)
+	if err == nil {
+		return domain, nil
+	}
+	if !store.IsNotFound(err) {
+		return nil, err
+	}
+
+	// try get default domain
+	parts := strings.Split(host, ".")
+	if len(parts) <= 1 {
+		return nil, err
+	}
+	defaultDomain := strings.Join(parts[1:], ".")
+	domain, err = f.Store.GetDefaultDomain(defaultDomain)
+	return domain, err
 }
