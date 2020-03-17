@@ -8,7 +8,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -200,7 +200,7 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthe
 		a := mfa.RecoveryCodeAuthenticator{
 			ID:        uuid.New(),
 			UserID:    userID,
-			Type:      coreAuth.AuthenticatorTypeRecoveryCode,
+			Type:      authn.AuthenticatorTypeRecoveryCode,
 			Code:      mfa.GenerateRandomRecoveryCode(),
 			CreatedAt: now,
 			Consumed:  false,
@@ -249,7 +249,7 @@ func (s *storeImpl) DeleteAllBearerToken(userID string) error {
 	q1 := s.sqlBuilder.Tenant().
 		Select("a.id").
 		From(s.sqlBuilder.FullTableName("authenticator"), "a").
-		Where("a.user_id = ? AND a.type = ?", userID, coreAuth.AuthenticatorTypeBearerToken)
+		Where("a.user_id = ? AND a.type = ?", userID, authn.AuthenticatorTypeBearerToken)
 
 	rows1, err := s.sqlExecutor.QueryWith(q1)
 	if err != nil {
@@ -858,7 +858,7 @@ func (s *storeImpl) GetOnlyInactiveOOB(userID string) (*mfa.OOBAuthenticator, er
 	return &a, nil
 }
 
-func (s *storeImpl) GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*mfa.OOBAuthenticator, error) {
+func (s *storeImpl) GetOOBByChannel(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) (*mfa.OOBAuthenticator, error) {
 	q1 := s.sqlBuilder.Tenant().
 		Select(
 			"a.id",
@@ -878,9 +878,9 @@ func (s *storeImpl) GetOOBByChannel(userID string, channel coreAuth.Authenticato
 			"a.id = ao.id",
 		)
 	switch channel {
-	case coreAuth.AuthenticatorOOBChannelSMS:
+	case authn.AuthenticatorOOBChannelSMS:
 		q1 = q1.Where("a.user_id = ? AND ao.channel = ? AND ao.phone = ?", userID, channel, phone)
-	case coreAuth.AuthenticatorOOBChannelEmail:
+	case authn.AuthenticatorOOBChannelEmail:
 		q1 = q1.Where("a.user_id = ? AND ao.channel = ? AND ao.email = ?", userID, channel, email)
 	default:
 		panic("mfa: unknown authenticator channel")

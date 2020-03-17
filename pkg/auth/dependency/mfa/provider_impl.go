@@ -5,6 +5,7 @@ import (
 	gotime "time"
 
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -129,7 +130,7 @@ func (p *providerImpl) CreateTOTP(userID string, displayName string) (*TOTPAuthe
 	a := TOTPAuthenticator{
 		ID:          uuid.New(),
 		UserID:      userID,
-		Type:        coreAuth.AuthenticatorTypeTOTP,
+		Type:        authn.AuthenticatorTypeTOTP,
 		CreatedAt:   now,
 		Secret:      secret,
 		DisplayName: displayName,
@@ -299,7 +300,7 @@ func (p *providerImpl) deleteOOBAuthenticator(a *OOBAuthenticator) error {
 	return nil
 }
 
-func (p *providerImpl) CreateOOB(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
+func (p *providerImpl) CreateOOB(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
 	exceptID := ""
 	createNew := false
 
@@ -320,7 +321,7 @@ func (p *providerImpl) CreateOOB(userID string, channel coreAuth.AuthenticatorOO
 		a = &OOBAuthenticator{
 			ID:        uuid.New(),
 			UserID:    userID,
-			Type:      coreAuth.AuthenticatorTypeOOB,
+			Type:      authn.AuthenticatorTypeOOB,
 			CreatedAt: now,
 			Channel:   channel,
 			Phone:     phone,
@@ -514,7 +515,7 @@ func (p *providerImpl) createBearerToken(userID string, parentID string, now got
 	bt := BearerTokenAuthenticator{
 		ID:        uuid.New(),
 		UserID:    userID,
-		Type:      coreAuth.AuthenticatorTypeBearerToken,
+		Type:      authn.AuthenticatorTypeBearerToken,
 		ParentID:  parentID,
 		Token:     token,
 		CreatedAt: now,

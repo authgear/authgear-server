@@ -6,16 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -25,20 +22,8 @@ func AttachActivateTOTPHandler(
 ) {
 	router.NewRoute().
 		Path("/mfa/totp/activate").
-		Handler(server.FactoryToHandler(&ActivateTOTPHandlerFactory{
-			Dependency: authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newActivateTOTPHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type ActivateTOTPHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f ActivateTOTPHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &ActivateTOTPHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type ActivateTOTPRequest struct {
@@ -99,13 +84,10 @@ const ActivateTOTPResponseSchema = `
 			@JSONSchema {ActivateTOTPResponse}
 */
 type ActivateTOTPHandler struct {
-	TxContext            db.TxContext            `dependency:"TxContext"`
-	Validator            *validation.Validator   `dependency:"Validator"`
-	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
-	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
-	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
-	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
-	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
+	TxContext     db.TxContext
+	Validator     *validation.Validator
+	MFAProvider   mfa.Provider
+	authnResolver authnResolver
 }
 
 func (h *ActivateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
@@ -133,13 +115,19 @@ func (h *ActivateTOTPHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
-			MFAOption: authnsession.ResolveMFAOptionOnlyWhenNoAuthenticators,
-		})
-		if err != nil {
-			return err
+		session := authn.GetSession(r.Context())
+		if session == nil {
+			session, err = h.authnResolver.Resolve(
+				coreAuth.GetAccessKey(r.Context()).Client,
+				payload.AuthnSessionToken,
+				func(s authn.SessionStep) bool { return s == authn.SessionStepMFASetup },
+			)
+			if err != nil {
+				return err
+			}
 		}
-		recoveryCodes, err := h.MFAProvider.ActivateTOTP(userID, payload.OTP)
+
+		recoveryCodes, err := h.MFAProvider.ActivateTOTP(session.SessionAttrs().UserID, payload.OTP)
 		if err != nil {
 			return err
 		}

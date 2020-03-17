@@ -2,6 +2,7 @@ package mfa
 
 import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 // Provider manipulates authenticators
@@ -34,7 +35,7 @@ type Provider interface {
 	AuthenticateTOTP(userID string, code string, generateBearerToken bool) (*TOTPAuthenticator, string, error)
 
 	// CreateOOB creates OOB authenticator.
-	CreateOOB(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error)
+	CreateOOB(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error)
 	// TriggerOOB generate OOB Code and delivers it. The argument id is optional when
 	// there is only one activated OOB authenticator.
 	TriggerOOB(userID string, id string) error

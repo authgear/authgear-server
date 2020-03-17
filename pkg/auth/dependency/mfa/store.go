@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 var ErrNoAuthenticators = errors.New("no authenticators")
@@ -57,7 +57,7 @@ type Store interface {
 	// DeleteInactiveOOB deletes inactive OOB authenticator.
 	DeleteInactiveOOB(userID string, exceptID string) error
 	// GetOOBByChannel gets OOB authenticator by channel.
-	GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error)
+	GetOOBByChannel(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error)
 	// GetOnlyInactiveOOB gets the only OOB authenticator.
 	GetOnlyInactiveOOB(userID string) (*OOBAuthenticator, error)
 

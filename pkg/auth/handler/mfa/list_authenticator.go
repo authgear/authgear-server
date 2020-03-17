@@ -6,15 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -24,20 +22,8 @@ func AttachListAuthenticatorHandler(
 ) {
 	router.NewRoute().
 		Path("/mfa/authenticator/list").
-		Handler(server.FactoryToHandler(&ListAuthenticatorHandlerFactory{
-			Dependency: authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newListAuthenticatorHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type ListAuthenticatorHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f ListAuthenticatorHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &ListAuthenticatorHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type ListAuthenticatorRequest struct {
@@ -97,12 +83,10 @@ const ListAuthenticatorResponseSchema = `
 			@JSONSchema {ListAuthenticatorResponse}
 */
 type ListAuthenticatorHandler struct {
-	TxContext            db.TxContext           `dependency:"TxContext"`
-	Validator            *validation.Validator  `dependency:"Validator"`
-	AuthContext          coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	RequireAuthz         handler.RequireAuthz   `dependency:"RequireAuthz"`
-	MFAProvider          mfa.Provider           `dependency:"MFAProvider"`
-	AuthnSessionProvider authnsession.Provider  `dependency:"AuthnSessionProvider"`
+	TxContext     db.TxContext
+	Validator     *validation.Validator
+	MFAProvider   mfa.Provider
+	authnResolver authnResolver
 }
 
 func (h *ListAuthenticatorHandler) ProvideAuthzPolicy() authz.Policy {
@@ -130,16 +114,23 @@ func (h *ListAuthenticatorHandler) Handle(w http.ResponseWriter, r *http.Request
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
-			MFAOption: authnsession.ResolveMFAOptionAlwaysAccept,
-		})
+		session := authn.GetSession(r.Context())
+		if session == nil {
+			session, err = h.authnResolver.Resolve(
+				coreAuth.GetAccessKey(r.Context()).Client,
+				payload.AuthnSessionToken,
+				authn.SessionStep.IsMFA,
+			)
+			if err != nil {
+				return err
+			}
+		}
+
+		authenticators, err := h.MFAProvider.ListAuthenticators(session.SessionAttrs().UserID)
 		if err != nil {
 			return err
 		}
-		authenticators, err := h.MFAProvider.ListAuthenticators(userID)
-		if err != nil {
-			return err
-		}
+
 		resp = ListAuthenticatorResponse{
 			Authenticators: authenticators,
 		}
