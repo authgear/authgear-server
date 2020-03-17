@@ -80,7 +80,7 @@ func (p *Provider) OAuthLink(
 
 func (p *Provider) OAuthExchangeCode(
 	client config.OAuthClientConfiguration,
-	s *session.Session,
+	s model.SessionModeler,
 	code *sso.SkygearAuthorizationCode,
 ) (Result, error) {
 	pr, err := p.OAuth.ExchangeCode(code)

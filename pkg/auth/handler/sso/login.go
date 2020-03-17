@@ -8,7 +8,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -80,7 +79,7 @@ type LoginAuthnProvider interface {
 
 	OAuthExchangeCode(
 		client config.OAuthClientConfiguration,
-		session *session.Session,
+		session model.SessionModeler,
 		code *sso.SkygearAuthorizationCode,
 	) (authn.Result, error)
 

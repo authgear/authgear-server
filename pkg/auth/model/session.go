@@ -3,6 +3,7 @@ package model
 import (
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
@@ -27,6 +28,7 @@ type Session struct {
 }
 
 type SessionModeler interface {
+	AuthnAttrs() *authn.Attrs
 	ToAPIModel() *Session
 }
 

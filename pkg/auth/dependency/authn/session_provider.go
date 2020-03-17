@@ -76,8 +76,8 @@ func (p *SessionProvider) StepSession(s *Session) (Result, error) {
 	return p.saveSession(s)
 }
 
-func (p *SessionProvider) MakeResult(client config.OAuthClientConfiguration, s *session.Session, bearerToken string) (Result, error) {
-	user, identity, err := p.loadData(&s.Attrs)
+func (p *SessionProvider) MakeResult(client config.OAuthClientConfiguration, s model.SessionModeler, bearerToken string) (Result, error) {
+	user, identity, err := p.loadData(s.AuthnAttrs())
 	if err != nil {
 		return nil, err
 	}
