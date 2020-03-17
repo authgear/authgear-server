@@ -41,6 +41,9 @@ type configuration struct {
 	Template                          TemplateConfiguration       `envconfig:"TEMPLATE"`
 	Default                           config.DefaultConfiguration `envconfig:"DEFAULT"`
 	ReservedNameSourceFile            string                      `envconfig:"RESERVED_NAME_SOURCE_FILE" default:"reserved_name.txt"`
+	// StaticAssetDir is for serving the static asset locally.
+	// It should not be used for production.
+	StaticAssetDir string `envconfig:"STATIC_ASSET_DIR"`
 }
 
 type TemplateConfiguration struct {
@@ -213,6 +216,10 @@ func main() {
 	apiRouter.Use(middleware.AuthMiddleware{}.Handle)
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
+
+	if configuration.StaticAssetDir != "" {
+		rootRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(configuration.StaticAssetDir))))
+	}
 
 	handler.AttachSignupHandler(apiRouter, authDependency)
 	handler.AttachLoginHandler(apiRouter, authDependency)
