@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -44,6 +45,13 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	middleware := session.ProvideSessionMiddleware(cookieConfiguration, sessionProvider, authinfoStore, txContext)
 	middlewareFunc := provideMiddleware(middleware)
+	return middlewareFunc
+}
+
+func NewCSPMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
+	context := ProvideContext(r)
+	tenantConfiguration := ProvideTenantConfig(context)
+	middlewareFunc := webapp.ProvideCSPMiddleware(tenantConfiguration)
 	return middlewareFunc
 }
 

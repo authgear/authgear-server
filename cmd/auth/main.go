@@ -186,6 +186,7 @@ func main() {
 
 	var rootRouter *mux.Router
 	var apiRouter *mux.Router
+	var webappRouter *mux.Router
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
 		reader, err := os.Open(filename)
@@ -222,7 +223,9 @@ func main() {
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
 
-	webapphandler.AttachRootHandler(rootRouter, authDependency)
+	webappRouter = rootRouter.NewRoute().Subrouter()
+	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewCSPMiddleware))
+	webapphandler.AttachRootHandler(webappRouter, authDependency)
 
 	if configuration.StaticAssetDir != "" {
 		rootRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(configuration.StaticAssetDir))))

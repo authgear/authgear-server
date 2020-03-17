@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"github.com/google/wire"
+	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -27,3 +28,8 @@ var DependencySet = wire.NewSet(
 	ProvideValidateProvider,
 	ProvideAuthenticateProvider,
 )
+
+func ProvideCSPMiddleware(tConfig *config.TenantConfiguration) mux.MiddlewareFunc {
+	m := &CSPMiddleware{Clients: tConfig.AppConfig.Clients}
+	return m.Handle
+}
