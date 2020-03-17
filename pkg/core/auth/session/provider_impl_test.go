@@ -48,7 +48,7 @@ func TestProvider(t *testing.T) {
 			},
 		}
 
-		var provider Provider = &providerImpl{
+		provider := &providerImpl{
 			req:           req,
 			store:         store,
 			eventStore:    eventStore,
@@ -205,7 +205,7 @@ func TestProvider(t *testing.T) {
 			})
 
 			Convey("should reject session of other clients", func() {
-				req = req.WithContext(auth.WithAccessKey(req.Context(), auth.AccessKey{
+				provider.req = req.WithContext(auth.WithAccessKey(req.Context(), auth.AccessKey{
 					Client: config.OAuthClientConfiguration{"client_id": "mobile-app"},
 				}))
 				session, err := provider.GetByToken("session-id.access-token", auth.SessionTokenKindAccessToken)

@@ -11,7 +11,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -131,9 +130,8 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 
 	// Extract API Key from state
 	client, _ := model.GetClientConfig(h.TenantConfiguration.AppConfig.Clients, state.APIClientID)
-	r = r.WithContext(coreAuth.WithAccessKey(r.Context(), coreAuth.AccessKey{Client: client}))
 
-	if !h.SSOProvider.IsValidCallbackURL(state.CallbackURL) {
+	if !h.SSOProvider.IsValidCallbackURL(client, state.CallbackURL) {
 		http.Error(w, "Invalid callback URL", http.StatusBadRequest)
 		return
 	}

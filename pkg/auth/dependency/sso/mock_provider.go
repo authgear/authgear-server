@@ -102,7 +102,7 @@ func (f *MockSSOProvider) IsAllowedOnUserDuplicate(a model.OnUserDuplicate) bool
 	)
 }
 
-func (f *MockSSOProvider) IsValidCallbackURL(u string) bool {
+func (f *MockSSOProvider) IsValidCallbackURL(client config.OAuthClientConfiguration, u string) bool {
 	err := ValidateCallbackURL(f.RedirectURIs, u)
 	return err == nil
 }

@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -51,11 +50,10 @@ func (f *providerImpl) IsAllowedOnUserDuplicate(a model.OnUserDuplicate) bool {
 	)
 }
 
-func (f *providerImpl) IsValidCallbackURL(u string) bool {
+func (f *providerImpl) IsValidCallbackURL(client config.OAuthClientConfiguration, u string) bool {
 	var redirectURIs []string
-	accessKey := auth.GetAccessKey(f.Context)
-	if accessKey.Client != nil {
-		redirectURIs = accessKey.Client.RedirectURIs()
+	if client != nil {
+		redirectURIs = client.RedirectURIs()
 	}
 	err := ValidateCallbackURL(redirectURIs, u)
 	return err == nil

@@ -12,9 +12,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
@@ -137,8 +139,9 @@ type AuthURLRequestPayload struct {
 	MergeRealm      string                `json:"-"`
 	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 
-	PasswordAuthProvider password.Provider `json:"-"`
-	SSOProvider          sso.Provider      `json:"-"`
+	Client               config.OAuthClientConfiguration `json:"-"`
+	PasswordAuthProvider password.Provider               `json:"-"`
+	SSOProvider          sso.Provider                    `json:"-"`
 }
 
 func (p *AuthURLRequestPayload) SetDefaultValue() {
@@ -168,7 +171,7 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		}}
 	}
 
-	if !p.SSOProvider.IsValidCallbackURL(p.CallbackURL) {
+	if !p.SSOProvider.IsValidCallbackURL(p.Client, p.CallbackURL) {
 		return []validation.ErrorCause{{
 			Kind:    validation.ErrorGeneral,
 			Pointer: "/callback_url",
@@ -247,6 +250,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	}
 
 	payload := AuthURLRequestPayload{}
+	payload.Client = coreauth.GetAccessKey(r.Context()).Client
 	payload.PasswordAuthProvider = h.PasswordAuthProvider
 	payload.SSOProvider = h.SSOProvider
 	err = handler.BindJSONBody(r, w, h.Validator, "#AuthURLRequest", &payload)
