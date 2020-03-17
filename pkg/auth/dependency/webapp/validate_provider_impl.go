@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/url"
 
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -24,7 +25,8 @@ const AuthenticateRequestSchema = `
 `
 
 type ValidateProviderImpl struct {
-	Validator *validation.Validator
+	Validator         *validation.Validator
+	AuthConfiguration *config.AuthConfiguration
 }
 
 var _ ValidateProvider = &ValidateProviderImpl{}
@@ -36,6 +38,19 @@ func FormToJSON(form url.Values) map[string]interface{} {
 		j[name] = form.Get(name)
 	}
 	return j
+}
+
+func (p *ValidateProviderImpl) Prevalidate(form url.Values) {
+	// Set x_login_id_input_type to the type of the first login ID.
+	if _, ok := form["x_login_id_input_type"]; !ok {
+		if len(p.AuthConfiguration.LoginIDKeys) > 0 {
+			if string(p.AuthConfiguration.LoginIDKeys[0].Type) == "phone" {
+				form.Set("x_login_id_input_type", "phone")
+			} else {
+				form.Set("x_login_id_input_type", "text")
+			}
+		}
+	}
 }
 
 func (p *ValidateProviderImpl) Validate(schemaID string, form url.Values) (err error) {

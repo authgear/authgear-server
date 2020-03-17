@@ -23,6 +23,7 @@ func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Requ
 }
 
 func (p *AuthenticateProviderImpl) Default(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	p.ValidateProvider.Prevalidate(r.Form)
 	err = p.ValidateProvider.Validate("#WebAppAuthenticateRequest", r.Form)
 	writeResponse = func(err error) {
 		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUISignInHTML, err)

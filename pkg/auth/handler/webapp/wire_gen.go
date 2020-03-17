@@ -14,9 +14,9 @@ import (
 // Injectors from wire.go:
 
 func newRootHandler(r *http.Request, m auth.DependencyMap) http.Handler {
-	validateProvider := webapp.ProvideValidateProvider()
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context)
+	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine)
 	authenticateProvider := webapp.ProvideAuthenticateProvider(validateProvider, renderProvider)
