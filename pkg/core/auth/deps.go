@@ -4,17 +4,16 @@ import (
 	"context"
 
 	"github.com/google/wire"
-	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-func ProvideAccessKeyMiddleware(c *config.TenantConfiguration) mux.MiddlewareFunc {
+func ProvideAccessKeyMiddleware(c *config.TenantConfiguration) *AccessKeyMiddleware {
 	m := &AccessKeyMiddleware{TenantConfig: c}
-	return m.Handle
+	return m
 }
 
 func ProvideAuthContextGetter(ctx context.Context) ContextGetter {
 	return NewContextGetterWithContext(ctx)
 }
 
-var DependencySet = wire.NewSet(ProvideAuthContextGetter)
+var DependencySet = wire.NewSet(ProvideAccessKeyMiddleware, ProvideAuthContextGetter)

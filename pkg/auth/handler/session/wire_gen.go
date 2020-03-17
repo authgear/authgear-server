@@ -33,7 +33,7 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	middleware := session.ProvideMiddleware(cookieConfiguration, sessionProvider, authinfoStore, txContext)
+	middleware := session.ProvideSessionMiddleware(cookieConfiguration, sessionProvider, authinfoStore, txContext)
 	handler := provideResolveHandler(middleware, provider)
 	return handler
 }
