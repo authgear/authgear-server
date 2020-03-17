@@ -63,7 +63,14 @@ func (p *SessionProvider) StepSession(s *Session) (Result, error) {
 		return nil, ErrInvalidAuthenticationSession
 	}
 
-	if s.IsFinished() {
+	// Step through all finished steps
+	step, inProgress := s.NextStep()
+	for inProgress && p.isStepFinished(step, &s.Attrs) {
+		s.FinishedSteps = append(s.FinishedSteps, step)
+		step, inProgress = s.NextStep()
+	}
+
+	if !inProgress {
 		return p.completeSession(s, client)
 	}
 	return p.saveSession(s)
@@ -235,4 +242,15 @@ func (p *SessionProvider) getRequiredSteps(userID string) ([]SessionStep, error)
 	}
 
 	return steps, nil
+}
+
+func (p *SessionProvider) isStepFinished(step SessionStep, attrs *session.Attrs) bool {
+	switch step {
+	case SessionStepIdentity:
+		return attrs.PrincipalID != ""
+	case SessionStepMFAAuthn, SessionStepMFASetup:
+		return attrs.AuthenticatorID != ""
+	default:
+		panic("authn: unknown authn session step " + step)
+	}
 }

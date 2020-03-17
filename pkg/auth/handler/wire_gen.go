@@ -87,7 +87,8 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
-		Session:                 authnSessionProvider,
+		AuthnSession:            authnSessionProvider,
+		Session:                 sessionProvider,
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
@@ -146,7 +147,8 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
-		Session:                 authnSessionProvider,
+		AuthnSession:            authnSessionProvider,
+		Session:                 sessionProvider,
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}

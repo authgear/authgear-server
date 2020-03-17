@@ -90,7 +90,8 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
-		Session:                 authnSessionProvider,
+		AuthnSession:            authnSessionProvider,
+		Session:                 sessionProvider,
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
@@ -151,7 +152,8 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
-		Session:                 authnSessionProvider,
+		AuthnSession:            authnSessionProvider,
+		Session:                 sessionProvider,
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
@@ -213,7 +215,8 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
-		Session:                 authnSessionProvider,
+		AuthnSession:            authnSessionProvider,
+		Session:                 sessionProvider,
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
@@ -276,7 +279,8 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
-		Session:                 authnSessionProvider,
+		AuthnSession:            authnSessionProvider,
+		Session:                 sessionProvider,
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}

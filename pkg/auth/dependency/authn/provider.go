@@ -17,7 +17,8 @@ type Provider struct {
 	OAuth                   *OAuthCoordinator
 	Authn                   *AuthenticateProcess
 	Signup                  *SignupProcess
-	Session                 *SessionProvider
+	AuthnSession            *SessionProvider
+	Session                 session.Provider
 	SessionCookieConfig     session.CookieConfiguration
 	BearerTokenCookieConfig mfa.BearerTokenCookieConfiguration
 }
@@ -34,12 +35,12 @@ func (p *Provider) SignupWithLoginIDs(
 		return nil, err
 	}
 
-	s, err := p.Session.BeginSession(client, pr.PrincipalUserID(), pr, session.CreateReasonSignup)
+	s, err := p.AuthnSession.BeginSession(client, pr.PrincipalUserID(), pr, session.CreateReasonSignup)
 	if err != nil {
 		return nil, err
 	}
 
-	return p.Session.StepSession(s)
+	return p.AuthnSession.StepSession(s)
 }
 
 func (p *Provider) LoginWithLoginID(
@@ -52,12 +53,12 @@ func (p *Provider) LoginWithLoginID(
 		return nil, err
 	}
 
-	s, err := p.Session.BeginSession(client, pr.PrincipalUserID(), pr, session.CreateReasonLogin)
+	s, err := p.AuthnSession.BeginSession(client, pr.PrincipalUserID(), pr, session.CreateReasonLogin)
 	if err != nil {
 		return nil, err
 	}
 
-	return p.Session.StepSession(s)
+	return p.AuthnSession.StepSession(s)
 }
 
 func (p *Provider) OAuthAuthenticate(
@@ -90,17 +91,17 @@ func (p *Provider) OAuthExchangeCode(
 		if s == nil {
 			return nil, authz.ErrNotAuthenticated
 		}
-		return p.Session.MakeResult(client, s, "")
+		return p.AuthnSession.MakeResult(client, s, "")
 	}
 
 	// code.Action == "login"
 	reason := session.CreateReason(code.SessionCreateReason)
-	as, err := p.Session.BeginSession(client, pr.PrincipalUserID(), pr, reason)
+	as, err := p.AuthnSession.BeginSession(client, pr.PrincipalUserID(), pr, reason)
 	if err != nil {
 		return nil, err
 	}
 
-	return p.Session.StepSession(as)
+	return p.AuthnSession.StepSession(as)
 }
 
 func (p *Provider) WriteResult(rw http.ResponseWriter, result Result) {
@@ -129,5 +130,46 @@ func (p *Provider) WriteResult(rw http.ResponseWriter, result Result) {
 		handler.WriteResponse(rw, handler.APIResponse{Result: resp})
 	} else {
 		handler.WriteResponse(rw, handler.APIResponse{Error: err})
+	}
+}
+
+func (p *Provider) Resolve(
+	client config.OAuthClientConfiguration,
+	authnSessionToken string,
+	stepPredicate func(SessionStep) bool,
+) (*Session, error) {
+	s, err := p.AuthnSession.ResolveSession(authnSessionToken)
+	if err != nil {
+		return nil, err
+	}
+
+	step, ok := s.NextStep()
+	if !ok {
+		return nil, ErrInvalidAuthenticationSession
+	}
+
+	if !stepPredicate(step) {
+		return nil, authz.ErrNotAuthenticated
+	}
+
+	return s, nil
+}
+
+func (p *Provider) StepSession(
+	client config.OAuthClientConfiguration,
+	s SessionContainer,
+	mfaBearerToken string,
+) (Result, error) {
+	switch s := s.(type) {
+	case *Session:
+		return p.AuthnSession.StepSession(s)
+	case *session.Session:
+		err := p.Session.Update(s)
+		if err != nil {
+			return nil, err
+		}
+		return p.AuthnSession.MakeResult(client, s, mfaBearerToken)
+	default:
+		panic("authn: unexpected session container type")
 	}
 }

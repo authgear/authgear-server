@@ -51,5 +51,6 @@ type Provider interface {
 	DeleteAuthenticator(userID string, id string) error
 
 	// StepMFA steps forward the MFA step.
+	// TODO(authn): delete this
 	StepMFA(authnSession *coreAuth.AuthnSession, opts coreAuth.AuthnSessionStepMFAOptions) error
 }
