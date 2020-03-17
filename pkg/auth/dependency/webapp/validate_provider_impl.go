@@ -11,7 +11,10 @@ var validator *validation.Validator
 
 func init() {
 	validator = validation.NewValidator("https://accounts.skygear.io")
-	validator.AddSchemaFragments(AuthenticateRequestSchema)
+	validator.AddSchemaFragments(
+		AuthenticateRequestSchema,
+		AuthenticateLoginIDRequestSchema,
+	)
 }
 
 const AuthenticateRequestSchema = `
@@ -20,7 +23,37 @@ const AuthenticateRequestSchema = `
 	"type": "object",
 	"properties": {
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] }
-	}
+	},
+	"required": ["x_login_id_input_type"]
+}
+`
+
+const AuthenticateLoginIDRequestSchema = `
+{
+	"$id": "#WebAppAuthenticateLoginIDRequest",
+	"type": "object",
+	"properties": {
+		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
+		"x_step": { "type": "string", "const": "submit_login_id" },
+		"x_calling_code": { "type": "string" },
+		"x_national_number": { "type": "string" },
+		"x_login_id": { "type": "string" }
+	},
+	"required": ["x_login_id_input_type", "x_step"],
+	"oneOf": [
+		{
+			"properties": {
+				"x_login_id_input_type": { "type": "string", "const": "phone" }
+			},
+			"required": ["x_calling_code", "x_national_number"]
+		},
+		{
+			"properties": {
+				"x_login_id_input_type": { "type": "string", "const": "text" }
+			},
+			"required": ["x_login_id"]
+		}
+	]
 }
 `
 

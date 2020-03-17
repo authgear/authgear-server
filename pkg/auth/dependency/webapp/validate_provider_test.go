@@ -81,5 +81,50 @@ func TestValidateProvider(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 		})
+
+		Convey("WebAppAuthenticateRequest", func() {
+			var err error
+			impl := ValidateProviderImpl{Validator: validator}
+
+			err = impl.Validate("#WebAppAuthenticateRequest", url.Values{})
+			So(err, ShouldNotBeNil)
+
+			err = impl.Validate("#WebAppAuthenticateRequest", url.Values{
+				"x_login_id_input_type": []string{"phone"},
+			})
+			So(err, ShouldBeNil)
+		})
+
+		Convey("WebAppAuthenticateLoginIDRequest", func() {
+			var err error
+			impl := ValidateProviderImpl{Validator: validator}
+
+			err = impl.Validate("#WebAppAuthenticateLoginIDRequest", url.Values{
+				"x_step":                []string{"submit_login_id"},
+				"x_login_id_input_type": []string{"phone"},
+			})
+			So(err, ShouldNotBeNil)
+
+			err = impl.Validate("#WebAppAuthenticateLoginIDRequest", url.Values{
+				"x_step":                []string{"submit_login_id"},
+				"x_login_id_input_type": []string{"phone"},
+				"x_calling_code":        []string{"852"},
+				"x_national_number":     []string{"99887766"},
+			})
+			So(err, ShouldBeNil)
+
+			err = impl.Validate("#WebAppAuthenticateLoginIDRequest", url.Values{
+				"x_step":                []string{"submit_login_id"},
+				"x_login_id_input_type": []string{"text"},
+			})
+			So(err, ShouldNotBeNil)
+
+			err = impl.Validate("#WebAppAuthenticateLoginIDRequest", url.Values{
+				"x_step":                []string{"submit_login_id"},
+				"x_login_id_input_type": []string{"text"},
+				"x_login_id":            []string{"john.doe"},
+			})
+			So(err, ShouldBeNil)
+		})
 	})
 }
