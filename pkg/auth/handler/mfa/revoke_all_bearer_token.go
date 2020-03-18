@@ -5,11 +5,11 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -19,7 +19,7 @@ import (
 
 func AttachRevokeAllBearerTokenHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/mfa/bearer_token/revoke_all").
@@ -30,7 +30,7 @@ func AttachRevokeAllBearerTokenHandler(
 }
 
 type RevokeAllBearerTokenHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 func (f RevokeAllBearerTokenHandlerFactory) NewHandler(request *http.Request) http.Handler {
@@ -78,7 +78,7 @@ func (h *RevokeAllBearerTokenHandler) Handle(w http.ResponseWriter, r *http.Requ
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		userID := coreauthn.GetUser(r.Context()).ID
+		userID := auth.GetUser(r.Context()).ID
 		err = h.MFAProvider.DeleteAllBearerToken(userID)
 		if err != nil {
 			return err

@@ -5,12 +5,12 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -21,7 +21,7 @@ import (
 
 func AttachGetHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/session/get").
@@ -32,7 +32,7 @@ func AttachGetHandler(
 }
 
 type GetHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 func (f GetHandlerFactory) NewHandler(request *http.Request) http.Handler {
@@ -122,7 +122,7 @@ func (h GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h GetHandler) Handle(r *http.Request, payload GetRequestPayload) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo := authn.GetUser(r.Context())
+		authInfo := auth.GetUser(r.Context())
 		userID := authInfo.ID
 		sessionID := payload.SessionID
 

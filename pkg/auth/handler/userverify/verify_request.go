@@ -7,7 +7,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -16,7 +17,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -27,7 +27,7 @@ import (
 // AttachVerifyRequestHandler attaches VerifyRequestHandler to server
 func AttachVerifyRequestHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/verify_request").
@@ -39,7 +39,7 @@ func AttachVerifyRequestHandler(
 
 // VerifyRequestHandlerFactory creates VerifyRequestHandler
 type VerifyRequestHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 // NewHandler creates new VerifyRequestHandler
@@ -146,7 +146,7 @@ func (h VerifyRequestHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 	}
 
 	err = db.WithTx(h.TxContext, func() (err error) {
-		authInfo := authn.GetUser(r.Context())
+		authInfo := auth.GetUser(r.Context())
 
 		// Get Profile
 		var userProfile userprofile.UserProfile

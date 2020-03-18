@@ -8,6 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -219,7 +220,7 @@ func (provider *providerImpl) makeContext() event.Context {
 	} else {
 		userID = &authInfo.ID
 		principalID = &sess.AuthnAttrs().PrincipalID
-		session = sess.(model.SessionModeler).ToAPIModel()
+		session = sess.(auth.Session).ToAPIModel()
 	}
 
 	return event.Context{

@@ -3,6 +3,7 @@ package authn
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
@@ -80,7 +81,7 @@ func (p *Provider) OAuthLink(
 
 func (p *Provider) OAuthExchangeCode(
 	client config.OAuthClientConfiguration,
-	s model.SessionModeler,
+	s auth.Session,
 	code *sso.SkygearAuthorizationCode,
 ) (Result, error) {
 	pr, err := p.OAuth.ExchangeCode(code)

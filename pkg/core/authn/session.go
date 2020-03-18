@@ -3,7 +3,7 @@ package authn
 type SessionType string
 
 const (
-	SessionTypeIdentityProvider SessionType = "idp"
+	SessionTypeAuthnInfo SessionType = "authn-info"
 )
 
 type Session interface {

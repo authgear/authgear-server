@@ -9,8 +9,8 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	authntesting "github.com/skygeario/skygear-server/pkg/core/authn/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -58,7 +58,7 @@ func TestLinkHandler(t *testing.T) {
 
 		Convey("should reject payload without access token", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{}`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
 				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
@@ -90,7 +90,7 @@ func TestLinkHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
                                "access_token": "token"
                        }`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
 				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)

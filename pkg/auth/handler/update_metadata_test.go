@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -15,7 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	authntesting "github.com/skygeario/skygear-server/pkg/core/authn/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -90,7 +90,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"age": 24
 				}
 			}`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID(userID).
 				PrincipalID("john.doe.principal.id0").
 				ToRequest(req)
@@ -149,7 +149,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"love":     "cat"
 				}
 			}`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID(userID).
 				PrincipalID("john.doe.principal.id0").
 				ToRequest(req)
@@ -184,7 +184,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"email":    "john.doe@example.com"
 				}
 			}`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID(userID).
 				PrincipalID("john.doe.principal.id0").
 				ToRequest(req)
@@ -221,7 +221,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"age": 25
 				}
 			}`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID(userID).
 				PrincipalID("john.doe.principal.id0").
 				ToRequest(req)

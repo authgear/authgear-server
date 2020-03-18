@@ -5,6 +5,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -12,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
@@ -76,7 +76,7 @@ func (p *SessionProvider) StepSession(s *Session) (Result, error) {
 	return p.saveSession(s)
 }
 
-func (p *SessionProvider) MakeResult(client config.OAuthClientConfiguration, s model.SessionModeler, bearerToken string) (Result, error) {
+func (p *SessionProvider) MakeResult(client config.OAuthClientConfiguration, s auth.Session, bearerToken string) (Result, error) {
 	user, identity, err := p.loadData(s.AuthnAttrs())
 	if err != nil {
 		return nil, err
@@ -141,7 +141,7 @@ func (p *SessionProvider) completeSession(s *Session, client config.OAuthClientC
 	sessionModel := session.ToAPIModel()
 	err = p.HookProvider.DispatchEvent(
 		event.SessionCreateEvent{
-			Reason:   auth.SessionCreateReason(s.SessionCreateReason),
+			Reason:   s.SessionCreateReason,
 			User:     *user,
 			Identity: *identity,
 			Session:  *sessionModel,

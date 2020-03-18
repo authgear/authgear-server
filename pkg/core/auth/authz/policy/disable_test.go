@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	authntesting "github.com/skygeario/skygear-server/pkg/core/authn/testing"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -19,7 +19,8 @@ func TestDenyDisabledUser(t *testing.T) {
 
 		Convey("should return error if user is disabled", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			req = authntesting.WithAuthn().Disabled(true).ToRequest(req)
+			authninfo := &authn.Info{UserID: "user-id", UserDisabled: true}
+			req = req.WithContext(authn.WithAuthn(req.Context(), authninfo, authninfo.User()))
 
 			err := DenyDisabledUser(req)
 			So(err, ShouldNotBeNil)
@@ -27,7 +28,8 @@ func TestDenyDisabledUser(t *testing.T) {
 
 		Convey("should pass if user is not disabled", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			req = authntesting.WithAuthn().Disabled(false).ToRequest(req)
+			authninfo := &authn.Info{UserID: "user-id", UserDisabled: false}
+			req = req.WithContext(authn.WithAuthn(req.Context(), authninfo, authninfo.User()))
 
 			err := DenyDisabledUser(req)
 			So(err, ShouldBeNil)

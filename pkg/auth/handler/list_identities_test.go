@@ -8,10 +8,10 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	authntesting "github.com/skygeario/skygear-server/pkg/core/authn/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -67,7 +67,7 @@ func TestListIdentitiesHandler(t *testing.T) {
 
 		Convey("should return list of identities", func() {
 			r, _ := http.NewRequest("POST", "", strings.NewReader("{}"))
-			r = authntesting.WithAuthn().
+			r = authtesting.WithAuthn().
 				UserID("user-id-1").
 				PrincipalID("principal-id-1").
 				ToRequest(r)

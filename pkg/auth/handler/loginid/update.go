@@ -7,7 +7,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -20,7 +21,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -30,7 +30,7 @@ import (
 
 func AttachUpdateLoginIDHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/login_id/update").
@@ -41,7 +41,7 @@ func AttachUpdateLoginIDHandler(
 }
 
 type UpdateLoginIDHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 func (f UpdateLoginIDHandlerFactory) NewHandler(request *http.Request) http.Handler {
@@ -139,7 +139,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 
 	var resp interface{}
 	err := db.WithTx(h.TxContext, func() error {
-		authInfo := authn.GetUser(r.Context())
+		authInfo := auth.GetUser(r.Context())
 		userID := authInfo.ID
 
 		var oldPrincipal password.Principal

@@ -6,12 +6,12 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -20,7 +20,7 @@ import (
 
 func AttachListIdentitiesHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/identity/list").
@@ -31,7 +31,7 @@ func AttachListIdentitiesHandler(
 }
 
 type ListIdentitiesHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 func (f ListIdentitiesHandlerFactory) NewHandler(request *http.Request) http.Handler {
@@ -100,7 +100,7 @@ func (h ListIdentitiesHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo := authn.GetUser(r.Context())
+		authInfo := auth.GetUser(r.Context())
 
 		principals, err := h.IdentityProvider.ListPrincipalsByUserID(authInfo.ID)
 		if err != nil {

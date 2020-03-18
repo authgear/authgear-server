@@ -9,6 +9,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -19,7 +20,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	authntesting "github.com/skygeario/skygear-server/pkg/core/authn/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -84,7 +84,7 @@ func TestChangePasswordHandler(t *testing.T) {
 				"old_password": "123456",
 				"password": "1234567"
 			}`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID(userID).
 				PrincipalID("john.doe.principal.id0").
 				Verified(true).
@@ -140,7 +140,7 @@ func TestChangePasswordHandler(t *testing.T) {
 				"old_password": "123456",
 				"password": "1234"
 			}`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID(userID).
 				PrincipalID("john.doe.principal.id0").
 				Verified(true).
@@ -173,7 +173,7 @@ func TestChangePasswordHandler(t *testing.T) {
 				"old_password": "wrong_password",
 				"password": "123456"
 			}`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID(userID).
 				PrincipalID("john.doe.principal.id0").
 				Verified(true).

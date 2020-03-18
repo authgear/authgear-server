@@ -6,7 +6,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -16,7 +17,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -27,7 +27,7 @@ import (
 // AttachVerifyCodeHandler attaches VerifyCodeHandler to server
 func AttachVerifyCodeHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/verify_code").
@@ -45,7 +45,7 @@ func AttachVerifyCodeHandler(
 
 // VerifyCodeHandlerFactory creates VerifyCodeHandler
 type VerifyCodeHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 // NewHandler creates new VerifyCodeHandler
@@ -122,7 +122,7 @@ func (h VerifyCodeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp 
 	}
 
 	err = db.WithTx(h.TxContext, func() (err error) {
-		authInfo := authn.GetUser(r.Context())
+		authInfo := auth.GetUser(r.Context())
 
 		var userProfile userprofile.UserProfile
 		userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID)

@@ -5,11 +5,11 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -19,7 +19,7 @@ import (
 
 func AttachDeleteAuthenticatorHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/mfa/authenticator/delete").
@@ -30,7 +30,7 @@ func AttachDeleteAuthenticatorHandler(
 }
 
 type DeleteAuthenticatorHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 func (f DeleteAuthenticatorHandlerFactory) NewHandler(request *http.Request) http.Handler {
@@ -96,7 +96,7 @@ func (h *DeleteAuthenticatorHandler) Handle(w http.ResponseWriter, r *http.Reque
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		userID := coreauthn.GetUser(r.Context()).ID
+		userID := auth.GetUser(r.Context()).ID
 		return h.MFAProvider.DeleteAuthenticator(userID, payload.AuthenticatorID)
 	})
 	resp = struct{}{}

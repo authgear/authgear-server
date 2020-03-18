@@ -15,9 +15,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 	. "github.com/smartystreets/goconvey/convey"
 
+	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	authntesting "github.com/skygeario/skygear-server/pkg/core/authn/testing"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 
@@ -78,7 +78,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"ux_mode": "web_redirect"
 			}
 			`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
 				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
@@ -123,7 +123,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"ux_mode": "web_redirect"
 			}
 			`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
 				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
@@ -159,7 +159,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"merge_realm": "nonsense"
 			}
 			`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
 				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
@@ -193,7 +193,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"ux_mode": "web_popup"
 			}
 			`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
 				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
@@ -234,7 +234,7 @@ func TestAuthURLHandler(t *testing.T) {
 				"on_user_duplicate": "merge"
 			}
 			`))
-			req = authntesting.WithAuthn().
+			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
 				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)

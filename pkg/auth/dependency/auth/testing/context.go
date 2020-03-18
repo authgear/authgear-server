@@ -4,34 +4,24 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
-type session struct {
-	ID string
-	authn.Attrs
-}
-
-func (s *session) SessionID() string              { return s.ID }
-func (s *session) SessionType() authn.SessionType { return authn.SessionTypeIdentityProvider }
-
-func (s *session) AuthnAttrs() *authn.Attrs {
-	return &s.Attrs
-}
-
 type Builder struct {
-	sessionID string
-	attrs     authn.Attrs
-	user      *authinfo.AuthInfo
+	session *session.Session
+	user    *authinfo.AuthInfo
 }
 
 func WithAuthn() Builder {
 	return Builder{
-		sessionID: "session-id",
-		attrs: authn.Attrs{
-			UserID:      "user-id",
-			PrincipalID: "principal-id",
+		session: &session.Session{
+			ID: "session-id",
+			Attrs: authn.Attrs{
+				UserID:      "user-id",
+				PrincipalID: "principal-id",
+			},
 		},
 		user: &authinfo.AuthInfo{
 			ID:         "user-id",
@@ -45,28 +35,22 @@ func (b Builder) ToRequest(r *http.Request) *http.Request {
 }
 
 func (b Builder) ToContext(ctx context.Context) context.Context {
-	return authn.WithAuthn(ctx,
-		&session{
-			ID:    b.sessionID,
-			Attrs: b.attrs,
-		},
-		b.user,
-	)
+	return authn.WithAuthn(ctx, b.session, b.user)
 }
 
 func (b Builder) UserID(id string) Builder {
 	b.user.ID = id
-	b.attrs.UserID = id
+	b.session.Attrs.UserID = id
 	return b
 }
 
 func (b Builder) PrincipalID(id string) Builder {
-	b.attrs.PrincipalID = id
+	b.session.Attrs.PrincipalID = id
 	return b
 }
 
 func (b Builder) SessionID(id string) Builder {
-	b.sessionID = id
+	b.session.ID = id
 	return b
 }
 

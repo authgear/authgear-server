@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	authntesting "github.com/skygeario/skygear-server/pkg/core/authn/testing"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
+	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -36,7 +36,7 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 		)
 		h.Validator = validator
 		h.TxContext = db.NewMockTxContext()
-		authctx := authntesting.WithAuthn().
+		authctx := authtesting.WithAuthn().
 			UserID("user-id-1").
 			PrincipalID("principal-id-1").
 			VerifyInfo(map[string]bool{"user1@example.com": true}).

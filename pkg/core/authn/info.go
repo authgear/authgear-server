@@ -24,6 +24,8 @@ type Info struct {
 	SessionAuthenticatorUpdatedAt  *time.Time
 }
 
+var _ Session = &Info{}
+
 func NewAuthnInfo(now time.Time, attrs *Attrs, user *authinfo.AuthInfo) *Info {
 	return &Info{
 		IsValid:                        true,
@@ -77,6 +79,32 @@ func (i *Info) PopulateHeaders(rw http.ResponseWriter) {
 	rw.Header().Set(headerSessionAuthenticatorOOBChannel, string(i.SessionAuthenticatorOOBChannel))
 	if i.SessionAuthenticatorUpdatedAt != nil {
 		rw.Header().Set(headerSessionAuthenticatorUpdatedAt, i.SessionAuthenticatorUpdatedAt.Format(time.RFC3339))
+	}
+}
+
+// TODO(authn): add session ID
+func (i *Info) SessionID() string        { return "" }
+func (i *Info) SessionType() SessionType { return SessionTypeAuthnInfo }
+
+func (i *Info) AuthnAttrs() *Attrs {
+	return &Attrs{
+		UserID:             i.UserID,
+		PrincipalID:        i.SessionIdentityID,
+		PrincipalType:      i.SessionIdentityType,
+		PrincipalUpdatedAt: i.SessionIdentityUpdatedAt,
+
+		AuthenticatorID:         i.SessionAuthenticatorID,
+		AuthenticatorType:       i.SessionAuthenticatorType,
+		AuthenticatorOOBChannel: i.SessionAuthenticatorOOBChannel,
+		AuthenticatorUpdatedAt:  i.SessionAuthenticatorUpdatedAt,
+	}
+}
+
+func (i *Info) User() *authinfo.AuthInfo {
+	return &authinfo.AuthInfo{
+		ID:       i.UserID,
+		Disabled: i.UserDisabled,
+		Verified: i.UserVerified,
 	}
 }
 

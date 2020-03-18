@@ -3,9 +3,9 @@ package session
 import (
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	coremodel "github.com/skygeario/skygear-server/pkg/core/model"
 )
 
 type Session struct {
@@ -23,15 +23,17 @@ type Session struct {
 	TokenHash string `json:"token_hash"`
 }
 
+var _ auth.Session = &Session{}
+
 func (s *Session) SessionID() string              { return s.ID }
-func (s *Session) SessionType() authn.SessionType { return authn.SessionTypeIdentityProvider }
+func (s *Session) SessionType() authn.SessionType { return auth.SessionTypeIdentityProvider }
 
 func (s *Session) AuthnAttrs() *authn.Attrs {
 	return &s.Attrs
 }
 
 func (s *Session) ToAPIModel() *model.Session {
-	ua := coremodel.ParseUserAgent(s.LastAccess.UserAgent)
+	ua := model.ParseUserAgent(s.LastAccess.UserAgent)
 	ua.DeviceName = s.LastAccess.Extra.DeviceName()
 	return &model.Session{
 		ID: s.ID,
@@ -48,7 +50,7 @@ func (s *Session) ToAPIModel() *model.Session {
 		LastAccessedAt:          s.AccessedAt,
 		CreatedByIP:             s.InitialAccess.Remote.IP(),
 		LastAccessedByIP:        s.LastAccess.Remote.IP(),
-		UserAgent:               model.SessionUserAgent(ua),
+		UserAgent:               ua,
 	}
 }
 

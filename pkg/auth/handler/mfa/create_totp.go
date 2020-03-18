@@ -5,7 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -19,11 +20,11 @@ import (
 
 func AttachCreateTOTPHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/mfa/totp/new").
-		Handler(auth.MakeHandler(authDependency, newCreateTOTPHandler)).
+		Handler(pkg.MakeHandler(authDependency, newCreateTOTPHandler)).
 		Methods("OPTIONS", "POST")
 }
 
@@ -120,7 +121,7 @@ func (h *CreateTOTPHandler) Handle(w http.ResponseWriter, r *http.Request) (resp
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		var session coreauthn.Attributer = coreauthn.GetSession(r.Context())
+		var session coreauthn.Attributer = auth.GetSession(r.Context())
 		if session == nil {
 			session, err = h.authnResolver.Resolve(
 				coreAuth.GetAccessKey(r.Context()).Client,

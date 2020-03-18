@@ -5,7 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -13,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -23,7 +23,7 @@ import (
 // AttachLogoutHandler attach logout handler to server
 func AttachLogoutHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/logout").
@@ -35,7 +35,7 @@ func AttachLogoutHandler(
 
 // LogoutHandlerFactory creates new handler
 type LogoutHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 // NewHandler creates new handler
@@ -98,8 +98,8 @@ func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 // Handle api request
 func (h LogoutHandler) Handle(r *http.Request) (resp interface{}, err error) {
-	authInfo := authn.GetUser(r.Context())
-	sess := authn.GetSession(r.Context())
+	authInfo := auth.GetUser(r.Context())
+	sess := auth.GetSession(r.Context())
 
 	resp = map[string]string{}
 

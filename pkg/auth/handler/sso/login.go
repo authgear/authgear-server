@@ -5,7 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -16,29 +17,18 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func AttachLoginHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/sso/{provider}/login").
-		Handler(auth.MakeHandler(authDependency, newLoginHandler)).
+		Handler(pkg.MakeHandler(authDependency, newLoginHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type LoginHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &LoginHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h
 }
 
 // LoginRequestPayload login handler request payload
@@ -79,7 +69,7 @@ type LoginAuthnProvider interface {
 
 	OAuthExchangeCode(
 		client config.OAuthClientConfiguration,
-		session model.SessionModeler,
+		session auth.Session,
 		code *sso.SkygearAuthorizationCode,
 	) (authn.Result, error)
 
