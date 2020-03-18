@@ -1,4 +1,4 @@
-package oauth
+package protocol
 
 type AuthorizationRequest map[string]string
 type AuthorizationResponse map[string]string

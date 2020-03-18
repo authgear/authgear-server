@@ -1,4 +1,4 @@
-package oauth
+package protocol
 
 type ErrorResponse map[string]string
 

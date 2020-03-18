@@ -1,4 +1,4 @@
-package oauth
+package protocol
 
 type TokenRequest map[string]string
 type TokenResponse map[string]string
