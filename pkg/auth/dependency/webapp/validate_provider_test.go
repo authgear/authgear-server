@@ -12,7 +12,7 @@ import (
 
 func TestValidateProvider(t *testing.T) {
 	Convey("ValidateProvider", t, func() {
-		Convey("Prevalidate", func() {
+		Convey("PrepareValues", func() {
 			c := &config.AuthConfiguration{}
 			impl := ValidateProviderImpl{AuthConfiguration: c}
 			var form url.Values
@@ -22,7 +22,7 @@ func TestValidateProvider(t *testing.T) {
 					"a": []string{""},
 					"b": []string{"non-empty"},
 				}
-				impl.Prevalidate(form)
+				impl.PrepareValues(form)
 				So(form, ShouldHaveLength, 1)
 			})
 
@@ -31,7 +31,7 @@ func TestValidateProvider(t *testing.T) {
 				c.LoginIDKeys = []config.LoginIDKeyConfiguration{
 					{Key: "email", Type: "email"},
 				}
-				impl.Prevalidate(form)
+				impl.PrepareValues(form)
 				So(form.Get("x_login_id_input_type"), ShouldEqual, "text")
 			})
 
@@ -40,7 +40,7 @@ func TestValidateProvider(t *testing.T) {
 				c.LoginIDKeys = []config.LoginIDKeyConfiguration{
 					{Key: "phone", Type: "phone"},
 				}
-				impl.Prevalidate(form)
+				impl.PrepareValues(form)
 				So(form.Get("x_login_id_input_type"), ShouldEqual, "phone")
 			})
 
@@ -51,7 +51,7 @@ func TestValidateProvider(t *testing.T) {
 				c.LoginIDKeys = []config.LoginIDKeyConfiguration{
 					{Key: "phone", Type: "phone"},
 				}
-				impl.Prevalidate(form)
+				impl.PrepareValues(form)
 				So(form.Get("x_login_id_input_type"), ShouldEqual, "text")
 			})
 		})

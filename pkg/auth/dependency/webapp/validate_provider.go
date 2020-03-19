@@ -6,8 +6,8 @@ import (
 
 // ValidateProvider validates url.Values with JSON Schema.
 type ValidateProvider interface {
-	// Prevalidate fills in default values.
-	Prevalidate(form url.Values)
+	// PrepareValues removes empty values and populate defaults.
+	PrepareValues(form url.Values)
 	// validate validate from against the schema.
 	Validate(schemaID string, form url.Values) error
 }

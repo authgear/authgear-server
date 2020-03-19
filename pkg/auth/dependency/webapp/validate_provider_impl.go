@@ -73,7 +73,7 @@ func FormToJSON(form url.Values) map[string]interface{} {
 	return j
 }
 
-func (p *ValidateProviderImpl) Prevalidate(form url.Values) {
+func (p *ValidateProviderImpl) PrepareValues(form url.Values) {
 	// Remove empty values to be compatible with JSON Schema.
 	for name := range form {
 		if form.Get(name) == "" {

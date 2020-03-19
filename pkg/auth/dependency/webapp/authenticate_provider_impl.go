@@ -17,7 +17,7 @@ func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		panic(err)
 	}
 
-	p.ValidateProvider.Prevalidate(r.Form)
+	p.ValidateProvider.PrepareValues(r.Form)
 
 	var writeResponse func(err error)
 	var err error
