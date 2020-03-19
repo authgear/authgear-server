@@ -2,6 +2,7 @@ package phone
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -22,6 +23,23 @@ func EnsureE164(phone string) error {
 		return ErrNotInE164Format
 	}
 	return nil
+}
+
+// Parse is a very lenient function to parse nationalNumber and callingCode into e164.
+func Parse(nationalNumber string, callingCode string) (e164 string, err error) {
+	nationalNumber = strings.TrimSpace(nationalNumber)
+	callingCode = strings.TrimSpace(callingCode)
+	if !strings.HasPrefix(callingCode, "+") {
+		callingCode = fmt.Sprintf("+%s", callingCode)
+	}
+	var rawInput string
+	rawInput = fmt.Sprintf("%s%s", callingCode, nationalNumber)
+	num, err := phonenumbers.Parse(rawInput, "")
+	if err != nil {
+		return
+	}
+	e164 = phonenumbers.Format(num, phonenumbers.E164)
+	return
 }
 
 // Mask masks the give phone number.
