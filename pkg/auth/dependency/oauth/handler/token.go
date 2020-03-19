@@ -9,7 +9,7 @@ const (
 	tokenAlphabet string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
-func generateToken() string {
+func GenerateToken() string {
 	token := rand.StringWithAlphabet(32, tokenAlphabet, rand.SecureRand)
 	return token
 }
