@@ -6,15 +6,16 @@ import (
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
-// TODO(oauth): implement stores
 func ProvideAuthorizationHandler(
 	ctx context.Context,
 	cfg *config.TenantConfiguration,
-	//as oauth.AuthorizationStore,
-	//cs oauth.CodeGrantStore,
+	lf logging.Factory,
+	as oauth.AuthorizationStore,
+	cs oauth.CodeGrantStore,
 	authze oauth.AuthorizeEndpointProvider,
 	authne oauth.AuthenticateEndpointProvider,
 	vs ScopesValidator,
@@ -25,9 +26,10 @@ func ProvideAuthorizationHandler(
 		Context: ctx,
 		AppID:   cfg.AppID,
 		Clients: cfg.AppConfig.Clients,
+		Logger:  lf.NewLogger("oauth-authz"),
 
-		//Authorizations:       as,
-		//CodeGrants:           cs,
+		Authorizations:       as,
+		CodeGrants:           cs,
 		AuthorizeEndpoint:    authze,
 		AuthenticateEndpoint: authne,
 		ValidateScopes:       vs,

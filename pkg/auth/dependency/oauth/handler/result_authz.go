@@ -11,6 +11,7 @@ import (
 
 type AuthorizationResult interface {
 	WriteResponse(rw http.ResponseWriter, r *http.Request)
+	IsInternalError() bool
 }
 
 type (
@@ -19,8 +20,9 @@ type (
 		Response    protocol.AuthorizationResponse
 	}
 	authorizationResultError struct {
-		RedirectURI *url.URL
-		Response    protocol.ErrorResponse
+		RedirectURI   *url.URL
+		InternalError bool
+		Response      protocol.ErrorResponse
 	}
 	authorizationResultRequireAuthn struct {
 		AuthenticateURI *url.URL
@@ -36,6 +38,10 @@ func (a authorizationResultRedirect) WriteResponse(rw http.ResponseWriter, r *ht
 	}
 	a.RedirectURI.RawQuery = query.Encode()
 	http.Redirect(rw, r, a.RedirectURI.String(), http.StatusFound)
+}
+
+func (a authorizationResultRedirect) IsInternalError() bool {
+	return false
 }
 
 func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.Request) {
@@ -60,6 +66,10 @@ func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.
 	}
 }
 
+func (a authorizationResultError) IsInternalError() bool {
+	return a.InternalError
+}
+
 func (a authorizationResultRequireAuthn) WriteResponse(rw http.ResponseWriter, r *http.Request) {
 	authzQuery := a.AuthorizeURI.Query()
 	for k, v := range a.Request {
@@ -72,4 +82,8 @@ func (a authorizationResultRequireAuthn) WriteResponse(rw http.ResponseWriter, r
 	a.AuthenticateURI.RawQuery = authnQuery.Encode()
 
 	http.Redirect(rw, r, a.AuthenticateURI.String(), http.StatusFound)
+}
+
+func (a authorizationResultRequireAuthn) IsInternalError() bool {
+	return false
 }

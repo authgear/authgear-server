@@ -11,10 +11,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
+	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
-func provideAuthorizeHandler(ah oauthAuthorizeHandler) http.Handler {
+func provideAuthorizeHandler(lf logging.Factory, tx db.TxContext, ah oauthAuthorizeHandler) http.Handler {
 	h := &AuthorizeHandler{
+		logger:       lf.NewLogger("oauth-authz-handler"),
+		txContext:    tx,
 		authzHandler: ah,
 	}
 	return h

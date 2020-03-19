@@ -7,6 +7,7 @@ import (
 	"strings"
 	gotime "time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
@@ -19,6 +20,7 @@ type AuthorizationHandler struct {
 	Context context.Context
 	AppID   string
 	Clients []config.OAuthClientConfiguration
+	Logger  *logrus.Entry
 
 	Authorizations       oauth.AuthorizationStore
 	CodeGrants           oauth.CodeGrantStore
@@ -38,17 +40,19 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) Authoriza
 	result, err := h.doHandle(redirectURI, client, r)
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
-		var resp protocol.ErrorResponse
+		resultErr := authorizationResultError{RedirectURI: redirectURI}
 		if errors.As(err, &oauthError) {
-			resp = oauthError.Response
+			resultErr.Response = oauthError.Response
 		} else {
-			resp = protocol.NewErrorResponse("server_error", "internal server error")
+			h.Logger.WithError(err).Error("authz handler failed")
+			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
+			resultErr.InternalError = true
 		}
 		state := r.State()
 		if state != "" {
-			resp.State(r.State())
+			resultErr.Response.State(r.State())
 		}
-		result = authorizationResultError{RedirectURI: redirectURI, Response: resp}
+		result = resultErr
 	}
 
 	return result
