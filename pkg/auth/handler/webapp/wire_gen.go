@@ -94,10 +94,23 @@ func newRootHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	return handler
 }
 
+func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
+	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine)
+	handler := provideSettingsHandler(renderProvider)
+	return handler
+}
+
 // wire.go:
 
 func provideRootHandler(authenticateProvider webapp.AuthenticateProvider) http.Handler {
 	return &RootHandler{
 		AuthenticateProvider: authenticateProvider,
 	}
+}
+
+func provideSettingsHandler(renderProvider webapp.RenderProvider) http.Handler {
+	return &SettingsHandler{RenderProvider: renderProvider}
 }

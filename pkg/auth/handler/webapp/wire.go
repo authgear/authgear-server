@@ -26,3 +26,15 @@ func newRootHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	)
 	return nil
 }
+
+func provideSettingsHandler(renderProvider webapp.RenderProvider) http.Handler {
+	return &SettingsHandler{RenderProvider: renderProvider}
+}
+
+func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	wire.Build(
+		auth.DependencySet,
+		provideSettingsHandler,
+	)
+	return nil
+}
