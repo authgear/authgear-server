@@ -4,6 +4,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/template"
@@ -44,6 +45,9 @@ func NewEngineWithConfig(
 	e.Register(mfa.TemplateMFAOOBCodeSMSTXT)
 	e.Register(mfa.TemplateMFAOOBCodeEmailTXT)
 	e.Register(mfa.TemplateMFAOOBCodeEmailHTML)
+
+	e.Register(webapp.TemplateAuthUISignInHTML)
+	e.Register(webapp.TemplateAuthUISignInPasswordHTML)
 
 	return e
 }

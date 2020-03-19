@@ -10,20 +10,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 )
 
-func NewRouterWithOption(option Option) (rootRouter *mux.Router, appRouter *mux.Router) {
-	rootRouter = mux.NewRouter()
+func NewRouter() *mux.Router {
+	rootRouter := mux.NewRouter()
+	rootRouter.Use(sentry.Middleware(sentry.DefaultClient.Hub))
+	rootRouter.Use(middleware.RecoverMiddleware{}.Handle)
 	rootRouter.HandleFunc("/healthz", HealthCheckHandler)
-
-	if option.GearPathPrefix == "" {
-		appRouter = rootRouter.NewRoute().Subrouter()
-	} else {
-		appRouter = rootRouter.PathPrefix(option.GearPathPrefix).Subrouter()
-	}
-
-	appRouter.Use(sentry.Middleware(sentry.DefaultClient.Hub))
-	appRouter.Use(middleware.RecoverMiddleware{}.Handle)
-
-	return
+	return rootRouter
 }
 
 func FactoryToHandler(f handler.Factory) http.Handler {

@@ -22,6 +22,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
@@ -103,6 +104,17 @@ func ProvidePrincipalProviders(oauth oauth.Provider, password password.Provider)
 	return []principal.Provider{oauth, password}
 }
 
+// ProvideWebAppRenderProvider is placed here because it requires DependencyMap.
+func ProvideWebAppRenderProvider(m DependencyMap, config *config.TenantConfiguration, templateEngine *coretemplate.Engine) webapp.RenderProvider {
+	return &webapp.RenderProviderImpl{
+		StaticAssetURLPrefix: m.StaticAssetURLPrefix,
+		AuthConfiguration:    config.AppConfig.Auth,
+		AuthUIConfiguration:  config.AppConfig.AuthUI,
+		OAuthProviders:       config.AppConfig.SSO.OAuth.Providers,
+		TemplateEngine:       templateEngine,
+	}
+}
+
 var DependencySet = wire.NewSet(
 	ProvideContext,
 	ProvideTenantConfig,
@@ -112,6 +124,7 @@ var DependencySet = wire.NewSet(
 	ProvideReservedNameChecker,
 	ProvideTaskExecutor,
 	ProvideTemplateEngine,
+	ProvideWebAppRenderProvider,
 
 	ProvideLoggingRequestID,
 	ProvideAuthSQLBuilder,
@@ -142,4 +155,5 @@ var DependencySet = wire.NewSet(
 	urlprefix.DependencySet,
 	mfa.DependencySet,
 	mfapq.DependencySet,
+	webapp.DependencySet,
 )

@@ -18,6 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
 	userverifyhandler "github.com/skygeario/skygear-server/pkg/auth/handler/userverify"
+	webapphandler "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -41,6 +42,12 @@ type configuration struct {
 	Template                          TemplateConfiguration       `envconfig:"TEMPLATE"`
 	Default                           config.DefaultConfiguration `envconfig:"DEFAULT"`
 	ReservedNameSourceFile            string                      `envconfig:"RESERVED_NAME_SOURCE_FILE" default:"reserved_name.txt"`
+	// StaticAssetDir is for serving the static asset locally.
+	// It should not be used for production.
+	StaticAssetDir string `envconfig:"STATIC_ASSET_DIR"`
+	// StaticAssetURLPrefix sets the prefix for static asset.
+	// In production, it should look like https://code.skygear.dev/dist/git-<commit-hash>/authui
+	StaticAssetURLPrefix string `envconfig:"STATIC_ASSET_URL_PREFIX"`
 }
 
 type TemplateConfiguration struct {
@@ -167,6 +174,7 @@ func main() {
 		AssetGearLoader:          assetGearLoader,
 		AsyncTaskExecutor:        asyncTaskExecutor,
 		UseInsecureCookie:        configuration.UseInsecureCookie,
+		StaticAssetURLPrefix:     configuration.StaticAssetURLPrefix,
 		DefaultConfiguration:     configuration.Default,
 		Validator:                validator,
 		ReservedNameChecker:      reservedNameChecker,
@@ -176,11 +184,9 @@ func main() {
 	task.AttachPwHousekeeperTask(asyncTaskExecutor, authDependency)
 	task.AttachWelcomeEmailSendTask(asyncTaskExecutor, authDependency)
 
-	serverOption := server.Option{
-		GearPathPrefix: "/_auth",
-	}
 	var rootRouter *mux.Router
-	var appRouter *mux.Router
+	var apiRouter *mux.Router
+	var webappRouter *mux.Router
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
 		reader, err := os.Open(filename)
@@ -192,71 +198,84 @@ func main() {
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
-		rootRouter, appRouter = server.NewRouterWithOption(serverOption)
-		appRouter.Use(middleware.WriteTenantConfigMiddleware{
+		rootRouter = server.NewRouter()
+		rootRouter.Use(middleware.RequestIDMiddleware{}.Handle)
+		rootRouter.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
 				return *tenantConfig, nil
 			}),
 		}.Handle)
-		appRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
-		appRouter.Use(middleware.RequestIDMiddleware{}.Handle)
-		appRouter.Use(middleware.CORSMiddleware{}.Handle)
+
+		apiRouter = rootRouter.PathPrefix("/_auth").Subrouter()
+		apiRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
+		apiRouter.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		rootRouter, appRouter = server.NewRouterWithOption(serverOption)
-		appRouter.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
+		rootRouter = server.NewRouter()
+		rootRouter.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
+
+		apiRouter = rootRouter.PathPrefix("/_auth").Subrouter()
 	}
 
-	appRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
-	appRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
-	appRouter.Use(middleware.AuthMiddleware{}.Handle)
-	appRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
-	appRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
+	rootRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
+	rootRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
 
-	handler.AttachSignupHandler(appRouter, authDependency)
-	handler.AttachLoginHandler(appRouter, authDependency)
-	handler.AttachLogoutHandler(appRouter, authDependency)
-	handler.AttachRefreshHandler(appRouter, authDependency)
-	handler.AttachMeHandler(appRouter, authDependency)
-	handler.AttachSetDisableHandler(appRouter, authDependency)
-	handler.AttachChangePasswordHandler(appRouter, authDependency)
-	handler.AttachResetPasswordHandler(appRouter, authDependency)
-	handler.AttachUpdateMetadataHandler(appRouter, authDependency)
-	handler.AttachListIdentitiesHandler(appRouter, authDependency)
-	forgotpwdhandler.AttachForgotPasswordHandler(appRouter, authDependency)
-	forgotpwdhandler.AttachForgotPasswordResetHandler(appRouter, authDependency)
-	userverifyhandler.AttachVerifyRequestHandler(appRouter, authDependency)
-	userverifyhandler.AttachVerifyCodeHandler(appRouter, authDependency)
-	userverifyhandler.AttachUpdateHandler(appRouter, authDependency)
-	ssohandler.AttachAuthURLHandler(appRouter, authDependency)
-	ssohandler.AttachAuthRedirectHandler(appRouter, authDependency)
-	ssohandler.AttachAuthHandler(appRouter, authDependency)
-	ssohandler.AttachAuthResultHandler(appRouter, authDependency)
-	ssohandler.AttachLoginHandler(appRouter, authDependency)
-	ssohandler.AttachLinkHandler(appRouter, authDependency)
-	ssohandler.AttachUnlinkHandler(appRouter, authDependency)
-	session.AttachListHandler(appRouter, authDependency)
-	session.AttachGetHandler(appRouter, authDependency)
-	session.AttachRevokeHandler(appRouter, authDependency)
-	session.AttachRevokeAllHandler(appRouter, authDependency)
-	session.AttachResolveHandler(appRouter, authDependency)
-	mfaHandler.AttachListRecoveryCodeHandler(appRouter, authDependency)
-	mfaHandler.AttachRegenerateRecoveryCodeHandler(appRouter, authDependency)
-	mfaHandler.AttachListAuthenticatorHandler(appRouter, authDependency)
-	mfaHandler.AttachCreateTOTPHandler(appRouter, authDependency)
-	mfaHandler.AttachActivateTOTPHandler(appRouter, authDependency)
-	mfaHandler.AttachDeleteAuthenticatorHandler(appRouter, authDependency)
-	mfaHandler.AttachAuthenticateTOTPHandler(appRouter, authDependency)
-	mfaHandler.AttachRevokeAllBearerTokenHandler(appRouter, authDependency)
-	mfaHandler.AttachAuthenticateRecoveryCodeHandler(appRouter, authDependency)
-	mfaHandler.AttachAuthenticateBearerTokenHandler(appRouter, authDependency)
-	mfaHandler.AttachCreateOOBHandler(appRouter, authDependency)
-	mfaHandler.AttachTriggerOOBHandler(appRouter, authDependency)
-	mfaHandler.AttachActivateOOBHandler(appRouter, authDependency)
-	mfaHandler.AttachAuthenticateOOBHandler(appRouter, authDependency)
-	gearHandler.AttachTemplatesHandler(appRouter, authDependency)
-	loginidhandler.AttachAddLoginIDHandler(appRouter, authDependency)
-	loginidhandler.AttachRemoveLoginIDHandler(appRouter, authDependency)
-	loginidhandler.AttachUpdateLoginIDHandler(appRouter, authDependency)
+	apiRouter.Use(middleware.AuthMiddleware{}.Handle)
+	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
+	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
+
+	webappRouter = rootRouter.NewRoute().Subrouter()
+	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewCSPMiddleware))
+	webapphandler.AttachRootHandler(webappRouter, authDependency)
+
+	if configuration.StaticAssetDir != "" {
+		rootRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(configuration.StaticAssetDir))))
+	}
+
+	handler.AttachSignupHandler(apiRouter, authDependency)
+	handler.AttachLoginHandler(apiRouter, authDependency)
+	handler.AttachLogoutHandler(apiRouter, authDependency)
+	handler.AttachRefreshHandler(apiRouter, authDependency)
+	handler.AttachMeHandler(apiRouter, authDependency)
+	handler.AttachSetDisableHandler(apiRouter, authDependency)
+	handler.AttachChangePasswordHandler(apiRouter, authDependency)
+	handler.AttachResetPasswordHandler(apiRouter, authDependency)
+	handler.AttachUpdateMetadataHandler(apiRouter, authDependency)
+	handler.AttachListIdentitiesHandler(apiRouter, authDependency)
+	forgotpwdhandler.AttachForgotPasswordHandler(apiRouter, authDependency)
+	forgotpwdhandler.AttachForgotPasswordResetHandler(apiRouter, authDependency)
+	userverifyhandler.AttachVerifyRequestHandler(apiRouter, authDependency)
+	userverifyhandler.AttachVerifyCodeHandler(apiRouter, authDependency)
+	userverifyhandler.AttachUpdateHandler(apiRouter, authDependency)
+	ssohandler.AttachAuthURLHandler(apiRouter, authDependency)
+	ssohandler.AttachAuthRedirectHandler(apiRouter, authDependency)
+	ssohandler.AttachAuthHandler(apiRouter, authDependency)
+	ssohandler.AttachAuthResultHandler(apiRouter, authDependency)
+	ssohandler.AttachLoginHandler(apiRouter, authDependency)
+	ssohandler.AttachLinkHandler(apiRouter, authDependency)
+	ssohandler.AttachUnlinkHandler(apiRouter, authDependency)
+	session.AttachListHandler(apiRouter, authDependency)
+	session.AttachGetHandler(apiRouter, authDependency)
+	session.AttachRevokeHandler(apiRouter, authDependency)
+	session.AttachRevokeAllHandler(apiRouter, authDependency)
+	session.AttachResolveHandler(apiRouter, authDependency)
+	mfaHandler.AttachListRecoveryCodeHandler(apiRouter, authDependency)
+	mfaHandler.AttachRegenerateRecoveryCodeHandler(apiRouter, authDependency)
+	mfaHandler.AttachListAuthenticatorHandler(apiRouter, authDependency)
+	mfaHandler.AttachCreateTOTPHandler(apiRouter, authDependency)
+	mfaHandler.AttachActivateTOTPHandler(apiRouter, authDependency)
+	mfaHandler.AttachDeleteAuthenticatorHandler(apiRouter, authDependency)
+	mfaHandler.AttachAuthenticateTOTPHandler(apiRouter, authDependency)
+	mfaHandler.AttachRevokeAllBearerTokenHandler(apiRouter, authDependency)
+	mfaHandler.AttachAuthenticateRecoveryCodeHandler(apiRouter, authDependency)
+	mfaHandler.AttachAuthenticateBearerTokenHandler(apiRouter, authDependency)
+	mfaHandler.AttachCreateOOBHandler(apiRouter, authDependency)
+	mfaHandler.AttachTriggerOOBHandler(apiRouter, authDependency)
+	mfaHandler.AttachActivateOOBHandler(apiRouter, authDependency)
+	mfaHandler.AttachAuthenticateOOBHandler(apiRouter, authDependency)
+	gearHandler.AttachTemplatesHandler(apiRouter, authDependency)
+	loginidhandler.AttachAddLoginIDHandler(apiRouter, authDependency)
+	loginidhandler.AttachRemoveLoginIDHandler(apiRouter, authDependency)
+	loginidhandler.AttachUpdateLoginIDHandler(apiRouter, authDependency)
 
 	srv := &http.Server{
 		Addr:    configuration.Host,
