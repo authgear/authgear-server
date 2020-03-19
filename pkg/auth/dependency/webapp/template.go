@@ -50,6 +50,12 @@ const defineError = `
 {{ range .x_error.info.causes }}
 {{ if and (eq .kind "Required") (eq .pointer "/x_login_id" ) }}
 <li class="error-txt">Email or Username is required</li>
+{{ else if and (eq .kind "Required") (eq .pointer "/x_calling_code" ) }}
+<li class="error-txt">Calling code is required</li>
+{{ else if and (eq .kind "Required") (eq .pointer "/x_national_number" ) }}
+<li class="error-txt">Phone number is required</li>
+{{ else if and (eq .kind "StringFormat") (eq .pointer "/x_national_number" ) }}
+<li class="error-txt">Phone number must contain digits only</li>
 {{ else }}
 <li class="error-txt">{{ .message }}</li>
 {{ end }}

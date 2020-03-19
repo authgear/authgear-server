@@ -6,6 +6,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/phone"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 type AuthenticateProviderImpl struct {
@@ -59,7 +61,6 @@ func (p *AuthenticateProviderImpl) Default(w http.ResponseWriter, r *http.Reques
 }
 
 func (p *AuthenticateProviderImpl) SubmitLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
-	err = p.ValidateProvider.Validate("#WebAppAuthenticateLoginIDRequest", r.Form)
 	writeResponse = func(err error) {
 		t := TemplateItemTypeAuthUISignInHTML
 		if err == nil {
@@ -67,6 +68,26 @@ func (p *AuthenticateProviderImpl) SubmitLoginID(w http.ResponseWriter, r *http.
 		}
 		p.RenderProvider.WritePage(w, r, t, err)
 	}
+
+	err = p.ValidateProvider.Validate("#WebAppAuthenticateLoginIDRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	if r.Form.Get("x_login_id_input_type") == "phone" {
+		e164, e := phone.Parse(r.Form.Get("x_national_number"), r.Form.Get("x_calling_code"))
+		if e != nil {
+			err = validation.NewValidationFailed("", []validation.ErrorCause{
+				validation.ErrorCause{
+					Kind:    validation.ErrorStringFormat,
+					Pointer: "/x_national_number",
+				},
+			})
+			return
+		}
+		r.Form.Set("x_login_id", e164)
+	}
+
 	return
 }
 
