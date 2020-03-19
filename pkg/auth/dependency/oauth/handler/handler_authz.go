@@ -20,10 +20,11 @@ type AuthorizationHandler struct {
 	AppID   string
 	Clients []config.OAuthClientConfiguration
 
-	Authorizations oauth.AuthorizationStore
-	CodeGrants     oauth.CodeGrantStore
-	URIs           oauth.URIProvider
-	Time           time.Provider
+	Authorizations       oauth.AuthorizationStore
+	CodeGrants           oauth.CodeGrantStore
+	AuthorizeEndpoint    AuthorizeEndpointProvider
+	AuthenticateEndpoint AuthenticateEndpointProvider
+	Time                 time.Provider
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) AuthorizationResult {
@@ -66,8 +67,8 @@ func (h *AuthorizationHandler) doHandle(
 	if session == nil || session.SessionType() != auth.SessionTypeIdentityProvider {
 		// Not authenticated as IdP session => request authentication and retry
 		return authorizationResultRequireAuthn{
-			AuthenticateURI: h.URIs.AuthenticateURI(),
-			AuthorizeURI:    h.URIs.AuthorizeURI(),
+			AuthenticateURI: h.AuthenticateEndpoint.AuthenticateEndpointURI(),
+			AuthorizeURI:    h.AuthorizeEndpoint.AuthorizeEndpointURI(),
 			Request:         r,
 		}, nil
 	}
