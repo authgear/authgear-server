@@ -5,11 +5,11 @@ import (
 	"errors"
 	"net/url"
 	"strings"
+	gotime "time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -24,6 +24,8 @@ type AuthorizationHandler struct {
 	CodeGrants           oauth.CodeGrantStore
 	AuthorizeEndpoint    AuthorizeEndpointProvider
 	AuthenticateEndpoint AuthenticateEndpointProvider
+	ValidateScopes       ScopesValidator
+	CodeGenerator        TokenGenerator
 	Time                 time.Provider
 }
 
@@ -42,7 +44,10 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) Authoriza
 		} else {
 			resp = protocol.NewErrorResponse("server_error", "internal server error")
 		}
-		resp.State(r.State())
+		state := r.State()
+		if state != "" {
+			resp.State(r.State())
+		}
 		result = authorizationResultError{RedirectURI: redirectURI, Response: resp}
 	}
 
@@ -78,7 +83,7 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
-	code := generateToken()
+	code := h.CodeGenerator()
 	codeHash := hashToken(code)
 
 	codeGrant := &oauth.CodeGrant{
@@ -87,7 +92,7 @@ func (h *AuthorizationHandler) doHandle(
 		SessionID:       session.SessionID(),
 
 		CreatedAt: h.Time.NowUTC(),
-		ExpireAt:  h.Time.NowUTC(),
+		ExpireAt:  h.Time.NowUTC().Add(1 * gotime.Minute),
 		Scopes:    scopes,
 		CodeHash:  codeHash,
 
@@ -103,7 +108,10 @@ func (h *AuthorizationHandler) doHandle(
 
 	resp := protocol.AuthorizationResponse{}
 	resp.Code(code)
-	resp.State(r.State())
+	state := r.State()
+	if state != "" {
+		resp.State(r.State())
+	}
 
 	return authorizationResultRedirect{
 		RedirectURI: redirectURI,
@@ -158,11 +166,11 @@ func (h *AuthorizationHandler) validateRequest(r protocol.AuthorizationRequest) 
 	if r.Scope() == "" {
 		return protocol.NewError("invalid_request", "scope is required")
 	}
-	if r.CodeChallengeMethod() != "S256" {
-		return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
-	}
 	if r.CodeChallenge() == "" {
 		return protocol.NewError("invalid_request", "PKCE code challenge is required")
+	}
+	if r.CodeChallengeMethod() != "S256" {
+		return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 	}
 
 	return nil
@@ -170,7 +178,7 @@ func (h *AuthorizationHandler) validateRequest(r protocol.AuthorizationRequest) 
 
 func (h *AuthorizationHandler) parseScopes(scope string) ([]string, error) {
 	scopes := strings.Split(scope, " ")
-	if err := oidc.ValidateScopes(scopes); err != nil {
+	if err := h.ValidateScopes(scopes); err != nil {
 		return nil, err
 	}
 	return scopes, nil
@@ -208,6 +216,7 @@ func (h *AuthorizationHandler) checkAuthorization(
 		}
 	} else {
 		authz = authz.WithScopesAdded(scopes)
+		authz.UpdatedAt = h.Time.NowUTC()
 		err = h.Authorizations.UpdateScopes(authz)
 		if err != nil {
 			return nil, err

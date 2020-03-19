@@ -3,7 +3,6 @@ package oauth
 type CodeGrantStore interface {
 	GetCodeGrant(codeHash string) (*CodeGrant, error)
 	CreateCodeGrant(*CodeGrant) error
-	UpdateCodeGrant(*CodeGrant) error
 	DeleteCodeGrant(*CodeGrant) error
 }
 

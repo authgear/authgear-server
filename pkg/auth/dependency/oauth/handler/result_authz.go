@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sort"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 )
@@ -48,8 +49,13 @@ func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.
 	} else {
 		rw.WriteHeader(http.StatusBadRequest)
 		rw.Write([]byte("Invalid OAuth authorization request:\n"))
-		for k, v := range a.Response {
-			rw.Write([]byte(fmt.Sprintf("%s: %s\n", k, v)))
+		keys := make([]string, 0, len(a.Response))
+		for k := range a.Response {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			rw.Write([]byte(fmt.Sprintf("%s: %s\n", k, a.Response[k])))
 		}
 	}
 }
