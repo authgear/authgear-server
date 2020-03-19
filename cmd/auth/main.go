@@ -10,6 +10,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
 	gearHandler "github.com/skygeario/skygear-server/pkg/auth/handler/gear"
@@ -224,8 +225,16 @@ func main() {
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
 
 	webappRouter = rootRouter.NewRoute().Subrouter()
+	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
 	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewCSPMiddleware))
-	webapphandler.AttachRootHandler(webappRouter, authDependency)
+
+	webappAnonymousRouter := webappRouter.NewRoute().Subrouter()
+	webappAnonymousRouter.Use(webapp.RequiredAnonymousMiddleware{}.Handle)
+	webapphandler.AttachRootHandler(webappAnonymousRouter, authDependency)
+
+	webappAuthenticatedRouter := webappRouter.NewRoute().Subrouter()
+	webappAuthenticatedRouter.Use(webapp.RequiredAuthenticatedMiddleware{}.Handle)
+	webapphandler.AttachSettingsHandler(webappAuthenticatedRouter, authDependency)
 
 	if configuration.StaticAssetDir != "" {
 		rootRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(configuration.StaticAssetDir))))
