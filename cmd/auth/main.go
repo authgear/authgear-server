@@ -202,6 +202,7 @@ func main() {
 		}
 
 		rootRouter = server.NewRouter()
+		rootRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
 		rootRouter.Use(middleware.RequestIDMiddleware{}.Handle)
 		rootRouter.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
@@ -210,11 +211,9 @@ func main() {
 		}.Handle)
 
 		apiRouter = rootRouter.PathPrefix("/_auth").Subrouter()
-		apiRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
 		apiRouter.Use(middleware.CORSMiddleware{}.Handle)
 
 		oauthRouter = rootRouter.NewRoute().Subrouter()
-		oauthRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
 		oauthRouter.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
 		rootRouter = server.NewRouter()
