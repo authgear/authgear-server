@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type AuthorizationHandler struct {
@@ -19,9 +20,10 @@ type AuthorizationHandler struct {
 	AppID   string
 	Clients []config.OAuthClientConfiguration
 
-	CodeGrants oauth.CodeGrantStore
-	URIs       oauth.URIProvider
-	Time       time.Provider
+	Authorizations oauth.AuthorizationStore
+	CodeGrants     oauth.CodeGrantStore
+	URIs           oauth.URIProvider
+	Time           time.Provider
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) AuthorizationResult {
@@ -70,13 +72,17 @@ func (h *AuthorizationHandler) doHandle(
 		}, nil
 	}
 
+	authz, err := h.checkAuthorization(session, r, scopes)
+	if err != nil {
+		return nil, err
+	}
+
 	code := generateToken()
 	codeHash := hashToken(code)
 
 	codeGrant := &oauth.CodeGrant{
-		AppID: h.AppID,
-		// TODO(oauth): handle consent & authorization
-		AuthorizationID: "",
+		AppID:           h.AppID,
+		AuthorizationID: authz.ID,
 		SessionID:       session.SessionID(),
 
 		CreatedAt: h.Time.NowUTC(),
@@ -167,4 +173,45 @@ func (h *AuthorizationHandler) parseScopes(scope string) ([]string, error) {
 		return nil, err
 	}
 	return scopes, nil
+}
+
+func (h *AuthorizationHandler) checkAuthorization(
+	session auth.AuthSession,
+	r protocol.AuthorizationRequest,
+	scopes []string,
+) (*oauth.Authorization, error) {
+	userID := session.AuthnAttrs().UserID
+	authz, err := h.Authorizations.Get(userID, r.ClientID())
+	if err == nil && authz.IsAuthorized(scopes) {
+		return authz, nil
+	} else if err != nil && !errors.Is(err, oauth.ErrAuthorizationNotFound) {
+		return nil, err
+	}
+
+	// Authorization of requested scopes not granted, requesting consent.
+	// TODO(oauth): request consent, for now just always implicitly grant scopes.
+	if authz == nil {
+		now := h.Time.NowUTC()
+		authz = &oauth.Authorization{
+			ID:        uuid.New(),
+			AppID:     h.AppID,
+			ClientID:  r.ClientID(),
+			UserID:    userID,
+			CreatedAt: now,
+			UpdatedAt: now,
+			Scopes:    scopes,
+		}
+		err = h.Authorizations.Create(authz)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		authz = authz.WithScopesAdded(scopes)
+		err = h.Authorizations.UpdateScopes(authz)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return authz, nil
 }
