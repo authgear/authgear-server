@@ -5,14 +5,13 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -26,7 +25,7 @@ import (
 
 func AttachRevokeHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/session/revoke").
@@ -37,7 +36,7 @@ func AttachRevokeHandler(
 }
 
 type RevokeHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 func (f RevokeHandlerFactory) NewHandler(request *http.Request) http.Handler {
@@ -89,7 +88,6 @@ const RevokeRequestSchema = `
 		@Response 200 {EmptyResponse}
 */
 type RevokeHandler struct {
-	AuthContext      coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	Validator        *validation.Validator      `dependency:"Validator"`
 	RequireAuthz     handler.RequireAuthz       `dependency:"RequireAuthz"`
 	TxContext        db.TxContext               `dependency:"TxContext"`
@@ -106,12 +104,12 @@ func (h RevokeHandler) ProvideAuthzPolicy() authz.Policy {
 func (h RevokeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var response handler.APIResponse
 	var payload RevokeRequestPayload
-	session, _ := h.AuthContext.Session()
-	payload.CurrentSessionID = session.ID
+	// TODO(authn): use correct session ID
+	payload.CurrentSessionID = ""
 	if err := handler.BindJSONBody(r, w, h.Validator, "#SessionRevokeRequest", &payload); err != nil {
 		response.Error = err
 	} else {
-		result, err := h.Handle(payload)
+		result, err := h.Handle(r, payload)
 		if err != nil {
 			response.Error = err
 		} else {
@@ -121,9 +119,9 @@ func (h RevokeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler.WriteResponse(w, response)
 }
 
-func (h RevokeHandler) Handle(payload RevokeRequestPayload) (resp interface{}, err error) {
+func (h RevokeHandler) Handle(r *http.Request, payload RevokeRequestPayload) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo, _ := h.AuthContext.AuthInfo()
+		authInfo := auth.GetAuthInfo(r.Context())
 		userID := authInfo.ID
 		sessionID := payload.SessionID
 
@@ -153,7 +151,9 @@ func (h RevokeHandler) Handle(payload RevokeRequestPayload) (resp interface{}, e
 
 		user := model.NewUser(*authInfo, profile)
 		identity := model.NewIdentity(h.IdentityProvider, principal)
-		session := authSession.Format(s)
+		// TODO(authn): use new session provider
+		//session := authSession.Format(s)
+		var session model.Session
 
 		err = h.HookProvider.DispatchEvent(
 			event.SessionDeleteEvent{

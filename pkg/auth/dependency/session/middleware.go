@@ -5,12 +5,13 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
 type Resolver interface {
-	GetByToken(token string) (*Session, error)
-	Access(*Session) error
+	GetByToken(token string) (*IDPSession, error)
+	Access(*IDPSession) error
 }
 
 type Middleware struct {
@@ -37,12 +38,16 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 			panic(err)
 		}
 
-		r = r.WithContext(WithSession(r.Context(), s, u))
+		if err == nil {
+			r = r.WithContext(authn.WithAuthn(r.Context(), s, u))
+		} else {
+			r = r.WithContext(authn.WithInvalidAuthn(r.Context()))
+		}
 		next.ServeHTTP(rw, r)
 	})
 }
 
-func (m *Middleware) resolve(token string) (*Session, *authinfo.AuthInfo, error) {
+func (m *Middleware) resolve(token string) (*IDPSession, *authinfo.AuthInfo, error) {
 	if err := m.TxContext.BeginTx(); err != nil {
 		return nil, nil, err
 	}

@@ -5,12 +5,12 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -22,7 +22,7 @@ import (
 
 func AttachMeHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/me").
@@ -33,7 +33,7 @@ func AttachMeHandler(
 }
 
 type MeHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 func (f MeHandlerFactory) NewHandler(request *http.Request) http.Handler {
@@ -55,7 +55,6 @@ func (f MeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 			@JSONSchema {UserIdentityResponse}
 */
 type MeHandler struct {
-	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
@@ -83,9 +82,9 @@ func (h MeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interfac
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo, _ := h.AuthContext.AuthInfo()
-		sess, _ := h.AuthContext.Session()
-		principalID := sess.PrincipalID
+		authInfo := auth.GetAuthInfo(r.Context())
+		sess := auth.GetSession(r.Context())
+		principalID := sess.AuthnAttrs().PrincipalID
 
 		// Get Profile
 		var userProfile userprofile.UserProfile

@@ -9,8 +9,8 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
@@ -31,7 +31,7 @@ func (p *MockLoginAuthnProvider) OAuthAuthenticate(
 
 func (p *MockLoginAuthnProvider) OAuthExchangeCode(
 	client config.OAuthClientConfiguration,
-	s *session.Session,
+	session auth.AuthSession,
 	code *sso.SkygearAuthorizationCode,
 ) (authn.Result, error) {
 	panic("not mocked")
@@ -65,9 +65,6 @@ func TestLoginHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
-			RedirectURIs: []string{
-				"http://localhost",
-			},
 			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,

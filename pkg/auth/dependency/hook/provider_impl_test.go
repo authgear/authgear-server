@@ -1,18 +1,20 @@
 package hook
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
 	gotime "time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -26,16 +28,16 @@ func TestDispatchEvent(t *testing.T) {
 		req, _ := http.NewRequest("POST", "https://www.example.com", nil)
 		timeProvider := time.MockProvider{TimeNowUTC: gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)}
 		store := newMockStore()
-		authContext := authtest.NewMockContext()
 		deliverer := newMockDeliverer()
 		authInfoStore := authinfo.NewMockStore()
 		userProfileStore := userprofile.NewMockUserProfileStore()
+		ctx := context.Background()
 
 		provider := NewProvider(
+			ctx,
 			requestID,
 			urlprefix.NewProvider(req),
 			store,
-			authContext,
 			db.NewMockTxContext(),
 			&timeProvider,
 			authInfoStore,
@@ -151,7 +153,19 @@ func TestDispatchEvent(t *testing.T) {
 			Convey("should include auth info", func() {
 				userID := "user-id"
 				principalID := "principal-id"
-				authContext.UseUser(userID, principalID)
+				provider.Context = authn.WithAuthn(
+					context.Background(),
+					&session.IDPSession{
+						ID: "user-id-principal-id",
+						Attrs: authn.Attrs{
+							UserID:      userID,
+							PrincipalID: principalID,
+						},
+					},
+					&authinfo.AuthInfo{
+						ID: userID,
+					},
+				)
 
 				err := provider.DispatchEvent(
 					payload,

@@ -7,13 +7,16 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
@@ -25,7 +28,7 @@ import (
 
 func AttachAuthURLHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/sso/{provider}/login_auth_url").
@@ -45,7 +48,7 @@ func AttachAuthURLHandler(
 }
 
 type AuthURLHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 	Action     string
 }
 
@@ -136,8 +139,9 @@ type AuthURLRequestPayload struct {
 	MergeRealm      string                `json:"-"`
 	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 
-	PasswordAuthProvider password.Provider `json:"-"`
-	SSOProvider          sso.Provider      `json:"-"`
+	Client               config.OAuthClientConfiguration `json:"-"`
+	PasswordAuthProvider password.Provider               `json:"-"`
+	SSOProvider          sso.Provider                    `json:"-"`
 }
 
 func (p *AuthURLRequestPayload) SetDefaultValue() {
@@ -167,7 +171,7 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		}}
 	}
 
-	if !p.SSOProvider.IsValidCallbackURL(p.CallbackURL) {
+	if !p.SSOProvider.IsValidCallbackURL(p.Client, p.CallbackURL) {
 		return []validation.ErrorCause{{
 			Kind:    validation.ErrorGeneral,
 			Pointer: "/callback_url",
@@ -212,7 +216,6 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 type AuthURLHandler struct {
 	TxContext            db.TxContext              `dependency:"TxContext"`
 	Validator            *validation.Validator     `dependency:"Validator"`
-	AuthContext          coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz      `dependency:"RequireAuthz"`
 	ProviderFactory      *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
 	PasswordAuthProvider password.Provider         `dependency:"PasswordAuthProvider"`
@@ -225,7 +228,6 @@ type AuthURLHandler struct {
 func (h *AuthURLHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
 		authz.PolicyFunc(policy.DenyDisabledUser),
 	)
 }
@@ -248,6 +250,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	}
 
 	payload := AuthURLRequestPayload{}
+	payload.Client = coreauth.GetAccessKey(r.Context()).Client
 	payload.PasswordAuthProvider = h.PasswordAuthProvider
 	payload.SSOProvider = h.SSOProvider
 	err = handler.BindJSONBody(r, w, h.Validator, "#AuthURLRequest", &payload)
@@ -275,9 +278,9 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		APIClientID:   apiClientID,
 		CodeChallenge: payload.CodeChallenge,
 	}
-	authInfo, _ := h.AuthContext.AuthInfo()
-	if authInfo != nil {
-		state.UserID = authInfo.ID
+	user := auth.GetAuthInfo(r.Context())
+	if user != nil {
+		state.UserID = user.ID
 	}
 
 	encodedState, err := h.SSOProvider.EncodeState(state)

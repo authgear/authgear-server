@@ -5,14 +5,13 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -24,7 +23,7 @@ import (
 
 func AttachRevokeAllHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/session/revoke_all").
@@ -35,7 +34,7 @@ func AttachRevokeAllHandler(
 }
 
 type RevokeAllHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 func (f RevokeAllHandlerFactory) NewHandler(request *http.Request) http.Handler {
@@ -55,7 +54,6 @@ func (f RevokeAllHandlerFactory) NewHandler(request *http.Request) http.Handler 
 		@Response 200 {EmptyResponse}
 */
 type RevokeAllHandler struct {
-	AuthContext      coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	RequireAuthz     handler.RequireAuthz       `dependency:"RequireAuthz"`
 	TxContext        db.TxContext               `dependency:"TxContext"`
 	SessionProvider  session.Provider           `dependency:"SessionProvider"`
@@ -74,7 +72,7 @@ func (h RevokeAllHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := handler.DecodeJSONBody(r, w, &payload); err != nil {
 		response.Error = err
 	} else {
-		result, err := h.Handle()
+		result, err := h.Handle(r)
 		if err != nil {
 			response.Error = err
 		} else {
@@ -84,12 +82,12 @@ func (h RevokeAllHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler.WriteResponse(w, response)
 }
 
-func (h RevokeAllHandler) Handle() (resp interface{}, err error) {
+func (h RevokeAllHandler) Handle(r *http.Request) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo, _ := h.AuthContext.AuthInfo()
+		authInfo := auth.GetAuthInfo(r.Context())
 		userID := authInfo.ID
-		sess, _ := h.AuthContext.Session()
-		sessionID := sess.ID
+		// TODO(authn): use correct session ID
+		sessionID := ""
 
 		profile, err := h.UserProfileStore.GetUserProfile(userID)
 		if err != nil {
@@ -115,7 +113,9 @@ func (h RevokeAllHandler) Handle() (resp interface{}, err error) {
 				return err
 			}
 			identity := model.NewIdentity(h.IdentityProvider, principal)
-			sessionModel := authSession.Format(session)
+			// TODO(authn): use new session provider
+			var sessionModel model.Session
+			// sessionModel := authSession.Format(session)
 
 			err = h.HookProvider.DispatchEvent(
 				event.SessionDeleteEvent{

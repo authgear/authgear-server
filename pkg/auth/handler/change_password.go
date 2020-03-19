@@ -5,8 +5,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -15,7 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	task "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -30,7 +30,7 @@ import (
 
 func AttachChangePasswordHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/change_password").
@@ -42,7 +42,7 @@ func AttachChangePasswordHandler(
 
 // ChangePasswordHandlerFactory creates ChangePasswordHandler
 type ChangePasswordHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 // NewHandler creates new handler
@@ -92,7 +92,6 @@ const ChangePasswordRequestSchema = `
 */
 type ChangePasswordHandler struct {
 	Validator            *validation.Validator      `dependency:"Validator"`
-	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
@@ -116,7 +115,6 @@ func (h ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	result, err := h.Handle(w, r)
 	if err == nil {
-		h.SessionWriter.WriteSession(w, &result.AccessToken, nil)
 		handler.WriteResponse(w, handler.APIResponse{Result: result})
 	} else {
 		handler.WriteResponse(w, handler.APIResponse{Error: err})
@@ -130,8 +128,8 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		authinfo, _ := h.AuthContext.AuthInfo()
-		sess, _ := h.AuthContext.Session()
+		authinfo := auth.GetAuthInfo(r.Context())
+		sess := auth.GetSession(r.Context())
 
 		if err := h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
 			PlainPassword: payload.NewPassword,
@@ -151,7 +149,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 
 		principal := principals[0]
 		for _, p := range principals {
-			if p.ID == sess.PrincipalID {
+			if p.ID == sess.AuthnAttrs().PrincipalID {
 				principal = p
 			}
 			err = p.VerifyPassword(payload.OldPassword)
@@ -163,13 +161,6 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 				return err
 			}
 		}
-
-		// refresh session
-		accessToken, err := h.SessionProvider.Refresh(sess)
-		if err != nil {
-			return err
-		}
-		tokens := coreAuth.SessionTokens{ID: sess.ID, AccessToken: accessToken}
 
 		// Get Profile
 		userProfile, err := h.UserProfileStore.GetUserProfile(authinfo.ID)
@@ -191,7 +182,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 			return err
 		}
 
-		resp = model.NewAuthResponse(user, identity, tokens, "")
+		resp = model.NewAuthResponseWithUserIdentity(user, identity)
 
 		// password house keeper
 		h.TaskQueue.Enqueue(async.TaskSpec{

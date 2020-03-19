@@ -5,10 +5,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -20,7 +19,7 @@ import (
 
 func AttachListHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/session/list").
@@ -31,7 +30,7 @@ func AttachListHandler(
 }
 
 type ListHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 func (f ListHandlerFactory) NewHandler(request *http.Request) http.Handler {
@@ -76,10 +75,9 @@ const ListResponseSchema = `
 			@JSONSchema {SessionListResponse}
 */
 type ListHandler struct {
-	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	RequireAuthz    handler.RequireAuthz   `dependency:"RequireAuthz"`
-	TxContext       db.TxContext           `dependency:"TxContext"`
-	SessionProvider session.Provider       `dependency:"SessionProvider"`
+	RequireAuthz    handler.RequireAuthz `dependency:"RequireAuthz"`
+	TxContext       db.TxContext         `dependency:"TxContext"`
+	SessionProvider session.Provider     `dependency:"SessionProvider"`
 }
 
 func (h ListHandler) ProvideAuthzPolicy() authz.Policy {
@@ -92,7 +90,7 @@ func (h ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := handler.DecodeJSONBody(r, w, &payload); err != nil {
 		response.Error = err
 	} else {
-		result, err := h.Handle()
+		result, err := h.Handle(r)
 		if err != nil {
 			response.Error = err
 		} else {
@@ -102,9 +100,9 @@ func (h ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler.WriteResponse(w, response)
 }
 
-func (h ListHandler) Handle() (resp interface{}, err error) {
+func (h ListHandler) Handle(r *http.Request) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo, _ := h.AuthContext.AuthInfo()
+		authInfo := auth.GetAuthInfo(r.Context())
 		userID := authInfo.ID
 
 		sessions, err := h.SessionProvider.List(userID)
@@ -114,7 +112,9 @@ func (h ListHandler) Handle() (resp interface{}, err error) {
 
 		sessionModels := make([]model.Session, len(sessions))
 		for i, session := range sessions {
-			sessionModels[i] = authSession.Format(session)
+			// TODO(authn): use new session
+			// sessionModels[i] = authSession.Format(session)
+			_, _ = i, session
 		}
 
 		resp = ListResponse{Sessions: sessionModels}

@@ -7,18 +7,18 @@ import (
 )
 
 type MockStore struct {
-	Sessions map[string]Session
+	Sessions map[string]IDPSession
 }
 
 var _ Store = &MockStore{}
 
 func NewMockStore() *MockStore {
 	return &MockStore{
-		Sessions: map[string]Session{},
+		Sessions: map[string]IDPSession{},
 	}
 }
 
-func (s *MockStore) Create(sess *Session, expireAt time.Time) error {
+func (s *MockStore) Create(sess *IDPSession, expireAt time.Time) error {
 	if _, exists := s.Sessions[sess.ID]; exists {
 		return fmt.Errorf("cannot create session")
 	}
@@ -26,7 +26,7 @@ func (s *MockStore) Create(sess *Session, expireAt time.Time) error {
 	return nil
 }
 
-func (s *MockStore) Update(sess *Session, expireAt time.Time) error {
+func (s *MockStore) Update(sess *IDPSession, expireAt time.Time) error {
 	if _, exists := s.Sessions[sess.ID]; !exists {
 		return ErrSessionNotFound
 	}
@@ -34,7 +34,7 @@ func (s *MockStore) Update(sess *Session, expireAt time.Time) error {
 	return nil
 }
 
-func (s *MockStore) Get(id string) (*Session, error) {
+func (s *MockStore) Get(id string) (*IDPSession, error) {
 	sess, exists := s.Sessions[id]
 	if !exists {
 		return nil, ErrSessionNotFound
@@ -42,12 +42,12 @@ func (s *MockStore) Get(id string) (*Session, error) {
 	return &sess, nil
 }
 
-func (s *MockStore) Delete(session *Session) error {
+func (s *MockStore) Delete(session *IDPSession) error {
 	delete(s.Sessions, session.ID)
 	return nil
 }
 
-func (s *MockStore) DeleteBatch(sessions []*Session) error {
+func (s *MockStore) DeleteBatch(sessions []*IDPSession) error {
 	for _, session := range sessions {
 		delete(s.Sessions, session.ID)
 	}
@@ -63,7 +63,7 @@ func (s *MockStore) DeleteAll(userID string, sessionID string) error {
 	return nil
 }
 
-func (s *MockStore) List(userID string) (sessions []*Session, err error) {
+func (s *MockStore) List(userID string) (sessions []*IDPSession, err error) {
 	for _, session := range s.Sessions {
 		if session.Attrs.UserID == userID {
 			s := session
@@ -74,7 +74,7 @@ func (s *MockStore) List(userID string) (sessions []*Session, err error) {
 	return
 }
 
-type sessionSlice []*Session
+type sessionSlice []*IDPSession
 
 func (s sessionSlice) Len() int           { return len(s) }
 func (s sessionSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }

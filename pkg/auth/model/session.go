@@ -17,22 +17,11 @@ type Session struct {
 	AuthenticatorOOBChannel string     `json:"authenticator_oob_channel,omitempty"`
 	AuthenticatorUpdatedAt  *time.Time `json:"authenticator_updated_at,omitempty"`
 
-	CreatedAt        time.Time        `json:"created_at"`
-	LastAccessedAt   time.Time        `json:"last_accessed_at"`
-	CreatedByIP      string           `json:"created_by_ip"`
-	LastAccessedByIP string           `json:"last_accessed_by_ip"`
-	UserAgent        SessionUserAgent `json:"user_agent"`
-}
-
-// Session is the API model of user agent of session
-type SessionUserAgent struct {
-	Raw         string `json:"raw"`
-	Name        string `json:"name"`
-	Version     string `json:"version"`
-	OS          string `json:"os"`
-	OSVersion   string `json:"os_version"`
-	DeviceName  string `json:"device_name"`
-	DeviceModel string `json:"device_model"`
+	CreatedAt        time.Time `json:"created_at"`
+	LastAccessedAt   time.Time `json:"last_accessed_at"`
+	CreatedByIP      string    `json:"created_by_ip"`
+	LastAccessedByIP string    `json:"last_accessed_by_ip"`
+	UserAgent        UserAgent `json:"user_agent"`
 }
 
 // @JSONSchema
@@ -47,26 +36,9 @@ const SessionSchema = `
 		"last_accessed_at": { "type": "string" },
 		"created_by_ip": { "type": "string" },
 		"last_accessed_by_ip": { "type": "string" },
-		"user_agent": { "$ref": "#SessionUserAgent" },
+		"user_agent": { "$ref": "#UserAgent" },
 		"name": { "type": "string" },
 		"data": { "type": "object" }
-	}
-}
-`
-
-// @JSONSchema
-const SessionUserAgentSchema = `
-{
-	"$id": "#SessionUserAgent",
-	"type": "object",
-	"properties": {
-		"raw": { "type": "string" },
-		"name": { "type": "string" },
-		"version": { "type": "string" },
-		"os": { "type": "string" },
-		"os_version": { "type": "string" },
-		"device_name": { "type": "string" },
-		"device_model": { "type": "string" }
 	}
 }
 `

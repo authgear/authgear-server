@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -15,8 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
+	coresession "github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
@@ -35,9 +35,6 @@ func TestUnlinkHandler(t *testing.T) {
 		sh := &UnlinkHandler{}
 		sh.ProviderID = providerID
 		sh.TxContext = db.NewMockTxContext()
-		sh.AuthContext = authtest.NewMockContext().
-			UseUser("faseng.cat.id", "faseng.cat.principal.id").
-			MarkVerified()
 		timeProvider := &coreTime.MockProvider{}
 		sh.ProviderFactory = sso.NewOAuthProviderFactory(config.TenantConfiguration{
 			AppConfig: &config.AppConfiguration{
@@ -70,7 +67,7 @@ func TestUnlinkHandler(t *testing.T) {
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
-		sessionProvider := session.NewMockProvider()
+		sessionProvider := coresession.NewMockProvider()
 		sh.SessionProvider = sessionProvider
 		sessionProvider.Sessions["faseng.cat.id-faseng.cat.principal.id"] = auth.Session{
 			ID:          "faseng.cat.id-faseng.cat.principal.id",
@@ -86,6 +83,10 @@ func TestUnlinkHandler(t *testing.T) {
 		Convey("should unlink user id with oauth principal", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 			}`))
+			req = authtesting.WithAuthn().
+				UserID("faseng.cat.id").
+				PrincipalID("faseng.cat.principal.id").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
@@ -108,7 +109,7 @@ func TestUnlinkHandler(t *testing.T) {
 				event.IdentityDeleteEvent{
 					User: model.User{
 						ID:         "faseng.cat.id",
-						Verified:   true,
+						Verified:   false,
 						VerifyInfo: map[string]bool{},
 						Metadata:   userprofile.Data{},
 					},
@@ -130,12 +131,12 @@ func TestUnlinkHandler(t *testing.T) {
 		})
 
 		Convey("should disallow remove current identity", func() {
-			sh.AuthContext = authtest.NewMockContext().
-				UseUser("faseng.cat.id", "oauth-principal-id").
-				MarkVerified()
-
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 			}`))
+			req = authtesting.WithAuthn().
+				UserID("faseng.cat.id").
+				PrincipalID("oauth-principal-id").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)

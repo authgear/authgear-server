@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -15,7 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -34,9 +34,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			UpdateMetadataRequestSchema,
 		)
 		uh.Validator = validator
-		uh.AuthContext = authtest.NewMockContext().
-			UseUser(userID, "john.doe.principal.id0").
-			MarkVerified()
 		uh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				userID: authinfo.AuthInfo{
@@ -93,6 +90,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"age": 24
 				}
 			}`))
+			req = authtesting.WithAuthn().
+				UserID(userID).
+				PrincipalID("john.doe.principal.id0").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			uh.ServeHTTP(resp, req)
@@ -148,6 +149,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"love":     "cat"
 				}
 			}`))
+			req = authtesting.WithAuthn().
+				UserID(userID).
+				PrincipalID("john.doe.principal.id0").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			uh.ServeHTTP(resp, req)
@@ -179,6 +184,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"email":    "john.doe@example.com"
 				}
 			}`))
+			req = authtesting.WithAuthn().
+				UserID(userID).
+				PrincipalID("john.doe.principal.id0").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp = httptest.NewRecorder()
 			uh.ServeHTTP(resp, req)
@@ -212,6 +221,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"age": 25
 				}
 			}`))
+			req = authtesting.WithAuthn().
+				UserID(userID).
+				PrincipalID("john.doe.principal.id0").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			uh.ServeHTTP(resp, req)
@@ -239,9 +252,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			UpdateMetadataRequestSchema,
 		)
 		uh.Validator = validator
-		uh.AuthContext = authtest.NewMockContext().
-			UseUser("faseng.cat.id", "faseng.cat.principal.id").
-			MarkVerified()
 		uh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				userID: authinfo.AuthInfo{

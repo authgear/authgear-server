@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 )
 
@@ -24,7 +25,7 @@ func NewEventStore(ctx context.Context, appID string) *EventStore {
 	return &EventStore{ctx: ctx, appID: appID}
 }
 
-func (s *EventStore) AppendAccessEvent(session *session.Session, event *session.AccessEvent) (err error) {
+func (s *EventStore) AppendAccessEvent(session *session.IDPSession, event *authn.AccessEvent) (err error) {
 	json, err := json.Marshal(event)
 	if err != nil {
 		return

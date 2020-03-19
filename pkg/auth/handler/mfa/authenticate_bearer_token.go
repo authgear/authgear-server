@@ -5,12 +5,14 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -20,11 +22,11 @@ import (
 
 func AttachAuthenticateBearerTokenHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/mfa/bearer_token/authenticate").
-		Handler(auth.MakeHandler(authDependency, newAuthenticateBearerTokenHandler)).
+		Handler(pkg.MakeHandler(authDependency, newAuthenticateBearerTokenHandler)).
 		Methods("OPTIONS", "POST")
 }
 
@@ -84,10 +86,7 @@ type AuthenticateBearerTokenHandler struct {
 }
 
 func (h *AuthenticateBearerTokenHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *AuthenticateBearerTokenHandler) useCookie(r *http.Request) bool {
@@ -118,7 +117,7 @@ func (h *AuthenticateBearerTokenHandler) ServeHTTP(w http.ResponseWriter, r *htt
 
 	var result authn.Result
 	err = db.WithTx(h.TxContext, func() error {
-		session := authn.GetSession(r.Context())
+		var session coreauthn.Attributer = auth.GetSession(r.Context())
 		if session == nil {
 			session, err = h.authnResolver.Resolve(
 				coreAuth.GetAccessKey(r.Context()).Client,
@@ -129,7 +128,7 @@ func (h *AuthenticateBearerTokenHandler) ServeHTTP(w http.ResponseWriter, r *htt
 				return err
 			}
 		}
-		attrs := session.SessionAttrs()
+		attrs := session.AuthnAttrs()
 
 		err = h.MFAProvider.DeleteExpiredBearerToken(attrs.UserID)
 		if err != nil {

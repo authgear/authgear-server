@@ -5,18 +5,19 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func AttachResolveHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/session/resolve").
-		Handler(auth.MakeHandler(authDependency, newResolveHandler))
+		Handler(pkg.MakeHandler(authDependency, newResolveHandler))
 }
 
 type ResolveHandler struct {
@@ -24,6 +25,15 @@ type ResolveHandler struct {
 }
 
 func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	ctx := session.GetContext(r.Context())
-	ctx.ToAuthnInfo(h.TimeProvider.NowUTC()).PopulateHeaders(rw)
+	valid := auth.IsValidAuthn(r.Context())
+	user := auth.GetAuthInfo(r.Context())
+	session := auth.GetSession(r.Context())
+
+	var info *authn.Info
+	if valid && user != nil && session != nil {
+		info = authn.NewAuthnInfo(h.TimeProvider.NowUTC(), session.AuthnAttrs(), user)
+	} else if !valid {
+		info = &authn.Info{IsValid: false}
+	}
+	info.PopulateHeaders(rw)
 }

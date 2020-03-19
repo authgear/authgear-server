@@ -13,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -31,8 +30,6 @@ func TestUpdateHandler(t *testing.T) {
 		)
 		vh.Validator = validator
 		vh.TxContext = db.NewMockTxContext()
-		vh.AuthContext = authtest.NewMockContext().
-			UseUser("faseng.cat.id", "faseng.cat.principal.id")
 
 		one := 1
 		loginIDsKeys := []config.LoginIDKeyConfiguration{

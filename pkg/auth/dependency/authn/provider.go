@@ -3,12 +3,14 @@ package authn
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
@@ -79,7 +81,7 @@ func (p *Provider) OAuthLink(
 
 func (p *Provider) OAuthExchangeCode(
 	client config.OAuthClientConfiguration,
-	s *session.Session,
+	s auth.AuthSession,
 	code *sso.SkygearAuthorizationCode,
 ) (Result, error) {
 	pr, err := p.OAuth.ExchangeCode(code)
@@ -137,7 +139,7 @@ func (p *Provider) Resolve(
 	client config.OAuthClientConfiguration,
 	authnSessionToken string,
 	stepPredicate func(SessionStep) bool,
-) (*Session, error) {
+) (*AuthnSession, error) {
 	s, err := p.AuthnSession.ResolveSession(authnSessionToken)
 	if err != nil {
 		return nil, err
@@ -157,13 +159,13 @@ func (p *Provider) Resolve(
 
 func (p *Provider) StepSession(
 	client config.OAuthClientConfiguration,
-	s SessionContainer,
+	s authn.Attributer,
 	mfaBearerToken string,
 ) (Result, error) {
 	switch s := s.(type) {
-	case *Session:
+	case *AuthnSession:
 		return p.AuthnSession.StepSession(s)
-	case *session.Session:
+	case *session.IDPSession:
 		err := p.Session.Update(s)
 		if err != nil {
 			return nil, err

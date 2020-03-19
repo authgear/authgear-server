@@ -10,7 +10,7 @@ import (
 
 func TestComputeSessionExpiry(t *testing.T) {
 	Convey("computeSessionExpiry", t, func() {
-		session := &Session{
+		session := &IDPSession{
 			ID:         "session-id",
 			CreatedAt:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			AccessedAt: time.Date(2020, 1, 1, 0, 0, 25, 0, time.UTC),
@@ -37,7 +37,7 @@ func TestComputeSessionExpiry(t *testing.T) {
 }
 func TestCheckSessionExpired(t *testing.T) {
 	Convey("checkSessionExpired", t, func() {
-		session := &Session{
+		session := &IDPSession{
 			ID:         "session-id",
 			CreatedAt:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			AccessedAt: time.Date(2020, 1, 1, 0, 0, 25, 0, time.UTC),

@@ -5,12 +5,14 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -19,11 +21,11 @@ import (
 
 func AttachAuthenticateTOTPHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/mfa/totp/authenticate").
-		Handler(auth.MakeHandler(authDependency, newAuthenticateTOTPHandler)).
+		Handler(pkg.MakeHandler(authDependency, newAuthenticateTOTPHandler)).
 		Methods("OPTIONS", "POST")
 }
 
@@ -73,10 +75,7 @@ type AuthenticateTOTPHandler struct {
 }
 
 func (h *AuthenticateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *AuthenticateTOTPHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (AuthenticateTOTPRequest, error) {
@@ -96,7 +95,7 @@ func (h *AuthenticateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	var result authn.Result
 	err = db.WithTx(h.TxContext, func() error {
-		session := authn.GetSession(r.Context())
+		var session coreauthn.Attributer = auth.GetSession(r.Context())
 		if session == nil {
 			session, err = h.authnResolver.Resolve(
 				coreAuth.GetAccessKey(r.Context()).Client,
@@ -108,7 +107,7 @@ func (h *AuthenticateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			}
 		}
 
-		attrs := session.SessionAttrs()
+		attrs := session.AuthnAttrs()
 		a, bearerToken, err := h.MFAProvider.AuthenticateTOTP(
 			attrs.UserID,
 			payload.OTP,

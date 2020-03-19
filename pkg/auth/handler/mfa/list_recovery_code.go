@@ -5,9 +5,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -20,7 +20,7 @@ import (
 
 func AttachListRecoveryCodeHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/mfa/recovery_code/list").
@@ -31,7 +31,7 @@ func AttachListRecoveryCodeHandler(
 }
 
 type ListRecoveryCodeHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 func (f ListRecoveryCodeHandlerFactory) NewHandler(request *http.Request) http.Handler {
@@ -77,7 +77,6 @@ const ListRecoveryCodeResponseSchema = `
 */
 type ListRecoveryCodeHandler struct {
 	TxContext        db.TxContext            `dependency:"TxContext"`
-	AuthContext      coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
 	RequireAuthz     handler.RequireAuthz    `dependency:"RequireAuthz"`
 	MFAProvider      mfa.Provider            `dependency:"MFAProvider"`
 	MFAConfiguration config.MFAConfiguration `dependency:"MFAConfiguration"`
@@ -109,8 +108,7 @@ func (h *ListRecoveryCodeHandler) Handle(w http.ResponseWriter, r *http.Request)
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo, _ := h.AuthContext.AuthInfo()
-		userID := authInfo.ID
+		userID := auth.GetAuthInfo(r.Context()).ID
 		codes, err := h.MFAProvider.GetRecoveryCode(userID)
 		if err != nil {
 			return err

@@ -6,16 +6,17 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 type mockResolver struct {
-	Sessions        []Session
+	Sessions        []IDPSession
 	AccessedSession []string
 }
 
-func (r *mockResolver) GetByToken(token string) (*Session, error) {
+func (r *mockResolver) GetByToken(token string) (*IDPSession, error) {
 	for _, s := range r.Sessions {
 		if s.TokenHash == token {
 			return &s, nil
@@ -24,7 +25,7 @@ func (r *mockResolver) GetByToken(token string) (*Session, error) {
 	return nil, ErrSessionNotFound
 }
 
-func (r *mockResolver) Access(s *Session) error {
+func (r *mockResolver) Access(s *IDPSession) error {
 	r.AccessedSession = append(r.AccessedSession, s.ID)
 	return nil
 }
@@ -45,10 +46,10 @@ func TestMiddleware(t *testing.T) {
 			ID:       "user-id",
 			Verified: true,
 		}
-		resolver.Sessions = []Session{
+		resolver.Sessions = []IDPSession{
 			{
 				ID: "session-id",
-				Attrs: Attrs{
+				Attrs: authn.Attrs{
 					UserID: "user-id",
 				},
 				TokenHash: "token",
@@ -61,9 +62,13 @@ func TestMiddleware(t *testing.T) {
 			AuthInfoStore:       userStore,
 			TxContext:           db.NewMockTxContext(),
 		}
-		var ctx *Context
+		var valid bool
+		var s authn.Session
+		var u *authinfo.AuthInfo
 		handler := m.Handle(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			ctx = GetContext(r.Context())
+			valid = authn.IsValidAuthn(r.Context())
+			s = authn.GetSession(r.Context())
+			u = authn.GetAuthInfo(r.Context())
 		}))
 
 		Convey("resolve without session cookie", func() {
@@ -71,7 +76,9 @@ func TestMiddleware(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", nil)
 			handler.ServeHTTP(rw, r)
 
-			So(ctx, ShouldBeNil)
+			So(valid, ShouldBeTrue)
+			So(s, ShouldBeNil)
+			So(u, ShouldBeNil)
 			So(rw.Result().Cookies(), ShouldBeEmpty)
 		})
 
@@ -81,7 +88,9 @@ func TestMiddleware(t *testing.T) {
 			r.AddCookie(&http.Cookie{Name: CookieName, Value: "invalid"})
 			handler.ServeHTTP(rw, r)
 
-			So(ctx, ShouldResemble, &Context{User: nil, Session: nil})
+			So(valid, ShouldBeFalse)
+			So(s, ShouldBeNil)
+			So(u, ShouldBeNil)
 			So(rw.Result().Cookies(), ShouldHaveLength, 1)
 			So(rw.Result().Cookies()[0].Raw, ShouldEqual, "session=; Path=/; Domain=app.test; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Lax")
 		})
@@ -92,9 +101,9 @@ func TestMiddleware(t *testing.T) {
 			r.AddCookie(&http.Cookie{Name: CookieName, Value: "token"})
 			handler.ServeHTTP(rw, r)
 
-			So(ctx, ShouldNotBeNil)
-			So(ctx.User.ID, ShouldEqual, "user-id")
-			So(ctx.Session.ID, ShouldEqual, "session-id")
+			So(valid, ShouldBeTrue)
+			So(u.ID, ShouldEqual, "user-id")
+			So(s.SessionID(), ShouldEqual, "session-id")
 			So(rw.Result().Cookies(), ShouldBeEmpty)
 		})
 	})

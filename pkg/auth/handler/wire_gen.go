@@ -22,7 +22,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	auth2 "github.com/skygeario/skygear-server/pkg/core/auth"
 	pq2 "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -38,11 +37,10 @@ import (
 
 func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	contextGetter := auth2.ProvideAuthContextGetter(context)
 	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -61,7 +59,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	hookProvider := hook.ProvideHookProvider(sqlBuilder, sqlExecutor, requestID, tenantConfiguration, urlprefixProvider, contextGetter, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, urlprefixProvider, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
@@ -98,11 +96,10 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	contextGetter := auth2.ProvideAuthContextGetter(context)
 	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
-	requireAuthz := handler.NewRequireAuthzFactory(contextGetter, factory)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -121,7 +118,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	hookProvider := hook.ProvideHookProvider(sqlBuilder, sqlExecutor, requestID, tenantConfiguration, urlprefixProvider, contextGetter, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, urlprefixProvider, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)

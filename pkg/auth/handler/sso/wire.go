@@ -10,7 +10,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -80,7 +79,6 @@ func provideLinkHandler(
 	tx db.TxContext,
 	requireAuthz handler.RequireAuthz,
 	v *validation.Validator,
-	ac coreauth.ContextGetter,
 	sp sso.Provider,
 	ap LinkAuthnProvider,
 	op sso.OAuthProvider,
@@ -88,7 +86,6 @@ func provideLinkHandler(
 	h := &LinkHandler{
 		TxContext:     tx,
 		Validator:     v,
-		AuthContext:   ac,
 		SSOProvider:   sp,
 		AuthnProvider: ap,
 		OAuthProvider: op,

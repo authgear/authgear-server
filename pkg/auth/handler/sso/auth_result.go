@@ -5,9 +5,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -20,18 +20,18 @@ import (
 
 func AttachAuthResultHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/sso/auth_result").
-		Handler(auth.MakeHandler(authDependency, newAuthResultHandler)).
+		Handler(pkg.MakeHandler(authDependency, newAuthResultHandler)).
 		Methods("OPTIONS", "POST")
 }
 
 type AuthResultAuthnProvider interface {
 	OAuthExchangeCode(
 		client config.OAuthClientConfiguration,
-		session *session.Session,
+		session auth.AuthSession,
 		code *sso.SkygearAuthorizationCode,
 	) (authn.Result, error)
 
@@ -105,7 +105,7 @@ func (h *AuthResultHandler) Handle(r *http.Request, payload *AuthResultPayload) 
 
 	result, err := h.AuthnProvider.OAuthExchangeCode(
 		coreauth.GetAccessKey(r.Context()).Client,
-		nil, // TODO(authn): pass session
+		auth.GetSession(r.Context()),
 		code,
 	)
 	if err != nil {

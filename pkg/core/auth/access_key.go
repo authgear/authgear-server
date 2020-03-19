@@ -20,18 +20,12 @@ type accessKeyContextKeyType struct{}
 var accessKeyContextKey = accessKeyContextKeyType{}
 
 func WithAccessKey(ctx context.Context, ak AccessKey) context.Context {
-	if key, ok := ctx.Value(accessKeyContextKey).(*AccessKey); ok {
-		*key = ak
-		return ctx
-	}
-	return context.WithValue(ctx, accessKeyContextKey, &ak)
+	return context.WithValue(ctx, accessKeyContextKey, ak)
 }
 
 func GetAccessKey(ctx context.Context) AccessKey {
-	if key, ok := ctx.Value(accessKeyContextKey).(*AccessKey); ok {
-		return *key
-	}
-	return AccessKey{}
+	key, _ := ctx.Value(accessKeyContextKey).(AccessKey)
+	return key
 }
 
 type AccessKeyMiddleware struct {

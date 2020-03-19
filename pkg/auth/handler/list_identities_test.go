@@ -6,24 +6,21 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
+	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 )
 
 func TestListIdentitiesHandler(t *testing.T) {
 	Convey("Test ListIdentitiesHandler", t, func() {
 		h := &ListIdentitiesHandler{}
 		h.TxContext = db.NewMockTxContext()
-		authContext := authtest.NewMockContext().
-			UseUser("user-id-1", "principal-id-1")
-		h.AuthContext = authContext
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			[]config.LoginIDKeyConfiguration{},
 			[]string{password.DefaultRealm},
@@ -70,6 +67,10 @@ func TestListIdentitiesHandler(t *testing.T) {
 
 		Convey("should return list of identities", func() {
 			r, _ := http.NewRequest("POST", "", strings.NewReader("{}"))
+			r = authtesting.WithAuthn().
+				UserID("user-id-1").
+				PrincipalID("principal-id-1").
+				ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)

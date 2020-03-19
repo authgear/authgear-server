@@ -10,6 +10,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -26,9 +27,9 @@ func TestResolveHandler(t *testing.T) {
 				Verified: true,
 			}
 			d := gotime.Date(2020, 1, 1, 0, 0, 0, 0, gotime.UTC)
-			s := &session.Session{
+			s := &session.IDPSession{
 				ID: "session-id",
-				Attrs: session.Attrs{
+				Attrs: authn.Attrs{
 					PrincipalID:             "principal-id",
 					PrincipalType:           "password",
 					PrincipalUpdatedAt:      d,
@@ -39,7 +40,7 @@ func TestResolveHandler(t *testing.T) {
 				},
 			}
 			r, _ := http.NewRequest("POST", "/", nil)
-			r = r.WithContext(session.WithSession(r.Context(), s, u))
+			r = r.WithContext(authn.WithAuthn(r.Context(), s, u))
 			rw := httptest.NewRecorder()
 			h.ServeHTTP(rw, r)
 
@@ -62,7 +63,7 @@ func TestResolveHandler(t *testing.T) {
 
 		Convey("should attach headers for invalid sessions", func() {
 			r, _ := http.NewRequest("POST", "/", nil)
-			r = r.WithContext(session.WithSession(r.Context(), nil, nil))
+			r = r.WithContext(authn.WithInvalidAuthn(r.Context()))
 			rw := httptest.NewRecorder()
 			h.ServeHTTP(rw, r)
 

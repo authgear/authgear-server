@@ -5,12 +5,14 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -18,11 +20,11 @@ import (
 
 func AttachCreateTOTPHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/mfa/totp/new").
-		Handler(auth.MakeHandler(authDependency, newCreateTOTPHandler)).
+		Handler(pkg.MakeHandler(authDependency, newCreateTOTPHandler)).
 		Methods("OPTIONS", "POST")
 }
 
@@ -98,10 +100,7 @@ type CreateTOTPHandler struct {
 }
 
 func (h *CreateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *CreateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +121,7 @@ func (h *CreateTOTPHandler) Handle(w http.ResponseWriter, r *http.Request) (resp
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		session := authn.GetSession(r.Context())
+		var session coreauthn.Attributer = auth.GetSession(r.Context())
 		if session == nil {
 			session, err = h.authnResolver.Resolve(
 				coreAuth.GetAccessKey(r.Context()).Client,
@@ -134,7 +133,7 @@ func (h *CreateTOTPHandler) Handle(w http.ResponseWriter, r *http.Request) (resp
 			}
 		}
 
-		a, err := h.MFAProvider.CreateTOTP(session.SessionAttrs().UserID, payload.DisplayName)
+		a, err := h.MFAProvider.CreateTOTP(session.AuthnAttrs().UserID, payload.DisplayName)
 		if err != nil {
 			return err
 		}

@@ -13,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -66,7 +65,6 @@ func decodeVerifyCodeFormRequest(request *http.Request) (payload VerifyCodeFormP
 // VerifyCodeFormHandler reset user password with given code from email.
 type VerifyCodeFormHandler struct {
 	Validator                *validation.Validator          `dependency:"Validator"`
-	AuthContext              coreAuth.ContextGetter         `dependency:"AuthContextGetter"`
 	VerifyHTMLProvider       *userverify.VerifyHTMLProvider `dependency:"VerifyHTMLProvider"`
 	UserVerificationProvider userverify.Provider            `dependency:"UserVerificationProvider"`
 	AuthInfoStore            authinfo.Store                 `dependency:"AuthInfoStore"`

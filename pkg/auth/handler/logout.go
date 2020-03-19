@@ -5,14 +5,12 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	authSession "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -25,7 +23,7 @@ import (
 // AttachLogoutHandler attach logout handler to server
 func AttachLogoutHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/logout").
@@ -37,7 +35,7 @@ func AttachLogoutHandler(
 
 // LogoutHandlerFactory creates new handler
 type LogoutHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 // NewHandler creates new handler
@@ -61,7 +59,6 @@ func (f LogoutHandlerFactory) NewHandler(request *http.Request) http.Handler {
 		@Callback user_sync {UserSyncEvent}
 */
 type LogoutHandler struct {
-	AuthContext      coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	RequireAuthz     handler.RequireAuthz       `dependency:"RequireAuthz"`
 	UserProfileStore userprofile.Store          `dependency:"UserProfileStore"`
 	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
@@ -89,7 +86,7 @@ func (h LogoutHandler) DecodeRequest(request *http.Request, resp http.ResponseWr
 
 func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
-		return h.Handle()
+		return h.Handle(req)
 	})
 	if err == nil {
 		h.SessionWriter.ClearSession(resp)
@@ -100,9 +97,9 @@ func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 // Handle api request
-func (h LogoutHandler) Handle() (resp interface{}, err error) {
-	authInfo, _ := h.AuthContext.AuthInfo()
-	sess, _ := h.AuthContext.Session()
+func (h LogoutHandler) Handle(r *http.Request) (resp interface{}, err error) {
+	authInfo := auth.GetAuthInfo(r.Context())
+	sess := auth.GetSession(r.Context())
 
 	resp = map[string]string{}
 
@@ -112,30 +109,35 @@ func (h LogoutHandler) Handle() (resp interface{}, err error) {
 	}
 
 	var principal principal.Principal
-	if principal, err = h.IdentityProvider.GetPrincipalByID(sess.PrincipalID); err != nil {
+	if principal, err = h.IdentityProvider.GetPrincipalByID(sess.AuthnAttrs().PrincipalID); err != nil {
 		return
 	}
 
 	user := authModel.NewUser(*authInfo, profile)
 	identity := authModel.NewIdentity(h.IdentityProvider, principal)
-	session := authSession.Format(sess)
 
-	err = h.HookProvider.DispatchEvent(
-		event.SessionDeleteEvent{
-			Reason:   event.SessionDeleteReasonLogout,
-			User:     user,
-			Identity: identity,
-			Session:  session,
-		},
-		&user,
-	)
-	if err != nil {
-		return
-	}
+	// TODO(authn): use new session provider
+	_, _ = user, identity
+	/*
+		session := authSession.Format(sess)
 
-	if err = h.SessionProvider.Invalidate(sess); err != nil {
-		return
-	}
+		err = h.HookProvider.DispatchEvent(
+			event.SessionDeleteEvent{
+				Reason:   event.SessionDeleteReasonLogout,
+				User:     user,
+				Identity: identity,
+				Session:  session,
+			},
+			&user,
+		)
+		if err != nil {
+			return
+		}
+
+		if err = h.SessionProvider.Invalidate(sess); err != nil {
+			return
+		}
+	*/
 
 	return
 }

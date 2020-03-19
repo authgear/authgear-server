@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
+// TODO(authn): to be removed
 // AuthnMiddleware populate auth context information
 type AuthnMiddleware struct {
 	AuthContextSetter auth.ContextSetter `dependency:"AuthContextSetter"`
@@ -84,16 +85,6 @@ func (m *AuthnMiddleware) resolve(r *http.Request) (s *auth.Session, info *authi
 	}
 	s = sess
 	info = &ai
-
-	// in case valid session is used, infer access key from session
-	accessKey := auth.GetAccessKey(r.Context())
-	if !accessKey.IsMasterKey {
-		client, ok := model.GetClientConfig(tenantConfig.AppConfig.Clients, sess.ClientID)
-		if ok {
-			accessKey.Client = client
-			auth.WithAccessKey(r.Context(), accessKey)
-		}
-	}
 
 	// should not use new session data in context
 	sessionCopy := *s

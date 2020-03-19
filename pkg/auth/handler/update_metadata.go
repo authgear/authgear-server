@@ -5,7 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -26,7 +27,7 @@ import (
 
 func AttachUpdateMetadataHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/update_metadata").
@@ -37,7 +38,7 @@ func AttachUpdateMetadataHandler(
 }
 
 type UpdateMetadataHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 func (f UpdateMetadataHandlerFactory) NewHandler(request *http.Request) http.Handler {
@@ -99,7 +100,6 @@ func (p *UpdateMetadataRequestPayload) Validate() []validation.ErrorCause {
 		@Callback user_sync {UserSyncEvent}
 */
 type UpdateMetadataHandler struct {
-	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	Validator            *validation.Validator      `dependency:"Validator"`
 	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
@@ -140,7 +140,7 @@ func (h UpdateMetadataHandler) Handle(resp http.ResponseWriter, req *http.Reques
 				err = skyerr.NewForbidden("must not specify user_id")
 				return err
 			}
-			authInfo, _ := h.AuthContext.AuthInfo()
+			authInfo := auth.GetAuthInfo(req.Context())
 			targetUserID = authInfo.ID
 		}
 

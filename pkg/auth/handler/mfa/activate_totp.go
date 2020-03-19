@@ -5,12 +5,14 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -18,11 +20,11 @@ import (
 
 func AttachActivateTOTPHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/mfa/totp/activate").
-		Handler(auth.MakeHandler(authDependency, newActivateTOTPHandler)).
+		Handler(pkg.MakeHandler(authDependency, newActivateTOTPHandler)).
 		Methods("OPTIONS", "POST")
 }
 
@@ -91,10 +93,7 @@ type ActivateTOTPHandler struct {
 }
 
 func (h *ActivateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *ActivateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +114,7 @@ func (h *ActivateTOTPHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		session := authn.GetSession(r.Context())
+		var session coreauthn.Attributer = auth.GetSession(r.Context())
 		if session == nil {
 			session, err = h.authnResolver.Resolve(
 				coreAuth.GetAccessKey(r.Context()).Client,
@@ -127,7 +126,7 @@ func (h *ActivateTOTPHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 			}
 		}
 
-		recoveryCodes, err := h.MFAProvider.ActivateTOTP(session.SessionAttrs().UserID, payload.OTP)
+		recoveryCodes, err := h.MFAProvider.ActivateTOTP(session.AuthnAttrs().UserID, payload.OTP)
 		if err != nil {
 			return err
 		}

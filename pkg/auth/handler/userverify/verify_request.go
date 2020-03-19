@@ -7,13 +7,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
@@ -27,7 +27,7 @@ import (
 // AttachVerifyRequestHandler attaches VerifyRequestHandler to server
 func AttachVerifyRequestHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/verify_request").
@@ -39,7 +39,7 @@ func AttachVerifyRequestHandler(
 
 // VerifyRequestHandlerFactory creates VerifyRequestHandler
 type VerifyRequestHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency pkg.DependencyMap
 }
 
 // NewHandler creates new VerifyRequestHandler
@@ -113,7 +113,6 @@ const VerifyRequestSchema = `
 type VerifyRequestHandler struct {
 	TxContext                db.TxContext                 `dependency:"TxContext"`
 	Validator                *validation.Validator        `dependency:"Validator"`
-	AuthContext              coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
 	RequireAuthz             handler.RequireAuthz         `dependency:"RequireAuthz"`
 	CodeSenderFactory        userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
 	URLPrefix                *url.URL                     `dependency:"URLPrefix"`
@@ -147,7 +146,7 @@ func (h VerifyRequestHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 	}
 
 	err = db.WithTx(h.TxContext, func() (err error) {
-		authInfo, _ := h.AuthContext.AuthInfo()
+		authInfo := auth.GetAuthInfo(r.Context())
 
 		// Get Profile
 		var userProfile userprofile.UserProfile

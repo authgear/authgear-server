@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 
+	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -17,7 +18,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -39,8 +39,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 		logger, _ := test.NewNullLogger()
 		vh.Logger = logrus.NewEntry(logger)
 		vh.TxContext = db.NewMockTxContext()
-		vh.AuthContext = authtest.NewMockContext().
-			UseUser("faseng.cat.id", "faseng.cat.principal.id")
 
 		one := 1
 		loginIDsKeys := []config.LoginIDKeyConfiguration{
@@ -136,6 +134,10 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code1"
 			}`))
+			req = authtesting.WithAuthn().
+				UserID("faseng.cat.id").
+				PrincipalID("faseng.cat.principal.id").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			vh.ServeHTTP(resp, req)
@@ -179,6 +181,10 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code1"
 			}`))
+			req = authtesting.WithAuthn().
+				UserID("faseng.cat.id").
+				PrincipalID("faseng.cat.principal.id").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			vh.ServeHTTP(resp, req)
@@ -196,6 +202,10 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code1"
 			}`))
+			req = authtesting.WithAuthn().
+				UserID("faseng.cat.id").
+				PrincipalID("faseng.cat.principal.id").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			vh.ServeHTTP(resp, req)
@@ -215,6 +225,10 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code2"
 			}`))
+			req = authtesting.WithAuthn().
+				UserID("faseng.cat.id").
+				PrincipalID("faseng.cat.principal.id").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			vh.ServeHTTP(resp, req)
@@ -234,6 +248,10 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code3"
 			}`))
+			req = authtesting.WithAuthn().
+				UserID("faseng.cat.id").
+				PrincipalID("faseng.cat.principal.id").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			vh.ServeHTTP(resp, req)
@@ -257,6 +275,10 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code1"
 			}`))
+			req = authtesting.WithAuthn().
+				UserID("faseng.cat.id").
+				PrincipalID("faseng.cat.principal.id").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			vh.ServeHTTP(resp, req)
@@ -276,6 +298,10 @@ func TestVerifyCodeHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "incorrect"
 			}`))
+			req = authtesting.WithAuthn().
+				UserID("faseng.cat.id").
+				PrincipalID("faseng.cat.principal.id").
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			vh.ServeHTTP(resp, req)

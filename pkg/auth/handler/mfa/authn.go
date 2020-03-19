@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -12,13 +13,13 @@ type authnResolver interface {
 		client config.OAuthClientConfiguration,
 		authnSessionToken string,
 		stepPredicate func(authn.SessionStep) bool,
-	) (*authn.Session, error)
+	) (*authn.AuthnSession, error)
 }
 
 type authnStepper interface {
 	StepSession(
 		client config.OAuthClientConfiguration,
-		s authn.SessionContainer,
+		s coreauthn.Attributer,
 		mfaBearerToken string,
 	) (authn.Result, error)
 

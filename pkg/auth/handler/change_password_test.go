@@ -9,6 +9,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -19,7 +20,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -38,7 +38,6 @@ func TestChangePasswordHandler(t *testing.T) {
 			ChangePasswordRequestSchema,
 		)
 		lh.Validator = validator
-		lh.AuthContext = authtest.NewMockContext().UseUser(userID, "john.doe.principal.id0").MarkVerified()
 		lh.AuthInfoStore = authinfo.NewMockStoreWithUser(userID)
 		lh.SessionProvider = session.NewMockProvider()
 		lh.SessionWriter = session.NewMockWriter()
@@ -85,6 +84,11 @@ func TestChangePasswordHandler(t *testing.T) {
 				"old_password": "123456",
 				"password": "1234567"
 			}`))
+			req = authtesting.WithAuthn().
+				UserID(userID).
+				PrincipalID("john.doe.principal.id0").
+				Verified(true).
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
@@ -107,9 +111,7 @@ func TestChangePasswordHandler(t *testing.T) {
 						"login_id": "john.doe",
 						"login_id_key": "username",
 						"type": "password"
-					},
-					"access_token": "access-token-john.doe.id-john.doe.principal.id0-0",
-					"session_id": "john.doe.id-john.doe.principal.id0"
+					}
 				}
 			}`)
 
@@ -138,6 +140,11 @@ func TestChangePasswordHandler(t *testing.T) {
 				"old_password": "123456",
 				"password": "1234"
 			}`))
+			req = authtesting.WithAuthn().
+				UserID(userID).
+				PrincipalID("john.doe.principal.id0").
+				Verified(true).
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)
@@ -166,6 +173,11 @@ func TestChangePasswordHandler(t *testing.T) {
 				"old_password": "wrong_password",
 				"password": "123456"
 			}`))
+			req = authtesting.WithAuthn().
+				UserID(userID).
+				PrincipalID("john.doe.principal.id0").
+				Verified(true).
+				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 			lh.ServeHTTP(resp, req)

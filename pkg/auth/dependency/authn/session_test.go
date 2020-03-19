@@ -9,7 +9,7 @@ import (
 func TestSession(t *testing.T) {
 	Convey("authn.Session", t, func() {
 		Convey("IsFinished", func() {
-			a := Session{}
+			a := AuthnSession{}
 			So(a.IsFinished(), ShouldBeTrue)
 
 			a.RequiredSteps = []SessionStep{"identity"}
@@ -31,7 +31,7 @@ func TestSession(t *testing.T) {
 		Convey("NextStep", func() {
 			var step SessionStep
 			var ok bool
-			a := Session{}
+			a := AuthnSession{}
 			_, ok = a.NextStep()
 			So(ok, ShouldBeFalse)
 

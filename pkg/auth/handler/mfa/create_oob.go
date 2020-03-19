@@ -5,7 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -19,11 +20,11 @@ import (
 
 func AttachCreateOOBHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
 		Path("/mfa/oob/new").
-		Handler(auth.MakeHandler(authDependency, newCreateOOBHandler)).
+		Handler(pkg.MakeHandler(authDependency, newCreateOOBHandler)).
 		Methods("OPTIONS", "POST")
 }
 
@@ -107,10 +108,7 @@ type CreateOOBHandler struct {
 }
 
 func (h *CreateOOBHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
+	return authz.PolicyFunc(policy.RequireClient)
 }
 
 func (h *CreateOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -131,7 +129,7 @@ func (h *CreateOOBHandler) Handle(w http.ResponseWriter, r *http.Request) (resp 
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		session := authn.GetSession(r.Context())
+		var session coreauthn.Attributer = auth.GetSession(r.Context())
 		if session == nil {
 			session, err = h.authnResolver.Resolve(
 				coreAuth.GetAccessKey(r.Context()).Client,
@@ -143,7 +141,7 @@ func (h *CreateOOBHandler) Handle(w http.ResponseWriter, r *http.Request) (resp 
 			}
 		}
 
-		a, err := h.MFAProvider.CreateOOB(session.SessionAttrs().UserID, payload.Channel, payload.Phone, payload.Email)
+		a, err := h.MFAProvider.CreateOOB(session.AuthnAttrs().UserID, payload.Channel, payload.Phone, payload.Email)
 		if err != nil {
 			return err
 		}

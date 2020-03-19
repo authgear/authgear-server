@@ -5,19 +5,19 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 func TestSessionToken(t *testing.T) {
 	Convey("session token", t, func() {
 		secret := "secret"
 		claims := sessionToken{
-			Session: Session{
+			AuthnSession: AuthnSession{
 				ClientID:            "clientid",
 				RequiredSteps:       []SessionStep{"identity", "mfa"},
 				FinishedSteps:       []SessionStep{"identity"},
 				SessionCreateReason: "reason",
-				Attrs: session.Attrs{
+				Attrs: authn.Attrs{
 					UserID:                  "user",
 					PrincipalID:             "principal",
 					AuthenticatorID:         "authenticator",

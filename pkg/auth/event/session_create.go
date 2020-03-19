@@ -1,8 +1,8 @@
 package event
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 )
 
 const (
@@ -25,10 +25,10 @@ const (
 			@Response 200 {EmptyResponse}
 */
 type SessionCreateEvent struct {
-	Reason   auth.SessionCreateReason `json:"reason"`
-	User     model.User               `json:"user"`
-	Identity model.Identity           `json:"identity"`
-	Session  model.Session            `json:"session"`
+	Reason   session.CreateReason `json:"reason"`
+	User     model.User           `json:"user"`
+	Identity model.Identity       `json:"identity"`
+	Session  model.Session        `json:"session"`
 }
 
 // @JSONSchema

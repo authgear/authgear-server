@@ -3,10 +3,9 @@ package policy
 import (
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -15,16 +14,10 @@ func TestCompoundPolicy(t *testing.T) {
 	Convey("Test RequireValidUserOrMasterKey", t, func() {
 		Convey("should pass if valid user exist", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := MemoryContextGetter{
-				mAuthInfo: &authinfo.AuthInfo{
-					ID: "ID",
-				},
-				mSession: &auth.Session{
-					AccessTokenCreatedAt: time.Date(2016, 10, 1, 0, 0, 0, 0, time.UTC),
-				},
-			}
+			authninfo := &authn.Info{UserID: "user-id"}
+			req = req.WithContext(authn.WithAuthn(req.Context(), authninfo, authninfo.User()))
 
-			err := RequireValidUserOrMasterKey.IsAllowed(req, ctx)
+			err := RequireValidUserOrMasterKey.IsAllowed(req)
 			So(err, ShouldBeNil)
 		})
 
@@ -33,17 +26,15 @@ func TestCompoundPolicy(t *testing.T) {
 			req = req.WithContext(auth.WithAccessKey(req.Context(), auth.AccessKey{
 				IsMasterKey: true,
 			}))
-			ctx := MemoryContextGetter{}
 
-			err := RequireValidUserOrMasterKey.IsAllowed(req, ctx)
+			err := RequireValidUserOrMasterKey.IsAllowed(req)
 			So(err, ShouldBeNil)
 		})
 
 		Convey("should fail if no user", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := MemoryContextGetter{}
 
-			err := RequireValidUserOrMasterKey.IsAllowed(req, ctx)
+			err := RequireValidUserOrMasterKey.IsAllowed(req)
 			So(err, ShouldBeError, "authentication required")
 		})
 	})
