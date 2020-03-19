@@ -9,6 +9,7 @@ const (
 	TemplateItemTypeAuthUISignInHTML config.TemplateItemType = "auth_ui_sign_in.html"
 	// nolint
 	TemplateItemTypeAuthUISignInPasswordHTML config.TemplateItemType = "auth_ui_sign_in_password.html"
+	TemplateItemTypeAuthUISettingsHTML       config.TemplateItemType = "auth_ui_settings.html"
 )
 
 const defineHead = `
@@ -207,6 +208,28 @@ var TemplateAuthUISignInPasswordHTML = template.Spec{
 <button class="btn primary-btn" type="submit" name="x_step" value="submit_password">Next</button>
 
 </form>
+{{ template "SKYGEAR_LOGO" . }}
+
+</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUISettingsHTML = template.Spec{
+	Type:    TemplateItemTypeAuthUISettingsHTML,
+	IsHTML:  true,
+	Defines: defines,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "HEAD" . }}
+<body class="page">
+<div class="content">
+
+{{ template "LOGO" . }}
+
+You are authenticated. To logout, please clear the cookie AND revisit this page. Refreshing causes the form to be submitted again so you will become authenticated again.
+
 {{ template "SKYGEAR_LOGO" . }}
 
 </div>
