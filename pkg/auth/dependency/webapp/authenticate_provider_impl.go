@@ -93,11 +93,13 @@ func (p *AuthenticateProviderImpl) SubmitLoginID(w http.ResponseWriter, r *http.
 
 func (p *AuthenticateProviderImpl) SubmitPassword(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
-		t := TemplateItemTypeAuthUISignInPasswordHTML
-		if err == nil {
-			t = TemplateItemTypeAuthUISettingsHTML
+		if err != nil {
+			t := TemplateItemTypeAuthUISignInPasswordHTML
+			p.RenderProvider.WritePage(w, r, t, err)
+		} else {
+			// TODO(webapp): Respect redirect_uri
+			http.Redirect(w, r, "/settings", http.StatusFound)
 		}
-		p.RenderProvider.WritePage(w, r, t, err)
 	}
 
 	err = p.ValidateProvider.Validate("#WebAppAuthenticateLoginIDPasswordRequest", r.Form)
