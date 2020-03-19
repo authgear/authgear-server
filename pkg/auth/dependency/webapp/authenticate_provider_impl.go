@@ -2,14 +2,29 @@ package webapp
 
 import (
 	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type AuthenticateProviderImpl struct {
 	ValidateProvider ValidateProvider
 	RenderProvider   RenderProvider
+	AuthnProvider    AuthnProvider
 }
 
 var _ AuthenticateProvider = &AuthenticateProviderImpl{}
+
+type AuthnProvider interface {
+	LoginWithLoginID(
+		client config.OAuthClientConfiguration,
+		loginID loginid.LoginID,
+		plainPassword string,
+	) (authn.Result, error)
+
+	WriteCookie(rw http.ResponseWriter, result *authn.CompletionResult)
+}
 
 func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
@@ -56,8 +71,34 @@ func (p *AuthenticateProviderImpl) SubmitLoginID(w http.ResponseWriter, r *http.
 }
 
 func (p *AuthenticateProviderImpl) SubmitPassword(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
-	// TODO(webapp): Enter the authentication process
-	return p.Default(w, r)
+	writeResponse = func(err error) {
+		t := TemplateItemTypeAuthUISignInPasswordHTML
+		if err == nil {
+			t = TemplateItemTypeAuthUISettingsHTML
+		}
+		p.RenderProvider.WritePage(w, r, t, err)
+	}
+
+	err = p.ValidateProvider.Validate("#WebAppAuthenticateLoginIDPasswordRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	var client config.OAuthClientConfiguration
+	loginID := loginid.LoginID{Value: r.Form.Get("x_login_id")}
+	result, err := p.AuthnProvider.LoginWithLoginID(client, loginID, r.Form.Get("x_password"))
+	if err != nil {
+		return
+	}
+
+	switch r := result.(type) {
+	case *authn.CompletionResult:
+		p.AuthnProvider.WriteCookie(w, r)
+	case *authn.InProgressResult:
+		panic("TODO(webapp): handle MFA")
+	}
+
+	return
 }
 
 func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
