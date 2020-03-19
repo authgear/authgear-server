@@ -70,8 +70,9 @@ func (h *AuthorizationHandler) doHandle(
 		}, nil
 	}
 
-	// TODO(oauth): generate code
-	code := ""
+	code := generateToken()
+	codeHash := hashToken(code)
+
 	codeGrant := &oauth.CodeGrant{
 		AppID: h.AppID,
 		// TODO(oauth): handle consent & authorization
@@ -81,8 +82,7 @@ func (h *AuthorizationHandler) doHandle(
 		CreatedAt: h.Time.NowUTC(),
 		ExpireAt:  h.Time.NowUTC(),
 		Scopes:    scopes,
-		// TODO(oauth): generate code hash
-		CodeHash: "",
+		CodeHash:  codeHash,
 
 		RedirectURI:   redirectURI.String(),
 		OIDCNonce:     r.Nonce(),
