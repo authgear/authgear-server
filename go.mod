@@ -20,8 +20,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/google/wire v0.4.0
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
-	github.com/gorilla/context v1.1.1 // indirect
-	github.com/gorilla/mux v1.6.2
+	github.com/gorilla/mux v1.7.4
 	github.com/h2non/gock v1.0.12
 	github.com/iawaknahc/originmatcher v0.0.0-20191203065535-c77f92cc0a75
 	github.com/jmoiron/sqlx v0.0.0-20170430194603-d9bd385d68c0
