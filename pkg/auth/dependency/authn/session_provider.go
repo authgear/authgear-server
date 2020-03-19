@@ -43,8 +43,12 @@ func (p *SessionProvider) BeginSession(client config.OAuthClientConfiguration, u
 	}
 	// Identity is considered finished here.
 	finishedSteps := requiredSteps[:1]
+	clientID := ""
+	if client != nil {
+		clientID = client.ClientID()
+	}
 	return &AuthnSession{
-		ClientID: client.ClientID(),
+		ClientID: clientID,
 		Attrs: authn.Attrs{
 			UserID:             userID,
 			PrincipalID:        prin.PrincipalID(),
@@ -58,9 +62,13 @@ func (p *SessionProvider) BeginSession(client config.OAuthClientConfiguration, u
 }
 
 func (p *SessionProvider) StepSession(s *AuthnSession) (Result, error) {
-	client, ok := coremodel.GetClientConfig(p.ClientConfigs, s.ClientID)
-	if !ok {
-		return nil, ErrInvalidAuthenticationSession
+	var client config.OAuthClientConfiguration
+	var ok bool
+	if s.ClientID != "" {
+		client, ok = coremodel.GetClientConfig(p.ClientConfigs, s.ClientID)
+		if !ok {
+			return nil, ErrInvalidAuthenticationSession
+		}
 	}
 
 	// Step through all finished steps
