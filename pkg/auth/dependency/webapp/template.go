@@ -47,7 +47,11 @@ const defineError = `
 {{ if .x_error }}{{ if eq .x_error.reason "ValidationFailed" }}
 <ul class="errors">
 {{ range .x_error.info.causes }}
+{{ if and (eq .kind "Required") (eq .pointer "/x_login_id" ) }}
+<li class="error-txt">Email or Username is required</li>
+{{ else }}
 <li class="error-txt">{{ .message }}</li>
+{{ end }}
 {{ end }}
 </ul>
 {{ else }}
