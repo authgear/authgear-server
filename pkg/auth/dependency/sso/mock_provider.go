@@ -12,7 +12,6 @@ import (
 )
 
 type MockSSOProvider struct {
-	RedirectURIs   []string
 	BaseURL        string
 	OAuthConfig    *config.OAuthConfiguration
 	URLPrefix      *url.URL
@@ -103,7 +102,7 @@ func (f *MockSSOProvider) IsAllowedOnUserDuplicate(a model.OnUserDuplicate) bool
 }
 
 func (f *MockSSOProvider) IsValidCallbackURL(client config.OAuthClientConfiguration, u string) bool {
-	err := ValidateCallbackURL(f.RedirectURIs, u)
+	err := ValidateCallbackURL(client.RedirectURIs(), u)
 	return err == nil
 }
 

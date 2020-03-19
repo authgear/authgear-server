@@ -28,9 +28,6 @@ func TestAuthRedirectHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := &sso.MockSSOProvider{
-			RedirectURIs: []string{
-				"http://localhost:3000",
-			},
 			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,

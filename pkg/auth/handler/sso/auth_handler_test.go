@@ -112,13 +112,14 @@ func TestAuthHandler(t *testing.T) {
 			Client: config.OAuthClientConfiguration{
 				"client_name":            "client-id",
 				"client_id":              "client-id",
+				"redirect_uris":          []interface{}{"http://localhost:3000"},
 				"access_token_lifetime":  1800.0,
 				"refresh_token_lifetime": 86400.0,
 			},
 		}
 		sh.TenantConfiguration = &config.TenantConfiguration{
 			AppConfig: &config.AppConfiguration{
-				Clients: []config.OAuthClientConfiguration{},
+				Clients: []config.OAuthClientConfiguration{accessKey.Client},
 			},
 		}
 		oauthConfig := &coreconfig.OAuthConfiguration{
@@ -131,9 +132,6 @@ func TestAuthHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
-			RedirectURIs: []string{
-				"http://localhost:3000",
-			},
 			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,
@@ -164,7 +162,8 @@ func TestAuthHandler(t *testing.T) {
 			}
 			// oauth state
 			state := sso.State{
-				Action: action,
+				APIClientID: "client-id",
+				Action:      action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
 					UXMode:      sso.UXModeManual,
@@ -209,7 +208,8 @@ func TestAuthHandler(t *testing.T) {
 
 			// oauth state
 			state := sso.State{
-				Action: action,
+				APIClientID: "client-id",
+				Action:      action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
 					UXMode:      sso.UXModeWebRedirect,
@@ -261,7 +261,8 @@ func TestAuthHandler(t *testing.T) {
 			}
 			// oauth state
 			state := sso.State{
-				Action: action,
+				APIClientID: "client-id",
+				Action:      action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
 					UXMode:      sso.UXModeWebPopup,
@@ -297,7 +298,8 @@ func TestAuthHandler(t *testing.T) {
 
 			// oauth state
 			state := sso.State{
-				Action: action,
+				APIClientID: "client-id",
+				Action:      action,
 				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
 					CallbackURL: "http://localhost:3000",
 					UXMode:      sso.UXModeMobileApp,

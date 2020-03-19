@@ -36,6 +36,7 @@ func TestAuthURLHandler(t *testing.T) {
 			Client: config.OAuthClientConfiguration{
 				"client_name":            "client-id",
 				"client_id":              "client-id",
+				"redirect_uris":          []interface{}{"http://example.com/sso"},
 				"access_token_lifetime":  1800.0,
 				"refresh_token_lifetime": 86400.0,
 			},
@@ -51,9 +52,6 @@ func TestAuthURLHandler(t *testing.T) {
 			Scope:        "openid profile email",
 		}
 		mockProvider := sso.MockSSOProvider{
-			RedirectURIs: []string{
-				"http://example.com/sso",
-			},
 			URLPrefix:      &url.URL{Scheme: "https", Host: "localhost:3000"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,

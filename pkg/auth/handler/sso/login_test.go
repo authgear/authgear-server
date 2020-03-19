@@ -65,9 +65,6 @@ func TestLoginHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
-			RedirectURIs: []string{
-				"http://localhost",
-			},
 			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,
