@@ -226,13 +226,12 @@ func main() {
 
 	rootRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
 	rootRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
+	rootRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
 
 	apiRouter.Use(middleware.AuthMiddleware{}.Handle)
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
-	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
 
 	webappRouter = rootRouter.NewRoute().Subrouter()
-	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
 	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewCSPMiddleware))
 
 	webappAnonymousRouter := webappRouter.NewRoute().Subrouter()
@@ -247,7 +246,6 @@ func main() {
 		rootRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(configuration.StaticAssetDir))))
 	}
 
-	oauthRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
 	oauthhandler.AttachMetadataHandler(oauthRouter, authDependency)
 	oauthhandler.AttachAuthorizeHandler(oauthRouter, authDependency)
 
