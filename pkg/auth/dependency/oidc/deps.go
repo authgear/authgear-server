@@ -7,4 +7,5 @@ import (
 
 var DependencySet = wire.NewSet(
 	wire.Value(handler.ScopesValidator(ValidateScopes)),
+	wire.Struct(new(MetadataProvider)),
 )

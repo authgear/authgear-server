@@ -18,11 +18,16 @@ func ValidateScopes(scopes []string) error {
 	return nil
 }
 
+var AllowedScopes = []string{
+	"openid",
+	"offline_access",
+}
+
 func IsScopeAllowed(scope string) bool {
-	switch scope {
-	case "openid",
-		"offline_access":
-		return true
+	for _, s := range AllowedScopes {
+		if s == scope {
+			return true
+		}
 	}
 	return false
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	mfapq "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	passwordhistorypq "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
@@ -163,5 +164,6 @@ var DependencySet = wire.NewSet(
 	mfapq.DependencySet,
 	webapp.DependencySet,
 	oauthhandler.DependencySet,
+	oauth.DependencySet,
 	oidc.DependencySet,
 )

@@ -16,6 +16,7 @@ import (
 	gearHandler "github.com/skygeario/skygear-server/pkg/auth/handler/gear"
 	loginidhandler "github.com/skygeario/skygear-server/pkg/auth/handler/loginid"
 	mfaHandler "github.com/skygeario/skygear-server/pkg/auth/handler/mfa"
+	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
 	userverifyhandler "github.com/skygeario/skygear-server/pkg/auth/handler/userverify"
@@ -188,6 +189,7 @@ func main() {
 	var rootRouter *mux.Router
 	var apiRouter *mux.Router
 	var webappRouter *mux.Router
+	var oauthRouter *mux.Router
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
 		reader, err := os.Open(filename)
@@ -210,11 +212,17 @@ func main() {
 		apiRouter = rootRouter.PathPrefix("/_auth").Subrouter()
 		apiRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
 		apiRouter.Use(middleware.CORSMiddleware{}.Handle)
+
+		oauthRouter = rootRouter.NewRoute().Subrouter()
+		oauthRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
+		oauthRouter.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
 		rootRouter = server.NewRouter()
 		rootRouter.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 
 		apiRouter = rootRouter.PathPrefix("/_auth").Subrouter()
+
+		oauthRouter = rootRouter.NewRoute().Subrouter()
 	}
 
 	rootRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
@@ -239,6 +247,10 @@ func main() {
 	if configuration.StaticAssetDir != "" {
 		rootRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(configuration.StaticAssetDir))))
 	}
+
+	oauthRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
+	oauthhandler.AttachMetadataHandler(oauthRouter, authDependency)
+	oauthhandler.AttachAuthorizeHandler(oauthRouter, authDependency)
 
 	handler.AttachSignupHandler(apiRouter, authDependency)
 	handler.AttachLoginHandler(apiRouter, authDependency)

@@ -22,8 +22,8 @@ type AuthorizationHandler struct {
 
 	Authorizations       oauth.AuthorizationStore
 	CodeGrants           oauth.CodeGrantStore
-	AuthorizeEndpoint    AuthorizeEndpointProvider
-	AuthenticateEndpoint AuthenticateEndpointProvider
+	AuthorizeEndpoint    oauth.AuthorizeEndpointProvider
+	AuthenticateEndpoint oauth.AuthenticateEndpointProvider
 	ValidateScopes       ScopesValidator
 	CodeGenerator        TokenGenerator
 	Time                 time.Provider

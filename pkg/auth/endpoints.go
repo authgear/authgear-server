@@ -5,7 +5,7 @@ import (
 	"path"
 
 	"github.com/google/wire"
-	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 )
 
@@ -20,10 +20,12 @@ func (p *EndpointsProvider) urlOf(relPath string) *url.URL {
 }
 
 func (p *EndpointsProvider) AuthorizeEndpointURI() *url.URL    { return p.urlOf("oauth2/authorize") }
+func (p *EndpointsProvider) TokenEndpointURI() *url.URL        { return p.urlOf("oauth2/token") }
 func (p *EndpointsProvider) AuthenticateEndpointURI() *url.URL { return p.urlOf(".") }
 
 var endpointsProviderSet = wire.NewSet(
 	wire.Struct(new(EndpointsProvider), "*"),
-	wire.Bind(new(oauthhandler.AuthorizeEndpointProvider), new(*EndpointsProvider)),
-	wire.Bind(new(oauthhandler.AuthenticateEndpointProvider), new(*EndpointsProvider)),
+	wire.Bind(new(oauth.AuthorizeEndpointProvider), new(*EndpointsProvider)),
+	wire.Bind(new(oauth.TokenEndpointProvider), new(*EndpointsProvider)),
+	wire.Bind(new(oauth.AuthenticateEndpointProvider), new(*EndpointsProvider)),
 )

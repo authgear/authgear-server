@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/wire"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
@@ -14,8 +15,8 @@ func ProvideAuthorizationHandler(
 	cfg *config.TenantConfiguration,
 	//as oauth.AuthorizationStore,
 	//cs oauth.CodeGrantStore,
-	authze AuthorizeEndpointProvider,
-	authne AuthenticateEndpointProvider,
+	authze oauth.AuthorizeEndpointProvider,
+	authne oauth.AuthenticateEndpointProvider,
 	vs ScopesValidator,
 	cg TokenGenerator,
 	tp time.Provider,

@@ -7,6 +7,7 @@ package oauth
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
@@ -36,11 +37,34 @@ var (
 	_wireTokenGeneratorValue  = handler.TokenGenerator(handler.GenerateToken)
 )
 
+func newMetadataHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	provider := urlprefix.NewProvider(r)
+	endpointsProvider := &auth.EndpointsProvider{
+		PrefixProvider: provider,
+	}
+	metadataProvider := &oauth.MetadataProvider{
+		URLPrefix:            provider,
+		AuthorizeEndpoint:    endpointsProvider,
+		TokenEndpoint:        endpointsProvider,
+		AuthenticateEndpoint: endpointsProvider,
+	}
+	oidcMetadataProvider := &oidc.MetadataProvider{}
+	httpHandler := provideMetadataHandler(metadataProvider, oidcMetadataProvider)
+	return httpHandler
+}
+
 // wire.go:
 
 func provideAuthorizeHandler(ah oauthAuthorizeHandler) http.Handler {
 	h := &AuthorizeHandler{
 		authzHandler: ah,
+	}
+	return h
+}
+
+func provideMetadataHandler(oauth2 *oauth.MetadataProvider, oidc2 *oidc.MetadataProvider) http.Handler {
+	h := &MetadataHandler{
+		metaProviders: []oauthMetadataProvider{oauth2, oidc2},
 	}
 	return h
 }
