@@ -27,7 +27,7 @@ func TestResolveHandler(t *testing.T) {
 				Verified: true,
 			}
 			d := gotime.Date(2020, 1, 1, 0, 0, 0, 0, gotime.UTC)
-			s := &session.Session{
+			s := &session.IDPSession{
 				ID: "session-id",
 				Attrs: authn.Attrs{
 					PrincipalID:             "principal-id",

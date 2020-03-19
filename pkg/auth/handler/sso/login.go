@@ -69,7 +69,7 @@ type LoginAuthnProvider interface {
 
 	OAuthExchangeCode(
 		client config.OAuthClientConfiguration,
-		session auth.Session,
+		session auth.AuthSession,
 		code *sso.SkygearAuthorizationCode,
 	) (authn.Result, error)
 

@@ -13,7 +13,7 @@ type authnResolver interface {
 		client config.OAuthClientConfiguration,
 		authnSessionToken string,
 		stepPredicate func(authn.SessionStep) bool,
-	) (*authn.Session, error)
+	) (*authn.AuthnSession, error)
 }
 
 type authnStepper interface {

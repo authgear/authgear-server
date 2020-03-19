@@ -220,7 +220,7 @@ func (provider *providerImpl) makeContext() event.Context {
 	} else {
 		userID = &authInfo.ID
 		principalID = &sess.AuthnAttrs().PrincipalID
-		session = sess.(auth.Session).ToAPIModel()
+		session = sess.(auth.AuthSession).ToAPIModel()
 	}
 
 	return event.Context{

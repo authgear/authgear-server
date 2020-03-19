@@ -10,13 +10,13 @@ import (
 )
 
 type Builder struct {
-	session *session.Session
+	session *session.IDPSession
 	user    *authinfo.AuthInfo
 }
 
 func WithAuthn() Builder {
 	return Builder{
-		session: &session.Session{
+		session: &session.IDPSession{
 			ID: "session-id",
 			Attrs: authn.Attrs{
 				UserID:      "user-id",

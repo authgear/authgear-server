@@ -155,7 +155,7 @@ func TestDispatchEvent(t *testing.T) {
 				principalID := "principal-id"
 				provider.Context = authn.WithAuthn(
 					context.Background(),
-					&session.Session{
+					&session.IDPSession{
 						ID: "user-id-principal-id",
 						Attrs: authn.Attrs{
 							UserID:      userID,

@@ -9,7 +9,8 @@ const (
 	SessionTypeIdentityProvider authn.SessionType = "idp"
 )
 
-type Session interface {
+// nolint: golint
+type AuthSession interface {
 	authn.Session
 	ToAPIModel() *model.Session
 }

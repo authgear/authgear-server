@@ -8,7 +8,7 @@ import (
 
 type sessionToken struct {
 	jwt.StandardClaims
-	Session `json:"authn_session"`
+	AuthnSession `json:"authn_session"`
 }
 
 func encodeSessionToken(secret string, claims sessionToken) (string, error) {

@@ -12,11 +12,11 @@ import (
 )
 
 type mockResolver struct {
-	Sessions        []Session
+	Sessions        []IDPSession
 	AccessedSession []string
 }
 
-func (r *mockResolver) GetByToken(token string) (*Session, error) {
+func (r *mockResolver) GetByToken(token string) (*IDPSession, error) {
 	for _, s := range r.Sessions {
 		if s.TokenHash == token {
 			return &s, nil
@@ -25,7 +25,7 @@ func (r *mockResolver) GetByToken(token string) (*Session, error) {
 	return nil, ErrSessionNotFound
 }
 
-func (r *mockResolver) Access(s *Session) error {
+func (r *mockResolver) Access(s *IDPSession) error {
 	r.AccessedSession = append(r.AccessedSession, s.ID)
 	return nil
 }
@@ -46,7 +46,7 @@ func TestMiddleware(t *testing.T) {
 			ID:       "user-id",
 			Verified: true,
 		}
-		resolver.Sessions = []Session{
+		resolver.Sessions = []IDPSession{
 			{
 				ID: "session-id",
 				Attrs: authn.Attrs{

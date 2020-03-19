@@ -25,7 +25,7 @@ func NewEventStore(ctx context.Context, appID string) *EventStore {
 	return &EventStore{ctx: ctx, appID: appID}
 }
 
-func (s *EventStore) AppendAccessEvent(session *session.Session, event *authn.AccessEvent) (err error) {
+func (s *EventStore) AppendAccessEvent(session *session.IDPSession, event *authn.AccessEvent) (err error) {
 	json, err := json.Marshal(event)
 	if err != nil {
 		return

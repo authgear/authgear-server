@@ -12,7 +12,7 @@ func TestSessionToken(t *testing.T) {
 	Convey("session token", t, func() {
 		secret := "secret"
 		claims := sessionToken{
-			Session: Session{
+			AuthnSession: AuthnSession{
 				ClientID:            "clientid",
 				RequiredSteps:       []SessionStep{"identity", "mfa"},
 				FinishedSteps:       []SessionStep{"identity"},

@@ -12,7 +12,7 @@ func NewMockEventStore() *MockEventStore {
 	return &MockEventStore{}
 }
 
-func (s *MockEventStore) AppendAccessEvent(_ *Session, e *authn.AccessEvent) error {
+func (s *MockEventStore) AppendAccessEvent(_ *IDPSession, e *authn.AccessEvent) error {
 	s.AccessEvents = append(s.AccessEvents, *e)
 	return nil
 }

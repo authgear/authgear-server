@@ -15,11 +15,11 @@ func GetUser(ctx context.Context) *authinfo.AuthInfo {
 	return authn.GetUser(ctx)
 }
 
-func GetSession(ctx context.Context) Session {
+func GetSession(ctx context.Context) AuthSession {
 	// All session types used in auth conform to our Session interface as well.
 	s := authn.GetSession(ctx)
 	if s == nil {
 		return nil
 	}
-	return s.(Session)
+	return s.(AuthSession)
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
-type Session struct {
+type IDPSession struct {
 	ID    string `json:"id"`
 	AppID string `json:"app_id"`
 
@@ -23,16 +23,16 @@ type Session struct {
 	TokenHash string `json:"token_hash"`
 }
 
-var _ auth.Session = &Session{}
+var _ auth.AuthSession = &IDPSession{}
 
-func (s *Session) SessionID() string              { return s.ID }
-func (s *Session) SessionType() authn.SessionType { return auth.SessionTypeIdentityProvider }
+func (s *IDPSession) SessionID() string              { return s.ID }
+func (s *IDPSession) SessionType() authn.SessionType { return auth.SessionTypeIdentityProvider }
 
-func (s *Session) AuthnAttrs() *authn.Attrs {
+func (s *IDPSession) AuthnAttrs() *authn.Attrs {
 	return &s.Attrs
 }
 
-func (s *Session) ToAPIModel() *model.Session {
+func (s *IDPSession) ToAPIModel() *model.Session {
 	ua := model.ParseUserAgent(s.LastAccess.UserAgent)
 	ua.DeviceName = s.LastAccess.Extra.DeviceName()
 	return &model.Session{

@@ -31,7 +31,7 @@ func (p *MockLoginAuthnProvider) OAuthAuthenticate(
 
 func (p *MockLoginAuthnProvider) OAuthExchangeCode(
 	client config.OAuthClientConfiguration,
-	session auth.Session,
+	session auth.AuthSession,
 	code *sso.SkygearAuthorizationCode,
 ) (authn.Result, error) {
 	panic("not mocked")

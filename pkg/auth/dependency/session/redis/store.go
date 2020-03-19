@@ -29,7 +29,7 @@ func NewStore(ctx context.Context, appID string, time time.Provider, loggerFacto
 	return &Store{ctx: ctx, appID: appID, time: time, logger: loggerFactory.NewLogger("redis-session-store")}
 }
 
-func (s *Store) Create(sess *session.Session, expireAt gotime.Time) (err error) {
+func (s *Store) Create(sess *session.IDPSession, expireAt gotime.Time) (err error) {
 	json, err := json.Marshal(sess)
 	if err != nil {
 		return
@@ -59,7 +59,7 @@ func (s *Store) Create(sess *session.Session, expireAt gotime.Time) (err error) 
 	return
 }
 
-func (s *Store) Update(sess *session.Session, expireAt gotime.Time) (err error) {
+func (s *Store) Update(sess *session.IDPSession, expireAt gotime.Time) (err error) {
 	data, err := json.Marshal(sess)
 	if err != nil {
 		return
@@ -87,7 +87,7 @@ func (s *Store) Update(sess *session.Session, expireAt gotime.Time) (err error) 
 	return
 }
 
-func (s *Store) Get(id string) (sess *session.Session, err error) {
+func (s *Store) Get(id string) (sess *session.IDPSession, err error) {
 	conn := redis.GetConn(s.ctx)
 	key := sessionKey(s.appID, id)
 	data, err := goredis.Bytes(conn.Do("GET", key))
@@ -101,7 +101,7 @@ func (s *Store) Get(id string) (sess *session.Session, err error) {
 	return
 }
 
-func (s *Store) Delete(session *session.Session) (err error) {
+func (s *Store) Delete(session *session.IDPSession) (err error) {
 	conn := redis.GetConn(s.ctx)
 	key := sessionKey(s.appID, session.ID)
 	listKey := sessionListKey(s.appID, session.Attrs.UserID)
@@ -121,7 +121,7 @@ func (s *Store) Delete(session *session.Session) (err error) {
 	return
 }
 
-func (s *Store) DeleteBatch(sessions []*session.Session) (err error) {
+func (s *Store) DeleteBatch(sessions []*session.IDPSession) (err error) {
 	conn := redis.GetConn(s.ctx)
 
 	sessionKeys := []interface{}{}
@@ -189,7 +189,7 @@ func (s *Store) DeleteAll(userID string, sessionID string) error {
 	return nil
 }
 
-func (s *Store) List(userID string) (sessions []*session.Session, err error) {
+func (s *Store) List(userID string) (sessions []*session.IDPSession, err error) {
 	now := s.time.NowUTC()
 	conn := redis.GetConn(s.ctx)
 	listKey := sessionListKey(s.appID, userID)
@@ -215,7 +215,7 @@ func (s *Store) List(userID string) (sessions []*session.Session, err error) {
 			expired = now.After(expireAt)
 		}
 
-		session := &session.Session{}
+		session := &session.IDPSession{}
 		var sessionJSON []byte
 		sessionJSON, err = goredis.Bytes(conn.Do("GET", key))
 		// key not found / invalid session JSON -> session not found
@@ -264,7 +264,7 @@ func toMilliseconds(d gotime.Duration) int64 {
 	return int64(d / gotime.Millisecond)
 }
 
-type sessionSlice []*session.Session
+type sessionSlice []*session.IDPSession
 
 func (s sessionSlice) Len() int           { return len(s) }
 func (s sessionSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }

@@ -81,7 +81,7 @@ func (p *Provider) OAuthLink(
 
 func (p *Provider) OAuthExchangeCode(
 	client config.OAuthClientConfiguration,
-	s auth.Session,
+	s auth.AuthSession,
 	code *sso.SkygearAuthorizationCode,
 ) (Result, error) {
 	pr, err := p.OAuth.ExchangeCode(code)
@@ -139,7 +139,7 @@ func (p *Provider) Resolve(
 	client config.OAuthClientConfiguration,
 	authnSessionToken string,
 	stepPredicate func(SessionStep) bool,
-) (*Session, error) {
+) (*AuthnSession, error) {
 	s, err := p.AuthnSession.ResolveSession(authnSessionToken)
 	if err != nil {
 		return nil, err
@@ -163,9 +163,9 @@ func (p *Provider) StepSession(
 	mfaBearerToken string,
 ) (Result, error) {
 	switch s := s.(type) {
-	case *Session:
+	case *AuthnSession:
 		return p.AuthnSession.StepSession(s)
-	case *session.Session:
+	case *session.IDPSession:
 		err := p.Session.Update(s)
 		if err != nil {
 			return nil, err

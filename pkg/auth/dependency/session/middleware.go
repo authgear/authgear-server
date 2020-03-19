@@ -10,8 +10,8 @@ import (
 )
 
 type Resolver interface {
-	GetByToken(token string) (*Session, error)
-	Access(*Session) error
+	GetByToken(token string) (*IDPSession, error)
+	Access(*IDPSession) error
 }
 
 type Middleware struct {
@@ -47,7 +47,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) resolve(token string) (*Session, *authinfo.AuthInfo, error) {
+func (m *Middleware) resolve(token string) (*IDPSession, *authinfo.AuthInfo, error) {
 	if err := m.TxContext.BeginTx(); err != nil {
 		return nil, nil, err
 	}

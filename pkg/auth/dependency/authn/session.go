@@ -18,8 +18,9 @@ func (s SessionStep) IsMFA() bool {
 }
 
 // AuthnSession represents the authentication session.
-// When the authentication session is finished, it converts to Session.
-type Session struct {
+// When the authentication session is finished, it converts to AuthnSession.
+// nolint: golint
+type AuthnSession struct {
 	// The following fields are filled in step "identity"
 	ClientID string `json:"client_id"`
 
@@ -32,15 +33,15 @@ type Session struct {
 	AuthenticatorBearerToken string `json:"authenticator_bearer_token,omitempty"`
 }
 
-func (a *Session) AuthnAttrs() *authn.Attrs {
+func (a *AuthnSession) AuthnAttrs() *authn.Attrs {
 	return &a.Attrs
 }
 
-func (a *Session) IsFinished() bool {
+func (a *AuthnSession) IsFinished() bool {
 	return len(a.RequiredSteps) == len(a.FinishedSteps)
 }
 
-func (a *Session) NextStep() (SessionStep, bool) {
+func (a *AuthnSession) NextStep() (SessionStep, bool) {
 	if a.IsFinished() {
 		return "", false
 	}

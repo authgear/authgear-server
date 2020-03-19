@@ -55,7 +55,7 @@ func TestProvider(t *testing.T) {
 
 				So(err, ShouldBeNil)
 				So(token, ShouldNotBeEmpty)
-				So(session, ShouldResemble, &Session{
+				So(session, ShouldResemble, &IDPSession{
 					ID: session.ID,
 					Attrs: authn.Attrs{
 						UserID:      "user-id",
@@ -77,7 +77,7 @@ func TestProvider(t *testing.T) {
 				})
 				err := provider.Create(session1)
 				So(err, ShouldBeNil)
-				So(session1, ShouldResemble, &Session{
+				So(session1, ShouldResemble, &IDPSession{
 					ID: session1.ID,
 					Attrs: authn.Attrs{
 						UserID:      "user-id",
@@ -96,7 +96,7 @@ func TestProvider(t *testing.T) {
 				})
 				err = provider.Create(session2)
 				So(err, ShouldBeNil)
-				So(session2, ShouldResemble, &Session{
+				So(session2, ShouldResemble, &IDPSession{
 					ID: session2.ID,
 					Attrs: authn.Attrs{
 						UserID:      "user-id",
@@ -115,7 +115,7 @@ func TestProvider(t *testing.T) {
 		})
 
 		Convey("getting session", func() {
-			fixtureSession := Session{
+			fixtureSession := IDPSession{
 				ID: "session-id",
 				Attrs: authn.Attrs{
 					UserID:      "user-id",
@@ -157,7 +157,7 @@ func TestProvider(t *testing.T) {
 		})
 
 		Convey("accessing session", func() {
-			session := Session{
+			session := IDPSession{
 				ID: "session-id",
 				Attrs: authn.Attrs{
 					UserID:      "user-id",
@@ -186,7 +186,7 @@ func TestProvider(t *testing.T) {
 		})
 
 		Convey("invalidating session", func() {
-			store.Sessions["session-id"] = Session{
+			store.Sessions["session-id"] = IDPSession{
 				ID: "session-id",
 				Attrs: authn.Attrs{
 					UserID:      "user-id",
@@ -198,13 +198,13 @@ func TestProvider(t *testing.T) {
 			}
 
 			Convey("should be successful", func() {
-				err := provider.Invalidate(&Session{ID: "session-id"})
+				err := provider.Invalidate(&IDPSession{ID: "session-id"})
 				So(err, ShouldBeNil)
 				So(store.Sessions, ShouldBeEmpty)
 			})
 
 			Convey("should be successful for non-existent sessions", func() {
-				err := provider.Invalidate(&Session{ID: "session-id-unknown"})
+				err := provider.Invalidate(&IDPSession{ID: "session-id-unknown"})
 				So(err, ShouldBeNil)
 				So(store.Sessions, ShouldNotBeEmpty)
 			})
@@ -212,7 +212,7 @@ func TestProvider(t *testing.T) {
 
 		Convey("listing session", func() {
 			makeSession := func(id string, userID string, timeOffset int) {
-				store.Sessions[id] = Session{
+				store.Sessions[id] = IDPSession{
 					ID: id,
 					Attrs: authn.Attrs{
 						UserID: userID,

@@ -55,12 +55,12 @@ func NewProvider(
 
 var _ Provider = &ProviderImpl{}
 
-func (p *ProviderImpl) MakeSession(attrs *authn.Attrs) (*Session, string) {
+func (p *ProviderImpl) MakeSession(attrs *authn.Attrs) (*IDPSession, string) {
 	now := p.time.NowUTC()
 	accessEvent := newAccessEvent(now, p.req)
 	// NOTE(louis): remember to update the mock provider
 	// if session has new fields.
-	session := &Session{
+	session := &IDPSession{
 		ID:            uuid.New(),
 		Attrs:         *attrs,
 		InitialAccess: accessEvent,
@@ -73,7 +73,7 @@ func (p *ProviderImpl) MakeSession(attrs *authn.Attrs) (*Session, string) {
 	return session, token
 }
 
-func (p *ProviderImpl) Create(session *Session) error {
+func (p *ProviderImpl) Create(session *IDPSession) error {
 	expiry := computeSessionStorageExpiry(session, p.config)
 	err := p.store.Create(session, expiry)
 	if err != nil {
@@ -88,7 +88,7 @@ func (p *ProviderImpl) Create(session *Session) error {
 	return nil
 }
 
-func (p *ProviderImpl) GetByToken(token string) (*Session, error) {
+func (p *ProviderImpl) GetByToken(token string) (*IDPSession, error) {
 	id, ok := decodeTokenSessionID(token)
 	if !ok {
 		return nil, ErrSessionNotFound
@@ -117,7 +117,7 @@ func (p *ProviderImpl) GetByToken(token string) (*Session, error) {
 	return s, nil
 }
 
-func (p *ProviderImpl) Get(id string) (*Session, error) {
+func (p *ProviderImpl) Get(id string) (*IDPSession, error) {
 	session, err := p.store.Get(id)
 	if err != nil {
 		if !errors.Is(err, ErrSessionNotFound) {
@@ -129,7 +129,7 @@ func (p *ProviderImpl) Get(id string) (*Session, error) {
 	return session, nil
 }
 
-func (p *ProviderImpl) Access(s *Session) error {
+func (p *ProviderImpl) Access(s *IDPSession) error {
 	now := p.time.NowUTC()
 	accessEvent := newAccessEvent(now, p.req)
 
@@ -149,7 +149,7 @@ func (p *ProviderImpl) Access(s *Session) error {
 	return nil
 }
 
-func (p *ProviderImpl) Invalidate(session *Session) error {
+func (p *ProviderImpl) Invalidate(session *IDPSession) error {
 	err := p.store.Delete(session)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to invalidate session")
@@ -157,7 +157,7 @@ func (p *ProviderImpl) Invalidate(session *Session) error {
 	return nil
 }
 
-func (p *ProviderImpl) InvalidateBatch(sessions []*Session) error {
+func (p *ProviderImpl) InvalidateBatch(sessions []*IDPSession) error {
 	err := p.store.DeleteBatch(sessions)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to invalidate sessions")
@@ -173,7 +173,7 @@ func (p *ProviderImpl) InvalidateAll(userID string, sessionID string) error {
 	return nil
 }
 
-func (p *ProviderImpl) List(userID string) (sessions []*Session, err error) {
+func (p *ProviderImpl) List(userID string) (sessions []*IDPSession, err error) {
 	storedSessions, err := p.store.List(userID)
 	if err != nil {
 		err = errors.HandledWithMessage(err, "failed to list sessions")
@@ -193,7 +193,7 @@ func (p *ProviderImpl) List(userID string) (sessions []*Session, err error) {
 	return
 }
 
-func (p *ProviderImpl) Update(sess *Session) error {
+func (p *ProviderImpl) Update(sess *IDPSession) error {
 	expiry := computeSessionStorageExpiry(sess, p.config)
 	err := p.store.Update(sess, expiry)
 	if err != nil {
@@ -202,7 +202,7 @@ func (p *ProviderImpl) Update(sess *Session) error {
 	return err
 }
 
-func (p *ProviderImpl) generateToken(s *Session) string {
+func (p *ProviderImpl) generateToken(s *IDPSession) string {
 	token := encodeToken(s.ID, corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.rand))
 	s.TokenHash = crypto.SHA256String(token)
 	return token
