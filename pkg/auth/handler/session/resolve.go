@@ -26,7 +26,7 @@ type ResolveHandler struct {
 
 func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	valid := auth.IsValidAuthn(r.Context())
-	user := auth.GetUser(r.Context())
+	user := auth.GetAuthInfo(r.Context())
 	session := auth.GetSession(r.Context())
 
 	var info *authn.Info

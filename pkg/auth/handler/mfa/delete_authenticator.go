@@ -96,7 +96,7 @@ func (h *DeleteAuthenticatorHandler) Handle(w http.ResponseWriter, r *http.Reque
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		userID := auth.GetUser(r.Context()).ID
+		userID := auth.GetAuthInfo(r.Context()).ID
 		return h.MFAProvider.DeleteAuthenticator(userID, payload.AuthenticatorID)
 	})
 	resp = struct{}{}

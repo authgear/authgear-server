@@ -128,7 +128,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		authinfo := auth.GetUser(r.Context())
+		authinfo := auth.GetAuthInfo(r.Context())
 		sess := auth.GetSession(r.Context())
 
 		if err := h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{

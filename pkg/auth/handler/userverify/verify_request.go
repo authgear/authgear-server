@@ -146,7 +146,7 @@ func (h VerifyRequestHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 	}
 
 	err = db.WithTx(h.TxContext, func() (err error) {
-		authInfo := auth.GetUser(r.Context())
+		authInfo := auth.GetAuthInfo(r.Context())
 
 		// Get Profile
 		var userProfile userprofile.UserProfile

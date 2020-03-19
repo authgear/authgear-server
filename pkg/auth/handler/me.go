@@ -82,7 +82,7 @@ func (h MeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interfac
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetUser(r.Context())
+		authInfo := auth.GetAuthInfo(r.Context())
 		sess := auth.GetSession(r.Context())
 		principalID := sess.AuthnAttrs().PrincipalID
 

@@ -211,7 +211,7 @@ func (provider *providerImpl) makeContext() event.Context {
 		requestID = &provider.RequestID
 	}
 
-	authInfo := authn.GetUser(provider.Context)
+	authInfo := authn.GetAuthInfo(provider.Context)
 	sess := authn.GetSession(provider.Context)
 	if authInfo == nil {
 		userID = nil

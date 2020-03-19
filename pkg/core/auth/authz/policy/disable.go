@@ -13,7 +13,7 @@ import (
 // It is not an error if the request does not have an associated user.
 // If you want to enforce enabled user, use RequireValidUser.
 func DenyDisabledUser(r *http.Request) error {
-	user := authn.GetUser(r.Context())
+	user := authn.GetAuthInfo(r.Context())
 	// FIXME(time): Switch to TimeProvider
 	now := time.Now().UTC()
 	if user != nil && user.IsDisabled(now) {

@@ -102,7 +102,7 @@ func (h ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h ListHandler) Handle(r *http.Request) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetUser(r.Context())
+		authInfo := auth.GetAuthInfo(r.Context())
 		userID := authInfo.ID
 
 		sessions, err := h.SessionProvider.List(userID)

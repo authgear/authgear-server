@@ -98,7 +98,7 @@ func (h LogoutHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 // Handle api request
 func (h LogoutHandler) Handle(r *http.Request) (resp interface{}, err error) {
-	authInfo := auth.GetUser(r.Context())
+	authInfo := auth.GetAuthInfo(r.Context())
 	sess := auth.GetSession(r.Context())
 
 	resp = map[string]string{}

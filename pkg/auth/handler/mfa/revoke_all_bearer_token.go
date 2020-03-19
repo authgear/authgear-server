@@ -78,7 +78,7 @@ func (h *RevokeAllBearerTokenHandler) Handle(w http.ResponseWriter, r *http.Requ
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		userID := auth.GetUser(r.Context()).ID
+		userID := auth.GetAuthInfo(r.Context()).ID
 		err = h.MFAProvider.DeleteAllBearerToken(userID)
 		if err != nil {
 			return err

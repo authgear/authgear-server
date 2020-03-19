@@ -103,7 +103,7 @@ func (h *RegenerateRecoveryCodeHandler) Handle(w http.ResponseWriter, r *http.Re
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		userID := auth.GetUser(r.Context()).ID
+		userID := auth.GetAuthInfo(r.Context()).ID
 		codes, err := h.MFAProvider.GenerateRecoveryCode(userID)
 		if err != nil {
 			return err

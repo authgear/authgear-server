@@ -123,7 +123,7 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	err := db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetUser(r.Context())
+		authInfo := auth.GetAuthInfo(r.Context())
 		userID := authInfo.ID
 
 		principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(userID)

@@ -102,7 +102,7 @@ func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 			return skyerr.NewNotFound("unknown SSO provider")
 		}
 
-		authInfo := auth.GetUser(r.Context())
+		authInfo := auth.GetAuthInfo(r.Context())
 		sess := auth.GetSession(r.Context())
 		userID := authInfo.ID
 		principal, err := h.OAuthAuthProvider.GetPrincipalByUser(oauth.GetByUserOptions{

@@ -52,7 +52,7 @@ func GetSession(ctx context.Context) Session {
 	return actx.Session
 }
 
-func GetUser(ctx context.Context) *authinfo.AuthInfo {
+func GetAuthInfo(ctx context.Context) *authinfo.AuthInfo {
 	actx := getContext(ctx)
 	if actx == nil || actx.User == nil {
 		return nil

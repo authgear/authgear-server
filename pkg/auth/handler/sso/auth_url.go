@@ -278,7 +278,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		APIClientID:   apiClientID,
 		CodeChallenge: payload.CodeChallenge,
 	}
-	user := auth.GetUser(r.Context())
+	user := auth.GetAuthInfo(r.Context())
 	if user != nil {
 		state.UserID = user.ID
 	}

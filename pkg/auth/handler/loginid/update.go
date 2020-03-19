@@ -139,7 +139,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 
 	var resp interface{}
 	err := db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetUser(r.Context())
+		authInfo := auth.GetAuthInfo(r.Context())
 		userID := authInfo.ID
 
 		var oldPrincipal password.Principal

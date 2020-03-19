@@ -68,7 +68,7 @@ func TestMiddleware(t *testing.T) {
 		handler := m.Handle(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			valid = authn.IsValidAuthn(r.Context())
 			s = authn.GetSession(r.Context())
-			u = authn.GetUser(r.Context())
+			u = authn.GetAuthInfo(r.Context())
 		}))
 
 		Convey("resolve without session cookie", func() {

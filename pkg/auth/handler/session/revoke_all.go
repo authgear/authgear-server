@@ -84,7 +84,7 @@ func (h RevokeAllHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h RevokeAllHandler) Handle(r *http.Request) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetUser(r.Context())
+		authInfo := auth.GetAuthInfo(r.Context())
 		userID := authInfo.ID
 		// TODO(authn): use correct session ID
 		sessionID := ""
