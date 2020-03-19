@@ -59,7 +59,7 @@ type LinkAuthnProvider interface {
 		code *sso.SkygearAuthorizationCode,
 	) (authn.Result, error)
 
-	WriteResult(rw http.ResponseWriter, result authn.Result)
+	WriteAPIResult(rw http.ResponseWriter, result authn.Result)
 }
 
 /*
@@ -99,7 +99,7 @@ func (h LinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.AuthnProvider.WriteResult(w, result)
+	h.AuthnProvider.WriteAPIResult(w, result)
 }
 
 func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (authn.Result, error) {

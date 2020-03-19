@@ -138,5 +138,5 @@ func (h *AuthenticateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	h.authnStepper.WriteResult(w, result)
+	h.authnStepper.WriteAPIResult(w, result)
 }

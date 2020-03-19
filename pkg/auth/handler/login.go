@@ -56,7 +56,7 @@ type LoginAuthnProvider interface {
 		plainPassword string,
 	) (authn.Result, error)
 
-	WriteResult(rw http.ResponseWriter, result authn.Result)
+	WriteAPIResult(rw http.ResponseWriter, result authn.Result)
 }
 
 /*
@@ -119,5 +119,5 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	h.AuthnProvider.WriteResult(resp, result)
+	h.AuthnProvider.WriteAPIResult(resp, result)
 }

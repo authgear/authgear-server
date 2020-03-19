@@ -37,7 +37,7 @@ func (p *MockLoginAuthnProvider) OAuthExchangeCode(
 	panic("not mocked")
 }
 
-func (p *MockLoginAuthnProvider) WriteResult(http.ResponseWriter, authn.Result) {
+func (p *MockLoginAuthnProvider) WriteAPIResult(http.ResponseWriter, authn.Result) {
 	panic("not mocked")
 }
 
