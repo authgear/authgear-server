@@ -1,10 +1,8 @@
 package session
 
-import "github.com/skygeario/skygear-server/pkg/core/auth"
-
 type Provider interface {
 	// Make makes a session from authn session
-	MakeSession(authnSess *auth.AuthnSession) (session *Session, token string)
+	MakeSession(attrs *Attrs) (session *Session, token string)
 	// Create creates a session
 	Create(session *Session) error
 	// GetByToken gets the session identified by the token

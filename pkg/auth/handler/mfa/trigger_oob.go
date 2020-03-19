@@ -6,16 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -25,20 +22,8 @@ func AttachTriggerOOBHandler(
 ) {
 	router.NewRoute().
 		Path("/mfa/oob/trigger").
-		Handler(server.FactoryToHandler(&TriggerOOBHandlerFactory{
-			Dependency: authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newTriggerOOBHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type TriggerOOBHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f TriggerOOBHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &TriggerOOBHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type TriggerOOBRequest struct {
@@ -71,13 +56,10 @@ const TriggerOOBRequestSchema = `
 		@Response 200 {EmptyResponse}
 */
 type TriggerOOBHandler struct {
-	TxContext            db.TxContext            `dependency:"TxContext"`
-	Validator            *validation.Validator   `dependency:"Validator"`
-	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
-	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
-	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
-	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
-	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
+	TxContext     db.TxContext
+	Validator     *validation.Validator
+	MFAProvider   mfa.Provider
+	authnResolver authnResolver
 }
 
 func (h *TriggerOOBHandler) ProvideAuthzPolicy() authz.Policy {
@@ -104,13 +86,19 @@ func (h *TriggerOOBHandler) Handle(w http.ResponseWriter, r *http.Request) (resp
 		return nil, err
 	}
 	err = db.WithTx(h.TxContext, func() error {
-		userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
-			MFAOption: authnsession.ResolveMFAOptionAlwaysAccept,
-		})
-		if err != nil {
-			return err
+		session := authn.GetSession(r.Context())
+		if session == nil {
+			session, err = h.authnResolver.Resolve(
+				coreAuth.GetAccessKey(r.Context()).Client,
+				payload.AuthnSessionToken,
+				authn.SessionStep.IsMFA,
+			)
+			if err != nil {
+				return err
+			}
 		}
-		err = h.MFAProvider.TriggerOOB(userID, payload.AuthenticatorID)
+
+		err = h.MFAProvider.TriggerOOB(session.SessionAttrs().UserID, payload.AuthenticatorID)
 		if err != nil {
 			return err
 		}

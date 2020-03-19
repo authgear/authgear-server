@@ -4,22 +4,17 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/async"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -29,20 +24,8 @@ func AttachSignupHandler(
 ) {
 	router.NewRoute().
 		Path("/signup").
-		Handler(server.FactoryToHandler(&SignupHandlerFactory{
-			authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newSignupHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type SignupHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &SignupHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type SignupRequestPayload struct {
@@ -91,6 +74,18 @@ func (p *SignupRequestPayload) SetDefaultValue() {
 	}
 }
 
+type SignupAuthnProvider interface {
+	SignupWithLoginIDs(
+		client config.OAuthClientConfiguration,
+		loginIDs []loginid.LoginID,
+		plainPassword string,
+		metadata map[string]interface{},
+		onUserDuplicate model.OnUserDuplicate,
+	) (authn.Result, error)
+
+	WriteResult(rw http.ResponseWriter, result authn.Result)
+}
+
 /*
 	@Operation POST /signup - Signup using password
 		Signup user with login IDs and password.
@@ -110,14 +105,10 @@ func (p *SignupRequestPayload) SetDefaultValue() {
 		@Callback user_sync {UserSyncEvent}
 */
 type SignupHandler struct {
-	RequireAuthz         handler.RequireAuthz  `dependency:"RequireAuthz"`
-	Validator            *validation.Validator `dependency:"Validator"`
-	AuthnSignupProvider  authn.SignupProvider  `dependency:"AuthnSignupProvider"`
-	AuthnSessionProvider authnsession.Provider `dependency:"AuthnSessionProvider"`
-	TxContext            db.TxContext          `dependency:"TxContext"`
-	Logger               *logrus.Entry         `dependency:"HandlerLogger"`
-	TaskQueue            async.Queue           `dependency:"AsyncTaskQueue"`
-	HookProvider         hook.Provider         `dependency:"HookProvider"`
+	RequireAuthz  handler.RequireAuthz
+	Validator     *validation.Validator
+	AuthnProvider SignupAuthnProvider
+	TxContext     db.TxContext
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
@@ -134,45 +125,25 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
-		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
+		handler.WriteResponse(resp, handler.APIResponse{Error: err})
 		return
 	}
 
-	var tasks []async.TaskSpec
-	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
-		result, tasks, err = h.Handle(payload)
-		if err == nil {
-			err = h.HookProvider.WillCommitTx()
-		}
+	var result authn.Result
+	err = db.WithTx(h.TxContext, func() (err error) {
+		result, err = h.AuthnProvider.SignupWithLoginIDs(
+			coreauth.GetAccessKey(req.Context()).Client,
+			payload.LoginIDs,
+			payload.Password,
+			payload.Metadata,
+			payload.OnUserDuplicate,
+		)
 		return
 	})
-	if err == nil {
-		h.HookProvider.DidCommitTx()
-		for _, t := range tasks {
-			h.TaskQueue.Enqueue(t.Name, t.Param, nil)
-		}
-	}
-	h.AuthnSessionProvider.WriteResponse(resp, result, err)
-}
-
-func (h SignupHandler) Handle(payload SignupRequestPayload) (resp interface{}, tasks []async.TaskSpec, err error) {
-	authInfo, _, firstPrincipal, tasks, err := h.AuthnSignupProvider.CreateUserWithLoginIDs(
-		payload.LoginIDs,
-		payload.Password,
-		payload.Metadata,
-		payload.OnUserDuplicate,
-	)
 	if err != nil {
-		return
-	}
-	sess, err := h.AuthnSessionProvider.NewFromScratch(authInfo.ID, firstPrincipal, coreAuth.SessionCreateReasonSignup)
-	if err != nil {
-		return
-	}
-	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
-	if err != nil {
+		handler.WriteResponse(resp, handler.APIResponse{Error: err})
 		return
 	}
 
-	return
+	h.AuthnProvider.WriteResult(resp, result)
 }

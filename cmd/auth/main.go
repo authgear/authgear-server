@@ -210,11 +210,7 @@ func main() {
 	appRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
 	appRouter.Use(middleware.AuthMiddleware{}.Handle)
 	appRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
-
-	appRouter.Use(middleware.Injecter{
-		MiddlewareFactory: middleware.AuthnMiddlewareFactory{},
-		Dependency:        authDependency,
-	}.Handle)
+	appRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
 
 	handler.AttachSignupHandler(appRouter, authDependency)
 	handler.AttachLoginHandler(appRouter, authDependency)

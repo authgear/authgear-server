@@ -6,19 +6,15 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -28,20 +24,8 @@ func AttachAuthenticateBearerTokenHandler(
 ) {
 	router.NewRoute().
 		Path("/mfa/bearer_token/authenticate").
-		Handler(server.FactoryToHandler(&AuthenticateBearerTokenHandlerFactory{
-			Dependency: authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newAuthenticateBearerTokenHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type AuthenticateBearerTokenHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f AuthenticateBearerTokenHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &AuthenticateBearerTokenHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type AuthenticateBearerTokenRequest struct {
@@ -90,15 +74,13 @@ const AuthenticateBearerTokenRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type AuthenticateBearerTokenHandler struct {
-	TxContext            db.TxContext            `dependency:"TxContext"`
-	Validator            *validation.Validator   `dependency:"Validator"`
-	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
-	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
-	SessionProvider      session.Provider        `dependency:"SessionProvider"`
-	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
-	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
-	HookProvider         hook.Provider           `dependency:"HookProvider"`
-	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
+	TxContext         db.TxContext
+	Validator         *validation.Validator
+	TimeProvider      time.Provider
+	MFAProvider       mfa.Provider
+	BearerTokenCookie mfa.BearerTokenCookieConfiguration
+	authnResolver     authnResolver
+	authnStepper      authnStepper
 }
 
 func (h *AuthenticateBearerTokenHandler) ProvideAuthzPolicy() authz.Policy {
@@ -108,10 +90,14 @@ func (h *AuthenticateBearerTokenHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
+func (h *AuthenticateBearerTokenHandler) useCookie(r *http.Request) bool {
+	accessKey := coreAuth.GetAccessKey(r.Context())
+	return accessKey.Client == nil || accessKey.Client.AuthAPIUseCookie()
+}
+
 func (h *AuthenticateBearerTokenHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload AuthenticateBearerTokenRequest, err error) {
-	accessKey := coreAuth.GetAccessKey(request.Context())
-	if accessKey.Client != nil && accessKey.Client.AuthAPIUseCookie() {
-		cookie, err := request.Cookie(coreHttp.CookieNameMFABearerToken)
+	if h.useCookie(request) {
+		cookie, err := request.Cookie(h.BearerTokenCookie.Name)
 		if err == nil {
 			payload.BearerToken = cookie.Value
 		}
@@ -123,69 +109,65 @@ func (h *AuthenticateBearerTokenHandler) DecodeRequest(request *http.Request, re
 
 func (h *AuthenticateBearerTokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
+
 	payload, err := h.DecodeRequest(r, w)
 	if err != nil {
-		h.AuthnSessionProvider.WriteResponse(w, nil, err)
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
 		return
 	}
 
-	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
-		result, err = h.Handle(payload)
-		if err == nil {
-			err = h.HookProvider.WillCommitTx()
+	var result authn.Result
+	err = db.WithTx(h.TxContext, func() error {
+		session := authn.GetSession(r.Context())
+		if session == nil {
+			session, err = h.authnResolver.Resolve(
+				coreAuth.GetAccessKey(r.Context()).Client,
+				payload.AuthnSessionToken,
+				authn.SessionStep.IsMFA,
+			)
+			if err != nil {
+				return err
+			}
 		}
-		return
+		attrs := session.SessionAttrs()
+
+		err = h.MFAProvider.DeleteExpiredBearerToken(attrs.UserID)
+		if err != nil {
+			return err
+		}
+
+		a, err := h.MFAProvider.AuthenticateBearerToken(
+			attrs.UserID,
+			payload.BearerToken,
+		)
+		if err != nil {
+			return err
+		}
+
+		now := h.TimeProvider.NowUTC()
+		attrs.AuthenticatorID = a.ID
+		attrs.AuthenticatorType = a.Type
+		attrs.AuthenticatorUpdatedAt = &now
+
+		result, err = h.authnStepper.StepSession(
+			coreAuth.GetAccessKey(r.Context()).Client,
+			session,
+			"",
+		)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
-	if err == nil {
-		h.HookProvider.DidCommitTx()
-	}
-	h.AuthnSessionProvider.WriteResponse(w, result, err)
-}
-
-func (h *AuthenticateBearerTokenHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(AuthenticateBearerTokenRequest)
-
-	userID, sess, authnSess, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
-		MFAOption: authnsession.ResolveMFAOptionAlwaysAccept,
-	})
 	if err != nil {
+		if skyerr.IsKind(err, mfa.InvalidBearerToken) && h.useCookie(r) {
+			h.BearerTokenCookie.Clear(w)
+		}
+
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
 		return
 	}
 
-	err = h.MFAProvider.DeleteExpiredBearerToken(userID)
-	if err != nil {
-		return
-	}
-
-	a, err := h.MFAProvider.AuthenticateBearerToken(userID, payload.BearerToken)
-	if err != nil {
-		return
-	}
-
-	opts := coreAuth.AuthnSessionStepMFAOptions{
-		AuthenticatorID:   a.ID,
-		AuthenticatorType: a.Type,
-	}
-
-	if sess != nil {
-		err = h.SessionProvider.UpdateMFA(sess, opts)
-		if err != nil {
-			return
-		}
-		resp, err = h.AuthnSessionProvider.GenerateResponseWithSession(sess, "")
-		if err != nil {
-			return
-		}
-	} else if authnSess != nil {
-		err = h.MFAProvider.StepMFA(authnSess, opts)
-		if err != nil {
-			return
-		}
-		resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*authnSess)
-		if err != nil {
-			return
-		}
-	}
-
-	return
+	h.authnStepper.WriteResult(w, result)
 }

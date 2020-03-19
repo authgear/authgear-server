@@ -13,6 +13,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 
@@ -35,6 +36,7 @@ func TestDispatchEvent(t *testing.T) {
 			urlprefix.NewProvider(req),
 			store,
 			authContext,
+			db.NewMockTxContext(),
 			&timeProvider,
 			authInfoStore,
 			userProfileStore,

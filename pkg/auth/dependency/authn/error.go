@@ -1,4 +1,4 @@
-package authnsession
+package authn
 
 import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -9,4 +9,10 @@ var (
 	AuthenticationSessionRequired skyerr.Kind = skyerr.Unauthorized.WithReason("AuthenticationSession")
 )
 
-var errInvalidToken = InvalidAuthenticationSession.New("invalid authentication session token")
+var ErrInvalidAuthenticationSession = InvalidAuthenticationSession.New("invalid authentication session")
+
+type oAuthRequireMergeError struct {
+	UserID string
+}
+
+func (*oAuthRequireMergeError) Error() string { return "require merging oauth user" }

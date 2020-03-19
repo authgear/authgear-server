@@ -11,15 +11,15 @@ import (
 
 type InsecureCookieConfig bool
 
-func ProvideCookieConfiguration(
+func ProvideSessionCookieConfiguration(
 	r *http.Request,
 	icc InsecureCookieConfig,
 	c *config.TenantConfiguration,
 ) CookieConfiguration {
-	return NewCookieConfiguration(r, bool(icc), *c.AppConfig.Session)
+	return NewSessionCookieConfiguration(r, bool(icc), *c.AppConfig.Session)
 }
 
-func ProvideMiddleware(cfg CookieConfiguration, r Resolver, ais authinfo.Store, tx db.TxContext) *Middleware {
+func ProvideSessionMiddleware(cfg CookieConfiguration, r Resolver, ais authinfo.Store, tx db.TxContext) *Middleware {
 	return &Middleware{
 		CookieConfiguration: cfg,
 		SessionResolver:     r,
@@ -33,8 +33,8 @@ func ProvideSessionProvider(req *http.Request, s Store, es EventStore, c *config
 }
 
 var DependencySet = wire.NewSet(
-	ProvideCookieConfiguration,
+	ProvideSessionCookieConfiguration,
 	wire.Bind(new(Resolver), new(Provider)),
-	ProvideMiddleware,
+	ProvideSessionMiddleware,
 	ProvideSessionProvider,
 )

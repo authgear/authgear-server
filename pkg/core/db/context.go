@@ -26,6 +26,7 @@ type Context interface {
 type TxContext interface {
 	SafeTxContext
 
+	UseHook(TransactionHook)
 	BeginTx() error
 	CommitTx() error
 	RollbackTx() error
@@ -66,9 +67,10 @@ func WithTx(tx TxContext, do func() error) (err error) {
 
 // TODO: handle thread safety
 type contextContainer struct {
-	pool Pool
-	db   *sqlx.DB
-	tx   *sqlx.Tx
+	pool  Pool
+	db    *sqlx.DB
+	tx    *sqlx.Tx
+	hooks []TransactionHook
 }
 
 type dbContext struct {
@@ -123,6 +125,11 @@ func (d *dbContext) EnsureTx() {
 	}
 }
 
+func (d *dbContext) UseHook(h TransactionHook) {
+	container := d.container()
+	container.hooks = append(container.hooks, h)
+}
+
 func (d *dbContext) BeginTx() error {
 	if d.tx() != nil {
 		panic("skydb: a transaction has already begun")
@@ -150,13 +157,27 @@ func (d *dbContext) CommitTx() error {
 		panic("skydb: a transaction has not begun")
 	}
 
-	err := d.tx().Commit()
+	container := d.container()
+	for _, hook := range container.hooks {
+		err := hook.WillCommitTx()
+		if err != nil {
+			if rbErr := container.tx.Rollback(); rbErr != nil {
+				err = errors.WithSecondaryError(err, rbErr)
+			}
+			return err
+		}
+	}
+
+	err := container.tx.Commit()
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to commit transaction")
 	}
-
-	container := d.container()
 	container.tx = nil
+
+	for _, hook := range container.hooks {
+		hook.DidCommitTx()
+	}
+
 	return nil
 }
 

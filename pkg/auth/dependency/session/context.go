@@ -26,13 +26,13 @@ func (ctx *Context) ToAuthnInfo(now time.Time) *authn.Info {
 		UserID:                         ctx.User.ID,
 		UserVerified:                   ctx.User.IsVerified(),
 		UserDisabled:                   ctx.User.IsDisabled(now),
-		SessionIdentityID:              ctx.Session.PrincipalID,
-		SessionIdentityType:            ctx.Session.PrincipalType,
-		SessionIdentityUpdatedAt:       ctx.Session.PrincipalUpdatedAt,
-		SessionAuthenticatorID:         ctx.Session.AuthenticatorID,
-		SessionAuthenticatorType:       ctx.Session.AuthenticatorType,
-		SessionAuthenticatorOOBChannel: ctx.Session.AuthenticatorOOBChannel,
-		SessionAuthenticatorUpdatedAt:  ctx.Session.AuthenticatorUpdatedAt,
+		SessionIdentityID:              ctx.Session.Attrs.PrincipalID,
+		SessionIdentityType:            ctx.Session.Attrs.PrincipalType,
+		SessionIdentityUpdatedAt:       ctx.Session.Attrs.PrincipalUpdatedAt,
+		SessionAuthenticatorID:         ctx.Session.Attrs.AuthenticatorID,
+		SessionAuthenticatorType:       ctx.Session.Attrs.AuthenticatorType,
+		SessionAuthenticatorOOBChannel: ctx.Session.Attrs.AuthenticatorOOBChannel,
+		SessionAuthenticatorUpdatedAt:  ctx.Session.Attrs.AuthenticatorUpdatedAt,
 	}
 }
 

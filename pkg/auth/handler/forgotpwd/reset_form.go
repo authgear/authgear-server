@@ -257,15 +257,11 @@ func (h ForgotPasswordResetFormHandler) HandleResetSuccess(rw http.ResponseWrite
 }
 
 func (h ForgotPasswordResetFormHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	_, err := handler.Transactional(h.TxContext, func() (_ interface{}, err error) {
-		err = h.Handle(w, r)
-		if err == nil {
-			err = h.HookProvider.WillCommitTx()
-		}
-		return
+	_, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
+		return nil, h.Handle(w, r)
 	})
-	if err == nil {
-		h.HookProvider.DidCommitTx()
+	if err != nil {
+		h.Logger.WithError(err).Debug("unexpected error")
 	}
 }
 
@@ -329,9 +325,12 @@ func (h ForgotPasswordResetFormHandler) resetPassword(
 	}
 
 	// password house keeper
-	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
-		AuthID: user.ID,
-	}, nil)
+	h.TaskQueue.Enqueue(async.TaskSpec{
+		Name: task.PwHousekeeperTaskName,
+		Param: task.PwHousekeeperTaskParam{
+			AuthID: user.ID,
+		},
+	})
 
 	return nil
 }

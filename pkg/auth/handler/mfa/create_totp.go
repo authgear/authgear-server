@@ -6,16 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -25,27 +22,8 @@ func AttachCreateTOTPHandler(
 ) {
 	router.NewRoute().
 		Path("/mfa/totp/new").
-		Handler(server.FactoryToHandler(&CreateTOTPHandlerFactory{
-			Dependency: authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newCreateTOTPHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type CreateTOTPHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f CreateTOTPHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &CreateTOTPHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
-}
-
-func (h *CreateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-		authz.PolicyFunc(policy.DenyInvalidSession),
-	)
 }
 
 type CreateTOTPRequest struct {
@@ -113,13 +91,17 @@ const CreateTOTPResponseSchema = `
 			@JSONSchema {CreateTOTPResponse}
 */
 type CreateTOTPHandler struct {
-	TxContext            db.TxContext            `dependency:"TxContext"`
-	Validator            *validation.Validator   `dependency:"Validator"`
-	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
-	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
-	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
-	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
-	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
+	TxContext     db.TxContext
+	Validator     *validation.Validator
+	MFAProvider   mfa.Provider
+	authnResolver authnResolver
+}
+
+func (h *CreateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.RequireClient),
+		authz.PolicyFunc(policy.DenyInvalidSession),
+	)
 }
 
 func (h *CreateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -140,21 +122,29 @@ func (h *CreateTOTPHandler) Handle(w http.ResponseWriter, r *http.Request) (resp
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		userID, _, _, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
-			MFAOption: authnsession.ResolveMFAOptionOnlyWhenNoAuthenticators,
-		})
+		session := authn.GetSession(r.Context())
+		if session == nil {
+			session, err = h.authnResolver.Resolve(
+				coreAuth.GetAccessKey(r.Context()).Client,
+				payload.AuthnSessionToken,
+				func(s authn.SessionStep) bool { return s == authn.SessionStepMFASetup },
+			)
+			if err != nil {
+				return err
+			}
+		}
+
+		a, err := h.MFAProvider.CreateTOTP(session.SessionAttrs().UserID, payload.DisplayName)
 		if err != nil {
 			return err
 		}
-		a, err := h.MFAProvider.CreateTOTP(userID, payload.DisplayName)
-		if err != nil {
-			return err
-		}
+
 		keyURI := mfa.NewKeyURI(payload.Issuer, payload.AccountName, a.Secret)
 		qrCodeImageURI, err := keyURI.QRCodeDataURI()
 		if err != nil {
 			return err
 		}
+
 		resp = CreateTOTPResponse{
 			AuthenticatorID:   a.ID,
 			AuthenticatorType: string(a.Type),

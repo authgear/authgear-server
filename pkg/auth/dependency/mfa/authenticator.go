@@ -3,7 +3,7 @@ package mfa
 import (
 	"time"
 
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
@@ -12,7 +12,7 @@ import (
 type Authenticator interface {
 	GetID() string
 	GetUserID() string
-	GetType() coreAuth.AuthenticatorType
+	GetType() authn.AuthenticatorType
 	GetActivated() bool
 	GetCreatedAt() time.Time
 	GetActivatedAt() *time.Time
@@ -21,7 +21,7 @@ type Authenticator interface {
 type TOTPAuthenticator struct {
 	ID          string
 	UserID      string
-	Type        coreAuth.AuthenticatorType
+	Type        authn.AuthenticatorType
 	Activated   bool
 	CreatedAt   time.Time
 	ActivatedAt *time.Time
@@ -37,7 +37,7 @@ func (a TOTPAuthenticator) GetUserID() string {
 	return a.UserID
 }
 
-func (a TOTPAuthenticator) GetType() coreAuth.AuthenticatorType {
+func (a TOTPAuthenticator) GetType() authn.AuthenticatorType {
 	return a.Type
 }
 
@@ -66,13 +66,13 @@ func (a TOTPAuthenticator) Mask() MaskedTOTPAuthenticator {
 }
 
 type MaskedTOTPAuthenticator struct {
-	ID          string                     `json:"id"`
-	UserID      string                     `json:"-"`
-	Type        coreAuth.AuthenticatorType `json:"type"`
-	CreatedAt   time.Time                  `json:"created_at"`
-	Activated   bool                       `json:"-"`
-	ActivatedAt *time.Time                 `json:"activated_at"`
-	DisplayName string                     `json:"display_name"`
+	ID          string                  `json:"id"`
+	UserID      string                  `json:"-"`
+	Type        authn.AuthenticatorType `json:"type"`
+	CreatedAt   time.Time               `json:"created_at"`
+	Activated   bool                    `json:"-"`
+	ActivatedAt *time.Time              `json:"activated_at"`
+	DisplayName string                  `json:"display_name"`
 }
 
 func (a MaskedTOTPAuthenticator) GetID() string {
@@ -83,7 +83,7 @@ func (a MaskedTOTPAuthenticator) GetUserID() string {
 	return a.UserID
 }
 
-func (a MaskedTOTPAuthenticator) GetType() coreAuth.AuthenticatorType {
+func (a MaskedTOTPAuthenticator) GetType() authn.AuthenticatorType {
 	return a.Type
 }
 
@@ -102,11 +102,11 @@ func (a MaskedTOTPAuthenticator) GetActivatedAt() *time.Time {
 type OOBAuthenticator struct {
 	ID          string
 	UserID      string
-	Type        coreAuth.AuthenticatorType
+	Type        authn.AuthenticatorType
 	Activated   bool
 	CreatedAt   time.Time
 	ActivatedAt *time.Time
-	Channel     coreAuth.AuthenticatorOOBChannel
+	Channel     authn.AuthenticatorOOBChannel
 	Phone       string
 	Email       string
 }
@@ -119,7 +119,7 @@ func (a OOBAuthenticator) GetUserID() string {
 	return a.UserID
 }
 
-func (a OOBAuthenticator) GetType() coreAuth.AuthenticatorType {
+func (a OOBAuthenticator) GetType() authn.AuthenticatorType {
 	return a.Type
 }
 
@@ -150,15 +150,15 @@ func (a OOBAuthenticator) Mask() MaskedOOBAuthenticator {
 }
 
 type MaskedOOBAuthenticator struct {
-	ID          string                           `json:"id"`
-	UserID      string                           `json:"-"`
-	Type        coreAuth.AuthenticatorType       `json:"type"`
-	CreatedAt   time.Time                        `json:"created_at"`
-	Activated   bool                             `json:"-"`
-	ActivatedAt *time.Time                       `json:"activated_at"`
-	Channel     coreAuth.AuthenticatorOOBChannel `json:"channel"`
-	MaskedPhone string                           `json:"masked_phone,omitempty"`
-	MaskedEmail string                           `json:"masked_email,omitempty"`
+	ID          string                        `json:"id"`
+	UserID      string                        `json:"-"`
+	Type        authn.AuthenticatorType       `json:"type"`
+	CreatedAt   time.Time                     `json:"created_at"`
+	Activated   bool                          `json:"-"`
+	ActivatedAt *time.Time                    `json:"activated_at"`
+	Channel     authn.AuthenticatorOOBChannel `json:"channel"`
+	MaskedPhone string                        `json:"masked_phone,omitempty"`
+	MaskedEmail string                        `json:"masked_email,omitempty"`
 }
 
 func (a MaskedOOBAuthenticator) GetID() string {
@@ -169,7 +169,7 @@ func (a MaskedOOBAuthenticator) GetUserID() string {
 	return a.UserID
 }
 
-func (a MaskedOOBAuthenticator) GetType() coreAuth.AuthenticatorType {
+func (a MaskedOOBAuthenticator) GetType() authn.AuthenticatorType {
 	return a.Type
 }
 
@@ -188,7 +188,7 @@ func (a MaskedOOBAuthenticator) GetActivatedAt() *time.Time {
 type RecoveryCodeAuthenticator struct {
 	ID        string
 	UserID    string
-	Type      coreAuth.AuthenticatorType
+	Type      authn.AuthenticatorType
 	Code      string
 	CreatedAt time.Time
 	Consumed  bool
@@ -197,7 +197,7 @@ type RecoveryCodeAuthenticator struct {
 type BearerTokenAuthenticator struct {
 	ID        string
 	UserID    string
-	Type      coreAuth.AuthenticatorType
+	Type      authn.AuthenticatorType
 	ParentID  string
 	Token     string
 	CreatedAt time.Time
@@ -245,9 +245,9 @@ func CanAddAuthenticator(authenticators []Authenticator, newA Authenticator, mfa
 			totpCount++
 		case OOBAuthenticator:
 			switch aa.Channel {
-			case coreAuth.AuthenticatorOOBChannelSMS:
+			case authn.AuthenticatorOOBChannelSMS:
 				oobSMSCount++
-			case coreAuth.AuthenticatorOOBChannelEmail:
+			case authn.AuthenticatorOOBChannelEmail:
 				oobEmailCount++
 			default:
 				panic("mfa: unknown OOB authenticator channel")

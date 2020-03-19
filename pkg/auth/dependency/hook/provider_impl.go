@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -25,12 +26,15 @@ type providerImpl struct {
 	BaseURL                 *url.URL
 	Store                   Store
 	AuthContext             auth.ContextGetter
+	TxContext               db.TxContext
 	TimeProvider            time.Provider
 	AuthInfoStore           authinfo.Store
 	UserProfileStore        userprofile.Store
 	Deliverer               Deliverer
 	PersistentEventPayloads []event.Payload
 	Logger                  *logrus.Entry
+
+	txHooked bool
 }
 
 func NewProvider(
@@ -38,6 +42,7 @@ func NewProvider(
 	urlprefix urlprefix.Provider,
 	store Store,
 	authContext auth.ContextGetter,
+	txContext db.TxContext,
 	timeProvider time.Provider,
 	authInfoStore authinfo.Store,
 	userProfileStore userprofile.Store,
@@ -49,6 +54,7 @@ func NewProvider(
 		BaseURL:          urlprefix.Value(),
 		Store:            store,
 		AuthContext:      authContext,
+		TxContext:        txContext,
 		TimeProvider:     timeProvider,
 		AuthInfoStore:    authInfoStore,
 		UserProfileStore: userProfileStore,
@@ -81,16 +87,20 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 		}
 
 		provider.PersistentEventPayloads = append(provider.PersistentEventPayloads, payload)
-		return
 
 	case event.NotificationPayload:
 		provider.PersistentEventPayloads = append(provider.PersistentEventPayloads, payload)
 		err = nil
-		return
 
 	default:
 		panic(fmt.Sprintf("hook: invalid event payload: %T", payload))
 	}
+
+	if !provider.txHooked {
+		provider.TxContext.UseHook(provider)
+		provider.txHooked = true
+	}
+	return
 }
 
 func (provider *providerImpl) WillCommitTx() error {

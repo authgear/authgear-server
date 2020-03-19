@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -16,25 +16,25 @@ func TestMaskAuthenticators(t *testing.T) {
 		input := []Authenticator{
 			TOTPAuthenticator{
 				ID:          "totp",
-				Type:        coreAuth.AuthenticatorTypeTOTP,
+				Type:        authn.AuthenticatorTypeTOTP,
 				CreatedAt:   date,
 				ActivatedAt: &date,
 				DisplayName: "totp",
 			},
 			OOBAuthenticator{
 				ID:          "oobsms",
-				Type:        coreAuth.AuthenticatorTypeOOB,
+				Type:        authn.AuthenticatorTypeOOB,
 				CreatedAt:   date,
 				ActivatedAt: &date,
-				Channel:     coreAuth.AuthenticatorOOBChannelSMS,
+				Channel:     authn.AuthenticatorOOBChannelSMS,
 				Phone:       "+85298765432",
 			},
 			OOBAuthenticator{
 				ID:          "oobemail",
-				Type:        coreAuth.AuthenticatorTypeOOB,
+				Type:        authn.AuthenticatorTypeOOB,
 				CreatedAt:   date,
 				ActivatedAt: &date,
-				Channel:     coreAuth.AuthenticatorOOBChannelEmail,
+				Channel:     authn.AuthenticatorOOBChannelEmail,
 				Email:       "johndoe@example.com",
 			},
 		}
@@ -42,25 +42,25 @@ func TestMaskAuthenticators(t *testing.T) {
 		expected := []Authenticator{
 			MaskedTOTPAuthenticator{
 				ID:          "totp",
-				Type:        coreAuth.AuthenticatorTypeTOTP,
+				Type:        authn.AuthenticatorTypeTOTP,
 				CreatedAt:   date,
 				ActivatedAt: &date,
 				DisplayName: "totp",
 			},
 			MaskedOOBAuthenticator{
 				ID:          "oobsms",
-				Type:        coreAuth.AuthenticatorTypeOOB,
+				Type:        authn.AuthenticatorTypeOOB,
 				CreatedAt:   date,
 				ActivatedAt: &date,
-				Channel:     coreAuth.AuthenticatorOOBChannelSMS,
+				Channel:     authn.AuthenticatorOOBChannelSMS,
 				MaskedPhone: "+8529876****",
 			},
 			MaskedOOBAuthenticator{
 				ID:          "oobemail",
-				Type:        coreAuth.AuthenticatorTypeOOB,
+				Type:        authn.AuthenticatorTypeOOB,
 				CreatedAt:   date,
 				ActivatedAt: &date,
-				Channel:     coreAuth.AuthenticatorOOBChannelEmail,
+				Channel:     authn.AuthenticatorOOBChannelEmail,
 				MaskedEmail: "joh****@example.com",
 			},
 		}
@@ -95,12 +95,12 @@ func TestCanAddAuthenticator(t *testing.T) {
 		}
 		for i := 0; i < c.Existing.OOBSMS; i++ {
 			authenticators = append(authenticators, OOBAuthenticator{
-				Channel: coreAuth.AuthenticatorOOBChannelSMS,
+				Channel: authn.AuthenticatorOOBChannelSMS,
 			})
 		}
 		for i := 0; i < c.Existing.OOBEmail; i++ {
 			authenticators = append(authenticators, OOBAuthenticator{
-				Channel: coreAuth.AuthenticatorOOBChannelEmail,
+				Channel: authn.AuthenticatorOOBChannelEmail,
 			})
 		}
 
@@ -209,7 +209,7 @@ func TestCanAddAuthenticator(t *testing.T) {
 				OOBEmail: 2,
 			},
 			New: OOBAuthenticator{
-				Channel: coreAuth.AuthenticatorOOBChannelEmail,
+				Channel: authn.AuthenticatorOOBChannelEmail,
 			},
 			Expected: true,
 		},
@@ -228,7 +228,7 @@ func TestCanAddAuthenticator(t *testing.T) {
 				OOBEmail: 0,
 			},
 			New: OOBAuthenticator{
-				Channel: coreAuth.AuthenticatorOOBChannelSMS,
+				Channel: authn.AuthenticatorOOBChannelSMS,
 			},
 			Expected: true,
 		},
@@ -247,7 +247,7 @@ func TestCanAddAuthenticator(t *testing.T) {
 				OOBEmail: 0,
 			},
 			New: OOBAuthenticator{
-				Channel: coreAuth.AuthenticatorOOBChannelSMS,
+				Channel: authn.AuthenticatorOOBChannelSMS,
 			},
 			Expected: false,
 		},

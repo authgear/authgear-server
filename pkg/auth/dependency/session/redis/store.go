@@ -41,7 +41,7 @@ func (s *Store) Create(sess *session.Session, expireAt gotime.Time) (err error) 
 
 	conn := redis.GetConn(s.ctx)
 	ttl := expireAt.Sub(s.time.NowUTC())
-	listKey := sessionListKey(s.appID, sess.UserID)
+	listKey := sessionListKey(s.appID, sess.Attrs.UserID)
 	key := sessionKey(s.appID, sess.ID)
 
 	_, err = conn.Do("HSET", listKey, key, expiry)
@@ -71,7 +71,7 @@ func (s *Store) Update(sess *session.Session, expireAt gotime.Time) (err error) 
 
 	conn := redis.GetConn(s.ctx)
 	ttl := expireAt.Sub(s.time.NowUTC())
-	listKey := sessionListKey(s.appID, sess.UserID)
+	listKey := sessionListKey(s.appID, sess.Attrs.UserID)
 	key := sessionKey(s.appID, sess.ID)
 
 	_, err = conn.Do("HSET", listKey, key, expiry)
@@ -104,7 +104,7 @@ func (s *Store) Get(id string) (sess *session.Session, err error) {
 func (s *Store) Delete(session *session.Session) (err error) {
 	conn := redis.GetConn(s.ctx)
 	key := sessionKey(s.appID, session.ID)
-	listKey := sessionListKey(s.appID, session.UserID)
+	listKey := sessionListKey(s.appID, session.Attrs.UserID)
 
 	_, err = conn.Do("DEL", key)
 	if err == nil {
@@ -128,7 +128,7 @@ func (s *Store) DeleteBatch(sessions []*session.Session) (err error) {
 	listKeys := map[string]struct{}{}
 	for _, session := range sessions {
 		sessionKeys = append(sessionKeys, sessionKey(s.appID, session.ID))
-		listKeys[sessionListKey(s.appID, session.UserID)] = struct{}{}
+		listKeys[sessionListKey(s.appID, session.Attrs.UserID)] = struct{}{}
 	}
 	if len(sessionKeys) == 0 {
 		return nil

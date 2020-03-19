@@ -114,7 +114,7 @@ func (h UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) (resp inte
 		return
 	}
 
-	err = hook.WithTx(h.HookProvider, h.TxContext, func() error {
+	err = db.WithTx(h.TxContext, func() error {
 		info := authinfo.AuthInfo{}
 		if err = h.AuthInfoStore.GetAuth(payload.UserID, &info); err != nil {
 			return err

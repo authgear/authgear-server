@@ -1,36 +1,175 @@
 package authn
 
 import (
+	"net/http"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
 
-type SignupProvider interface {
-	// CreateUserWithLoginIDs is sign up.
-	CreateUserWithLoginIDs(
-		loginIDs []loginid.LoginID,
-		plainPassword string,
-		metadata map[string]interface{},
-		onUserDuplicate model.OnUserDuplicate,
-	) (authInfo *authinfo.AuthInfo, userprofile *userprofile.UserProfile, firstPrincipal principal.Principal, tasks []async.TaskSpec, err error)
+type Provider struct {
+	OAuth                   *OAuthCoordinator
+	Authn                   *AuthenticateProcess
+	Signup                  *SignupProcess
+	AuthnSession            *SessionProvider
+	Session                 session.Provider
+	SessionCookieConfig     session.CookieConfiguration
+	BearerTokenCookieConfig mfa.BearerTokenCookieConfiguration
 }
 
-type LoginProvider interface {
-	// AuthenticateWithLoginID is sign in.
-	AuthenticateWithLoginID(loginID loginid.LoginID, plainPassword string) (authInfo *authinfo.AuthInfo, principal principal.Principal, err error)
+func (p *Provider) SignupWithLoginIDs(
+	client config.OAuthClientConfiguration,
+	loginIDs []loginid.LoginID,
+	plainPassword string,
+	metadata map[string]interface{},
+	onUserDuplicate model.OnUserDuplicate,
+) (Result, error) {
+	pr, err := p.Signup.SignupWithLoginIDs(loginIDs, plainPassword, metadata, onUserDuplicate)
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := p.AuthnSession.BeginSession(client, pr.PrincipalUserID(), pr, session.CreateReasonSignup)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.AuthnSession.StepSession(s)
 }
 
-type OAuthProvider interface {
-	// AuthenticateWithOAuth is oauth sign up/sign in.
-	AuthenticateWithOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, tasks []async.TaskSpec, err error)
+func (p *Provider) LoginWithLoginID(
+	client config.OAuthClientConfiguration,
+	loginID loginid.LoginID,
+	plainPassword string,
+) (Result, error) {
+	pr, err := p.Authn.AuthenticateWithLoginID(loginID, plainPassword)
+	if err != nil {
+		return nil, err
+	}
 
-	// LinkOAuth links oauth identity with an existing user.
-	LinkOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error)
+	s, err := p.AuthnSession.BeginSession(client, pr.PrincipalUserID(), pr, session.CreateReasonLogin)
+	if err != nil {
+		return nil, err
+	}
 
-	ExtractAuthorizationCode(code *sso.SkygearAuthorizationCode) (authInfo *authinfo.AuthInfo, userProfile *userprofile.UserProfile, prin principal.Principal, err error)
+	return p.AuthnSession.StepSession(s)
+}
+
+func (p *Provider) OAuthAuthenticate(
+	authInfo sso.AuthInfo,
+	codeChallenge string,
+	loginState sso.LoginState,
+) (*sso.SkygearAuthorizationCode, error) {
+	return p.OAuth.Authenticate(authInfo, codeChallenge, loginState)
+}
+
+func (p *Provider) OAuthLink(
+	authInfo sso.AuthInfo,
+	codeChallenge string,
+	linkState sso.LinkState,
+) (*sso.SkygearAuthorizationCode, error) {
+	return p.OAuth.Link(authInfo, codeChallenge, linkState)
+}
+
+func (p *Provider) OAuthExchangeCode(
+	client config.OAuthClientConfiguration,
+	s *session.Session,
+	code *sso.SkygearAuthorizationCode,
+) (Result, error) {
+	pr, err := p.OAuth.ExchangeCode(code)
+	if err != nil {
+		return nil, err
+	}
+
+	if code.Action == "link" {
+		if s == nil {
+			return nil, authz.ErrNotAuthenticated
+		}
+		return p.AuthnSession.MakeResult(client, s, "")
+	}
+
+	// code.Action == "login"
+	reason := session.CreateReason(code.SessionCreateReason)
+	as, err := p.AuthnSession.BeginSession(client, pr.PrincipalUserID(), pr, reason)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.AuthnSession.StepSession(as)
+}
+
+func (p *Provider) WriteResult(rw http.ResponseWriter, result Result) {
+	r, err := result.result()
+	if err == nil {
+		useCookie := r.Client == nil || r.Client.AuthAPIUseCookie()
+		resp := model.AuthResponse{
+			User:     *r.User,
+			Identity: r.Principal,
+		}
+
+		if r.Session != nil {
+			resp.SessionID = r.Session.ID
+		}
+		if r.SessionToken != "" && useCookie {
+			p.SessionCookieConfig.WriteTo(rw, r.SessionToken)
+		}
+		if r.MFABearerToken != "" {
+			if useCookie {
+				p.BearerTokenCookieConfig.WriteTo(rw, r.MFABearerToken)
+			} else {
+				resp.MFABearerToken = r.MFABearerToken
+			}
+		}
+
+		handler.WriteResponse(rw, handler.APIResponse{Result: resp})
+	} else {
+		handler.WriteResponse(rw, handler.APIResponse{Error: err})
+	}
+}
+
+func (p *Provider) Resolve(
+	client config.OAuthClientConfiguration,
+	authnSessionToken string,
+	stepPredicate func(SessionStep) bool,
+) (*Session, error) {
+	s, err := p.AuthnSession.ResolveSession(authnSessionToken)
+	if err != nil {
+		return nil, err
+	}
+
+	step, ok := s.NextStep()
+	if !ok {
+		return nil, ErrInvalidAuthenticationSession
+	}
+
+	if !stepPredicate(step) {
+		return nil, authz.ErrNotAuthenticated
+	}
+
+	return s, nil
+}
+
+func (p *Provider) StepSession(
+	client config.OAuthClientConfiguration,
+	s SessionContainer,
+	mfaBearerToken string,
+) (Result, error) {
+	switch s := s.(type) {
+	case *Session:
+		return p.AuthnSession.StepSession(s)
+	case *session.Session:
+		err := p.Session.Update(s)
+		if err != nil {
+			return nil, err
+		}
+		return p.AuthnSession.MakeResult(client, s, mfaBearerToken)
+	default:
+		panic("authn: unexpected session container type")
+	}
 }

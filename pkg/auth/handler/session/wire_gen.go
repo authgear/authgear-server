@@ -19,10 +19,10 @@ import (
 // Injectors from wire.go:
 
 func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
-	insecureCookieConfig := auth.ProvideInsecureCookieConfig(m)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context)
-	cookieConfiguration := session.ProvideCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	provider := time.NewProvider()
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
@@ -33,7 +33,7 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	middleware := session.ProvideMiddleware(cookieConfiguration, sessionProvider, authinfoStore, txContext)
+	middleware := session.ProvideSessionMiddleware(cookieConfiguration, sessionProvider, authinfoStore, txContext)
 	handler := provideResolveHandler(middleware, provider)
 	return handler
 }

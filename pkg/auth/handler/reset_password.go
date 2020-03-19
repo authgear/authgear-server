@@ -116,7 +116,7 @@ func (h ResetPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 		return nil, err
 	}
 
-	err = hook.WithTx(h.HookProvider, h.TxContext, func() error {
+	err = db.WithTx(h.TxContext, func() error {
 		authinfo := authinfo.AuthInfo{}
 		if err := h.AuthInfoStore.GetAuth(payload.UserID, &authinfo); err != nil {
 			return err
@@ -150,9 +150,12 @@ func (h ResetPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 		}
 
 		// password house keeper
-		h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
-			AuthID: authinfo.ID,
-		}, nil)
+		h.TaskQueue.Enqueue(async.TaskSpec{
+			Name: task.PwHousekeeperTaskName,
+			Param: task.PwHousekeeperTaskParam{
+				AuthID: authinfo.ID,
+			},
+		})
 
 		resp = struct{}{}
 		return nil

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	gotime "time"
 
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -40,7 +40,7 @@ func (s *MockStore) GenerateRecoveryCode(userID string) ([]RecoveryCodeAuthentic
 		recoveryCodes[i] = RecoveryCodeAuthenticator{
 			ID:        fmt.Sprintf("recovery-code-user-%s-%d", userID, count),
 			UserID:    userID,
-			Type:      coreAuth.AuthenticatorTypeRecoveryCode,
+			Type:      authn.AuthenticatorTypeRecoveryCode,
 			Code:      GenerateRandomRecoveryCode(),
 			CreatedAt: now,
 			Consumed:  false,
@@ -282,17 +282,17 @@ func (s *MockStore) DeleteInactiveOOB(userID string, exceptID string) error {
 	return nil
 }
 
-func (s *MockStore) GetOOBByChannel(userID string, channel coreAuth.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
+func (s *MockStore) GetOOBByChannel(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) (*OOBAuthenticator, error) {
 	oob := s.OOB[userID]
 	for _, a := range oob {
 		if a.Channel == channel {
 			switch channel {
-			case coreAuth.AuthenticatorOOBChannelSMS:
+			case authn.AuthenticatorOOBChannelSMS:
 				if a.Phone == phone {
 					aa := a
 					return &aa, nil
 				}
-			case coreAuth.AuthenticatorOOBChannelEmail:
+			case authn.AuthenticatorOOBChannelEmail:
 				if a.Email == email {
 					aa := a
 					return &aa, nil

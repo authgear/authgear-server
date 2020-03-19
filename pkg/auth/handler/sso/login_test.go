@@ -9,47 +9,35 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-type MockAuthnSessionProvider struct{}
+type MockLoginAuthnProvider struct{}
 
-var _ authnsession.Provider = &MockAuthnSessionProvider{}
-
-func (p *MockAuthnSessionProvider) NewFromToken(token string) (*coreAuth.AuthnSession, error) {
+func (p *MockLoginAuthnProvider) OAuthAuthenticate(
+	authInfo sso.AuthInfo,
+	codeChallenge string,
+	loginState sso.LoginState,
+) (*sso.SkygearAuthorizationCode, error) {
 	panic("not mocked")
 }
 
-func (p *MockAuthnSessionProvider) NewFromScratch(userID string, prin principal.Principal, reason coreAuth.SessionCreateReason) (*coreAuth.AuthnSession, error) {
+func (p *MockLoginAuthnProvider) OAuthExchangeCode(
+	client config.OAuthClientConfiguration,
+	s *session.Session,
+	code *sso.SkygearAuthorizationCode,
+) (authn.Result, error) {
 	panic("not mocked")
 }
 
-func (p *MockAuthnSessionProvider) GenerateResponseAndUpdateLastLoginAt(session coreAuth.AuthnSession) (interface{}, error) {
-	panic("not mocked")
-}
-
-func (p *MockAuthnSessionProvider) GenerateResponseWithSession(sess *coreAuth.Session, mfaBearerToken string) (interface{}, error) {
-	panic("not mocked")
-}
-
-func (p *MockAuthnSessionProvider) WriteResponse(w http.ResponseWriter, resp interface{}, err error) {
-	if err != nil {
-		handler.WriteResponse(w, handler.APIResponse{Error: err})
-	} else {
-		handler.WriteResponse(w, handler.APIResponse{Result: resp})
-	}
-}
-
-func (p *MockAuthnSessionProvider) Resolve(authContext coreAuth.ContextGetter, authnSessionToken string, options authnsession.ResolveOptions) (userID string, sess *coreAuth.Session, authnSession *coreAuth.AuthnSession, err error) {
+func (p *MockLoginAuthnProvider) WriteResult(http.ResponseWriter, authn.Result) {
 	panic("not mocked")
 }
 
@@ -91,9 +79,7 @@ func TestLoginHandler(t *testing.T) {
 		}
 		sh.OAuthProvider = &mockProvider
 		sh.SSOProvider = &mockProvider
-		hookProvider := hook.NewMockProvider()
-		sh.HookProvider = hookProvider
-		sh.AuthnSessionProvider = &MockAuthnSessionProvider{}
+		sh.AuthnProvider = &MockLoginAuthnProvider{}
 
 		Convey("should reject payload without access token", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{}`))

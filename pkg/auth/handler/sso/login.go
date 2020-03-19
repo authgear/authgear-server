@@ -2,25 +2,22 @@ package sso
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/async"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -31,9 +28,7 @@ func AttachLoginHandler(
 ) {
 	router.NewRoute().
 		Path("/sso/{provider}/login").
-		Handler(server.FactoryToHandler(&LoginHandlerFactory{
-			Dependency: authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newLoginHandler)).
 		Methods("OPTIONS", "POST")
 }
 
@@ -44,10 +39,7 @@ type LoginHandlerFactory struct {
 func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
-	vars := mux.Vars(request)
-	h.ProviderID = vars["provider"]
-	h.OAuthProvider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
-	return h.RequireAuthz(h, h)
+	return h
 }
 
 // LoginRequestPayload login handler request payload
@@ -79,6 +71,22 @@ const LoginRequestSchema = `
 }
 `
 
+type LoginAuthnProvider interface {
+	OAuthAuthenticate(
+		authInfo sso.AuthInfo,
+		codeChallenge string,
+		loginState sso.LoginState,
+	) (*sso.SkygearAuthorizationCode, error)
+
+	OAuthExchangeCode(
+		client config.OAuthClientConfiguration,
+		session *session.Session,
+		code *sso.SkygearAuthorizationCode,
+	) (authn.Result, error)
+
+	WriteResult(rw http.ResponseWriter, result authn.Result)
+}
+
 /*
 	@Operation POST /sso/{provider_id}/login - Login SSO provider with token
 		Login the specified SSO provider, using access token obtained from the provider.
@@ -97,18 +105,11 @@ const LoginRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type LoginHandler struct {
-	TxContext            db.TxContext              `dependency:"TxContext"`
-	Validator            *validation.Validator     `dependency:"Validator"`
-	RequireAuthz         handler.RequireAuthz      `dependency:"RequireAuthz"`
-	AuthnSessionProvider authnsession.Provider     `dependency:"AuthnSessionProvider"`
-	ProviderFactory      *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
-	AuthnOAuthProvider   authn.OAuthProvider       `dependency:"AuthnOAuthProvider"`
-	HookProvider         hook.Provider             `dependency:"HookProvider"`
-	TaskQueue            async.Queue               `dependency:"AsyncTaskQueue"`
-	URLPrefix            *url.URL                  `dependency:"URLPrefix"`
-	SSOProvider          sso.Provider              `dependency:"SSOProvider"`
-	OAuthProvider        sso.OAuthProvider
-	ProviderID           string
+	TxContext     db.TxContext
+	Validator     *validation.Validator
+	SSOProvider   sso.Provider
+	AuthnProvider LoginAuthnProvider
+	OAuthProvider sso.OAuthProvider
 }
 
 func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
@@ -125,37 +126,31 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	payload, err := h.DecodeRequest(req, resp)
 	if err != nil {
-		h.AuthnSessionProvider.WriteResponse(resp, nil, err)
+		handler.WriteResponse(resp, handler.APIResponse{Error: err})
 		return
 	}
 
-	var tasks []async.TaskSpec
-	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
-		result, tasks, err = h.Handle(payload)
-		if err == nil {
-			err = h.HookProvider.WillCommitTx()
-		}
+	var result authn.Result
+	err = db.WithTx(h.TxContext, func() (err error) {
+		result, err = h.Handle(req, payload)
 		return
 	})
-	if err == nil {
-		h.HookProvider.DidCommitTx()
-		for _, t := range tasks {
-			h.TaskQueue.Enqueue(t.Name, t.Param, nil)
-		}
+	if err != nil {
+		handler.WriteResponse(resp, handler.APIResponse{Error: err})
+		return
 	}
-	h.AuthnSessionProvider.WriteResponse(resp, result, err)
+
+	h.AuthnProvider.WriteResult(resp, result)
 }
 
-func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, tasks []async.TaskSpec, err error) {
+func (h LoginHandler) Handle(r *http.Request, payload LoginRequestPayload) (authn.Result, error) {
 	if !h.SSOProvider.IsExternalAccessTokenFlowEnabled() {
-		err = skyerr.NewNotFound("external access token flow is disabled")
-		return
+		return nil, skyerr.NewNotFound("external access token flow is disabled")
 	}
 
 	provider, ok := h.OAuthProvider.(sso.ExternalAccessTokenFlowProvider)
 	if !ok {
-		err = skyerr.NewNotFound("unknown provider")
-		return
+		return nil, skyerr.NewNotFound("unknown provider")
 	}
 
 	loginState := sso.LoginState{
@@ -165,28 +160,22 @@ func (h LoginHandler) Handle(payload LoginRequestPayload) (resp interface{}, tas
 
 	oauthAuthInfo, err := provider.ExternalAccessTokenGetAuthInfo(sso.NewBearerAccessTokenResp(payload.AccessToken))
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	code, tasks, err := h.AuthnOAuthProvider.AuthenticateWithOAuth(oauthAuthInfo, "", loginState)
+	code, err := h.AuthnProvider.OAuthAuthenticate(oauthAuthInfo, "", loginState)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	authInfo, _, principal, err := h.AuthnOAuthProvider.ExtractAuthorizationCode(code)
+	result, err := h.AuthnProvider.OAuthExchangeCode(
+		coreauth.GetAccessKey(r.Context()).Client,
+		nil, // Assume no session for SSO login
+		code,
+	)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	sess, err := h.AuthnSessionProvider.NewFromScratch(authInfo.ID, principal, coreAuth.SessionCreateReason(code.SessionCreateReason))
-	if err != nil {
-		return
-	}
-
-	resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*sess)
-	if err != nil {
-		return
-	}
-
-	return
+	return result, nil
 }

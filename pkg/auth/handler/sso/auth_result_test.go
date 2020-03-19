@@ -10,7 +10,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -49,14 +48,11 @@ func TestAuthResultHandler(t *testing.T) {
 			},
 		}
 		sh.SSOProvider = &mockProvider
-		hookProvider := hook.NewMockProvider()
-		sh.HookProvider = hookProvider
 		validator := validation.NewValidator("http://v2.skygear.io")
 		validator.AddSchemaFragments(
 			AuthResultRequestSchema,
 		)
 		sh.Validator = validator
-		sh.AuthnSessionProvider = &MockAuthnSessionProvider{}
 
 		Convey("invalid code verifier", func() {
 			codeVerifier := "code_verifier"

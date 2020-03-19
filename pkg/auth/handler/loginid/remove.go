@@ -118,7 +118,7 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	err := hook.WithTx(h.HookProvider, h.TxContext, func() error {
+	err := db.WithTx(h.TxContext, func() error {
 		authInfo, _ := h.AuthContext.AuthInfo()
 		session, _ := h.AuthContext.Session()
 		userID := authInfo.ID

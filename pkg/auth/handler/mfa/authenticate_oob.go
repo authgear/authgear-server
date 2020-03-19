@@ -6,18 +6,14 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authnsession"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -27,20 +23,8 @@ func AttachAuthenticateOOBHandler(
 ) {
 	router.NewRoute().
 		Path("/mfa/oob/authenticate").
-		Handler(server.FactoryToHandler(&AuthenticateOOBHandlerFactory{
-			Dependency: authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newAuthenticateOOBHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type AuthenticateOOBHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f AuthenticateOOBHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &AuthenticateOOBHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type AuthenticateOOBRequest struct {
@@ -80,15 +64,12 @@ const AuthenticateOOBRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type AuthenticateOOBHandler struct {
-	TxContext            db.TxContext            `dependency:"TxContext"`
-	Validator            *validation.Validator   `dependency:"Validator"`
-	AuthContext          coreAuth.ContextGetter  `dependency:"AuthContextGetter"`
-	RequireAuthz         handler.RequireAuthz    `dependency:"RequireAuthz"`
-	SessionProvider      session.Provider        `dependency:"SessionProvider"`
-	MFAProvider          mfa.Provider            `dependency:"MFAProvider"`
-	MFAConfiguration     config.MFAConfiguration `dependency:"MFAConfiguration"`
-	HookProvider         hook.Provider           `dependency:"HookProvider"`
-	AuthnSessionProvider authnsession.Provider   `dependency:"AuthnSessionProvider"`
+	TxContext     db.TxContext
+	Validator     *validation.Validator
+	TimeProvider  time.Provider
+	MFAProvider   mfa.Provider
+	authnResolver authnResolver
+	authnStepper  authnStepper
 }
 
 func (h *AuthenticateOOBHandler) ProvideAuthzPolicy() authz.Policy {
@@ -109,63 +90,55 @@ func (h *AuthenticateOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 
 	payload, err := h.DecodeRequest(r, w)
 	if err != nil {
-		h.AuthnSessionProvider.WriteResponse(w, nil, err)
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
 		return
 	}
 
-	result, err := handler.Transactional(h.TxContext, func() (result interface{}, err error) {
-		result, err = h.Handle(payload)
-		if err == nil {
-			err = h.HookProvider.WillCommitTx()
+	var result authn.Result
+	err = db.WithTx(h.TxContext, func() error {
+		session := authn.GetSession(r.Context())
+		if session == nil {
+			session, err = h.authnResolver.Resolve(
+				coreAuth.GetAccessKey(r.Context()).Client,
+				payload.AuthnSessionToken,
+				authn.SessionStep.IsMFA,
+			)
+			if err != nil {
+				return err
+			}
 		}
-		return
-	})
-	if err == nil {
-		h.HookProvider.DidCommitTx()
-	}
-	h.AuthnSessionProvider.WriteResponse(w, result, err)
-}
 
-func (h *AuthenticateOOBHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(AuthenticateOOBRequest)
+		attrs := session.SessionAttrs()
+		a, bearerToken, err := h.MFAProvider.AuthenticateOOB(
+			attrs.UserID,
+			payload.Code,
+			payload.RequestBearerToken,
+		)
+		if err != nil {
+			return err
+		}
 
-	userID, sess, authnSess, err := h.AuthnSessionProvider.Resolve(h.AuthContext, payload.AuthnSessionToken, authnsession.ResolveOptions{
-		MFAOption: authnsession.ResolveMFAOptionAlwaysAccept,
+		now := h.TimeProvider.NowUTC()
+		attrs.AuthenticatorID = a.ID
+		attrs.AuthenticatorType = a.Type
+		attrs.AuthenticatorOOBChannel = a.Channel
+		attrs.AuthenticatorUpdatedAt = &now
+
+		result, err = h.authnStepper.StepSession(
+			coreAuth.GetAccessKey(r.Context()).Client,
+			session,
+			bearerToken,
+		)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 	if err != nil {
+		handler.WriteResponse(w, handler.APIResponse{Error: err})
 		return
 	}
 
-	a, bearerToken, err := h.MFAProvider.AuthenticateOOB(userID, payload.Code, payload.RequestBearerToken)
-	if err != nil {
-		return
-	}
-	opts := coreAuth.AuthnSessionStepMFAOptions{
-		AuthenticatorID:          a.ID,
-		AuthenticatorType:        a.Type,
-		AuthenticatorOOBChannel:  a.Channel,
-		AuthenticatorBearerToken: bearerToken,
-	}
-
-	if sess != nil {
-		err = h.SessionProvider.UpdateMFA(sess, opts)
-		if err != nil {
-			return
-		}
-		resp, err = h.AuthnSessionProvider.GenerateResponseWithSession(sess, bearerToken)
-		if err != nil {
-			return
-		}
-	} else if authnSess != nil {
-		err = h.MFAProvider.StepMFA(authnSess, opts)
-		if err != nil {
-			return
-		}
-		resp, err = h.AuthnSessionProvider.GenerateResponseAndUpdateLastLoginAt(*authnSess)
-		if err != nil {
-			return
-		}
-	}
-
-	return
+	h.authnStepper.WriteResult(w, result)
 }

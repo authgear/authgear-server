@@ -129,7 +129,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 		return
 	}
 
-	err = hook.WithTx(h.HookProvider, h.TxContext, func() error {
+	err = db.WithTx(h.TxContext, func() error {
 		authinfo, _ := h.AuthContext.AuthInfo()
 		sess, _ := h.AuthContext.Session()
 
@@ -194,9 +194,12 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 		resp = model.NewAuthResponse(user, identity, tokens, "")
 
 		// password house keeper
-		h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
-			AuthID: authinfo.ID,
-		}, nil)
+		h.TaskQueue.Enqueue(async.TaskSpec{
+			Name: task.PwHousekeeperTaskName,
+			Param: task.PwHousekeeperTaskParam{
+				AuthID: authinfo.ID,
+			},
+		})
 
 		return nil
 	})

@@ -8,15 +8,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	authtest "github.com/skygeario/skygear-server/pkg/core/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
@@ -99,18 +92,12 @@ type MockAuthnOAuthProvider struct {
 	Code *sso.SkygearAuthorizationCode
 }
 
-var _ authn.OAuthProvider = &MockAuthnOAuthProvider{}
-
-func (p *MockAuthnOAuthProvider) AuthenticateWithOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, tasks []async.TaskSpec, err error) {
-	return p.Code, nil, nil
-}
-
-func (p *MockAuthnOAuthProvider) LinkOAuth(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error) {
+func (p *MockAuthnOAuthProvider) OAuthAuthenticate(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, err error) {
 	return p.Code, nil
 }
 
-func (p *MockAuthnOAuthProvider) ExtractAuthorizationCode(code *sso.SkygearAuthorizationCode) (authInfo *authinfo.AuthInfo, userProfile *userprofile.UserProfile, prin principal.Principal, err error) {
-	panic("not mocked")
+func (p *MockAuthnOAuthProvider) OAuthLink(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error) {
+	return p.Code, nil
 }
 
 func TestAuthHandler(t *testing.T) {
@@ -134,11 +121,6 @@ func TestAuthHandler(t *testing.T) {
 				Clients: []config.OAuthClientConfiguration{},
 			},
 		}
-		authContext := authtest.NewMockContext().
-			UseUser("faseng.cat.id", "faseng.cat.principal.id").
-			MarkVerified()
-		sh.AuthContext = authContext
-		sh.AuthContextSetter = authContext
 		oauthConfig := &coreconfig.OAuthConfiguration{
 			StateJWTSecret: stateJWTSecret,
 		}
@@ -166,10 +148,8 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
-		hookProvider := hook.NewMockProvider()
-		sh.HookProvider = hookProvider
 		authnOAuthProvider := &MockAuthnOAuthProvider{}
-		sh.AuthnOAuthProvider = authnOAuthProvider
+		sh.AuthnProvider = authnOAuthProvider
 
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)

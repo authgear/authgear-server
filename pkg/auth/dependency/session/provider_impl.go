@@ -10,7 +10,6 @@ import (
 	"strings"
 	gotime "time"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
@@ -56,25 +55,27 @@ func NewProvider(
 
 var _ Provider = &ProviderImpl{}
 
-func (p *ProviderImpl) MakeSession(authnSess *auth.AuthnSession) (*Session, string) {
+func (p *ProviderImpl) MakeSession(attrs *Attrs) (*Session, string) {
 	now := p.time.NowUTC()
 	accessEvent := newAccessEvent(now, p.req)
 	// NOTE(louis): remember to update the mock provider
 	// if session has new fields.
 	session := &Session{
-		ID:                      uuid.New(),
-		UserID:                  authnSess.UserID,
-		PrincipalID:             authnSess.PrincipalID,
-		PrincipalType:           authn.PrincipalType(authnSess.PrincipalType),
-		PrincipalUpdatedAt:      authnSess.PrincipalUpdatedAt,
-		AuthenticatorID:         authnSess.AuthenticatorID,
-		AuthenticatorType:       authn.AuthenticatorType(authnSess.AuthenticatorType),
-		AuthenticatorOOBChannel: authn.AuthenticatorOOBChannel(authnSess.AuthenticatorOOBChannel),
-		AuthenticatorUpdatedAt:  authnSess.AuthenticatorUpdatedAt,
-		InitialAccess:           accessEvent,
-		LastAccess:              accessEvent,
-		CreatedAt:               now,
-		AccessedAt:              now,
+		ID: uuid.New(),
+		Attrs: Attrs{
+			UserID:                  attrs.UserID,
+			PrincipalID:             attrs.PrincipalID,
+			PrincipalType:           authn.PrincipalType(attrs.PrincipalType),
+			PrincipalUpdatedAt:      attrs.PrincipalUpdatedAt,
+			AuthenticatorID:         attrs.AuthenticatorID,
+			AuthenticatorType:       authn.AuthenticatorType(attrs.AuthenticatorType),
+			AuthenticatorOOBChannel: authn.AuthenticatorOOBChannel(attrs.AuthenticatorOOBChannel),
+			AuthenticatorUpdatedAt:  attrs.AuthenticatorUpdatedAt,
+		},
+		InitialAccess: accessEvent,
+		LastAccess:    accessEvent,
+		CreatedAt:     now,
+		AccessedAt:    now,
 	}
 	token := p.generateToken(session)
 
