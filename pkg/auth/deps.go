@@ -13,10 +13,15 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	mfapq "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
+	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
+	oauthpq "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
+	oauthredis "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	passwordhistorypq "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	oauthprincipal "github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
+	passwordprincipal "github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	sessionredis "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -100,7 +105,10 @@ func ProvideAuthSQLBuilder(f db.SQLBuilderFactory) db.SQLBuilder {
 	return f("auth")
 }
 
-func ProvidePrincipalProviders(oauth oauth.Provider, password password.Provider) []principal.Provider {
+func ProvidePrincipalProviders(
+	oauth oauthprincipal.Provider,
+	password passwordprincipal.Provider,
+) []principal.Provider {
 	return []principal.Provider{oauth, password}
 }
 
@@ -125,6 +133,7 @@ var DependencySet = wire.NewSet(
 	ProvideTaskExecutor,
 	ProvideTemplateEngine,
 	ProvideWebAppRenderProvider,
+	endpointsProviderSet,
 
 	ProvideLoggingRequestID,
 	ProvideAuthSQLBuilder,
@@ -149,11 +158,16 @@ var DependencySet = wire.NewSet(
 	loginid.DependencySet,
 	passwordhistorypq.DependencySet,
 	principal.DependencySet,
-	oauth.DependencySet,
-	password.DependencySet,
+	oauthprincipal.DependencySet,
+	passwordprincipal.DependencySet,
 	sso.DependencySet,
 	urlprefix.DependencySet,
 	mfa.DependencySet,
 	mfapq.DependencySet,
 	webapp.DependencySet,
+	oauthhandler.DependencySet,
+	oauth.DependencySet,
+	oauthpq.DependencySet,
+	oauthredis.DependencySet,
+	oidc.DependencySet,
 )
