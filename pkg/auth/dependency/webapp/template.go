@@ -18,6 +18,7 @@ const defineHead = `
 <title>{{ .client_name }}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="{{ .x_static_asset_url_prefix }}/css/main.css">
+<script src="{{ .x_static_asset_url_prefix}}/js/main.js"></script>
 {{ if .x_css }}
 <style>
 {{ .x_css }}
@@ -210,6 +211,8 @@ var TemplateAuthUISignInPasswordHTML = template.Spec{
 <input type="hidden" name="x_login_id" value="{{ .x_login_id }}">
 
 <input id="password" class="input text-input" type="password" name="x_password" placeholder="Password" value="{{ .x_password }}">
+
+<button class="btn secondary-btn toggle-password-visibility"></button>
 
 <a class="anchor" href="">Forgot Password?</a>
 

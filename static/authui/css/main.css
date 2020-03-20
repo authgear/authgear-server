@@ -78,7 +78,12 @@ html {
   background-color: #166bef;
 }
 
-.secondary-btn {}
+.secondary-btn {
+  height: 32px;
+  border-radius: 2px;
+  color: #323130;
+  border: 1px solid #8A8886;
+}
 
 .link, .anchor {
   text-decoration: none;
@@ -260,8 +265,26 @@ html {
 
 .enter-password-form #password {
   display: block;
+  margin: 0 0 20px 0;
+}
+
+.enter-password-form .toggle-password-visibility {
+  margin: 0 0 20px 0;
 }
 
 .enter-password-form [type="submit"] {
   align-self: flex-end;
+}
+
+.btn.toggle-password-visibility {
+  max-width: 170px;
+  padding: 0 0 0 12px;
+}
+
+.btn.toggle-password-visibility.show-password {
+  background: url("../image/ic_show_password.png") 12px center / 20px auto no-repeat;
+}
+
+.btn.toggle-password-visibility.hide-password {
+  background: url("../image/ic_hide_password.png") 12px center / 20px auto no-repeat;
 }
