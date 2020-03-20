@@ -97,8 +97,7 @@ func (p *AuthenticateProviderImpl) SubmitPassword(w http.ResponseWriter, r *http
 			t := TemplateItemTypeAuthUISignInPasswordHTML
 			p.RenderProvider.WritePage(w, r, t, err)
 		} else {
-			// TODO(webapp): Respect redirect_uri
-			http.Redirect(w, r, "/settings", http.StatusFound)
+			RedirectToRedirectURI(w, r)
 		}
 	}
 

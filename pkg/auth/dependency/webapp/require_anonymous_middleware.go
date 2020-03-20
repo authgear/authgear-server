@@ -12,8 +12,7 @@ func (m RequiredAnonymousMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authInfo := auth.GetAuthInfo(r.Context())
 		if authInfo != nil {
-			// TODO(webapp): Respect redirect_uri
-			http.Redirect(w, r, "/settings", http.StatusFound)
+			RedirectToRedirectURI(w, r)
 		} else {
 			next.ServeHTTP(w, r)
 		}
