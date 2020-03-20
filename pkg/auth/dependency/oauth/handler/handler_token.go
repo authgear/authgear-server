@@ -17,6 +17,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
+// TODO(oauth): write tests
+
 type IDTokenIssuer interface {
 	IssueIDToken(client config.OAuthClientConfiguration, userID string, nonce string) (token string, err error)
 }
