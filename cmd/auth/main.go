@@ -247,6 +247,7 @@ func main() {
 	}
 
 	oauthhandler.AttachMetadataHandler(oauthRouter, authDependency)
+	oauthhandler.AttachJWKSHandler(oauthRouter, authDependency)
 	oauthhandler.AttachAuthorizeHandler(oauthRouter, authDependency)
 	oauthhandler.AttachTokenHandler(oauthRouter, authDependency)
 

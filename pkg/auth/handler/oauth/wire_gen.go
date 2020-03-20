@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -90,8 +91,18 @@ func newMetadataHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		TokenEndpoint:        endpointsProvider,
 		AuthenticateEndpoint: endpointsProvider,
 	}
-	oidcMetadataProvider := &oidc.MetadataProvider{}
+	oidcMetadataProvider := &oidc.MetadataProvider{
+		URLPrefix:    provider,
+		JWKSEndpoint: endpointsProvider,
+	}
 	httpHandler := provideMetadataHandler(metadataProvider, oidcMetadataProvider)
+	return httpHandler
+}
+
+func newJWKSHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	httpHandler := provideJWKSHandler(tenantConfiguration)
 	return httpHandler
 }
 
@@ -118,6 +129,13 @@ func provideTokenHandler(lf logging.Factory, tx db.TxContext, th oauthTokenHandl
 func provideMetadataHandler(oauth2 *oauth.MetadataProvider, oidc2 *oidc.MetadataProvider) http.Handler {
 	h := &MetadataHandler{
 		metaProviders: []oauthMetadataProvider{oauth2, oidc2},
+	}
+	return h
+}
+
+func provideJWKSHandler(config2 *config.TenantConfiguration) http.Handler {
+	h := &JWKSHandler{
+		config: *config2.AppConfig.OIDC,
 	}
 	return h
 }

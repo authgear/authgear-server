@@ -35,10 +35,13 @@ func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfiguration, us
 		Nonce: nonce,
 	}
 
-	key, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(ti.OIDCConfig.Keys[0].PrivateKey))
+	key := ti.OIDCConfig.Keys[0]
+	privKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(key.PrivateKey))
 	if err != nil {
 		return "", err
 	}
+
 	jwt := jwt.NewWithClaims(jwt.SigningMethodRS256, token)
-	return jwt.SignedString(key)
+	jwt.Header["kid"] = key.KID
+	return jwt.SignedString(privKey)
 }

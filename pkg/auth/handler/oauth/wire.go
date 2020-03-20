@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
@@ -63,6 +64,21 @@ func newMetadataHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	wire.Build(
 		auth.DependencySet,
 		provideMetadataHandler,
+	)
+	return nil
+}
+
+func provideJWKSHandler(config *config.TenantConfiguration) http.Handler {
+	h := &JWKSHandler{
+		config: *config.AppConfig.OIDC,
+	}
+	return h
+}
+
+func newJWKSHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	wire.Build(
+		auth.DependencySet,
+		provideJWKSHandler,
 	)
 	return nil
 }

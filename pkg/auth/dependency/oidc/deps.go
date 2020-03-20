@@ -22,6 +22,6 @@ func ProvideIDTokenIssuer(
 
 var DependencySet = wire.NewSet(
 	wire.Value(handler.ScopesValidator(ValidateScopes)),
-	wire.Struct(new(MetadataProvider)),
+	wire.Struct(new(MetadataProvider), "*"),
 	ProvideIDTokenIssuer,
 )
