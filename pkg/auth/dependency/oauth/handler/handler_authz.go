@@ -15,6 +15,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
+const CodeGrantValidDuration = 5 * gotime.Minute
+
 type AuthorizationHandler struct {
 	Context context.Context
 	AppID   string
@@ -96,7 +98,7 @@ func (h *AuthorizationHandler) doHandle(
 		SessionID:       session.SessionID(),
 
 		CreatedAt: h.Time.NowUTC(),
-		ExpireAt:  h.Time.NowUTC().Add(1 * gotime.Minute),
+		ExpireAt:  h.Time.NowUTC().Add(CodeGrantValidDuration),
 		Scopes:    scopes,
 		CodeHash:  codeHash,
 
