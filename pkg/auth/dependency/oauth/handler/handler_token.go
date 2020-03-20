@@ -59,8 +59,6 @@ func (h *TokenHandler) Handle(r protocol.TokenRequest) TokenResult {
 	return result
 }
 
-var errInvalidAuthzCode = protocol.NewError("invalid_grant", "invalid authorization code")
-
 func (h *TokenHandler) doHandle(
 	client config.OAuthClientConfiguration,
 	r protocol.TokenRequest,
@@ -69,51 +67,14 @@ func (h *TokenHandler) doHandle(
 		return nil, err
 	}
 
-	codeHash := hashToken(r.Code())
-	codeGrant, err := h.CodeGrants.GetCodeGrant(codeHash)
-	if errors.Is(err, oauth.ErrGrantNotFound) {
-		return nil, errInvalidAuthzCode
-	} else if err != nil {
-		return nil, err
+	switch r.GrantType() {
+	case "authorization_code":
+		return h.handleAuthorizationCode(client, r)
+	case "refresh_token":
+		return h.handleRefreshToken(client, r)
+	default:
+		panic("oauth: unexpected grant type")
 	}
-
-	if h.Time.NowUTC().After(codeGrant.ExpireAt) {
-		return nil, errInvalidAuthzCode
-	}
-
-	if codeGrant.RedirectURI != r.RedirectURI() {
-		return nil, protocol.NewError("invalid_request", "invalid redirect URI")
-	}
-
-	if codeGrant.PKCEChallenge != "" && !verifyPKCE(codeGrant.PKCEChallenge, r.CodeVerifier()) {
-		return nil, errInvalidAuthzCode
-	}
-
-	authz, err := h.Authorizations.GetByID(codeGrant.AuthorizationID)
-	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
-		return nil, errInvalidAuthzCode
-	} else if err != nil {
-		return nil, err
-	}
-
-	sess, err := h.Sessions.Get(codeGrant.SessionID)
-	if errors.Is(err, session.ErrSessionNotFound) {
-		return nil, errInvalidAuthzCode
-	} else if err != nil {
-		return nil, err
-	}
-
-	resp, err := h.issueTokens(client, codeGrant, authz, sess)
-	if err != nil {
-		return nil, err
-	}
-
-	err = h.CodeGrants.DeleteCodeGrant(codeGrant)
-	if err != nil {
-		h.Logger.WithError(err).Error("failed to invalidate code grant")
-	}
-
-	return tokenResultOK{Response: resp}, nil
 }
 
 func (h *TokenHandler) resolveClient(r protocol.TokenRequest) (config.OAuthClientConfiguration, protocol.ErrorResponse) {
@@ -150,20 +111,118 @@ func (h *TokenHandler) resolveClient(r protocol.TokenRequest) (config.OAuthClien
 }
 
 func (h *TokenHandler) validateRequest(r protocol.TokenRequest) error {
-	if r.GrantType() != "authorization_code" {
-		return protocol.NewError("unsupported_grant_type", "only 'authorization_code' grant type is supported")
-	}
-	if r.Code() == "" {
-		return protocol.NewError("invalid_request", "code is required")
-	}
-	if r.CodeVerifier() == "" {
-		return protocol.NewError("invalid_request", "PKCE code verifier is required")
+	switch r.GrantType() {
+	case "authorization_code":
+		if r.Code() == "" {
+			return protocol.NewError("invalid_request", "code is required")
+		}
+		if r.CodeVerifier() == "" {
+			return protocol.NewError("invalid_request", "PKCE code verifier is required")
+		}
+	case "refresh_token":
+		if r.RefreshToken() == "" {
+			return protocol.NewError("invalid_request", "refresh token is required")
+		}
+	default:
+		return protocol.NewError("unsupported_grant_type",
+			"only 'authorization_code' and 'refresh_token' grant types are supported")
 	}
 
 	return nil
 }
 
-func (h *TokenHandler) issueTokens(
+var errInvalidAuthzCode = protocol.NewError("invalid_grant", "invalid authorization code")
+
+func (h *TokenHandler) handleAuthorizationCode(
+	client config.OAuthClientConfiguration,
+	r protocol.TokenRequest,
+) (TokenResult, error) {
+	codeHash := hashToken(r.Code())
+	codeGrant, err := h.CodeGrants.GetCodeGrant(codeHash)
+	if errors.Is(err, oauth.ErrGrantNotFound) {
+		return nil, errInvalidAuthzCode
+	} else if err != nil {
+		return nil, err
+	}
+
+	if h.Time.NowUTC().After(codeGrant.ExpireAt) {
+		return nil, errInvalidAuthzCode
+	}
+
+	if codeGrant.RedirectURI != r.RedirectURI() {
+		return nil, protocol.NewError("invalid_request", "invalid redirect URI")
+	}
+
+	if codeGrant.PKCEChallenge != "" && !verifyPKCE(codeGrant.PKCEChallenge, r.CodeVerifier()) {
+		return nil, errInvalidAuthzCode
+	}
+
+	authz, err := h.Authorizations.GetByID(codeGrant.AuthorizationID)
+	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
+		return nil, errInvalidAuthzCode
+	} else if err != nil {
+		return nil, err
+	}
+
+	sess, err := h.Sessions.Get(codeGrant.SessionID)
+	if errors.Is(err, session.ErrSessionNotFound) {
+		return nil, errInvalidAuthzCode
+	} else if err != nil {
+		return nil, err
+	}
+
+	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, sess)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.CodeGrants.DeleteCodeGrant(codeGrant)
+	if err != nil {
+		h.Logger.WithError(err).Error("failed to invalidate code grant")
+	}
+
+	return tokenResultOK{Response: resp}, nil
+}
+
+var errInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh token")
+
+func (h *TokenHandler) handleRefreshToken(
+	client config.OAuthClientConfiguration,
+	r protocol.TokenRequest,
+) (TokenResult, error) {
+	token, grantID, err := oauth.DecodeRefreshToken(r.RefreshToken())
+	if err != nil {
+		return nil, errInvalidRefreshToken
+	}
+
+	offlineGrant, err := h.OfflineGrants.GetOfflineGrant(grantID)
+	if errors.Is(err, oauth.ErrGrantNotFound) {
+		return nil, errInvalidRefreshToken
+	} else if err != nil {
+		return nil, err
+	}
+
+	tokenHash := hashToken(token)
+	if subtle.ConstantTimeCompare([]byte(tokenHash), []byte(offlineGrant.TokenHash)) != 1 {
+		return nil, errInvalidRefreshToken
+	}
+
+	authz, err := h.Authorizations.GetByID(offlineGrant.AuthorizationID)
+	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
+		return nil, errInvalidRefreshToken
+	} else if err != nil {
+		return nil, err
+	}
+
+	resp, err := h.issueTokensForRefreshToken(client, offlineGrant, authz)
+	if err != nil {
+		return nil, err
+	}
+
+	return tokenResultOK{Response: resp}, nil
+}
+
+func (h *TokenHandler) issueTokensForAuthorizationCode(
 	client config.OAuthClientConfiguration,
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,
@@ -207,7 +266,43 @@ func (h *TokenHandler) issueTokens(
 		sessionKind = oauth.GrantSessionKindSession
 	}
 
-	err := h.issueAccessGrant(client, code, authz.ID, sessionID, sessionKind, resp)
+	err := h.issueAccessGrant(client, code.AppID, code.Scopes,
+		authz.ID, sessionID, sessionKind, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (h *TokenHandler) issueTokensForRefreshToken(
+	client config.OAuthClientConfiguration,
+	offlineGrant *oauth.OfflineGrant,
+	authz *oauth.Authorization,
+) (protocol.TokenResponse, error) {
+	issueIDToken := false
+	for _, scope := range offlineGrant.Scopes {
+		if scope == "openid" {
+			issueIDToken = true
+			break
+		}
+	}
+
+	resp := protocol.TokenResponse{}
+
+	if issueIDToken {
+		if h.IDTokenIssuer == nil {
+			return nil, errors.New("id token issuer is not provided")
+		}
+		idToken, err := h.IDTokenIssuer.IssueIDToken(client, authz.UserID, "")
+		if err != nil {
+			return nil, err
+		}
+		resp.IDToken(idToken)
+	}
+
+	err := h.issueAccessGrant(client, offlineGrant.AppID, offlineGrant.Scopes,
+		authz.ID, offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +325,7 @@ func (h *TokenHandler) issueOfflineGrant(
 		AuthorizationID: authzID,
 
 		CreatedAt: now,
-		ExpireAt:  now,
+		ExpireAt:  now.Add(gotime.Duration(client.RefreshTokenLifetime()) * gotime.Second),
 		Scopes:    code.Scopes,
 		TokenHash: hashToken(token),
 
@@ -250,7 +345,8 @@ func (h *TokenHandler) issueOfflineGrant(
 
 func (h *TokenHandler) issueAccessGrant(
 	client config.OAuthClientConfiguration,
-	code *oauth.CodeGrant,
+	appID string,
+	scopes []string,
 	authzID string,
 	sessionID string,
 	sessionKind oauth.GrantSessionKind,
@@ -260,13 +356,13 @@ func (h *TokenHandler) issueAccessGrant(
 	now := h.Time.NowUTC()
 
 	accessGrant := &oauth.AccessGrant{
-		AppID:           code.AppID,
+		AppID:           appID,
 		AuthorizationID: authzID,
 		SessionID:       sessionID,
 		SessionKind:     sessionKind,
 		CreatedAt:       now,
 		ExpireAt:        now.Add(gotime.Duration(client.AccessTokenLifetime()) * gotime.Second),
-		Scopes:          code.Scopes,
+		Scopes:          scopes,
 		TokenHash:       hashToken(token),
 	}
 	err := h.AccessGrants.CreateAccessGrant(accessGrant)
