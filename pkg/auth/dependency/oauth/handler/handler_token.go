@@ -6,6 +6,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
+	gotime "time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
@@ -13,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type TokenHandler struct {
@@ -96,9 +98,14 @@ func (h *TokenHandler) doHandle(
 		return nil, err
 	}
 
-	resp, err := h.issueTokens(codeGrant, authz, sess)
+	resp, err := h.issueTokens(client, codeGrant, authz, sess)
 	if err != nil {
 		return nil, err
+	}
+
+	err = h.CodeGrants.DeleteCodeGrant(codeGrant)
+	if err != nil {
+		h.Logger.WithError(err).Error("failed to invalidate code grant")
 	}
 
 	return tokenResultOK{Response: resp}, nil
@@ -152,12 +159,105 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest) error {
 }
 
 func (h *TokenHandler) issueTokens(
+	client config.OAuthClientConfiguration,
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,
 	session *session.IDPSession,
 ) (protocol.TokenResponse, error) {
-	// TODO(oauth): create grants and issue tokens
-	return nil, nil
+	issueRefreshToken := false
+	for _, scope := range code.Scopes {
+		if scope == "offline_access" {
+			issueRefreshToken = true
+			break
+		}
+	}
+
+	resp := protocol.TokenResponse{}
+	var sessionID string
+	var sessionKind oauth.GrantSessionKind
+	if issueRefreshToken {
+		offlineGrant, err := h.issueOfflineGrant(client, code, authz.ID, session, resp)
+		if err != nil {
+			return nil, err
+		}
+		sessionID = offlineGrant.ID
+		sessionKind = oauth.GrantSessionKindOffline
+	} else {
+		sessionID = session.ID
+		sessionKind = oauth.GrantSessionKindSession
+	}
+
+	err := h.issueAccessGrant(client, code, authz.ID, sessionID, sessionKind, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (h *TokenHandler) issueOfflineGrant(
+	client config.OAuthClientConfiguration,
+	code *oauth.CodeGrant,
+	authzID string,
+	session *session.IDPSession,
+	resp protocol.TokenResponse,
+) (*oauth.OfflineGrant, error) {
+	token := h.GenerateToken()
+	now := h.Time.NowUTC()
+	offlineGrant := &oauth.OfflineGrant{
+		AppID:           code.AppID,
+		ID:              uuid.New(),
+		AuthorizationID: authzID,
+
+		CreatedAt: now,
+		ExpireAt:  now,
+		Scopes:    code.Scopes,
+		TokenHash: hashToken(token),
+
+		AccessedAt:    now,
+		Attrs:         session.Attrs,
+		InitialAccess: session.LastAccess,
+		LastAccess:    session.LastAccess,
+	}
+	err := h.OfflineGrants.CreateOfflineGrant(offlineGrant)
+	if err != nil {
+		return nil, err
+	}
+
+	resp.RefreshToken(oauth.EncodeRefreshToken(token, offlineGrant.ID))
+	return offlineGrant, nil
+}
+
+func (h *TokenHandler) issueAccessGrant(
+	client config.OAuthClientConfiguration,
+	code *oauth.CodeGrant,
+	authzID string,
+	sessionID string,
+	sessionKind oauth.GrantSessionKind,
+	resp protocol.TokenResponse,
+) error {
+	token := h.GenerateToken()
+	now := h.Time.NowUTC()
+
+	accessGrant := &oauth.AccessGrant{
+		AppID:           code.AppID,
+		AuthorizationID: authzID,
+		SessionID:       sessionID,
+		SessionKind:     sessionKind,
+		CreatedAt:       now,
+		ExpireAt:        now.Add(gotime.Duration(client.AccessTokenLifetime()) * gotime.Second),
+		Scopes:          code.Scopes,
+		TokenHash:       hashToken(token),
+	}
+	err := h.AccessGrants.CreateAccessGrant(accessGrant)
+	if err != nil {
+		return err
+	}
+
+	resp.TokenType("Bearer")
+	resp.AccessToken(oauth.EncodeAccessToken(token))
+	resp.ExpiresIn(client.AccessTokenLifetime())
+	return nil
 }
 
 func verifyPKCE(challenge, verifier string) bool {
