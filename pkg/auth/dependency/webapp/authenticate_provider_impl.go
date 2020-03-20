@@ -25,6 +25,8 @@ type AuthnProvider interface {
 		plainPassword string,
 	) (authn.Result, error)
 
+	ValidateSignUpLoginID(loginid loginid.LoginID) error
+
 	WriteCookie(rw http.ResponseWriter, result *authn.CompletionResult)
 }
 
@@ -48,6 +50,8 @@ func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		writeResponse, err = p.ChooseIdentityProvider(w, r)
 	case "sign_up":
 		writeResponse, err = p.SignUp(w, r)
+	case "sign_up_submit_login_id":
+		writeResponse, err = p.SignUpSubmitLoginID(w, r)
 	default:
 		writeResponse, err = p.Default(w, r)
 	}
@@ -70,6 +74,36 @@ func (p *AuthenticateProviderImpl) SignUp(w http.ResponseWriter, r *http.Request
 	return
 }
 
+func (p *AuthenticateProviderImpl) SignUpSubmitLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	writeResponse = func(err error) {
+		t := TemplateItemTypeAuthUISignUpHTML
+		if err == nil {
+			t = TemplateItemTypeAuthUISignUpPasswordHTML
+		}
+		p.RenderProvider.WritePage(w, r, t, err)
+	}
+
+	err = p.ValidateProvider.Validate("#WebAppSignUpLoginIDRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	err = p.SetLoginID(r)
+	if err != nil {
+		return
+	}
+
+	err = p.AuthnProvider.ValidateSignUpLoginID(loginid.LoginID{
+		Key:   r.Form.Get("x_login_id_key"),
+		Value: r.Form.Get("x_login_id"),
+	})
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 func (p *AuthenticateProviderImpl) SubmitLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
 		t := TemplateItemTypeAuthUISignInHTML
@@ -84,6 +118,15 @@ func (p *AuthenticateProviderImpl) SubmitLoginID(w http.ResponseWriter, r *http.
 		return
 	}
 
+	err = p.SetLoginID(r)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 	if r.Form.Get("x_login_id_input_type") == "phone" {
 		e164, e := phone.Parse(r.Form.Get("x_national_number"), r.Form.Get("x_calling_code"))
 		if e != nil {

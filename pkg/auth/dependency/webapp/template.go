@@ -7,9 +7,11 @@ import (
 
 const (
 	TemplateItemTypeAuthUISignInHTML config.TemplateItemType = "auth_ui_sign_in.html"
-	// nolint
+	// nolint: gosec
 	TemplateItemTypeAuthUISignInPasswordHTML config.TemplateItemType = "auth_ui_sign_in_password.html"
 	TemplateItemTypeAuthUISignUpHTML         config.TemplateItemType = "auth_ui_sign_up.html"
+	// nolint: gosec
+	TemplateItemTypeAuthUISignUpPasswordHTML config.TemplateItemType = "auth_ui_sign_up_password.html"
 	TemplateItemTypeAuthUISettingsHTML       config.TemplateItemType = "auth_ui_settings.html"
 )
 
@@ -53,6 +55,8 @@ const defineError = `
 		<li class="error-txt">Phone number is required</li>
 		{{ else if and (eq .kind "StringFormat") (eq .pointer "/x_national_number" ) }}
 		<li class="error-txt">Phone number must contain digits only</li>
+		{{ else if and (eq .kind "StringFormat") (eq .pointer "/login_ids/0/value") }}
+		<li class="error-txt">Invalid email address</li>
 		{{ else }}
 		<li class="error-txt">{{ .message }}</li>
 		{{ end }}
@@ -298,6 +302,28 @@ var TemplateAuthUISignUpHTML = template.Spec{
 		</div>
 		{{ template "SKYGEAR_LOGO" . }}
 	</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUISignUpPasswordHTML = template.Spec{
+	Type:    TemplateItemTypeAuthUISignUpPasswordHTML,
+	IsHTML:  true,
+	Defines: defines,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "HEAD" . }}
+<body class="page">
+<div class="content">
+
+{{ template "LOGO" . }}
+
+TODO(webapp): sign in password page
+
+{{ template "SKYGEAR_LOGO" . }}
+
+</div>
 </body>
 </html>
 `,

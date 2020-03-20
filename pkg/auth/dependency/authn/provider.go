@@ -45,6 +45,10 @@ func (p *Provider) SignupWithLoginIDs(
 	return p.AuthnSession.StepSession(s)
 }
 
+func (p *Provider) ValidateSignUpLoginID(loginID loginid.LoginID) error {
+	return p.Signup.ValidateSignUpLoginID(loginID)
+}
+
 func (p *Provider) LoginWithLoginID(
 	client config.OAuthClientConfiguration,
 	loginID loginid.LoginID,
