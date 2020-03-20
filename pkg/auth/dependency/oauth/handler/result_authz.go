@@ -53,16 +53,19 @@ func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.
 		a.RedirectURI.RawQuery = query.Encode()
 		http.Redirect(rw, r, a.RedirectURI.String(), http.StatusFound)
 	} else {
-		rw.WriteHeader(http.StatusBadRequest)
-		rw.Write([]byte("Invalid OAuth authorization request:\n"))
+		err := "Invalid OAuth authorization request:\n"
 		keys := make([]string, 0, len(a.Response))
 		for k := range a.Response {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
-		for _, k := range keys {
-			rw.Write([]byte(fmt.Sprintf("%s: %s\n", k, a.Response[k])))
+		for i, k := range keys {
+			if i != 0 {
+				err += "\n"
+			}
+			err += fmt.Sprintf("%s: %s", k, a.Response[k])
 		}
+		http.Error(rw, err, http.StatusBadRequest)
 	}
 }
 
