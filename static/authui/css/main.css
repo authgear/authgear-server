@@ -153,7 +153,7 @@ button.anchor {
   }
   .content {
     margin: 52px 0 0 0;
-    min-width: 416px;
+    width: 416px;
     border-radius: 2px;
     box-shadow: 0 0.3px 0.9px 0 rgba(0, 0, 0, 0.11), 0 1.6px 3.6px 0 rgba(0, 0, 0, 0.13);
   }
@@ -257,6 +257,13 @@ button.anchor {
   font-weight: 600;
   padding: 8px 0;
   margin: 0 0 30px 0;
+}
+
+.enter-password-form .description {
+  color: #333333;
+  font-size: 12px;
+  padding: 8px 0;
+  margin: 0;
 }
 
 .enter-password-form .login-id {

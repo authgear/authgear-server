@@ -52,6 +52,7 @@ func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		writeResponse, err = p.SignUp(w, r)
 	case "sign_up_submit_login_id":
 		writeResponse, err = p.SignUpSubmitLoginID(w, r)
+	// TODO(webapp): sign_up_submit_password
 	default:
 		writeResponse, err = p.Default(w, r)
 	}

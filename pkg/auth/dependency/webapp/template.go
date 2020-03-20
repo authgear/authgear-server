@@ -319,8 +319,44 @@ var TemplateAuthUISignUpPasswordHTML = template.Spec{
 
 {{ template "LOGO" . }}
 
-TODO(webapp): sign in password page
+<form class="enter-password-form" method="post">
 
+<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
+<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
+<input type="hidden" name="x_calling_code" value="{{ .x_calling_code }}">
+<input type="hidden" name="x_national_number" value="{{ .x_national_number }}">
+<input type="hidden" name="x_login_id" value="{{ .x_login_id }}">
+
+<div class="nav-bar">
+	<button class="btn back-btn" title="Back"></button>
+	<div class="login-id primary-txt">
+	{{ if .x_calling_code }}
+		+{{ .x_calling_code}} {{ .x_national_number }}
+	{{ else }}
+		{{ .x_login_id }}
+	{{ end }}
+	</div>
+</div>
+
+<div class="title primary-txt">Create password</div>
+
+{{ template "ERROR" . }}
+
+<input id="password" class="input text-input" type="password" name="x_password" placeholder="Password" value="{{ .x_password }}">
+
+<button class="btn secondary-btn toggle-password-visibility"></button>
+
+<!-- TODO(webapp): password requirement -->
+
+<button class="btn primary-btn" type="submit" name="x_step" value="sign_up_submit_password">Next</button>
+
+{{ if eq .x_login_id_input_type "phone" }}
+<p class="description">
+By providing your phone number, you agree to receive service notifications to your mobile phone. Text messaging rates may apply.
+</p>
+{{ end }}
+
+</form>
 {{ template "SKYGEAR_LOGO" . }}
 
 </div>
