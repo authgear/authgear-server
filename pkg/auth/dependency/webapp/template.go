@@ -45,27 +45,29 @@ const defineLogo = `
 
 const defineError = `
 {{ define "ERROR" }}
-{{ if .x_error }}{{ if eq .x_error.reason "ValidationFailed" }}
+{{ if .x_error }}
 <ul class="errors">
-{{ range .x_error.info.causes }}
-{{ if and (eq .kind "Required") (eq .pointer "/x_login_id" ) }}
-<li class="error-txt">Email or Username is required</li>
-{{ else if and (eq .kind "Required") (eq .pointer "/x_calling_code" ) }}
-<li class="error-txt">Calling code is required</li>
-{{ else if and (eq .kind "Required") (eq .pointer "/x_national_number" ) }}
-<li class="error-txt">Phone number is required</li>
-{{ else if and (eq .kind "StringFormat") (eq .pointer "/x_national_number" ) }}
-<li class="error-txt">Phone number must contain digits only</li>
-{{ else }}
-<li class="error-txt">{{ .message }}</li>
-{{ end }}
-{{ end }}
+	{{ if eq .x_error.reason "ValidationFailed" }}
+		{{ range .x_error.info.causes }}
+		{{ if and (eq .kind "Required") (eq .pointer "/x_login_id" ) }}
+		<li class="error-txt">Email or Username is required</li>
+		{{ else if and (eq .kind "Required") (eq .pointer "/x_calling_code" ) }}
+		<li class="error-txt">Calling code is required</li>
+		{{ else if and (eq .kind "Required") (eq .pointer "/x_national_number" ) }}
+		<li class="error-txt">Phone number is required</li>
+		{{ else if and (eq .kind "StringFormat") (eq .pointer "/x_national_number" ) }}
+		<li class="error-txt">Phone number must contain digits only</li>
+		{{ else }}
+		<li class="error-txt">{{ .message }}</li>
+		{{ end }}
+		{{ end }}
+	{{ else if eq .x_error.reason "InvalidCredentials" }}
+		<li class="error-txt">Incorrect email, phone number, username, or password</li>
+	{{ else }}
+		<li class="error-txt">{{ .x_error.message }}</li>
+	{{ end }}
 </ul>
-{{ else }}
-<ul>
-<li class="error-txt">{{ .x_error.message }}</li>
-</ul>
-{{ end }}{{ end }}
+{{ end }}
 {{ end }}
 `
 
