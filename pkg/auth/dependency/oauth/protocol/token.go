@@ -11,7 +11,6 @@ func (r TokenRequest) GrantType() string   { return r["grant_type"] }
 func (r TokenRequest) Code() string        { return r["code"] }
 func (r TokenRequest) RedirectURI() string { return r["redirect_uri"] }
 func (r TokenRequest) ClientID() string    { return r["client_id"] }
-func (r TokenRequest) State() string       { return r["state"] }
 
 func (r TokenResponse) AccessToken(v string)  { r["access_token"] = v }
 func (r TokenResponse) TokenType(v string)    { r["token_type"] = v }
