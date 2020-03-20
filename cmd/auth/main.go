@@ -248,6 +248,7 @@ func main() {
 
 	oauthhandler.AttachMetadataHandler(oauthRouter, authDependency)
 	oauthhandler.AttachAuthorizeHandler(oauthRouter, authDependency)
+	oauthhandler.AttachTokenHandler(oauthRouter, authDependency)
 
 	handler.AttachSignupHandler(apiRouter, authDependency)
 	handler.AttachLoginHandler(apiRouter, authDependency)

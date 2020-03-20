@@ -33,6 +33,25 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	return nil
 }
 
+func provideTokenHandler(lf logging.Factory, tx db.TxContext, th oauthTokenHandler) http.Handler {
+	h := &TokenHandler{
+		logger:       lf.NewLogger("oauth-token-handler"),
+		txContext:    tx,
+		tokenHandler: th,
+	}
+	return h
+}
+
+func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	wire.Build(
+		auth.DependencySet,
+		wire.Bind(new(oauthTokenHandler), new(*handler.TokenHandler)),
+		wire.Bind(new(handler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
+		provideTokenHandler,
+	)
+	return nil
+}
+
 func provideMetadataHandler(oauth *oauth.MetadataProvider, oidc *oidc.MetadataProvider) http.Handler {
 	h := &MetadataHandler{
 		metaProviders: []oauthMetadataProvider{oauth, oidc},
