@@ -40,12 +40,14 @@ func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	var err error
 	step := r.Form.Get("x_step")
 	switch step {
-	case "submit_password":
-		writeResponse, err = p.SubmitPassword(w, r)
 	case "submit_login_id":
 		writeResponse, err = p.SubmitLoginID(w, r)
+	case "submit_password":
+		writeResponse, err = p.SubmitPassword(w, r)
 	case "choose_idp":
 		writeResponse, err = p.ChooseIdentityProvider(w, r)
+	case "sign_up":
+		writeResponse, err = p.SignUp(w, r)
 	default:
 		writeResponse, err = p.Default(w, r)
 	}
@@ -56,6 +58,14 @@ func (p *AuthenticateProviderImpl) Default(w http.ResponseWriter, r *http.Reques
 	err = p.ValidateProvider.Validate("#WebAppAuthenticateRequest", r.Form)
 	writeResponse = func(err error) {
 		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUISignInHTML, err)
+	}
+	return
+}
+
+func (p *AuthenticateProviderImpl) SignUp(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	err = p.ValidateProvider.Validate("#WebAppSignUpRequest", r.Form)
+	writeResponse = func(err error) {
+		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUISignUpHTML, err)
 	}
 	return
 }

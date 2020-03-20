@@ -9,6 +9,7 @@ const (
 	TemplateItemTypeAuthUISignInHTML config.TemplateItemType = "auth_ui_sign_in.html"
 	// nolint
 	TemplateItemTypeAuthUISignInPasswordHTML config.TemplateItemType = "auth_ui_sign_in_password.html"
+	TemplateItemTypeAuthUISignUpHTML         config.TemplateItemType = "auth_ui_sign_up.html"
 	TemplateItemTypeAuthUISettingsHTML       config.TemplateItemType = "auth_ui_settings.html"
 )
 
@@ -25,12 +26,6 @@ const defineHead = `
 </style>
 {{ end }}
 </head>
-{{ end }}
-`
-
-const defineHidden = `
-{{ define "HIDDEN" }}
-<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 {{ end }}
 `
 
@@ -80,7 +75,6 @@ const defineSkygearLogo = `
 
 var defines = []string{
 	defineHead,
-	defineHidden,
 	defineLogo,
 	defineError,
 	defineSkygearLogo,
@@ -127,8 +121,10 @@ var TemplateAuthUISignInHTML = template.Spec{
 
 			{{ template "ERROR" . }}
 
+			<form id="empty-form" method="post"></form>
+
 			<form class="authorize-loginid-form" method="post">
-				{{ template "HIDDEN" . }}
+				<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 
 				{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
 				<div class="phone-input">
@@ -154,13 +150,16 @@ var TemplateAuthUISignInHTML = template.Spec{
 				{{ end }}{{ end }}
 
 				{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
-				<a class="link anchor" href="{{ .x_use_text_url }}">Use an email or username instead</a>
+				<button class="link anchor" type="submit" name="x_login_id_input_type" value="text" form="empty-form">Use an email or username instead</button>
 				{{ end }}{{ end }}
 				{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone }}
-				<a class="link anchor" href="{{ .x_use_phone_url }}">Use a phone number instead</a>
+				<button class="link anchor" type="submit" name="x_login_id_input_type" value="phone" form="empty-form">Use a phone number instead</button>
 				{{ end }}{{ end }}
 
-				<div class="link"><span class="primary-text">Don't have an account yet? </span><a class="anchor" href="#">Create one!</a></div>
+				<div class="link">
+					<span class="primary-text">Don't have an account yet? </span>
+					<button type="submit" class="anchor" name="x_step" value="sign_up" form="empty-form">Create one!</button>
+				</div>
 				<a class="link anchor" href="#">Can't access your account?</a>
 
 				{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
@@ -189,7 +188,7 @@ var TemplateAuthUISignInPasswordHTML = template.Spec{
 
 <form class="enter-password-form" method="post">
 
-{{ template "HIDDEN" . }}
+<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 
 <div class="nav-bar">
 	<button class="btn back-btn" onclick="window.history.back()" title="Back"></button>
@@ -222,6 +221,83 @@ var TemplateAuthUISignInPasswordHTML = template.Spec{
 {{ template "SKYGEAR_LOGO" . }}
 
 </div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUISignUpHTML = template.Spec{
+	Type:    TemplateItemTypeAuthUISignUpHTML,
+	IsHTML:  true,
+	Defines: defines,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "HEAD" . }}
+<body class="page">
+	<div class="content">
+		{{ template "LOGO" . }}
+		<div class="authorize-form">
+			{{ template "ERROR" . }}
+
+			<form id="empty-form" method="post"></form>
+
+			{{ range .x_login_id_keys }}
+			<form id="sign_up-{{ .key }}" method="post">
+				<input type="hidden" name="x_step" value="sign_up">
+				{{ if eq .type "phone" }}
+					<input type="hidden" name="x_login_id_input_type" value="phone">
+				{{ else }}
+					<input type="hidden" name="x_login_id_input_type" value="text">
+				{{ end }}
+			</form>
+			{{ end }}
+
+			<form class="authorize-loginid-form" method="post">
+				<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
+				<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
+
+				{{ range .x_login_id_keys }}
+					{{ if eq .key $.x_login_id_key }}
+					{{ if eq .type "phone" }}
+					<div class="phone-input">
+						<select class="input select" name="x_calling_code">
+							<option value="">Code</option>
+							{{ range $.x_calling_codes }}
+							<option
+								value="{{ . }}"
+								{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
+								selected
+								{{ end }}{{ end }}
+								>
+								+{{ . }}
+							</option>
+							{{ end }}
+						</select>
+						<input class="input text-input" type="tel" name="x_national_number" placeholder="Phone number" value="{{ $.x_national_number }}">
+					</div>
+					{{ else }}
+					<input class="input text-input" type="text" name="x_login_id" placeholder="{{ .type }}" value="{{ $.x_login_id }}">
+					{{ end }}
+					{{ end }}
+				{{ end }}
+
+				{{ range .x_login_id_keys }}
+					{{ if not (eq .key $.x_login_id_key) }}
+					<button class="link anchor" type="submit" name="x_login_id_key" value="{{ .key }}" form="sign_up-{{ .key }}">Use {{ .key }} instead</button>
+					{{ end }}
+				{{ end }}
+
+				<div class="link">
+					<span class="primary-text">Have an account already? </span>
+					<button type="submit" class="anchor" name="x_step" value="" form="empty-form">Sign in!</button>
+				</div>
+				<a class="link anchor" href="#">Can't access your account?</a>
+
+				<button class="btn primary-btn" type="submit" name="x_step" value="sign_up_submit_login_id">Next</button>
+			</form>
+		</div>
+		{{ template "SKYGEAR_LOGO" . }}
+	</div>
 </body>
 </html>
 `,

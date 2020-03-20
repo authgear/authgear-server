@@ -90,6 +90,17 @@ html {
   font-size: 12px;
 }
 
+button.link {
+  text-align: left;
+}
+
+button.anchor {
+  -webkit-appearance: none;
+  border: none;
+  color: #166bef;
+  cursor: pointer;
+}
+
 .anchor:link, .anchor:visited {
   color: #166bef;
 }
@@ -174,7 +185,7 @@ html {
   padding: 4px 0;
 }
 
-.authorize-loginid-form [type="submit"] {
+.authorize-loginid-form .primary-btn[type="submit"] {
   align-self: flex-end;
 }
 

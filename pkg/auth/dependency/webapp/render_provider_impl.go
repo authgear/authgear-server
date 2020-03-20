@@ -2,7 +2,6 @@ package webapp
 
 import (
 	"encoding/json"
-	"fmt"
 	htmlTemplate "html/template"
 	"net/http"
 	"strconv"
@@ -52,15 +51,14 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		}
 	}
 
-	// Use r.URL.RawQuery instead of r.Form
-	// because r.Form includes form fields.
-	q := r.URL.Query()
-	q.Set("x_login_id_input_type", "phone")
-	data["x_use_phone_url"] = fmt.Sprintf("?%s", q.Encode())
-
-	q = r.URL.Query()
-	q.Set("x_login_id_input_type", "text")
-	data["x_use_text_url"] = fmt.Sprintf("?%s", q.Encode())
+	var loginIDKeys []map[string]interface{}
+	for _, loginIDKey := range p.AuthConfiguration.LoginIDKeys {
+		loginIDKeys = append(loginIDKeys, map[string]interface{}{
+			"key":  loginIDKey.Key,
+			"type": loginIDKey.Type,
+		})
+	}
+	data["x_login_id_keys"] = loginIDKeys
 
 	// Populate inputErr into data
 	if inputErr != nil {

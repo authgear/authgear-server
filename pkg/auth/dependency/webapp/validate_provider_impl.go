@@ -15,6 +15,7 @@ func init() {
 		AuthenticateRequestSchema,
 		AuthenticateLoginIDRequestSchema,
 		AuthenticateLoginIDPasswordRequestSchema,
+		SignUpRequestSchema,
 	)
 }
 
@@ -89,6 +90,17 @@ const AuthenticateLoginIDPasswordRequestSchema = `
 }
 `
 
+const SignUpRequestSchema = `
+{
+	"$id": "#WebAppSignUpRequest",
+	"type": "object",
+	"properties": {
+		"x_login_id_key": { "type": "string" }
+	},
+	"required": ["x_login_id_key"]
+}
+`
+
 type ValidateProviderImpl struct {
 	Validator         *validation.Validator
 	AuthConfiguration *config.AuthConfiguration
@@ -121,6 +133,13 @@ func (p *ValidateProviderImpl) PrepareValues(form url.Values) {
 			} else {
 				form.Set("x_login_id_input_type", "text")
 			}
+		}
+	}
+
+	// Set x_login_id_key to the key of the first login ID.
+	if _, ok := form["x_login_id_key"]; !ok {
+		if len(p.AuthConfiguration.LoginIDKeys) > 0 {
+			form.Set("x_login_id_key", p.AuthConfiguration.LoginIDKeys[0].Key)
 		}
 	}
 }
