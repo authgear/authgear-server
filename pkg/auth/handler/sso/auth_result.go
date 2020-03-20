@@ -35,7 +35,7 @@ type AuthResultAuthnProvider interface {
 		code *sso.SkygearAuthorizationCode,
 	) (authn.Result, error)
 
-	WriteResult(rw http.ResponseWriter, result authn.Result)
+	WriteAPIResult(rw http.ResponseWriter, result authn.Result)
 }
 
 type AuthResultHandler struct {
@@ -89,7 +89,7 @@ func (h *AuthResultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.AuthnProvider.WriteResult(w, result)
+	h.AuthnProvider.WriteAPIResult(w, result)
 }
 
 func (h *AuthResultHandler) Handle(r *http.Request, payload *AuthResultPayload) (authn.Result, error) {

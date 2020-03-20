@@ -14,6 +14,7 @@ func init() {
 	validator.AddSchemaFragments(
 		AuthenticateRequestSchema,
 		AuthenticateLoginIDRequestSchema,
+		AuthenticateLoginIDPasswordRequestSchema,
 	)
 }
 
@@ -40,6 +41,37 @@ const AuthenticateLoginIDRequestSchema = `
 		"x_login_id": { "type": "string" }
 	},
 	"required": ["x_login_id_input_type", "x_step"],
+	"oneOf": [
+		{
+			"properties": {
+				"x_login_id_input_type": { "type": "string", "const": "phone" }
+			},
+			"required": ["x_calling_code", "x_national_number"]
+		},
+		{
+			"properties": {
+				"x_login_id_input_type": { "type": "string", "const": "text" }
+			},
+			"required": ["x_login_id"]
+		}
+	]
+}
+`
+
+// nolint: gosec
+const AuthenticateLoginIDPasswordRequestSchema = `
+{
+	"$id": "#WebAppAuthenticateLoginIDPasswordRequest",
+	"type": "object",
+	"properties": {
+		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
+		"x_step": { "type": "string", "const": "submit_password" },
+		"x_calling_code": { "type": "string" },
+		"x_national_number": { "type": "string" },
+		"x_login_id": { "type": "string" },
+		"x_password": { "type": "string" }
+	},
+	"required": ["x_login_id_input_type", "x_step", "x_password"],
 	"oneOf": [
 		{
 			"properties": {

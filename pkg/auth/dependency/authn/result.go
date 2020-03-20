@@ -7,7 +7,7 @@ import (
 )
 
 type Result interface {
-	result() (*CompletionResult, error)
+	result()
 }
 
 type CompletionResult struct {
@@ -20,8 +20,10 @@ type CompletionResult struct {
 	MFABearerToken string
 }
 
-func (r *CompletionResult) result() (*CompletionResult, error) {
-	return r, nil
+func (r *CompletionResult) result() {}
+
+func (r *CompletionResult) UseCookie() bool {
+	return r.Client == nil || r.Client.AuthAPIUseCookie()
 }
 
 type InProgressResult struct {
@@ -29,8 +31,10 @@ type InProgressResult struct {
 	CurrentStep       SessionStep
 }
 
-func (r *InProgressResult) result() (*CompletionResult, error) {
-	return nil, AuthenticationSessionRequired.NewWithInfo(
+func (r *InProgressResult) result() {}
+
+func (r *InProgressResult) ToAPIError() error {
+	return AuthenticationSessionRequired.NewWithInfo(
 		"authentication session is required",
 		skyerr.Details{"token": r.AuthnSessionToken, "step": r.CurrentStep},
 	)

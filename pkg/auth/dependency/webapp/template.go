@@ -9,6 +9,7 @@ const (
 	TemplateItemTypeAuthUISignInHTML config.TemplateItemType = "auth_ui_sign_in.html"
 	// nolint
 	TemplateItemTypeAuthUISignInPasswordHTML config.TemplateItemType = "auth_ui_sign_in_password.html"
+	TemplateItemTypeAuthUISettingsHTML       config.TemplateItemType = "auth_ui_settings.html"
 )
 
 const defineHead = `
@@ -47,7 +48,17 @@ const defineError = `
 {{ if .x_error }}{{ if eq .x_error.reason "ValidationFailed" }}
 <ul class="errors">
 {{ range .x_error.info.causes }}
+{{ if and (eq .kind "Required") (eq .pointer "/x_login_id" ) }}
+<li class="error-txt">Email or Username is required</li>
+{{ else if and (eq .kind "Required") (eq .pointer "/x_calling_code" ) }}
+<li class="error-txt">Calling code is required</li>
+{{ else if and (eq .kind "Required") (eq .pointer "/x_national_number" ) }}
+<li class="error-txt">Phone number is required</li>
+{{ else if and (eq .kind "StringFormat") (eq .pointer "/x_national_number" ) }}
+<li class="error-txt">Phone number must contain digits only</li>
+{{ else }}
 <li class="error-txt">{{ .message }}</li>
+{{ end }}
 {{ end }}
 </ul>
 {{ else }}
@@ -203,6 +214,28 @@ var TemplateAuthUISignInPasswordHTML = template.Spec{
 <button class="btn primary-btn" type="submit" name="x_step" value="submit_password">Next</button>
 
 </form>
+{{ template "SKYGEAR_LOGO" . }}
+
+</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUISettingsHTML = template.Spec{
+	Type:    TemplateItemTypeAuthUISettingsHTML,
+	IsHTML:  true,
+	Defines: defines,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "HEAD" . }}
+<body class="page">
+<div class="content">
+
+{{ template "LOGO" . }}
+
+You are authenticated. To logout, please clear the cookie AND revisit this page. Refreshing causes the form to be submitted again so you will become authenticated again.
+
 {{ template "SKYGEAR_LOGO" . }}
 
 </div>

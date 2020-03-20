@@ -106,32 +106,37 @@ func (p *Provider) OAuthExchangeCode(
 	return p.AuthnSession.StepSession(as)
 }
 
-func (p *Provider) WriteResult(rw http.ResponseWriter, result Result) {
-	r, err := result.result()
-	if err == nil {
-		useCookie := r.Client == nil || r.Client.AuthAPIUseCookie()
-		resp := model.AuthResponse{
-			User:     *r.User,
-			Identity: r.Principal,
+func (p *Provider) WriteCookie(rw http.ResponseWriter, result *CompletionResult) {
+	if result.UseCookie() {
+		if result.SessionToken != "" {
+			p.SessionCookieConfig.WriteTo(rw, result.SessionToken)
 		}
+		if result.MFABearerToken != "" {
+			p.BearerTokenCookieConfig.WriteTo(rw, result.MFABearerToken)
+		}
+	}
+}
 
-		if r.Session != nil {
-			resp.SessionID = r.Session.ID
-		}
-		if r.SessionToken != "" && useCookie {
-			p.SessionCookieConfig.WriteTo(rw, r.SessionToken)
-		}
-		if r.MFABearerToken != "" {
-			if useCookie {
-				p.BearerTokenCookieConfig.WriteTo(rw, r.MFABearerToken)
-			} else {
-				resp.MFABearerToken = r.MFABearerToken
-			}
-		}
+func (p *Provider) MakeAPIBody(rw http.ResponseWriter, result *CompletionResult) (resp model.AuthResponse) {
+	resp.User = *result.User
+	resp.Identity = result.Principal
+	if result.Session != nil {
+		resp.SessionID = result.Session.ID
+	}
+	if result.MFABearerToken != "" && !result.UseCookie() {
+		resp.MFABearerToken = result.MFABearerToken
+	}
+	return
+}
 
+func (p *Provider) WriteAPIResult(rw http.ResponseWriter, result Result) {
+	switch r := result.(type) {
+	case *CompletionResult:
+		p.WriteCookie(rw, r)
+		resp := p.MakeAPIBody(rw, r)
 		handler.WriteResponse(rw, handler.APIResponse{Result: resp})
-	} else {
-		handler.WriteResponse(rw, handler.APIResponse{Error: err})
+	case *InProgressResult:
+		handler.WriteResponse(rw, handler.APIResponse{Error: r.ToAPIError()})
 	}
 }
 

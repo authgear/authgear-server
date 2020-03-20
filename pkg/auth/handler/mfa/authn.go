@@ -23,5 +23,5 @@ type authnStepper interface {
 		mfaBearerToken string,
 	) (authn.Result, error)
 
-	WriteResult(rw http.ResponseWriter, result authn.Result)
+	WriteAPIResult(rw http.ResponseWriter, result authn.Result)
 }

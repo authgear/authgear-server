@@ -139,5 +139,5 @@ func (h *AuthenticateOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	h.authnStepper.WriteResult(w, result)
+	h.authnStepper.WriteAPIResult(w, result)
 }

@@ -83,7 +83,7 @@ type SignupAuthnProvider interface {
 		onUserDuplicate model.OnUserDuplicate,
 	) (authn.Result, error)
 
-	WriteResult(rw http.ResponseWriter, result authn.Result)
+	WriteAPIResult(rw http.ResponseWriter, result authn.Result)
 }
 
 /*
@@ -145,5 +145,5 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	h.AuthnProvider.WriteResult(resp, result)
+	h.AuthnProvider.WriteAPIResult(resp, result)
 }

@@ -168,5 +168,5 @@ func (h *AuthenticateBearerTokenHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		return
 	}
 
-	h.authnStepper.WriteResult(w, result)
+	h.authnStepper.WriteAPIResult(w, result)
 }

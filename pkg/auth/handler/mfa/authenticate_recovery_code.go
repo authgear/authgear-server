@@ -135,5 +135,5 @@ func (h *AuthenticateRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		return
 	}
 
-	h.authnStepper.WriteResult(w, result)
+	h.authnStepper.WriteAPIResult(w, result)
 }
