@@ -17,6 +17,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
+type IDTokenIssuer interface {
+	IssueIDToken(client config.OAuthClientConfiguration, userID string, nonce string) (token string, err error)
+}
+
 type TokenHandler struct {
 	Context context.Context
 	Clients []config.OAuthClientConfiguration
@@ -27,6 +31,7 @@ type TokenHandler struct {
 	OfflineGrants  oauth.OfflineGrantStore
 	AccessGrants   oauth.AccessGrantStore
 	Sessions       session.Provider
+	IDTokenIssuer  IDTokenIssuer
 	GenerateToken  TokenGenerator
 	Time           time.Provider
 }
@@ -165,14 +170,29 @@ func (h *TokenHandler) issueTokens(
 	session *session.IDPSession,
 ) (protocol.TokenResponse, error) {
 	issueRefreshToken := false
+	issueIDToken := false
 	for _, scope := range code.Scopes {
-		if scope == "offline_access" {
+		switch scope {
+		case "offline_access":
 			issueRefreshToken = true
-			break
+		case "openid":
+			issueIDToken = true
 		}
 	}
 
 	resp := protocol.TokenResponse{}
+
+	if issueIDToken {
+		if h.IDTokenIssuer == nil {
+			return nil, errors.New("id token issuer is not provided")
+		}
+		idToken, err := h.IDTokenIssuer.IssueIDToken(client, authz.UserID, code.OIDCNonce)
+		if err != nil {
+			return nil, err
+		}
+		resp.IDToken(idToken)
+	}
+
 	var sessionID string
 	var sessionKind oauth.GrantSessionKind
 	if issueRefreshToken {

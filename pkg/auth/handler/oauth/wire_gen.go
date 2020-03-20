@@ -58,7 +58,6 @@ func newMetadataHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		PrefixProvider: provider,
 	}
 	metadataProvider := &oauth.MetadataProvider{
-		URLPrefix:            provider,
 		AuthorizeEndpoint:    endpointsProvider,
 		TokenEndpoint:        endpointsProvider,
 		AuthenticateEndpoint: endpointsProvider,

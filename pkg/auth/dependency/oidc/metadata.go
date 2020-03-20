@@ -1,13 +1,24 @@
 package oidc
 
-type MetadataProvider struct{}
+import "github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+
+type MetadataProvider struct {
+	URLPrefix urlprefix.Provider
+}
 
 func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
+	meta["issuer"] = p.URLPrefix.Value().String()
 	meta["scopes_supported"] = AllowedScopes
 	meta["subject_types_supported"] = []string{"public"}
 	meta["id_token_signing_alg_values_supported"] = []string{"RS256"}
+	meta["claims_supported"] = []string{
+		"iss",
+		"aud",
+		"iat",
+		"exp",
+		"sub",
+	}
 	// TODO(oauth): userinfo_endpoint
 	// TODO(oauth): jwks_uri
 	// TODO(oauth): revocation_endpoint
-	// TODO(oauth): claims_supported
 }
