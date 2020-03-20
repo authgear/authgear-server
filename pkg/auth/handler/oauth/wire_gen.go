@@ -37,7 +37,7 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	provider := time.NewProvider()
-	grantStore := redis.ProvideGrantStore(context, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	endpointsProvider := &auth.EndpointsProvider{
 		PrefixProvider: urlprefixProvider,
@@ -68,14 +68,14 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	provider := time.NewProvider()
-	grantStore := redis.ProvideGrantStore(context, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
 	store := redis2.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
 	sessionProvider := session.ProvideSessionProvider(r, store, eventStore, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, provider)
 	tokenGenerator := _wireTokenGeneratorValue
-	tokenHandler := handler.ProvideTokenHandler(context, tenantConfiguration, factory, authorizationStore, grantStore, sessionProvider, idTokenIssuer, tokenGenerator, provider)
+	tokenHandler := handler.ProvideTokenHandler(context, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, sessionProvider, idTokenIssuer, tokenGenerator, provider)
 	httpHandler := provideTokenHandler(factory, txContext, tokenHandler)
 	return httpHandler
 }

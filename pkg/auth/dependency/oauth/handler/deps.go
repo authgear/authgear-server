@@ -45,6 +45,8 @@ func ProvideTokenHandler(
 	lf logging.Factory,
 	as oauth.AuthorizationStore,
 	cs oauth.CodeGrantStore,
+	os oauth.OfflineGrantStore,
+	ags oauth.AccessGrantStore,
 	sp session.Provider,
 	ti IDTokenIssuer,
 	cg TokenGenerator,
@@ -57,13 +59,12 @@ func ProvideTokenHandler(
 
 		Authorizations: as,
 		CodeGrants:     cs,
-		// TODO(oauth): implement stores
-		OfflineGrants: nil,
-		AccessGrants:  nil,
-		Sessions:      sp,
-		IDTokenIssuer: ti,
-		GenerateToken: cg,
-		Time:          tp,
+		OfflineGrants:  os,
+		AccessGrants:   ags,
+		Sessions:       sp,
+		IDTokenIssuer:  ti,
+		GenerateToken:  cg,
+		Time:           tp,
 	}
 }
 
