@@ -81,6 +81,25 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	return httpHandler
 }
 
+func newRevokeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	requestID := auth.ProvideLoggingRequestID(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	provider := time.NewProvider()
+	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	revokeHandler := &handler.RevokeHandler{
+		OfflineGrants: grantStore,
+		AccessGrants:  grantStore,
+	}
+	httpHandler := provideRevokeHandler(factory, txContext, revokeHandler)
+	return httpHandler
+}
+
 func newMetadataHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	provider := urlprefix.NewProvider(r)
 	endpointsProvider := &auth.EndpointsProvider{
@@ -89,6 +108,7 @@ func newMetadataHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	metadataProvider := &oauth.MetadataProvider{
 		AuthorizeEndpoint:    endpointsProvider,
 		TokenEndpoint:        endpointsProvider,
+		RevokeEndpoint:       endpointsProvider,
 		AuthenticateEndpoint: endpointsProvider,
 	}
 	oidcMetadataProvider := &oidc.MetadataProvider{
@@ -122,6 +142,15 @@ func provideTokenHandler(lf logging.Factory, tx db.TxContext, th oauthTokenHandl
 		logger:       lf.NewLogger("oauth-token-handler"),
 		txContext:    tx,
 		tokenHandler: th,
+	}
+	return h
+}
+
+func provideRevokeHandler(lf logging.Factory, tx db.TxContext, rh oauthRevokeHandler) http.Handler {
+	h := &RevokeHandler{
+		logger:        lf.NewLogger("oauth-revoke-handler"),
+		txContext:     tx,
+		revokeHandler: rh,
 	}
 	return h
 }

@@ -71,5 +71,6 @@ func ProvideTokenHandler(
 var DependencySet = wire.NewSet(
 	ProvideAuthorizationHandler,
 	ProvideTokenHandler,
+	wire.Struct(new(RevokeHandler), "*"),
 	wire.Value(TokenGenerator(GenerateToken)),
 )

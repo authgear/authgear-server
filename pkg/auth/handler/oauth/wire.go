@@ -53,6 +53,24 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	return nil
 }
 
+func provideRevokeHandler(lf logging.Factory, tx db.TxContext, rh oauthRevokeHandler) http.Handler {
+	h := &RevokeHandler{
+		logger:        lf.NewLogger("oauth-revoke-handler"),
+		txContext:     tx,
+		revokeHandler: rh,
+	}
+	return h
+}
+
+func newRevokeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	wire.Build(
+		auth.DependencySet,
+		wire.Bind(new(oauthRevokeHandler), new(*handler.RevokeHandler)),
+		provideRevokeHandler,
+	)
+	return nil
+}
+
 func provideMetadataHandler(oauth *oauth.MetadataProvider, oidc *oidc.MetadataProvider) http.Handler {
 	h := &MetadataHandler{
 		metaProviders: []oauthMetadataProvider{oauth, oidc},

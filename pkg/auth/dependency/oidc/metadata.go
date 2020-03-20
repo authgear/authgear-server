@@ -21,5 +21,4 @@ func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
 	}
 	meta["jwks_uri"] = p.JWKSEndpoint.JWKSEndpointURI().String()
 	// TODO(oauth): userinfo_endpoint
-	// TODO(oauth): revocation_endpoint
 }

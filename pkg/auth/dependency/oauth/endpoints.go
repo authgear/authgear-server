@@ -10,6 +10,10 @@ type TokenEndpointProvider interface {
 	TokenEndpointURI() *url.URL
 }
 
+type RevokeEndpointProvider interface {
+	RevokeEndpointURI() *url.URL
+}
+
 type AuthenticateEndpointProvider interface {
 	AuthenticateEndpointURI() *url.URL
 }
