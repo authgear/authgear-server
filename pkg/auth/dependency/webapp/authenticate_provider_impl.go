@@ -30,8 +30,8 @@ type AuthnProvider interface {
 
 func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		// TODO(webapp): render err in html
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	p.ValidateProvider.PrepareValues(r.Form)
@@ -97,8 +97,7 @@ func (p *AuthenticateProviderImpl) SubmitPassword(w http.ResponseWriter, r *http
 			t := TemplateItemTypeAuthUISignInPasswordHTML
 			p.RenderProvider.WritePage(w, r, t, err)
 		} else {
-			// TODO(webapp): Respect redirect_uri
-			http.Redirect(w, r, "/settings", http.StatusFound)
+			RedirectToRedirectURI(w, r)
 		}
 	}
 
