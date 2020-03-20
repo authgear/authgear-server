@@ -46,5 +46,18 @@ window.addEventListener("load", function() {
     }
   }
 
+  function attachBackButtonClick() {
+    var els = document.querySelectorAll(".btn.back-btn");
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      el.addEventListener("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.history.back();
+      });
+    }
+  }
+
   attachPasswordVisibilityClick();
+  attachBackButtonClick();
 });

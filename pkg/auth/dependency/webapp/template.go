@@ -195,7 +195,7 @@ var TemplateAuthUISignInPasswordHTML = template.Spec{
 <input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 
 <div class="nav-bar">
-	<button class="btn back-btn" onclick="window.history.back()" title="Back"></button>
+	<button class="btn back-btn" title="Back"></button>
 	<div class="login-id primary-txt">
 	{{ if .x_calling_code }}
 		+{{ .x_calling_code}} {{ .x_national_number }}
