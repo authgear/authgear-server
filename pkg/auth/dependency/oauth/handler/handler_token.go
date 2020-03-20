@@ -204,6 +204,10 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
+	if h.Time.NowUTC().After(offlineGrant.ExpireAt) {
+		return nil, errInvalidRefreshToken
+	}
+
 	tokenHash := hashToken(token)
 	if subtle.ConstantTimeCompare([]byte(tokenHash), []byte(offlineGrant.TokenHash)) != 1 {
 		return nil, errInvalidRefreshToken
