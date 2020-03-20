@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/url"
-	"strings"
 	gotime "time"
 
 	"github.com/sirupsen/logrus"
@@ -67,7 +66,8 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
-	scopes, err := h.parseScopes(r.Scope())
+	scopes := r.Scope()
+	err := h.ValidateScopes(scopes)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func (h *AuthorizationHandler) validateRequest(r protocol.AuthorizationRequest) 
 	if r.ResponseType() != "code" {
 		return protocol.NewError("unsupported_response_type", "only 'code' response type is supported")
 	}
-	if r.Scope() == "" {
+	if len(r.Scope()) == 0 {
 		return protocol.NewError("invalid_request", "scope is required")
 	}
 	if r.CodeChallenge() == "" {
@@ -178,14 +178,6 @@ func (h *AuthorizationHandler) validateRequest(r protocol.AuthorizationRequest) 
 	}
 
 	return nil
-}
-
-func (h *AuthorizationHandler) parseScopes(scope string) ([]string, error) {
-	scopes := strings.Split(scope, " ")
-	if err := h.ValidateScopes(scopes); err != nil {
-		return nil, err
-	}
-	return scopes, nil
 }
 
 func (h *AuthorizationHandler) checkAuthorization(

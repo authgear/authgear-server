@@ -1,5 +1,7 @@
 package protocol
 
+import "strconv"
+
 type TokenRequest map[string]string
 type TokenResponse map[string]string
 
@@ -13,7 +15,7 @@ func (r TokenRequest) State() string       { return r["state"] }
 
 func (r TokenResponse) AccessToken(v string)  { r["access_token"] = v }
 func (r TokenResponse) TokenType(v string)    { r["token_type"] = v }
-func (r TokenResponse) ExpiresIn(v string)    { r["expires_in"] = v }
+func (r TokenResponse) ExpiresIn(v int)       { r["expires_in"] = strconv.Itoa(v) }
 func (r TokenResponse) RefreshToken(v string) { r["refresh_token"] = v }
 func (r TokenResponse) Scope(v string)        { r["scope"] = v }
 
