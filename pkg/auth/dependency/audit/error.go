@@ -8,36 +8,28 @@ import (
 
 var PasswordPolicyViolated skyerr.Kind = skyerr.Invalid.WithReason("PasswordPolicyViolated")
 
-//go:generate stringer -type=PasswordViolationReason
-
-// PasswordViolationReason is a detailed explanation
-// of PasswordPolicyViolated
-type PasswordViolationReason int
-
-func (r PasswordViolationReason) MarshalText() ([]byte, error) {
-	return []byte(r.String()), nil
-}
+type PasswordViolationReason string
 
 const (
 	// PasswordTooShort is self-explanatory
-	PasswordTooShort PasswordViolationReason = iota
+	PasswordTooShort PasswordViolationReason = "PasswordTooShort"
 	// PasswordUppercaseRequired means the password does not contain ASCII uppercase character
-	PasswordUppercaseRequired
+	PasswordUppercaseRequired PasswordViolationReason = "PasswordUppercaseRequired"
 	// PasswordLowercaseRequired means the password does not contain ASCII lowercase character
-	PasswordLowercaseRequired
+	PasswordLowercaseRequired PasswordViolationReason = "PasswordLowercaseRequired"
 	// PasswordDigitRequired means the password does not contain ASCII digit character
-	PasswordDigitRequired
+	PasswordDigitRequired PasswordViolationReason = "PasswordDigitRequired"
 	// PasswordSymbolRequired means the password does not contain ASCII non-alphanumeric character
-	PasswordSymbolRequired
+	PasswordSymbolRequired PasswordViolationReason = "PasswordSymbolRequired"
 	// PasswordContainingExcludedKeywords means the password contains configured excluded keywords
-	PasswordContainingExcludedKeywords
+	PasswordContainingExcludedKeywords PasswordViolationReason = "PasswordContainingExcludedKeywords"
 	// PasswordBelowGuessableLevel means the password's guessable level is below configured level.
 	// The current implementation uses Dropbox's zxcvbn.
-	PasswordBelowGuessableLevel
+	PasswordBelowGuessableLevel PasswordViolationReason = "PasswordBelowGuessableLevel"
 	// PasswordReused is self-explanatory
-	PasswordReused
+	PasswordReused PasswordViolationReason = "PasswordReused"
 	// PasswordExpired is self-explanatory
-	PasswordExpired
+	PasswordExpired PasswordViolationReason = "PasswordExpired"
 )
 
 type PasswordViolation struct {
@@ -45,7 +37,9 @@ type PasswordViolation struct {
 	Info   map[string]interface{}
 }
 
-func (v PasswordViolation) Kind() string { return string(v.Reason) }
+func (v PasswordViolation) Kind() string {
+	return string(v.Reason)
+}
 
 func (v PasswordViolation) MarshalJSON() ([]byte, error) {
 	d := map[string]interface{}{"kind": v.Reason}
