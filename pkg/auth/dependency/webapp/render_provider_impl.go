@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
@@ -19,6 +20,7 @@ type RenderProviderImpl struct {
 	AuthUIConfiguration  *config.AuthUIConfiguration
 	OAuthProviders       []config.OAuthProviderConfiguration
 	TemplateEngine       *template.Engine
+	PasswordChecker      *audit.PasswordChecker
 }
 
 func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, inputErr error) {
@@ -59,6 +61,17 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		})
 	}
 	data["x_login_id_keys"] = loginIDKeys
+
+	passwordPolicyBytes, err := json.Marshal(p.PasswordChecker.PasswordPolicy())
+	if err != nil {
+		panic(err)
+	}
+	var passwordPolicyJSON interface{}
+	err = json.Unmarshal(passwordPolicyBytes, &passwordPolicyJSON)
+	if err != nil {
+		panic(err)
+	}
+	data["x_password_policies"] = passwordPolicyJSON
 
 	// Populate inputErr into data
 	if inputErr != nil {

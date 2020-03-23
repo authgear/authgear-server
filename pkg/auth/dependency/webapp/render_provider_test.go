@@ -8,6 +8,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/template"
@@ -79,7 +80,8 @@ func TestRenderProvider(t *testing.T) {
 			AuthUIConfiguration: &config.AuthUIConfiguration{
 				CSS: `a { color: red; }`,
 			},
-			TemplateEngine: engine,
+			TemplateEngine:  engine,
+			PasswordChecker: &audit.PasswordChecker{},
 		}
 
 		w := httptest.NewRecorder()

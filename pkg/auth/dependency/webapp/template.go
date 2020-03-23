@@ -346,7 +346,47 @@ var TemplateAuthUISignUpPasswordHTML = template.Spec{
 
 <button class="btn secondary-btn toggle-password-visibility"></button>
 
-<!-- TODO(webapp): password requirement -->
+{{ if .x_password_policies }}
+<ul>
+{{ range .x_password_policies }}
+  {{ if eq .kind "PasswordTooShort" }}
+  <li>At least {{ .min_length }} characters long</li>
+  {{ end }}
+  {{ if eq .kind "PasswordUppercaseRequired" }}
+  <li>At least one uppercase character</li>
+  {{ end }}
+  {{ if eq .kind "PasswordLowercaseRequired" }}
+  <li>At least one lowercase character</li>
+  {{ end }}
+  {{ if eq .kind "PasswordDigitRequired" }}
+  <li>At least one digit</li>
+  {{ end }}
+  {{ if eq .kind "PasswordSymbolRequired" }}
+  <li>At least one symbol</li>
+  {{ end }}
+  {{ if eq .kind "PasswordContainingExcludedKeywords" }}
+  <li><strong>NO</strong> banned words</li>
+  {{ end }}
+  {{ if eq .kind "PasswordBelowGuessableLevel" }}
+    {{ if eq .min_level 1.0 }}
+    <li><strong>NOT</strong> too guessable</li>
+    {{ end }}
+    {{ if eq .min_level 2.0 }}
+    <li><strong>NOT</strong> very guessable</li>
+    {{ end }}
+    {{ if eq .min_level 3.0 }}
+    <li><strong>NOT</strong> somewhat guessable</li>
+    {{ end }}
+    {{ if eq .min_level 4.0 }}
+    <li>Safely unguessable</li>
+    {{ end }}
+    {{ if eq .min_level 5.0 }}
+    <li>Very unguessable</li>
+    {{ end }}
+  {{ end }}
+{{ end }}
+</ul>
+{{ end }}
 
 <button class="btn primary-btn" type="submit" name="x_step" value="sign_up_submit_password">Next</button>
 
