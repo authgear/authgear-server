@@ -116,7 +116,11 @@ var (
 			},
 			"auth_api_use_cookie": { "type": "boolean" },
 			"access_token_lifetime": { "type": "integer", "minimum": 0 },
-			"refresh_token_lifetime": { "type": "integer", "minimum": 0 }
+			"refresh_token_lifetime": { "type": "integer", "minimum": 0 },
+			"grant_types": {
+				"type": "array",
+				"items": { "type": "string" }
+			}
 		},
 		"required": ["client_name", "client_id"]
 	},
@@ -143,7 +147,8 @@ var (
 						"private_key": { "type": "string" }
 					},
 					"required": ["kid", "public_key", "private_key"]
-				}
+				},
+				"minItems": 1
 			}
 		}
 	},

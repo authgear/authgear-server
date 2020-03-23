@@ -12,7 +12,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -35,7 +38,7 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	provider := time.NewProvider()
-	grantStore := redis.ProvideGrantStore(context, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	endpointsProvider := &auth.EndpointsProvider{
 		PrefixProvider: urlprefixProvider,
@@ -52,19 +55,74 @@ var (
 	_wireTokenGeneratorValue  = handler.TokenGenerator(handler.GenerateToken)
 )
 
+func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	requestID := auth.ProvideLoggingRequestID(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	provider := time.NewProvider()
+	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	store := redis2.ProvideStore(context, tenantConfiguration, provider, factory)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	sessionProvider := session.ProvideSessionProvider(r, store, eventStore, tenantConfiguration)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, provider)
+	tokenGenerator := _wireTokenGeneratorValue
+	tokenHandler := handler.ProvideTokenHandler(context, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, sessionProvider, idTokenIssuer, tokenGenerator, provider)
+	httpHandler := provideTokenHandler(factory, txContext, tokenHandler)
+	return httpHandler
+}
+
+func newRevokeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	requestID := auth.ProvideLoggingRequestID(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	provider := time.NewProvider()
+	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	revokeHandler := &handler.RevokeHandler{
+		OfflineGrants: grantStore,
+		AccessGrants:  grantStore,
+	}
+	httpHandler := provideRevokeHandler(factory, txContext, revokeHandler)
+	return httpHandler
+}
+
 func newMetadataHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	provider := urlprefix.NewProvider(r)
 	endpointsProvider := &auth.EndpointsProvider{
 		PrefixProvider: provider,
 	}
 	metadataProvider := &oauth.MetadataProvider{
-		URLPrefix:            provider,
 		AuthorizeEndpoint:    endpointsProvider,
 		TokenEndpoint:        endpointsProvider,
+		RevokeEndpoint:       endpointsProvider,
 		AuthenticateEndpoint: endpointsProvider,
 	}
-	oidcMetadataProvider := &oidc.MetadataProvider{}
+	oidcMetadataProvider := &oidc.MetadataProvider{
+		URLPrefix:    provider,
+		JWKSEndpoint: endpointsProvider,
+	}
 	httpHandler := provideMetadataHandler(metadataProvider, oidcMetadataProvider)
+	return httpHandler
+}
+
+func newJWKSHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	httpHandler := provideJWKSHandler(tenantConfiguration)
 	return httpHandler
 }
 
@@ -79,9 +137,34 @@ func provideAuthorizeHandler(lf logging.Factory, tx db.TxContext, ah oauthAuthor
 	return h
 }
 
+func provideTokenHandler(lf logging.Factory, tx db.TxContext, th oauthTokenHandler) http.Handler {
+	h := &TokenHandler{
+		logger:       lf.NewLogger("oauth-token-handler"),
+		txContext:    tx,
+		tokenHandler: th,
+	}
+	return h
+}
+
+func provideRevokeHandler(lf logging.Factory, tx db.TxContext, rh oauthRevokeHandler) http.Handler {
+	h := &RevokeHandler{
+		logger:        lf.NewLogger("oauth-revoke-handler"),
+		txContext:     tx,
+		revokeHandler: rh,
+	}
+	return h
+}
+
 func provideMetadataHandler(oauth2 *oauth.MetadataProvider, oidc2 *oidc.MetadataProvider) http.Handler {
 	h := &MetadataHandler{
 		metaProviders: []oauthMetadataProvider{oauth2, oidc2},
+	}
+	return h
+}
+
+func provideJWKSHandler(config2 *config.TenantConfiguration) http.Handler {
+	h := &JWKSHandler{
+		config: *config2.AppConfig.OIDC,
 	}
 	return h
 }

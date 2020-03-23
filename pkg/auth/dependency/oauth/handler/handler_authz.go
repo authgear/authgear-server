@@ -33,7 +33,13 @@ type AuthorizationHandler struct {
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) AuthorizationResult {
-	redirectURI, client, errResp := h.resolveClient(r)
+	client := resolveClient(h.Clients, r)
+	if client == nil {
+		return authorizationResultError{
+			Response: protocol.NewErrorResponse("unauthorized_client", "invalid client ID"),
+		}
+	}
+	redirectURI, errResp := parseRedirectURI(client, r)
 	if errResp != nil {
 		return authorizationResultError{Response: errResp}
 	}
@@ -69,7 +75,7 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	scopes := r.Scope()
-	err := h.ValidateScopes(scopes)
+	err := h.ValidateScopes(client, scopes)
 	if err != nil {
 		return nil, err
 	}
@@ -123,46 +129,6 @@ func (h *AuthorizationHandler) doHandle(
 		RedirectURI: redirectURI,
 		Response:    resp,
 	}, nil
-}
-
-func (h *AuthorizationHandler) resolveClient(
-	r protocol.AuthorizationRequest,
-) (*url.URL, config.OAuthClientConfiguration, protocol.ErrorResponse) {
-	var client config.OAuthClientConfiguration
-	for _, c := range h.Clients {
-		if c.ClientID() == r.ClientID() {
-			client = c
-			break
-		}
-	}
-	if client == nil {
-		return nil, nil, protocol.NewErrorResponse("unauthorized_client", "invalid client ID")
-	}
-
-	allowedURIs := client.RedirectURIs()
-	redirectURIString := r.RedirectURI()
-	if len(allowedURIs) == 1 && redirectURIString == "" {
-		// Redirect URI is default to the only allowed URI if possible.
-		redirectURIString = allowedURIs[0]
-	}
-
-	redirectURI, err := url.Parse(redirectURIString)
-	if err != nil {
-		return nil, nil, protocol.NewErrorResponse("invalid_request", "invalid redirect URI")
-	}
-
-	allowed := false
-	for _, u := range allowedURIs {
-		if u == redirectURIString {
-			allowed = true
-			break
-		}
-	}
-	if !allowed {
-		return nil, nil, protocol.NewErrorResponse("invalid_request", "redirect URI is not allowed")
-	}
-
-	return redirectURI, client, nil
 }
 
 func (h *AuthorizationHandler) validateRequest(r protocol.AuthorizationRequest) error {
