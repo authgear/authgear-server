@@ -7,6 +7,7 @@ package auth
 
 import (
 	"github.com/gorilla/mux"
+	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
@@ -39,11 +40,16 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	store := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
 	sessionProvider := session.ProvideSessionProvider(r, store, eventStore, tenantConfiguration)
+	resolver := session.ProvideSessionResolver(cookieConfiguration, sessionProvider)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	middleware := session.ProvideSessionMiddleware(cookieConfiguration, sessionProvider, authinfoStore, txContext)
+	middleware := &auth2.Middleware{
+		IDPSessionResolver: resolver,
+		AuthInfoStore:      authinfoStore,
+		TxContext:          txContext,
+	}
 	middlewareFunc := provideMiddleware(middleware)
 	return middlewareFunc
 }

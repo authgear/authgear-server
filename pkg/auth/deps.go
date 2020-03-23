@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
@@ -30,7 +31,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	authinfopq "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -147,12 +148,13 @@ var DependencySet = wire.NewSet(
 	session.DependencySet,
 	sessionredis.DependencySet,
 	handler.DependencySet,
-	auth.DependencySet,
+	coreauth.DependencySet,
 	async.DependencySet,
 	sms.DependencySet,
 	mail.DependencySet,
 
 	hook.DependencySet,
+	auth.DependencySet,
 	authn.DependencySet,
 	audit.DependencySet,
 	loginid.DependencySet,

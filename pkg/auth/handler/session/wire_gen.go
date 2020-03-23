@@ -7,6 +7,7 @@ package session
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth"
+	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
@@ -29,18 +30,23 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	store := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
 	sessionProvider := session.ProvideSessionProvider(r, store, eventStore, tenantConfiguration)
+	resolver := session.ProvideSessionResolver(cookieConfiguration, sessionProvider)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	middleware := session.ProvideSessionMiddleware(cookieConfiguration, sessionProvider, authinfoStore, txContext)
+	middleware := &auth2.Middleware{
+		IDPSessionResolver: resolver,
+		AuthInfoStore:      authinfoStore,
+		TxContext:          txContext,
+	}
 	handler := provideResolveHandler(middleware, provider)
 	return handler
 }
 
 // wire.go:
 
-func provideResolveHandler(m *session.Middleware, t time.Provider) http.Handler {
+func provideResolveHandler(m *auth2.Middleware, t time.Provider) http.Handler {
 	return m.Handle(&ResolveHandler{
 		TimeProvider: t,
 	})
