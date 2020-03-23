@@ -20,7 +20,9 @@ type IDTokenIssuer struct {
 	Time       time.Provider
 }
 
-const CodeGrantValidDuration = 5 * gotime.Minute
+// IDTokenValidDuration is the valid period of ID token.
+// It can be short, since id_token_hint should accept expired ID tokens.
+const IDTokenValidDuration = 5 * gotime.Minute
 
 func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfiguration, userID string, nonce string) (string, error) {
 	now := ti.Time.NowUTC()
@@ -29,7 +31,7 @@ func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfiguration, us
 			Issuer:    ti.URLPrefix.Value().String(),
 			Audience:  client.ClientID(),
 			IssuedAt:  now.Unix(),
-			ExpiresAt: now.Add(CodeGrantValidDuration).Unix(),
+			ExpiresAt: now.Add(IDTokenValidDuration).Unix(),
 			Subject:   userID,
 		},
 		Nonce: nonce,
