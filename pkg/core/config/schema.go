@@ -147,7 +147,8 @@ var (
 						"private_key": { "type": "string" }
 					},
 					"required": ["kid", "public_key", "private_key"]
-				}
+				},
+				"minItems": 1
 			}
 		}
 	},
