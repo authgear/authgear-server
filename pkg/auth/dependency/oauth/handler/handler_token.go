@@ -39,9 +39,14 @@ type TokenHandler struct {
 }
 
 func (h *TokenHandler) Handle(r protocol.TokenRequest) TokenResult {
-	client, errResp := h.resolveClient(r)
-	if errResp != nil {
-		return tokenResultError{Response: errResp}
+	client := resolveClient(h.Clients, r)
+	if client == nil {
+		return authorizationResultError{
+			Response: protocol.NewErrorResponse("invalid_client", "invalid client ID"),
+		}
+	}
+	if _, errResp := parseRedirectURI(client, r); errResp != nil {
+		return authorizationResultError{Response: errResp}
 	}
 
 	result, err := h.doHandle(client, r)
@@ -77,39 +82,6 @@ func (h *TokenHandler) doHandle(
 	default:
 		panic("oauth: unexpected grant type")
 	}
-}
-
-func (h *TokenHandler) resolveClient(r protocol.TokenRequest) (config.OAuthClientConfiguration, protocol.ErrorResponse) {
-	var client config.OAuthClientConfiguration
-	for _, c := range h.Clients {
-		if c.ClientID() == r.ClientID() {
-			client = c
-			break
-		}
-	}
-	if client == nil {
-		return nil, protocol.NewErrorResponse("invalid_client", "invalid client ID")
-	}
-
-	allowedURIs := client.RedirectURIs()
-	redirectURIString := r.RedirectURI()
-	if len(allowedURIs) == 1 && redirectURIString == "" {
-		// Redirect URI is default to the only allowed URI if possible.
-		redirectURIString = allowedURIs[0]
-	}
-
-	allowed := false
-	for _, u := range allowedURIs {
-		if u == redirectURIString {
-			allowed = true
-			break
-		}
-	}
-	if !allowed {
-		return nil, protocol.NewErrorResponse("invalid_request", "redirect URI is not allowed")
-	}
-
-	return client, nil
 }
 
 func (h *TokenHandler) validateRequest(r protocol.TokenRequest) error {
