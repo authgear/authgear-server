@@ -1,12 +1,25 @@
 package oidc
 
-import "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
+import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
+	"github.com/skygeario/skygear-server/pkg/core/config"
+)
 
-func ValidateScopes(scopes []string) error {
+func ValidateScopes(client config.OAuthClientConfiguration, scopes []string) error {
+	allowOfflineAccess := false
+	for _, grantType := range client.GrantTypes() {
+		if grantType == "refresh_token" {
+			allowOfflineAccess = true
+			break
+		}
+	}
 	hasOIDC := false
 	for _, s := range scopes {
 		if !IsScopeAllowed(s) {
 			return protocol.NewError("invalid_scope", "specified scope is not allowed")
+		}
+		if s == "offline_access" && !allowOfflineAccess {
+			return protocol.NewError("invalid_scope", "offline access is not allowed for this client")
 		}
 		if s == "openid" {
 			hasOIDC = true

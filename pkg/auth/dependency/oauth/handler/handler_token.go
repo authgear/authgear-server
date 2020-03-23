@@ -74,6 +74,21 @@ func (h *TokenHandler) doHandle(
 		return nil, err
 	}
 
+	allowedGrantTypes := client.GrantTypes()
+	if len(allowedGrantTypes) == 0 {
+		allowedGrantTypes = []string{"authorization_code"}
+	}
+	ok := false
+	for _, grantType := range allowedGrantTypes {
+		if r.GrantType() == grantType {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return nil, protocol.NewError("unauthorized_client", "grant type is not allowed for this client")
+	}
+
 	switch r.GrantType() {
 	case "authorization_code":
 		return h.handleAuthorizationCode(client, r)
@@ -214,6 +229,20 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 			issueRefreshToken = true
 		case "openid":
 			issueIDToken = true
+		}
+	}
+
+	if issueRefreshToken {
+		// Only if client is allowed to use refresh tokens
+		allowRefreshToken := false
+		for _, grantType := range client.GrantTypes() {
+			if grantType == "refresh_token" {
+				allowRefreshToken = true
+				break
+			}
+		}
+		if !allowRefreshToken {
+			issueRefreshToken = false
 		}
 	}
 

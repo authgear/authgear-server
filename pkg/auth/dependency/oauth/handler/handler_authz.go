@@ -75,7 +75,7 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	scopes := r.Scope()
-	err := h.ValidateScopes(scopes)
+	err := h.ValidateScopes(client, scopes)
 	if err != nil {
 		return nil, err
 	}

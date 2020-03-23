@@ -33,7 +33,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			CodeGrants:           codeGrantStore,
 			AuthorizeEndpoint:    mockEndpointsProvider{},
 			AuthenticateEndpoint: mockEndpointsProvider{},
-			ValidateScopes:       func(scopes []string) error { return nil },
+			ValidateScopes:       func(config.OAuthClientConfiguration, []string) error { return nil },
 			CodeGenerator:        func() string { return "authz-code" },
 			Time:                 mockTime,
 		}
@@ -117,7 +117,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			})
 			Convey("scope validation", func() {
 				validated := false
-				h.ValidateScopes = func(scopes []string) error {
+				h.ValidateScopes = func(client config.OAuthClientConfiguration, scopes []string) error {
 					validated = true
 					if strings.Join(scopes, " ") != "openid" {
 						return protocol.NewError("invalid_scope", "must request 'openid' scope")
