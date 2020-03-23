@@ -16,6 +16,9 @@ app_config:
     client_name: Test App
     redirect_uris:
     - "http://localhost:9999/sso.html"
+    grant_types:
+    - authorization_code
+    - refresh_token
   master_key: master_key
   asset:
     secret: assetsecret
@@ -37,6 +40,17 @@ app_config:
       - type: google
         client_id: 'client_id'
         client_secret: 'client_secret'
+  oidc:
+    keys:
+      - kid: key1
+        public_key: |
+          -----BEGIN PUBLIC KEY-----
+          ...
+          -----END PUBLIC KEY-----
+        private_key: |
+          -----BEGIN RSA PRIVATE KEY-----
+          ...
+          -----END RSA PRIVATE KEY-----
 deployment_routes:
   - type: http-service
     path: /
