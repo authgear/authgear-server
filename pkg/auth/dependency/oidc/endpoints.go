@@ -7,5 +7,5 @@ type JWKSEndpointProvider interface {
 }
 
 type UserInfoEndpointProvider interface {
-	TokenEndpointURI() *url.URL
+	UserInfoEndpointURI() *url.URL
 }
