@@ -455,3 +455,69 @@ func TestValidatePassword(t *testing.T) {
 		)
 	})
 }
+
+func TestPasswordPolicy(t *testing.T) {
+	Convey("PasswordPolicy", t, func() {
+		Convey("empty", func() {
+			pc := &PasswordChecker{}
+			So(pc.PasswordPolicy(), ShouldBeEmpty)
+			So(pc.PasswordPolicy(), ShouldNotBeNil)
+		})
+		Convey("length", func() {
+			pc := &PasswordChecker{
+				PwMinLength: 8,
+			}
+			So(pc.PasswordPolicy(), ShouldResemble, []PasswordViolation{
+				PasswordViolation{
+					Reason: PasswordTooShort,
+					Info: map[string]interface{}{
+						"min_length": 8,
+					},
+				},
+			})
+		})
+		Convey("guessable level", func() {
+			pc := &PasswordChecker{
+				PwMinGuessableLevel: 3,
+			}
+			So(pc.PasswordPolicy(), ShouldResemble, []PasswordViolation{
+				PasswordViolation{
+					Reason: PasswordBelowGuessableLevel,
+					Info: map[string]interface{}{
+						"min_level": 3,
+					},
+				},
+			})
+		})
+		Convey("history", func() {
+			pc := &PasswordChecker{
+				PasswordHistoryEnabled: true,
+				PwHistorySize:          10,
+				PwHistoryDays:          90,
+			}
+			So(pc.PasswordPolicy(), ShouldResemble, []PasswordViolation{
+				PasswordViolation{
+					Reason: PasswordReused,
+					Info: map[string]interface{}{
+						"history_size": 10,
+						"history_days": 90,
+					},
+				},
+			})
+		})
+		Convey("only output effective policies", func() {
+			pc := &PasswordChecker{
+				PwUppercaseRequired: true,
+				PwDigitRequired:     true,
+			}
+			So(pc.PasswordPolicy(), ShouldResemble, []PasswordViolation{
+				PasswordViolation{
+					Reason: PasswordUppercaseRequired,
+				},
+				PasswordViolation{
+					Reason: PasswordDigitRequired,
+				},
+			})
+		})
+	})
+}
