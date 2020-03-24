@@ -306,3 +306,11 @@ button.anchor {
 .btn.toggle-password-visibility.hide-password {
   background: url("../image/ic_hide_password.png") 12px center / 20px auto no-repeat;
 }
+
+.password-policy.violated {
+  color: #e30f0f;
+}
+
+.password-policy.passed {
+  color: green;
+}

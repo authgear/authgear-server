@@ -63,6 +63,8 @@ const defineError = `
 		{{ end }}
 	{{ else if eq .x_error.reason "InvalidCredentials" }}
 		<li class="error-txt">Incorrect email, phone number, username, or password</li>
+	{{ else if eq .x_error.reason "PasswordPolicyViolated" }}
+		<!-- This error is handled differently -->
 	{{ else }}
 		<li class="error-txt">{{ .x_error.message }}</li>
 	{{ end }}
@@ -77,11 +79,25 @@ const defineSkygearLogo = `
 {{ end }}
 `
 
+// nolint: gosec
+const definePasswordPolicyClass = `
+{{- define "PASSWORD_POLICY_CLASS" -}}
+{{- if .x_error_is_password_policy_violated -}}
+{{- if .x_is_violated -}}
+violated
+{{- else -}}
+passed
+{{- end -}}
+{{- end -}}
+{{- end -}}
+`
+
 var defines = []string{
 	defineHead,
 	defineLogo,
 	defineError,
 	defineSkygearLogo,
+	definePasswordPolicyClass,
 }
 
 var TemplateAuthUISignInHTML = template.Spec{
@@ -350,38 +366,38 @@ var TemplateAuthUISignUpPasswordHTML = template.Spec{
 <ul>
 {{ range .x_password_policies }}
   {{ if eq .kind "PasswordTooShort" }}
-  <li>At least {{ .min_length }} characters long</li>
+  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">At least {{ .min_length }} characters long</li>
   {{ end }}
   {{ if eq .kind "PasswordUppercaseRequired" }}
-  <li>At least one uppercase character</li>
+  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">At least one uppercase character</li>
   {{ end }}
   {{ if eq .kind "PasswordLowercaseRequired" }}
-  <li>At least one lowercase character</li>
+  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">At least one lowercase character</li>
   {{ end }}
   {{ if eq .kind "PasswordDigitRequired" }}
-  <li>At least one digit</li>
+  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">At least one digit</li>
   {{ end }}
   {{ if eq .kind "PasswordSymbolRequired" }}
-  <li>At least one symbol</li>
+  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">At least one symbol</li>
   {{ end }}
   {{ if eq .kind "PasswordContainingExcludedKeywords" }}
-  <li><strong>NO</strong> banned words</li>
+  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}"><strong>NO</strong> banned words</li>
   {{ end }}
   {{ if eq .kind "PasswordBelowGuessableLevel" }}
     {{ if eq .min_level 1.0 }}
-    <li><strong>NOT</strong> too guessable</li>
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}"><strong>NOT</strong> too guessable</li>
     {{ end }}
     {{ if eq .min_level 2.0 }}
-    <li><strong>NOT</strong> very guessable</li>
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}"><strong>NOT</strong> very guessable</li>
     {{ end }}
     {{ if eq .min_level 3.0 }}
-    <li><strong>NOT</strong> somewhat guessable</li>
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}"><strong>NOT</strong> somewhat guessable</li>
     {{ end }}
     {{ if eq .min_level 4.0 }}
-    <li>Safely unguessable</li>
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">Safely unguessable</li>
     {{ end }}
     {{ if eq .min_level 5.0 }}
-    <li>Very unguessable</li>
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">Very unguessable</li>
     {{ end }}
   {{ end }}
 {{ end }}

@@ -62,7 +62,24 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	}
 	data["x_login_id_keys"] = loginIDKeys
 
-	passwordPolicyBytes, err := json.Marshal(p.PasswordChecker.PasswordPolicy())
+	passwordPolicy := p.PasswordChecker.PasswordPolicy()
+	if apiError := skyerr.AsAPIError(inputErr); apiError != nil {
+		if apiError.Reason == "PasswordPolicyViolated" {
+			for i, policy := range passwordPolicy {
+				if policy.Info == nil {
+					policy.Info = map[string]interface{}{}
+				}
+				policy.Info["x_error_is_password_policy_violated"] = true
+				for _, cause := range apiError.Info["causes"].([]skyerr.Cause) {
+					if string(policy.Reason) == cause.Kind() {
+						policy.Info["x_is_violated"] = true
+					}
+				}
+				passwordPolicy[i] = policy
+			}
+		}
+	}
+	passwordPolicyBytes, err := json.Marshal(passwordPolicy)
 	if err != nil {
 		panic(err)
 	}

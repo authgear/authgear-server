@@ -5,6 +5,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -26,6 +27,14 @@ type AuthnProvider interface {
 	) (authn.Result, error)
 
 	ValidateSignUpLoginID(loginid loginid.LoginID) error
+
+	SignupWithLoginIDs(
+		client config.OAuthClientConfiguration,
+		loginIDs []loginid.LoginID,
+		plainPassword string,
+		metadata map[string]interface{},
+		onUserDuplicate model.OnUserDuplicate,
+	) (authn.Result, error)
 
 	WriteCookie(rw http.ResponseWriter, result *authn.CompletionResult)
 }
@@ -52,7 +61,8 @@ func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		writeResponse, err = p.SignUp(w, r)
 	case "sign_up_submit_login_id":
 		writeResponse, err = p.SignUpSubmitLoginID(w, r)
-	// TODO(webapp): sign_up_submit_password
+	case "sign_up_submit_password":
+		writeResponse, err = p.SignUpSubmitPassword(w, r)
 	default:
 		writeResponse, err = p.Default(w, r)
 	}
@@ -100,6 +110,47 @@ func (p *AuthenticateProviderImpl) SignUpSubmitLoginID(w http.ResponseWriter, r 
 	})
 	if err != nil {
 		return
+	}
+
+	return
+}
+
+func (p *AuthenticateProviderImpl) SignUpSubmitPassword(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	writeResponse = func(err error) {
+		if err != nil {
+			t := TemplateItemTypeAuthUISignUpPasswordHTML
+			p.RenderProvider.WritePage(w, r, t, err)
+		} else {
+			RedirectToRedirectURI(w, r)
+		}
+	}
+
+	err = p.ValidateProvider.Validate("#WebAppSignUpLoginIDPasswordRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	var client config.OAuthClientConfiguration
+	result, err := p.AuthnProvider.SignupWithLoginIDs(
+		client,
+		[]loginid.LoginID{
+			loginid.LoginID{
+				Key:   r.Form.Get("x_login_id_key"),
+				Value: r.Form.Get("x_login_id"),
+			},
+		},
+		r.Form.Get("x_password"), map[string]interface{}{},
+		model.OnUserDuplicateAbort,
+	)
+	if err != nil {
+		return
+	}
+
+	switch r := result.(type) {
+	case *authn.CompletionResult:
+		p.AuthnProvider.WriteCookie(w, r)
+	case *authn.InProgressResult:
+		panic("TODO(webapp): handle MFA")
 	}
 
 	return
