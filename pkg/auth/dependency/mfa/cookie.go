@@ -5,7 +5,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
-	"golang.org/x/net/publicsuffix"
 )
 
 const CookieName = "mfa_bearer_token"
@@ -38,14 +37,7 @@ func NewBearerTokenCookieConfiguration(
 	if sConfig.CookieDomain != nil {
 		cfg.Domain = *sConfig.CookieDomain
 	} else {
-		host := corehttp.GetHost(r)
-		etldp1, err := publicsuffix.EffectiveTLDPlusOne(host)
-		if err != nil {
-			// Failed to derive eTLD+1: use host-only cookie
-			cfg.Domain = ""
-		} else {
-			cfg.Domain = etldp1
-		}
+		cfg.Domain = corehttp.CookieDomainFromETLDPlusOneWithoutPort(corehttp.GetHost(r))
 	}
 
 	return cfg

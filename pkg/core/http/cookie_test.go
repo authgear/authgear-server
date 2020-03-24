@@ -103,3 +103,32 @@ func TestUpdateCookie(t *testing.T) {
 		})
 	})
 }
+
+func TestCookieDomainFromETLDPlusOneWithoutPort(t *testing.T) {
+	Convey("CookieDomainFromETLDPlusOneWithoutPort", t, func() {
+		check := func(in string, out string) {
+			actual := CookieDomainFromETLDPlusOneWithoutPort(in)
+			So(out, ShouldEqual, actual)
+		}
+		check("localhost", "")
+
+		check("accounts.localhost", "accounts.localhost")
+		check("accounts.localhost:8081", "accounts.localhost")
+
+		check("example.com", "example.com")
+		check("example.com:80", "example.com")
+		check("example.com:8080", "example.com")
+
+		check("www.example.com", "example.com")
+		check("www.example.com:80", "example.com")
+		check("www.example.com:8080", "example.com")
+
+		check("example.co.jp", "example.co.jp")
+		check("example.co.jp:80", "example.co.jp")
+		check("example.co.jp:8080", "example.co.jp")
+
+		check("www.example.co.jp", "example.co.jp")
+		check("www.example.co.jp:80", "example.co.jp")
+		check("www.example.co.jp:8080", "example.co.jp")
+	})
+}
