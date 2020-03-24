@@ -242,5 +242,84 @@ func TestAuthorizationHandler(t *testing.T) {
 				})
 			})
 		})
+		Convey("none response type", func() {
+			h.Clients = []config.OAuthClientConfiguration{{
+				"client_id":      "client-id",
+				"redirect_uris":  []interface{}{"https://example.com/"},
+				"response_types": []interface{}{"none"},
+			}}
+			Convey("request validation", func() {
+				Convey("not allowed response types", func() {
+					h.Clients[0]["response_types"] = nil
+					resp := handle(protocol.AuthorizationRequest{
+						"client_id":     "client-id",
+						"response_type": "none",
+					})
+					So(resp.Result().StatusCode, ShouldEqual, 302)
+					So(redirection(resp), ShouldEqual,
+						"https://example.com/?error=unauthorized_client&error_description=response+type+is+not+allowed+for+this+client")
+				})
+			})
+			Convey("scope validation", func() {
+				validated := false
+				h.ValidateScopes = func(client config.OAuthClientConfiguration, scopes []string) error {
+					validated = true
+					if strings.Join(scopes, " ") != "openid" {
+						return protocol.NewError("invalid_scope", "must request 'openid' scope")
+					}
+					return nil
+				}
+
+				resp := handle(protocol.AuthorizationRequest{
+					"client_id":     "client-id",
+					"response_type": "none",
+					"scope":         "email",
+				})
+				So(validated, ShouldBeTrue)
+				So(resp.Result().StatusCode, ShouldEqual, 302)
+				So(redirection(resp), ShouldEqual,
+					"https://example.com/?error=invalid_scope&error_description=must+request+%27openid%27+scope")
+			})
+			Convey("request authentication", func() {
+				resp := handle(protocol.AuthorizationRequest{
+					"client_id":     "client-id",
+					"response_type": "none",
+					"scope":         "openid",
+				})
+				So(resp.Result().StatusCode, ShouldEqual, 302)
+				So(redirection(resp), ShouldEqual,
+					"https://auth/authenticate?redirect_uri=https%3A%2F%2Fauth%2Fauthorize%3Fclient_id%3Dclient-id%26response_type%3Dnone%26scope%3Dopenid")
+			})
+			Convey("redirect to URI", func() {
+				h.Context = authtesting.WithAuthn().
+					UserID("user-id").
+					SessionID("session-id").
+					ToContext(context.Background())
+
+				Convey("create new authorization implicitly", func() {
+					resp := handle(protocol.AuthorizationRequest{
+						"client_id":     "client-id",
+						"response_type": "none",
+						"scope":         "openid",
+						"state":         "my-state",
+					})
+					So(resp.Result().StatusCode, ShouldEqual, 302)
+					So(redirection(resp), ShouldEqual,
+						"https://example.com/?state=my-state")
+
+					So(authzStore.authzs, ShouldHaveLength, 1)
+					So(authzStore.authzs[0], ShouldResemble, oauth.Authorization{
+						ID:        authzStore.authzs[0].ID,
+						AppID:     "app-id",
+						ClientID:  "client-id",
+						UserID:    "user-id",
+						CreatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						UpdatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						Scopes:    []string{"openid"},
+					})
+					So(codeGrantStore.grants, ShouldBeEmpty)
+				})
+			})
+		})
 	})
 }
