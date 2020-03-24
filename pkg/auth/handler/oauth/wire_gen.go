@@ -7,13 +7,15 @@ package oauth
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth"
+	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
+	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -52,7 +54,7 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 var (
 	_wireScopesValidatorValue = handler.ScopesValidator(oidc.ValidateScopes)
-	_wireTokenGeneratorValue  = handler.TokenGenerator(handler.GenerateToken)
+	_wireTokenGeneratorValue  = handler.TokenGenerator(oauth.GenerateToken)
 )
 
 func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
@@ -70,13 +72,19 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	provider := time.NewProvider()
 	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
-	store := redis2.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, store, eventStore, tenantConfiguration)
+	accessEventProvider := auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	store := redis3.ProvideStore(context, tenantConfiguration, provider, factory)
+	authAccessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, store, authAccessEventProvider, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, provider)
 	tokenGenerator := _wireTokenGeneratorValue
-	tokenHandler := handler.ProvideTokenHandler(context, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, sessionProvider, idTokenIssuer, tokenGenerator, provider)
+	tokenHandler := handler.ProvideTokenHandler(context, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, accessEventProvider, sessionProvider, idTokenIssuer, tokenGenerator, provider)
 	httpHandler := provideTokenHandler(factory, txContext, tokenHandler)
 	return httpHandler
 }

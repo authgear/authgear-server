@@ -9,6 +9,8 @@ import (
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
@@ -73,8 +75,11 @@ func newActivateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Signup: signupProcess,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -138,8 +143,11 @@ func newActivateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 		Signup: signupProcess,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -205,8 +213,11 @@ func newAuthenticateBearerTokenHandler(r *http.Request, m auth.DependencyMap) ht
 		Signup: signupProcess,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	sessionInsecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, sessionInsecureCookieConfig, tenantConfiguration)
@@ -271,8 +282,11 @@ func newAuthenticateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handl
 		Signup: signupProcess,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -338,8 +352,11 @@ func newAuthenticateRecoveryCodeHandler(r *http.Request, m auth.DependencyMap) h
 		Signup: signupProcess,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -405,8 +422,11 @@ func newAuthenticateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Hand
 		Signup: signupProcess,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -472,8 +492,11 @@ func newCreateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Signup: signupProcess,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -537,8 +560,11 @@ func newCreateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Signup: signupProcess,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -602,8 +628,11 @@ func newListAuthenticatorHandler(r *http.Request, m auth.DependencyMap) http.Han
 		Signup: signupProcess,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -667,8 +696,11 @@ func newTriggerOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Signup: signupProcess,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)

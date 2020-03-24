@@ -9,6 +9,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
@@ -77,8 +79,11 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	mfaSender := mfa.ProvideMFASender(tenantConfiguration, client, sender, engine)
 	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, timeProvider, mfaSender)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, timeProvider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -138,8 +143,11 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	mfaSender := mfa.ProvideMFASender(tenantConfiguration, client, sender, engine)
 	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, provider, mfaSender)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -200,8 +208,11 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	mfaSender := mfa.ProvideMFASender(tenantConfiguration, client, sender, engine)
 	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, timeProvider, mfaSender)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, timeProvider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -263,8 +274,11 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	mfaSender := mfa.ProvideMFASender(tenantConfiguration, client, sender, engine)
 	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, timeProvider, mfaSender)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
 	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, timeProvider, authinfoStore, userprofileStore, identityProvider, hookProvider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)

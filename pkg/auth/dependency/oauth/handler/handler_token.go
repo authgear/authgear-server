@@ -9,6 +9,7 @@ import (
 	gotime "time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
@@ -32,6 +33,7 @@ type TokenHandler struct {
 	CodeGrants     oauth.CodeGrantStore
 	OfflineGrants  oauth.OfflineGrantStore
 	AccessGrants   oauth.AccessGrantStore
+	AccessEvents   auth.AccessEventProvider
 	Sessions       session.Provider
 	IDTokenIssuer  IDTokenIssuer
 	GenerateToken  TokenGenerator
@@ -126,7 +128,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	client config.OAuthClientConfiguration,
 	r protocol.TokenRequest,
 ) (TokenResult, error) {
-	codeHash := hashToken(r.Code())
+	codeHash := oauth.HashToken(r.Code())
 	codeGrant, err := h.CodeGrants.GetCodeGrant(codeHash)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		return nil, errInvalidAuthzCode
@@ -195,7 +197,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, errInvalidRefreshToken
 	}
 
-	tokenHash := hashToken(token)
+	tokenHash := oauth.HashToken(token)
 	if subtle.ConstantTimeCompare([]byte(tokenHash), []byte(offlineGrant.TokenHash)) != 1 {
 		return nil, errInvalidRefreshToken
 	}
@@ -334,14 +336,20 @@ func (h *TokenHandler) issueOfflineGrant(
 		CreatedAt: now,
 		ExpireAt:  now.Add(gotime.Duration(client.RefreshTokenLifetime()) * gotime.Second),
 		Scopes:    code.Scopes,
-		TokenHash: hashToken(token),
+		TokenHash: oauth.HashToken(token),
 
-		AccessedAt:    now,
-		Attrs:         session.Attrs,
-		InitialAccess: session.LastAccess,
-		LastAccess:    session.LastAccess,
+		Attrs: session.Attrs,
+		AccessInfo: auth.AccessInfo{
+			InitialAccess: session.AccessInfo.LastAccess,
+			LastAccess:    session.AccessInfo.LastAccess,
+		},
 	}
 	err := h.OfflineGrants.CreateOfflineGrant(offlineGrant)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.AccessEvents.InitStream(offlineGrant)
 	if err != nil {
 		return nil, err
 	}
@@ -370,7 +378,7 @@ func (h *TokenHandler) issueAccessGrant(
 		CreatedAt:       now,
 		ExpireAt:        now.Add(gotime.Duration(client.AccessTokenLifetime()) * gotime.Second),
 		Scopes:          scopes,
-		TokenHash:       hashToken(token),
+		TokenHash:       oauth.HashToken(token),
 	}
 	err := h.AccessGrants.CreateAccessGrant(accessGrant)
 	if err != nil {

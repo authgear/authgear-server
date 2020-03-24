@@ -96,7 +96,7 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	code := h.CodeGenerator()
-	codeHash := hashToken(code)
+	codeHash := oauth.HashToken(code)
 
 	codeGrant := &oauth.CodeGrant{
 		AppID:           h.AppID,

@@ -13,8 +13,6 @@ type Provider interface {
 	Get(id string) (*IDPSession, error)
 	// Update updates the session attributes.
 	Update(session *IDPSession) error
-	// Access updates the session info when it is being accessed by user
-	Access(*IDPSession) error
 	// Invalidate invalidates session with the ID
 	Invalidate(*IDPSession) error
 	// InvalidateBatch invalidates sessions

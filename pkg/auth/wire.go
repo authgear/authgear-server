@@ -8,9 +8,9 @@ import (
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 )
 
 type middlewareInstance interface {
@@ -25,7 +25,7 @@ func NewAccessKeyMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc
 	wire.Build(
 		DependencySet,
 		provideMiddleware,
-		wire.Bind(new(middlewareInstance), new(*auth.AccessKeyMiddleware)),
+		wire.Bind(new(middlewareInstance), new(*coreauth.AccessKeyMiddleware)),
 	)
 	return nil
 }
@@ -34,7 +34,7 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	wire.Build(
 		DependencySet,
 		provideMiddleware,
-		wire.Bind(new(middlewareInstance), new(*session.Middleware)),
+		wire.Bind(new(middlewareInstance), new(*auth.Middleware)),
 	)
 	return nil
 }

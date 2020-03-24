@@ -1,4 +1,4 @@
-package handler
+package oauth
 
 import (
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
@@ -14,6 +14,6 @@ func GenerateToken() string {
 	return token
 }
 
-func hashToken(token string) string {
+func HashToken(token string) string {
 	return crypto.SHA256String(token)
 }

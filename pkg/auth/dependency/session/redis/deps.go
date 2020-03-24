@@ -19,14 +19,6 @@ func ProvideStore(
 	return NewStore(ctx, c.AppID, t, lf)
 }
 
-func ProvideEventStore(
-	ctx context.Context,
-	c *config.TenantConfiguration,
-) session.EventStore {
-	return NewEventStore(ctx, c.AppID)
-}
-
 var DependencySet = wire.NewSet(
 	ProvideStore,
-	ProvideEventStore,
 )

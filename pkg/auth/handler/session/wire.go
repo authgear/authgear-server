@@ -7,18 +7,18 @@ import (
 
 	"github.com/google/wire"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
-func provideResolveHandler(m *session.Middleware, t time.Provider) http.Handler {
+func provideResolveHandler(m *auth.Middleware, t time.Provider) http.Handler {
 	return m.Handle(&ResolveHandler{
 		TimeProvider: t,
 	})
 }
 
-func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
-	wire.Build(auth.DependencySet, provideResolveHandler)
+func newResolveHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(pkg.DependencySet, provideResolveHandler)
 	return nil
 }

@@ -7,11 +7,16 @@ package auth
 
 import (
 	"github.com/gorilla/mux"
+	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
+	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
+	pq2 "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -37,13 +42,44 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	requestID := ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, store, eventStore, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, store, accessEventProvider, tenantConfiguration)
+	resolver := &session.Resolver{
+		CookieConfiguration: cookieConfiguration,
+		Provider:            sessionProvider,
+		Time:                provider,
+	}
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := ProvideAuthSQLBuilder(sqlBuilderFactory)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
-	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	resolverSessionProvider := oauth.ProvideResolverProvider(sessionProvider)
+	oauthResolver := &oauth.Resolver{
+		Authorizations: authorizationStore,
+		AccessGrants:   grantStore,
+		OfflineGrants:  grantStore,
+		Sessions:       resolverSessionProvider,
+		Time:           provider,
+	}
+	authAccessEventProvider := auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	middleware := session.ProvideSessionMiddleware(cookieConfiguration, sessionProvider, authinfoStore, txContext)
+	middleware := &auth2.Middleware{
+		IDPSessionResolver:         resolver,
+		AccessTokenSessionResolver: oauthResolver,
+		AccessEvents:               authAccessEventProvider,
+		AuthInfoStore:              authinfoStore,
+		TxContext:                  txContext,
+	}
 	middlewareFunc := provideMiddleware(middleware)
 	return middlewareFunc
 }

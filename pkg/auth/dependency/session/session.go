@@ -12,13 +12,10 @@ type IDPSession struct {
 	ID    string `json:"id"`
 	AppID string `json:"app_id"`
 
-	Attrs authn.Attrs `json:"attrs"`
+	CreatedAt time.Time   `json:"created_at"`
+	Attrs     authn.Attrs `json:"attrs"`
 
-	InitialAccess authn.AccessEvent `json:"initial_access"`
-	LastAccess    authn.AccessEvent `json:"last_access"`
-
-	CreatedAt  time.Time `json:"created_at"`
-	AccessedAt time.Time `json:"accessed_at"`
+	AccessInfo auth.AccessInfo `json:"access_info"`
 
 	TokenHash string `json:"token_hash"`
 }
@@ -32,9 +29,11 @@ func (s *IDPSession) AuthnAttrs() *authn.Attrs {
 	return &s.Attrs
 }
 
+func (s *IDPSession) GetAccessInfo() *auth.AccessInfo { return &s.AccessInfo }
+
 func (s *IDPSession) ToAPIModel() *model.Session {
-	ua := model.ParseUserAgent(s.LastAccess.UserAgent)
-	ua.DeviceName = s.LastAccess.Extra.DeviceName()
+	ua := model.ParseUserAgent(s.AccessInfo.LastAccess.UserAgent)
+	ua.DeviceName = s.AccessInfo.LastAccess.Extra.DeviceName()
 	return &model.Session{
 		ID: s.ID,
 
@@ -47,9 +46,9 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 		AuthenticatorOOBChannel: string(s.Attrs.AuthenticatorOOBChannel),
 		AuthenticatorUpdatedAt:  s.Attrs.AuthenticatorUpdatedAt,
 		CreatedAt:               s.CreatedAt,
-		LastAccessedAt:          s.AccessedAt,
-		CreatedByIP:             s.InitialAccess.Remote.IP(),
-		LastAccessedByIP:        s.LastAccess.Remote.IP(),
+		LastAccessedAt:          s.AccessInfo.LastAccess.Timestamp,
+		CreatedByIP:             s.AccessInfo.InitialAccess.Remote.IP(),
+		LastAccessedByIP:        s.AccessInfo.LastAccess.Remote.IP(),
 		UserAgent:               ua,
 	}
 }

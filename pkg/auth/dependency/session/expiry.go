@@ -9,7 +9,7 @@ import (
 func computeSessionStorageExpiry(session *IDPSession, cfg config.SessionConfiguration) (expiry time.Time) {
 	expiry = session.CreatedAt.Add(time.Second * time.Duration(cfg.Lifetime))
 	if cfg.IdleTimeoutEnabled {
-		sessionIdleExpiry := session.AccessedAt.Add(time.Second * time.Duration(cfg.IdleTimeout))
+		sessionIdleExpiry := session.AccessInfo.LastAccess.Timestamp.Add(time.Second * time.Duration(cfg.IdleTimeout))
 		if sessionIdleExpiry.Before(expiry) {
 			expiry = sessionIdleExpiry
 		}
@@ -25,7 +25,7 @@ func checkSessionExpired(session *IDPSession, now time.Time, cfg config.SessionC
 	}
 
 	if cfg.IdleTimeoutEnabled {
-		sessionIdleExpiry := session.AccessedAt.Add(time.Second * time.Duration(cfg.IdleTimeout))
+		sessionIdleExpiry := session.AccessInfo.LastAccess.Timestamp.Add(time.Second * time.Duration(cfg.IdleTimeout))
 		if now.After(sessionIdleExpiry) {
 			expired = true
 			return

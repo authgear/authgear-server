@@ -5,18 +5,17 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type mockResolver struct {
-	Sessions        []IDPSession
-	AccessedSession []string
+type mockResolverProvider struct {
+	Sessions []IDPSession
 }
 
-func (r *mockResolver) GetByToken(token string) (*IDPSession, error) {
+func (r *mockResolverProvider) GetByToken(token string) (*IDPSession, error) {
 	for _, s := range r.Sessions {
 		if s.TokenHash == token {
 			return &s, nil
@@ -25,13 +24,18 @@ func (r *mockResolver) GetByToken(token string) (*IDPSession, error) {
 	return nil, ErrSessionNotFound
 }
 
-func (r *mockResolver) Access(s *IDPSession) error {
-	r.AccessedSession = append(r.AccessedSession, s.ID)
+func (r *mockResolverProvider) Update(session *IDPSession) error {
+	for i, s := range r.Sessions {
+		if s.ID == session.ID {
+			r.Sessions[i] = *session
+			break
+		}
+	}
 	return nil
 }
 
-func TestMiddleware(t *testing.T) {
-	Convey("Middleware", t, func() {
+func TestResolver(t *testing.T) {
+	Convey("Resolver", t, func() {
 		config := CookieConfiguration{
 			Name:   CookieName,
 			Path:   "/",
@@ -39,14 +43,8 @@ func TestMiddleware(t *testing.T) {
 			Secure: true,
 			MaxAge: nil,
 		}
-		resolver := &mockResolver{}
-		userStore := authinfo.NewMockStore()
-
-		userStore.AuthInfoMap["user-id"] = authinfo.AuthInfo{
-			ID:       "user-id",
-			Verified: true,
-		}
-		resolver.Sessions = []IDPSession{
+		provider := &mockResolverProvider{}
+		provider.Sessions = []IDPSession{
 			{
 				ID: "session-id",
 				Attrs: authn.Attrs{
@@ -56,29 +54,19 @@ func TestMiddleware(t *testing.T) {
 			},
 		}
 
-		m := Middleware{
+		resolver := Resolver{
 			CookieConfiguration: config,
-			SessionResolver:     resolver,
-			AuthInfoStore:       userStore,
-			TxContext:           db.NewMockTxContext(),
+			Provider:            provider,
+			Time:                &time.MockProvider{},
 		}
-		var valid bool
-		var s authn.Session
-		var u *authinfo.AuthInfo
-		handler := m.Handle(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			valid = authn.IsValidAuthn(r.Context())
-			s = authn.GetSession(r.Context())
-			u = authn.GetAuthInfo(r.Context())
-		}))
 
 		Convey("resolve without session cookie", func() {
 			rw := httptest.NewRecorder()
 			r, _ := http.NewRequest("POST", "/", nil)
-			handler.ServeHTTP(rw, r)
+			session, err := resolver.Resolve(rw, r)
 
-			So(valid, ShouldBeTrue)
-			So(s, ShouldBeNil)
-			So(u, ShouldBeNil)
+			So(session, ShouldBeNil)
+			So(err, ShouldBeNil)
 			So(rw.Result().Cookies(), ShouldBeEmpty)
 		})
 
@@ -86,11 +74,10 @@ func TestMiddleware(t *testing.T) {
 			rw := httptest.NewRecorder()
 			r, _ := http.NewRequest("POST", "/", nil)
 			r.AddCookie(&http.Cookie{Name: CookieName, Value: "invalid"})
-			handler.ServeHTTP(rw, r)
+			session, err := resolver.Resolve(rw, r)
 
-			So(valid, ShouldBeFalse)
-			So(s, ShouldBeNil)
-			So(u, ShouldBeNil)
+			So(session, ShouldBeNil)
+			So(err, ShouldBeError, auth.ErrInvalidSession)
 			So(rw.Result().Cookies(), ShouldHaveLength, 1)
 			So(rw.Result().Cookies()[0].Raw, ShouldEqual, "session=; Path=/; Domain=app.test; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Lax")
 		})
@@ -99,11 +86,11 @@ func TestMiddleware(t *testing.T) {
 			rw := httptest.NewRecorder()
 			r, _ := http.NewRequest("POST", "/", nil)
 			r.AddCookie(&http.Cookie{Name: CookieName, Value: "token"})
-			handler.ServeHTTP(rw, r)
+			session, err := resolver.Resolve(rw, r)
 
-			So(valid, ShouldBeTrue)
-			So(u.ID, ShouldEqual, "user-id")
-			So(s.SessionID(), ShouldEqual, "session-id")
+			So(session, ShouldNotBeNil)
+			So(session.SessionID(), ShouldEqual, "session-id")
+			So(err, ShouldBeNil)
 			So(rw.Result().Cookies(), ShouldBeEmpty)
 		})
 	})

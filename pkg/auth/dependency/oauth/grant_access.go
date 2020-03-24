@@ -14,8 +14,8 @@ type AccessGrant struct {
 	TokenHash string    `json:"token_hash"`
 }
 
-var _ Grant = AccessGrant{}
+var _ Grant = &AccessGrant{}
 
-func (g AccessGrant) Session() (kind GrantSessionKind, id string) {
+func (g *AccessGrant) Session() (kind GrantSessionKind, id string) {
 	return g.SessionKind, g.SessionID
 }

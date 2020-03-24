@@ -1,13 +1,12 @@
 package session
 
 import (
-	"encoding/base64"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"testing"
 	gotime "time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 
@@ -15,10 +14,15 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+type mockAccessEventProvider struct{}
+
+func (*mockAccessEventProvider) InitStream(s auth.AuthSession) error {
+	return nil
+}
+
 func TestProvider(t *testing.T) {
 	Convey("Provider", t, func() {
 		store := NewMockStore()
-		eventStore := NewMockEventStore()
 
 		timeProvider := &time.MockProvider{}
 		initialTime := gotime.Date(2020, 1, 1, 0, 0, 0, 0, gotime.UTC)
@@ -28,21 +32,21 @@ func TestProvider(t *testing.T) {
 		req, _ := http.NewRequest("POST", "", nil)
 		req.Header.Set("User-Agent", "SDK")
 		req.Header.Set("X-Skygear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
-		accessEvent := authn.AccessEvent{
+		accessEvent := auth.AccessEvent{
 			Timestamp: initialTime,
 			UserAgent: "SDK",
-			Extra: authn.AccessEventExtraInfo{
+			Extra: auth.AccessEventExtraInfo{
 				"device_name": "Device",
 			},
 		}
 
 		provider := &ProviderImpl{
-			req:        req,
-			store:      store,
-			eventStore: eventStore,
-			config:     config.SessionConfiguration{},
-			time:       timeProvider,
-			rand:       rand.New(rand.NewSource(0)),
+			req:          req,
+			store:        store,
+			accessEvents: &mockAccessEventProvider{},
+			config:       config.SessionConfiguration{},
+			time:         timeProvider,
+			rand:         rand.New(rand.NewSource(0)),
 		}
 
 		Convey("creating session", func() {
@@ -61,13 +65,13 @@ func TestProvider(t *testing.T) {
 						UserID:      "user-id",
 						PrincipalID: "principal-id",
 					},
-					InitialAccess: accessEvent,
-					LastAccess:    accessEvent,
-					CreatedAt:     initialTime,
-					AccessedAt:    initialTime,
-					TokenHash:     session.TokenHash,
+					AccessInfo: auth.AccessInfo{
+						InitialAccess: accessEvent,
+						LastAccess:    accessEvent,
+					},
+					CreatedAt: initialTime,
+					TokenHash: session.TokenHash,
 				})
-				So(eventStore.AccessEvents, ShouldResemble, []authn.AccessEvent{accessEvent})
 			})
 
 			Convey("should allow creating multiple sessions for same principal", func() {
@@ -83,11 +87,12 @@ func TestProvider(t *testing.T) {
 						UserID:      "user-id",
 						PrincipalID: "principal-id",
 					},
-					InitialAccess: accessEvent,
-					LastAccess:    accessEvent,
-					CreatedAt:     initialTime,
-					AccessedAt:    initialTime,
-					TokenHash:     session1.TokenHash,
+					AccessInfo: auth.AccessInfo{
+						InitialAccess: accessEvent,
+						LastAccess:    accessEvent,
+					},
+					CreatedAt: initialTime,
+					TokenHash: session1.TokenHash,
 				})
 
 				session2, _ := provider.MakeSession(&authn.Attrs{
@@ -102,11 +107,12 @@ func TestProvider(t *testing.T) {
 						UserID:      "user-id",
 						PrincipalID: "principal-id",
 					},
-					InitialAccess: accessEvent,
-					LastAccess:    accessEvent,
-					CreatedAt:     initialTime,
-					AccessedAt:    initialTime,
-					TokenHash:     session2.TokenHash,
+					AccessInfo: auth.AccessInfo{
+						InitialAccess: accessEvent,
+						LastAccess:    accessEvent,
+					},
+					CreatedAt: initialTime,
+					TokenHash: session2.TokenHash,
 				})
 
 				So(session1.ID, ShouldNotEqual, session2.ID)
@@ -121,9 +127,8 @@ func TestProvider(t *testing.T) {
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 				},
-				CreatedAt:  initialTime,
-				AccessedAt: initialTime,
-				TokenHash:  "15be5b9c05673532b445d3295a86afd6b2615775e0233e9798cbe3c846a08d05",
+				CreatedAt: initialTime,
+				TokenHash: "15be5b9c05673532b445d3295a86afd6b2615775e0233e9798cbe3c846a08d05",
 			}
 			store.Sessions[fixtureSession.ID] = fixtureSession
 
@@ -156,35 +161,6 @@ func TestProvider(t *testing.T) {
 			})
 		})
 
-		Convey("accessing session", func() {
-			session := IDPSession{
-				ID: "session-id",
-				Attrs: authn.Attrs{
-					UserID:      "user-id",
-					PrincipalID: "principal-id",
-				},
-				CreatedAt:  initialTime,
-				AccessedAt: initialTime,
-				TokenHash:  "token-hash",
-			}
-			timeProvider.AdvanceSeconds(100)
-			timeNow := timeProvider.TimeNowUTC
-			accessEvent.Timestamp = timeNow
-			store.Sessions["session-id"] = session
-
-			Convey("should be update accessed at time", func() {
-				err := provider.Access(&session)
-				So(err, ShouldBeNil)
-				So(session.AccessedAt, ShouldEqual, timeNow)
-			})
-			Convey("should be create access event", func() {
-				err := provider.Access(&session)
-				So(err, ShouldBeNil)
-				So(session.LastAccess, ShouldResemble, accessEvent)
-				So(eventStore.AccessEvents, ShouldResemble, []authn.AccessEvent{accessEvent})
-			})
-		})
-
 		Convey("invalidating session", func() {
 			store.Sessions["session-id"] = IDPSession{
 				ID: "session-id",
@@ -192,9 +168,8 @@ func TestProvider(t *testing.T) {
 					UserID:      "user-id",
 					PrincipalID: "principal-id",
 				},
-				CreatedAt:  initialTime,
-				AccessedAt: initialTime,
-				TokenHash:  "token-hash",
+				CreatedAt: initialTime,
+				TokenHash: "token-hash",
 			}
 
 			Convey("should be successful", func() {
@@ -217,8 +192,7 @@ func TestProvider(t *testing.T) {
 					Attrs: authn.Attrs{
 						UserID: userID,
 					},
-					CreatedAt:  initialTime.Add(gotime.Duration(timeOffset) * gotime.Second),
-					AccessedAt: initialTime.Add(gotime.Duration(timeOffset) * gotime.Second),
+					CreatedAt: initialTime.Add(gotime.Duration(timeOffset) * gotime.Second),
 				}
 			}
 			makeSession("a", "user-1", 100)
@@ -246,64 +220,6 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(ids, ShouldHaveLength, 0)
 			})
-		})
-	})
-	Convey("newAccessEvent", t, func() {
-		now := gotime.Date(2020, 1, 1, 0, 0, 0, 0, gotime.UTC)
-		Convey("should record current timestamp", func() {
-			req, _ := http.NewRequest("POST", "", nil)
-
-			event := newAccessEvent(now, req)
-			So(event.Timestamp, ShouldResemble, now)
-		})
-		Convey("should populate connection info", func() {
-			req, _ := http.NewRequest("POST", "", nil)
-			req.RemoteAddr = "192.168.1.11:31035"
-			req.Header.Set("X-Forwarded-For", "13.225.103.28, 216.58.197.110")
-			req.Header.Set("X-Real-IP", "216.58.197.110")
-			req.Header.Set("Forwarded", "for=216.58.197.110;proto=http;by=192.168.1.11")
-
-			event := newAccessEvent(now, req)
-			So(event.Remote, ShouldResemble, authn.AccessEventConnInfo{
-				RemoteAddr:    "192.168.1.11:31035",
-				XForwardedFor: "13.225.103.28, 216.58.197.110",
-				XRealIP:       "216.58.197.110",
-				Forwarded:     "for=216.58.197.110;proto=http;by=192.168.1.11",
-			})
-		})
-		Convey("should populate user agent", func() {
-			req, _ := http.NewRequest("POST", "", nil)
-			req.RemoteAddr = "192.168.1.11:31035"
-			req.Header.Set("User-Agent", "SDK")
-
-			event := newAccessEvent(now, req)
-			So(event.UserAgent, ShouldEqual, "SDK")
-		})
-		Convey("should populate extra info", func() {
-			req, _ := http.NewRequest("POST", "", nil)
-			req.Header.Set("X-Skygear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
-
-			event := newAccessEvent(now, req)
-			So(event.Extra, ShouldResemble, authn.AccessEventExtraInfo{
-				"device_name": "Device",
-			})
-		})
-		Convey("should not populate extra info if too large", func() {
-			extra := "{ "
-			for i := 0; i < 1000; i++ {
-				if i != 0 {
-					extra += ", "
-				}
-				extra += fmt.Sprintf(`"info_%d": %d`, i, i)
-			}
-			extra += " }"
-			extra = base64.StdEncoding.EncodeToString([]byte(extra))
-
-			req, _ := http.NewRequest("POST", "", nil)
-			req.Header.Set("X-Skygear-Extra-Info", extra)
-
-			event := newAccessEvent(now, req)
-			So(event.Extra, ShouldResemble, authn.AccessEventExtraInfo{})
 		})
 	})
 }

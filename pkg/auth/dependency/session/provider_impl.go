@@ -2,19 +2,16 @@ package session
 
 import (
 	"crypto/subtle"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/http"
 	"strings"
-	gotime "time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -25,13 +22,15 @@ const (
 	tokenLength   = 32
 )
 
-const extraDataSizeLimit = 1024
+type AccessEventProvider interface {
+	InitStream(s auth.AuthSession) error
+}
 
 type ProviderImpl struct {
-	req        *http.Request
-	store      Store
-	eventStore EventStore
-	config     config.SessionConfiguration
+	req          *http.Request
+	store        Store
+	accessEvents AccessEventProvider
+	config       config.SessionConfiguration
 
 	time time.Provider
 	rand *rand.Rand
@@ -40,16 +39,16 @@ type ProviderImpl struct {
 func NewProvider(
 	req *http.Request,
 	store Store,
-	eventStore EventStore,
+	accessEvents AccessEventProvider,
 	sessionConfig config.SessionConfiguration,
 ) *ProviderImpl {
 	return &ProviderImpl{
-		req:        req,
-		store:      store,
-		eventStore: eventStore,
-		config:     sessionConfig,
-		time:       time.NewProvider(),
-		rand:       corerand.SecureRand,
+		req:          req,
+		store:        store,
+		accessEvents: accessEvents,
+		config:       sessionConfig,
+		time:         time.NewProvider(),
+		rand:         corerand.SecureRand,
 	}
 }
 
@@ -57,16 +56,17 @@ var _ Provider = &ProviderImpl{}
 
 func (p *ProviderImpl) MakeSession(attrs *authn.Attrs) (*IDPSession, string) {
 	now := p.time.NowUTC()
-	accessEvent := newAccessEvent(now, p.req)
+	accessEvent := auth.NewAccessEvent(now, p.req)
 	// NOTE(louis): remember to update the mock provider
 	// if session has new fields.
 	session := &IDPSession{
-		ID:            uuid.New(),
-		Attrs:         *attrs,
-		InitialAccess: accessEvent,
-		LastAccess:    accessEvent,
-		CreatedAt:     now,
-		AccessedAt:    now,
+		ID:        uuid.New(),
+		CreatedAt: now,
+		Attrs:     *attrs,
+		AccessInfo: auth.AccessInfo{
+			InitialAccess: accessEvent,
+			LastAccess:    accessEvent,
+		},
 	}
 	token := p.generateToken(session)
 
@@ -80,7 +80,7 @@ func (p *ProviderImpl) Create(session *IDPSession) error {
 		return errors.HandledWithMessage(err, "failed to create session")
 	}
 
-	err = p.eventStore.AppendAccessEvent(session, &session.InitialAccess)
+	err = p.accessEvents.InitStream(session)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to access session")
 	}
@@ -127,26 +127,6 @@ func (p *ProviderImpl) Get(id string) (*IDPSession, error) {
 	}
 
 	return session, nil
-}
-
-func (p *ProviderImpl) Access(s *IDPSession) error {
-	now := p.time.NowUTC()
-	accessEvent := newAccessEvent(now, p.req)
-
-	s.AccessedAt = now
-	s.LastAccess = accessEvent
-
-	err := p.eventStore.AppendAccessEvent(s, &accessEvent)
-	if err != nil {
-		return errors.HandledWithMessage(err, "failed to access session")
-	}
-
-	expiry := computeSessionStorageExpiry(s, p.config)
-	err = p.store.Update(s, expiry)
-	if err != nil {
-		return errors.HandledWithMessage(err, "failed to update session")
-	}
-	return nil
 }
 
 func (p *ProviderImpl) Invalidate(session *IDPSession) error {
@@ -224,26 +204,4 @@ func decodeTokenSessionID(token string) (id string, ok bool) {
 	}
 	id, ok = parts[0], true
 	return
-}
-
-func newAccessEvent(timestamp gotime.Time, req *http.Request) authn.AccessEvent {
-	remote := authn.AccessEventConnInfo{
-		RemoteAddr:    req.RemoteAddr,
-		XForwardedFor: req.Header.Get("X-Forwarded-For"),
-		XRealIP:       req.Header.Get("X-Real-IP"),
-		Forwarded:     req.Header.Get("Forwarded"),
-	}
-
-	extra := authn.AccessEventExtraInfo{}
-	extraData, err := base64.StdEncoding.DecodeString(req.Header.Get(corehttp.HeaderSessionExtraInfo))
-	if err == nil && len(extraData) <= extraDataSizeLimit {
-		_ = json.Unmarshal(extraData, &extra)
-	}
-
-	return authn.AccessEvent{
-		Timestamp: timestamp,
-		Remote:    remote,
-		UserAgent: req.UserAgent(),
-		Extra:     extra,
-	}
 }
