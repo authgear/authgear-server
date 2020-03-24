@@ -1,7 +1,10 @@
 package oidc
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -46,4 +49,15 @@ func IsScopeAllowed(scope string) bool {
 		}
 	}
 	return false
+}
+
+func SessionScopes(s auth.AuthSession) []string {
+	switch s := s.(type) {
+	case *session.IDPSession:
+		return []string{FullAccessScope}
+	case *oauth.OfflineGrant:
+		return s.Scopes
+	default:
+		panic("oidc: unexpected session type")
+	}
 }
