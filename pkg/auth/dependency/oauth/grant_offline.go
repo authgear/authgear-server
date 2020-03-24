@@ -3,6 +3,7 @@ package oauth
 import (
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -16,10 +17,10 @@ type OfflineGrant struct {
 	Scopes    []string  `json:"scopes"`
 	TokenHash string    `json:"token_hash"`
 
-	AccessedAt    time.Time         `json:"accessed_at"`
-	Attrs         authn.Attrs       `json:"attrs"`
-	InitialAccess authn.AccessEvent `json:"initial_access"`
-	LastAccess    authn.AccessEvent `json:"last_access"`
+	AccessedAt    time.Time        `json:"accessed_at"`
+	Attrs         authn.Attrs      `json:"attrs"`
+	InitialAccess auth.AccessEvent `json:"initial_access"`
+	LastAccess    auth.AccessEvent `json:"last_access"`
 }
 
 var _ Grant = OfflineGrant{}

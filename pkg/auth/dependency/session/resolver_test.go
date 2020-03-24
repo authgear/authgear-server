@@ -11,8 +11,7 @@ import (
 )
 
 type mockResolverProvider struct {
-	Sessions        []IDPSession
-	AccessedSession []string
+	Sessions []IDPSession
 }
 
 func (r *mockResolverProvider) GetByToken(token string) (*IDPSession, error) {
@@ -24,8 +23,13 @@ func (r *mockResolverProvider) GetByToken(token string) (*IDPSession, error) {
 	return nil, ErrSessionNotFound
 }
 
-func (r *mockResolverProvider) Access(s *IDPSession) error {
-	r.AccessedSession = append(r.AccessedSession, s.ID)
+func (r *mockResolverProvider) Update(session *IDPSession) error {
+	for i, s := range r.Sessions {
+		if s.ID == session.ID {
+			r.Sessions[i] = *session
+			break
+		}
+	}
 	return nil
 }
 

@@ -28,8 +28,7 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis.ProvideEventStore(context, tenantConfiguration)
-	sessionProvider := session.ProvideSessionProvider(r, store, eventStore, tenantConfiguration)
+	sessionProvider := session.ProvideSessionProvider(r, store, tenantConfiguration)
 	resolver := session.ProvideSessionResolver(cookieConfiguration, sessionProvider)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
@@ -39,6 +38,7 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		IDPSessionResolver: resolver,
 		AuthInfoStore:      authinfoStore,
 		TxContext:          txContext,
+		Time:               provider,
 	}
 	handler := provideResolveHandler(middleware, provider)
 	return handler

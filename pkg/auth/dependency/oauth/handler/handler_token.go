@@ -338,8 +338,8 @@ func (h *TokenHandler) issueOfflineGrant(
 
 		AccessedAt:    now,
 		Attrs:         session.Attrs,
-		InitialAccess: session.LastAccess,
-		LastAccess:    session.LastAccess,
+		InitialAccess: session.AccessInfo.LastAccess,
+		LastAccess:    session.AccessInfo.LastAccess,
 	}
 	err := h.OfflineGrants.CreateOfflineGrant(offlineGrant)
 	if err != nil {

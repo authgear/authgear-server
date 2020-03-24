@@ -7,18 +7,21 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 var ErrInvalidSession = errors.New("provided session is invalid")
 
 type IDPSessionResolver interface {
 	Resolve(rw http.ResponseWriter, r *http.Request) (AuthSession, error)
+	OnAccess(session AuthSession, event AccessEvent) error
 }
 
 type Middleware struct {
 	IDPSessionResolver IDPSessionResolver
 	AuthInfoStore      authinfo.Store
 	TxContext          db.TxContext
+	Time               time.Provider
 }
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
@@ -55,7 +58,13 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (AuthSessi
 
 	user := &authinfo.AuthInfo{}
 	if err = m.AuthInfoStore.GetAuth(sessionIDP.AuthnAttrs().UserID, user); err != nil {
-		panic(err)
+		return nil, nil, err
+	}
+
+	accessEvent := NewAccessEvent(m.Time.NowUTC(), r)
+	err = m.IDPSessionResolver.OnAccess(sessionIDP, accessEvent)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	return sessionIDP, user, nil

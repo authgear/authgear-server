@@ -4,8 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 )
 
@@ -19,27 +18,31 @@ type EventStore struct {
 	appID string
 }
 
-var _ session.EventStore = &EventStore{}
+var _ auth.AccessEventStore = &EventStore{}
 
 func NewEventStore(ctx context.Context, appID string) *EventStore {
 	return &EventStore{ctx: ctx, appID: appID}
 }
 
-func (s *EventStore) AppendAccessEvent(session *session.IDPSession, event *authn.AccessEvent) (err error) {
-	json, err := json.Marshal(event)
+func (s *EventStore) AppendAccessEvent(session auth.AuthSession, event *auth.AccessEvent) error {
+	data, err := json.Marshal(event)
 	if err != nil {
-		return
+		return err
 	}
 
 	conn := redis.GetConn(s.ctx)
-	key := eventStreamKey(s.appID, session.ID)
+	streamKey := accessEventStreamKey(s.appID, session.SessionID())
 
-	args := []interface{}{key}
+	args := []interface{}{streamKey}
 	if maxEventStreamLength >= 0 {
 		args = append(args, "MAXLEN", "~", maxEventStreamLength)
 	}
-	args = append(args, "*", eventTypeAccessEvent, json)
+	args = append(args, "*", eventTypeAccessEvent, data)
 
 	_, err = conn.Do("XADD", args...)
-	return
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

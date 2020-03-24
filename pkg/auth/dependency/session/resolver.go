@@ -9,7 +9,7 @@ import (
 
 type ResolverProvider interface {
 	GetByToken(token string) (*IDPSession, error)
-	Access(*IDPSession) error
+	Update(session *IDPSession) error
 }
 
 type Resolver struct {
@@ -33,10 +33,11 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthS
 		return nil, err
 	}
 
-	err = re.Provider.Access(session)
-	if err != nil {
-		return nil, err
-	}
-
 	return session, nil
+}
+
+func (re *Resolver) OnAccess(session auth.AuthSession, event auth.AccessEvent) error {
+	s := session.(*IDPSession)
+	s.AccessInfo.LastAccess = event
+	return re.Provider.Update(s)
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -11,9 +12,13 @@ import (
 func TestComputeSessionExpiry(t *testing.T) {
 	Convey("computeSessionExpiry", t, func() {
 		session := &IDPSession{
-			ID:         "session-id",
-			CreatedAt:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-			AccessedAt: time.Date(2020, 1, 1, 0, 0, 25, 0, time.UTC),
+			ID:        "session-id",
+			CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			AccessInfo: auth.AccessInfo{
+				LastAccess: auth.AccessEvent{
+					Timestamp: time.Date(2020, 1, 1, 0, 0, 25, 0, time.UTC),
+				},
+			},
 		}
 
 		Convey("idle timeout is disabled", func() {
@@ -38,9 +43,13 @@ func TestComputeSessionExpiry(t *testing.T) {
 func TestCheckSessionExpired(t *testing.T) {
 	Convey("checkSessionExpired", t, func() {
 		session := &IDPSession{
-			ID:         "session-id",
-			CreatedAt:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-			AccessedAt: time.Date(2020, 1, 1, 0, 0, 25, 0, time.UTC),
+			ID:        "session-id",
+			CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			AccessInfo: auth.AccessInfo{
+				LastAccess: auth.AccessEvent{
+					Timestamp: time.Date(2020, 1, 1, 0, 0, 25, 0, time.UTC),
+				},
+			},
 		}
 		var cfg config.SessionConfiguration
 		check := func(mins, secs int) bool {
