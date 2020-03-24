@@ -104,20 +104,20 @@ func TestAccessEventConnInfoIP(t *testing.T) {
 				Forwarded:     "for=c",
 				RemoteAddr:    "d",
 			}.IP()
-			So(ip, ShouldEqual, "a")
+			So(ip, ShouldEqual, "c")
 
 			ip = AccessEventConnInfo{
+				XRealIP:       "a",
 				XForwardedFor: "b",
-				Forwarded:     "for=c",
 				RemoteAddr:    "d",
 			}.IP()
 			So(ip, ShouldEqual, "b")
 
 			ip = AccessEventConnInfo{
-				Forwarded:  "for=c",
+				XRealIP:    "a",
 				RemoteAddr: "d",
 			}.IP()
-			So(ip, ShouldEqual, "c")
+			So(ip, ShouldEqual, "a")
 
 			ip = AccessEventConnInfo{
 				RemoteAddr: "d",

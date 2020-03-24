@@ -68,20 +68,20 @@ func (conn AccessEventConnInfo) IP() (ip string) {
 		}
 	}()
 
-	if conn.XRealIP != "" {
-		ip = conn.XRealIP
-		return
+	if conn.Forwarded != "" {
+		if matches := forwardedForRegex.FindStringSubmatch(conn.Forwarded); len(matches) > 0 {
+			ip = matches[1]
+			return
+		}
 	}
 	if conn.XForwardedFor != "" {
 		parts := strings.SplitN(conn.XForwardedFor, ",", 2)
 		ip = parts[0]
 		return
 	}
-	if conn.Forwarded != "" {
-		if matches := forwardedForRegex.FindStringSubmatch(conn.Forwarded); len(matches) > 0 {
-			ip = matches[1]
-			return
-		}
+	if conn.XRealIP != "" {
+		ip = conn.XRealIP
+		return
 	}
 	ip = conn.RemoteAddr
 	return
