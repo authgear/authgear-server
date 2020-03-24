@@ -12,18 +12,18 @@ var validator *validation.Validator
 func init() {
 	validator = validation.NewValidator("https://accounts.skygear.io")
 	validator.AddSchemaFragments(
-		AuthenticateRequestSchema,
-		AuthenticateLoginIDRequestSchema,
-		AuthenticateLoginIDPasswordRequestSchema,
-		SignUpRequestSchema,
-		SignUpLoginIDRequestSchema,
-		SignUpLoginIDPasswordRequestSchema,
+		LoginRequestSchema,
+		LoginLoginIDRequestSchema,
+		LoginLoginIDPasswordRequestSchema,
+		SignupRequestSchema,
+		SignupLoginIDRequestSchema,
+		SignupLoginIDPasswordRequestSchema,
 	)
 }
 
-const AuthenticateRequestSchema = `
+const LoginRequestSchema = `
 {
-	"$id": "#WebAppAuthenticateRequest",
+	"$id": "#WebAppLoginRequest",
 	"type": "object",
 	"properties": {
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] }
@@ -32,9 +32,9 @@ const AuthenticateRequestSchema = `
 }
 `
 
-const AuthenticateLoginIDRequestSchema = `
+const LoginLoginIDRequestSchema = `
 {
-	"$id": "#WebAppAuthenticateLoginIDRequest",
+	"$id": "#WebAppLoginLoginIDRequest",
 	"type": "object",
 	"properties": {
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
@@ -62,9 +62,9 @@ const AuthenticateLoginIDRequestSchema = `
 `
 
 // nolint: gosec
-const AuthenticateLoginIDPasswordRequestSchema = `
+const LoginLoginIDPasswordRequestSchema = `
 {
-	"$id": "#WebAppAuthenticateLoginIDPasswordRequest",
+	"$id": "#WebAppLoginLoginIDPasswordRequest",
 	"type": "object",
 	"properties": {
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
@@ -92,9 +92,9 @@ const AuthenticateLoginIDPasswordRequestSchema = `
 }
 `
 
-const SignUpRequestSchema = `
+const SignupRequestSchema = `
 {
-	"$id": "#WebAppSignUpRequest",
+	"$id": "#WebAppSignupRequest",
 	"type": "object",
 	"properties": {
 		"x_login_id_key": { "type": "string" }
@@ -103,9 +103,9 @@ const SignUpRequestSchema = `
 }
 `
 
-const SignUpLoginIDRequestSchema = `
+const SignupLoginIDRequestSchema = `
 {
-	"$id": "#WebAppSignUpLoginIDRequest",
+	"$id": "#WebAppSignupLoginIDRequest",
 	"type": "object",
 	"properties": {
 		"x_login_id_key": { "type": "string" },
@@ -134,9 +134,9 @@ const SignUpLoginIDRequestSchema = `
 `
 
 // nolint: gosec
-const SignUpLoginIDPasswordRequestSchema = `
+const SignupLoginIDPasswordRequestSchema = `
 {
-	"$id": "#WebAppSignUpLoginIDPasswordRequest",
+	"$id": "#WebAppSignupLoginIDPasswordRequest",
 	"type": "object",
 	"properties": {
 		"x_login_id_key": { "type": "string" },

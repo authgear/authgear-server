@@ -57,7 +57,7 @@ type SignupProcess struct {
 	TaskQueue                     async.Queue
 }
 
-func (p *SignupProcess) ValidateSignUpLoginID(loginID loginid.LoginID) (err error) {
+func (p *SignupProcess) ValidateSignupLoginID(loginID loginid.LoginID) (err error) {
 	err = p.validateCreateUserWithLoginIDs([]loginid.LoginID{loginID}, model.OnUserDuplicateAbort)
 	return
 }

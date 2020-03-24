@@ -26,7 +26,7 @@ type AuthnProvider interface {
 		plainPassword string,
 	) (authn.Result, error)
 
-	ValidateSignUpLoginID(loginid loginid.LoginID) error
+	ValidateSignupLoginID(loginid loginid.LoginID) error
 
 	SignupWithLoginIDs(
 		client config.OAuthClientConfiguration,
@@ -70,31 +70,31 @@ func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Requ
 }
 
 func (p *AuthenticateProviderImpl) Default(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
-	err = p.ValidateProvider.Validate("#WebAppAuthenticateRequest", r.Form)
+	err = p.ValidateProvider.Validate("#WebAppLoginRequest", r.Form)
 	writeResponse = func(err error) {
-		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUISignInHTML, err)
+		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUILoginHTML, err)
 	}
 	return
 }
 
 func (p *AuthenticateProviderImpl) SignUp(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
-	err = p.ValidateProvider.Validate("#WebAppSignUpRequest", r.Form)
+	err = p.ValidateProvider.Validate("#WebAppSignupRequest", r.Form)
 	writeResponse = func(err error) {
-		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUISignUpHTML, err)
+		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUISignupHTML, err)
 	}
 	return
 }
 
 func (p *AuthenticateProviderImpl) SignUpSubmitLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
-		t := TemplateItemTypeAuthUISignUpHTML
+		t := TemplateItemTypeAuthUISignupHTML
 		if err == nil {
-			t = TemplateItemTypeAuthUISignUpPasswordHTML
+			t = TemplateItemTypeAuthUISignupPasswordHTML
 		}
 		p.RenderProvider.WritePage(w, r, t, err)
 	}
 
-	err = p.ValidateProvider.Validate("#WebAppSignUpLoginIDRequest", r.Form)
+	err = p.ValidateProvider.Validate("#WebAppSignupLoginIDRequest", r.Form)
 	if err != nil {
 		return
 	}
@@ -104,7 +104,7 @@ func (p *AuthenticateProviderImpl) SignUpSubmitLoginID(w http.ResponseWriter, r 
 		return
 	}
 
-	err = p.AuthnProvider.ValidateSignUpLoginID(loginid.LoginID{
+	err = p.AuthnProvider.ValidateSignupLoginID(loginid.LoginID{
 		Key:   r.Form.Get("x_login_id_key"),
 		Value: r.Form.Get("x_login_id"),
 	})
@@ -118,14 +118,14 @@ func (p *AuthenticateProviderImpl) SignUpSubmitLoginID(w http.ResponseWriter, r 
 func (p *AuthenticateProviderImpl) SignUpSubmitPassword(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
 		if err != nil {
-			t := TemplateItemTypeAuthUISignUpPasswordHTML
+			t := TemplateItemTypeAuthUISignupPasswordHTML
 			p.RenderProvider.WritePage(w, r, t, err)
 		} else {
 			RedirectToRedirectURI(w, r)
 		}
 	}
 
-	err = p.ValidateProvider.Validate("#WebAppSignUpLoginIDPasswordRequest", r.Form)
+	err = p.ValidateProvider.Validate("#WebAppSignupLoginIDPasswordRequest", r.Form)
 	if err != nil {
 		return
 	}
@@ -158,14 +158,14 @@ func (p *AuthenticateProviderImpl) SignUpSubmitPassword(w http.ResponseWriter, r
 
 func (p *AuthenticateProviderImpl) SubmitLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
-		t := TemplateItemTypeAuthUISignInHTML
+		t := TemplateItemTypeAuthUILoginHTML
 		if err == nil {
-			t = TemplateItemTypeAuthUISignInPasswordHTML
+			t = TemplateItemTypeAuthUILoginPasswordHTML
 		}
 		p.RenderProvider.WritePage(w, r, t, err)
 	}
 
-	err = p.ValidateProvider.Validate("#WebAppAuthenticateLoginIDRequest", r.Form)
+	err = p.ValidateProvider.Validate("#WebAppLoginLoginIDRequest", r.Form)
 	if err != nil {
 		return
 	}
@@ -199,14 +199,14 @@ func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 func (p *AuthenticateProviderImpl) SubmitPassword(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
 		if err != nil {
-			t := TemplateItemTypeAuthUISignInPasswordHTML
+			t := TemplateItemTypeAuthUILoginPasswordHTML
 			p.RenderProvider.WritePage(w, r, t, err)
 		} else {
 			RedirectToRedirectURI(w, r)
 		}
 	}
 
-	err = p.ValidateProvider.Validate("#WebAppAuthenticateLoginIDPasswordRequest", r.Form)
+	err = p.ValidateProvider.Validate("#WebAppLoginLoginIDPasswordRequest", r.Form)
 	if err != nil {
 		return
 	}

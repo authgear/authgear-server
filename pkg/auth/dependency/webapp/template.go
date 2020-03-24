@@ -6,12 +6,12 @@ import (
 )
 
 const (
-	TemplateItemTypeAuthUISignInHTML config.TemplateItemType = "auth_ui_sign_in.html"
+	TemplateItemTypeAuthUILoginHTML config.TemplateItemType = "auth_ui_login.html"
 	// nolint: gosec
-	TemplateItemTypeAuthUISignInPasswordHTML config.TemplateItemType = "auth_ui_sign_in_password.html"
-	TemplateItemTypeAuthUISignUpHTML         config.TemplateItemType = "auth_ui_sign_up.html"
+	TemplateItemTypeAuthUILoginPasswordHTML config.TemplateItemType = "auth_ui_login_password.html"
+	TemplateItemTypeAuthUISignupHTML        config.TemplateItemType = "auth_ui_signup.html"
 	// nolint: gosec
-	TemplateItemTypeAuthUISignUpPasswordHTML config.TemplateItemType = "auth_ui_sign_up_password.html"
+	TemplateItemTypeAuthUISignupPasswordHTML config.TemplateItemType = "auth_ui_signup_password.html"
 	TemplateItemTypeAuthUISettingsHTML       config.TemplateItemType = "auth_ui_settings.html"
 )
 
@@ -100,8 +100,8 @@ var defines = []string{
 	definePasswordPolicyClass,
 }
 
-var TemplateAuthUISignInHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUISignInHTML,
+var TemplateAuthUILoginHTML = template.Spec{
+	Type:    TemplateItemTypeAuthUILoginHTML,
 	IsHTML:  true,
 	Defines: defines,
 	Default: `<!DOCTYPE html>
@@ -194,8 +194,8 @@ var TemplateAuthUISignInHTML = template.Spec{
 `,
 }
 
-var TemplateAuthUISignInPasswordHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUISignInPasswordHTML,
+var TemplateAuthUILoginPasswordHTML = template.Spec{
+	Type:    TemplateItemTypeAuthUILoginPasswordHTML,
 	IsHTML:  true,
 	Defines: defines,
 	Default: `<!DOCTYPE html>
@@ -246,8 +246,8 @@ var TemplateAuthUISignInPasswordHTML = template.Spec{
 `,
 }
 
-var TemplateAuthUISignUpHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUISignUpHTML,
+var TemplateAuthUISignupHTML = template.Spec{
+	Type:    TemplateItemTypeAuthUISignupHTML,
 	IsHTML:  true,
 	Defines: defines,
 	Default: `<!DOCTYPE html>
@@ -323,8 +323,8 @@ var TemplateAuthUISignUpHTML = template.Spec{
 `,
 }
 
-var TemplateAuthUISignUpPasswordHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUISignUpPasswordHTML,
+var TemplateAuthUISignupPasswordHTML = template.Spec{
+	Type:    TemplateItemTypeAuthUISignupPasswordHTML,
 	IsHTML:  true,
 	Defines: defines,
 	Default: `<!DOCTYPE html>
