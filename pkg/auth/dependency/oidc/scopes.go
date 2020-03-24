@@ -5,6 +5,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
+const FullAccessScope = "https://skygear.io/auth-api/full-access"
+
 func ValidateScopes(client config.OAuthClientConfiguration, scopes []string) error {
 	allowOfflineAccess := false
 	for _, grantType := range client.GrantTypes() {
@@ -34,6 +36,7 @@ func ValidateScopes(client config.OAuthClientConfiguration, scopes []string) err
 var AllowedScopes = []string{
 	"openid",
 	"offline_access",
+	FullAccessScope,
 }
 
 func IsScopeAllowed(scope string) bool {
