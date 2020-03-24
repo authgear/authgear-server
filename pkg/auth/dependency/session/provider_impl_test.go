@@ -14,6 +14,12 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+type mockAccessEventProvider struct{}
+
+func (*mockAccessEventProvider) InitStream(s auth.AuthSession) error {
+	return nil
+}
+
 func TestProvider(t *testing.T) {
 	Convey("Provider", t, func() {
 		store := NewMockStore()
@@ -35,11 +41,12 @@ func TestProvider(t *testing.T) {
 		}
 
 		provider := &ProviderImpl{
-			req:    req,
-			store:  store,
-			config: config.SessionConfiguration{},
-			time:   timeProvider,
-			rand:   rand.New(rand.NewSource(0)),
+			req:          req,
+			store:        store,
+			accessEvents: &mockAccessEventProvider{},
+			config:       config.SessionConfiguration{},
+			time:         timeProvider,
+			rand:         rand.New(rand.NewSource(0)),
 		}
 
 		Convey("creating session", func() {

@@ -18,7 +18,7 @@ func ProvideSessionCookieConfiguration(
 	return NewSessionCookieConfiguration(r, bool(icc), *c.AppConfig.Session)
 }
 
-func ProvideSessionProvider(req *http.Request, s Store, aep auth.AccessEventProvider, c *config.TenantConfiguration) Provider {
+func ProvideSessionProvider(req *http.Request, s Store, aep *auth.AccessEventProvider, c *config.TenantConfiguration) Provider {
 	return NewProvider(req, s, aep, *c.AppConfig.Session)
 }
 

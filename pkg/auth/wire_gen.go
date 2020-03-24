@@ -43,7 +43,7 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
-	accessEventProvider := auth2.AccessEventProvider{
+	accessEventProvider := &auth2.AccessEventProvider{
 		Store: eventStore,
 	}
 	sessionProvider := session.ProvideSessionProvider(r, store, accessEventProvider, tenantConfiguration)
@@ -68,12 +68,15 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 		Sessions:       resolverSessionProvider,
 		Time:           provider,
 	}
+	authAccessEventProvider := auth2.AccessEventProvider{
+		Store: eventStore,
+	}
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	middleware := &auth2.Middleware{
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
-		AccessEvents:               accessEventProvider,
+		AccessEvents:               authAccessEventProvider,
 		AuthInfoStore:              authinfoStore,
 		TxContext:                  txContext,
 	}

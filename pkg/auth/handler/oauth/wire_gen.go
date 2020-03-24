@@ -77,7 +77,10 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Store: eventStore,
 	}
 	store := redis3.ProvideStore(context, tenantConfiguration, provider, factory)
-	sessionProvider := session.ProvideSessionProvider(r, store, accessEventProvider, tenantConfiguration)
+	authAccessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, store, authAccessEventProvider, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, provider)
 	tokenGenerator := _wireTokenGeneratorValue

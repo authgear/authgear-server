@@ -22,10 +22,14 @@ const (
 	tokenLength   = 32
 )
 
+type AccessEventProvider interface {
+	InitStream(s auth.AuthSession) error
+}
+
 type ProviderImpl struct {
 	req          *http.Request
 	store        Store
-	accessEvents auth.AccessEventProvider
+	accessEvents AccessEventProvider
 	config       config.SessionConfiguration
 
 	time time.Provider
@@ -35,7 +39,7 @@ type ProviderImpl struct {
 func NewProvider(
 	req *http.Request,
 	store Store,
-	accessEvents auth.AccessEventProvider,
+	accessEvents AccessEventProvider,
 	sessionConfig config.SessionConfiguration,
 ) *ProviderImpl {
 	return &ProviderImpl{

@@ -80,7 +80,7 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, timeProvider, mfaSender)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
-	accessEventProvider := auth2.AccessEventProvider{
+	accessEventProvider := &auth2.AccessEventProvider{
 		Store: eventStore,
 	}
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
@@ -144,7 +144,7 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, provider, mfaSender)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
-	accessEventProvider := auth2.AccessEventProvider{
+	accessEventProvider := &auth2.AccessEventProvider{
 		Store: eventStore,
 	}
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
@@ -209,7 +209,7 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, timeProvider, mfaSender)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
-	accessEventProvider := auth2.AccessEventProvider{
+	accessEventProvider := &auth2.AccessEventProvider{
 		Store: eventStore,
 	}
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
@@ -275,7 +275,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, timeProvider, mfaSender)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
-	accessEventProvider := auth2.AccessEventProvider{
+	accessEventProvider := &auth2.AccessEventProvider{
 		Store: eventStore,
 	}
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
