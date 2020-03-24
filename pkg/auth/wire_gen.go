@@ -54,7 +54,6 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 		AccessEvents:       accessEventProvider,
 		AuthInfoStore:      authinfoStore,
 		TxContext:          txContext,
-		Time:               provider,
 	}
 	middlewareFunc := provideMiddleware(middleware)
 	return middlewareFunc
