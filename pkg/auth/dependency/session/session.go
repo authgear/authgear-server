@@ -29,6 +29,8 @@ func (s *IDPSession) AuthnAttrs() *authn.Attrs {
 	return &s.Attrs
 }
 
+func (s *IDPSession) GetAccessInfo() *auth.AccessInfo { return &s.AccessInfo }
+
 func (s *IDPSession) ToAPIModel() *model.Session {
 	ua := model.ParseUserAgent(s.AccessInfo.LastAccess.UserAgent)
 	ua.DeviceName = s.AccessInfo.LastAccess.Extra.DeviceName()

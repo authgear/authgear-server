@@ -46,3 +46,15 @@ func (s *EventStore) AppendAccessEvent(session auth.AuthSession, event *auth.Acc
 
 	return nil
 }
+
+func (s *EventStore) ResetEventStream(session auth.AuthSession) error {
+	conn := redis.GetConn(s.ctx)
+	streamKey := accessEventStreamKey(s.appID, session.SessionID())
+
+	_, err := conn.Do("DEL", streamKey)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -8,6 +8,7 @@ package auth
 import (
 	"github.com/gorilla/mux"
 	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
@@ -38,7 +39,11 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	requestID := ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, provider, factory)
-	sessionProvider := session.ProvideSessionProvider(r, store, tenantConfiguration)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, store, accessEventProvider, tenantConfiguration)
 	resolver := session.ProvideSessionResolver(cookieConfiguration, sessionProvider)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
@@ -46,6 +51,7 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	middleware := &auth2.Middleware{
 		IDPSessionResolver: resolver,
+		AccessEvents:       accessEventProvider,
 		AuthInfoStore:      authinfoStore,
 		TxContext:          txContext,
 		Time:               provider,

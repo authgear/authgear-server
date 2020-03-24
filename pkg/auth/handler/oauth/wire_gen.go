@@ -7,6 +7,8 @@ package oauth
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth"
+	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
@@ -71,7 +73,11 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	provider := time.NewProvider()
 	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
 	store := redis2.ProvideStore(context, tenantConfiguration, provider, factory)
-	sessionProvider := session.ProvideSessionProvider(r, store, tenantConfiguration)
+	eventStore := redis3.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, store, accessEventProvider, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, provider)
 	tokenGenerator := _wireTokenGeneratorValue

@@ -25,8 +25,8 @@ func ProvideSessionResolver(cfg CookieConfiguration, p ResolverProvider) *Resolv
 	}
 }
 
-func ProvideSessionProvider(req *http.Request, s Store, c *config.TenantConfiguration) Provider {
-	return NewProvider(req, s, *c.AppConfig.Session)
+func ProvideSessionProvider(req *http.Request, s Store, aep auth.AccessEventProvider, c *config.TenantConfiguration) Provider {
+	return NewProvider(req, s, aep, *c.AppConfig.Session)
 }
 
 var DependencySet = wire.NewSet(

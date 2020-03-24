@@ -23,9 +23,10 @@ const (
 )
 
 type ProviderImpl struct {
-	req    *http.Request
-	store  Store
-	config config.SessionConfiguration
+	req          *http.Request
+	store        Store
+	accessEvents auth.AccessEventProvider
+	config       config.SessionConfiguration
 
 	time time.Provider
 	rand *rand.Rand
@@ -34,14 +35,16 @@ type ProviderImpl struct {
 func NewProvider(
 	req *http.Request,
 	store Store,
+	accessEvents auth.AccessEventProvider,
 	sessionConfig config.SessionConfiguration,
 ) *ProviderImpl {
 	return &ProviderImpl{
-		req:    req,
-		store:  store,
-		config: sessionConfig,
-		time:   time.NewProvider(),
-		rand:   corerand.SecureRand,
+		req:          req,
+		store:        store,
+		accessEvents: accessEvents,
+		config:       sessionConfig,
+		time:         time.NewProvider(),
+		rand:         corerand.SecureRand,
 	}
 }
 
@@ -71,6 +74,11 @@ func (p *ProviderImpl) Create(session *IDPSession) error {
 	err := p.store.Create(session, expiry)
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to create session")
+	}
+
+	err = p.accessEvents.InitStream(session)
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to access session")
 	}
 
 	return nil

@@ -12,5 +12,6 @@ const (
 // nolint: golint
 type AuthSession interface {
 	authn.Session
+	GetAccessInfo() *AccessInfo
 	ToAPIModel() *model.Session
 }

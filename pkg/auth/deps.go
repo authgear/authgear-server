@@ -9,6 +9,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	authredis "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
@@ -155,6 +156,7 @@ var DependencySet = wire.NewSet(
 
 	hook.DependencySet,
 	auth.DependencySet,
+	authredis.DependencySet,
 	authn.DependencySet,
 	audit.DependencySet,
 	loginid.DependencySet,

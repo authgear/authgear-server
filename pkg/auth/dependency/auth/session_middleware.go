@@ -19,6 +19,7 @@ type IDPSessionResolver interface {
 
 type Middleware struct {
 	IDPSessionResolver IDPSessionResolver
+	AccessEvents       AccessEventProvider
 	AuthInfoStore      authinfo.Store
 	TxContext          db.TxContext
 	Time               time.Provider
@@ -63,6 +64,11 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (AuthSessi
 
 	accessEvent := NewAccessEvent(m.Time.NowUTC(), r)
 	err = m.IDPSessionResolver.OnAccess(sessionIDP, accessEvent)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = m.AccessEvents.RecordAccess(sessionIDP, accessEvent)
 	if err != nil {
 		return nil, nil, err
 	}
