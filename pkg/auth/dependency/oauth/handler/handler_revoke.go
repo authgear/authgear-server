@@ -31,7 +31,7 @@ func (h *RevokeHandler) revokeOfflineGrant(token, grantID string) error {
 		return err
 	}
 
-	tokenHash := hashToken(token)
+	tokenHash := oauth.HashToken(token)
 	if subtle.ConstantTimeCompare([]byte(tokenHash), []byte(offlineGrant.TokenHash)) != 1 {
 		return nil
 	}
@@ -45,7 +45,7 @@ func (h *RevokeHandler) revokeOfflineGrant(token, grantID string) error {
 }
 
 func (h *RevokeHandler) revokeAccessGrant(token string) error {
-	tokenHash := hashToken(token)
+	tokenHash := oauth.HashToken(token)
 	accessGrant, err := h.AccessGrants.GetAccessGrant(tokenHash)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		return nil

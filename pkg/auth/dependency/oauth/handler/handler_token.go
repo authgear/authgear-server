@@ -128,7 +128,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	client config.OAuthClientConfiguration,
 	r protocol.TokenRequest,
 ) (TokenResult, error) {
-	codeHash := hashToken(r.Code())
+	codeHash := oauth.HashToken(r.Code())
 	codeGrant, err := h.CodeGrants.GetCodeGrant(codeHash)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		return nil, errInvalidAuthzCode
@@ -197,7 +197,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, errInvalidRefreshToken
 	}
 
-	tokenHash := hashToken(token)
+	tokenHash := oauth.HashToken(token)
 	if subtle.ConstantTimeCompare([]byte(tokenHash), []byte(offlineGrant.TokenHash)) != 1 {
 		return nil, errInvalidRefreshToken
 	}
@@ -336,7 +336,7 @@ func (h *TokenHandler) issueOfflineGrant(
 		CreatedAt: now,
 		ExpireAt:  now.Add(gotime.Duration(client.RefreshTokenLifetime()) * gotime.Second),
 		Scopes:    code.Scopes,
-		TokenHash: hashToken(token),
+		TokenHash: oauth.HashToken(token),
 
 		Attrs: session.Attrs,
 		AccessInfo: auth.AccessInfo{
@@ -378,7 +378,7 @@ func (h *TokenHandler) issueAccessGrant(
 		CreatedAt:       now,
 		ExpireAt:        now.Add(gotime.Duration(client.AccessTokenLifetime()) * gotime.Second),
 		Scopes:          scopes,
-		TokenHash:       hashToken(token),
+		TokenHash:       oauth.HashToken(token),
 	}
 	err := h.AccessGrants.CreateAccessGrant(accessGrant)
 	if err != nil {

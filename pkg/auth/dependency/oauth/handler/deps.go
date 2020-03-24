@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/wire"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -47,6 +48,7 @@ func ProvideTokenHandler(
 	cs oauth.CodeGrantStore,
 	os oauth.OfflineGrantStore,
 	ags oauth.AccessGrantStore,
+	aep auth.AccessEventProvider,
 	sp session.Provider,
 	ti IDTokenIssuer,
 	cg TokenGenerator,
@@ -61,6 +63,7 @@ func ProvideTokenHandler(
 		CodeGrants:     cs,
 		OfflineGrants:  os,
 		AccessGrants:   ags,
+		AccessEvents:   aep,
 		Sessions:       sp,
 		IDTokenIssuer:  ti,
 		GenerateToken:  cg,
@@ -72,5 +75,5 @@ var DependencySet = wire.NewSet(
 	ProvideAuthorizationHandler,
 	ProvideTokenHandler,
 	wire.Struct(new(RevokeHandler), "*"),
-	wire.Value(TokenGenerator(GenerateToken)),
+	wire.Value(TokenGenerator(oauth.GenerateToken)),
 )
