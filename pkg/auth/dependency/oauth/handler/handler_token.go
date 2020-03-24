@@ -47,9 +47,6 @@ func (h *TokenHandler) Handle(r protocol.TokenRequest) TokenResult {
 			Response: protocol.NewErrorResponse("invalid_client", "invalid client ID"),
 		}
 	}
-	if _, errResp := parseRedirectURI(client, r); errResp != nil {
-		return authorizationResultError{Response: errResp}
-	}
 
 	result, err := h.doHandle(client, r)
 	if err != nil {
@@ -128,6 +125,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	client config.OAuthClientConfiguration,
 	r protocol.TokenRequest,
 ) (TokenResult, error) {
+
 	codeHash := oauth.HashToken(r.Code())
 	codeGrant, err := h.CodeGrants.GetCodeGrant(codeHash)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
