@@ -1,8 +1,11 @@
 package http
 
 import (
+	"net"
 	"net/http"
 	"time"
+
+	"golang.org/x/net/publicsuffix"
 )
 
 type CookieConfiguration struct {
@@ -71,4 +74,22 @@ func UpdateCookie(w http.ResponseWriter, cookie *http.Cookie) {
 		setCookies[i] = c.String()
 	}
 	header["Set-Cookie"] = setCookies
+}
+
+// CookieDomainFromETLDPlusOneWithoutPort derives host from r.
+// If host has port, the port is removed.
+// If ETLD+1 cannot be derived, an empty string is returned.
+// The return value never have port.
+func CookieDomainFromETLDPlusOneWithoutPort(host string) string {
+	// Trim the port if it is present.
+	// We have to trim the port first.
+	// Passing host:port to EffectiveTLDPlusOne confuses it.
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+	host, err := publicsuffix.EffectiveTLDPlusOne(host)
+	if err != nil {
+		return ""
+	}
+	return host
 }
