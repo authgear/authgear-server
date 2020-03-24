@@ -9,6 +9,7 @@ import (
 	gotime "time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
@@ -32,6 +33,7 @@ type TokenHandler struct {
 	CodeGrants     oauth.CodeGrantStore
 	OfflineGrants  oauth.OfflineGrantStore
 	AccessGrants   oauth.AccessGrantStore
+	AccessEvents   auth.AccessEventProvider
 	Sessions       session.Provider
 	IDTokenIssuer  IDTokenIssuer
 	GenerateToken  TokenGenerator
@@ -336,12 +338,18 @@ func (h *TokenHandler) issueOfflineGrant(
 		Scopes:    code.Scopes,
 		TokenHash: hashToken(token),
 
-		AccessedAt:    now,
-		Attrs:         session.Attrs,
-		InitialAccess: session.AccessInfo.LastAccess,
-		LastAccess:    session.AccessInfo.LastAccess,
+		Attrs: session.Attrs,
+		AccessInfo: auth.AccessInfo{
+			InitialAccess: session.AccessInfo.LastAccess,
+			LastAccess:    session.AccessInfo.LastAccess,
+		},
 	}
 	err := h.OfflineGrants.CreateOfflineGrant(offlineGrant)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.AccessEvents.InitStream(offlineGrant)
 	if err != nil {
 		return nil, err
 	}

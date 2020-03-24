@@ -7,6 +7,7 @@ import (
 
 const (
 	SessionTypeIdentityProvider authn.SessionType = "idp"
+	SessionTypeOfflineGrant     authn.SessionType = "offline_grant"
 )
 
 // nolint: golint
