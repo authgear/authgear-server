@@ -358,7 +358,7 @@ var TemplateAuthUISignUpPasswordHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
-<input id="password" class="input text-input" type="password" name="x_password" placeholder="Password" value="{{ .x_password }}">
+<input id="password" data-password-policy-password="" class="input text-input" type="password" name="x_password" placeholder="Password" value="{{ .x_password }}">
 
 <button class="btn secondary-btn toggle-password-visibility"></button>
 
@@ -366,19 +366,19 @@ var TemplateAuthUISignUpPasswordHTML = template.Spec{
 <ul>
 {{ range .x_password_policies }}
   {{ if eq .kind "PasswordTooShort" }}
-  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">At least {{ .min_length }} characters long</li>
+  <li class="password-policy length {{ template "PASSWORD_POLICY_CLASS" . }}" data-min-length="{{ .min_length}}">At least {{ .min_length }} characters long</li>
   {{ end }}
   {{ if eq .kind "PasswordUppercaseRequired" }}
-  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">At least one uppercase character</li>
+  <li class="password-policy uppercase {{ template "PASSWORD_POLICY_CLASS" . }}">At least one uppercase character</li>
   {{ end }}
   {{ if eq .kind "PasswordLowercaseRequired" }}
-  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">At least one lowercase character</li>
+  <li class="password-policy lowercase {{ template "PASSWORD_POLICY_CLASS" . }}">At least one lowercase character</li>
   {{ end }}
   {{ if eq .kind "PasswordDigitRequired" }}
-  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">At least one digit</li>
+  <li class="password-policy digit {{ template "PASSWORD_POLICY_CLASS" . }}">At least one digit</li>
   {{ end }}
   {{ if eq .kind "PasswordSymbolRequired" }}
-  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">At least one symbol</li>
+  <li class="password-policy symbol {{ template "PASSWORD_POLICY_CLASS" . }}">At least one symbol</li>
   {{ end }}
   {{ if eq .kind "PasswordContainingExcludedKeywords" }}
   <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}"><strong>NO</strong> banned words</li>
