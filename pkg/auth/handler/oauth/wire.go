@@ -100,3 +100,21 @@ func newJWKSHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	)
 	return nil
 }
+
+func provideUserInfoHandler(lf logging.Factory, tx db.TxContext, uip oauthUserInfoProvider) http.Handler {
+	h := &UserInfoHandler{
+		logger:           lf.NewLogger("oauth-userinfo-handler"),
+		txContext:        tx,
+		userInfoProvider: uip,
+	}
+	return h
+}
+
+func newUserInfoHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	wire.Build(
+		auth.DependencySet,
+		wire.Bind(new(oauthUserInfoProvider), new(*oidc.IDTokenIssuer)),
+		provideUserInfoHandler,
+	)
+	return nil
+}

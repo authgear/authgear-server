@@ -5,6 +5,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -68,8 +69,8 @@ func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfiguration, se
 
 func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (*UserClaims, error) {
 	allowProfile := false
-	for _, scope := range SessionScopes(session) {
-		if scope == FullAccessScope {
+	for _, scope := range oauth.SessionScopes(session) {
+		if scope == oauth.FullAccessScope {
 			allowProfile = true
 		}
 	}

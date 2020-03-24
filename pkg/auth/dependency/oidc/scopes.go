@@ -1,14 +1,10 @@
 package oidc
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
-
-const FullAccessScope = "https://skygear.io/auth-api/full-access"
 
 func ValidateScopes(client config.OAuthClientConfiguration, scopes []string) error {
 	allowOfflineAccess := false
@@ -39,7 +35,7 @@ func ValidateScopes(client config.OAuthClientConfiguration, scopes []string) err
 var AllowedScopes = []string{
 	"openid",
 	"offline_access",
-	FullAccessScope,
+	oauth.FullAccessScope,
 }
 
 func IsScopeAllowed(scope string) bool {
@@ -49,15 +45,4 @@ func IsScopeAllowed(scope string) bool {
 		}
 	}
 	return false
-}
-
-func SessionScopes(s auth.AuthSession) []string {
-	switch s := s.(type) {
-	case *session.IDPSession:
-		return []string{FullAccessScope}
-	case *oauth.OfflineGrant:
-		return s.Scopes
-	default:
-		panic("oidc: unexpected session type")
-	}
 }

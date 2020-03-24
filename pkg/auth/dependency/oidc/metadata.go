@@ -3,8 +3,9 @@ package oidc
 import "github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 
 type MetadataProvider struct {
-	URLPrefix    urlprefix.Provider
-	JWKSEndpoint JWKSEndpointProvider
+	URLPrefix        urlprefix.Provider
+	JWKSEndpoint     JWKSEndpointProvider
+	UserInfoEndpoint UserInfoEndpointProvider
 }
 
 func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
@@ -20,5 +21,5 @@ func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
 		"sub",
 	}
 	meta["jwks_uri"] = p.JWKSEndpoint.JWKSEndpointURI().String()
-	// TODO(oauth): userinfo_endpoint
+	meta["userinfo_endpoint"] = p.UserInfoEndpoint.UserInfoEndpointURI().String()
 }
