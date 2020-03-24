@@ -115,12 +115,18 @@ func ProvidePrincipalProviders(
 }
 
 // ProvideWebAppRenderProvider is placed here because it requires DependencyMap.
-func ProvideWebAppRenderProvider(m DependencyMap, config *config.TenantConfiguration, templateEngine *coretemplate.Engine) webapp.RenderProvider {
+func ProvideWebAppRenderProvider(
+	m DependencyMap,
+	config *config.TenantConfiguration,
+	templateEngine *coretemplate.Engine,
+	passwordChecker *audit.PasswordChecker,
+) webapp.RenderProvider {
 	return &webapp.RenderProviderImpl{
 		StaticAssetURLPrefix: m.StaticAssetURLPrefix,
 		AuthConfiguration:    config.AppConfig.Auth,
 		AuthUIConfiguration:  config.AppConfig.AuthUI,
 		OAuthProviders:       config.AppConfig.SSO.OAuth.Providers,
+		PasswordChecker:      passwordChecker,
 		TemplateEngine:       templateEngine,
 	}
 }

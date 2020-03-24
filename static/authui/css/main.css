@@ -78,11 +78,27 @@ html {
   background-color: #166bef;
 }
 
-.secondary-btn {}
+.secondary-btn {
+  height: 32px;
+  border-radius: 2px;
+  color: #323130;
+  border: 1px solid #8A8886;
+}
 
 .link, .anchor {
   text-decoration: none;
   font-size: 12px;
+}
+
+button.link {
+  text-align: left;
+}
+
+button.anchor {
+  -webkit-appearance: none;
+  border: none;
+  color: #166bef;
+  cursor: pointer;
 }
 
 .anchor:link, .anchor:visited {
@@ -137,7 +153,7 @@ html {
   }
   .content {
     margin: 52px 0 0 0;
-    min-width: 416px;
+    width: 416px;
     border-radius: 2px;
     box-shadow: 0 0.3px 0.9px 0 rgba(0, 0, 0, 0.11), 0 1.6px 3.6px 0 rgba(0, 0, 0, 0.13);
   }
@@ -169,7 +185,7 @@ html {
   padding: 4px 0;
 }
 
-.authorize-loginid-form [type="submit"] {
+.authorize-loginid-form .primary-btn[type="submit"] {
   align-self: flex-end;
 }
 
@@ -243,6 +259,13 @@ html {
   margin: 0 0 30px 0;
 }
 
+.enter-password-form .description {
+  color: #333333;
+  font-size: 12px;
+  padding: 8px 0;
+  margin: 0;
+}
+
 .enter-password-form .login-id {
   padding: 0 10px;
 }
@@ -260,8 +283,34 @@ html {
 
 .enter-password-form #password {
   display: block;
+  margin: 0 0 20px 0;
+}
+
+.enter-password-form .toggle-password-visibility {
+  margin: 0 0 20px 0;
 }
 
 .enter-password-form [type="submit"] {
   align-self: flex-end;
+}
+
+.btn.toggle-password-visibility {
+  max-width: 170px;
+  padding: 0 0 0 12px;
+}
+
+.btn.toggle-password-visibility.show-password {
+  background: url("../image/ic_show_password.png") 12px center / 20px auto no-repeat;
+}
+
+.btn.toggle-password-visibility.hide-password {
+  background: url("../image/ic_hide_password.png") 12px center / 20px auto no-repeat;
+}
+
+.password-policy.violated {
+  color: #e30f0f;
+}
+
+.password-policy.passed {
+  color: green;
 }

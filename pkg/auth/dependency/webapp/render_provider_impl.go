@@ -2,11 +2,11 @@ package webapp
 
 import (
 	"encoding/json"
-	"fmt"
 	htmlTemplate "html/template"
 	"net/http"
 	"strconv"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
@@ -20,6 +20,7 @@ type RenderProviderImpl struct {
 	AuthUIConfiguration  *config.AuthUIConfiguration
 	OAuthProviders       []config.OAuthProviderConfiguration
 	TemplateEngine       *template.Engine
+	PasswordChecker      *audit.PasswordChecker
 }
 
 func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, inputErr error) {
@@ -52,15 +53,42 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		}
 	}
 
-	// Use r.URL.RawQuery instead of r.Form
-	// because r.Form includes form fields.
-	q := r.URL.Query()
-	q.Set("x_login_id_input_type", "phone")
-	data["x_use_phone_url"] = fmt.Sprintf("?%s", q.Encode())
+	var loginIDKeys []map[string]interface{}
+	for _, loginIDKey := range p.AuthConfiguration.LoginIDKeys {
+		loginIDKeys = append(loginIDKeys, map[string]interface{}{
+			"key":  loginIDKey.Key,
+			"type": loginIDKey.Type,
+		})
+	}
+	data["x_login_id_keys"] = loginIDKeys
 
-	q = r.URL.Query()
-	q.Set("x_login_id_input_type", "text")
-	data["x_use_text_url"] = fmt.Sprintf("?%s", q.Encode())
+	passwordPolicy := p.PasswordChecker.PasswordPolicy()
+	if apiError := skyerr.AsAPIError(inputErr); apiError != nil {
+		if apiError.Reason == "PasswordPolicyViolated" {
+			for i, policy := range passwordPolicy {
+				if policy.Info == nil {
+					policy.Info = map[string]interface{}{}
+				}
+				policy.Info["x_error_is_password_policy_violated"] = true
+				for _, cause := range apiError.Info["causes"].([]skyerr.Cause) {
+					if string(policy.Name) == cause.Kind() {
+						policy.Info["x_is_violated"] = true
+					}
+				}
+				passwordPolicy[i] = policy
+			}
+		}
+	}
+	passwordPolicyBytes, err := json.Marshal(passwordPolicy)
+	if err != nil {
+		panic(err)
+	}
+	var passwordPolicyJSON interface{}
+	err = json.Unmarshal(passwordPolicyBytes, &passwordPolicyJSON)
+	if err != nil {
+		panic(err)
+	}
+	data["x_password_policies"] = passwordPolicyJSON
 
 	// Populate inputErr into data
 	if inputErr != nil {

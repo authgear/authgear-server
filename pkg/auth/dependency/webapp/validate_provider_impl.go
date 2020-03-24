@@ -12,15 +12,18 @@ var validator *validation.Validator
 func init() {
 	validator = validation.NewValidator("https://accounts.skygear.io")
 	validator.AddSchemaFragments(
-		AuthenticateRequestSchema,
-		AuthenticateLoginIDRequestSchema,
-		AuthenticateLoginIDPasswordRequestSchema,
+		LoginRequestSchema,
+		LoginLoginIDRequestSchema,
+		LoginLoginIDPasswordRequestSchema,
+		SignupRequestSchema,
+		SignupLoginIDRequestSchema,
+		SignupLoginIDPasswordRequestSchema,
 	)
 }
 
-const AuthenticateRequestSchema = `
+const LoginRequestSchema = `
 {
-	"$id": "#WebAppAuthenticateRequest",
+	"$id": "#WebAppLoginRequest",
 	"type": "object",
 	"properties": {
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] }
@@ -29,13 +32,13 @@ const AuthenticateRequestSchema = `
 }
 `
 
-const AuthenticateLoginIDRequestSchema = `
+const LoginLoginIDRequestSchema = `
 {
-	"$id": "#WebAppAuthenticateLoginIDRequest",
+	"$id": "#WebAppLoginLoginIDRequest",
 	"type": "object",
 	"properties": {
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
-		"x_step": { "type": "string", "const": "submit_login_id" },
+		"x_step": { "type": "string", "const": "login:submit_login_id" },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" }
@@ -59,19 +62,92 @@ const AuthenticateLoginIDRequestSchema = `
 `
 
 // nolint: gosec
-const AuthenticateLoginIDPasswordRequestSchema = `
+const LoginLoginIDPasswordRequestSchema = `
 {
-	"$id": "#WebAppAuthenticateLoginIDPasswordRequest",
+	"$id": "#WebAppLoginLoginIDPasswordRequest",
 	"type": "object",
 	"properties": {
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
-		"x_step": { "type": "string", "const": "submit_password" },
+		"x_step": { "type": "string", "const": "login:submit_password" },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" },
 		"x_password": { "type": "string" }
 	},
 	"required": ["x_login_id_input_type", "x_step", "x_password"],
+	"oneOf": [
+		{
+			"properties": {
+				"x_login_id_input_type": { "type": "string", "const": "phone" }
+			},
+			"required": ["x_calling_code", "x_national_number"]
+		},
+		{
+			"properties": {
+				"x_login_id_input_type": { "type": "string", "const": "text" }
+			},
+			"required": ["x_login_id"]
+		}
+	]
+}
+`
+
+const SignupRequestSchema = `
+{
+	"$id": "#WebAppSignupRequest",
+	"type": "object",
+	"properties": {
+		"x_login_id_key": { "type": "string" }
+	},
+	"required": ["x_login_id_key"]
+}
+`
+
+const SignupLoginIDRequestSchema = `
+{
+	"$id": "#WebAppSignupLoginIDRequest",
+	"type": "object",
+	"properties": {
+		"x_login_id_key": { "type": "string" },
+		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
+		"x_step": { "type": "string", "const": "signup:submit_login_id" },
+		"x_calling_code": { "type": "string" },
+		"x_national_number": { "type": "string" },
+		"x_login_id": { "type": "string" }
+	},
+	"required": ["x_login_id_key", "x_login_id_input_type", "x_step"],
+	"oneOf": [
+		{
+			"properties": {
+				"x_login_id_input_type": { "type": "string", "const": "phone" }
+			},
+			"required": ["x_calling_code", "x_national_number"]
+		},
+		{
+			"properties": {
+				"x_login_id_input_type": { "type": "string", "const": "text" }
+			},
+			"required": ["x_login_id"]
+		}
+	]
+}
+`
+
+// nolint: gosec
+const SignupLoginIDPasswordRequestSchema = `
+{
+	"$id": "#WebAppSignupLoginIDPasswordRequest",
+	"type": "object",
+	"properties": {
+		"x_login_id_key": { "type": "string" },
+		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
+		"x_step": { "type": "string", "const": "signup:submit_password" },
+		"x_calling_code": { "type": "string" },
+		"x_national_number": { "type": "string" },
+		"x_login_id": { "type": "string" },
+		"x_password": { "type": "string" }
+	},
+	"required": ["x_login_id_key", "x_login_id_input_type", "x_step", "x_password"],
 	"oneOf": [
 		{
 			"properties": {
@@ -121,6 +197,13 @@ func (p *ValidateProviderImpl) PrepareValues(form url.Values) {
 			} else {
 				form.Set("x_login_id_input_type", "text")
 			}
+		}
+	}
+
+	// Set x_login_id_key to the key of the first login ID.
+	if _, ok := form["x_login_id_key"]; !ok {
+		if len(p.AuthConfiguration.LoginIDKeys) > 0 {
+			form.Set("x_login_id_key", p.AuthConfiguration.LoginIDKeys[0].Key)
 		}
 	}
 }

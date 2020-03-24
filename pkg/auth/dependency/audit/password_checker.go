@@ -193,98 +193,109 @@ type PasswordChecker struct {
 	PasswordHistoryStore   passwordhistory.Store
 }
 
-func (pc *PasswordChecker) checkPasswordLength(password string) *PasswordViolation {
+func (pc *PasswordChecker) policyPasswordLength() PasswordPolicy {
+	return PasswordPolicy{
+		Name: PasswordTooShort,
+		Info: map[string]interface{}{
+			"min_length": pc.PwMinLength,
+		},
+	}
+}
+
+func (pc *PasswordChecker) checkPasswordLength(password string) *PasswordPolicy {
+	v := pc.policyPasswordLength()
 	minLength := pc.PwMinLength
 	if minLength > 0 && !checkPasswordLength(password, minLength) {
-		return &PasswordViolation{
-			Reason: PasswordTooShort,
-			Info: map[string]interface{}{
-				"min_length": minLength,
-				"pw_length":  len(password),
-			},
-		}
+		v.Info["pw_length"] = len(password)
+		return &v
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordUppercase(password string) *PasswordViolation {
+func (pc *PasswordChecker) checkPasswordUppercase(password string) *PasswordPolicy {
 	if pc.PwUppercaseRequired && !checkPasswordUppercase(password) {
-		return &PasswordViolation{Reason: PasswordUppercaseRequired}
+		return &PasswordPolicy{Name: PasswordUppercaseRequired}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordLowercase(password string) *PasswordViolation {
+func (pc *PasswordChecker) checkPasswordLowercase(password string) *PasswordPolicy {
 	if pc.PwLowercaseRequired && !checkPasswordLowercase(password) {
-		return &PasswordViolation{Reason: PasswordLowercaseRequired}
+		return &PasswordPolicy{Name: PasswordLowercaseRequired}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordDigit(password string) *PasswordViolation {
+func (pc *PasswordChecker) checkPasswordDigit(password string) *PasswordPolicy {
 	if pc.PwDigitRequired && !checkPasswordDigit(password) {
-		return &PasswordViolation{Reason: PasswordDigitRequired}
+		return &PasswordPolicy{Name: PasswordDigitRequired}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordSymbol(password string) *PasswordViolation {
+func (pc *PasswordChecker) checkPasswordSymbol(password string) *PasswordPolicy {
 	if pc.PwSymbolRequired && !checkPasswordSymbol(password) {
-		return &PasswordViolation{Reason: PasswordSymbolRequired}
+		return &PasswordPolicy{Name: PasswordSymbolRequired}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordExcludedKeywords(password string) *PasswordViolation {
+func (pc *PasswordChecker) checkPasswordExcludedKeywords(password string) *PasswordPolicy {
 	keywords := pc.PwExcludedKeywords
 	if len(keywords) > 0 && !checkPasswordExcludedKeywords(password, keywords) {
-		return &PasswordViolation{Reason: PasswordContainingExcludedKeywords}
+		return &PasswordPolicy{Name: PasswordContainingExcludedKeywords}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordExcludedFields(password string, userData map[string]interface{}) *PasswordViolation {
+func (pc *PasswordChecker) checkPasswordExcludedFields(password string, userData map[string]interface{}) *PasswordPolicy {
 	fields := pc.PwExcludedFields
 	if len(fields) > 0 {
 		dict := userDataToStringStringMap(userData)
 		keywords := filterDictionaryByKeys(dict, fields)
 		if !checkPasswordExcludedKeywords(password, keywords) {
-			return &PasswordViolation{Reason: PasswordContainingExcludedKeywords}
+			return &PasswordPolicy{Name: PasswordContainingExcludedKeywords}
 		}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordGuessableLevel(password string, userData map[string]interface{}) *PasswordViolation {
+func (pc *PasswordChecker) policyPasswordGuessableLevel() PasswordPolicy {
+	return PasswordPolicy{
+		Name: PasswordBelowGuessableLevel,
+		Info: map[string]interface{}{
+			"min_level": pc.PwMinGuessableLevel,
+		},
+	}
+}
+
+func (pc *PasswordChecker) checkPasswordGuessableLevel(password string, userData map[string]interface{}) *PasswordPolicy {
+	v := pc.policyPasswordGuessableLevel()
 	minLevel := pc.PwMinGuessableLevel
 	if minLevel > 0 {
 		dict := userDataToStringStringMap(userData)
 		userInputs := filterDictionaryTakeAll(dict)
 		level, ok := checkPasswordGuessableLevel(password, minLevel, userInputs)
 		if !ok {
-			return &PasswordViolation{
-				Reason: PasswordBelowGuessableLevel,
-				Info: map[string]interface{}{
-					"min_level": minLevel,
-					"pw_level":  level,
-				},
-			}
+			v.Info["pw_level"] = level
+			return &v
 		}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordHistory(password, authID string) *PasswordViolation {
-	makeErr := func() *PasswordViolation {
-		return &PasswordViolation{
-			Reason: PasswordReused,
-			Info: map[string]interface{}{
-				"history_size": pc.PwHistorySize,
-				"history_days": pc.PwHistoryDays,
-			},
-		}
+func (pc *PasswordChecker) policyPasswordHistory() PasswordPolicy {
+	return PasswordPolicy{
+		Name: PasswordReused,
+		Info: map[string]interface{}{
+			"history_size": pc.PwHistorySize,
+			"history_days": pc.PwHistoryDays,
+		},
 	}
+}
 
+func (pc *PasswordChecker) checkPasswordHistory(password, authID string) *PasswordPolicy {
+	v := pc.policyPasswordHistory()
 	if pc.shouldCheckPasswordHistory() && authID != "" {
 		history, err := pc.PasswordHistoryStore.GetPasswordHistory(
 			authID,
@@ -292,11 +303,11 @@ func (pc *PasswordChecker) checkPasswordHistory(password, authID string) *Passwo
 			pc.PwHistoryDays,
 		)
 		if err != nil {
-			return makeErr()
+			return &v
 		}
 		for _, ph := range history {
 			if IsSamePassword(ph.HashedPassword, password) {
-				return makeErr()
+				return &v
 			}
 		}
 	}
@@ -309,7 +320,7 @@ func (pc *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) err
 	authID := payload.AuthID
 
 	var violations []skyerr.Cause
-	check := func(v *PasswordViolation) {
+	check := func(v *PasswordPolicy) {
 		if v != nil {
 			violations = append(violations, *v)
 		}
@@ -330,6 +341,38 @@ func (pc *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) err
 	}
 
 	return PasswordPolicyViolated.NewWithCauses("password policy violated", violations)
+}
+
+// PasswordPolicy outputs a list of PasswordPolicy to reflect the password policy.
+func (pc *PasswordChecker) PasswordPolicy() (out []PasswordPolicy) {
+	if pc.PwMinLength > 0 {
+		out = append(out, pc.policyPasswordLength())
+	}
+	if pc.PwUppercaseRequired {
+		out = append(out, PasswordPolicy{Name: PasswordUppercaseRequired})
+	}
+	if pc.PwLowercaseRequired {
+		out = append(out, PasswordPolicy{Name: PasswordLowercaseRequired})
+	}
+	if pc.PwDigitRequired {
+		out = append(out, PasswordPolicy{Name: PasswordDigitRequired})
+	}
+	if pc.PwSymbolRequired {
+		out = append(out, PasswordPolicy{Name: PasswordSymbolRequired})
+	}
+	if len(pc.PwExcludedKeywords) > 0 {
+		out = append(out, PasswordPolicy{Name: PasswordContainingExcludedKeywords})
+	}
+	if pc.PwMinGuessableLevel > 0 {
+		out = append(out, pc.policyPasswordGuessableLevel())
+	}
+	if pc.shouldCheckPasswordHistory() {
+		out = append(out, pc.policyPasswordHistory())
+	}
+	if out == nil {
+		out = []PasswordPolicy{}
+	}
+	return
 }
 
 func (pc *PasswordChecker) ShouldSavePasswordHistory() bool {
