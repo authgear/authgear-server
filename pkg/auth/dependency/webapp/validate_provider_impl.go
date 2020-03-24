@@ -38,7 +38,7 @@ const LoginLoginIDRequestSchema = `
 	"type": "object",
 	"properties": {
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
-		"x_step": { "type": "string", "const": "submit_login_id" },
+		"x_step": { "type": "string", "const": "login:submit_login_id" },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" }
@@ -68,7 +68,7 @@ const LoginLoginIDPasswordRequestSchema = `
 	"type": "object",
 	"properties": {
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
-		"x_step": { "type": "string", "const": "submit_password" },
+		"x_step": { "type": "string", "const": "login:submit_password" },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" },
@@ -110,7 +110,7 @@ const SignupLoginIDRequestSchema = `
 	"properties": {
 		"x_login_id_key": { "type": "string" },
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
-		"x_step": { "type": "string", "const": "sign_up_submit_login_id" },
+		"x_step": { "type": "string", "const": "signup:submit_login_id" },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" }
@@ -141,7 +141,7 @@ const SignupLoginIDPasswordRequestSchema = `
 	"properties": {
 		"x_login_id_key": { "type": "string" },
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
-		"x_step": { "type": "string", "const": "sign_up_submit_password" },
+		"x_step": { "type": "string", "const": "signup:submit_password" },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" },

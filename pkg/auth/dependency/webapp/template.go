@@ -180,12 +180,12 @@ var TemplateAuthUILoginHTML = template.Spec{
 
 				<div class="link">
 					<span class="primary-text">Don't have an account yet? </span>
-					<button type="submit" class="anchor" name="x_step" value="sign_up" form="empty-form">Create one!</button>
+					<button type="submit" class="anchor" name="x_step" value="signup:initial" form="empty-form">Create one!</button>
 				</div>
 				<a class="link anchor" href="#">Can't access your account?</a>
 
 				{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
-				<button class="btn primary-btn" type="submit" name="x_step" value="submit_login_id">Next</button>
+				<button class="btn primary-btn" type="submit" name="x_step" value="login:submit_login_id">Next</button>
 				{{ end }}
 			</form>
 		</div>
@@ -237,7 +237,7 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 
 <a class="anchor" href="">Forgot Password?</a>
 
-<button class="btn primary-btn" type="submit" name="x_step" value="submit_password">Next</button>
+<button class="btn primary-btn" type="submit" name="x_step" value="login:submit_password">Next</button>
 
 </form>
 {{ template "SKYGEAR_LOGO" . }}
@@ -265,7 +265,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 
 			{{ range .x_login_id_keys }}
 			<form id="sign_up-{{ .key }}" method="post">
-				<input type="hidden" name="x_step" value="sign_up">
+				<input type="hidden" name="x_step" value="signup:initial">
 				{{ if eq .type "phone" }}
 					<input type="hidden" name="x_login_id_input_type" value="phone">
 				{{ else }}
@@ -315,7 +315,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 				</div>
 				<a class="link anchor" href="#">Can't access your account?</a>
 
-				<button class="btn primary-btn" type="submit" name="x_step" value="sign_up_submit_login_id">Next</button>
+				<button class="btn primary-btn" type="submit" name="x_step" value="signup:submit_login_id">Next</button>
 			</form>
 		</div>
 		{{ template "SKYGEAR_LOGO" . }}
@@ -406,7 +406,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 </ul>
 {{ end }}
 
-<button class="btn primary-btn" type="submit" name="x_step" value="sign_up_submit_password">Next</button>
+<button class="btn primary-btn" type="submit" name="x_step" value="signup:submit_password">Next</button>
 
 {{ if eq .x_login_id_input_type "phone" }}
 <p class="description">

@@ -51,17 +51,17 @@ func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	var err error
 	step := r.Form.Get("x_step")
 	switch step {
-	case "submit_login_id":
+	case "login:submit_login_id":
 		writeResponse, err = p.SubmitLoginID(w, r)
-	case "submit_password":
+	case "login:submit_password":
 		writeResponse, err = p.SubmitPassword(w, r)
 	case "choose_idp":
 		writeResponse, err = p.ChooseIdentityProvider(w, r)
-	case "sign_up":
+	case "signup:initial":
 		writeResponse, err = p.SignUp(w, r)
-	case "sign_up_submit_login_id":
+	case "signup:submit_login_id":
 		writeResponse, err = p.SignUpSubmitLoginID(w, r)
-	case "sign_up_submit_password":
+	case "signup:submit_password":
 		writeResponse, err = p.SignUpSubmitPassword(w, r)
 	default:
 		writeResponse, err = p.Default(w, r)
