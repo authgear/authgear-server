@@ -8,41 +8,41 @@ import (
 
 var PasswordPolicyViolated skyerr.Kind = skyerr.Invalid.WithReason("PasswordPolicyViolated")
 
-type PasswordViolationReason string
+type PasswordPolicyName string
 
 const (
 	// PasswordTooShort is self-explanatory
-	PasswordTooShort PasswordViolationReason = "PasswordTooShort"
+	PasswordTooShort PasswordPolicyName = "PasswordTooShort"
 	// PasswordUppercaseRequired means the password does not contain ASCII uppercase character
-	PasswordUppercaseRequired PasswordViolationReason = "PasswordUppercaseRequired"
+	PasswordUppercaseRequired PasswordPolicyName = "PasswordUppercaseRequired"
 	// PasswordLowercaseRequired means the password does not contain ASCII lowercase character
-	PasswordLowercaseRequired PasswordViolationReason = "PasswordLowercaseRequired"
+	PasswordLowercaseRequired PasswordPolicyName = "PasswordLowercaseRequired"
 	// PasswordDigitRequired means the password does not contain ASCII digit character
-	PasswordDigitRequired PasswordViolationReason = "PasswordDigitRequired"
+	PasswordDigitRequired PasswordPolicyName = "PasswordDigitRequired"
 	// PasswordSymbolRequired means the password does not contain ASCII non-alphanumeric character
-	PasswordSymbolRequired PasswordViolationReason = "PasswordSymbolRequired"
+	PasswordSymbolRequired PasswordPolicyName = "PasswordSymbolRequired"
 	// PasswordContainingExcludedKeywords means the password contains configured excluded keywords
-	PasswordContainingExcludedKeywords PasswordViolationReason = "PasswordContainingExcludedKeywords"
+	PasswordContainingExcludedKeywords PasswordPolicyName = "PasswordContainingExcludedKeywords"
 	// PasswordBelowGuessableLevel means the password's guessable level is below configured level.
 	// The current implementation uses Dropbox's zxcvbn.
-	PasswordBelowGuessableLevel PasswordViolationReason = "PasswordBelowGuessableLevel"
+	PasswordBelowGuessableLevel PasswordPolicyName = "PasswordBelowGuessableLevel"
 	// PasswordReused is self-explanatory
-	PasswordReused PasswordViolationReason = "PasswordReused"
+	PasswordReused PasswordPolicyName = "PasswordReused"
 	// PasswordExpired is self-explanatory
-	PasswordExpired PasswordViolationReason = "PasswordExpired"
+	PasswordExpired PasswordPolicyName = "PasswordExpired"
 )
 
-type PasswordViolation struct {
-	Reason PasswordViolationReason
-	Info   map[string]interface{}
+type PasswordPolicy struct {
+	Name PasswordPolicyName
+	Info map[string]interface{}
 }
 
-func (v PasswordViolation) Kind() string {
-	return string(v.Reason)
+func (v PasswordPolicy) Kind() string {
+	return string(v.Name)
 }
 
-func (v PasswordViolation) MarshalJSON() ([]byte, error) {
-	d := map[string]interface{}{"kind": v.Reason}
+func (v PasswordPolicy) MarshalJSON() ([]byte, error) {
+	d := map[string]interface{}{"kind": v.Name}
 	for k, v := range v.Info {
 		d[k] = v
 	}

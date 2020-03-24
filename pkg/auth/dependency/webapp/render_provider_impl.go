@@ -71,7 +71,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 				}
 				policy.Info["x_error_is_password_policy_violated"] = true
 				for _, cause := range apiError.Info["causes"].([]skyerr.Cause) {
-					if string(policy.Reason) == cause.Kind() {
+					if string(policy.Name) == cause.Kind() {
 						policy.Info["x_is_violated"] = true
 					}
 				}

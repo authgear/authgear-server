@@ -9,10 +9,10 @@ import (
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 )
 
-func TestPasswordViolation(t *testing.T) {
-	Convey("PasswordViolation", t, func() {
-		v := PasswordViolation{
-			Reason: PasswordTooShort,
+func TestPasswordPolicyJSON(t *testing.T) {
+	Convey("PasswordPolicy JSON serialization", t, func() {
+		v := PasswordPolicy{
+			Name: PasswordTooShort,
 			Info: map[string]interface{}{
 				"min_length": 8,
 				"pw_length":  6,

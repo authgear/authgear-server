@@ -175,7 +175,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordViolation{Reason: PasswordTooShort, Info: map[string]interface{}{"min_length": 2, "pw_length": 1}},
+					PasswordPolicy{Name: PasswordTooShort, Info: map[string]interface{}{"min_length": 2, "pw_length": 1}},
 				},
 			},
 		)
@@ -193,7 +193,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordViolation{Reason: PasswordUppercaseRequired},
+					PasswordPolicy{Name: PasswordUppercaseRequired},
 				},
 			},
 		)
@@ -211,7 +211,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordViolation{Reason: PasswordLowercaseRequired},
+					PasswordPolicy{Name: PasswordLowercaseRequired},
 				},
 			},
 		)
@@ -229,7 +229,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordViolation{Reason: PasswordDigitRequired},
+					PasswordPolicy{Name: PasswordDigitRequired},
 				},
 			},
 		)
@@ -247,7 +247,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordViolation{Reason: PasswordSymbolRequired},
+					PasswordPolicy{Name: PasswordSymbolRequired},
 				},
 			},
 		)
@@ -265,7 +265,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordViolation{Reason: PasswordContainingExcludedKeywords},
+					PasswordPolicy{Name: PasswordContainingExcludedKeywords},
 				},
 			},
 		)
@@ -288,7 +288,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordViolation{Reason: PasswordContainingExcludedKeywords},
+					PasswordPolicy{Name: PasswordContainingExcludedKeywords},
 				},
 			},
 		)
@@ -306,7 +306,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordViolation{Reason: PasswordBelowGuessableLevel, Info: map[string]interface{}{"min_level": 5, "pw_level": 1}},
+					PasswordPolicy{Name: PasswordBelowGuessableLevel, Info: map[string]interface{}{"min_level": 5, "pw_level": 1}},
 				},
 			},
 		)
@@ -332,7 +332,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordViolation{Reason: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+					PasswordPolicy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
 				},
 			},
 		)
@@ -346,7 +346,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordViolation{Reason: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+					PasswordPolicy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
 				},
 			},
 		)
@@ -380,7 +380,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordViolation{Reason: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+					PasswordPolicy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
 				},
 			},
 		)
@@ -414,7 +414,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordViolation{Reason: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+					PasswordPolicy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
 				},
 			},
 		)
@@ -467,9 +467,9 @@ func TestPasswordPolicy(t *testing.T) {
 			pc := &PasswordChecker{
 				PwMinLength: 8,
 			}
-			So(pc.PasswordPolicy(), ShouldResemble, []PasswordViolation{
-				PasswordViolation{
-					Reason: PasswordTooShort,
+			So(pc.PasswordPolicy(), ShouldResemble, []PasswordPolicy{
+				PasswordPolicy{
+					Name: PasswordTooShort,
 					Info: map[string]interface{}{
 						"min_length": 8,
 					},
@@ -480,9 +480,9 @@ func TestPasswordPolicy(t *testing.T) {
 			pc := &PasswordChecker{
 				PwMinGuessableLevel: 3,
 			}
-			So(pc.PasswordPolicy(), ShouldResemble, []PasswordViolation{
-				PasswordViolation{
-					Reason: PasswordBelowGuessableLevel,
+			So(pc.PasswordPolicy(), ShouldResemble, []PasswordPolicy{
+				PasswordPolicy{
+					Name: PasswordBelowGuessableLevel,
 					Info: map[string]interface{}{
 						"min_level": 3,
 					},
@@ -495,9 +495,9 @@ func TestPasswordPolicy(t *testing.T) {
 				PwHistorySize:          10,
 				PwHistoryDays:          90,
 			}
-			So(pc.PasswordPolicy(), ShouldResemble, []PasswordViolation{
-				PasswordViolation{
-					Reason: PasswordReused,
+			So(pc.PasswordPolicy(), ShouldResemble, []PasswordPolicy{
+				PasswordPolicy{
+					Name: PasswordReused,
 					Info: map[string]interface{}{
 						"history_size": 10,
 						"history_days": 90,
@@ -510,12 +510,12 @@ func TestPasswordPolicy(t *testing.T) {
 				PwUppercaseRequired: true,
 				PwDigitRequired:     true,
 			}
-			So(pc.PasswordPolicy(), ShouldResemble, []PasswordViolation{
-				PasswordViolation{
-					Reason: PasswordUppercaseRequired,
+			So(pc.PasswordPolicy(), ShouldResemble, []PasswordPolicy{
+				PasswordPolicy{
+					Name: PasswordUppercaseRequired,
 				},
-				PasswordViolation{
-					Reason: PasswordDigitRequired,
+				PasswordPolicy{
+					Name: PasswordDigitRequired,
 				},
 			})
 		})
