@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/wire"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -51,4 +52,7 @@ func ProvideHookProvider(
 	)
 }
 
-var DependencySet = wire.NewSet(ProvideHookProvider)
+var DependencySet = wire.NewSet(
+	ProvideHookProvider,
+	wire.Bind(new(auth.HookProvider), new(Provider)),
+)

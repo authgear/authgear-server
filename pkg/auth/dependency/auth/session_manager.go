@@ -66,6 +66,9 @@ func (m *SessionManager) resolveManagementProvider(session AuthSession) SessionM
 
 func (m *SessionManager) Logout(session AuthSession, rw http.ResponseWriter) error {
 	user, identity, err := m.loadModels(session)
+	if err != nil {
+		return err
+	}
 	s := session.ToAPIModel()
 
 	err = m.Hooks.DispatchEvent(

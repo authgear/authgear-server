@@ -6,6 +6,7 @@ import (
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type InsecureCookieConfig bool
@@ -22,12 +23,21 @@ func ProvideSessionProvider(req *http.Request, s Store, aep *auth.AccessEventPro
 	return NewProvider(req, s, aep, *c.AppConfig.Session)
 }
 
+func ProvideSessionManager(s Store, tp time.Provider, c *config.TenantConfiguration, cc CookieConfiguration) *Manager {
+	return &Manager{
+		Store:  s,
+		Time:   tp,
+		Config: *c.AppConfig.Session,
+		Cookie: cc,
+	}
+}
+
 var DependencySet = wire.NewSet(
 	ProvideSessionCookieConfiguration,
 	ProvideSessionProvider,
 	wire.Bind(new(ResolverProvider), new(Provider)),
 	wire.Struct(new(Resolver), "*"),
 	wire.Bind(new(auth.IDPSessionResolver), new(*Resolver)),
-	wire.Struct(new(Manager), "*"),
+	ProvideSessionManager,
 	wire.Bind(new(auth.IDPSessionManager), new(*Manager)),
 )
