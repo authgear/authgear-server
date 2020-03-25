@@ -3,7 +3,10 @@ package oidc
 import (
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
@@ -11,12 +14,18 @@ import (
 func ProvideIDTokenIssuer(
 	cfg *config.TenantConfiguration,
 	up urlprefix.Provider,
+	as authinfo.Store,
+	ups userprofile.Store,
+	ip principal.IdentityProvider,
 	t time.Provider,
 ) *IDTokenIssuer {
 	return &IDTokenIssuer{
-		OIDCConfig: *cfg.AppConfig.OIDC,
-		URLPrefix:  up,
-		Time:       t,
+		OIDCConfig:       *cfg.AppConfig.OIDC,
+		URLPrefix:        up,
+		AuthInfoStore:    as,
+		UserProfileStore: ups,
+		IdentityProvider: ip,
+		Time:             t,
 	}
 }
 

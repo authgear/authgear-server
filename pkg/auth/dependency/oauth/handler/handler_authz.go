@@ -70,7 +70,7 @@ func (h *AuthorizationHandler) doHandle(
 	client config.OAuthClientConfiguration,
 	r protocol.AuthorizationRequest,
 ) (AuthorizationResult, error) {
-	if err := h.validateRequest(r); err != nil {
+	if err := h.validateRequest(client, r); err != nil {
 		return nil, err
 	}
 
@@ -95,31 +95,21 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
-	code := h.CodeGenerator()
-	codeHash := oauth.HashToken(code)
-
-	codeGrant := &oauth.CodeGrant{
-		AppID:           h.AppID,
-		AuthorizationID: authz.ID,
-		SessionID:       session.SessionID(),
-
-		CreatedAt: h.Time.NowUTC(),
-		ExpireAt:  h.Time.NowUTC().Add(CodeGrantValidDuration),
-		Scopes:    scopes,
-		CodeHash:  codeHash,
-
-		RedirectURI:   redirectURI.String(),
-		OIDCNonce:     r.Nonce(),
-		PKCEChallenge: r.CodeChallenge(),
-	}
-
-	err = h.CodeGrants.CreateCodeGrant(codeGrant)
-	if err != nil {
-		return nil, err
-	}
-
 	resp := protocol.AuthorizationResponse{}
-	resp.Code(code)
+	switch r.ResponseType() {
+	case "code":
+		err = h.generateCodeResponse(redirectURI.String(), session, r, authz, scopes, resp)
+		if err != nil {
+			return nil, err
+		}
+
+	case "none":
+		break
+
+	default:
+		panic("oauth: unexpected response type")
+	}
+
 	state := r.State()
 	if state != "" {
 		resp.State(r.State())
@@ -131,18 +121,42 @@ func (h *AuthorizationHandler) doHandle(
 	}, nil
 }
 
-func (h *AuthorizationHandler) validateRequest(r protocol.AuthorizationRequest) error {
-	if r.ResponseType() != "code" {
-		return protocol.NewError("unsupported_response_type", "only 'code' response type is supported")
+func (h *AuthorizationHandler) validateRequest(
+	client config.OAuthClientConfiguration,
+	r protocol.AuthorizationRequest,
+) error {
+	allowedResponseTypes := client.ResponseTypes()
+	if len(allowedResponseTypes) == 0 {
+		allowedResponseTypes = []string{"code"}
 	}
+
+	ok := false
+	for _, respType := range allowedResponseTypes {
+		if respType == r.ResponseType() {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return protocol.NewError("unauthorized_client", "response type is not allowed for this client")
+	}
+
 	if len(r.Scope()) == 0 {
 		return protocol.NewError("invalid_request", "scope is required")
 	}
-	if r.CodeChallenge() == "" {
-		return protocol.NewError("invalid_request", "PKCE code challenge is required")
-	}
-	if r.CodeChallengeMethod() != "S256" {
-		return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
+
+	switch r.ResponseType() {
+	case "code":
+		if r.CodeChallenge() == "" {
+			return protocol.NewError("invalid_request", "PKCE code challenge is required")
+		}
+		if r.CodeChallengeMethod() != "S256" {
+			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
+		}
+	case "none":
+		break
+	default:
+		return protocol.NewError("unsupported_response_type", "only 'code' response type is supported")
 	}
 
 	return nil
@@ -188,4 +202,39 @@ func (h *AuthorizationHandler) checkAuthorization(
 	}
 
 	return authz, nil
+}
+
+func (h *AuthorizationHandler) generateCodeResponse(
+	redirectURI string,
+	session auth.AuthSession,
+	r protocol.AuthorizationRequest,
+	authz *oauth.Authorization,
+	scopes []string,
+	resp protocol.AuthorizationResponse,
+) error {
+	code := h.CodeGenerator()
+	codeHash := oauth.HashToken(code)
+
+	codeGrant := &oauth.CodeGrant{
+		AppID:           h.AppID,
+		AuthorizationID: authz.ID,
+		SessionID:       session.SessionID(),
+
+		CreatedAt: h.Time.NowUTC(),
+		ExpireAt:  h.Time.NowUTC().Add(CodeGrantValidDuration),
+		Scopes:    scopes,
+		CodeHash:  codeHash,
+
+		RedirectURI:   redirectURI,
+		OIDCNonce:     r.Nonce(),
+		PKCEChallenge: r.CodeChallenge(),
+	}
+
+	err := h.CodeGrants.CreateCodeGrant(codeGrant)
+	if err != nil {
+		return err
+	}
+
+	resp.Code(code)
+	return nil
 }

@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -34,6 +35,7 @@ func ValidateScopes(client config.OAuthClientConfiguration, scopes []string) err
 var AllowedScopes = []string{
 	"openid",
 	"offline_access",
+	oauth.FullAccessScope,
 }
 
 func IsScopeAllowed(scope string) bool {

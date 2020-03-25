@@ -20,7 +20,7 @@ func AttachTokenHandler(
 	router.NewRoute().
 		Path("/oauth2/token").
 		Handler(pkg.MakeHandler(authDependency, newTokenHandler)).
-		Methods("POST")
+		Methods("POST", "OPTIONS")
 }
 
 type oauthTokenHandler interface {

@@ -218,7 +218,6 @@ func TestParseAppConfiguration(t *testing.T) {
 			}`,
 			"/clients/0/client_id: Required",
 			"/clients/0/client_name: Required",
-			"/clients/0/key: ExtraEntry",
 		)
 		// MFA
 		test(`

@@ -106,7 +106,6 @@ var (
 	"APIClientConfiguration": {
 		"$id": "#APIClientConfiguration",
 		"type": "object",
-		"additionalProperties": false,
 		"properties": {
 			"client_name": { "$ref": "#NonEmptyString" },
 			"client_id": { "$ref": "#NonEmptyString" },
@@ -118,6 +117,10 @@ var (
 			"access_token_lifetime": { "type": "integer", "minimum": 0 },
 			"refresh_token_lifetime": { "type": "integer", "minimum": 0 },
 			"grant_types": {
+				"type": "array",
+				"items": { "type": "string" }
+			},
+			"response_types": {
 				"type": "array",
 				"items": { "type": "string" }
 			}

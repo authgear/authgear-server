@@ -576,6 +576,17 @@ func (c OAuthClientConfiguration) GrantTypes() (out []string) {
 	return out
 }
 
+func (c OAuthClientConfiguration) ResponseTypes() (out []string) {
+	if arr, ok := c["response_types"].([]interface{}); ok {
+		for _, item := range arr {
+			if s, ok := item.(string); ok {
+				out = append(out, s)
+			}
+		}
+	}
+	return out
+}
+
 type SessionConfiguration struct {
 	Lifetime            int     `json:"lifetime,omitempty" yaml:"lifetime" msg:"lifetime"`
 	IdleTimeoutEnabled  bool    `json:"idle_timeout_enabled,omitempty" yaml:"idle_timeout_enabled" msg:"idle_timeout_enabled"`

@@ -14,9 +14,15 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
+	pq3 "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	pq2 "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -82,7 +88,15 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	sessionProvider := session.ProvideSessionProvider(r, store, authAccessEventProvider, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
-	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, provider)
+	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	oauthProvider := oauth2.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
+	passwordhistoryStore := pq3.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
+	v := auth.ProvidePrincipalProviders(oauthProvider, passwordProvider)
+	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, identityProvider, provider)
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenHandler := handler.ProvideTokenHandler(context, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, accessEventProvider, sessionProvider, idTokenIssuer, tokenGenerator, provider)
 	httpHandler := provideTokenHandler(factory, txContext, tokenHandler)
@@ -120,8 +134,9 @@ func newMetadataHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		AuthenticateEndpoint: endpointsProvider,
 	}
 	oidcMetadataProvider := &oidc.MetadataProvider{
-		URLPrefix:    provider,
-		JWKSEndpoint: endpointsProvider,
+		URLPrefix:        provider,
+		JWKSEndpoint:     endpointsProvider,
+		UserInfoEndpoint: endpointsProvider,
 	}
 	httpHandler := provideMetadataHandler(metadataProvider, oidcMetadataProvider)
 	return httpHandler
@@ -131,6 +146,30 @@ func newJWKSHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context)
 	httpHandler := provideJWKSHandler(tenantConfiguration)
+	return httpHandler
+}
+
+func newUserInfoHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	requestID := auth.ProvideLoggingRequestID(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	provider := urlprefix.NewProvider(r)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	timeProvider := time.NewProvider()
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
+	oauthProvider := oauth2.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
+	passwordhistoryStore := pq3.ProvidePasswordHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
+	v := auth.ProvidePrincipalProviders(oauthProvider, passwordProvider)
+	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, provider, store, userprofileStore, identityProvider, timeProvider)
+	httpHandler := provideUserInfoHandler(factory, txContext, idTokenIssuer)
 	return httpHandler
 }
 
@@ -163,9 +202,9 @@ func provideRevokeHandler(lf logging.Factory, tx db.TxContext, rh oauthRevokeHan
 	return h
 }
 
-func provideMetadataHandler(oauth2 *oauth.MetadataProvider, oidc2 *oidc.MetadataProvider) http.Handler {
+func provideMetadataHandler(oauth3 *oauth.MetadataProvider, oidc2 *oidc.MetadataProvider) http.Handler {
 	h := &MetadataHandler{
-		metaProviders: []oauthMetadataProvider{oauth2, oidc2},
+		metaProviders: []oauthMetadataProvider{oauth3, oidc2},
 	}
 	return h
 }
@@ -173,6 +212,15 @@ func provideMetadataHandler(oauth2 *oauth.MetadataProvider, oidc2 *oidc.Metadata
 func provideJWKSHandler(config2 *config.TenantConfiguration) http.Handler {
 	h := &JWKSHandler{
 		config: *config2.AppConfig.OIDC,
+	}
+	return h
+}
+
+func provideUserInfoHandler(lf logging.Factory, tx db.TxContext, uip oauthUserInfoProvider) http.Handler {
+	h := &UserInfoHandler{
+		logger:           lf.NewLogger("oauth-userinfo-handler"),
+		txContext:        tx,
+		userInfoProvider: uip,
 	}
 	return h
 }

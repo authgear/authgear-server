@@ -21,7 +21,7 @@ import (
 // TODO(oauth): write tests
 
 type IDTokenIssuer interface {
-	IssueIDToken(client config.OAuthClientConfiguration, userID string, nonce string) (token string, err error)
+	IssueIDToken(client config.OAuthClientConfiguration, session auth.AuthSession, nonce string) (token string, err error)
 }
 
 type TokenHandler struct {
@@ -46,9 +46,6 @@ func (h *TokenHandler) Handle(r protocol.TokenRequest) TokenResult {
 		return authorizationResultError{
 			Response: protocol.NewErrorResponse("invalid_client", "invalid client ID"),
 		}
-	}
-	if _, errResp := parseRedirectURI(client, r); errResp != nil {
-		return authorizationResultError{Response: errResp}
 	}
 
 	result, err := h.doHandle(client, r)
@@ -128,6 +125,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	client config.OAuthClientConfiguration,
 	r protocol.TokenRequest,
 ) (TokenResult, error) {
+
 	codeHash := oauth.HashToken(r.Code())
 	codeGrant, err := h.CodeGrants.GetCodeGrant(codeHash)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
@@ -250,27 +248,19 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 
 	resp := protocol.TokenResponse{}
 
-	if issueIDToken {
-		if h.IDTokenIssuer == nil {
-			return nil, errors.New("id token issuer is not provided")
-		}
-		idToken, err := h.IDTokenIssuer.IssueIDToken(client, authz.UserID, code.OIDCNonce)
-		if err != nil {
-			return nil, err
-		}
-		resp.IDToken(idToken)
-	}
-
 	var sessionID string
 	var sessionKind oauth.GrantSessionKind
+	var atSession auth.AuthSession
 	if issueRefreshToken {
 		offlineGrant, err := h.issueOfflineGrant(client, code, authz.ID, session, resp)
 		if err != nil {
 			return nil, err
 		}
+		atSession = offlineGrant
 		sessionID = offlineGrant.ID
 		sessionKind = oauth.GrantSessionKindOffline
 	} else {
+		atSession = session
 		sessionID = session.ID
 		sessionKind = oauth.GrantSessionKindSession
 	}
@@ -279,6 +269,17 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		authz.ID, sessionID, sessionKind, resp)
 	if err != nil {
 		return nil, err
+	}
+
+	if issueIDToken {
+		if h.IDTokenIssuer == nil {
+			return nil, errors.New("id token issuer is not provided")
+		}
+		idToken, err := h.IDTokenIssuer.IssueIDToken(client, atSession, code.OIDCNonce)
+		if err != nil {
+			return nil, err
+		}
+		resp.IDToken(idToken)
 	}
 
 	return resp, nil
@@ -303,7 +304,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		if h.IDTokenIssuer == nil {
 			return nil, errors.New("id token issuer is not provided")
 		}
-		idToken, err := h.IDTokenIssuer.IssueIDToken(client, authz.UserID, "")
+		idToken, err := h.IDTokenIssuer.IssueIDToken(client, offlineGrant, "")
 		if err != nil {
 			return nil, err
 		}
