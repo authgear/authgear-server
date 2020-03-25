@@ -28,4 +28,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(ResolverProvider), new(Provider)),
 	wire.Struct(new(Resolver), "*"),
 	wire.Bind(new(auth.IDPSessionResolver), new(*Resolver)),
+	wire.Struct(new(Manager), "*"),
+	wire.Bind(new(auth.IDPSessionManager), new(*Manager)),
 )

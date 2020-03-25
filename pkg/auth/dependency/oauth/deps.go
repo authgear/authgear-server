@@ -13,4 +13,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(Resolver), "*"),
 	ProvideResolverProvider,
 	wire.Bind(new(auth.AccessTokenSessionResolver), new(*Resolver)),
+	wire.Struct(new(SessionManager), "*"),
+	wire.Bind(new(auth.AccessTokenSessionManager), new(*SessionManager)),
 )

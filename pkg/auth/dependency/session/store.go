@@ -15,10 +15,6 @@ type Store interface {
 	Get(id string) (*IDPSession, error)
 	// Delete deletes the session with id in the store. It must treat deleting non-existent session as successful.
 	Delete(*IDPSession) error
-	// DeleteBatch deletes the sessions in the store. It must treat deleting non-existent session as successful.
-	DeleteBatch([]*IDPSession) error
-	// DeleteAll deletes all sessions of the user in the store, excluding specified session.
-	DeleteAll(userID string, sessionID string) error
 	// List lists the sessions belonging to the user, in ascending creation time order
 	List(userID string) ([]*IDPSession, error)
 }

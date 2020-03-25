@@ -129,50 +129,6 @@ func (p *ProviderImpl) Get(id string) (*IDPSession, error) {
 	return session, nil
 }
 
-func (p *ProviderImpl) Invalidate(session *IDPSession) error {
-	err := p.store.Delete(session)
-	if err != nil {
-		return errors.HandledWithMessage(err, "failed to invalidate session")
-	}
-	return nil
-}
-
-func (p *ProviderImpl) InvalidateBatch(sessions []*IDPSession) error {
-	err := p.store.DeleteBatch(sessions)
-	if err != nil {
-		return errors.HandledWithMessage(err, "failed to invalidate sessions")
-	}
-	return nil
-}
-
-func (p *ProviderImpl) InvalidateAll(userID string, sessionID string) error {
-	err := p.store.DeleteAll(userID, sessionID)
-	if err != nil {
-		return errors.HandledWithMessage(err, "failed to invalidate sessions")
-	}
-	return nil
-}
-
-func (p *ProviderImpl) List(userID string) (sessions []*IDPSession, err error) {
-	storedSessions, err := p.store.List(userID)
-	if err != nil {
-		err = errors.HandledWithMessage(err, "failed to list sessions")
-		return
-	}
-
-	now := p.time.NowUTC()
-	for _, session := range storedSessions {
-		maxExpiry := computeSessionStorageExpiry(session, p.config)
-		// ignore expired sessions
-		if now.After(maxExpiry) {
-			continue
-		}
-
-		sessions = append(sessions, session)
-	}
-	return
-}
-
 func (p *ProviderImpl) Update(sess *IDPSession) error {
 	expiry := computeSessionStorageExpiry(sess, p.config)
 	err := p.store.Update(sess, expiry)

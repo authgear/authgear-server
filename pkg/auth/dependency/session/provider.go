@@ -13,12 +13,4 @@ type Provider interface {
 	Get(id string) (*IDPSession, error)
 	// Update updates the session attributes.
 	Update(session *IDPSession) error
-	// Invalidate invalidates session with the ID
-	Invalidate(*IDPSession) error
-	// InvalidateBatch invalidates sessions
-	InvalidateBatch([]*IDPSession) error
-	// InvalidateAll invalidates all sessions of the user, except specified session
-	InvalidateAll(userID string, sessionID string) error
-	// List lists the sessions belonging to the user, in ascending creation time order
-	List(userID string) ([]*IDPSession, error)
 }

@@ -17,7 +17,7 @@ type HookProvider interface {
 
 type SessionManagementProvider interface {
 	CookieConfig() *corehttp.CookieConfiguration
-	Delete(id string) error
+	Delete(AuthSession) error
 }
 
 type IDPSessionManager SessionManagementProvider
@@ -82,7 +82,7 @@ func (m *SessionManager) Logout(session AuthSession, rw http.ResponseWriter) err
 	}
 
 	provider := m.resolveManagementProvider(session)
-	err = provider.Delete(session.SessionID())
+	err = provider.Delete(session)
 	if err != nil {
 		return err
 	}
