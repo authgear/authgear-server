@@ -10,7 +10,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
+	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
+	oidchandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/handler"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -46,8 +48,8 @@ func provideTokenHandler(lf logging.Factory, tx db.TxContext, th oauthTokenHandl
 func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	wire.Build(
 		auth.DependencySet,
-		wire.Bind(new(oauthTokenHandler), new(*handler.TokenHandler)),
-		wire.Bind(new(handler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
+		wire.Bind(new(oauthTokenHandler), new(*oauthhandler.TokenHandler)),
+		wire.Bind(new(oauthhandler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
 		provideTokenHandler,
 	)
 	return nil
@@ -65,7 +67,7 @@ func provideRevokeHandler(lf logging.Factory, tx db.TxContext, rh oauthRevokeHan
 func newRevokeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	wire.Build(
 		auth.DependencySet,
-		wire.Bind(new(oauthRevokeHandler), new(*handler.RevokeHandler)),
+		wire.Bind(new(oauthRevokeHandler), new(*oauthhandler.RevokeHandler)),
 		provideRevokeHandler,
 	)
 	return nil
@@ -115,6 +117,24 @@ func newUserInfoHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		auth.DependencySet,
 		wire.Bind(new(oauthUserInfoProvider), new(*oidc.IDTokenIssuer)),
 		provideUserInfoHandler,
+	)
+	return nil
+}
+
+func provideEndSessionHandler(lf logging.Factory, tx db.TxContext, esh oidcEndSessionHandler) http.Handler {
+	h := &EndSessionHandler{
+		logger:            lf.NewLogger("oauth-end-session-handler"),
+		txContext:         tx,
+		endSessionHandler: esh,
+	}
+	return h
+}
+
+func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	wire.Build(
+		auth.DependencySet,
+		wire.Bind(new(oidcEndSessionHandler), new(*oidchandler.EndSessionHandler)),
+		provideEndSessionHandler,
 	)
 	return nil
 }

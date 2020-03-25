@@ -9,11 +9,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
+	handler2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/handler"
 	pq3 "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -134,9 +136,10 @@ func newMetadataHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		AuthenticateEndpoint: endpointsProvider,
 	}
 	oidcMetadataProvider := &oidc.MetadataProvider{
-		URLPrefix:        provider,
-		JWKSEndpoint:     endpointsProvider,
-		UserInfoEndpoint: endpointsProvider,
+		URLPrefix:          provider,
+		JWKSEndpoint:       endpointsProvider,
+		UserInfoEndpoint:   endpointsProvider,
+		EndSessionEndpoint: endpointsProvider,
 	}
 	httpHandler := provideMetadataHandler(metadataProvider, oidcMetadataProvider)
 	return httpHandler
@@ -170,6 +173,51 @@ func newUserInfoHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, provider, store, userprofileStore, identityProvider, timeProvider)
 	httpHandler := provideUserInfoHandler(factory, txContext, idTokenIssuer)
+	return httpHandler
+}
+
+func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	requestID := auth.ProvideLoggingRequestID(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	provider := time.NewProvider()
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	oauthProvider := oauth2.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
+	passwordhistoryStore := pq3.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
+	v := auth.ProvidePrincipalProviders(oauthProvider, passwordProvider)
+	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, urlprefixProvider, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	sessionStore := redis3.ProvideStore(context, tenantConfiguration, provider, factory)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	manager := session.ProvideSessionManager(sessionStore, provider, tenantConfiguration, cookieConfiguration)
+	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	sessionManager := &oauth.SessionManager{
+		Store: grantStore,
+		Time:  provider,
+	}
+	authSessionManager := &auth2.SessionManager{
+		AuthInfoStore:       store,
+		UserProfileStore:    userprofileStore,
+		IdentityProvider:    identityProvider,
+		Hooks:               hookProvider,
+		IDPSessions:         manager,
+		AccessTokenSessions: sessionManager,
+	}
+	endpointsProvider := &auth.EndpointsProvider{
+		PrefixProvider: urlprefixProvider,
+	}
+	endSessionHandler := handler2.ProvideEndSessionHandler(tenantConfiguration, authSessionManager, endpointsProvider)
+	httpHandler := provideEndSessionHandler(factory, txContext, endSessionHandler)
 	return httpHandler
 }
 
@@ -221,6 +269,15 @@ func provideUserInfoHandler(lf logging.Factory, tx db.TxContext, uip oauthUserIn
 		logger:           lf.NewLogger("oauth-userinfo-handler"),
 		txContext:        tx,
 		userInfoProvider: uip,
+	}
+	return h
+}
+
+func provideEndSessionHandler(lf logging.Factory, tx db.TxContext, esh oidcEndSessionHandler) http.Handler {
+	h := &EndSessionHandler{
+		logger:            lf.NewLogger("oauth-end-session-handler"),
+		txContext:         tx,
+		endSessionHandler: esh,
 	}
 	return h
 }

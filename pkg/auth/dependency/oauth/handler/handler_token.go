@@ -333,6 +333,7 @@ func (h *TokenHandler) issueOfflineGrant(
 		AppID:           code.AppID,
 		ID:              uuid.New(),
 		AuthorizationID: authzID,
+		ClientID:        client.ClientID(),
 
 		CreatedAt: now,
 		ExpireAt:  now.Add(gotime.Duration(client.RefreshTokenLifetime()) * gotime.Second),

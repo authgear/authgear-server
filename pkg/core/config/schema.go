@@ -123,6 +123,10 @@ var (
 			"response_types": {
 				"type": "array",
 				"items": { "type": "string" }
+			},
+			"post_logout_redirect_uris": {
+				"type": "array",
+				"items": { "type": "string" }
 			}
 		},
 		"required": ["client_name", "client_id"]

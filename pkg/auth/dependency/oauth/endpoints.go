@@ -17,3 +17,7 @@ type RevokeEndpointProvider interface {
 type AuthenticateEndpointProvider interface {
 	AuthenticateEndpointURI() *url.URL
 }
+
+type SettingsEndpointProvider interface {
+	SettingsEndpointURI() *url.URL
+}
