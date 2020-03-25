@@ -18,7 +18,7 @@ func AttachRevokeHandler(
 	router.NewRoute().
 		Path("/oauth2/revoke").
 		Handler(pkg.MakeHandler(authDependency, newRevokeHandler)).
-		Methods("POST")
+		Methods("POST", "OPTIONS")
 }
 
 type oauthRevokeHandler interface {

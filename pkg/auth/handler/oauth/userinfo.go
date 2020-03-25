@@ -23,7 +23,7 @@ func AttachUserInfoHandler(
 	router.NewRoute().
 		Path("/oauth2/userinfo").
 		Handler(handler).
-		Methods("GET", "POST")
+		Methods("GET", "POST", "OPTIONS")
 }
 
 type oauthUserInfoProvider interface {

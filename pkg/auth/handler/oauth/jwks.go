@@ -20,7 +20,7 @@ func AttachJWKSHandler(
 	router.NewRoute().
 		Path("/oauth2/jwks").
 		Handler(handler).
-		Methods("GET")
+		Methods("GET", "OPTIONS")
 }
 
 type JWKSHandler struct {

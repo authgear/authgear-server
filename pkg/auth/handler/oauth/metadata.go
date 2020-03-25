@@ -17,11 +17,11 @@ func AttachMetadataHandler(
 	router.NewRoute().
 		Path("/.well-known/openid-configuration").
 		Handler(handler).
-		Methods("GET")
+		Methods("GET", "OPTIONS")
 	router.NewRoute().
 		Path("/.well-known/oauth-authorization-server").
 		Handler(handler).
-		Methods("GET")
+		Methods("GET", "OPTIONS")
 }
 
 type oauthMetadataProvider interface {
