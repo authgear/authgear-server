@@ -35,7 +35,7 @@ type SessionProvider struct {
 	HookProvider       hook.Provider
 }
 
-func (p *SessionProvider) BeginSession(client config.OAuthClientConfiguration, userID string, prin principal.Principal, reason session.CreateReason) (*AuthnSession, error) {
+func (p *SessionProvider) BeginSession(client config.OAuthClientConfiguration, userID string, prin principal.Principal, reason auth.SessionCreateReason) (*AuthnSession, error) {
 	now := p.TimeProvider.NowUTC()
 	requiredSteps, err := p.getRequiredSteps(userID)
 	if err != nil {
@@ -149,7 +149,7 @@ func (p *SessionProvider) completeSession(s *AuthnSession, client config.OAuthCl
 	sessionModel := session.ToAPIModel()
 	err = p.HookProvider.DispatchEvent(
 		event.SessionCreateEvent{
-			Reason:   s.SessionCreateReason,
+			Reason:   string(s.SessionCreateReason),
 			User:     *user,
 			Identity: *identity,
 			Session:  *sessionModel,

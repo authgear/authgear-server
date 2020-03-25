@@ -16,3 +16,17 @@ type AuthSession interface {
 	GetAccessInfo() *AccessInfo
 	ToAPIModel() *model.Session
 }
+
+type SessionDeleteReason string
+
+const (
+	SessionDeleteReasonLogout SessionDeleteReason = "logout"
+	SessionDeleteReasonRevoke SessionDeleteReason = "revoke"
+)
+
+type SessionCreateReason string
+
+const (
+	SessionCreateReasonSignup SessionCreateReason = "signup"
+	SessionCreateReasonLogin  SessionCreateReason = "login"
+)
