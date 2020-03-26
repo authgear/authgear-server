@@ -87,7 +87,7 @@ func newRootHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
 	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
-	authnProvider := &authn.Provider{
+	providerFactory := &authn.ProviderFactory{
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
@@ -96,6 +96,7 @@ func newRootHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
+	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
 	authenticateProvider := webapp.ProvideAuthenticateProvider(validateProvider, renderProvider, authnProvider)
 	handler := provideRootHandler(authenticateProvider)
 	return handler

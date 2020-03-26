@@ -97,5 +97,8 @@ var DependencySet = wire.NewSet(
 	ProvideAuthenticateProcess,
 	wire.Struct(new(OAuthCoordinator), "*"),
 	ProvideSessionProvider,
-	wire.Struct(new(Provider), "*"),
+	wire.Struct(new(ProviderFactory), "*"),
 )
+
+func ProvideAuthAPIProvider(f *ProviderFactory) *Provider { return f.ForAuthAPI() }
+func ProvideAuthUIProvider(f *ProviderFactory) *Provider  { return f.ForAuthUI() }

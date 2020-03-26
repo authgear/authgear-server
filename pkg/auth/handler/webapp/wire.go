@@ -22,6 +22,7 @@ func provideRootHandler(authenticateProvider webapp.AuthenticateProvider) http.H
 func newRootHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
+		authn.ProvideAuthUIProvider,
 		wire.Bind(new(webapp.AuthnProvider), new(*authn.Provider)),
 		provideRootHandler,
 	)

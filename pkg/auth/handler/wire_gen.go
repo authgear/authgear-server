@@ -88,7 +88,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
 	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
-	authnProvider := &authn.Provider{
+	providerFactory := &authn.ProviderFactory{
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
@@ -97,6 +97,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
+	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	httpHandler := provideLoginHandler(requireAuthz, validator, authnProvider, txContext)
 	return httpHandler
 }
@@ -150,7 +151,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
 	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
-	authnProvider := &authn.Provider{
+	providerFactory := &authn.ProviderFactory{
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
@@ -159,6 +160,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
+	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	httpHandler := provideSignupHandler(requireAuthz, validator, authnProvider, txContext)
 	return httpHandler
 }

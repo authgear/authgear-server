@@ -89,7 +89,7 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
 	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
-	authnProvider := &authn.Provider{
+	providerFactory := &authn.ProviderFactory{
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
@@ -98,6 +98,7 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
+	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, provider, timeProvider, loginIDNormalizerFactory)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
@@ -153,7 +154,7 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
 	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
-	authnProvider := &authn.Provider{
+	providerFactory := &authn.ProviderFactory{
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
@@ -162,6 +163,7 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
+	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	validator := auth.ProvideValidator(m)
 	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	httpHandler := provideAuthResultHandler(txContext, requireAuthz, authnProvider, validator, ssoProvider)
@@ -218,7 +220,7 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
 	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
-	authnProvider := &authn.Provider{
+	providerFactory := &authn.ProviderFactory{
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
@@ -227,6 +229,7 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
+	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
@@ -284,7 +287,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
 	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
-	authnProvider := &authn.Provider{
+	providerFactory := &authn.ProviderFactory{
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
@@ -293,6 +296,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
+	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)

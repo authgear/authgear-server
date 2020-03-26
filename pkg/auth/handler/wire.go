@@ -32,6 +32,7 @@ func provideLoginHandler(
 func newLoginHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
+		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(LoginAuthnProvider), new(*authn.Provider)),
 		provideLoginHandler,
 	)
@@ -55,6 +56,7 @@ func provideSignupHandler(
 func newSignupHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
+		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(SignupAuthnProvider), new(*authn.Provider)),
 		provideSignupHandler,
 	)
