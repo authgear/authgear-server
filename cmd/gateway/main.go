@@ -68,7 +68,8 @@ func main() {
 			logger.WithError(err).Panic("Fail to load config from YAML")
 		}
 		store = &standaloneStore.Store{
-			TenantConfig: *tenantConfig,
+			TenantConfig:  *tenantConfig,
+			GatewayConfig: config,
 		}
 	} else {
 		var err error
