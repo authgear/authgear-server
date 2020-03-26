@@ -15,6 +15,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	pq3 "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
+	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
+	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -125,7 +127,36 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
 	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
-	handler := provideLogoutHandler(renderProvider)
+	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	oauthProvider := oauth.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
+	v := auth.ProvidePrincipalProviders(oauthProvider, passwordProvider)
+	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, urlprefixProvider, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
+	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	manager := session.ProvideSessionManager(sessionStore, provider, tenantConfiguration, cookieConfiguration)
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	sessionManager := &oauth2.SessionManager{
+		Store: grantStore,
+		Time:  provider,
+	}
+	authSessionManager := &auth2.SessionManager{
+		AuthInfoStore:       authinfoStore,
+		UserProfileStore:    userprofileStore,
+		IdentityProvider:    identityProvider,
+		Hooks:               hookProvider,
+		IDPSessions:         manager,
+		AccessTokenSessions: sessionManager,
+	}
+	handler := provideLogoutHandler(renderProvider, authSessionManager)
 	return handler
 }
 
@@ -141,6 +172,9 @@ func provideSettingsHandler(renderProvider webapp.RenderProvider) http.Handler {
 	return &SettingsHandler{RenderProvider: renderProvider}
 }
 
-func provideLogoutHandler(renderProvider webapp.RenderProvider) http.Handler {
-	return &LogoutHandler{RenderProvider: renderProvider}
+func provideLogoutHandler(renderProvider webapp.RenderProvider, sm logoutSessionManager) http.Handler {
+	return &LogoutHandler{
+		RenderProvider: renderProvider,
+		SessionManager: sm,
+	}
 }
