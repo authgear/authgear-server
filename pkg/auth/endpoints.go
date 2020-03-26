@@ -27,6 +27,7 @@ func (p *EndpointsProvider) JWKSEndpointURI() *url.URL         { return p.urlOf(
 func (p *EndpointsProvider) UserInfoEndpointURI() *url.URL     { return p.urlOf("oauth2/userinfo") }
 func (p *EndpointsProvider) EndSessionEndpointURI() *url.URL   { return p.urlOf("oauth2/end_session") }
 func (p *EndpointsProvider) AuthenticateEndpointURI() *url.URL { return p.urlOf(".") }
+func (p *EndpointsProvider) LogoutEndpointURI() *url.URL       { return p.urlOf("./logout") }
 func (p *EndpointsProvider) SettingsEndpointURI() *url.URL     { return p.urlOf("./settings") }
 
 var endpointsProviderSet = wire.NewSet(
@@ -38,5 +39,6 @@ var endpointsProviderSet = wire.NewSet(
 	wire.Bind(new(oidc.UserInfoEndpointProvider), new(*EndpointsProvider)),
 	wire.Bind(new(oidc.EndSessionEndpointProvider), new(*EndpointsProvider)),
 	wire.Bind(new(oauth.AuthenticateEndpointProvider), new(*EndpointsProvider)),
+	wire.Bind(new(oauth.LogoutEndpointProvider), new(*EndpointsProvider)),
 	wire.Bind(new(oauth.SettingsEndpointProvider), new(*EndpointsProvider)),
 )

@@ -525,6 +525,13 @@ func (c OAuthClientConfiguration) ClientID() string {
 	return ""
 }
 
+func (c OAuthClientConfiguration) ClientURI() string {
+	if s, ok := c["client_uri"].(string); ok {
+		return s
+	}
+	return ""
+}
+
 func (c OAuthClientConfiguration) RedirectURIs() (out []string) {
 	if arr, ok := c["redirect_uris"].([]interface{}); ok {
 		for _, item := range arr {

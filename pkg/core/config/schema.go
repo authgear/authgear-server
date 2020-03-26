@@ -109,6 +109,7 @@ var (
 		"properties": {
 			"client_name": { "$ref": "#NonEmptyString" },
 			"client_id": { "$ref": "#NonEmptyString" },
+			"client_uri": { "type": "string" },
 			"redirect_uris": {
 				"type": "array",
 				"items": { "type": "string" }

@@ -6,27 +6,48 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/protocol"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 // TODO(oidc): write tests
 
-type endSessionManager interface {
-	Logout(session auth.AuthSession, rw http.ResponseWriter) error
-}
-
 type EndSessionHandler struct {
-	Clients          []config.OAuthClientConfiguration
-	Sessions         endSessionManager
-	SettingsEndpoint oauth.SettingsEndpointProvider
+	Clients            []config.OAuthClientConfiguration
+	EndSessionEndpoint oidc.EndSessionEndpointProvider
+	LogoutEndpoint     oauth.LogoutEndpointProvider
+	SettingsEndpoint   oauth.SettingsEndpointProvider
 }
 
 func (h *EndSessionHandler) Handle(s auth.AuthSession, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
+	if s != nil {
+		endSessionURI := h.EndSessionEndpoint.EndSessionEndpointURI()
+		query := endSessionURI.Query()
+		for k, v := range req {
+			query.Add(k, v)
+		}
+		endSessionURI.RawQuery = query.Encode()
+
+		logoutURI := h.LogoutEndpoint.LogoutEndpointURI()
+		query = logoutURI.Query()
+		query.Add("redirect_uri", endSessionURI.String())
+		logoutURI.RawQuery = query.Encode()
+
+		http.Redirect(rw, r, logoutURI.String(), http.StatusFound)
+		return nil
+	}
+
 	redirectURI := req.PostLogoutRedirectURI()
-	if !h.validateRedirectURI(s, redirectURI) {
-		// Invalid/empty redirect URI, redirect to settings to prompt user
-		http.Redirect(rw, r, h.SettingsEndpoint.SettingsEndpointURI().String(), http.StatusFound)
+	valid, client := h.validateRedirectURI(redirectURI)
+	if !valid {
+		// Invalid/empty redirect URI, redirect to home page/settings
+		if client != nil && client.ClientURI() != "" {
+			redirectURI = client.ClientURI()
+		} else {
+			redirectURI = h.SettingsEndpoint.SettingsEndpointURI().String()
+		}
+		http.Redirect(rw, r, redirectURI, http.StatusFound)
 		return nil
 	}
 
@@ -41,29 +62,17 @@ func (h *EndSessionHandler) Handle(s auth.AuthSession, req protocol.EndSessionRe
 		redirectURI = uri.String()
 	}
 
-	if s != nil {
-		// TODO(oidc): handle id_token_hint
-
-		err := h.Sessions.Logout(s, rw)
-		if err != nil {
-			return err
-		}
-	}
-
 	http.Redirect(rw, r, redirectURI, http.StatusFound)
 	return nil
 }
 
-func (h *EndSessionHandler) validateRedirectURI(s auth.AuthSession, redirectURI string) bool {
+func (h *EndSessionHandler) validateRedirectURI(redirectURI string) (valid bool, client config.OAuthClientConfiguration) {
 	for _, client := range h.Clients {
-		if s != nil && s.GetClientID() != "" && client.ClientID() != s.GetClientID() {
-			continue
-		}
 		for _, uri := range client.PostLogoutRedirectURIs() {
 			if uri == redirectURI {
-				return true
+				return true, client
 			}
 		}
 	}
-	return false
+	return false, nil
 }
