@@ -29,6 +29,7 @@ func (s *IDPSession) AuthnAttrs() *authn.Attrs {
 	return &s.Attrs
 }
 
+func (s *IDPSession) GetClientID() string             { return "" }
 func (s *IDPSession) GetAccessInfo() *auth.AccessInfo { return &s.AccessInfo }
 
 func (s *IDPSession) ToAPIModel() *model.Session {

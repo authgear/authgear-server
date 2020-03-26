@@ -253,6 +253,7 @@ func main() {
 	oauthhandler.AttachTokenHandler(oauthRouter, authDependency)
 	oauthhandler.AttachRevokeHandler(oauthRouter, authDependency)
 	oauthhandler.AttachUserInfoHandler(oauthRouter, authDependency)
+	oauthhandler.AttachEndSessionHandler(oauthRouter, authDependency)
 
 	handler.AttachSignupHandler(apiRouter, authDependency)
 	handler.AttachLoginHandler(apiRouter, authDependency)

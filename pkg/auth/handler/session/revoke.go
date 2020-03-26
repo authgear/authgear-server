@@ -157,7 +157,7 @@ func (h RevokeHandler) Handle(r *http.Request, payload RevokeRequestPayload) (re
 
 		err = h.HookProvider.DispatchEvent(
 			event.SessionDeleteEvent{
-				Reason:   event.SessionDeleteReasonRevoke,
+				Reason:   string(auth.SessionDeleteReasonRevoke),
 				User:     user,
 				Identity: identity,
 				Session:  session,

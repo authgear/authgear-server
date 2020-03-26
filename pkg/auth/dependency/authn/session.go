@@ -1,7 +1,7 @@
 package authn
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -24,9 +24,9 @@ type AuthnSession struct {
 	// The following fields are filled in step "identity"
 	ClientID string `json:"client_id"`
 
-	RequiredSteps       []SessionStep        `json:"required_steps"`
-	FinishedSteps       []SessionStep        `json:"finished_steps"`
-	SessionCreateReason session.CreateReason `json:"session_create_reason"`
+	RequiredSteps       []SessionStep            `json:"required_steps"`
+	FinishedSteps       []SessionStep            `json:"finished_steps"`
+	SessionCreateReason auth.SessionCreateReason `json:"session_create_reason"`
 
 	Attrs authn.Attrs `json:"attrs"`
 

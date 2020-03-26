@@ -47,22 +47,6 @@ func (s *MockStore) Delete(session *IDPSession) error {
 	return nil
 }
 
-func (s *MockStore) DeleteBatch(sessions []*IDPSession) error {
-	for _, session := range sessions {
-		delete(s.Sessions, session.ID)
-	}
-	return nil
-}
-
-func (s *MockStore) DeleteAll(userID string, sessionID string) error {
-	for _, session := range s.Sessions {
-		if session.Attrs.UserID == userID && session.ID != sessionID {
-			delete(s.Sessions, session.ID)
-		}
-	}
-	return nil
-}
-
 func (s *MockStore) List(userID string) (sessions []*IDPSession, err error) {
 	for _, session := range s.Sessions {
 		if session.Attrs.UserID == userID {

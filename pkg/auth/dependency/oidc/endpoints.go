@@ -9,3 +9,7 @@ type JWKSEndpointProvider interface {
 type UserInfoEndpointProvider interface {
 	UserInfoEndpointURI() *url.URL
 }
+
+type EndSessionEndpointProvider interface {
+	EndSessionEndpointURI() *url.URL
+}

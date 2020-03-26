@@ -11,6 +11,7 @@ import (
 type OfflineGrant struct {
 	AppID           string `json:"app_id"`
 	ID              string `json:"id"`
+	ClientID        string `json:"client_id"`
 	AuthorizationID string `json:"authz_id"`
 
 	CreatedAt time.Time `json:"created_at"`
@@ -36,6 +37,7 @@ func (g *OfflineGrant) AuthnAttrs() *authn.Attrs {
 	return &g.Attrs
 }
 
+func (g *OfflineGrant) GetClientID() string             { return g.ClientID }
 func (g *OfflineGrant) GetAccessInfo() *auth.AccessInfo { return &g.AccessInfo }
 
 func (g *OfflineGrant) ToAPIModel() *model.Session {

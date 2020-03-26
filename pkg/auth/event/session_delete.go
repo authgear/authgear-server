@@ -7,13 +7,6 @@ const (
 	AfterSessionDelete  Type = "after_session_delete"
 )
 
-type SessionDeleteReason string
-
-const (
-	SessionDeleteReasonLogout = "logout"
-	SessionDeleteReasonRevoke = "revoke"
-)
-
 /*
 	@Callback
 		@Operation POST /before_session_delete - Before session deletion
@@ -29,10 +22,10 @@ const (
 			@Response 200 {EmptyResponse}
 */
 type SessionDeleteEvent struct {
-	Reason   SessionDeleteReason `json:"reason"`
-	User     model.User          `json:"user"`
-	Identity model.Identity      `json:"identity"`
-	Session  model.Session       `json:"session"`
+	Reason   string         `json:"reason"`
+	User     model.User     `json:"user"`
+	Identity model.Identity `json:"identity"`
+	Session  model.Session  `json:"session"`
 }
 
 // @JSONSchema

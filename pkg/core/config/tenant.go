@@ -525,6 +525,13 @@ func (c OAuthClientConfiguration) ClientID() string {
 	return ""
 }
 
+func (c OAuthClientConfiguration) ClientURI() string {
+	if s, ok := c["client_uri"].(string); ok {
+		return s
+	}
+	return ""
+}
+
 func (c OAuthClientConfiguration) RedirectURIs() (out []string) {
 	if arr, ok := c["redirect_uris"].([]interface{}); ok {
 		for _, item := range arr {
@@ -578,6 +585,17 @@ func (c OAuthClientConfiguration) GrantTypes() (out []string) {
 
 func (c OAuthClientConfiguration) ResponseTypes() (out []string) {
 	if arr, ok := c["response_types"].([]interface{}); ok {
+		for _, item := range arr {
+			if s, ok := item.(string); ok {
+				out = append(out, s)
+			}
+		}
+	}
+	return out
+}
+
+func (c OAuthClientConfiguration) PostLogoutRedirectURIs() (out []string) {
+	if arr, ok := c["post_logout_redirect_uris"].([]interface{}); ok {
 		for _, item := range arr {
 			if s, ok := item.(string); ok {
 				out = append(out, s)

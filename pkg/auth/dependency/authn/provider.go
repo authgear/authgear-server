@@ -37,7 +37,7 @@ func (p *Provider) SignupWithLoginIDs(
 		return nil, err
 	}
 
-	s, err := p.AuthnSession.BeginSession(client, pr.PrincipalUserID(), pr, session.CreateReasonSignup)
+	s, err := p.AuthnSession.BeginSession(client, pr.PrincipalUserID(), pr, auth.SessionCreateReasonSignup)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (p *Provider) LoginWithLoginID(
 		return nil, err
 	}
 
-	s, err := p.AuthnSession.BeginSession(client, pr.PrincipalUserID(), pr, session.CreateReasonLogin)
+	s, err := p.AuthnSession.BeginSession(client, pr.PrincipalUserID(), pr, auth.SessionCreateReasonLogin)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (p *Provider) OAuthExchangeCode(
 	}
 
 	// code.Action == "login"
-	reason := session.CreateReason(code.SessionCreateReason)
+	reason := auth.SessionCreateReason(code.SessionCreateReason)
 	as, err := p.AuthnSession.BeginSession(client, pr.PrincipalUserID(), pr, reason)
 	if err != nil {
 		return nil, err

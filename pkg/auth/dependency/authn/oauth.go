@@ -3,8 +3,8 @@ package authn
 import (
 	"errors"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 )
 
@@ -23,7 +23,7 @@ func (c *OAuthCoordinator) Authenticate(authInfo sso.AuthInfo, codeChallenge str
 			CodeChallenge:       codeChallenge,
 			UserID:              p.PrincipalUserID(),
 			PrincipalID:         p.PrincipalID(),
-			SessionCreateReason: string(session.CreateReasonLogin),
+			SessionCreateReason: string(auth.SessionCreateReasonLogin),
 		}, nil
 	}
 	if err != nil && !errors.Is(err, principal.ErrNotFound) {
@@ -38,7 +38,7 @@ func (c *OAuthCoordinator) Authenticate(authInfo sso.AuthInfo, codeChallenge str
 			CodeChallenge:       codeChallenge,
 			UserID:              p.PrincipalUserID(),
 			PrincipalID:         p.PrincipalID(),
-			SessionCreateReason: string(session.CreateReasonSignup),
+			SessionCreateReason: string(auth.SessionCreateReasonSignup),
 		}, nil
 	}
 	var mergeErr *oAuthRequireMergeError
@@ -57,7 +57,7 @@ func (c *OAuthCoordinator) Authenticate(authInfo sso.AuthInfo, codeChallenge str
 		CodeChallenge:       codeChallenge,
 		UserID:              p.PrincipalUserID(),
 		PrincipalID:         p.PrincipalID(),
-		SessionCreateReason: string(session.CreateReasonLogin),
+		SessionCreateReason: string(auth.SessionCreateReasonLogin),
 	}, nil
 }
 

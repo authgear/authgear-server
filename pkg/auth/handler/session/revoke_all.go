@@ -119,7 +119,7 @@ func (h RevokeAllHandler) Handle(r *http.Request) (resp interface{}, err error) 
 
 			err = h.HookProvider.DispatchEvent(
 				event.SessionDeleteEvent{
-					Reason:   event.SessionDeleteReasonRevoke,
+					Reason:   string(auth.SessionDeleteReasonRevoke),
 					User:     user,
 					Identity: identity,
 					Session:  sessionModel,

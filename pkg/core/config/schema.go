@@ -109,6 +109,7 @@ var (
 		"properties": {
 			"client_name": { "$ref": "#NonEmptyString" },
 			"client_id": { "$ref": "#NonEmptyString" },
+			"client_uri": { "type": "string" },
 			"redirect_uris": {
 				"type": "array",
 				"items": { "type": "string" }
@@ -121,6 +122,10 @@ var (
 				"items": { "type": "string" }
 			},
 			"response_types": {
+				"type": "array",
+				"items": { "type": "string" }
+			},
+			"post_logout_redirect_uris": {
 				"type": "array",
 				"items": { "type": "string" }
 			}
