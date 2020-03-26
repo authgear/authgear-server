@@ -11,6 +11,8 @@ const contextKeyGatewayContext contextKey = "gateway-context"
 type Context struct {
 	App  App
 	Gear Gear
+	// default auth endpoint for gateway to resolve auth
+	AuthHost string
 }
 
 func ContextWithGatewayContext(ctx context.Context, gatewayContext Context) context.Context {

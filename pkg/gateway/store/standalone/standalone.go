@@ -21,6 +21,11 @@ func (s *Store) GetDefaultDomain(domain string) (*model.Domain, error) {
 	return nil, nil
 }
 
+func (s *Store) GetDomainByAppIDAndAssignment(appID string, assignment model.AssignmentType) (*model.Domain, error) {
+	// fixup: support stanalone mode
+	return nil, nil
+}
+
 func (s *Store) GetApp(id string) (*model.App, error) {
 	app := &model.App{}
 	app.ID = s.TenantConfig.AppID

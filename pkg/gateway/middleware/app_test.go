@@ -85,3 +85,81 @@ func TestGetGearName(t *testing.T) {
 		})
 	})
 }
+
+func TestGetAuthHost(t *testing.T) {
+	Convey("getAuthHost", t, func() {
+		store := store.NewMockStore()
+		store.Domains = map[string]model.Domain{
+			"domain-1": model.Domain{
+				ID:         "domain-1",
+				Domain:     "app1.example.com",
+				Assignment: model.AssignmentTypeDefault,
+				AppID:      "app1",
+			},
+			"domain-2": model.Domain{
+				ID:         "domain-2",
+				Domain:     "app1auth.example.com",
+				Assignment: model.AssignmentTypeAuth,
+				AppID:      "app1",
+			},
+			"domain-3": model.Domain{
+				ID:         "domain-3",
+				Domain:     "app2.example.com",
+				Assignment: model.AssignmentTypeDefault,
+				AppID:      "app2",
+			},
+		}
+		Convey("should get app auth host", func() {
+			cases := []struct {
+				appID    string
+				domain   *model.Domain
+				authHost string
+			}{
+				// derive from current default domain
+				{
+					"app1",
+					&model.Domain{
+						Domain:     "app1.cloud.com",
+						Assignment: model.AssignmentTypeDefault,
+					},
+					"accounts.app1.cloud.com",
+				},
+				// use current auth domain
+				{
+					"app1",
+					&model.Domain{
+						Domain:     "auth.cloud.com",
+						Assignment: model.AssignmentTypeAuth,
+					},
+					"auth.cloud.com",
+				},
+				// use auth domain if it exists in store
+				{
+					"app1",
+					&model.Domain{
+						Assignment: model.AssignmentTypeMicroservices,
+					},
+					"app1auth.example.com",
+				},
+				// derive from current default domain if there is no auth domain in store
+				{
+					"app2",
+					&model.Domain{
+						Assignment: model.AssignmentTypeAsset,
+					},
+					"accounts.app2.example.com",
+				},
+			}
+
+			for _, c := range cases {
+				middleware := FindAppMiddleware{
+					Store: store,
+				}
+				authHost, err := middleware.getAuthHost(c.appID, c.domain)
+
+				So(err, ShouldBeNil)
+				So(c.authHost, ShouldEqual, authHost)
+			}
+		})
+	})
+}

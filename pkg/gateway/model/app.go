@@ -12,13 +12,20 @@ const (
 	AssetGear Gear = "asset"
 )
 
+type GearSubdomain string
+
+const (
+	AuthGearSubdomain  GearSubdomain = "accounts"
+	AssetGearSubdomain GearSubdomain = "assets"
+)
+
 // GetGear translate the subdomain to gear if necessary
 // otherwise return the original string
 func GetGear(subdomain string) Gear {
 	switch subdomain {
-	case "accounts":
+	case string(AuthGearSubdomain):
 		return AuthGear
-	case "assets":
+	case string(AssetGearSubdomain):
 		return AssetGear
 	}
 
