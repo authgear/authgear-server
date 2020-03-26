@@ -122,10 +122,15 @@ func (h VerifyCodeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp 
 	}
 
 	err = db.WithTx(h.TxContext, func() (err error) {
-		authInfo := auth.GetAuthInfo(r.Context())
+		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
+
+		authInfo := &authinfo.AuthInfo{}
+		if err = h.AuthInfoStore.GetAuth(userID, authInfo); err != nil {
+			return
+		}
 
 		var userProfile userprofile.UserProfile
-		userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID)
+		userProfile, err = h.UserProfileStore.GetUserProfile(userID)
 		if err != nil {
 			return
 		}

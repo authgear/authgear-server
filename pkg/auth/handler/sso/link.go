@@ -119,7 +119,7 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (authn.Resul
 
 	var result authn.Result
 	err := db.WithTx(h.TxContext, func() error {
-		userID := auth.GetAuthInfo(r.Context()).ID
+		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 
 		linkState := sso.LinkState{
 			UserID: userID,

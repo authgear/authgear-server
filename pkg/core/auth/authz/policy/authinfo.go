@@ -8,7 +8,7 @@ import (
 )
 
 func requireAuthenticated(r *http.Request) error {
-	user := authn.GetAuthInfo(r.Context())
+	user := authn.GetUser(r.Context())
 	session := authn.GetSession(r.Context())
 	if user == nil || session == nil {
 		return authz.ErrNotAuthenticated

@@ -9,7 +9,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
@@ -21,10 +20,10 @@ func TestResolveHandler(t *testing.T) {
 		}
 
 		Convey("should attach headers for valid sessions", func() {
-			u := &authinfo.AuthInfo{
-				ID:       "user-id",
-				Disabled: false,
-				Verified: true,
+			u := &authn.UserInfo{
+				ID:         "user-id",
+				IsDisabled: false,
+				IsVerified: true,
 			}
 			d := gotime.Date(2020, 1, 1, 0, 0, 0, 0, gotime.UTC)
 			s := &session.IDPSession{

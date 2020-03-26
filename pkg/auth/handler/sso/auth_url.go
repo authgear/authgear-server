@@ -278,9 +278,9 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		APIClientID:   apiClientID,
 		CodeChallenge: payload.CodeChallenge,
 	}
-	user := auth.GetAuthInfo(r.Context())
-	if user != nil {
-		state.UserID = user.ID
+	session := auth.GetSession(r.Context())
+	if session != nil {
+		state.UserID = session.AuthnAttrs().UserID
 	}
 
 	encodedState, err := h.SSOProvider.EncodeState(state)

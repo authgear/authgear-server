@@ -123,8 +123,7 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	err := db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetAuthInfo(r.Context())
-		userID := authInfo.ID
+		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 
 		principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(userID)
 		if err != nil {
@@ -148,8 +147,11 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 			return err
 		}
 
-		var userProfile userprofile.UserProfile
-		userProfile, err = h.UserProfileStore.GetUserProfile(userID)
+		authInfo := &authinfo.AuthInfo{}
+		if err := h.AuthInfoStore.GetAuth(userID, authInfo); err != nil {
+			return err
+		}
+		userProfile, err := h.UserProfileStore.GetUserProfile(userID)
 		if err != nil {
 			return err
 		}

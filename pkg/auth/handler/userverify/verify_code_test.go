@@ -76,7 +76,8 @@ func TestVerifyCodeHandler(t *testing.T) {
 		)
 
 		authInfo := authinfo.AuthInfo{
-			ID: "faseng.cat.id",
+			ID:         "faseng.cat.id",
+			VerifyInfo: map[string]bool{},
 		}
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{

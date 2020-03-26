@@ -2,8 +2,6 @@ package authn
 
 import (
 	"context"
-
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 )
 
 type contextKeyType struct{}
@@ -13,7 +11,7 @@ var contextKey = contextKeyType{}
 type contextValue struct {
 	IsInvalid bool
 	Session   Session
-	User      *authinfo.AuthInfo
+	User      *UserInfo
 }
 
 func WithInvalidAuthn(ctx context.Context) context.Context {
@@ -23,7 +21,7 @@ func WithInvalidAuthn(ctx context.Context) context.Context {
 	return context.WithValue(ctx, contextKey, actx)
 }
 
-func WithAuthn(ctx context.Context, s Session, u *authinfo.AuthInfo) context.Context {
+func WithAuthn(ctx context.Context, s Session, u *UserInfo) context.Context {
 	actx := &contextValue{
 		Session: s,
 		User:    u,
@@ -52,7 +50,7 @@ func GetSession(ctx context.Context) Session {
 	return actx.Session
 }
 
-func GetAuthInfo(ctx context.Context) *authinfo.AuthInfo {
+func GetUser(ctx context.Context) *UserInfo {
 	actx := getContext(ctx)
 	if actx == nil || actx.User == nil {
 		return nil

@@ -128,17 +128,17 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		authinfo := auth.GetAuthInfo(r.Context())
 		sess := auth.GetSession(r.Context())
+		userID := sess.AuthnAttrs().UserID
 
 		if err := h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
 			PlainPassword: payload.NewPassword,
-			AuthID:        authinfo.ID,
+			AuthID:        userID,
 		}); err != nil {
 			return err
 		}
 
-		principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authinfo.ID)
+		principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(userID)
 		if err != nil {
 			return err
 		}
@@ -162,13 +162,17 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 			}
 		}
 
-		// Get Profile
-		userProfile, err := h.UserProfileStore.GetUserProfile(authinfo.ID)
+		authInfo := &authinfo.AuthInfo{}
+		if err := h.AuthInfoStore.GetAuth(userID, authInfo); err != nil {
+			return err
+		}
+
+		userProfile, err := h.UserProfileStore.GetUserProfile(userID)
 		if err != nil {
 			return err
 		}
 
-		user := model.NewUser(*authinfo, userProfile)
+		user := model.NewUser(*authInfo, userProfile)
 		identity := model.NewIdentity(h.IdentityProvider, principal)
 
 		err = h.HookProvider.DispatchEvent(
@@ -188,7 +192,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 		h.TaskQueue.Enqueue(async.TaskSpec{
 			Name: task.PwHousekeeperTaskName,
 			Param: task.PwHousekeeperTaskParam{
-				AuthID: authinfo.ID,
+				AuthID: userID,
 			},
 		})
 

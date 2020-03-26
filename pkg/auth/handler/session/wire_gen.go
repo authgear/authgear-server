@@ -68,6 +68,7 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               authAccessEventProvider,
 		AuthInfoStore:              authinfoStore,
+		Time:                       provider,
 		TxContext:                  txContext,
 	}
 	handler := provideResolveHandler(middleware, provider)

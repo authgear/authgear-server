@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -58,6 +59,7 @@ type RevokeAllHandler struct {
 	TxContext        db.TxContext               `dependency:"TxContext"`
 	SessionProvider  session.Provider           `dependency:"SessionProvider"`
 	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore    authinfo.Store             `dependency:"AuthInfoStore"`
 	UserProfileStore userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider     hook.Provider              `dependency:"HookProvider"`
 }
@@ -84,11 +86,14 @@ func (h RevokeAllHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h RevokeAllHandler) Handle(r *http.Request) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetAuthInfo(r.Context())
-		userID := authInfo.ID
+		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 		// TODO(authn): use correct session ID
 		sessionID := ""
 
+		authInfo := &authinfo.AuthInfo{}
+		if err := h.AuthInfoStore.GetAuth(userID, authInfo); err != nil {
+			return err
+		}
 		profile, err := h.UserProfileStore.GetUserProfile(userID)
 		if err != nil {
 			return err

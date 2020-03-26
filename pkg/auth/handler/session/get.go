@@ -122,8 +122,7 @@ func (h GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h GetHandler) Handle(r *http.Request, payload GetRequestPayload) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetAuthInfo(r.Context())
-		userID := authInfo.ID
+		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 		sessionID := payload.SessionID
 
 		s, err := h.SessionProvider.Get(sessionID)

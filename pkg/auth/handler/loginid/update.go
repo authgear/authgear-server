@@ -139,8 +139,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 
 	var resp interface{}
 	err := db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetAuthInfo(r.Context())
-		userID := authInfo.ID
+		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 
 		var oldPrincipal password.Principal
 		err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(
@@ -194,8 +193,11 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 			return err
 		}
 
-		var userProfile userprofile.UserProfile
-		userProfile, err = h.UserProfileStore.GetUserProfile(userID)
+		authInfo := &authinfo.AuthInfo{}
+		if err := h.AuthInfoStore.GetAuth(userID, authInfo); err != nil {
+			return err
+		}
+		userProfile, err := h.UserProfileStore.GetUserProfile(userID)
 		if err != nil {
 			return err
 		}

@@ -78,6 +78,7 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               authAccessEventProvider,
 		AuthInfoStore:              authinfoStore,
+		Time:                       provider,
 		TxContext:                  txContext,
 	}
 	middlewareFunc := provideMiddleware(middleware)

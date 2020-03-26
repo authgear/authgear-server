@@ -211,14 +211,14 @@ func (provider *providerImpl) makeContext() event.Context {
 		requestID = &provider.RequestID
 	}
 
-	authInfo := authn.GetAuthInfo(provider.Context)
+	user := authn.GetUser(provider.Context)
 	sess := authn.GetSession(provider.Context)
-	if authInfo == nil {
+	if user == nil {
 		userID = nil
 		principalID = nil
 		session = nil
 	} else {
-		userID = &authInfo.ID
+		userID = &user.ID
 		principalID = &sess.AuthnAttrs().PrincipalID
 		session = sess.(auth.AuthSession).ToAPIModel()
 	}

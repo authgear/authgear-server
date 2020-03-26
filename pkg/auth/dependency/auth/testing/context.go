@@ -5,13 +5,12 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 type Builder struct {
 	session *session.IDPSession
-	user    *authinfo.AuthInfo
+	user    *authn.UserInfo
 }
 
 func WithAuthn() Builder {
@@ -23,9 +22,8 @@ func WithAuthn() Builder {
 				PrincipalID: "principal-id",
 			},
 		},
-		user: &authinfo.AuthInfo{
-			ID:         "user-id",
-			VerifyInfo: map[string]bool{},
+		user: &authn.UserInfo{
+			ID: "user-id",
 		},
 	}
 }
@@ -55,16 +53,11 @@ func (b Builder) SessionID(id string) Builder {
 }
 
 func (b Builder) Disabled(disabled bool) Builder {
-	b.user.Disabled = disabled
+	b.user.IsDisabled = disabled
 	return b
 }
 
 func (b Builder) Verified(verified bool) Builder {
-	b.user.Verified = verified
-	return b
-}
-
-func (b Builder) VerifyInfo(info map[string]bool) Builder {
-	b.user.VerifyInfo = info
+	b.user.IsVerified = verified
 	return b
 }

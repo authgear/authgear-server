@@ -11,8 +11,8 @@ type RequiredAuthenticatedMiddleware struct{}
 
 func (m RequiredAuthenticatedMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authInfo := auth.GetAuthInfo(r.Context())
-		if authInfo == nil {
+		user := auth.GetUser(r.Context())
+		if user == nil {
 			// Trim scheme and host, retain path and query
 			redirectURI := *r.URL
 			redirectURI.Scheme = ""
