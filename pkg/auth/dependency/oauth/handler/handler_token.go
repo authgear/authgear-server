@@ -94,7 +94,11 @@ func (h *TokenHandler) doHandle(
 	case "authorization_code":
 		return h.handleAuthorizationCode(client, r)
 	case "refresh_token":
-		return h.handleRefreshToken(client, r)
+		resp, err := h.handleRefreshToken(client, r)
+		if err != nil {
+			return nil, err
+		}
+		return tokenResultOK{Response: resp}, nil
 	default:
 		panic("oauth: unexpected grant type")
 	}
@@ -180,7 +184,7 @@ var errInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh
 func (h *TokenHandler) handleRefreshToken(
 	client config.OAuthClientConfiguration,
 	r protocol.TokenRequest,
-) (TokenResult, error) {
+) (protocol.TokenResponse, error) {
 	token, grantID, err := oauth.DecodeRefreshToken(r.RefreshToken())
 	if err != nil {
 		return nil, errInvalidRefreshToken
@@ -214,7 +218,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
-	return tokenResultOK{Response: resp}, nil
+	return resp, nil
 }
 
 func (h *TokenHandler) issueTokensForAuthorizationCode(

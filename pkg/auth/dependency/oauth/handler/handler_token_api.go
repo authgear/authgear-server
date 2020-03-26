@@ -41,3 +41,17 @@ func (h *TokenHandler) IssueAuthAPITokens(
 
 	return offlineGrant, resp.GetAccessToken(), resp.GetRefreshToken(), nil
 }
+
+func (h *TokenHandler) RefreshAPIToken(
+	client config.OAuthClientConfiguration,
+	refreshToken string,
+) (accessToken string, err error) {
+	resp, err := h.handleRefreshToken(client, protocol.TokenRequest{
+		"client_id":     client.ClientID(),
+		"refresh_token": refreshToken,
+	})
+	if err != nil {
+		return "", err
+	}
+	return resp.GetAccessToken(), nil
+}
