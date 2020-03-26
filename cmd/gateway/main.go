@@ -120,12 +120,7 @@ func main() {
 	r.Use(coreMiddleware.CORSMiddleware{}.Handle)
 
 	r.Use(coreMiddleware.Injecter{
-		MiddlewareFactory: coreMiddleware.AuthnMiddlewareFactory{},
-		Dependency:        gatewayDependency,
-	}.Handle)
-
-	r.Use(coreMiddleware.Injecter{
-		MiddlewareFactory: middleware.AuthInfoMiddlewareFactory{},
+		MiddlewareFactory: middleware.AuthnMiddlewareFactory{},
 		Dependency:        gatewayDependency,
 	}.Handle)
 
