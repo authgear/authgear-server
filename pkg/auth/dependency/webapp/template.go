@@ -13,6 +13,7 @@ const (
 	// nolint: gosec
 	TemplateItemTypeAuthUISignupPasswordHTML config.TemplateItemType = "auth_ui_signup_password.html"
 	TemplateItemTypeAuthUISettingsHTML       config.TemplateItemType = "auth_ui_settings.html"
+	TemplateItemTypeAuthUILogoutHTML         config.TemplateItemType = "auth_ui_logout.html"
 )
 
 const defineHead = `
@@ -451,7 +452,35 @@ var TemplateAuthUISettingsHTML = template.Spec{
 
 {{ template "LOGO" . }}
 
-You are authenticated. To logout, please clear the cookie AND revisit this page. Refreshing causes the form to be submitted again so you will become authenticated again.
+<div class="settings-form">
+  You are authenticated. To logout, please visit <a href="/logout">here</a>.
+</div>
+
+{{ template "SKYGEAR_LOGO" . }}
+
+</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUILogoutHTML = template.Spec{
+	Type:    TemplateItemTypeAuthUILogoutHTML,
+	IsHTML:  true,
+	Defines: defines,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "HEAD" . }}
+<body class="page">
+<div class="content">
+
+{{ template "LOGO" . }}
+
+<form class="logout-form" method="post">
+  {{ $.csrfField }}
+  <p>To logout, please click the button below.</p>
+  <button class="btn primary-btn logout-btn" type="submit" name="x_action" value="logout">Logout</button>
+</form>
 
 {{ template "SKYGEAR_LOGO" . }}
 

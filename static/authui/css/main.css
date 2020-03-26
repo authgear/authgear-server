@@ -323,3 +323,17 @@ button.anchor {
 .password-policy.passed {
   color: green;
 }
+
+.settings-form {
+  padding: 20px;
+}
+
+.logout-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.logout-form .logout-btn {
+  align-self: center;
+}

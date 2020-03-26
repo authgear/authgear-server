@@ -51,6 +51,7 @@ func NewEngineWithConfig(
 	e.Register(webapp.TemplateAuthUISignupHTML)
 	e.Register(webapp.TemplateAuthUISignupPasswordHTML)
 	e.Register(webapp.TemplateAuthUISettingsHTML)
+	e.Register(webapp.TemplateAuthUILogoutHTML)
 
 	return e
 }
