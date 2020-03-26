@@ -91,6 +91,13 @@ func NewCSPMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	return middlewareFunc
 }
 
+func NewCSRFMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
+	context := ProvideContext(r)
+	tenantConfiguration := ProvideTenantConfig(context)
+	middlewareFunc := ProvideCSRFMiddleware(m, tenantConfiguration)
+	return middlewareFunc
+}
+
 // wire.go:
 
 type middlewareInstance interface {
