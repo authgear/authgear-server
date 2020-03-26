@@ -38,3 +38,15 @@ func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	)
 	return nil
 }
+
+func provideLogoutHandler(renderProvider webapp.RenderProvider) http.Handler {
+	return &LogoutHandler{RenderProvider: renderProvider}
+}
+
+func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	wire.Build(
+		auth.DependencySet,
+		provideLogoutHandler,
+	)
+	return nil
+}

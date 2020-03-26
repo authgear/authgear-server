@@ -242,6 +242,7 @@ func main() {
 	webappAuthenticatedRouter := webappRouter.NewRoute().Subrouter()
 	webappAuthenticatedRouter.Use(webapp.RequiredAuthenticatedMiddleware{}.Handle)
 	webapphandler.AttachSettingsHandler(webappAuthenticatedRouter, authDependency)
+	webapphandler.AttachLogoutHandler(webappAuthenticatedRouter, authDependency)
 
 	if configuration.StaticAssetDir != "" {
 		rootRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(configuration.StaticAssetDir))))

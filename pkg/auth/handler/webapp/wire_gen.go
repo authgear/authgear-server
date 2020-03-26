@@ -114,6 +114,21 @@ func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	return handler
 }
 
+func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
+	provider := time.NewProvider()
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
+	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
+	handler := provideLogoutHandler(renderProvider)
+	return handler
+}
+
 // wire.go:
 
 func provideRootHandler(authenticateProvider webapp.AuthenticateProvider) http.Handler {
@@ -124,4 +139,8 @@ func provideRootHandler(authenticateProvider webapp.AuthenticateProvider) http.H
 
 func provideSettingsHandler(renderProvider webapp.RenderProvider) http.Handler {
 	return &SettingsHandler{RenderProvider: renderProvider}
+}
+
+func provideLogoutHandler(renderProvider webapp.RenderProvider) http.Handler {
+	return &LogoutHandler{RenderProvider: renderProvider}
 }
