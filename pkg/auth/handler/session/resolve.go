@@ -7,6 +7,7 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
@@ -28,6 +29,7 @@ func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	valid := auth.IsValidAuthn(r.Context())
 	user := auth.GetUser(r.Context())
 	session := auth.GetSession(r.Context())
+	accessKey := coreauth.GetAccessKey(r.Context())
 
 	var info *authn.Info
 	if valid && user != nil && session != nil {
@@ -36,4 +38,6 @@ func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		info = &authn.Info{IsValid: false}
 	}
 	info.PopulateHeaders(rw)
+
+	accessKey.WriteTo(rw)
 }

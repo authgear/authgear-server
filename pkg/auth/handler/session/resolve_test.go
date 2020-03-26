@@ -9,6 +9,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
@@ -57,6 +58,7 @@ func TestResolveHandler(t *testing.T) {
 				"X-Skygear-Session-Authenticator-Type":        []string{"oob"},
 				"X-Skygear-Session-Authenticator-Oob-Channel": []string{"email"},
 				"X-Skygear-Session-Authenticator-Updated-At":  []string{"2020-01-01T00:00:00Z"},
+				"X-Skygear-Is-Master-Key":                     []string{"false"},
 			})
 		})
 
@@ -70,17 +72,35 @@ func TestResolveHandler(t *testing.T) {
 			So(resp.StatusCode, ShouldEqual, 200)
 			So(resp.Header, ShouldResemble, http.Header{
 				"X-Skygear-Session-Valid": []string{"false"},
+				"X-Skygear-Is-Master-Key": []string{"false"},
 			})
 		})
 
-		Convey("should not attach headers if no resolved session", func() {
+		Convey("should not attach session headers if no resolved session", func() {
 			r, _ := http.NewRequest("POST", "/", nil)
 			rw := httptest.NewRecorder()
 			h.ServeHTTP(rw, r)
 
 			resp := rw.Result()
 			So(resp.StatusCode, ShouldEqual, 200)
-			So(resp.Header, ShouldResemble, http.Header{})
+			So(resp.Header, ShouldResemble, http.Header{
+				"X-Skygear-Is-Master-Key": []string{"false"},
+			})
+		})
+
+		Convey("should add master key header", func() {
+			r, _ := http.NewRequest("POST", "/", nil)
+			r = r.WithContext(coreauth.WithAccessKey(r.Context(), coreauth.AccessKey{
+				IsMasterKey: true,
+			}))
+			rw := httptest.NewRecorder()
+			h.ServeHTTP(rw, r)
+
+			resp := rw.Result()
+			So(resp.StatusCode, ShouldEqual, 200)
+			So(resp.Header, ShouldResemble, http.Header{
+				"X-Skygear-Is-Master-Key": []string{"true"},
+			})
 		})
 	})
 }
