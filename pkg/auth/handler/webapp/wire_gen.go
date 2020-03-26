@@ -16,7 +16,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	pq3 "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
 	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
+	pq4 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
 	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -82,7 +85,18 @@ func newRootHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Store: eventStore,
 	}
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
-	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
+	authorizationStore := &pq4.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	authAccessEventProvider := auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, identityProvider, provider)
+	tokenGenerator := _wireTokenGeneratorValue
+	tokenHandler := handler.ProvideTokenHandler(r, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, authAccessEventProvider, sessionProvider, idTokenIssuer, tokenGenerator, provider)
+	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider, tokenHandler)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
@@ -98,9 +112,13 @@ func newRootHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
 	authenticateProvider := webapp.ProvideAuthenticateProvider(validateProvider, renderProvider, authnProvider)
-	handler := provideRootHandler(authenticateProvider)
-	return handler
+	httpHandler := provideRootHandler(authenticateProvider)
+	return httpHandler
 }
+
+var (
+	_wireTokenGeneratorValue = handler.TokenGenerator(oauth2.GenerateToken)
+)
 
 func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
@@ -113,8 +131,8 @@ func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
 	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
-	handler := provideSettingsHandler(renderProvider)
-	return handler
+	httpHandler := provideSettingsHandler(renderProvider)
+	return httpHandler
 }
 
 func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
@@ -157,8 +175,8 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,
 	}
-	handler := provideLogoutHandler(renderProvider, authSessionManager)
-	return handler
+	httpHandler := provideLogoutHandler(renderProvider, authSessionManager)
+	return httpHandler
 }
 
 // wire.go:

@@ -77,6 +77,7 @@ func ProvideSessionProvider(
 	us userprofile.Store,
 	ip principal.IdentityProvider,
 	hp hook.Provider,
+	ti TokenIssuer,
 ) *SessionProvider {
 	return &SessionProvider{
 		MFAProvider:        mp,
@@ -89,6 +90,7 @@ func ProvideSessionProvider(
 		UserProfileStore:   us,
 		IdentityProvider:   ip,
 		HookProvider:       hp,
+		TokenIssuer:        ti,
 	}
 }
 

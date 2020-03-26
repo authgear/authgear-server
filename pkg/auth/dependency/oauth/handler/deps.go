@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -78,4 +79,5 @@ var DependencySet = wire.NewSet(
 	ProvideTokenHandler,
 	wire.Struct(new(RevokeHandler), "*"),
 	wire.Value(TokenGenerator(oauth.GenerateToken)),
+	wire.Bind(new(authn.TokenIssuer), new(*TokenHandler)),
 )

@@ -160,6 +160,8 @@ func (p *Provider) MakeAPIBody(rw http.ResponseWriter, result *CompletionResult)
 	if result.MFABearerToken != "" && !result.UseCookie() {
 		resp.MFABearerToken = result.MFABearerToken
 	}
+	resp.AccessToken = result.AccessToken
+	resp.RefreshToken = result.RefreshToken
 	return
 }
 
