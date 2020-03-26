@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
@@ -12,6 +13,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
+
+var gearPathRegex = regexp.MustCompile(`^/_([^\/]*)`)
 
 type FindAppMiddleware struct {
 	Store store.GatewayStore
@@ -82,7 +85,7 @@ func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 
 		ctx := model.GatewayContextFromContext(r.Context())
 		ctx.App = *app
-		ctx.Domain = *domain
+		ctx.Gear = getGearToRoute(domain, r)
 
 		r = r.WithContext(model.ContextWithGatewayContext(r.Context(), ctx))
 
@@ -107,4 +110,33 @@ func (f FindAppMiddleware) getDomain(host string) (*model.Domain, error) {
 	defaultDomain := strings.Join(parts[1:], ".")
 	domain, err = f.Store.GetDefaultDomain(defaultDomain)
 	return domain, err
+}
+
+func getGearToRoute(domain *model.Domain, r *http.Request) model.Gear {
+	if domain.Assignment == model.AssignmentTypeDefault {
+		host := r.Host
+		if host == domain.Domain {
+			// microservices
+			// fallback route to gear if necessary
+			return model.Gear(getGearName(r.URL.Path))
+		}
+		// get gear from host
+		parts := strings.Split(host, ".")
+		return model.GetGear(parts[0])
+	}
+	if domain.Assignment == model.AssignmentTypeMicroservices {
+		// fallback route to gear by path
+		// return empty string if it is not matched
+		return model.Gear(getGearName(r.URL.Path))
+	}
+	return model.Gear(domain.Assignment)
+}
+
+func getGearName(path string) string {
+	result := gearPathRegex.FindStringSubmatch(path)
+	if len(result) == 2 {
+		return result[1]
+	}
+
+	return ""
 }

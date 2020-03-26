@@ -6,19 +6,33 @@ import (
 	"net/http/httputil"
 	"net/url"
 
-	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/sentry"
-
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
-
+	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/sentry"
+	"github.com/skygeario/skygear-server/pkg/gateway"
 	"github.com/skygeario/skygear-server/pkg/gateway/config"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
+type GearHandlerFactory struct {
+	Dependency gateway.DependencyMap
+}
+
+func (f *GearHandlerFactory) NewHandler(request *http.Request) http.Handler {
+	h := &GearHandler{}
+	inject.DefaultRequestInject(h, f.Dependency, request)
+	return h
+}
+
+type GearHandler struct {
+	GatewayConfiguration config.Configuration `dependency:"GatewayConfiguration"`
+}
+
 // NewGearHandler takes an incoming request and sends it to coresponding
 // gear server
-func handleGear(gear model.Gear, gatewayConfig config.Configuration, rw http.ResponseWriter, r *http.Request) {
+func (h *GearHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	loggerFactory := logging.NewFactoryFromRequest(r,
 		logging.NewDefaultLogHook(nil),
 		sentry.NewLogHookFromContext(r.Context()),
@@ -27,6 +41,7 @@ func handleGear(gear model.Gear, gatewayConfig config.Configuration, rw http.Res
 
 	ctx := model.GatewayContextFromContext(r.Context())
 	app := ctx.App
+	gear := ctx.Gear
 
 	// check if app support given gear
 	gearVersion := app.GetGearVersion(gear)
@@ -35,7 +50,7 @@ func handleGear(gear model.Gear, gatewayConfig config.Configuration, rw http.Res
 		return
 	}
 
-	gearURL, err := gatewayConfig.GetGearURL(gear, gearVersion)
+	gearURL, err := h.GatewayConfiguration.GetGearURL(gear, gearVersion)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
