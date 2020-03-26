@@ -34,7 +34,7 @@ type (
 func (a authorizationResultRedirect) WriteResponse(rw http.ResponseWriter, r *http.Request) {
 	query := a.RedirectURI.Query()
 	for k, v := range a.Response {
-		query.Set(k, v)
+		query.Add(k, v)
 	}
 	a.RedirectURI.RawQuery = query.Encode()
 	http.Redirect(rw, r, a.RedirectURI.String(), http.StatusFound)
