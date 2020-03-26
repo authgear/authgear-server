@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
@@ -41,7 +42,7 @@ func ProvideAuthorizationHandler(
 }
 
 func ProvideTokenHandler(
-	ctx context.Context,
+	r *http.Request,
 	cfg *config.TenantConfiguration,
 	lf logging.Factory,
 	as oauth.AuthorizationStore,
@@ -55,7 +56,7 @@ func ProvideTokenHandler(
 	tp time.Provider,
 ) *TokenHandler {
 	return &TokenHandler{
-		Context: ctx,
+		Request: r,
 		Clients: cfg.AppConfig.Clients,
 		Logger:  lf.NewLogger("oauth-token"),
 

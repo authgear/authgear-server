@@ -99,7 +99,7 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, identityProvider, provider)
 	tokenGenerator := _wireTokenGeneratorValue
-	tokenHandler := handler.ProvideTokenHandler(context, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, accessEventProvider, sessionProvider, idTokenIssuer, tokenGenerator, provider)
+	tokenHandler := handler.ProvideTokenHandler(r, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, accessEventProvider, sessionProvider, idTokenIssuer, tokenGenerator, provider)
 	httpHandler := provideTokenHandler(factory, txContext, tokenHandler)
 	return httpHandler
 }

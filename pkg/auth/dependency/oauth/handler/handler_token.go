@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
+	"net/http"
 	gotime "time"
 
 	"github.com/sirupsen/logrus"
@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -25,7 +26,7 @@ type IDTokenIssuer interface {
 }
 
 type TokenHandler struct {
-	Context context.Context
+	Request *http.Request
 	Clients []config.OAuthClientConfiguration
 	Logger  *logrus.Entry
 
@@ -252,7 +253,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	var sessionKind oauth.GrantSessionKind
 	var atSession auth.AuthSession
 	if issueRefreshToken {
-		offlineGrant, err := h.issueOfflineGrant(client, code, authz.ID, session, resp)
+		offlineGrant, err := h.issueOfflineGrant(client, code, authz.ID, session.AuthnAttrs(), resp)
 		if err != nil {
 			return nil, err
 		}
@@ -324,11 +325,12 @@ func (h *TokenHandler) issueOfflineGrant(
 	client config.OAuthClientConfiguration,
 	code *oauth.CodeGrant,
 	authzID string,
-	session *session.IDPSession,
+	attrs *authn.Attrs,
 	resp protocol.TokenResponse,
 ) (*oauth.OfflineGrant, error) {
 	token := h.GenerateToken()
 	now := h.Time.NowUTC()
+	accessEvent := auth.NewAccessEvent(now, h.Request)
 	offlineGrant := &oauth.OfflineGrant{
 		AppID:           code.AppID,
 		ID:              uuid.New(),
@@ -340,10 +342,10 @@ func (h *TokenHandler) issueOfflineGrant(
 		Scopes:    code.Scopes,
 		TokenHash: oauth.HashToken(token),
 
-		Attrs: session.Attrs,
+		Attrs: *attrs,
 		AccessInfo: auth.AccessInfo{
-			InitialAccess: session.AccessInfo.LastAccess,
-			LastAccess:    session.AccessInfo.LastAccess,
+			InitialAccess: accessEvent,
+			LastAccess:    accessEvent,
 		},
 	}
 	err := h.OfflineGrants.CreateOfflineGrant(offlineGrant)

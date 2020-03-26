@@ -12,7 +12,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
-	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 const CodeGrantValidDuration = 5 * gotime.Minute
@@ -90,7 +89,14 @@ func (h *AuthorizationHandler) doHandle(
 		}, nil
 	}
 
-	authz, err := h.checkAuthorization(session, r, scopes)
+	authz, err := checkAuthorization(
+		h.Authorizations,
+		h.Time.NowUTC(),
+		h.AppID,
+		r.ClientID(),
+		session.AuthnAttrs().UserID,
+		scopes,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -160,48 +166,6 @@ func (h *AuthorizationHandler) validateRequest(
 	}
 
 	return nil
-}
-
-func (h *AuthorizationHandler) checkAuthorization(
-	session auth.AuthSession,
-	r protocol.AuthorizationRequest,
-	scopes []string,
-) (*oauth.Authorization, error) {
-	userID := session.AuthnAttrs().UserID
-	authz, err := h.Authorizations.Get(userID, r.ClientID())
-	if err == nil && authz.IsAuthorized(scopes) {
-		return authz, nil
-	} else if err != nil && !errors.Is(err, oauth.ErrAuthorizationNotFound) {
-		return nil, err
-	}
-
-	// Authorization of requested scopes not granted, requesting consent.
-	// TODO(oauth): request consent, for now just always implicitly grant scopes.
-	if authz == nil {
-		now := h.Time.NowUTC()
-		authz = &oauth.Authorization{
-			ID:        uuid.New(),
-			AppID:     h.AppID,
-			ClientID:  r.ClientID(),
-			UserID:    userID,
-			CreatedAt: now,
-			UpdatedAt: now,
-			Scopes:    scopes,
-		}
-		err = h.Authorizations.Create(authz)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		authz = authz.WithScopesAdded(scopes)
-		authz.UpdatedAt = h.Time.NowUTC()
-		err = h.Authorizations.UpdateScopes(authz)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return authz, nil
 }
 
 func (h *AuthorizationHandler) generateCodeResponse(

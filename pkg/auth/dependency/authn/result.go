@@ -17,6 +17,8 @@ type CompletionResult struct {
 	Session   *model.Session
 
 	SessionToken   string
+	AccessToken    string
+	RefreshToken   string
 	MFABearerToken string
 }
 
