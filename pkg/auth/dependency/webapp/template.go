@@ -114,6 +114,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 		{{ template "LOGO" . }}
 		<div class="authorize-form">
 			<form class="authorize-idp-form" method="post">
+				{{ $.csrfField }}
 				<input type="hidden" name="x_step" value="choose_idp">
 				{{ range .x_idp_providers }}
 				<button class="btn sso-btn {{ .type }}" type="submit" name="x_idp_id" value="{{ .id }}">
@@ -143,9 +144,12 @@ var TemplateAuthUILoginHTML = template.Spec{
 
 			{{ template "ERROR" . }}
 
-			<form id="empty-form" method="post"></form>
+			<form id="empty-form" method="post">
+				{{ $.csrfField }}
+			</form>
 
 			<form class="authorize-loginid-form" method="post">
+				{{ $.csrfField }}
 				<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 
 				{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
@@ -209,7 +213,7 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 {{ template "LOGO" . }}
 
 <form class="enter-password-form" method="post">
-
+{{ $.csrfField }}
 <input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 
 <div class="nav-bar">
@@ -261,10 +265,13 @@ var TemplateAuthUISignupHTML = template.Spec{
 		<div class="authorize-form">
 			{{ template "ERROR" . }}
 
-			<form id="empty-form" method="post"></form>
+			<form id="empty-form" method="post">
+				{{ $.csrfField }}
+			</form>
 
 			{{ range .x_login_id_keys }}
 			<form id="sign_up-{{ .key }}" method="post">
+				{{ $.csrfField }}
 				<input type="hidden" name="x_step" value="signup:initial">
 				{{ if eq .type "phone" }}
 					<input type="hidden" name="x_login_id_input_type" value="phone">
@@ -275,6 +282,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 			{{ end }}
 
 			<form class="authorize-loginid-form" method="post">
+				{{ $.csrfField }}
 				<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
 				<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 
@@ -338,7 +346,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 {{ template "LOGO" . }}
 
 <form class="enter-password-form" method="post">
-
+{{ $.csrfField }}
 <input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
 <input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 <input type="hidden" name="x_calling_code" value="{{ .x_calling_code }}">
