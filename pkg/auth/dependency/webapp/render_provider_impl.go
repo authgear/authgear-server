@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/csrf"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -26,8 +28,11 @@ type RenderProviderImpl struct {
 func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, inputErr error) {
 	data := FormToJSON(r.Form)
 	accessKey := coreAuth.GetAccessKey(r.Context())
+
 	data["client_name"] = accessKey.Client["client_name"]
 	data["logo_uri"] = accessKey.Client["logo_uri"]
+
+	data[csrf.TemplateTag] = csrf.TemplateField(r)
 
 	data["x_static_asset_url_prefix"] = p.StaticAssetURLPrefix
 

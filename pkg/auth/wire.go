@@ -43,3 +43,8 @@ func NewCSPMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	wire.Build(DependencySet, webapp.ProvideCSPMiddleware)
 	return nil
 }
+
+func NewCSRFMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
+	wire.Build(DependencySet, ProvideCSRFMiddleware)
+	return nil
+}
