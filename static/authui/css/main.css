@@ -12,6 +12,21 @@ html {
   box-sizing: border-box;
 }
 
+button {
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  /* cursor: pointer is required because appearance: none makes cursor non-poiner */
+  cursor: pointer;
+}
+
+select {
+  -moz-appearance: none;
+  -webkit-appearance: none;
+}
+
 .primary-txt {
   color: #333333;
 }
@@ -29,8 +44,6 @@ html {
 }
 
 .btn {
-  -webkit-appearance: none;
-  border: none;
   font-size: 14px;
 }
 
@@ -51,7 +64,6 @@ html {
 }
 
 .select {
-  -webkit-appearance: none;
   background-color: white;
   height: 32px;
   border-bottom: solid 1px #a19f9d;
@@ -95,10 +107,7 @@ button.link {
 }
 
 button.anchor {
-  -webkit-appearance: none;
-  border: none;
   color: #166bef;
-  cursor: pointer;
 }
 
 .anchor:link, .anchor:visited {
