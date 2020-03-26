@@ -58,7 +58,15 @@ const defineError = `
 		{{ else if and (eq .kind "StringFormat") (eq .pointer "/x_national_number" ) }}
 		<li class="error-txt">Phone number must contain digits only</li>
 		{{ else if and (eq .kind "StringFormat") (eq .pointer "/login_ids/0/value") }}
-		<li class="error-txt">Invalid email address</li>
+			{{ range $.x_login_id_keys }}
+				{{ if eq .key $.x_login_id_key }}
+					{{ if eq .type "email" }}
+					<li class="error-txt">Invalid email address</li>
+					{{ else }}
+					<li class="error-txt">Invalid username</li>
+					{{ end }}
+				{{ end }}
+			{{ end }}
 		{{ else }}
 		<li class="error-txt">{{ .message }}</li>
 		{{ end }}

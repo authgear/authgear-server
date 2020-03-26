@@ -114,7 +114,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	out, err := p.TemplateEngine.RenderTemplate(templateType, data, template.ResolveOptions{}, func(v *template.Validator) {
 		v.AllowRangeNode = true
 		v.AllowTemplateNode = true
-		v.MaxDepth = 10
+		v.MaxDepth = 15
 	})
 	if err != nil {
 		panic(err)
