@@ -27,6 +27,7 @@ type IDTokenIssuer interface {
 
 type TokenHandler struct {
 	Request *http.Request
+	AppID   string
 	Clients []config.OAuthClientConfiguration
 	Logger  *logrus.Entry
 
@@ -253,7 +254,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	var sessionKind oauth.GrantSessionKind
 	var atSession auth.AuthSession
 	if issueRefreshToken {
-		offlineGrant, err := h.issueOfflineGrant(client, code, authz.ID, session.AuthnAttrs(), resp)
+		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, session.AuthnAttrs(), resp)
 		if err != nil {
 			return nil, err
 		}
@@ -266,7 +267,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		sessionKind = oauth.GrantSessionKindSession
 	}
 
-	err := h.issueAccessGrant(client, code.AppID, code.Scopes,
+	err := h.issueAccessGrant(client, code.Scopes,
 		authz.ID, sessionID, sessionKind, resp)
 	if err != nil {
 		return nil, err
@@ -312,7 +313,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		resp.IDToken(idToken)
 	}
 
-	err := h.issueAccessGrant(client, offlineGrant.AppID, offlineGrant.Scopes,
+	err := h.issueAccessGrant(client, offlineGrant.Scopes,
 		authz.ID, offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
 	if err != nil {
 		return nil, err
@@ -323,7 +324,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 
 func (h *TokenHandler) issueOfflineGrant(
 	client config.OAuthClientConfiguration,
-	code *oauth.CodeGrant,
+	scopes []string,
 	authzID string,
 	attrs *authn.Attrs,
 	resp protocol.TokenResponse,
@@ -332,14 +333,14 @@ func (h *TokenHandler) issueOfflineGrant(
 	now := h.Time.NowUTC()
 	accessEvent := auth.NewAccessEvent(now, h.Request)
 	offlineGrant := &oauth.OfflineGrant{
-		AppID:           code.AppID,
+		AppID:           h.AppID,
 		ID:              uuid.New(),
 		AuthorizationID: authzID,
 		ClientID:        client.ClientID(),
 
 		CreatedAt: now,
 		ExpireAt:  now.Add(gotime.Duration(client.RefreshTokenLifetime()) * gotime.Second),
-		Scopes:    code.Scopes,
+		Scopes:    scopes,
 		TokenHash: oauth.HashToken(token),
 
 		Attrs: *attrs,
@@ -364,7 +365,6 @@ func (h *TokenHandler) issueOfflineGrant(
 
 func (h *TokenHandler) issueAccessGrant(
 	client config.OAuthClientConfiguration,
-	appID string,
 	scopes []string,
 	authzID string,
 	sessionID string,
@@ -375,7 +375,7 @@ func (h *TokenHandler) issueAccessGrant(
 	now := h.Time.NowUTC()
 
 	accessGrant := &oauth.AccessGrant{
-		AppID:           appID,
+		AppID:           h.AppID,
 		AuthorizationID: authzID,
 		SessionID:       sessionID,
 		SessionKind:     sessionKind,

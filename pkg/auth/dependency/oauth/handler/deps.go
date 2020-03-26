@@ -57,6 +57,7 @@ func ProvideTokenHandler(
 ) *TokenHandler {
 	return &TokenHandler{
 		Request: r,
+		AppID:   cfg.AppID,
 		Clients: cfg.AppConfig.Clients,
 		Logger:  lf.NewLogger("oauth-token"),
 

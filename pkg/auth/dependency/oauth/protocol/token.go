@@ -19,6 +19,9 @@ func (r TokenResponse) ExpiresIn(v int)       { r["expires_in"] = strconv.Itoa(v
 func (r TokenResponse) RefreshToken(v string) { r["refresh_token"] = v }
 func (r TokenResponse) Scope(v string)        { r["scope"] = v }
 
+func (r TokenResponse) GetAccessToken() string  { return r["access_token"] }
+func (r TokenResponse) GetRefreshToken() string { return r["refresh_token"] }
+
 // OIDC extension
 
 func (r TokenResponse) IDToken(v string) { r["id_token"] = v }
