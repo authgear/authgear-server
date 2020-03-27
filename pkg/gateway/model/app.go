@@ -1,6 +1,8 @@
 package model
 
 import (
+	"strings"
+
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -19,6 +21,11 @@ const (
 	AssetGearSubdomain GearSubdomain = "assets"
 )
 
+var PathPrefixToGear = map[string]Gear{
+	"/_auth/":  AuthGear,
+	"/_asset/": AssetGear,
+}
+
 // GetGear translate the subdomain to gear if necessary
 // otherwise return the original string
 func GetGear(subdomain string) Gear {
@@ -30,6 +37,15 @@ func GetGear(subdomain string) Gear {
 	}
 
 	return Gear(subdomain)
+}
+
+func GetGearByPath(path string) Gear {
+	for prefix, gear := range PathPrefixToGear {
+		if strings.HasPrefix(path, prefix) {
+			return gear
+		}
+	}
+	return ""
 }
 
 type GearVersion string
