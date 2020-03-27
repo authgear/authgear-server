@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"net/http"
-	"regexp"
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -12,8 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
-
-var gearPathRegex = regexp.MustCompile(`^/_([^\/]*)`)
 
 type FindAppMiddleware struct {
 	Store store.GatewayStore
@@ -116,7 +113,7 @@ func getGearToRoute(domain *model.Domain, r *http.Request) model.Gear {
 		if host == domain.Domain {
 			// microservices
 			// fallback route to gear if necessary
-			return model.Gear(getGearName(r.URL.Path))
+			return model.GetGearByPath(r.URL.Path)
 		}
 		// get gear from host
 		parts := strings.Split(host, ".")
@@ -125,16 +122,7 @@ func getGearToRoute(domain *model.Domain, r *http.Request) model.Gear {
 	if domain.Assignment == model.AssignmentTypeMicroservices {
 		// fallback route to gear by path
 		// return empty string if it is not matched
-		return model.Gear(getGearName(r.URL.Path))
+		return model.GetGearByPath(r.URL.Path)
 	}
 	return model.Gear(domain.Assignment)
-}
-
-func getGearName(path string) string {
-	result := gearPathRegex.FindStringSubmatch(path)
-	if len(result) == 2 {
-		return result[1]
-	}
-
-	return ""
 }
