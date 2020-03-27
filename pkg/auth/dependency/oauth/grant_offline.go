@@ -37,6 +37,7 @@ func (g *OfflineGrant) AuthnAttrs() *authn.Attrs {
 	return &g.Attrs
 }
 
+func (g *OfflineGrant) GetCreatedAt() time.Time         { return g.CreatedAt }
 func (g *OfflineGrant) GetClientID() string             { return g.ClientID }
 func (g *OfflineGrant) GetAccessInfo() *auth.AccessInfo { return &g.AccessInfo }
 

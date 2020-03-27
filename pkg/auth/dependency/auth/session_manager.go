@@ -153,8 +153,9 @@ func (m *SessionManager) List(userID string) ([]AuthSession, error) {
 	copy(sessions[0:], idpSessions)
 	copy(sessions[len(idpSessions):], accessGrantSessions)
 
+	// Sort by creation time in descending order.
 	sort.Slice(sessions, func(i, j int) bool {
-		return sessions[i].SessionID() < sessions[j].SessionID()
+		return sessions[i].GetCreatedAt().After(sessions[j].GetCreatedAt())
 	})
 
 	return sessions, nil
