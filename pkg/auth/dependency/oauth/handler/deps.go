@@ -2,9 +2,11 @@ package handler
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -41,7 +43,7 @@ func ProvideAuthorizationHandler(
 }
 
 func ProvideTokenHandler(
-	ctx context.Context,
+	r *http.Request,
 	cfg *config.TenantConfiguration,
 	lf logging.Factory,
 	as oauth.AuthorizationStore,
@@ -55,7 +57,8 @@ func ProvideTokenHandler(
 	tp time.Provider,
 ) *TokenHandler {
 	return &TokenHandler{
-		Context: ctx,
+		Request: r,
+		AppID:   cfg.AppID,
 		Clients: cfg.AppConfig.Clients,
 		Logger:  lf.NewLogger("oauth-token"),
 
@@ -76,4 +79,5 @@ var DependencySet = wire.NewSet(
 	ProvideTokenHandler,
 	wire.Struct(new(RevokeHandler), "*"),
 	wire.Value(TokenGenerator(oauth.GenerateToken)),
+	wire.Bind(new(authn.TokenIssuer), new(*TokenHandler)),
 )

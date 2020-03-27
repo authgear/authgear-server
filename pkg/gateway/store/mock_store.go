@@ -32,6 +32,15 @@ func (s *MockStore) GetDefaultDomain(domain string) (*model.Domain, error) {
 	return nil, NewNotFoundError("domain")
 }
 
+func (s *MockStore) GetDomainByAppIDAndAssignment(appID string, assignment model.AssignmentType) (*model.Domain, error) {
+	for _, d := range s.Domains {
+		if d.AppID == appID && d.Assignment == assignment {
+			return &d, nil
+		}
+	}
+	return nil, NewNotFoundError("domain")
+}
+
 func (s *MockStore) GetApp(id string) (*model.App, error) {
 	return nil, nil
 }

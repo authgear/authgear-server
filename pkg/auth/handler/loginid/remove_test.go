@@ -38,13 +38,13 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 		authctx := authtesting.WithAuthn().
 			UserID("user-id-1").
 			PrincipalID("principal-id-1").
-			VerifyInfo(map[string]bool{"user1@example.com": true}).
 			Verified(true)
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				"user-id-1": authinfo.AuthInfo{
 					ID:         "user-id-1",
-					VerifyInfo: map[string]bool{},
+					Verified:   true,
+					VerifyInfo: map[string]bool{"user1@example.com": true},
 				},
 			},
 		)

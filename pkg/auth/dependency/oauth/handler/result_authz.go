@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
+	coreurl "github.com/skygeario/skygear-server/pkg/core/url"
 )
 
 type AuthorizationResult interface {
@@ -32,12 +33,8 @@ type (
 )
 
 func (a authorizationResultRedirect) WriteResponse(rw http.ResponseWriter, r *http.Request) {
-	query := a.RedirectURI.Query()
-	for k, v := range a.Response {
-		query.Set(k, v)
-	}
-	a.RedirectURI.RawQuery = query.Encode()
-	http.Redirect(rw, r, a.RedirectURI.String(), http.StatusFound)
+	redirectURI := coreurl.WithQueryParamsAdded(a.RedirectURI, a.Response)
+	http.Redirect(rw, r, redirectURI.String(), http.StatusFound)
 }
 
 func (a authorizationResultRedirect) IsInternalError() bool {
@@ -46,12 +43,8 @@ func (a authorizationResultRedirect) IsInternalError() bool {
 
 func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.Request) {
 	if a.RedirectURI != nil {
-		query := a.RedirectURI.Query()
-		for k, v := range a.Response {
-			query.Add(k, v)
-		}
-		a.RedirectURI.RawQuery = query.Encode()
-		http.Redirect(rw, r, a.RedirectURI.String(), http.StatusFound)
+		redirectURI := coreurl.WithQueryParamsAdded(a.RedirectURI, a.Response)
+		http.Redirect(rw, r, redirectURI.String(), http.StatusFound)
 	} else {
 		err := "Invalid OAuth authorization request:\n"
 		keys := make([]string, 0, len(a.Response))
@@ -74,17 +67,12 @@ func (a authorizationResultError) IsInternalError() bool {
 }
 
 func (a authorizationResultRequireAuthn) WriteResponse(rw http.ResponseWriter, r *http.Request) {
-	authzQuery := a.AuthorizeURI.Query()
-	for k, v := range a.Request {
-		authzQuery.Add(k, v)
-	}
-	a.AuthorizeURI.RawQuery = authzQuery.Encode()
+	authorizeURI := coreurl.WithQueryParamsAdded(a.AuthorizeURI, a.Request)
+	authenticateURI := coreurl.WithQueryParamsAdded(a.AuthenticateURI, map[string]string{
+		"redirect_uri": authorizeURI.String(),
+	})
 
-	authnQuery := a.AuthenticateURI.Query()
-	authnQuery.Add("redirect_uri", a.AuthorizeURI.String())
-	a.AuthenticateURI.RawQuery = authnQuery.Encode()
-
-	http.Redirect(rw, r, a.AuthenticateURI.String(), http.StatusFound)
+	http.Redirect(rw, r, authenticateURI.String(), http.StatusFound)
 }
 
 func (a authorizationResultRequireAuthn) IsInternalError() bool {

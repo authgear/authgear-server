@@ -161,7 +161,7 @@ func TestDispatchEvent(t *testing.T) {
 							PrincipalID: principalID,
 						},
 					},
-					&authinfo.AuthInfo{
+					&authn.UserInfo{
 						ID: userID,
 					},
 				)

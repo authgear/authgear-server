@@ -15,7 +15,34 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
 
+type ProviderFactory struct {
+	OAuth                   *OAuthCoordinator
+	Authn                   *AuthenticateProcess
+	Signup                  *SignupProcess
+	AuthnSession            *SessionProvider
+	Session                 session.Provider
+	SessionCookieConfig     session.CookieConfiguration
+	BearerTokenCookieConfig mfa.BearerTokenCookieConfiguration
+}
+
+func (f *ProviderFactory) makeProvider(forAuthAPI bool) *Provider {
+	return &Provider{
+		ForAuthAPI:              forAuthAPI,
+		OAuth:                   f.OAuth,
+		Authn:                   f.Authn,
+		Signup:                  f.Signup,
+		AuthnSession:            f.AuthnSession,
+		Session:                 f.Session,
+		SessionCookieConfig:     f.SessionCookieConfig,
+		BearerTokenCookieConfig: f.BearerTokenCookieConfig,
+	}
+}
+
+func (f *ProviderFactory) ForAuthUI() *Provider  { return f.makeProvider(false) }
+func (f *ProviderFactory) ForAuthAPI() *Provider { return f.makeProvider(true) }
+
 type Provider struct {
+	ForAuthAPI              bool
 	OAuth                   *OAuthCoordinator
 	Authn                   *AuthenticateProcess
 	Signup                  *SignupProcess
@@ -41,6 +68,7 @@ func (p *Provider) SignupWithLoginIDs(
 	if err != nil {
 		return nil, err
 	}
+	s.ForAuthAPI = p.ForAuthAPI
 
 	return p.AuthnSession.StepSession(s)
 }
@@ -63,6 +91,7 @@ func (p *Provider) LoginWithLoginID(
 	if err != nil {
 		return nil, err
 	}
+	s.ForAuthAPI = p.ForAuthAPI
 
 	return p.AuthnSession.StepSession(s)
 }
@@ -106,6 +135,7 @@ func (p *Provider) OAuthExchangeCode(
 	if err != nil {
 		return nil, err
 	}
+	as.ForAuthAPI = p.ForAuthAPI
 
 	return p.AuthnSession.StepSession(as)
 }
@@ -130,6 +160,9 @@ func (p *Provider) MakeAPIBody(rw http.ResponseWriter, result *CompletionResult)
 	if result.MFABearerToken != "" && !result.UseCookie() {
 		resp.MFABearerToken = result.MFABearerToken
 	}
+	resp.AccessToken = result.AccessToken
+	resp.RefreshToken = result.RefreshToken
+	resp.ExpiresIn = result.ExpiresIn
 	return
 }
 

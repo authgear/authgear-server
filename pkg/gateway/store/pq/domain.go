@@ -24,6 +24,14 @@ func (s *Store) GetDefaultDomain(domain string) (*model.Domain, error) {
 	return s.domainQueryAndScan(builder)
 }
 
+func (s *Store) GetDomainByAppIDAndAssignment(appID string, assignment model.AssignmentType) (*model.Domain, error) {
+	builder := s.domainSelectBuilder().
+		Where("app_id = ?", appID).
+		Where("assignment = ?", string(assignment))
+
+	return s.domainQueryAndScan(builder)
+}
+
 func (s *Store) domainSelectBuilder() sq.SelectBuilder {
 	return psql.Select(
 		"id", "app_id", "domain", "assignment",

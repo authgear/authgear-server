@@ -140,8 +140,7 @@ func (h UpdateMetadataHandler) Handle(resp http.ResponseWriter, req *http.Reques
 				err = skyerr.NewForbidden("must not specify user_id")
 				return err
 			}
-			authInfo := auth.GetAuthInfo(req.Context())
-			targetUserID = authInfo.ID
+			targetUserID = auth.GetSession(req.Context()).AuthnAttrs().UserID
 		}
 
 		newMetadata := payload.Metadata

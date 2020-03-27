@@ -16,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	coresession "github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -64,6 +65,9 @@ func TestUnlinkHandler(t *testing.T) {
 		})
 		sh.IdentityProvider = principal.NewMockIdentityProvider(mockOAuthProvider)
 		sh.OAuthAuthProvider = mockOAuthProvider
+		sh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(map[string]authinfo.AuthInfo{
+			"faseng.cat.id": {ID: "faseng.cat.id"},
+		})
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider

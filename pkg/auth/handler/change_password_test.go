@@ -38,7 +38,12 @@ func TestChangePasswordHandler(t *testing.T) {
 			ChangePasswordRequestSchema,
 		)
 		lh.Validator = validator
-		lh.AuthInfoStore = authinfo.NewMockStoreWithUser(userID)
+		lh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(map[string]authinfo.AuthInfo{
+			userID: {
+				ID:       userID,
+				Verified: true,
+			},
+		})
 		lh.SessionProvider = session.NewMockProvider()
 		lh.SessionWriter = session.NewMockWriter()
 		profileData := map[string]map[string]interface{}{

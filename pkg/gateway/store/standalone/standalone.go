@@ -1,24 +1,66 @@
 package standalone
 
 import (
+	"errors"
+
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
 
 type Store struct {
-	TenantConfig config.TenantConfiguration
+	TenantConfig  config.TenantConfiguration
+	GatewayConfig gatewayConfig.Configuration
 }
 
 func (s *Store) GetDomain(domain string) (*model.Domain, error) {
 	d := &model.Domain{}
-	d.Assignment = model.AssignmentTypeMicroservices
 	d.AppID = s.TenantConfig.AppID
+	d.Domain = domain
+
+	switch domain {
+	case s.GatewayConfig.StandaloneHost.AuthHost:
+		d.Assignment = model.AssignmentTypeAuth
+	case s.GatewayConfig.StandaloneHost.AssetHost:
+		d.Assignment = model.AssignmentTypeAsset
+	case s.GatewayConfig.StandaloneHost.AppHost:
+		d.Assignment = model.AssignmentTypeMicroservices
+	}
+
+	if d.Assignment == "" {
+		return nil, errors.New("standalone host not configured")
+	}
+
 	return d, nil
 }
 
 func (s *Store) GetDefaultDomain(domain string) (*model.Domain, error) {
+	// default domain is not support in standalone model
 	return nil, nil
+}
+
+func (s *Store) GetDomainByAppIDAndAssignment(appID string, assignment model.AssignmentType) (*model.Domain, error) {
+	d := &model.Domain{}
+	d.AppID = s.TenantConfig.AppID
+
+	switch assignment {
+	case model.AssignmentTypeAuth:
+		d.Domain = s.GatewayConfig.StandaloneHost.AuthHost
+		d.Assignment = model.AssignmentTypeAuth
+	case model.AssignmentTypeAsset:
+		d.Domain = s.GatewayConfig.StandaloneHost.AssetHost
+		d.Assignment = model.AssignmentTypeAsset
+	case model.AssignmentTypeMicroservices:
+		d.Domain = s.GatewayConfig.StandaloneHost.AppHost
+		d.Assignment = model.AssignmentTypeMicroservices
+	}
+
+	if d.Domain == "" || d.Assignment == "" {
+		return nil, errors.New("standalone host not configured")
+	}
+
+	return d, nil
 }
 
 func (s *Store) GetApp(id string) (*model.App, error) {

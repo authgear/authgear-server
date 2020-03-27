@@ -17,6 +17,7 @@ package authinfo
 import (
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
@@ -70,5 +71,13 @@ func (info *AuthInfo) RefreshDisabledStatus(now time.Time) {
 	if !info.Disabled {
 		info.DisabledMessage = ""
 		info.DisabledExpiry = nil
+	}
+}
+
+func (info *AuthInfo) ToUserInfo(now time.Time) *authn.UserInfo {
+	return &authn.UserInfo{
+		ID:         info.ID,
+		IsDisabled: info.IsDisabled(now),
+		IsVerified: info.IsVerified(),
 	}
 }

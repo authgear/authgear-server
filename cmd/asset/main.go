@@ -15,9 +15,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	gearMiddleware "github.com/skygeario/skygear-server/pkg/core/gears/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
-	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -86,11 +86,6 @@ func main() {
 	}
 
 	dbPool := db.NewPool()
-	redisPool, err := redis.NewPool(configuration.Redis)
-	if err != nil {
-		logger.Fatalf("fail to create redis pool: %v", err)
-	}
-
 	validator := validation.NewValidator("http://v2.skgyear.io")
 	validator.AddSchemaFragments(
 		handler.PresignUploadRequestSchema,
@@ -134,13 +129,8 @@ func main() {
 	}
 
 	rootRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
-	rootRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
-
-	apiRouter.Use(middleware.AuthMiddleware{}.Handle)
-	apiRouter.Use(middleware.Injecter{
-		MiddlewareFactory: middleware.AuthnMiddlewareFactory{},
-		Dependency:        dependencyMap,
-	}.Handle)
+	rootRouter.Use(gearMiddleware.AuthnMiddleware{}.Handle)
+	rootRouter.Use(gearMiddleware.AccessKeyMiddleware{}.Handle)
 
 	handler.AttachPresignUploadHandler(apiRouter, dependencyMap)
 	handler.AttachSignHandler(apiRouter, dependencyMap)

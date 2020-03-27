@@ -43,6 +43,7 @@ func provideAuthHandler(
 func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	wire.Build(
 		auth.DependencySet,
+		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(AuthHandlerAuthnProvider), new(*authn.Provider)),
 		provideOAuthProviderFromRequestVars,
 		provideAuthHandler,
@@ -69,6 +70,7 @@ func provideAuthResultHandler(
 func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	wire.Build(
 		auth.DependencySet,
+		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(AuthResultAuthnProvider), new(*authn.Provider)),
 		provideAuthResultHandler,
 	)
@@ -96,6 +98,7 @@ func provideLinkHandler(
 func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	wire.Build(
 		auth.DependencySet,
+		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(LinkAuthnProvider), new(*authn.Provider)),
 		provideOAuthProviderFromRequestVars,
 		provideLinkHandler,
@@ -124,6 +127,7 @@ func provideLoginHandler(
 func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	wire.Build(
 		auth.DependencySet,
+		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(LoginAuthnProvider), new(*authn.Provider)),
 		provideOAuthProviderFromRequestVars,
 		provideLoginHandler,

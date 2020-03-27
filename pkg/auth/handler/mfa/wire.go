@@ -14,6 +14,7 @@ import (
 
 var dependencySet = wire.NewSet(
 	auth.DependencySet,
+	authn.ProvideAuthAPIProvider,
 	wire.Bind(new(authnResolver), new(*authn.Provider)),
 	wire.Bind(new(authnStepper), new(*authn.Provider)),
 )

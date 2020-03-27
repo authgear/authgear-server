@@ -15,6 +15,7 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -69,6 +70,7 @@ type UnlinkHandler struct {
 	SessionProvider   session.Provider               `dependency:"SessionProvider"`
 	OAuthAuthProvider oauth.Provider                 `dependency:"OAuthAuthProvider"`
 	IdentityProvider  authprincipal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore     authinfo.Store                 `dependency:"AuthInfoStore"`
 	UserProfileStore  userprofile.Store              `dependency:"UserProfileStore"`
 	HookProvider      hook.Provider                  `dependency:"HookProvider"`
 	ProviderFactory   *sso.OAuthProviderFactory      `dependency:"SSOOAuthProviderFactory"`
@@ -102,9 +104,8 @@ func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 			return skyerr.NewNotFound("unknown SSO provider")
 		}
 
-		authInfo := auth.GetAuthInfo(r.Context())
 		sess := auth.GetSession(r.Context())
-		userID := authInfo.ID
+		userID := sess.AuthnAttrs().UserID
 		principal, err := h.OAuthAuthProvider.GetPrincipalByUser(oauth.GetByUserOptions{
 			ProviderType: string(providerConfig.Type),
 			ProviderKeys: oauth.ProviderKeysFromProviderConfig(providerConfig),
@@ -143,6 +144,11 @@ func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 
 		err = h.SessionProvider.InvalidateBatch(sessions)
 		if err != nil {
+			return err
+		}
+
+		authInfo := &authinfo.AuthInfo{}
+		if err := h.AuthInfoStore.GetAuth(userID, authInfo); err != nil {
 			return err
 		}
 

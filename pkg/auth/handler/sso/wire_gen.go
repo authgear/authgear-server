@@ -16,6 +16,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	pq3 "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
+	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
+	pq4 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
+	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -29,7 +34,7 @@ import (
 	pq2 "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
+	handler2 "github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
@@ -84,12 +89,23 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Store: eventStore,
 	}
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
-	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, timeProvider, authinfoStore, userprofileStore, identityProvider, hookProvider)
+	authorizationStore := &pq4.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
+	authAccessEventProvider := auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, timeProvider)
+	tokenGenerator := _wireTokenGeneratorValue
+	tokenHandler := handler.ProvideTokenHandler(r, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, authAccessEventProvider, sessionProvider, idTokenIssuer, tokenGenerator, timeProvider)
+	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, timeProvider, authinfoStore, userprofileStore, identityProvider, hookProvider, tokenHandler)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
 	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
-	authnProvider := &authn.Provider{
+	providerFactory := &authn.ProviderFactory{
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
@@ -98,12 +114,17 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
+	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, provider, timeProvider, loginIDNormalizerFactory)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
-	handler := provideAuthHandler(txContext, tenantConfiguration, authHandlerHTMLProvider, ssoProvider, authnProvider, oAuthProvider)
-	return handler
+	httpHandler := provideAuthHandler(txContext, tenantConfiguration, authHandlerHTMLProvider, ssoProvider, authnProvider, oAuthProvider)
+	return httpHandler
 }
+
+var (
+	_wireTokenGeneratorValue = handler.TokenGenerator(oauth2.GenerateToken)
+)
 
 func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
@@ -111,7 +132,7 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
-	requireAuthz := handler.NewRequireAuthzFactory(factory)
+	requireAuthz := handler2.NewRequireAuthzFactory(factory)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
@@ -148,12 +169,23 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Store: eventStore,
 	}
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
-	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider)
+	authorizationStore := &pq4.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	authAccessEventProvider := auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, identityProvider, provider)
+	tokenGenerator := _wireTokenGeneratorValue
+	tokenHandler := handler.ProvideTokenHandler(r, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, authAccessEventProvider, sessionProvider, idTokenIssuer, tokenGenerator, provider)
+	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider, tokenHandler)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
 	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
-	authnProvider := &authn.Provider{
+	providerFactory := &authn.ProviderFactory{
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
@@ -162,6 +194,7 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
+	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	validator := auth.ProvideValidator(m)
 	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	httpHandler := provideAuthResultHandler(txContext, requireAuthz, authnProvider, validator, ssoProvider)
@@ -174,7 +207,7 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
-	requireAuthz := handler.NewRequireAuthzFactory(factory)
+	requireAuthz := handler2.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	provider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	timeProvider := time.NewProvider()
@@ -213,12 +246,23 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Store: eventStore,
 	}
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
-	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, timeProvider, authinfoStore, userprofileStore, identityProvider, hookProvider)
+	authorizationStore := &pq4.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
+	authAccessEventProvider := auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, identityProvider, timeProvider)
+	tokenGenerator := _wireTokenGeneratorValue
+	tokenHandler := handler.ProvideTokenHandler(r, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, authAccessEventProvider, sessionProvider, idTokenIssuer, tokenGenerator, timeProvider)
+	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, timeProvider, authinfoStore, userprofileStore, identityProvider, hookProvider, tokenHandler)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
 	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
-	authnProvider := &authn.Provider{
+	providerFactory := &authn.ProviderFactory{
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
@@ -227,6 +271,7 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
+	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
@@ -240,7 +285,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
-	requireAuthz := handler.NewRequireAuthzFactory(factory)
+	requireAuthz := handler2.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	provider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	timeProvider := time.NewProvider()
@@ -279,12 +324,23 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Store: eventStore,
 	}
 	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
-	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, timeProvider, authinfoStore, userprofileStore, identityProvider, hookProvider)
+	authorizationStore := &pq4.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
+	authAccessEventProvider := auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, identityProvider, timeProvider)
+	tokenGenerator := _wireTokenGeneratorValue
+	tokenHandler := handler.ProvideTokenHandler(r, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, authAccessEventProvider, sessionProvider, idTokenIssuer, tokenGenerator, timeProvider)
+	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, timeProvider, authinfoStore, userprofileStore, identityProvider, hookProvider, tokenHandler)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
 	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
-	authnProvider := &authn.Provider{
+	providerFactory := &authn.ProviderFactory{
 		OAuth:                   oAuthCoordinator,
 		Authn:                   authenticateProcess,
 		Signup:                  signupProcess,
@@ -293,6 +349,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SessionCookieConfig:     cookieConfiguration,
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
+	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
@@ -328,7 +385,7 @@ func provideAuthHandler(
 
 func provideAuthResultHandler(
 	tx db.TxContext,
-	requireAuthz handler.RequireAuthz,
+	requireAuthz handler2.RequireAuthz,
 	ap AuthResultAuthnProvider,
 	v *validation.Validator,
 	sp sso.Provider,
@@ -344,7 +401,7 @@ func provideAuthResultHandler(
 
 func provideLinkHandler(
 	tx db.TxContext,
-	requireAuthz handler.RequireAuthz,
+	requireAuthz handler2.RequireAuthz,
 	v *validation.Validator,
 	sp sso.Provider,
 	ap LinkAuthnProvider,
@@ -362,7 +419,7 @@ func provideLinkHandler(
 
 func provideLoginHandler(
 	tx db.TxContext,
-	requireAuthz handler.RequireAuthz,
+	requireAuthz handler2.RequireAuthz,
 	v *validation.Validator,
 	sp sso.Provider,
 	ap LoginAuthnProvider,

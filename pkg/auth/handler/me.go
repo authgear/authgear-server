@@ -82,13 +82,16 @@ func (h MeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interfac
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetAuthInfo(r.Context())
 		sess := auth.GetSession(r.Context())
 		principalID := sess.AuthnAttrs().PrincipalID
 
-		// Get Profile
+		authInfo := &authinfo.AuthInfo{}
+		if err := h.AuthInfoStore.GetAuth(sess.AuthnAttrs().UserID, authInfo); err != nil {
+			return err
+		}
+
 		var userProfile userprofile.UserProfile
-		if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
+		if userProfile, err = h.UserProfileStore.GetUserProfile(sess.AuthnAttrs().UserID); err != nil {
 			return err
 		}
 

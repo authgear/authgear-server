@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
@@ -117,6 +118,7 @@ type VerifyRequestHandler struct {
 	CodeSenderFactory        userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
 	URLPrefix                *url.URL                     `dependency:"URLPrefix"`
 	UserVerificationProvider userverify.Provider          `dependency:"UserVerificationProvider"`
+	AuthInfoStore            authinfo.Store               `dependency:"AuthInfoStore"`
 	UserProfileStore         userprofile.Store            `dependency:"UserProfileStore"`
 	PasswordAuthProvider     password.Provider            `dependency:"PasswordAuthProvider"`
 	IdentityProvider         principal.IdentityProvider   `dependency:"IdentityProvider"`
@@ -146,11 +148,15 @@ func (h VerifyRequestHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 	}
 
 	err = db.WithTx(h.TxContext, func() (err error) {
-		authInfo := auth.GetAuthInfo(r.Context())
+		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 
-		// Get Profile
+		authInfo := &authinfo.AuthInfo{}
+		if err = h.AuthInfoStore.GetAuth(userID, authInfo); err != nil {
+			return
+		}
+
 		var userProfile userprofile.UserProfile
-		if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
+		if userProfile, err = h.UserProfileStore.GetUserProfile(userID); err != nil {
 			return
 		}
 
@@ -163,7 +169,7 @@ func (h VerifyRequestHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 
 		var userPrincipal *password.Principal
 		for _, principal := range principals {
-			if principal.UserID == authInfo.ID && payload.LoginIDType.MatchPrincipal(principal, h.PasswordAuthProvider) {
+			if principal.UserID == userID && payload.LoginIDType.MatchPrincipal(principal, h.PasswordAuthProvider) {
 				userPrincipal = principal
 				break
 			}

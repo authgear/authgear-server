@@ -43,13 +43,13 @@ func TestAddLoginIDHandler(t *testing.T) {
 		h.TxContext = db.NewMockTxContext()
 		authctx := authtesting.WithAuthn().
 			UserID("user-id-1").
-			VerifyInfo(map[string]bool{"user1@example.com": true}).
 			Verified(true)
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				"user-id-1": authinfo.AuthInfo{
 					ID:         "user-id-1",
-					VerifyInfo: map[string]bool{},
+					Verified:   true,
+					VerifyInfo: map[string]bool{"user1@example.com": true},
 				},
 			},
 		)

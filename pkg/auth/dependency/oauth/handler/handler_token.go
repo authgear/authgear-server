@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
+	"net/http"
 	gotime "time"
 
 	"github.com/sirupsen/logrus"
@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -25,7 +26,8 @@ type IDTokenIssuer interface {
 }
 
 type TokenHandler struct {
-	Context context.Context
+	Request *http.Request
+	AppID   string
 	Clients []config.OAuthClientConfiguration
 	Logger  *logrus.Entry
 
@@ -92,7 +94,11 @@ func (h *TokenHandler) doHandle(
 	case "authorization_code":
 		return h.handleAuthorizationCode(client, r)
 	case "refresh_token":
-		return h.handleRefreshToken(client, r)
+		resp, err := h.handleRefreshToken(client, r)
+		if err != nil {
+			return nil, err
+		}
+		return tokenResultOK{Response: resp}, nil
 	default:
 		panic("oauth: unexpected grant type")
 	}
@@ -178,7 +184,7 @@ var errInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh
 func (h *TokenHandler) handleRefreshToken(
 	client config.OAuthClientConfiguration,
 	r protocol.TokenRequest,
-) (TokenResult, error) {
+) (protocol.TokenResponse, error) {
 	token, grantID, err := oauth.DecodeRefreshToken(r.RefreshToken())
 	if err != nil {
 		return nil, errInvalidRefreshToken
@@ -212,7 +218,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
-	return tokenResultOK{Response: resp}, nil
+	return resp, nil
 }
 
 func (h *TokenHandler) issueTokensForAuthorizationCode(
@@ -252,7 +258,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	var sessionKind oauth.GrantSessionKind
 	var atSession auth.AuthSession
 	if issueRefreshToken {
-		offlineGrant, err := h.issueOfflineGrant(client, code, authz.ID, session, resp)
+		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, session.AuthnAttrs(), resp)
 		if err != nil {
 			return nil, err
 		}
@@ -265,7 +271,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		sessionKind = oauth.GrantSessionKindSession
 	}
 
-	err := h.issueAccessGrant(client, code.AppID, code.Scopes,
+	err := h.issueAccessGrant(client, code.Scopes,
 		authz.ID, sessionID, sessionKind, resp)
 	if err != nil {
 		return nil, err
@@ -311,7 +317,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		resp.IDToken(idToken)
 	}
 
-	err := h.issueAccessGrant(client, offlineGrant.AppID, offlineGrant.Scopes,
+	err := h.issueAccessGrant(client, offlineGrant.Scopes,
 		authz.ID, offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
 	if err != nil {
 		return nil, err
@@ -322,28 +328,29 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 
 func (h *TokenHandler) issueOfflineGrant(
 	client config.OAuthClientConfiguration,
-	code *oauth.CodeGrant,
+	scopes []string,
 	authzID string,
-	session *session.IDPSession,
+	attrs *authn.Attrs,
 	resp protocol.TokenResponse,
 ) (*oauth.OfflineGrant, error) {
 	token := h.GenerateToken()
 	now := h.Time.NowUTC()
+	accessEvent := auth.NewAccessEvent(now, h.Request)
 	offlineGrant := &oauth.OfflineGrant{
-		AppID:           code.AppID,
+		AppID:           h.AppID,
 		ID:              uuid.New(),
 		AuthorizationID: authzID,
 		ClientID:        client.ClientID(),
 
 		CreatedAt: now,
 		ExpireAt:  now.Add(gotime.Duration(client.RefreshTokenLifetime()) * gotime.Second),
-		Scopes:    code.Scopes,
+		Scopes:    scopes,
 		TokenHash: oauth.HashToken(token),
 
-		Attrs: session.Attrs,
+		Attrs: *attrs,
 		AccessInfo: auth.AccessInfo{
-			InitialAccess: session.AccessInfo.LastAccess,
-			LastAccess:    session.AccessInfo.LastAccess,
+			InitialAccess: accessEvent,
+			LastAccess:    accessEvent,
 		},
 	}
 	err := h.OfflineGrants.CreateOfflineGrant(offlineGrant)
@@ -362,7 +369,6 @@ func (h *TokenHandler) issueOfflineGrant(
 
 func (h *TokenHandler) issueAccessGrant(
 	client config.OAuthClientConfiguration,
-	appID string,
 	scopes []string,
 	authzID string,
 	sessionID string,
@@ -373,7 +379,7 @@ func (h *TokenHandler) issueAccessGrant(
 	now := h.Time.NowUTC()
 
 	accessGrant := &oauth.AccessGrant{
-		AppID:           appID,
+		AppID:           h.AppID,
 		AuthorizationID: authzID,
 		SessionID:       sessionID,
 		SessionKind:     sessionKind,

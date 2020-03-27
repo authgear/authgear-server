@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
@@ -93,6 +94,7 @@ type RevokeHandler struct {
 	TxContext        db.TxContext               `dependency:"TxContext"`
 	SessionProvider  session.Provider           `dependency:"SessionProvider"`
 	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore    authinfo.Store             `dependency:"AuthInfoStore"`
 	UserProfileStore userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider     hook.Provider              `dependency:"HookProvider"`
 }
@@ -121,8 +123,7 @@ func (h RevokeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h RevokeHandler) Handle(r *http.Request, payload RevokeRequestPayload) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetAuthInfo(r.Context())
-		userID := authInfo.ID
+		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 		sessionID := payload.SessionID
 
 		// ignore session not found errors
@@ -136,6 +137,11 @@ func (h RevokeHandler) Handle(r *http.Request, payload RevokeRequestPayload) (re
 		}
 		if s.UserID != userID {
 			resp = map[string]string{}
+			return err
+		}
+
+		authInfo := &authinfo.AuthInfo{}
+		if err := h.AuthInfoStore.GetAuth(userID, authInfo); err != nil {
 			return err
 		}
 

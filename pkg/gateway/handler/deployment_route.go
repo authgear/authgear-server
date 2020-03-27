@@ -8,10 +8,25 @@ import (
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
+	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/gateway"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
-func handleDeploymentRoute(rw http.ResponseWriter, r *http.Request) {
+type DeploymentRouteHandlerFactory struct {
+	Dependency gateway.DependencyMap
+}
+
+func (f *DeploymentRouteHandlerFactory) NewHandler(request *http.Request) http.Handler {
+	h := &DeploymentRouteHandler{}
+	inject.DefaultRequestInject(h, f.Dependency, request)
+	return h
+}
+
+type DeploymentRouteHandler struct {
+}
+
+func (h *DeploymentRouteHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	ctx := model.GatewayContextFromContext(r.Context())
 	routeMatch := model.MatchRoute(r.URL.Path, ctx.App.Config.DeploymentRoutes)
 	if routeMatch == nil {

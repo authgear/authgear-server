@@ -4,15 +4,27 @@ import (
 	"context"
 	"crypto/subtle"
 	"net/http"
+	"strconv"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 const headerAccessKey = "X-Skygear-Api-Key"
+const headerIsMasterKey = "X-Skygear-Is-Master-Key"
 
 type AccessKey struct {
 	IsMasterKey bool
 	Client      config.OAuthClientConfiguration
+}
+
+func NewAccessKeyFromRequest(r *http.Request) *AccessKey {
+	return &AccessKey{
+		IsMasterKey: r.Header.Get(headerIsMasterKey) == "true",
+	}
+}
+
+func (a AccessKey) WriteTo(rw http.ResponseWriter) {
+	rw.Header().Set(headerIsMasterKey, strconv.FormatBool(a.IsMasterKey))
 }
 
 type accessKeyContextKeyType struct{}
