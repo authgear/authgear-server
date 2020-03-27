@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+
 	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
@@ -51,6 +53,15 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 		resolveResp, err := client.Do(resolveReq)
 		if err != nil {
 			logger.WithError(err).Error("failed to call auth resolve endpoint")
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		if resolveResp.StatusCode != 200 {
+			logger.WithFields(logrus.Fields{
+				"status_code":   resolveResp.StatusCode,
+				"auth_endpoint": u.String(),
+			}).Error("failed to call auth resolve endpoint")
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
