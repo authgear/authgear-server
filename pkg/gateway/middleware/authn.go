@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -56,8 +57,13 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
+		defer resolveResp.Body.Close()
 
-		if resolveResp.StatusCode != 200 {
+		if resolveResp.StatusCode >= 400 && resolveResp.StatusCode < 500 {
+			// if resolve response is 4xx, return the resolve response
+			pipeResponse(w, resolveResp)
+			return
+		} else if resolveResp.StatusCode != 200 {
 			logger.WithFields(logrus.Fields{
 				"status_code":   resolveResp.StatusCode,
 				"auth_endpoint": u.String(),
@@ -88,4 +94,14 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 
 func isSkygearHeader(key string) bool {
 	return strings.HasPrefix(strings.ToLower(key), "x-skygear")
+}
+
+func pipeResponse(rw http.ResponseWriter, response *http.Response) {
+	for key, values := range response.Header {
+		for _, v := range values {
+			rw.Header().Add(key, v)
+		}
+	}
+	rw.WriteHeader(response.StatusCode)
+	io.Copy(rw, response.Body)
 }
