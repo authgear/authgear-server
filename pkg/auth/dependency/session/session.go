@@ -29,6 +29,7 @@ func (s *IDPSession) AuthnAttrs() *authn.Attrs {
 	return &s.Attrs
 }
 
+func (s *IDPSession) GetCreatedAt() time.Time         { return s.CreatedAt }
 func (s *IDPSession) GetClientID() string             { return "" }
 func (s *IDPSession) GetAccessInfo() *auth.AccessInfo { return &s.AccessInfo }
 

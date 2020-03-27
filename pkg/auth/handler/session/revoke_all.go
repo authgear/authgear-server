@@ -7,19 +7,10 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 )
 
 func AttachRevokeAllHandler(
@@ -28,20 +19,13 @@ func AttachRevokeAllHandler(
 ) {
 	router.NewRoute().
 		Path("/session/revoke_all").
-		Handler(server.FactoryToHandler(&RevokeAllHandlerFactory{
-			authDependency,
-		})).
+		Handler(pkg.MakeHandler(authDependency, newRevokeAllHandler)).
 		Methods("OPTIONS", "POST")
 }
 
-type RevokeAllHandlerFactory struct {
-	Dependency pkg.DependencyMap
-}
-
-func (f RevokeAllHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &RevokeAllHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
+type sessionRevokeAllManager interface {
+	List(userID string) ([]auth.AuthSession, error)
+	Revoke(auth.AuthSession) error
 }
 
 /*
@@ -55,95 +39,45 @@ func (f RevokeAllHandlerFactory) NewHandler(request *http.Request) http.Handler 
 		@Response 200 {EmptyResponse}
 */
 type RevokeAllHandler struct {
-	RequireAuthz     handler.RequireAuthz       `dependency:"RequireAuthz"`
-	TxContext        db.TxContext               `dependency:"TxContext"`
-	SessionProvider  session.Provider           `dependency:"SessionProvider"`
-	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
-	AuthInfoStore    authinfo.Store             `dependency:"AuthInfoStore"`
-	UserProfileStore userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider     hook.Provider              `dependency:"HookProvider"`
+	txContext      db.TxContext
+	sessionManager sessionRevokeAllManager
 }
 
-func (h RevokeAllHandler) ProvideAuthzPolicy() authz.Policy {
+func (h *RevokeAllHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.RequireValidUser
 }
 
-func (h RevokeAllHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var response handler.APIResponse
-	var payload struct{}
-	if err := handler.DecodeJSONBody(r, w, &payload); err != nil {
-		response.Error = err
-	} else {
-		result, err := h.Handle(r)
-		if err != nil {
-			response.Error = err
-		} else {
-			response.Result = result
-		}
+func (h *RevokeAllHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	if err := handler.DecodeJSONBody(r, rw, &struct{}{}); err != nil {
+		handler.WriteResponse(rw, handler.APIResponse{Error: err})
+		return
 	}
-	handler.WriteResponse(w, response)
-}
 
-func (h RevokeAllHandler) Handle(r *http.Request) (resp interface{}, err error) {
-	err = db.WithTx(h.TxContext, func() error {
-		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
-		// TODO(authn): use correct session ID
-		sessionID := ""
+	err := db.WithTx(h.txContext, func() error {
+		session := auth.GetSession(r.Context())
+		userID := session.AuthnAttrs().UserID
 
-		authInfo := &authinfo.AuthInfo{}
-		if err := h.AuthInfoStore.GetAuth(userID, authInfo); err != nil {
-			return err
-		}
-		profile, err := h.UserProfileStore.GetUserProfile(userID)
+		sessions, err := h.sessionManager.List(userID)
 		if err != nil {
 			return err
 		}
-		user := model.NewUser(*authInfo, profile)
-
-		sessions, err := h.SessionProvider.List(userID)
-		if err != nil {
-			return err
-		}
-
-		n := 0
-		for _, session := range sessions {
-			if session.ID == sessionID {
+		for _, s := range sessions {
+			if s.SessionID() == session.SessionID() {
 				continue
 			}
-			sessions[n] = session
-			n++
 
-			var principal principal.Principal
-			if principal, err = h.IdentityProvider.GetPrincipalByID(session.PrincipalID); err != nil {
-				return err
-			}
-			identity := model.NewIdentity(h.IdentityProvider, principal)
-			// TODO(authn): use new session provider
-			var sessionModel model.Session
-			// sessionModel := authSession.Format(session)
-
-			err = h.HookProvider.DispatchEvent(
-				event.SessionDeleteEvent{
-					Reason:   string(auth.SessionDeleteReasonRevoke),
-					User:     user,
-					Identity: identity,
-					Session:  sessionModel,
-				},
-				&user,
-			)
+			err = h.sessionManager.Revoke(s)
 			if err != nil {
 				return err
 			}
 		}
-		sessions = sessions[:n]
 
-		err = h.SessionProvider.InvalidateBatch(sessions)
-		if err != nil {
-			return err
-		}
-
-		resp = struct{}{}
 		return nil
 	})
-	return
+
+	if err == nil {
+		handler.WriteResponse(rw, handler.APIResponse{Result: struct{}{}})
+	} else {
+		handler.WriteResponse(rw, handler.APIResponse{Error: err})
+	}
 }

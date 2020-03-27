@@ -19,6 +19,16 @@ func (m *Manager) CookieConfig() *corehttp.CookieConfiguration {
 	return (*corehttp.CookieConfiguration)(&m.Cookie)
 }
 
+func (m *Manager) Get(id string) (auth.AuthSession, error) {
+	s, err := m.Store.Get(id)
+	if errors.Is(err, ErrSessionNotFound) {
+		return nil, auth.ErrSessionNotFound
+	} else if err != nil {
+		return nil, errors.HandledWithMessage(err, "failed to get session")
+	}
+	return s, nil
+}
+
 func (m *Manager) Delete(session auth.AuthSession) error {
 	err := m.Store.Delete(session.(*IDPSession))
 	if err != nil {

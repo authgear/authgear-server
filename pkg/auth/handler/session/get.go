@@ -10,12 +10,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -25,20 +22,8 @@ func AttachGetHandler(
 ) {
 	router.NewRoute().
 		Path("/session/get").
-		Handler(server.FactoryToHandler(&GetHandlerFactory{
-			authDependency,
-		})).
+		Handler(pkg.MakeHandler(authDependency, newGetHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type GetHandlerFactory struct {
-	Dependency pkg.DependencyMap
-}
-
-func (f GetHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &GetHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type GetRequestPayload struct {
@@ -77,6 +62,10 @@ const GetResponseSchema = `
 }
 `
 
+type sessionGetManager interface {
+	Get(id string) (auth.AuthSession, error)
+}
+
 /*
 	@Operation POST /session/get - Get current user sessions
 		Get the sessions with specified ID of current user.
@@ -94,51 +83,44 @@ const GetResponseSchema = `
 			@JSONSchema {SessionGetResponse}
 */
 type GetHandler struct {
-	Validator       *validation.Validator `dependency:"Validator"`
-	RequireAuthz    handler.RequireAuthz  `dependency:"RequireAuthz"`
-	TxContext       db.TxContext          `dependency:"TxContext"`
-	SessionProvider session.Provider      `dependency:"SessionProvider"`
+	validator      *validation.Validator
+	txContext      db.TxContext
+	sessionManager sessionGetManager
 }
 
-func (h GetHandler) ProvideAuthzPolicy() authz.Policy {
+func (h *GetHandler) ProvideAuthzPolicy() authz.Policy {
 	return policy.RequireValidUser
 }
 
-func (h GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var response handler.APIResponse
+func (h *GetHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	var payload GetRequestPayload
-	if err := handler.BindJSONBody(r, w, h.Validator, "#SessionGetRequest", &payload); err != nil {
-		response.Error = err
-	} else {
-		result, err := h.Handle(r, payload)
-		if err != nil {
-			response.Error = err
-		} else {
-			response.Result = result
-		}
+	if err := handler.BindJSONBody(r, rw, h.validator, "#SessionGetRequest", &payload); err != nil {
+		handler.WriteResponse(rw, handler.APIResponse{Error: err})
+		return
 	}
-	handler.WriteResponse(w, response)
-}
 
-func (h GetHandler) Handle(r *http.Request, payload GetRequestPayload) (resp interface{}, err error) {
-	err = db.WithTx(h.TxContext, func() error {
+	var result GetResponse
+	err := db.WithTx(h.txContext, func() error {
 		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
-		sessionID := payload.SessionID
 
-		s, err := h.SessionProvider.Get(sessionID)
-		if err != nil {
-			if errors.Is(err, session.ErrSessionNotFound) {
-				err = errSessionNotFound
-			}
+		session, err := h.sessionManager.Get(payload.SessionID)
+		if errors.Is(err, auth.ErrSessionNotFound) {
+			return errSessionNotFound
+		} else if err != nil {
 			return err
 		}
-		if s.UserID != userID {
+
+		if session.AuthnAttrs().UserID != userID {
 			return errSessionNotFound
 		}
 
-		// TODO(authn): use new session
-		// resp = GetResponse{Session: authSession.Format(s)}
+		result.Session = *session.ToAPIModel()
 		return nil
 	})
-	return
+
+	if err == nil {
+		handler.WriteResponse(rw, handler.APIResponse{Result: result})
+	} else {
+		handler.WriteResponse(rw, handler.APIResponse{Error: err})
+	}
 }

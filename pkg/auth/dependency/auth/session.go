@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"time"
+
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
@@ -14,6 +16,7 @@ const (
 type AuthSession interface {
 	authn.Session
 	GetClientID() string
+	GetCreatedAt() time.Time
 	GetAccessInfo() *AccessInfo
 	ToAPIModel() *model.Session
 }
