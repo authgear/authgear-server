@@ -12,12 +12,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
+	"github.com/skygeario/skygear-server/pkg/gateway/config"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
 // AuthnMiddleware call auth gear resolve endpoint and injects auth info headers
 // into the request
 type AuthnMiddleware struct {
+	GatewayConfiguration config.Configuration `dependency:"GatewayConfiguration"`
 }
 
 type AuthnMiddlewareFactory struct{}
@@ -36,17 +38,23 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 
 		ctx := model.GatewayContextFromContext(r.Context())
 		gear := ctx.Gear
-		authHost := ctx.AuthHost
 		// auth info headers are not needed for auth gear
 		if gear == model.AuthGear {
 			next.ServeHTTP(w, r)
 			return
 		}
-		u := &url.URL{
-			Scheme: corehttp.GetProto(r),
-			Host:   authHost,
-			Path:   "/_auth/session/resolve",
+
+		// get resolve endpoint from config
+		var err error
+		u, err := url.Parse(m.GatewayConfiguration.Auth.Live)
+		if err != nil {
+			logger.WithError(err).Error("invalid auth endpoint")
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
 		}
+		u.Path = "/_auth/session/resolve"
+
+		// make resolve endpoint request
 		resolveReq, _ := http.NewRequest("GET", u.String(), nil)
 		resolveReq.Header = r.Header.Clone()
 

@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -86,14 +85,6 @@ func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 		ctx := model.GatewayContextFromContext(r.Context())
 		ctx.App = *app
 		ctx.Gear = getGearToRoute(domain, r)
-		authHost, err := f.getAuthHost(app.ID, domain)
-		if err != nil {
-			logger.WithError(err).Error("failed to get app default domain")
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-		ctx.AuthHost = authHost
-
 		r = r.WithContext(model.ContextWithGatewayContext(r.Context(), ctx))
 
 		next.ServeHTTP(w, r)
@@ -117,35 +108,6 @@ func (f FindAppMiddleware) getDomain(host string) (*model.Domain, error) {
 	defaultDomain := strings.Join(parts[1:], ".")
 	domain, err = f.Store.GetDefaultDomain(defaultDomain)
 	return domain, err
-}
-
-func (f FindAppMiddleware) getAuthHost(appID string, domain *model.Domain) (string, error) {
-	defaultDomainToAuth := func(domain string) string {
-		return fmt.Sprintf("%s.%s", model.AuthGearSubdomain, domain)
-	}
-
-	if domain.Assignment == model.AssignmentTypeDefault {
-		return defaultDomainToAuth(domain.Domain), nil
-	} else if domain.Assignment == model.AssignmentTypeAuth {
-		return domain.Domain, nil
-	}
-
-	// try getting auth domain
-	authDomain, err := f.Store.GetDomainByAppIDAndAssignment(appID, model.AssignmentTypeAuth)
-	if err == nil {
-		return authDomain.Domain, nil
-	}
-	if !store.IsNotFound(err) {
-		return "", err
-	}
-
-	// try getting default domain to derive auth endpoint
-	defaultDomain, err := f.Store.GetDomainByAppIDAndAssignment(appID, model.AssignmentTypeDefault)
-	if err == nil {
-		return defaultDomainToAuth(defaultDomain.Domain), nil
-	}
-
-	return "", err
 }
 
 func getGearToRoute(domain *model.Domain, r *http.Request) model.Gear {
