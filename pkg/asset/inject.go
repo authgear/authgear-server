@@ -5,11 +5,6 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/asset/dependency/presign"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -47,60 +42,17 @@ func (m *DependencyMap) Provide(
 		}
 	}
 
-	newAuthContext := func() coreAuth.ContextGetter {
-		return coreAuth.NewContextGetterWithContext(ctx)
-	}
-
-	newSQLExecutor := func() db.SQLExecutor {
-		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig))
-	}
-
 	newTimeProvider := func() time.Provider {
 		return time.NewProvider()
 	}
 
-	newSessionProvider := func() session.Provider {
-		return session.NewProvider(
-			request,
-			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider(), newLoggerFactory()),
-			redisSession.NewEventStore(ctx, tConfig.AppID),
-			tConfig.AppConfig.Clients,
-		)
-	}
-
-	newSessionWriter := func() session.Writer {
-		return session.NewWriter(
-			ctx,
-			tConfig.AppConfig.Clients,
-			tConfig.AppConfig.MFA,
-			m.UseInsecureCookie,
-		)
-	}
-
-	newAuthInfoStore := func() authinfo.Store {
-		return pqAuthInfo.NewAuthInfoStore(
-			db.NewSQLBuilder("core", tConfig.DatabaseConfig.DatabaseSchema, tConfig.AppID),
-			newSQLExecutor(),
-		)
-	}
-
 	switch dependencyName {
-	case "AuthContextGetter":
-		return newAuthContext()
-	case "AuthContextSetter":
-		return coreAuth.NewContextSetterWithContext(ctx)
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
 	case "LoggerFactory":
 		return newLoggerFactory()
 	case "RequireAuthz":
 		return handler.NewRequireAuthzFactory(newLoggerFactory())
-	case "SessionProvider":
-		return newSessionProvider()
-	case "SessionWriter":
-		return newSessionWriter()
-	case "AuthInfoStore":
-		return newAuthInfoStore()
 	case "CloudStorageProvider":
 		return cloudstorage.NewProvider(
 			tConfig.AppID,

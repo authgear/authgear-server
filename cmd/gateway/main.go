@@ -11,12 +11,10 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
-	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/gateway"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
@@ -87,10 +85,6 @@ func main() {
 	gatewayDependency := gateway.DependencyMap{
 		Config: config,
 	}
-	redisPool, err := redis.NewPool(config.Redis)
-	if err != nil {
-		logger.Fatalf("fail to create redis pool: %v", err.Error())
-	}
 	rr := mux.NewRouter()
 	rr.HandleFunc("/_healthz", HealthCheckHandler)
 
@@ -110,9 +104,6 @@ func main() {
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r = db.InitRequestDBContext(r, dbPool)
-			r = auth.InitRequestAuthContext(r)
-			r = r.WithContext(redis.WithRedis(r.Context(), redisPool))
-			defer redis.CloseConn(r.Context())
 			next.ServeHTTP(w, r)
 		})
 	})
