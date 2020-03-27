@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/protocol"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	coreurl "github.com/skygeario/skygear-server/pkg/core/url"
 )
 
 // TODO(oidc): write tests
@@ -22,17 +23,14 @@ type EndSessionHandler struct {
 
 func (h *EndSessionHandler) Handle(s auth.AuthSession, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
 	if s != nil {
-		endSessionURI := h.EndSessionEndpoint.EndSessionEndpointURI()
-		query := endSessionURI.Query()
-		for k, v := range req {
-			query.Add(k, v)
-		}
-		endSessionURI.RawQuery = query.Encode()
-
-		logoutURI := h.LogoutEndpoint.LogoutEndpointURI()
-		query = logoutURI.Query()
-		query.Add("redirect_uri", endSessionURI.String())
-		logoutURI.RawQuery = query.Encode()
+		endSessionURI := coreurl.WithQueryParamsAdded(
+			h.EndSessionEndpoint.EndSessionEndpointURI(),
+			req,
+		)
+		logoutURI := coreurl.WithQueryParamsAdded(
+			h.LogoutEndpoint.LogoutEndpointURI(),
+			map[string]string{"redirect_uri": endSessionURI.String()},
+		)
 
 		http.Redirect(rw, r, logoutURI.String(), http.StatusFound)
 		return nil
@@ -56,10 +54,7 @@ func (h *EndSessionHandler) Handle(s auth.AuthSession, req protocol.EndSessionRe
 		if err != nil {
 			return err
 		}
-		query := uri.Query()
-		query.Set("state", state)
-		uri.RawQuery = query.Encode()
-		redirectURI = uri.String()
+		redirectURI = coreurl.WithQueryParamsAdded(uri, map[string]string{"state": state}).String()
 	}
 
 	http.Redirect(rw, r, redirectURI, http.StatusFound)
