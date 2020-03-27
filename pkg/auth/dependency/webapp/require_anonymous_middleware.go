@@ -10,8 +10,8 @@ type RequiredAnonymousMiddleware struct{}
 
 func (m RequiredAnonymousMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authInfo := auth.GetAuthInfo(r.Context())
-		if authInfo != nil {
+		user := auth.GetUser(r.Context())
+		if user != nil {
 			RedirectToRedirectURI(w, r)
 		} else {
 			next.ServeHTTP(w, r)

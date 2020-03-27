@@ -100,9 +100,9 @@ func (h ListIdentitiesHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetAuthInfo(r.Context())
+		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 
-		principals, err := h.IdentityProvider.ListPrincipalsByUserID(authInfo.ID)
+		principals, err := h.IdentityProvider.ListPrincipalsByUserID(userID)
 		if err != nil {
 			return err
 		}

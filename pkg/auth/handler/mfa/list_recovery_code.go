@@ -108,7 +108,7 @@ func (h *ListRecoveryCodeHandler) Handle(w http.ResponseWriter, r *http.Request)
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		userID := auth.GetAuthInfo(r.Context()).ID
+		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 		codes, err := h.MFAProvider.GetRecoveryCode(userID)
 		if err != nil {
 			return err

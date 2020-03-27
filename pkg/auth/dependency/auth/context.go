@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -11,8 +10,8 @@ func IsValidAuthn(ctx context.Context) bool {
 	return authn.IsValidAuthn(ctx)
 }
 
-func GetAuthInfo(ctx context.Context) *authinfo.AuthInfo {
-	return authn.GetAuthInfo(ctx)
+func GetUser(ctx context.Context) *authn.UserInfo {
+	return authn.GetUser(ctx)
 }
 
 func GetSession(ctx context.Context) AuthSession {

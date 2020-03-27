@@ -118,9 +118,8 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 	}
 
 	err := db.WithTx(h.TxContext, func() error {
-		authInfo := auth.GetAuthInfo(r.Context())
 		session := auth.GetSession(r.Context())
-		userID := authInfo.ID
+		userID := session.AuthnAttrs().UserID
 
 		var p password.Principal
 		err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(payload.Key, payload.Value, password.DefaultRealm, &p)
@@ -154,8 +153,11 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 			return err
 		}
 
-		var userProfile userprofile.UserProfile
-		userProfile, err = h.UserProfileStore.GetUserProfile(userID)
+		authInfo := &authinfo.AuthInfo{}
+		if err := h.AuthInfoStore.GetAuth(userID, authInfo); err != nil {
+			return err
+		}
+		userProfile, err := h.UserProfileStore.GetUserProfile(userID)
 		if err != nil {
 			return err
 		}

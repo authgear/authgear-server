@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 var ErrInvalidSession = errors.New("provided session is invalid")
@@ -23,6 +24,7 @@ type Middleware struct {
 	AccessTokenSessionResolver AccessTokenSessionResolver
 	AccessEvents               AccessEventProvider
 	AuthInfoStore              authinfo.Store
+	Time                       time.Provider
 	TxContext                  db.TxContext
 }
 
@@ -35,7 +37,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 		} else if err != nil {
 			panic(err)
 		} else if s != nil {
-			r = r.WithContext(authn.WithAuthn(r.Context(), s, u))
+			r = r.WithContext(authn.WithAuthn(r.Context(), s, u.ToUserInfo(m.Time.NowUTC())))
 		}
 		// s is nil: no session credentials provided
 
