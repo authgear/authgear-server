@@ -80,8 +80,14 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		// remove all X-Skygear-* headers
+		// remove all X-Skygear-* headers expects tenant config for gears
 		for key := range r.Header {
+			// should not remove tenant config if request to gear
+			if isTenantConfigHeader(key) {
+				if gear != "" {
+					continue
+				}
+			}
 			if isSkygearHeader(key) {
 				r.Header.Del(key)
 			}
@@ -102,6 +108,10 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 
 func isSkygearHeader(key string) bool {
 	return strings.HasPrefix(strings.ToLower(key), "x-skygear")
+}
+
+func isTenantConfigHeader(key string) bool {
+	return strings.EqualFold(key, corehttp.HeaderTenantConfig)
 }
 
 func pipeResponse(rw http.ResponseWriter, response *http.Response) {
