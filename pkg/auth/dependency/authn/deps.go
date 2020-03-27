@@ -77,6 +77,7 @@ func ProvideSessionProvider(
 	us userprofile.Store,
 	ip principal.IdentityProvider,
 	hp hook.Provider,
+	ti TokenIssuer,
 ) *SessionProvider {
 	return &SessionProvider{
 		MFAProvider:        mp,
@@ -89,6 +90,7 @@ func ProvideSessionProvider(
 		UserProfileStore:   us,
 		IdentityProvider:   ip,
 		HookProvider:       hp,
+		TokenIssuer:        ti,
 	}
 }
 
@@ -97,5 +99,8 @@ var DependencySet = wire.NewSet(
 	ProvideAuthenticateProcess,
 	wire.Struct(new(OAuthCoordinator), "*"),
 	ProvideSessionProvider,
-	wire.Struct(new(Provider), "*"),
+	wire.Struct(new(ProviderFactory), "*"),
 )
+
+func ProvideAuthAPIProvider(f *ProviderFactory) *Provider { return f.ForAuthAPI() }
+func ProvideAuthUIProvider(f *ProviderFactory) *Provider  { return f.ForAuthUI() }

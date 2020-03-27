@@ -49,7 +49,6 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	wire.Build(
 		auth.DependencySet,
 		wire.Bind(new(oauthTokenHandler), new(*oauthhandler.TokenHandler)),
-		wire.Bind(new(oauthhandler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
 		provideTokenHandler,
 	)
 	return nil

@@ -22,7 +22,8 @@ func (s SessionStep) IsMFA() bool {
 // nolint: golint
 type AuthnSession struct {
 	// The following fields are filled in step "identity"
-	ClientID string `json:"client_id"`
+	ClientID   string `json:"client_id"`
+	ForAuthAPI bool   `json:"for_auth_api"`
 
 	RequiredSteps       []SessionStep            `json:"required_steps"`
 	FinishedSteps       []SessionStep            `json:"finished_steps"`

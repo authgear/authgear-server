@@ -77,6 +77,20 @@ func TestAuthorizationHandler(t *testing.T) {
 			})
 		})
 
+		Convey("should preserve query parameters in redirect URI", func() {
+			h.Clients = []config.OAuthClientConfiguration{{
+				"client_id":     "client-id",
+				"redirect_uris": []interface{}{"https://example.com/cb?from=sso"},
+			}}
+			resp := handle(protocol.AuthorizationRequest{
+				"client_id":     "client-id",
+				"response_type": "code",
+			})
+			So(resp.Result().StatusCode, ShouldEqual, 302)
+			So(redirection(resp), ShouldEqual,
+				"https://example.com/cb?error=invalid_request&error_description=scope+is+required&from=sso")
+		})
+
 		Convey("authorization code flow", func() {
 			h.Clients = []config.OAuthClientConfiguration{{
 				"client_id":     "client-id",

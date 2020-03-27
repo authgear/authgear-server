@@ -9,12 +9,9 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -24,20 +21,8 @@ func AttachRefreshHandler(
 ) {
 	router.NewRoute().
 		Path("/refresh").
-		Handler(server.FactoryToHandler(&RefreshHandlerFactory{
-			authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newRefreshHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type RefreshHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f RefreshHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &RefreshHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type RefreshRequestPayload struct {
@@ -71,6 +56,13 @@ const RefreshResponseSchema = `
 }
 `
 
+type refreshProvider interface {
+	RefreshAPIToken(
+		client config.OAuthClientConfiguration,
+		refreshToken string,
+	) (accessToken string, err error)
+}
+
 /*
 	@Operation POST /refresh - Refresh access token
 		Returns new access token, using the refresh token.
@@ -86,11 +78,9 @@ const RefreshResponseSchema = `
 			@JSONSchema {RefreshResponse}
 */
 type RefreshHandler struct {
-	RequireAuthz    handler.RequireAuthz  `dependency:"RequireAuthz"`
-	Validator       *validation.Validator `dependency:"Validator"`
-	TxContext       db.TxContext          `dependency:"TxContext"`
-	SessionProvider session.Provider      `dependency:"SessionProvider"`
-	SessionWriter   session.Writer        `dependency:"SessionWriter"`
+	validator       *validation.Validator
+	txContext       db.TxContext
+	refreshProvider refreshProvider
 }
 
 func (h RefreshHandler) ProvideAuthzPolicy() authz.Policy {
@@ -102,7 +92,6 @@ func (h RefreshHandler) ProvideAuthzPolicy() authz.Policy {
 func (h RefreshHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	result, err := h.Handle(resp, req)
 	if err == nil {
-		h.SessionWriter.WriteSession(resp, &result.AccessToken, nil)
 		handler.WriteResponse(resp, handler.APIResponse{Result: result})
 	} else {
 		handler.WriteResponse(resp, handler.APIResponse{Error: err})
@@ -111,22 +100,15 @@ func (h RefreshHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 func (h RefreshHandler) Handle(resp http.ResponseWriter, req *http.Request) (result RefreshResponse, err error) {
 	var payload RefreshRequestPayload
-	if err = handler.BindJSONBody(req, resp, h.Validator, "#RefreshRequest", &payload); err != nil {
+	if err = handler.BindJSONBody(req, resp, h.validator, "#RefreshRequest", &payload); err != nil {
 		return
 	}
 
-	err = db.WithTx(h.TxContext, func() error {
-		s, err := h.SessionProvider.GetByToken(payload.RefreshToken, coreAuth.SessionTokenKindRefreshToken)
+	err = db.WithTx(h.txContext, func() error {
+		client := coreAuth.GetAccessKey(req.Context()).Client
+		accessToken, err := h.refreshProvider.RefreshAPIToken(client, payload.RefreshToken)
 		if err != nil {
-			if errors.Is(err, session.ErrSessionNotFound) {
-				err = authz.ErrNotAuthenticated
-			}
-			return err
-		}
-
-		accessToken, err := h.SessionProvider.Refresh(s)
-		if err != nil {
-			return err
+			return authz.ErrNotAuthenticated
 		}
 
 		result = RefreshResponse{AccessToken: accessToken}

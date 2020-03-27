@@ -10,6 +10,7 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -32,6 +33,7 @@ func provideLoginHandler(
 func newLoginHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
+		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(LoginAuthnProvider), new(*authn.Provider)),
 		provideLoginHandler,
 	)
@@ -55,6 +57,7 @@ func provideSignupHandler(
 func newSignupHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
+		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(SignupAuthnProvider), new(*authn.Provider)),
 		provideSignupHandler,
 	)
@@ -78,6 +81,29 @@ func newLogoutHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 		pkg.DependencySet,
 		wire.Bind(new(logoutSessionManager), new(*auth.SessionManager)),
 		provideLogoutHandler,
+	)
+	return nil
+}
+
+func provideRefreshHandler(
+	requireAuthz handler.RequireAuthz,
+	v *validation.Validator,
+	rp refreshProvider,
+	tx db.TxContext,
+) http.Handler {
+	h := &RefreshHandler{
+		validator:     v,
+		refreshProvider: rp,
+		txContext:     tx,
+	}
+	return requireAuthz(h, h)
+}
+
+func newRefreshHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Bind(new(refreshProvider), new(*oauthhandler.TokenHandler)),
+		provideRefreshHandler,
 	)
 	return nil
 }

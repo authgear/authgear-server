@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
+	oauthprotocol "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -22,6 +23,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
+type TokenIssuer interface {
+	IssueAuthAPITokens(
+		client config.OAuthClientConfiguration,
+		attrs *authn.Attrs,
+	) (auth.AuthSession, oauthprotocol.TokenResponse, error)
+}
+
 type SessionProvider struct {
 	MFAProvider        mfa.Provider
 	SessionProvider    session.Provider
@@ -33,6 +41,7 @@ type SessionProvider struct {
 	UserProfileStore   userprofile.Store
 	IdentityProvider   principal.IdentityProvider
 	HookProvider       hook.Provider
+	TokenIssuer        TokenIssuer
 }
 
 func (p *SessionProvider) BeginSession(client config.OAuthClientConfiguration, userID string, prin principal.Principal, reason auth.SessionCreateReason) (*AuthnSession, error) {
@@ -144,9 +153,41 @@ func (p *SessionProvider) completeSession(s *AuthnSession, client config.OAuthCl
 		return nil, err
 	}
 
-	session, token := p.SessionProvider.MakeSession(&s.Attrs)
+	result := &CompletionResult{
+		Client:    client,
+		User:      user,
+		Principal: identity,
 
-	sessionModel := session.ToAPIModel()
+		MFABearerToken: s.AuthenticatorBearerToken,
+	}
+
+	var authSession auth.AuthSession
+	if client != nil && !client.AuthAPIUseCookie() && s.ForAuthAPI {
+		// Don't use cookie for Auth API => return access & refresh tokens
+		session, resp, err := p.TokenIssuer.IssueAuthAPITokens(
+			client, &s.Attrs,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		result.AccessToken = resp.GetAccessToken()
+		result.RefreshToken = resp.GetRefreshToken()
+		result.ExpiresIn = resp.GetExpiresIn()
+		authSession = session
+	} else {
+		session, token := p.SessionProvider.MakeSession(&s.Attrs)
+		err = p.SessionProvider.Create(session)
+		if err != nil {
+			return nil, err
+		}
+
+		result.SessionToken = token
+		authSession = session
+	}
+
+	sessionModel := authSession.ToAPIModel()
+	result.Session = sessionModel
 	err = p.HookProvider.DispatchEvent(
 		event.SessionCreateEvent{
 			Reason:   string(s.SessionCreateReason),
@@ -160,25 +201,12 @@ func (p *SessionProvider) completeSession(s *AuthnSession, client config.OAuthCl
 		return nil, err
 	}
 
-	err = p.updateLoginTime(session.Attrs.UserID)
+	err = p.updateLoginTime(s.Attrs.UserID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = p.SessionProvider.Create(session)
-	if err != nil {
-		return nil, err
-	}
-
-	return &CompletionResult{
-		Client:    client,
-		User:      user,
-		Principal: identity,
-		Session:   sessionModel,
-
-		SessionToken:   token,
-		MFABearerToken: s.AuthenticatorBearerToken,
-	}, nil
+	return result, nil
 }
 
 func (p *SessionProvider) saveSession(s *AuthnSession) (Result, error) {

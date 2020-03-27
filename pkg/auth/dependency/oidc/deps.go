@@ -33,4 +33,5 @@ var DependencySet = wire.NewSet(
 	wire.Value(handler.ScopesValidator(ValidateScopes)),
 	wire.Struct(new(MetadataProvider), "*"),
 	ProvideIDTokenIssuer,
+	wire.Bind(new(handler.IDTokenIssuer), new(*IDTokenIssuer)),
 )

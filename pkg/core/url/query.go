@@ -12,6 +12,7 @@ type QueryParam struct {
 }
 
 // Query is application/x-www-form-urlencoded.
+// Unlike url.Values, this preserves insertion order of the pairs.
 type Query struct {
 	Params []QueryParam
 }
@@ -41,4 +42,14 @@ func (q *Query) Encode() string {
 		buf.WriteString(value)
 	}
 	return buf.String()
+}
+
+func WithQueryParamsAdded(url *gourl.URL, params map[string]string) *gourl.URL {
+	q := url.Query()
+	for k, v := range params {
+		q.Add(k, v)
+	}
+	u := *url
+	u.RawQuery = q.Encode()
+	return &u
 }
