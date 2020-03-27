@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/cloudstorage"
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	gearMiddleware "github.com/skygeario/skygear-server/pkg/core/gears/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
@@ -135,6 +136,9 @@ func main() {
 
 	rootRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
 	rootRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
+
+	rootRouter.Use(gearMiddleware.AuthnMiddleware{}.Handle)
+	rootRouter.Use(gearMiddleware.AccessKeyMiddleware{}.Handle)
 
 	apiRouter.Use(middleware.AuthMiddleware{}.Handle)
 	apiRouter.Use(middleware.Injecter{

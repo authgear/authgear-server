@@ -17,6 +17,12 @@ type AccessKey struct {
 	Client      config.OAuthClientConfiguration
 }
 
+func NewAccessKeyFromRequest(r *http.Request) *AccessKey {
+	return &AccessKey{
+		IsMasterKey: r.Header.Get(headerIsMasterKey) == "true",
+	}
+}
+
 func (a AccessKey) WriteTo(rw http.ResponseWriter) {
 	rw.Header().Set(headerIsMasterKey, strconv.FormatBool(a.IsMasterKey))
 }
