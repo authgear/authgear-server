@@ -24,41 +24,60 @@ type Context interface {
 
 // TxContext provides the interface for managing transaction
 type TxContext interface {
+	beginTx() error
+	commitTx() error
+	rollbackTx() error
+
 	HasTx() bool
 	UseHook(TransactionHook)
-	BeginTx() error
-	CommitTx() error
-	RollbackTx() error
 }
 
-// EndTx implements a common pattern that commit a transaction if no error is
-// presented, otherwise rollback the transaction.
-func EndTx(tx TxContext, err error) error {
-	if err != nil {
-		if rbErr := tx.RollbackTx(); rbErr != nil {
-			err = errors.WithSecondaryError(err, rbErr)
-		}
-		return err
-	}
-
-	return tx.CommitTx()
-}
-
-// WithTx provides a convenient way to wrap a function within a transaction
+// WithTx commits if do finishes without error and rolls back otherwise.
 func WithTx(tx TxContext, do func() error) (err error) {
-	if err = tx.BeginTx(); err != nil {
+	if err = tx.beginTx(); err != nil {
 		return
 	}
 
 	defer func() {
-		err = EndTx(tx, err)
+		if r := recover(); r != nil {
+			_ = tx.rollbackTx()
+			panic(r)
+		} else if err != nil {
+			if rbErr := tx.rollbackTx(); rbErr != nil {
+				err = errors.WithSecondaryError(err, rbErr)
+			}
+		} else {
+			err = tx.commitTx()
+		}
 	}()
 
 	err = do()
 	return
 }
 
-// TODO: handle thread safety
+// ReadOnly runs do in a transaction and rolls back always.
+func ReadOnly(tx TxContext, do func() error) (err error) {
+	if err = tx.beginTx(); err != nil {
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			_ = tx.rollbackTx()
+			panic(r)
+		} else if err != nil {
+			if rbErr := tx.rollbackTx(); rbErr != nil {
+				err = errors.WithSecondaryError(err, rbErr)
+			}
+		} else {
+			err = tx.rollbackTx()
+		}
+	}()
+
+	err = do()
+	return
+}
+
 type contextContainer struct {
 	pool  Pool
 	db    *sqlx.DB
@@ -112,7 +131,7 @@ func (d *dbContext) UseHook(h TransactionHook) {
 	container.hooks = append(container.hooks, h)
 }
 
-func (d *dbContext) BeginTx() error {
+func (d *dbContext) beginTx() error {
 	if d.tx() != nil {
 		panic("skydb: a transaction has already begun")
 	}
@@ -134,7 +153,7 @@ func (d *dbContext) BeginTx() error {
 	return nil
 }
 
-func (d *dbContext) CommitTx() error {
+func (d *dbContext) commitTx() error {
 	if d.tx() == nil {
 		panic("skydb: a transaction has not begun")
 	}
@@ -163,7 +182,7 @@ func (d *dbContext) CommitTx() error {
 	return nil
 }
 
-func (d *dbContext) RollbackTx() error {
+func (d *dbContext) rollbackTx() error {
 	if d.tx() == nil {
 		panic("skydb: a transaction has not begun")
 	}

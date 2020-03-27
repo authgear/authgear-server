@@ -45,34 +45,28 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (AuthSession, *authinfo.AuthInfo, error) {
-	if err := m.TxContext.BeginTx(); err != nil {
-		return nil, nil, err
-	}
-	defer m.TxContext.RollbackTx()
-
-	session, err := m.resolveSession(rw, r)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// No session credentials provided, return no error and no resolved session
-	if session == nil {
-		return nil, nil, nil
-	}
-
-	user := &authinfo.AuthInfo{}
-	if err = m.AuthInfoStore.GetAuth(session.AuthnAttrs().UserID, user); err != nil {
-		return nil, nil, err
-	}
-
-	event := session.GetAccessInfo().LastAccess
-	err = m.AccessEvents.RecordAccess(session, event)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return session, user, nil
+func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (session AuthSession, user *authinfo.AuthInfo, err error) {
+	err = db.ReadOnly(m.TxContext, func() (err error) {
+		session, err = m.resolveSession(rw, r)
+		if err != nil {
+			return
+		}
+		// No session credentials provided, return no error and no resolved session
+		if session == nil {
+			return
+		}
+		user = &authinfo.AuthInfo{}
+		if err = m.AuthInfoStore.GetAuth(session.AuthnAttrs().UserID, user); err != nil {
+			return
+		}
+		event := session.GetAccessInfo().LastAccess
+		err = m.AccessEvents.RecordAccess(session, event)
+		if err != nil {
+			return
+		}
+		return
+	})
+	return
 }
 
 func (m *Middleware) resolveSession(rw http.ResponseWriter, r *http.Request) (AuthSession, error) {

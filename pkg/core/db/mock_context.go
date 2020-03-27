@@ -6,6 +6,8 @@ type MockTxContext struct {
 	DidBegin, DidCommit, DidRollback bool
 }
 
+var _ TxContext = &MockTxContext{}
+
 func NewMockTxContext() *MockTxContext {
 	return &MockTxContext{}
 }
@@ -17,17 +19,17 @@ func (c *MockTxContext) HasTx() bool {
 	return c.DidBegin == true && c.DidCommit == false && c.DidRollback == false
 }
 
-func (c *MockTxContext) BeginTx() error {
+func (c *MockTxContext) beginTx() error {
 	c.DidBegin = true
 	return nil
 }
 
-func (c *MockTxContext) CommitTx() error {
+func (c *MockTxContext) commitTx() error {
 	c.DidCommit = true
 	return nil
 }
 
-func (c *MockTxContext) RollbackTx() error {
+func (c *MockTxContext) rollbackTx() error {
 	c.DidRollback = true
 	return nil
 }
