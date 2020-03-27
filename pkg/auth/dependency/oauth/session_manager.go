@@ -16,6 +16,16 @@ func (m *SessionManager) CookieConfig() *corehttp.CookieConfiguration {
 	return nil
 }
 
+func (m *SessionManager) Get(id string) (auth.AuthSession, error) {
+	grant, err := m.Store.GetOfflineGrant(id)
+	if errors.Is(err, ErrGrantNotFound) {
+		return nil, auth.ErrSessionNotFound
+	} else if err != nil {
+		return nil, errors.HandledWithMessage(err, "failed to get session")
+	}
+	return grant, nil
+}
+
 func (m *SessionManager) Delete(session auth.AuthSession) error {
 	err := m.Store.DeleteOfflineGrant(session.(*OfflineGrant))
 	if err != nil {

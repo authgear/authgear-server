@@ -9,15 +9,24 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
 	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
+	pq3 "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	pq2 "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/core/validation"
 	"net/http"
 )
 
@@ -75,10 +84,214 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	return handler
 }
 
+func newListHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	provider := time.NewProvider()
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	oauthProvider := oauth2.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
+	passwordhistoryStore := pq3.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
+	v := auth.ProvidePrincipalProviders(oauthProvider, passwordProvider)
+	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, urlprefixProvider, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	manager := session.ProvideSessionManager(sessionStore, provider, tenantConfiguration, cookieConfiguration)
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	sessionManager := &oauth.SessionManager{
+		Store: grantStore,
+		Time:  provider,
+	}
+	authSessionManager := &auth2.SessionManager{
+		AuthInfoStore:       store,
+		UserProfileStore:    userprofileStore,
+		IdentityProvider:    identityProvider,
+		Hooks:               hookProvider,
+		IDPSessions:         manager,
+		AccessTokenSessions: sessionManager,
+	}
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
+	httpHandler := provideListHandler(txContext, authSessionManager, requireAuthz)
+	return httpHandler
+}
+
+func newGetHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	provider := time.NewProvider()
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	oauthProvider := oauth2.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
+	passwordhistoryStore := pq3.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
+	v := auth.ProvidePrincipalProviders(oauthProvider, passwordProvider)
+	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, urlprefixProvider, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	manager := session.ProvideSessionManager(sessionStore, provider, tenantConfiguration, cookieConfiguration)
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	sessionManager := &oauth.SessionManager{
+		Store: grantStore,
+		Time:  provider,
+	}
+	authSessionManager := &auth2.SessionManager{
+		AuthInfoStore:       store,
+		UserProfileStore:    userprofileStore,
+		IdentityProvider:    identityProvider,
+		Hooks:               hookProvider,
+		IDPSessions:         manager,
+		AccessTokenSessions: sessionManager,
+	}
+	validator := auth.ProvideValidator(m)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
+	httpHandler := provideGetHandler(txContext, authSessionManager, validator, requireAuthz)
+	return httpHandler
+}
+
+func newRevokeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	provider := time.NewProvider()
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	oauthProvider := oauth2.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
+	passwordhistoryStore := pq3.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
+	v := auth.ProvidePrincipalProviders(oauthProvider, passwordProvider)
+	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, urlprefixProvider, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	manager := session.ProvideSessionManager(sessionStore, provider, tenantConfiguration, cookieConfiguration)
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	sessionManager := &oauth.SessionManager{
+		Store: grantStore,
+		Time:  provider,
+	}
+	authSessionManager := &auth2.SessionManager{
+		AuthInfoStore:       store,
+		UserProfileStore:    userprofileStore,
+		IdentityProvider:    identityProvider,
+		Hooks:               hookProvider,
+		IDPSessions:         manager,
+		AccessTokenSessions: sessionManager,
+	}
+	validator := auth.ProvideValidator(m)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
+	httpHandler := provideRevokeHandler(txContext, authSessionManager, validator, requireAuthz)
+	return httpHandler
+}
+
+func newRevokeAllHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	provider := time.NewProvider()
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	oauthProvider := oauth2.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
+	passwordhistoryStore := pq3.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
+	v := auth.ProvidePrincipalProviders(oauthProvider, passwordProvider)
+	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, urlprefixProvider, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	manager := session.ProvideSessionManager(sessionStore, provider, tenantConfiguration, cookieConfiguration)
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	sessionManager := &oauth.SessionManager{
+		Store: grantStore,
+		Time:  provider,
+	}
+	authSessionManager := &auth2.SessionManager{
+		AuthInfoStore:       store,
+		UserProfileStore:    userprofileStore,
+		IdentityProvider:    identityProvider,
+		Hooks:               hookProvider,
+		IDPSessions:         manager,
+		AccessTokenSessions: sessionManager,
+	}
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
+	httpHandler := provideRevokeAllHandler(txContext, authSessionManager, requireAuthz)
+	return httpHandler
+}
+
 // wire.go:
 
 func provideResolveHandler(m *auth2.Middleware, t time.Provider) http.Handler {
 	return m.Handle(&ResolveHandler{
 		TimeProvider: t,
 	})
+}
+
+func provideListHandler(tx db.TxContext, sm sessionListManager, requireAuthz handler.RequireAuthz) http.Handler {
+	h := &ListHandler{
+		txContext:      tx,
+		sessionManager: sm,
+	}
+	return requireAuthz(h, h)
+}
+
+func provideGetHandler(tx db.TxContext, sm sessionGetManager, v *validation.Validator, requireAuthz handler.RequireAuthz) http.Handler {
+	h := &GetHandler{
+		validator:      v,
+		txContext:      tx,
+		sessionManager: sm,
+	}
+	return requireAuthz(h, h)
+}
+
+func provideRevokeHandler(tx db.TxContext, sm sessionRevokeManager, v *validation.Validator, requireAuthz handler.RequireAuthz) http.Handler {
+	h := &RevokeHandler{
+		validator:      v,
+		txContext:      tx,
+		sessionManager: sm,
+	}
+	return requireAuthz(h, h)
+}
+
+func provideRevokeAllHandler(tx db.TxContext, sm sessionRevokeAllManager, requireAuthz handler.RequireAuthz) http.Handler {
+	h := &RevokeAllHandler{
+		txContext:      tx,
+		sessionManager: sm,
+	}
+	return requireAuthz(h, h)
 }
