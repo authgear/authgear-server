@@ -162,6 +162,7 @@ func (p *Provider) MakeAPIBody(rw http.ResponseWriter, result *CompletionResult)
 	}
 	resp.AccessToken = result.AccessToken
 	resp.RefreshToken = result.RefreshToken
+	resp.ExpiresIn = result.ExpiresIn
 	return
 }
 

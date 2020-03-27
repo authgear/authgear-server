@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
+	oauthprotocol "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -26,7 +27,7 @@ type TokenIssuer interface {
 	IssueAuthAPITokens(
 		client config.OAuthClientConfiguration,
 		attrs *authn.Attrs,
-	) (session auth.AuthSession, accessToken string, refreshToken string, err error)
+	) (auth.AuthSession, oauthprotocol.TokenResponse, error)
 }
 
 type SessionProvider struct {
@@ -163,15 +164,16 @@ func (p *SessionProvider) completeSession(s *AuthnSession, client config.OAuthCl
 	var authSession auth.AuthSession
 	if client != nil && !client.AuthAPIUseCookie() && s.ForAuthAPI {
 		// Don't use cookie for Auth API => return access & refresh tokens
-		session, accessToken, refreshToken, err := p.TokenIssuer.IssueAuthAPITokens(
+		session, resp, err := p.TokenIssuer.IssueAuthAPITokens(
 			client, &s.Attrs,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		result.AccessToken = accessToken
-		result.RefreshToken = refreshToken
+		result.AccessToken = resp.GetAccessToken()
+		result.RefreshToken = resp.GetRefreshToken()
+		result.ExpiresIn = resp.GetExpiresIn()
 		authSession = session
 	} else {
 		session, token := p.SessionProvider.MakeSession(&s.Attrs)

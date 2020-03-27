@@ -19,6 +19,7 @@ type CompletionResult struct {
 	SessionToken   string
 	AccessToken    string
 	RefreshToken   string
+	ExpiresIn      int
 	MFABearerToken string
 }
 

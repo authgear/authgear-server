@@ -21,6 +21,13 @@ func (r TokenResponse) Scope(v string)        { r["scope"] = v }
 
 func (r TokenResponse) GetAccessToken() string  { return r["access_token"] }
 func (r TokenResponse) GetRefreshToken() string { return r["refresh_token"] }
+func (r TokenResponse) GetExpiresIn() int {
+	expiresIn, err := strconv.Atoi(r["expires_in"])
+	if err != nil {
+		panic(err)
+	}
+	return expiresIn
+}
 
 // OIDC extension
 

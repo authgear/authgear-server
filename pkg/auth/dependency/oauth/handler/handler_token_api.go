@@ -11,7 +11,7 @@ import (
 func (h *TokenHandler) IssueAuthAPITokens(
 	client config.OAuthClientConfiguration,
 	attrs *authn.Attrs,
-) (session auth.AuthSession, accessToken string, refreshToken string, err error) {
+) (auth.AuthSession, protocol.TokenResponse, error) {
 	scopes := []string{"openid", oauth.FullAccessScope}
 
 	authz, err := checkAuthorization(
@@ -23,23 +23,23 @@ func (h *TokenHandler) IssueAuthAPITokens(
 		scopes,
 	)
 	if err != nil {
-		return nil, "", "", err
+		return nil, nil, err
 	}
 
 	resp := protocol.TokenResponse{}
 
 	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, resp)
 	if err != nil {
-		return nil, "", "", err
+		return nil, nil, err
 	}
 
 	err = h.issueAccessGrant(client, scopes, authz.ID,
 		offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
 	if err != nil {
-		return nil, "", "", err
+		return nil, nil, err
 	}
 
-	return offlineGrant, resp.GetAccessToken(), resp.GetRefreshToken(), nil
+	return offlineGrant, resp, nil
 }
 
 func (h *TokenHandler) RefreshAPIToken(
