@@ -433,7 +433,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 			if provider.Scope == "" {
 				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-default
 				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "default email"
+				c.AppConfig.SSO.OAuth.Providers[i].Scope = "email"
 			}
 		case OAuthProviderTypeInstagram:
 			if provider.Scope == "" {

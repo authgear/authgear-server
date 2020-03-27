@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	facebookAuthorizationURL string = "https://www.facebook.com/dialog/oauth"
+	facebookAuthorizationURL string = "https://www.facebook.com/v6.0/dialog/oauth"
 	// nolint: gosec
-	facebookTokenURL    string = "https://graph.facebook.com/v2.10/oauth/access_token"
-	facebookUserInfoURL string = "https://graph.facebook.com/v2.10/me"
+	facebookTokenURL    string = "https://graph.facebook.com/v6.0/oauth/access_token"
+	facebookUserInfoURL string = "https://graph.facebook.com/v6.0/me?fields=id,email"
 )
 
 type FacebookImpl struct {
