@@ -70,7 +70,7 @@ func (p *SessionProvider) BeginSession(client config.OAuthClientConfiguration, u
 	}, nil
 }
 
-func (p *SessionProvider) StepSession(s *AuthnSession) (Result, error) {
+func (p *SessionProvider) StepSession(s *AuthnSession, bearerToken string) (Result, error) {
 	var client config.OAuthClientConfiguration
 	var ok bool
 	if s.ClientID != "" {
@@ -78,6 +78,11 @@ func (p *SessionProvider) StepSession(s *AuthnSession) (Result, error) {
 		if !ok {
 			return nil, ErrInvalidAuthenticationSession
 		}
+	}
+
+	// Store the mfa bearer token if the caller has it.
+	if bearerToken != "" {
+		s.AuthenticatorBearerToken = bearerToken
 	}
 
 	// Step through all finished steps
