@@ -7,13 +7,13 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -63,8 +63,8 @@ type MeHandler struct {
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 }
 
-func (h MeHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.RequireValidUser
+func (h MeHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireValidUser
 }
 
 func (h MeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

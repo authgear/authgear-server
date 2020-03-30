@@ -7,6 +7,7 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -15,8 +16,7 @@ import (
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -110,8 +110,8 @@ type UpdateMetadataHandler struct {
 	HookProvider         hook.Provider              `dependency:"HookProvider"`
 }
 
-func (h UpdateMetadataHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.RequireValidUserOrMasterKey
+func (h UpdateMetadataHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireValidUserOrMasterKey
 }
 
 func (h UpdateMetadataHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {

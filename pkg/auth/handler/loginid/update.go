@@ -9,6 +9,7 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -18,8 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -118,8 +118,8 @@ type UpdateLoginIDHandler struct {
 	Logger                   *logrus.Entry              `dependency:"HandlerLogger"`
 }
 
-func (h UpdateLoginIDHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.RequireValidUser
+func (h UpdateLoginIDHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireValidUser
 }
 
 func (h UpdateLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

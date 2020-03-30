@@ -7,9 +7,9 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -82,8 +82,8 @@ type ListRecoveryCodeHandler struct {
 	MFAConfiguration config.MFAConfiguration `dependency:"MFAConfiguration"`
 }
 
-func (h *ListRecoveryCodeHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.RequireValidUser
+func (h *ListRecoveryCodeHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireValidUser
 }
 
 func (h *ListRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

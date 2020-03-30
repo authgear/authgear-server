@@ -8,12 +8,12 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -101,8 +101,8 @@ type LoginHandler struct {
 	OAuthProvider sso.OAuthProvider
 }
 
-func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.RequireClient)
+func (h LoginHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireClient
 }
 
 func (h LoginHandler) DecodeRequest(request *http.Request, resp http.ResponseWriter) (payload LoginRequestPayload, err error) {

@@ -8,10 +8,10 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -88,8 +88,8 @@ type LinkHandler struct {
 	OAuthProvider sso.OAuthProvider
 }
 
-func (h LinkHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.RequireValidUser
+func (h LinkHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireValidUser
 }
 
 func (h LinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

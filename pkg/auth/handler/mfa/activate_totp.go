@@ -8,10 +8,10 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -92,8 +92,8 @@ type ActivateTOTPHandler struct {
 	authnResolver authnResolver
 }
 
-func (h *ActivateTOTPHandler) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.RequireClient)
+func (h *ActivateTOTPHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireClient
 }
 
 func (h *ActivateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -7,8 +7,8 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -78,8 +78,8 @@ type RevokeHandler struct {
 	sessionManager sessionRevokeManager
 }
 
-func (h *RevokeHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.RequireValidUser
+func (h *RevokeHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireValidUser
 }
 
 func (h *RevokeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {

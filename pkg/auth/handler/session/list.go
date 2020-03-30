@@ -7,9 +7,9 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
@@ -68,8 +68,8 @@ type ListHandler struct {
 	sessionManager sessionListManager
 }
 
-func (h *ListHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.RequireValidUser
+func (h *ListHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireValidUser
 }
 
 func (h *ListHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {

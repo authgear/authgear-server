@@ -9,6 +9,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -18,8 +19,7 @@ import (
 	task "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -117,8 +117,8 @@ type ForgotPasswordResetHandler struct {
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
-func (h ForgotPasswordResetHandler) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.RequireClient)
+func (h ForgotPasswordResetHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireClient
 }
 
 func (h ForgotPasswordResetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

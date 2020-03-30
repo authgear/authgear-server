@@ -6,9 +6,9 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -83,10 +83,8 @@ type RefreshHandler struct {
 	refreshProvider refreshProvider
 }
 
-func (h RefreshHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireClient),
-	)
+func (h RefreshHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireClient
 }
 
 func (h RefreshHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -108,7 +106,7 @@ func (h RefreshHandler) Handle(resp http.ResponseWriter, req *http.Request) (res
 		client := coreAuth.GetAccessKey(req.Context()).Client
 		accessToken, err := h.refreshProvider.RefreshAPIToken(client, payload.RefreshToken)
 		if err != nil {
-			return authz.ErrNotAuthenticated
+			return coreauthz.ErrNotAuthenticated
 		}
 
 		result = RefreshResponse{AccessToken: accessToken}
