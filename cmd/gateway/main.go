@@ -86,7 +86,7 @@ func main() {
 		Config: config,
 	}
 	rr := mux.NewRouter()
-	rr.HandleFunc("/_healthz", HealthCheckHandler)
+	rr.HandleFunc("/healthz", HealthCheckHandler)
 
 	r := rr.PathPrefix("/").Subrouter()
 	r.Use(sentry.Middleware(sentry.DefaultClient.Hub))
