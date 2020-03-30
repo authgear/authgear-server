@@ -98,6 +98,7 @@ func main() {
 		Validator:         validator,
 	}
 
+	var router *mux.Router
 	var rootRouter *mux.Router
 	var apiRouter *mux.Router
 	if configuration.Standalone {
@@ -111,7 +112,10 @@ func main() {
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
-		rootRouter = server.NewRouter()
+		router = server.NewRouter()
+		router.HandleFunc("/healthz", server.HealthCheckHandler)
+
+		rootRouter = router.PathPrefix("/").Subrouter()
 		rootRouter.Use(middleware.RequestIDMiddleware{}.Handle)
 		rootRouter.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (coreConfig.TenantConfiguration, error) {
@@ -122,7 +126,10 @@ func main() {
 		apiRouter = rootRouter.PathPrefix("/_asset").Subrouter()
 		apiRouter.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		rootRouter = server.NewRouter()
+		router = server.NewRouter()
+		router.HandleFunc("/healthz", server.HealthCheckHandler)
+
+		rootRouter = router.PathPrefix("/").Subrouter()
 		rootRouter.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 
 		apiRouter = rootRouter.PathPrefix("/_asset").Subrouter()
@@ -142,7 +149,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:    configuration.ServerHost,
-		Handler: rootRouter,
+		Handler: router,
 	}
 	server.ListenAndServe(srv, logger, "Starting asset gear")
 }

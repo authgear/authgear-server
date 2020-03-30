@@ -14,7 +14,6 @@ func NewRouter() *mux.Router {
 	rootRouter := mux.NewRouter()
 	rootRouter.Use(sentry.Middleware(sentry.DefaultClient.Hub))
 	rootRouter.Use(middleware.RecoverMiddleware{}.Handle)
-	rootRouter.HandleFunc("/healthz", HealthCheckHandler)
 	return rootRouter
 }
 

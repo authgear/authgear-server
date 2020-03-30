@@ -186,6 +186,7 @@ func main() {
 	task.AttachPwHousekeeperTask(asyncTaskExecutor, authDependency)
 	task.AttachWelcomeEmailSendTask(asyncTaskExecutor, authDependency)
 
+	var router *mux.Router
 	var rootRouter *mux.Router
 	var apiRouter *mux.Router
 	var webappRouter *mux.Router
@@ -201,7 +202,10 @@ func main() {
 			logger.WithError(err).Fatal("Cannot parse standalone config")
 		}
 
-		rootRouter = server.NewRouter()
+		router = server.NewRouter()
+		router.HandleFunc("/healthz", server.HealthCheckHandler)
+
+		rootRouter = router.PathPrefix("/").Subrouter()
 		rootRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
 		rootRouter.Use(middleware.RequestIDMiddleware{}.Handle)
 		rootRouter.Use(middleware.WriteTenantConfigMiddleware{
@@ -216,7 +220,10 @@ func main() {
 		oauthRouter = rootRouter.NewRoute().Subrouter()
 		oauthRouter.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		rootRouter = server.NewRouter()
+		router = server.NewRouter()
+		router.HandleFunc("/healthz", server.HealthCheckHandler)
+
+		rootRouter = router.PathPrefix("/").Subrouter()
 		rootRouter.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 
 		apiRouter = rootRouter.PathPrefix("/_auth").Subrouter()
@@ -304,7 +311,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:    configuration.Host,
-		Handler: rootRouter,
+		Handler: router,
 	}
 	server.ListenAndServe(srv, logger, "Starting auth gear")
 }
