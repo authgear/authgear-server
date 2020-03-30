@@ -241,6 +241,7 @@ func main() {
 	webappRouter = rootRouter.NewRoute().Subrouter()
 	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewCSPMiddleware))
 	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewCSRFMiddleware))
+	webappRouter.Use(webapp.PostNoCacheMiddleware)
 
 	webappAnonymousRouter := webappRouter.NewRoute().Subrouter()
 	webappAnonymousRouter.Use(webapp.RequiredAnonymousMiddleware{}.Handle)
