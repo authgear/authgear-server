@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -21,11 +21,28 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
+
+type mockUpdateSessionManager struct {
+	Sessions []auth.AuthSession
+}
+
+func (m *mockUpdateSessionManager) List(userID string) ([]auth.AuthSession, error) {
+	return m.Sessions, nil
+}
+
+func (m *mockUpdateSessionManager) Update(s auth.AuthSession) error {
+	for i, session := range m.Sessions {
+		if session.SessionID() != s.SessionID() {
+			continue
+		}
+		m.Sessions[i] = s
+	}
+	return nil
+}
 
 func TestUpdateLoginIDHandler(t *testing.T) {
 	Convey("Test UpdateLoginIDHandler", t, func() {
@@ -91,14 +108,15 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 		)
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider)
-		sessionProvider := session.NewMockProvider()
-		sessionProvider.Sessions["session-id"] = auth.Session{
-			ID:          "session-id",
-			ClientID:    "web-app",
-			UserID:      "user-id-1",
-			PrincipalID: "principal-id-1",
+		sessionManager := &mockUpdateSessionManager{}
+		sessionManager.Sessions = []auth.AuthSession{
+			authtesting.WithAuthn().
+				SessionID("session-id").
+				UserID("user-id-1").
+				PrincipalID("principal-id-1").
+				ToSession(),
 		}
-		h.SessionProvider = sessionProvider
+		h.SessionManager = sessionManager
 		h.UserVerificationProvider = userverify.NewProvider(nil, nil, &config.UserVerificationConfiguration{
 			Criteria: config.UserVerificationCriteriaAll,
 			LoginIDKeys: []config.UserVerificationKeyConfiguration{
@@ -244,8 +262,8 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 				}
 			}`, p.ID))
 
-			So(sessionProvider.Sessions, ShouldHaveLength, 1)
-			So(sessionProvider.Sessions["session-id"].PrincipalID, ShouldEqual, p.ID)
+			So(sessionManager.Sessions, ShouldHaveLength, 1)
+			So(sessionManager.Sessions[0].AuthnAttrs().PrincipalID, ShouldEqual, p.ID)
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.IdentityCreateEvent{

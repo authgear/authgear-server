@@ -20,7 +20,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -67,6 +66,11 @@ const RemoveLoginIDRequestSchema = `
 }
 `
 
+type removeSessionManager interface {
+	List(userID string) ([]auth.AuthSession, error)
+	Revoke(auth.AuthSession) error
+}
+
 /*
 	@Operation POST /login_id/remove - Remove login ID
 		Remove login ID from current user.
@@ -91,7 +95,7 @@ type RemoveLoginIDHandler struct {
 	PasswordAuthProvider     password.Provider          `dependency:"PasswordAuthProvider"`
 	IdentityProvider         principal.IdentityProvider `dependency:"IdentityProvider"`
 	UserVerificationProvider userverify.Provider        `dependency:"UserVerificationProvider"`
-	SessionProvider          session.Provider           `dependency:"SessionProvider"`
+	SessionManager           removeSessionManager       `dependency:"SessionManager"`
 	TxContext                db.TxContext               `dependency:"TxContext"`
 	UserProfileStore         userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider             hook.Provider              `dependency:"HookProvider"`
@@ -181,25 +185,21 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 			return err
 		}
 
-		sessions, err := h.SessionProvider.List(userID)
+		sessions, err := h.SessionManager.List(userID)
 		if err != nil {
 			return err
 		}
 
-		// filter sessions of deleted principal
-		n := 0
+		// delete sessions of deleted principal
 		for _, session := range sessions {
-			if session.PrincipalID == p.ID {
-				sessions[n] = session
-				n++
+			if session.AuthnAttrs().PrincipalID != p.ID {
+				continue
 			}
-		}
-		sessions = sessions[:n]
 
-		err = h.SessionProvider.InvalidateBatch(sessions)
-		if err != nil {
-			// log and ignore error
-			h.Logger.WithError(err).Error("Cannot update session principal ID")
+			err := h.SessionManager.Revoke(session)
+			if err != nil {
+				h.Logger.WithError(err).Error("Cannot revoke principal session")
+			}
 		}
 
 		return nil

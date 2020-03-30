@@ -18,7 +18,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -50,6 +49,11 @@ func (f UnlinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	return h.RequireAuthz(h, h)
 }
 
+type unlinkSessionManager interface {
+	List(userID string) ([]auth.AuthSession, error)
+	Revoke(auth.AuthSession) error
+}
+
 /*
 	@Operation POST /sso/{provider_id}/unlink - Unlink SSO provider
 		Unlink the specified SSO provider from the current user.
@@ -67,7 +71,7 @@ func (f UnlinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 type UnlinkHandler struct {
 	TxContext         db.TxContext                   `dependency:"TxContext"`
 	RequireAuthz      handler.RequireAuthz           `dependency:"RequireAuthz"`
-	SessionProvider   session.Provider               `dependency:"SessionProvider"`
+	SessionManager    unlinkSessionManager           `dependency:"SessionManager"`
 	OAuthAuthProvider oauth.Provider                 `dependency:"OAuthAuthProvider"`
 	IdentityProvider  authprincipal.IdentityProvider `dependency:"IdentityProvider"`
 	AuthInfoStore     authinfo.Store                 `dependency:"AuthInfoStore"`
@@ -127,24 +131,21 @@ func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 			return err
 		}
 
-		sessions, err := h.SessionProvider.List(userID)
+		sessions, err := h.SessionManager.List(userID)
 		if err != nil {
 			return err
 		}
 
-		// filter sessions of deleted principal
-		n := 0
+		// delete sessions of deleted principal
 		for _, session := range sessions {
-			if session.PrincipalID == principal.ID {
-				sessions[n] = session
-				n++
+			if session.AuthnAttrs().PrincipalID != principal.ID {
+				continue
 			}
-		}
-		sessions = sessions[:n]
 
-		err = h.SessionProvider.InvalidateBatch(sessions)
-		if err != nil {
-			return err
+			err := h.SessionManager.Revoke(session)
+			if err != nil {
+				return err
+			}
 		}
 
 		authInfo := &authinfo.AuthInfo{}

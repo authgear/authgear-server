@@ -20,7 +20,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -82,6 +81,11 @@ const UpdateLoginIDRequestSchema = `
 }
 `
 
+type updateSessionManager interface {
+	List(userID string) ([]auth.AuthSession, error)
+	Update(auth.AuthSession) error
+}
+
 /*
 	@Operation POST /login_id/update - update login ID
 		Update the specified login ID for current user.
@@ -111,7 +115,7 @@ type UpdateLoginIDHandler struct {
 	PasswordAuthProvider     password.Provider          `dependency:"PasswordAuthProvider"`
 	IdentityProvider         principal.IdentityProvider `dependency:"IdentityProvider"`
 	UserVerificationProvider userverify.Provider        `dependency:"UserVerificationProvider"`
-	SessionProvider          session.Provider           `dependency:"SessionProvider"`
+	SessionManager           updateSessionManager       `dependency:"SessionManager"`
 	TxContext                db.TxContext               `dependency:"TxContext"`
 	UserProfileStore         userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider             hook.Provider              `dependency:"HookProvider"`
@@ -232,14 +236,16 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 			return err
 		}
 
-		sessions, err := h.SessionProvider.List(userID)
+		sessions, err := h.SessionManager.List(userID)
 		if err != nil {
 			return err
 		}
 
 		for _, session := range sessions {
-			if session.PrincipalID == oldPrincipal.ID {
-				err = h.SessionProvider.UpdatePrincipal(session, newPrincipal.ID)
+			attrs := session.AuthnAttrs()
+			if attrs.PrincipalID == oldPrincipal.ID {
+				attrs.PrincipalID = newPrincipal.ID
+				err = h.SessionManager.Update(session)
 				if err != nil {
 					// log and ignore error
 					h.Logger.WithError(err).Error("Cannot update session principal ID")

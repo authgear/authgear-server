@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -15,9 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	coresession "github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
@@ -25,6 +24,48 @@ import (
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+type mockRemoveSessionManager struct {
+	Sessions []auth.AuthSession
+}
+
+func (m *mockRemoveSessionManager) List(userID string) ([]auth.AuthSession, error) {
+	return m.Sessions, nil
+}
+
+func (m *mockRemoveSessionManager) Revoke(s auth.AuthSession) error {
+	n := 0
+	for _, session := range m.Sessions {
+		if session.SessionID() == s.SessionID() {
+			continue
+		}
+		m.Sessions[n] = session
+		n++
+	}
+	m.Sessions = m.Sessions[:n]
+	return nil
+}
+
+type mockUnlinkSessionManager struct {
+	Sessions []auth.AuthSession
+}
+
+func (m *mockUnlinkSessionManager) List(userID string) ([]auth.AuthSession, error) {
+	return m.Sessions, nil
+}
+
+func (m *mockUnlinkSessionManager) Revoke(s auth.AuthSession) error {
+	n := 0
+	for _, session := range m.Sessions {
+		if session.SessionID() == s.SessionID() {
+			continue
+		}
+		m.Sessions[n] = session
+		n++
+	}
+	m.Sessions = m.Sessions[:n]
+	return nil
+}
 
 func TestUnlinkHandler(t *testing.T) {
 	Convey("Test UnlinkHandler", t, func() {
@@ -71,18 +112,20 @@ func TestUnlinkHandler(t *testing.T) {
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		hookProvider := hook.NewMockProvider()
 		sh.HookProvider = hookProvider
-		sessionProvider := coresession.NewMockProvider()
-		sh.SessionProvider = sessionProvider
-		sessionProvider.Sessions["faseng.cat.id-faseng.cat.principal.id"] = auth.Session{
-			ID:          "faseng.cat.id-faseng.cat.principal.id",
-			UserID:      "faseng.cat.id",
-			PrincipalID: "faseng.cat.principal.id",
+		sessionManager := &mockRemoveSessionManager{}
+		sessionManager.Sessions = []auth.AuthSession{
+			authtesting.WithAuthn().
+				SessionID("faseng.cat.id-faseng.cat.principal.id").
+				UserID("faseng.cat.id").
+				PrincipalID("faseng.cat.principal.id").
+				ToSession(),
+			authtesting.WithAuthn().
+				SessionID("faseng.cat.id-faseng.oauth-principal.id").
+				UserID("faseng.cat.id").
+				PrincipalID("oauth-principal-id").
+				ToSession(),
 		}
-		sessionProvider.Sessions["faseng.cat.id-oauth-principal-id"] = auth.Session{
-			ID:          "faseng.cat.id-oauth-principal-id",
-			UserID:      "faseng.cat.id",
-			PrincipalID: "oauth-principal-id",
-		}
+		sh.SessionManager = sessionManager
 
 		Convey("should unlink user id with oauth principal", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
@@ -106,8 +149,8 @@ func TestUnlinkHandler(t *testing.T) {
 			So(e, ShouldBeError, principal.ErrNotFound)
 			So(p, ShouldBeNil)
 
-			So(sessionProvider.Sessions, ShouldContainKey, "faseng.cat.id-faseng.cat.principal.id")
-			So(sessionProvider.Sessions, ShouldNotContainKey, "faseng.cat.id-oauth-principal-id")
+			So(sessionManager.Sessions, ShouldHaveLength, 1)
+			So(sessionManager.Sessions[0].SessionID(), ShouldEqual, "faseng.cat.id-faseng.cat.principal.id")
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.IdentityDeleteEvent{
