@@ -5,8 +5,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -195,7 +195,7 @@ func (m *MockProvider) MigratePassword(p *Principal, password string) (err error
 }
 
 func (m *MockProvider) ID() string {
-	return string(coreAuth.PrincipalTypePassword)
+	return string(coreauthn.PrincipalTypePassword)
 }
 
 func (m *MockProvider) GetPrincipalByID(principalID string) (principal.Principal, error) {

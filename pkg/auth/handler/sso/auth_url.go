@@ -13,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -259,8 +258,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		return
 	}
 
-	accessKey := coreAuth.GetAccessKey(r.Context())
-	apiClientID := accessKey.Client.ClientID()
+	apiClientID := payload.Client.ClientID()
 
 	// The information in the state are mostly from the client.
 	// APIClientID is derived from the API key used by the client.

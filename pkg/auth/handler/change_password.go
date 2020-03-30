@@ -19,7 +19,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -97,8 +96,6 @@ type ChangePasswordHandler struct {
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
-	SessionProvider      session.Provider           `dependency:"SessionProvider"`
-	SessionWriter        session.Writer             `dependency:"SessionWriter"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider         hook.Provider              `dependency:"HookProvider"`

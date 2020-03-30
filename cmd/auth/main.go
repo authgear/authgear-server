@@ -235,7 +235,6 @@ func main() {
 	rootRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
 	rootRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
 
-	apiRouter.Use(middleware.AuthMiddleware{}.Handle)
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
 
 	webappRouter = rootRouter.NewRoute().Subrouter()

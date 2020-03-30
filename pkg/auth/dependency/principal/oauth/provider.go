@@ -8,7 +8,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
@@ -185,7 +185,7 @@ func (p *providerImpl) CreatePrincipal(principal *Principal) (err error) {
 		).
 		Values(
 			principal.ID,
-			coreAuth.PrincipalTypeOAuth,
+			coreauthn.PrincipalTypeOAuth,
 			principal.UserID,
 		)
 
@@ -352,7 +352,7 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 		Where(
 			"p.user_id = ? AND p.provider = ?",
 			userID,
-			coreAuth.PrincipalTypeOAuth)
+			coreauthn.PrincipalTypeOAuth)
 
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
@@ -409,7 +409,7 @@ func (p *providerImpl) GetPrincipalsByClaim(claimName string, claimValue string)
 }
 
 func (p *providerImpl) ID() string {
-	return string(coreAuth.PrincipalTypeOAuth)
+	return string(coreauthn.PrincipalTypeOAuth)
 }
 
 func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {

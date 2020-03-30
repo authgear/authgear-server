@@ -24,8 +24,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
-	redisSession "github.com/skygeario/skygear-server/pkg/core/auth/session/redis"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -199,30 +197,12 @@ func (m DependencyMap) Provide(
 		})().(hook.Provider)
 	}
 
-	newSessionProvider := func() session.Provider {
-		return session.NewProvider(
-			request,
-			redisSession.NewStore(ctx, tConfig.AppID, newTimeProvider(), newLoggerFactory()),
-			redisSession.NewEventStore(ctx, tConfig.AppID),
-			tConfig.AppConfig.Clients,
-		)
-	}
-
 	newIdentityProvider := func() principal.IdentityProvider {
 		return principal.NewIdentityProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
 			newOAuthAuthProvider(),
 			newPasswordAuthProvider(),
-		)
-	}
-
-	newSessionWriter := func() session.Writer {
-		return session.NewWriter(
-			ctx,
-			tConfig.AppConfig.Clients,
-			tConfig.AppConfig.MFA,
-			m.UseInsecureCookie,
 		)
 	}
 
@@ -290,10 +270,6 @@ func (m DependencyMap) Provide(
 		return handler.NewRequireAuthzFactory(newLoggerFactory())
 	case "Validator":
 		return m.Validator
-	case "SessionProvider":
-		return newSessionProvider()
-	case "SessionWriter":
-		return newSessionWriter()
 	case "MFAProvider":
 		return newMFAProvider()
 	case "AuthInfoStore":
