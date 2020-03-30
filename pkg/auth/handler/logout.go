@@ -7,8 +7,8 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
@@ -47,8 +47,8 @@ type LogoutHandler struct {
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
-func (h LogoutHandler) ProvideAuthzPolicy() authz.Policy {
-	return policy.RequireValidUser
+func (h LogoutHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireValidUser
 }
 
 // DecodeRequest decode request payload

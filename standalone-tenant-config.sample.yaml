@@ -31,6 +31,7 @@ app_config:
     - key: email
     - key: phone
   auth:
+    enable_api: true
     authentication_session:
       secret: authnsessionsecret
   sso:

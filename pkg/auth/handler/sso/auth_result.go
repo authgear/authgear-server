@@ -8,10 +8,10 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -45,8 +45,8 @@ type AuthResultHandler struct {
 	SSOProvider   sso.Provider
 }
 
-func (h *AuthResultHandler) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.RequireClient)
+func (h *AuthResultHandler) ProvideAuthzPolicy() coreauthz.Policy {
+	return authz.AuthAPIRequireClient
 }
 
 type AuthResultPayload struct {
