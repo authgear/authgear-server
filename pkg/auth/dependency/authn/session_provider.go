@@ -142,7 +142,7 @@ func (p *SessionProvider) loadData(attrs *authn.Attrs) (*model.User, *model.Iden
 	}
 
 	user := model.NewUser(authInfo, userProfile)
-	identity := model.NewIdentity(nil, prin)
+	identity := model.NewIdentity(prin)
 
 	return &user, &identity, nil
 }

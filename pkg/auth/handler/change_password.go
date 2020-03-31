@@ -10,7 +10,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -94,7 +93,6 @@ type ChangePasswordHandler struct {
 	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
@@ -170,7 +168,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 		}
 
 		user := model.NewUser(*authInfo, userProfile)
-		identity := model.NewIdentity(h.IdentityProvider, principal)
+		identity := model.NewIdentity(principal)
 
 		err = h.HookProvider.DispatchEvent(
 			event.PasswordUpdateEvent{

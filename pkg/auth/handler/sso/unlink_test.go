@@ -104,7 +104,6 @@ func TestUnlinkHandler(t *testing.T) {
 				},
 			},
 		})
-		sh.IdentityProvider = principal.NewMockIdentityProvider(mockOAuthProvider)
 		sh.OAuthAuthProvider = mockOAuthProvider
 		sh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(map[string]authinfo.AuthInfo{
 			"faseng.cat.id": {ID: "faseng.cat.id"},

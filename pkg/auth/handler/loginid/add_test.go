@@ -84,7 +84,6 @@ func TestAddLoginIDHandler(t *testing.T) {
 			},
 		)
 		h.PasswordAuthProvider = passwordAuthProvider
-		h.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider)
 		h.UserVerificationProvider = userverify.NewProvider(nil, nil, &config.UserVerificationConfiguration{
 			Criteria: config.UserVerificationCriteriaAll,
 			LoginIDKeys: []config.UserVerificationKeyConfiguration{

@@ -56,7 +56,7 @@ func (m *SessionManager) loadModels(session AuthSession) (*model.User, *model.Id
 	}
 
 	user := model.NewUser(*authInfo, profile)
-	identity := model.NewIdentity(nil, principal)
+	identity := model.NewIdentity(principal)
 	return &user, &identity, nil
 }
 

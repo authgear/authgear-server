@@ -109,7 +109,6 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 			},
 		)
 		h.PasswordAuthProvider = passwordAuthProvider
-		h.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider)
 		sessionManager := &mockRemoveSessionManager{}
 		sessionManager.Sessions = []auth.AuthSession{
 			authtesting.WithAuthn().

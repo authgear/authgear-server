@@ -102,7 +102,7 @@ func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (*UserClaims, 
 	}
 
 	user := model.NewUser(*authInfo, userProfile)
-	identity := model.NewIdentity(nil, principal)
+	identity := model.NewIdentity(principal)
 	claims.User = &user
 	claims.Identity = &identity
 	claims.SessionID = session.SessionID()

@@ -69,15 +69,14 @@ type unlinkSessionManager interface {
 		@Callback user_sync {UserSyncEvent}
 */
 type UnlinkHandler struct {
-	TxContext         db.TxContext                   `dependency:"TxContext"`
-	RequireAuthz      handler.RequireAuthz           `dependency:"RequireAuthz"`
-	SessionManager    unlinkSessionManager           `dependency:"SessionManager"`
-	OAuthAuthProvider oauth.Provider                 `dependency:"OAuthAuthProvider"`
-	IdentityProvider  authprincipal.IdentityProvider `dependency:"IdentityProvider"`
-	AuthInfoStore     authinfo.Store                 `dependency:"AuthInfoStore"`
-	UserProfileStore  userprofile.Store              `dependency:"UserProfileStore"`
-	HookProvider      hook.Provider                  `dependency:"HookProvider"`
-	ProviderFactory   *sso.OAuthProviderFactory      `dependency:"SSOOAuthProviderFactory"`
+	TxContext         db.TxContext              `dependency:"TxContext"`
+	RequireAuthz      handler.RequireAuthz      `dependency:"RequireAuthz"`
+	SessionManager    unlinkSessionManager      `dependency:"SessionManager"`
+	OAuthAuthProvider oauth.Provider            `dependency:"OAuthAuthProvider"`
+	AuthInfoStore     authinfo.Store            `dependency:"AuthInfoStore"`
+	UserProfileStore  userprofile.Store         `dependency:"UserProfileStore"`
+	HookProvider      hook.Provider             `dependency:"HookProvider"`
+	ProviderFactory   *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
 	ProviderID        string
 }
 
@@ -160,7 +159,7 @@ func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 		}
 
 		user := model.NewUser(*authInfo, userProfile)
-		identity := model.NewIdentity(h.IdentityProvider, principal)
+		identity := model.NewIdentity(principal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityDeleteEvent{
 				User:     user,

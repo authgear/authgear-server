@@ -118,7 +118,7 @@ func (p *SignupProcess) SignupWithLoginIDs(
 	user := model.NewUser(*authInfo, *userProfile)
 	identities := []model.Identity{}
 	for _, principal := range principals {
-		identity := model.NewIdentity(p.IdentityProvider, principal)
+		identity := model.NewIdentity(principal)
 		identities = append(identities, identity)
 	}
 
@@ -305,7 +305,7 @@ func (p *SignupProcess) SignupWithOAuth(
 	}
 
 	user := model.NewUser(*authInfo, userProfile)
-	identity := model.NewIdentity(p.IdentityProvider, principal)
+	identity := model.NewIdentity(principal)
 
 	err = p.HookProvider.DispatchEvent(
 		event.UserCreateEvent{
@@ -420,7 +420,7 @@ func (p *SignupProcess) LinkWithOAuth(
 	}
 
 	user := model.NewUser(*authInfo, userProfile)
-	identity := model.NewIdentity(p.IdentityProvider, principal)
+	identity := model.NewIdentity(principal)
 	err = p.HookProvider.DispatchEvent(
 		event.IdentityCreateEvent{
 			User:     user,

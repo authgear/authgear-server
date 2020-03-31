@@ -107,7 +107,6 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 			},
 		)
 		h.PasswordAuthProvider = passwordAuthProvider
-		h.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider)
 		sessionManager := &mockUpdateSessionManager{}
 		sessionManager.Sessions = []auth.AuthSession{
 			authtesting.WithAuthn().

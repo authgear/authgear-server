@@ -109,17 +109,16 @@ type updateSessionManager interface {
 		@Callback user_sync {UserSyncEvent}
 */
 type UpdateLoginIDHandler struct {
-	Validator                *validation.Validator      `dependency:"Validator"`
-	RequireAuthz             handler.RequireAuthz       `dependency:"RequireAuthz"`
-	AuthInfoStore            authinfo.Store             `dependency:"AuthInfoStore"`
-	PasswordAuthProvider     password.Provider          `dependency:"PasswordAuthProvider"`
-	IdentityProvider         principal.IdentityProvider `dependency:"IdentityProvider"`
-	UserVerificationProvider userverify.Provider        `dependency:"UserVerificationProvider"`
-	SessionManager           updateSessionManager       `dependency:"SessionManager"`
-	TxContext                db.TxContext               `dependency:"TxContext"`
-	UserProfileStore         userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider             hook.Provider              `dependency:"HookProvider"`
-	Logger                   *logrus.Entry              `dependency:"HandlerLogger"`
+	Validator                *validation.Validator `dependency:"Validator"`
+	RequireAuthz             handler.RequireAuthz  `dependency:"RequireAuthz"`
+	AuthInfoStore            authinfo.Store        `dependency:"AuthInfoStore"`
+	PasswordAuthProvider     password.Provider     `dependency:"PasswordAuthProvider"`
+	UserVerificationProvider userverify.Provider   `dependency:"UserVerificationProvider"`
+	SessionManager           updateSessionManager  `dependency:"SessionManager"`
+	TxContext                db.TxContext          `dependency:"TxContext"`
+	UserProfileStore         userprofile.Store     `dependency:"UserProfileStore"`
+	HookProvider             hook.Provider         `dependency:"HookProvider"`
+	Logger                   *logrus.Entry         `dependency:"HandlerLogger"`
 }
 
 func (h UpdateLoginIDHandler) ProvideAuthzPolicy() coreauthz.Policy {
@@ -213,7 +212,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 			return err
 		}
 
-		newIdentity := model.NewIdentity(h.IdentityProvider, newPrincipal)
+		newIdentity := model.NewIdentity(newPrincipal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityCreateEvent{
 				User:     user,
@@ -224,7 +223,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 		if err != nil {
 			return err
 		}
-		oldIdentity := model.NewIdentity(h.IdentityProvider, &oldPrincipal)
+		oldIdentity := model.NewIdentity(&oldPrincipal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityDeleteEvent{
 				User:     user,
