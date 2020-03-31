@@ -47,7 +47,7 @@ func (deliverer *delivererImpl) WillDeliver(eventType event.Type) bool {
 	return false
 }
 
-func (deliverer *delivererImpl) DeliverBeforeEvent(baseURL *url.URL, e *event.Event, user *model.User) error {
+func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.User) error {
 	startTime := deliverer.TimeProvider.Now()
 	requestTimeout := gotime.Duration(deliverer.HookTenantConfig.SyncHookTimeout) * gotime.Second
 	totalTimeout := gotime.Duration(deliverer.HookTenantConfig.SyncHookTotalTimeout) * gotime.Second
@@ -66,7 +66,7 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(baseURL *url.URL, e *event.Ev
 			return errDeliveryTimeout
 		}
 
-		request, err := deliverer.prepareRequest(baseURL, hook, e)
+		request, err := deliverer.prepareRequest(hook, e)
 		if err != nil {
 			return err
 		}
@@ -103,7 +103,7 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(baseURL *url.URL, e *event.Ev
 	return nil
 }
 
-func (deliverer *delivererImpl) DeliverNonBeforeEvent(baseURL *url.URL, e *event.Event, timeout gotime.Duration) error {
+func (deliverer *delivererImpl) DeliverNonBeforeEvent(e *event.Event, timeout gotime.Duration) error {
 	client := deliverer.HTTPClient
 	client.CheckRedirect = noFollowRedirectPolicy
 	client.Timeout = timeout
@@ -113,7 +113,7 @@ func (deliverer *delivererImpl) DeliverNonBeforeEvent(baseURL *url.URL, e *event
 			continue
 		}
 
-		request, err := deliverer.prepareRequest(baseURL, hook, e)
+		request, err := deliverer.prepareRequest(hook, e)
 		if err != nil {
 			return err
 		}
@@ -127,12 +127,11 @@ func (deliverer *delivererImpl) DeliverNonBeforeEvent(baseURL *url.URL, e *event
 	return nil
 }
 
-func (deliverer *delivererImpl) prepareRequest(baseURL *url.URL, hook config.Hook, event *event.Event) (*gohttp.Request, error) {
+func (deliverer *delivererImpl) prepareRequest(hook config.Hook, event *event.Event) (*gohttp.Request, error) {
 	hookURL, err := url.Parse(hook.URL)
 	if err != nil {
 		return nil, newErrorDeliveryFailed(err)
 	}
-	hookURL = baseURL.ResolveReference(hookURL)
 
 	body, err := json.Marshal(event)
 	if err != nil {

@@ -3,12 +3,10 @@ package hook
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 	gotime "time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -24,7 +22,6 @@ import (
 func TestDispatchEvent(t *testing.T) {
 	Convey("Hook Provider", t, func() {
 		requestID := "request-id"
-		req, _ := http.NewRequest("POST", "https://www.example.com", nil)
 		timeProvider := time.MockProvider{TimeNowUTC: gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)}
 		store := newMockStore()
 		deliverer := newMockDeliverer()
@@ -35,7 +32,6 @@ func TestDispatchEvent(t *testing.T) {
 		provider := NewProvider(
 			ctx,
 			requestID,
-			urlprefix.NewProvider(req),
 			store,
 			db.NewMockTxContext(),
 			&timeProvider,

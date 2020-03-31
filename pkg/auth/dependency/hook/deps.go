@@ -6,7 +6,6 @@ import (
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -21,7 +20,6 @@ func ProvideHookProvider(
 	sqle db.SQLExecutor,
 	requestID logging.RequestID,
 	tConfig *config.TenantConfiguration,
-	urlprefix urlprefix.Provider,
 	txContext db.TxContext,
 	timeProvider time.Provider,
 	authInfoStore authinfo.Store,
@@ -32,7 +30,6 @@ func ProvideHookProvider(
 	return NewProvider(
 		ctx,
 		string(requestID),
-		urlprefix,
 		NewStore(sqlb, sqle),
 		txContext,
 		timeProvider,
