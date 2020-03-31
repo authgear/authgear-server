@@ -185,20 +185,20 @@ var TemplateAuthUILoginHTML = template.Spec{
 				{{ end }}{{ end }}
 
 				{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
-				<button class="link anchor" type="submit" name="x_login_id_input_type" value="text" form="empty-form">Use an email or username instead</button>
+				<button class="link anchor align-self-flex-start" type="submit" name="x_login_id_input_type" value="text" form="empty-form">Use an email or username instead</button>
 				{{ end }}{{ end }}
 				{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone }}
-				<button class="link anchor" type="submit" name="x_login_id_input_type" value="phone" form="empty-form">Use a phone number instead</button>
+				<button class="link anchor align-self-flex-start" type="submit" name="x_login_id_input_type" value="phone" form="empty-form">Use a phone number instead</button>
 				{{ end }}{{ end }}
 
 				<div class="link">
 					<span class="primary-text">Don't have an account yet? </span>
 					<button type="submit" class="anchor" name="x_step" value="signup:initial" form="empty-form">Create one!</button>
 				</div>
-				<a class="link anchor" href="#">Can't access your account?</a>
+				<a class="link anchor align-self-flex-start" href="#">Can't access your account?</a>
 
 				{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
-				<button class="btn primary-btn" type="submit" name="x_step" value="login:submit_login_id">Next</button>
+				<button class="btn primary-btn align-self-flex-end" type="submit" name="x_step" value="login:submit_login_id">Next</button>
 				{{ end }}
 			</form>
 		</div>
@@ -248,9 +248,9 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 
 <button class="btn secondary-btn toggle-password-visibility"></button>
 
-<a class="anchor" href="">Forgot Password?</a>
+<a class="anchor align-self-flex-start" href="">Forgot Password?</a>
 
-<button class="btn primary-btn" type="submit" name="x_step" value="login:submit_password">Next</button>
+<button class="btn primary-btn align-self-flex-end" type="submit" name="x_step" value="login:submit_password">Next</button>
 
 </form>
 {{ template "SKYGEAR_LOGO" . }}
@@ -322,17 +322,17 @@ var TemplateAuthUISignupHTML = template.Spec{
 
 				{{ range .x_login_id_keys }}
 					{{ if not (eq .key $.x_login_id_key) }}
-					<button class="link anchor" type="submit" name="x_login_id_key" value="{{ .key }}" form="sign_up-{{ .key }}">Use {{ .key }} instead</button>
+					<button class="link anchor align-self-flex-start" type="submit" name="x_login_id_key" value="{{ .key }}" form="sign_up-{{ .key }}">Use {{ .key }} instead</button>
 					{{ end }}
 				{{ end }}
 
-				<div class="link">
+				<div class="link align-self-flex-start">
 					<span class="primary-text">Have an account already? </span>
 					<button type="submit" class="anchor" name="x_step" value="" form="empty-form">Sign in!</button>
 				</div>
-				<a class="link anchor" href="#">Can't access your account?</a>
+				<a class="link anchor align-self-flex-start" href="#">Can't access your account?</a>
 
-				<button class="btn primary-btn" type="submit" name="x_step" value="signup:submit_login_id">Next</button>
+				<button class="btn primary-btn align-self-flex-end" type="submit" name="x_step" value="signup:submit_login_id">Next</button>
 			</form>
 		</div>
 		{{ template "SKYGEAR_LOGO" . }}
@@ -423,7 +423,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 </ul>
 {{ end }}
 
-<button class="btn primary-btn" type="submit" name="x_step" value="signup:submit_password">Next</button>
+<button class="btn primary-btn align-self-flex-end" type="submit" name="x_step" value="signup:submit_password">Next</button>
 
 {{ if eq .x_login_id_input_type "phone" }}
 <p class="description">
@@ -479,7 +479,7 @@ var TemplateAuthUILogoutHTML = template.Spec{
 <form class="logout-form" method="post">
   {{ $.csrfField }}
   <p>To logout, please click the button below.</p>
-  <button class="btn primary-btn logout-btn" type="submit" name="x_action" value="logout">Logout</button>
+  <button class="btn primary-btn align-self-center" type="submit" name="x_action" value="logout">Logout</button>
 </form>
 
 {{ template "SKYGEAR_LOGO" . }}

@@ -27,6 +27,18 @@ select {
   -webkit-appearance: none;
 }
 
+.align-self-flex-start {
+  align-self: flex-start;
+}
+
+.align-self-flex-end {
+  align-self: flex-end;
+}
+
+.align-self-center {
+  align-self: center;
+}
+
 .primary-txt {
   color: #333333;
 }
@@ -194,10 +206,6 @@ button.anchor {
   padding: 4px 0;
 }
 
-.authorize-loginid-form .primary-btn[type="submit"] {
-  align-self: flex-end;
-}
-
 .authorize-loginid-form [name="x_calling_code"] {
   margin: 0 3px 0 0;
 }
@@ -297,10 +305,6 @@ button.anchor {
 
 .enter-password-form .toggle-password-visibility {
   margin: 0 0 20px 0;
-}
-
-.enter-password-form [type="submit"] {
-  align-self: flex-end;
 }
 
 .btn.toggle-password-visibility {
