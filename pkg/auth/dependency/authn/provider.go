@@ -70,7 +70,7 @@ func (p *Provider) SignupWithLoginIDs(
 	}
 	s.ForAuthAPI = p.ForAuthAPI
 
-	return p.AuthnSession.StepSession(s)
+	return p.AuthnSession.StepSession(s, "")
 }
 
 func (p *Provider) ValidateSignupLoginID(loginID loginid.LoginID) error {
@@ -93,7 +93,7 @@ func (p *Provider) LoginWithLoginID(
 	}
 	s.ForAuthAPI = p.ForAuthAPI
 
-	return p.AuthnSession.StepSession(s)
+	return p.AuthnSession.StepSession(s, "")
 }
 
 func (p *Provider) OAuthAuthenticate(
@@ -137,7 +137,7 @@ func (p *Provider) OAuthExchangeCode(
 	}
 	as.ForAuthAPI = p.ForAuthAPI
 
-	return p.AuthnSession.StepSession(as)
+	return p.AuthnSession.StepSession(as, "")
 }
 
 func (p *Provider) WriteCookie(rw http.ResponseWriter, result *CompletionResult) {
@@ -206,7 +206,7 @@ func (p *Provider) StepSession(
 ) (Result, error) {
 	switch s := s.(type) {
 	case *AuthnSession:
-		return p.AuthnSession.StepSession(s)
+		return p.AuthnSession.StepSession(s, mfaBearerToken)
 	case *session.IDPSession:
 		err := p.Session.Update(s)
 		if err != nil {
