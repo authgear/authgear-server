@@ -365,6 +365,8 @@ func (m DependencyMap) Provide(
 		return newTemplateEngine()
 	case "TimeProvider":
 		return newTimeProvider()
+	case "SessionManager":
+		return newSessionManager(request, m)
 	default:
 		return nil
 	}
