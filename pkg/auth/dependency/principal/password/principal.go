@@ -3,7 +3,7 @@ package password
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	corePassword "github.com/skygeario/skygear-server/pkg/core/password"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
@@ -65,7 +65,7 @@ func (p *Principal) PrincipalUserID() string {
 }
 
 func (p *Principal) ProviderID() string {
-	return string(coreAuth.PrincipalTypePassword)
+	return string(coreauthn.PrincipalTypePassword)
 }
 
 func (p *Principal) Attributes() principal.Attributes {

@@ -14,10 +14,6 @@
 
 package model
 
-import (
-	"github.com/skygeario/skygear-server/pkg/core/auth"
-)
-
 type AuthResponse struct {
 	User           User      `json:"user"`
 	Identity       *Identity `json:"identity,omitempty"`
@@ -38,17 +34,6 @@ func NewAuthResponseWithUserIdentity(user User, identity Identity) AuthResponse 
 	return AuthResponse{
 		User:     user,
 		Identity: &identity,
-	}
-}
-
-func NewAuthResponse(user User, identity Identity, tokens auth.SessionTokens, mfaBearerToken string) AuthResponse {
-	return AuthResponse{
-		User:           user,
-		Identity:       &identity,
-		AccessToken:    tokens.AccessToken,
-		RefreshToken:   tokens.RefreshToken,
-		MFABearerToken: mfaBearerToken,
-		SessionID:      tokens.ID,
 	}
 }
 

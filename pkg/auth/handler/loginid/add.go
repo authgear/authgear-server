@@ -10,7 +10,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
@@ -92,15 +91,14 @@ const AddLoginIDRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type AddLoginIDHandler struct {
-	Validator                *validation.Validator      `dependency:"Validator"`
-	RequireAuthz             handler.RequireAuthz       `dependency:"RequireAuthz"`
-	AuthInfoStore            authinfo.Store             `dependency:"AuthInfoStore"`
-	PasswordAuthProvider     password.Provider          `dependency:"PasswordAuthProvider"`
-	IdentityProvider         principal.IdentityProvider `dependency:"IdentityProvider"`
-	UserVerificationProvider userverify.Provider        `dependency:"UserVerificationProvider"`
-	TxContext                db.TxContext               `dependency:"TxContext"`
-	UserProfileStore         userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider             hook.Provider              `dependency:"HookProvider"`
+	Validator                *validation.Validator `dependency:"Validator"`
+	RequireAuthz             handler.RequireAuthz  `dependency:"RequireAuthz"`
+	AuthInfoStore            authinfo.Store        `dependency:"AuthInfoStore"`
+	PasswordAuthProvider     password.Provider     `dependency:"PasswordAuthProvider"`
+	UserVerificationProvider userverify.Provider   `dependency:"UserVerificationProvider"`
+	TxContext                db.TxContext          `dependency:"TxContext"`
+	UserProfileStore         userprofile.Store     `dependency:"UserProfileStore"`
+	HookProvider             hook.Provider         `dependency:"HookProvider"`
 }
 
 func (h AddLoginIDHandler) ProvideAuthzPolicy() coreauthz.Policy {
@@ -177,7 +175,7 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 			}
 			principals = append(principals, newPrincipal)
 
-			identity := model.NewIdentity(h.IdentityProvider, newPrincipal)
+			identity := model.NewIdentity(newPrincipal)
 			err = h.HookProvider.DispatchEvent(
 				event.IdentityCreateEvent{
 					User:     user,

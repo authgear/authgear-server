@@ -4,7 +4,7 @@ import (
 	"reflect"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 type MockProvider struct {
@@ -97,7 +97,7 @@ func (m *MockProvider) GetPrincipalsByClaim(claimName string, claimValue string)
 }
 
 func (m *MockProvider) ID() string {
-	return string(coreAuth.PrincipalTypeOAuth)
+	return string(coreauthn.PrincipalTypeOAuth)
 }
 
 func (m *MockProvider) GetPrincipalByID(id string) (principal.Principal, error) {

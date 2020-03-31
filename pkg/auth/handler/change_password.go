@@ -10,7 +10,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -19,7 +18,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/session"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -95,10 +93,7 @@ type ChangePasswordHandler struct {
 	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
-	SessionProvider      session.Provider           `dependency:"SessionProvider"`
-	SessionWriter        session.Writer             `dependency:"SessionWriter"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	HookProvider         hook.Provider              `dependency:"HookProvider"`
@@ -173,7 +168,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 		}
 
 		user := model.NewUser(*authInfo, userProfile)
-		identity := model.NewIdentity(h.IdentityProvider, principal)
+		identity := model.NewIdentity(principal)
 
 		err = h.HookProvider.DispatchEvent(
 			event.PasswordUpdateEvent{

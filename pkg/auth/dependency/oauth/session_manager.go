@@ -26,6 +26,14 @@ func (m *SessionManager) Get(id string) (auth.AuthSession, error) {
 	return grant, nil
 }
 
+func (m *SessionManager) Update(session auth.AuthSession) error {
+	err := m.Store.UpdateOfflineGrant(session.(*OfflineGrant))
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to update session")
+	}
+	return nil
+}
+
 func (m *SessionManager) Delete(session auth.AuthSession) error {
 	err := m.Store.DeleteOfflineGrant(session.(*OfflineGrant))
 	if err != nil {

@@ -29,6 +29,16 @@ func (m *Manager) Get(id string) (auth.AuthSession, error) {
 	return s, nil
 }
 
+func (m *Manager) Update(session auth.AuthSession) error {
+	s := session.(*IDPSession)
+	expiry := computeSessionStorageExpiry(s, m.Config)
+	err := m.Store.Update(s, expiry)
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to update session")
+	}
+	return nil
+}
+
 func (m *Manager) Delete(session auth.AuthSession) error {
 	err := m.Store.Delete(session.(*IDPSession))
 	if err != nil {

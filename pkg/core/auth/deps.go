@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"context"
-
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -12,8 +10,4 @@ func ProvideAccessKeyMiddleware(c *config.TenantConfiguration) *AccessKeyMiddlew
 	return m
 }
 
-func ProvideAuthContextGetter(ctx context.Context) ContextGetter {
-	return NewContextGetterWithContext(ctx)
-}
-
-var DependencySet = wire.NewSet(ProvideAccessKeyMiddleware, ProvideAuthContextGetter)
+var DependencySet = wire.NewSet(ProvideAccessKeyMiddleware)

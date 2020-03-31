@@ -6,8 +6,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -290,7 +290,7 @@ func (p *providerImpl) MigratePassword(principal *Principal, password string) (e
 }
 
 func (p *providerImpl) ID() string {
-	return string(coreAuth.PrincipalTypePassword)
+	return string(coreauthn.PrincipalTypePassword)
 }
 
 func (p *providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {

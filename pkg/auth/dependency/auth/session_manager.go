@@ -22,6 +22,7 @@ var ErrSessionNotFound = errors.New("session not found")
 type SessionManagementProvider interface {
 	CookieConfig() *corehttp.CookieConfiguration
 	Get(id string) (AuthSession, error)
+	Update(AuthSession) error
 	Delete(AuthSession) error
 	List(userID string) ([]AuthSession, error)
 }
@@ -55,7 +56,7 @@ func (m *SessionManager) loadModels(session AuthSession) (*model.User, *model.Id
 	}
 
 	user := model.NewUser(*authInfo, profile)
-	identity := model.NewIdentity(nil, principal)
+	identity := model.NewIdentity(principal)
 	return &user, &identity, nil
 }
 
@@ -137,6 +138,16 @@ func (m *SessionManager) Get(id string) (AuthSession, error) {
 	}
 
 	return nil, ErrSessionNotFound
+}
+
+func (m *SessionManager) Update(session AuthSession) error {
+	provider := m.resolveManagementProvider(session)
+	err := provider.Update(session)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *SessionManager) List(userID string) ([]AuthSession, error) {
