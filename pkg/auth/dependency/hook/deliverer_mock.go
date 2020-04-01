@@ -1,7 +1,6 @@
 package hook
 
 import (
-	"net/url"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -37,7 +36,7 @@ func (deliverer *mockDeliverer) WillDeliver(eventType event.Type) bool {
 	return deliverer.WillDeliverFunc(eventType)
 }
 
-func (deliverer *mockDeliverer) DeliverBeforeEvent(baseURL *url.URL, event *event.Event, user *model.User) error {
+func (deliverer *mockDeliverer) DeliverBeforeEvent(event *event.Event, user *model.User) error {
 	_event := *event
 	_user := *user
 	deliverer.BeforeEvents = append(deliverer.BeforeEvents, mockDelivererBeforeEvent{
@@ -50,7 +49,7 @@ func (deliverer *mockDeliverer) DeliverBeforeEvent(baseURL *url.URL, event *even
 	return deliverer.DeliveryError
 }
 
-func (deliverer *mockDeliverer) DeliverNonBeforeEvent(baseURL *url.URL, event *event.Event, timeout time.Duration) error {
+func (deliverer *mockDeliverer) DeliverNonBeforeEvent(event *event.Event, timeout time.Duration) error {
 	_event := *event
 	deliverer.NonBeforeEvents = append(deliverer.NonBeforeEvents, mockDelivererNonBeforeEvent{
 		Event:   &_event,

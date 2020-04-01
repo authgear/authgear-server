@@ -176,7 +176,6 @@ func (m DependencyMap) Provide(
 			return hook.NewProvider(
 				ctx,
 				requestID,
-				urlprefix.NewProvider(request),
 				hook.NewStore(newSQLBuilder(), newSQLExecutor()),
 				db.NewTxContextWithContext(ctx, tConfig),
 				newTimeProvider(),

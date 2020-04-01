@@ -3,13 +3,11 @@ package hook
 import (
 	"context"
 	"fmt"
-	"net/url"
 	gotime "time"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -24,7 +22,6 @@ import (
 
 type providerImpl struct {
 	RequestID               string
-	BaseURL                 *url.URL
 	Store                   Store
 	Context                 context.Context
 	TxContext               db.TxContext
@@ -41,7 +38,6 @@ type providerImpl struct {
 func NewProvider(
 	ctx context.Context,
 	requestID string,
-	urlprefix urlprefix.Provider,
 	store Store,
 	txContext db.TxContext,
 	timeProvider time.Provider,
@@ -53,7 +49,6 @@ func NewProvider(
 	return &providerImpl{
 		Context:          ctx,
 		RequestID:        requestID,
-		BaseURL:          urlprefix.Value(),
 		Store:            store,
 		TxContext:        txContext,
 		TimeProvider:     timeProvider,
@@ -75,7 +70,7 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 				return
 			}
 			event := event.NewBeforeEvent(seq, typedPayload, provider.makeContext())
-			err = provider.Deliverer.DeliverBeforeEvent(provider.BaseURL, event, user)
+			err = provider.Deliverer.DeliverBeforeEvent(event, user)
 			if err != nil {
 				if !skyerr.IsKind(err, WebHookDisallowed) {
 					err = errors.HandledWithMessage(err, "failed to dispatch event")
@@ -159,7 +154,7 @@ func (provider *providerImpl) DidCommitTx() {
 	// TODO(webhook): deliver persisted events
 	events, _ := provider.Store.GetEventsForDelivery()
 	for _, event := range events {
-		err := provider.Deliverer.DeliverNonBeforeEvent(provider.BaseURL, event, 60*gotime.Second)
+		err := provider.Deliverer.DeliverNonBeforeEvent(event, 60*gotime.Second)
 		if err != nil {
 			provider.Logger.WithError(err).Debug("Failed to dispatch event")
 		}

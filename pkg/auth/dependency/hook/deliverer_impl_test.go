@@ -3,7 +3,6 @@ package hook
 import (
 	"fmt"
 	gohttp "net/http"
-	"net/url"
 	"testing"
 	gotime "time"
 
@@ -28,7 +27,6 @@ func TestDeliverer(t *testing.T) {
 			SyncHookTimeout:      5,
 			SyncHookTotalTimeout: 10,
 		}
-		baseURL, _ := url.Parse("https://test.example.com")
 
 		timeProvider := time.MockProvider{}
 		initialTime := gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)
@@ -99,47 +97,7 @@ func TestDeliverer(t *testing.T) {
 					})
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
-
-				So(err, ShouldBeNil)
-				So(gock.IsDone(), ShouldBeTrue)
-			})
-
-			Convey("should resolve relative paths", func() {
-				deliverer.Hooks = &[]config.Hook{
-					config.Hook{
-						Event: string(event.BeforeSessionCreate),
-						URL:   "https://example.com/a",
-					},
-					config.Hook{
-						Event: string(event.BeforeSessionCreate),
-						URL:   "/b",
-					},
-				}
-
-				user := model.User{
-					ID: "user-id",
-				}
-
-				gock.New("https://example.com").
-					Post("/a").
-					JSON(e).
-					HeaderPresent(http.HeaderRequestBodySignature).
-					Reply(200).
-					JSON(map[string]interface{}{
-						"is_allowed": true,
-					})
-				gock.New("https://test.example.com").
-					Post("/b").
-					JSON(e).
-					HeaderPresent(http.HeaderRequestBodySignature).
-					Reply(200).
-					JSON(map[string]interface{}{
-						"is_allowed": true,
-					})
-				defer func() { gock.Flush() }()
-
-				err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
+				err := deliverer.DeliverBeforeEvent(&e, &user)
 
 				So(err, ShouldBeNil)
 				So(gock.IsDone(), ShouldBeTrue)
@@ -182,7 +140,7 @@ func TestDeliverer(t *testing.T) {
 					})
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
+				err := deliverer.DeliverBeforeEvent(&e, &user)
 
 				So(err, ShouldBeError, "disallowed by web-hook event handler")
 				So(gock.IsDone(), ShouldBeTrue)
@@ -247,7 +205,7 @@ func TestDeliverer(t *testing.T) {
 				defer func() { gock.Flush() }()
 
 				Convey("successful", func() {
-					err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
+					err := deliverer.DeliverBeforeEvent(&e, &user)
 
 					t := true
 					So(err, ShouldBeNil)
@@ -269,7 +227,7 @@ func TestDeliverer(t *testing.T) {
 
 				Convey("failed apply", func() {
 					mutator.ApplyError = fmt.Errorf("cannot apply mutations")
-					err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
+					err := deliverer.DeliverBeforeEvent(&e, &user)
 
 					So(err, ShouldBeError, "web-hook mutation failed: cannot apply mutations")
 					So(mutator.IsApplied, ShouldEqual, true)
@@ -278,7 +236,7 @@ func TestDeliverer(t *testing.T) {
 
 				Convey("failed add", func() {
 					mutator.AddError = fmt.Errorf("cannot add mutations")
-					err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
+					err := deliverer.DeliverBeforeEvent(&e, &user)
 
 					So(err, ShouldBeError, "web-hook mutation failed: cannot add mutations")
 					So(mutator.IsApplied, ShouldEqual, false)
@@ -304,7 +262,7 @@ func TestDeliverer(t *testing.T) {
 					Reply(500)
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
+				err := deliverer.DeliverBeforeEvent(&e, &user)
 
 				So(err, ShouldBeError, "invalid status code")
 				So(gock.IsDone(), ShouldBeTrue)
@@ -348,7 +306,7 @@ func TestDeliverer(t *testing.T) {
 					})
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBeforeEvent(baseURL, &e, &user)
+				err := deliverer.DeliverBeforeEvent(&e, &user)
 
 				So(err, ShouldBeError, "web-hook event delivery timed out")
 				So(gock.IsDone(), ShouldBeTrue)
@@ -380,7 +338,7 @@ func TestDeliverer(t *testing.T) {
 					BodyString("test")
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverNonBeforeEvent(baseURL, &e, 5*gotime.Second)
+				err := deliverer.DeliverNonBeforeEvent(&e, 5*gotime.Second)
 
 				So(err, ShouldBeNil)
 				So(gock.IsDone(), ShouldBeTrue)
@@ -400,7 +358,7 @@ func TestDeliverer(t *testing.T) {
 					Reply(500)
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverNonBeforeEvent(baseURL, &e, 5*gotime.Second)
+				err := deliverer.DeliverNonBeforeEvent(&e, 5*gotime.Second)
 
 				So(err, ShouldBeError, "invalid status code")
 				So(gock.IsDone(), ShouldBeTrue)
