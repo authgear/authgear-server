@@ -8,7 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	authprincipal "github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -19,11 +19,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
+
+var errOauthPrincipalNotFound = skyerr.NotFound.WithReason("OAuthPrincipalNotFound").New("oauth principal not found")
 
 func AttachUnlinkHandler(
 	router *mux.Router,
@@ -109,23 +112,26 @@ func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 
 		sess := auth.GetSession(r.Context())
 		userID := sess.AuthnAttrs().UserID
-		principal, err := h.OAuthAuthProvider.GetPrincipalByUser(oauth.GetByUserOptions{
+		prin, err := h.OAuthAuthProvider.GetPrincipalByUser(oauth.GetByUserOptions{
 			ProviderType: string(providerConfig.Type),
 			ProviderKeys: oauth.ProviderKeysFromProviderConfig(providerConfig),
 			UserID:       userID,
 		})
 		if err != nil {
+			if errors.Is(err, principal.ErrNotFound) {
+				err = errOauthPrincipalNotFound
+			}
 			return err
 		}
 
 		// principalID can be missing
 		principalID := sess.AuthnAttrs().PrincipalID
-		if principalID != "" && principalID == principal.ID {
-			err = authprincipal.ErrCurrentIdentityBeingDeleted
+		if principalID != "" && principalID == prin.ID {
+			err = principal.ErrCurrentIdentityBeingDeleted
 			return err
 		}
 
-		err = h.OAuthAuthProvider.DeletePrincipal(principal)
+		err = h.OAuthAuthProvider.DeletePrincipal(prin)
 		if err != nil {
 			return err
 		}
@@ -137,7 +143,7 @@ func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 
 		// delete sessions of deleted principal
 		for _, session := range sessions {
-			if session.AuthnAttrs().PrincipalID != principal.ID {
+			if session.AuthnAttrs().PrincipalID != prin.ID {
 				continue
 			}
 
@@ -159,7 +165,7 @@ func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 		}
 
 		user := model.NewUser(*authInfo, userProfile)
-		identity := model.NewIdentity(principal)
+		identity := model.NewIdentity(prin)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityDeleteEvent{
 				User:     user,

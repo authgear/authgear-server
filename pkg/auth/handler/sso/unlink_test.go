@@ -196,5 +196,28 @@ func TestUnlinkHandler(t *testing.T) {
 				}
 			}`)
 		})
+
+		Convey("should error on unknown identity", func() {
+			sh.OAuthAuthProvider = oauth.NewMockProvider(nil)
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+			}`))
+			req = authtesting.WithAuthn().
+				UserID("faseng.cat.id").
+				ToRequest(req)
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			sh.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 404)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"code": 404,
+					"message": "oauth principal not found",
+					"name": "NotFound",
+					"reason": "OAuthPrincipalNotFound"
+				}
+			}
+			`)
+		})
 	})
 }
