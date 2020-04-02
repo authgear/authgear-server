@@ -161,7 +161,14 @@ func TestMakeURLWithPath(t *testing.T) {
 		}
 
 		test("http://example.com", "/login", "/login")
-		test("http://example.com?a", "/login", "/login?a")
+
+		test("http://example.com?a=a", "/login", "/login?a=a")
+		test("http://example.com/login?a=a", "/login", "/login?a=a")
+
+		test("http://example.com/login?a=a&x_a=a", "/signup", "/signup?a=a")
+		test("http://example.com/login?a=a&x_a=a", "/", "/?a=a")
+
+		test("http://example.com/login?a=a&x_a=a", "/login/password", "/login/password?a=a&x_a=a")
 	})
 }
 
