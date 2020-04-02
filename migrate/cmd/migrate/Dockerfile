@@ -12,7 +12,7 @@ RUN cd cmd/migrate; make build; mv skygear-migrate /tmp/
 
 FROM alpine:3.8
 
-RUN apk add --update --no-cache libc6-compat ca-certificates && \
+RUN apk add --update --no-cache libc6-compat ca-certificates git && \
     ln -s /lib /lib64
 
 COPY --from=godev /tmp/skygear-migrate /
