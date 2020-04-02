@@ -1,3 +1,21 @@
+## 2.3.0 (2020-4-02)
+
+### Features
+
+- New auth ui support
+- Update Skygear Auth as OpenID Provider
+- Support app and gears endpoint in gateway
+
+### Breaking Changes
+
+- Web hooks do not resolve relative path for hook URLs #1260
+- Disable auth API if not enabled, auth API is disabled by default
+- Update AppConfiguration
+
+### Other notes
+
+- Update facebook RP to use v6.0 Graph API
+
 ## 2.2.0 (2020-2-28)
 
 ### Features
