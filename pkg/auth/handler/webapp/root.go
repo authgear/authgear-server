@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 )
 
 func AttachRootHandler(
@@ -21,5 +22,5 @@ func AttachRootHandler(
 type RootHandler struct{}
 
 func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/login", http.StatusFound)
+	webapp.RedirectToPathWithQueryPreserved(w, r, "/login")
 }

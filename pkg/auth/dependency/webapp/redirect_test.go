@@ -150,3 +150,31 @@ func TestRedirectToRedirectURI(t *testing.T) {
 		})
 	})
 }
+
+func TestMakeURLWithPath(t *testing.T) {
+	Convey("MakeURLWithPath", t, func() {
+		test := func(str string, path string, expected string) {
+			u, err := url.Parse(str)
+			So(err, ShouldBeNil)
+			actual := MakeURLWithPath(u, path)
+			So(actual, ShouldEqual, expected)
+		}
+
+		test("http://example.com", "/login", "/login")
+		test("http://example.com?a", "/login", "/login?a")
+	})
+}
+
+func TestMakeURLWithQuery(t *testing.T) {
+	Convey("MakeURLWithQuery", t, func() {
+		test := func(str string, name string, value string, expected string) {
+			u, err := url.Parse(str)
+			So(err, ShouldBeNil)
+			actual := MakeURLWithQuery(u, name, value)
+			So(actual, ShouldEqual, expected)
+		}
+
+		test("http://example.com", "a", "b", "?a=b")
+		test("http://example.com?c=d", "a", "b", "?a=b&c=d")
+	})
+}

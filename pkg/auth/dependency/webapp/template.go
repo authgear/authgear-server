@@ -152,13 +152,8 @@ var TemplateAuthUILoginHTML = template.Spec{
 
 			{{ template "ERROR" . }}
 
-			<form id="empty-form" method="post">
-				{{ $.csrfField }}
-			</form>
-
 			<form class="authorize-loginid-form" method="post">
 				{{ $.csrfField }}
-				<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 
 				{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
 				<div class="phone-input">
@@ -184,15 +179,15 @@ var TemplateAuthUILoginHTML = template.Spec{
 				{{ end }}{{ end }}
 
 				{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
-				<button class="link anchor align-self-flex-start" type="submit" name="x_login_id_input_type" value="text" form="empty-form">Use an email or username instead</button>
+				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "text" }}">Use an email or username instead</a>
 				{{ end }}{{ end }}
 				{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone }}
-				<button class="link anchor align-self-flex-start" type="submit" name="x_login_id_input_type" value="phone" form="empty-form">Use a phone number instead</button>
+				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "phone" }}">Use a phone number instead</a>
 				{{ end }}{{ end }}
 
 				<div class="link">
 					<span class="primary-text">Don't have an account yet? </span>
-					<button type="submit" class="anchor" name="x_step" value="signup:initial" form="empty-form">Create one!</button>
+					<a class="anchor" href="{{ call .MakeURLWithPath "/signup" }}">Create one!</a>
 				</div>
 				<a class="link anchor align-self-flex-start" href="#">Can't access your account?</a>
 
@@ -222,7 +217,6 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 
 <form class="enter-password-form" method="post">
 {{ $.csrfField }}
-<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 
 <div class="nav-bar">
 	<button class="btn back-btn" title="Back"></button>
@@ -292,7 +286,6 @@ var TemplateAuthUISignupHTML = template.Spec{
 			<form class="authorize-loginid-form" method="post">
 				{{ $.csrfField }}
 				<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
-				<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 
 				{{ range .x_login_id_keys }}
 					{{ if eq .key $.x_login_id_key }}
@@ -356,7 +349,6 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 <form class="enter-password-form" method="post">
 {{ $.csrfField }}
 <input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
-<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 <input type="hidden" name="x_calling_code" value="{{ .x_calling_code }}">
 <input type="hidden" name="x_national_number" value="{{ .x_national_number }}">
 <input type="hidden" name="x_login_id" value="{{ .x_login_id }}">

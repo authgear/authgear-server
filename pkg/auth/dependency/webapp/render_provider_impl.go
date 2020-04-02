@@ -29,6 +29,14 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	data := FormToJSON(r.Form)
 	accessKey := coreAuth.GetAccessKey(r.Context())
 
+	data["MakeURLWithQuery"] = func(name string, value string) string {
+		return MakeURLWithQuery(r.URL, name, value)
+	}
+
+	data["MakeURLWithPath"] = func(path string) string {
+		return MakeURLWithPath(r.URL, path)
+	}
+
 	data["client_name"] = accessKey.Client["client_name"]
 	data["logo_uri"] = accessKey.Client["logo_uri"]
 

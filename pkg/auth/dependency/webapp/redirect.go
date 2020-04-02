@@ -2,7 +2,9 @@ package webapp
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
 
 	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
@@ -21,6 +23,14 @@ func RedirectToRedirectURI(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Redirect(w, r, redirectURI, http.StatusFound)
 	}
+}
+
+func RedirectToPathWithQueryPreserved(w http.ResponseWriter, r *http.Request, path string) {
+	http.Redirect(w, r, MakeURLWithPath(r.URL, path), http.StatusFound)
+}
+
+func RedirectToCurrentPath(w http.ResponseWriter, r *http.Request) {
+	RedirectToPathWithQueryPreserved(w, r, r.URL.Path)
 }
 
 func getRedirectURI(r *http.Request) (out string, err error) {
@@ -50,4 +60,20 @@ func getRedirectURI(r *http.Request) (out string, err error) {
 
 	out = u.String()
 	return
+}
+
+func MakeURLWithPath(i *url.URL, path string) string {
+	u := *i
+	u.Path = path
+	u.Scheme = ""
+	u.Opaque = ""
+	u.Host = ""
+	u.User = nil
+	return u.String()
+}
+
+func MakeURLWithQuery(u *url.URL, name string, value string) string {
+	q := u.Query()
+	q.Set(name, value)
+	return fmt.Sprintf("?%s", q.Encode())
 }
