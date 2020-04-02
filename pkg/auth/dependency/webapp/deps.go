@@ -14,21 +14,8 @@ func ProvideValidateProvider(tConfig *config.TenantConfiguration) ValidateProvid
 	}
 }
 
-func ProvideAuthenticateProvider(
-	validateProvider ValidateProvider,
-	renderProvider RenderProvider,
-	authnProvider AuthnProvider,
-) AuthenticateProvider {
-	return &AuthenticateProviderImpl{
-		ValidateProvider: validateProvider,
-		RenderProvider:   renderProvider,
-		AuthnProvider:    authnProvider,
-	}
-}
-
 var DependencySet = wire.NewSet(
 	ProvideValidateProvider,
-	ProvideAuthenticateProvider,
 )
 
 func ProvideCSPMiddleware(tConfig *config.TenantConfiguration) mux.MiddlewareFunc {

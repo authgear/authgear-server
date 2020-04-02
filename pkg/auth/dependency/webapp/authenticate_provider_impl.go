@@ -17,8 +17,6 @@ type AuthenticateProviderImpl struct {
 	AuthnProvider    AuthnProvider
 }
 
-var _ AuthenticateProvider = &AuthenticateProviderImpl{}
-
 type AuthnProvider interface {
 	LoginWithLoginID(
 		client config.OAuthClientConfiguration,
@@ -39,6 +37,7 @@ type AuthnProvider interface {
 	WriteCookie(rw http.ResponseWriter, result *authn.CompletionResult)
 }
 
+// TODO(webapp): Remove this function
 func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -64,12 +63,13 @@ func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	case "signup:submit_password":
 		writeResponse, err = p.SignUpSubmitPassword(w, r)
 	default:
-		writeResponse, err = p.Default(w, r)
+		writeResponse, err = p.Login(w, r)
 	}
 	writeResponse(err)
 }
 
-func (p *AuthenticateProviderImpl) Default(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+func (p *AuthenticateProviderImpl) Login(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	p.ValidateProvider.PrepareValues(r.Form)
 	err = p.ValidateProvider.Validate("#WebAppLoginRequest", r.Form)
 	writeResponse = func(err error) {
 		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUILoginHTML, err)
@@ -231,5 +231,5 @@ func (p *AuthenticateProviderImpl) SubmitPassword(w http.ResponseWriter, r *http
 func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	// TODO(webapp): Prepare IdP authorization URL and respond 302
 	// TODO(webapp): Add a new endpoint to be redirect_uri
-	return p.Default(w, r)
+	return p.Login(w, r)
 }

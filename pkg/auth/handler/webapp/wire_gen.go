@@ -41,7 +41,7 @@ import (
 
 // Injectors from wire.go:
 
-func newRootHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
@@ -111,9 +111,15 @@ func newRootHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
-	authenticateProvider := webapp.ProvideAuthenticateProvider(validateProvider, renderProvider, authnProvider)
-	httpHandler := provideRootHandler(authenticateProvider)
-	return httpHandler
+	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
+		ValidateProvider: validateProvider,
+		RenderProvider:   renderProvider,
+		AuthnProvider:    authnProvider,
+	}
+	loginHandler := &LoginHandler{
+		LoginProvider: authenticateProviderImpl,
+	}
+	return loginHandler
 }
 
 var (
@@ -131,8 +137,10 @@ func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
 	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
-	httpHandler := provideSettingsHandler(renderProvider)
-	return httpHandler
+	settingsHandler := &SettingsHandler{
+		RenderProvider: renderProvider,
+	}
+	return settingsHandler
 }
 
 func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
@@ -174,25 +182,9 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,
 	}
-	httpHandler := provideLogoutHandler(renderProvider, authSessionManager)
-	return httpHandler
-}
-
-// wire.go:
-
-func provideRootHandler(authenticateProvider webapp.AuthenticateProvider) http.Handler {
-	return &RootHandler{
-		AuthenticateProvider: authenticateProvider,
-	}
-}
-
-func provideSettingsHandler(renderProvider webapp.RenderProvider) http.Handler {
-	return &SettingsHandler{RenderProvider: renderProvider}
-}
-
-func provideLogoutHandler(renderProvider webapp.RenderProvider, sm logoutSessionManager) http.Handler {
-	return &LogoutHandler{
+	logoutHandler := &LogoutHandler{
 		RenderProvider: renderProvider,
-		SessionManager: sm,
+		SessionManager: authSessionManager,
 	}
+	return logoutHandler
 }

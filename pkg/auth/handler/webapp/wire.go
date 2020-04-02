@@ -13,46 +13,34 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 )
 
-func provideRootHandler(authenticateProvider webapp.AuthenticateProvider) http.Handler {
-	return &RootHandler{
-		AuthenticateProvider: authenticateProvider,
-	}
-}
-
-func newRootHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+func newLoginHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
 		authn.ProvideAuthUIProvider,
 		wire.Bind(new(webapp.AuthnProvider), new(*authn.Provider)),
-		provideRootHandler,
+		wire.Struct(new(webapp.AuthenticateProviderImpl), "*"),
+		wire.Bind(new(loginProvider), new(*webapp.AuthenticateProviderImpl)),
+		wire.Struct(new(LoginHandler), "*"),
+		wire.Bind(new(http.Handler), new(*LoginHandler)),
 	)
 	return nil
-}
-
-func provideSettingsHandler(renderProvider webapp.RenderProvider) http.Handler {
-	return &SettingsHandler{RenderProvider: renderProvider}
 }
 
 func newSettingsHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
-		provideSettingsHandler,
+		wire.Struct(new(SettingsHandler), "*"),
+		wire.Bind(new(http.Handler), new(*SettingsHandler)),
 	)
 	return nil
-}
-
-func provideLogoutHandler(renderProvider webapp.RenderProvider, sm logoutSessionManager) http.Handler {
-	return &LogoutHandler{
-		RenderProvider: renderProvider,
-		SessionManager: sm,
-	}
 }
 
 func newLogoutHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
 		wire.Bind(new(logoutSessionManager), new(*auth.SessionManager)),
-		provideLogoutHandler,
+		wire.Struct(new(LogoutHandler), "*"),
+		wire.Bind(new(http.Handler), new(*LogoutHandler)),
 	)
 	return nil
 }
