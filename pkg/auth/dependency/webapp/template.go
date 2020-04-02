@@ -124,7 +124,6 @@ var TemplateAuthUILoginHTML = template.Spec{
 		<div class="authorize-form">
 			<form class="authorize-idp-form" method="post">
 				{{ $.csrfField }}
-				<input type="hidden" name="x_step" value="choose_idp">
 				{{ range .x_idp_providers }}
 				<button class="btn sso-btn {{ .type }}" type="submit" name="x_idp_id" value="{{ .id }}">
 					{{- if eq .type "apple" -}}
@@ -198,7 +197,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 				<a class="link anchor align-self-flex-start" href="#">Can't access your account?</a>
 
 				{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
-				<button class="btn primary-btn align-self-flex-end" type="submit" name="x_step" value="login:submit_login_id">Next</button>
+				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">Next</button>
 				{{ end }}
 			</form>
 		</div>
@@ -250,7 +249,7 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 
 <a class="anchor align-self-flex-start" href="">Forgot Password?</a>
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="x_step" value="login:submit_password">Next</button>
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">Next</button>
 
 </form>
 {{ template "SKYGEAR_LOGO" . }}
