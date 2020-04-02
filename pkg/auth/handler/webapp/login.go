@@ -15,15 +15,17 @@ func AttachLoginHandler(
 	router.
 		NewRoute().
 		Path("/login").
+		Methods("OPTIONS", "POST", "GET").
 		Handler(auth.MakeHandler(authDependency, newLoginHandler))
 }
 
 type loginProvider interface {
-	Login(w http.ResponseWriter, r *http.Request) (func(error), error)
+	GetLoginForm(w http.ResponseWriter, r *http.Request) (func(error), error)
+	PostLoginID(w http.ResponseWriter, r *http.Request) (func(error), error)
 }
 
 type LoginHandler struct {
-	LoginProvider loginProvider
+	Provider loginProvider
 }
 
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -31,6 +33,16 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeResponse, err := h.LoginProvider.Login(w, r)
-	writeResponse(err)
+
+	if r.Method == "GET" {
+		writeResponse, err := h.Provider.GetLoginForm(w, r)
+		writeResponse(err)
+		return
+	}
+
+	if r.Method == "POST" {
+		writeResponse, err := h.Provider.PostLoginID(w, r)
+		writeResponse(err)
+		return
+	}
 }

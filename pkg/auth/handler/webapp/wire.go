@@ -26,6 +26,19 @@ func newLoginHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	return nil
 }
 
+func newLoginPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		authn.ProvideAuthUIProvider,
+		wire.Bind(new(webapp.AuthnProvider), new(*authn.Provider)),
+		wire.Struct(new(webapp.AuthenticateProviderImpl), "*"),
+		wire.Bind(new(loginPasswordProvider), new(*webapp.AuthenticateProviderImpl)),
+		wire.Struct(new(LoginPasswordHandler), "*"),
+		wire.Bind(new(http.Handler), new(*LoginPasswordHandler)),
+	)
+	return nil
+}
+
 func newSettingsHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,

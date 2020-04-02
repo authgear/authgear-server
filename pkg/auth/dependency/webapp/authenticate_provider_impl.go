@@ -37,43 +37,77 @@ type AuthnProvider interface {
 	WriteCookie(rw http.ResponseWriter, result *authn.CompletionResult)
 }
 
-// TODO(webapp): Remove this function
-func (p *AuthenticateProviderImpl) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	p.ValidateProvider.PrepareValues(r.Form)
-
-	var writeResponse func(err error)
-	var err error
-	step := r.Form.Get("x_step")
-	switch step {
-	case "login:submit_login_id":
-		writeResponse, err = p.SubmitLoginID(w, r)
-	case "login:submit_password":
-		writeResponse, err = p.SubmitPassword(w, r)
-	case "choose_idp":
-		writeResponse, err = p.ChooseIdentityProvider(w, r)
-	case "signup:initial":
-		writeResponse, err = p.SignUp(w, r)
-	case "signup:submit_login_id":
-		writeResponse, err = p.SignUpSubmitLoginID(w, r)
-	case "signup:submit_password":
-		writeResponse, err = p.SignUpSubmitPassword(w, r)
-	default:
-		writeResponse, err = p.Login(w, r)
-	}
-	writeResponse(err)
-}
-
-func (p *AuthenticateProviderImpl) Login(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+func (p *AuthenticateProviderImpl) GetLoginForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	p.ValidateProvider.PrepareValues(r.Form)
 	err = p.ValidateProvider.Validate("#WebAppLoginRequest", r.Form)
 	writeResponse = func(err error) {
 		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUILoginHTML, err)
 	}
+	return
+}
+
+func (p *AuthenticateProviderImpl) PostLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	writeResponse = func(err error) {
+		if err != nil {
+			// TODO(webapp): store err in cookie
+			http.Redirect(w, r, ".", http.StatusFound)
+		} else {
+			http.Redirect(w, r, "/login/password", http.StatusFound)
+		}
+	}
+
+	err = p.ValidateProvider.Validate("#WebAppLoginLoginIDRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	// TODO(webapp): store x_login_id in cookie
+	err = p.SetLoginID(r)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (p *AuthenticateProviderImpl) GetLoginPasswordForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	p.ValidateProvider.PrepareValues(r.Form)
+	err = p.ValidateProvider.Validate("#WebAppLoginLoginIDRequest", r.Form)
+	writeResponse = func(err error) {
+		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUILoginPasswordHTML, err)
+	}
+	return
+}
+
+func (p *AuthenticateProviderImpl) PostLoginPassword(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	writeResponse = func(err error) {
+		if err != nil {
+			// TODO(webapp): store err in cookie
+			http.Redirect(w, r, ".", http.StatusFound)
+		} else {
+			RedirectToRedirectURI(w, r)
+		}
+	}
+
+	err = p.ValidateProvider.Validate("#WebAppLoginLoginIDPasswordRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	var client config.OAuthClientConfiguration
+	loginID := loginid.LoginID{Value: r.Form.Get("x_login_id")}
+	result, err := p.AuthnProvider.LoginWithLoginID(client, loginID, r.Form.Get("x_password"))
+	if err != nil {
+		return
+	}
+
+	switch r := result.(type) {
+	case *authn.CompletionResult:
+		p.AuthnProvider.WriteCookie(w, r)
+	case *authn.InProgressResult:
+		panic("TODO(webapp): handle MFA")
+	}
+
 	return
 }
 
@@ -156,28 +190,6 @@ func (p *AuthenticateProviderImpl) SignUpSubmitPassword(w http.ResponseWriter, r
 	return
 }
 
-func (p *AuthenticateProviderImpl) SubmitLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
-	writeResponse = func(err error) {
-		t := TemplateItemTypeAuthUILoginHTML
-		if err == nil {
-			t = TemplateItemTypeAuthUILoginPasswordHTML
-		}
-		p.RenderProvider.WritePage(w, r, t, err)
-	}
-
-	err = p.ValidateProvider.Validate("#WebAppLoginLoginIDRequest", r.Form)
-	if err != nil {
-		return
-	}
-
-	err = p.SetLoginID(r)
-	if err != nil {
-		return
-	}
-
-	return
-}
-
 func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 	if r.Form.Get("x_login_id_input_type") == "phone" {
 		e164, e := phone.Parse(r.Form.Get("x_national_number"), r.Form.Get("x_calling_code"))
@@ -194,42 +206,4 @@ func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 	}
 
 	return
-}
-
-func (p *AuthenticateProviderImpl) SubmitPassword(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
-	writeResponse = func(err error) {
-		if err != nil {
-			t := TemplateItemTypeAuthUILoginPasswordHTML
-			p.RenderProvider.WritePage(w, r, t, err)
-		} else {
-			RedirectToRedirectURI(w, r)
-		}
-	}
-
-	err = p.ValidateProvider.Validate("#WebAppLoginLoginIDPasswordRequest", r.Form)
-	if err != nil {
-		return
-	}
-
-	var client config.OAuthClientConfiguration
-	loginID := loginid.LoginID{Value: r.Form.Get("x_login_id")}
-	result, err := p.AuthnProvider.LoginWithLoginID(client, loginID, r.Form.Get("x_password"))
-	if err != nil {
-		return
-	}
-
-	switch r := result.(type) {
-	case *authn.CompletionResult:
-		p.AuthnProvider.WriteCookie(w, r)
-	case *authn.InProgressResult:
-		panic("TODO(webapp): handle MFA")
-	}
-
-	return
-}
-
-func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
-	// TODO(webapp): Prepare IdP authorization URL and respond 302
-	// TODO(webapp): Add a new endpoint to be redirect_uri
-	return p.Login(w, r)
 }
