@@ -49,7 +49,6 @@ func (p *AuthenticateProviderImpl) GetLoginForm(w http.ResponseWriter, r *http.R
 func (p *AuthenticateProviderImpl) PostLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
 		if err != nil {
-			// TODO(webapp): store err in cookie
 			RedirectToCurrentPath(w, r)
 		} else {
 			RedirectToPathWithQueryPreserved(w, r, "/login/password")
@@ -61,7 +60,6 @@ func (p *AuthenticateProviderImpl) PostLoginID(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// TODO(webapp): store x_login_id in cookie
 	err = p.SetLoginID(r)
 	if err != nil {
 		return
@@ -82,7 +80,6 @@ func (p *AuthenticateProviderImpl) GetLoginPasswordForm(w http.ResponseWriter, r
 func (p *AuthenticateProviderImpl) PostLoginPassword(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
 		if err != nil {
-			// TODO(webapp): store err in cookie
 			RedirectToCurrentPath(w, r)
 		} else {
 			RedirectToRedirectURI(w, r)
