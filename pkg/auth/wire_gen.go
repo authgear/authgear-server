@@ -105,6 +105,15 @@ func NewCSRFMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	return middlewareFunc
 }
 
+func NewStateMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
+	context := ProvideContext(r)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	middlewareFunc := webapp.ProvideStateMiddleware(stateStoreImpl)
+	return middlewareFunc
+}
+
 func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 	context := ProvideContext(r)
 	tenantConfiguration := ProvideTenantConfig(context)

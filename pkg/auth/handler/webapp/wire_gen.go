@@ -111,10 +111,14 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
+		StateStore:       stateStoreImpl,
 	}
 	loginHandler := &LoginHandler{
 		Provider: authenticateProviderImpl,
@@ -196,10 +200,14 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
+		StateStore:       stateStoreImpl,
 	}
 	loginPasswordHandler := &LoginPasswordHandler{
 		Provider: authenticateProviderImpl,

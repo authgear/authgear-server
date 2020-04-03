@@ -25,7 +25,17 @@ type RenderProviderImpl struct {
 	PasswordChecker      *audit.PasswordChecker
 }
 
-func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, inputErr error) {
+func (p *RenderProviderImpl) asAPIError(anyError interface{}) *skyerr.APIError {
+	if apiError, ok := anyError.(*skyerr.APIError); ok {
+		return apiError
+	}
+	if err, ok := anyError.(error); ok {
+		return skyerr.AsAPIError(err)
+	}
+	return nil
+}
+
+func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, anyError interface{}) {
 	data := FormToJSON(r.Form)
 	accessKey := coreAuth.GetAccessKey(r.Context())
 
@@ -76,7 +86,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	data["x_login_id_keys"] = loginIDKeys
 
 	passwordPolicy := p.PasswordChecker.PasswordPolicy()
-	if apiError := skyerr.AsAPIError(inputErr); apiError != nil {
+	if apiError := p.asAPIError(anyError); apiError != nil {
 		if apiError.Reason == "PasswordPolicyViolated" {
 			for i, policy := range passwordPolicy {
 				if policy.Info == nil {
@@ -104,10 +114,10 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	data["x_password_policies"] = passwordPolicyJSON
 
 	// Populate inputErr into data
-	if inputErr != nil {
+	if apiError := p.asAPIError(anyError); apiError != nil {
 		b, err := json.Marshal(struct {
 			Error *skyerr.APIError `json:"error"`
-		}{skyerr.AsAPIError(inputErr)})
+		}{apiError})
 		if err != nil {
 			panic(err)
 		}
@@ -130,7 +140,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	body := []byte(out)
 	w.Header().Set("Content-Type", "text/html")
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
-	if apiError := skyerr.AsAPIError(inputErr); apiError != nil {
+	if apiError := p.asAPIError(anyError); apiError != nil {
 		w.WriteHeader(apiError.Code)
 	}
 	w.Write(body)

@@ -244,6 +244,7 @@ func main() {
 
 	webappAnonymousRouter := webappRouter.NewRoute().Subrouter()
 	webappAnonymousRouter.Use(webapp.RequiredAnonymousMiddleware{}.Handle)
+	webappAnonymousRouter.Use(auth.MakeMiddleware(authDependency, auth.NewStateMiddleware))
 	webapphandler.AttachRootHandler(webappAnonymousRouter, authDependency)
 	webapphandler.AttachLoginHandler(webappAnonymousRouter, authDependency)
 	webapphandler.AttachLoginPasswordHandler(webappAnonymousRouter, authDependency)

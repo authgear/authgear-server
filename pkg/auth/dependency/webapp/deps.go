@@ -16,9 +16,16 @@ func ProvideValidateProvider(tConfig *config.TenantConfiguration) ValidateProvid
 
 var DependencySet = wire.NewSet(
 	ProvideValidateProvider,
+	wire.Struct(new(StateStoreImpl), "*"),
+	wire.Bind(new(StateStore), new(*StateStoreImpl)),
 )
 
 func ProvideCSPMiddleware(tConfig *config.TenantConfiguration) mux.MiddlewareFunc {
 	m := &CSPMiddleware{Clients: tConfig.AppConfig.Clients}
+	return m.Handle
+}
+
+func ProvideStateMiddleware(stateStore StateStore) mux.MiddlewareFunc {
+	m := &StateMiddleware{StateStore: stateStore}
 	return m.Handle
 }
