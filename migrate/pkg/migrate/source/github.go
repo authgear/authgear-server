@@ -7,6 +7,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/migrate/pkg/migrate/logging"
 )
 
 type Github struct {
@@ -56,8 +60,17 @@ func (g *Github) downloadFromClone(c *config) (string, error) {
 		c.Repo,
 	)
 
+	logger := logrus.New()
+	logwriter := logging.NewLogWriter(logger, logrus.InfoLevel)
 	if _, e := os.Stat(sourceCodeDirPath); os.IsNotExist(e) {
 		cmd := exec.Command("git", "clone", cloneSource, sourceCodeDirPath)
+		logger.WithFields(logrus.Fields{
+			"command": cmd.String(),
+		}).Info("execute command")
+		// git clone pipe its progress message to stderr, but it is not error
+		// so we use same writer with info level to both stdout and stderror
+		cmd.Stdout = logwriter
+		cmd.Stderr = logwriter
 		err := cmd.Run()
 		if err != nil {
 			return "", fmt.Errorf("failed to git clone source: %v", err.Error())
@@ -65,6 +78,11 @@ func (g *Github) downloadFromClone(c *config) (string, error) {
 
 		// check out references
 		cmd = exec.Command("git", "-C", sourceCodeDirPath, "checkout", c.Ref)
+		logger.WithFields(logrus.Fields{
+			"command": cmd.String(),
+		}).Info("execute command")
+		cmd.Stdout = logwriter
+		cmd.Stderr = logwriter
 		err = cmd.Run()
 		if err != nil {
 			return "", fmt.Errorf("failed to git checkout source: %v", err.Error())
