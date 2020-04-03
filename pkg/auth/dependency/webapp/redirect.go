@@ -100,8 +100,10 @@ func MakeURLWithPath(i *url.URL, path string) string {
 	return u.String()
 }
 
-func MakeURLWithQuery(u *url.URL, name string, value string) string {
+func MakeURLWithQuery(u *url.URL, query url.Values) string {
 	q := u.Query()
-	q.Set(name, value)
+	for name := range query {
+		q.Set(name, query.Get(name))
+	}
 	return fmt.Sprintf("?%s", q.Encode())
 }

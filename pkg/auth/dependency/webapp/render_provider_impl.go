@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	htmlTemplate "html/template"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/gorilla/csrf"
@@ -39,8 +40,12 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	data := FormToJSON(r.Form)
 	accessKey := coreAuth.GetAccessKey(r.Context())
 
-	data["MakeURLWithQuery"] = func(name string, value string) string {
-		return MakeURLWithQuery(r.URL, name, value)
+	data["MakeURLWithQuery"] = func(pairs ...string) string {
+		q := url.Values{}
+		for i := 0; i < len(pairs); i += 2 {
+			q.Set(pairs[i], pairs[i+1])
+		}
+		return MakeURLWithQuery(r.URL, q)
 	}
 
 	data["MakeURLWithPath"] = func(path string) string {

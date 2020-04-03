@@ -177,7 +177,9 @@ func TestMakeURLWithQuery(t *testing.T) {
 		test := func(str string, name string, value string, expected string) {
 			u, err := url.Parse(str)
 			So(err, ShouldBeNil)
-			actual := MakeURLWithQuery(u, name, value)
+			actual := MakeURLWithQuery(u, url.Values{
+				name: []string{value},
+			})
 			So(actual, ShouldEqual, expected)
 		}
 
