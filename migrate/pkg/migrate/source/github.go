@@ -2,15 +2,15 @@ package source
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/mholt/archiver"
+	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/migrate/pkg/migrate/logging"
 )
 
 type Github struct {
@@ -18,12 +18,10 @@ type Github struct {
 }
 
 type config struct {
-	Owner    string
-	Repo     string
-	Path     string
-	Ref      string
-	Username string
-	Password string
+	Owner string
+	Repo  string
+	Path  string
+	Ref   string
 }
 
 func (g *Github) Download(sourceURL string) (string, error) {
@@ -32,43 +30,7 @@ func (g *Github) Download(sourceURL string) (string, error) {
 		return "", fmt.Errorf("invalid github source url: %s", err.Error())
 	}
 
-	sourceCodeDirPath := g.getSourceCodeDirPath(g.CacheDir, c)
-	sourceCodeZipPath := fmt.Sprintf("%s.tar.gz", sourceCodeDirPath)
-	if _, e := os.Stat(sourceCodeDirPath); os.IsNotExist(e) {
-		// download and unzip source
-		if err = downloadFile(
-			sourceCodeZipPath,
-			fmt.Sprintf(
-				"https://api.github.com/repos/%s/%s/tarball/%s",
-				c.Owner,
-				c.Repo,
-				c.Ref,
-			), c.Username, c.Password); err != nil {
-			return "", fmt.Errorf("unable to download: %s", err.Error())
-		}
-
-		tar := archiver.NewTarGz()
-		// create top level folder when the same name as the tar file
-		tar.ImplicitTopLevelFolder = true
-		if err = tar.Unarchive(sourceCodeZipPath, g.CacheDir); err != nil {
-			return "", fmt.Errorf("unable to unzip source: %s", err.Error())
-		}
-	}
-
-	// the folder name of tarball are different for private and public repo
-	// we unarchive the tarball into a folder and get the only folder name from
-	// that folder
-	sourceCodeDirName, err := getSrcFolderName(sourceCodeDirPath)
-	if err != nil {
-		return "", err
-	}
-
-	migrateSrcDirPath := filepath.Join(sourceCodeDirPath, sourceCodeDirName, c.Path)
-	if _, e := os.Stat(migrateSrcDirPath); os.IsNotExist(e) {
-		return "", fmt.Errorf("unable to find source: %v: no such directory", c.Path)
-	}
-
-	return fmt.Sprintf("file://%s", migrateSrcDirPath), nil
+	return g.downloadFromClone(c)
 }
 
 func (g *Github) parse(sourceURL string) (*config, error) {
@@ -86,70 +48,54 @@ func (g *Github) parse(sourceURL string) (*config, error) {
 	c.Repo = p[0]
 	c.Path = strings.Join(p[1:], "/")
 	c.Ref = u.Fragment
-	c.Username = u.User.Username()
-	c.Password, _ = u.User.Password()
 
 	return c, nil
 }
 
-func (g *Github) getSourceCodeDirPath(tmpDir string, c *config) string {
-	return filepath.Join(
-		tmpDir,
-		fmt.Sprintf("%s-%s-%s", c.Owner, c.Repo, c.Ref),
+func (g *Github) downloadFromClone(c *config) (string, error) {
+	sourceCodeDirPath := g.getSourceCodeDirPath(g.CacheDir, c, "clone")
+	cloneSource := fmt.Sprintf(
+		"https://github.com/%s/%s.git",
+		c.Owner,
+		c.Repo,
 	)
-}
 
-// getSrcFolderName searches and return the folder name inside the destination dir
-// destination dir should only contain one folder
-func getSrcFolderName(destinationDir string) (string, error) {
-	var paths []string
-	files, err := ioutil.ReadDir(destinationDir)
-	if err != nil {
-		return "", fmt.Errorf("unable to find source folder: %v", err.Error())
-	}
+	logger := logrus.New()
+	logwriter := logging.NewLogWriter(logger, logrus.InfoLevel)
+	if _, e := os.Stat(sourceCodeDirPath); os.IsNotExist(e) {
+		cmd := exec.Command("git", "clone", cloneSource, sourceCodeDirPath)
+		logger.WithFields(logrus.Fields{
+			"command": cmd.String(),
+		}).Info("execute command")
+		// git clone pipe its progress message to stderr, but it is not error
+		// so we use same writer with info level to both stdout and stderror
+		cmd.Stdout = logwriter
+		cmd.Stderr = logwriter
+		err := cmd.Run()
+		if err != nil {
+			return "", fmt.Errorf("failed to git clone source: %v", err.Error())
+		}
 
-	for _, file := range files {
-		if file.IsDir() {
-			paths = append(paths, file.Name())
+		// check out references
+		cmd = exec.Command("git", "-C", sourceCodeDirPath, "checkout", c.Ref)
+		logger.WithFields(logrus.Fields{
+			"command": cmd.String(),
+		}).Info("execute command")
+		cmd.Stdout = logwriter
+		cmd.Stderr = logwriter
+		err = cmd.Run()
+		if err != nil {
+			return "", fmt.Errorf("failed to git checkout source: %v", err.Error())
 		}
 	}
 
-	if len(paths) != 1 {
-		return "", fmt.Errorf("unable to find source: unarchive src should only have 1 folder, %d was find", len(paths))
-	}
-
-	return paths[0], err
+	migrateSrcDirPath := filepath.Join(sourceCodeDirPath, c.Path)
+	return fmt.Sprintf("file://%s", migrateSrcDirPath), nil
 }
 
-func downloadFile(filepath string, url string, username string, password string) error {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return err
-	}
-
-	// This one line implements the authentication required for the task.
-	if username != "" {
-		req.SetBasicAuth(username, password)
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("server response: %d", resp.StatusCode)
-	}
-	defer resp.Body.Close()
-
-	// Create the file
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	return err
+func (g *Github) getSourceCodeDirPath(tmpDir string, c *config, subfix string) string {
+	return filepath.Join(
+		tmpDir,
+		fmt.Sprintf("%s-%s-%s-%s", c.Owner, c.Repo, c.Ref, subfix),
+	)
 }
