@@ -165,22 +165,25 @@ func (p *AuthenticateProviderImpl) PostLoginPassword(w http.ResponseWriter, r *h
 	return
 }
 
-func (p *AuthenticateProviderImpl) SignUp(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
-	err = p.ValidateProvider.Validate("#WebAppSignupRequest", r.Form)
-	writeResponse = func(err error) {
-		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUISignupHTML, err)
-	}
-	return
+func (p *AuthenticateProviderImpl) GetSignupForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	return p.get(w, r, "#WebAppSignupRequest", TemplateItemTypeAuthUISignupHTML)
 }
 
-func (p *AuthenticateProviderImpl) SignUpSubmitLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+func (p *AuthenticateProviderImpl) GetSignupPasswordForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	return p.get(w, r, "#WebAppSignupLoginIDRequest", TemplateItemTypeAuthUISignupPasswordHTML)
+}
+
+func (p *AuthenticateProviderImpl) PostSignupLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
-		t := TemplateItemTypeAuthUISignupHTML
-		if err == nil {
-			t = TemplateItemTypeAuthUISignupPasswordHTML
+		p.persistState(r, err)
+		if err != nil {
+			RedirectToCurrentPath(w, r)
+		} else {
+			RedirectToPathWithQueryPreserved(w, r, "/signup/password")
 		}
-		p.RenderProvider.WritePage(w, r, t, err)
 	}
+
+	p.ValidateProvider.PrepareValues(r.Form)
 
 	err = p.ValidateProvider.Validate("#WebAppSignupLoginIDRequest", r.Form)
 	if err != nil {
@@ -203,15 +206,18 @@ func (p *AuthenticateProviderImpl) SignUpSubmitLoginID(w http.ResponseWriter, r 
 	return
 }
 
-func (p *AuthenticateProviderImpl) SignUpSubmitPassword(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+func (p *AuthenticateProviderImpl) PostSignupPassword(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
+		r.Form.Del("x_password")
+		p.persistState(r, err)
 		if err != nil {
-			t := TemplateItemTypeAuthUISignupPasswordHTML
-			p.RenderProvider.WritePage(w, r, t, err)
+			RedirectToCurrentPath(w, r)
 		} else {
 			RedirectToRedirectURI(w, r)
 		}
 	}
+
+	p.ValidateProvider.PrepareValues(r.Form)
 
 	err = p.ValidateProvider.Validate("#WebAppSignupLoginIDPasswordRequest", r.Form)
 	if err != nil {
