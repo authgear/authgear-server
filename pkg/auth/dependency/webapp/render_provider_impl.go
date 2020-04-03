@@ -83,9 +83,14 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 
 	var loginIDKeys []map[string]interface{}
 	for _, loginIDKey := range p.AuthConfiguration.LoginIDKeys {
+		inputType := "text"
+		if loginIDKey.Type == "phone" {
+			inputType = "phone"
+		}
 		loginIDKeys = append(loginIDKeys, map[string]interface{}{
-			"key":  loginIDKey.Key,
-			"type": loginIDKey.Type,
+			"key":        loginIDKey.Key,
+			"type":       loginIDKey.Type,
+			"input_type": inputType,
 		})
 	}
 	data["x_login_id_keys"] = loginIDKeys

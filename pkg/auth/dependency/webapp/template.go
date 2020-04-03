@@ -267,22 +267,6 @@ var TemplateAuthUISignupHTML = template.Spec{
 		<div class="authorize-form">
 			{{ template "ERROR" . }}
 
-			<form id="empty-form" method="post">
-				{{ $.csrfField }}
-			</form>
-
-			{{ range .x_login_id_keys }}
-			<form id="sign_up-{{ .key }}" method="post">
-				{{ $.csrfField }}
-				<input type="hidden" name="x_step" value="signup:initial">
-				{{ if eq .type "phone" }}
-					<input type="hidden" name="x_login_id_input_type" value="phone">
-				{{ else }}
-					<input type="hidden" name="x_login_id_input_type" value="text">
-				{{ end }}
-			</form>
-			{{ end }}
-
 			<form class="authorize-loginid-form" method="post">
 				{{ $.csrfField }}
 				<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
@@ -314,17 +298,18 @@ var TemplateAuthUISignupHTML = template.Spec{
 
 				{{ range .x_login_id_keys }}
 					{{ if not (eq .key $.x_login_id_key) }}
-					<button class="link anchor align-self-flex-start" type="submit" name="x_login_id_key" value="{{ .key }}" form="sign_up-{{ .key }}">Use {{ .key }} instead</button>
+					<a class="link anchor align-self-flex-start"
+						href="{{ call $.MakeURLWithQuery "x_login_id_key" .key "x_login_id_input_type" .input_type}}">Use {{ .key }} instead</a>
 					{{ end }}
 				{{ end }}
 
 				<div class="link align-self-flex-start">
 					<span class="primary-text">Have an account already? </span>
-					<button type="submit" class="anchor" name="x_step" value="" form="empty-form">Sign in!</button>
+					<a class="anchor" href="{{ call .MakeURLWithPath "/login" }}">Sign in!<a>
 				</div>
 				<a class="link anchor align-self-flex-start" href="#">Can't access your account?</a>
 
-				<button class="btn primary-btn align-self-flex-end" type="submit" name="x_step" value="signup:submit_login_id">Next</button>
+				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">Next</button>
 			</form>
 		</div>
 		{{ template "SKYGEAR_LOGO" . }}
@@ -414,7 +399,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 </ul>
 {{ end }}
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="x_step" value="signup:submit_password">Next</button>
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">Next</button>
 
 {{ if eq .x_login_id_input_type "phone" }}
 <p class="description">
