@@ -44,13 +44,13 @@ func (p AuthRequestPayload) Validate() error {
 }
 
 type AuthHandlerAuthnProvider interface {
-	OAuthAuthenticate(
+	OAuthAuthenticateCode(
 		authInfo sso.AuthInfo,
 		codeChallenge string,
 		loginState sso.LoginState,
 	) (*sso.SkygearAuthorizationCode, error)
 
-	OAuthLink(
+	OAuthLinkCode(
 		authInfo sso.AuthInfo,
 		codeChallenge string,
 		linkState sso.LinkState,
@@ -171,9 +171,9 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encodedCode string, err error) {
 	var code *sso.SkygearAuthorizationCode
 	if state.Action == "login" {
-		code, err = h.AuthnProvider.OAuthAuthenticate(oauthAuthInfo, state.CodeChallenge, state.LoginState)
+		code, err = h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, state.CodeChallenge, state.LoginState)
 	} else {
-		code, err = h.AuthnProvider.OAuthLink(oauthAuthInfo, state.CodeChallenge, state.LinkState)
+		code, err = h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, state.CodeChallenge, state.LinkState)
 	}
 	if err != nil {
 		return

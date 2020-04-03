@@ -47,7 +47,7 @@ const LinkRequestSchema = `
 `
 
 type LinkAuthnProvider interface {
-	OAuthLink(
+	OAuthLinkCode(
 		authInfo sso.AuthInfo,
 		codeChallenge string,
 		linkState sso.LinkState,
@@ -129,7 +129,7 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (authn.Resul
 			return err
 		}
 
-		code, err := h.AuthnProvider.OAuthLink(oauthAuthInfo, "", linkState)
+		code, err := h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, "", linkState)
 		if err != nil {
 			return err
 		}

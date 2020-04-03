@@ -92,11 +92,11 @@ type MockAuthnOAuthProvider struct {
 	Code *sso.SkygearAuthorizationCode
 }
 
-func (p *MockAuthnOAuthProvider) OAuthAuthenticate(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, err error) {
+func (p *MockAuthnOAuthProvider) OAuthAuthenticateCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, err error) {
 	return p.Code, nil
 }
 
-func (p *MockAuthnOAuthProvider) OAuthLink(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error) {
+func (p *MockAuthnOAuthProvider) OAuthLinkCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error) {
 	return p.Code, nil
 }
 

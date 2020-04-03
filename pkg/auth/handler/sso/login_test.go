@@ -21,7 +21,7 @@ import (
 
 type MockLoginAuthnProvider struct{}
 
-func (p *MockLoginAuthnProvider) OAuthAuthenticate(
+func (p *MockLoginAuthnProvider) OAuthAuthenticateCode(
 	authInfo sso.AuthInfo,
 	codeChallenge string,
 	loginState sso.LoginState,
