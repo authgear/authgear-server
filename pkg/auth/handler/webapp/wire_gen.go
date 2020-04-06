@@ -27,6 +27,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
@@ -115,14 +116,21 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Context: context,
 	}
+	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
+		SSOProvider:      ssoProvider,
 	}
+	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
+	redirectURLFunc := provideRedirectURIForWebAppFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, provider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProvider := provideOAuthProviderFromLoginForm(r, oAuthProviderFactory)
 	loginHandler := &LoginHandler{
-		Provider: authenticateProviderImpl,
+		Provider:      authenticateProviderImpl,
+		oauthProvider: oAuthProvider,
 	}
 	return loginHandler
 }
@@ -204,11 +212,13 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Context: context,
 	}
+	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
+		SSOProvider:      ssoProvider,
 	}
 	loginPasswordHandler := &LoginPasswordHandler{
 		Provider: authenticateProviderImpl,
@@ -289,11 +299,13 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Context: context,
 	}
+	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
+		SSOProvider:      ssoProvider,
 	}
 	signupHandler := &SignupHandler{
 		Provider: authenticateProviderImpl,
@@ -374,11 +386,13 @@ func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Context: context,
 	}
+	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
+		SSOProvider:      ssoProvider,
 	}
 	signupPasswordHandler := &SignupPasswordHandler{
 		Provider: authenticateProviderImpl,
@@ -452,3 +466,12 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 // wire.go:
 
 var authDepSet = wire.NewSet(authn.ProvideAuthUIProvider, wire.Bind(new(webapp.AuthnProvider), new(*authn.Provider)), wire.Struct(new(webapp.AuthenticateProviderImpl), "*"))
+
+func provideRedirectURIForWebAppFunc() sso.RedirectURLFunc {
+	return redirectURIForWebApp
+}
+
+func provideOAuthProviderFromLoginForm(r *http.Request, spf *sso.OAuthProviderFactory) sso.OAuthProvider {
+	idp := r.Form.Get("x_idp_id")
+	return spf.NewOAuthProvider(idp)
+}

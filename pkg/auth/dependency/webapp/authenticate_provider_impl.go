@@ -5,8 +5,10 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -16,6 +18,7 @@ type AuthenticateProviderImpl struct {
 	RenderProvider   RenderProvider
 	AuthnProvider    AuthnProvider
 	StateStore       StateStore
+	SSOProvider      sso.Provider
 }
 
 type AuthnProvider interface {
@@ -36,6 +39,10 @@ type AuthnProvider interface {
 	) (authn.Result, error)
 
 	WriteCookie(rw http.ResponseWriter, result *authn.CompletionResult)
+}
+
+type OAuthProvider interface {
+	GetAuthURL(state sso.State, encodedState string) (url string, err error)
 }
 
 func (p *AuthenticateProviderImpl) persistState(r *http.Request, inputError error) {
@@ -265,5 +272,39 @@ func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 		r.Form.Set("x_login_id", e164)
 	}
 
+	return
+}
+
+func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter, r *http.Request, oauthProvider OAuthProvider) (writeResponse func(err error), err error) {
+	var authURI string
+	writeResponse = func(err error) {
+		if err != nil {
+			panic(err)
+		} else {
+			http.Redirect(w, r, authURI, http.StatusFound)
+		}
+	}
+
+	redirectURI := "/"
+	if u, err := getRedirectURI(r); err == nil {
+		redirectURI = u
+	}
+	nonce := sso.GenerateOpenIDConnectNonce()
+	hashedNonce := crypto.SHA256String(nonce)
+	webappSSOState := SSOState{}
+	webappSSOState.SetCallbackURL(redirectURI)
+	state := sso.State{
+		Action: "login",
+		LoginState: sso.LoginState{
+			OnUserDuplicate: model.OnUserDuplicateAbort,
+		},
+		HashedNonce: hashedNonce,
+		Extra:       webappSSOState,
+	}
+	encodedState, err := p.SSOProvider.EncodeState(state)
+	if err != nil {
+		return
+	}
+	authURI, err = oauthProvider.GetAuthURL(state, encodedState)
 	return
 }

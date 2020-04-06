@@ -10,6 +10,7 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 )
 
@@ -24,6 +25,9 @@ func newLoginHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 		pkg.DependencySet,
 		authDepSet,
 		wire.Bind(new(loginProvider), new(*webapp.AuthenticateProviderImpl)),
+		wire.Bind(new(webapp.OAuthProvider), new(sso.OAuthProvider)),
+		provideRedirectURIForWebAppFunc,
+		provideOAuthProviderFromLoginForm,
 		wire.Struct(new(LoginHandler), "*"),
 		wire.Bind(new(http.Handler), new(*LoginHandler)),
 	)
@@ -80,4 +84,13 @@ func newLogoutHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 		wire.Bind(new(http.Handler), new(*LogoutHandler)),
 	)
 	return nil
+}
+
+func provideRedirectURIForWebAppFunc() sso.RedirectURLFunc {
+	return redirectURIForWebApp
+}
+
+func provideOAuthProviderFromLoginForm(r *http.Request, spf *sso.OAuthProviderFactory) sso.OAuthProvider {
+	idp := r.Form.Get("x_idp_id")
+	return spf.NewOAuthProvider(idp)
 }
