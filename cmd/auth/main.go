@@ -243,7 +243,7 @@ func main() {
 	webappRouter.Use(webapp.PostNoCacheMiddleware)
 
 	webappAuthRouter := webappRouter.NewRoute().Subrouter()
-	webappAuthRouter.Use(webapp.RequiredAnonymousMiddleware{}.Handle)
+	webappAuthRouter.Use(webapp.RequireNotAuthenticatedMiddleware{}.Handle)
 	webappAuthRouter.Use(auth.MakeMiddleware(authDependency, auth.NewStateMiddleware))
 	webapphandler.AttachRootHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachLoginHandler(webappAuthRouter, authDependency)
