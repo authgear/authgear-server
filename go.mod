@@ -14,6 +14,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/getsentry/sentry-go v0.3.0
 	github.com/go-gomail/gomail v0.0.0-20150902115704-41f357289737
+	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/golang/mock v1.3.1
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/google/uuid v1.1.1
@@ -28,6 +29,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.3.0
 	github.com/lestrrat-go/jwx v0.9.0
 	github.com/lib/pq v1.2.0
+	github.com/mattn/go-sqlite3 v1.11.0 // indirect
 	github.com/mitchellh/gox v1.0.1
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
 	github.com/nbutton23/zxcvbn-go v0.0.0-20171102151520-eafdab6b0663
@@ -38,7 +40,6 @@ require (
 	github.com/sfreiberg/gotwilio v0.0.0-20181012193634-a13e5b0d458a
 	github.com/sirupsen/logrus v1.4.2
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
-	github.com/skygeario/skygear-server/migrate v0.0.0-20200403033656-d4cdc710bca2 // indirect
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337
 	github.com/tinylib/msgp v1.1.0

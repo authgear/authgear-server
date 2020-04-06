@@ -76,7 +76,6 @@ github.com/go-gomail/gomail v0.0.0-20150902115704-41f357289737/go.mod h1:GJr+FCS
 github.com/go-martini/martini v0.0.0-20170121215854-22fa46961aab/go.mod h1:/P9AEU963A2AYjv4d1V5eVL1CQbEJq6aCNHDDjibzu8=
 github.com/go-sql-driver/mysql v1.4.1 h1:g24URVg0OFbNUTx9qqY1IRZ9D9z3iPyi5zKhQZpNwpA=
 github.com/go-sql-driver/mysql v1.4.1/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
-github.com/golang-migrate/migrate v3.5.4+incompatible/go.mod h1:IsVUlFN5puWOmXrqjgGUfIRIbU7mr8oNBE2tyERd9Wk=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b h1:VKtxabqXZkF25pY9ekfRL6a582T4P37/31XEstQ5p58=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/mock v1.1.1/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfbm0A=
@@ -232,8 +231,6 @@ github.com/skygeario/gojsonschema v1.2.1-0.20200107025531-9fad5cb886b4 h1:k1//MU
 github.com/skygeario/gojsonschema v1.2.1-0.20200107025531-9fad5cb886b4/go.mod h1:anYRn/JVcOK2ZgGU+IjEV4nwlhoK5sQluxsYJ78Id3Y=
 github.com/skygeario/govips v0.0.0-20191017114550-b7b5b9596467 h1:BckNBGk1auBtDaost4Jg8ZoQdgyRcF023AhRg4Z0wuY=
 github.com/skygeario/govips v0.0.0-20191017114550-b7b5b9596467/go.mod h1:1N7xhpzu36njBwE3Xz7nvya7ZYkE8sh0caxHChWrDJk=
-github.com/skygeario/skygear-server/migrate v0.0.0-20200403033656-d4cdc710bca2 h1:25Lodjxcz8lyJq91lGWoR7C8aRK/+91br/7BTmicrSc=
-github.com/skygeario/skygear-server/migrate v0.0.0-20200403033656-d4cdc710bca2/go.mod h1:bAmDNlTotg6rGoqq/ut0OTRoP6KJRG0USzsBQDMdy1A=
 github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
 github.com/smartystreets/assertions v1.0.0 h1:UVQPSSmc3qtTi+zPPkCXvZX9VvW/xT/NsRvKfwY81a8=
 github.com/smartystreets/assertions v1.0.0/go.mod h1:kHHU4qYBaI3q23Pp3VPrmWhuIUrLW/7eUrw0BU5VaoM=
