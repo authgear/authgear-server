@@ -19,7 +19,7 @@ import (
 
 type RenderProviderImpl struct {
 	StaticAssetURLPrefix string
-	AuthConfiguration    *config.AuthConfiguration
+	LoginIDConfiguration *config.LoginIDConfiguration
 	AuthUIConfiguration  *config.AuthUIConfiguration
 	OAuthProviders       []config.OAuthProviderConfiguration
 	TemplateEngine       *template.Engine
@@ -73,7 +73,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 
 	data["x_calling_codes"] = phone.CountryCallingCodes
 
-	for _, keyConfig := range p.AuthConfiguration.LoginIDKeys {
+	for _, keyConfig := range p.LoginIDConfiguration.Keys {
 		if string(keyConfig.Type) == "phone" {
 			data["x_login_id_input_type_has_phone"] = true
 		} else {
@@ -82,7 +82,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	}
 
 	var loginIDKeys []map[string]interface{}
-	for _, loginIDKey := range p.AuthConfiguration.LoginIDKeys {
+	for _, loginIDKey := range p.LoginIDConfiguration.Keys {
 		inputType := "text"
 		if loginIDKey.Type == "phone" {
 			inputType = "phone"

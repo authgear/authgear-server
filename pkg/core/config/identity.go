@@ -1,5 +1,7 @@
 package config
 
+import "github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+
 //go:generate msgp -tests=false
 
 type IdentityConfiguration struct {
@@ -8,6 +10,60 @@ type IdentityConfiguration struct {
 }
 
 type LoginIDConfiguration struct {
+	Types *LoginIDTypesConfiguration `json:"types,omitempty" yaml:"types" msg:"types" default_zero_value:"true"`
+	Keys  []LoginIDKeyConfiguration  `json:"keys,omitempty" yaml:"keys" msg:"keys"`
+}
+
+func (c *LoginIDConfiguration) GetKey(key string) (*LoginIDKeyConfiguration, bool) {
+	for _, config := range c.Keys {
+		if config.Key == key {
+			return &config, true
+		}
+	}
+
+	return nil, false
+}
+
+type LoginIDKeyType string
+
+const LoginIDKeyTypeRaw LoginIDKeyType = "raw"
+
+func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
+	for _, key := range metadata.AllKeys() {
+		if string(t) == string(key) {
+			return key, true
+		}
+	}
+	return "", false
+}
+
+func (t LoginIDKeyType) IsValid() bool {
+	_, validKey := t.MetadataKey()
+	return t == LoginIDKeyTypeRaw || validKey
+}
+
+type LoginIDTypesConfiguration struct {
+	Email    *LoginIDTypeEmailConfiguration    `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
+	Username *LoginIDTypeUsernameConfiguration `json:"username,omitempty" yaml:"username" msg:"username" default_zero_value:"true"`
+}
+
+type LoginIDTypeEmailConfiguration struct {
+	CaseSensitive *bool `json:"case_sensitive" yaml:"case_sensitive" msg:"case_sensitive"`
+	BlockPlusSign *bool `json:"block_plus_sign" yaml:"block_plus_sign" msg:"block_plus_sign"`
+	IgnoreDotSign *bool `json:"ignore_dot_sign" yaml:"ignore_dot_sign" msg:"ignore_dot_sign"`
+}
+
+type LoginIDTypeUsernameConfiguration struct {
+	BlockReservedUsernames *bool    `json:"block_reserved_usernames" yaml:"block_reserved_usernames" msg:"block_reserved_usernames"`
+	ExcludedKeywords       []string `json:"excluded_keywords,omitempty" yaml:"excluded_keywords" msg:"excluded_keywords"`
+	ASCIIOnly              *bool    `json:"ascii_only" yaml:"ascii_only" msg:"ascii_only"`
+	CaseSensitive          *bool    `json:"case_sensitive" yaml:"case_sensitive" msg:"case_sensitive"`
+}
+
+type LoginIDKeyConfiguration struct {
+	Key     string         `json:"key" yaml:"key" msg:"key"`
+	Type    LoginIDKeyType `json:"type,omitempty" yaml:"type" msg:"type"`
+	Maximum *int           `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
 }
 
 type OAuthConfiguration struct {

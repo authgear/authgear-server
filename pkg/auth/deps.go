@@ -124,7 +124,7 @@ func ProvideWebAppRenderProvider(
 ) webapp.RenderProvider {
 	return &webapp.RenderProviderImpl{
 		StaticAssetURLPrefix: m.StaticAssetURLPrefix,
-		AuthConfiguration:    config.AppConfig.Auth,
+		LoginIDConfiguration: config.AppConfig.Identity.LoginID,
 		AuthUIConfiguration:  config.AppConfig.AuthUI,
 		OAuthProviders:       config.AppConfig.Identity.OAuth.Providers,
 		PasswordChecker:      passwordChecker,

@@ -41,68 +41,72 @@ func TestParseAppConfiguration(t *testing.T) {
 			"/auth/authentication_session: Required",
 			"/hook/secret: Required",
 		)
-		// Empty auth.login_id_keys
+		// Empty identity.login_id.keys
 		test(`
 			{
 				"master_key": "master_key",
 				"asset": {},
-				"auth": {
-					"login_id_keys": []
+				"identity": {
+					"login_id": {
+						"keys": []
+					}
 				},
 				"hook": {}
 			}`,
 			"/api_version: Required",
 			"/asset/secret: Required",
-			"/auth/authentication_session: Required",
-			"/auth/login_id_keys: EntryAmount map[gte:1]",
+			"/auth: Required",
 			"/hook/secret: Required",
+			"/identity/login_id/keys: EntryAmount map[gte:1]",
 		)
 		// Invalid login id type
 		test(`
 			{
 				"master_key": "master_key",
-				"auth": {
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						},
-						{
-							"key": "invalid",
-							"type": "invalid"
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							},
+							{
+								"key": "invalid",
+								"type": "invalid"
+							}
+						],
+						"types": {
+							"email": {
+								"case_sensitive": false,
+								"block_plus_sign": false,
+								"ignore_dot_sign": false
+							},
+							"username": {
+								"block_reserved_usernames": true,
+								"excluded_keywords": [ "skygear" ],
+								"ascii_only": false,
+								"case_sensitive": false
+							},
+							"phone": {}
 						}
-					],
-					"login_id_types": {
-						"email": {
-							"case_sensitive": false,
-							"block_plus_sign": false,
-							"ignore_dot_sign": false
-						},
-						"username": {
-							"block_reserved_usernames": true,
-							"excluded_keywords": [ "skygear" ],
-							"ascii_only": false,
-							"case_sensitive": false
-						},
-						"phone": {}
 					}
 				},
 				"hook": {}
 			}`,
 			"/api_version: Required",
 			"/asset: Required",
-			"/auth/authentication_session: Required",
-			"/auth/login_id_keys/3/type: Enum map[expected:[raw email phone username]]",
-			"/auth/login_id_types/phone: ExtraEntry",
+			"/auth: Required",
 			"/hook/secret: Required",
+			"/identity/login_id/keys/3/type: Enum map[expected:[raw email phone username]]",
+			"/identity/login_id/types/phone: ExtraEntry",
 		)
 		// Minimal valid example
 		test(`
@@ -115,21 +119,25 @@ func TestParseAppConfiguration(t *testing.T) {
 				"auth": {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+					}
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -154,21 +162,25 @@ func TestParseAppConfiguration(t *testing.T) {
 				"auth": {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+					}
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -196,21 +208,25 @@ func TestParseAppConfiguration(t *testing.T) {
 				"auth": {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+					}
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -230,21 +246,25 @@ func TestParseAppConfiguration(t *testing.T) {
 				"auth": {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+					}
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -292,21 +312,25 @@ func TestParseAppConfiguration(t *testing.T) {
 				"auth": {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+					}
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -336,21 +360,25 @@ func TestParseAppConfiguration(t *testing.T) {
 				"auth": {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+					}
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -372,26 +400,28 @@ func TestParseAppConfiguration(t *testing.T) {
 				"auth": {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
 				},
 				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					},
 					"oauth": {
 						"providers": [
 							{ "type": "azureadv2" },
@@ -423,21 +453,25 @@ func TestParseAppConfiguration(t *testing.T) {
 				"auth": {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+					}
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -466,21 +500,25 @@ func TestParseAppConfiguration(t *testing.T) {
 				"auth": {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+					}
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -502,21 +540,25 @@ func TestParseAppConfiguration(t *testing.T) {
 				"auth": {
 					"authentication_session": {
 						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+					}
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"

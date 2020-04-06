@@ -174,10 +174,68 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Auth == nil {
 					z.Auth = new(AuthConfiguration)
 				}
-				err = z.Auth.DecodeMsg(dc)
+				var zb0005 uint32
+				zb0005, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Auth")
 					return
+				}
+				for zb0005 > 0 {
+					zb0005--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "Auth")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "authentication_session":
+						if dc.IsNil() {
+							err = dc.ReadNil()
+							if err != nil {
+								err = msgp.WrapError(err, "Auth", "AuthenticationSession")
+								return
+							}
+							z.Auth.AuthenticationSession = nil
+						} else {
+							if z.Auth.AuthenticationSession == nil {
+								z.Auth.AuthenticationSession = new(AuthenticationSessionConfiguration)
+							}
+							var zb0006 uint32
+							zb0006, err = dc.ReadMapHeader()
+							if err != nil {
+								err = msgp.WrapError(err, "Auth", "AuthenticationSession")
+								return
+							}
+							for zb0006 > 0 {
+								zb0006--
+								field, err = dc.ReadMapKeyPtr()
+								if err != nil {
+									err = msgp.WrapError(err, "Auth", "AuthenticationSession")
+									return
+								}
+								switch msgp.UnsafeString(field) {
+								case "secret":
+									z.Auth.AuthenticationSession.Secret, err = dc.ReadString()
+									if err != nil {
+										err = msgp.WrapError(err, "Auth", "AuthenticationSession", "Secret")
+										return
+									}
+								default:
+									err = dc.Skip()
+									if err != nil {
+										err = msgp.WrapError(err, "Auth", "AuthenticationSession")
+										return
+									}
+								}
+							}
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "Auth")
+							return
+						}
+					}
 				}
 			}
 		case "auth_ui":
@@ -192,14 +250,14 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.AuthUI == nil {
 					z.AuthUI = new(AuthUIConfiguration)
 				}
-				var zb0005 uint32
-				zb0005, err = dc.ReadMapHeader()
+				var zb0007 uint32
+				zb0007, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "AuthUI")
 					return
 				}
-				for zb0005 > 0 {
-					zb0005--
+				for zb0007 > 0 {
+					zb0007--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "AuthUI")
@@ -359,14 +417,14 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Hook == nil {
 					z.Hook = new(HookAppConfiguration)
 				}
-				var zb0006 uint32
-				zb0006, err = dc.ReadMapHeader()
+				var zb0008 uint32
+				zb0008, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Hook")
 					return
 				}
-				for zb0006 > 0 {
-					zb0006--
+				for zb0008 > 0 {
+					zb0008--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Hook")
@@ -418,14 +476,14 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Twilio == nil {
 					z.Twilio = new(TwilioConfiguration)
 				}
-				var zb0007 uint32
-				zb0007, err = dc.ReadMapHeader()
+				var zb0009 uint32
+				zb0009, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Twilio")
 					return
 				}
-				for zb0007 > 0 {
-					zb0007--
+				for zb0009 > 0 {
+					zb0009--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Twilio")
@@ -471,14 +529,14 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Nexmo == nil {
 					z.Nexmo = new(NexmoConfiguration)
 				}
-				var zb0008 uint32
-				zb0008, err = dc.ReadMapHeader()
+				var zb0010 uint32
+				zb0010, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Nexmo")
 					return
 				}
-				for zb0008 > 0 {
-					zb0008--
+				for zb0010 > 0 {
+					zb0010--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Nexmo")
@@ -524,14 +582,14 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Asset == nil {
 					z.Asset = new(AssetConfiguration)
 				}
-				var zb0009 uint32
-				zb0009, err = dc.ReadMapHeader()
+				var zb0011 uint32
+				zb0011, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Asset")
 					return
 				}
-				for zb0009 > 0 {
-					zb0009--
+				for zb0011 > 0 {
+					zb0011--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Asset")
@@ -694,10 +752,29 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	} else {
-		err = z.Auth.EncodeMsg(en)
+		// map header, size 1
+		// write "authentication_session"
+		err = en.Append(0x81, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
 		if err != nil {
-			err = msgp.WrapError(err, "Auth")
 			return
+		}
+		if z.Auth.AuthenticationSession == nil {
+			err = en.WriteNil()
+			if err != nil {
+				return
+			}
+		} else {
+			// map header, size 1
+			// write "secret"
+			err = en.Append(0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+			if err != nil {
+				return
+			}
+			err = en.WriteString(z.Auth.AuthenticationSession.Secret)
+			if err != nil {
+				err = msgp.WrapError(err, "Auth", "AuthenticationSession", "Secret")
+				return
+			}
 		}
 	}
 	// write "auth_ui"
@@ -1058,10 +1135,16 @@ func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	if z.Auth == nil {
 		o = msgp.AppendNil(o)
 	} else {
-		o, err = z.Auth.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "Auth")
-			return
+		// map header, size 1
+		// string "authentication_session"
+		o = append(o, 0x81, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
+		if z.Auth.AuthenticationSession == nil {
+			o = msgp.AppendNil(o)
+		} else {
+			// map header, size 1
+			// string "secret"
+			o = append(o, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+			o = msgp.AppendString(o, z.Auth.AuthenticationSession.Secret)
 		}
 	}
 	// string "auth_ui"
@@ -1381,10 +1464,67 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Auth == nil {
 					z.Auth = new(AuthConfiguration)
 				}
-				bts, err = z.Auth.UnmarshalMsg(bts)
+				var zb0005 uint32
+				zb0005, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Auth")
 					return
+				}
+				for zb0005 > 0 {
+					zb0005--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "Auth")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "authentication_session":
+						if msgp.IsNil(bts) {
+							bts, err = msgp.ReadNilBytes(bts)
+							if err != nil {
+								return
+							}
+							z.Auth.AuthenticationSession = nil
+						} else {
+							if z.Auth.AuthenticationSession == nil {
+								z.Auth.AuthenticationSession = new(AuthenticationSessionConfiguration)
+							}
+							var zb0006 uint32
+							zb0006, bts, err = msgp.ReadMapHeaderBytes(bts)
+							if err != nil {
+								err = msgp.WrapError(err, "Auth", "AuthenticationSession")
+								return
+							}
+							for zb0006 > 0 {
+								zb0006--
+								field, bts, err = msgp.ReadMapKeyZC(bts)
+								if err != nil {
+									err = msgp.WrapError(err, "Auth", "AuthenticationSession")
+									return
+								}
+								switch msgp.UnsafeString(field) {
+								case "secret":
+									z.Auth.AuthenticationSession.Secret, bts, err = msgp.ReadStringBytes(bts)
+									if err != nil {
+										err = msgp.WrapError(err, "Auth", "AuthenticationSession", "Secret")
+										return
+									}
+								default:
+									bts, err = msgp.Skip(bts)
+									if err != nil {
+										err = msgp.WrapError(err, "Auth", "AuthenticationSession")
+										return
+									}
+								}
+							}
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Auth")
+							return
+						}
+					}
 				}
 			}
 		case "auth_ui":
@@ -1398,14 +1538,14 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.AuthUI == nil {
 					z.AuthUI = new(AuthUIConfiguration)
 				}
-				var zb0005 uint32
-				zb0005, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0007 uint32
+				zb0007, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "AuthUI")
 					return
 				}
-				for zb0005 > 0 {
-					zb0005--
+				for zb0007 > 0 {
+					zb0007--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "AuthUI")
@@ -1557,14 +1697,14 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Hook == nil {
 					z.Hook = new(HookAppConfiguration)
 				}
-				var zb0006 uint32
-				zb0006, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0008 uint32
+				zb0008, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Hook")
 					return
 				}
-				for zb0006 > 0 {
-					zb0006--
+				for zb0008 > 0 {
+					zb0008--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Hook")
@@ -1614,14 +1754,14 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Twilio == nil {
 					z.Twilio = new(TwilioConfiguration)
 				}
-				var zb0007 uint32
-				zb0007, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0009 uint32
+				zb0009, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Twilio")
 					return
 				}
-				for zb0007 > 0 {
-					zb0007--
+				for zb0009 > 0 {
+					zb0009--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Twilio")
@@ -1666,14 +1806,14 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Nexmo == nil {
 					z.Nexmo = new(NexmoConfiguration)
 				}
-				var zb0008 uint32
-				zb0008, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0010 uint32
+				zb0010, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Nexmo")
 					return
 				}
-				for zb0008 > 0 {
-					zb0008--
+				for zb0010 > 0 {
+					zb0010--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Nexmo")
@@ -1718,14 +1858,14 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Asset == nil {
 					z.Asset = new(AssetConfiguration)
 				}
-				var zb0009 uint32
-				zb0009, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0011 uint32
+				zb0011, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Asset")
 					return
 				}
-				for zb0009 > 0 {
-					zb0009--
+				for zb0011 > 0 {
+					zb0011--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Asset")
@@ -1793,7 +1933,12 @@ func (z *AppConfiguration) Msgsize() (s int) {
 	if z.Auth == nil {
 		s += msgp.NilSize
 	} else {
-		s += z.Auth.Msgsize()
+		s += 1 + 23
+		if z.Auth.AuthenticationSession == nil {
+			s += msgp.NilSize
+		} else {
+			s += 1 + 7 + msgp.StringPrefixSize + len(z.Auth.AuthenticationSession.Secret)
+		}
 	}
 	s += 8
 	if z.AuthUI == nil {
@@ -2038,43 +2183,6 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
-		case "login_id_types":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "LoginIDTypes")
-					return
-				}
-				z.LoginIDTypes = nil
-			} else {
-				if z.LoginIDTypes == nil {
-					z.LoginIDTypes = new(LoginIDTypesConfiguration)
-				}
-				err = z.LoginIDTypes.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "LoginIDTypes")
-					return
-				}
-			}
-		case "login_id_keys":
-			var zb0003 uint32
-			zb0003, err = dc.ReadArrayHeader()
-			if err != nil {
-				err = msgp.WrapError(err, "LoginIDKeys")
-				return
-			}
-			if cap(z.LoginIDKeys) >= int(zb0003) {
-				z.LoginIDKeys = (z.LoginIDKeys)[:zb0003]
-			} else {
-				z.LoginIDKeys = make([]LoginIDKeyConfiguration, zb0003)
-			}
-			for za0001 := range z.LoginIDKeys {
-				err = z.LoginIDKeys[za0001].DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "LoginIDKeys", za0001)
-					return
-				}
-			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -2088,9 +2196,9 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 3
+	// map header, size 1
 	// write "authentication_session"
-	err = en.Append(0x83, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0x81, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
@@ -2112,49 +2220,15 @@ func (z *AuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	}
-	// write "login_id_types"
-	err = en.Append(0xae, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x73)
-	if err != nil {
-		return
-	}
-	if z.LoginIDTypes == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.LoginIDTypes.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "LoginIDTypes")
-			return
-		}
-	}
-	// write "login_id_keys"
-	err = en.Append(0xad, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x73)
-	if err != nil {
-		return
-	}
-	err = en.WriteArrayHeader(uint32(len(z.LoginIDKeys)))
-	if err != nil {
-		err = msgp.WrapError(err, "LoginIDKeys")
-		return
-	}
-	for za0001 := range z.LoginIDKeys {
-		err = z.LoginIDKeys[za0001].EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "LoginIDKeys", za0001)
-			return
-		}
-	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *AuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 3
+	// map header, size 1
 	// string "authentication_session"
-	o = append(o, 0x83, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0x81, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
 	if z.AuthenticationSession == nil {
 		o = msgp.AppendNil(o)
 	} else {
@@ -2162,27 +2236,6 @@ func (z *AuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		// string "secret"
 		o = append(o, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 		o = msgp.AppendString(o, z.AuthenticationSession.Secret)
-	}
-	// string "login_id_types"
-	o = append(o, 0xae, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x73)
-	if z.LoginIDTypes == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.LoginIDTypes.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "LoginIDTypes")
-			return
-		}
-	}
-	// string "login_id_keys"
-	o = append(o, 0xad, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x73)
-	o = msgp.AppendArrayHeader(o, uint32(len(z.LoginIDKeys)))
-	for za0001 := range z.LoginIDKeys {
-		o, err = z.LoginIDKeys[za0001].MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "LoginIDKeys", za0001)
-			return
-		}
 	}
 	return
 }
@@ -2245,42 +2298,6 @@ func (z *AuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 				}
 			}
-		case "login_id_types":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.LoginIDTypes = nil
-			} else {
-				if z.LoginIDTypes == nil {
-					z.LoginIDTypes = new(LoginIDTypesConfiguration)
-				}
-				bts, err = z.LoginIDTypes.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "LoginIDTypes")
-					return
-				}
-			}
-		case "login_id_keys":
-			var zb0003 uint32
-			zb0003, bts, err = msgp.ReadArrayHeaderBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "LoginIDKeys")
-				return
-			}
-			if cap(z.LoginIDKeys) >= int(zb0003) {
-				z.LoginIDKeys = (z.LoginIDKeys)[:zb0003]
-			} else {
-				z.LoginIDKeys = make([]LoginIDKeyConfiguration, zb0003)
-			}
-			for za0001 := range z.LoginIDKeys {
-				bts, err = z.LoginIDKeys[za0001].UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "LoginIDKeys", za0001)
-					return
-				}
-			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -2300,16 +2317,6 @@ func (z *AuthConfiguration) Msgsize() (s int) {
 		s += msgp.NilSize
 	} else {
 		s += 1 + 7 + msgp.StringPrefixSize + len(z.AuthenticationSession.Secret)
-	}
-	s += 15
-	if z.LoginIDTypes == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.LoginIDTypes.Msgsize()
-	}
-	s += 14 + msgp.ArrayHeaderSize
-	for za0001 := range z.LoginIDKeys {
-		s += z.LoginIDKeys[za0001].Msgsize()
 	}
 	return
 }
@@ -3612,1082 +3619,6 @@ func (z *HookTenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error)
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z HookTenantConfiguration) Msgsize() (s int) {
 	s = 1 + 25 + msgp.IntSize + 31 + msgp.IntSize
-	return
-}
-
-// DecodeMsg implements msgp.Decodable
-func (z *LoginIDKeyConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, err = dc.ReadMapHeader()
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, err = dc.ReadMapKeyPtr()
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "key":
-			z.Key, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "Key")
-				return
-			}
-		case "type":
-			{
-				var zb0002 string
-				zb0002, err = dc.ReadString()
-				if err != nil {
-					err = msgp.WrapError(err, "Type")
-					return
-				}
-				z.Type = LoginIDKeyType(zb0002)
-			}
-		case "maximum":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "Maximum")
-					return
-				}
-				z.Maximum = nil
-			} else {
-				if z.Maximum == nil {
-					z.Maximum = new(int)
-				}
-				*z.Maximum, err = dc.ReadInt()
-				if err != nil {
-					err = msgp.WrapError(err, "Maximum")
-					return
-				}
-			}
-		default:
-			err = dc.Skip()
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	return
-}
-
-// EncodeMsg implements msgp.Encodable
-func (z *LoginIDKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 3
-	// write "key"
-	err = en.Append(0x83, 0xa3, 0x6b, 0x65, 0x79)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Key)
-	if err != nil {
-		err = msgp.WrapError(err, "Key")
-		return
-	}
-	// write "type"
-	err = en.Append(0xa4, 0x74, 0x79, 0x70, 0x65)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(string(z.Type))
-	if err != nil {
-		err = msgp.WrapError(err, "Type")
-		return
-	}
-	// write "maximum"
-	err = en.Append(0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
-	if err != nil {
-		return
-	}
-	if z.Maximum == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = en.WriteInt(*z.Maximum)
-		if err != nil {
-			err = msgp.WrapError(err, "Maximum")
-			return
-		}
-	}
-	return
-}
-
-// MarshalMsg implements msgp.Marshaler
-func (z *LoginIDKeyConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
-	o = msgp.Require(b, z.Msgsize())
-	// map header, size 3
-	// string "key"
-	o = append(o, 0x83, 0xa3, 0x6b, 0x65, 0x79)
-	o = msgp.AppendString(o, z.Key)
-	// string "type"
-	o = append(o, 0xa4, 0x74, 0x79, 0x70, 0x65)
-	o = msgp.AppendString(o, string(z.Type))
-	// string "maximum"
-	o = append(o, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
-	if z.Maximum == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o = msgp.AppendInt(o, *z.Maximum)
-	}
-	return
-}
-
-// UnmarshalMsg implements msgp.Unmarshaler
-func (z *LoginIDKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, bts, err = msgp.ReadMapKeyZC(bts)
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "key":
-			z.Key, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Key")
-				return
-			}
-		case "type":
-			{
-				var zb0002 string
-				zb0002, bts, err = msgp.ReadStringBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Type")
-					return
-				}
-				z.Type = LoginIDKeyType(zb0002)
-			}
-		case "maximum":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.Maximum = nil
-			} else {
-				if z.Maximum == nil {
-					z.Maximum = new(int)
-				}
-				*z.Maximum, bts, err = msgp.ReadIntBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Maximum")
-					return
-				}
-			}
-		default:
-			bts, err = msgp.Skip(bts)
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	o = bts
-	return
-}
-
-// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *LoginIDKeyConfiguration) Msgsize() (s int) {
-	s = 1 + 4 + msgp.StringPrefixSize + len(z.Key) + 5 + msgp.StringPrefixSize + len(string(z.Type)) + 8
-	if z.Maximum == nil {
-		s += msgp.NilSize
-	} else {
-		s += msgp.IntSize
-	}
-	return
-}
-
-// DecodeMsg implements msgp.Decodable
-func (z *LoginIDKeyType) DecodeMsg(dc *msgp.Reader) (err error) {
-	{
-		var zb0001 string
-		zb0001, err = dc.ReadString()
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		(*z) = LoginIDKeyType(zb0001)
-	}
-	return
-}
-
-// EncodeMsg implements msgp.Encodable
-func (z LoginIDKeyType) EncodeMsg(en *msgp.Writer) (err error) {
-	err = en.WriteString(string(z))
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	return
-}
-
-// MarshalMsg implements msgp.Marshaler
-func (z LoginIDKeyType) MarshalMsg(b []byte) (o []byte, err error) {
-	o = msgp.Require(b, z.Msgsize())
-	o = msgp.AppendString(o, string(z))
-	return
-}
-
-// UnmarshalMsg implements msgp.Unmarshaler
-func (z *LoginIDKeyType) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	{
-		var zb0001 string
-		zb0001, bts, err = msgp.ReadStringBytes(bts)
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		(*z) = LoginIDKeyType(zb0001)
-	}
-	o = bts
-	return
-}
-
-// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z LoginIDKeyType) Msgsize() (s int) {
-	s = msgp.StringPrefixSize + len(string(z))
-	return
-}
-
-// DecodeMsg implements msgp.Decodable
-func (z *LoginIDTypeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, err = dc.ReadMapHeader()
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, err = dc.ReadMapKeyPtr()
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "case_sensitive":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "CaseSensitive")
-					return
-				}
-				z.CaseSensitive = nil
-			} else {
-				if z.CaseSensitive == nil {
-					z.CaseSensitive = new(bool)
-				}
-				*z.CaseSensitive, err = dc.ReadBool()
-				if err != nil {
-					err = msgp.WrapError(err, "CaseSensitive")
-					return
-				}
-			}
-		case "block_plus_sign":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "BlockPlusSign")
-					return
-				}
-				z.BlockPlusSign = nil
-			} else {
-				if z.BlockPlusSign == nil {
-					z.BlockPlusSign = new(bool)
-				}
-				*z.BlockPlusSign, err = dc.ReadBool()
-				if err != nil {
-					err = msgp.WrapError(err, "BlockPlusSign")
-					return
-				}
-			}
-		case "ignore_dot_sign":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "IgnoreDotSign")
-					return
-				}
-				z.IgnoreDotSign = nil
-			} else {
-				if z.IgnoreDotSign == nil {
-					z.IgnoreDotSign = new(bool)
-				}
-				*z.IgnoreDotSign, err = dc.ReadBool()
-				if err != nil {
-					err = msgp.WrapError(err, "IgnoreDotSign")
-					return
-				}
-			}
-		default:
-			err = dc.Skip()
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	return
-}
-
-// EncodeMsg implements msgp.Encodable
-func (z *LoginIDTypeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 3
-	// write "case_sensitive"
-	err = en.Append(0x83, 0xae, 0x63, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x65, 0x6e, 0x73, 0x69, 0x74, 0x69, 0x76, 0x65)
-	if err != nil {
-		return
-	}
-	if z.CaseSensitive == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = en.WriteBool(*z.CaseSensitive)
-		if err != nil {
-			err = msgp.WrapError(err, "CaseSensitive")
-			return
-		}
-	}
-	// write "block_plus_sign"
-	err = en.Append(0xaf, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x70, 0x6c, 0x75, 0x73, 0x5f, 0x73, 0x69, 0x67, 0x6e)
-	if err != nil {
-		return
-	}
-	if z.BlockPlusSign == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = en.WriteBool(*z.BlockPlusSign)
-		if err != nil {
-			err = msgp.WrapError(err, "BlockPlusSign")
-			return
-		}
-	}
-	// write "ignore_dot_sign"
-	err = en.Append(0xaf, 0x69, 0x67, 0x6e, 0x6f, 0x72, 0x65, 0x5f, 0x64, 0x6f, 0x74, 0x5f, 0x73, 0x69, 0x67, 0x6e)
-	if err != nil {
-		return
-	}
-	if z.IgnoreDotSign == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = en.WriteBool(*z.IgnoreDotSign)
-		if err != nil {
-			err = msgp.WrapError(err, "IgnoreDotSign")
-			return
-		}
-	}
-	return
-}
-
-// MarshalMsg implements msgp.Marshaler
-func (z *LoginIDTypeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
-	o = msgp.Require(b, z.Msgsize())
-	// map header, size 3
-	// string "case_sensitive"
-	o = append(o, 0x83, 0xae, 0x63, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x65, 0x6e, 0x73, 0x69, 0x74, 0x69, 0x76, 0x65)
-	if z.CaseSensitive == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o = msgp.AppendBool(o, *z.CaseSensitive)
-	}
-	// string "block_plus_sign"
-	o = append(o, 0xaf, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x70, 0x6c, 0x75, 0x73, 0x5f, 0x73, 0x69, 0x67, 0x6e)
-	if z.BlockPlusSign == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o = msgp.AppendBool(o, *z.BlockPlusSign)
-	}
-	// string "ignore_dot_sign"
-	o = append(o, 0xaf, 0x69, 0x67, 0x6e, 0x6f, 0x72, 0x65, 0x5f, 0x64, 0x6f, 0x74, 0x5f, 0x73, 0x69, 0x67, 0x6e)
-	if z.IgnoreDotSign == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o = msgp.AppendBool(o, *z.IgnoreDotSign)
-	}
-	return
-}
-
-// UnmarshalMsg implements msgp.Unmarshaler
-func (z *LoginIDTypeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, bts, err = msgp.ReadMapKeyZC(bts)
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "case_sensitive":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.CaseSensitive = nil
-			} else {
-				if z.CaseSensitive == nil {
-					z.CaseSensitive = new(bool)
-				}
-				*z.CaseSensitive, bts, err = msgp.ReadBoolBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "CaseSensitive")
-					return
-				}
-			}
-		case "block_plus_sign":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.BlockPlusSign = nil
-			} else {
-				if z.BlockPlusSign == nil {
-					z.BlockPlusSign = new(bool)
-				}
-				*z.BlockPlusSign, bts, err = msgp.ReadBoolBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "BlockPlusSign")
-					return
-				}
-			}
-		case "ignore_dot_sign":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.IgnoreDotSign = nil
-			} else {
-				if z.IgnoreDotSign == nil {
-					z.IgnoreDotSign = new(bool)
-				}
-				*z.IgnoreDotSign, bts, err = msgp.ReadBoolBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "IgnoreDotSign")
-					return
-				}
-			}
-		default:
-			bts, err = msgp.Skip(bts)
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	o = bts
-	return
-}
-
-// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *LoginIDTypeEmailConfiguration) Msgsize() (s int) {
-	s = 1 + 15
-	if z.CaseSensitive == nil {
-		s += msgp.NilSize
-	} else {
-		s += msgp.BoolSize
-	}
-	s += 16
-	if z.BlockPlusSign == nil {
-		s += msgp.NilSize
-	} else {
-		s += msgp.BoolSize
-	}
-	s += 16
-	if z.IgnoreDotSign == nil {
-		s += msgp.NilSize
-	} else {
-		s += msgp.BoolSize
-	}
-	return
-}
-
-// DecodeMsg implements msgp.Decodable
-func (z *LoginIDTypeUsernameConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, err = dc.ReadMapHeader()
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, err = dc.ReadMapKeyPtr()
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "block_reserved_usernames":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "BlockReservedUsernames")
-					return
-				}
-				z.BlockReservedUsernames = nil
-			} else {
-				if z.BlockReservedUsernames == nil {
-					z.BlockReservedUsernames = new(bool)
-				}
-				*z.BlockReservedUsernames, err = dc.ReadBool()
-				if err != nil {
-					err = msgp.WrapError(err, "BlockReservedUsernames")
-					return
-				}
-			}
-		case "excluded_keywords":
-			var zb0002 uint32
-			zb0002, err = dc.ReadArrayHeader()
-			if err != nil {
-				err = msgp.WrapError(err, "ExcludedKeywords")
-				return
-			}
-			if cap(z.ExcludedKeywords) >= int(zb0002) {
-				z.ExcludedKeywords = (z.ExcludedKeywords)[:zb0002]
-			} else {
-				z.ExcludedKeywords = make([]string, zb0002)
-			}
-			for za0001 := range z.ExcludedKeywords {
-				z.ExcludedKeywords[za0001], err = dc.ReadString()
-				if err != nil {
-					err = msgp.WrapError(err, "ExcludedKeywords", za0001)
-					return
-				}
-			}
-		case "ascii_only":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "ASCIIOnly")
-					return
-				}
-				z.ASCIIOnly = nil
-			} else {
-				if z.ASCIIOnly == nil {
-					z.ASCIIOnly = new(bool)
-				}
-				*z.ASCIIOnly, err = dc.ReadBool()
-				if err != nil {
-					err = msgp.WrapError(err, "ASCIIOnly")
-					return
-				}
-			}
-		case "case_sensitive":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "CaseSensitive")
-					return
-				}
-				z.CaseSensitive = nil
-			} else {
-				if z.CaseSensitive == nil {
-					z.CaseSensitive = new(bool)
-				}
-				*z.CaseSensitive, err = dc.ReadBool()
-				if err != nil {
-					err = msgp.WrapError(err, "CaseSensitive")
-					return
-				}
-			}
-		default:
-			err = dc.Skip()
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	return
-}
-
-// EncodeMsg implements msgp.Encodable
-func (z *LoginIDTypeUsernameConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 4
-	// write "block_reserved_usernames"
-	err = en.Append(0x84, 0xb8, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x64, 0x5f, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x73)
-	if err != nil {
-		return
-	}
-	if z.BlockReservedUsernames == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = en.WriteBool(*z.BlockReservedUsernames)
-		if err != nil {
-			err = msgp.WrapError(err, "BlockReservedUsernames")
-			return
-		}
-	}
-	// write "excluded_keywords"
-	err = en.Append(0xb1, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x73)
-	if err != nil {
-		return
-	}
-	err = en.WriteArrayHeader(uint32(len(z.ExcludedKeywords)))
-	if err != nil {
-		err = msgp.WrapError(err, "ExcludedKeywords")
-		return
-	}
-	for za0001 := range z.ExcludedKeywords {
-		err = en.WriteString(z.ExcludedKeywords[za0001])
-		if err != nil {
-			err = msgp.WrapError(err, "ExcludedKeywords", za0001)
-			return
-		}
-	}
-	// write "ascii_only"
-	err = en.Append(0xaa, 0x61, 0x73, 0x63, 0x69, 0x69, 0x5f, 0x6f, 0x6e, 0x6c, 0x79)
-	if err != nil {
-		return
-	}
-	if z.ASCIIOnly == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = en.WriteBool(*z.ASCIIOnly)
-		if err != nil {
-			err = msgp.WrapError(err, "ASCIIOnly")
-			return
-		}
-	}
-	// write "case_sensitive"
-	err = en.Append(0xae, 0x63, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x65, 0x6e, 0x73, 0x69, 0x74, 0x69, 0x76, 0x65)
-	if err != nil {
-		return
-	}
-	if z.CaseSensitive == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = en.WriteBool(*z.CaseSensitive)
-		if err != nil {
-			err = msgp.WrapError(err, "CaseSensitive")
-			return
-		}
-	}
-	return
-}
-
-// MarshalMsg implements msgp.Marshaler
-func (z *LoginIDTypeUsernameConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
-	o = msgp.Require(b, z.Msgsize())
-	// map header, size 4
-	// string "block_reserved_usernames"
-	o = append(o, 0x84, 0xb8, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x5f, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x64, 0x5f, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x73)
-	if z.BlockReservedUsernames == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o = msgp.AppendBool(o, *z.BlockReservedUsernames)
-	}
-	// string "excluded_keywords"
-	o = append(o, 0xb1, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x73)
-	o = msgp.AppendArrayHeader(o, uint32(len(z.ExcludedKeywords)))
-	for za0001 := range z.ExcludedKeywords {
-		o = msgp.AppendString(o, z.ExcludedKeywords[za0001])
-	}
-	// string "ascii_only"
-	o = append(o, 0xaa, 0x61, 0x73, 0x63, 0x69, 0x69, 0x5f, 0x6f, 0x6e, 0x6c, 0x79)
-	if z.ASCIIOnly == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o = msgp.AppendBool(o, *z.ASCIIOnly)
-	}
-	// string "case_sensitive"
-	o = append(o, 0xae, 0x63, 0x61, 0x73, 0x65, 0x5f, 0x73, 0x65, 0x6e, 0x73, 0x69, 0x74, 0x69, 0x76, 0x65)
-	if z.CaseSensitive == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o = msgp.AppendBool(o, *z.CaseSensitive)
-	}
-	return
-}
-
-// UnmarshalMsg implements msgp.Unmarshaler
-func (z *LoginIDTypeUsernameConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, bts, err = msgp.ReadMapKeyZC(bts)
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "block_reserved_usernames":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.BlockReservedUsernames = nil
-			} else {
-				if z.BlockReservedUsernames == nil {
-					z.BlockReservedUsernames = new(bool)
-				}
-				*z.BlockReservedUsernames, bts, err = msgp.ReadBoolBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "BlockReservedUsernames")
-					return
-				}
-			}
-		case "excluded_keywords":
-			var zb0002 uint32
-			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "ExcludedKeywords")
-				return
-			}
-			if cap(z.ExcludedKeywords) >= int(zb0002) {
-				z.ExcludedKeywords = (z.ExcludedKeywords)[:zb0002]
-			} else {
-				z.ExcludedKeywords = make([]string, zb0002)
-			}
-			for za0001 := range z.ExcludedKeywords {
-				z.ExcludedKeywords[za0001], bts, err = msgp.ReadStringBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "ExcludedKeywords", za0001)
-					return
-				}
-			}
-		case "ascii_only":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.ASCIIOnly = nil
-			} else {
-				if z.ASCIIOnly == nil {
-					z.ASCIIOnly = new(bool)
-				}
-				*z.ASCIIOnly, bts, err = msgp.ReadBoolBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "ASCIIOnly")
-					return
-				}
-			}
-		case "case_sensitive":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.CaseSensitive = nil
-			} else {
-				if z.CaseSensitive == nil {
-					z.CaseSensitive = new(bool)
-				}
-				*z.CaseSensitive, bts, err = msgp.ReadBoolBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "CaseSensitive")
-					return
-				}
-			}
-		default:
-			bts, err = msgp.Skip(bts)
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	o = bts
-	return
-}
-
-// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *LoginIDTypeUsernameConfiguration) Msgsize() (s int) {
-	s = 1 + 25
-	if z.BlockReservedUsernames == nil {
-		s += msgp.NilSize
-	} else {
-		s += msgp.BoolSize
-	}
-	s += 18 + msgp.ArrayHeaderSize
-	for za0001 := range z.ExcludedKeywords {
-		s += msgp.StringPrefixSize + len(z.ExcludedKeywords[za0001])
-	}
-	s += 11
-	if z.ASCIIOnly == nil {
-		s += msgp.NilSize
-	} else {
-		s += msgp.BoolSize
-	}
-	s += 15
-	if z.CaseSensitive == nil {
-		s += msgp.NilSize
-	} else {
-		s += msgp.BoolSize
-	}
-	return
-}
-
-// DecodeMsg implements msgp.Decodable
-func (z *LoginIDTypesConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, err = dc.ReadMapHeader()
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, err = dc.ReadMapKeyPtr()
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "email":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "Email")
-					return
-				}
-				z.Email = nil
-			} else {
-				if z.Email == nil {
-					z.Email = new(LoginIDTypeEmailConfiguration)
-				}
-				err = z.Email.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "Email")
-					return
-				}
-			}
-		case "username":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "Username")
-					return
-				}
-				z.Username = nil
-			} else {
-				if z.Username == nil {
-					z.Username = new(LoginIDTypeUsernameConfiguration)
-				}
-				err = z.Username.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "Username")
-					return
-				}
-			}
-		default:
-			err = dc.Skip()
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	return
-}
-
-// EncodeMsg implements msgp.Encodable
-func (z *LoginIDTypesConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 2
-	// write "email"
-	err = en.Append(0x82, 0xa5, 0x65, 0x6d, 0x61, 0x69, 0x6c)
-	if err != nil {
-		return
-	}
-	if z.Email == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.Email.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "Email")
-			return
-		}
-	}
-	// write "username"
-	err = en.Append(0xa8, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65)
-	if err != nil {
-		return
-	}
-	if z.Username == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.Username.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "Username")
-			return
-		}
-	}
-	return
-}
-
-// MarshalMsg implements msgp.Marshaler
-func (z *LoginIDTypesConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
-	o = msgp.Require(b, z.Msgsize())
-	// map header, size 2
-	// string "email"
-	o = append(o, 0x82, 0xa5, 0x65, 0x6d, 0x61, 0x69, 0x6c)
-	if z.Email == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.Email.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "Email")
-			return
-		}
-	}
-	// string "username"
-	o = append(o, 0xa8, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65)
-	if z.Username == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.Username.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "Username")
-			return
-		}
-	}
-	return
-}
-
-// UnmarshalMsg implements msgp.Unmarshaler
-func (z *LoginIDTypesConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, bts, err = msgp.ReadMapKeyZC(bts)
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "email":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.Email = nil
-			} else {
-				if z.Email == nil {
-					z.Email = new(LoginIDTypeEmailConfiguration)
-				}
-				bts, err = z.Email.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Email")
-					return
-				}
-			}
-		case "username":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.Username = nil
-			} else {
-				if z.Username == nil {
-					z.Username = new(LoginIDTypeUsernameConfiguration)
-				}
-				bts, err = z.Username.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "Username")
-					return
-				}
-			}
-		default:
-			bts, err = msgp.Skip(bts)
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	o = bts
-	return
-}
-
-// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *LoginIDTypesConfiguration) Msgsize() (s int) {
-	s = 1 + 6
-	if z.Email == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.Email.Msgsize()
-	}
-	s += 9
-	if z.Username == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.Username.Msgsize()
-	}
 	return
 }
 

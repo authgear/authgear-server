@@ -24,8 +24,8 @@ func ProvidePasswordProvider(
 		NewStore(sqlb, sqle),
 		passwordHistoryStore,
 		loggerFactory,
-		config.AppConfig.Auth.LoginIDKeys,
-		config.AppConfig.Auth.LoginIDTypes,
+		config.AppConfig.Identity.LoginID.Keys,
+		config.AppConfig.Identity.LoginID.Types,
 		config.AppConfig.PasswordPolicy.HistorySize > 0 ||
 			config.AppConfig.PasswordPolicy.HistoryDays > 0,
 		reservedNameChecker,

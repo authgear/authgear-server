@@ -13,8 +13,8 @@ import (
 func TestValidateProvider(t *testing.T) {
 	Convey("ValidateProvider", t, func() {
 		Convey("PrepareValues", func() {
-			c := &config.AuthConfiguration{}
-			impl := ValidateProviderImpl{AuthConfiguration: c}
+			c := &config.LoginIDConfiguration{}
+			impl := ValidateProviderImpl{LoginIDConfiguration: c}
 			var form url.Values
 
 			Convey("remove empty value", func() {
@@ -28,7 +28,7 @@ func TestValidateProvider(t *testing.T) {
 
 			Convey("prefill text if first login id type is not phone", func() {
 				form = url.Values{}
-				c.LoginIDKeys = []config.LoginIDKeyConfiguration{
+				c.Keys = []config.LoginIDKeyConfiguration{
 					{Key: "email", Type: "email"},
 				}
 				impl.PrepareValues(form)
@@ -37,7 +37,7 @@ func TestValidateProvider(t *testing.T) {
 
 			Convey("prefill phone if first login id type is phone", func() {
 				form = url.Values{}
-				c.LoginIDKeys = []config.LoginIDKeyConfiguration{
+				c.Keys = []config.LoginIDKeyConfiguration{
 					{Key: "phone", Type: "phone"},
 				}
 				impl.PrepareValues(form)
@@ -48,7 +48,7 @@ func TestValidateProvider(t *testing.T) {
 				form = url.Values{
 					"x_login_id_input_type": []string{"text"},
 				}
-				c.LoginIDKeys = []config.LoginIDKeyConfiguration{
+				c.Keys = []config.LoginIDKeyConfiguration{
 					{Key: "phone", Type: "phone"},
 				}
 				impl.PrepareValues(form)

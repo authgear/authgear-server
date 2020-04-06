@@ -144,8 +144,8 @@ func (m DependencyMap) Provide(
 
 	newLoginIDChecker := func() loginid.LoginIDChecker {
 		return loginid.NewDefaultLoginIDChecker(
-			tConfig.AppConfig.Auth.LoginIDKeys,
-			tConfig.AppConfig.Auth.LoginIDTypes,
+			tConfig.AppConfig.Identity.LoginID.Keys,
+			tConfig.AppConfig.Identity.LoginID.Types,
 			m.ReservedNameChecker,
 		)
 	}
@@ -156,8 +156,8 @@ func (m DependencyMap) Provide(
 			newPasswordStore(),
 			newPasswordHistoryStore(),
 			newLoggerFactory(),
-			tConfig.AppConfig.Auth.LoginIDKeys,
-			tConfig.AppConfig.Auth.LoginIDTypes,
+			tConfig.AppConfig.Identity.LoginID.Keys,
+			tConfig.AppConfig.Identity.LoginID.Types,
 			isPasswordHistoryEnabled(),
 			m.ReservedNameChecker,
 		)
@@ -233,8 +233,8 @@ func (m DependencyMap) Provide(
 
 	newLoginIDNormalizerFactory := func() loginid.LoginIDNormalizerFactory {
 		return loginid.NewLoginIDNormalizerFactory(
-			tConfig.AppConfig.Auth.LoginIDKeys,
-			tConfig.AppConfig.Auth.LoginIDTypes,
+			tConfig.AppConfig.Identity.LoginID.Keys,
+			tConfig.AppConfig.Identity.LoginID.Types,
 		)
 	}
 

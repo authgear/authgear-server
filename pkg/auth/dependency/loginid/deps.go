@@ -10,8 +10,8 @@ func ProvideLoginIDChecker(
 	reservedNameChecker *ReservedNameChecker,
 ) LoginIDChecker {
 	return NewDefaultLoginIDChecker(
-		config.AppConfig.Auth.LoginIDKeys,
-		config.AppConfig.Auth.LoginIDTypes,
+		config.AppConfig.Identity.LoginID.Keys,
+		config.AppConfig.Identity.LoginID.Types,
 		reservedNameChecker,
 	)
 }
@@ -20,8 +20,8 @@ func ProvideLoginIDNormalizerFactory(
 	config *config.TenantConfiguration,
 ) LoginIDNormalizerFactory {
 	return NewLoginIDNormalizerFactory(
-		config.AppConfig.Auth.LoginIDKeys,
-		config.AppConfig.Auth.LoginIDTypes,
+		config.AppConfig.Identity.LoginID.Keys,
+		config.AppConfig.Identity.LoginID.Types,
 	)
 }
 

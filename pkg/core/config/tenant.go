@@ -220,7 +220,7 @@ func (c *TenantConfiguration) PostValidate() error {
 
 	for _, verifyKeyConfig := range c.AppConfig.UserVerification.LoginIDKeys {
 		ok := false
-		for _, loginIDKey := range c.AppConfig.Auth.LoginIDKeys {
+		for _, loginIDKey := range c.AppConfig.Identity.LoginID.Keys {
 			if loginIDKey.Key == verifyKeyConfig.Key {
 				ok = true
 				break
@@ -286,47 +286,47 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 
 	// Set default AuthConfiguration
-	if c.AppConfig.Auth.LoginIDKeys == nil {
-		c.AppConfig.Auth.LoginIDKeys = []LoginIDKeyConfiguration{
+	if c.AppConfig.Identity.LoginID.Keys == nil {
+		c.AppConfig.Identity.LoginID.Keys = []LoginIDKeyConfiguration{
 			LoginIDKeyConfiguration{Key: "username", Type: LoginIDKeyType(metadata.Username)},
 			LoginIDKeyConfiguration{Key: "email", Type: LoginIDKeyType(metadata.Email)},
 			LoginIDKeyConfiguration{Key: "phone", Type: LoginIDKeyType(metadata.Phone)},
 		}
 	}
 
-	if c.AppConfig.Auth.LoginIDTypes.Email.CaseSensitive == nil {
+	if c.AppConfig.Identity.LoginID.Types.Email.CaseSensitive == nil {
 		d := false
-		c.AppConfig.Auth.LoginIDTypes.Email.CaseSensitive = &d
+		c.AppConfig.Identity.LoginID.Types.Email.CaseSensitive = &d
 	}
-	if c.AppConfig.Auth.LoginIDTypes.Email.BlockPlusSign == nil {
+	if c.AppConfig.Identity.LoginID.Types.Email.BlockPlusSign == nil {
 		d := false
-		c.AppConfig.Auth.LoginIDTypes.Email.BlockPlusSign = &d
+		c.AppConfig.Identity.LoginID.Types.Email.BlockPlusSign = &d
 	}
-	if c.AppConfig.Auth.LoginIDTypes.Email.IgnoreDotSign == nil {
+	if c.AppConfig.Identity.LoginID.Types.Email.IgnoreDotSign == nil {
 		d := false
-		c.AppConfig.Auth.LoginIDTypes.Email.IgnoreDotSign = &d
+		c.AppConfig.Identity.LoginID.Types.Email.IgnoreDotSign = &d
 	}
 
-	if c.AppConfig.Auth.LoginIDTypes.Username.BlockReservedUsernames == nil {
+	if c.AppConfig.Identity.LoginID.Types.Username.BlockReservedUsernames == nil {
 		d := true
-		c.AppConfig.Auth.LoginIDTypes.Username.BlockReservedUsernames = &d
+		c.AppConfig.Identity.LoginID.Types.Username.BlockReservedUsernames = &d
 	}
-	if c.AppConfig.Auth.LoginIDTypes.Username.ASCIIOnly == nil {
+	if c.AppConfig.Identity.LoginID.Types.Username.ASCIIOnly == nil {
 		d := true
-		c.AppConfig.Auth.LoginIDTypes.Username.ASCIIOnly = &d
+		c.AppConfig.Identity.LoginID.Types.Username.ASCIIOnly = &d
 	}
-	if c.AppConfig.Auth.LoginIDTypes.Username.CaseSensitive == nil {
+	if c.AppConfig.Identity.LoginID.Types.Username.CaseSensitive == nil {
 		d := false
-		c.AppConfig.Auth.LoginIDTypes.Username.CaseSensitive = &d
+		c.AppConfig.Identity.LoginID.Types.Username.CaseSensitive = &d
 	}
 
 	// Set default minimum and maximum
-	for i, config := range c.AppConfig.Auth.LoginIDKeys {
+	for i, config := range c.AppConfig.Identity.LoginID.Keys {
 		if config.Maximum == nil {
 			config.Maximum = new(int)
 			*config.Maximum = 1
 		}
-		c.AppConfig.Auth.LoginIDKeys[i] = config
+		c.AppConfig.Identity.LoginID.Keys[i] = config
 	}
 
 	// Set default MFAConfiguration
@@ -622,8 +622,6 @@ type CORSConfiguration struct {
 
 type AuthConfiguration struct {
 	AuthenticationSession *AuthenticationSessionConfiguration `json:"authentication_session,omitempty" yaml:"authentication_session" msg:"authentication_session" default_zero_value:"true"`
-	LoginIDTypes          *LoginIDTypesConfiguration          `json:"login_id_types,omitempty" yaml:"login_id_types" msg:"login_id_types" default_zero_value:"true"`
-	LoginIDKeys           []LoginIDKeyConfiguration           `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
 }
 
 type AuthUIConfiguration struct {
@@ -640,60 +638,8 @@ type OIDCSigningKeyConfiguration struct {
 	PrivateKey string `json:"private_key,omitempty" yaml:"private_key" msg:"private_key"`
 }
 
-func (c *AuthConfiguration) GetLoginIDKey(key string) (*LoginIDKeyConfiguration, bool) {
-	for _, config := range c.LoginIDKeys {
-		if config.Key == key {
-			return &config, true
-		}
-	}
-
-	return nil, false
-}
-
 type AuthenticationSessionConfiguration struct {
 	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
-}
-
-type LoginIDKeyType string
-
-const LoginIDKeyTypeRaw LoginIDKeyType = "raw"
-
-func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
-	for _, key := range metadata.AllKeys() {
-		if string(t) == string(key) {
-			return key, true
-		}
-	}
-	return "", false
-}
-
-func (t LoginIDKeyType) IsValid() bool {
-	_, validKey := t.MetadataKey()
-	return t == LoginIDKeyTypeRaw || validKey
-}
-
-type LoginIDTypesConfiguration struct {
-	Email    *LoginIDTypeEmailConfiguration    `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
-	Username *LoginIDTypeUsernameConfiguration `json:"username,omitempty" yaml:"username" msg:"username" default_zero_value:"true"`
-}
-
-type LoginIDTypeEmailConfiguration struct {
-	CaseSensitive *bool `json:"case_sensitive" yaml:"case_sensitive" msg:"case_sensitive"`
-	BlockPlusSign *bool `json:"block_plus_sign" yaml:"block_plus_sign" msg:"block_plus_sign"`
-	IgnoreDotSign *bool `json:"ignore_dot_sign" yaml:"ignore_dot_sign" msg:"ignore_dot_sign"`
-}
-
-type LoginIDTypeUsernameConfiguration struct {
-	BlockReservedUsernames *bool    `json:"block_reserved_usernames" yaml:"block_reserved_usernames" msg:"block_reserved_usernames"`
-	ExcludedKeywords       []string `json:"excluded_keywords,omitempty" yaml:"excluded_keywords" msg:"excluded_keywords"`
-	ASCIIOnly              *bool    `json:"ascii_only" yaml:"ascii_only" msg:"ascii_only"`
-	CaseSensitive          *bool    `json:"case_sensitive" yaml:"case_sensitive" msg:"case_sensitive"`
-}
-
-type LoginIDKeyConfiguration struct {
-	Key     string         `json:"key" yaml:"key" msg:"key"`
-	Type    LoginIDKeyType `json:"type,omitempty" yaml:"type" msg:"type"`
-	Maximum *int           `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
 }
 
 type MFAEnforcement string

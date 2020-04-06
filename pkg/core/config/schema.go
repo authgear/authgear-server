@@ -209,13 +209,7 @@ var (
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
-			"authentication_session": { "$ref": "#AuthenticationSessionConfiguration" },
-			"login_id_keys": {
-				"type": "array",
-				"minItems": 1,
-				"items": { "$ref": "#LoginIDKeyConfiguration" }
-			},
-			"login_id_types": { "$ref": "#LoginIDTypesConfiguration" }
+			"authentication_session": { "$ref": "#AuthenticationSessionConfiguration" }
 		},
 		"required": ["authentication_session"]
 	},
@@ -313,53 +307,6 @@ var (
 			}
 		}
 	},
-	"LoginIDKeyConfiguration": {
-		"$id": "#LoginIDKeyConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"key": { "$ref": "#NonEmptyString" },
-			"type": {
-				"type": "string",
-				"enum": ["raw", "email", "phone", "username"]
-			},
-			"maximum": { "$ref": "#NonNegativeInteger" }
-		},
-		"required": ["type"]
-	},
-	"LoginIDTypesConfiguration": {
-		"$id": "#LoginIDTypesConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"email": { "$ref": "#LoginIDTypeEmailConfiguration" },
-			"username": { "$ref": "#LoginIDTypeUsernameConfiguration" }
-		}
-	},
-	"LoginIDTypeEmailConfiguration": {
-		"$id": "#LoginIDTypeEmailConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"case_sensitive": { "type": "boolean" },
-			"block_plus_sign": { "type": "boolean" },
-			"ignore_dot_sign": { "type": "boolean" }
-		}
-	},
-	"LoginIDTypeUsernameConfiguration": {
-		"$id": "#LoginIDTypeUsernameConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"block_reserved_usernames": { "type": "boolean" },
-			"excluded_keywords": {
-				"type": "array",
-				"items": { "type": "string" }
-			},
-			"ascii_only": { "type": "boolean" },
-			"case_sensitive": { "type": "boolean" }
-		}
-	},
 	"PasswordPolicyConfiguration": {
 		"$id": "#PasswordPolicyConfiguration",
 		"type": "object",
@@ -428,6 +375,59 @@ var (
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
+			"keys": {
+				"type": "array",
+				"minItems": 1,
+				"items": { "$ref": "#LoginIDKeyConfiguration" }
+			},
+			"types": { "$ref": "#LoginIDTypesConfiguration" }
+		}
+	},
+	"LoginIDKeyConfiguration": {
+		"$id": "#LoginIDKeyConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"key": { "$ref": "#NonEmptyString" },
+			"type": {
+				"type": "string",
+				"enum": ["raw", "email", "phone", "username"]
+			},
+			"maximum": { "$ref": "#NonNegativeInteger" }
+		},
+		"required": ["type"]
+	},
+	"LoginIDTypesConfiguration": {
+		"$id": "#LoginIDTypesConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"email": { "$ref": "#LoginIDTypeEmailConfiguration" },
+			"username": { "$ref": "#LoginIDTypeUsernameConfiguration" }
+		}
+	},
+	"LoginIDTypeEmailConfiguration": {
+		"$id": "#LoginIDTypeEmailConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"case_sensitive": { "type": "boolean" },
+			"block_plus_sign": { "type": "boolean" },
+			"ignore_dot_sign": { "type": "boolean" }
+		}
+	},
+	"LoginIDTypeUsernameConfiguration": {
+		"$id": "#LoginIDTypeUsernameConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"block_reserved_usernames": { "type": "boolean" },
+			"excluded_keywords": {
+				"type": "array",
+				"items": { "type": "string" }
+			},
+			"ascii_only": { "type": "boolean" },
+			"case_sensitive": { "type": "boolean" }
 		}
 	},
 	"OAuthConfiguration": {

@@ -31,16 +31,17 @@ app_config:
   auth:
     authentication_session:
       secret: authnsessionsecret
-    login_id_keys:
-    - key: email
-      type: email
-    - key: phone
-      type: phone
-    - key: username
-      type: raw
   hook:
     secret: hooksecret
   identity:
+    login_id:
+      keys:
+      - key: email
+        type: email
+      - key: phone
+        type: phone
+      - key: username
+        type: raw
     oauth:
       state_jwt_secret: statejwtsecret
 `, apiversion.APIVersion, apiversion.APIVersion)
@@ -63,26 +64,28 @@ var inputMinimalJSON = fmt.Sprintf(`
 		"auth": {
 			"authentication_session": {
 				"secret": "authnsessionsecret"
-			},
-			"login_id_keys": [
-				{
-					"key": "email",
-					"type": "email"
-				},
-				{
-					"key": "phone",
-					"type": "phone"
-				},
-				{
-					"key": "username",
-					"type": "raw"
-				}
-			]
+			}
 		},
 		"hook": {
 			"secret": "hooksecret"
 		},
 		"identity": {
+			"login_id": {
+				"keys": [
+					{
+						"key": "email",
+						"type": "email"
+					},
+					{
+						"key": "phone",
+						"type": "phone"
+					},
+					{
+						"key": "username",
+						"type": "raw"
+					}
+				]
+			},
 			"oauth": {
 				"state_jwt_secret": "statejwtsecret"
 			}
@@ -175,36 +178,6 @@ func makeFullTenantConfig() TenantConfiguration {
 				AuthenticationSession: &AuthenticationSessionConfiguration{
 					Secret: "authnsessionsecret",
 				},
-				LoginIDKeys: []LoginIDKeyConfiguration{
-					LoginIDKeyConfiguration{
-						Key:     "email",
-						Type:    LoginIDKeyType("email"),
-						Maximum: newInt(1),
-					},
-					LoginIDKeyConfiguration{
-						Key:     "phone",
-						Type:    LoginIDKeyType("phone"),
-						Maximum: newInt(1),
-					},
-					LoginIDKeyConfiguration{
-						Key:     "username",
-						Type:    LoginIDKeyTypeRaw,
-						Maximum: newInt(1),
-					},
-				},
-				LoginIDTypes: &LoginIDTypesConfiguration{
-					Email: &LoginIDTypeEmailConfiguration{
-						CaseSensitive: newFalse(),
-						BlockPlusSign: newFalse(),
-						IgnoreDotSign: newFalse(),
-					},
-					Username: &LoginIDTypeUsernameConfiguration{
-						BlockReservedUsernames: newTrue(),
-						ExcludedKeywords:       []string{"skygear"},
-						ASCIIOnly:              newFalse(),
-						CaseSensitive:          newFalse(),
-					},
-				},
 			},
 			MFA: &MFAConfiguration{
 				Enabled:     true,
@@ -261,7 +234,38 @@ func makeFullTenantConfig() TenantConfiguration {
 				Destination: "first",
 			},
 			Identity: &IdentityConfiguration{
-				LoginID: &LoginIDConfiguration{},
+				LoginID: &LoginIDConfiguration{
+					Keys: []LoginIDKeyConfiguration{
+						LoginIDKeyConfiguration{
+							Key:     "email",
+							Type:    LoginIDKeyType("email"),
+							Maximum: newInt(1),
+						},
+						LoginIDKeyConfiguration{
+							Key:     "phone",
+							Type:    LoginIDKeyType("phone"),
+							Maximum: newInt(1),
+						},
+						LoginIDKeyConfiguration{
+							Key:     "username",
+							Type:    LoginIDKeyTypeRaw,
+							Maximum: newInt(1),
+						},
+					},
+					Types: &LoginIDTypesConfiguration{
+						Email: &LoginIDTypeEmailConfiguration{
+							CaseSensitive: newFalse(),
+							BlockPlusSign: newFalse(),
+							IgnoreDotSign: newFalse(),
+						},
+						Username: &LoginIDTypeUsernameConfiguration{
+							BlockReservedUsernames: newTrue(),
+							ExcludedKeywords:       []string{"skygear"},
+							ASCIIOnly:              newFalse(),
+							CaseSensitive:          newFalse(),
+						},
+					},
+				},
 				OAuth: &OAuthConfiguration{
 					StateJWTSecret:                 "oauthstatejwtsecret",
 					ExternalAccessTokenFlowEnabled: true,
