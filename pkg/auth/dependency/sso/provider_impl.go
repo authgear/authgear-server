@@ -6,7 +6,6 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -40,14 +39,6 @@ func (f *providerImpl) EncodeSkygearAuthorizationCode(code SkygearAuthorizationC
 
 func (f *providerImpl) DecodeSkygearAuthorizationCode(encoded string) (*SkygearAuthorizationCode, error) {
 	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, f.AppID, encoded)
-}
-
-func (f *providerImpl) IsAllowedOnUserDuplicate(a model.OnUserDuplicate) bool {
-	return model.IsAllowedOnUserDuplicate(
-		f.OAuthConfig.OnUserDuplicateAllowMerge,
-		f.OAuthConfig.OnUserDuplicateAllowCreate,
-		a,
-	)
 }
 
 func (f *providerImpl) IsValidCallbackURL(client config.OAuthClientConfiguration, u string) bool {

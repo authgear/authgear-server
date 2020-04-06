@@ -67,6 +67,7 @@ var (
 			"cors": { "$ref": "#CORSConfiguration" },
 			"oidc": { "$ref": "#OIDCConfiguration" },
 			"auth": { "$ref": "#AuthConfiguration" },
+			"auth_api": { "$ref": "#AuthAPIConfiguration" },
 			"auth_ui": { "$ref": "#AuthUIConfiguration" },
 			"mfa": { "$ref": "#MFAConfiguration" },
 			"password_policy": { "$ref": "#PasswordPolicyConfiguration" },
@@ -168,20 +169,53 @@ var (
 			"css": { "type": "string" }
 		}
 	},
+	"AuthAPIConfiguration": {
+		"$id": "#AuthAPIConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"enabled": { "type": "boolean" },
+			"on_identity_conflict": { "$ref": "#AuthAPIIdentityConflictConfiguration" }
+		}
+	},
+	"AuthAPIIdentityConflictConfiguration": {
+		"$id": "#AuthAPIIdentityConflictConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"login_id": { "$ref": "#AuthAPILoginIDConflictConfiguration" },
+			"oauth": { "$ref": "#AuthAPIOAuthConflictConfiguration" }
+		}
+	},
+	"AuthAPILoginIDConflictConfiguration": {
+		"$id": "#AuthAPILoginIDConflictConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"allow_create_new_user": { "type": "boolean" }
+		}
+	},
+	"AuthAPIOAuthConflictConfiguration": {
+		"$id": "#AuthAPIOAuthConflictConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"allow_create_new_user": { "type": "boolean" },
+			"allow_auto_merge_user": { "type": "boolean" }
+		}
+	},
 	"AuthConfiguration": {
 		"$id": "#AuthConfiguration",
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
-			"enable_api": { "type": "boolean" },
 			"authentication_session": { "$ref": "#AuthenticationSessionConfiguration" },
 			"login_id_keys": {
 				"type": "array",
 				"minItems": 1,
 				"items": { "$ref": "#LoginIDKeyConfiguration" }
 			},
-			"login_id_types": { "$ref": "#LoginIDTypesConfiguration" },
-			"on_user_duplicate_allow_create": { "type": "boolean" }
+			"login_id_types": { "$ref": "#LoginIDTypesConfiguration" }
 		},
 		"required": ["authentication_session"]
 	},

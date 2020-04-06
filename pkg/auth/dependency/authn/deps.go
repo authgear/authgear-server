@@ -46,7 +46,7 @@ func ProvideSignupProcess(
 		HookProvider:                  hp,
 		WelcomeEmailConfiguration:     cfg.AppConfig.WelcomeEmail,
 		UserVerificationConfiguration: cfg.AppConfig.UserVerification,
-		AuthConfiguration:             cfg.AppConfig.Auth,
+		LoginIDConflictConfiguration:  cfg.AppConfig.AuthAPI.OnIdentityConflict.LoginID,
 		URLPrefixProvider:             up,
 		TaskQueue:                     q,
 	}

@@ -92,9 +92,9 @@ func provideRefreshHandler(
 	tx db.TxContext,
 ) http.Handler {
 	h := &RefreshHandler{
-		validator:     v,
+		validator:       v,
 		refreshProvider: rp,
-		txContext:     tx,
+		txContext:       tx,
 	}
 	return requireAuthz(h, h)
 }

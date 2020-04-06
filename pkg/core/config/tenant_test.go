@@ -159,8 +159,19 @@ func makeFullTenantConfig() TenantConfiguration {
 			AuthUI: &AuthUIConfiguration{
 				CSS: "a { color: red; }",
 			},
+			AuthAPI: &AuthAPIConfiguration{
+				Enabled: true,
+				OnIdentityConflict: &AuthAPIIdentityConflictConfiguration{
+					LoginID: &AuthAPILoginIDConflictConfiguration{
+						AllowCreateNewUser: true,
+					},
+					OAuth: &AuthAPIOAuthConflictConfiguration{
+						AllowCreateNewUser: true,
+						AllowAutoMergeUser: true,
+					},
+				},
+			},
 			Auth: &AuthConfiguration{
-				EnableAPI: true,
 				AuthenticationSession: &AuthenticationSessionConfiguration{
 					Secret: "authnsessionsecret",
 				},
@@ -194,8 +205,7 @@ func makeFullTenantConfig() TenantConfiguration {
 						CaseSensitive:          newFalse(),
 					},
 				},
-				AllowedRealms:              []string{"default"},
-				OnUserDuplicateAllowCreate: true,
+				AllowedRealms: []string{"default"},
 			},
 			MFA: &MFAConfiguration{
 				Enabled:     true,
@@ -255,8 +265,6 @@ func makeFullTenantConfig() TenantConfiguration {
 				OAuth: &OAuthConfiguration{
 					StateJWTSecret:                 "oauthstatejwtsecret",
 					ExternalAccessTokenFlowEnabled: true,
-					OnUserDuplicateAllowMerge:      true,
-					OnUserDuplicateAllowCreate:     true,
 					Providers: []OAuthProviderConfiguration{
 						OAuthProviderConfiguration{
 							ID:           "google",

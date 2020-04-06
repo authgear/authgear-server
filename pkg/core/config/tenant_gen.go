@@ -144,6 +144,24 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
+		case "auth_api":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "AuthAPI")
+					return
+				}
+				z.AuthAPI = nil
+			} else {
+				if z.AuthAPI == nil {
+					z.AuthAPI = new(AuthAPIConfiguration)
+				}
+				err = z.AuthAPI.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "AuthAPI")
+					return
+				}
+			}
 		case "auth":
 			if dc.IsNil() {
 				err = dc.ReadNil()
@@ -583,9 +601,9 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 20
+	// map header, size 21
 	// write "api_version"
-	err = en.Append(0xde, 0x0, 0x14, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0xde, 0x0, 0x15, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
@@ -680,6 +698,23 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = en.WriteString(z.CORS.Origin)
 		if err != nil {
 			err = msgp.WrapError(err, "CORS", "Origin")
+			return
+		}
+	}
+	// write "auth_api"
+	err = en.Append(0xa8, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x61, 0x70, 0x69)
+	if err != nil {
+		return
+	}
+	if z.AuthAPI == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.AuthAPI.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "AuthAPI")
 			return
 		}
 	}
@@ -1010,9 +1045,9 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 20
+	// map header, size 21
 	// string "api_version"
-	o = append(o, 0xde, 0x0, 0x14, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0xde, 0x0, 0x15, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	o = msgp.AppendString(o, z.APIVersion)
 	// string "display_app_name"
 	o = append(o, 0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
@@ -1054,6 +1089,17 @@ func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		// string "origin"
 		o = append(o, 0x81, 0xa6, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e)
 		o = msgp.AppendString(o, z.CORS.Origin)
+	}
+	// string "auth_api"
+	o = append(o, 0xa8, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x61, 0x70, 0x69)
+	if z.AuthAPI == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.AuthAPI.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "AuthAPI")
+			return
+		}
 	}
 	// string "auth"
 	o = append(o, 0xa4, 0x61, 0x75, 0x74, 0x68)
@@ -1360,6 +1406,23 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 							return
 						}
 					}
+				}
+			}
+		case "auth_api":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.AuthAPI = nil
+			} else {
+				if z.AuthAPI == nil {
+					z.AuthAPI = new(AuthAPIConfiguration)
+				}
+				bts, err = z.AuthAPI.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "AuthAPI")
+					return
 				}
 			}
 		case "auth":
@@ -1809,6 +1872,12 @@ func (z *AppConfiguration) Msgsize() (s int) {
 	} else {
 		s += 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin)
 	}
+	s += 9
+	if z.AuthAPI == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.AuthAPI.Msgsize()
+	}
 	s += 5
 	if z.Auth == nil {
 		s += msgp.NilSize
@@ -2022,12 +2091,6 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "enable_api":
-			z.EnableAPI, err = dc.ReadBool()
-			if err != nil {
-				err = msgp.WrapError(err, "EnableAPI")
-				return
-			}
 		case "authentication_session":
 			if dc.IsNil() {
 				err = dc.ReadNil()
@@ -2125,12 +2188,6 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					return
 				}
 			}
-		case "on_user_duplicate_allow_create":
-			z.OnUserDuplicateAllowCreate, err = dc.ReadBool()
-			if err != nil {
-				err = msgp.WrapError(err, "OnUserDuplicateAllowCreate")
-				return
-			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -2144,19 +2201,9 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 6
-	// write "enable_api"
-	err = en.Append(0x86, 0xaa, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x61, 0x70, 0x69)
-	if err != nil {
-		return
-	}
-	err = en.WriteBool(z.EnableAPI)
-	if err != nil {
-		err = msgp.WrapError(err, "EnableAPI")
-		return
-	}
+	// map header, size 4
 	// write "authentication_session"
-	err = en.Append(0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0x84, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
@@ -2229,28 +2276,15 @@ func (z *AuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	}
-	// write "on_user_duplicate_allow_create"
-	err = en.Append(0xbe, 0x6f, 0x6e, 0x5f, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x64, 0x75, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x65, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x5f, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65)
-	if err != nil {
-		return
-	}
-	err = en.WriteBool(z.OnUserDuplicateAllowCreate)
-	if err != nil {
-		err = msgp.WrapError(err, "OnUserDuplicateAllowCreate")
-		return
-	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *AuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 6
-	// string "enable_api"
-	o = append(o, 0x86, 0xaa, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x61, 0x70, 0x69)
-	o = msgp.AppendBool(o, z.EnableAPI)
+	// map header, size 4
 	// string "authentication_session"
-	o = append(o, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0x84, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
 	if z.AuthenticationSession == nil {
 		o = msgp.AppendNil(o)
 	} else {
@@ -2286,9 +2320,6 @@ func (z *AuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	for za0002 := range z.AllowedRealms {
 		o = msgp.AppendString(o, z.AllowedRealms[za0002])
 	}
-	// string "on_user_duplicate_allow_create"
-	o = append(o, 0xbe, 0x6f, 0x6e, 0x5f, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x64, 0x75, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x65, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x5f, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65)
-	o = msgp.AppendBool(o, z.OnUserDuplicateAllowCreate)
 	return
 }
 
@@ -2310,12 +2341,6 @@ func (z *AuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "enable_api":
-			z.EnableAPI, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "EnableAPI")
-				return
-			}
 		case "authentication_session":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
@@ -2411,12 +2436,6 @@ func (z *AuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					return
 				}
 			}
-		case "on_user_duplicate_allow_create":
-			z.OnUserDuplicateAllowCreate, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "OnUserDuplicateAllowCreate")
-				return
-			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -2431,7 +2450,7 @@ func (z *AuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *AuthConfiguration) Msgsize() (s int) {
-	s = 1 + 11 + msgp.BoolSize + 23
+	s = 1 + 23
 	if z.AuthenticationSession == nil {
 		s += msgp.NilSize
 	} else {
@@ -2451,7 +2470,6 @@ func (z *AuthConfiguration) Msgsize() (s int) {
 	for za0002 := range z.AllowedRealms {
 		s += msgp.StringPrefixSize + len(z.AllowedRealms[za0002])
 	}
-	s += 31 + msgp.BoolSize
 	return
 }
 
@@ -7006,18 +7024,6 @@ func (z *OAuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "ExternalAccessTokenFlowEnabled")
 				return
 			}
-		case "on_user_duplicate_allow_merge":
-			z.OnUserDuplicateAllowMerge, err = dc.ReadBool()
-			if err != nil {
-				err = msgp.WrapError(err, "OnUserDuplicateAllowMerge")
-				return
-			}
-		case "on_user_duplicate_allow_create":
-			z.OnUserDuplicateAllowCreate, err = dc.ReadBool()
-			if err != nil {
-				err = msgp.WrapError(err, "OnUserDuplicateAllowCreate")
-				return
-			}
 		case "providers":
 			var zb0002 uint32
 			zb0002, err = dc.ReadArrayHeader()
@@ -7050,9 +7056,9 @@ func (z *OAuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *OAuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 5
+	// map header, size 3
 	// write "state_jwt_secret"
-	err = en.Append(0x85, 0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+	err = en.Append(0x83, 0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 	if err != nil {
 		return
 	}
@@ -7069,26 +7075,6 @@ func (z *OAuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	err = en.WriteBool(z.ExternalAccessTokenFlowEnabled)
 	if err != nil {
 		err = msgp.WrapError(err, "ExternalAccessTokenFlowEnabled")
-		return
-	}
-	// write "on_user_duplicate_allow_merge"
-	err = en.Append(0xbd, 0x6f, 0x6e, 0x5f, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x64, 0x75, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x65, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x5f, 0x6d, 0x65, 0x72, 0x67, 0x65)
-	if err != nil {
-		return
-	}
-	err = en.WriteBool(z.OnUserDuplicateAllowMerge)
-	if err != nil {
-		err = msgp.WrapError(err, "OnUserDuplicateAllowMerge")
-		return
-	}
-	// write "on_user_duplicate_allow_create"
-	err = en.Append(0xbe, 0x6f, 0x6e, 0x5f, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x64, 0x75, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x65, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x5f, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65)
-	if err != nil {
-		return
-	}
-	err = en.WriteBool(z.OnUserDuplicateAllowCreate)
-	if err != nil {
-		err = msgp.WrapError(err, "OnUserDuplicateAllowCreate")
 		return
 	}
 	// write "providers"
@@ -7114,19 +7100,13 @@ func (z *OAuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *OAuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 5
+	// map header, size 3
 	// string "state_jwt_secret"
-	o = append(o, 0x85, 0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
+	o = append(o, 0x83, 0xb0, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 	o = msgp.AppendString(o, z.StateJWTSecret)
 	// string "external_access_token_flow_enabled"
 	o = append(o, 0xd9, 0x22, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x5f, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x5f, 0x66, 0x6c, 0x6f, 0x77, 0x5f, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	o = msgp.AppendBool(o, z.ExternalAccessTokenFlowEnabled)
-	// string "on_user_duplicate_allow_merge"
-	o = append(o, 0xbd, 0x6f, 0x6e, 0x5f, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x64, 0x75, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x65, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x5f, 0x6d, 0x65, 0x72, 0x67, 0x65)
-	o = msgp.AppendBool(o, z.OnUserDuplicateAllowMerge)
-	// string "on_user_duplicate_allow_create"
-	o = append(o, 0xbe, 0x6f, 0x6e, 0x5f, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x64, 0x75, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x65, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x5f, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65)
-	o = msgp.AppendBool(o, z.OnUserDuplicateAllowCreate)
 	// string "providers"
 	o = append(o, 0xa9, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x73)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.Providers)))
@@ -7170,18 +7150,6 @@ func (z *OAuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "ExternalAccessTokenFlowEnabled")
 				return
 			}
-		case "on_user_duplicate_allow_merge":
-			z.OnUserDuplicateAllowMerge, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "OnUserDuplicateAllowMerge")
-				return
-			}
-		case "on_user_duplicate_allow_create":
-			z.OnUserDuplicateAllowCreate, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "OnUserDuplicateAllowCreate")
-				return
-			}
 		case "providers":
 			var zb0002 uint32
 			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
@@ -7215,7 +7183,7 @@ func (z *OAuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *OAuthConfiguration) Msgsize() (s int) {
-	s = 1 + 17 + msgp.StringPrefixSize + len(z.StateJWTSecret) + 36 + msgp.BoolSize + 30 + msgp.BoolSize + 31 + msgp.BoolSize + 10 + msgp.ArrayHeaderSize
+	s = 1 + 17 + msgp.StringPrefixSize + len(z.StateJWTSecret) + 36 + msgp.BoolSize + 10 + msgp.ArrayHeaderSize
 	for za0001 := range z.Providers {
 		s += z.Providers[za0001].Msgsize()
 	}

@@ -356,6 +356,8 @@ func (m DependencyMap) Provide(
 		return *tConfig.AppConfig.Auth
 	case "MFAConfiguration":
 		return *tConfig.AppConfig.MFA
+	case "OAuthConflictConfiguration":
+		return tConfig.AppConfig.AuthAPI.OnIdentityConflict.OAuth
 	case "TenantConfiguration":
 		return &tConfig
 	case "URLPrefix":
