@@ -73,7 +73,7 @@ var (
 			"password_policy": { "$ref": "#PasswordPolicyConfiguration" },
 			"forgot_password": { "$ref": "#ForgotPasswordConfiguration" },
 			"welcome_email": { "$ref": "#WelcomeEmailConfiguration" },
-			"sso": { "$ref": "#SSOConfiguration" },
+			"identity": { "$ref": "#IdentityConfiguration" },
 			"user_verification": { "$ref": "#UserVerificationConfiguration" },
 			"hook": { "$ref": "#HookAppConfiguration" },
 			"smtp" : { "$ref": "#SMTPConfiguration" },
@@ -414,12 +414,20 @@ var (
 			}
 		}
 	},
-	"SSOConfiguration": {
-		"$id": "#SSOConfiguration",
+	"IdentityConfiguration": {
+		"$id": "#IdentityConfiguration",
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
+			"login_id": { "$ref": "#LoginIDConfiguration" },
 			"oauth": { "$ref": "#OAuthConfiguration" }
+		}
+	},
+	"LoginIDConfiguration": {
+		"$id": "#LoginIDConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
 		}
 	},
 	"OAuthConfiguration": {

@@ -80,7 +80,7 @@ func TestUnlinkHandler(t *testing.T) {
 		timeProvider := &coreTime.MockProvider{}
 		sh.ProviderFactory = sso.NewOAuthProviderFactory(config.TenantConfiguration{
 			AppConfig: &config.AppConfiguration{
-				SSO: &config.SSOConfiguration{
+				Identity: &config.IdentityConfiguration{
 					OAuth: &config.OAuthConfiguration{
 						Providers: []config.OAuthProviderConfiguration{
 							config.OAuthProviderConfiguration{

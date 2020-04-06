@@ -391,7 +391,7 @@ func TestParseAppConfiguration(t *testing.T) {
 				"hook": {
 					"secret": "hooksecret"
 				},
-				"sso": {
+				"identity": {
 					"oauth": {
 						"providers": [
 							{ "type": "azureadv2" },
@@ -401,16 +401,16 @@ func TestParseAppConfiguration(t *testing.T) {
 					}
 				}
 			}`,
-			"/sso/oauth/providers/0/client_id: Required",
-			"/sso/oauth/providers/0/client_secret: Required",
-			"/sso/oauth/providers/0/tenant: Required",
-			"/sso/oauth/providers/1/client_id: Required",
-			"/sso/oauth/providers/1/client_secret: Required",
-			"/sso/oauth/providers/2/client_id: Required",
-			"/sso/oauth/providers/2/client_secret: Required",
-			"/sso/oauth/providers/2/key_id: Required",
-			"/sso/oauth/providers/2/team_id: Required",
-			"/sso/oauth/state_jwt_secret: Required",
+			"/identity/oauth/providers/0/client_id: Required",
+			"/identity/oauth/providers/0/client_secret: Required",
+			"/identity/oauth/providers/0/tenant: Required",
+			"/identity/oauth/providers/1/client_id: Required",
+			"/identity/oauth/providers/1/client_secret: Required",
+			"/identity/oauth/providers/2/client_id: Required",
+			"/identity/oauth/providers/2/client_secret: Required",
+			"/identity/oauth/providers/2/key_id: Required",
+			"/identity/oauth/providers/2/team_id: Required",
+			"/identity/oauth/state_jwt_secret: Required",
 		)
 		// UserVerificationConfiguration
 		test(`

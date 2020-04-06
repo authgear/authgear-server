@@ -40,7 +40,7 @@ app_config:
       type: raw
   hook:
     secret: hooksecret
-  sso:
+  identity:
     oauth:
       state_jwt_secret: statejwtsecret
 `, apiversion.APIVersion, apiversion.APIVersion)
@@ -82,7 +82,7 @@ var inputMinimalJSON = fmt.Sprintf(`
 		"hook": {
 			"secret": "hooksecret"
 		},
-		"sso": {
+		"identity": {
 			"oauth": {
 				"state_jwt_secret": "statejwtsecret"
 			}
@@ -260,7 +260,8 @@ func makeFullTenantConfig() TenantConfiguration {
 				ReplyTo:     `"Welcome Email Reply To" <welcomeemailreplyto@example.com>`,
 				Destination: "first",
 			},
-			SSO: &SSOConfiguration{
+			Identity: &IdentityConfiguration{
+				LoginID: &LoginIDConfiguration{},
 				OAuth: &OAuthConfiguration{
 					StateJWTSecret:                 "oauthstatejwtsecret",
 					ExternalAccessTokenFlowEnabled: true,
@@ -418,7 +419,7 @@ func TestTenantConfig(t *testing.T) {
 		})
 		Convey("should set OAuth provider id and default scope", func() {
 			c := makeFullTenantConfig()
-			c.AppConfig.SSO.OAuth.Providers = []OAuthProviderConfiguration{
+			c.AppConfig.Identity.OAuth.Providers = []OAuthProviderConfiguration{
 				OAuthProviderConfiguration{
 					Type:         OAuthProviderTypeGoogle,
 					ClientID:     "googleclientid",
@@ -427,7 +428,7 @@ func TestTenantConfig(t *testing.T) {
 			}
 			c.AfterUnmarshal()
 
-			google := c.AppConfig.SSO.OAuth.Providers[0]
+			google := c.AppConfig.Identity.OAuth.Providers[0]
 
 			So(google.ID, ShouldEqual, OAuthProviderTypeGoogle)
 			So(google.Scope, ShouldEqual, "openid profile email")
@@ -472,7 +473,7 @@ func TestTenantConfig(t *testing.T) {
 		})
 		Convey("should validate OAuth Provider", func() {
 			c := makeFullTenantConfig()
-			c.AppConfig.SSO.OAuth.Providers = []OAuthProviderConfiguration{
+			c.AppConfig.Identity.OAuth.Providers = []OAuthProviderConfiguration{
 				OAuthProviderConfiguration{
 					ID:           "azure",
 					Type:         OAuthProviderTypeAzureADv2,
@@ -492,7 +493,7 @@ func TestTenantConfig(t *testing.T) {
 			testValidation(&c, []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
 				Message: "duplicated OAuth provider",
-				Pointer: "/user_config/sso/oauth/providers/1",
+				Pointer: "/user_config/identity/oauth/providers/1",
 			}})
 		})
 		Convey("should omit empty", func() {
@@ -515,7 +516,7 @@ func TestTenantConfig(t *testing.T) {
 			So(userConfig.PasswordPolicy, ShouldBeNil)
 			So(userConfig.ForgotPassword, ShouldBeNil)
 			So(userConfig.WelcomeEmail, ShouldBeNil)
-			So(userConfig.SSO, ShouldBeNil)
+			So(userConfig.Identity, ShouldBeNil)
 			So(userConfig.UserVerification, ShouldBeNil)
 			So(userConfig.Hook, ShouldBeNil)
 			So(userConfig.SMTP, ShouldBeNil)
@@ -531,7 +532,7 @@ func TestTenantConfig(t *testing.T) {
 			So(userConfig.PasswordPolicy, ShouldNotBeNil)
 			So(userConfig.ForgotPassword, ShouldNotBeNil)
 			So(userConfig.WelcomeEmail, ShouldNotBeNil)
-			So(userConfig.SSO, ShouldNotBeNil)
+			So(userConfig.Identity, ShouldNotBeNil)
 			So(userConfig.UserVerification, ShouldNotBeNil)
 			So(userConfig.Hook, ShouldNotBeNil)
 			So(userConfig.SMTP, ShouldNotBeNil)

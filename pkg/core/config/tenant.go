@@ -154,7 +154,7 @@ func (c *TenantConfiguration) StdBase64Msgpack() (string, error) {
 }
 
 func (c *TenantConfiguration) GetOAuthProviderByID(id string) (OAuthProviderConfiguration, bool) {
-	for _, provider := range c.AppConfig.SSO.OAuth.Providers {
+	for _, provider := range c.AppConfig.Identity.OAuth.Providers {
 		if provider.ID == id {
 			return provider, true
 		}
@@ -173,7 +173,7 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 
 	values = append(values,
 		c.AppConfig.Auth.AuthenticationSession.Secret,
-		c.AppConfig.SSO.OAuth.StateJWTSecret,
+		c.AppConfig.Identity.OAuth.StateJWTSecret,
 		c.AppConfig.Hook.Secret,
 		c.DatabaseConfig.DatabaseURL,
 		c.DatabaseConfig.DatabaseSchema,
@@ -185,8 +185,8 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 		c.AppConfig.Nexmo.APIKey,
 		c.AppConfig.Nexmo.APISecret,
 	)
-	oauthSecrets := make([]string, len(c.AppConfig.SSO.OAuth.Providers)*2)
-	for i, oauthConfig := range c.AppConfig.SSO.OAuth.Providers {
+	oauthSecrets := make([]string, len(c.AppConfig.Identity.OAuth.Providers)*2)
+	for i, oauthConfig := range c.AppConfig.Identity.OAuth.Providers {
 		oauthSecrets[i*2] = oauthConfig.ClientID
 		oauthSecrets[i*2+1] = oauthConfig.ClientSecret
 	}
@@ -236,13 +236,13 @@ func (c *TenantConfiguration) PostValidate() error {
 
 	// Validate OAuth
 	seenOAuthProviderID := map[string]struct{}{}
-	for i, provider := range c.AppConfig.SSO.OAuth.Providers {
+	for i, provider := range c.AppConfig.Identity.OAuth.Providers {
 		// Ensure ID is not duplicate.
 		if _, ok := seenOAuthProviderID[provider.ID]; ok {
 			return fail(
 				validation.ErrorGeneral,
 				"duplicated OAuth provider",
-				"user_config", "sso", "oauth", "providers", i)
+				"user_config", "identity", "oauth", "providers", i)
 		}
 		seenOAuthProviderID[provider.ID] = struct{}{}
 	}
@@ -416,41 +416,41 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 
 	// Set type to id
 	// Set default scope for OAuth Provider
-	for i, provider := range c.AppConfig.SSO.OAuth.Providers {
+	for i, provider := range c.AppConfig.Identity.OAuth.Providers {
 		if provider.ID == "" {
-			c.AppConfig.SSO.OAuth.Providers[i].ID = string(provider.Type)
+			c.AppConfig.Identity.OAuth.Providers[i].ID = string(provider.Type)
 		}
 		switch provider.Type {
 		case OAuthProviderTypeGoogle:
 			if provider.Scope == "" {
 				// https://developers.google.com/identity/protocols/googlescopes#google_sign-in
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
+				c.AppConfig.Identity.OAuth.Providers[i].Scope = "openid profile email"
 			}
 		case OAuthProviderTypeFacebook:
 			if provider.Scope == "" {
 				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-default
 				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "email"
+				c.AppConfig.Identity.OAuth.Providers[i].Scope = "email"
 			}
 		case OAuthProviderTypeInstagram:
 			if provider.Scope == "" {
 				// https://www.instagram.com/developer/authorization/
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "basic"
+				c.AppConfig.Identity.OAuth.Providers[i].Scope = "basic"
 			}
 		case OAuthProviderTypeLinkedIn:
 			if provider.Scope == "" {
 				// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api?context=linkedin/compliance/context
 				// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "r_liteprofile r_emailaddress"
+				c.AppConfig.Identity.OAuth.Providers[i].Scope = "r_liteprofile r_emailaddress"
 			}
 		case OAuthProviderTypeAzureADv2:
 			if provider.Scope == "" {
 				// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
+				c.AppConfig.Identity.OAuth.Providers[i].Scope = "openid profile email"
 			}
 		case OAuthProviderTypeApple:
 			if provider.Scope == "" {
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "email"
+				c.AppConfig.Identity.OAuth.Providers[i].Scope = "email"
 			}
 		}
 	}
@@ -501,7 +501,7 @@ type AppConfiguration struct {
 	PasswordPolicy   *PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy" default_zero_value:"true"`
 	ForgotPassword   *ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password" default_zero_value:"true"`
 	WelcomeEmail     *WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email" default_zero_value:"true"`
-	SSO              *SSOConfiguration              `json:"sso,omitempty" yaml:"sso" msg:"sso" default_zero_value:"true"`
+	Identity         *IdentityConfiguration         `json:"identity,omitempty" yaml:"identity" msg:"identity" default_zero_value:"true"`
 	UserVerification *UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification" default_zero_value:"true"`
 	Hook             *HookAppConfiguration          `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
 	SMTP             *SMTPConfiguration             `json:"smtp,omitempty" yaml:"smtp" msg:"smtp" default_zero_value:"true"`
@@ -786,40 +786,6 @@ type WelcomeEmailConfiguration struct {
 	Subject     string                  `json:"subject,omitempty" yaml:"subject" msg:"subject"`
 	ReplyTo     string                  `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
 	Destination WelcomeEmailDestination `json:"destination,omitempty" yaml:"destination" msg:"destination"`
-}
-
-type SSOConfiguration struct {
-	OAuth *OAuthConfiguration `json:"oauth,omitempty" yaml:"oauth" msg:"oauth" default_zero_value:"true"`
-}
-
-type OAuthConfiguration struct {
-	StateJWTSecret                 string                       `json:"state_jwt_secret,omitempty" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
-	ExternalAccessTokenFlowEnabled bool                         `json:"external_access_token_flow_enabled,omitempty" yaml:"external_access_token_flow_enabled" msg:"external_access_token_flow_enabled"`
-	Providers                      []OAuthProviderConfiguration `json:"providers,omitempty" yaml:"providers" msg:"providers"`
-}
-
-type OAuthProviderType string
-
-const (
-	OAuthProviderTypeGoogle    OAuthProviderType = "google"
-	OAuthProviderTypeFacebook  OAuthProviderType = "facebook"
-	OAuthProviderTypeInstagram OAuthProviderType = "instagram"
-	OAuthProviderTypeLinkedIn  OAuthProviderType = "linkedin"
-	OAuthProviderTypeAzureADv2 OAuthProviderType = "azureadv2"
-	OAuthProviderTypeApple     OAuthProviderType = "apple"
-)
-
-type OAuthProviderConfiguration struct {
-	ID           string            `json:"id,omitempty" yaml:"id" msg:"id"`
-	Type         OAuthProviderType `json:"type,omitempty" yaml:"type" msg:"type"`
-	ClientID     string            `json:"client_id,omitempty" yaml:"client_id" msg:"client_id"`
-	ClientSecret string            `json:"client_secret,omitempty" yaml:"client_secret" msg:"client_secret"`
-	Scope        string            `json:"scope,omitempty" yaml:"scope" msg:"scope"`
-	// Tenant is specific to azureadv2
-	Tenant string `json:"tenant,omitempty" yaml:"tenant" msg:"tenant"`
-	// KeyID and TeamID are specific to apple
-	KeyID  string `json:"key_id,omitempty" yaml:"key_id" msg:"key_id"`
-	TeamID string `json:"team_id,omitempty" yaml:"team_id" msg:"team_id"`
 }
 
 type UserVerificationCriteria string

@@ -17,7 +17,7 @@ func ProvideSSOProvider(
 	return NewProvider(
 		ctx,
 		config.AppID,
-		config.AppConfig.SSO.OAuth,
+		config.AppConfig.Identity.OAuth,
 	)
 }
 

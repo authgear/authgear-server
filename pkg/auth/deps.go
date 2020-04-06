@@ -126,7 +126,7 @@ func ProvideWebAppRenderProvider(
 		StaticAssetURLPrefix: m.StaticAssetURLPrefix,
 		AuthConfiguration:    config.AppConfig.Auth,
 		AuthUIConfiguration:  config.AppConfig.AuthUI,
-		OAuthProviders:       config.AppConfig.SSO.OAuth.Providers,
+		OAuthProviders:       config.AppConfig.Identity.OAuth.Providers,
 		PasswordChecker:      passwordChecker,
 		TemplateEngine:       templateEngine,
 	}

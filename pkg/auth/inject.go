@@ -337,7 +337,7 @@ func (m DependencyMap) Provide(
 		return sso.NewProvider(
 			ctx,
 			tConfig.AppID,
-			tConfig.AppConfig.SSO.OAuth,
+			tConfig.AppConfig.Identity.OAuth,
 		)
 	case "OAuthAuthProvider":
 		return newOAuthAuthProvider()
@@ -350,7 +350,7 @@ func (m DependencyMap) Provide(
 	case "HookProvider":
 		return newHookProvider()
 	case "OAuthConfiguration":
-		return tConfig.AppConfig.SSO.OAuth
+		return tConfig.AppConfig.Identity.OAuth
 	case "AuthConfiguration":
 		return *tConfig.AppConfig.Auth
 	case "MFAConfiguration":
