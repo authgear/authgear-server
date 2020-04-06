@@ -15,6 +15,7 @@ const (
 
 type InstagramImpl struct {
 	URLPrefix       *url.URL
+	RedirectURLFunc RedirectURLFunc
 	OAuthConfig     *config.OAuthConfiguration
 	ProviderConfig  config.OAuthProviderConfiguration
 	UserInfoDecoder UserInfoDecoder
@@ -27,7 +28,7 @@ func (f *InstagramImpl) Type() config.OAuthProviderType {
 func (f *InstagramImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
-		urlPrefix:      f.URLPrefix,
+		redirectURI:    f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		providerConfig: f.ProviderConfig,
 		encodedState:   encodedState,
 		baseURL:        instagramAuthorizationURL,
@@ -41,7 +42,7 @@ func (f *InstagramImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (
 
 func (f *InstagramImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:       f.URLPrefix,
+		redirectURL:     f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		oauthConfig:     f.OAuthConfig,
 		providerConfig:  f.ProviderConfig,
 		accessTokenURL:  instagramTokenURL,
@@ -52,7 +53,7 @@ func (f *InstagramImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse
 }
 func (f *InstagramImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:       f.URLPrefix,
+		redirectURL:     f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		oauthConfig:     f.OAuthConfig,
 		providerConfig:  f.ProviderConfig,
 		accessTokenURL:  instagramTokenURL,

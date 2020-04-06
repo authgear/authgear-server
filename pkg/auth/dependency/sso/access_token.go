@@ -91,14 +91,14 @@ func (r AccessTokenResp) Validate() error {
 func fetchAccessTokenResp(
 	code string,
 	accessTokenURL string,
-	urlPrefix *url.URL,
+	redirectURL string,
 	oauthConfig *config.OAuthConfiguration,
 	providerConfig config.OAuthProviderConfiguration,
 ) (r AccessTokenResp, err error) {
 	v := url.Values{}
 	v.Set("grant_type", "authorization_code")
 	v.Add("code", code)
-	v.Add("redirect_uri", redirectURI(urlPrefix, providerConfig))
+	v.Add("redirect_uri", redirectURL)
 	v.Add("client_id", providerConfig.ClientID)
 	v.Add("client_secret", providerConfig.ClientSecret)
 

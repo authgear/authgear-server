@@ -116,7 +116,8 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, provider, timeProvider, loginIDNormalizerFactory)
+	redirectURLFunc := ProvideRedirectURIForAPIFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, provider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
 	httpHandler := provideAuthHandler(txContext, tenantConfiguration, authHandlerHTMLProvider, ssoProvider, authnProvider, oAuthProvider)
 	return httpHandler
@@ -273,7 +274,8 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory)
+	redirectURLFunc := ProvideRedirectURIForAPIFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
 	httpHandler := provideLinkHandler(txContext, requireAuthz, validator, provider, authnProvider, oAuthProvider)
 	return httpHandler
@@ -351,7 +353,8 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory)
+	redirectURLFunc := ProvideRedirectURIForAPIFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
 	httpHandler := provideLoginHandler(txContext, requireAuthz, validator, provider, authnProvider, oAuthProvider)
 	return httpHandler
@@ -362,6 +365,10 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 func provideOAuthProviderFromRequestVars(r *http.Request, spf *sso.OAuthProviderFactory) sso.OAuthProvider {
 	vars := mux.Vars(r)
 	return spf.NewOAuthProvider(vars["provider"])
+}
+
+func ProvideRedirectURIForAPIFunc() sso.RedirectURLFunc {
+	return RedirectURIForAPI
 }
 
 func provideAuthHandler(

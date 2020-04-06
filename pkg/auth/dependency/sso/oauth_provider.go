@@ -37,19 +37,21 @@ type OpenIDConnectProvider interface {
 
 type OAuthProviderFactory struct {
 	urlPrefixProvider        urlprefix.Provider
+	redirectURIFunc          RedirectURLFunc
 	tenantConfig             config.TenantConfiguration
 	timeProvider             coreTime.Provider
 	userInfoDecoder          UserInfoDecoder
 	loginIDNormalizerFactory loginid.LoginIDNormalizerFactory
 }
 
-func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider, timeProvider coreTime.Provider, userInfoDecoder UserInfoDecoder, loginIDNormalizerFactory loginid.LoginIDNormalizerFactory) *OAuthProviderFactory {
+func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider, timeProvider coreTime.Provider, userInfoDecoder UserInfoDecoder, loginIDNormalizerFactory loginid.LoginIDNormalizerFactory, redirectURIFunc RedirectURLFunc) *OAuthProviderFactory {
 	return &OAuthProviderFactory{
 		tenantConfig:             tenantConfig,
 		urlPrefixProvider:        urlPrefixProvider,
 		timeProvider:             timeProvider,
 		userInfoDecoder:          userInfoDecoder,
 		loginIDNormalizerFactory: loginIDNormalizerFactory,
+		redirectURIFunc:          redirectURIFunc,
 	}
 }
 
@@ -62,6 +64,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	case config.OAuthProviderTypeGoogle:
 		return &GoogleImpl{
 			URLPrefix:                p.urlPrefixProvider.Value(),
+			RedirectURLFunc:          p.redirectURIFunc,
 			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:           providerConfig,
 			TimeProvider:             p.timeProvider,
@@ -71,6 +74,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	case config.OAuthProviderTypeFacebook:
 		return &FacebookImpl{
 			URLPrefix:       p.urlPrefixProvider.Value(),
+			RedirectURLFunc: p.redirectURIFunc,
 			OAuthConfig:     p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:  providerConfig,
 			UserInfoDecoder: p.userInfoDecoder,
@@ -78,6 +82,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	case config.OAuthProviderTypeInstagram:
 		return &InstagramImpl{
 			URLPrefix:       p.urlPrefixProvider.Value(),
+			RedirectURLFunc: p.redirectURIFunc,
 			OAuthConfig:     p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:  providerConfig,
 			UserInfoDecoder: p.userInfoDecoder,
@@ -85,6 +90,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	case config.OAuthProviderTypeLinkedIn:
 		return &LinkedInImpl{
 			URLPrefix:       p.urlPrefixProvider.Value(),
+			RedirectURLFunc: p.redirectURIFunc,
 			OAuthConfig:     p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:  providerConfig,
 			UserInfoDecoder: p.userInfoDecoder,
@@ -92,6 +98,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	case config.OAuthProviderTypeAzureADv2:
 		return &Azureadv2Impl{
 			URLPrefix:                p.urlPrefixProvider.Value(),
+			RedirectURLFunc:          p.redirectURIFunc,
 			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:           providerConfig,
 			TimeProvider:             p.timeProvider,
@@ -100,6 +107,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	case config.OAuthProviderTypeApple:
 		return &AppleImpl{
 			URLPrefix:                p.urlPrefixProvider.Value(),
+			RedirectURLFunc:          p.redirectURIFunc,
 			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:           providerConfig,
 			TimeProvider:             p.timeProvider,

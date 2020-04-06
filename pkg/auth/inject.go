@@ -319,7 +319,7 @@ func (m DependencyMap) Provide(
 	case "OAuthUserInfoDecoder":
 		return newOAuthUserInfoDecoder()
 	case "SSOOAuthProviderFactory":
-		return sso.NewOAuthProviderFactory(tConfig, urlprefix.NewProvider(request), newTimeProvider(), newOAuthUserInfoDecoder(), newLoginIDNormalizerFactory())
+		return sso.NewOAuthProviderFactory(tConfig, urlprefix.NewProvider(request), newTimeProvider(), newOAuthUserInfoDecoder(), newLoginIDNormalizerFactory(), nil)
 	case "SSOProvider":
 		return sso.NewProvider(
 			ctx,

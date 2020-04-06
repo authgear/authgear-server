@@ -35,10 +35,11 @@ func TestAuthResultHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
-			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
-			BaseURL:        "http://mock/auth",
-			OAuthConfig:    oauthConfig,
-			ProviderConfig: providerConfig,
+			URLPrefix:       &url.URL{Scheme: "https", Host: "api.example.com"},
+			RedirectURLFunc: RedirectURIForAPI,
+			BaseURL:         "http://mock/auth",
+			OAuthConfig:     oauthConfig,
+			ProviderConfig:  providerConfig,
 			UserInfo: sso.ProviderUserInfo{
 				ID:    providerUserID,
 				Email: "mock@example.com",

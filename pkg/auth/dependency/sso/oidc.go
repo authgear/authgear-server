@@ -17,7 +17,7 @@ import (
 
 type OIDCAuthParams struct {
 	ProviderConfig config.OAuthProviderConfiguration
-	URLPrefix      *url.URL
+	RedirectURI    string
 	Nonce          string
 	EncodedState   string
 	ExtraParams    map[string]string
@@ -52,7 +52,7 @@ func (d *OIDCDiscoveryDocument) MakeOAuthURL(params OIDCAuthParams) string {
 	v := coreUrl.Query{}
 	v.Add("response_type", "code")
 	v.Add("client_id", params.ProviderConfig.ClientID)
-	v.Add("redirect_uri", redirectURI(params.URLPrefix, params.ProviderConfig))
+	v.Add("redirect_uri", params.RedirectURI)
 	v.Add("scope", params.ProviderConfig.Scope)
 	v.Add("nonce", params.Nonce)
 	v.Add("response_mode", "form_post")

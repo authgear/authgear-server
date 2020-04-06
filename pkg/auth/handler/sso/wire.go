@@ -21,6 +21,10 @@ func provideOAuthProviderFromRequestVars(r *http.Request, spf *sso.OAuthProvider
 	return spf.NewOAuthProvider(vars["provider"])
 }
 
+func ProvideRedirectURIForAPIFunc() sso.RedirectURLFunc {
+	return RedirectURIForAPI
+}
+
 func provideAuthHandler(
 	tx db.TxContext,
 	cfg *config.TenantConfiguration,
@@ -47,6 +51,7 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		wire.Bind(new(AuthHandlerAuthnProvider), new(*authn.Provider)),
 		provideOAuthProviderFromRequestVars,
 		provideAuthHandler,
+		ProvideRedirectURIForAPIFunc,
 	)
 	return nil
 }
@@ -102,6 +107,7 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		wire.Bind(new(LinkAuthnProvider), new(*authn.Provider)),
 		provideOAuthProviderFromRequestVars,
 		provideLinkHandler,
+		ProvideRedirectURIForAPIFunc,
 	)
 	return nil
 }
@@ -131,6 +137,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		wire.Bind(new(LoginAuthnProvider), new(*authn.Provider)),
 		provideOAuthProviderFromRequestVars,
 		provideLoginHandler,
+		ProvideRedirectURIForAPIFunc,
 	)
 	return nil
 }

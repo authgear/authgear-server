@@ -52,10 +52,11 @@ func TestAuthURLHandler(t *testing.T) {
 			Scope:        "openid profile email",
 		}
 		mockProvider := sso.MockSSOProvider{
-			URLPrefix:      &url.URL{Scheme: "https", Host: "localhost:3000"},
-			BaseURL:        "http://mock/auth",
-			OAuthConfig:    oauthConfig,
-			ProviderConfig: providerConfig,
+			URLPrefix:       &url.URL{Scheme: "https", Host: "localhost:3000"},
+			RedirectURLFunc: RedirectURIForAPI,
+			BaseURL:         "http://mock/auth",
+			OAuthConfig:     oauthConfig,
+			ProviderConfig:  providerConfig,
 		}
 		mockPasswordProvider := password.NewMockProvider(
 			nil,
