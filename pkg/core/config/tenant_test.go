@@ -205,7 +205,6 @@ func makeFullTenantConfig() TenantConfiguration {
 						CaseSensitive:          newFalse(),
 					},
 				},
-				AllowedRealms: []string{"default"},
 			},
 			MFA: &MFAConfiguration{
 				Enabled:     true,

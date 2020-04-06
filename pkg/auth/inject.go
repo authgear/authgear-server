@@ -158,7 +158,6 @@ func (m DependencyMap) Provide(
 			newLoggerFactory(),
 			tConfig.AppConfig.Auth.LoginIDKeys,
 			tConfig.AppConfig.Auth.LoginIDTypes,
-			tConfig.AppConfig.Auth.AllowedRealms,
 			isPasswordHistoryEnabled(),
 			m.ReservedNameChecker,
 		)

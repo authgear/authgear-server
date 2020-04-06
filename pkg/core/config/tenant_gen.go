@@ -2169,25 +2169,6 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					return
 				}
 			}
-		case "allowed_realms":
-			var zb0004 uint32
-			zb0004, err = dc.ReadArrayHeader()
-			if err != nil {
-				err = msgp.WrapError(err, "AllowedRealms")
-				return
-			}
-			if cap(z.AllowedRealms) >= int(zb0004) {
-				z.AllowedRealms = (z.AllowedRealms)[:zb0004]
-			} else {
-				z.AllowedRealms = make([]string, zb0004)
-			}
-			for za0002 := range z.AllowedRealms {
-				z.AllowedRealms[za0002], err = dc.ReadString()
-				if err != nil {
-					err = msgp.WrapError(err, "AllowedRealms", za0002)
-					return
-				}
-			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -2201,9 +2182,9 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 4
+	// map header, size 3
 	// write "authentication_session"
-	err = en.Append(0x84, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0x83, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
@@ -2259,32 +2240,15 @@ func (z *AuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	}
-	// write "allowed_realms"
-	err = en.Append(0xae, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x73)
-	if err != nil {
-		return
-	}
-	err = en.WriteArrayHeader(uint32(len(z.AllowedRealms)))
-	if err != nil {
-		err = msgp.WrapError(err, "AllowedRealms")
-		return
-	}
-	for za0002 := range z.AllowedRealms {
-		err = en.WriteString(z.AllowedRealms[za0002])
-		if err != nil {
-			err = msgp.WrapError(err, "AllowedRealms", za0002)
-			return
-		}
-	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *AuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 4
+	// map header, size 3
 	// string "authentication_session"
-	o = append(o, 0x84, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0x83, 0xb6, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e)
 	if z.AuthenticationSession == nil {
 		o = msgp.AppendNil(o)
 	} else {
@@ -2313,12 +2277,6 @@ func (z *AuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 			err = msgp.WrapError(err, "LoginIDKeys", za0001)
 			return
 		}
-	}
-	// string "allowed_realms"
-	o = append(o, 0xae, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x73)
-	o = msgp.AppendArrayHeader(o, uint32(len(z.AllowedRealms)))
-	for za0002 := range z.AllowedRealms {
-		o = msgp.AppendString(o, z.AllowedRealms[za0002])
 	}
 	return
 }
@@ -2417,25 +2375,6 @@ func (z *AuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					return
 				}
 			}
-		case "allowed_realms":
-			var zb0004 uint32
-			zb0004, bts, err = msgp.ReadArrayHeaderBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "AllowedRealms")
-				return
-			}
-			if cap(z.AllowedRealms) >= int(zb0004) {
-				z.AllowedRealms = (z.AllowedRealms)[:zb0004]
-			} else {
-				z.AllowedRealms = make([]string, zb0004)
-			}
-			for za0002 := range z.AllowedRealms {
-				z.AllowedRealms[za0002], bts, err = msgp.ReadStringBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "AllowedRealms", za0002)
-					return
-				}
-			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -2465,10 +2404,6 @@ func (z *AuthConfiguration) Msgsize() (s int) {
 	s += 14 + msgp.ArrayHeaderSize
 	for za0001 := range z.LoginIDKeys {
 		s += z.LoginIDKeys[za0001].Msgsize()
-	}
-	s += 15 + msgp.ArrayHeaderSize
-	for za0002 := range z.AllowedRealms {
-		s += msgp.StringPrefixSize + len(z.AllowedRealms[za0002])
 	}
 	return
 }

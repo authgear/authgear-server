@@ -34,7 +34,6 @@ func newProvider(
 	loggerFactory logging.Factory,
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
-	allowedRealms []string,
 	passwordHistoryEnabled bool,
 	reservedNameChecker *loginid.ReservedNameChecker,
 ) *providerImpl {
@@ -49,10 +48,10 @@ func newProvider(
 			reservedNameChecker,
 		),
 		realmChecker: defaultRealmChecker{
-			allowedRealms: allowedRealms,
+			allowedRealms: []string{DefaultRealm},
 		},
 		loginIDNormalizerFactory: loginid.NewLoginIDNormalizerFactory(loginIDsKeys, loginIDTypes),
-		allowedRealms:            allowedRealms,
+		allowedRealms:            []string{DefaultRealm},
 		passwordHistoryEnabled:   passwordHistoryEnabled,
 		passwordHistoryStore:     passwordHistoryStore,
 	}
@@ -65,11 +64,10 @@ func NewProvider(
 	loggerFactory logging.Factory,
 	loginIDsKeys []config.LoginIDKeyConfiguration,
 	loginIDTypes *config.LoginIDTypesConfiguration,
-	allowedRealms []string,
 	passwordHistoryEnabled bool,
 	reservedNameChecker *loginid.ReservedNameChecker,
 ) Provider {
-	return newProvider(timeProvider, passwordStore, passwordHistoryStore, loggerFactory, loginIDsKeys, loginIDTypes, allowedRealms, passwordHistoryEnabled, reservedNameChecker)
+	return newProvider(timeProvider, passwordStore, passwordHistoryStore, loggerFactory, loginIDsKeys, loginIDTypes, passwordHistoryEnabled, reservedNameChecker)
 }
 
 func (p *providerImpl) ValidateLoginID(loginID loginid.LoginID) error {

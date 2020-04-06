@@ -293,9 +293,6 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 			LoginIDKeyConfiguration{Key: "phone", Type: LoginIDKeyType(metadata.Phone)},
 		}
 	}
-	if c.AppConfig.Auth.AllowedRealms == nil {
-		c.AppConfig.Auth.AllowedRealms = []string{"default"}
-	}
 
 	if c.AppConfig.Auth.LoginIDTypes.Email.CaseSensitive == nil {
 		d := false
@@ -627,7 +624,6 @@ type AuthConfiguration struct {
 	AuthenticationSession *AuthenticationSessionConfiguration `json:"authentication_session,omitempty" yaml:"authentication_session" msg:"authentication_session" default_zero_value:"true"`
 	LoginIDTypes          *LoginIDTypesConfiguration          `json:"login_id_types,omitempty" yaml:"login_id_types" msg:"login_id_types" default_zero_value:"true"`
 	LoginIDKeys           []LoginIDKeyConfiguration           `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
-	AllowedRealms         []string                            `json:"-" yaml:"-" msg:"allowed_realms"`
 }
 
 type AuthUIConfiguration struct {
