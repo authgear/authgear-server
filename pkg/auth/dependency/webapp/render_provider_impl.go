@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	htmlTemplate "html/template"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/gorilla/csrf"
@@ -25,9 +26,31 @@ type RenderProviderImpl struct {
 	PasswordChecker      *audit.PasswordChecker
 }
 
-func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, inputErr error) {
+func (p *RenderProviderImpl) asAPIError(anyError interface{}) *skyerr.APIError {
+	if apiError, ok := anyError.(*skyerr.APIError); ok {
+		return apiError
+	}
+	if err, ok := anyError.(error); ok {
+		return skyerr.AsAPIError(err)
+	}
+	return nil
+}
+
+func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, anyError interface{}) {
 	data := FormToJSON(r.Form)
 	accessKey := coreAuth.GetAccessKey(r.Context())
+
+	data["MakeURLWithQuery"] = func(pairs ...string) string {
+		q := url.Values{}
+		for i := 0; i < len(pairs); i += 2 {
+			q.Set(pairs[i], pairs[i+1])
+		}
+		return MakeURLWithQuery(r.URL, q)
+	}
+
+	data["MakeURLWithPath"] = func(path string) string {
+		return MakeURLWithPath(r.URL, path)
+	}
 
 	data["client_name"] = accessKey.Client["client_name"]
 	data["logo_uri"] = accessKey.Client["logo_uri"]
@@ -60,15 +83,20 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 
 	var loginIDKeys []map[string]interface{}
 	for _, loginIDKey := range p.AuthConfiguration.LoginIDKeys {
+		inputType := "text"
+		if loginIDKey.Type == "phone" {
+			inputType = "phone"
+		}
 		loginIDKeys = append(loginIDKeys, map[string]interface{}{
-			"key":  loginIDKey.Key,
-			"type": loginIDKey.Type,
+			"key":        loginIDKey.Key,
+			"type":       loginIDKey.Type,
+			"input_type": inputType,
 		})
 	}
 	data["x_login_id_keys"] = loginIDKeys
 
 	passwordPolicy := p.PasswordChecker.PasswordPolicy()
-	if apiError := skyerr.AsAPIError(inputErr); apiError != nil {
+	if apiError := p.asAPIError(anyError); apiError != nil {
 		if apiError.Reason == "PasswordPolicyViolated" {
 			for i, policy := range passwordPolicy {
 				if policy.Info == nil {
@@ -96,10 +124,10 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	data["x_password_policies"] = passwordPolicyJSON
 
 	// Populate inputErr into data
-	if inputErr != nil {
+	if apiError := p.asAPIError(anyError); apiError != nil {
 		b, err := json.Marshal(struct {
 			Error *skyerr.APIError `json:"error"`
-		}{skyerr.AsAPIError(inputErr)})
+		}{apiError})
 		if err != nil {
 			panic(err)
 		}
@@ -122,7 +150,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	body := []byte(out)
 	w.Header().Set("Content-Type", "text/html")
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
-	if apiError := skyerr.AsAPIError(inputErr); apiError != nil {
+	if apiError := p.asAPIError(anyError); apiError != nil {
 		w.WriteHeader(apiError.Code)
 	}
 	w.Write(body)

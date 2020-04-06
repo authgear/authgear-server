@@ -14,24 +14,18 @@ func ProvideValidateProvider(tConfig *config.TenantConfiguration) ValidateProvid
 	}
 }
 
-func ProvideAuthenticateProvider(
-	validateProvider ValidateProvider,
-	renderProvider RenderProvider,
-	authnProvider AuthnProvider,
-) AuthenticateProvider {
-	return &AuthenticateProviderImpl{
-		ValidateProvider: validateProvider,
-		RenderProvider:   renderProvider,
-		AuthnProvider:    authnProvider,
-	}
-}
-
 var DependencySet = wire.NewSet(
 	ProvideValidateProvider,
-	ProvideAuthenticateProvider,
+	wire.Struct(new(StateStoreImpl), "*"),
+	wire.Bind(new(StateStore), new(*StateStoreImpl)),
 )
 
 func ProvideCSPMiddleware(tConfig *config.TenantConfiguration) mux.MiddlewareFunc {
 	m := &CSPMiddleware{Clients: tConfig.AppConfig.Clients}
+	return m.Handle
+}
+
+func ProvideStateMiddleware(stateStore StateStore) mux.MiddlewareFunc {
+	m := &StateMiddleware{StateStore: stateStore}
 	return m.Handle
 }

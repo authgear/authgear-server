@@ -242,12 +242,17 @@ func main() {
 	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewCSRFMiddleware))
 	webappRouter.Use(webapp.PostNoCacheMiddleware)
 
-	webappAnonymousRouter := webappRouter.NewRoute().Subrouter()
-	webappAnonymousRouter.Use(webapp.RequiredAnonymousMiddleware{}.Handle)
-	webapphandler.AttachRootHandler(webappAnonymousRouter, authDependency)
+	webappAuthRouter := webappRouter.NewRoute().Subrouter()
+	webappAuthRouter.Use(webapp.RequireNotAuthenticatedMiddleware{}.Handle)
+	webappAuthRouter.Use(auth.MakeMiddleware(authDependency, auth.NewStateMiddleware))
+	webapphandler.AttachRootHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachLoginHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachLoginPasswordHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachSignupHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachSignupPasswordHandler(webappAuthRouter, authDependency)
 
 	webappAuthenticatedRouter := webappRouter.NewRoute().Subrouter()
-	webappAuthenticatedRouter.Use(webapp.RequiredAuthenticatedMiddleware{}.Handle)
+	webappAuthenticatedRouter.Use(webapp.RequireAuthenticatedMiddleware{}.Handle)
 	webapphandler.AttachSettingsHandler(webappAuthenticatedRouter, authDependency)
 	webapphandler.AttachLogoutHandler(webappAuthenticatedRouter, authDependency)
 

@@ -100,13 +100,11 @@ func TestValidateProvider(t *testing.T) {
 			impl := ValidateProviderImpl{Validator: validator}
 
 			err = impl.Validate("#WebAppLoginLoginIDRequest", url.Values{
-				"x_step":                []string{"login:submit_login_id"},
 				"x_login_id_input_type": []string{"phone"},
 			})
 			So(err, ShouldNotBeNil)
 
 			err = impl.Validate("#WebAppLoginLoginIDRequest", url.Values{
-				"x_step":                []string{"login:submit_login_id"},
 				"x_login_id_input_type": []string{"phone"},
 				"x_calling_code":        []string{"852"},
 				"x_national_number":     []string{"99887766"},
@@ -114,13 +112,11 @@ func TestValidateProvider(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			err = impl.Validate("#WebAppLoginLoginIDRequest", url.Values{
-				"x_step":                []string{"login:submit_login_id"},
 				"x_login_id_input_type": []string{"text"},
 			})
 			So(err, ShouldNotBeNil)
 
 			err = impl.Validate("#WebAppLoginLoginIDRequest", url.Values{
-				"x_step":                []string{"login:submit_login_id"},
 				"x_login_id_input_type": []string{"text"},
 				"x_login_id":            []string{"john.doe"},
 			})
@@ -132,13 +128,11 @@ func TestValidateProvider(t *testing.T) {
 			impl := ValidateProviderImpl{Validator: validator}
 
 			err = impl.Validate("#WebAppLoginLoginIDPasswordRequest", url.Values{
-				"x_step":                []string{"login:submit_password"},
 				"x_login_id_input_type": []string{"phone"},
 			})
 			So(err, ShouldNotBeNil)
 
 			err = impl.Validate("#WebAppLoginLoginIDPasswordRequest", url.Values{
-				"x_step":                []string{"login:submit_password"},
 				"x_login_id_input_type": []string{"phone"},
 				"x_calling_code":        []string{"852"},
 				"x_national_number":     []string{"99887766"},
@@ -146,20 +140,17 @@ func TestValidateProvider(t *testing.T) {
 			So(err, ShouldNotBeNil)
 
 			err = impl.Validate("#WebAppLoginLoginIDPasswordRequest", url.Values{
-				"x_step":                []string{"login:submit_password"},
 				"x_login_id_input_type": []string{"text"},
 			})
 			So(err, ShouldNotBeNil)
 
 			err = impl.Validate("#WebAppLoginLoginIDPasswordRequest", url.Values{
-				"x_step":                []string{"login:submit_password"},
 				"x_login_id_input_type": []string{"text"},
 				"x_login_id":            []string{"john.doe"},
 			})
 			So(err, ShouldNotBeNil)
 
 			err = impl.Validate("#WebAppLoginLoginIDPasswordRequest", url.Values{
-				"x_step":                []string{"login:submit_password"},
 				"x_login_id_input_type": []string{"text"},
 				"x_login_id":            []string{"john.doe"},
 				"x_password":            []string{"123456"},
@@ -167,7 +158,6 @@ func TestValidateProvider(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			err = impl.Validate("#WebAppLoginLoginIDPasswordRequest", url.Values{
-				"x_step":                []string{"login:submit_password"},
 				"x_login_id_input_type": []string{"phone"},
 				"x_calling_code":        []string{"852"},
 				"x_national_number":     []string{"99887766"},

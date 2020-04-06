@@ -6,9 +6,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 )
 
-type RequiredAnonymousMiddleware struct{}
+type RequireNotAuthenticatedMiddleware struct{}
 
-func (m RequiredAnonymousMiddleware) Handle(next http.Handler) http.Handler {
+func (m RequireNotAuthenticatedMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := auth.GetUser(r.Context())
 		if user != nil {

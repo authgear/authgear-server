@@ -16,13 +16,11 @@ func AttachRootHandler(
 	router.
 		NewRoute().
 		Path("/").
-		Handler(auth.MakeHandler(authDependency, newRootHandler))
+		Handler(&RootHandler{})
 }
 
-type RootHandler struct {
-	AuthenticateProvider webapp.AuthenticateProvider
-}
+type RootHandler struct{}
 
 func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.AuthenticateProvider.ServeHTTP(w, r)
+	webapp.RedirectToPathWithQueryPreserved(w, r, "/login")
 }

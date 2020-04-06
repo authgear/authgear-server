@@ -38,12 +38,11 @@ const LoginLoginIDRequestSchema = `
 	"type": "object",
 	"properties": {
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
-		"x_step": { "type": "string", "const": "login:submit_login_id" },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" }
 	},
-	"required": ["x_login_id_input_type", "x_step"],
+	"required": ["x_login_id_input_type"],
 	"oneOf": [
 		{
 			"properties": {
@@ -68,13 +67,12 @@ const LoginLoginIDPasswordRequestSchema = `
 	"type": "object",
 	"properties": {
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
-		"x_step": { "type": "string", "const": "login:submit_password" },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" },
 		"x_password": { "type": "string" }
 	},
-	"required": ["x_login_id_input_type", "x_step", "x_password"],
+	"required": ["x_login_id_input_type", "x_password"],
 	"oneOf": [
 		{
 			"properties": {
@@ -110,12 +108,11 @@ const SignupLoginIDRequestSchema = `
 	"properties": {
 		"x_login_id_key": { "type": "string" },
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
-		"x_step": { "type": "string", "const": "signup:submit_login_id" },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" }
 	},
-	"required": ["x_login_id_key", "x_login_id_input_type", "x_step"],
+	"required": ["x_login_id_key", "x_login_id_input_type"],
 	"oneOf": [
 		{
 			"properties": {
@@ -141,13 +138,12 @@ const SignupLoginIDPasswordRequestSchema = `
 	"properties": {
 		"x_login_id_key": { "type": "string" },
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
-		"x_step": { "type": "string", "const": "signup:submit_password" },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" },
 		"x_password": { "type": "string" }
 	},
-	"required": ["x_login_id_key", "x_login_id_input_type", "x_step", "x_password"],
+	"required": ["x_login_id_key", "x_login_id_input_type", "x_password"],
 	"oneOf": [
 		{
 			"properties": {
