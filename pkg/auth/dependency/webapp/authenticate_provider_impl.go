@@ -39,10 +39,17 @@ type AuthnProvider interface {
 	) (authn.Result, error)
 
 	WriteCookie(rw http.ResponseWriter, result *authn.CompletionResult)
+
+	OAuthAuthenticate(
+		client config.OAuthClientConfiguration,
+		authInfo sso.AuthInfo,
+		loginState sso.LoginState,
+	) (authn.Result, error)
 }
 
 type OAuthProvider interface {
 	GetAuthURL(state sso.State, encodedState string) (url string, err error)
+	GetAuthInfo(r sso.OAuthAuthorizationResponse, state sso.State) (sso.AuthInfo, error)
 }
 
 func (p *AuthenticateProviderImpl) persistState(r *http.Request, inputError error) {
@@ -306,5 +313,66 @@ func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter,
 		return
 	}
 	authURI, err = oauthProvider.GetAuthURL(state, encodedState)
+	return
+}
+
+func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *http.Request, oauthProvider OAuthProvider) (writeResponse func(error), err error) {
+	writeResponse = func(err error) {
+		if err != nil {
+			panic(err)
+		} else {
+			RedirectToRedirectURI(w, r)
+		}
+	}
+
+	err = p.ValidateProvider.Validate("#SSOCallbackRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	code := r.Form.Get("code")
+	encodedState := r.Form.Get("state")
+	scope := r.Form.Get("scope")
+	state, err := p.SSOProvider.DecodeState(encodedState)
+	if err != nil {
+		return
+	}
+
+	oauthAuthInfo, err := oauthProvider.GetAuthInfo(
+		sso.OAuthAuthorizationResponse{
+			Code:  code,
+			State: encodedState,
+			Scope: scope,
+		},
+		*state,
+	)
+	if err != nil {
+		return
+	}
+
+	var result authn.Result
+	if state.Action == "login" {
+		// TODO(webapp): link provider
+		var client config.OAuthClientConfiguration
+		result, err = p.AuthnProvider.OAuthAuthenticate(
+			client,
+			oauthAuthInfo,
+			state.LoginState,
+		)
+	} else {
+		panic("only login is supported")
+	}
+
+	if err != nil {
+		return
+	}
+
+	switch r := result.(type) {
+	case *authn.CompletionResult:
+		p.AuthnProvider.WriteCookie(w, r)
+	case *authn.InProgressResult:
+		panic("TODO(webapp): handle MFA")
+	}
+
 	return
 }

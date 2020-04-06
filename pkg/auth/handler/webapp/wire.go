@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/google/wire"
+	"github.com/gorilla/mux"
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
@@ -86,6 +87,20 @@ func newLogoutHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	return nil
 }
 
+func newSSOCallbackHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		authDepSet,
+		wire.Bind(new(ssoProvider), new(*webapp.AuthenticateProviderImpl)),
+		wire.Bind(new(webapp.OAuthProvider), new(sso.OAuthProvider)),
+		provideRedirectURIForWebAppFunc,
+		provideOAuthProviderFromRequestVars,
+		wire.Struct(new(SSOCallbackHandler), "*"),
+		wire.Bind(new(http.Handler), new(*SSOCallbackHandler)),
+	)
+	return nil
+}
+
 func provideRedirectURIForWebAppFunc() sso.RedirectURLFunc {
 	return redirectURIForWebApp
 }
@@ -93,4 +108,9 @@ func provideRedirectURIForWebAppFunc() sso.RedirectURLFunc {
 func provideOAuthProviderFromLoginForm(r *http.Request, spf *sso.OAuthProviderFactory) sso.OAuthProvider {
 	idp := r.Form.Get("x_idp_id")
 	return spf.NewOAuthProvider(idp)
+}
+
+func provideOAuthProviderFromRequestVars(r *http.Request, spf *sso.OAuthProviderFactory) sso.OAuthProvider {
+	vars := mux.Vars(r)
+	return spf.NewOAuthProvider(vars["provider"])
 }

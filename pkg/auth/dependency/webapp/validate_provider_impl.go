@@ -18,6 +18,7 @@ func init() {
 		SignupRequestSchema,
 		SignupLoginIDRequestSchema,
 		SignupLoginIDPasswordRequestSchema,
+		SSOCallbackRequestSchema,
 	)
 }
 
@@ -158,6 +159,19 @@ const SignupLoginIDPasswordRequestSchema = `
 			"required": ["x_login_id"]
 		}
 	]
+}
+`
+
+const SSOCallbackRequestSchema = `
+{
+	"$id": "#SSOCallbackRequest",
+	"type": "object",
+	"properties": {
+		"state": { "type": "string" },
+		"code": { "type": "string" },
+		"scope": { "type": "string" }
+	},
+	"required": ["state", "code"]
 }
 `
 
