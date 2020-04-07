@@ -134,6 +134,9 @@ func TestTemplateRender(t *testing.T) {
 			So(out, ShouldEqual, expectation)
 		})
 	})
+}
+
+func TestEncodeContextToURLQueryParamValue(t *testing.T) {
 	Convey("EncodeContextToURLQueryParamValue", t, func() {
 		cases := []struct {
 			Input map[string]interface{}
@@ -155,6 +158,9 @@ func TestTemplateRender(t *testing.T) {
 			So(decoded, ShouldResemble, c.Input)
 		}
 	})
+}
+
+func TestSetContextToURLQuery(t *testing.T) {
 	Convey("SetContextToURLQuery", t, func() {
 		cases := []struct {
 			URL      string
