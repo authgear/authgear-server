@@ -47,6 +47,34 @@ func TestTemplateRender(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(actual, ShouldEqual, expected)
 		})
+		Convey("should supports funcs", func() {
+			actual, err := RenderHTMLTemplate(RenderOptions{
+				Name: "test",
+				TemplateBody: `
+				{{ localize "key" "string" 1 true .foobar }}
+				`,
+				Context: map[string]interface{}{
+					"foobar": 42,
+				},
+				Funcs: map[string]interface{}{
+					"localize": func(key string, args ...interface{}) (string, error) {
+						buf := &strings.Builder{}
+						for i, arg := range args {
+							if i != 0 {
+								buf.WriteRune(' ')
+							}
+							buf.WriteString(fmt.Sprintf("%v", arg))
+						}
+						return buf.String(), nil
+					},
+				},
+			})
+			expected := `
+				string 1 true 42
+				`
+			So(err, ShouldBeNil)
+			So(actual, ShouldEqual, expected)
+		})
 		Convey("should auto-escape templates", func() {
 			template := `
 			<!DOCTYPE html>

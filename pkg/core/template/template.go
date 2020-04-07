@@ -66,6 +66,8 @@ type RenderOptions struct {
 	Context map[string]interface{}
 	// The options to Validator
 	ValidatorOpts []ValidatorOption
+	// Funcs injects custom functions
+	Funcs map[string]interface{}
 }
 
 func RenderTextTemplate(opts RenderOptions) (out string, err error) {
@@ -73,10 +75,17 @@ func RenderTextTemplate(opts RenderOptions) (out string, err error) {
 		return
 	}
 
-	validator := NewValidator(opts.ValidatorOpts...)
+	// Initialize the template object
+	template := textTemplate.New(opts.Name)
+
+	// Inject the funcs map before parsing any templates.
+	// This is required by the documentation.
+	if opts.Funcs != nil {
+		template.Funcs(opts.Funcs)
+	}
 
 	// Parse the main template
-	template, err := textTemplate.New(opts.Name).Parse(opts.TemplateBody)
+	_, err = template.Parse(opts.TemplateBody)
 	if err != nil {
 		err = errors.Newf("failed to parse template: %w", err)
 		return
@@ -91,6 +100,7 @@ func RenderTextTemplate(opts RenderOptions) (out string, err error) {
 	}
 
 	// Validate all templates
+	validator := NewValidator(opts.ValidatorOpts...)
 	err = validator.ValidateTextTemplate(template)
 	if err != nil {
 		err = errors.Newf("failed to validate template: %w", err)
@@ -112,10 +122,17 @@ func RenderHTMLTemplate(opts RenderOptions) (out string, err error) {
 		return
 	}
 
-	validator := NewValidator(opts.ValidatorOpts...)
+	// Initialize the template object
+	template := htmlTemplate.New(opts.Name)
+
+	// Inject the funcs map before parsing any templates.
+	// This is required by the documentation.
+	if opts.Funcs != nil {
+		template.Funcs(opts.Funcs)
+	}
 
 	// Parse the main template
-	template, err := htmlTemplate.New(opts.Name).Parse(opts.TemplateBody)
+	_, err = template.Parse(opts.TemplateBody)
 	if err != nil {
 		err = errors.Newf("failed to parse template: %w", err)
 		return
@@ -130,6 +147,7 @@ func RenderHTMLTemplate(opts RenderOptions) (out string, err error) {
 	}
 
 	// Validate all templates
+	validator := NewValidator(opts.ValidatorOpts...)
 	err = validator.ValidateHTMLTemplate(template)
 	if err != nil {
 		err = errors.Newf("failed to validate template: %w", err)
