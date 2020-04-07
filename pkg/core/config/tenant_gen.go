@@ -257,24 +257,6 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					return
 				}
 			}
-		case "password_policy":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "PasswordPolicy")
-					return
-				}
-				z.PasswordPolicy = nil
-			} else {
-				if z.PasswordPolicy == nil {
-					z.PasswordPolicy = new(PasswordPolicyConfiguration)
-				}
-				err = z.PasswordPolicy.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "PasswordPolicy")
-					return
-				}
-			}
 		case "forgot_password":
 			if dc.IsNil() {
 				err = dc.ReadNil()
@@ -566,9 +548,9 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 21
+	// map header, size 20
 	// write "api_version"
-	err = en.Append(0xde, 0x0, 0x15, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0xde, 0x0, 0x14, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
@@ -754,23 +736,6 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = z.Authenticator.EncodeMsg(en)
 		if err != nil {
 			err = msgp.WrapError(err, "Authenticator")
-			return
-		}
-	}
-	// write "password_policy"
-	err = en.Append(0xaf, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79)
-	if err != nil {
-		return
-	}
-	if z.PasswordPolicy == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.PasswordPolicy.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "PasswordPolicy")
 			return
 		}
 	}
@@ -997,9 +962,9 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 21
+	// map header, size 20
 	// string "api_version"
-	o = append(o, 0xde, 0x0, 0x15, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0xde, 0x0, 0x14, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	o = msgp.AppendString(o, z.APIVersion)
 	// string "display_app_name"
 	o = append(o, 0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
@@ -1093,17 +1058,6 @@ func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		o, err = z.Authenticator.MarshalMsg(o)
 		if err != nil {
 			err = msgp.WrapError(err, "Authenticator")
-			return
-		}
-	}
-	// string "password_policy"
-	o = append(o, 0xaf, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79)
-	if z.PasswordPolicy == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.PasswordPolicy.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "PasswordPolicy")
 			return
 		}
 	}
@@ -1461,23 +1415,6 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					return
 				}
 			}
-		case "password_policy":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.PasswordPolicy = nil
-			} else {
-				if z.PasswordPolicy == nil {
-					z.PasswordPolicy = new(PasswordPolicyConfiguration)
-				}
-				bts, err = z.PasswordPolicy.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "PasswordPolicy")
-					return
-				}
-			}
 		case "forgot_password":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
@@ -1812,12 +1749,6 @@ func (z *AppConfiguration) Msgsize() (s int) {
 		s += msgp.NilSize
 	} else {
 		s += z.Authenticator.Msgsize()
-	}
-	s += 16
-	if z.PasswordPolicy == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.PasswordPolicy.Msgsize()
 	}
 	s += 16
 	if z.ForgotPassword == nil {
@@ -3845,374 +3776,6 @@ func (z *OIDCSigningKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, err er
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z OIDCSigningKeyConfiguration) Msgsize() (s int) {
 	s = 1 + 4 + msgp.StringPrefixSize + len(z.KID) + 11 + msgp.StringPrefixSize + len(z.PublicKey) + 12 + msgp.StringPrefixSize + len(z.PrivateKey)
-	return
-}
-
-// DecodeMsg implements msgp.Decodable
-func (z *PasswordPolicyConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, err = dc.ReadMapHeader()
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, err = dc.ReadMapKeyPtr()
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "min_length":
-			z.MinLength, err = dc.ReadInt()
-			if err != nil {
-				err = msgp.WrapError(err, "MinLength")
-				return
-			}
-		case "uppercase_required":
-			z.UppercaseRequired, err = dc.ReadBool()
-			if err != nil {
-				err = msgp.WrapError(err, "UppercaseRequired")
-				return
-			}
-		case "lowercase_required":
-			z.LowercaseRequired, err = dc.ReadBool()
-			if err != nil {
-				err = msgp.WrapError(err, "LowercaseRequired")
-				return
-			}
-		case "digit_required":
-			z.DigitRequired, err = dc.ReadBool()
-			if err != nil {
-				err = msgp.WrapError(err, "DigitRequired")
-				return
-			}
-		case "symbol_required":
-			z.SymbolRequired, err = dc.ReadBool()
-			if err != nil {
-				err = msgp.WrapError(err, "SymbolRequired")
-				return
-			}
-		case "minimum_guessable_level":
-			z.MinimumGuessableLevel, err = dc.ReadInt()
-			if err != nil {
-				err = msgp.WrapError(err, "MinimumGuessableLevel")
-				return
-			}
-		case "excluded_keywords":
-			var zb0002 uint32
-			zb0002, err = dc.ReadArrayHeader()
-			if err != nil {
-				err = msgp.WrapError(err, "ExcludedKeywords")
-				return
-			}
-			if cap(z.ExcludedKeywords) >= int(zb0002) {
-				z.ExcludedKeywords = (z.ExcludedKeywords)[:zb0002]
-			} else {
-				z.ExcludedKeywords = make([]string, zb0002)
-			}
-			for za0001 := range z.ExcludedKeywords {
-				z.ExcludedKeywords[za0001], err = dc.ReadString()
-				if err != nil {
-					err = msgp.WrapError(err, "ExcludedKeywords", za0001)
-					return
-				}
-			}
-		case "history_size":
-			z.HistorySize, err = dc.ReadInt()
-			if err != nil {
-				err = msgp.WrapError(err, "HistorySize")
-				return
-			}
-		case "history_days":
-			z.HistoryDays, err = dc.ReadInt()
-			if err != nil {
-				err = msgp.WrapError(err, "HistoryDays")
-				return
-			}
-		case "expiry_days":
-			z.ExpiryDays, err = dc.ReadInt()
-			if err != nil {
-				err = msgp.WrapError(err, "ExpiryDays")
-				return
-			}
-		default:
-			err = dc.Skip()
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	return
-}
-
-// EncodeMsg implements msgp.Encodable
-func (z *PasswordPolicyConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 10
-	// write "min_length"
-	err = en.Append(0x8a, 0xaa, 0x6d, 0x69, 0x6e, 0x5f, 0x6c, 0x65, 0x6e, 0x67, 0x74, 0x68)
-	if err != nil {
-		return
-	}
-	err = en.WriteInt(z.MinLength)
-	if err != nil {
-		err = msgp.WrapError(err, "MinLength")
-		return
-	}
-	// write "uppercase_required"
-	err = en.Append(0xb2, 0x75, 0x70, 0x70, 0x65, 0x72, 0x63, 0x61, 0x73, 0x65, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64)
-	if err != nil {
-		return
-	}
-	err = en.WriteBool(z.UppercaseRequired)
-	if err != nil {
-		err = msgp.WrapError(err, "UppercaseRequired")
-		return
-	}
-	// write "lowercase_required"
-	err = en.Append(0xb2, 0x6c, 0x6f, 0x77, 0x65, 0x72, 0x63, 0x61, 0x73, 0x65, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64)
-	if err != nil {
-		return
-	}
-	err = en.WriteBool(z.LowercaseRequired)
-	if err != nil {
-		err = msgp.WrapError(err, "LowercaseRequired")
-		return
-	}
-	// write "digit_required"
-	err = en.Append(0xae, 0x64, 0x69, 0x67, 0x69, 0x74, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64)
-	if err != nil {
-		return
-	}
-	err = en.WriteBool(z.DigitRequired)
-	if err != nil {
-		err = msgp.WrapError(err, "DigitRequired")
-		return
-	}
-	// write "symbol_required"
-	err = en.Append(0xaf, 0x73, 0x79, 0x6d, 0x62, 0x6f, 0x6c, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64)
-	if err != nil {
-		return
-	}
-	err = en.WriteBool(z.SymbolRequired)
-	if err != nil {
-		err = msgp.WrapError(err, "SymbolRequired")
-		return
-	}
-	// write "minimum_guessable_level"
-	err = en.Append(0xb7, 0x6d, 0x69, 0x6e, 0x69, 0x6d, 0x75, 0x6d, 0x5f, 0x67, 0x75, 0x65, 0x73, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x6c, 0x65, 0x76, 0x65, 0x6c)
-	if err != nil {
-		return
-	}
-	err = en.WriteInt(z.MinimumGuessableLevel)
-	if err != nil {
-		err = msgp.WrapError(err, "MinimumGuessableLevel")
-		return
-	}
-	// write "excluded_keywords"
-	err = en.Append(0xb1, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x73)
-	if err != nil {
-		return
-	}
-	err = en.WriteArrayHeader(uint32(len(z.ExcludedKeywords)))
-	if err != nil {
-		err = msgp.WrapError(err, "ExcludedKeywords")
-		return
-	}
-	for za0001 := range z.ExcludedKeywords {
-		err = en.WriteString(z.ExcludedKeywords[za0001])
-		if err != nil {
-			err = msgp.WrapError(err, "ExcludedKeywords", za0001)
-			return
-		}
-	}
-	// write "history_size"
-	err = en.Append(0xac, 0x68, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x5f, 0x73, 0x69, 0x7a, 0x65)
-	if err != nil {
-		return
-	}
-	err = en.WriteInt(z.HistorySize)
-	if err != nil {
-		err = msgp.WrapError(err, "HistorySize")
-		return
-	}
-	// write "history_days"
-	err = en.Append(0xac, 0x68, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x5f, 0x64, 0x61, 0x79, 0x73)
-	if err != nil {
-		return
-	}
-	err = en.WriteInt(z.HistoryDays)
-	if err != nil {
-		err = msgp.WrapError(err, "HistoryDays")
-		return
-	}
-	// write "expiry_days"
-	err = en.Append(0xab, 0x65, 0x78, 0x70, 0x69, 0x72, 0x79, 0x5f, 0x64, 0x61, 0x79, 0x73)
-	if err != nil {
-		return
-	}
-	err = en.WriteInt(z.ExpiryDays)
-	if err != nil {
-		err = msgp.WrapError(err, "ExpiryDays")
-		return
-	}
-	return
-}
-
-// MarshalMsg implements msgp.Marshaler
-func (z *PasswordPolicyConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
-	o = msgp.Require(b, z.Msgsize())
-	// map header, size 10
-	// string "min_length"
-	o = append(o, 0x8a, 0xaa, 0x6d, 0x69, 0x6e, 0x5f, 0x6c, 0x65, 0x6e, 0x67, 0x74, 0x68)
-	o = msgp.AppendInt(o, z.MinLength)
-	// string "uppercase_required"
-	o = append(o, 0xb2, 0x75, 0x70, 0x70, 0x65, 0x72, 0x63, 0x61, 0x73, 0x65, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64)
-	o = msgp.AppendBool(o, z.UppercaseRequired)
-	// string "lowercase_required"
-	o = append(o, 0xb2, 0x6c, 0x6f, 0x77, 0x65, 0x72, 0x63, 0x61, 0x73, 0x65, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64)
-	o = msgp.AppendBool(o, z.LowercaseRequired)
-	// string "digit_required"
-	o = append(o, 0xae, 0x64, 0x69, 0x67, 0x69, 0x74, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64)
-	o = msgp.AppendBool(o, z.DigitRequired)
-	// string "symbol_required"
-	o = append(o, 0xaf, 0x73, 0x79, 0x6d, 0x62, 0x6f, 0x6c, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64)
-	o = msgp.AppendBool(o, z.SymbolRequired)
-	// string "minimum_guessable_level"
-	o = append(o, 0xb7, 0x6d, 0x69, 0x6e, 0x69, 0x6d, 0x75, 0x6d, 0x5f, 0x67, 0x75, 0x65, 0x73, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x6c, 0x65, 0x76, 0x65, 0x6c)
-	o = msgp.AppendInt(o, z.MinimumGuessableLevel)
-	// string "excluded_keywords"
-	o = append(o, 0xb1, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x64, 0x5f, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x73)
-	o = msgp.AppendArrayHeader(o, uint32(len(z.ExcludedKeywords)))
-	for za0001 := range z.ExcludedKeywords {
-		o = msgp.AppendString(o, z.ExcludedKeywords[za0001])
-	}
-	// string "history_size"
-	o = append(o, 0xac, 0x68, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x5f, 0x73, 0x69, 0x7a, 0x65)
-	o = msgp.AppendInt(o, z.HistorySize)
-	// string "history_days"
-	o = append(o, 0xac, 0x68, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x5f, 0x64, 0x61, 0x79, 0x73)
-	o = msgp.AppendInt(o, z.HistoryDays)
-	// string "expiry_days"
-	o = append(o, 0xab, 0x65, 0x78, 0x70, 0x69, 0x72, 0x79, 0x5f, 0x64, 0x61, 0x79, 0x73)
-	o = msgp.AppendInt(o, z.ExpiryDays)
-	return
-}
-
-// UnmarshalMsg implements msgp.Unmarshaler
-func (z *PasswordPolicyConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	var field []byte
-	_ = field
-	var zb0001 uint32
-	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
-	if err != nil {
-		err = msgp.WrapError(err)
-		return
-	}
-	for zb0001 > 0 {
-		zb0001--
-		field, bts, err = msgp.ReadMapKeyZC(bts)
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "min_length":
-			z.MinLength, bts, err = msgp.ReadIntBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "MinLength")
-				return
-			}
-		case "uppercase_required":
-			z.UppercaseRequired, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "UppercaseRequired")
-				return
-			}
-		case "lowercase_required":
-			z.LowercaseRequired, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "LowercaseRequired")
-				return
-			}
-		case "digit_required":
-			z.DigitRequired, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "DigitRequired")
-				return
-			}
-		case "symbol_required":
-			z.SymbolRequired, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "SymbolRequired")
-				return
-			}
-		case "minimum_guessable_level":
-			z.MinimumGuessableLevel, bts, err = msgp.ReadIntBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "MinimumGuessableLevel")
-				return
-			}
-		case "excluded_keywords":
-			var zb0002 uint32
-			zb0002, bts, err = msgp.ReadArrayHeaderBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "ExcludedKeywords")
-				return
-			}
-			if cap(z.ExcludedKeywords) >= int(zb0002) {
-				z.ExcludedKeywords = (z.ExcludedKeywords)[:zb0002]
-			} else {
-				z.ExcludedKeywords = make([]string, zb0002)
-			}
-			for za0001 := range z.ExcludedKeywords {
-				z.ExcludedKeywords[za0001], bts, err = msgp.ReadStringBytes(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "ExcludedKeywords", za0001)
-					return
-				}
-			}
-		case "history_size":
-			z.HistorySize, bts, err = msgp.ReadIntBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "HistorySize")
-				return
-			}
-		case "history_days":
-			z.HistoryDays, bts, err = msgp.ReadIntBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "HistoryDays")
-				return
-			}
-		case "expiry_days":
-			z.ExpiryDays, bts, err = msgp.ReadIntBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "ExpiryDays")
-				return
-			}
-		default:
-			bts, err = msgp.Skip(bts)
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
-	}
-	o = bts
-	return
-}
-
-// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *PasswordPolicyConfiguration) Msgsize() (s int) {
-	s = 1 + 11 + msgp.IntSize + 19 + msgp.BoolSize + 19 + msgp.BoolSize + 15 + msgp.BoolSize + 16 + msgp.BoolSize + 24 + msgp.IntSize + 18 + msgp.ArrayHeaderSize
-	for za0001 := range z.ExcludedKeywords {
-		s += msgp.StringPrefixSize + len(z.ExcludedKeywords[za0001])
-	}
-	s += 13 + msgp.IntSize + 13 + msgp.IntSize + 12 + msgp.IntSize
 	return
 }
 

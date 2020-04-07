@@ -179,6 +179,20 @@ func makeFullTenantConfig() TenantConfiguration {
 				SecondaryAuthenticationMode: SecondaryAuthenticationModeIfExists,
 			},
 			Authenticator: &AuthenticatorConfiguration{
+				Password: &AuthenticatorPasswordConfiguration{
+					Policy: &PasswordPolicyConfiguration{
+						MinLength:             8,
+						UppercaseRequired:     true,
+						LowercaseRequired:     true,
+						DigitRequired:         true,
+						SymbolRequired:        true,
+						MinimumGuessableLevel: 4,
+						ExcludedKeywords:      []string{"admin", "password", "secret"},
+						HistorySize:           10,
+						HistoryDays:           90,
+						ExpiryDays:            30,
+					},
+				},
 				TOTP: &AuthenticatorTOTPConfiguration{
 					Maximum: newInt(99),
 				},
@@ -200,18 +214,6 @@ func makeFullTenantConfig() TenantConfiguration {
 					Count:       24,
 					ListEnabled: true,
 				},
-			},
-			PasswordPolicy: &PasswordPolicyConfiguration{
-				MinLength:             8,
-				UppercaseRequired:     true,
-				LowercaseRequired:     true,
-				DigitRequired:         true,
-				SymbolRequired:        true,
-				MinimumGuessableLevel: 4,
-				ExcludedKeywords:      []string{"admin", "password", "secret"},
-				HistorySize:           10,
-				HistoryDays:           90,
-				ExpiryDays:            30,
 			},
 			ForgotPassword: &ForgotPasswordConfiguration{
 				SecureMatch:      true,
@@ -513,7 +515,6 @@ func TestTenantConfig(t *testing.T) {
 			So(userConfig.CORS, ShouldBeNil)
 			So(userConfig.Authentication, ShouldBeNil)
 			So(userConfig.Authenticator, ShouldBeNil)
-			So(userConfig.PasswordPolicy, ShouldBeNil)
 			So(userConfig.ForgotPassword, ShouldBeNil)
 			So(userConfig.WelcomeEmail, ShouldBeNil)
 			So(userConfig.Identity, ShouldBeNil)
@@ -529,7 +530,6 @@ func TestTenantConfig(t *testing.T) {
 			So(userConfig.CORS, ShouldNotBeNil)
 			So(userConfig.Authentication, ShouldNotBeNil)
 			So(userConfig.Authenticator, ShouldNotBeNil)
-			So(userConfig.PasswordPolicy, ShouldNotBeNil)
 			So(userConfig.ForgotPassword, ShouldNotBeNil)
 			So(userConfig.WelcomeEmail, ShouldNotBeNil)
 			So(userConfig.Identity, ShouldNotBeNil)

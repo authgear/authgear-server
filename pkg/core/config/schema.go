@@ -70,7 +70,6 @@ var (
 			"auth_api": { "$ref": "#AuthAPIConfiguration" },
 			"auth_ui": { "$ref": "#AuthUIConfiguration" },
 			"authenticator": { "$ref": "#AuthenticatorConfiguration" },
-			"password_policy": { "$ref": "#PasswordPolicyConfiguration" },
 			"forgot_password": { "$ref": "#ForgotPasswordConfiguration" },
 			"welcome_email": { "$ref": "#WelcomeEmailConfiguration" },
 			"identity": { "$ref": "#IdentityConfiguration" },
@@ -234,6 +233,13 @@ var (
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
+			"password": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"policy": { "$ref": "#PasswordPolicyConfiguration" }
+				}
+			},
 			"totp": {
 				"type": "object",
 				"additionalProperties": false,

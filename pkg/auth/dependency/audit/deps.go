@@ -8,17 +8,18 @@ import (
 )
 
 func ProvidePasswordChecker(cfg *config.TenantConfiguration, s passwordhistory.Store) *PasswordChecker {
+	policy := cfg.AppConfig.Authenticator.Password.Policy
 	return &PasswordChecker{
-		PwMinLength:            cfg.AppConfig.PasswordPolicy.MinLength,
-		PwUppercaseRequired:    cfg.AppConfig.PasswordPolicy.UppercaseRequired,
-		PwLowercaseRequired:    cfg.AppConfig.PasswordPolicy.LowercaseRequired,
-		PwDigitRequired:        cfg.AppConfig.PasswordPolicy.DigitRequired,
-		PwSymbolRequired:       cfg.AppConfig.PasswordPolicy.SymbolRequired,
-		PwMinGuessableLevel:    cfg.AppConfig.PasswordPolicy.MinimumGuessableLevel,
-		PwExcludedKeywords:     cfg.AppConfig.PasswordPolicy.ExcludedKeywords,
-		PwHistorySize:          cfg.AppConfig.PasswordPolicy.HistorySize,
-		PwHistoryDays:          cfg.AppConfig.PasswordPolicy.HistoryDays,
-		PasswordHistoryEnabled: cfg.AppConfig.PasswordPolicy.HistorySize > 0 || cfg.AppConfig.PasswordPolicy.HistoryDays > 0,
+		PwMinLength:            policy.MinLength,
+		PwUppercaseRequired:    policy.UppercaseRequired,
+		PwLowercaseRequired:    policy.LowercaseRequired,
+		PwDigitRequired:        policy.DigitRequired,
+		PwSymbolRequired:       policy.SymbolRequired,
+		PwMinGuessableLevel:    policy.MinimumGuessableLevel,
+		PwExcludedKeywords:     policy.ExcludedKeywords,
+		PwHistorySize:          policy.HistorySize,
+		PwHistoryDays:          policy.HistoryDays,
+		PasswordHistoryEnabled: policy.HistorySize > 0 || policy.HistoryDays > 0,
 		PasswordHistoryStore:   s,
 	}
 }

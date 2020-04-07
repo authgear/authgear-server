@@ -138,8 +138,8 @@ func (m DependencyMap) Provide(
 	// TODO:
 	// from tConfig
 	isPasswordHistoryEnabled := func() bool {
-		return tConfig.AppConfig.PasswordPolicy.HistorySize > 0 ||
-			tConfig.AppConfig.PasswordPolicy.HistoryDays > 0
+		return tConfig.AppConfig.Authenticator.Password.Policy.HistorySize > 0 ||
+			tConfig.AppConfig.Authenticator.Password.Policy.HistoryDays > 0
 	}
 
 	newLoginIDChecker := func() loginid.LoginIDChecker {
@@ -243,20 +243,7 @@ func (m DependencyMap) Provide(
 	}
 
 	newPasswordChecker := func() *authAudit.PasswordChecker {
-		return &authAudit.PasswordChecker{
-			PwMinLength:         tConfig.AppConfig.PasswordPolicy.MinLength,
-			PwUppercaseRequired: tConfig.AppConfig.PasswordPolicy.UppercaseRequired,
-			PwLowercaseRequired: tConfig.AppConfig.PasswordPolicy.LowercaseRequired,
-			PwDigitRequired:     tConfig.AppConfig.PasswordPolicy.DigitRequired,
-			PwSymbolRequired:    tConfig.AppConfig.PasswordPolicy.SymbolRequired,
-			PwMinGuessableLevel: tConfig.AppConfig.PasswordPolicy.MinimumGuessableLevel,
-			PwExcludedKeywords:  tConfig.AppConfig.PasswordPolicy.ExcludedKeywords,
-			//PwExcludedFields:       tConfig.AppConfig.PasswordPolicy.ExcludedFields,
-			PwHistorySize:          tConfig.AppConfig.PasswordPolicy.HistorySize,
-			PwHistoryDays:          tConfig.AppConfig.PasswordPolicy.HistoryDays,
-			PasswordHistoryEnabled: tConfig.AppConfig.PasswordPolicy.HistorySize > 0 || tConfig.AppConfig.PasswordPolicy.HistoryDays > 0,
-			PasswordHistoryStore:   newPasswordHistoryStore(),
-		}
+		return authAudit.ProvidePasswordChecker(&tConfig, newPasswordHistoryStore())
 	}
 
 	switch dependencyName {
@@ -278,8 +265,8 @@ func (m DependencyMap) Provide(
 		return authAudit.NewPwHousekeeper(
 			newPasswordHistoryStore(),
 			newLoggerFactory(),
-			tConfig.AppConfig.PasswordPolicy.HistorySize,
-			tConfig.AppConfig.PasswordPolicy.HistoryDays,
+			tConfig.AppConfig.Authenticator.Password.Policy.HistorySize,
+			tConfig.AppConfig.Authenticator.Password.Policy.HistoryDays,
 			isPasswordHistoryEnabled(),
 		)
 	case "LoginIDChecker":

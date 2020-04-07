@@ -535,7 +535,6 @@ type AppConfiguration struct {
 	AuthUI           *AuthUIConfiguration           `json:"auth_ui,omitempty" yaml:"auth_ui" msg:"auth_ui" default_zero_value:"true"`
 	OIDC             *OIDCConfiguration             `json:"oidc,omitempty" yaml:"oidc" msg:"oidc" default_zero_value:"true"`
 	Authenticator    *AuthenticatorConfiguration    `json:"authenticator,omitempty" yaml:"authenticator" msg:"authenticator" default_zero_value:"true"`
-	PasswordPolicy   *PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy" default_zero_value:"true"`
 	ForgotPassword   *ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password" default_zero_value:"true"`
 	WelcomeEmail     *WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email" default_zero_value:"true"`
 	Identity         *IdentityConfiguration         `json:"identity,omitempty" yaml:"identity" msg:"identity" default_zero_value:"true"`
@@ -669,22 +668,6 @@ type OIDCSigningKeyConfiguration struct {
 	KID        string `json:"kid,omitempty" yaml:"kid" msg:"kid"`
 	PublicKey  string `json:"public_key,omitempty" yaml:"public_key" msg:"public_key"`
 	PrivateKey string `json:"private_key,omitempty" yaml:"private_key" msg:"private_key"`
-}
-
-type PasswordPolicyConfiguration struct {
-	MinLength             int      `json:"min_length,omitempty" yaml:"min_length" msg:"min_length"`
-	UppercaseRequired     bool     `json:"uppercase_required,omitempty" yaml:"uppercase_required" msg:"uppercase_required"`
-	LowercaseRequired     bool     `json:"lowercase_required,omitempty" yaml:"lowercase_required" msg:"lowercase_required"`
-	DigitRequired         bool     `json:"digit_required,omitempty" yaml:"digit_required" msg:"digit_required"`
-	SymbolRequired        bool     `json:"symbol_required,omitempty" yaml:"symbol_required" msg:"symbol_required"`
-	MinimumGuessableLevel int      `json:"minimum_guessable_level,omitempty" yaml:"minimum_guessable_level" msg:"minimum_guessable_level"`
-	ExcludedKeywords      []string `json:"excluded_keywords,omitempty" yaml:"excluded_keywords" msg:"excluded_keywords"`
-	// Do not know how to support fields because we do not
-	// have them now
-	// ExcludedFields     []string `json:"excluded_fields,omitempty" yaml:"excluded_fields" msg:"excluded_fields"`
-	HistorySize int `json:"history_size,omitempty" yaml:"history_size" msg:"history_size"`
-	HistoryDays int `json:"history_days,omitempty" yaml:"history_days" msg:"history_days"`
-	ExpiryDays  int `json:"expiry_days,omitempty" yaml:"expiry_days" msg:"expiry_days"`
 }
 
 type ForgotPasswordConfiguration struct {

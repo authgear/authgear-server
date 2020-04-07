@@ -262,6 +262,15 @@ func TestParseAppConfiguration(t *testing.T) {
 					"secret": "hooksecret"
 				},
 				"authenticator": {
+					"password": {
+						"policy": {
+							"min_length": -1,
+							"minimum_guessable_level": 5,
+							"history_size": -1,
+							"history_days": -1,
+							"expiry_days": -1
+						}
+					},
 					"totp": {
 						"maximum": 1000
 					},
@@ -285,55 +294,14 @@ func TestParseAppConfiguration(t *testing.T) {
 			"/authenticator/bearer_token/expire_in_days: NumberRange map[gte:1]",
 			"/authenticator/oob_otp/email/maximum: NumberRange map[lte:999]",
 			"/authenticator/oob_otp/sms/maximum: NumberRange map[lte:999]",
+			"/authenticator/password/policy/expiry_days: NumberRange map[gte:0]",
+			"/authenticator/password/policy/history_days: NumberRange map[gte:0]",
+			"/authenticator/password/policy/history_size: NumberRange map[gte:0]",
+			"/authenticator/password/policy/min_length: NumberRange map[gte:0]",
+			"/authenticator/password/policy/minimum_guessable_level: NumberRange map[lte:4]",
 			"/authenticator/recovery_code/count: NumberRange map[lte:24]",
 			"/authenticator/recovery_code/list_enabled: Type map[expected:boolean]",
 			"/authenticator/totp/maximum: NumberRange map[lte:999]",
-		)
-		// User Audit
-		test(`
-			{
-				"api_version": "v2.1",
-				"master_key": "master_key",
-				"asset": {
-					"secret": "assetsecret"
-				},
-				"authentication": {
-					"secret": "authnsessionsecret"
-				},
-				"identity": {
-					"login_id": {
-						"keys": [
-							{
-								"key": "email",
-								"type": "email"
-							},
-							{
-								"key": "phone",
-								"type": "phone"
-							},
-							{
-								"key": "username",
-								"type": "username"
-							}
-						]
-					}
-				},
-				"hook": {
-					"secret": "hooksecret"
-				},
-				"password_policy": {
-					"min_length": -1,
-					"minimum_guessable_level": 5,
-					"history_size": -1,
-					"history_days": -1,
-					"expiry_days": -1
-				}
-			}`,
-			"/password_policy/expiry_days: NumberRange map[gte:0]",
-			"/password_policy/history_days: NumberRange map[gte:0]",
-			"/password_policy/history_size: NumberRange map[gte:0]",
-			"/password_policy/min_length: NumberRange map[gte:0]",
-			"/password_policy/minimum_guessable_level: NumberRange map[lte:4]",
 		)
 		// WelcomeEmailConfiguration
 		test(`
