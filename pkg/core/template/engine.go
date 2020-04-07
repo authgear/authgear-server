@@ -1,6 +1,8 @@
 package template
 
 import (
+	"encoding/json"
+	"fmt"
 	"sort"
 
 	"golang.org/x/text/language"
@@ -15,6 +17,17 @@ type ResolveOptions struct {
 type resolveResult struct {
 	Spec         Spec
 	TemplateBody string
+	// Translations is key -> tag -> translation.
+	// For example,
+	// {
+	//   "key1": {
+	//     "": "Hello",
+	//     "en": "Hello",
+	//     "en-US": "Hi!",
+	//     "zh": "你好"
+	//   }
+	// }
+	Translations map[string]map[string]string
 }
 
 type NewEngineOptions struct {
@@ -78,22 +91,18 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context ma
 	if err != nil {
 		return
 	}
-	if result.Spec.IsHTML {
-		return RenderHTMLTemplate(RenderOptions{
-			Name:          string(templateType),
-			TemplateBody:  result.TemplateBody,
-			Defines:       result.Spec.Defines,
-			Context:       context,
-			ValidatorOpts: e.validatorOptions,
-		})
-	}
-	return RenderTextTemplate(RenderOptions{
+	renderOptions := RenderOptions{
 		Name:          string(templateType),
 		TemplateBody:  result.TemplateBody,
 		Defines:       result.Spec.Defines,
 		Context:       context,
 		ValidatorOpts: e.validatorOptions,
-	})
+	}
+	renderFunc := RenderTextTemplate
+	if result.Spec.IsHTML {
+		renderFunc = RenderHTMLTemplate
+	}
+	return renderFunc(renderOptions)
 }
 
 func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options ResolveOptions) (result *resolveResult, err error) {
@@ -102,6 +111,7 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options R
 		panic("template: unregistered template type: " + templateType)
 	}
 
+	// Resolve the template body
 	// Take the default value by default
 	templateBody := spec.Default
 	templateItem, err := e.resolveTemplateItem(spec, options.Key)
@@ -115,9 +125,19 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options R
 		}
 	}
 
+	// Resolve the translations, if any
+	var translations map[string]map[string]string
+	if spec.Translation != "" {
+		translations, err = e.resolveTranslations(spec.Translation)
+		if err != nil {
+			return
+		}
+	}
+
 	result = &resolveResult{
 		TemplateBody: templateBody,
 		Spec:         spec,
+		Translations: translations,
 	}
 	return
 }
@@ -177,4 +197,77 @@ func (e *Engine) resolveTemplateItem(spec Spec, key string) (templateItem *confi
 	_, idx, _ := matcher.Match(preferredTags...)
 
 	return &input[idx], nil
+}
+
+func (e *Engine) resolveTranslations(templateType config.TemplateItemType) (translations map[string]map[string]string, err error) {
+	spec, ok := e.TemplateSpecs[templateType]
+	if !ok {
+		panic("template: unregistered template type: " + templateType)
+	}
+
+	translations = map[string]map[string]string{}
+
+	// Load the default translation
+	defaultTranslation, err := loadTranslation(spec.Default)
+	if err != nil {
+		return
+	}
+	insertTranslation(translations, "", defaultTranslation)
+
+	// Find out all items
+	var items []config.TemplateItem
+	for _, item := range e.templateItems {
+		if item.Type == spec.Type {
+			i := item
+			items = append(items, i)
+		}
+	}
+
+	// Load all provided translations
+	for _, item := range items {
+		var jsonStr string
+		jsonStr, err = e.uriLoader.Load(item.URI)
+		if err != nil {
+			return
+		}
+		var translation map[string]string
+		translation, err = loadTranslation(jsonStr)
+		if err != nil {
+			return
+		}
+		insertTranslation(translations, item.LanguageTag, translation)
+	}
+
+	return
+}
+
+func loadTranslation(jsonStr string) (translation map[string]string, err error) {
+	var jsonObj map[string]interface{}
+	err = json.Unmarshal([]byte(jsonStr), &jsonObj)
+	if err != nil {
+		err = fmt.Errorf("expected translation file to be JSON: %w", err)
+		return
+	}
+
+	translation = map[string]string{}
+	for key, val := range jsonObj {
+		s, ok := val.(string)
+		if !ok {
+			err = fmt.Errorf("expected translation value to be string: %s %T", key, val)
+			return
+		}
+		translation[key] = s
+	}
+	return
+}
+
+func insertTranslation(translations map[string]map[string]string, tag string, translation map[string]string) {
+	for key, val := range translation {
+		m, ok := translations[key]
+		if !ok {
+			translations[key] = map[string]string{}
+			m = translations[key]
+		}
+		m[tag] = val
+	}
 }
