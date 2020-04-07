@@ -345,3 +345,20 @@ func TestMakeLocalize(t *testing.T) {
 		}, []string{"zh-Hant"}, "Hello from zh-Hant-TW")
 	})
 }
+
+func TestLocalize(t *testing.T) {
+	translations := map[string]map[string]string{
+		"key": map[string]string{
+			"": "Hello {0}",
+		},
+	}
+	Convey("localize", t, func() {
+		test := func(key string, expected string, args ...interface{}) {
+			localize := makeLocalize(nil, translations)
+			actual, err := localize(key, args...)
+			So(err, ShouldBeNil)
+			So(actual, ShouldEqual, expected)
+		}
+		test("key", "Hello John", "John")
+	})
+}

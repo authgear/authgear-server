@@ -7,6 +7,7 @@ import (
 
 	"golang.org/x/text/language"
 
+	"github.com/iawaknahc/gomessageformat"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -290,10 +291,15 @@ func makeLocalize(preferredLanguageTags []string, translations map[string]map[st
 
 		_, idx, _ := matcher.Match(preferredTags...)
 
-		// TODO(template): parse pattern and apply args
+		tag := supportedTags[idx]
 		pattern := m[supportedTagStrings[idx]]
 
-		return pattern, nil
+		out, err = messageformat.FormatPositional(tag, pattern, args...)
+		if err != nil {
+			return
+		}
+
+		return
 	}
 }
 

@@ -23,6 +23,7 @@ require (
 	github.com/gorilla/csrf v1.6.2
 	github.com/gorilla/mux v1.7.4
 	github.com/h2non/gock v1.0.12
+	github.com/iawaknahc/gomessageformat v0.0.0-20200406084228-8abc010113fa
 	github.com/iawaknahc/originmatcher v0.0.0-20191203065535-c77f92cc0a75
 	github.com/jmoiron/sqlx v0.0.0-20170430194603-d9bd385d68c0
 	github.com/joho/godotenv v0.0.0-20150907010228-4ed13390c0ac
