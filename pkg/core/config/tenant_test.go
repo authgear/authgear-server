@@ -28,8 +28,7 @@ app_config:
   master_key: masterkey
   asset:
     secret: assetsecret
-  auth:
-    authentication_session:
+  authentication:
       secret: authnsessionsecret
   hook:
     secret: hooksecret
@@ -61,10 +60,8 @@ var inputMinimalJSON = fmt.Sprintf(`
 		"asset": {
 			"secret": "assetsecret"
 		},
-		"auth": {
-			"authentication_session": {
-				"secret": "authnsessionsecret"
-			}
+		"authentication": {
+			"secret": "authnsessionsecret"
 		},
 		"hook": {
 			"secret": "hooksecret"
@@ -174,15 +171,14 @@ func makeFullTenantConfig() TenantConfiguration {
 					},
 				},
 			},
-			Auth: &AuthConfiguration{
-				AuthenticationSession: &AuthenticationSessionConfiguration{
-					Secret: "authnsessionsecret",
-				},
+			Authentication: &AuthenticationConfiguration{
+				Secret:                      "authnsessionsecret",
+				Identities:                  []string{"login_id", "oauth"},
+				PrimaryAuthenticators:       []string{"oauth", "password"},
+				SecondaryAuthenticators:     []string{"otp", "bearer_token"},
+				SecondaryAuthenticationMode: SecondaryAuthenticationModeIfExists,
 			},
 			MFA: &MFAConfiguration{
-				Enabled:     true,
-				Enforcement: MFAEnforcementOptional,
-				Maximum:     newInt(99),
 				TOTP: &MFATOTPConfiguration{
 					Maximum: newInt(99),
 				},
@@ -515,7 +511,7 @@ func TestTenantConfig(t *testing.T) {
 		Convey("UpdateNilFieldsWithZeroValue", func() {
 			userConfig := &AppConfiguration{}
 			So(userConfig.CORS, ShouldBeNil)
-			So(userConfig.Auth, ShouldBeNil)
+			So(userConfig.Authentication, ShouldBeNil)
 			So(userConfig.MFA, ShouldBeNil)
 			So(userConfig.PasswordPolicy, ShouldBeNil)
 			So(userConfig.ForgotPassword, ShouldBeNil)
@@ -531,7 +527,7 @@ func TestTenantConfig(t *testing.T) {
 			marshal.UpdateNilFieldsWithZeroValue(userConfig)
 
 			So(userConfig.CORS, ShouldNotBeNil)
-			So(userConfig.Auth, ShouldNotBeNil)
+			So(userConfig.Authentication, ShouldNotBeNil)
 			So(userConfig.MFA, ShouldNotBeNil)
 			So(userConfig.PasswordPolicy, ShouldNotBeNil)
 			So(userConfig.ForgotPassword, ShouldNotBeNil)
@@ -543,8 +539,6 @@ func TestTenantConfig(t *testing.T) {
 			So(userConfig.Twilio, ShouldNotBeNil)
 			So(userConfig.Nexmo, ShouldNotBeNil)
 			So(userConfig.Asset, ShouldNotBeNil)
-
-			So(userConfig.Auth.AuthenticationSession, ShouldNotBeNil)
 		})
 	})
 

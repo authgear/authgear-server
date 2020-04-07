@@ -80,17 +80,17 @@ func ProvideSessionProvider(
 	ti TokenIssuer,
 ) *SessionProvider {
 	return &SessionProvider{
-		MFAProvider:        mp,
-		SessionProvider:    sp,
-		ClientConfigs:      cfg.AppConfig.Clients,
-		MFAConfig:          cfg.AppConfig.MFA,
-		AuthnSessionConfig: cfg.AppConfig.Auth.AuthenticationSession,
-		TimeProvider:       tp,
-		AuthInfoStore:      as,
-		UserProfileStore:   us,
-		IdentityProvider:   ip,
-		HookProvider:       hp,
-		TokenIssuer:        ti,
+		MFAProvider:      mp,
+		SessionProvider:  sp,
+		ClientConfigs:    cfg.AppConfig.Clients,
+		MFAConfig:        cfg.AppConfig.MFA,
+		AuthnConfig:      cfg.AppConfig.Authentication,
+		TimeProvider:     tp,
+		AuthInfoStore:    as,
+		UserProfileStore: us,
+		IdentityProvider: ip,
+		HookProvider:     hp,
+		TokenIssuer:      ti,
 	}
 }
 

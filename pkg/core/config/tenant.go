@@ -172,7 +172,7 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	}
 
 	values = append(values,
-		c.AppConfig.Auth.AuthenticationSession.Secret,
+		c.AppConfig.Authentication.Secret,
 		c.AppConfig.Identity.OAuth.StateJWTSecret,
 		c.AppConfig.Hook.Secret,
 		c.DatabaseConfig.DatabaseURL,
@@ -245,6 +245,27 @@ func (c *TenantConfiguration) PostValidate() error {
 				"user_config", "identity", "oauth", "providers", i)
 		}
 		seenOAuthProviderID[provider.ID] = struct{}{}
+	}
+
+	// Validate AuthenticationConfiguration
+	seenAuthenticator := map[string]struct{}{}
+	for i, a := range c.AppConfig.Authentication.PrimaryAuthenticators {
+		if _, ok := seenAuthenticator[a]; ok {
+			return fail(
+				validation.ErrorGeneral,
+				"duplicated authenticator",
+				"user_config", "authentication", "primary_authenticators", i)
+		}
+		seenAuthenticator[a] = struct{}{}
+	}
+	for i, a := range c.AppConfig.Authentication.SecondaryAuthenticators {
+		if _, ok := seenAuthenticator[a]; ok {
+			return fail(
+				validation.ErrorGeneral,
+				"duplicated authenticator",
+				"user_config", "authentication", "secondary_authenticators", i)
+		}
+		seenAuthenticator[a] = struct{}{}
 	}
 
 	return nil
@@ -329,14 +350,30 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.AppConfig.Identity.LoginID.Keys[i] = config
 	}
 
+	// Set default AuthenticationConfiguration
+	if len(c.AppConfig.Authentication.Identities) == 0 {
+		c.AppConfig.Authentication.Identities = []string{
+			"oauth",
+			"login_id",
+		}
+	}
+	if len(c.AppConfig.Authentication.PrimaryAuthenticators) == 0 {
+		c.AppConfig.Authentication.PrimaryAuthenticators = []string{
+			"oauth",
+			"password",
+		}
+	}
+	if len(c.AppConfig.Authentication.SecondaryAuthenticators) == 0 {
+		c.AppConfig.Authentication.SecondaryAuthenticators = []string{
+			"otp",
+			"bearer_token",
+		}
+	}
+	if c.AppConfig.Authentication.SecondaryAuthenticationMode == "" {
+		c.AppConfig.Authentication.SecondaryAuthenticationMode = SecondaryAuthenticationModeIfExists
+	}
+
 	// Set default MFAConfiguration
-	if c.AppConfig.MFA.Enforcement == "" {
-		c.AppConfig.MFA.Enforcement = MFAEnforcementOptional
-	}
-	if c.AppConfig.MFA.Maximum == nil {
-		c.AppConfig.MFA.Maximum = new(int)
-		*c.AppConfig.MFA.Maximum = 99
-	}
 	if c.AppConfig.MFA.TOTP.Maximum == nil {
 		c.AppConfig.MFA.TOTP.Maximum = new(int)
 		*c.AppConfig.MFA.TOTP.Maximum = 99
@@ -494,7 +531,7 @@ type AppConfiguration struct {
 	Session          *SessionConfiguration          `json:"session,omitempty" yaml:"session" msg:"session" default_zero_value:"true"`
 	CORS             *CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors" default_zero_value:"true"`
 	AuthAPI          *AuthAPIConfiguration          `json:"auth_api,omitempty" yaml:"auth_api" msg:"auth_api" default_zero_value:"true"`
-	Auth             *AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth" default_zero_value:"true"`
+	Authentication   *AuthenticationConfiguration   `json:"authentication,omitempty" yaml:"authentication" msg:"authentication" default_zero_value:"true"`
 	AuthUI           *AuthUIConfiguration           `json:"auth_ui,omitempty" yaml:"auth_ui" msg:"auth_ui" default_zero_value:"true"`
 	OIDC             *OIDCConfiguration             `json:"oidc,omitempty" yaml:"oidc" msg:"oidc" default_zero_value:"true"`
 	MFA              *MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa" default_zero_value:"true"`
@@ -620,10 +657,6 @@ type CORSConfiguration struct {
 	Origin string `json:"origin,omitempty" yaml:"origin" msg:"origin"`
 }
 
-type AuthConfiguration struct {
-	AuthenticationSession *AuthenticationSessionConfiguration `json:"authentication_session,omitempty" yaml:"authentication_session" msg:"authentication_session" default_zero_value:"true"`
-}
-
 type AuthUIConfiguration struct {
 	CSS string `json:"css,omitempty" yaml:"css" msg:"css"`
 }
@@ -638,22 +671,7 @@ type OIDCSigningKeyConfiguration struct {
 	PrivateKey string `json:"private_key,omitempty" yaml:"private_key" msg:"private_key"`
 }
 
-type AuthenticationSessionConfiguration struct {
-	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
-}
-
-type MFAEnforcement string
-
-const (
-	MFAEnforcementOff      MFAEnforcement = "off"
-	MFAEnforcementOptional MFAEnforcement = "optional"
-	MFAEnforcementRequired MFAEnforcement = "required"
-)
-
 type MFAConfiguration struct {
-	Enabled      bool                          `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
-	Enforcement  MFAEnforcement                `json:"enforcement,omitempty" yaml:"enforcement" msg:"enforcement"`
-	Maximum      *int                          `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
 	TOTP         *MFATOTPConfiguration         `json:"totp,omitempty" yaml:"totp" msg:"totp" default_zero_value:"true"`
 	OOB          *MFAOOBConfiguration          `json:"oob,omitempty" yaml:"oob" msg:"oob" default_zero_value:"true"`
 	BearerToken  *MFABearerTokenConfiguration  `json:"bearer_token,omitempty" yaml:"bearer_token" msg:"bearer_token" default_zero_value:"true"`

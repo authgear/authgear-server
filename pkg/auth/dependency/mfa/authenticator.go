@@ -229,13 +229,7 @@ func MaskAuthenticators(authenticators []Authenticator) []Authenticator {
 }
 
 func CanAddAuthenticator(authenticators []Authenticator, newA Authenticator, mfaConfiguration *config.MFAConfiguration) bool {
-	// Always return false if MFA is off.
-	if !mfaConfiguration.Enabled {
-		return false
-	}
-
 	// Calculate the count
-	totalCount := len(authenticators)
 	totpCount := 0
 	oobSMSCount := 0
 	oobEmailCount := 0
@@ -262,13 +256,9 @@ func CanAddAuthenticator(authenticators []Authenticator, newA Authenticator, mfa
 	}
 
 	// Simulate the count if new one is added.
-	totalCount++
 	incrFunc(newA)
 
 	// Compare the count
-	if totalCount > *mfaConfiguration.Maximum {
-		return false
-	}
 	if totpCount > *mfaConfiguration.TOTP.Maximum {
 		return false
 	}

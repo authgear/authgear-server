@@ -25,20 +25,20 @@ func TestParseAppConfiguration(t *testing.T) {
 			`{}`,
 			"/api_version: Required",
 			"/asset: Required",
-			"/auth: Required",
+			"/authentication: Required",
 			"/hook: Required",
 			"/master_key: Required",
 		)
-		// Empty auth
+		// Empty authentication
 		test(`
 			{
 				"master_key": "master_key",
-				"auth": {},
+				"authentication": {},
 				"hook": {}
 			}`,
 			"/api_version: Required",
 			"/asset: Required",
-			"/auth/authentication_session: Required",
+			"/authentication/secret: Required",
 			"/hook/secret: Required",
 		)
 		// Empty identity.login_id.keys
@@ -55,7 +55,7 @@ func TestParseAppConfiguration(t *testing.T) {
 			}`,
 			"/api_version: Required",
 			"/asset/secret: Required",
-			"/auth: Required",
+			"/authentication: Required",
 			"/hook/secret: Required",
 			"/identity/login_id/keys: EntryAmount map[gte:1]",
 		)
@@ -103,7 +103,7 @@ func TestParseAppConfiguration(t *testing.T) {
 			}`,
 			"/api_version: Required",
 			"/asset: Required",
-			"/auth: Required",
+			"/authentication: Required",
 			"/hook/secret: Required",
 			"/identity/login_id/keys/3/type: Enum map[expected:[raw email phone username]]",
 			"/identity/login_id/types/phone: ExtraEntry",
@@ -116,10 +116,8 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					}
+				"authentication": {
+					"secret": "authnsessionsecret"
 				},
 				"identity": {
 					"login_id": {
@@ -159,10 +157,8 @@ func TestParseAppConfiguration(t *testing.T) {
 					"cookie_non_persistent": 1
 				},
 				"master_key": "master_key",
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					}
+				"authentication": {
+					"secret": "authnsessionsecret"
 				},
 				"identity": {
 					"login_id": {
@@ -205,10 +201,8 @@ func TestParseAppConfiguration(t *testing.T) {
 					"secret": "assetsecret"
 				},
 				"master_key": "master_key",
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					}
+				"authentication": {
+					"secret": "authnsessionsecret"
 				},
 				"identity": {
 					"login_id": {
@@ -243,10 +237,8 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					}
+				"authentication": {
+					"secret": "authnsessionsecret"
 				},
 				"identity": {
 					"login_id": {
@@ -270,8 +262,6 @@ func TestParseAppConfiguration(t *testing.T) {
 					"secret": "hooksecret"
 				},
 				"mfa": {
-					"enforcement": "",
-					"maximum": 1000,
 					"totp": {
 						"maximum": 1000
 					},
@@ -293,8 +283,6 @@ func TestParseAppConfiguration(t *testing.T) {
 				}
 			}`,
 			"/mfa/bearer_token/expire_in_days: NumberRange map[gte:1]",
-			"/mfa/enforcement: Enum map[expected:[off optional required]]",
-			"/mfa/maximum: NumberRange map[lte:999]",
 			"/mfa/oob/email/maximum: NumberRange map[lte:999]",
 			"/mfa/oob/sms/maximum: NumberRange map[lte:999]",
 			"/mfa/recovery_code/count: NumberRange map[lte:24]",
@@ -309,10 +297,8 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					}
+				"authentication": {
+					"secret": "authnsessionsecret"
 				},
 				"identity": {
 					"login_id": {
@@ -357,10 +343,8 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					}
+				"authentication": {
+					"secret": "authnsessionsecret"
 				},
 				"identity": {
 					"login_id": {
@@ -397,10 +381,8 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					}
+				"authentication": {
+					"secret": "authnsessionsecret"
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -450,10 +432,8 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					}
+				"authentication": {
+					"secret": "authnsessionsecret"
 				},
 				"identity": {
 					"login_id": {
@@ -497,10 +477,8 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					}
+				"authentication": {
+					"secret": "authnsessionsecret"
 				},
 				"identity": {
 					"login_id": {
@@ -537,10 +515,8 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					}
+				"authentication": {
+					"secret": "authnsessionsecret"
 				},
 				"identity": {
 					"login_id": {

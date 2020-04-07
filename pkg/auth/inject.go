@@ -351,8 +351,6 @@ func (m DependencyMap) Provide(
 		return newHookProvider()
 	case "OAuthConfiguration":
 		return tConfig.AppConfig.Identity.OAuth
-	case "AuthConfiguration":
-		return *tConfig.AppConfig.Auth
 	case "MFAConfiguration":
 		return *tConfig.AppConfig.MFA
 	case "OAuthConflictConfiguration":

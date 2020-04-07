@@ -66,7 +66,7 @@ var (
 			"session": { "$ref": "#SessionConfiguration" },
 			"cors": { "$ref": "#CORSConfiguration" },
 			"oidc": { "$ref": "#OIDCConfiguration" },
-			"auth": { "$ref": "#AuthConfiguration" },
+			"authentication": { "$ref": "#AuthenticationConfiguration" },
 			"auth_api": { "$ref": "#AuthAPIConfiguration" },
 			"auth_ui": { "$ref": "#AuthUIConfiguration" },
 			"mfa": { "$ref": "#MFAConfiguration" },
@@ -81,7 +81,7 @@ var (
 			"nexmo" : { "$ref": "#NexmoConfiguration" },
 			"asset": { "$ref": "#AssetConfiguration" }
 		},
-		"required": ["api_version", "master_key", "auth", "hook", "asset"]
+		"required": ["api_version", "master_key", "authentication", "hook", "asset"]
 	},
 	"AssetConfiguration": {
 		"$id": "#AssetConfiguration",
@@ -204,20 +204,27 @@ var (
 			"allow_auto_merge_user": { "type": "boolean" }
 		}
 	},
-	"AuthConfiguration": {
-		"$id": "#AuthConfiguration",
+	"AuthenticationConfiguration": {
+		"$id": "#AuthenticationConfiguration",
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
-			"authentication_session": { "$ref": "#AuthenticationSessionConfiguration" }
-		},
-		"required": ["authentication_session"]
-	},
-	"AuthenticationSessionConfiguration": {
-		"$id": "#AuthenticationSessionConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
+			"identities": {
+				"type": "array",
+				"items": { "type": "string" }
+			},
+			"primary_authenticators": {
+				"type": "array",
+				"items": { "type": "string" }
+			},
+			"secondary_authenticators": {
+				"type": "array",
+				"items": { "type": "string" }
+			},
+			"secondary_authentication_mode": {
+				"type": "string",
+				"enum": ["if_requested", "if_exists", "required"]
+			},
 			"secret": { "$ref": "#NonEmptyString" }
 		},
 		"required": ["secret"]
@@ -227,16 +234,6 @@ var (
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
-			"enabled": { "type": "boolean" },
-			"enforcement": {
-				"type": "string",
-				"enum": ["off", "optional", "required"]
-			},
-			"maximum": {
-				"type": "integer",
-				"minimum": 0,
-				"maximum": 999
-			},
 			"totp": {
 				"type": "object",
 				"additionalProperties": false,

@@ -134,8 +134,8 @@ func ProvideWebAppRenderProvider(
 
 func ProvideCSRFMiddleware(m DependencyMap, tConfig *config.TenantConfiguration) mux.MiddlewareFunc {
 	middleware := &webapp.CSRFMiddleware{
-		// NOTE(webapp): reuse AuthenticationSession.Secret instead of creating a new one.
-		Key:               tConfig.AppConfig.Auth.AuthenticationSession.Secret,
+		// NOTE(webapp): reuse Authentication.Secret instead of creating a new one.
+		Key:               tConfig.AppConfig.Authentication.Secret,
 		UseInsecureCookie: m.UseInsecureCookie,
 	}
 	return middleware.Handle
