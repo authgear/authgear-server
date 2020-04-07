@@ -25,6 +25,7 @@ type Engine struct {
 	TemplateSpecs         map[config.TemplateItemType]Spec
 	templateItems         []config.TemplateItem
 	preferredLanguageTags []string
+	validatorOptions      []ValidatorOption
 }
 
 func NewEngine(opts NewEngineOptions) *Engine {
@@ -55,12 +56,19 @@ func (e *Engine) WithPreferredLanguageTags(tags []string) *Engine {
 	return newEngine
 }
 
+// WithValidatorOptions returns a new engine with the givan validator options.
+func (e *Engine) WithValidatorOptions(opts ...ValidatorOption) *Engine {
+	newEngine := e.Clone()
+	newEngine.validatorOptions = opts
+	return newEngine
+}
+
 // Register registers spec with e.
 func (e *Engine) Register(spec Spec) {
 	e.TemplateSpecs[spec.Type] = spec
 }
 
-func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, resolveOptions ResolveOptions, validateOpts ...ValidatorOption) (out string, err error) {
+func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, resolveOptions ResolveOptions) (out string, err error) {
 	templateBody, spec, err := e.resolveTemplate(templateType, resolveOptions)
 	if err != nil {
 		return
@@ -71,7 +79,7 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context ma
 			TemplateBody:  templateBody,
 			Defines:       spec.Defines,
 			Context:       context,
-			ValidatorOpts: validateOpts,
+			ValidatorOpts: e.validatorOptions,
 		})
 	}
 	return RenderTextTemplate(RenderOptions{
@@ -79,7 +87,7 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context ma
 		TemplateBody:  templateBody,
 		Defines:       spec.Defines,
 		Context:       context,
-		ValidatorOpts: validateOpts,
+		ValidatorOpts: e.validatorOptions,
 	})
 }
 
