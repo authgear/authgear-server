@@ -9,8 +9,7 @@ import (
 )
 
 type ResolveOptions struct {
-	Required bool
-	Key      string
+	Key string
 }
 
 type NewEngineOptions struct {
@@ -73,26 +72,26 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context ma
 	})
 }
 
-func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options ResolveOptions) (string, Spec, error) {
-	spec, found := e.TemplateSpecs[templateType]
-	if !found {
+func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options ResolveOptions) (templateBody string, spec Spec, err error) {
+	spec, ok := e.TemplateSpecs[templateType]
+	if !ok {
 		panic("template: unregistered template type: " + templateType)
 	}
 
+	templateBody = spec.Default
 	templateItem, err := e.resolveTemplateItem(spec, options.Key)
-	var templateBody string
 	// No template item can be resolved. Fallback to default.
 	if err != nil {
 		err = nil
-		if spec.Default != "" {
-			templateBody = spec.Default
-		} else if options.Required {
-			err = &errNotFound{string(templateType)}
-		}
-	} else {
-		templateBody, err = e.uriLoader.Load(templateItem.URI)
+		return
 	}
-	return templateBody, spec, err
+
+	templateBody, err = e.uriLoader.Load(templateItem.URI)
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (e *Engine) resolveTemplateItem(spec Spec, key string) (templateItem *config.TemplateItem, err error) {
