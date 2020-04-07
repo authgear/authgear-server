@@ -12,6 +12,11 @@ type ResolveOptions struct {
 	Key string
 }
 
+type resolveResult struct {
+	Spec         Spec
+	TemplateBody string
+}
+
 type NewEngineOptions struct {
 	EnableFileLoader bool
 	EnableDataLoader bool
@@ -69,47 +74,51 @@ func (e *Engine) Register(spec Spec) {
 }
 
 func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, resolveOptions ResolveOptions) (out string, err error) {
-	templateBody, spec, err := e.resolveTemplate(templateType, resolveOptions)
+	result, err := e.resolveTemplate(templateType, resolveOptions)
 	if err != nil {
 		return
 	}
-	if spec.IsHTML {
+	if result.Spec.IsHTML {
 		return RenderHTMLTemplate(RenderOptions{
 			Name:          string(templateType),
-			TemplateBody:  templateBody,
-			Defines:       spec.Defines,
+			TemplateBody:  result.TemplateBody,
+			Defines:       result.Spec.Defines,
 			Context:       context,
 			ValidatorOpts: e.validatorOptions,
 		})
 	}
 	return RenderTextTemplate(RenderOptions{
 		Name:          string(templateType),
-		TemplateBody:  templateBody,
-		Defines:       spec.Defines,
+		TemplateBody:  result.TemplateBody,
+		Defines:       result.Spec.Defines,
 		Context:       context,
 		ValidatorOpts: e.validatorOptions,
 	})
 }
 
-func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options ResolveOptions) (templateBody string, spec Spec, err error) {
+func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options ResolveOptions) (result *resolveResult, err error) {
 	spec, ok := e.TemplateSpecs[templateType]
 	if !ok {
 		panic("template: unregistered template type: " + templateType)
 	}
 
-	templateBody = spec.Default
+	// Take the default value by default
+	templateBody := spec.Default
 	templateItem, err := e.resolveTemplateItem(spec, options.Key)
-	// No template item can be resolved. Fallback to default.
 	if err != nil {
+		// No template item can be resolved. Fallback to default.
 		err = nil
-		return
+	} else {
+		templateBody, err = e.uriLoader.Load(templateItem.URI)
+		if err != nil {
+			return
+		}
 	}
 
-	templateBody, err = e.uriLoader.Load(templateItem.URI)
-	if err != nil {
-		return
+	result = &resolveResult{
+		TemplateBody: templateBody,
+		Spec:         spec,
 	}
-
 	return
 }
 
