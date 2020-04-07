@@ -177,9 +177,9 @@ func TestEngine(t *testing.T) {
 			}
 			for _, c := range cases {
 				e := NewEngine(NewEngineOptions{
-					TemplateItems:         c.TemplateItems,
-					PreferredLanguageTags: c.PreferredLanguageTags,
+					TemplateItems: c.TemplateItems,
 				})
+				e = e.WithPreferredLanguageTags(c.PreferredLanguageTags)
 
 				actual, err := e.resolveTemplateItem(c.Spec, c.Key)
 				if c.Expected == nil {

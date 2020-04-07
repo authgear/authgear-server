@@ -13,23 +13,17 @@ type ResolveOptions struct {
 }
 
 type NewEngineOptions struct {
-	EnableFileLoader      bool
-	EnableDataLoader      bool
-	AssetGearLoader       *AssetGearLoader
-	TemplateItems         []config.TemplateItem
-	PreferredLanguageTags []string
+	EnableFileLoader bool
+	EnableDataLoader bool
+	AssetGearLoader  *AssetGearLoader
+	TemplateItems    []config.TemplateItem
 }
 
 // Engine resolves and renders templates.
 type Engine struct {
-	uriLoader     *URILoader
-	TemplateSpecs map[config.TemplateItemType]Spec
-	templateItems []config.TemplateItem
-	// NOTE(louis): PreferredLanguageTags
-	// preferredLanguageTags is put here instead of receiving it from RenderXXX methods.
-	// It is expected that engine is created per request.
-	// The preferred language tags should be lazily retrieved
-	// from the auth context.
+	uriLoader             *URILoader
+	TemplateSpecs         map[config.TemplateItemType]Spec
+	templateItems         []config.TemplateItem
 	preferredLanguageTags []string
 }
 
@@ -38,13 +32,30 @@ func NewEngine(opts NewEngineOptions) *Engine {
 	uriLoader.EnableFileLoader = opts.EnableFileLoader
 	uriLoader.EnableDataLoader = opts.EnableDataLoader
 	return &Engine{
-		uriLoader:             uriLoader,
-		templateItems:         opts.TemplateItems,
-		TemplateSpecs:         map[config.TemplateItemType]Spec{},
-		preferredLanguageTags: opts.PreferredLanguageTags,
+		uriLoader:     uriLoader,
+		templateItems: opts.TemplateItems,
+		TemplateSpecs: map[config.TemplateItemType]Spec{},
 	}
 }
 
+// Clone clones e.
+func (e *Engine) Clone() *Engine {
+	// A simply struct copy is enough here because we assume
+	// Register calls are made only during engine creation.
+	newEngine := *e
+	return &newEngine
+}
+
+// WithPreferredLanguageTags returns a new engine with the given tags.
+// This function offers greater flexibility on configuring preferred languages because
+// This information may not be available at the creation of the engine.
+func (e *Engine) WithPreferredLanguageTags(tags []string) *Engine {
+	newEngine := e.Clone()
+	newEngine.preferredLanguageTags = tags
+	return newEngine
+}
+
+// Register registers spec with e.
 func (e *Engine) Register(spec Spec) {
 	e.TemplateSpecs[spec.Type] = spec
 }
