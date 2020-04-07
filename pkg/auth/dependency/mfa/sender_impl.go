@@ -10,7 +10,7 @@ import (
 
 type senderImpl struct {
 	appName        string
-	oobConfig      *config.MFAOOBConfiguration
+	oobConfig      *config.AuthenticatorOOBConfiguration
 	smsClient      sms.Client
 	mailSender     mail.Sender
 	templateEngine *template.Engine
@@ -24,7 +24,7 @@ func NewSender(
 ) Sender {
 	return &senderImpl{
 		appName:        tConfig.AppConfig.DisplayAppName,
-		oobConfig:      tConfig.AppConfig.MFA.OOB,
+		oobConfig:      tConfig.AppConfig.Authenticator.OOB,
 		smsClient:      smsClient,
 		mailSender:     mailSender,
 		templateEngine: templateEngine,

@@ -373,24 +373,32 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.AppConfig.Authentication.SecondaryAuthenticationMode = SecondaryAuthenticationModeIfExists
 	}
 
-	// Set default MFAConfiguration
-	if c.AppConfig.MFA.TOTP.Maximum == nil {
-		c.AppConfig.MFA.TOTP.Maximum = new(int)
-		*c.AppConfig.MFA.TOTP.Maximum = 99
+	// Set default AuthenticatorConfiguration
+	if c.AppConfig.Authenticator.TOTP.Maximum == nil {
+		c.AppConfig.Authenticator.TOTP.Maximum = new(int)
+		*c.AppConfig.Authenticator.TOTP.Maximum = 99
 	}
-	if c.AppConfig.MFA.OOB.SMS.Maximum == nil {
-		c.AppConfig.MFA.OOB.SMS.Maximum = new(int)
-		*c.AppConfig.MFA.OOB.SMS.Maximum = 99
+	if c.AppConfig.Authenticator.OOB.SMS.Maximum == nil {
+		c.AppConfig.Authenticator.OOB.SMS.Maximum = new(int)
+		*c.AppConfig.Authenticator.OOB.SMS.Maximum = 99
 	}
-	if c.AppConfig.MFA.OOB.Email.Maximum == nil {
-		c.AppConfig.MFA.OOB.Email.Maximum = new(int)
-		*c.AppConfig.MFA.OOB.Email.Maximum = 99
+	if c.AppConfig.Authenticator.OOB.Email.Maximum == nil {
+		c.AppConfig.Authenticator.OOB.Email.Maximum = new(int)
+		*c.AppConfig.Authenticator.OOB.Email.Maximum = 99
 	}
-	if c.AppConfig.MFA.BearerToken.ExpireInDays == 0 {
-		c.AppConfig.MFA.BearerToken.ExpireInDays = 30
+	if c.AppConfig.Authenticator.BearerToken.ExpireInDays == 0 {
+		c.AppConfig.Authenticator.BearerToken.ExpireInDays = 30
 	}
-	if c.AppConfig.MFA.RecoveryCode.Count == 0 {
-		c.AppConfig.MFA.RecoveryCode.Count = 16
+	if c.AppConfig.Authenticator.RecoveryCode.Count == 0 {
+		c.AppConfig.Authenticator.RecoveryCode.Count = 16
+	}
+
+	// Set default AuthenticatorOOBConfiguration
+	if c.AppConfig.Authenticator.OOB.Sender == "" {
+		c.AppConfig.Authenticator.OOB.Sender = "no-reply@skygear.io"
+	}
+	if c.AppConfig.Authenticator.OOB.Subject == "" {
+		c.AppConfig.Authenticator.OOB.Subject = "Two Factor Auth Verification instruction"
 	}
 
 	// Set default user verification settings
@@ -433,14 +441,6 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 	if c.AppConfig.ForgotPassword.ResetURLLifetime == 0 {
 		c.AppConfig.ForgotPassword.ResetURLLifetime = 43200
-	}
-
-	// Set default MFAOOBConfiguration
-	if c.AppConfig.MFA.OOB.Sender == "" {
-		c.AppConfig.MFA.OOB.Sender = "no-reply@skygear.io"
-	}
-	if c.AppConfig.MFA.OOB.Subject == "" {
-		c.AppConfig.MFA.OOB.Subject = "Two Factor Auth Verification instruction"
 	}
 
 	// Set default SMTPConfiguration
@@ -534,7 +534,7 @@ type AppConfiguration struct {
 	Authentication   *AuthenticationConfiguration   `json:"authentication,omitempty" yaml:"authentication" msg:"authentication" default_zero_value:"true"`
 	AuthUI           *AuthUIConfiguration           `json:"auth_ui,omitempty" yaml:"auth_ui" msg:"auth_ui" default_zero_value:"true"`
 	OIDC             *OIDCConfiguration             `json:"oidc,omitempty" yaml:"oidc" msg:"oidc" default_zero_value:"true"`
-	MFA              *MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa" default_zero_value:"true"`
+	Authenticator    *AuthenticatorConfiguration    `json:"authenticator,omitempty" yaml:"authenticator" msg:"authenticator" default_zero_value:"true"`
 	PasswordPolicy   *PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy" default_zero_value:"true"`
 	ForgotPassword   *ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password" default_zero_value:"true"`
 	WelcomeEmail     *WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email" default_zero_value:"true"`
@@ -669,42 +669,6 @@ type OIDCSigningKeyConfiguration struct {
 	KID        string `json:"kid,omitempty" yaml:"kid" msg:"kid"`
 	PublicKey  string `json:"public_key,omitempty" yaml:"public_key" msg:"public_key"`
 	PrivateKey string `json:"private_key,omitempty" yaml:"private_key" msg:"private_key"`
-}
-
-type MFAConfiguration struct {
-	TOTP         *MFATOTPConfiguration         `json:"totp,omitempty" yaml:"totp" msg:"totp" default_zero_value:"true"`
-	OOB          *MFAOOBConfiguration          `json:"oob,omitempty" yaml:"oob" msg:"oob" default_zero_value:"true"`
-	BearerToken  *MFABearerTokenConfiguration  `json:"bearer_token,omitempty" yaml:"bearer_token" msg:"bearer_token" default_zero_value:"true"`
-	RecoveryCode *MFARecoveryCodeConfiguration `json:"recovery_code,omitempty" yaml:"recovery_code" msg:"recovery_code" default_zero_value:"true"`
-}
-
-type MFATOTPConfiguration struct {
-	Maximum *int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
-}
-
-type MFAOOBConfiguration struct {
-	SMS     *MFAOOBSMSConfiguration   `json:"sms,omitempty" yaml:"sms" msg:"sms" default_zero_value:"true"`
-	Email   *MFAOOBEmailConfiguration `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
-	Sender  string                    `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	Subject string                    `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	ReplyTo string                    `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-}
-
-type MFAOOBSMSConfiguration struct {
-	Maximum *int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
-}
-
-type MFAOOBEmailConfiguration struct {
-	Maximum *int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
-}
-
-type MFABearerTokenConfiguration struct {
-	ExpireInDays int `json:"expire_in_days,omitempty" yaml:"expire_in_days" msg:"expire_in_days"`
-}
-
-type MFARecoveryCodeConfiguration struct {
-	Count       int  `json:"count,omitempty" yaml:"count" msg:"count"`
-	ListEnabled bool `json:"list_enabled,omitempty" yaml:"list_enabled" msg:"list_enabled"`
 }
 
 type PasswordPolicyConfiguration struct {

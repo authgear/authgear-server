@@ -16,23 +16,23 @@ import (
 )
 
 type storeImpl struct {
-	mfaConfig    *config.MFAConfiguration
-	sqlBuilder   db.SQLBuilder
-	sqlExecutor  db.SQLExecutor
-	timeProvider time.Provider
+	recoveryCodeConfig *config.AuthenticatorRecoveryCodeConfiguration
+	sqlBuilder         db.SQLBuilder
+	sqlExecutor        db.SQLExecutor
+	timeProvider       time.Provider
 }
 
 func NewStore(
-	mfaConfig *config.MFAConfiguration,
+	recoveryCodeConfig *config.AuthenticatorRecoveryCodeConfiguration,
 	sqlBuilder db.SQLBuilder,
 	sqlExecutor db.SQLExecutor,
 	timeProvider time.Provider,
 ) mfa.Store {
 	return &storeImpl{
-		mfaConfig:    mfaConfig,
-		sqlBuilder:   sqlBuilder,
-		sqlExecutor:  sqlExecutor,
-		timeProvider: timeProvider,
+		recoveryCodeConfig: recoveryCodeConfig,
+		sqlBuilder:         sqlBuilder,
+		sqlExecutor:        sqlExecutor,
+		timeProvider:       timeProvider,
 	}
 }
 
@@ -196,7 +196,7 @@ func (s *storeImpl) GenerateRecoveryCode(userID string) ([]mfa.RecoveryCodeAuthe
 
 	now := s.timeProvider.NowUTC()
 	var output []mfa.RecoveryCodeAuthenticator
-	for i := 0; i < s.mfaConfig.RecoveryCode.Count; i++ {
+	for i := 0; i < s.recoveryCodeConfig.Count; i++ {
 		a := mfa.RecoveryCodeAuthenticator{
 			ID:        uuid.New(),
 			UserID:    userID,

@@ -215,12 +215,12 @@ func (m DependencyMap) Provide(
 	newMFAProvider := func() mfa.Provider {
 		return mfa.NewProvider(
 			mfaPQ.NewStore(
-				tConfig.AppConfig.MFA,
+				tConfig.AppConfig.Authenticator.RecoveryCode,
 				newSQLBuilder(),
 				newSQLExecutor(),
 				newTimeProvider(),
 			),
-			tConfig.AppConfig.MFA,
+			tConfig.AppConfig.Authenticator,
 			newTimeProvider(),
 			mfa.NewSender(
 				tConfig,
@@ -351,8 +351,8 @@ func (m DependencyMap) Provide(
 		return newHookProvider()
 	case "OAuthConfiguration":
 		return tConfig.AppConfig.Identity.OAuth
-	case "MFAConfiguration":
-		return *tConfig.AppConfig.MFA
+	case "AuthenticatorConfiguration":
+		return *tConfig.AppConfig.Authenticator
 	case "OAuthConflictConfiguration":
 		return tConfig.AppConfig.AuthAPI.OnIdentityConflict.OAuth
 	case "TenantConfiguration":

@@ -178,25 +178,25 @@ func makeFullTenantConfig() TenantConfiguration {
 				SecondaryAuthenticators:     []string{"otp", "bearer_token"},
 				SecondaryAuthenticationMode: SecondaryAuthenticationModeIfExists,
 			},
-			MFA: &MFAConfiguration{
-				TOTP: &MFATOTPConfiguration{
+			Authenticator: &AuthenticatorConfiguration{
+				TOTP: &AuthenticatorTOTPConfiguration{
 					Maximum: newInt(99),
 				},
-				OOB: &MFAOOBConfiguration{
+				OOB: &AuthenticatorOOBConfiguration{
 					Sender:  `"MFA Sender" <mfaoobsender@example.com>`,
 					Subject: "mfaoobsubject",
 					ReplyTo: `"MFA Reply To" <mfaoobreplyto@example.com>`,
-					SMS: &MFAOOBSMSConfiguration{
+					SMS: &AuthenticatorOOBSMSConfiguration{
 						Maximum: newInt(99),
 					},
-					Email: &MFAOOBEmailConfiguration{
+					Email: &AuthenticatorOOBEmailConfiguration{
 						Maximum: newInt(99),
 					},
 				},
-				BearerToken: &MFABearerTokenConfiguration{
+				BearerToken: &AuthenticatorBearerTokenConfiguration{
 					ExpireInDays: 60,
 				},
-				RecoveryCode: &MFARecoveryCodeConfiguration{
+				RecoveryCode: &AuthenticatorRecoveryCodeConfiguration{
 					Count:       24,
 					ListEnabled: true,
 				},
@@ -512,7 +512,7 @@ func TestTenantConfig(t *testing.T) {
 			userConfig := &AppConfiguration{}
 			So(userConfig.CORS, ShouldBeNil)
 			So(userConfig.Authentication, ShouldBeNil)
-			So(userConfig.MFA, ShouldBeNil)
+			So(userConfig.Authenticator, ShouldBeNil)
 			So(userConfig.PasswordPolicy, ShouldBeNil)
 			So(userConfig.ForgotPassword, ShouldBeNil)
 			So(userConfig.WelcomeEmail, ShouldBeNil)
@@ -528,7 +528,7 @@ func TestTenantConfig(t *testing.T) {
 
 			So(userConfig.CORS, ShouldNotBeNil)
 			So(userConfig.Authentication, ShouldNotBeNil)
-			So(userConfig.MFA, ShouldNotBeNil)
+			So(userConfig.Authenticator, ShouldNotBeNil)
 			So(userConfig.PasswordPolicy, ShouldNotBeNil)
 			So(userConfig.ForgotPassword, ShouldNotBeNil)
 			So(userConfig.WelcomeEmail, ShouldNotBeNil)

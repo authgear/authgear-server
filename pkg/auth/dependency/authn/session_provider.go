@@ -34,7 +34,6 @@ type SessionProvider struct {
 	MFAProvider      mfa.Provider
 	SessionProvider  session.Provider
 	ClientConfigs    []config.OAuthClientConfiguration
-	MFAConfig        *config.MFAConfiguration
 	AuthnConfig      *config.AuthenticationConfiguration
 	TimeProvider     time.Provider
 	AuthInfoStore    authinfo.Store

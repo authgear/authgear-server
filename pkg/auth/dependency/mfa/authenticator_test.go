@@ -104,21 +104,21 @@ func TestCanAddAuthenticator(t *testing.T) {
 
 		newA := c.New
 
-		mfaConfiguration := &config.MFAConfiguration{
-			TOTP: &config.MFATOTPConfiguration{
+		authenticatorConfiguration := &config.AuthenticatorConfiguration{
+			TOTP: &config.AuthenticatorTOTPConfiguration{
 				Maximum: &c.Limit.TOTP,
 			},
-			OOB: &config.MFAOOBConfiguration{
-				SMS: &config.MFAOOBSMSConfiguration{
+			OOB: &config.AuthenticatorOOBConfiguration{
+				SMS: &config.AuthenticatorOOBSMSConfiguration{
 					Maximum: &c.Limit.OOBSMS,
 				},
-				Email: &config.MFAOOBEmailConfiguration{
+				Email: &config.AuthenticatorOOBEmailConfiguration{
 					Maximum: &c.Limit.OOBEmail,
 				},
 			},
 		}
 
-		actual := CanAddAuthenticator(authenticators, newA, mfaConfiguration)
+		actual := CanAddAuthenticator(authenticators, newA, authenticatorConfiguration)
 		So(actual, ShouldEqual, c.Expected)
 	}
 

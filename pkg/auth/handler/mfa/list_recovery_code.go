@@ -76,10 +76,10 @@ const ListRecoveryCodeResponseSchema = `
 			@JSONSchema {ListRecoveryCodeResponse}
 */
 type ListRecoveryCodeHandler struct {
-	TxContext        db.TxContext            `dependency:"TxContext"`
-	RequireAuthz     handler.RequireAuthz    `dependency:"RequireAuthz"`
-	MFAProvider      mfa.Provider            `dependency:"MFAProvider"`
-	MFAConfiguration config.MFAConfiguration `dependency:"MFAConfiguration"`
+	TxContext                  db.TxContext                      `dependency:"TxContext"`
+	RequireAuthz               handler.RequireAuthz              `dependency:"RequireAuthz"`
+	MFAProvider                mfa.Provider                      `dependency:"MFAProvider"`
+	AuthenticatorConfiguration config.AuthenticatorConfiguration `dependency:"AuthenticatorConfiguration"`
 }
 
 func (h *ListRecoveryCodeHandler) ProvideAuthzPolicy() coreauthz.Policy {
@@ -103,7 +103,7 @@ func (h *ListRecoveryCodeHandler) Handle(w http.ResponseWriter, r *http.Request)
 		return nil, err
 	}
 
-	if !h.MFAConfiguration.RecoveryCode.ListEnabled {
+	if !h.AuthenticatorConfiguration.RecoveryCode.ListEnabled {
 		return nil, skyerr.NewNotFound("listing recovery code is disabled")
 	}
 

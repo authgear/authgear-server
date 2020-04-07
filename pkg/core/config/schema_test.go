@@ -229,7 +229,7 @@ func TestParseAppConfiguration(t *testing.T) {
 			"/clients/0/client_id: Required",
 			"/clients/0/client_name: Required",
 		)
-		// MFA
+		// Authenticator
 		test(`
 			{
 				"api_version": "v2.1",
@@ -261,11 +261,11 @@ func TestParseAppConfiguration(t *testing.T) {
 				"hook": {
 					"secret": "hooksecret"
 				},
-				"mfa": {
+				"authenticator": {
 					"totp": {
 						"maximum": 1000
 					},
-					"oob": {
+					"oob_otp": {
 						"sms": {
 							"maximum": 1000
 						},
@@ -282,12 +282,12 @@ func TestParseAppConfiguration(t *testing.T) {
 					}
 				}
 			}`,
-			"/mfa/bearer_token/expire_in_days: NumberRange map[gte:1]",
-			"/mfa/oob/email/maximum: NumberRange map[lte:999]",
-			"/mfa/oob/sms/maximum: NumberRange map[lte:999]",
-			"/mfa/recovery_code/count: NumberRange map[lte:24]",
-			"/mfa/recovery_code/list_enabled: Type map[expected:boolean]",
-			"/mfa/totp/maximum: NumberRange map[lte:999]",
+			"/authenticator/bearer_token/expire_in_days: NumberRange map[gte:1]",
+			"/authenticator/oob_otp/email/maximum: NumberRange map[lte:999]",
+			"/authenticator/oob_otp/sms/maximum: NumberRange map[lte:999]",
+			"/authenticator/recovery_code/count: NumberRange map[lte:24]",
+			"/authenticator/recovery_code/list_enabled: Type map[expected:boolean]",
+			"/authenticator/totp/maximum: NumberRange map[lte:999]",
 		)
 		// User Audit
 		test(`

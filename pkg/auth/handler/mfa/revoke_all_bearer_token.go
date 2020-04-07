@@ -10,7 +10,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -50,10 +49,9 @@ func (f RevokeAllBearerTokenHandlerFactory) NewHandler(request *http.Request) ht
 		@Response 200 {EmptyResponse}
 */
 type RevokeAllBearerTokenHandler struct {
-	TxContext        db.TxContext            `dependency:"TxContext"`
-	RequireAuthz     handler.RequireAuthz    `dependency:"RequireAuthz"`
-	MFAProvider      mfa.Provider            `dependency:"MFAProvider"`
-	MFAConfiguration config.MFAConfiguration `dependency:"MFAConfiguration"`
+	TxContext    db.TxContext         `dependency:"TxContext"`
+	RequireAuthz handler.RequireAuthz `dependency:"RequireAuthz"`
+	MFAProvider  mfa.Provider         `dependency:"MFAProvider"`
 }
 
 func (h *RevokeAllBearerTokenHandler) ProvideAuthzPolicy() coreauthz.Policy {

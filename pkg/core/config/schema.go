@@ -69,7 +69,7 @@ var (
 			"authentication": { "$ref": "#AuthenticationConfiguration" },
 			"auth_api": { "$ref": "#AuthAPIConfiguration" },
 			"auth_ui": { "$ref": "#AuthUIConfiguration" },
-			"mfa": { "$ref": "#MFAConfiguration" },
+			"authenticator": { "$ref": "#AuthenticatorConfiguration" },
 			"password_policy": { "$ref": "#PasswordPolicyConfiguration" },
 			"forgot_password": { "$ref": "#ForgotPasswordConfiguration" },
 			"welcome_email": { "$ref": "#WelcomeEmailConfiguration" },
@@ -229,8 +229,8 @@ var (
 		},
 		"required": ["secret"]
 	},
-	"MFAConfiguration": {
-		"$id": "#MFAConfiguration",
+	"AuthenticatorConfiguration": {
+		"$id": "#AuthenticatorConfiguration",
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
@@ -245,7 +245,7 @@ var (
 					}
 				}
 			},
-			"oob": {
+			"oob_otp": {
 				"type": "object",
 				"additionalProperties": false,
 				"properties": {

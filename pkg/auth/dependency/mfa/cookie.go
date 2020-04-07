@@ -23,7 +23,7 @@ func NewBearerTokenCookieConfiguration(
 	r *http.Request,
 	useInsecureCookie bool,
 	sConfig config.SessionConfiguration,
-	mfaConfig config.MFAConfiguration,
+	bearerTokenConfig config.AuthenticatorBearerTokenConfiguration,
 ) BearerTokenCookieConfiguration {
 	cfg := BearerTokenCookieConfiguration{
 		Name:   CookieName,
@@ -31,7 +31,7 @@ func NewBearerTokenCookieConfiguration(
 		Secure: !useInsecureCookie,
 	}
 
-	maxAge := 86400 * mfaConfig.BearerToken.ExpireInDays
+	maxAge := 86400 * bearerTokenConfig.ExpireInDays
 	cfg.MaxAge = &maxAge
 
 	if sConfig.CookieDomain != nil {
