@@ -95,6 +95,7 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context ma
 	if err != nil {
 		return
 	}
+
 	renderOptions := RenderOptions{
 		Name:          string(templateType),
 		TemplateBody:  result.TemplateBody,
@@ -102,10 +103,21 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context ma
 		Context:       context,
 		ValidatorOpts: e.validatorOptions,
 	}
+
+	if result.Spec.Translation != "" {
+		renderOptions.Funcs = map[string]interface{}{
+			"localize": makeLocalize(
+				e.preferredLanguageTags,
+				result.Translations,
+			),
+		}
+	}
+
 	renderFunc := RenderTextTemplate
 	if result.Spec.IsHTML {
 		renderFunc = RenderHTMLTemplate
 	}
+
 	return renderFunc(renderOptions)
 }
 
@@ -243,6 +255,46 @@ func (e *Engine) resolveTranslations(templateType config.TemplateItemType) (tran
 	}
 
 	return
+}
+
+func makeLocalize(preferredLanguageTags []string, translations map[string]map[string]string) func(key string, args ...interface{}) (string, error) {
+	return func(key string, args ...interface{}) (out string, err error) {
+		m, ok := translations[key]
+		if !ok {
+			err = fmt.Errorf("translation key not found: %s", key)
+			return
+		}
+
+		supportedTagStrings := make([]string, len(m))
+		for tagStr := range m {
+			supportedTagStrings = append(supportedTagStrings, tagStr)
+		}
+
+		// The first item in tags is used as fallback.
+		// So we have sort the templates so that template with empty
+		// language tag comes first.
+		sort.Slice(supportedTagStrings, func(i, j int) bool {
+			return supportedTagStrings[i] < supportedTagStrings[j]
+		})
+
+		supportedTags := make([]language.Tag, len(supportedTagStrings))
+		for i, item := range supportedTagStrings {
+			supportedTags[i] = language.Make(item)
+		}
+		matcher := language.NewMatcher(supportedTags)
+
+		preferredTags := make([]language.Tag, len(preferredLanguageTags))
+		for i, tagStr := range preferredLanguageTags {
+			preferredTags[i] = language.Make(tagStr)
+		}
+
+		_, idx, _ := matcher.Match(preferredTags...)
+
+		// TODO(template): parse pattern and apply args
+		pattern := m[supportedTagStrings[idx]]
+
+		return pattern, nil
+	}
 }
 
 func loadTranslation(jsonStr string) (translation map[string]string, err error) {

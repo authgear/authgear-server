@@ -278,3 +278,70 @@ func TestResolveTranslations(t *testing.T) {
 		})
 	})
 }
+
+func TestMakeLocalize(t *testing.T) {
+	key := "key1"
+	Convey("makeLocalize", t, func() {
+		test := func(m map[string]string, preferredLanguageTags []string, expected string) {
+			localize := makeLocalize(preferredLanguageTags, map[string]map[string]string{
+				key: m,
+			})
+			actual, err := localize(key)
+			So(err, ShouldBeNil)
+			So(actual, ShouldEqual, expected)
+		}
+
+		// Select default if there is no preferred languages
+		test(map[string]string{
+			"":   "Hello from default",
+			"en": "Hello from en",
+			"ja": "Hello from ja",
+			"zh": "Hello from zh",
+		}, nil, "Hello from default")
+
+		// Select default if there is no preferred languages
+		test(map[string]string{
+			"":   "Hello from default",
+			"en": "Hello from en",
+			"ja": "Hello from ja",
+			"zh": "Hello from zh",
+		}, []string{}, "Hello from default")
+
+		// Simply select japanese
+		test(map[string]string{
+			"":   "Hello from default",
+			"en": "Hello from en",
+			"ja": "Hello from ja",
+			"zh": "Hello from zh",
+		}, []string{"ja-JP", "en-US", "zh-Hant-HK"}, "Hello from ja")
+
+		// Select the default because japanese and chinese is unknown to a korean speaker.
+		test(map[string]string{
+			"":   "Hello from default",
+			"ja": "Hello from ja",
+			"zh": "Hello from zh",
+		}, []string{"kr-KR"}, "Hello from default")
+
+		// Select english because english is an international language.
+		test(map[string]string{
+			"":   "Hello from default",
+			"en": "Hello from en",
+			"ja": "Hello from ja",
+			"zh": "Hello from zh",
+		}, []string{"kr-KR"}, "Hello from en")
+
+		// Select the best variant within the same language
+		test(map[string]string{
+			"":           "Hello from default",
+			"zh-Hant-TW": "Hello from zh-Hant-TW",
+			"zh-Hant-HK": "Hello from zh-Hant-HK",
+		}, []string{"zh-Hant-HK"}, "Hello from zh-Hant-HK")
+
+		// Select the best variant within the same language
+		test(map[string]string{
+			"":           "Hello from default",
+			"zh-Hant-TW": "Hello from zh-Hant-TW",
+			"zh-Hant-HK": "Hello from zh-Hant-HK",
+		}, []string{"zh-Hant"}, "Hello from zh-Hant-TW")
+	})
+}
