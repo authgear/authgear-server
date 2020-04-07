@@ -9,12 +9,32 @@ import (
 )
 
 type Validator struct {
-	AllowRangeNode    bool
-	AllowTemplateNode bool
-	MaxDepth          int
+	allowRangeNode    bool
+	allowTemplateNode bool
+	maxDepth          int
 }
 
-func NewValidator(opts ...func(*Validator)) *Validator {
+type ValidatorOption func(*Validator)
+
+func AllowRangeNode(b bool) ValidatorOption {
+	return func(v *Validator) {
+		v.allowRangeNode = b
+	}
+}
+
+func AllowTemplateNode(b bool) ValidatorOption {
+	return func(v *Validator) {
+		v.allowTemplateNode = b
+	}
+}
+
+func MaxDepth(d int) ValidatorOption {
+	return func(v *Validator) {
+		v.maxDepth = d
+	}
+}
+
+func NewValidator(opts ...ValidatorOption) *Validator {
 	v := &Validator{}
 	for _, opt := range opts {
 		opt(v)
@@ -52,7 +72,7 @@ func (v *Validator) ValidateHTMLTemplate(template *html.Template) error {
 
 func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 	validateFn := func(n parse.Node, depth int) (cont bool) {
-		maxDepth := v.MaxDepth
+		maxDepth := v.maxDepth
 		if maxDepth == 0 {
 			maxDepth = 4
 		}
@@ -78,13 +98,13 @@ func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 					}
 				}
 			case *parse.RangeNode:
-				if v.AllowRangeNode {
+				if v.allowRangeNode {
 					break
 				} else {
 					err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)
 				}
 			case *parse.TemplateNode:
-				if v.AllowTemplateNode {
+				if v.allowTemplateNode {
 					break
 				} else {
 					err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)

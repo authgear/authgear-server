@@ -97,7 +97,7 @@ type RenderOptions struct {
 	// The context for rendering the template
 	Context map[string]interface{}
 	// The options to Validator
-	ValidatorOpts []func(*Validator)
+	ValidatorOpts []ValidatorOption
 }
 
 func RenderTextTemplate(opts RenderOptions) (out string, err error) {

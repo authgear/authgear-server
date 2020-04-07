@@ -50,7 +50,7 @@ func (e *Engine) Register(spec Spec) {
 	e.TemplateSpecs[spec.Type] = spec
 }
 
-func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, resolveOptions ResolveOptions, validateOpts ...func(*Validator)) (out string, err error) {
+func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, resolveOptions ResolveOptions, validateOpts ...ValidatorOption) (out string, err error) {
 	templateBody, spec, err := e.resolveTemplate(templateType, resolveOptions)
 	if err != nil {
 		return

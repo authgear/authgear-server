@@ -139,11 +139,14 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		data["x_error"] = eJSON["error"]
 	}
 
-	out, err := p.TemplateEngine.RenderTemplate(templateType, data, template.ResolveOptions{}, func(v *template.Validator) {
-		v.AllowRangeNode = true
-		v.AllowTemplateNode = true
-		v.MaxDepth = 15
-	})
+	out, err := p.TemplateEngine.RenderTemplate(
+		templateType,
+		data,
+		template.ResolveOptions{},
+		template.AllowRangeNode(true),
+		template.AllowTemplateNode(true),
+		template.MaxDepth(15),
+	)
 	if err != nil {
 		panic(err)
 	}

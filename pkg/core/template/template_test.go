@@ -38,11 +38,7 @@ func TestTemplateRender(t *testing.T) {
 					`{{ define "A" }}This is A{{ end }}`,
 					`{{ define "B" }}This is B{{ end }}`,
 				},
-				ValidatorOpts: []func(*Validator){
-					func(v *Validator) {
-						v.AllowTemplateNode = true
-					},
-				},
+				ValidatorOpts: []ValidatorOption{AllowTemplateNode(true)},
 			})
 			expected := `
 				This is A
