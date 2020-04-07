@@ -26,6 +26,7 @@ type Sender interface {
 type DefaultSender struct {
 	AppName        string
 	Config         *config.ForgotPasswordConfiguration
+	EmailConfig    config.EmailMessageConfiguration
 	URLPrefix      *url.URL
 	Sender         mail.Sender
 	CodeGenerator  *CodeGenerator
@@ -33,17 +34,21 @@ type DefaultSender struct {
 }
 
 func NewDefaultSender(
-	config config.TenantConfiguration,
+	c config.TenantConfiguration,
 	urlPrefix *url.URL,
 	sender mail.Sender,
 	templateEngine *template.Engine,
 ) Sender {
 	return &DefaultSender{
-		AppName:        config.AppConfig.DisplayAppName,
-		Config:         config.AppConfig.ForgotPassword,
+		AppName: c.AppConfig.DisplayAppName,
+		Config:  c.AppConfig.ForgotPassword,
+		EmailConfig: config.NewEmailMessageConfiguration(
+			c.AppConfig.Messages.Email,
+			c.AppConfig.ForgotPassword.EmailMessage,
+		),
 		URLPrefix:      urlPrefix,
 		Sender:         sender,
-		CodeGenerator:  &CodeGenerator{config.AppConfig.MasterKey},
+		CodeGenerator:  &CodeGenerator{c.AppConfig.MasterKey},
 		TemplateEngine: templateEngine,
 	}
 }
@@ -98,10 +103,10 @@ func (d *DefaultSender) Send(
 	}
 
 	err = d.Sender.Send(mail.SendOptions{
-		Sender:    d.Config.Sender,
+		Sender:    d.EmailConfig.Sender(),
 		Recipient: email,
-		Subject:   d.Config.Subject,
-		ReplyTo:   d.Config.ReplyTo,
+		Subject:   d.EmailConfig.Subject(),
+		ReplyTo:   d.EmailConfig.ReplyTo(),
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
 	})

@@ -75,6 +75,7 @@ var (
 			"identity": { "$ref": "#IdentityConfiguration" },
 			"user_verification": { "$ref": "#UserVerificationConfiguration" },
 			"hook": { "$ref": "#HookAppConfiguration" },
+			"messages": { "$ref": "#MessagesConfiguration" },
 			"smtp" : { "$ref": "#SMTPConfiguration" },
 			"twilio" : { "$ref": "#TwilioConfiguration" },
 			"nexmo" : { "$ref": "#NexmoConfiguration" },
@@ -255,10 +256,6 @@ var (
 				"type": "object",
 				"additionalProperties": false,
 				"properties": {
-					"app_name": { "type": "string" },
-					"sender": { "type": "string", "format": "NameEmailAddr" },
-					"subject": { "type": "string" },
-					"reply_to": { "type": "string", "format": "NameEmailAddr" },
 					"sms": {
 						"type": "object",
 						"additionalProperties": false,
@@ -267,7 +264,8 @@ var (
 								"type": "integer",
 								"minimum": 0,
 								"maximum": 999
-							}
+							},
+							"message": { "$ref": "#SMSMessageConfiguration" }
 						}
 					},
 					"email": {
@@ -278,7 +276,8 @@ var (
 								"type": "integer",
 								"minimum": 0,
 								"maximum": 999
-							}
+							},
+							"message": { "$ref": "#EmailMessageConfiguration" }
 						}
 					}
 				}
@@ -341,9 +340,7 @@ var (
 		"properties": {
 			"app_name": { "type": "string" },
 			"secure_match": { "type": "boolean" },
-			"sender": { "type": "string", "format": "NameEmailAddr" },
-			"reply_to": { "type": "string", "format": "NameEmailAddr" },
-			"subject": { "type": "string" },
+			"email_message": { "$ref": "#EmailMessageConfiguration" },
 			"reset_url_lifetime": { "$ref": "#NonNegativeInteger" },
 			"success_redirect": { "type": "string" },
 			"error_redirect": { "type": "string" }
@@ -355,9 +352,7 @@ var (
 		"additionalProperties": false,
 		"properties": {
 			"enabled": { "type": "boolean" },
-			"sender": { "type": "string", "format": "NameEmailAddr" },
-			"reply_to": { "type": "string", "format": "NameEmailAddr" },
-			"subject": { "type": "string" },
+			"message": { "$ref": "#EmailMessageConfiguration" },
 			"destination": {
 				"type": "string",
 				"enum": ["first", "all"]
@@ -523,9 +518,8 @@ var (
 			"expiry": { "$ref": "#NonNegativeInteger" },
 			"success_redirect": { "type": "string" },
 			"error_redirect": { "type": "string" },
-			"subject": { "type": "string" },
-			"sender": { "type": "string", "format": "NameEmailAddr" },
-			"reply_to": { "type": "string", "format": "NameEmailAddr" }
+			"sms_message": { "$ref": "#SMSMessageConfiguration" },
+			"email_message": { "$ref": "#EmailMessageConfiguration" }
 		}
 	},
 	"HookAppConfiguration": {
@@ -536,6 +530,37 @@ var (
 			"secret": { "$ref": "#NonEmptyString" }
 		},
 		"required": ["secret"]
+	},
+	"MessagesConfiguration": {
+		"$id": "#MessagesConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"email": { "$ref": "#EmailMessageConfiguration" },
+			"sms_provider": {
+				"type": "string",
+				"enum": ["nexmo", "twilio"]
+			},
+			"sms": { "$ref": "#SMSMessageConfiguration" }
+		}
+	},
+	"EmailMessageConfiguration": {
+		"$id": "#EmailMessageConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"patternProperties": {
+			"^sender(#.+)?$": { "type": "string", "format": "NameEmailAddr" },
+			"^subject(#.+)?$": { "type": "string" },
+			"^reply_to(#.+)?$": { "type": "string", "format": "NameEmailAddr" }
+		}
+	},
+	"SMSMessageConfiguration": {
+		"$id": "#SMSMessageConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"patternProperties": {
+			"^sender(#.+)?$": { "type": "string", "format": "phone" }
+		}
 	},
 	"SMTPConfiguration": {
 		"$id": "#SMTPConfiguration",
@@ -558,8 +583,7 @@ var (
 		"additionalProperties": false,
 		"properties": {
 			"account_sid": { "type": "string" },
-			"auth_token": { "type": "string" },
-			"from": { "type": "string" }
+			"auth_token": { "type": "string" }
 		}
 	},
 	"NexmoConfiguration": {
@@ -568,8 +592,7 @@ var (
 		"additionalProperties": false,
 		"properties": {
 			"api_key": { "type": "string" },
-			"api_secret": { "type": "string" },
-			"from": { "type": "string" }
+			"api_secret": { "type": "string" }
 		}
 	}
 }

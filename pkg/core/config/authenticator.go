@@ -31,19 +31,18 @@ type AuthenticatorTOTPConfiguration struct {
 }
 
 type AuthenticatorOOBConfiguration struct {
-	SMS     *AuthenticatorOOBSMSConfiguration   `json:"sms,omitempty" yaml:"sms" msg:"sms" default_zero_value:"true"`
-	Email   *AuthenticatorOOBEmailConfiguration `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
-	Sender  string                              `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	Subject string                              `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	ReplyTo string                              `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
+	SMS   *AuthenticatorOOBSMSConfiguration   `json:"sms,omitempty" yaml:"sms" msg:"sms" default_zero_value:"true"`
+	Email *AuthenticatorOOBEmailConfiguration `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
 }
 
 type AuthenticatorOOBSMSConfiguration struct {
-	Maximum *int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+	Maximum *int                    `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+	Message SMSMessageConfiguration `json:"message" yaml:"message" msg:"message"`
 }
 
 type AuthenticatorOOBEmailConfiguration struct {
-	Maximum *int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+	Maximum *int                      `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
+	Message EmailMessageConfiguration `json:"message" yaml:"message" msg:"message"`
 }
 
 type AuthenticatorBearerTokenConfiguration struct {

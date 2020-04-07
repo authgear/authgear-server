@@ -904,6 +904,12 @@ func (z *AuthenticatorOOBConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 								return
 							}
 						}
+					case "message":
+						err = z.SMS.Message.DecodeMsg(dc)
+						if err != nil {
+							err = msgp.WrapError(err, "SMS", "Message")
+							return
+						}
 					default:
 						err = dc.Skip()
 						if err != nil {
@@ -957,6 +963,12 @@ func (z *AuthenticatorOOBConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 								return
 							}
 						}
+					case "message":
+						err = z.Email.Message.DecodeMsg(dc)
+						if err != nil {
+							err = msgp.WrapError(err, "Email", "Message")
+							return
+						}
 					default:
 						err = dc.Skip()
 						if err != nil {
@@ -965,24 +977,6 @@ func (z *AuthenticatorOOBConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 						}
 					}
 				}
-			}
-		case "sender":
-			z.Sender, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "Sender")
-				return
-			}
-		case "subject":
-			z.Subject, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "Subject")
-				return
-			}
-		case "reply_to":
-			z.ReplyTo, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "ReplyTo")
-				return
 			}
 		default:
 			err = dc.Skip()
@@ -997,9 +991,9 @@ func (z *AuthenticatorOOBConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AuthenticatorOOBConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 5
+	// map header, size 2
 	// write "sms"
-	err = en.Append(0x85, 0xa3, 0x73, 0x6d, 0x73)
+	err = en.Append(0x82, 0xa3, 0x73, 0x6d, 0x73)
 	if err != nil {
 		return
 	}
@@ -1009,9 +1003,9 @@ func (z *AuthenticatorOOBConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	} else {
-		// map header, size 1
+		// map header, size 2
 		// write "maximum"
-		err = en.Append(0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
+		err = en.Append(0x82, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
 		if err != nil {
 			return
 		}
@@ -1027,6 +1021,16 @@ func (z *AuthenticatorOOBConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 				return
 			}
 		}
+		// write "message"
+		err = en.Append(0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+		if err != nil {
+			return
+		}
+		err = z.SMS.Message.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "SMS", "Message")
+			return
+		}
 	}
 	// write "email"
 	err = en.Append(0xa5, 0x65, 0x6d, 0x61, 0x69, 0x6c)
@@ -1039,9 +1043,9 @@ func (z *AuthenticatorOOBConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	} else {
-		// map header, size 1
+		// map header, size 2
 		// write "maximum"
-		err = en.Append(0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
+		err = en.Append(0x82, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
 		if err != nil {
 			return
 		}
@@ -1057,36 +1061,16 @@ func (z *AuthenticatorOOBConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 				return
 			}
 		}
-	}
-	// write "sender"
-	err = en.Append(0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Sender)
-	if err != nil {
-		err = msgp.WrapError(err, "Sender")
-		return
-	}
-	// write "subject"
-	err = en.Append(0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Subject)
-	if err != nil {
-		err = msgp.WrapError(err, "Subject")
-		return
-	}
-	// write "reply_to"
-	err = en.Append(0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.ReplyTo)
-	if err != nil {
-		err = msgp.WrapError(err, "ReplyTo")
-		return
+		// write "message"
+		err = en.Append(0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+		if err != nil {
+			return
+		}
+		err = z.Email.Message.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "Email", "Message")
+			return
+		}
 	}
 	return
 }
@@ -1094,19 +1078,26 @@ func (z *AuthenticatorOOBConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *AuthenticatorOOBConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 5
+	// map header, size 2
 	// string "sms"
-	o = append(o, 0x85, 0xa3, 0x73, 0x6d, 0x73)
+	o = append(o, 0x82, 0xa3, 0x73, 0x6d, 0x73)
 	if z.SMS == nil {
 		o = msgp.AppendNil(o)
 	} else {
-		// map header, size 1
+		// map header, size 2
 		// string "maximum"
-		o = append(o, 0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
+		o = append(o, 0x82, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
 		if z.SMS.Maximum == nil {
 			o = msgp.AppendNil(o)
 		} else {
 			o = msgp.AppendInt(o, *z.SMS.Maximum)
+		}
+		// string "message"
+		o = append(o, 0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+		o, err = z.SMS.Message.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "SMS", "Message")
+			return
 		}
 	}
 	// string "email"
@@ -1114,24 +1105,22 @@ func (z *AuthenticatorOOBConfiguration) MarshalMsg(b []byte) (o []byte, err erro
 	if z.Email == nil {
 		o = msgp.AppendNil(o)
 	} else {
-		// map header, size 1
+		// map header, size 2
 		// string "maximum"
-		o = append(o, 0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
+		o = append(o, 0x82, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
 		if z.Email.Maximum == nil {
 			o = msgp.AppendNil(o)
 		} else {
 			o = msgp.AppendInt(o, *z.Email.Maximum)
 		}
+		// string "message"
+		o = append(o, 0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+		o, err = z.Email.Message.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "Email", "Message")
+			return
+		}
 	}
-	// string "sender"
-	o = append(o, 0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
-	o = msgp.AppendString(o, z.Sender)
-	// string "subject"
-	o = append(o, 0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
-	o = msgp.AppendString(o, z.Subject)
-	// string "reply_to"
-	o = append(o, 0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
-	o = msgp.AppendString(o, z.ReplyTo)
 	return
 }
 
@@ -1195,6 +1184,12 @@ func (z *AuthenticatorOOBConfiguration) UnmarshalMsg(bts []byte) (o []byte, err 
 								return
 							}
 						}
+					case "message":
+						bts, err = z.SMS.Message.UnmarshalMsg(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "SMS", "Message")
+							return
+						}
 					default:
 						bts, err = msgp.Skip(bts)
 						if err != nil {
@@ -1246,6 +1241,12 @@ func (z *AuthenticatorOOBConfiguration) UnmarshalMsg(bts []byte) (o []byte, err 
 								return
 							}
 						}
+					case "message":
+						bts, err = z.Email.Message.UnmarshalMsg(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "Email", "Message")
+							return
+						}
 					default:
 						bts, err = msgp.Skip(bts)
 						if err != nil {
@@ -1254,24 +1255,6 @@ func (z *AuthenticatorOOBConfiguration) UnmarshalMsg(bts []byte) (o []byte, err 
 						}
 					}
 				}
-			}
-		case "sender":
-			z.Sender, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Sender")
-				return
-			}
-		case "subject":
-			z.Subject, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Subject")
-				return
-			}
-		case "reply_to":
-			z.ReplyTo, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "ReplyTo")
-				return
 			}
 		default:
 			bts, err = msgp.Skip(bts)
@@ -1297,6 +1280,7 @@ func (z *AuthenticatorOOBConfiguration) Msgsize() (s int) {
 		} else {
 			s += msgp.IntSize
 		}
+		s += 8 + z.SMS.Message.Msgsize()
 	}
 	s += 6
 	if z.Email == nil {
@@ -1308,8 +1292,8 @@ func (z *AuthenticatorOOBConfiguration) Msgsize() (s int) {
 		} else {
 			s += msgp.IntSize
 		}
+		s += 8 + z.Email.Message.Msgsize()
 	}
-	s += 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 9 + msgp.StringPrefixSize + len(z.ReplyTo)
 	return
 }
 
@@ -1349,6 +1333,12 @@ func (z *AuthenticatorOOBEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err err
 					return
 				}
 			}
+		case "message":
+			err = z.Message.DecodeMsg(dc)
+			if err != nil {
+				err = msgp.WrapError(err, "Message")
+				return
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -1362,9 +1352,9 @@ func (z *AuthenticatorOOBEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err err
 
 // EncodeMsg implements msgp.Encodable
 func (z *AuthenticatorOOBEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 1
+	// map header, size 2
 	// write "maximum"
-	err = en.Append(0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
+	err = en.Append(0x82, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
 	if err != nil {
 		return
 	}
@@ -1380,19 +1370,36 @@ func (z *AuthenticatorOOBEmailConfiguration) EncodeMsg(en *msgp.Writer) (err err
 			return
 		}
 	}
+	// write "message"
+	err = en.Append(0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	if err != nil {
+		return
+	}
+	err = z.Message.EncodeMsg(en)
+	if err != nil {
+		err = msgp.WrapError(err, "Message")
+		return
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *AuthenticatorOOBEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 1
+	// map header, size 2
 	// string "maximum"
-	o = append(o, 0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
+	o = append(o, 0x82, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
 	if z.Maximum == nil {
 		o = msgp.AppendNil(o)
 	} else {
 		o = msgp.AppendInt(o, *z.Maximum)
+	}
+	// string "message"
+	o = append(o, 0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	o, err = z.Message.MarshalMsg(o)
+	if err != nil {
+		err = msgp.WrapError(err, "Message")
+		return
 	}
 	return
 }
@@ -1432,6 +1439,12 @@ func (z *AuthenticatorOOBEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte,
 					return
 				}
 			}
+		case "message":
+			bts, err = z.Message.UnmarshalMsg(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Message")
+				return
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -1452,6 +1465,7 @@ func (z *AuthenticatorOOBEmailConfiguration) Msgsize() (s int) {
 	} else {
 		s += msgp.IntSize
 	}
+	s += 8 + z.Message.Msgsize()
 	return
 }
 
@@ -1491,6 +1505,12 @@ func (z *AuthenticatorOOBSMSConfiguration) DecodeMsg(dc *msgp.Reader) (err error
 					return
 				}
 			}
+		case "message":
+			err = z.Message.DecodeMsg(dc)
+			if err != nil {
+				err = msgp.WrapError(err, "Message")
+				return
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -1504,9 +1524,9 @@ func (z *AuthenticatorOOBSMSConfiguration) DecodeMsg(dc *msgp.Reader) (err error
 
 // EncodeMsg implements msgp.Encodable
 func (z *AuthenticatorOOBSMSConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 1
+	// map header, size 2
 	// write "maximum"
-	err = en.Append(0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
+	err = en.Append(0x82, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
 	if err != nil {
 		return
 	}
@@ -1522,19 +1542,36 @@ func (z *AuthenticatorOOBSMSConfiguration) EncodeMsg(en *msgp.Writer) (err error
 			return
 		}
 	}
+	// write "message"
+	err = en.Append(0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	if err != nil {
+		return
+	}
+	err = z.Message.EncodeMsg(en)
+	if err != nil {
+		err = msgp.WrapError(err, "Message")
+		return
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *AuthenticatorOOBSMSConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 1
+	// map header, size 2
 	// string "maximum"
-	o = append(o, 0x81, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
+	o = append(o, 0x82, 0xa7, 0x6d, 0x61, 0x78, 0x69, 0x6d, 0x75, 0x6d)
 	if z.Maximum == nil {
 		o = msgp.AppendNil(o)
 	} else {
 		o = msgp.AppendInt(o, *z.Maximum)
+	}
+	// string "message"
+	o = append(o, 0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	o, err = z.Message.MarshalMsg(o)
+	if err != nil {
+		err = msgp.WrapError(err, "Message")
+		return
 	}
 	return
 }
@@ -1574,6 +1611,12 @@ func (z *AuthenticatorOOBSMSConfiguration) UnmarshalMsg(bts []byte) (o []byte, e
 					return
 				}
 			}
+		case "message":
+			bts, err = z.Message.UnmarshalMsg(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Message")
+				return
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -1594,6 +1637,7 @@ func (z *AuthenticatorOOBSMSConfiguration) Msgsize() (s int) {
 	} else {
 		s += msgp.IntSize
 	}
+	s += 8 + z.Message.Msgsize()
 	return
 }
 

@@ -394,11 +394,12 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 
 	// Set default AuthenticatorOOBConfiguration
-	if c.AppConfig.Authenticator.OOB.Sender == "" {
-		c.AppConfig.Authenticator.OOB.Sender = "no-reply@skygear.io"
-	}
-	if c.AppConfig.Authenticator.OOB.Subject == "" {
-		c.AppConfig.Authenticator.OOB.Subject = "Two Factor Auth Verification instruction"
+	emailMsg := &c.AppConfig.Authenticator.OOB.Email.Message
+	if emailMsg.Subject() == "" {
+		if *emailMsg == nil {
+			*emailMsg = EmailMessageConfiguration{}
+		}
+		(*emailMsg).SetSubject("Two Factor Auth Verification instruction")
 	}
 
 	// Set default user verification settings
@@ -412,11 +413,11 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		if config.Expiry == 0 {
 			config.Expiry = 3600 // 1 hour
 		}
-		if config.Sender == "" {
-			config.Sender = "no-reply@skygear.io"
-		}
-		if config.Subject == "" {
-			config.Subject = "Verification instruction"
+		if config.EmailMessage.Subject() == "" {
+			if config.EmailMessage == nil {
+				config.EmailMessage = EmailMessageConfiguration{}
+			}
+			config.EmailMessage.SetSubject("Verification instruction")
 		}
 		c.AppConfig.UserVerification.LoginIDKeys[i] = config
 	}
@@ -425,19 +426,21 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.AppConfig.WelcomeEmail.Destination == "" {
 		c.AppConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
 	}
-	if c.AppConfig.WelcomeEmail.Sender == "" {
-		c.AppConfig.WelcomeEmail.Sender = "no-reply@skygear.io"
-	}
-	if c.AppConfig.WelcomeEmail.Subject == "" {
-		c.AppConfig.WelcomeEmail.Subject = "Welcome!"
+	emailMsg = &c.AppConfig.WelcomeEmail.Message
+	if emailMsg.Subject() == "" {
+		if *emailMsg == nil {
+			*emailMsg = EmailMessageConfiguration{}
+		}
+		(*emailMsg).SetSubject("Welcome!")
 	}
 
 	// Set default ForgotPasswordConfiguration
-	if c.AppConfig.ForgotPassword.Sender == "" {
-		c.AppConfig.ForgotPassword.Sender = "no-reply@skygear.io"
-	}
-	if c.AppConfig.ForgotPassword.Subject == "" {
-		c.AppConfig.ForgotPassword.Subject = "Reset password instruction"
+	emailMsg = &c.AppConfig.ForgotPassword.EmailMessage
+	if emailMsg.Subject() == "" {
+		if *emailMsg == nil {
+			*emailMsg = EmailMessageConfiguration{}
+		}
+		(*emailMsg).SetSubject("Reset password instruction")
 	}
 	if c.AppConfig.ForgotPassword.ResetURLLifetime == 0 {
 		c.AppConfig.ForgotPassword.ResetURLLifetime = 43200
@@ -449,6 +452,15 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 	if c.AppConfig.SMTP.Port == 0 {
 		c.AppConfig.SMTP.Port = 25
+	}
+
+	// Set default MessagesConfiguration
+	emailMsg = &c.AppConfig.Messages.Email
+	if emailMsg.Sender() == "" {
+		if *emailMsg == nil {
+			*emailMsg = EmailMessageConfiguration{}
+		}
+		(*emailMsg).SetSender("no-reply@skygear.io")
 	}
 
 	// Set type to id
@@ -540,6 +552,7 @@ type AppConfiguration struct {
 	Identity         *IdentityConfiguration         `json:"identity,omitempty" yaml:"identity" msg:"identity" default_zero_value:"true"`
 	UserVerification *UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification" default_zero_value:"true"`
 	Hook             *HookAppConfiguration          `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
+	Messages         *MessagesConfiguration         `json:"messages,omitempty" yaml:"messages" msg:"messages" default_zero_value:"true"`
 	SMTP             *SMTPConfiguration             `json:"smtp,omitempty" yaml:"smtp" msg:"smtp" default_zero_value:"true"`
 	Twilio           *TwilioConfiguration           `json:"twilio,omitempty" yaml:"twilio" msg:"twilio" default_zero_value:"true"`
 	Nexmo            *NexmoConfiguration            `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo" default_zero_value:"true"`
@@ -671,13 +684,11 @@ type OIDCSigningKeyConfiguration struct {
 }
 
 type ForgotPasswordConfiguration struct {
-	SecureMatch      bool   `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
-	Sender           string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	Subject          string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	ReplyTo          string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-	ResetURLLifetime int    `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
-	SuccessRedirect  string `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
-	ErrorRedirect    string `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
+	SecureMatch      bool                      `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
+	EmailMessage     EmailMessageConfiguration `json:"email_message" yaml:"email_message" msg:"email_message"`
+	ResetURLLifetime int                       `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
+	SuccessRedirect  string                    `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
+	ErrorRedirect    string                    `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
 }
 
 type WelcomeEmailDestination string
@@ -692,11 +703,9 @@ func (destination WelcomeEmailDestination) IsValid() bool {
 }
 
 type WelcomeEmailConfiguration struct {
-	Enabled     bool                    `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
-	Sender      string                  `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	Subject     string                  `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	ReplyTo     string                  `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-	Destination WelcomeEmailDestination `json:"destination,omitempty" yaml:"destination" msg:"destination"`
+	Enabled     bool                      `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
+	Message     EmailMessageConfiguration `json:"message" yaml:"message" msg:"message"`
+	Destination WelcomeEmailDestination   `json:"destination,omitempty" yaml:"destination" msg:"destination"`
 }
 
 type UserVerificationCriteria string
@@ -731,9 +740,8 @@ type UserVerificationKeyConfiguration struct {
 	Expiry          int64                      `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
 	SuccessRedirect string                     `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
 	ErrorRedirect   string                     `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
-	Subject         string                     `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	Sender          string                     `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	ReplyTo         string                     `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
+	SMSMessage      SMSMessageConfiguration    `json:"sms_message" yaml:"sms_message" msg:"sms_message"`
+	EmailMessage    EmailMessageConfiguration  `json:"email_message" yaml:"email_message" msg:"email_message"`
 }
 
 func (format UserVerificationCodeFormat) IsValid() bool {
@@ -748,14 +756,6 @@ func (c *UserVerificationConfiguration) GetLoginIDKey(key string) (*UserVerifica
 	}
 
 	return nil, false
-}
-
-func (c *UserVerificationKeyConfiguration) MessageHeader() MessageHeader {
-	return MessageHeader{
-		Subject: c.Subject,
-		Sender:  c.Sender,
-		ReplyTo: c.ReplyTo,
-	}
 }
 
 type HookAppConfiguration struct {
@@ -790,7 +790,6 @@ func (c SMTPConfiguration) IsValid() bool {
 type TwilioConfiguration struct {
 	AccountSID string `json:"account_sid,omitempty" yaml:"account_sid" msg:"account_sid" envconfig:"ACCOUNT_SID"`
 	AuthToken  string `json:"auth_token,omitempty" yaml:"auth_token" msg:"auth_token" envconfig:"AUTH_TOKEN"`
-	From       string `json:"from,omitempty" yaml:"from" msg:"from" envconfig:"FROM"`
 }
 
 func (c TwilioConfiguration) IsValid() bool {
@@ -800,7 +799,6 @@ func (c TwilioConfiguration) IsValid() bool {
 type NexmoConfiguration struct {
 	APIKey    string `json:"api_key,omitempty" yaml:"api_key" msg:"api_key" envconfig:"API_KEY"`
 	APISecret string `json:"api_secret,omitempty" yaml:"api_secret" msg:"api_secret" envconfig:"API_SECRET"`
-	From      string `json:"from,omitempty" yaml:"from" msg:"from" envconfig:"FROM"`
 }
 
 func (c NexmoConfiguration) IsValid() bool {

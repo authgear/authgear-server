@@ -9,7 +9,6 @@ import (
 var ErrMissingNexmoConfiguration = errors.New("nexmo: configuration is missing")
 
 type NexmoClient struct {
-	From        string
 	NexmoClient *nexmo.Client
 }
 
@@ -19,18 +18,17 @@ func NewNexmoClient(c *config.NexmoConfiguration) *NexmoClient {
 		nexmoClient, _ = nexmo.NewClient(c.APIKey, c.APISecret)
 	}
 	return &NexmoClient{
-		From:        c.From,
 		NexmoClient: nexmoClient,
 	}
 }
 
-func (n *NexmoClient) Send(to string, body string) error {
+func (n *NexmoClient) Send(from string, to string, body string) error {
 	if n.NexmoClient == nil {
 		return ErrMissingNexmoConfiguration
 	}
 
 	message := nexmo.SMSMessage{
-		From:  n.From,
+		From:  from,
 		To:    to,
 		Type:  nexmo.Text,
 		Text:  body,

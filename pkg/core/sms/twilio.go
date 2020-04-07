@@ -9,7 +9,6 @@ import (
 var ErrMissingTwilioConfiguration = errors.New("twilio: configuration is missing")
 
 type TwilioClient struct {
-	From         string
 	TwilioClient *gotwilio.Twilio
 }
 
@@ -20,16 +19,15 @@ func NewTwilioClient(c *config.TwilioConfiguration) *TwilioClient {
 	}
 
 	return &TwilioClient{
-		From:         c.From,
 		TwilioClient: twilioClient,
 	}
 }
 
-func (t *TwilioClient) Send(to string, body string) error {
+func (t *TwilioClient) Send(from string, to string, body string) error {
 	if t.TwilioClient == nil {
 		return ErrMissingTwilioConfiguration
 	}
-	_, exception, err := t.TwilioClient.SendSMS(t.From, to, body, "", "")
+	_, exception, err := t.TwilioClient.SendSMS(from, to, body, "", "")
 	if err != nil {
 		return errors.Newf("twilio: %w", err)
 	}

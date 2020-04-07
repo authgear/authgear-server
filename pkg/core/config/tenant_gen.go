@@ -370,6 +370,24 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
+		case "messages":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "Messages")
+					return
+				}
+				z.Messages = nil
+			} else {
+				if z.Messages == nil {
+					z.Messages = new(MessagesConfiguration)
+				}
+				err = z.Messages.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "Messages")
+					return
+				}
+			}
 		case "smtp":
 			if dc.IsNil() {
 				err = dc.ReadNil()
@@ -426,12 +444,6 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 							err = msgp.WrapError(err, "Twilio", "AuthToken")
 							return
 						}
-					case "from":
-						z.Twilio.From, err = dc.ReadString()
-						if err != nil {
-							err = msgp.WrapError(err, "Twilio", "From")
-							return
-						}
 					default:
 						err = dc.Skip()
 						if err != nil {
@@ -477,12 +489,6 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 						z.Nexmo.APISecret, err = dc.ReadString()
 						if err != nil {
 							err = msgp.WrapError(err, "Nexmo", "APISecret")
-							return
-						}
-					case "from":
-						z.Nexmo.From, err = dc.ReadString()
-						if err != nil {
-							err = msgp.WrapError(err, "Nexmo", "From")
 							return
 						}
 					default:
@@ -548,9 +554,9 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 20
+	// map header, size 21
 	// write "api_version"
-	err = en.Append(0xde, 0x0, 0x14, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0xde, 0x0, 0x15, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
@@ -830,6 +836,23 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	}
+	// write "messages"
+	err = en.Append(0xa8, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73)
+	if err != nil {
+		return
+	}
+	if z.Messages == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.Messages.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "Messages")
+			return
+		}
+	}
 	// write "smtp"
 	err = en.Append(0xa4, 0x73, 0x6d, 0x74, 0x70)
 	if err != nil {
@@ -858,9 +881,9 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	} else {
-		// map header, size 3
+		// map header, size 2
 		// write "account_sid"
-		err = en.Append(0x83, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
+		err = en.Append(0x82, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
 		if err != nil {
 			return
 		}
@@ -879,16 +902,6 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			err = msgp.WrapError(err, "Twilio", "AuthToken")
 			return
 		}
-		// write "from"
-		err = en.Append(0xa4, 0x66, 0x72, 0x6f, 0x6d)
-		if err != nil {
-			return
-		}
-		err = en.WriteString(z.Twilio.From)
-		if err != nil {
-			err = msgp.WrapError(err, "Twilio", "From")
-			return
-		}
 	}
 	// write "nexmo"
 	err = en.Append(0xa5, 0x6e, 0x65, 0x78, 0x6d, 0x6f)
@@ -901,9 +914,9 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	} else {
-		// map header, size 3
+		// map header, size 2
 		// write "api_key"
-		err = en.Append(0x83, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
+		err = en.Append(0x82, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
 		if err != nil {
 			return
 		}
@@ -920,16 +933,6 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = en.WriteString(z.Nexmo.APISecret)
 		if err != nil {
 			err = msgp.WrapError(err, "Nexmo", "APISecret")
-			return
-		}
-		// write "from"
-		err = en.Append(0xa4, 0x66, 0x72, 0x6f, 0x6d)
-		if err != nil {
-			return
-		}
-		err = en.WriteString(z.Nexmo.From)
-		if err != nil {
-			err = msgp.WrapError(err, "Nexmo", "From")
 			return
 		}
 	}
@@ -962,9 +965,9 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 20
+	// map header, size 21
 	// string "api_version"
-	o = append(o, 0xde, 0x0, 0x14, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0xde, 0x0, 0x15, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	o = msgp.AppendString(o, z.APIVersion)
 	// string "display_app_name"
 	o = append(o, 0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
@@ -1115,6 +1118,17 @@ func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		o = append(o, 0x81, 0xa6, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 		o = msgp.AppendString(o, z.Hook.Secret)
 	}
+	// string "messages"
+	o = append(o, 0xa8, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73)
+	if z.Messages == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.Messages.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "Messages")
+			return
+		}
+	}
 	// string "smtp"
 	o = append(o, 0xa4, 0x73, 0x6d, 0x74, 0x70)
 	if z.SMTP == nil {
@@ -1131,32 +1145,26 @@ func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	if z.Twilio == nil {
 		o = msgp.AppendNil(o)
 	} else {
-		// map header, size 3
+		// map header, size 2
 		// string "account_sid"
-		o = append(o, 0x83, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
+		o = append(o, 0x82, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
 		o = msgp.AppendString(o, z.Twilio.AccountSID)
 		// string "auth_token"
 		o = append(o, 0xaa, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
 		o = msgp.AppendString(o, z.Twilio.AuthToken)
-		// string "from"
-		o = append(o, 0xa4, 0x66, 0x72, 0x6f, 0x6d)
-		o = msgp.AppendString(o, z.Twilio.From)
 	}
 	// string "nexmo"
 	o = append(o, 0xa5, 0x6e, 0x65, 0x78, 0x6d, 0x6f)
 	if z.Nexmo == nil {
 		o = msgp.AppendNil(o)
 	} else {
-		// map header, size 3
+		// map header, size 2
 		// string "api_key"
-		o = append(o, 0x83, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
+		o = append(o, 0x82, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
 		o = msgp.AppendString(o, z.Nexmo.APIKey)
 		// string "api_secret"
 		o = append(o, 0xaa, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 		o = msgp.AppendString(o, z.Nexmo.APISecret)
-		// string "from"
-		o = append(o, 0xa4, 0x66, 0x72, 0x6f, 0x6d)
-		o = msgp.AppendString(o, z.Nexmo.From)
 	}
 	// string "asset"
 	o = append(o, 0xa5, 0x61, 0x73, 0x73, 0x65, 0x74)
@@ -1523,6 +1531,23 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 				}
 			}
+		case "messages":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Messages = nil
+			} else {
+				if z.Messages == nil {
+					z.Messages = new(MessagesConfiguration)
+				}
+				bts, err = z.Messages.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Messages")
+					return
+				}
+			}
 		case "smtp":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
@@ -1577,12 +1602,6 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 							err = msgp.WrapError(err, "Twilio", "AuthToken")
 							return
 						}
-					case "from":
-						z.Twilio.From, bts, err = msgp.ReadStringBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Twilio", "From")
-							return
-						}
 					default:
 						bts, err = msgp.Skip(bts)
 						if err != nil {
@@ -1627,12 +1646,6 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 						z.Nexmo.APISecret, bts, err = msgp.ReadStringBytes(bts)
 						if err != nil {
 							err = msgp.WrapError(err, "Nexmo", "APISecret")
-							return
-						}
-					case "from":
-						z.Nexmo.From, bts, err = msgp.ReadStringBytes(bts)
-						if err != nil {
-							err = msgp.WrapError(err, "Nexmo", "From")
 							return
 						}
 					default:
@@ -1780,6 +1793,12 @@ func (z *AppConfiguration) Msgsize() (s int) {
 	} else {
 		s += 1 + 7 + msgp.StringPrefixSize + len(z.Hook.Secret)
 	}
+	s += 9
+	if z.Messages == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.Messages.Msgsize()
+	}
 	s += 5
 	if z.SMTP == nil {
 		s += msgp.NilSize
@@ -1790,13 +1809,13 @@ func (z *AppConfiguration) Msgsize() (s int) {
 	if z.Twilio == nil {
 		s += msgp.NilSize
 	} else {
-		s += 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From)
+		s += 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken)
 	}
 	s += 6
 	if z.Nexmo == nil {
 		s += msgp.NilSize
 	} else {
-		s += 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 11 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From)
+		s += 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 11 + msgp.StringPrefixSize + len(z.Nexmo.APISecret)
 	}
 	s += 6
 	if z.Asset == nil {
@@ -2520,22 +2539,10 @@ func (z *ForgotPasswordConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "SecureMatch")
 				return
 			}
-		case "sender":
-			z.Sender, err = dc.ReadString()
+		case "email_message":
+			err = z.EmailMessage.DecodeMsg(dc)
 			if err != nil {
-				err = msgp.WrapError(err, "Sender")
-				return
-			}
-		case "subject":
-			z.Subject, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "Subject")
-				return
-			}
-		case "reply_to":
-			z.ReplyTo, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "ReplyTo")
+				err = msgp.WrapError(err, "EmailMessage")
 				return
 			}
 		case "reset_url_lifetime":
@@ -2569,9 +2576,9 @@ func (z *ForgotPasswordConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *ForgotPasswordConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 7
+	// map header, size 5
 	// write "secure_match"
-	err = en.Append(0x87, 0xac, 0x73, 0x65, 0x63, 0x75, 0x72, 0x65, 0x5f, 0x6d, 0x61, 0x74, 0x63, 0x68)
+	err = en.Append(0x85, 0xac, 0x73, 0x65, 0x63, 0x75, 0x72, 0x65, 0x5f, 0x6d, 0x61, 0x74, 0x63, 0x68)
 	if err != nil {
 		return
 	}
@@ -2580,34 +2587,14 @@ func (z *ForgotPasswordConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "SecureMatch")
 		return
 	}
-	// write "sender"
-	err = en.Append(0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
+	// write "email_message"
+	err = en.Append(0xad, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.Sender)
+	err = z.EmailMessage.EncodeMsg(en)
 	if err != nil {
-		err = msgp.WrapError(err, "Sender")
-		return
-	}
-	// write "subject"
-	err = en.Append(0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Subject)
-	if err != nil {
-		err = msgp.WrapError(err, "Subject")
-		return
-	}
-	// write "reply_to"
-	err = en.Append(0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.ReplyTo)
-	if err != nil {
-		err = msgp.WrapError(err, "ReplyTo")
+		err = msgp.WrapError(err, "EmailMessage")
 		return
 	}
 	// write "reset_url_lifetime"
@@ -2646,19 +2633,17 @@ func (z *ForgotPasswordConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *ForgotPasswordConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 7
+	// map header, size 5
 	// string "secure_match"
-	o = append(o, 0x87, 0xac, 0x73, 0x65, 0x63, 0x75, 0x72, 0x65, 0x5f, 0x6d, 0x61, 0x74, 0x63, 0x68)
+	o = append(o, 0x85, 0xac, 0x73, 0x65, 0x63, 0x75, 0x72, 0x65, 0x5f, 0x6d, 0x61, 0x74, 0x63, 0x68)
 	o = msgp.AppendBool(o, z.SecureMatch)
-	// string "sender"
-	o = append(o, 0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
-	o = msgp.AppendString(o, z.Sender)
-	// string "subject"
-	o = append(o, 0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
-	o = msgp.AppendString(o, z.Subject)
-	// string "reply_to"
-	o = append(o, 0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
-	o = msgp.AppendString(o, z.ReplyTo)
+	// string "email_message"
+	o = append(o, 0xad, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	o, err = z.EmailMessage.MarshalMsg(o)
+	if err != nil {
+		err = msgp.WrapError(err, "EmailMessage")
+		return
+	}
 	// string "reset_url_lifetime"
 	o = append(o, 0xb2, 0x72, 0x65, 0x73, 0x65, 0x74, 0x5f, 0x75, 0x72, 0x6c, 0x5f, 0x6c, 0x69, 0x66, 0x65, 0x74, 0x69, 0x6d, 0x65)
 	o = msgp.AppendInt(o, z.ResetURLLifetime)
@@ -2695,22 +2680,10 @@ func (z *ForgotPasswordConfiguration) UnmarshalMsg(bts []byte) (o []byte, err er
 				err = msgp.WrapError(err, "SecureMatch")
 				return
 			}
-		case "sender":
-			z.Sender, bts, err = msgp.ReadStringBytes(bts)
+		case "email_message":
+			bts, err = z.EmailMessage.UnmarshalMsg(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "Sender")
-				return
-			}
-		case "subject":
-			z.Subject, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Subject")
-				return
-			}
-		case "reply_to":
-			z.ReplyTo, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "ReplyTo")
+				err = msgp.WrapError(err, "EmailMessage")
 				return
 			}
 		case "reset_url_lifetime":
@@ -2745,7 +2718,7 @@ func (z *ForgotPasswordConfiguration) UnmarshalMsg(bts []byte) (o []byte, err er
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *ForgotPasswordConfiguration) Msgsize() (s int) {
-	s = 1 + 13 + msgp.BoolSize + 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 9 + msgp.StringPrefixSize + len(z.ReplyTo) + 19 + msgp.IntSize + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect)
+	s = 1 + 13 + msgp.BoolSize + 14 + z.EmailMessage.Msgsize() + 19 + msgp.IntSize + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect)
 	return
 }
 
@@ -3138,12 +3111,6 @@ func (z *NexmoConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "APISecret")
 				return
 			}
-		case "from":
-			z.From, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "From")
-				return
-			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -3157,9 +3124,9 @@ func (z *NexmoConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z NexmoConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 3
+	// map header, size 2
 	// write "api_key"
-	err = en.Append(0x83, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
+	err = en.Append(0x82, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
 	if err != nil {
 		return
 	}
@@ -3178,32 +3145,19 @@ func (z NexmoConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "APISecret")
 		return
 	}
-	// write "from"
-	err = en.Append(0xa4, 0x66, 0x72, 0x6f, 0x6d)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.From)
-	if err != nil {
-		err = msgp.WrapError(err, "From")
-		return
-	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z NexmoConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 3
+	// map header, size 2
 	// string "api_key"
-	o = append(o, 0x83, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
+	o = append(o, 0x82, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
 	o = msgp.AppendString(o, z.APIKey)
 	// string "api_secret"
 	o = append(o, 0xaa, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 	o = msgp.AppendString(o, z.APISecret)
-	// string "from"
-	o = append(o, 0xa4, 0x66, 0x72, 0x6f, 0x6d)
-	o = msgp.AppendString(o, z.From)
 	return
 }
 
@@ -3237,12 +3191,6 @@ func (z *NexmoConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "APISecret")
 				return
 			}
-		case "from":
-			z.From, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "From")
-				return
-			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -3257,7 +3205,7 @@ func (z *NexmoConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z NexmoConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.APISecret) + 5 + msgp.StringPrefixSize + len(z.From)
+	s = 1 + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.APISecret)
 	return
 }
 
@@ -5372,12 +5320,6 @@ func (z *TwilioConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "AuthToken")
 				return
 			}
-		case "from":
-			z.From, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "From")
-				return
-			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -5391,9 +5333,9 @@ func (z *TwilioConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z TwilioConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 3
+	// map header, size 2
 	// write "account_sid"
-	err = en.Append(0x83, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
+	err = en.Append(0x82, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
 	if err != nil {
 		return
 	}
@@ -5412,32 +5354,19 @@ func (z TwilioConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "AuthToken")
 		return
 	}
-	// write "from"
-	err = en.Append(0xa4, 0x66, 0x72, 0x6f, 0x6d)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.From)
-	if err != nil {
-		err = msgp.WrapError(err, "From")
-		return
-	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z TwilioConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 3
+	// map header, size 2
 	// string "account_sid"
-	o = append(o, 0x83, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
+	o = append(o, 0x82, 0xab, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x73, 0x69, 0x64)
 	o = msgp.AppendString(o, z.AccountSID)
 	// string "auth_token"
 	o = append(o, 0xaa, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e)
 	o = msgp.AppendString(o, z.AuthToken)
-	// string "from"
-	o = append(o, 0xa4, 0x66, 0x72, 0x6f, 0x6d)
-	o = msgp.AppendString(o, z.From)
 	return
 }
 
@@ -5471,12 +5400,6 @@ func (z *TwilioConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "AuthToken")
 				return
 			}
-		case "from":
-			z.From, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "From")
-				return
-			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -5491,7 +5414,7 @@ func (z *TwilioConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z TwilioConfiguration) Msgsize() (s int) {
-	s = 1 + 12 + msgp.StringPrefixSize + len(z.AccountSID) + 11 + msgp.StringPrefixSize + len(z.AuthToken) + 5 + msgp.StringPrefixSize + len(z.From)
+	s = 1 + 12 + msgp.StringPrefixSize + len(z.AccountSID) + 11 + msgp.StringPrefixSize + len(z.AuthToken)
 	return
 }
 
@@ -5855,22 +5778,16 @@ func (z *UserVerificationKeyConfiguration) DecodeMsg(dc *msgp.Reader) (err error
 				err = msgp.WrapError(err, "ErrorRedirect")
 				return
 			}
-		case "subject":
-			z.Subject, err = dc.ReadString()
+		case "sms_message":
+			err = z.SMSMessage.DecodeMsg(dc)
 			if err != nil {
-				err = msgp.WrapError(err, "Subject")
+				err = msgp.WrapError(err, "SMSMessage")
 				return
 			}
-		case "sender":
-			z.Sender, err = dc.ReadString()
+		case "email_message":
+			err = z.EmailMessage.DecodeMsg(dc)
 			if err != nil {
-				err = msgp.WrapError(err, "Sender")
-				return
-			}
-		case "reply_to":
-			z.ReplyTo, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "ReplyTo")
+				err = msgp.WrapError(err, "EmailMessage")
 				return
 			}
 		default:
@@ -5886,9 +5803,9 @@ func (z *UserVerificationKeyConfiguration) DecodeMsg(dc *msgp.Reader) (err error
 
 // EncodeMsg implements msgp.Encodable
 func (z *UserVerificationKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 8
+	// map header, size 7
 	// write "key"
-	err = en.Append(0x88, 0xa3, 0x6b, 0x65, 0x79)
+	err = en.Append(0x87, 0xa3, 0x6b, 0x65, 0x79)
 	if err != nil {
 		return
 	}
@@ -5937,34 +5854,24 @@ func (z *UserVerificationKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error
 		err = msgp.WrapError(err, "ErrorRedirect")
 		return
 	}
-	// write "subject"
-	err = en.Append(0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
+	// write "sms_message"
+	err = en.Append(0xab, 0x73, 0x6d, 0x73, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.Subject)
+	err = z.SMSMessage.EncodeMsg(en)
 	if err != nil {
-		err = msgp.WrapError(err, "Subject")
+		err = msgp.WrapError(err, "SMSMessage")
 		return
 	}
-	// write "sender"
-	err = en.Append(0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Sender)
-	if err != nil {
-		err = msgp.WrapError(err, "Sender")
-		return
-	}
-	// write "reply_to"
-	err = en.Append(0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
+	// write "email_message"
+	err = en.Append(0xad, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.ReplyTo)
+	err = z.EmailMessage.EncodeMsg(en)
 	if err != nil {
-		err = msgp.WrapError(err, "ReplyTo")
+		err = msgp.WrapError(err, "EmailMessage")
 		return
 	}
 	return
@@ -5973,9 +5880,9 @@ func (z *UserVerificationKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error
 // MarshalMsg implements msgp.Marshaler
 func (z *UserVerificationKeyConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 8
+	// map header, size 7
 	// string "key"
-	o = append(o, 0x88, 0xa3, 0x6b, 0x65, 0x79)
+	o = append(o, 0x87, 0xa3, 0x6b, 0x65, 0x79)
 	o = msgp.AppendString(o, z.Key)
 	// string "code_format"
 	o = append(o, 0xab, 0x63, 0x6f, 0x64, 0x65, 0x5f, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74)
@@ -5989,15 +5896,20 @@ func (z *UserVerificationKeyConfiguration) MarshalMsg(b []byte) (o []byte, err e
 	// string "error_redirect"
 	o = append(o, 0xae, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x5f, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74)
 	o = msgp.AppendString(o, z.ErrorRedirect)
-	// string "subject"
-	o = append(o, 0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
-	o = msgp.AppendString(o, z.Subject)
-	// string "sender"
-	o = append(o, 0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
-	o = msgp.AppendString(o, z.Sender)
-	// string "reply_to"
-	o = append(o, 0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
-	o = msgp.AppendString(o, z.ReplyTo)
+	// string "sms_message"
+	o = append(o, 0xab, 0x73, 0x6d, 0x73, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	o, err = z.SMSMessage.MarshalMsg(o)
+	if err != nil {
+		err = msgp.WrapError(err, "SMSMessage")
+		return
+	}
+	// string "email_message"
+	o = append(o, 0xad, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	o, err = z.EmailMessage.MarshalMsg(o)
+	if err != nil {
+		err = msgp.WrapError(err, "EmailMessage")
+		return
+	}
 	return
 }
 
@@ -6053,22 +5965,16 @@ func (z *UserVerificationKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, e
 				err = msgp.WrapError(err, "ErrorRedirect")
 				return
 			}
-		case "subject":
-			z.Subject, bts, err = msgp.ReadStringBytes(bts)
+		case "sms_message":
+			bts, err = z.SMSMessage.UnmarshalMsg(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "Subject")
+				err = msgp.WrapError(err, "SMSMessage")
 				return
 			}
-		case "sender":
-			z.Sender, bts, err = msgp.ReadStringBytes(bts)
+		case "email_message":
+			bts, err = z.EmailMessage.UnmarshalMsg(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "Sender")
-				return
-			}
-		case "reply_to":
-			z.ReplyTo, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "ReplyTo")
+				err = msgp.WrapError(err, "EmailMessage")
 				return
 			}
 		default:
@@ -6085,7 +5991,7 @@ func (z *UserVerificationKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, e
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserVerificationKeyConfiguration) Msgsize() (s int) {
-	s = 1 + 4 + msgp.StringPrefixSize + len(z.Key) + 12 + msgp.StringPrefixSize + len(string(z.CodeFormat)) + 7 + msgp.Int64Size + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 8 + msgp.StringPrefixSize + len(z.Subject) + 7 + msgp.StringPrefixSize + len(z.Sender) + 9 + msgp.StringPrefixSize + len(z.ReplyTo)
+	s = 1 + 4 + msgp.StringPrefixSize + len(z.Key) + 12 + msgp.StringPrefixSize + len(string(z.CodeFormat)) + 7 + msgp.Int64Size + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 12 + z.SMSMessage.Msgsize() + 14 + z.EmailMessage.Msgsize()
 	return
 }
 
@@ -6113,22 +6019,10 @@ func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "Enabled")
 				return
 			}
-		case "sender":
-			z.Sender, err = dc.ReadString()
+		case "message":
+			err = z.Message.DecodeMsg(dc)
 			if err != nil {
-				err = msgp.WrapError(err, "Sender")
-				return
-			}
-		case "subject":
-			z.Subject, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "Subject")
-				return
-			}
-		case "reply_to":
-			z.ReplyTo, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "ReplyTo")
+				err = msgp.WrapError(err, "Message")
 				return
 			}
 		case "destination":
@@ -6154,9 +6048,9 @@ func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *WelcomeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 5
+	// map header, size 3
 	// write "enabled"
-	err = en.Append(0x85, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	err = en.Append(0x83, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	if err != nil {
 		return
 	}
@@ -6165,34 +6059,14 @@ func (z *WelcomeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "Enabled")
 		return
 	}
-	// write "sender"
-	err = en.Append(0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
+	// write "message"
+	err = en.Append(0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.Sender)
+	err = z.Message.EncodeMsg(en)
 	if err != nil {
-		err = msgp.WrapError(err, "Sender")
-		return
-	}
-	// write "subject"
-	err = en.Append(0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Subject)
-	if err != nil {
-		err = msgp.WrapError(err, "Subject")
-		return
-	}
-	// write "reply_to"
-	err = en.Append(0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.ReplyTo)
-	if err != nil {
-		err = msgp.WrapError(err, "ReplyTo")
+		err = msgp.WrapError(err, "Message")
 		return
 	}
 	// write "destination"
@@ -6211,19 +6085,17 @@ func (z *WelcomeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *WelcomeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 5
+	// map header, size 3
 	// string "enabled"
-	o = append(o, 0x85, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	o = append(o, 0x83, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	o = msgp.AppendBool(o, z.Enabled)
-	// string "sender"
-	o = append(o, 0xa6, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72)
-	o = msgp.AppendString(o, z.Sender)
-	// string "subject"
-	o = append(o, 0xa7, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74)
-	o = msgp.AppendString(o, z.Subject)
-	// string "reply_to"
-	o = append(o, 0xa8, 0x72, 0x65, 0x70, 0x6c, 0x79, 0x5f, 0x74, 0x6f)
-	o = msgp.AppendString(o, z.ReplyTo)
+	// string "message"
+	o = append(o, 0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	o, err = z.Message.MarshalMsg(o)
+	if err != nil {
+		err = msgp.WrapError(err, "Message")
+		return
+	}
 	// string "destination"
 	o = append(o, 0xab, 0x64, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e)
 	o = msgp.AppendString(o, string(z.Destination))
@@ -6254,22 +6126,10 @@ func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err erro
 				err = msgp.WrapError(err, "Enabled")
 				return
 			}
-		case "sender":
-			z.Sender, bts, err = msgp.ReadStringBytes(bts)
+		case "message":
+			bts, err = z.Message.UnmarshalMsg(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "Sender")
-				return
-			}
-		case "subject":
-			z.Subject, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Subject")
-				return
-			}
-		case "reply_to":
-			z.ReplyTo, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "ReplyTo")
+				err = msgp.WrapError(err, "Message")
 				return
 			}
 		case "destination":
@@ -6296,7 +6156,7 @@ func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err erro
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *WelcomeEmailConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.BoolSize + 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 9 + msgp.StringPrefixSize + len(z.ReplyTo) + 12 + msgp.StringPrefixSize + len(string(z.Destination))
+	s = 1 + 8 + msgp.BoolSize + 8 + z.Message.Msgsize() + 12 + msgp.StringPrefixSize + len(string(z.Destination))
 	return
 }
 

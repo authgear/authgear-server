@@ -197,14 +197,19 @@ func makeFullTenantConfig() TenantConfiguration {
 					Maximum: newInt(99),
 				},
 				OOB: &AuthenticatorOOBConfiguration{
-					Sender:  `"MFA Sender" <mfaoobsender@example.com>`,
-					Subject: "mfaoobsubject",
-					ReplyTo: `"MFA Reply To" <mfaoobreplyto@example.com>`,
 					SMS: &AuthenticatorOOBSMSConfiguration{
 						Maximum: newInt(99),
+						Message: SMSMessageConfiguration{
+							"sender": "+85212345678",
+						},
 					},
 					Email: &AuthenticatorOOBEmailConfiguration{
 						Maximum: newInt(99),
+						Message: EmailMessageConfiguration{
+							"sender":   `"MFA Sender" <mfaoobsender@example.com>`,
+							"subject":  "mfaoobsubject",
+							"reply_to": `"MFA Reply To" <mfaoobreplyto@example.com>`,
+						},
 					},
 				},
 				BearerToken: &AuthenticatorBearerTokenConfiguration{
@@ -216,19 +221,23 @@ func makeFullTenantConfig() TenantConfiguration {
 				},
 			},
 			ForgotPassword: &ForgotPasswordConfiguration{
-				SecureMatch:      true,
-				Sender:           `"Forgot Password Sender" <myforgotpasswordsender@example.com>`,
-				Subject:          "myforgotpasswordsubject",
-				ReplyTo:          `"Forgot Password Reply To" <myforgotpasswordreplyto@example.com>`,
+				SecureMatch: true,
+				EmailMessage: EmailMessageConfiguration{
+					"sender":   `"Forgot Password Sender" <myforgotpasswordsender@example.com>`,
+					"subject":  "myforgotpasswordsubject",
+					"reply_to": `"Forgot Password Reply To" <myforgotpasswordreplyto@example.com>`,
+				},
 				ResetURLLifetime: 60,
 				SuccessRedirect:  "http://localhost:3000/forgotpassword/success",
 				ErrorRedirect:    "http://localhost:3000/forgotpassword/error",
 			},
 			WelcomeEmail: &WelcomeEmailConfiguration{
-				Enabled:     true,
-				Sender:      `"Welcome Email Sender" <welcomeemailsender@example.com>`,
-				Subject:     "welcomeemailsubject",
-				ReplyTo:     `"Welcome Email Reply To" <welcomeemailreplyto@example.com>`,
+				Enabled: true,
+				Message: EmailMessageConfiguration{
+					"sender":   `"Welcome Email Sender" <welcomeemailsender@example.com>`,
+					"subject":  "welcomeemailsubject",
+					"reply_to": `"Welcome Email Reply To" <welcomeemailreplyto@example.com>`,
+				},
 				Destination: "first",
 			},
 			Identity: &IdentityConfiguration{
@@ -296,14 +305,29 @@ func makeFullTenantConfig() TenantConfiguration {
 						Expiry:          3600,
 						SuccessRedirect: "http://localhost:3000/userverification/success",
 						ErrorRedirect:   "http://localhost:3000/userverification/error",
-						Subject:         "userverificationsubject",
-						Sender:          `"Verify Sender" <userverificationsender@example.com>`,
-						ReplyTo:         `"Verify Reply To" <userverificationreplyto@example.com>`,
+						EmailMessage: EmailMessageConfiguration{
+							"sender":   `"Verify Sender" <userverificationsender@example.com>`,
+							"subject":  "userverificationsubject",
+							"reply_to": `"Verify Reply To" <userverificationreplyto@example.com>`,
+						},
+						SMSMessage: SMSMessageConfiguration{
+							"sender": "+85212345678",
+						},
 					},
 				},
 			},
 			Hook: &HookAppConfiguration{
 				Secret: "hook-secret",
+			},
+			Messages: &MessagesConfiguration{
+				Email: EmailMessageConfiguration{
+					"sender":   `"Default Sender" <defaultsender@example.com>`,
+					"subject":  "subject",
+					"reply_to": `"Default Reply To" <defaultreplyto@example.com>`,
+				},
+				SMS: SMSMessageConfiguration{
+					"sender": "+85212345678",
+				},
 			},
 			SMTP: &SMTPConfiguration{
 				Host:     "localhost",
@@ -315,12 +339,10 @@ func makeFullTenantConfig() TenantConfiguration {
 			Twilio: &TwilioConfiguration{
 				AccountSID: "mytwilioaccountsid",
 				AuthToken:  "mytwilioauthtoken",
-				From:       "mytwilio",
 			},
 			Nexmo: &NexmoConfiguration{
 				APIKey:    "mynexmoapikey",
 				APISecret: "mynexmoapisecret",
-				From:      "mynexmo",
 			},
 		},
 		TemplateItems: []TemplateItem{
@@ -463,7 +485,9 @@ func TestTenantConfig(t *testing.T) {
 			c.AppConfig.UserVerification.LoginIDKeys = append(
 				c.AppConfig.UserVerification.LoginIDKeys,
 				UserVerificationKeyConfiguration{
-					Key: "invalid",
+					Key:          "invalid",
+					SMSMessage:   SMSMessageConfiguration{},
+					EmailMessage: EmailMessageConfiguration{},
 				},
 			)
 

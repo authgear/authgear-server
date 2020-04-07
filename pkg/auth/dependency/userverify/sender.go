@@ -19,7 +19,7 @@ type CodeSender interface {
 type EmailCodeSender struct {
 	AppName        string
 	URLPrefix      *url.URL
-	MessageHeader  config.MessageHeader
+	EmailConfig    config.EmailMessageConfiguration
 	Sender         mail.Sender
 	TemplateEngine *template.Engine
 }
@@ -59,10 +59,10 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 	}
 
 	err = e.Sender.Send(mail.SendOptions{
-		Sender:    e.MessageHeader.Sender,
+		Sender:    e.EmailConfig.Sender(),
 		Recipient: verifyCode.LoginID,
-		Subject:   e.MessageHeader.Subject,
-		ReplyTo:   e.MessageHeader.ReplyTo,
+		Subject:   e.EmailConfig.Subject(),
+		ReplyTo:   e.EmailConfig.ReplyTo(),
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
 	})
@@ -76,6 +76,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 type SMSCodeSender struct {
 	AppName        string
 	URLPrefix      *url.URL
+	SMSConfig      config.SMSMessageConfiguration
 	SMSClient      sms.Client
 	TemplateEngine *template.Engine
 }
@@ -101,7 +102,7 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user model.User) (err error)
 		return
 	}
 
-	err = t.SMSClient.Send(verifyCode.LoginID, textBody)
+	err = t.SMSClient.Send(t.SMSConfig.Sender(), verifyCode.LoginID, textBody)
 	if err != nil {
 		err = errors.Newf("failed to send user verification SMS message: %w", err)
 	}
