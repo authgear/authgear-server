@@ -191,3 +191,90 @@ func TestEngine(t *testing.T) {
 		})
 	})
 }
+
+type mockLoader struct{}
+
+func (l *mockLoader) Load(s string) (string, error) {
+	return s, nil
+}
+
+func TestResolveTranslations(t *testing.T) {
+	const typeA config.TemplateItemType = "typeA"
+	specA := Spec{
+		Type: typeA,
+		Default: `
+		{
+			"key1": "Hello",
+			"key2": "World"
+		}
+		`,
+	}
+
+	Convey("resolveTranslations", t, func() {
+		test := func(items []config.TemplateItem, expected map[string]map[string]string) {
+			e := NewEngine(NewEngineOptions{
+				TemplateItems: items,
+			})
+			e.Register(specA)
+			e.loader = &mockLoader{}
+
+			actual, err := e.resolveTranslations(typeA)
+			So(err, ShouldBeNil)
+			So(actual, ShouldResemble, expected)
+		}
+
+		// No provided translations
+		test([]config.TemplateItem{}, map[string]map[string]string{
+			"key1": map[string]string{
+				"": "Hello",
+			},
+			"key2": map[string]string{
+				"": "World",
+			},
+		})
+
+		test([]config.TemplateItem{
+			config.TemplateItem{
+				Type:        typeA,
+				LanguageTag: "zh",
+				URI: `
+				{
+					"key1": "你好",
+					"key2": "世界"
+				}
+				`,
+			},
+			config.TemplateItem{
+				Type:        typeA,
+				LanguageTag: "ja",
+				URI: `
+				{
+					"key1": "こんにちは",
+					"key2": "世界"
+				}
+				`,
+			},
+			config.TemplateItem{
+				Type:        typeA,
+				LanguageTag: "en",
+				URI: `
+				{
+					"key1": "Hey"
+				}
+				`,
+			},
+		}, map[string]map[string]string{
+			"key1": map[string]string{
+				"":   "Hello",
+				"en": "Hey",
+				"zh": "你好",
+				"ja": "こんにちは",
+			},
+			"key2": map[string]string{
+				"":   "World",
+				"zh": "世界",
+				"ja": "世界",
+			},
+		})
+	})
+}
