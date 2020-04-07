@@ -37,9 +37,13 @@ type NewEngineOptions struct {
 	TemplateItems    []config.TemplateItem
 }
 
+type Loader interface {
+	Load(string) (string, error)
+}
+
 // Engine resolves and renders templates.
 type Engine struct {
-	uriLoader             *URILoader
+	loader                Loader
 	TemplateSpecs         map[config.TemplateItemType]Spec
 	templateItems         []config.TemplateItem
 	preferredLanguageTags []string
@@ -51,7 +55,7 @@ func NewEngine(opts NewEngineOptions) *Engine {
 	uriLoader.EnableFileLoader = opts.EnableFileLoader
 	uriLoader.EnableDataLoader = opts.EnableDataLoader
 	return &Engine{
-		uriLoader:     uriLoader,
+		loader:        uriLoader,
 		templateItems: opts.TemplateItems,
 		TemplateSpecs: map[config.TemplateItemType]Spec{},
 	}
@@ -119,7 +123,7 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options R
 		// No template item can be resolved. Fallback to default.
 		err = nil
 	} else {
-		templateBody, err = e.uriLoader.Load(templateItem.URI)
+		templateBody, err = e.loader.Load(templateItem.URI)
 		if err != nil {
 			return
 		}
@@ -226,7 +230,7 @@ func (e *Engine) resolveTranslations(templateType config.TemplateItemType) (tran
 	// Load all provided translations
 	for _, item := range items {
 		var jsonStr string
-		jsonStr, err = e.uriLoader.Load(item.URI)
+		jsonStr, err = e.loader.Load(item.URI)
 		if err != nil {
 			return
 		}
