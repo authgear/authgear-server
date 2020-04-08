@@ -26,7 +26,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
-var errOauthPrincipalNotFound = skyerr.NotFound.WithReason("OAuthPrincipalNotFound").New("oauth principal not found")
+var errOauthIdentityNotFound = skyerr.NotFound.WithReason("OAuthIdentityNotFound").New("oauth identity not found")
 
 func AttachUnlinkHandler(
 	router *mux.Router,
@@ -119,7 +119,7 @@ func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 		})
 		if err != nil {
 			if errors.Is(err, principal.ErrNotFound) {
-				err = errOauthPrincipalNotFound
+				err = errOauthIdentityNotFound
 			}
 			return err
 		}

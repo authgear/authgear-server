@@ -212,9 +212,9 @@ func TestUnlinkHandler(t *testing.T) {
 			{
 				"error": {
 					"code": 404,
-					"message": "oauth principal not found",
+					"message": "oauth identity not found",
 					"name": "NotFound",
-					"reason": "OAuthPrincipalNotFound"
+					"reason": "OAuthIdentityNotFound"
 				}
 			}
 			`)
