@@ -112,9 +112,10 @@ var defines = []string{
 }
 
 var TemplateAuthUILoginHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUILoginHTML,
-	IsHTML:  true,
-	Defines: defines,
+	Type:        TemplateItemTypeAuthUILoginHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
@@ -204,9 +205,10 @@ var TemplateAuthUILoginHTML = template.Spec{
 }
 
 var TemplateAuthUILoginPasswordHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUILoginPasswordHTML,
-	IsHTML:  true,
-	Defines: defines,
+	Type:        TemplateItemTypeAuthUILoginPasswordHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
@@ -255,9 +257,10 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 }
 
 var TemplateAuthUISignupHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUISignupHTML,
-	IsHTML:  true,
-	Defines: defines,
+	Type:        TemplateItemTypeAuthUISignupHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
@@ -320,9 +323,10 @@ var TemplateAuthUISignupHTML = template.Spec{
 }
 
 var TemplateAuthUISignupPasswordHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUISignupPasswordHTML,
-	IsHTML:  true,
-	Defines: defines,
+	Type:        TemplateItemTypeAuthUISignupPasswordHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
@@ -417,9 +421,10 @@ By providing your phone number, you agree to receive service notifications to yo
 }
 
 var TemplateAuthUISettingsHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUISettingsHTML,
-	IsHTML:  true,
-	Defines: defines,
+	Type:        TemplateItemTypeAuthUISettingsHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
@@ -441,9 +446,10 @@ var TemplateAuthUISettingsHTML = template.Spec{
 }
 
 var TemplateAuthUILogoutHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUILogoutHTML,
-	IsHTML:  true,
-	Defines: defines,
+	Type:        TemplateItemTypeAuthUILogoutHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
