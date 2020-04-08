@@ -44,6 +44,8 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"password-placeholder": "Password",
 	"forgot-password-button-label--enter-password-page": "Forgot Password?",
 	"confirm-password-button-label": "Next",
+	"show-password": "Show Password",
+	"hide-password": "Hide Password",
 	
 	"use-login-id-key": "Use {0} instead",
 	"login-button-hint": "Have an account already? ",

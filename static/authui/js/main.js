@@ -1,27 +1,5 @@
 window.addEventListener("load", function() {
-  function setupPasswordVisibilityButton(el) {
-    if (el == null) {
-      return;
-    }
-    var pwd = document.querySelector("#password");
-    if (pwd == null) {
-      return;
-    }
-    if (pwd.type === "password") {
-      el.classList.remove("hide-password");
-      el.classList.add("show-password");
-      el.textContent = "Show Password";
-    } else if (pwd.type === "text") {
-      el.classList.remove("show-password");
-      el.classList.add("hide-password");
-      el.textContent = "Hide Password";
-    }
-  }
-
-  function togglePasswordVisibility(el) {
-    if (el == null) {
-      return;
-    }
+  function togglePasswordVisibility() {
     var pwd = document.querySelector("#password");
     if (pwd == null) {
       return;
@@ -31,17 +9,34 @@ window.addEventListener("load", function() {
     } else {
       pwd.type = "password";
     }
-    setupPasswordVisibilityButton(el);
+    var els = document.querySelectorAll(".password-visibility-btn");
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (el.classList.contains("show-password")) {
+        if (pwd.type === "text") {
+          el.style.display = "none";
+        } else {
+          el.style.display = "block";
+        }
+      }
+      if (el.classList.contains("hide-password")) {
+        if (pwd.type === "password") {
+          el.style.display = "none";
+        } else {
+          el.style.display = "block";
+        }
+      }
+    }
   }
 
   function attachPasswordVisibilityClick() {
-    var el = document.querySelector(".btn.toggle-password-visibility");
-    if (el != null) {
-      setupPasswordVisibilityButton(el);
+    var els = document.querySelectorAll(".password-visibility-btn");
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
       el.addEventListener("click", function(e) {
         e.preventDefault();
         e.stopPropagation();
-        togglePasswordVisibility(el);
+        togglePasswordVisibility();
       });
     }
   }
