@@ -41,7 +41,12 @@ func getRedirectURI(r *http.Request) (out string, err error) {
 		return
 	}
 
-	u, err := r.URL.Parse(out)
+	out, err = parseRedirectURI(r, out)
+	return
+}
+
+func parseRedirectURI(r *http.Request, redirectURL string) (out string, err error) {
+	u, err := r.URL.Parse(redirectURL)
 	if err != nil {
 		return
 	}

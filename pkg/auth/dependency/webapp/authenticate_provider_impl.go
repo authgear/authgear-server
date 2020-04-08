@@ -317,11 +317,16 @@ func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter,
 }
 
 func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *http.Request, oauthProvider OAuthProvider) (writeResponse func(error), err error) {
+	var callbackURL string
 	writeResponse = func(err error) {
 		if err != nil {
 			panic(err)
 		} else {
-			RedirectToRedirectURI(w, r)
+			redirectURI, err := parseRedirectURI(r, callbackURL)
+			if err != nil {
+				redirectURI = DefaultRedirectURI
+			}
+			http.Redirect(w, r, redirectURI, http.StatusFound)
 		}
 	}
 
@@ -337,7 +342,8 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 	if err != nil {
 		return
 	}
-
+	webappSSOState := SSOState(state.Extra)
+	callbackURL = webappSSOState.CallbackURL()
 	oauthAuthInfo, err := oauthProvider.GetAuthInfo(
 		sso.OAuthAuthorizationResponse{
 			Code:  code,
