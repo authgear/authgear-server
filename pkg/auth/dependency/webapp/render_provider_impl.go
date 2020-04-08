@@ -158,7 +158,9 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		panic(err)
 	}
 	body := []byte(out)
-	w.Header().Set("Content-Type", "text/html")
+	// It is very important to specify the encoding
+	// because browsers assume ASCII if encoding is not specified.
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
 	if apiError := p.asAPIError(anyError); apiError != nil {
 		w.WriteHeader(apiError.Code)

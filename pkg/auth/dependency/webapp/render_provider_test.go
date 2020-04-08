@@ -95,7 +95,7 @@ func TestRenderProvider(t *testing.T) {
 
 		impl.WritePage(w, r, "a", errors.New("error"))
 
-		So(w.Result().Header.Get("Content-Type"), ShouldEqual, "text/html")
+		So(w.Result().Header.Get("Content-Type"), ShouldEqual, "text/html; charset=utf-8")
 		So(string(w.Body.Bytes()), ShouldEqual, `
 <!DOCTYPE html>
 <html>
