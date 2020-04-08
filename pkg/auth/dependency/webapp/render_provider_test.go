@@ -67,8 +67,8 @@ func TestRenderProvider(t *testing.T) {
 
 		impl := RenderProviderImpl{
 			StaticAssetURLPrefix: "/static",
-			AuthConfiguration: &config.AuthConfiguration{
-				LoginIDKeys: []config.LoginIDKeyConfiguration{
+			LoginIDConfiguration: &config.LoginIDConfiguration{
+				Keys: []config.LoginIDKeyConfiguration{
 					config.LoginIDKeyConfiguration{
 						Key: "email", Type: "email",
 					},

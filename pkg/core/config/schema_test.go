@@ -25,84 +25,88 @@ func TestParseAppConfiguration(t *testing.T) {
 			`{}`,
 			"/api_version: Required",
 			"/asset: Required",
-			"/auth: Required",
+			"/authentication: Required",
 			"/hook: Required",
 			"/master_key: Required",
 		)
-		// Empty auth
+		// Empty authentication
 		test(`
 			{
 				"master_key": "master_key",
-				"auth": {},
+				"authentication": {},
 				"hook": {}
 			}`,
 			"/api_version: Required",
 			"/asset: Required",
-			"/auth/authentication_session: Required",
+			"/authentication/secret: Required",
 			"/hook/secret: Required",
 		)
-		// Empty auth.login_id_keys
+		// Empty identity.login_id.keys
 		test(`
 			{
 				"master_key": "master_key",
 				"asset": {},
-				"auth": {
-					"login_id_keys": []
+				"identity": {
+					"login_id": {
+						"keys": []
+					}
 				},
 				"hook": {}
 			}`,
 			"/api_version: Required",
 			"/asset/secret: Required",
-			"/auth/authentication_session: Required",
-			"/auth/login_id_keys: EntryAmount map[gte:1]",
+			"/authentication: Required",
 			"/hook/secret: Required",
+			"/identity/login_id/keys: EntryAmount map[gte:1]",
 		)
 		// Invalid login id type
 		test(`
 			{
 				"master_key": "master_key",
-				"auth": {
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						},
-						{
-							"key": "invalid",
-							"type": "invalid"
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							},
+							{
+								"key": "invalid",
+								"type": "invalid"
+							}
+						],
+						"types": {
+							"email": {
+								"case_sensitive": false,
+								"block_plus_sign": false,
+								"ignore_dot_sign": false
+							},
+							"username": {
+								"block_reserved_usernames": true,
+								"excluded_keywords": [ "skygear" ],
+								"ascii_only": false,
+								"case_sensitive": false
+							},
+							"phone": {}
 						}
-					],
-					"login_id_types": {
-						"email": {
-							"case_sensitive": false,
-							"block_plus_sign": false,
-							"ignore_dot_sign": false
-						},
-						"username": {
-							"block_reserved_usernames": true,
-							"excluded_keywords": [ "skygear" ],
-							"ascii_only": false,
-							"case_sensitive": false
-						},
-						"phone": {}
 					}
 				},
 				"hook": {}
 			}`,
 			"/api_version: Required",
 			"/asset: Required",
-			"/auth/authentication_session: Required",
-			"/auth/login_id_keys/3/type: Enum map[expected:[raw email phone username]]",
-			"/auth/login_id_types/phone: ExtraEntry",
+			"/authentication: Required",
 			"/hook/secret: Required",
+			"/identity/login_id/keys/3/type: Enum map[expected:[raw email phone username]]",
+			"/identity/login_id/types/phone: ExtraEntry",
 		)
 		// Minimal valid example
 		test(`
@@ -112,24 +116,26 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+				"authentication": {
+					"secret": "authnsessionsecret"
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -151,24 +157,26 @@ func TestParseAppConfiguration(t *testing.T) {
 					"cookie_non_persistent": 1
 				},
 				"master_key": "master_key",
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+				"authentication": {
+					"secret": "authnsessionsecret"
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -193,24 +201,26 @@ func TestParseAppConfiguration(t *testing.T) {
 					"secret": "assetsecret"
 				},
 				"master_key": "master_key",
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+				"authentication": {
+					"secret": "authnsessionsecret"
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -219,7 +229,7 @@ func TestParseAppConfiguration(t *testing.T) {
 			"/clients/0/client_id: Required",
 			"/clients/0/client_name: Required",
 		)
-		// MFA
+		// Authenticator
 		test(`
 			{
 				"api_version": "v2.1",
@@ -227,35 +237,44 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+				"authentication": {
+					"secret": "authnsessionsecret"
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
 				},
-				"mfa": {
-					"enforcement": "",
-					"maximum": 1000,
+				"authenticator": {
+					"password": {
+						"policy": {
+							"min_length": -1,
+							"minimum_guessable_level": 5,
+							"history_size": -1,
+							"history_days": -1,
+							"expiry_days": -1
+						}
+					},
 					"totp": {
 						"maximum": 1000
 					},
-					"oob": {
+					"oob_otp": {
 						"sms": {
 							"maximum": 1000
 						},
@@ -272,58 +291,17 @@ func TestParseAppConfiguration(t *testing.T) {
 					}
 				}
 			}`,
-			"/mfa/bearer_token/expire_in_days: NumberRange map[gte:1]",
-			"/mfa/enforcement: Enum map[expected:[off optional required]]",
-			"/mfa/maximum: NumberRange map[lte:999]",
-			"/mfa/oob/email/maximum: NumberRange map[lte:999]",
-			"/mfa/oob/sms/maximum: NumberRange map[lte:999]",
-			"/mfa/recovery_code/count: NumberRange map[lte:24]",
-			"/mfa/recovery_code/list_enabled: Type map[expected:boolean]",
-			"/mfa/totp/maximum: NumberRange map[lte:999]",
-		)
-		// User Audit
-		test(`
-			{
-				"api_version": "v2.1",
-				"master_key": "master_key",
-				"asset": {
-					"secret": "assetsecret"
-				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
-				},
-				"hook": {
-					"secret": "hooksecret"
-				},
-				"password_policy": {
-					"min_length": -1,
-					"minimum_guessable_level": 5,
-					"history_size": -1,
-					"history_days": -1,
-					"expiry_days": -1
-				}
-			}`,
-			"/password_policy/expiry_days: NumberRange map[gte:0]",
-			"/password_policy/history_days: NumberRange map[gte:0]",
-			"/password_policy/history_size: NumberRange map[gte:0]",
-			"/password_policy/min_length: NumberRange map[gte:0]",
-			"/password_policy/minimum_guessable_level: NumberRange map[lte:4]",
+			"/authenticator/bearer_token/expire_in_days: NumberRange map[gte:1]",
+			"/authenticator/oob_otp/email/maximum: NumberRange map[lte:999]",
+			"/authenticator/oob_otp/sms/maximum: NumberRange map[lte:999]",
+			"/authenticator/password/policy/expiry_days: NumberRange map[gte:0]",
+			"/authenticator/password/policy/history_days: NumberRange map[gte:0]",
+			"/authenticator/password/policy/history_size: NumberRange map[gte:0]",
+			"/authenticator/password/policy/min_length: NumberRange map[gte:0]",
+			"/authenticator/password/policy/minimum_guessable_level: NumberRange map[lte:4]",
+			"/authenticator/recovery_code/count: NumberRange map[lte:24]",
+			"/authenticator/recovery_code/list_enabled: Type map[expected:boolean]",
+			"/authenticator/totp/maximum: NumberRange map[lte:999]",
 		)
 		// WelcomeEmailConfiguration
 		test(`
@@ -333,24 +311,26 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+				"authentication": {
+					"secret": "authnsessionsecret"
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -369,29 +349,29 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+				"authentication": {
+					"secret": "authnsessionsecret"
 				},
 				"hook": {
 					"secret": "hooksecret"
 				},
-				"sso": {
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					},
 					"oauth": {
 						"providers": [
 							{ "type": "azureadv2" },
@@ -401,16 +381,16 @@ func TestParseAppConfiguration(t *testing.T) {
 					}
 				}
 			}`,
-			"/sso/oauth/providers/0/client_id: Required",
-			"/sso/oauth/providers/0/client_secret: Required",
-			"/sso/oauth/providers/0/tenant: Required",
-			"/sso/oauth/providers/1/client_id: Required",
-			"/sso/oauth/providers/1/client_secret: Required",
-			"/sso/oauth/providers/2/client_id: Required",
-			"/sso/oauth/providers/2/client_secret: Required",
-			"/sso/oauth/providers/2/key_id: Required",
-			"/sso/oauth/providers/2/team_id: Required",
-			"/sso/oauth/state_jwt_secret: Required",
+			"/identity/oauth/providers/0/client_id: Required",
+			"/identity/oauth/providers/0/client_secret: Required",
+			"/identity/oauth/providers/0/tenant: Required",
+			"/identity/oauth/providers/1/client_id: Required",
+			"/identity/oauth/providers/1/client_secret: Required",
+			"/identity/oauth/providers/2/client_id: Required",
+			"/identity/oauth/providers/2/client_secret: Required",
+			"/identity/oauth/providers/2/key_id: Required",
+			"/identity/oauth/providers/2/team_id: Required",
+			"/identity/oauth/state_jwt_secret: Required",
 		)
 		// UserVerificationConfiguration
 		test(`
@@ -420,24 +400,26 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+				"authentication": {
+					"secret": "authnsessionsecret"
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -463,24 +445,26 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+				"authentication": {
+					"secret": "authnsessionsecret"
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"
@@ -499,24 +483,26 @@ func TestParseAppConfiguration(t *testing.T) {
 				"asset": {
 					"secret": "assetsecret"
 				},
-				"auth": {
-					"authentication_session": {
-						"secret": "authnsessionsecret"
-					},
-					"login_id_keys": [
-						{
-							"key": "email",
-							"type": "email"
-						},
-						{
-							"key": "phone",
-							"type": "phone"
-						},
-						{
-							"key": "username",
-							"type": "username"
-						}
-					]
+				"authentication": {
+					"secret": "authnsessionsecret"
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
 				},
 				"hook": {
 					"secret": "hooksecret"

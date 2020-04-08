@@ -88,9 +88,6 @@ func TestOAuthCoordinator(t *testing.T) {
 				},
 			},
 		}
-		authConfiguration := &config.AuthConfiguration{
-			LoginIDKeys: loginIDsKeys,
-		}
 		loginIDChecker := &loginid.MockLoginIDChecker{}
 		urlPrefixProvider := urlprefix.Provider{
 			Prefix: url.URL{
@@ -110,7 +107,7 @@ func TestOAuthCoordinator(t *testing.T) {
 		signup.HookProvider = hookProvider
 		signup.WelcomeEmailConfiguration = welcomeEmailConfiguration
 		signup.UserVerificationConfiguration = userVerificationConfiguration
-		signup.AuthConfiguration = authConfiguration
+		signup.LoginIDConflictConfiguration = &config.AuthAPILoginIDConflictConfiguration{}
 		signup.URLPrefixProvider = urlPrefixProvider
 
 		authn.OAuthProvider = oauthProvider

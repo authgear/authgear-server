@@ -15,7 +15,7 @@ var errAuthAPIDisabled = skyerr.Forbidden.
 
 func requireAuthAPIEnabled(r *http.Request) error {
 	config := config.GetTenantConfig(r.Context())
-	if !config.AppConfig.Auth.EnableAPI {
+	if !config.AppConfig.AuthAPI.Enabled {
 		return errAuthAPIDisabled
 	}
 

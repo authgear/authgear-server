@@ -18,7 +18,7 @@ func ProvideBearerTokenCookieConfiguration(
 	icc InsecureCookieConfig,
 	c *config.TenantConfiguration,
 ) BearerTokenCookieConfiguration {
-	return NewBearerTokenCookieConfiguration(r, bool(icc), *c.AppConfig.Session, *c.AppConfig.MFA)
+	return NewBearerTokenCookieConfiguration(r, bool(icc), *c.AppConfig.Session, *c.AppConfig.Authenticator.BearerToken)
 }
 
 func ProvideMFASender(
@@ -31,7 +31,7 @@ func ProvideMFASender(
 }
 
 func ProvideMFAProvider(store Store, config *config.TenantConfiguration, timeProvider time.Provider, sender Sender) Provider {
-	return NewProvider(store, config.AppConfig.MFA, timeProvider, sender)
+	return NewProvider(store, config.AppConfig.Authenticator, timeProvider, sender)
 }
 
 var DependencySet = wire.NewSet(

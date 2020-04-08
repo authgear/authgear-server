@@ -154,7 +154,7 @@ func (c *TenantConfiguration) StdBase64Msgpack() (string, error) {
 }
 
 func (c *TenantConfiguration) GetOAuthProviderByID(id string) (OAuthProviderConfiguration, bool) {
-	for _, provider := range c.AppConfig.SSO.OAuth.Providers {
+	for _, provider := range c.AppConfig.Identity.OAuth.Providers {
 		if provider.ID == id {
 			return provider, true
 		}
@@ -172,8 +172,8 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	}
 
 	values = append(values,
-		c.AppConfig.Auth.AuthenticationSession.Secret,
-		c.AppConfig.SSO.OAuth.StateJWTSecret,
+		c.AppConfig.Authentication.Secret,
+		c.AppConfig.Identity.OAuth.StateJWTSecret,
 		c.AppConfig.Hook.Secret,
 		c.DatabaseConfig.DatabaseURL,
 		c.DatabaseConfig.DatabaseSchema,
@@ -185,8 +185,8 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 		c.AppConfig.Nexmo.APIKey,
 		c.AppConfig.Nexmo.APISecret,
 	)
-	oauthSecrets := make([]string, len(c.AppConfig.SSO.OAuth.Providers)*2)
-	for i, oauthConfig := range c.AppConfig.SSO.OAuth.Providers {
+	oauthSecrets := make([]string, len(c.AppConfig.Identity.OAuth.Providers)*2)
+	for i, oauthConfig := range c.AppConfig.Identity.OAuth.Providers {
 		oauthSecrets[i*2] = oauthConfig.ClientID
 		oauthSecrets[i*2+1] = oauthConfig.ClientSecret
 	}
@@ -220,7 +220,7 @@ func (c *TenantConfiguration) PostValidate() error {
 
 	for _, verifyKeyConfig := range c.AppConfig.UserVerification.LoginIDKeys {
 		ok := false
-		for _, loginIDKey := range c.AppConfig.Auth.LoginIDKeys {
+		for _, loginIDKey := range c.AppConfig.Identity.LoginID.Keys {
 			if loginIDKey.Key == verifyKeyConfig.Key {
 				ok = true
 				break
@@ -236,15 +236,36 @@ func (c *TenantConfiguration) PostValidate() error {
 
 	// Validate OAuth
 	seenOAuthProviderID := map[string]struct{}{}
-	for i, provider := range c.AppConfig.SSO.OAuth.Providers {
+	for i, provider := range c.AppConfig.Identity.OAuth.Providers {
 		// Ensure ID is not duplicate.
 		if _, ok := seenOAuthProviderID[provider.ID]; ok {
 			return fail(
 				validation.ErrorGeneral,
 				"duplicated OAuth provider",
-				"user_config", "sso", "oauth", "providers", i)
+				"user_config", "identity", "oauth", "providers", i)
 		}
 		seenOAuthProviderID[provider.ID] = struct{}{}
+	}
+
+	// Validate AuthenticationConfiguration
+	seenAuthenticator := map[string]struct{}{}
+	for i, a := range c.AppConfig.Authentication.PrimaryAuthenticators {
+		if _, ok := seenAuthenticator[a]; ok {
+			return fail(
+				validation.ErrorGeneral,
+				"duplicated authenticator",
+				"user_config", "authentication", "primary_authenticators", i)
+		}
+		seenAuthenticator[a] = struct{}{}
+	}
+	for i, a := range c.AppConfig.Authentication.SecondaryAuthenticators {
+		if _, ok := seenAuthenticator[a]; ok {
+			return fail(
+				validation.ErrorGeneral,
+				"duplicated authenticator",
+				"user_config", "authentication", "secondary_authenticators", i)
+		}
+		seenAuthenticator[a] = struct{}{}
 	}
 
 	return nil
@@ -286,77 +307,96 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 
 	// Set default AuthConfiguration
-	if c.AppConfig.Auth.LoginIDKeys == nil {
-		c.AppConfig.Auth.LoginIDKeys = []LoginIDKeyConfiguration{
+	if c.AppConfig.Identity.LoginID.Keys == nil {
+		c.AppConfig.Identity.LoginID.Keys = []LoginIDKeyConfiguration{
 			LoginIDKeyConfiguration{Key: "username", Type: LoginIDKeyType(metadata.Username)},
 			LoginIDKeyConfiguration{Key: "email", Type: LoginIDKeyType(metadata.Email)},
 			LoginIDKeyConfiguration{Key: "phone", Type: LoginIDKeyType(metadata.Phone)},
 		}
 	}
-	if c.AppConfig.Auth.AllowedRealms == nil {
-		c.AppConfig.Auth.AllowedRealms = []string{"default"}
+
+	if c.AppConfig.Identity.LoginID.Types.Email.CaseSensitive == nil {
+		d := false
+		c.AppConfig.Identity.LoginID.Types.Email.CaseSensitive = &d
+	}
+	if c.AppConfig.Identity.LoginID.Types.Email.BlockPlusSign == nil {
+		d := false
+		c.AppConfig.Identity.LoginID.Types.Email.BlockPlusSign = &d
+	}
+	if c.AppConfig.Identity.LoginID.Types.Email.IgnoreDotSign == nil {
+		d := false
+		c.AppConfig.Identity.LoginID.Types.Email.IgnoreDotSign = &d
 	}
 
-	if c.AppConfig.Auth.LoginIDTypes.Email.CaseSensitive == nil {
-		d := false
-		c.AppConfig.Auth.LoginIDTypes.Email.CaseSensitive = &d
-	}
-	if c.AppConfig.Auth.LoginIDTypes.Email.BlockPlusSign == nil {
-		d := false
-		c.AppConfig.Auth.LoginIDTypes.Email.BlockPlusSign = &d
-	}
-	if c.AppConfig.Auth.LoginIDTypes.Email.IgnoreDotSign == nil {
-		d := false
-		c.AppConfig.Auth.LoginIDTypes.Email.IgnoreDotSign = &d
-	}
-
-	if c.AppConfig.Auth.LoginIDTypes.Username.BlockReservedUsernames == nil {
+	if c.AppConfig.Identity.LoginID.Types.Username.BlockReservedUsernames == nil {
 		d := true
-		c.AppConfig.Auth.LoginIDTypes.Username.BlockReservedUsernames = &d
+		c.AppConfig.Identity.LoginID.Types.Username.BlockReservedUsernames = &d
 	}
-	if c.AppConfig.Auth.LoginIDTypes.Username.ASCIIOnly == nil {
+	if c.AppConfig.Identity.LoginID.Types.Username.ASCIIOnly == nil {
 		d := true
-		c.AppConfig.Auth.LoginIDTypes.Username.ASCIIOnly = &d
+		c.AppConfig.Identity.LoginID.Types.Username.ASCIIOnly = &d
 	}
-	if c.AppConfig.Auth.LoginIDTypes.Username.CaseSensitive == nil {
+	if c.AppConfig.Identity.LoginID.Types.Username.CaseSensitive == nil {
 		d := false
-		c.AppConfig.Auth.LoginIDTypes.Username.CaseSensitive = &d
+		c.AppConfig.Identity.LoginID.Types.Username.CaseSensitive = &d
 	}
 
 	// Set default minimum and maximum
-	for i, config := range c.AppConfig.Auth.LoginIDKeys {
+	for i, config := range c.AppConfig.Identity.LoginID.Keys {
 		if config.Maximum == nil {
 			config.Maximum = new(int)
 			*config.Maximum = 1
 		}
-		c.AppConfig.Auth.LoginIDKeys[i] = config
+		c.AppConfig.Identity.LoginID.Keys[i] = config
 	}
 
-	// Set default MFAConfiguration
-	if c.AppConfig.MFA.Enforcement == "" {
-		c.AppConfig.MFA.Enforcement = MFAEnforcementOptional
+	// Set default AuthenticationConfiguration
+	if len(c.AppConfig.Authentication.Identities) == 0 {
+		c.AppConfig.Authentication.Identities = []string{
+			"oauth",
+			"login_id",
+		}
 	}
-	if c.AppConfig.MFA.Maximum == nil {
-		c.AppConfig.MFA.Maximum = new(int)
-		*c.AppConfig.MFA.Maximum = 99
+	if len(c.AppConfig.Authentication.PrimaryAuthenticators) == 0 {
+		c.AppConfig.Authentication.PrimaryAuthenticators = []string{
+			"oauth",
+			"password",
+		}
 	}
-	if c.AppConfig.MFA.TOTP.Maximum == nil {
-		c.AppConfig.MFA.TOTP.Maximum = new(int)
-		*c.AppConfig.MFA.TOTP.Maximum = 99
+	if c.AppConfig.Authentication.SecondaryAuthenticators == nil {
+		c.AppConfig.Authentication.SecondaryAuthenticators = []string{
+			"otp",
+			"bearer_token",
+		}
 	}
-	if c.AppConfig.MFA.OOB.SMS.Maximum == nil {
-		c.AppConfig.MFA.OOB.SMS.Maximum = new(int)
-		*c.AppConfig.MFA.OOB.SMS.Maximum = 99
+	if c.AppConfig.Authentication.SecondaryAuthenticationMode == "" {
+		c.AppConfig.Authentication.SecondaryAuthenticationMode = SecondaryAuthenticationModeIfExists
 	}
-	if c.AppConfig.MFA.OOB.Email.Maximum == nil {
-		c.AppConfig.MFA.OOB.Email.Maximum = new(int)
-		*c.AppConfig.MFA.OOB.Email.Maximum = 99
+
+	// Set default AuthenticatorConfiguration
+	if c.AppConfig.Authenticator.TOTP.Maximum == nil {
+		c.AppConfig.Authenticator.TOTP.Maximum = new(int)
+		*c.AppConfig.Authenticator.TOTP.Maximum = 99
 	}
-	if c.AppConfig.MFA.BearerToken.ExpireInDays == 0 {
-		c.AppConfig.MFA.BearerToken.ExpireInDays = 30
+	if c.AppConfig.Authenticator.OOB.SMS.Maximum == nil {
+		c.AppConfig.Authenticator.OOB.SMS.Maximum = new(int)
+		*c.AppConfig.Authenticator.OOB.SMS.Maximum = 99
 	}
-	if c.AppConfig.MFA.RecoveryCode.Count == 0 {
-		c.AppConfig.MFA.RecoveryCode.Count = 16
+	if c.AppConfig.Authenticator.OOB.Email.Maximum == nil {
+		c.AppConfig.Authenticator.OOB.Email.Maximum = new(int)
+		*c.AppConfig.Authenticator.OOB.Email.Maximum = 99
+	}
+	if c.AppConfig.Authenticator.BearerToken.ExpireInDays == 0 {
+		c.AppConfig.Authenticator.BearerToken.ExpireInDays = 30
+	}
+	if c.AppConfig.Authenticator.RecoveryCode.Count == 0 {
+		c.AppConfig.Authenticator.RecoveryCode.Count = 16
+	}
+
+	// Set default AuthenticatorOOBConfiguration
+	emailMsg := c.AppConfig.Authenticator.OOB.Email.Message
+	if emailMsg.Subject() == "" {
+		emailMsg.SetSubject("Two Factor Auth Verification instruction")
 	}
 
 	// Set default user verification settings
@@ -370,11 +410,8 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		if config.Expiry == 0 {
 			config.Expiry = 3600 // 1 hour
 		}
-		if config.Sender == "" {
-			config.Sender = "no-reply@skygear.io"
-		}
-		if config.Subject == "" {
-			config.Subject = "Verification instruction"
+		if config.EmailMessage.Subject() == "" {
+			config.EmailMessage.SetSubject("Verification instruction")
 		}
 		c.AppConfig.UserVerification.LoginIDKeys[i] = config
 	}
@@ -383,30 +420,18 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.AppConfig.WelcomeEmail.Destination == "" {
 		c.AppConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
 	}
-	if c.AppConfig.WelcomeEmail.Sender == "" {
-		c.AppConfig.WelcomeEmail.Sender = "no-reply@skygear.io"
-	}
-	if c.AppConfig.WelcomeEmail.Subject == "" {
-		c.AppConfig.WelcomeEmail.Subject = "Welcome!"
+	emailMsg = c.AppConfig.WelcomeEmail.Message
+	if emailMsg.Subject() == "" {
+		emailMsg.SetSubject("Welcome!")
 	}
 
 	// Set default ForgotPasswordConfiguration
-	if c.AppConfig.ForgotPassword.Sender == "" {
-		c.AppConfig.ForgotPassword.Sender = "no-reply@skygear.io"
-	}
-	if c.AppConfig.ForgotPassword.Subject == "" {
-		c.AppConfig.ForgotPassword.Subject = "Reset password instruction"
+	emailMsg = c.AppConfig.ForgotPassword.EmailMessage
+	if emailMsg.Subject() == "" {
+		emailMsg.SetSubject("Reset password instruction")
 	}
 	if c.AppConfig.ForgotPassword.ResetURLLifetime == 0 {
 		c.AppConfig.ForgotPassword.ResetURLLifetime = 43200
-	}
-
-	// Set default MFAOOBConfiguration
-	if c.AppConfig.MFA.OOB.Sender == "" {
-		c.AppConfig.MFA.OOB.Sender = "no-reply@skygear.io"
-	}
-	if c.AppConfig.MFA.OOB.Subject == "" {
-		c.AppConfig.MFA.OOB.Subject = "Two Factor Auth Verification instruction"
 	}
 
 	// Set default SMTPConfiguration
@@ -417,43 +442,49 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.AppConfig.SMTP.Port = 25
 	}
 
+	// Set default MessagesConfiguration
+	emailMsg = c.AppConfig.Messages.Email
+	if emailMsg.Sender() == "" {
+		emailMsg.SetSender("no-reply@skygear.io")
+	}
+
 	// Set type to id
 	// Set default scope for OAuth Provider
-	for i, provider := range c.AppConfig.SSO.OAuth.Providers {
+	for i, provider := range c.AppConfig.Identity.OAuth.Providers {
 		if provider.ID == "" {
-			c.AppConfig.SSO.OAuth.Providers[i].ID = string(provider.Type)
+			c.AppConfig.Identity.OAuth.Providers[i].ID = string(provider.Type)
 		}
 		switch provider.Type {
 		case OAuthProviderTypeGoogle:
 			if provider.Scope == "" {
 				// https://developers.google.com/identity/protocols/googlescopes#google_sign-in
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
+				c.AppConfig.Identity.OAuth.Providers[i].Scope = "openid profile email"
 			}
 		case OAuthProviderTypeFacebook:
 			if provider.Scope == "" {
 				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-default
 				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "email"
+				c.AppConfig.Identity.OAuth.Providers[i].Scope = "email"
 			}
 		case OAuthProviderTypeInstagram:
 			if provider.Scope == "" {
 				// https://www.instagram.com/developer/authorization/
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "basic"
+				c.AppConfig.Identity.OAuth.Providers[i].Scope = "basic"
 			}
 		case OAuthProviderTypeLinkedIn:
 			if provider.Scope == "" {
 				// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api?context=linkedin/compliance/context
 				// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "r_liteprofile r_emailaddress"
+				c.AppConfig.Identity.OAuth.Providers[i].Scope = "r_liteprofile r_emailaddress"
 			}
 		case OAuthProviderTypeAzureADv2:
 			if provider.Scope == "" {
 				// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
+				c.AppConfig.Identity.OAuth.Providers[i].Scope = "openid profile email"
 			}
 		case OAuthProviderTypeApple:
 			if provider.Scope == "" {
-				c.AppConfig.SSO.OAuth.Providers[i].Scope = "email"
+				c.AppConfig.Identity.OAuth.Providers[i].Scope = "email"
 			}
 		}
 	}
@@ -496,16 +527,17 @@ type AppConfiguration struct {
 	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
 	Session          *SessionConfiguration          `json:"session,omitempty" yaml:"session" msg:"session" default_zero_value:"true"`
 	CORS             *CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors" default_zero_value:"true"`
-	Auth             *AuthConfiguration             `json:"auth,omitempty" yaml:"auth" msg:"auth" default_zero_value:"true"`
+	AuthAPI          *AuthAPIConfiguration          `json:"auth_api,omitempty" yaml:"auth_api" msg:"auth_api" default_zero_value:"true"`
+	Authentication   *AuthenticationConfiguration   `json:"authentication,omitempty" yaml:"authentication" msg:"authentication" default_zero_value:"true"`
 	AuthUI           *AuthUIConfiguration           `json:"auth_ui,omitempty" yaml:"auth_ui" msg:"auth_ui" default_zero_value:"true"`
 	OIDC             *OIDCConfiguration             `json:"oidc,omitempty" yaml:"oidc" msg:"oidc" default_zero_value:"true"`
-	MFA              *MFAConfiguration              `json:"mfa,omitempty" yaml:"mfa" msg:"mfa" default_zero_value:"true"`
-	PasswordPolicy   *PasswordPolicyConfiguration   `json:"password_policy,omitempty" yaml:"password_policy" msg:"password_policy" default_zero_value:"true"`
+	Authenticator    *AuthenticatorConfiguration    `json:"authenticator,omitempty" yaml:"authenticator" msg:"authenticator" default_zero_value:"true"`
 	ForgotPassword   *ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password" default_zero_value:"true"`
 	WelcomeEmail     *WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email" default_zero_value:"true"`
-	SSO              *SSOConfiguration              `json:"sso,omitempty" yaml:"sso" msg:"sso" default_zero_value:"true"`
+	Identity         *IdentityConfiguration         `json:"identity,omitempty" yaml:"identity" msg:"identity" default_zero_value:"true"`
 	UserVerification *UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification" default_zero_value:"true"`
 	Hook             *HookAppConfiguration          `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
+	Messages         *MessagesConfiguration         `json:"messages,omitempty" yaml:"messages" msg:"messages" default_zero_value:"true"`
 	SMTP             *SMTPConfiguration             `json:"smtp,omitempty" yaml:"smtp" msg:"smtp" default_zero_value:"true"`
 	Twilio           *TwilioConfiguration           `json:"twilio,omitempty" yaml:"twilio" msg:"twilio" default_zero_value:"true"`
 	Nexmo            *NexmoConfiguration            `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo" default_zero_value:"true"`
@@ -622,15 +654,6 @@ type CORSConfiguration struct {
 	Origin string `json:"origin,omitempty" yaml:"origin" msg:"origin"`
 }
 
-type AuthConfiguration struct {
-	EnableAPI                  bool                                `json:"enable_api,omitempty" yaml:"enable_api" msg:"enable_api"`
-	AuthenticationSession      *AuthenticationSessionConfiguration `json:"authentication_session,omitempty" yaml:"authentication_session" msg:"authentication_session" default_zero_value:"true"`
-	LoginIDTypes               *LoginIDTypesConfiguration          `json:"login_id_types,omitempty" yaml:"login_id_types" msg:"login_id_types" default_zero_value:"true"`
-	LoginIDKeys                []LoginIDKeyConfiguration           `json:"login_id_keys,omitempty" yaml:"login_id_keys" msg:"login_id_keys"`
-	AllowedRealms              []string                            `json:"-" yaml:"-" msg:"allowed_realms"`
-	OnUserDuplicateAllowCreate bool                                `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
-}
-
 type AuthUIConfiguration struct {
 	CSS string `json:"css,omitempty" yaml:"css" msg:"css"`
 }
@@ -645,133 +668,12 @@ type OIDCSigningKeyConfiguration struct {
 	PrivateKey string `json:"private_key,omitempty" yaml:"private_key" msg:"private_key"`
 }
 
-func (c *AuthConfiguration) GetLoginIDKey(key string) (*LoginIDKeyConfiguration, bool) {
-	for _, config := range c.LoginIDKeys {
-		if config.Key == key {
-			return &config, true
-		}
-	}
-
-	return nil, false
-}
-
-type AuthenticationSessionConfiguration struct {
-	Secret string `json:"secret,omitempty" yaml:"secret" msg:"secret"`
-}
-
-type LoginIDKeyType string
-
-const LoginIDKeyTypeRaw LoginIDKeyType = "raw"
-
-func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
-	for _, key := range metadata.AllKeys() {
-		if string(t) == string(key) {
-			return key, true
-		}
-	}
-	return "", false
-}
-
-func (t LoginIDKeyType) IsValid() bool {
-	_, validKey := t.MetadataKey()
-	return t == LoginIDKeyTypeRaw || validKey
-}
-
-type LoginIDTypesConfiguration struct {
-	Email    *LoginIDTypeEmailConfiguration    `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
-	Username *LoginIDTypeUsernameConfiguration `json:"username,omitempty" yaml:"username" msg:"username" default_zero_value:"true"`
-}
-
-type LoginIDTypeEmailConfiguration struct {
-	CaseSensitive *bool `json:"case_sensitive" yaml:"case_sensitive" msg:"case_sensitive"`
-	BlockPlusSign *bool `json:"block_plus_sign" yaml:"block_plus_sign" msg:"block_plus_sign"`
-	IgnoreDotSign *bool `json:"ignore_dot_sign" yaml:"ignore_dot_sign" msg:"ignore_dot_sign"`
-}
-
-type LoginIDTypeUsernameConfiguration struct {
-	BlockReservedUsernames *bool    `json:"block_reserved_usernames" yaml:"block_reserved_usernames" msg:"block_reserved_usernames"`
-	ExcludedKeywords       []string `json:"excluded_keywords,omitempty" yaml:"excluded_keywords" msg:"excluded_keywords"`
-	ASCIIOnly              *bool    `json:"ascii_only" yaml:"ascii_only" msg:"ascii_only"`
-	CaseSensitive          *bool    `json:"case_sensitive" yaml:"case_sensitive" msg:"case_sensitive"`
-}
-
-type LoginIDKeyConfiguration struct {
-	Key     string         `json:"key" yaml:"key" msg:"key"`
-	Type    LoginIDKeyType `json:"type,omitempty" yaml:"type" msg:"type"`
-	Maximum *int           `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
-}
-
-type MFAEnforcement string
-
-const (
-	MFAEnforcementOff      MFAEnforcement = "off"
-	MFAEnforcementOptional MFAEnforcement = "optional"
-	MFAEnforcementRequired MFAEnforcement = "required"
-)
-
-type MFAConfiguration struct {
-	Enabled      bool                          `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
-	Enforcement  MFAEnforcement                `json:"enforcement,omitempty" yaml:"enforcement" msg:"enforcement"`
-	Maximum      *int                          `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
-	TOTP         *MFATOTPConfiguration         `json:"totp,omitempty" yaml:"totp" msg:"totp" default_zero_value:"true"`
-	OOB          *MFAOOBConfiguration          `json:"oob,omitempty" yaml:"oob" msg:"oob" default_zero_value:"true"`
-	BearerToken  *MFABearerTokenConfiguration  `json:"bearer_token,omitempty" yaml:"bearer_token" msg:"bearer_token" default_zero_value:"true"`
-	RecoveryCode *MFARecoveryCodeConfiguration `json:"recovery_code,omitempty" yaml:"recovery_code" msg:"recovery_code" default_zero_value:"true"`
-}
-
-type MFATOTPConfiguration struct {
-	Maximum *int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
-}
-
-type MFAOOBConfiguration struct {
-	SMS     *MFAOOBSMSConfiguration   `json:"sms,omitempty" yaml:"sms" msg:"sms" default_zero_value:"true"`
-	Email   *MFAOOBEmailConfiguration `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
-	Sender  string                    `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	Subject string                    `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	ReplyTo string                    `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-}
-
-type MFAOOBSMSConfiguration struct {
-	Maximum *int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
-}
-
-type MFAOOBEmailConfiguration struct {
-	Maximum *int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
-}
-
-type MFABearerTokenConfiguration struct {
-	ExpireInDays int `json:"expire_in_days,omitempty" yaml:"expire_in_days" msg:"expire_in_days"`
-}
-
-type MFARecoveryCodeConfiguration struct {
-	Count       int  `json:"count,omitempty" yaml:"count" msg:"count"`
-	ListEnabled bool `json:"list_enabled,omitempty" yaml:"list_enabled" msg:"list_enabled"`
-}
-
-type PasswordPolicyConfiguration struct {
-	MinLength             int      `json:"min_length,omitempty" yaml:"min_length" msg:"min_length"`
-	UppercaseRequired     bool     `json:"uppercase_required,omitempty" yaml:"uppercase_required" msg:"uppercase_required"`
-	LowercaseRequired     bool     `json:"lowercase_required,omitempty" yaml:"lowercase_required" msg:"lowercase_required"`
-	DigitRequired         bool     `json:"digit_required,omitempty" yaml:"digit_required" msg:"digit_required"`
-	SymbolRequired        bool     `json:"symbol_required,omitempty" yaml:"symbol_required" msg:"symbol_required"`
-	MinimumGuessableLevel int      `json:"minimum_guessable_level,omitempty" yaml:"minimum_guessable_level" msg:"minimum_guessable_level"`
-	ExcludedKeywords      []string `json:"excluded_keywords,omitempty" yaml:"excluded_keywords" msg:"excluded_keywords"`
-	// Do not know how to support fields because we do not
-	// have them now
-	// ExcludedFields     []string `json:"excluded_fields,omitempty" yaml:"excluded_fields" msg:"excluded_fields"`
-	HistorySize int `json:"history_size,omitempty" yaml:"history_size" msg:"history_size"`
-	HistoryDays int `json:"history_days,omitempty" yaml:"history_days" msg:"history_days"`
-	ExpiryDays  int `json:"expiry_days,omitempty" yaml:"expiry_days" msg:"expiry_days"`
-}
-
 type ForgotPasswordConfiguration struct {
-	SecureMatch      bool   `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
-	Sender           string `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	Subject          string `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	ReplyTo          string `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-	ResetURLLifetime int    `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
-	SuccessRedirect  string `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
-	ErrorRedirect    string `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
+	SecureMatch      bool                      `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
+	EmailMessage     EmailMessageConfiguration `json:"email_message" yaml:"email_message" msg:"email_message" default_zero_value:"true"`
+	ResetURLLifetime int                       `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
+	SuccessRedirect  string                    `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
+	ErrorRedirect    string                    `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
 }
 
 type WelcomeEmailDestination string
@@ -786,47 +688,9 @@ func (destination WelcomeEmailDestination) IsValid() bool {
 }
 
 type WelcomeEmailConfiguration struct {
-	Enabled     bool                    `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
-	Sender      string                  `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	Subject     string                  `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	ReplyTo     string                  `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
-	Destination WelcomeEmailDestination `json:"destination,omitempty" yaml:"destination" msg:"destination"`
-}
-
-type SSOConfiguration struct {
-	OAuth *OAuthConfiguration `json:"oauth,omitempty" yaml:"oauth" msg:"oauth" default_zero_value:"true"`
-}
-
-type OAuthConfiguration struct {
-	StateJWTSecret                 string                       `json:"state_jwt_secret,omitempty" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
-	ExternalAccessTokenFlowEnabled bool                         `json:"external_access_token_flow_enabled,omitempty" yaml:"external_access_token_flow_enabled" msg:"external_access_token_flow_enabled"`
-	OnUserDuplicateAllowMerge      bool                         `json:"on_user_duplicate_allow_merge,omitempty" yaml:"on_user_duplicate_allow_merge" msg:"on_user_duplicate_allow_merge"`
-	OnUserDuplicateAllowCreate     bool                         `json:"on_user_duplicate_allow_create,omitempty" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
-	Providers                      []OAuthProviderConfiguration `json:"providers,omitempty" yaml:"providers" msg:"providers"`
-}
-
-type OAuthProviderType string
-
-const (
-	OAuthProviderTypeGoogle    OAuthProviderType = "google"
-	OAuthProviderTypeFacebook  OAuthProviderType = "facebook"
-	OAuthProviderTypeInstagram OAuthProviderType = "instagram"
-	OAuthProviderTypeLinkedIn  OAuthProviderType = "linkedin"
-	OAuthProviderTypeAzureADv2 OAuthProviderType = "azureadv2"
-	OAuthProviderTypeApple     OAuthProviderType = "apple"
-)
-
-type OAuthProviderConfiguration struct {
-	ID           string            `json:"id,omitempty" yaml:"id" msg:"id"`
-	Type         OAuthProviderType `json:"type,omitempty" yaml:"type" msg:"type"`
-	ClientID     string            `json:"client_id,omitempty" yaml:"client_id" msg:"client_id"`
-	ClientSecret string            `json:"client_secret,omitempty" yaml:"client_secret" msg:"client_secret"`
-	Scope        string            `json:"scope,omitempty" yaml:"scope" msg:"scope"`
-	// Tenant is specific to azureadv2
-	Tenant string `json:"tenant,omitempty" yaml:"tenant" msg:"tenant"`
-	// KeyID and TeamID are specific to apple
-	KeyID  string `json:"key_id,omitempty" yaml:"key_id" msg:"key_id"`
-	TeamID string `json:"team_id,omitempty" yaml:"team_id" msg:"team_id"`
+	Enabled     bool                      `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
+	Message     EmailMessageConfiguration `json:"message" yaml:"message" msg:"message" default_zero_value:"true"`
+	Destination WelcomeEmailDestination   `json:"destination,omitempty" yaml:"destination" msg:"destination"`
 }
 
 type UserVerificationCriteria string
@@ -861,9 +725,8 @@ type UserVerificationKeyConfiguration struct {
 	Expiry          int64                      `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
 	SuccessRedirect string                     `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
 	ErrorRedirect   string                     `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
-	Subject         string                     `json:"subject,omitempty" yaml:"subject" msg:"subject"`
-	Sender          string                     `json:"sender,omitempty" yaml:"sender" msg:"sender"`
-	ReplyTo         string                     `json:"reply_to,omitempty" yaml:"reply_to" msg:"reply_to"`
+	SMSMessage      SMSMessageConfiguration    `json:"sms_message" yaml:"sms_message" msg:"sms_message" default_zero_value:"true"`
+	EmailMessage    EmailMessageConfiguration  `json:"email_message" yaml:"email_message" msg:"email_message" default_zero_value:"true"`
 }
 
 func (format UserVerificationCodeFormat) IsValid() bool {
@@ -878,14 +741,6 @@ func (c *UserVerificationConfiguration) GetLoginIDKey(key string) (*UserVerifica
 	}
 
 	return nil, false
-}
-
-func (c *UserVerificationKeyConfiguration) MessageHeader() MessageHeader {
-	return MessageHeader{
-		Subject: c.Subject,
-		Sender:  c.Sender,
-		ReplyTo: c.ReplyTo,
-	}
 }
 
 type HookAppConfiguration struct {
@@ -920,7 +775,6 @@ func (c SMTPConfiguration) IsValid() bool {
 type TwilioConfiguration struct {
 	AccountSID string `json:"account_sid,omitempty" yaml:"account_sid" msg:"account_sid" envconfig:"ACCOUNT_SID"`
 	AuthToken  string `json:"auth_token,omitempty" yaml:"auth_token" msg:"auth_token" envconfig:"AUTH_TOKEN"`
-	From       string `json:"from,omitempty" yaml:"from" msg:"from" envconfig:"FROM"`
 }
 
 func (c TwilioConfiguration) IsValid() bool {
@@ -930,7 +784,6 @@ func (c TwilioConfiguration) IsValid() bool {
 type NexmoConfiguration struct {
 	APIKey    string `json:"api_key,omitempty" yaml:"api_key" msg:"api_key" envconfig:"API_KEY"`
 	APISecret string `json:"api_secret,omitempty" yaml:"api_secret" msg:"api_secret" envconfig:"API_SECRET"`
-	From      string `json:"from,omitempty" yaml:"from" msg:"from" envconfig:"FROM"`
 }
 
 func (c NexmoConfiguration) IsValid() bool {

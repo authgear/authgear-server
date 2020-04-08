@@ -40,7 +40,7 @@ func (d *defaultCodeSenderFactory) NewCodeSender(urlPrefix *url.URL, loginIDKey 
 	if !ok {
 		panic("invalid user verification login id key: " + loginIDKey)
 	}
-	authLoginIDKey, ok := d.Config.AppConfig.Auth.GetLoginIDKey(loginIDKey)
+	authLoginIDKey, ok := d.Config.AppConfig.Identity.LoginID.GetKey(loginIDKey)
 	if !ok {
 		panic("invalid login id key: " + loginIDKey)
 	}
@@ -50,16 +50,23 @@ func (d *defaultCodeSenderFactory) NewCodeSender(urlPrefix *url.URL, loginIDKey 
 	switch metadataKey {
 	case metadata.Email:
 		return &EmailCodeSender{
-			AppName:        d.Config.AppName,
-			URLPrefix:      urlPrefix,
-			MessageHeader:  verifyConfig.MessageHeader(),
+			AppName:   d.Config.AppName,
+			URLPrefix: urlPrefix,
+			EmailConfig: config.NewEmailMessageConfiguration(
+				d.Config.AppConfig.Messages.Email,
+				verifyConfig.EmailMessage,
+			),
 			Sender:         d.MailSender,
 			TemplateEngine: d.TemplateEngine,
 		}
 	case metadata.Phone:
 		return &SMSCodeSender{
-			AppName:        d.Config.AppName,
-			URLPrefix:      urlPrefix,
+			AppName:   d.Config.AppName,
+			URLPrefix: urlPrefix,
+			SMSConfig: config.NewSMSMessageConfiguration(
+				d.Config.AppConfig.Messages.SMS,
+				verifyConfig.SMSMessage,
+			),
 			SMSClient:      d.SMSClient,
 			TemplateEngine: d.TemplateEngine,
 		}

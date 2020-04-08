@@ -31,17 +31,16 @@ type TokenIssuer interface {
 }
 
 type SessionProvider struct {
-	MFAProvider        mfa.Provider
-	SessionProvider    session.Provider
-	ClientConfigs      []config.OAuthClientConfiguration
-	MFAConfig          *config.MFAConfiguration
-	AuthnSessionConfig *config.AuthenticationSessionConfiguration
-	TimeProvider       time.Provider
-	AuthInfoStore      authinfo.Store
-	UserProfileStore   userprofile.Store
-	IdentityProvider   principal.IdentityProvider
-	HookProvider       hook.Provider
-	TokenIssuer        TokenIssuer
+	MFAProvider      mfa.Provider
+	SessionProvider  session.Provider
+	ClientConfigs    []config.OAuthClientConfiguration
+	AuthnConfig      *config.AuthenticationConfiguration
+	TimeProvider     time.Provider
+	AuthInfoStore    authinfo.Store
+	UserProfileStore userprofile.Store
+	IdentityProvider principal.IdentityProvider
+	HookProvider     hook.Provider
+	TokenIssuer      TokenIssuer
 }
 
 func (p *SessionProvider) BeginSession(client config.OAuthClientConfiguration, userID string, prin principal.Principal, reason auth.SessionCreateReason) (*AuthnSession, error) {
@@ -120,7 +119,7 @@ func (p *SessionProvider) ResolveSession(jwt string) (*AuthnSession, error) {
 		return nil, authz.ErrNotAuthenticated
 	}
 
-	token, err := decodeSessionToken(p.AuthnSessionConfig.Secret, jwt)
+	token, err := decodeSessionToken(p.AuthnConfig.Secret, jwt)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +229,7 @@ func (p *SessionProvider) saveSession(s *AuthnSession) (Result, error) {
 		},
 		AuthnSession: *s,
 	}
-	jwt, err := encodeSessionToken(p.AuthnSessionConfig.Secret, token)
+	jwt, err := encodeSessionToken(p.AuthnConfig.Secret, token)
 	if err != nil {
 		return nil, err
 	}
@@ -264,9 +263,9 @@ func (p *SessionProvider) updateLoginTime(userID string) error {
 func (p *SessionProvider) getRequiredSteps(userID string) ([]SessionStep, error) {
 	steps := []SessionStep{SessionStepIdentity}
 
-	// MFA
-	enforcement := p.MFAConfig.Enforcement
-	if enforcement != config.MFAEnforcementOff {
+	// Secondary authentication (i.e. MFA)
+	mode := p.AuthnConfig.SecondaryAuthenticationMode
+	if mode != config.SecondaryAuthenticationModeIfRequested {
 		authenticators, err := p.MFAProvider.ListAuthenticators(userID)
 		if err != nil {
 			return nil, err
@@ -275,7 +274,7 @@ func (p *SessionProvider) getRequiredSteps(userID string) ([]SessionStep, error)
 			// When there are MFA authenticators:
 			// perform MFA authn if not turned off.
 			steps = append(steps, SessionStepMFAAuthn)
-		} else if enforcement == config.MFAEnforcementRequired {
+		} else if mode == config.SecondaryAuthenticationModeRequired {
 			// When there are no MFA authenticator, and MFA is required:
 			// require setup MFA authenticators
 			steps = append(steps, SessionStepMFASetup)

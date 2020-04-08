@@ -16,19 +16,22 @@ type Sender interface {
 
 type DefaultSender struct {
 	AppName        string
-	Config         *config.WelcomeEmailConfiguration
+	EmailConfig    config.EmailMessageConfiguration
 	Sender         mail.Sender
 	TemplateEngine *template.Engine
 }
 
 func NewDefaultSender(
-	config config.TenantConfiguration,
+	c config.TenantConfiguration,
 	sender mail.Sender,
 	templateEngine *template.Engine,
 ) Sender {
 	return &DefaultSender{
-		AppName:        config.AppName,
-		Config:         config.AppConfig.WelcomeEmail,
+		AppName: c.AppName,
+		EmailConfig: config.NewEmailMessageConfiguration(
+			c.AppConfig.Messages.Email,
+			c.AppConfig.WelcomeEmail.Message,
+		),
 		Sender:         sender,
 		TemplateEngine: templateEngine,
 	}
@@ -63,10 +66,10 @@ func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) 
 	}
 
 	err = d.Sender.Send(mail.SendOptions{
-		Sender:    d.Config.Sender,
+		Sender:    d.EmailConfig.Sender(),
 		Recipient: email,
-		Subject:   d.Config.Subject,
-		ReplyTo:   d.Config.ReplyTo,
+		Subject:   d.EmailConfig.Subject(),
+		ReplyTo:   d.EmailConfig.ReplyTo(),
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
 	})

@@ -75,13 +75,11 @@ func TestCanAddAuthenticator(t *testing.T) {
 		OOBEmail int
 	}
 	type Limit struct {
-		Total    int
 		TOTP     int
 		OOBSMS   int
 		OOBEmail int
 	}
 	type Case struct {
-		Enabled  bool
 		Existing Existing
 		New      Authenticator
 		Limit    Limit
@@ -106,36 +104,32 @@ func TestCanAddAuthenticator(t *testing.T) {
 
 		newA := c.New
 
-		mfaConfiguration := &config.MFAConfiguration{
-			Enabled: c.Enabled,
-			Maximum: &c.Limit.Total,
-			TOTP: &config.MFATOTPConfiguration{
+		authenticatorConfiguration := &config.AuthenticatorConfiguration{
+			TOTP: &config.AuthenticatorTOTPConfiguration{
 				Maximum: &c.Limit.TOTP,
 			},
-			OOB: &config.MFAOOBConfiguration{
-				SMS: &config.MFAOOBSMSConfiguration{
+			OOB: &config.AuthenticatorOOBConfiguration{
+				SMS: &config.AuthenticatorOOBSMSConfiguration{
 					Maximum: &c.Limit.OOBSMS,
 				},
-				Email: &config.MFAOOBEmailConfiguration{
+				Email: &config.AuthenticatorOOBEmailConfiguration{
 					Maximum: &c.Limit.OOBEmail,
 				},
 			},
 		}
 
-		actual := CanAddAuthenticator(authenticators, newA, mfaConfiguration)
+		actual := CanAddAuthenticator(authenticators, newA, authenticatorConfiguration)
 		So(actual, ShouldEqual, c.Expected)
 	}
 
 	cases := []Case{
 		Case{
-			Enabled: true,
 			Existing: Existing{
 				TOTP:     0,
 				OOBSMS:   0,
 				OOBEmail: 0,
 			},
 			Limit: Limit{
-				Total:    1,
 				TOTP:     1,
 				OOBSMS:   0,
 				OOBEmail: 0,
@@ -145,14 +139,12 @@ func TestCanAddAuthenticator(t *testing.T) {
 		},
 
 		Case{
-			Enabled: false,
 			Existing: Existing{
-				TOTP:     0,
+				TOTP:     1,
 				OOBSMS:   0,
 				OOBEmail: 0,
 			},
 			Limit: Limit{
-				Total:    1,
 				TOTP:     1,
 				OOBSMS:   0,
 				OOBEmail: 0,
@@ -162,31 +154,12 @@ func TestCanAddAuthenticator(t *testing.T) {
 		},
 
 		Case{
-			Enabled: true,
-			Existing: Existing{
-				TOTP:     1,
-				OOBSMS:   0,
-				OOBEmail: 0,
-			},
-			Limit: Limit{
-				Total:    1,
-				TOTP:     1,
-				OOBSMS:   0,
-				OOBEmail: 0,
-			},
-			New:      TOTPAuthenticator{},
-			Expected: false,
-		},
-
-		Case{
-			Enabled: true,
 			Existing: Existing{
 				TOTP:     0,
 				OOBSMS:   0,
 				OOBEmail: 1,
 			},
 			Limit: Limit{
-				Total:    1,
 				TOTP:     0,
 				OOBSMS:   0,
 				OOBEmail: 1,
@@ -196,14 +169,12 @@ func TestCanAddAuthenticator(t *testing.T) {
 		},
 
 		Case{
-			Enabled: true,
 			Existing: Existing{
 				TOTP:     0,
 				OOBSMS:   0,
 				OOBEmail: 1,
 			},
 			Limit: Limit{
-				Total:    2,
 				TOTP:     0,
 				OOBSMS:   0,
 				OOBEmail: 2,
@@ -215,14 +186,12 @@ func TestCanAddAuthenticator(t *testing.T) {
 		},
 
 		Case{
-			Enabled: true,
 			Existing: Existing{
 				TOTP:     1,
 				OOBSMS:   0,
 				OOBEmail: 0,
 			},
 			Limit: Limit{
-				Total:    2,
 				TOTP:     1,
 				OOBSMS:   1,
 				OOBEmail: 0,
@@ -234,33 +203,12 @@ func TestCanAddAuthenticator(t *testing.T) {
 		},
 
 		Case{
-			Enabled: false,
-			Existing: Existing{
-				TOTP:     1,
-				OOBSMS:   0,
-				OOBEmail: 0,
-			},
-			Limit: Limit{
-				Total:    2,
-				TOTP:     1,
-				OOBSMS:   1,
-				OOBEmail: 0,
-			},
-			New: OOBAuthenticator{
-				Channel: authn.AuthenticatorOOBChannelSMS,
-			},
-			Expected: false,
-		},
-
-		Case{
-			Enabled: true,
 			Existing: Existing{
 				TOTP:     98,
 				OOBSMS:   0,
 				OOBEmail: 0,
 			},
 			Limit: Limit{
-				Total:    99,
 				TOTP:     99,
 				OOBSMS:   99,
 				OOBEmail: 99,
@@ -269,14 +217,12 @@ func TestCanAddAuthenticator(t *testing.T) {
 			Expected: true,
 		},
 		Case{
-			Enabled: true,
 			Existing: Existing{
 				TOTP:     99,
 				OOBSMS:   0,
 				OOBEmail: 0,
 			},
 			Limit: Limit{
-				Total:    99,
 				TOTP:     99,
 				OOBSMS:   99,
 				OOBEmail: 99,

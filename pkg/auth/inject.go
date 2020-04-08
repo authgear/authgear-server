@@ -138,14 +138,14 @@ func (m DependencyMap) Provide(
 	// TODO:
 	// from tConfig
 	isPasswordHistoryEnabled := func() bool {
-		return tConfig.AppConfig.PasswordPolicy.HistorySize > 0 ||
-			tConfig.AppConfig.PasswordPolicy.HistoryDays > 0
+		return tConfig.AppConfig.Authenticator.Password.Policy.HistorySize > 0 ||
+			tConfig.AppConfig.Authenticator.Password.Policy.HistoryDays > 0
 	}
 
 	newLoginIDChecker := func() loginid.LoginIDChecker {
 		return loginid.NewDefaultLoginIDChecker(
-			tConfig.AppConfig.Auth.LoginIDKeys,
-			tConfig.AppConfig.Auth.LoginIDTypes,
+			tConfig.AppConfig.Identity.LoginID.Keys,
+			tConfig.AppConfig.Identity.LoginID.Types,
 			m.ReservedNameChecker,
 		)
 	}
@@ -156,9 +156,8 @@ func (m DependencyMap) Provide(
 			newPasswordStore(),
 			newPasswordHistoryStore(),
 			newLoggerFactory(),
-			tConfig.AppConfig.Auth.LoginIDKeys,
-			tConfig.AppConfig.Auth.LoginIDTypes,
-			tConfig.AppConfig.Auth.AllowedRealms,
+			tConfig.AppConfig.Identity.LoginID.Keys,
+			tConfig.AppConfig.Identity.LoginID.Types,
 			isPasswordHistoryEnabled(),
 			m.ReservedNameChecker,
 		)
@@ -216,12 +215,12 @@ func (m DependencyMap) Provide(
 	newMFAProvider := func() mfa.Provider {
 		return mfa.NewProvider(
 			mfaPQ.NewStore(
-				tConfig.AppConfig.MFA,
+				tConfig.AppConfig.Authenticator.RecoveryCode,
 				newSQLBuilder(),
 				newSQLExecutor(),
 				newTimeProvider(),
 			),
-			tConfig.AppConfig.MFA,
+			tConfig.AppConfig.Authenticator,
 			newTimeProvider(),
 			mfa.NewSender(
 				tConfig,
@@ -234,8 +233,8 @@ func (m DependencyMap) Provide(
 
 	newLoginIDNormalizerFactory := func() loginid.LoginIDNormalizerFactory {
 		return loginid.NewLoginIDNormalizerFactory(
-			tConfig.AppConfig.Auth.LoginIDKeys,
-			tConfig.AppConfig.Auth.LoginIDTypes,
+			tConfig.AppConfig.Identity.LoginID.Keys,
+			tConfig.AppConfig.Identity.LoginID.Types,
 		)
 	}
 
@@ -244,20 +243,7 @@ func (m DependencyMap) Provide(
 	}
 
 	newPasswordChecker := func() *authAudit.PasswordChecker {
-		return &authAudit.PasswordChecker{
-			PwMinLength:         tConfig.AppConfig.PasswordPolicy.MinLength,
-			PwUppercaseRequired: tConfig.AppConfig.PasswordPolicy.UppercaseRequired,
-			PwLowercaseRequired: tConfig.AppConfig.PasswordPolicy.LowercaseRequired,
-			PwDigitRequired:     tConfig.AppConfig.PasswordPolicy.DigitRequired,
-			PwSymbolRequired:    tConfig.AppConfig.PasswordPolicy.SymbolRequired,
-			PwMinGuessableLevel: tConfig.AppConfig.PasswordPolicy.MinimumGuessableLevel,
-			PwExcludedKeywords:  tConfig.AppConfig.PasswordPolicy.ExcludedKeywords,
-			//PwExcludedFields:       tConfig.AppConfig.PasswordPolicy.ExcludedFields,
-			PwHistorySize:          tConfig.AppConfig.PasswordPolicy.HistorySize,
-			PwHistoryDays:          tConfig.AppConfig.PasswordPolicy.HistoryDays,
-			PasswordHistoryEnabled: tConfig.AppConfig.PasswordPolicy.HistorySize > 0 || tConfig.AppConfig.PasswordPolicy.HistoryDays > 0,
-			PasswordHistoryStore:   newPasswordHistoryStore(),
-		}
+		return authAudit.ProvidePasswordChecker(&tConfig, newPasswordHistoryStore())
 	}
 
 	switch dependencyName {
@@ -279,8 +265,8 @@ func (m DependencyMap) Provide(
 		return authAudit.NewPwHousekeeper(
 			newPasswordHistoryStore(),
 			newLoggerFactory(),
-			tConfig.AppConfig.PasswordPolicy.HistorySize,
-			tConfig.AppConfig.PasswordPolicy.HistoryDays,
+			tConfig.AppConfig.Authenticator.Password.Policy.HistorySize,
+			tConfig.AppConfig.Authenticator.Password.Policy.HistoryDays,
 			isPasswordHistoryEnabled(),
 		)
 	case "LoginIDChecker":
@@ -338,7 +324,7 @@ func (m DependencyMap) Provide(
 		return sso.NewProvider(
 			ctx,
 			tConfig.AppID,
-			tConfig.AppConfig.SSO.OAuth,
+			tConfig.AppConfig.Identity.OAuth,
 		)
 	case "OAuthAuthProvider":
 		return newOAuthAuthProvider()
@@ -351,11 +337,11 @@ func (m DependencyMap) Provide(
 	case "HookProvider":
 		return newHookProvider()
 	case "OAuthConfiguration":
-		return tConfig.AppConfig.SSO.OAuth
-	case "AuthConfiguration":
-		return *tConfig.AppConfig.Auth
-	case "MFAConfiguration":
-		return *tConfig.AppConfig.MFA
+		return tConfig.AppConfig.Identity.OAuth
+	case "AuthenticatorConfiguration":
+		return *tConfig.AppConfig.Authenticator
+	case "OAuthConflictConfiguration":
+		return tConfig.AppConfig.AuthAPI.OnIdentityConflict.OAuth
 	case "TenantConfiguration":
 		return &tConfig
 	case "URLPrefix":

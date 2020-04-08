@@ -12,18 +12,18 @@ import (
 )
 
 type providerImpl struct {
-	store            Store
-	mfaConfiguration *config.MFAConfiguration
-	timeProvider     time.Provider
-	sender           Sender
+	store               Store
+	authenticatorConfig *config.AuthenticatorConfiguration
+	timeProvider        time.Provider
+	sender              Sender
 }
 
-func NewProvider(store Store, mfaConfiguration *config.MFAConfiguration, timeProvider time.Provider, sender Sender) Provider {
+func NewProvider(store Store, authenticatorConfig *config.AuthenticatorConfiguration, timeProvider time.Provider, sender Sender) Provider {
 	return &providerImpl{
-		store:            store,
-		mfaConfiguration: mfaConfiguration,
-		timeProvider:     timeProvider,
-		sender:           sender,
+		store:               store,
+		authenticatorConfig: authenticatorConfig,
+		timeProvider:        timeProvider,
+		sender:              sender,
 	}
 }
 
@@ -137,7 +137,7 @@ func (p *providerImpl) CreateTOTP(userID string, displayName string) (*TOTPAuthe
 	if err != nil {
 		return nil, errors.HandledWithMessage(err, "failed to list TOTP")
 	}
-	ok := CanAddAuthenticator(authenticators, a, p.mfaConfiguration)
+	ok := CanAddAuthenticator(authenticators, a, p.authenticatorConfig)
 	if !ok {
 		return nil, NewInvalidMFARequest(TooManyAuthenticator, "no more authenticator can be added")
 	}
@@ -171,7 +171,7 @@ func (p *providerImpl) ActivateTOTP(userID string, code string) ([]string, error
 		return nil, errors.HandledWithMessage(err, "failed to list TOTP")
 	}
 
-	ok := CanAddAuthenticator(authenticators, *a, p.mfaConfiguration)
+	ok := CanAddAuthenticator(authenticators, *a, p.authenticatorConfig)
 	if !ok {
 		return nil, NewInvalidMFARequest(TooManyAuthenticator, "no more authenticator can be added")
 	}
@@ -332,7 +332,7 @@ func (p *providerImpl) CreateOOB(userID string, channel authn.AuthenticatorOOBCh
 	if err != nil {
 		return nil, errors.HandledWithMessage(err, "failed to list OOB")
 	}
-	ok := CanAddAuthenticator(authenticators, *a, p.mfaConfiguration)
+	ok := CanAddAuthenticator(authenticators, *a, p.authenticatorConfig)
 	if !ok {
 		return nil, NewInvalidMFARequest(TooManyAuthenticator, "no more authenticator can be added")
 	}
@@ -461,7 +461,7 @@ func (p *providerImpl) ActivateOOB(userID string, code string) ([]string, error)
 		return nil, errors.HandledWithMessage(err, "failed to list OOB")
 	}
 
-	ok := CanAddAuthenticator(authenticators, *a, p.mfaConfiguration)
+	ok := CanAddAuthenticator(authenticators, *a, p.authenticatorConfig)
 	if !ok {
 		return nil, NewInvalidMFARequest(TooManyAuthenticator, "no more authenticator can be added")
 	}
@@ -508,7 +508,7 @@ func (p *providerImpl) ActivateOOB(userID string, code string) ([]string, error)
 }
 
 func (p *providerImpl) createBearerToken(userID string, parentID string, now gotime.Time) (string, error) {
-	expireAt := now.Add(gotime.Duration(p.mfaConfiguration.BearerToken.ExpireInDays) * gotime.Hour * 24)
+	expireAt := now.Add(gotime.Duration(p.authenticatorConfig.BearerToken.ExpireInDays) * gotime.Hour * 24)
 	token := GenerateRandomBearerToken()
 	bt := BearerTokenAuthenticator{
 		ID:        uuid.New(),

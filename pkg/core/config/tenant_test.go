@@ -28,19 +28,19 @@ app_config:
   master_key: masterkey
   asset:
     secret: assetsecret
-  auth:
-    authentication_session:
+  authentication:
       secret: authnsessionsecret
-    login_id_keys:
-    - key: email
-      type: email
-    - key: phone
-      type: phone
-    - key: username
-      type: raw
   hook:
     secret: hooksecret
-  sso:
+  identity:
+    login_id:
+      keys:
+      - key: email
+        type: email
+      - key: phone
+        type: phone
+      - key: username
+        type: raw
     oauth:
       state_jwt_secret: statejwtsecret
 `, apiversion.APIVersion, apiversion.APIVersion)
@@ -60,29 +60,29 @@ var inputMinimalJSON = fmt.Sprintf(`
 		"asset": {
 			"secret": "assetsecret"
 		},
-		"auth": {
-			"authentication_session": {
-				"secret": "authnsessionsecret"
-			},
-			"login_id_keys": [
-				{
-					"key": "email",
-					"type": "email"
-				},
-				{
-					"key": "phone",
-					"type": "phone"
-				},
-				{
-					"key": "username",
-					"type": "raw"
-				}
-			]
+		"authentication": {
+			"secret": "authnsessionsecret"
 		},
 		"hook": {
 			"secret": "hooksecret"
 		},
-		"sso": {
+		"identity": {
+			"login_id": {
+				"keys": [
+					{
+						"key": "email",
+						"type": "email"
+					},
+					{
+						"key": "phone",
+						"type": "phone"
+					},
+					{
+						"key": "username",
+						"type": "raw"
+					}
+				]
+			},
 			"oauth": {
 				"state_jwt_secret": "statejwtsecret"
 			}
@@ -159,104 +159,123 @@ func makeFullTenantConfig() TenantConfiguration {
 			AuthUI: &AuthUIConfiguration{
 				CSS: "a { color: red; }",
 			},
-			Auth: &AuthConfiguration{
-				EnableAPI: true,
-				AuthenticationSession: &AuthenticationSessionConfiguration{
-					Secret: "authnsessionsecret",
-				},
-				LoginIDKeys: []LoginIDKeyConfiguration{
-					LoginIDKeyConfiguration{
-						Key:     "email",
-						Type:    LoginIDKeyType("email"),
-						Maximum: newInt(1),
+			AuthAPI: &AuthAPIConfiguration{
+				Enabled: true,
+				OnIdentityConflict: &AuthAPIIdentityConflictConfiguration{
+					LoginID: &AuthAPILoginIDConflictConfiguration{
+						AllowCreateNewUser: true,
 					},
-					LoginIDKeyConfiguration{
-						Key:     "phone",
-						Type:    LoginIDKeyType("phone"),
-						Maximum: newInt(1),
-					},
-					LoginIDKeyConfiguration{
-						Key:     "username",
-						Type:    LoginIDKeyTypeRaw,
-						Maximum: newInt(1),
+					OAuth: &AuthAPIOAuthConflictConfiguration{
+						AllowCreateNewUser: true,
+						AllowAutoMergeUser: true,
 					},
 				},
-				LoginIDTypes: &LoginIDTypesConfiguration{
-					Email: &LoginIDTypeEmailConfiguration{
-						CaseSensitive: newFalse(),
-						BlockPlusSign: newFalse(),
-						IgnoreDotSign: newFalse(),
-					},
-					Username: &LoginIDTypeUsernameConfiguration{
-						BlockReservedUsernames: newTrue(),
-						ExcludedKeywords:       []string{"skygear"},
-						ASCIIOnly:              newFalse(),
-						CaseSensitive:          newFalse(),
-					},
-				},
-				AllowedRealms:              []string{"default"},
-				OnUserDuplicateAllowCreate: true,
 			},
-			MFA: &MFAConfiguration{
-				Enabled:     true,
-				Enforcement: MFAEnforcementOptional,
-				Maximum:     newInt(99),
-				TOTP: &MFATOTPConfiguration{
+			Authentication: &AuthenticationConfiguration{
+				Secret:                      "authnsessionsecret",
+				Identities:                  []string{"login_id", "oauth"},
+				PrimaryAuthenticators:       []string{"oauth", "password"},
+				SecondaryAuthenticators:     []string{"otp", "bearer_token"},
+				SecondaryAuthenticationMode: SecondaryAuthenticationModeIfExists,
+			},
+			Authenticator: &AuthenticatorConfiguration{
+				Password: &AuthenticatorPasswordConfiguration{
+					Policy: &PasswordPolicyConfiguration{
+						MinLength:             8,
+						UppercaseRequired:     true,
+						LowercaseRequired:     true,
+						DigitRequired:         true,
+						SymbolRequired:        true,
+						MinimumGuessableLevel: 4,
+						ExcludedKeywords:      []string{"admin", "password", "secret"},
+						HistorySize:           10,
+						HistoryDays:           90,
+						ExpiryDays:            30,
+					},
+				},
+				TOTP: &AuthenticatorTOTPConfiguration{
 					Maximum: newInt(99),
 				},
-				OOB: &MFAOOBConfiguration{
-					Sender:  `"MFA Sender" <mfaoobsender@example.com>`,
-					Subject: "mfaoobsubject",
-					ReplyTo: `"MFA Reply To" <mfaoobreplyto@example.com>`,
-					SMS: &MFAOOBSMSConfiguration{
+				OOB: &AuthenticatorOOBConfiguration{
+					SMS: &AuthenticatorOOBSMSConfiguration{
 						Maximum: newInt(99),
+						Message: SMSMessageConfiguration{
+							"sender": "+85212345678",
+						},
 					},
-					Email: &MFAOOBEmailConfiguration{
+					Email: &AuthenticatorOOBEmailConfiguration{
 						Maximum: newInt(99),
+						Message: EmailMessageConfiguration{
+							"sender":   `"MFA Sender" <mfaoobsender@example.com>`,
+							"subject":  "mfaoobsubject",
+							"reply_to": `"MFA Reply To" <mfaoobreplyto@example.com>`,
+						},
 					},
 				},
-				BearerToken: &MFABearerTokenConfiguration{
+				BearerToken: &AuthenticatorBearerTokenConfiguration{
 					ExpireInDays: 60,
 				},
-				RecoveryCode: &MFARecoveryCodeConfiguration{
+				RecoveryCode: &AuthenticatorRecoveryCodeConfiguration{
 					Count:       24,
 					ListEnabled: true,
 				},
 			},
-			PasswordPolicy: &PasswordPolicyConfiguration{
-				MinLength:             8,
-				UppercaseRequired:     true,
-				LowercaseRequired:     true,
-				DigitRequired:         true,
-				SymbolRequired:        true,
-				MinimumGuessableLevel: 4,
-				ExcludedKeywords:      []string{"admin", "password", "secret"},
-				HistorySize:           10,
-				HistoryDays:           90,
-				ExpiryDays:            30,
-			},
 			ForgotPassword: &ForgotPasswordConfiguration{
-				SecureMatch:      true,
-				Sender:           `"Forgot Password Sender" <myforgotpasswordsender@example.com>`,
-				Subject:          "myforgotpasswordsubject",
-				ReplyTo:          `"Forgot Password Reply To" <myforgotpasswordreplyto@example.com>`,
+				SecureMatch: true,
+				EmailMessage: EmailMessageConfiguration{
+					"sender":   `"Forgot Password Sender" <myforgotpasswordsender@example.com>`,
+					"subject":  "myforgotpasswordsubject",
+					"reply_to": `"Forgot Password Reply To" <myforgotpasswordreplyto@example.com>`,
+				},
 				ResetURLLifetime: 60,
 				SuccessRedirect:  "http://localhost:3000/forgotpassword/success",
 				ErrorRedirect:    "http://localhost:3000/forgotpassword/error",
 			},
 			WelcomeEmail: &WelcomeEmailConfiguration{
-				Enabled:     true,
-				Sender:      `"Welcome Email Sender" <welcomeemailsender@example.com>`,
-				Subject:     "welcomeemailsubject",
-				ReplyTo:     `"Welcome Email Reply To" <welcomeemailreplyto@example.com>`,
+				Enabled: true,
+				Message: EmailMessageConfiguration{
+					"sender":   `"Welcome Email Sender" <welcomeemailsender@example.com>`,
+					"subject":  "welcomeemailsubject",
+					"reply_to": `"Welcome Email Reply To" <welcomeemailreplyto@example.com>`,
+				},
 				Destination: "first",
 			},
-			SSO: &SSOConfiguration{
+			Identity: &IdentityConfiguration{
+				LoginID: &LoginIDConfiguration{
+					Keys: []LoginIDKeyConfiguration{
+						LoginIDKeyConfiguration{
+							Key:     "email",
+							Type:    LoginIDKeyType("email"),
+							Maximum: newInt(1),
+						},
+						LoginIDKeyConfiguration{
+							Key:     "phone",
+							Type:    LoginIDKeyType("phone"),
+							Maximum: newInt(1),
+						},
+						LoginIDKeyConfiguration{
+							Key:     "username",
+							Type:    LoginIDKeyTypeRaw,
+							Maximum: newInt(1),
+						},
+					},
+					Types: &LoginIDTypesConfiguration{
+						Email: &LoginIDTypeEmailConfiguration{
+							CaseSensitive: newFalse(),
+							BlockPlusSign: newFalse(),
+							IgnoreDotSign: newFalse(),
+						},
+						Username: &LoginIDTypeUsernameConfiguration{
+							BlockReservedUsernames: newTrue(),
+							ExcludedKeywords:       []string{"skygear"},
+							ASCIIOnly:              newFalse(),
+							CaseSensitive:          newFalse(),
+						},
+					},
+				},
 				OAuth: &OAuthConfiguration{
 					StateJWTSecret:                 "oauthstatejwtsecret",
 					ExternalAccessTokenFlowEnabled: true,
-					OnUserDuplicateAllowMerge:      true,
-					OnUserDuplicateAllowCreate:     true,
 					Providers: []OAuthProviderConfiguration{
 						OAuthProviderConfiguration{
 							ID:           "google",
@@ -286,14 +305,29 @@ func makeFullTenantConfig() TenantConfiguration {
 						Expiry:          3600,
 						SuccessRedirect: "http://localhost:3000/userverification/success",
 						ErrorRedirect:   "http://localhost:3000/userverification/error",
-						Subject:         "userverificationsubject",
-						Sender:          `"Verify Sender" <userverificationsender@example.com>`,
-						ReplyTo:         `"Verify Reply To" <userverificationreplyto@example.com>`,
+						EmailMessage: EmailMessageConfiguration{
+							"sender":   `"Verify Sender" <userverificationsender@example.com>`,
+							"subject":  "userverificationsubject",
+							"reply_to": `"Verify Reply To" <userverificationreplyto@example.com>`,
+						},
+						SMSMessage: SMSMessageConfiguration{
+							"sender": "+85212345678",
+						},
 					},
 				},
 			},
 			Hook: &HookAppConfiguration{
 				Secret: "hook-secret",
+			},
+			Messages: &MessagesConfiguration{
+				Email: EmailMessageConfiguration{
+					"sender":   `"Default Sender" <defaultsender@example.com>`,
+					"subject":  "subject",
+					"reply_to": `"Default Reply To" <defaultreplyto@example.com>`,
+				},
+				SMS: SMSMessageConfiguration{
+					"sender": "+85212345678",
+				},
 			},
 			SMTP: &SMTPConfiguration{
 				Host:     "localhost",
@@ -305,12 +339,10 @@ func makeFullTenantConfig() TenantConfiguration {
 			Twilio: &TwilioConfiguration{
 				AccountSID: "mytwilioaccountsid",
 				AuthToken:  "mytwilioauthtoken",
-				From:       "mytwilio",
 			},
 			Nexmo: &NexmoConfiguration{
 				APIKey:    "mynexmoapikey",
 				APISecret: "mynexmoapisecret",
-				From:      "mynexmo",
 			},
 		},
 		TemplateItems: []TemplateItem{
@@ -411,7 +443,7 @@ func TestTenantConfig(t *testing.T) {
 		})
 		Convey("should set OAuth provider id and default scope", func() {
 			c := makeFullTenantConfig()
-			c.AppConfig.SSO.OAuth.Providers = []OAuthProviderConfiguration{
+			c.AppConfig.Identity.OAuth.Providers = []OAuthProviderConfiguration{
 				OAuthProviderConfiguration{
 					Type:         OAuthProviderTypeGoogle,
 					ClientID:     "googleclientid",
@@ -420,7 +452,7 @@ func TestTenantConfig(t *testing.T) {
 			}
 			c.AfterUnmarshal()
 
-			google := c.AppConfig.SSO.OAuth.Providers[0]
+			google := c.AppConfig.Identity.OAuth.Providers[0]
 
 			So(google.ID, ShouldEqual, OAuthProviderTypeGoogle)
 			So(google.Scope, ShouldEqual, "openid profile email")
@@ -453,7 +485,9 @@ func TestTenantConfig(t *testing.T) {
 			c.AppConfig.UserVerification.LoginIDKeys = append(
 				c.AppConfig.UserVerification.LoginIDKeys,
 				UserVerificationKeyConfiguration{
-					Key: "invalid",
+					Key:          "invalid",
+					SMSMessage:   SMSMessageConfiguration{},
+					EmailMessage: EmailMessageConfiguration{},
 				},
 			)
 
@@ -465,7 +499,7 @@ func TestTenantConfig(t *testing.T) {
 		})
 		Convey("should validate OAuth Provider", func() {
 			c := makeFullTenantConfig()
-			c.AppConfig.SSO.OAuth.Providers = []OAuthProviderConfiguration{
+			c.AppConfig.Identity.OAuth.Providers = []OAuthProviderConfiguration{
 				OAuthProviderConfiguration{
 					ID:           "azure",
 					Type:         OAuthProviderTypeAzureADv2,
@@ -485,7 +519,7 @@ func TestTenantConfig(t *testing.T) {
 			testValidation(&c, []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
 				Message: "duplicated OAuth provider",
-				Pointer: "/user_config/sso/oauth/providers/1",
+				Pointer: "/user_config/identity/oauth/providers/1",
 			}})
 		})
 		Convey("should omit empty", func() {
@@ -503,12 +537,11 @@ func TestTenantConfig(t *testing.T) {
 		Convey("UpdateNilFieldsWithZeroValue", func() {
 			userConfig := &AppConfiguration{}
 			So(userConfig.CORS, ShouldBeNil)
-			So(userConfig.Auth, ShouldBeNil)
-			So(userConfig.MFA, ShouldBeNil)
-			So(userConfig.PasswordPolicy, ShouldBeNil)
+			So(userConfig.Authentication, ShouldBeNil)
+			So(userConfig.Authenticator, ShouldBeNil)
 			So(userConfig.ForgotPassword, ShouldBeNil)
 			So(userConfig.WelcomeEmail, ShouldBeNil)
-			So(userConfig.SSO, ShouldBeNil)
+			So(userConfig.Identity, ShouldBeNil)
 			So(userConfig.UserVerification, ShouldBeNil)
 			So(userConfig.Hook, ShouldBeNil)
 			So(userConfig.SMTP, ShouldBeNil)
@@ -519,20 +552,19 @@ func TestTenantConfig(t *testing.T) {
 			marshal.UpdateNilFieldsWithZeroValue(userConfig)
 
 			So(userConfig.CORS, ShouldNotBeNil)
-			So(userConfig.Auth, ShouldNotBeNil)
-			So(userConfig.MFA, ShouldNotBeNil)
-			So(userConfig.PasswordPolicy, ShouldNotBeNil)
+			So(userConfig.Authentication, ShouldNotBeNil)
+			So(userConfig.Authenticator, ShouldNotBeNil)
 			So(userConfig.ForgotPassword, ShouldNotBeNil)
 			So(userConfig.WelcomeEmail, ShouldNotBeNil)
-			So(userConfig.SSO, ShouldNotBeNil)
+			So(userConfig.Identity, ShouldNotBeNil)
 			So(userConfig.UserVerification, ShouldNotBeNil)
 			So(userConfig.Hook, ShouldNotBeNil)
 			So(userConfig.SMTP, ShouldNotBeNil)
 			So(userConfig.Twilio, ShouldNotBeNil)
 			So(userConfig.Nexmo, ShouldNotBeNil)
 			So(userConfig.Asset, ShouldNotBeNil)
-
-			So(userConfig.Auth.AuthenticationSession, ShouldNotBeNil)
+			So(userConfig.Messages, ShouldNotBeNil)
+			So(userConfig.Messages.Email, ShouldNotBeNil)
 		})
 	})
 

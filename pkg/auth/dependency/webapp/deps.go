@@ -9,8 +9,8 @@ import (
 
 func ProvideValidateProvider(tConfig *config.TenantConfiguration) ValidateProvider {
 	return &ValidateProviderImpl{
-		Validator:         validator,
-		AuthConfiguration: tConfig.AppConfig.Auth,
+		Validator:            validator,
+		LoginIDConfiguration: tConfig.AppConfig.Identity.LoginID,
 	}
 }
 

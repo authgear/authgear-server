@@ -10,7 +10,8 @@ import (
 
 type senderImpl struct {
 	appName        string
-	oobConfig      *config.MFAOOBConfiguration
+	smsConfig      config.SMSMessageConfiguration
+	emailConfig    config.EmailMessageConfiguration
 	smsClient      sms.Client
 	mailSender     mail.Sender
 	templateEngine *template.Engine
@@ -23,8 +24,15 @@ func NewSender(
 	templateEngine *template.Engine,
 ) Sender {
 	return &senderImpl{
-		appName:        tConfig.AppConfig.DisplayAppName,
-		oobConfig:      tConfig.AppConfig.MFA.OOB,
+		appName: tConfig.AppConfig.DisplayAppName,
+		smsConfig: config.NewSMSMessageConfiguration(
+			tConfig.AppConfig.Messages.SMS,
+			tConfig.AppConfig.Authenticator.OOB.SMS.Message,
+		),
+		emailConfig: config.NewEmailMessageConfiguration(
+			tConfig.AppConfig.Messages.Email,
+			tConfig.AppConfig.Authenticator.OOB.Email.Message,
+		),
 		smsClient:      smsClient,
 		mailSender:     mailSender,
 		templateEngine: templateEngine,
@@ -56,7 +64,7 @@ func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error
 		return err
 	}
 
-	err = s.smsClient.Send(phone, body)
+	err = s.smsClient.Send(s.smsConfig.Sender(), phone, body)
 	if err != nil {
 		err = errors.Newf("failed to send MFA SMS message: %w", err)
 	}
@@ -85,10 +93,10 @@ func (s *senderImpl) SendEmail(context map[string]interface{}, email string) err
 	}
 
 	err = s.mailSender.Send(mail.SendOptions{
-		Sender:    s.oobConfig.Sender,
+		Sender:    s.emailConfig.Sender(),
 		Recipient: email,
-		Subject:   s.oobConfig.Subject,
-		ReplyTo:   s.oobConfig.ReplyTo,
+		Subject:   s.emailConfig.Subject(),
+		ReplyTo:   s.emailConfig.ReplyTo(),
 		TextBody:  textBody,
 		HTMLBody:  htmlBody,
 	})

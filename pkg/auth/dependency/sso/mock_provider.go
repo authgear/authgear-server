@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"net/url"
 
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
@@ -91,14 +90,6 @@ func (f *MockSSOProvider) EncodeSkygearAuthorizationCode(code SkygearAuthorizati
 
 func (f *MockSSOProvider) DecodeSkygearAuthorizationCode(encoded string) (*SkygearAuthorizationCode, error) {
 	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, "myapp", encoded)
-}
-
-func (f *MockSSOProvider) IsAllowedOnUserDuplicate(a model.OnUserDuplicate) bool {
-	return model.IsAllowedOnUserDuplicate(
-		f.OAuthConfig.OnUserDuplicateAllowMerge,
-		f.OAuthConfig.OnUserDuplicateAllowCreate,
-		a,
-	)
 }
 
 func (f *MockSSOProvider) IsValidCallbackURL(client config.OAuthClientConfiguration, u string) bool {

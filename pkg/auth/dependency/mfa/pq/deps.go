@@ -14,7 +14,7 @@ func ProvideStore(
 	sqle db.SQLExecutor,
 	tp time.Provider,
 ) mfa.Store {
-	return NewStore(config.AppConfig.MFA, sqlb, sqle, tp)
+	return NewStore(config.AppConfig.Authenticator.RecoveryCode, sqlb, sqle, tp)
 }
 
 var DependencySet = wire.NewSet(ProvideStore)

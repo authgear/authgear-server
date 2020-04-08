@@ -62,7 +62,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	case config.OAuthProviderTypeGoogle:
 		return &GoogleImpl{
 			URLPrefix:                p.urlPrefixProvider.Value(),
-			OAuthConfig:              p.tenantConfig.AppConfig.SSO.OAuth,
+			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:           providerConfig,
 			TimeProvider:             p.timeProvider,
 			UserInfoDecoder:          p.userInfoDecoder,
@@ -71,28 +71,28 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	case config.OAuthProviderTypeFacebook:
 		return &FacebookImpl{
 			URLPrefix:       p.urlPrefixProvider.Value(),
-			OAuthConfig:     p.tenantConfig.AppConfig.SSO.OAuth,
+			OAuthConfig:     p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:  providerConfig,
 			UserInfoDecoder: p.userInfoDecoder,
 		}
 	case config.OAuthProviderTypeInstagram:
 		return &InstagramImpl{
 			URLPrefix:       p.urlPrefixProvider.Value(),
-			OAuthConfig:     p.tenantConfig.AppConfig.SSO.OAuth,
+			OAuthConfig:     p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:  providerConfig,
 			UserInfoDecoder: p.userInfoDecoder,
 		}
 	case config.OAuthProviderTypeLinkedIn:
 		return &LinkedInImpl{
 			URLPrefix:       p.urlPrefixProvider.Value(),
-			OAuthConfig:     p.tenantConfig.AppConfig.SSO.OAuth,
+			OAuthConfig:     p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:  providerConfig,
 			UserInfoDecoder: p.userInfoDecoder,
 		}
 	case config.OAuthProviderTypeAzureADv2:
 		return &Azureadv2Impl{
 			URLPrefix:                p.urlPrefixProvider.Value(),
-			OAuthConfig:              p.tenantConfig.AppConfig.SSO.OAuth,
+			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:           providerConfig,
 			TimeProvider:             p.timeProvider,
 			LoginIDNormalizerFactory: p.loginIDNormalizerFactory,
@@ -100,7 +100,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	case config.OAuthProviderTypeApple:
 		return &AppleImpl{
 			URLPrefix:                p.urlPrefixProvider.Value(),
-			OAuthConfig:              p.tenantConfig.AppConfig.SSO.OAuth,
+			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:           providerConfig,
 			TimeProvider:             p.timeProvider,
 			LoginIDNormalizerFactory: p.loginIDNormalizerFactory,

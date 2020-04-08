@@ -139,9 +139,10 @@ type AuthURLRequestPayload struct {
 	MergeRealm      string                `json:"-"`
 	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 
-	Client               config.OAuthClientConfiguration `json:"-"`
-	PasswordAuthProvider password.Provider               `json:"-"`
-	SSOProvider          sso.Provider                    `json:"-"`
+	Client               config.OAuthClientConfiguration           `json:"-"`
+	PasswordAuthProvider password.Provider                         `json:"-"`
+	SSOProvider          sso.Provider                              `json:"-"`
+	ConflictConfig       *config.AuthAPIOAuthConflictConfiguration `json:"-"`
 }
 
 func (p *AuthURLRequestPayload) SetDefaultValue() {
@@ -163,7 +164,11 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		}}
 	}
 
-	if !p.SSOProvider.IsAllowedOnUserDuplicate(p.OnUserDuplicate) {
+	if !model.IsAllowedOnUserDuplicate(
+		p.ConflictConfig.AllowAutoMergeUser,
+		p.ConflictConfig.AllowCreateNewUser,
+		p.OnUserDuplicate,
+	) {
 		return []validation.ErrorCause{{
 			Kind:    validation.ErrorGeneral,
 			Pointer: "/on_user_duplicate",
@@ -214,15 +219,16 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		@Callback user_sync {UserSyncEvent}
 */
 type AuthURLHandler struct {
-	TxContext            db.TxContext              `dependency:"TxContext"`
-	Validator            *validation.Validator     `dependency:"Validator"`
-	RequireAuthz         handler.RequireAuthz      `dependency:"RequireAuthz"`
-	ProviderFactory      *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
-	PasswordAuthProvider password.Provider         `dependency:"PasswordAuthProvider"`
-	SSOProvider          sso.Provider              `dependency:"SSOProvider"`
-	OAuthProvider        sso.OAuthProvider
-	ProviderID           string
-	Action               string
+	TxContext                  db.TxContext                              `dependency:"TxContext"`
+	Validator                  *validation.Validator                     `dependency:"Validator"`
+	RequireAuthz               handler.RequireAuthz                      `dependency:"RequireAuthz"`
+	ProviderFactory            *sso.OAuthProviderFactory                 `dependency:"SSOOAuthProviderFactory"`
+	PasswordAuthProvider       password.Provider                         `dependency:"PasswordAuthProvider"`
+	SSOProvider                sso.Provider                              `dependency:"SSOProvider"`
+	OAuthConflictConfiguration *config.AuthAPIOAuthConflictConfiguration `dependency:"OAuthConflictConfiguration"`
+	OAuthProvider              sso.OAuthProvider
+	ProviderID                 string
+	Action                     string
 }
 
 func (h *AuthURLHandler) ProvideAuthzPolicy() coreauthz.Policy {
@@ -253,6 +259,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	payload.Client = coreauth.GetAccessKey(r.Context()).Client
 	payload.PasswordAuthProvider = h.PasswordAuthProvider
 	payload.SSOProvider = h.SSOProvider
+	payload.ConflictConfig = h.OAuthConflictConfiguration
 	err = handler.BindJSONBody(r, w, h.Validator, "#AuthURLRequest", &payload)
 	if err != nil {
 		return

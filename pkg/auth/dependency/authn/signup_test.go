@@ -73,9 +73,6 @@ func TestSignupWithLoginIDs(t *testing.T) {
 				},
 			},
 		}
-		authConfiguration := &config.AuthConfiguration{
-			LoginIDKeys: loginIDsKeys,
-		}
 		loginIDChecker := &loginid.MockLoginIDChecker{}
 		urlPrefixProvider := urlprefix.Provider{
 			Prefix: url.URL{
@@ -96,7 +93,7 @@ func TestSignupWithLoginIDs(t *testing.T) {
 		impl.HookProvider = hookProvider
 		impl.WelcomeEmailConfiguration = welcomeEmailConfiguration
 		impl.UserVerificationConfiguration = userVerificationConfiguration
-		impl.AuthConfiguration = authConfiguration
+		impl.LoginIDConflictConfiguration = &config.AuthAPILoginIDConflictConfiguration{}
 		impl.URLPrefixProvider = urlPrefixProvider
 		impl.TaskQueue = taskQueue
 
@@ -164,7 +161,7 @@ func TestSignupWithLoginIDs(t *testing.T) {
 				passwordProvider,
 				oauthProvider,
 			)
-			impl.AuthConfiguration.OnUserDuplicateAllowCreate = true
+			impl.LoginIDConflictConfiguration.AllowCreateNewUser = true
 			_, err := impl.SignupWithLoginIDs(
 				[]loginid.LoginID{
 					{Key: "email", Value: "john.doe@example.com"},

@@ -66,21 +66,22 @@ var (
 			"session": { "$ref": "#SessionConfiguration" },
 			"cors": { "$ref": "#CORSConfiguration" },
 			"oidc": { "$ref": "#OIDCConfiguration" },
-			"auth": { "$ref": "#AuthConfiguration" },
+			"authentication": { "$ref": "#AuthenticationConfiguration" },
+			"auth_api": { "$ref": "#AuthAPIConfiguration" },
 			"auth_ui": { "$ref": "#AuthUIConfiguration" },
-			"mfa": { "$ref": "#MFAConfiguration" },
-			"password_policy": { "$ref": "#PasswordPolicyConfiguration" },
+			"authenticator": { "$ref": "#AuthenticatorConfiguration" },
 			"forgot_password": { "$ref": "#ForgotPasswordConfiguration" },
 			"welcome_email": { "$ref": "#WelcomeEmailConfiguration" },
-			"sso": { "$ref": "#SSOConfiguration" },
+			"identity": { "$ref": "#IdentityConfiguration" },
 			"user_verification": { "$ref": "#UserVerificationConfiguration" },
 			"hook": { "$ref": "#HookAppConfiguration" },
+			"messages": { "$ref": "#MessagesConfiguration" },
 			"smtp" : { "$ref": "#SMTPConfiguration" },
 			"twilio" : { "$ref": "#TwilioConfiguration" },
 			"nexmo" : { "$ref": "#NexmoConfiguration" },
 			"asset": { "$ref": "#AssetConfiguration" }
 		},
-		"required": ["api_version", "master_key", "auth", "hook", "asset"]
+		"required": ["api_version", "master_key", "authentication", "hook", "asset"]
 	},
 	"AssetConfiguration": {
 		"$id": "#AssetConfiguration",
@@ -168,46 +169,86 @@ var (
 			"css": { "type": "string" }
 		}
 	},
-	"AuthConfiguration": {
-		"$id": "#AuthConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"enable_api": { "type": "boolean" },
-			"authentication_session": { "$ref": "#AuthenticationSessionConfiguration" },
-			"login_id_keys": {
-				"type": "array",
-				"minItems": 1,
-				"items": { "$ref": "#LoginIDKeyConfiguration" }
-			},
-			"login_id_types": { "$ref": "#LoginIDTypesConfiguration" },
-			"on_user_duplicate_allow_create": { "type": "boolean" }
-		},
-		"required": ["authentication_session"]
-	},
-	"AuthenticationSessionConfiguration": {
-		"$id": "#AuthenticationSessionConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"secret": { "$ref": "#NonEmptyString" }
-		},
-		"required": ["secret"]
-	},
-	"MFAConfiguration": {
-		"$id": "#MFAConfiguration",
+	"AuthAPIConfiguration": {
+		"$id": "#AuthAPIConfiguration",
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
 			"enabled": { "type": "boolean" },
-			"enforcement": {
-				"type": "string",
-				"enum": ["off", "optional", "required"]
+			"on_identity_conflict": { "$ref": "#AuthAPIIdentityConflictConfiguration" }
+		}
+	},
+	"AuthAPIIdentityConflictConfiguration": {
+		"$id": "#AuthAPIIdentityConflictConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"login_id": { "$ref": "#AuthAPILoginIDConflictConfiguration" },
+			"oauth": { "$ref": "#AuthAPIOAuthConflictConfiguration" }
+		}
+	},
+	"AuthAPILoginIDConflictConfiguration": {
+		"$id": "#AuthAPILoginIDConflictConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"allow_create_new_user": { "type": "boolean" }
+		}
+	},
+	"AuthAPIOAuthConflictConfiguration": {
+		"$id": "#AuthAPIOAuthConflictConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"allow_create_new_user": { "type": "boolean" },
+			"allow_auto_merge_user": { "type": "boolean" }
+		}
+	},
+	"AuthenticationConfiguration": {
+		"$id": "#AuthenticationConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"identities": {
+				"type": "array",
+				"items": {
+					"type": "string",
+					"enum": ["oauth", "login_id"]
+				}
 			},
-			"maximum": {
-				"type": "integer",
-				"minimum": 0,
-				"maximum": 999
+			"primary_authenticators": {
+				"type": "array",
+				"items": {
+					"type": "string",
+					"enum": ["oauth", "password", "otp"]
+				}
+			},
+			"secondary_authenticators": {
+				"type": "array",
+				"items": {
+					"type": "string",
+					"enum": ["otp", "bearer_token"]
+				}
+			},
+			"secondary_authentication_mode": {
+				"type": "string",
+				"enum": ["if_requested", "if_exists", "required"]
+			},
+			"secret": { "$ref": "#NonEmptyString" }
+		},
+		"required": ["secret"]
+	},
+	"AuthenticatorConfiguration": {
+		"$id": "#AuthenticatorConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"password": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"policy": { "$ref": "#PasswordPolicyConfiguration" }
+				}
 			},
 			"totp": {
 				"type": "object",
@@ -220,14 +261,10 @@ var (
 					}
 				}
 			},
-			"oob": {
+			"oob_otp": {
 				"type": "object",
 				"additionalProperties": false,
 				"properties": {
-					"app_name": { "type": "string" },
-					"sender": { "type": "string", "format": "NameEmailAddr" },
-					"subject": { "type": "string" },
-					"reply_to": { "type": "string", "format": "NameEmailAddr" },
 					"sms": {
 						"type": "object",
 						"additionalProperties": false,
@@ -236,7 +273,8 @@ var (
 								"type": "integer",
 								"minimum": 0,
 								"maximum": 999
-							}
+							},
+							"message": { "$ref": "#SMSMessageConfiguration" }
 						}
 					},
 					"email": {
@@ -247,7 +285,8 @@ var (
 								"type": "integer",
 								"minimum": 0,
 								"maximum": 999
-							}
+							},
+							"message": { "$ref": "#EmailMessageConfiguration" }
 						}
 					}
 				}
@@ -277,6 +316,78 @@ var (
 					}
 				}
 			}
+		}
+	},
+	"PasswordPolicyConfiguration": {
+		"$id": "#PasswordPolicyConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"min_length": { "$ref": "#NonNegativeInteger" },
+			"uppercase_required": { "type": "boolean" },
+			"lowercase_required": { "type": "boolean" },
+			"digit_required": { "type": "boolean" },
+			"symbol_required": { "type": "boolean" },
+			"minimum_guessable_level": {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 4
+			},
+			"excluded_keywords": {
+				"type": "array",
+				"items": { "type": "string" }
+			},
+			"history_size": { "$ref": "#NonNegativeInteger" },
+			"history_days": { "$ref": "#NonNegativeInteger" },
+			"expiry_days": { "$ref": "#NonNegativeInteger" }
+		}
+	},
+	"ForgotPasswordConfiguration": {
+		"$id": "#ForgotPasswordConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"app_name": { "type": "string" },
+			"secure_match": { "type": "boolean" },
+			"email_message": { "$ref": "#EmailMessageConfiguration" },
+			"reset_url_lifetime": { "$ref": "#NonNegativeInteger" },
+			"success_redirect": { "type": "string" },
+			"error_redirect": { "type": "string" }
+		}
+	},
+	"WelcomeEmailConfiguration": {
+		"$id": "#WelcomeEmailConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"enabled": { "type": "boolean" },
+			"message": { "$ref": "#EmailMessageConfiguration" },
+			"destination": {
+				"type": "string",
+				"enum": ["first", "all"]
+			}
+		}
+	},
+	"IdentityConfiguration": {
+		"$id": "#IdentityConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"login_id": { "$ref": "#LoginIDConfiguration" },
+			"oauth": { "$ref": "#OAuthConfiguration" }
+		}
+	},
+	"LoginIDConfiguration": {
+		"$id": "#LoginIDConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"keys": {
+				"type": "array",
+				"minItems": 1,
+				"items": { "$ref": "#LoginIDKeyConfiguration" }
+			},
+			"types": { "$ref": "#LoginIDTypesConfiguration" }
 		}
 	},
 	"LoginIDKeyConfiguration": {
@@ -324,68 +435,6 @@ var (
 			},
 			"ascii_only": { "type": "boolean" },
 			"case_sensitive": { "type": "boolean" }
-		}
-	},
-	"PasswordPolicyConfiguration": {
-		"$id": "#PasswordPolicyConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"min_length": { "$ref": "#NonNegativeInteger" },
-			"uppercase_required": { "type": "boolean" },
-			"lowercase_required": { "type": "boolean" },
-			"digit_required": { "type": "boolean" },
-			"symbol_required": { "type": "boolean" },
-			"minimum_guessable_level": {
-				"type": "integer",
-				"minimum": 0,
-				"maximum": 4
-			},
-			"excluded_keywords": {
-				"type": "array",
-				"items": { "type": "string" }
-			},
-			"history_size": { "$ref": "#NonNegativeInteger" },
-			"history_days": { "$ref": "#NonNegativeInteger" },
-			"expiry_days": { "$ref": "#NonNegativeInteger" }
-		}
-	},
-	"ForgotPasswordConfiguration": {
-		"$id": "#ForgotPasswordConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"app_name": { "type": "string" },
-			"secure_match": { "type": "boolean" },
-			"sender": { "type": "string", "format": "NameEmailAddr" },
-			"reply_to": { "type": "string", "format": "NameEmailAddr" },
-			"subject": { "type": "string" },
-			"reset_url_lifetime": { "$ref": "#NonNegativeInteger" },
-			"success_redirect": { "type": "string" },
-			"error_redirect": { "type": "string" }
-		}
-	},
-	"WelcomeEmailConfiguration": {
-		"$id": "#WelcomeEmailConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"enabled": { "type": "boolean" },
-			"sender": { "type": "string", "format": "NameEmailAddr" },
-			"reply_to": { "type": "string", "format": "NameEmailAddr" },
-			"subject": { "type": "string" },
-			"destination": {
-				"type": "string",
-				"enum": ["first", "all"]
-			}
-		}
-	},
-	"SSOConfiguration": {
-		"$id": "#SSOConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"oauth": { "$ref": "#OAuthConfiguration" }
 		}
 	},
 	"OAuthConfiguration": {
@@ -478,9 +527,8 @@ var (
 			"expiry": { "$ref": "#NonNegativeInteger" },
 			"success_redirect": { "type": "string" },
 			"error_redirect": { "type": "string" },
-			"subject": { "type": "string" },
-			"sender": { "type": "string", "format": "NameEmailAddr" },
-			"reply_to": { "type": "string", "format": "NameEmailAddr" }
+			"sms_message": { "$ref": "#SMSMessageConfiguration" },
+			"email_message": { "$ref": "#EmailMessageConfiguration" }
 		}
 	},
 	"HookAppConfiguration": {
@@ -491,6 +539,37 @@ var (
 			"secret": { "$ref": "#NonEmptyString" }
 		},
 		"required": ["secret"]
+	},
+	"MessagesConfiguration": {
+		"$id": "#MessagesConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"email": { "$ref": "#EmailMessageConfiguration" },
+			"sms_provider": {
+				"type": "string",
+				"enum": ["nexmo", "twilio"]
+			},
+			"sms": { "$ref": "#SMSMessageConfiguration" }
+		}
+	},
+	"EmailMessageConfiguration": {
+		"$id": "#EmailMessageConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"patternProperties": {
+			"^sender(#.+)?$": { "type": "string", "format": "NameEmailAddr" },
+			"^subject(#.+)?$": { "type": "string" },
+			"^reply_to(#.+)?$": { "type": "string", "format": "NameEmailAddr" }
+		}
+	},
+	"SMSMessageConfiguration": {
+		"$id": "#SMSMessageConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"patternProperties": {
+			"^sender(#.+)?$": { "type": "string", "format": "phone" }
+		}
 	},
 	"SMTPConfiguration": {
 		"$id": "#SMTPConfiguration",
@@ -513,8 +592,7 @@ var (
 		"additionalProperties": false,
 		"properties": {
 			"account_sid": { "type": "string" },
-			"auth_token": { "type": "string" },
-			"from": { "type": "string" }
+			"auth_token": { "type": "string" }
 		}
 	},
 	"NexmoConfiguration": {
@@ -523,8 +601,7 @@ var (
 		"additionalProperties": false,
 		"properties": {
 			"api_key": { "type": "string" },
-			"api_secret": { "type": "string" },
-			"from": { "type": "string" }
+			"api_secret": { "type": "string" }
 		}
 	}
 }

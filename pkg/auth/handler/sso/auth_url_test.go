@@ -61,6 +61,7 @@ func TestAuthURLHandler(t *testing.T) {
 			nil,
 			[]string{password.DefaultRealm},
 		)
+		h.OAuthConflictConfiguration = &coreconfig.AuthAPIOAuthConflictConfiguration{}
 		h.TxContext = db.NewMockTxContext()
 		h.OAuthProvider = &mockProvider
 		h.SSOProvider = &mockProvider

@@ -46,7 +46,7 @@ func ProvideSignupProcess(
 		HookProvider:                  hp,
 		WelcomeEmailConfiguration:     cfg.AppConfig.WelcomeEmail,
 		UserVerificationConfiguration: cfg.AppConfig.UserVerification,
-		AuthConfiguration:             cfg.AppConfig.Auth,
+		LoginIDConflictConfiguration:  cfg.AppConfig.AuthAPI.OnIdentityConflict.LoginID,
 		URLPrefixProvider:             up,
 		TaskQueue:                     q,
 	}
@@ -80,17 +80,16 @@ func ProvideSessionProvider(
 	ti TokenIssuer,
 ) *SessionProvider {
 	return &SessionProvider{
-		MFAProvider:        mp,
-		SessionProvider:    sp,
-		ClientConfigs:      cfg.AppConfig.Clients,
-		MFAConfig:          cfg.AppConfig.MFA,
-		AuthnSessionConfig: cfg.AppConfig.Auth.AuthenticationSession,
-		TimeProvider:       tp,
-		AuthInfoStore:      as,
-		UserProfileStore:   us,
-		IdentityProvider:   ip,
-		HookProvider:       hp,
-		TokenIssuer:        ti,
+		MFAProvider:      mp,
+		SessionProvider:  sp,
+		ClientConfigs:    cfg.AppConfig.Clients,
+		AuthnConfig:      cfg.AppConfig.Authentication,
+		TimeProvider:     tp,
+		AuthInfoStore:    as,
+		UserProfileStore: us,
+		IdentityProvider: ip,
+		HookProvider:     hp,
+		TokenIssuer:      ti,
 	}
 }
 

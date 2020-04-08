@@ -30,11 +30,11 @@ app_config:
     login_id_keys:
     - key: email
     - key: phone
-  auth:
-    enable_api: true
-    authentication_session:
-      secret: authnsessionsecret
-  sso:
+  auth_api:
+    enabled: true
+  authentication:
+    secret: authnsessionsecret
+  identity:
     oauth:
       state_jwt_secret: statesecret
       providers:

@@ -52,7 +52,7 @@ type SignupProcess struct {
 	HookProvider                  hook.Provider
 	WelcomeEmailConfiguration     *config.WelcomeEmailConfiguration
 	UserVerificationConfiguration *config.UserVerificationConfiguration
-	AuthConfiguration             *config.AuthConfiguration
+	LoginIDConflictConfiguration  *config.AuthAPILoginIDConflictConfiguration
 	URLPrefixProvider             urlprefix.Provider
 	TaskQueue                     async.Queue
 }
@@ -149,7 +149,7 @@ func (p *SignupProcess) validateCreateUserWithLoginIDs(loginIDs []loginid.LoginI
 
 	if !model.IsAllowedOnUserDuplicate(
 		false,
-		p.AuthConfiguration.OnUserDuplicateAllowCreate,
+		p.LoginIDConflictConfiguration.AllowCreateNewUser,
 		onUserDuplicate,
 	) {
 		causes = append(causes, validation.ErrorCause{

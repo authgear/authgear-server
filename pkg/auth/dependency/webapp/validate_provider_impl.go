@@ -162,8 +162,8 @@ const SignupLoginIDPasswordRequestSchema = `
 `
 
 type ValidateProviderImpl struct {
-	Validator         *validation.Validator
-	AuthConfiguration *config.AuthConfiguration
+	Validator            *validation.Validator
+	LoginIDConfiguration *config.LoginIDConfiguration
 }
 
 var _ ValidateProvider = &ValidateProviderImpl{}
@@ -187,8 +187,8 @@ func (p *ValidateProviderImpl) PrepareValues(form url.Values) {
 
 	// Set x_login_id_input_type to the type of the first login ID.
 	if _, ok := form["x_login_id_input_type"]; !ok {
-		if len(p.AuthConfiguration.LoginIDKeys) > 0 {
-			if string(p.AuthConfiguration.LoginIDKeys[0].Type) == "phone" {
+		if len(p.LoginIDConfiguration.Keys) > 0 {
+			if string(p.LoginIDConfiguration.Keys[0].Type) == "phone" {
 				form.Set("x_login_id_input_type", "phone")
 			} else {
 				form.Set("x_login_id_input_type", "text")
@@ -198,8 +198,8 @@ func (p *ValidateProviderImpl) PrepareValues(form url.Values) {
 
 	// Set x_login_id_key to the key of the first login ID.
 	if _, ok := form["x_login_id_key"]; !ok {
-		if len(p.AuthConfiguration.LoginIDKeys) > 0 {
-			form.Set("x_login_id_key", p.AuthConfiguration.LoginIDKeys[0].Key)
+		if len(p.LoginIDConfiguration.Keys) > 0 {
+			form.Set("x_login_id_key", p.LoginIDConfiguration.Keys[0].Key)
 		}
 	}
 }

@@ -8,39 +8,33 @@ import (
 
 var ErrNoAvailableClient = errors.New("no available SMS client")
 
-type clientImpl struct {
-	appConfig    *config.AppConfiguration
-	nexmoClient  *NexmoClient
-	twilioClient *TwilioClient
+type clientWrapper struct {
+	client Client
 }
 
 func NewClient(appConfig *config.AppConfiguration) Client {
-	nexmoConfig := appConfig.Nexmo
-	twilioConfig := appConfig.Twilio
+	var client Client
 
-	var nexmoClient *NexmoClient
-	if nexmoConfig.IsValid() {
-		nexmoClient = NewNexmoClient(nexmoConfig)
+	switch appConfig.Messages.SMSProvider {
+	case config.SMSProviderNexmo:
+		nexmoConfig := appConfig.Nexmo
+		if nexmoConfig.IsValid() {
+			client = NewNexmoClient(nexmoConfig)
+		}
+
+	case config.SMSProviderTwilio:
+		twilioConfig := appConfig.Twilio
+		if twilioConfig.IsValid() {
+			client = NewTwilioClient(twilioConfig)
+		}
 	}
 
-	var twilioClient *TwilioClient
-	if twilioConfig.IsValid() {
-		twilioClient = NewTwilioClient(twilioConfig)
-	}
-
-	return &clientImpl{
-		appConfig:    appConfig,
-		nexmoClient:  nexmoClient,
-		twilioClient: twilioClient,
-	}
+	return &clientWrapper{client}
 }
 
-func (c *clientImpl) Send(to string, body string) error {
-	if c.nexmoClient != nil {
-		return c.nexmoClient.Send(to, body)
-	}
-	if c.twilioClient != nil {
-		return c.twilioClient.Send(to, body)
+func (c *clientWrapper) Send(from string, to string, body string) error {
+	if c.client != nil {
+		return c.client.Send(from, to, body)
 	}
 	return ErrNoAvailableClient
 }
