@@ -211,15 +211,24 @@ var (
 		"properties": {
 			"identities": {
 				"type": "array",
-				"items": { "type": "string" }
+				"items": {
+					"type": "string",
+					"enum": ["oauth", "login_id"]
+				}
 			},
 			"primary_authenticators": {
 				"type": "array",
-				"items": { "type": "string" }
+				"items": {
+					"type": "string",
+					"enum": ["oauth", "password", "otp"]
+				}
 			},
 			"secondary_authenticators": {
 				"type": "array",
-				"items": { "type": "string" }
+				"items": {
+					"type": "string",
+					"enum": ["otp", "bearer_token"]
+				}
 			},
 			"secondary_authentication_mode": {
 				"type": "string",
