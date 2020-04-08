@@ -34,6 +34,10 @@ func RedirectToCurrentPath(w http.ResponseWriter, r *http.Request) {
 	RedirectToPathWithQueryPreserved(w, r, r.URL.Path)
 }
 
+func RedirectToPathWithQuery(w http.ResponseWriter, r *http.Request, path string, query url.Values) {
+	http.Redirect(w, r, NewURLWithPathAndQuery(path, query), http.StatusFound)
+}
+
 func getRedirectURI(r *http.Request) (out string, err error) {
 	out = r.URL.Query().Get("redirect_uri")
 	if out == "" {
@@ -111,4 +115,15 @@ func MakeURLWithQuery(u *url.URL, query url.Values) string {
 		q.Set(name, query.Get(name))
 	}
 	return fmt.Sprintf("?%s", q.Encode())
+}
+
+func NewURLWithPathAndQuery(path string, query url.Values) string {
+	u := url.URL{}
+	u.Path = path
+	q := u.Query()
+	for name := range query {
+		q.Set(name, query.Get(name))
+	}
+	u.RawQuery = q.Encode()
+	return u.String()
 }

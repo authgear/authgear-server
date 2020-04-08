@@ -187,3 +187,17 @@ func TestMakeURLWithQuery(t *testing.T) {
 		test("http://example.com?c=d", "a", "b", "?a=b&c=d")
 	})
 }
+
+func TestNewURLWithPathAndQuery(t *testing.T) {
+	Convey("NewURLWithPathAndQuery", t, func() {
+		test := func(path string, name string, value string, expected string) {
+			actual := NewURLWithPathAndQuery(path, url.Values{
+				name: []string{value},
+			})
+			So(actual, ShouldEqual, expected)
+		}
+
+		test("/login", "a", "b c", "/login?a=b+c")
+		test("/", "a", "b", "/?a=b")
+	})
+}

@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
@@ -50,6 +51,15 @@ type AuthnProvider interface {
 type OAuthProvider interface {
 	GetAuthURL(state sso.State, encodedState string) (url string, err error)
 	GetAuthInfo(r sso.OAuthAuthorizationResponse, state sso.State) (sso.AuthInfo, error)
+}
+
+func (p *AuthenticateProviderImpl) makeState(sid string) *State {
+	s, err := p.StateStore.Get(sid)
+	if err != nil {
+		s = NewState()
+	}
+
+	return s
 }
 
 func (p *AuthenticateProviderImpl) persistState(r *http.Request, inputError error) {
@@ -282,11 +292,23 @@ func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 	return
 }
 
+// For sso, we create webapp state when user choose the provider
+// The state id will be passed into the sso state
+// When user complete authorization and provider call the callback
+// The callback will try to obtain the webapp state id from the sso state
+// Currently we use the webapp state to store error only
 func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter, r *http.Request, oauthProvider OAuthProvider) (writeResponse func(err error), err error) {
+	s := p.makeState(r.URL.Query().Get("x_sid"))
 	var authURI string
 	writeResponse = func(err error) {
+		s.SetError(err)
+		if e := p.StateStore.Set(s); e != nil {
+			panic(e)
+		}
 		if err != nil {
-			panic(err)
+			RedirectToPathWithQuery(w, r, "/login", url.Values{
+				"x_sid": []string{s.ID},
+			})
 		} else {
 			http.Redirect(w, r, authURI, http.StatusFound)
 		}
@@ -300,6 +322,7 @@ func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter,
 	hashedNonce := crypto.SHA256String(nonce)
 	webappSSOState := SSOState{}
 	webappSSOState.SetCallbackURL(redirectURI)
+	webappSSOState.SetWebAppStateID(s.ID)
 	state := sso.State{
 		Action: "login",
 		LoginState: sso.LoginState{
@@ -318,9 +341,19 @@ func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter,
 
 func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *http.Request, oauthProvider OAuthProvider) (writeResponse func(error), err error) {
 	var callbackURL string
+	var sid string
 	writeResponse = func(err error) {
 		if err != nil {
-			panic(err)
+			// try to obtain state id from sso state
+			// create new state if failed
+			s := p.makeState(sid)
+			s.SetError(err)
+			if e := p.StateStore.Set(s); e != nil {
+				panic(e)
+			}
+			RedirectToPathWithQuery(w, r, "/login", url.Values{
+				"x_sid": []string{s.ID},
+			})
 		} else {
 			redirectURI, err := parseRedirectURI(r, callbackURL)
 			if err != nil {
@@ -344,6 +377,8 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 	}
 	webappSSOState := SSOState(state.Extra)
 	callbackURL = webappSSOState.CallbackURL()
+	sid = webappSSOState.WebAppStateID()
+
 	oauthAuthInfo, err := oauthProvider.GetAuthInfo(
 		sso.OAuthAuthorizationResponse{
 			Code:  code,
