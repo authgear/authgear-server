@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/csrf"
+	"golang.org/x/text/language"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -147,7 +149,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		template.AllowRangeNode(true),
 		template.AllowTemplateNode(true),
 		template.MaxDepth(15),
-	).RenderTemplate(
+	).WithPreferredLanguageTags(PreferredLanguageTags(r)).RenderTemplate(
 		templateType,
 		data,
 		template.ResolveOptions{},
@@ -162,4 +164,19 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		w.WriteHeader(apiError.Code)
 	}
 	w.Write(body)
+}
+
+func PreferredLanguageTags(r *http.Request) (out []string) {
+	acceptLanguage := r.Header.Get("Accept-Language")
+	if uiLocales := r.Form.Get("ui_locales"); uiLocales != "" {
+		acceptLanguage = strings.ReplaceAll(uiLocales, " ", ", ")
+	}
+	tags, _, err := language.ParseAcceptLanguage(acceptLanguage)
+	if err != nil {
+		return
+	}
+	for _, tag := range tags {
+		out = append(out, tag.String())
+	}
+	return
 }
