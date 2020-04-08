@@ -37,12 +37,12 @@ type AuthenticatorOOBConfiguration struct {
 
 type AuthenticatorOOBSMSConfiguration struct {
 	Maximum *int                    `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
-	Message SMSMessageConfiguration `json:"message" yaml:"message" msg:"message"`
+	Message SMSMessageConfiguration `json:"message" yaml:"message" msg:"message" default_zero_value:"true"`
 }
 
 type AuthenticatorOOBEmailConfiguration struct {
 	Maximum *int                      `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
-	Message EmailMessageConfiguration `json:"message" yaml:"message" msg:"message"`
+	Message EmailMessageConfiguration `json:"message" yaml:"message" msg:"message" default_zero_value:"true"`
 }
 
 type AuthenticatorBearerTokenConfiguration struct {

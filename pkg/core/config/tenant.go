@@ -394,12 +394,9 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 
 	// Set default AuthenticatorOOBConfiguration
-	emailMsg := &c.AppConfig.Authenticator.OOB.Email.Message
+	emailMsg := c.AppConfig.Authenticator.OOB.Email.Message
 	if emailMsg.Subject() == "" {
-		if *emailMsg == nil {
-			*emailMsg = EmailMessageConfiguration{}
-		}
-		(*emailMsg).SetSubject("Two Factor Auth Verification instruction")
+		emailMsg.SetSubject("Two Factor Auth Verification instruction")
 	}
 
 	// Set default user verification settings
@@ -414,9 +411,6 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 			config.Expiry = 3600 // 1 hour
 		}
 		if config.EmailMessage.Subject() == "" {
-			if config.EmailMessage == nil {
-				config.EmailMessage = EmailMessageConfiguration{}
-			}
 			config.EmailMessage.SetSubject("Verification instruction")
 		}
 		c.AppConfig.UserVerification.LoginIDKeys[i] = config
@@ -426,21 +420,15 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.AppConfig.WelcomeEmail.Destination == "" {
 		c.AppConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
 	}
-	emailMsg = &c.AppConfig.WelcomeEmail.Message
+	emailMsg = c.AppConfig.WelcomeEmail.Message
 	if emailMsg.Subject() == "" {
-		if *emailMsg == nil {
-			*emailMsg = EmailMessageConfiguration{}
-		}
-		(*emailMsg).SetSubject("Welcome!")
+		emailMsg.SetSubject("Welcome!")
 	}
 
 	// Set default ForgotPasswordConfiguration
-	emailMsg = &c.AppConfig.ForgotPassword.EmailMessage
+	emailMsg = c.AppConfig.ForgotPassword.EmailMessage
 	if emailMsg.Subject() == "" {
-		if *emailMsg == nil {
-			*emailMsg = EmailMessageConfiguration{}
-		}
-		(*emailMsg).SetSubject("Reset password instruction")
+		emailMsg.SetSubject("Reset password instruction")
 	}
 	if c.AppConfig.ForgotPassword.ResetURLLifetime == 0 {
 		c.AppConfig.ForgotPassword.ResetURLLifetime = 43200
@@ -455,12 +443,9 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 
 	// Set default MessagesConfiguration
-	emailMsg = &c.AppConfig.Messages.Email
+	emailMsg = c.AppConfig.Messages.Email
 	if emailMsg.Sender() == "" {
-		if *emailMsg == nil {
-			*emailMsg = EmailMessageConfiguration{}
-		}
-		(*emailMsg).SetSender("no-reply@skygear.io")
+		emailMsg.SetSender("no-reply@skygear.io")
 	}
 
 	// Set type to id
@@ -685,7 +670,7 @@ type OIDCSigningKeyConfiguration struct {
 
 type ForgotPasswordConfiguration struct {
 	SecureMatch      bool                      `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
-	EmailMessage     EmailMessageConfiguration `json:"email_message" yaml:"email_message" msg:"email_message"`
+	EmailMessage     EmailMessageConfiguration `json:"email_message" yaml:"email_message" msg:"email_message" default_zero_value:"true"`
 	ResetURLLifetime int                       `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
 	SuccessRedirect  string                    `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
 	ErrorRedirect    string                    `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
@@ -704,7 +689,7 @@ func (destination WelcomeEmailDestination) IsValid() bool {
 
 type WelcomeEmailConfiguration struct {
 	Enabled     bool                      `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
-	Message     EmailMessageConfiguration `json:"message" yaml:"message" msg:"message"`
+	Message     EmailMessageConfiguration `json:"message" yaml:"message" msg:"message" default_zero_value:"true"`
 	Destination WelcomeEmailDestination   `json:"destination,omitempty" yaml:"destination" msg:"destination"`
 }
 
@@ -740,8 +725,8 @@ type UserVerificationKeyConfiguration struct {
 	Expiry          int64                      `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
 	SuccessRedirect string                     `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
 	ErrorRedirect   string                     `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
-	SMSMessage      SMSMessageConfiguration    `json:"sms_message" yaml:"sms_message" msg:"sms_message"`
-	EmailMessage    EmailMessageConfiguration  `json:"email_message" yaml:"email_message" msg:"email_message"`
+	SMSMessage      SMSMessageConfiguration    `json:"sms_message" yaml:"sms_message" msg:"sms_message" default_zero_value:"true"`
+	EmailMessage    EmailMessageConfiguration  `json:"email_message" yaml:"email_message" msg:"email_message" default_zero_value:"true"`
 }
 
 func (format UserVerificationCodeFormat) IsValid() bool {

@@ -3,9 +3,9 @@ package config
 //go:generate msgp -tests=false
 
 type MessagesConfiguration struct {
-	Email       EmailMessageConfiguration `json:"email,omitempty" yaml:"email" msg:"email"`
+	Email       EmailMessageConfiguration `json:"email,omitempty" yaml:"email" msg:"email" default_zero_value:"true"`
 	SMSProvider SMSProvider               `json:"sms_provider,omitempty" yaml:"sms_provider,omitempty" msg:"sms_provider"`
-	SMS         SMSMessageConfiguration   `json:"sms,omitempty" yaml:"sms" msg:"sms"`
+	SMS         SMSMessageConfiguration   `json:"sms,omitempty" yaml:"sms" msg:"sms" default_zero_value:"true"`
 }
 
 type SMSProvider string

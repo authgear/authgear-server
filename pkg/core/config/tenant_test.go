@@ -563,6 +563,8 @@ func TestTenantConfig(t *testing.T) {
 			So(userConfig.Twilio, ShouldNotBeNil)
 			So(userConfig.Nexmo, ShouldNotBeNil)
 			So(userConfig.Asset, ShouldNotBeNil)
+			So(userConfig.Messages, ShouldNotBeNil)
+			So(userConfig.Messages.Email, ShouldNotBeNil)
 		})
 	})
 

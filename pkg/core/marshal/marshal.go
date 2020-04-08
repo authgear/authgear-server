@@ -34,6 +34,10 @@ func UpdateNilFieldsWithZeroValue(i interface{}) {
 				field.Set(ele)
 			}
 			UpdateNilFieldsWithZeroValue(field.Interface())
+		} else if field.Kind() == reflect.Map {
+			if field.IsNil() {
+				field.Set(reflect.MakeMap(ft.Type))
+			}
 		}
 	}
 }
