@@ -315,34 +315,12 @@ func TestMakeLocalize(t *testing.T) {
 			"zh": "Hello from zh",
 		}, []string{"ja-JP", "en-US", "zh-Hant-HK"}, "Hello from ja")
 
-		// Select the default because japanese and chinese is unknown to a korean speaker.
+		// Select the default because korean is not supported
 		test(map[string]string{
 			"":   "Hello from default",
 			"ja": "Hello from ja",
 			"zh": "Hello from zh",
 		}, []string{"kr-KR"}, "Hello from default")
-
-		// Select english because english is an international language.
-		test(map[string]string{
-			"":   "Hello from default",
-			"en": "Hello from en",
-			"ja": "Hello from ja",
-			"zh": "Hello from zh",
-		}, []string{"kr-KR"}, "Hello from en")
-
-		// Select the best variant within the same language
-		test(map[string]string{
-			"":           "Hello from default",
-			"zh-Hant-TW": "Hello from zh-Hant-TW",
-			"zh-Hant-HK": "Hello from zh-Hant-HK",
-		}, []string{"zh-Hant-HK"}, "Hello from zh-Hant-HK")
-
-		// Select the best variant within the same language
-		test(map[string]string{
-			"":           "Hello from default",
-			"zh-Hant-TW": "Hello from zh-Hant-TW",
-			"zh-Hant-HK": "Hello from zh-Hant-HK",
-		}, []string{"zh-Hant"}, "Hello from zh-Hant-TW")
 	})
 }
 
