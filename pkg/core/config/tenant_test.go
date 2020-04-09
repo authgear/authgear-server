@@ -158,6 +158,10 @@ func makeFullTenantConfig() TenantConfiguration {
 			},
 			AuthUI: &AuthUIConfiguration{
 				CSS: "a { color: red; }",
+				CountryCallingCode: &AuthUICountryCallingCodeConfiguration{
+					Values:  []string{"852"},
+					Default: "852",
+				},
 			},
 			AuthAPI: &AuthAPIConfiguration{
 				Enabled: true,
@@ -520,6 +524,16 @@ func TestTenantConfig(t *testing.T) {
 				Kind:    validation.ErrorGeneral,
 				Message: "duplicated OAuth provider",
 				Pointer: "/user_config/identity/oauth/providers/1",
+			}})
+		})
+		Convey("validate default country calling code", func() {
+			c := makeFullTenantConfig()
+			c.AppConfig.AuthUI.CountryCallingCode.Values = []string{"852"}
+			c.AppConfig.AuthUI.CountryCallingCode.Default = "1"
+			testValidation(&c, []validation.ErrorCause{{
+				Kind:    validation.ErrorGeneral,
+				Message: "default country calling code is unlisted",
+				Pointer: "/user_config/auth_ui/country_calling_code/default",
 			}})
 		})
 		Convey("should omit empty", func() {

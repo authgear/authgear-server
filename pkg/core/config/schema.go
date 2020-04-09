@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/skygeario/skygear-server/pkg/core/apiversion"
+	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -166,7 +167,26 @@ var (
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
-			"css": { "type": "string" }
+			"css": { "type": "string" },
+			"country_calling_code": { "$ref": "#AuthUICountryCallingCodeConfiguration" }
+		}
+	},
+	"CountryCallingCode": {
+		"$id": "#CountryCallingCode",
+		"type": "string",
+		"enum": %s
+	},
+	"AuthUICountryCallingCodeConfiguration": {
+		"$id": "#AuthUICountryCallingCodeConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"values": {
+				"type": "array",
+				"items": { "$ref": "#CountryCallingCode" },
+				"minItems": 1
+			},
+			"default": { "$ref": "#CountryCallingCode" }
 		}
 	},
 	"AuthAPIConfiguration": {
@@ -605,7 +625,7 @@ var (
 		}
 	}
 }
-`, apiversion.SupportedVersionsJSON, apiversion.SupportedVersionsJSON)
+`, apiversion.SupportedVersionsJSON, apiversion.SupportedVersionsJSON, phone.CountryCallingCodesJSON)
 )
 
 var (

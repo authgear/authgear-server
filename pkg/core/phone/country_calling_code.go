@@ -1,5 +1,9 @@
 package phone
 
+import (
+	"encoding/json"
+)
+
 var CountryCallingCodes = []string{
 	"1",
 	"7",
@@ -211,4 +215,14 @@ var CountryCallingCodes = []string{
 	"995",
 	"996",
 	"998",
+}
+
+var CountryCallingCodesJSON string
+
+func init() {
+	bytes, err := json.Marshal(CountryCallingCodes)
+	if err != nil {
+		panic(err)
+	}
+	CountryCallingCodesJSON = string(bytes)
 }
