@@ -51,8 +51,8 @@ func (p *identityProviderImpl) GetPrincipalByID(principalID string) (Principal, 
 	var providerID string
 
 	builder := p.sqlBuilder.Tenant().
-		Select("provider").
-		From(p.sqlBuilder.FullTableName("principal")).
+		Select("type").
+		From(p.sqlBuilder.FullTableName("identity")).
 		Where("id = ?", principalID)
 	scanner, err := p.sqlExecutor.QueryRowWith(builder)
 	if err != nil {
