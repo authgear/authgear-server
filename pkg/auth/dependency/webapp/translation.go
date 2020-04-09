@@ -30,7 +30,6 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"sign-in-linkedin": "Sign in with LinkedIn",
 	"sign-in-azureadv2": "Sign in with Azure AD",
 
-	"country-calling-code-label": "Code",
 	"phone-number-placeholder": "Phone number",
 	"login-id-placeholder": "Email or username",
 	"use-text-login-id-description": "Use email or username instead",

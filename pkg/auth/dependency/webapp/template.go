@@ -159,7 +159,6 @@ var TemplateAuthUILoginHTML = template.Spec{
 				{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
 				<div class="phone-input">
 					<select class="input select" name="x_calling_code">
-						<option value="">{{ localize "country-calling-code-label" }}</option>
 						{{ range .x_calling_codes }}
 						<option
 							value="{{ . }}"
@@ -280,7 +279,6 @@ var TemplateAuthUISignupHTML = template.Spec{
 					{{ if eq .type "phone" }}
 					<div class="phone-input">
 						<select class="input select" name="x_calling_code">
-							<option value="">Code</option>
 							{{ range $.x_calling_codes }}
 							<option
 								value="{{ . }}"
