@@ -28,7 +28,7 @@ const templateContent = `
 <p>{{ .logo_uri }}</p>
 <img src="{{ .x_static_asset_url_prefix }}/logo.png">
 
-{{ if (ge (len .x_calling_codes) 10) }}
+{{ if (ge (len .x_calling_codes) 0) }}
 <p>has calling codes</p>
 {{ else }}
 <p>has no calling codes</p>
@@ -79,6 +79,10 @@ func TestRenderProvider(t *testing.T) {
 			},
 			AuthUIConfiguration: &config.AuthUIConfiguration{
 				CSS: `a { color: red; }`,
+				CountryCallingCode: &config.AuthUICountryCallingCodeConfiguration{
+					Values:  []string{"852"},
+					Default: "852",
+				},
 			},
 			TemplateEngine:  engine,
 			PasswordChecker: &audit.PasswordChecker{},

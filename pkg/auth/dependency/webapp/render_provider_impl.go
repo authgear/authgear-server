@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
@@ -73,7 +72,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	// NOTE(authui): We assume the CSS provided by the developer is trusted.
 	data["x_css"] = htmlTemplate.CSS(p.AuthUIConfiguration.CSS)
 
-	data["x_calling_codes"] = phone.CountryCallingCodes
+	data["x_calling_codes"] = p.AuthUIConfiguration.CountryCallingCode.Values
 
 	for _, keyConfig := range p.LoginIDConfiguration.Keys {
 		if string(keyConfig.Type) == "phone" {
