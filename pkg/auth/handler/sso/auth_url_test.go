@@ -111,7 +111,7 @@ func TestAuthURLHandler(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 			So(claims.State.UXMode, ShouldEqual, sso.UXModeWebRedirect)
-			So(claims.State.CallbackURL, ShouldEqual, "http://example.com/sso")
+			So(AuthAPISSOState(claims.State.Extra).CallbackURL(), ShouldEqual, "http://example.com/sso")
 			So(claims.State.Action, ShouldEqual, "login")
 			So(claims.State.UserID, ShouldEqual, "faseng.cat.id")
 		})

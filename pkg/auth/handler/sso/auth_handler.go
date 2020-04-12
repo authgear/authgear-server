@@ -131,7 +131,8 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	// Extract API Key from state
 	client, _ := model.GetClientConfig(h.TenantConfiguration.AppConfig.Clients, state.APIClientID)
 
-	if !h.SSOProvider.IsValidCallbackURL(client, state.CallbackURL) {
+	apiSSOState := AuthAPISSOState(state.Extra)
+	if !h.SSOProvider.IsValidCallbackURL(client, apiSSOState.CallbackURL()) {
 		http.Error(w, "Invalid callback URL", http.StatusBadRequest)
 		return
 	}
@@ -141,9 +142,9 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 		success = err == nil
 		switch state.UXMode {
 		case sso.UXModeWebRedirect, sso.UXModeWebPopup:
-			err = h.handleWebAppResponse(w, r, state.UXMode, state.CallbackURL, code, err)
+			err = h.handleWebAppResponse(w, r, state.UXMode, apiSSOState.CallbackURL(), code, err)
 		case sso.UXModeMobileApp:
-			err = h.handleMobileAppResponse(w, r, state.CallbackURL, code, err)
+			err = h.handleMobileAppResponse(w, r, apiSSOState.CallbackURL(), code, err)
 		case sso.UXModeManual:
 			err = h.handleManualResponse(w, code, err)
 		default:
@@ -170,10 +171,11 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 
 func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encodedCode string, err error) {
 	var code *sso.SkygearAuthorizationCode
+	apiSSOState := AuthAPISSOState(state.Extra)
 	if state.Action == "login" {
-		code, err = h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, state.CodeChallenge, state.LoginState)
+		code, err = h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LoginState)
 	} else {
-		code, err = h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, state.CodeChallenge, state.LinkState)
+		code, err = h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LinkState)
 	}
 	if err != nil {
 		return

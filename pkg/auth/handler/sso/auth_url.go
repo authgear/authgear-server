@@ -256,18 +256,18 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	// APIClientID is derived from the API key used by the client.
 	// UserID is derived from the access token.
 	// The state is then signed but no encrypted and returned to the client.
+	apiSSOState := AuthAPISSOState{}
+	apiSSOState.SetCallbackURL(payload.CallbackURL)
+	apiSSOState.SetCodeChallenge(payload.CodeChallenge)
 	state := sso.State{
 		LoginState: sso.LoginState{
 			MergeRealm:      payload.MergeRealm,
 			OnUserDuplicate: payload.OnUserDuplicate,
 		},
-		OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-			CallbackURL: payload.CallbackURL,
-			UXMode:      payload.UXMode,
-		},
-		Action:        string(h.Action),
-		APIClientID:   apiClientID,
-		CodeChallenge: payload.CodeChallenge,
+		Extra:       apiSSOState,
+		Action:      string(h.Action),
+		UXMode:      payload.UXMode,
+		APIClientID: apiClientID,
 	}
 	session := auth.GetSession(r.Context())
 	if session != nil {

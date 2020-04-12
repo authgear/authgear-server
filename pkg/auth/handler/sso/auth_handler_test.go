@@ -165,10 +165,10 @@ func TestAuthHandler(t *testing.T) {
 			state := sso.State{
 				APIClientID: "client-id",
 				Action:      action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      sso.UXModeManual,
+				Extra: AuthAPISSOState{
+					"callback_url": "http://localhost:3000",
 				},
+				UXMode:      sso.UXModeManual,
 				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
@@ -211,10 +211,10 @@ func TestAuthHandler(t *testing.T) {
 			state := sso.State{
 				APIClientID: "client-id",
 				Action:      action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      sso.UXModeWebRedirect,
+				Extra: AuthAPISSOState{
+					"callback_url": "http://localhost:3000",
 				},
+				UXMode:      sso.UXModeWebRedirect,
 				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
@@ -264,10 +264,10 @@ func TestAuthHandler(t *testing.T) {
 			state := sso.State{
 				APIClientID: "client-id",
 				Action:      action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      sso.UXModeWebPopup,
+				Extra: AuthAPISSOState{
+					"callback_url": "http://localhost:3000",
 				},
+				UXMode:      sso.UXModeWebPopup,
 				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
@@ -301,10 +301,10 @@ func TestAuthHandler(t *testing.T) {
 			state := sso.State{
 				APIClientID: "client-id",
 				Action:      action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      sso.UXModeMobileApp,
+				Extra: AuthAPISSOState{
+					"callback_url": "http://localhost:3000",
 				},
+				UXMode:      sso.UXModeMobileApp,
 				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)

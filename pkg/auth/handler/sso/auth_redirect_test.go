@@ -47,10 +47,10 @@ func TestAuthRedirectHandler(t *testing.T) {
 			// oauth state
 			state := sso.State{
 				Action: action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      uxMode,
+				Extra: AuthAPISSOState{
+					"callback_url": "http://localhost:3000",
 				},
+				UXMode: uxMode,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 			v := url.Values{}
@@ -71,10 +71,10 @@ func TestAuthRedirectHandler(t *testing.T) {
 			// oauth state
 			state := sso.State{
 				Action: action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      uxMode,
+				Extra: AuthAPISSOState{
+					"callback_url": "http://localhost:3000",
 				},
+				UXMode: uxMode,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 			v := url.Values{}
