@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -69,13 +71,11 @@ func (m *mockUnlinkSessionManager) Revoke(s auth.AuthSession) error {
 
 func TestUnlinkHandler(t *testing.T) {
 	Convey("Test UnlinkHandler", t, func() {
-		providerID := "google"
 		providerUserID := "mock_user_id"
 
 		req, _ := http.NewRequest("POST", "https://api.example.com", nil)
 
 		sh := &UnlinkHandler{}
-		sh.ProviderID = providerID
 		sh.TxContext = db.NewMockTxContext()
 		timeProvider := &coreTime.MockProvider{}
 		sh.ProviderFactory = sso.NewOAuthProviderFactory(config.TenantConfiguration{
@@ -126,8 +126,11 @@ func TestUnlinkHandler(t *testing.T) {
 		}
 		sh.SessionManager = sessionManager
 
+		router := mux.NewRouter()
+		router.Handle("/sso/{provider}/unlink", sh)
+
 		Convey("should unlink user id with oauth principal", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+			req, _ := http.NewRequest("POST", "/sso/google/unlink", strings.NewReader(`{
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
@@ -135,7 +138,7 @@ func TestUnlinkHandler(t *testing.T) {
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			sh.ServeHTTP(resp, req)
+			router.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {}
@@ -177,7 +180,7 @@ func TestUnlinkHandler(t *testing.T) {
 		})
 
 		Convey("should disallow remove current identity", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+			req, _ := http.NewRequest("POST", "/sso/google/unlink", strings.NewReader(`{
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
@@ -185,7 +188,7 @@ func TestUnlinkHandler(t *testing.T) {
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			sh.ServeHTTP(resp, req)
+			router.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 400)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
@@ -199,14 +202,14 @@ func TestUnlinkHandler(t *testing.T) {
 
 		Convey("should error on unknown identity", func() {
 			sh.OAuthAuthProvider = oauth.NewMockProvider(nil)
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+			req, _ := http.NewRequest("POST", "/sso/google/unlink", strings.NewReader(`{
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
-			sh.ServeHTTP(resp, req)
+			router.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 404)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
