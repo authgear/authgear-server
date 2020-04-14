@@ -97,7 +97,11 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user model.User) (err error)
 		return
 	}
 
-	err = t.SMSClient.Send(t.SMSConfig.Sender(), verifyCode.LoginID, textBody)
+	err = t.SMSClient.Send(sms.SendOptions{
+		MessageConfig: t.SMSConfig,
+		To:            verifyCode.LoginID,
+		Body:          textBody,
+	})
 	if err != nil {
 		err = errors.Newf("failed to send user verification SMS message: %w", err)
 	}

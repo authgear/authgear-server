@@ -64,7 +64,11 @@ func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error
 		return err
 	}
 
-	err = s.smsClient.Send(s.smsConfig.Sender(), phone, body)
+	err = s.smsClient.Send(sms.SendOptions{
+		MessageConfig: s.smsConfig,
+		To:            phone,
+		Body:          body,
+	})
 	if err != nil {
 		err = errors.Newf("failed to send MFA SMS message: %w", err)
 	}

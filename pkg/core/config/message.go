@@ -38,7 +38,3 @@ func NewSMSMessageConfiguration(configs ...SMSMessageConfiguration) SMSMessageCo
 	}
 	return config
 }
-
-func (c SMSMessageConfiguration) Sender() string {
-	return c["sender"]
-}
