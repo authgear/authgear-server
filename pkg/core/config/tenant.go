@@ -411,8 +411,8 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 
 	// Set default AuthenticatorOOBConfiguration
 	emailMsg := c.AppConfig.Authenticator.OOB.Email.Message
-	if emailMsg.Subject() == "" {
-		emailMsg.SetSubject("Two Factor Auth Verification instruction")
+	if emailMsg["subject"] == "" {
+		emailMsg["subject"] = "Two Factor Auth Verification instruction"
 	}
 
 	// Set default user verification settings
@@ -426,8 +426,8 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		if config.Expiry == 0 {
 			config.Expiry = 3600 // 1 hour
 		}
-		if config.EmailMessage.Subject() == "" {
-			config.EmailMessage.SetSubject("Verification instruction")
+		if config.EmailMessage["subject"] == "" {
+			config.EmailMessage["subject"] = "Verification instruction"
 		}
 		c.AppConfig.UserVerification.LoginIDKeys[i] = config
 	}
@@ -437,14 +437,14 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.AppConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
 	}
 	emailMsg = c.AppConfig.WelcomeEmail.Message
-	if emailMsg.Subject() == "" {
-		emailMsg.SetSubject("Welcome!")
+	if emailMsg["subject"] == "" {
+		emailMsg["subject"] = "Welcome!"
 	}
 
 	// Set default ForgotPasswordConfiguration
 	emailMsg = c.AppConfig.ForgotPassword.EmailMessage
-	if emailMsg.Subject() == "" {
-		emailMsg.SetSubject("Reset password instruction")
+	if emailMsg["subject"] == "" {
+		emailMsg["subject"] = "Reset password instruction"
 	}
 	if c.AppConfig.ForgotPassword.ResetURLLifetime == 0 {
 		c.AppConfig.ForgotPassword.ResetURLLifetime = 43200
@@ -460,8 +460,8 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 
 	// Set default MessagesConfiguration
 	emailMsg = c.AppConfig.Messages.Email
-	if emailMsg.Sender() == "" {
-		emailMsg.SetSender("no-reply@skygear.io")
+	if emailMsg["sender"] == "" {
+		emailMsg["sender"] = "no-reply@skygear.io"
 	}
 
 	// Set type to id

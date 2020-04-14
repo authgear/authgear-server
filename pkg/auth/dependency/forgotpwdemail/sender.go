@@ -103,12 +103,10 @@ func (d *DefaultSender) Send(
 	}
 
 	err = d.Sender.Send(mail.SendOptions{
-		Sender:    d.EmailConfig.Sender(),
-		Recipient: email,
-		Subject:   d.EmailConfig.Subject(),
-		ReplyTo:   d.EmailConfig.ReplyTo(),
-		TextBody:  textBody,
-		HTMLBody:  htmlBody,
+		MessageConfig: d.EmailConfig,
+		Recipient:     email,
+		TextBody:      textBody,
+		HTMLBody:      htmlBody,
 	})
 	if err != nil {
 		err = errors.Newf("failed to send forgot password email: %w", err)

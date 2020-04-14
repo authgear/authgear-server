@@ -6,12 +6,15 @@ import (
 	"github.com/go-gomail/gomail"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/intl"
 )
 
 var ErrMissingSMTPConfiguration = errors.New("mail: configuration is missing")
 
 type senderImpl struct {
 	GomailDialer *gomail.Dialer
+	// TODO(intl): email sender
+	PreferredLanguages []string
 }
 
 func NewSender(c *config.SMTPConfiguration) Sender {
@@ -41,10 +44,10 @@ func (s *senderImpl) Send(opts SendOptions) (err error) {
 	message := gomail.NewMessage()
 
 	funcs := []updateGomailMessageFunc{
-		applyFrom,
+		s.applyFrom,
 		applyTo,
-		applyReplyTo,
-		applySubject,
+		s.applyReplyTo,
+		s.applySubject,
 		applyTextBody,
 		applyHTMLBody,
 	}
@@ -63,12 +66,12 @@ func (s *senderImpl) Send(opts SendOptions) (err error) {
 	return nil
 }
 
-func applyFrom(opts *SendOptions, message *gomail.Message) error {
-	if opts.Sender == "" {
+func (s *senderImpl) applyFrom(opts *SendOptions, message *gomail.Message) error {
+	sender := intl.LocalizeOIDCStringMap(s.PreferredLanguages, opts.MessageConfig, "sender")
+	if sender == "" {
 		return errors.New("mail: sender address is missing")
 	}
-
-	message.SetHeader("From", opts.Sender)
+	message.SetHeader("From", sender)
 	return nil
 }
 
@@ -81,21 +84,23 @@ func applyTo(opts *SendOptions, message *gomail.Message) error {
 	return nil
 }
 
-func applyReplyTo(opts *SendOptions, message *gomail.Message) error {
-	if opts.ReplyTo == "" {
+func (s *senderImpl) applyReplyTo(opts *SendOptions, message *gomail.Message) error {
+	replyTo := intl.LocalizeOIDCStringMap(s.PreferredLanguages, opts.MessageConfig, "reply_to")
+	if replyTo == "" {
 		return nil
 	}
 
-	message.SetHeader("Reply-To", opts.ReplyTo)
+	message.SetHeader("Reply-To", replyTo)
 	return nil
 }
 
-func applySubject(opts *SendOptions, message *gomail.Message) error {
-	if opts.Subject == "" {
+func (s *senderImpl) applySubject(opts *SendOptions, message *gomail.Message) error {
+	subject := intl.LocalizeOIDCStringMap(s.PreferredLanguages, opts.MessageConfig, "subject")
+	if subject == "" {
 		return errors.New("mail: subject is missing")
 	}
 
-	message.SetHeader("Subject", opts.Subject)
+	message.SetHeader("Subject", subject)
 	return nil
 }
 
