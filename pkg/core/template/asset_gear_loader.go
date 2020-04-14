@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
@@ -78,5 +81,34 @@ func (l *AssetGearLoader) Load(u *url.URL) (templateContent string, err error) {
 		return
 	}
 
-	return DownloadStringFromAssuminglyTrustedURL(signedURL)
+	return downloadStringFromAssuminglyTrustedURL(signedURL)
+}
+
+// downloadStringFromAssuminglyTrustedURL downloads the content of url.
+// url is assumed to be trusted.
+func downloadStringFromAssuminglyTrustedURL(url string) (content string, err error) {
+	// nolint: gosec
+	resp, err := http.Get(url)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		err = errors.Newf("unexpected status code: %d", resp.StatusCode)
+		return
+	}
+
+	body, err := ioutil.ReadAll(io.LimitReader(resp.Body, MaxTemplateSize))
+	if err != nil {
+		return
+	}
+
+	if !utf8.Valid(body) {
+		err = errors.New("expected content to be UTF-8 encoded")
+		return
+	}
+
+	content = string(body)
+	return
 }

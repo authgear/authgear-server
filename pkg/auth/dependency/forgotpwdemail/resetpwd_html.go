@@ -58,7 +58,7 @@ func (r *ResetPasswordHTMLProvider) SuccessHTML(context map[string]interface{}) 
 	return r.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordSuccessHTML,
 		context,
-		template.ResolveOptions{Required: true},
+		template.ResolveOptions{},
 	)
 }
 
@@ -67,7 +67,7 @@ func (r *ResetPasswordHTMLProvider) ErrorHTML(context map[string]interface{}) (s
 	return r.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordErrorHTML,
 		context,
-		template.ResolveOptions{Required: true},
+		template.ResolveOptions{},
 	)
 }
 
@@ -76,7 +76,7 @@ func (r *ResetPasswordHTMLProvider) FormHTML(context map[string]interface{}) (st
 	return r.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordResetHTML,
 		context,
-		template.ResolveOptions{Required: true},
+		template.ResolveOptions{},
 	)
 }
 

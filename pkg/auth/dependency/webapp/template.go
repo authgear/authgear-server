@@ -49,22 +49,22 @@ const defineError = `
 	{{ if eq .x_error.reason "ValidationFailed" }}
 		{{ range .x_error.info.causes }}
 		{{ if and (eq .kind "Required") (eq .pointer "/x_login_id" ) }}
-		<li class="error-txt">Email or Username is required</li>
+		<li class="error-txt">{{ localize "error-email-or-username-required" }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_password" ) }}
-		<li class="error-txt">Password is required</li>
+		<li class="error-txt">{{ localize "error-password-required" }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_calling_code" ) }}
-		<li class="error-txt">Calling code is required</li>
+		<li class="error-txt">{{ localize "error-calling-code-required" }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_national_number" ) }}
-		<li class="error-txt">Phone number is required</li>
+		<li class="error-txt">{{ localize "error-phone-number-required" }}</li>
 		{{ else if and (eq .kind "StringFormat") (eq .pointer "/x_national_number" ) }}
-		<li class="error-txt">Phone number must contain digits only</li>
+		<li class="error-txt">{{ localize "error-phone-number-format" }}</li>
 		{{ else if and (eq .kind "StringFormat") (eq .pointer "/login_ids/0/value") }}
 			{{ range $.x_login_id_keys }}
 				{{ if eq .key $.x_login_id_key }}
 					{{ if eq .type "email" }}
-					<li class="error-txt">Invalid email address</li>
+					<li class="error-txt">{{ localize "error-invalid-email" }}</li>
 					{{ else }}
-					<li class="error-txt">Invalid username</li>
+					<li class="error-txt">{{ localize "error-invalid-username" }}</li>
 					{{ end }}
 				{{ end }}
 			{{ end }}
@@ -73,7 +73,7 @@ const defineError = `
 		{{ end }}
 		{{ end }}
 	{{ else if eq .x_error.reason "InvalidCredentials" }}
-		<li class="error-txt">Incorrect email, phone number, username, or password</li>
+		<li class="error-txt">{{ localize "error-invalid-credentials" }}</li>
 	{{ else if eq .x_error.reason "PasswordPolicyViolated" }}
 		<!-- This error is handled differently -->
 	{{ else }}
@@ -112,9 +112,10 @@ var defines = []string{
 }
 
 var TemplateAuthUILoginHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUILoginHTML,
-	IsHTML:  true,
-	Defines: defines,
+	Type:        TemplateItemTypeAuthUILoginHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
@@ -127,22 +128,22 @@ var TemplateAuthUILoginHTML = template.Spec{
 				{{ range .x_idp_providers }}
 				<button class="btn sso-btn {{ .type }}" type="submit" name="x_idp_id" value="{{ .id }}">
 					{{- if eq .type "apple" -}}
-					Sign in with Apple
+					{{ localize "sign-in-apple" }}
 					{{- end -}}
 					{{- if eq .type "google" -}}
-					Sign in with Google
+					{{ localize "sign-in-google" }}
 					{{- end -}}
 					{{- if eq .type "facebook" -}}
-					Sign in with Facebook
+					{{ localize "sign-in-facebook" }}
 					{{- end -}}
 					{{- if eq .type "instagram" -}}
-					Sign in with Instagram
+					{{ localize "sign-in-instagram" }}
 					{{- end -}}
 					{{- if eq .type "linkedin" -}}
-					Sign in with LinkedIn
+					{{ localize "sign-in-linkedin" }}
 					{{- end -}}
 					{{- if eq .type "azureadv2" -}}
-					Sign in with Azure AD
+					{{ localize "sign-in-azureadv2" }}
 					{{- end -}}
 				</button>
 				{{ end }}
@@ -158,7 +159,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 				{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
 				<div class="phone-input">
 					<select class="input select" name="x_calling_code">
-						<option value="">Code</option>
+						<option value="">{{ localize "country-calling-code-label" }}</option>
 						{{ range .x_calling_codes }}
 						<option
 							value="{{ . }}"
@@ -170,29 +171,29 @@ var TemplateAuthUILoginHTML = template.Spec{
 						</option>
 						{{ end }}
 					</select>
-					<input class="input text-input" type="tel" name="x_national_number" placeholder="Phone number" value="{{ .x_national_number }}">
+					<input class="input text-input" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ .x_national_number }}">
 				</div>
 				{{ end }}{{ end }}
 
 				{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_text }}
-				<input class="input text-input" type="text" name="x_login_id" placeholder="Email or Username" value="{{ .x_login_id }}">
+				<input class="input text-input" type="text" name="x_login_id" placeholder="{{ localize "login-id-placeholder" }}" value="{{ .x_login_id }}">
 				{{ end }}{{ end }}
 
 				{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
-				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "text" }}">Use an email or username instead</a>
+				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "text" }}">{{ localize "use-text-login-id-description" }}</a>
 				{{ end }}{{ end }}
 				{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone }}
-				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "phone" }}">Use a phone number instead</a>
+				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "phone" }}">{{ localize "use-phone-login-id-description" }}</a>
 				{{ end }}{{ end }}
 
 				<div class="link">
-					<span class="primary-text">Don't have an account yet? </span>
-					<a class="anchor" href="{{ call .MakeURLWithPath "/signup" }}">Create one!</a>
+					<span class="primary-text">{{ localize "signup-button-hint" }}</span>
+					<a class="anchor" href="{{ call .MakeURLWithPath "/signup" }}">{{ localize "signup-button-label" }}</a>
 				</div>
-				<a class="link anchor align-self-flex-start" href="#">Can't access your account?</a>
+				<a class="link anchor align-self-flex-start" href="#">{{ localize "forgot-password-button-label" }}</a>
 
 				{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
-				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">Next</button>
+				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-login-id-button-label" }}</button>
 				{{ end }}
 			</form>
 		</div>
@@ -204,9 +205,10 @@ var TemplateAuthUILoginHTML = template.Spec{
 }
 
 var TemplateAuthUILoginPasswordHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUILoginPasswordHTML,
-	IsHTML:  true,
-	Defines: defines,
+	Type:        TemplateItemTypeAuthUILoginPasswordHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
@@ -219,7 +221,7 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 {{ $.csrfField }}
 
 <div class="nav-bar">
-	<button class="btn back-btn" title="Back"></button>
+	<button class="btn back-btn" title="{{ localize "back-button-title" }}"></button>
 	<div class="login-id primary-txt">
 	{{ if .x_calling_code }}
 		+{{ .x_calling_code}} {{ .x_national_number }}
@@ -229,7 +231,7 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 	</div>
 </div>
 
-<div class="title primary-txt">Enter password</div>
+<div class="title primary-txt">{{ localize "enter-password-page-title" }}</div>
 
 {{ template "ERROR" . }}
 
@@ -237,13 +239,14 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 <input type="hidden" name="x_national_number" value="{{ .x_national_number }}">
 <input type="hidden" name="x_login_id" value="{{ .x_login_id }}">
 
-<input id="password" class="input text-input" type="password" name="x_password" placeholder="Password" value="{{ .x_password }}">
+<input id="password" class="input text-input" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}" value="{{ .x_password }}">
 
-<button class="btn secondary-btn toggle-password-visibility"></button>
+<button class="btn secondary-btn password-visibility-btn show-password">{{ localize "show-password" }}</button>
+<button class="btn secondary-btn password-visibility-btn hide-password">{{ localize "hide-password" }}</button>
 
-<a class="anchor align-self-flex-start" href="">Forgot Password?</a>
+<a class="anchor align-self-flex-start" href="">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">Next</button>
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-password-button-label" }}</button>
 
 </form>
 {{ template "SKYGEAR_LOGO" . }}
@@ -255,9 +258,10 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 }
 
 var TemplateAuthUISignupHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUISignupHTML,
-	IsHTML:  true,
-	Defines: defines,
+	Type:        TemplateItemTypeAuthUISignupHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
@@ -288,7 +292,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 							</option>
 							{{ end }}
 						</select>
-						<input class="input text-input" type="tel" name="x_national_number" placeholder="Phone number" value="{{ $.x_national_number }}">
+						<input class="input text-input" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ $.x_national_number }}">
 					</div>
 					{{ else }}
 					<input class="input text-input" type="text" name="x_login_id" placeholder="{{ .type }}" value="{{ $.x_login_id }}">
@@ -299,17 +303,21 @@ var TemplateAuthUISignupHTML = template.Spec{
 				{{ range .x_login_id_keys }}
 					{{ if not (eq .key $.x_login_id_key) }}
 					<a class="link anchor align-self-flex-start"
-						href="{{ call $.MakeURLWithQuery "x_login_id_key" .key "x_login_id_input_type" .input_type}}">Use {{ .key }} instead</a>
+						href="{{ call $.MakeURLWithQuery "x_login_id_key" .key "x_login_id_input_type" .input_type}}">
+						{{ localize "use-login-id-key" .key }}
+					</a>
 					{{ end }}
 				{{ end }}
 
 				<div class="link align-self-flex-start">
-					<span class="primary-text">Have an account already? </span>
-					<a class="anchor" href="{{ call .MakeURLWithPath "/login" }}">Sign in!<a>
+					<span class="primary-text">{{ localize "login-button-hint" }}</span>
+					<a class="anchor" href="{{ call .MakeURLWithPath "/login" }}">{{ localize "login-button-label" }}<a>
 				</div>
-				<a class="link anchor align-self-flex-start" href="#">Can't access your account?</a>
+				<a class="link anchor align-self-flex-start" href="#">{{ localize "forgot-password-button-label" }}</a>
 
-				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">Next</button>
+				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">
+					{{ localize "confirm-login-id-button-label" }}
+				</button>
 			</form>
 		</div>
 		{{ template "SKYGEAR_LOGO" . }}
@@ -320,9 +328,10 @@ var TemplateAuthUISignupHTML = template.Spec{
 }
 
 var TemplateAuthUISignupPasswordHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUISignupPasswordHTML,
-	IsHTML:  true,
-	Defines: defines,
+	Type:        TemplateItemTypeAuthUISignupPasswordHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
@@ -339,7 +348,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 <input type="hidden" name="x_login_id" value="{{ .x_login_id }}">
 
 <div class="nav-bar">
-	<button class="btn back-btn" title="Back"></button>
+	<button class="btn back-btn" title="{{ "back-button-title" }}"></button>
 	<div class="login-id primary-txt">
 	{{ if .x_calling_code }}
 		+{{ .x_calling_code}} {{ .x_national_number }}
@@ -349,61 +358,84 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 	</div>
 </div>
 
-<div class="title primary-txt">Create password</div>
+<div class="title primary-txt">{{ localize "create-password-page-title" }}</div>
 
 {{ template "ERROR" . }}
 
-<input id="password" data-password-policy-password="" class="input text-input" type="password" name="x_password" placeholder="Password" value="{{ .x_password }}">
+<input id="password" data-password-policy-password="" class="input text-input" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}" value="{{ .x_password }}">
 
-<button class="btn secondary-btn toggle-password-visibility"></button>
+<button class="btn secondary-btn password-visibility-btn show-password">{{ localize "show-password" }}</button>
+<button class="btn secondary-btn password-visibility-btn hide-password">{{ Localize "hide-password" }}</button>
 
 {{ if .x_password_policies }}
 <ul>
 {{ range .x_password_policies }}
   {{ if eq .kind "PasswordTooShort" }}
-  <li class="password-policy length {{ template "PASSWORD_POLICY_CLASS" . }}" data-min-length="{{ .min_length}}">At least {{ .min_length }} characters long</li>
+  <li class="password-policy length {{ template "PASSWORD_POLICY_CLASS" . }}" data-min-length="{{ .min_length}}">
+    {{ localize "password-policy-minimum-length" .min_length }}
+  </li>
   {{ end }}
   {{ if eq .kind "PasswordUppercaseRequired" }}
-  <li class="password-policy uppercase {{ template "PASSWORD_POLICY_CLASS" . }}">At least one uppercase character</li>
+  <li class="password-policy uppercase {{ template "PASSWORD_POLICY_CLASS" . }}">
+    {{ localize "password-policy-uppercase" }}
+  </li>
   {{ end }}
   {{ if eq .kind "PasswordLowercaseRequired" }}
-  <li class="password-policy lowercase {{ template "PASSWORD_POLICY_CLASS" . }}">At least one lowercase character</li>
+  <li class="password-policy lowercase {{ template "PASSWORD_POLICY_CLASS" . }}">
+    {{ localize "password-policy-lowercase" }}
+  </li>
   {{ end }}
   {{ if eq .kind "PasswordDigitRequired" }}
-  <li class="password-policy digit {{ template "PASSWORD_POLICY_CLASS" . }}">At least one digit</li>
+  <li class="password-policy digit {{ template "PASSWORD_POLICY_CLASS" . }}">
+    {{ localize "password-policy-digit" }}
+  </li>
   {{ end }}
   {{ if eq .kind "PasswordSymbolRequired" }}
-  <li class="password-policy symbol {{ template "PASSWORD_POLICY_CLASS" . }}">At least one symbol</li>
+  <li class="password-policy symbol {{ template "PASSWORD_POLICY_CLASS" . }}">
+    {{ localize "password-policy-symbol" }}
+  </li>
   {{ end }}
   {{ if eq .kind "PasswordContainingExcludedKeywords" }}
-  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}"><strong>NO</strong> banned words</li>
+  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+    {{ localize "password-policy-banned-words" }}
+  </li>
   {{ end }}
   {{ if eq .kind "PasswordBelowGuessableLevel" }}
     {{ if eq .min_level 1.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}"><strong>NOT</strong> too guessable</li>
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+      {{ localize "password-policy-guessable-level-1" }}
+    </li>
     {{ end }}
     {{ if eq .min_level 2.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}"><strong>NOT</strong> very guessable</li>
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+      {{ localize "password-policy-guessable-level-2" }}
+    </li>
     {{ end }}
     {{ if eq .min_level 3.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}"><strong>NOT</strong> somewhat guessable</li>
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+      {{ localize "password-policy-guessable-level-3" }}
+    </li>
     {{ end }}
     {{ if eq .min_level 4.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">Safely unguessable</li>
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+      {{ localize "password-policy-guessable-level-4" }}
+    </li>
     {{ end }}
     {{ if eq .min_level 5.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">Very unguessable</li>
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+      {{ localize "password-policy-guessable-level-5" }}
+    </li>
     {{ end }}
   {{ end }}
 {{ end }}
 </ul>
 {{ end }}
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">Next</button>
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-password-button-label" }}</button>
 
 {{ if eq .x_login_id_input_type "phone" }}
 <p class="description">
-By providing your phone number, you agree to receive service notifications to your mobile phone. Text messaging rates may apply.
+{{ localize "sms-charge-warning" }}
 </p>
 {{ end }}
 
@@ -417,9 +449,10 @@ By providing your phone number, you agree to receive service notifications to yo
 }
 
 var TemplateAuthUISettingsHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUISettingsHTML,
-	IsHTML:  true,
-	Defines: defines,
+	Type:        TemplateItemTypeAuthUISettingsHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
@@ -441,9 +474,10 @@ var TemplateAuthUISettingsHTML = template.Spec{
 }
 
 var TemplateAuthUILogoutHTML = template.Spec{
-	Type:    TemplateItemTypeAuthUILogoutHTML,
-	IsHTML:  true,
-	Defines: defines,
+	Type:        TemplateItemTypeAuthUILogoutHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
 	Default: `<!DOCTYPE html>
 <html>
 {{ template "HEAD" . }}
@@ -454,8 +488,8 @@ var TemplateAuthUILogoutHTML = template.Spec{
 
 <form class="logout-form" method="post">
   {{ $.csrfField }}
-  <p>To logout, please click the button below.</p>
-  <button class="btn primary-btn align-self-center" type="submit" name="x_action" value="logout">Logout</button>
+  <p>{{ localize "logout-button-hint" }}</p>
+  <button class="btn primary-btn align-self-center" type="submit" name="x_action" value="logout">{{ localize "logout-button-label" }}</button>
 </form>
 
 {{ template "SKYGEAR_LOGO" . }}

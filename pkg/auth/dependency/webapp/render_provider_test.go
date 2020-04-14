@@ -95,7 +95,7 @@ func TestRenderProvider(t *testing.T) {
 
 		impl.WritePage(w, r, "a", errors.New("error"))
 
-		So(w.Result().Header.Get("Content-Type"), ShouldEqual, "text/html")
+		So(w.Result().Header.Get("Content-Type"), ShouldEqual, "text/html; charset=utf-8")
 		So(string(w.Body.Bytes()), ShouldEqual, `
 <!DOCTYPE html>
 <html>
@@ -129,5 +129,31 @@ a { color: red; }
 </body>
 </html>
 `)
+	})
+}
+
+func TestPreferredLanguageTags(t *testing.T) {
+	Convey("PreferredLanguageTags", t, func() {
+		test := func(uiLocales string, acceptLanguage string, expected []string) {
+			r, _ := http.NewRequest("GET", "", nil)
+			_ = r.ParseForm()
+			if uiLocales != "" {
+				r.Form.Set("ui_locales", uiLocales)
+			}
+			if acceptLanguage != "" {
+				r.Header.Set("Accept-Language", acceptLanguage)
+			}
+			actual := PreferredLanguageTags(r)
+			So(actual, ShouldResemble, expected)
+		}
+
+		// No ui_locales or Accept-Language
+		test("", "", nil)
+
+		// Accept-Language
+		test("", "zh-Hant-HK; q=0.5, en", []string{"en", "zh-Hant-HK"})
+
+		// ui_locales
+		test("ja-JP zh-Hant-TW", "zh-Hant-HK; q=0.5, en", []string{"ja-JP", "zh-Hant-TW"})
 	})
 }

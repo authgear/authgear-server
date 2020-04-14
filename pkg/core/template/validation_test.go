@@ -93,9 +93,7 @@ func TestTemplateValidation(t *testing.T) {
 
 		Convey("should allow range node if explicitly allowed", func() {
 			var err error
-			v := NewValidator(func(v *Validator) {
-				v.AllowRangeNode = true
-			})
+			v := NewValidator(AllowRangeNode(true))
 
 			err = v.ValidateHTMLTemplate(template(`{{ range . }}{{ end }}`))
 			So(err, ShouldBeNil)

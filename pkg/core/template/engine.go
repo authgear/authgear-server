@@ -1,37 +1,54 @@
 package template
 
 import (
+	"encoding/json"
+	"fmt"
 	"sort"
 
 	"golang.org/x/text/language"
 
+	"github.com/iawaknahc/gomessageformat"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type ResolveOptions struct {
-	Required bool
-	Key      string
+	Key string
+}
+
+type resolveResult struct {
+	Spec         Spec
+	TemplateBody string
+	// Translations is key -> tag -> translation.
+	// For example,
+	// {
+	//   "key1": {
+	//     "": "Hello",
+	//     "en": "Hello",
+	//     "en-US": "Hi!",
+	//     "zh": "你好"
+	//   }
+	// }
+	Translations map[string]map[string]string
 }
 
 type NewEngineOptions struct {
-	EnableFileLoader      bool
-	EnableDataLoader      bool
-	AssetGearLoader       *AssetGearLoader
-	TemplateItems         []config.TemplateItem
-	PreferredLanguageTags []string
+	EnableFileLoader bool
+	EnableDataLoader bool
+	AssetGearLoader  *AssetGearLoader
+	TemplateItems    []config.TemplateItem
+}
+
+type Loader interface {
+	Load(string) (string, error)
 }
 
 // Engine resolves and renders templates.
 type Engine struct {
-	uriLoader     *URILoader
-	TemplateSpecs map[config.TemplateItemType]Spec
-	templateItems []config.TemplateItem
-	// NOTE(louis): PreferredLanguageTags
-	// preferredLanguageTags is put here instead of receiving it from RenderXXX methods.
-	// It is expected that engine is created per request.
-	// The preferred language tags should be lazily retrieved
-	// from the auth context.
+	loader                Loader
+	TemplateSpecs         map[config.TemplateItemType]Spec
+	templateItems         []config.TemplateItem
 	preferredLanguageTags []string
+	validatorOptions      []ValidatorOption
 }
 
 func NewEngine(opts NewEngineOptions) *Engine {
@@ -39,60 +56,107 @@ func NewEngine(opts NewEngineOptions) *Engine {
 	uriLoader.EnableFileLoader = opts.EnableFileLoader
 	uriLoader.EnableDataLoader = opts.EnableDataLoader
 	return &Engine{
-		uriLoader:             uriLoader,
-		templateItems:         opts.TemplateItems,
-		TemplateSpecs:         map[config.TemplateItemType]Spec{},
-		preferredLanguageTags: opts.PreferredLanguageTags,
+		loader:        uriLoader,
+		templateItems: opts.TemplateItems,
+		TemplateSpecs: map[config.TemplateItemType]Spec{},
 	}
 }
 
+// Clone clones e.
+func (e *Engine) Clone() *Engine {
+	// A simply struct copy is enough here because we assume
+	// Register calls are made only during engine creation.
+	newEngine := *e
+	return &newEngine
+}
+
+// WithPreferredLanguageTags returns a new engine with the given tags.
+// This function offers greater flexibility on configuring preferred languages because
+// This information may not be available at the creation of the engine.
+func (e *Engine) WithPreferredLanguageTags(tags []string) *Engine {
+	newEngine := e.Clone()
+	newEngine.preferredLanguageTags = tags
+	return newEngine
+}
+
+// WithValidatorOptions returns a new engine with the givan validator options.
+func (e *Engine) WithValidatorOptions(opts ...ValidatorOption) *Engine {
+	newEngine := e.Clone()
+	newEngine.validatorOptions = opts
+	return newEngine
+}
+
+// Register registers spec with e.
 func (e *Engine) Register(spec Spec) {
 	e.TemplateSpecs[spec.Type] = spec
 }
 
-func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, resolveOptions ResolveOptions, validateOpts ...func(*Validator)) (out string, err error) {
-	templateBody, spec, err := e.resolveTemplate(templateType, resolveOptions)
+func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context map[string]interface{}, resolveOptions ResolveOptions) (out string, err error) {
+	result, err := e.resolveTemplate(templateType, resolveOptions)
 	if err != nil {
 		return
 	}
-	if spec.IsHTML {
-		return RenderHTMLTemplate(RenderOptions{
-			Name:          string(templateType),
-			TemplateBody:  templateBody,
-			Defines:       spec.Defines,
-			Context:       context,
-			ValidatorOpts: validateOpts,
-		})
-	}
-	return RenderTextTemplate(RenderOptions{
+
+	renderOptions := RenderOptions{
 		Name:          string(templateType),
-		TemplateBody:  templateBody,
-		Defines:       spec.Defines,
+		TemplateBody:  result.TemplateBody,
+		Defines:       result.Spec.Defines,
 		Context:       context,
-		ValidatorOpts: validateOpts,
-	})
+		ValidatorOpts: e.validatorOptions,
+	}
+
+	if result.Spec.Translation != "" {
+		renderOptions.Funcs = map[string]interface{}{
+			"localize": makeLocalize(
+				e.preferredLanguageTags,
+				result.Translations,
+			),
+		}
+	}
+
+	renderFunc := RenderTextTemplate
+	if result.Spec.IsHTML {
+		renderFunc = RenderHTMLTemplate
+	}
+
+	return renderFunc(renderOptions)
 }
 
-func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options ResolveOptions) (string, Spec, error) {
-	spec, found := e.TemplateSpecs[templateType]
-	if !found {
+func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options ResolveOptions) (result *resolveResult, err error) {
+	spec, ok := e.TemplateSpecs[templateType]
+	if !ok {
 		panic("template: unregistered template type: " + templateType)
 	}
 
+	// Resolve the template body
+	// Take the default value by default
+	templateBody := spec.Default
 	templateItem, err := e.resolveTemplateItem(spec, options.Key)
-	var templateBody string
-	// No template item can be resolved. Fallback to default.
 	if err != nil {
+		// No template item can be resolved. Fallback to default.
 		err = nil
-		if spec.Default != "" {
-			templateBody = spec.Default
-		} else if options.Required {
-			err = &errNotFound{string(templateType)}
-		}
 	} else {
-		templateBody, err = e.uriLoader.Load(templateItem.URI)
+		templateBody, err = e.loader.Load(templateItem.URI)
+		if err != nil {
+			return
+		}
 	}
-	return templateBody, spec, err
+
+	// Resolve the translations, if any
+	var translations map[string]map[string]string
+	if spec.Translation != "" {
+		translations, err = e.resolveTranslations(spec.Translation)
+		if err != nil {
+			return
+		}
+	}
+
+	result = &resolveResult{
+		TemplateBody: templateBody,
+		Spec:         spec,
+		Translations: translations,
+	}
+	return
 }
 
 func (e *Engine) resolveTemplateItem(spec Spec, key string) (templateItem *config.TemplateItem, err error) {
@@ -150,4 +214,122 @@ func (e *Engine) resolveTemplateItem(spec Spec, key string) (templateItem *confi
 	_, idx, _ := matcher.Match(preferredTags...)
 
 	return &input[idx], nil
+}
+
+func (e *Engine) resolveTranslations(templateType config.TemplateItemType) (translations map[string]map[string]string, err error) {
+	spec, ok := e.TemplateSpecs[templateType]
+	if !ok {
+		panic("template: unregistered template type: " + templateType)
+	}
+
+	translations = map[string]map[string]string{}
+
+	// Load the default translation
+	defaultTranslation, err := loadTranslation(spec.Default)
+	if err != nil {
+		return
+	}
+	insertTranslation(translations, "", defaultTranslation)
+
+	// Find out all items
+	var items []config.TemplateItem
+	for _, item := range e.templateItems {
+		if item.Type == spec.Type {
+			i := item
+			items = append(items, i)
+		}
+	}
+
+	// Load all provided translations
+	for _, item := range items {
+		var jsonStr string
+		jsonStr, err = e.loader.Load(item.URI)
+		if err != nil {
+			return
+		}
+		var translation map[string]string
+		translation, err = loadTranslation(jsonStr)
+		if err != nil {
+			return
+		}
+		insertTranslation(translations, item.LanguageTag, translation)
+	}
+
+	return
+}
+
+func makeLocalize(preferredLanguageTags []string, translations map[string]map[string]string) func(key string, args ...interface{}) (string, error) {
+	return func(key string, args ...interface{}) (out string, err error) {
+		m, ok := translations[key]
+		if !ok {
+			err = fmt.Errorf("translation key not found: %s", key)
+			return
+		}
+
+		supportedTagStrings := make([]string, len(m))
+		for tagStr := range m {
+			supportedTagStrings = append(supportedTagStrings, tagStr)
+		}
+
+		// The first item in tags is used as fallback.
+		// So we have sort the templates so that template with empty
+		// language tag comes first.
+		sort.Slice(supportedTagStrings, func(i, j int) bool {
+			return supportedTagStrings[i] < supportedTagStrings[j]
+		})
+
+		supportedTags := make([]language.Tag, len(supportedTagStrings))
+		for i, item := range supportedTagStrings {
+			supportedTags[i] = language.Make(item)
+		}
+		matcher := language.NewMatcher(supportedTags)
+
+		preferredTags := make([]language.Tag, len(preferredLanguageTags))
+		for i, tagStr := range preferredLanguageTags {
+			preferredTags[i] = language.Make(tagStr)
+		}
+
+		_, idx, _ := matcher.Match(preferredTags...)
+
+		tag := supportedTags[idx]
+		pattern := m[supportedTagStrings[idx]]
+
+		out, err = messageformat.FormatPositional(tag, pattern, args...)
+		if err != nil {
+			return
+		}
+
+		return
+	}
+}
+
+func loadTranslation(jsonStr string) (translation map[string]string, err error) {
+	var jsonObj map[string]interface{}
+	err = json.Unmarshal([]byte(jsonStr), &jsonObj)
+	if err != nil {
+		err = fmt.Errorf("expected translation file to be JSON: %w", err)
+		return
+	}
+
+	translation = map[string]string{}
+	for key, val := range jsonObj {
+		s, ok := val.(string)
+		if !ok {
+			err = fmt.Errorf("expected translation value to be string: %s %T", key, val)
+			return
+		}
+		translation[key] = s
+	}
+	return
+}
+
+func insertTranslation(translations map[string]map[string]string, tag string, translation map[string]string) {
+	for key, val := range translation {
+		m, ok := translations[key]
+		if !ok {
+			translations[key] = map[string]string{}
+			m = translations[key]
+		}
+		m[tag] = val
+	}
 }

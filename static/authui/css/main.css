@@ -162,6 +162,10 @@ button.anchor {
   background-repeat: no-repeat;
 }
 
+.password-visibility-btn.hide-password {
+  display: none;
+}
+
 @media (min-width: 320px) {
 }
 
@@ -303,20 +307,20 @@ button.anchor {
   margin: 0 0 20px 0;
 }
 
-.enter-password-form .toggle-password-visibility {
+.enter-password-form .password-visibility-btn {
   margin: 0 0 20px 0;
 }
 
-.btn.toggle-password-visibility {
+.password-visibility-btn {
   max-width: 170px;
   padding: 0 0 0 12px;
 }
 
-.btn.toggle-password-visibility.show-password {
+.password-visibility-btn.show-password {
   background: url("../image/ic_show_password.png") 12px center / 20px auto no-repeat;
 }
 
-.btn.toggle-password-visibility.hide-password {
+.password-visibility-btn.hide-password {
   background: url("../image/ic_hide_password.png") 12px center / 20px auto no-repeat;
 }
 
