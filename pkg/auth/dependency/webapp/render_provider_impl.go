@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/intl"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
@@ -53,8 +54,11 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		return MakeURLWithPath(r.URL, path)
 	}
 
-	data["client_name"] = accessKey.Client["client_name"]
-	data["logo_uri"] = accessKey.Client["logo_uri"]
+	preferredLanguageTags := PreferredLanguageTags(r)
+
+	clientMetadata := accessKey.Client
+	data["client_name"] = intl.LocalizeOIDCJSONObject(preferredLanguageTags, clientMetadata, "client_name")
+	data["logo_uri"] = intl.LocalizeOIDCJSONObject(preferredLanguageTags, clientMetadata, "logo_uri")
 
 	data[csrf.TemplateTag] = csrf.TemplateField(r)
 
@@ -148,7 +152,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		template.AllowRangeNode(true),
 		template.AllowTemplateNode(true),
 		template.MaxDepth(15),
-	).WithPreferredLanguageTags(PreferredLanguageTags(r)).RenderTemplate(
+	).WithPreferredLanguageTags(preferredLanguageTags).RenderTemplate(
 		templateType,
 		data,
 		template.ResolveOptions{},
