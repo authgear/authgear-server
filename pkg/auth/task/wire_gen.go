@@ -30,7 +30,7 @@ import (
 
 func newWelcomeEmailSendTask(ctx context.Context, m auth.DependencyMap) async.Task {
 	tenantConfiguration := auth.ProvideTenantConfig(ctx)
-	sender := mail.ProvideMailSender(tenantConfiguration)
+	sender := mail.ProvideMailSender(ctx, tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	welcemailSender := welcemail.NewDefaultSender(tenantConfiguration, sender, engine)
 	provider := time.NewProvider()
@@ -53,8 +53,8 @@ func newWelcomeEmailSendTask(ctx context.Context, m auth.DependencyMap) async.Ta
 func newVerifyCodeSendTask(ctx context.Context, m auth.DependencyMap) async.Task {
 	tenantConfiguration := auth.ProvideTenantConfig(ctx)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
-	sender := mail.ProvideMailSender(tenantConfiguration)
-	client := sms.ProvideSMSClient(tenantConfiguration)
+	sender := mail.ProvideMailSender(ctx, tenantConfiguration)
+	client := sms.ProvideSMSClient(ctx, tenantConfiguration)
 	codeSenderFactory := userverify.NewDefaultUserVerifyCodeSenderFactory(tenantConfiguration, engine, sender, client)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(ctx, tenantConfiguration)

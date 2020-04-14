@@ -1,6 +1,7 @@
 package sms
 
 import (
+	"context"
 	"errors"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -15,11 +16,10 @@ type RawClient interface {
 
 type ClientImpl struct {
 	RawClient RawClient
-	// TODO(intl): sms sender
-	PreferredLanguages []string
+	Context   context.Context
 }
 
-func NewClient(appConfig *config.AppConfiguration) Client {
+func NewClient(ctx context.Context, appConfig *config.AppConfiguration) Client {
 	var client RawClient
 
 	switch appConfig.Messages.SMSProvider {
@@ -36,12 +36,16 @@ func NewClient(appConfig *config.AppConfiguration) Client {
 		}
 	}
 
-	return &ClientImpl{RawClient: client}
+	return &ClientImpl{
+		RawClient: client,
+		Context:   ctx,
+	}
 }
 
 func (c *ClientImpl) Send(opts SendOptions) error {
 	if c.RawClient != nil {
-		from := intl.LocalizeOIDCStringMap(c.PreferredLanguages, opts.MessageConfig, "sender")
+		tags := intl.GetPreferredLanguageTags(c.Context)
+		from := intl.LocalizeOIDCStringMap(tags, opts.MessageConfig, "sender")
 		return c.RawClient.Send(from, opts.To, opts.Body)
 	}
 	return ErrNoAvailableClient

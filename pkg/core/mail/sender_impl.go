@@ -1,6 +1,7 @@
 package mail
 
 import (
+	"context"
 	"errors"
 
 	"github.com/go-gomail/gomail"
@@ -13,11 +14,10 @@ var ErrMissingSMTPConfiguration = errors.New("mail: configuration is missing")
 
 type senderImpl struct {
 	GomailDialer *gomail.Dialer
-	// TODO(intl): email sender
-	PreferredLanguages []string
+	Context      context.Context
 }
 
-func NewSender(c *config.SMTPConfiguration) Sender {
+func NewSender(ctx context.Context, c *config.SMTPConfiguration) Sender {
 	var dialer *gomail.Dialer
 	if c != nil && c.IsValid() {
 		dialer = gomail.NewPlainDialer(c.Host, c.Port, c.Login, c.Password)
@@ -30,6 +30,7 @@ func NewSender(c *config.SMTPConfiguration) Sender {
 	}
 	return &senderImpl{
 		GomailDialer: dialer,
+		Context:      ctx,
 	}
 }
 
@@ -67,7 +68,8 @@ func (s *senderImpl) Send(opts SendOptions) (err error) {
 }
 
 func (s *senderImpl) applyFrom(opts *SendOptions, message *gomail.Message) error {
-	sender := intl.LocalizeOIDCStringMap(s.PreferredLanguages, opts.MessageConfig, "sender")
+	tags := intl.GetPreferredLanguageTags(s.Context)
+	sender := intl.LocalizeOIDCStringMap(tags, opts.MessageConfig, "sender")
 	if sender == "" {
 		return errors.New("mail: sender address is missing")
 	}
@@ -85,7 +87,8 @@ func applyTo(opts *SendOptions, message *gomail.Message) error {
 }
 
 func (s *senderImpl) applyReplyTo(opts *SendOptions, message *gomail.Message) error {
-	replyTo := intl.LocalizeOIDCStringMap(s.PreferredLanguages, opts.MessageConfig, "reply_to")
+	tags := intl.GetPreferredLanguageTags(s.Context)
+	replyTo := intl.LocalizeOIDCStringMap(tags, opts.MessageConfig, "reply_to")
 	if replyTo == "" {
 		return nil
 	}
@@ -95,7 +98,8 @@ func (s *senderImpl) applyReplyTo(opts *SendOptions, message *gomail.Message) er
 }
 
 func (s *senderImpl) applySubject(opts *SendOptions, message *gomail.Message) error {
-	subject := intl.LocalizeOIDCStringMap(s.PreferredLanguages, opts.MessageConfig, "subject")
+	tags := intl.GetPreferredLanguageTags(s.Context)
+	subject := intl.LocalizeOIDCStringMap(tags, opts.MessageConfig, "subject")
 	if subject == "" {
 		return errors.New("mail: subject is missing")
 	}
