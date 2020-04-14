@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/skygeario/skygear-server/pkg/core/apiversion"
-	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -174,7 +173,7 @@ var (
 	"CountryCallingCode": {
 		"$id": "#CountryCallingCode",
 		"type": "string",
-		"enum": %s
+		"pattern": "^\\d+$"
 	},
 	"AuthUICountryCallingCodeConfiguration": {
 		"$id": "#AuthUICountryCallingCodeConfiguration",
@@ -625,7 +624,7 @@ var (
 		}
 	}
 }
-`, apiversion.SupportedVersionsJSON, apiversion.SupportedVersionsJSON, phone.CountryCallingCodesJSON)
+`, apiversion.SupportedVersionsJSON, apiversion.SupportedVersionsJSON)
 )
 
 var (

@@ -513,5 +513,84 @@ func TestParseAppConfiguration(t *testing.T) {
 			}`,
 			"/nexmo/api_secret: Type map[expected:string]",
 		)
+		// Country calling code - bad
+		test(`
+			{
+				"api_version": "v2.1",
+				"master_key": "master_key",
+				"asset": {
+					"secret": "assetsecret"
+				},
+				"authentication": {
+					"secret": "authnsessionsecret"
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
+				},
+				"hook": {
+					"secret": "hooksecret"
+				},
+				"auth_ui": {
+					"country_calling_code": {
+						"default": "a"
+					}
+				}
+			}`,
+			"/auth_ui/country_calling_code/default: StringFormat map[pattern:^\\d+$]",
+		)
+		// Country calling code - good
+		test(`
+			{
+				"api_version": "v2.1",
+				"master_key": "master_key",
+				"asset": {
+					"secret": "assetsecret"
+				},
+				"authentication": {
+					"secret": "authnsessionsecret"
+				},
+				"identity": {
+					"login_id": {
+						"keys": [
+							{
+								"key": "email",
+								"type": "email"
+							},
+							{
+								"key": "phone",
+								"type": "phone"
+							},
+							{
+								"key": "username",
+								"type": "username"
+							}
+						]
+					}
+				},
+				"hook": {
+					"secret": "hooksecret"
+				},
+				"auth_ui": {
+					"country_calling_code": {
+						"default": "852"
+					}
+				}
+			}`,
+		)
 	})
 }
