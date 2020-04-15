@@ -15,6 +15,7 @@ const (
 
 type LinkedInImpl struct {
 	URLPrefix       *url.URL
+	RedirectURLFunc RedirectURLFunc
 	OAuthConfig     *config.OAuthConfiguration
 	ProviderConfig  config.OAuthProviderConfiguration
 	UserInfoDecoder UserInfoDecoder
@@ -27,7 +28,7 @@ func (f *LinkedInImpl) Type() config.OAuthProviderType {
 func (f *LinkedInImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
-		urlPrefix:      f.URLPrefix,
+		redirectURI:    f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		providerConfig: f.ProviderConfig,
 		encodedState:   encodedState,
 		baseURL:        linkedinAuthorizationURL,
@@ -41,7 +42,7 @@ func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (a
 
 func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:       f.URLPrefix,
+		redirectURL:     f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		oauthConfig:     f.OAuthConfig,
 		providerConfig:  f.ProviderConfig,
 		accessTokenURL:  linkedinTokenURL,
@@ -53,7 +54,7 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 
 func (f *LinkedInImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:       f.URLPrefix,
+		redirectURL:     f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		oauthConfig:     f.OAuthConfig,
 		providerConfig:  f.ProviderConfig,
 		accessTokenURL:  linkedinTokenURL,

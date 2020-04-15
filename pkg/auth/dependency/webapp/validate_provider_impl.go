@@ -162,8 +162,9 @@ const SignupLoginIDPasswordRequestSchema = `
 `
 
 type ValidateProviderImpl struct {
-	Validator            *validation.Validator
-	LoginIDConfiguration *config.LoginIDConfiguration
+	Validator                       *validation.Validator
+	LoginIDConfiguration            *config.LoginIDConfiguration
+	CountryCallingCodeConfiguration *config.AuthUICountryCallingCodeConfiguration
 }
 
 var _ ValidateProvider = &ValidateProviderImpl{}
@@ -201,6 +202,10 @@ func (p *ValidateProviderImpl) PrepareValues(form url.Values) {
 		if len(p.LoginIDConfiguration.Keys) > 0 {
 			form.Set("x_login_id_key", p.LoginIDConfiguration.Keys[0].Key)
 		}
+	}
+
+	if _, ok := form["x_calling_code"]; !ok {
+		form.Set("x_calling_code", p.CountryCallingCodeConfiguration.Default)
 	}
 }
 

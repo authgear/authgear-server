@@ -14,7 +14,13 @@ func TestValidateProvider(t *testing.T) {
 	Convey("ValidateProvider", t, func() {
 		Convey("PrepareValues", func() {
 			c := &config.LoginIDConfiguration{}
-			impl := ValidateProviderImpl{LoginIDConfiguration: c}
+			impl := ValidateProviderImpl{
+				LoginIDConfiguration: c,
+				CountryCallingCodeConfiguration: &config.AuthUICountryCallingCodeConfiguration{
+					Values:  []string{"852"},
+					Default: "852",
+				},
+			}
 			var form url.Values
 
 			Convey("remove empty value", func() {
@@ -23,7 +29,8 @@ func TestValidateProvider(t *testing.T) {
 					"b": []string{"non-empty"},
 				}
 				impl.PrepareValues(form)
-				So(form, ShouldHaveLength, 1)
+				_, ok := form["a"]
+				So(ok, ShouldBeFalse)
 			})
 
 			Convey("prefill text if first login id type is not phone", func() {
@@ -53,6 +60,12 @@ func TestValidateProvider(t *testing.T) {
 				}
 				impl.PrepareValues(form)
 				So(form.Get("x_login_id_input_type"), ShouldEqual, "text")
+			})
+
+			Convey("prefill country calling code", func() {
+				form = url.Values{}
+				impl.PrepareValues(form)
+				So(form.Get("x_calling_code"), ShouldEqual, "852")
 			})
 		})
 

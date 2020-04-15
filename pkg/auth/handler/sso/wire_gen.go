@@ -31,6 +31,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/async"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	pq2 "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -116,7 +117,8 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, provider, timeProvider, loginIDNormalizerFactory)
+	redirectURLFunc := ProvideRedirectURIForAPIFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, provider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
 	httpHandler := provideAuthHandler(txContext, tenantConfiguration, authHandlerHTMLProvider, ssoProvider, authnProvider, oAuthProvider)
 	return httpHandler
@@ -273,7 +275,8 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory)
+	redirectURLFunc := ProvideRedirectURIForAPIFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
 	httpHandler := provideLinkHandler(txContext, requireAuthz, validator, provider, authnProvider, oAuthProvider)
 	return httpHandler
@@ -351,9 +354,121 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory)
+	redirectURLFunc := ProvideRedirectURIForAPIFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
 	httpHandler := provideLoginHandler(txContext, requireAuthz, validator, provider, authnProvider, oAuthProvider)
+	return httpHandler
+}
+
+func newAuthRedirectHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	provider := sso.ProvideSSOProvider(context, tenantConfiguration)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	timeProvider := time.NewProvider()
+	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
+	redirectURLFunc := ProvideRedirectURIForAPIFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
+	httpHandler := provideAuthRedirectHandler(provider, oAuthProvider)
+	return httpHandler
+}
+
+func newLoginAuthURLHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	requireAuthz := handler2.NewRequireAuthzFactory(factory)
+	validator := auth.ProvideValidator(m)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	provider := time.NewProvider()
+	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
+	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
+	redirectURLFunc := ProvideRedirectURIForAPIFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, provider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
+	ssoSsoAction := providerLoginSSOAction()
+	httpHandler := provideAuthURLHandler(txContext, requireAuthz, validator, passwordProvider, ssoProvider, tenantConfiguration, oAuthProvider, ssoSsoAction)
+	return httpHandler
+}
+
+func newLinkAuthURLHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	requireAuthz := handler2.NewRequireAuthzFactory(factory)
+	validator := auth.ProvideValidator(m)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	provider := time.NewProvider()
+	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
+	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
+	redirectURLFunc := ProvideRedirectURIForAPIFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, provider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
+	ssoSsoAction := providerLinkSSOAction()
+	httpHandler := provideAuthURLHandler(txContext, requireAuthz, validator, passwordProvider, ssoProvider, tenantConfiguration, oAuthProvider, ssoSsoAction)
+	return httpHandler
+}
+
+func newUnlinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	provider := time.NewProvider()
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	oauthProvider := oauth.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
+	passwordhistoryStore := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
+	v := auth.ProvidePrincipalProviders(oauthProvider, passwordProvider)
+	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	manager := session.ProvideSessionManager(sessionStore, provider, tenantConfiguration, cookieConfiguration)
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	sessionManager := &oauth2.SessionManager{
+		Store: grantStore,
+		Time:  provider,
+	}
+	authSessionManager := &auth2.SessionManager{
+		AuthInfoStore:       store,
+		UserProfileStore:    userprofileStore,
+		IdentityProvider:    identityProvider,
+		Hooks:               hookProvider,
+		IDPSessions:         manager,
+		AccessTokenSessions: sessionManager,
+	}
+	requireAuthz := handler2.NewRequireAuthzFactory(factory)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
+	redirectURLFunc := ProvideRedirectURIForAPIFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, provider, loginIDNormalizerFactory, redirectURLFunc)
+	httpHandler := providerUnlinkHandler(txContext, authSessionManager, requireAuthz, oauthProvider, store, userprofileStore, hookProvider, oAuthProviderFactory)
 	return httpHandler
 }
 
@@ -362,6 +477,10 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 func provideOAuthProviderFromRequestVars(r *http.Request, spf *sso.OAuthProviderFactory) sso.OAuthProvider {
 	vars := mux.Vars(r)
 	return spf.NewOAuthProvider(vars["provider"])
+}
+
+func ProvideRedirectURIForAPIFunc() sso.RedirectURLFunc {
+	return RedirectURIForAPI
 }
 
 func provideAuthHandler(
@@ -431,6 +550,69 @@ func provideLoginHandler(
 		SSOProvider:   sp,
 		AuthnProvider: ap,
 		OAuthProvider: op,
+	}
+	return requireAuthz(h, h)
+}
+
+func provideAuthRedirectHandler(
+	sp sso.Provider,
+	op sso.OAuthProvider,
+) http.Handler {
+	h := &AuthRedirectHandler{
+		SSOProvider:   sp,
+		OAuthProvider: op,
+	}
+	return h
+}
+
+func provideAuthURLHandler(
+	tx db.TxContext,
+	requireAuthz handler2.RequireAuthz,
+	v *validation.Validator,
+	pp password.Provider,
+	sp sso.Provider,
+	cfg *config.TenantConfiguration,
+	op sso.OAuthProvider,
+	action ssoAction,
+) http.Handler {
+	h := &AuthURLHandler{
+		TxContext:                  tx,
+		Validator:                  v,
+		PasswordAuthProvider:       pp,
+		SSOProvider:                sp,
+		OAuthConflictConfiguration: cfg.AppConfig.AuthAPI.OnIdentityConflict.OAuth,
+		OAuthProvider:              op,
+		Action:                     action,
+	}
+	return requireAuthz(h, h)
+}
+
+func providerLoginSSOAction() ssoAction {
+	return ssoActionLogin
+}
+
+func providerLinkSSOAction() ssoAction {
+	return ssoActionLink
+}
+
+func providerUnlinkHandler(
+	tx db.TxContext,
+	sm unlinkSessionManager,
+	requireAuthz handler2.RequireAuthz,
+	oap oauth.Provider,
+	ais authinfo.Store,
+	ups userprofile.Store,
+	hp hook.Provider,
+	spf *sso.OAuthProviderFactory,
+) http.Handler {
+	h := &UnlinkHandler{
+		TxContext:         tx,
+		SessionManager:    sm,
+		OAuthAuthProvider: oap,
+		AuthInfoStore:     ais,
+		UserProfileStore:  ups,
+		HookProvider:      hp,
+		ProviderFactory:   spf,
 	}
 	return requireAuthz(h, h)
 }

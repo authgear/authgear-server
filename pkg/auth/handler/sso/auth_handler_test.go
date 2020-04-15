@@ -92,11 +92,11 @@ type MockAuthnOAuthProvider struct {
 	Code *sso.SkygearAuthorizationCode
 }
 
-func (p *MockAuthnOAuthProvider) OAuthAuthenticate(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, err error) {
+func (p *MockAuthnOAuthProvider) OAuthAuthenticateCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, err error) {
 	return p.Code, nil
 }
 
-func (p *MockAuthnOAuthProvider) OAuthLink(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error) {
+func (p *MockAuthnOAuthProvider) OAuthLinkCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error) {
 	return p.Code, nil
 }
 
@@ -132,10 +132,11 @@ func TestAuthHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
-			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
-			BaseURL:        "http://mock/auth",
-			OAuthConfig:    oauthConfig,
-			ProviderConfig: providerConfig,
+			URLPrefix:       &url.URL{Scheme: "https", Host: "api.example.com"},
+			RedirectURLFunc: RedirectURIForAPI,
+			BaseURL:         "http://mock/auth",
+			OAuthConfig:     oauthConfig,
+			ProviderConfig:  providerConfig,
 			UserInfo: sso.ProviderUserInfo{
 				ID:    providerUserID,
 				Email: "mock@example.com",
@@ -164,10 +165,10 @@ func TestAuthHandler(t *testing.T) {
 			state := sso.State{
 				APIClientID: "client-id",
 				Action:      action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      sso.UXModeManual,
+				Extra: AuthAPISSOState{
+					"callback_url": "http://localhost:3000",
 				},
+				UXMode:      sso.UXModeManual,
 				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
@@ -210,10 +211,10 @@ func TestAuthHandler(t *testing.T) {
 			state := sso.State{
 				APIClientID: "client-id",
 				Action:      action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      sso.UXModeWebRedirect,
+				Extra: AuthAPISSOState{
+					"callback_url": "http://localhost:3000",
 				},
+				UXMode:      sso.UXModeWebRedirect,
 				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
@@ -263,10 +264,10 @@ func TestAuthHandler(t *testing.T) {
 			state := sso.State{
 				APIClientID: "client-id",
 				Action:      action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      sso.UXModeWebPopup,
+				Extra: AuthAPISSOState{
+					"callback_url": "http://localhost:3000",
 				},
+				UXMode:      sso.UXModeWebPopup,
 				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
@@ -300,10 +301,10 @@ func TestAuthHandler(t *testing.T) {
 			state := sso.State{
 				APIClientID: "client-id",
 				Action:      action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      sso.UXModeMobileApp,
+				Extra: AuthAPISSOState{
+					"callback_url": "http://localhost:3000",
 				},
+				UXMode:      sso.UXModeMobileApp,
 				HashedNonce: hashedNonce,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)

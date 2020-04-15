@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -52,10 +53,11 @@ func TestAuthURLHandler(t *testing.T) {
 			Scope:        "openid profile email",
 		}
 		mockProvider := sso.MockSSOProvider{
-			URLPrefix:      &url.URL{Scheme: "https", Host: "localhost:3000"},
-			BaseURL:        "http://mock/auth",
-			OAuthConfig:    oauthConfig,
-			ProviderConfig: providerConfig,
+			URLPrefix:       &url.URL{Scheme: "https", Host: "localhost:3000"},
+			RedirectURLFunc: RedirectURIForAPI,
+			BaseURL:         "http://mock/auth",
+			OAuthConfig:     oauthConfig,
+			ProviderConfig:  providerConfig,
 		}
 		mockPasswordProvider := password.NewMockProvider(
 			nil,
@@ -65,12 +67,14 @@ func TestAuthURLHandler(t *testing.T) {
 		h.TxContext = db.NewMockTxContext()
 		h.OAuthProvider = &mockProvider
 		h.SSOProvider = &mockProvider
-		h.ProviderID = "google"
 		h.PasswordAuthProvider = mockPasswordProvider
 		h.Action = "login"
 
+		router := mux.NewRouter()
+		router.Handle("/sso/{provider}/login_auth_url", h)
+
 		Convey("should return login_auth_url", func() {
-			req, _ := http.NewRequest("POST", "http://mock", strings.NewReader(`
+			req, _ := http.NewRequest("POST", "http://mock/sso/google/login_auth_url", strings.NewReader(`
 			{
 				"code_challenge": "a",
 				"callback_url": "http://example.com/sso",
@@ -84,8 +88,7 @@ func TestAuthURLHandler(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
-			httpHandler := h
-			httpHandler.ServeHTTP(resp, req)
+			router.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 
@@ -108,14 +111,14 @@ func TestAuthURLHandler(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 			So(claims.State.UXMode, ShouldEqual, sso.UXModeWebRedirect)
-			So(claims.State.CallbackURL, ShouldEqual, "http://example.com/sso")
+			So(AuthAPISSOState(claims.State.Extra).CallbackURL(), ShouldEqual, "http://example.com/sso")
 			So(claims.State.Action, ShouldEqual, "login")
 			So(claims.State.UserID, ShouldEqual, "faseng.cat.id")
 		})
 
 		Convey("should return link_auth_url", func() {
 			h.Action = "link"
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			req, _ := http.NewRequest("POST", "/sso/google/login_auth_url", strings.NewReader(`
 			{
 				"code_challenge": "a",
 				"callback_url": "http://example.com/sso",
@@ -129,8 +132,7 @@ func TestAuthURLHandler(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
-			httpHandler := h
-			httpHandler.ServeHTTP(resp, req)
+			router.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 
@@ -150,7 +152,7 @@ func TestAuthURLHandler(t *testing.T) {
 		})
 
 		SkipConvey("should reject invalid realm", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			req, _ := http.NewRequest("POST", "/sso/google/login_auth_url", strings.NewReader(`
 			{
 				"code_challenge": "a",
 				"callback_url": "http://example.com/sso",
@@ -165,8 +167,7 @@ func TestAuthURLHandler(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
-			httpHandler := h
-			httpHandler.ServeHTTP(resp, req)
+			router.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 400)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
@@ -186,7 +187,7 @@ func TestAuthURLHandler(t *testing.T) {
 		})
 
 		Convey("should reject missing code_challenge", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			req, _ := http.NewRequest("POST", "/sso/google/login_auth_url", strings.NewReader(`
 			{
 				"callback_url": "http://example.com/sso",
 				"ux_mode": "web_popup"
@@ -199,8 +200,7 @@ func TestAuthURLHandler(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
-			httpHandler := h
-			httpHandler.ServeHTTP(resp, req)
+			router.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 400)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
@@ -225,7 +225,7 @@ func TestAuthURLHandler(t *testing.T) {
 		})
 
 		Convey("should reject disallowed OnUserDuplicate", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			req, _ := http.NewRequest("POST", "/sso/google/login_auth_url", strings.NewReader(`
 			{
 				"code_challenge": "a",
 				"callback_url": "http://example.com/sso",
@@ -240,8 +240,7 @@ func TestAuthURLHandler(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
-			httpHandler := h
-			httpHandler.ServeHTTP(resp, req)
+			router.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 400)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `

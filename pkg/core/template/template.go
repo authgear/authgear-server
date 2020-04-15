@@ -6,45 +6,13 @@ import (
 	"encoding/json"
 	htmlTemplate "html/template"
 	"io"
-	"io/ioutil"
-	"net/http"
 	"net/url"
 	textTemplate "text/template"
-	"unicode/utf8"
 
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 const MaxTemplateSize = 1024 * 1024 * 1
-
-// DownloadStringFromAssuminglyTrustedURL downloads the content of url.
-// url is assumed to be trusted.
-func DownloadStringFromAssuminglyTrustedURL(url string) (content string, err error) {
-	// nolint: gosec
-	resp, err := http.Get(url)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		err = errors.Newf("unexpected status code: %d", resp.StatusCode)
-		return
-	}
-
-	body, err := ioutil.ReadAll(io.LimitReader(resp.Body, MaxTemplateSize))
-	if err != nil {
-		return
-	}
-
-	if !utf8.Valid(body) {
-		err = errors.New("expected content to be UTF-8 encoded")
-		return
-	}
-
-	content = string(body)
-	return
-}
 
 // EncodeContextToURLQueryParamValue encodes context into URL query param value.
 // Specifially, the context is first encoded into JSON and then base64url encoded.
@@ -97,7 +65,9 @@ type RenderOptions struct {
 	// The context for rendering the template
 	Context map[string]interface{}
 	// The options to Validator
-	ValidatorOpts []func(*Validator)
+	ValidatorOpts []ValidatorOption
+	// Funcs injects custom functions
+	Funcs map[string]interface{}
 }
 
 func RenderTextTemplate(opts RenderOptions) (out string, err error) {
@@ -105,10 +75,17 @@ func RenderTextTemplate(opts RenderOptions) (out string, err error) {
 		return
 	}
 
-	validator := NewValidator(opts.ValidatorOpts...)
+	// Initialize the template object
+	template := textTemplate.New(opts.Name)
+
+	// Inject the funcs map before parsing any templates.
+	// This is required by the documentation.
+	if opts.Funcs != nil {
+		template.Funcs(opts.Funcs)
+	}
 
 	// Parse the main template
-	template, err := textTemplate.New(opts.Name).Parse(opts.TemplateBody)
+	_, err = template.Parse(opts.TemplateBody)
 	if err != nil {
 		err = errors.Newf("failed to parse template: %w", err)
 		return
@@ -123,6 +100,7 @@ func RenderTextTemplate(opts RenderOptions) (out string, err error) {
 	}
 
 	// Validate all templates
+	validator := NewValidator(opts.ValidatorOpts...)
 	err = validator.ValidateTextTemplate(template)
 	if err != nil {
 		err = errors.Newf("failed to validate template: %w", err)
@@ -144,10 +122,17 @@ func RenderHTMLTemplate(opts RenderOptions) (out string, err error) {
 		return
 	}
 
-	validator := NewValidator(opts.ValidatorOpts...)
+	// Initialize the template object
+	template := htmlTemplate.New(opts.Name)
+
+	// Inject the funcs map before parsing any templates.
+	// This is required by the documentation.
+	if opts.Funcs != nil {
+		template.Funcs(opts.Funcs)
+	}
 
 	// Parse the main template
-	template, err := htmlTemplate.New(opts.Name).Parse(opts.TemplateBody)
+	_, err = template.Parse(opts.TemplateBody)
 	if err != nil {
 		err = errors.Newf("failed to parse template: %w", err)
 		return
@@ -162,6 +147,7 @@ func RenderHTMLTemplate(opts RenderOptions) (out string, err error) {
 	}
 
 	// Validate all templates
+	validator := NewValidator(opts.ValidatorOpts...)
 	err = validator.ValidateHTMLTemplate(template)
 	if err != nil {
 		err = errors.Newf("failed to validate template: %w", err)

@@ -11,11 +11,12 @@ import (
 )
 
 type MockSSOProvider struct {
-	BaseURL        string
-	OAuthConfig    *config.OAuthConfiguration
-	URLPrefix      *url.URL
-	ProviderConfig config.OAuthProviderConfiguration
-	UserInfo       ProviderUserInfo
+	BaseURL         string
+	OAuthConfig     *config.OAuthConfiguration
+	URLPrefix       *url.URL
+	RedirectURLFunc RedirectURLFunc
+	ProviderConfig  config.OAuthProviderConfiguration
+	UserInfo        ProviderUserInfo
 }
 
 func (f *MockSSOProvider) Type() config.OAuthProviderType {
@@ -28,7 +29,7 @@ func (f *MockSSOProvider) GetAuthURL(state State, encodedState string) (string, 
 	}
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
-		urlPrefix:      f.URLPrefix,
+		redirectURI:    f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		providerConfig: f.ProviderConfig,
 		encodedState:   encodedState,
 		baseURL:        f.BaseURL,

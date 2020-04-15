@@ -166,7 +166,26 @@ var (
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
-			"css": { "type": "string" }
+			"css": { "type": "string" },
+			"country_calling_code": { "$ref": "#AuthUICountryCallingCodeConfiguration" }
+		}
+	},
+	"CountryCallingCode": {
+		"$id": "#CountryCallingCode",
+		"type": "string",
+		"pattern": "^\\d+$"
+	},
+	"AuthUICountryCallingCodeConfiguration": {
+		"$id": "#AuthUICountryCallingCodeConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"values": {
+				"type": "array",
+				"items": { "$ref": "#CountryCallingCode" },
+				"minItems": 1
+			},
+			"default": { "$ref": "#CountryCallingCode" }
 		}
 	},
 	"AuthAPIConfiguration": {

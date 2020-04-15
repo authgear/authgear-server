@@ -1,8 +1,6 @@
 package sso
 
 import (
-	"net/url"
-
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -35,7 +33,7 @@ type OAuthAuthorizationResponse struct {
 }
 
 type getAuthInfoRequest struct {
-	urlPrefix       *url.URL
+	redirectURL     string
 	oauthConfig     *config.OAuthConfiguration
 	providerConfig  config.OAuthProviderConfiguration
 	accessTokenURL  string
@@ -52,7 +50,7 @@ func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse, state Stat
 	accessTokenResp, err := fetchAccessTokenResp(
 		r.Code,
 		h.accessTokenURL,
-		h.urlPrefix,
+		h.redirectURL,
 		h.oauthConfig,
 		h.providerConfig,
 	)

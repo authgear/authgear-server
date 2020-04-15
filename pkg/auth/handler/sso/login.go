@@ -61,7 +61,7 @@ const LoginRequestSchema = `
 `
 
 type LoginAuthnProvider interface {
-	OAuthAuthenticate(
+	OAuthAuthenticateCode(
 		authInfo sso.AuthInfo,
 		codeChallenge string,
 		loginState sso.LoginState,
@@ -152,7 +152,7 @@ func (h LoginHandler) Handle(r *http.Request, payload LoginRequestPayload) (auth
 		return nil, err
 	}
 
-	code, err := h.AuthnProvider.OAuthAuthenticate(oauthAuthInfo, "", loginState)
+	code, err := h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, "", loginState)
 	if err != nil {
 		return nil, err
 	}

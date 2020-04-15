@@ -16,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/marshal"
+	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -268,6 +269,21 @@ func (c *TenantConfiguration) PostValidate() error {
 		seenAuthenticator[a] = struct{}{}
 	}
 
+	// Validate AuthUICountryCallingCodeConfiguration
+	countryCallingCodeDefaultOK := false
+	for _, code := range c.AppConfig.AuthUI.CountryCallingCode.Values {
+		if code == c.AppConfig.AuthUI.CountryCallingCode.Default {
+			countryCallingCodeDefaultOK = true
+		}
+	}
+	if !countryCallingCodeDefaultOK {
+		return fail(
+			validation.ErrorGeneral,
+			"default country calling code is unlisted",
+			"user_config", "auth_ui", "country_calling_code", "default",
+		)
+	}
+
 	return nil
 }
 
@@ -489,6 +505,14 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		}
 	}
 
+	// Set default Auth UI configuration
+	if c.AppConfig.AuthUI.CountryCallingCode.Values == nil {
+		c.AppConfig.AuthUI.CountryCallingCode.Values = phone.CountryCallingCodes
+	}
+	if c.AppConfig.AuthUI.CountryCallingCode.Default == "" {
+		c.AppConfig.AuthUI.CountryCallingCode.Default = c.AppConfig.AuthUI.CountryCallingCode.Values[0]
+	}
+
 	// Set default hook timeout
 	if c.Hook.SyncHookTimeout == 0 {
 		c.Hook.SyncHookTimeout = 5
@@ -652,10 +676,6 @@ type SessionConfiguration struct {
 // https://github.com/iawaknahc/originmatcher
 type CORSConfiguration struct {
 	Origin string `json:"origin,omitempty" yaml:"origin" msg:"origin"`
-}
-
-type AuthUIConfiguration struct {
-	CSS string `json:"css,omitempty" yaml:"css" msg:"css"`
 }
 
 type OIDCConfiguration struct {

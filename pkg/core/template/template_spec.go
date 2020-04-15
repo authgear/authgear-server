@@ -16,4 +16,6 @@ type Spec struct {
 	IsHTML bool `json:"is_html"`
 	// Defines is a list of defines to be parsed after the main template is parsed.
 	Defines []string `json:"-"`
+	// Translation expresses that this template depends on another template to provide translation.
+	Translation config.TemplateItemType `json:"-"`
 }

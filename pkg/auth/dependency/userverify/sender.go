@@ -37,8 +37,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 		TemplateItemTypeUserVerificationEmailTXT,
 		context,
 		template.ResolveOptions{
-			Required: true,
-			Key:      verifyCode.LoginIDKey,
+			Key: verifyCode.LoginIDKey,
 		},
 	); err != nil {
 		err = errors.Newf("failed to render user verification text email: %w", err)
@@ -50,8 +49,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err erro
 		TemplateItemTypeUserVerificationEmailHTML,
 		context,
 		template.ResolveOptions{
-			Required: false,
-			Key:      verifyCode.LoginIDKey,
+			Key: verifyCode.LoginIDKey,
 		},
 	); err != nil {
 		err = errors.Newf("failed to render user verification HTML email: %w", err)
@@ -94,8 +92,7 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user model.User) (err error)
 		TemplateItemTypeUserVerificationSMSTXT,
 		context,
 		template.ResolveOptions{
-			Required: true,
-			Key:      verifyCode.LoginIDKey,
+			Key: verifyCode.LoginIDKey,
 		},
 	); err != nil {
 		err = errors.Newf("failed to render user verification SMS message: %w", err)

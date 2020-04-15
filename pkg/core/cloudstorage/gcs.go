@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -104,13 +105,13 @@ func (s *GCSStorage) PresignPutObject(name string, accessType AccessType, header
 	header.Set(GCSHeaderAccess, string(accessType))
 
 	// We must omit Content-type and Content-MD5 from header because they are special.
-	var headerNames []string
+	var headers []string
 	for name := range header {
 		lower := strings.ToLower(name)
 		if lower == "content-type" || lower == "content-md5" {
 			continue
 		}
-		headerNames = append(headerNames, name)
+		headers = append(headers, fmt.Sprintf("%s:%s", lower, header.Get(name)))
 	}
 
 	expires := now.Add(PresignPutExpires)
@@ -120,7 +121,7 @@ func (s *GCSStorage) PresignPutObject(name string, accessType AccessType, header
 		Method:         "PUT",
 		Expires:        expires,
 		ContentType:    header.Get("Content-Type"),
-		Headers:        headerNames,
+		Headers:        headers,
 		MD5:            header.Get("Content-MD5"),
 		Scheme:         storage.SigningSchemeV4,
 	}

@@ -1,17 +1,17 @@
 package sso
 
 import (
-	"fmt"
 	"net/url"
-	"path"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreUrl "github.com/skygeario/skygear-server/pkg/core/url"
 )
 
+type RedirectURLFunc func(urlPrefix *url.URL, providerConfig config.OAuthProviderConfiguration) string
+
 type authURLParams struct {
 	oauthConfig    *config.OAuthConfiguration
-	urlPrefix      *url.URL
+	redirectURI    string
 	providerConfig config.OAuthProviderConfiguration
 	encodedState   string
 	baseURL        string
@@ -22,17 +22,11 @@ type authURLParams struct {
 	prompt         string
 }
 
-func redirectURI(urlPrefix *url.URL, providerConfig config.OAuthProviderConfiguration) string {
-	u := *urlPrefix
-	u.Path = path.Join(u.Path, fmt.Sprintf("_auth/sso/%s/auth_handler", url.PathEscape(providerConfig.ID)))
-	return u.String()
-}
-
 func authURL(params authURLParams) (string, error) {
 	v := coreUrl.Query{}
 	v.Add("response_type", "code")
 	v.Add("client_id", params.providerConfig.ClientID)
-	v.Add("redirect_uri", redirectURI(params.urlPrefix, params.providerConfig))
+	v.Add("redirect_uri", params.redirectURI)
 	v.Add("scope", params.providerConfig.Scope)
 	if params.nonce != "" {
 		v.Add("nonce", params.nonce)

@@ -60,8 +60,7 @@ func (v *VerifyHTMLProvider) SuccessHTML(key string, context map[string]interfac
 		TemplateItemTypeUserVerificationSuccessHTML,
 		context,
 		template.ResolveOptions{
-			Required: true,
-			Key:      key,
+			Key: key,
 		},
 	)
 }
@@ -71,8 +70,7 @@ func (v *VerifyHTMLProvider) ErrorHTML(key string, context map[string]interface{
 		TemplateItemTypeUserVerificationErrorHTML,
 		context,
 		template.ResolveOptions{
-			Required: true,
-			Key:      key,
+			Key: key,
 		},
 	)
 }

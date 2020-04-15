@@ -12,6 +12,7 @@ import (
 
 type Azureadv2Impl struct {
 	URLPrefix                *url.URL
+	RedirectURLFunc          RedirectURLFunc
 	OAuthConfig              *config.OAuthConfiguration
 	ProviderConfig           config.OAuthProviderConfiguration
 	TimeProvider             coreTime.Provider
@@ -75,7 +76,7 @@ func (f *Azureadv2Impl) GetAuthURL(state State, encodedState string) (string, er
 	}
 	return c.MakeOAuthURL(OIDCAuthParams{
 		ProviderConfig: f.ProviderConfig,
-		URLPrefix:      f.URLPrefix,
+		RedirectURI:    f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		Nonce:          state.HashedNonce,
 		EncodedState:   encodedState,
 	}), nil
@@ -106,7 +107,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 		f.URLPrefix,
 		f.ProviderConfig.ClientID,
 		f.ProviderConfig.ClientSecret,
-		redirectURI(f.URLPrefix, f.ProviderConfig),
+		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		state.HashedNonce,
 		f.TimeProvider.NowUTC,
 		&tokenResp,

@@ -7,9 +7,15 @@ import (
 
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
-	"github.com/skygeario/skygear-server/pkg/auth"
+	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -19,6 +25,10 @@ import (
 func provideOAuthProviderFromRequestVars(r *http.Request, spf *sso.OAuthProviderFactory) sso.OAuthProvider {
 	vars := mux.Vars(r)
 	return spf.NewOAuthProvider(vars["provider"])
+}
+
+func ProvideRedirectURIForAPIFunc() sso.RedirectURLFunc {
+	return RedirectURIForAPI
 }
 
 func provideAuthHandler(
@@ -40,13 +50,14 @@ func provideAuthHandler(
 	return h
 }
 
-func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+func newAuthHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
-		auth.DependencySet,
+		pkg.DependencySet,
 		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(AuthHandlerAuthnProvider), new(*authn.Provider)),
 		provideOAuthProviderFromRequestVars,
 		provideAuthHandler,
+		ProvideRedirectURIForAPIFunc,
 	)
 	return nil
 }
@@ -67,9 +78,9 @@ func provideAuthResultHandler(
 	return requireAuthz(h, h)
 }
 
-func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+func newAuthResultHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
-		auth.DependencySet,
+		pkg.DependencySet,
 		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(AuthResultAuthnProvider), new(*authn.Provider)),
 		provideAuthResultHandler,
@@ -95,13 +106,14 @@ func provideLinkHandler(
 	return requireAuthz(h, h)
 }
 
-func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+func newLinkHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
-		auth.DependencySet,
+		pkg.DependencySet,
 		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(LinkAuthnProvider), new(*authn.Provider)),
 		provideOAuthProviderFromRequestVars,
 		provideLinkHandler,
+		ProvideRedirectURIForAPIFunc,
 	)
 	return nil
 }
@@ -124,13 +136,119 @@ func provideLoginHandler(
 	return requireAuthz(h, h)
 }
 
-func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+func newLoginHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
-		auth.DependencySet,
+		pkg.DependencySet,
 		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(LoginAuthnProvider), new(*authn.Provider)),
 		provideOAuthProviderFromRequestVars,
 		provideLoginHandler,
+		ProvideRedirectURIForAPIFunc,
+	)
+	return nil
+}
+
+func provideAuthRedirectHandler(
+	sp sso.Provider,
+	op sso.OAuthProvider,
+) http.Handler {
+	h := &AuthRedirectHandler{
+		SSOProvider:   sp,
+		OAuthProvider: op,
+	}
+	return h
+}
+
+func newAuthRedirectHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		provideOAuthProviderFromRequestVars,
+		provideAuthRedirectHandler,
+		ProvideRedirectURIForAPIFunc,
+	)
+	return nil
+}
+
+func provideAuthURLHandler(
+	tx db.TxContext,
+	requireAuthz handler.RequireAuthz,
+	v *validation.Validator,
+	pp password.Provider,
+	sp sso.Provider,
+	cfg *config.TenantConfiguration,
+	op sso.OAuthProvider,
+	action ssoAction,
+) http.Handler {
+	h := &AuthURLHandler{
+		TxContext:                  tx,
+		Validator:                  v,
+		PasswordAuthProvider:       pp,
+		SSOProvider:                sp,
+		OAuthConflictConfiguration: cfg.AppConfig.AuthAPI.OnIdentityConflict.OAuth,
+		OAuthProvider:              op,
+		Action:                     action,
+	}
+	return requireAuthz(h, h)
+}
+
+func providerLoginSSOAction() ssoAction {
+	return ssoActionLogin
+}
+
+func newLoginAuthURLHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		provideOAuthProviderFromRequestVars,
+		provideAuthURLHandler,
+		ProvideRedirectURIForAPIFunc,
+		providerLoginSSOAction,
+	)
+	return nil
+}
+
+func providerLinkSSOAction() ssoAction {
+	return ssoActionLink
+}
+
+func newLinkAuthURLHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		provideOAuthProviderFromRequestVars,
+		provideAuthURLHandler,
+		ProvideRedirectURIForAPIFunc,
+		providerLinkSSOAction,
+	)
+	return nil
+}
+
+func providerUnlinkHandler(
+	tx db.TxContext,
+	sm unlinkSessionManager,
+	requireAuthz handler.RequireAuthz,
+	oap oauth.Provider,
+	ais authinfo.Store,
+	ups userprofile.Store,
+	hp hook.Provider,
+	spf *sso.OAuthProviderFactory,
+) http.Handler {
+	h := &UnlinkHandler{
+		TxContext:         tx,
+		SessionManager:    sm,
+		OAuthAuthProvider: oap,
+		AuthInfoStore:     ais,
+		UserProfileStore:  ups,
+		HookProvider:      hp,
+		ProviderFactory:   spf,
+	}
+	return requireAuthz(h, h)
+}
+
+func newUnlinkHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Bind(new(unlinkSessionManager), new(*auth.SessionManager)),
+		providerUnlinkHandler,
+		ProvideRedirectURIForAPIFunc,
 	)
 	return nil
 }
