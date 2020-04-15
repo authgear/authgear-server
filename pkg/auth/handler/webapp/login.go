@@ -26,7 +26,7 @@ func AttachLoginHandler(
 
 func redirectURIForWebApp(urlPrefix *url.URL, providerConfig config.OAuthProviderConfiguration) string {
 	u := *urlPrefix
-	u.Path = path.Join(u.Path, fmt.Sprintf("sso/%s/callback", url.PathEscape(providerConfig.ID)))
+	u.Path = path.Join(u.Path, fmt.Sprintf("sso/oauth2/callback/%s", url.PathEscape(providerConfig.ID)))
 	return u.String()
 }
 

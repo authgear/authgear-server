@@ -15,7 +15,7 @@ func AttachSSOCallbackHandler(
 ) {
 	router.
 		NewRoute().
-		Path("/sso/{provider}/callback").
+		Path("/sso/oauth2/callback/{provider}").
 		Methods("OPTIONS", "GET", "POST").
 		Handler(auth.MakeHandler(authDependency, newSSOCallbackHandler))
 }
