@@ -30,3 +30,8 @@ func ProvideStateMiddleware(stateStore StateStore) mux.MiddlewareFunc {
 	m := &StateMiddleware{StateStore: stateStore}
 	return m.Handle
 }
+
+func ProvideClientIDMiddleware(tConfig *config.TenantConfiguration) mux.MiddlewareFunc {
+	m := &ClientIDMiddleware{TenantConfig: tConfig}
+	return m.Handle
+}

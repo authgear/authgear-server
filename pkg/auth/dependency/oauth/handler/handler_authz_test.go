@@ -158,10 +158,11 @@ func TestAuthorizationHandler(t *testing.T) {
 					"scope":                 "openid",
 					"code_challenge_method": "S256",
 					"code_challenge":        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+					"ui_locales":            "ja",
 				})
 				So(resp.Result().StatusCode, ShouldEqual, 302)
 				So(redirection(resp), ShouldEqual,
-					"https://auth/authenticate?redirect_uri=https%3A%2F%2Fauth%2Fauthorize%3Fclient_id%3Dclient-id%26code_challenge%3DE9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM%26code_challenge_method%3DS256%26response_type%3Dcode%26scope%3Dopenid")
+					"https://auth/authenticate?client_id=client-id&redirect_uri=https%3A%2F%2Fauth%2Fauthorize%3Fclient_id%3Dclient-id%26code_challenge%3DE9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM%26code_challenge_method%3DS256%26response_type%3Dcode%26scope%3Dopenid%26ui_locales%3Dja&ui_locales=ja")
 			})
 			Convey("return authorization code", func() {
 				h.Context = authtesting.WithAuthn().
@@ -302,7 +303,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				})
 				So(resp.Result().StatusCode, ShouldEqual, 302)
 				So(redirection(resp), ShouldEqual,
-					"https://auth/authenticate?redirect_uri=https%3A%2F%2Fauth%2Fauthorize%3Fclient_id%3Dclient-id%26response_type%3Dnone%26scope%3Dopenid")
+					"https://auth/authenticate?client_id=client-id&redirect_uri=https%3A%2F%2Fauth%2Fauthorize%3Fclient_id%3Dclient-id%26response_type%3Dnone%26scope%3Dopenid")
 			})
 			Convey("redirect to URI", func() {
 				h.Context = authtesting.WithAuthn().

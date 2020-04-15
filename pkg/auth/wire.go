@@ -54,6 +54,11 @@ func NewStateMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	return nil
 }
 
+func NewClientIDMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
+	wire.Build(DependencySet, webapp.ProvideClientIDMiddleware)
+	return nil
+}
+
 func newSessionManager(r *http.Request, m DependencyMap) *auth.SessionManager {
 	wire.Build(DependencySet)
 	return nil
