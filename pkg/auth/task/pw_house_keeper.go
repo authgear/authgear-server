@@ -10,27 +10,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
 )
 
 func AttachPwHousekeeperTask(
 	executor *async.Executor,
 	authDependency auth.DependencyMap,
-) *async.Executor {
-	executor.Register(spec.PwHousekeeperTaskName, &PwHousekeeperTaskFactory{
-		authDependency,
-	})
-	return executor
-}
-
-type PwHousekeeperTaskFactory struct {
-	DependencyMap auth.DependencyMap
-}
-
-func (f *PwHousekeeperTaskFactory) NewTask(ctx context.Context, taskCtx async.TaskContext) async.Task {
-	task := &PwHousekeeperTask{}
-	inject.DefaultTaskInject(task, f.DependencyMap, ctx, taskCtx)
-	return task
+) {
+	// TODO(wire): fix task
+	executor.Register(spec.PwHousekeeperTaskName, &PwHousekeeperTask{})
 }
 
 type PwHousekeeperTask struct {
@@ -39,7 +26,7 @@ type PwHousekeeperTask struct {
 	PwHousekeeper *audit.PwHousekeeper `dependency:"PwHousekeeper"`
 }
 
-func (t *PwHousekeeperTask) Run(param interface{}) (err error) {
+func (t *PwHousekeeperTask) Run(ctx context.Context, param interface{}) (err error) {
 	return db.WithTx(t.TxContext, func() error { return t.run(param) })
 }
 

@@ -16,27 +16,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
 )
 
 func AttachVerifyCodeSendTask(
 	executor *async.Executor,
 	authDependency auth.DependencyMap,
-) *async.Executor {
-	executor.Register(spec.VerifyCodeSendTaskName, &VerifyCodeSendTaskFactory{
-		authDependency,
-	})
-	return executor
-}
-
-type VerifyCodeSendTaskFactory struct {
-	DependencyMap auth.DependencyMap
-}
-
-func (c *VerifyCodeSendTaskFactory) NewTask(ctx context.Context, taskCtx async.TaskContext) async.Task {
-	task := &VerifyCodeSendTask{}
-	inject.DefaultTaskInject(task, c.DependencyMap, ctx, taskCtx)
-	return task
+) {
+	// TODO(wire): fix task
+	executor.Register(spec.VerifyCodeSendTaskName, &VerifyCodeSendTask{})
 }
 
 type VerifyCodeSendTask struct {
@@ -50,7 +37,7 @@ type VerifyCodeSendTask struct {
 	Logger                   *logrus.Entry                `dependency:"HandlerLogger"`
 }
 
-func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
+func (v *VerifyCodeSendTask) Run(ctx context.Context, param interface{}) (err error) {
 	return db.WithTx(v.TxContext, func() error { return v.run(param) })
 }
 

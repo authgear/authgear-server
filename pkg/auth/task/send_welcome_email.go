@@ -12,27 +12,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
 )
 
 func AttachWelcomeEmailSendTask(
 	executor *async.Executor,
 	authDependency auth.DependencyMap,
-) *async.Executor {
-	executor.Register(spec.WelcomeEmailSendTaskName, &WelcomeEmailSendTaskFactory{
-		authDependency,
-	})
-	return executor
-}
-
-type WelcomeEmailSendTaskFactory struct {
-	DependencyMap auth.DependencyMap
-}
-
-func (c *WelcomeEmailSendTaskFactory) NewTask(ctx context.Context, taskCtx async.TaskContext) async.Task {
-	task := &WelcomeEmailSendTask{}
-	inject.DefaultTaskInject(task, c.DependencyMap, ctx, taskCtx)
-	return task
+) {
+	// TODO(wire): fix task
+	executor.Register(spec.WelcomeEmailSendTaskName, &WelcomeEmailSendTask{})
 }
 
 type WelcomeEmailSendTask struct {
@@ -42,7 +29,7 @@ type WelcomeEmailSendTask struct {
 	Logger             *logrus.Entry     `dependency:"HandlerLogger"`
 }
 
-func (w *WelcomeEmailSendTask) Run(param interface{}) (err error) {
+func (w *WelcomeEmailSendTask) Run(ctx context.Context, param interface{}) (err error) {
 	return db.WithTx(w.TxContext, func() error { return w.run(param) })
 }
 

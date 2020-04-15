@@ -14,9 +14,12 @@ type Queue interface {
 }
 
 type queue struct {
-	context     context.Context
-	txContext   db.TxContext
-	taskContext TaskContext
+	context   context.Context
+	txContext db.TxContext
+
+	// Request-scoped fields
+	requestID    string
+	tenantConfig *config.TenantConfiguration
 
 	pendingTasks []TaskSpec
 	hooked       bool
@@ -27,16 +30,14 @@ func NewQueue(
 	ctx context.Context,
 	txContext db.TxContext,
 	requestID string,
-	tenantConfig config.TenantConfiguration,
+	tenantConfig *config.TenantConfiguration,
 	taskExecutor *Executor,
 ) Queue {
 	return &queue{
-		context:   ctx,
-		txContext: txContext,
-		taskContext: TaskContext{
-			RequestID:    requestID,
-			TenantConfig: tenantConfig,
-		},
+		context:      ctx,
+		txContext:    txContext,
+		requestID:    requestID,
+		tenantConfig: tenantConfig,
 		taskExecutor: taskExecutor,
 	}
 }
@@ -50,7 +51,7 @@ func (s *queue) Enqueue(spec TaskSpec) {
 		}
 	} else {
 		// No transaction context -> execute immediately.
-		s.taskExecutor.Execute(s.taskContext, spec.Name, spec.Param)
+		s.execute(spec)
 	}
 }
 
@@ -60,7 +61,14 @@ func (s *queue) WillCommitTx() error {
 
 func (s *queue) DidCommitTx() {
 	for _, task := range s.pendingTasks {
-		s.taskExecutor.Execute(s.taskContext, task.Name, task.Param)
+		s.execute(task)
 	}
 	s.pendingTasks = nil
+}
+
+func (s *queue) execute(spec TaskSpec) {
+	ctx := context.Background()
+	ctx = WithRequestID(ctx, s.requestID)
+	ctx = config.WithTenantConfig(ctx, s.tenantConfig)
+	s.taskExecutor.Execute(ctx, spec)
 }

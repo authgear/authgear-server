@@ -317,7 +317,7 @@ func (m DependencyMap) Provide(
 	case "AuthHandlerHTMLProvider":
 		return sso.NewAuthHandlerHTMLProvider(urlprefix.NewProvider(request).Value())
 	case "AsyncTaskQueue":
-		return async.NewQueue(ctx, db.NewTxContextWithContext(ctx, tConfig), requestID, tConfig, m.AsyncTaskExecutor)
+		return async.NewQueue(ctx, db.NewTxContextWithContext(ctx, tConfig), requestID, &tConfig, m.AsyncTaskExecutor)
 	case "HookProvider":
 		return newHookProvider()
 	case "AuthenticatorConfiguration":

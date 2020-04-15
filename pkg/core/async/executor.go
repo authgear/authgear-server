@@ -3,50 +3,53 @@ package async
 import (
 	"context"
 
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 )
 
 type Executor struct {
-	taskFactoryMap map[string]TaskFactory
-	pool           db.Pool
+	tasks map[string]Task
+	pool  db.Pool
 }
 
 func NewExecutor(dbPool db.Pool) *Executor {
 	return &Executor{
-		taskFactoryMap: map[string]TaskFactory{},
-		pool:           dbPool,
+		tasks: map[string]Task{},
+		pool:  dbPool,
 	}
 }
 
-func (e *Executor) Register(name string, taskFactory TaskFactory) {
-	e.taskFactoryMap[name] = taskFactory
+func (e *Executor) Register(name string, task Task) {
+	e.tasks[name] = task
 }
 
-func (e *Executor) Execute(taskCtx TaskContext, name string, param interface{}) {
-	factory := e.taskFactoryMap[name]
-	ctx := db.InitDBContext(context.Background(), e.pool)
-	task := factory.NewTask(ctx, taskCtx)
+func (e *Executor) Execute(ctx context.Context, spec TaskSpec) {
+	ctx = db.InitDBContext(ctx, e.pool)
+	task := e.tasks[spec.Name]
 
-	logHook := logging.NewDefaultLogHook(taskCtx.TenantConfig.DefaultSensitiveLoggerValues())
+	tConfig := config.GetTenantConfig(ctx)
+	requestID := GetRequestID(ctx)
+
+	logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
 	sentryHook := &sentry.LogHook{Hub: sentry.DefaultClient.Hub}
-	loggerFactory := logging.NewFactoryFromRequestID(taskCtx.RequestID, logHook, sentryHook)
+	loggerFactory := logging.NewFactoryFromRequestID(requestID, logHook, sentryHook)
 	logger := loggerFactory.NewLogger("async-executor")
 	go func() {
 		defer func() {
 			if rec := recover(); rec != nil {
 				logger.WithFields(map[string]interface{}{
-					"task_name": name,
+					"task_name": spec.Name,
 					"error":     rec,
 				}).Error("unexpected error occurred when running async task")
 			}
 		}()
 
-		err := task.Run(param)
+		err := task.Run(ctx, spec.Param)
 		if err != nil {
 			logger.WithFields(map[string]interface{}{
-				"task_name": name,
+				"task_name": spec.Name,
 				"error":     err,
 			}).Error("error occurred when running async task")
 		}
