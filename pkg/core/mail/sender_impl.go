@@ -69,7 +69,7 @@ func (s *senderImpl) Send(opts SendOptions) (err error) {
 
 func (s *senderImpl) applyFrom(opts *SendOptions, message *gomail.Message) error {
 	tags := intl.GetPreferredLanguageTags(s.Context)
-	sender := intl.LocalizeOIDCStringMap(tags, opts.MessageConfig, "sender")
+	sender := intl.LocalizeStringMap(tags, opts.MessageConfig, "sender")
 	if sender == "" {
 		return errors.New("mail: sender address is missing")
 	}
@@ -88,7 +88,7 @@ func applyTo(opts *SendOptions, message *gomail.Message) error {
 
 func (s *senderImpl) applyReplyTo(opts *SendOptions, message *gomail.Message) error {
 	tags := intl.GetPreferredLanguageTags(s.Context)
-	replyTo := intl.LocalizeOIDCStringMap(tags, opts.MessageConfig, "reply_to")
+	replyTo := intl.LocalizeStringMap(tags, opts.MessageConfig, "reply_to")
 	if replyTo == "" {
 		return nil
 	}
@@ -99,7 +99,7 @@ func (s *senderImpl) applyReplyTo(opts *SendOptions, message *gomail.Message) er
 
 func (s *senderImpl) applySubject(opts *SendOptions, message *gomail.Message) error {
 	tags := intl.GetPreferredLanguageTags(s.Context)
-	subject := intl.LocalizeOIDCStringMap(tags, opts.MessageConfig, "subject")
+	subject := intl.LocalizeStringMap(tags, opts.MessageConfig, "subject")
 	if subject == "" {
 		return errors.New("mail: subject is missing")
 	}

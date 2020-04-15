@@ -46,8 +46,8 @@ func TestLocalize(t *testing.T) {
 	})
 }
 
-func TestLocalizeOIDCJSONObject(t *testing.T) {
-	Convey("LocalizeOIDCJSONObject", t, func() {
+func TestLocalizeJSONObject(t *testing.T) {
+	Convey("LocalizeJSONObject", t, func() {
 		jsonObject := map[string]interface{}{
 			"client_name":            "client_name default",
 			"client_name#en":         "client_name en",
@@ -56,7 +56,7 @@ func TestLocalizeOIDCJSONObject(t *testing.T) {
 		}
 
 		test := func(tags []string, expected string) {
-			value := LocalizeOIDCJSONObject(tags, jsonObject, "client_name")
+			value := LocalizeJSONObject(tags, jsonObject, "client_name")
 			So(value, ShouldEqual, expected)
 		}
 
@@ -66,8 +66,8 @@ func TestLocalizeOIDCJSONObject(t *testing.T) {
 	})
 }
 
-func TestLocalizeOIDCStringMap(t *testing.T) {
-	Convey("LocalizeOIDCStringMap", t, func() {
+func TestLocalizeStringMap(t *testing.T) {
+	Convey("LocalizeStringMap", t, func() {
 		stringMap := map[string]string{
 			"subject":            "subject default",
 			"subject#en":         "subject en",
@@ -76,7 +76,7 @@ func TestLocalizeOIDCStringMap(t *testing.T) {
 		}
 
 		test := func(tags []string, expected string) {
-			value := LocalizeOIDCStringMap(tags, stringMap, "subject")
+			value := LocalizeStringMap(tags, stringMap, "subject")
 			So(value, ShouldEqual, expected)
 		}
 

@@ -8,8 +8,8 @@ import (
 	"golang.org/x/text/language"
 )
 
-// LocalizeOIDCJSONObject returns the localized value of key in jsonObject according to preferredLanguageTags.
-func LocalizeOIDCJSONObject(preferredLanguageTags []string, jsonObject map[string]interface{}, key string) string {
+// LocalizeJSONObject returns the localized value of key in jsonObject according to preferredLanguageTags.
+func LocalizeJSONObject(preferredLanguageTags []string, jsonObject map[string]interface{}, key string) string {
 	prefix := fmt.Sprintf("%s#", key)
 	m := map[string]string{}
 	for k, v := range jsonObject {
@@ -28,8 +28,8 @@ func LocalizeOIDCJSONObject(preferredLanguageTags []string, jsonObject map[strin
 	return value
 }
 
-// LocalizeOIDCStringMap returns the localized value of key in stringMap according to preferredLanguageTags.
-func LocalizeOIDCStringMap(preferredLanguageTags []string, stringMap map[string]string, key string) string {
+// LocalizeStringMap returns the localized value of key in stringMap according to preferredLanguageTags.
+func LocalizeStringMap(preferredLanguageTags []string, stringMap map[string]string, key string) string {
 	prefix := fmt.Sprintf("%s#", key)
 	m := map[string]string{}
 	for k, stringValue := range stringMap {

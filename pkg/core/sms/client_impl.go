@@ -45,7 +45,7 @@ func NewClient(ctx context.Context, appConfig *config.AppConfiguration) Client {
 func (c *ClientImpl) Send(opts SendOptions) error {
 	if c.RawClient != nil {
 		tags := intl.GetPreferredLanguageTags(c.Context)
-		from := intl.LocalizeOIDCStringMap(tags, opts.MessageConfig, "sender")
+		from := intl.LocalizeStringMap(tags, opts.MessageConfig, "sender")
 		return c.RawClient.Send(from, opts.To, opts.Body)
 	}
 	return ErrNoAvailableClient
