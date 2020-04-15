@@ -9,7 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 )
 
-const FullAccessScope = "https://skygear.io/auth-api/full-access"
+const FullAccessScope = "https://auth.skygear.io/scopes/full-access"
 
 func SessionScopes(s auth.AuthSession) []string {
 	switch s := s.(type) {
