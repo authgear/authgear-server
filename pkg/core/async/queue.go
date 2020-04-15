@@ -5,6 +5,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/intl"
 )
 
 type Queue interface {
@@ -70,5 +71,6 @@ func (s *queue) execute(spec TaskSpec) {
 	ctx := context.Background()
 	ctx = WithRequestID(ctx, s.requestID)
 	ctx = config.WithTenantConfig(ctx, s.tenantConfig)
+	ctx = intl.WithPreferredLanguageTags(ctx, intl.GetPreferredLanguageTags(s.context))
 	s.taskExecutor.Execute(ctx, spec)
 }
