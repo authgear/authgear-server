@@ -20,7 +20,7 @@ func ProvideTaskQueue(
 		ctx,
 		txContext,
 		string(requestID),
-		*tenantConfig,
+		tenantConfig,
 		taskExecutor,
 	)
 }

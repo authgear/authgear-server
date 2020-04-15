@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
@@ -30,18 +29,6 @@ func DefaultRequestInject(
 			request.Header.Get(coreHttp.HeaderRequestID),
 			*config.GetTenantConfig(request.Context()),
 		)
-	})
-}
-
-func DefaultTaskInject( // nolint: golint
-	i interface{},
-	dependencyMap DependencyMap,
-	ctx context.Context,
-	taskCtx async.TaskContext,
-) (err error) {
-	ctx = WithInject(ctx)
-	return injectDependency(i, func(name string) interface{} {
-		return dependencyMap.Provide(name, nil, ctx, taskCtx.RequestID, taskCtx.TenantConfig)
 	})
 }
 

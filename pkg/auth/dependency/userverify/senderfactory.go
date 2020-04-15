@@ -15,14 +15,14 @@ type CodeSenderFactory interface {
 }
 
 type defaultCodeSenderFactory struct {
-	Config         config.TenantConfiguration
+	Config         *config.TenantConfiguration
 	TemplateEngine *template.Engine
 	MailSender     mail.Sender
 	SMSClient      sms.Client
 }
 
 func NewDefaultUserVerifyCodeSenderFactory(
-	c config.TenantConfiguration,
+	c *config.TenantConfiguration,
 	templateEngine *template.Engine,
 	mailSender mail.Sender,
 	smsClient sms.Client,

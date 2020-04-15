@@ -16,50 +16,38 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 func AttachVerifyCodeSendTask(
 	executor *async.Executor,
 	authDependency auth.DependencyMap,
-) *async.Executor {
-	executor.Register(spec.VerifyCodeSendTaskName, &VerifyCodeSendTaskFactory{
-		authDependency,
-	})
-	return executor
-}
-
-type VerifyCodeSendTaskFactory struct {
-	DependencyMap auth.DependencyMap
-}
-
-func (c *VerifyCodeSendTaskFactory) NewTask(ctx context.Context, taskCtx async.TaskContext) async.Task {
-	task := &VerifyCodeSendTask{}
-	inject.DefaultTaskInject(task, c.DependencyMap, ctx, taskCtx)
-	return async.TxTaskToTask(task, task.TxContext)
+) {
+	executor.Register(spec.VerifyCodeSendTaskName, MakeTask(authDependency, newVerifyCodeSendTask))
 }
 
 type VerifyCodeSendTask struct {
-	CodeSenderFactory        userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
-	AuthInfoStore            authinfo.Store               `dependency:"AuthInfoStore"`
-	UserProfileStore         userprofile.Store            `dependency:"UserProfileStore"`
-	UserVerificationProvider userverify.Provider          `dependency:"UserVerificationProvider"`
-	PasswordAuthProvider     password.Provider            `dependency:"PasswordAuthProvider"`
-	IdentityProvider         principal.IdentityProvider   `dependency:"IdentityProvider"`
-	TxContext                db.TxContext                 `dependency:"TxContext"`
-	Logger                   *logrus.Entry                `dependency:"HandlerLogger"`
+	CodeSenderFactory        userverify.CodeSenderFactory
+	AuthInfoStore            authinfo.Store
+	UserProfileStore         userprofile.Store
+	UserVerificationProvider userverify.Provider
+	PasswordAuthProvider     password.Provider
+	IdentityProvider         principal.IdentityProvider
+	TxContext                db.TxContext
+	LoggerFactory            logging.Factory
 }
 
-func (v *VerifyCodeSendTask) WithTx() bool {
-	return true
+func (v *VerifyCodeSendTask) Run(ctx context.Context, param interface{}) (err error) {
+	return db.WithTx(v.TxContext, func() error { return v.run(param) })
 }
 
-func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
+func (v *VerifyCodeSendTask) run(param interface{}) (err error) {
 	taskParam := param.(spec.VerifyCodeSendTaskParam)
 	loginID := taskParam.LoginID
 	userID := taskParam.UserID
 
-	v.Logger.WithFields(logrus.Fields{"user_id": taskParam.UserID}).Debug("Sending verification code")
+	logger := v.LoggerFactory.NewLogger("verifycode")
+	logger.WithFields(logrus.Fields{"user_id": taskParam.UserID}).Debug("Sending verification code")
 
 	authInfo := authinfo.AuthInfo{}
 	err = v.AuthInfoStore.GetAuth(userID, &authInfo)

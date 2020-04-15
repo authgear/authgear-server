@@ -26,8 +26,7 @@ func ProvidePasswordProvider(
 		loggerFactory,
 		config.AppConfig.Identity.LoginID.Keys,
 		config.AppConfig.Identity.LoginID.Types,
-		config.AppConfig.Authenticator.Password.Policy.HistorySize > 0 ||
-			config.AppConfig.Authenticator.Password.Policy.HistoryDays > 0,
+		config.AppConfig.Authenticator.Password.Policy.IsPasswordHistoryEnabled(),
 		reservedNameChecker,
 	)
 }

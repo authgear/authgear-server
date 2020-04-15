@@ -30,7 +30,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	"github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -68,6 +70,10 @@ func ProvideContext(r *http.Request) context.Context {
 	return r.Context()
 }
 
+func ProvideLoggingRequestID(r *http.Request) logging.RequestID {
+	return logging.RequestID(r.Header.Get(corehttp.HeaderRequestID))
+}
+
 func ProvideTenantConfig(ctx context.Context) *config.TenantConfiguration {
 	return config.GetTenantConfig(ctx)
 }
@@ -98,10 +104,6 @@ func ProvideTemplateEngine(config *config.TenantConfiguration, m DependencyMap) 
 		m.EnableFileSystemTemplate,
 		m.AssetGearLoader,
 	)
-}
-
-func ProvideLoggingRequestID(r *http.Request) logging.RequestID {
-	return logging.RequestID(r.Header.Get(corehttp.HeaderRequestID))
 }
 
 func ProvideAuthSQLBuilder(f db.SQLBuilderFactory) db.SQLBuilder {
@@ -141,8 +143,7 @@ func ProvideCSRFMiddleware(m DependencyMap, tConfig *config.TenantConfiguration)
 	return middleware.Handle
 }
 
-var DependencySet = wire.NewSet(
-	ProvideContext,
+var CommonDependencySet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideSessionInsecureCookieConfig,
 	ProvideMFAInsecureCookieConfig,
@@ -153,7 +154,6 @@ var DependencySet = wire.NewSet(
 	ProvideWebAppRenderProvider,
 	endpointsProviderSet,
 
-	ProvideLoggingRequestID,
 	ProvideAuthSQLBuilder,
 	ProvidePrincipalProviders,
 
@@ -191,4 +191,13 @@ var DependencySet = wire.NewSet(
 	oauthredis.DependencySet,
 	oidc.DependencySet,
 	oidchandler.DependencySet,
+	welcemail.DependencySet,
+	userverify.DependencySet,
+)
+
+// DependencySet is for HTTP request
+var DependencySet = wire.NewSet(
+	CommonDependencySet,
+	ProvideContext,
+	ProvideLoggingRequestID,
 )

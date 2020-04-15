@@ -30,7 +30,7 @@ type defaultCodeGenerator struct {
 	LoginIDKeyCodeFormats map[string]config.UserVerificationCodeFormat
 }
 
-func NewCodeGenerator(c config.TenantConfiguration) CodeGenerator {
+func NewCodeGenerator(c *config.TenantConfiguration) CodeGenerator {
 	formats := map[string]config.UserVerificationCodeFormat{}
 	for _, config := range c.AppConfig.UserVerification.LoginIDKeys {
 		formats[config.Key] = config.CodeFormat
