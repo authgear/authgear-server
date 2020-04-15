@@ -4,7 +4,7 @@ type AuthenticatorType string
 
 const (
 	AuthenticatorTypeTOTP         AuthenticatorType = "totp"
-	AuthenticatorTypeOOB          AuthenticatorType = "oob"
+	AuthenticatorTypeOOB          AuthenticatorType = "oob_otp"
 	AuthenticatorTypeRecoveryCode AuthenticatorType = "recovery_code"
 	AuthenticatorTypeBearerToken  AuthenticatorType = "bearer_token"
 )
