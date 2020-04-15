@@ -2,24 +2,13 @@ package webapp
 
 type SSOState map[string]string
 
-func (c SSOState) CallbackURL() string {
-	if s, ok := c["callback_url"]; ok {
+func (c SSOState) RequestQuery() string {
+	if s, ok := c["request_query"]; ok {
 		return s
 	}
 	return ""
 }
 
-func (c SSOState) SetCallbackURL(s string) {
-	c["callback_url"] = s
-}
-
-func (c SSOState) WebAppStateID() string {
-	if s, ok := c["webapp_sid"]; ok {
-		return s
-	}
-	return ""
-}
-
-func (c SSOState) SetWebAppStateID(s string) {
-	c["webapp_sid"] = s
+func (c SSOState) SetRequestQuery(s string) {
+	c["request_query"] = s
 }

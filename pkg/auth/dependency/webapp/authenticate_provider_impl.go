@@ -292,37 +292,23 @@ func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 	return
 }
 
-// For sso, we create webapp state when user choose the provider
-// The state id will be passed into the sso state
-// When user complete authorization and provider call the callback
-// The callback will try to obtain the webapp state id from the sso state
-// Currently we use the webapp state to store error only
 func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter, r *http.Request, oauthProvider OAuthProvider) (writeResponse func(err error), err error) {
-	s := p.makeState(r.URL.Query().Get("x_sid"))
 	var authURI string
 	writeResponse = func(err error) {
-		s.SetError(err)
-		if e := p.StateStore.Set(s); e != nil {
-			panic(e)
-		}
+		p.persistState(r, err)
 		if err != nil {
-			RedirectToPathWithQuery(w, r, "/login", url.Values{
-				"x_sid": []string{s.ID},
-			})
+			RedirectToPathWithQueryPreserved(w, r, "/login")
 		} else {
 			http.Redirect(w, r, authURI, http.StatusFound)
 		}
 	}
-
-	redirectURI := "/"
-	if u, err := getRedirectURI(r); err == nil {
-		redirectURI = u
-	}
+	// create or update ui state
+	// state id will be set into the request query
+	p.persistState(r, nil)
 	nonce := sso.GenerateOpenIDConnectNonce()
 	hashedNonce := crypto.SHA256String(nonce)
 	webappSSOState := SSOState{}
-	webappSSOState.SetCallbackURL(redirectURI)
-	webappSSOState.SetWebAppStateID(s.ID)
+	webappSSOState.SetRequestQuery(r.URL.Query().Encode())
 	state := sso.State{
 		Action: "login",
 		LoginState: sso.LoginState{
@@ -376,8 +362,22 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 		return
 	}
 	webappSSOState := SSOState(state.Extra)
-	callbackURL = webappSSOState.CallbackURL()
-	sid = webappSSOState.WebAppStateID()
+	requestQuery := webappSSOState.RequestQuery()
+	v, err := url.ParseQuery(requestQuery)
+	if err != nil {
+		return writeResponse, validation.NewValidationFailed("", []validation.ErrorCause{
+			validation.ErrorCause{
+				Kind:    validation.ErrorGeneral,
+				Pointer: "/state",
+			},
+		})
+	}
+
+	callbackURL = v.Get("redirect_uri")
+	if callbackURL == "" {
+		callbackURL = "/"
+	}
+	sid = v.Get("x_sid")
 
 	oauthAuthInfo, err := oauthProvider.GetAuthInfo(
 		sso.OAuthAuthorizationResponse{
