@@ -12,4 +12,5 @@ const (
 	StepActionAuthenticatePrimary   StepAction = "authenticate.primary"
 	StepActionAuthenticateSecondary StepAction = "authenticate.secondary"
 	StepActionSetupAuthenticator    StepAction = "setup-authenticator"
+	StepActionCompleted             StepAction = "completed"
 )

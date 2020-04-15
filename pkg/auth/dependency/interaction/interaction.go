@@ -3,15 +3,18 @@ package interaction
 import (
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 // Interaction represents an interaction with authenticators/identities, and authentication process.
 type Interaction struct {
-	Token     string    `json:"token"`
-	CreatedAt time.Time `json:"created_at"`
-	ExpireAt  time.Time `json:"expire_at"`
-	ClientID  string    `json:"client_id,omitempty"`
+	Token       string            `json:"token"`
+	CreatedAt   time.Time         `json:"created_at"`
+	ExpireAt    time.Time         `json:"expire_at"`
+	SessionID   string            `json:"session_id,omitempty"`
+	SessionType authn.SessionType `json:"session_type,omitempty"`
+	ClientID    string            `json:"client_id,omitempty"`
 
 	Intent Intent           `json:"intent"`
 	Error  *skyerr.APIError `json:"error,omitempty"`

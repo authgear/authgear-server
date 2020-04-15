@@ -6,6 +6,10 @@ type IdentityInfo struct {
 	Claims map[string]interface{} `json:"claims"`
 }
 
+func (i *IdentityInfo) ToSpec() IdentitySpec {
+	return IdentitySpec{Type: i.Type, Claims: i.Claims}
+}
+
 type IdentityType string
 
 const (
@@ -30,6 +34,10 @@ type AuthenticatorInfo struct {
 	Type   AuthenticatorType      `json:"type"`
 	Secret string                 `json:"secret"`
 	Props  map[string]interface{} `json:"props"`
+}
+
+func (i *AuthenticatorInfo) ToSpec() AuthenticatorSpec {
+	return AuthenticatorSpec{Type: i.Type, Props: i.Props}
 }
 
 type AuthenticatorType string
