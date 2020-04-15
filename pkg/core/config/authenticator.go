@@ -26,6 +26,10 @@ type PasswordPolicyConfiguration struct {
 	ExpiryDays            int      `json:"expiry_days,omitempty" yaml:"expiry_days" msg:"expiry_days"`
 }
 
+func (c *PasswordPolicyConfiguration) IsPasswordHistoryEnabled() bool {
+	return c.HistorySize > 0 || c.HistoryDays > 0
+}
+
 type AuthenticatorTOTPConfiguration struct {
 	Maximum *int `json:"maximum,omitempty" yaml:"maximum" msg:"maximum"`
 }

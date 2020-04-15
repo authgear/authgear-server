@@ -5,6 +5,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 func ProvidePasswordChecker(cfg *config.TenantConfiguration, s passwordhistory.Store) *PasswordChecker {
@@ -19,9 +20,26 @@ func ProvidePasswordChecker(cfg *config.TenantConfiguration, s passwordhistory.S
 		PwExcludedKeywords:     policy.ExcludedKeywords,
 		PwHistorySize:          policy.HistorySize,
 		PwHistoryDays:          policy.HistoryDays,
-		PasswordHistoryEnabled: policy.HistorySize > 0 || policy.HistoryDays > 0,
+		PasswordHistoryEnabled: policy.IsPasswordHistoryEnabled(),
 		PasswordHistoryStore:   s,
 	}
 }
 
-var DependencySet = wire.NewSet(ProvidePasswordChecker)
+func ProvidePwHousekeeper(
+	phs passwordhistory.Store,
+	lf logging.Factory,
+	tConfig *config.TenantConfiguration,
+) *PwHousekeeper {
+	return NewPwHousekeeper(
+		phs,
+		lf,
+		tConfig.AppConfig.Authenticator.Password.Policy.HistorySize,
+		tConfig.AppConfig.Authenticator.Password.Policy.HistoryDays,
+		tConfig.AppConfig.Authenticator.Password.Policy.IsPasswordHistoryEnabled(),
+	)
+}
+
+var DependencySet = wire.NewSet(
+	ProvidePasswordChecker,
+	ProvidePwHousekeeper,
+)

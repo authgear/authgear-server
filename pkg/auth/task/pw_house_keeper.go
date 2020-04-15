@@ -10,20 +10,20 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 func AttachPwHousekeeperTask(
 	executor *async.Executor,
 	authDependency auth.DependencyMap,
 ) {
-	// TODO(wire): fix task
-	executor.Register(spec.PwHousekeeperTaskName, &PwHousekeeperTask{})
+	executor.Register(spec.PwHousekeeperTaskName, MakeTask(authDependency, newPwHouseKeeperTask))
 }
 
 type PwHousekeeperTask struct {
-	TxContext     db.TxContext         `dependency:"TxContext"`
-	Logger        *logrus.Entry        `dependency:"HandlerLogger"`
-	PwHousekeeper *audit.PwHousekeeper `dependency:"PwHousekeeper"`
+	TxContext     db.TxContext
+	LoggerFactory logging.Factory
+	PwHousekeeper *audit.PwHousekeeper
 }
 
 func (t *PwHousekeeperTask) Run(ctx context.Context, param interface{}) (err error) {
@@ -31,9 +31,10 @@ func (t *PwHousekeeperTask) Run(ctx context.Context, param interface{}) (err err
 }
 
 func (t *PwHousekeeperTask) run(param interface{}) (err error) {
+	logger := t.LoggerFactory.NewLogger("passwordhousekeeper")
 	taskParam := param.(spec.PwHousekeeperTaskParam)
 
-	t.Logger.WithFields(logrus.Fields{"user_id": taskParam.AuthID}).Debug("Housekeeping password")
+	logger.WithFields(logrus.Fields{"user_id": taskParam.AuthID}).Debug("Housekeeping password")
 
 	if err = taskParam.Validate(); err != nil {
 		return

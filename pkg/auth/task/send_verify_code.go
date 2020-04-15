@@ -16,25 +16,25 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 func AttachVerifyCodeSendTask(
 	executor *async.Executor,
 	authDependency auth.DependencyMap,
 ) {
-	// TODO(wire): fix task
-	executor.Register(spec.VerifyCodeSendTaskName, &VerifyCodeSendTask{})
+	executor.Register(spec.VerifyCodeSendTaskName, MakeTask(authDependency, newVerifyCodeSendTask))
 }
 
 type VerifyCodeSendTask struct {
-	CodeSenderFactory        userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
-	AuthInfoStore            authinfo.Store               `dependency:"AuthInfoStore"`
-	UserProfileStore         userprofile.Store            `dependency:"UserProfileStore"`
-	UserVerificationProvider userverify.Provider          `dependency:"UserVerificationProvider"`
-	PasswordAuthProvider     password.Provider            `dependency:"PasswordAuthProvider"`
-	IdentityProvider         principal.IdentityProvider   `dependency:"IdentityProvider"`
-	TxContext                db.TxContext                 `dependency:"TxContext"`
-	Logger                   *logrus.Entry                `dependency:"HandlerLogger"`
+	CodeSenderFactory        userverify.CodeSenderFactory
+	AuthInfoStore            authinfo.Store
+	UserProfileStore         userprofile.Store
+	UserVerificationProvider userverify.Provider
+	PasswordAuthProvider     password.Provider
+	IdentityProvider         principal.IdentityProvider
+	TxContext                db.TxContext
+	LoggerFactory            logging.Factory
 }
 
 func (v *VerifyCodeSendTask) Run(ctx context.Context, param interface{}) (err error) {
@@ -46,7 +46,8 @@ func (v *VerifyCodeSendTask) run(param interface{}) (err error) {
 	loginID := taskParam.LoginID
 	userID := taskParam.UserID
 
-	v.Logger.WithFields(logrus.Fields{"user_id": taskParam.UserID}).Debug("Sending verification code")
+	logger := v.LoggerFactory.NewLogger("verifycode")
+	logger.WithFields(logrus.Fields{"user_id": taskParam.UserID}).Debug("Sending verification code")
 
 	authInfo := authinfo.AuthInfo{}
 	err = v.AuthInfoStore.GetAuth(userID, &authInfo)

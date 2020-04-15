@@ -19,7 +19,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -135,13 +134,6 @@ func (m DependencyMap) Provide(
 		)
 	}
 
-	// TODO:
-	// from tConfig
-	isPasswordHistoryEnabled := func() bool {
-		return tConfig.AppConfig.Authenticator.Password.Policy.HistorySize > 0 ||
-			tConfig.AppConfig.Authenticator.Password.Policy.HistoryDays > 0
-	}
-
 	newLoginIDChecker := func() loginid.LoginIDChecker {
 		return loginid.NewDefaultLoginIDChecker(
 			tConfig.AppConfig.Identity.LoginID.Keys,
@@ -158,7 +150,7 @@ func (m DependencyMap) Provide(
 			newLoggerFactory(),
 			tConfig.AppConfig.Identity.LoginID.Keys,
 			tConfig.AppConfig.Identity.LoginID.Types,
-			isPasswordHistoryEnabled(),
+			tConfig.AppConfig.Authenticator.Password.Policy.IsPasswordHistoryEnabled(),
 			m.ReservedNameChecker,
 		)
 	}
@@ -257,14 +249,6 @@ func (m DependencyMap) Provide(
 		return newAuthInfoStore()
 	case "PasswordChecker":
 		return newPasswordChecker()
-	case "PwHousekeeper":
-		return authAudit.NewPwHousekeeper(
-			newPasswordHistoryStore(),
-			newLoggerFactory(),
-			tConfig.AppConfig.Authenticator.Password.Policy.HistorySize,
-			tConfig.AppConfig.Authenticator.Password.Policy.HistoryDays,
-			isPasswordHistoryEnabled(),
-		)
 	case "LoginIDChecker":
 		return newLoginIDChecker()
 	case "PasswordAuthProvider":
@@ -281,15 +265,9 @@ func (m DependencyMap) Provide(
 		return tConfig.AppConfig.ForgotPassword.SecureMatch
 	case "ResetPasswordHTMLProvider":
 		return forgotpwdemail.NewResetPasswordHTMLProvider(urlprefix.NewProvider(request).Value(), tConfig.AppConfig.ForgotPassword, newTemplateEngine())
-	case "WelcomeEmailEnabled":
-		return tConfig.AppConfig.WelcomeEmail.Enabled
-	case "WelcomeEmailDestination":
-		return tConfig.AppConfig.WelcomeEmail.Destination
-	case "WelcomeEmailSender":
-		return welcemail.NewDefaultSender(tConfig, newMailSender(), newTemplateEngine())
 	case "UserVerifyCodeSenderFactory":
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(
-			tConfig,
+			&tConfig,
 			newTemplateEngine(),
 			newMailSender(),
 			newSMSClient(),
@@ -300,7 +278,7 @@ func (m DependencyMap) Provide(
 		return tConfig.AppConfig.UserVerification.LoginIDKeys
 	case "UserVerificationProvider":
 		return userverify.NewProvider(
-			userverify.NewCodeGenerator(tConfig),
+			userverify.NewCodeGenerator(&tConfig),
 			userverify.NewStore(
 				newSQLBuilder(),
 				newSQLExecutor(),

@@ -22,7 +22,7 @@ type DefaultSender struct {
 }
 
 func NewDefaultSender(
-	c config.TenantConfiguration,
+	c *config.TenantConfiguration,
 	sender mail.Sender,
 	templateEngine *template.Engine,
 ) Sender {
