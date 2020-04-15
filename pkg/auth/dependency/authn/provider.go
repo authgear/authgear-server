@@ -96,20 +96,20 @@ func (p *Provider) LoginWithLoginID(
 	return p.AuthnSession.StepSession(s, "")
 }
 
-func (p *Provider) OAuthAuthenticate(
+func (p *Provider) OAuthAuthenticateCode(
 	authInfo sso.AuthInfo,
 	codeChallenge string,
 	loginState sso.LoginState,
 ) (*sso.SkygearAuthorizationCode, error) {
-	return p.OAuth.Authenticate(authInfo, codeChallenge, loginState)
+	return p.OAuth.AuthenticateCode(authInfo, codeChallenge, loginState)
 }
 
-func (p *Provider) OAuthLink(
+func (p *Provider) OAuthLinkCode(
 	authInfo sso.AuthInfo,
 	codeChallenge string,
 	linkState sso.LinkState,
 ) (*sso.SkygearAuthorizationCode, error) {
-	return p.OAuth.Link(authInfo, codeChallenge, linkState)
+	return p.OAuth.LinkCode(authInfo, codeChallenge, linkState)
 }
 
 func (p *Provider) OAuthExchangeCode(

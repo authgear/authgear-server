@@ -21,8 +21,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -34,22 +32,8 @@ func AttachUnlinkHandler(
 ) {
 	router.NewRoute().
 		Path("/sso/{provider}/unlink").
-		Handler(server.FactoryToHandler(&UnlinkHandlerFactory{
-			Dependency: authDependency,
-		})).
+		Handler(pkg.MakeHandler(authDependency, newUnlinkHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type UnlinkHandlerFactory struct {
-	Dependency pkg.DependencyMap
-}
-
-func (f UnlinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &UnlinkHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	vars := mux.Vars(request)
-	h.ProviderID = vars["provider"]
-	return h.RequireAuthz(h, h)
 }
 
 type unlinkSessionManager interface {
@@ -72,15 +56,14 @@ type unlinkSessionManager interface {
 		@Callback user_sync {UserSyncEvent}
 */
 type UnlinkHandler struct {
-	TxContext         db.TxContext              `dependency:"TxContext"`
-	RequireAuthz      handler.RequireAuthz      `dependency:"RequireAuthz"`
-	SessionManager    unlinkSessionManager      `dependency:"SessionManager"`
-	OAuthAuthProvider oauth.Provider            `dependency:"OAuthAuthProvider"`
-	AuthInfoStore     authinfo.Store            `dependency:"AuthInfoStore"`
-	UserProfileStore  userprofile.Store         `dependency:"UserProfileStore"`
-	HookProvider      hook.Provider             `dependency:"HookProvider"`
-	ProviderFactory   *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
-	ProviderID        string
+	TxContext         db.TxContext
+	RequireAuthz      handler.RequireAuthz
+	SessionManager    unlinkSessionManager
+	OAuthAuthProvider oauth.Provider
+	AuthInfoStore     authinfo.Store
+	UserProfileStore  userprofile.Store
+	HookProvider      hook.Provider
+	ProviderFactory   *sso.OAuthProviderFactory
 }
 
 func (h UnlinkHandler) ProvideAuthzPolicy() coreauthz.Policy {
@@ -105,7 +88,10 @@ func (h UnlinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() error {
-		providerConfig, ok := h.ProviderFactory.GetOAuthProviderConfig(h.ProviderID)
+		vars := mux.Vars(r)
+		providerID := vars["provider"]
+
+		providerConfig, ok := h.ProviderFactory.GetOAuthProviderConfig(providerID)
 		if !ok {
 			return skyerr.NewNotFound("unknown SSO provider")
 		}

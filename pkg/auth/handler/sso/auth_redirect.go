@@ -9,8 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -29,30 +27,13 @@ func AttachAuthRedirectHandler(
 ) {
 	router.NewRoute().
 		Path("/sso/{provider}/auth_redirect").
-		Handler(server.FactoryToHandler(&AuthRedirectHandlerFactory{
-			Dependency: authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newAuthRedirectHandler)).
 		Methods("OPTIONS", "GET")
 }
 
-type AuthRedirectHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f AuthRedirectHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &AuthRedirectHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	vars := mux.Vars(request)
-	h.ProviderID = vars["provider"]
-	h.OAuthProvider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
-	return h
-}
-
 type AuthRedirectHandler struct {
-	ProviderFactory *sso.OAuthProviderFactory `dependency:"SSOOAuthProviderFactory"`
-	SSOProvider     sso.Provider              `dependency:"SSOProvider"`
-	OAuthProvider   sso.OAuthProvider
-	ProviderID      string
+	SSOProvider   sso.Provider
+	OAuthProvider sso.OAuthProvider
 }
 
 func (h *AuthRedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

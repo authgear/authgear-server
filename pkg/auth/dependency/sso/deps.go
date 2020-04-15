@@ -26,8 +26,9 @@ func ProvideOAuthProviderFactory(
 	up urlprefix.Provider,
 	tp time.Provider,
 	nf loginid.LoginIDNormalizerFactory,
+	rf RedirectURLFunc,
 ) *OAuthProviderFactory {
-	return NewOAuthProviderFactory(*cfg, up, tp, NewUserInfoDecoder(nf), nf)
+	return NewOAuthProviderFactory(*cfg, up, tp, NewUserInfoDecoder(nf), nf, rf)
 }
 
 func ProvideAuthHandlerHTMLProvider(up urlprefix.Provider) AuthHandlerHTMLProvider {

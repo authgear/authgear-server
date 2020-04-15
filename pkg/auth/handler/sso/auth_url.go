@@ -20,10 +20,15 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
+)
+
+type ssoAction string
+
+const (
+	ssoActionLogin ssoAction = "login"
+	ssoActionLink  ssoAction = "link"
 )
 
 func AttachAuthURLHandler(
@@ -32,34 +37,13 @@ func AttachAuthURLHandler(
 ) {
 	router.NewRoute().
 		Path("/sso/{provider}/login_auth_url").
-		Handler(server.FactoryToHandler(&AuthURLHandlerFactory{
-			Dependency: authDependency,
-			Action:     "login",
-		})).
+		Handler(pkg.MakeHandler(authDependency, newLoginAuthURLHandler)).
 		Methods("OPTIONS", "POST")
 
 	router.NewRoute().
 		Path("/sso/{provider}/link_auth_url").
-		Handler(server.FactoryToHandler(&AuthURLHandlerFactory{
-			Dependency: authDependency,
-			Action:     "link",
-		})).
+		Handler(pkg.MakeHandler(authDependency, newLinkAuthURLHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type AuthURLHandlerFactory struct {
-	Dependency pkg.DependencyMap
-	Action     string
-}
-
-func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &AuthURLHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	vars := mux.Vars(request)
-	h.ProviderID = vars["provider"]
-	h.OAuthProvider = h.ProviderFactory.NewOAuthProvider(h.ProviderID)
-	h.Action = f.Action
-	return h.RequireAuthz(h, h)
 }
 
 // nolint: deadcode
@@ -219,16 +203,14 @@ func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
 		@Callback user_sync {UserSyncEvent}
 */
 type AuthURLHandler struct {
-	TxContext                  db.TxContext                              `dependency:"TxContext"`
-	Validator                  *validation.Validator                     `dependency:"Validator"`
-	RequireAuthz               handler.RequireAuthz                      `dependency:"RequireAuthz"`
-	ProviderFactory            *sso.OAuthProviderFactory                 `dependency:"SSOOAuthProviderFactory"`
-	PasswordAuthProvider       password.Provider                         `dependency:"PasswordAuthProvider"`
-	SSOProvider                sso.Provider                              `dependency:"SSOProvider"`
-	OAuthConflictConfiguration *config.AuthAPIOAuthConflictConfiguration `dependency:"OAuthConflictConfiguration"`
+	TxContext                  db.TxContext
+	Validator                  *validation.Validator
+	RequireAuthz               handler.RequireAuthz
+	PasswordAuthProvider       password.Provider
+	SSOProvider                sso.Provider
+	OAuthConflictConfiguration *config.AuthAPIOAuthConflictConfiguration
 	OAuthProvider              sso.OAuthProvider
-	ProviderID                 string
-	Action                     string
+	Action                     ssoAction
 }
 
 func (h *AuthURLHandler) ProvideAuthzPolicy() coreauthz.Policy {
@@ -255,6 +237,9 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		return
 	}
 
+	vars := mux.Vars(r)
+	providerID := vars["provider"]
+
 	payload := AuthURLRequestPayload{}
 	payload.Client = coreauth.GetAccessKey(r.Context()).Client
 	payload.PasswordAuthProvider = h.PasswordAuthProvider
@@ -271,18 +256,18 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	// APIClientID is derived from the API key used by the client.
 	// UserID is derived from the access token.
 	// The state is then signed but no encrypted and returned to the client.
+	apiSSOState := AuthAPISSOState{}
+	apiSSOState.SetCallbackURL(payload.CallbackURL)
+	apiSSOState.SetCodeChallenge(payload.CodeChallenge)
 	state := sso.State{
 		LoginState: sso.LoginState{
 			MergeRealm:      payload.MergeRealm,
 			OnUserDuplicate: payload.OnUserDuplicate,
 		},
-		OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-			CallbackURL: payload.CallbackURL,
-			UXMode:      payload.UXMode,
-		},
-		Action:        h.Action,
-		APIClientID:   apiClientID,
-		CodeChallenge: payload.CodeChallenge,
+		Extra:       apiSSOState,
+		Action:      string(h.Action),
+		UXMode:      payload.UXMode,
+		APIClientID: apiClientID,
 	}
 	session := auth.GetSession(r.Context())
 	if session != nil {
@@ -300,7 +285,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	u := &url.URL{
 		Host:     coreHttp.GetHost(r),
 		Scheme:   coreHttp.GetProto(r),
-		Path:     fmt.Sprintf("/_auth/sso/%s/auth_redirect", h.ProviderID),
+		Path:     fmt.Sprintf("/_auth/sso/%s/auth_redirect", providerID),
 		RawQuery: q.Encode(),
 	}
 

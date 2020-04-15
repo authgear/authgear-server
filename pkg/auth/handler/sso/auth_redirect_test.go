@@ -28,10 +28,11 @@ func TestAuthRedirectHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := &sso.MockSSOProvider{
-			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
-			BaseURL:        "http://mock/auth",
-			OAuthConfig:    oauthConfig,
-			ProviderConfig: providerConfig,
+			URLPrefix:       &url.URL{Scheme: "https", Host: "api.example.com"},
+			RedirectURLFunc: RedirectURIForAPI,
+			BaseURL:         "http://mock/auth",
+			OAuthConfig:     oauthConfig,
+			ProviderConfig:  providerConfig,
 			UserInfo: sso.ProviderUserInfo{
 				ID:    providerUserID,
 				Email: "mock@example.com",
@@ -46,10 +47,10 @@ func TestAuthRedirectHandler(t *testing.T) {
 			// oauth state
 			state := sso.State{
 				Action: action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      uxMode,
+				Extra: AuthAPISSOState{
+					"callback_url": "http://localhost:3000",
 				},
+				UXMode: uxMode,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 			v := url.Values{}
@@ -70,10 +71,10 @@ func TestAuthRedirectHandler(t *testing.T) {
 			// oauth state
 			state := sso.State{
 				Action: action,
-				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      uxMode,
+				Extra: AuthAPISSOState{
+					"callback_url": "http://localhost:3000",
 				},
+				UXMode: uxMode,
 			}
 			encodedState, _ := mockProvider.EncodeState(state)
 			v := url.Values{}

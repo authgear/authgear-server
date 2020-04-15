@@ -123,7 +123,7 @@ func TestOAuthCoordinator(t *testing.T) {
 
 		Convey("Authenticate", func() {
 			Convey("OnUserDuplicateAbort == abort", func() {
-				_, err := oauthc.Authenticate(sso.AuthInfo{
+				_, err := oauthc.AuthenticateCode(sso.AuthInfo{
 					ProviderUserInfo: sso.ProviderUserInfo{
 						Email: "john.doe@example.com",
 					},
@@ -143,7 +143,7 @@ func TestOAuthCoordinator(t *testing.T) {
 			})
 
 			Convey("OnUserDuplicateAbort == merge", func() {
-				code, err := oauthc.Authenticate(sso.AuthInfo{
+				code, err := oauthc.AuthenticateCode(sso.AuthInfo{
 					ProviderUserInfo: sso.ProviderUserInfo{
 						Email: "john.doe@example.com",
 					},
@@ -155,7 +155,7 @@ func TestOAuthCoordinator(t *testing.T) {
 			})
 
 			Convey("OnUserDuplicateAbort == create", func() {
-				code, err := oauthc.Authenticate(sso.AuthInfo{
+				code, err := oauthc.AuthenticateCode(sso.AuthInfo{
 					ProviderUserInfo: sso.ProviderUserInfo{
 						Email: "john.doe@example.com",
 					},
@@ -169,7 +169,7 @@ func TestOAuthCoordinator(t *testing.T) {
 
 		Convey("Link", func() {
 			Convey("never linked before", func() {
-				_, err := oauthc.Link(sso.AuthInfo{
+				_, err := oauthc.LinkCode(sso.AuthInfo{
 					ProviderUserInfo: sso.ProviderUserInfo{
 						Email: "john.doe@example.com",
 					},
@@ -194,7 +194,7 @@ func TestOAuthCoordinator(t *testing.T) {
 				signup.OAuthProvider = oauthProvider
 				authn.OAuthProvider = oauthProvider
 
-				_, err := oauthc.Link(sso.AuthInfo{
+				_, err := oauthc.LinkCode(sso.AuthInfo{
 					ProviderConfig: config.OAuthProviderConfiguration{
 						Type: config.OAuthProviderType(providerType),
 					},

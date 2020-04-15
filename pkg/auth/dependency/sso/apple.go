@@ -23,6 +23,7 @@ var appleOIDCConfig = OIDCDiscoveryDocument{
 
 type AppleImpl struct {
 	URLPrefix                *url.URL
+	RedirectURLFunc          RedirectURLFunc
 	OAuthConfig              *config.OAuthConfiguration
 	ProviderConfig           config.OAuthProviderConfiguration
 	TimeProvider             coreTime.Provider
@@ -61,7 +62,7 @@ func (f *AppleImpl) Type() config.OAuthProviderType {
 func (f *AppleImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	return appleOIDCConfig.MakeOAuthURL(OIDCAuthParams{
 		ProviderConfig: f.ProviderConfig,
-		URLPrefix:      f.URLPrefix,
+		RedirectURI:    f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		Nonce:          state.HashedNonce,
 		EncodedState:   encodedState,
 	}), nil
@@ -92,7 +93,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 		f.URLPrefix,
 		f.ProviderConfig.ClientID,
 		clientSecret,
-		redirectURI(f.URLPrefix, f.ProviderConfig),
+		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		state.HashedNonce,
 		f.TimeProvider.NowUTC,
 		&tokenResp,

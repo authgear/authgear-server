@@ -238,10 +238,6 @@ func (m DependencyMap) Provide(
 		)
 	}
 
-	newOAuthUserInfoDecoder := func() sso.UserInfoDecoder {
-		return sso.NewUserInfoDecoder(newLoginIDNormalizerFactory())
-	}
-
 	newPasswordChecker := func() *authAudit.PasswordChecker {
 		return authAudit.ProvidePasswordChecker(&tConfig, newPasswordHistoryStore())
 	}
@@ -316,18 +312,6 @@ func (m DependencyMap) Provide(
 		return userverify.NewVerifyHTMLProvider(tConfig.AppConfig.UserVerification, newTemplateEngine())
 	case "LoginIDNormalizerFactory":
 		return newLoginIDNormalizerFactory()
-	case "OAuthUserInfoDecoder":
-		return newOAuthUserInfoDecoder()
-	case "SSOOAuthProviderFactory":
-		return sso.NewOAuthProviderFactory(tConfig, urlprefix.NewProvider(request), newTimeProvider(), newOAuthUserInfoDecoder(), newLoginIDNormalizerFactory())
-	case "SSOProvider":
-		return sso.NewProvider(
-			ctx,
-			tConfig.AppID,
-			tConfig.AppConfig.Identity.OAuth,
-		)
-	case "OAuthAuthProvider":
-		return newOAuthAuthProvider()
 	case "IdentityProvider":
 		return newIdentityProvider()
 	case "AuthHandlerHTMLProvider":
@@ -336,8 +320,6 @@ func (m DependencyMap) Provide(
 		return async.NewQueue(ctx, db.NewTxContextWithContext(ctx, tConfig), requestID, tConfig, m.AsyncTaskExecutor)
 	case "HookProvider":
 		return newHookProvider()
-	case "OAuthConfiguration":
-		return tConfig.AppConfig.Identity.OAuth
 	case "AuthenticatorConfiguration":
 		return *tConfig.AppConfig.Authenticator
 	case "OAuthConflictConfiguration":

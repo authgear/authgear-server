@@ -15,6 +15,7 @@ const (
 
 type FacebookImpl struct {
 	URLPrefix       *url.URL
+	RedirectURLFunc RedirectURLFunc
 	OAuthConfig     *config.OAuthConfiguration
 	ProviderConfig  config.OAuthProviderConfiguration
 	UserInfoDecoder UserInfoDecoder
@@ -27,7 +28,7 @@ func (f *FacebookImpl) Type() config.OAuthProviderType {
 func (f *FacebookImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
-		urlPrefix:      f.URLPrefix,
+		redirectURI:    f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		providerConfig: f.ProviderConfig,
 		encodedState:   encodedState,
 		baseURL:        facebookAuthorizationURL,
@@ -45,7 +46,7 @@ func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (a
 
 func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:       f.URLPrefix,
+		redirectURL:     f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		oauthConfig:     f.OAuthConfig,
 		providerConfig:  f.ProviderConfig,
 		accessTokenURL:  facebookTokenURL,
@@ -57,7 +58,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 
 func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:       f.URLPrefix,
+		redirectURL:     f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		oauthConfig:     f.OAuthConfig,
 		providerConfig:  f.ProviderConfig,
 		accessTokenURL:  facebookTokenURL,

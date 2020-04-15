@@ -44,11 +44,12 @@ func TestLinkHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
-			URLPrefix:      &url.URL{Scheme: "https", Host: "api.example.com"},
-			BaseURL:        "http://mock/auth",
-			OAuthConfig:    oauthConfig,
-			ProviderConfig: providerConfig,
-			UserInfo:       providerUserInfo,
+			URLPrefix:       &url.URL{Scheme: "https", Host: "api.example.com"},
+			RedirectURLFunc: RedirectURIForAPI,
+			BaseURL:         "http://mock/auth",
+			OAuthConfig:     oauthConfig,
+			ProviderConfig:  providerConfig,
+			UserInfo:        providerUserInfo,
 		}
 		sh.OAuthProvider = &mockProvider
 		sh.SSOProvider = &mockProvider

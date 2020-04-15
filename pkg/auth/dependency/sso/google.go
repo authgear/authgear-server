@@ -18,6 +18,7 @@ const (
 
 type GoogleImpl struct {
 	URLPrefix                *url.URL
+	RedirectURLFunc          RedirectURLFunc
 	OAuthConfig              *config.OAuthConfiguration
 	ProviderConfig           config.OAuthProviderConfiguration
 	TimeProvider             coreTime.Provider
@@ -32,7 +33,7 @@ func (f *GoogleImpl) GetAuthURL(state State, encodedState string) (string, error
 	}
 	return d.MakeOAuthURL(OIDCAuthParams{
 		ProviderConfig: f.ProviderConfig,
-		URLPrefix:      f.URLPrefix,
+		RedirectURI:    f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		Nonce:          state.HashedNonce,
 		EncodedState:   encodedState,
 		ExtraParams: map[string]string{
@@ -70,7 +71,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 		f.URLPrefix,
 		f.ProviderConfig.ClientID,
 		f.ProviderConfig.ClientSecret,
-		redirectURI(f.URLPrefix, f.ProviderConfig),
+		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		state.HashedNonce,
 		f.TimeProvider.NowUTC,
 		&tokenResp,
@@ -120,7 +121,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 
 func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		urlPrefix:       f.URLPrefix,
+		redirectURL:     f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		oauthConfig:     f.OAuthConfig,
 		providerConfig:  f.ProviderConfig,
 		accessTokenURL:  googleTokenURL,
