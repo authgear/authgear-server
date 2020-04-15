@@ -16,7 +16,8 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 		[]byte(m.Key),
 		csrf.Path("/"),
 		csrf.Secure(!m.UseInsecureCookie),
-		csrf.SameSite(csrf.SameSiteLaxMode),
+		csrf.SameSite(csrf.SameSiteNoneMode),
+		csrf.CookieName(csrfCookieName),
 	)
 	return gorillaCSRF(next)
 }

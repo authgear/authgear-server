@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"crypto/subtle"
 	"net/http"
 	"net/url"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -305,8 +307,14 @@ func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter,
 	// create or update ui state
 	// state id will be set into the request query
 	p.persistState(r, nil)
-	nonce := sso.GenerateOpenIDConnectNonce()
-	hashedNonce := crypto.SHA256String(nonce)
+
+	// set hashed csrf cookies to sso state
+	// callback will verify if the request has the same cookie
+	cookie, err := r.Cookie(csrfCookieName)
+	if err != nil || cookie.Value == "" {
+		panic(errors.Newf("webapp: missing csrf cookies: %w", err))
+	}
+	hashedNonce := crypto.SHA256String(cookie.Value)
 	webappSSOState := SSOState{}
 	webappSSOState.SetRequestQuery(r.URL.Query().Encode())
 	state := sso.State{
@@ -361,6 +369,20 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 	if err != nil {
 		return
 	}
+
+	// verify if the request has the same csrf cookies
+	cookie, err := r.Cookie(csrfCookieName)
+	if err != nil || cookie.Value == "" {
+		err = sso.NewSSOFailed(sso.SSOUnauthorized, "invalid nonce")
+		return
+	}
+	hashedCookie := crypto.SHA256String(cookie.Value)
+	hashedNonce := state.HashedNonce
+	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(hashedCookie)) != 1 {
+		err = sso.NewSSOFailed(sso.SSOUnauthorized, "invalid nonce")
+		return
+	}
+
 	webappSSOState := SSOState(state.Extra)
 	requestQuery := webappSSOState.RequestQuery()
 	v, err := url.ParseQuery(requestQuery)
