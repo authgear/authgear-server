@@ -2,7 +2,6 @@ package async
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -25,7 +24,7 @@ func (e *Executor) Register(name string, taskFactory TaskFactory) {
 	e.taskFactoryMap[name] = taskFactory
 }
 
-func (e *Executor) Execute(taskCtx TaskContext, name string, param interface{}, response chan error) {
+func (e *Executor) Execute(taskCtx TaskContext, name string, param interface{}) {
 	factory := e.taskFactoryMap[name]
 	ctx := db.InitDBContext(context.Background(), e.pool)
 	task := factory.NewTask(ctx, taskCtx)
@@ -41,15 +40,6 @@ func (e *Executor) Execute(taskCtx TaskContext, name string, param interface{}, 
 					"task_name": name,
 					"error":     rec,
 				}).Error("unexpected error occurred when running async task")
-
-				if response != nil {
-					switch err := rec.(type) {
-					case error:
-						response <- err
-					default:
-						response <- fmt.Errorf("%+v", err)
-					}
-				}
 			}
 		}()
 
@@ -59,9 +49,6 @@ func (e *Executor) Execute(taskCtx TaskContext, name string, param interface{}, 
 				"task_name": name,
 				"error":     err,
 			}).Error("error occurred when running async task")
-		}
-		if response != nil {
-			response <- err
 		}
 	}()
 }

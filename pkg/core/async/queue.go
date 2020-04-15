@@ -50,7 +50,7 @@ func (s *queue) Enqueue(spec TaskSpec) {
 		}
 	} else {
 		// No transaction context -> execute immediately.
-		s.taskExecutor.Execute(s.taskContext, spec.Name, spec.Param, nil)
+		s.taskExecutor.Execute(s.taskContext, spec.Name, spec.Param)
 	}
 }
 
@@ -60,7 +60,7 @@ func (s *queue) WillCommitTx() error {
 
 func (s *queue) DidCommitTx() {
 	for _, task := range s.pendingTasks {
-		s.taskExecutor.Execute(s.taskContext, task.Name, task.Param, nil)
+		s.taskExecutor.Execute(s.taskContext, task.Name, task.Param)
 	}
 	s.pendingTasks = nil
 }
