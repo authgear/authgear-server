@@ -30,7 +30,7 @@ type PwHousekeeperTaskFactory struct {
 func (f *PwHousekeeperTaskFactory) NewTask(ctx context.Context, taskCtx async.TaskContext) async.Task {
 	task := &PwHousekeeperTask{}
 	inject.DefaultTaskInject(task, f.DependencyMap, ctx, taskCtx)
-	return async.TxTaskToTask(task, task.TxContext)
+	return task
 }
 
 type PwHousekeeperTask struct {
@@ -39,11 +39,11 @@ type PwHousekeeperTask struct {
 	PwHousekeeper *audit.PwHousekeeper `dependency:"PwHousekeeper"`
 }
 
-func (t *PwHousekeeperTask) WithTx() bool {
-	return true
+func (t *PwHousekeeperTask) Run(param interface{}) (err error) {
+	return db.WithTx(t.TxContext, func() error { return t.run(param) })
 }
 
-func (t *PwHousekeeperTask) Run(param interface{}) (err error) {
+func (t *PwHousekeeperTask) run(param interface{}) (err error) {
 	taskParam := param.(spec.PwHousekeeperTaskParam)
 
 	t.Logger.WithFields(logrus.Fields{"user_id": taskParam.AuthID}).Debug("Housekeeping password")
@@ -55,6 +55,5 @@ func (t *PwHousekeeperTask) Run(param interface{}) (err error) {
 	if err = t.PwHousekeeper.Housekeep(taskParam.AuthID); err != nil {
 		return
 	}
-
 	return
 }

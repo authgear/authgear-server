@@ -36,7 +36,7 @@ type VerifyCodeSendTaskFactory struct {
 func (c *VerifyCodeSendTaskFactory) NewTask(ctx context.Context, taskCtx async.TaskContext) async.Task {
 	task := &VerifyCodeSendTask{}
 	inject.DefaultTaskInject(task, c.DependencyMap, ctx, taskCtx)
-	return async.TxTaskToTask(task, task.TxContext)
+	return task
 }
 
 type VerifyCodeSendTask struct {
@@ -50,11 +50,11 @@ type VerifyCodeSendTask struct {
 	Logger                   *logrus.Entry                `dependency:"HandlerLogger"`
 }
 
-func (v *VerifyCodeSendTask) WithTx() bool {
-	return true
+func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
+	return db.WithTx(v.TxContext, func() error { return v.run(param) })
 }
 
-func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
+func (v *VerifyCodeSendTask) run(param interface{}) (err error) {
 	taskParam := param.(spec.VerifyCodeSendTaskParam)
 	loginID := taskParam.LoginID
 	userID := taskParam.UserID

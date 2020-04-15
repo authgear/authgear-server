@@ -32,7 +32,7 @@ type WelcomeEmailSendTaskFactory struct {
 func (c *WelcomeEmailSendTaskFactory) NewTask(ctx context.Context, taskCtx async.TaskContext) async.Task {
 	task := &WelcomeEmailSendTask{}
 	inject.DefaultTaskInject(task, c.DependencyMap, ctx, taskCtx)
-	return async.TxTaskToTask(task, task.TxContext)
+	return task
 }
 
 type WelcomeEmailSendTask struct {
@@ -42,11 +42,11 @@ type WelcomeEmailSendTask struct {
 	Logger             *logrus.Entry     `dependency:"HandlerLogger"`
 }
 
-func (w *WelcomeEmailSendTask) WithTx() bool {
-	return true
+func (w *WelcomeEmailSendTask) Run(param interface{}) (err error) {
+	return db.WithTx(w.TxContext, func() error { return w.run(param) })
 }
 
-func (w *WelcomeEmailSendTask) Run(param interface{}) (err error) {
+func (w *WelcomeEmailSendTask) run(param interface{}) (err error) {
 	taskParam := param.(spec.WelcomeEmailSendTaskParam)
 
 	w.Logger.WithFields(logrus.Fields{"user_id": taskParam.User.ID}).Debug("Sending welcome email")
