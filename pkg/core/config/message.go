@@ -27,26 +27,6 @@ func NewEmailMessageConfiguration(configs ...EmailMessageConfiguration) EmailMes
 	return config
 }
 
-func (c EmailMessageConfiguration) Sender() string {
-	return c["sender"]
-}
-
-func (c EmailMessageConfiguration) Subject() string {
-	return c["subject"]
-}
-
-func (c EmailMessageConfiguration) ReplyTo() string {
-	return c["reply_to"]
-}
-
-func (c EmailMessageConfiguration) SetSender(sender string) {
-	c["sender"] = sender
-}
-
-func (c EmailMessageConfiguration) SetSubject(subject string) {
-	c["subject"] = subject
-}
-
 type SMSMessageConfiguration map[string]string
 
 func NewSMSMessageConfiguration(configs ...SMSMessageConfiguration) SMSMessageConfiguration {
@@ -57,8 +37,4 @@ func NewSMSMessageConfiguration(configs ...SMSMessageConfiguration) SMSMessageCo
 		}
 	}
 	return config
-}
-
-func (c SMSMessageConfiguration) Sender() string {
-	return c["sender"]
 }

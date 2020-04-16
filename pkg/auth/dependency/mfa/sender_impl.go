@@ -64,7 +64,11 @@ func (s *senderImpl) SendSMS(context map[string]interface{}, phone string) error
 		return err
 	}
 
-	err = s.smsClient.Send(s.smsConfig.Sender(), phone, body)
+	err = s.smsClient.Send(sms.SendOptions{
+		MessageConfig: s.smsConfig,
+		To:            phone,
+		Body:          body,
+	})
 	if err != nil {
 		err = errors.Newf("failed to send MFA SMS message: %w", err)
 	}
@@ -93,12 +97,10 @@ func (s *senderImpl) SendEmail(context map[string]interface{}, email string) err
 	}
 
 	err = s.mailSender.Send(mail.SendOptions{
-		Sender:    s.emailConfig.Sender(),
-		Recipient: email,
-		Subject:   s.emailConfig.Subject(),
-		ReplyTo:   s.emailConfig.ReplyTo(),
-		TextBody:  textBody,
-		HTMLBody:  htmlBody,
+		MessageConfig: s.emailConfig,
+		Recipient:     email,
+		TextBody:      textBody,
+		HTMLBody:      htmlBody,
 	})
 	if err != nil {
 		err = errors.Newf("failed to send MFA email: %w", err)

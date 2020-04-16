@@ -9,6 +9,7 @@ import (
 
 	"github.com/iawaknahc/gomessageformat"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/intl"
 )
 
 type ResolveOptions struct {
@@ -266,33 +267,7 @@ func makeLocalize(preferredLanguageTags []string, translations map[string]map[st
 			return
 		}
 
-		supportedTagStrings := make([]string, len(m))
-		for tagStr := range m {
-			supportedTagStrings = append(supportedTagStrings, tagStr)
-		}
-
-		// The first item in tags is used as fallback.
-		// So we have sort the templates so that template with empty
-		// language tag comes first.
-		sort.Slice(supportedTagStrings, func(i, j int) bool {
-			return supportedTagStrings[i] < supportedTagStrings[j]
-		})
-
-		supportedTags := make([]language.Tag, len(supportedTagStrings))
-		for i, item := range supportedTagStrings {
-			supportedTags[i] = language.Make(item)
-		}
-		matcher := language.NewMatcher(supportedTags)
-
-		preferredTags := make([]language.Tag, len(preferredLanguageTags))
-		for i, tagStr := range preferredLanguageTags {
-			preferredTags[i] = language.Make(tagStr)
-		}
-
-		_, idx, _ := matcher.Match(preferredTags...)
-
-		tag := supportedTags[idx]
-		pattern := m[supportedTagStrings[idx]]
+		tag, pattern := intl.Localize(preferredLanguageTags, m)
 
 		out, err = messageformat.FormatPositional(tag, pattern, args...)
 		if err != nil {

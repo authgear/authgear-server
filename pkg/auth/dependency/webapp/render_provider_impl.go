@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 
 	"github.com/gorilla/csrf"
-	"golang.org/x/text/language"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/intl"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
@@ -53,8 +52,11 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		return MakeURLWithPath(r.URL, path)
 	}
 
-	data["client_name"] = accessKey.Client["client_name"]
-	data["logo_uri"] = accessKey.Client["logo_uri"]
+	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
+
+	clientMetadata := accessKey.Client
+	data["client_name"] = intl.LocalizeJSONObject(preferredLanguageTags, clientMetadata, "client_name")
+	data["logo_uri"] = intl.LocalizeJSONObject(preferredLanguageTags, clientMetadata, "logo_uri")
 
 	data[csrf.TemplateTag] = csrf.TemplateField(r)
 
@@ -148,7 +150,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		template.AllowRangeNode(true),
 		template.AllowTemplateNode(true),
 		template.MaxDepth(15),
-	).WithPreferredLanguageTags(PreferredLanguageTags(r)).RenderTemplate(
+	).WithPreferredLanguageTags(preferredLanguageTags).RenderTemplate(
 		templateType,
 		data,
 		template.ResolveOptions{},
@@ -165,19 +167,4 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		w.WriteHeader(apiError.Code)
 	}
 	w.Write(body)
-}
-
-func PreferredLanguageTags(r *http.Request) (out []string) {
-	acceptLanguage := r.Header.Get("Accept-Language")
-	if uiLocales := r.Form.Get("ui_locales"); uiLocales != "" {
-		acceptLanguage = strings.ReplaceAll(uiLocales, " ", ", ")
-	}
-	tags, _, err := language.ParseAcceptLanguage(acceptLanguage)
-	if err != nil {
-		return
-	}
-	for _, tag := range tags {
-		out = append(out, tag.String())
-	}
-	return
 }

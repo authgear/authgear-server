@@ -238,6 +238,8 @@ func main() {
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
 
 	webappRouter = rootRouter.NewRoute().Subrouter()
+	webappRouter.Use(webapp.IntlMiddleware)
+	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewClientIDMiddleware))
 	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewCSPMiddleware))
 	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewCSRFMiddleware))
 	webappRouter.Use(webapp.PostNoCacheMiddleware)

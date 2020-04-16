@@ -66,12 +66,10 @@ func (d *DefaultSender) Send(urlPrefix *url.URL, email string, user model.User) 
 	}
 
 	err = d.Sender.Send(mail.SendOptions{
-		Sender:    d.EmailConfig.Sender(),
-		Recipient: email,
-		Subject:   d.EmailConfig.Subject(),
-		ReplyTo:   d.EmailConfig.ReplyTo(),
-		TextBody:  textBody,
-		HTMLBody:  htmlBody,
+		MessageConfig: d.EmailConfig,
+		Recipient:     email,
+		TextBody:      textBody,
+		HTMLBody:      htmlBody,
 	})
 	if err != nil {
 		err = errors.Newf("failed to send welcome email: %w", err)

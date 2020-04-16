@@ -135,29 +135,3 @@ a { color: red; }
 `)
 	})
 }
-
-func TestPreferredLanguageTags(t *testing.T) {
-	Convey("PreferredLanguageTags", t, func() {
-		test := func(uiLocales string, acceptLanguage string, expected []string) {
-			r, _ := http.NewRequest("GET", "", nil)
-			_ = r.ParseForm()
-			if uiLocales != "" {
-				r.Form.Set("ui_locales", uiLocales)
-			}
-			if acceptLanguage != "" {
-				r.Header.Set("Accept-Language", acceptLanguage)
-			}
-			actual := PreferredLanguageTags(r)
-			So(actual, ShouldResemble, expected)
-		}
-
-		// No ui_locales or Accept-Language
-		test("", "", nil)
-
-		// Accept-Language
-		test("", "zh-Hant-HK; q=0.5, en", []string{"en", "zh-Hant-HK"})
-
-		// ui_locales
-		test("ja-JP zh-Hant-TW", "zh-Hant-HK; q=0.5, en", []string{"ja-JP", "zh-Hant-TW"})
-	})
-}

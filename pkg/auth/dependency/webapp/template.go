@@ -363,7 +363,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 <input id="password" data-password-policy-password="" class="input text-input" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}" value="{{ .x_password }}">
 
 <button class="btn secondary-btn password-visibility-btn show-password">{{ localize "show-password" }}</button>
-<button class="btn secondary-btn password-visibility-btn hide-password">{{ Localize "hide-password" }}</button>
+<button class="btn secondary-btn password-visibility-btn hide-password">{{ localize "hide-password" }}</button>
 
 {{ if .x_password_policies }}
 <ul>

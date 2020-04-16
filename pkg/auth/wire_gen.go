@@ -114,6 +114,13 @@ func NewStateMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	return middlewareFunc
 }
 
+func NewClientIDMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
+	context := ProvideContext(r)
+	tenantConfiguration := ProvideTenantConfig(context)
+	middlewareFunc := webapp.ProvideClientIDMiddleware(tenantConfiguration)
+	return middlewareFunc
+}
+
 func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 	context := ProvideContext(r)
 	tenantConfiguration := ProvideTenantConfig(context)

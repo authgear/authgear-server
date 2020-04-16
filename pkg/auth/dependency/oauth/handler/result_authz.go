@@ -68,9 +68,15 @@ func (a authorizationResultError) IsInternalError() bool {
 
 func (a authorizationResultRequireAuthn) WriteResponse(rw http.ResponseWriter, r *http.Request) {
 	authorizeURI := coreurl.WithQueryParamsAdded(a.AuthorizeURI, a.Request)
-	authenticateURI := coreurl.WithQueryParamsAdded(a.AuthenticateURI, map[string]string{
+
+	q := map[string]string{
 		"redirect_uri": authorizeURI.String(),
-	})
+		"client_id":    a.Request.ClientID(),
+	}
+	if uiLocales, ok := a.Request["ui_locales"]; ok {
+		q["ui_locales"] = uiLocales
+	}
+	authenticateURI := coreurl.WithQueryParamsAdded(a.AuthenticateURI, q)
 
 	http.Redirect(rw, r, authenticateURI.String(), http.StatusFound)
 }

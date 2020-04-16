@@ -79,8 +79,8 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Signup: signupProcess,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
-	client := sms.ProvideSMSClient(tenantConfiguration)
-	sender := mail.ProvideMailSender(tenantConfiguration)
+	client := sms.ProvideSMSClient(context, tenantConfiguration)
+	sender := mail.ProvideMailSender(context, tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	mfaSender := mfa.ProvideMFASender(tenantConfiguration, client, sender, engine)
 	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, timeProvider, mfaSender)
@@ -160,8 +160,8 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Signup: signupProcess,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, provider)
-	client := sms.ProvideSMSClient(tenantConfiguration)
-	sender := mail.ProvideMailSender(tenantConfiguration)
+	client := sms.ProvideSMSClient(context, tenantConfiguration)
+	sender := mail.ProvideMailSender(context, tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	mfaSender := mfa.ProvideMFASender(tenantConfiguration, client, sender, engine)
 	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, provider, mfaSender)
@@ -237,8 +237,8 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Signup: signupProcess,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
-	client := sms.ProvideSMSClient(tenantConfiguration)
-	sender := mail.ProvideMailSender(tenantConfiguration)
+	client := sms.ProvideSMSClient(context, tenantConfiguration)
+	sender := mail.ProvideMailSender(context, tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	mfaSender := mfa.ProvideMFASender(tenantConfiguration, client, sender, engine)
 	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, timeProvider, mfaSender)
@@ -316,8 +316,8 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Signup: signupProcess,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
-	client := sms.ProvideSMSClient(tenantConfiguration)
-	sender := mail.ProvideMailSender(tenantConfiguration)
+	client := sms.ProvideSMSClient(context, tenantConfiguration)
+	sender := mail.ProvideMailSender(context, tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	mfaSender := mfa.ProvideMFASender(tenantConfiguration, client, sender, engine)
 	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, timeProvider, mfaSender)
