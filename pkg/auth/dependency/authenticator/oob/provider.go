@@ -39,29 +39,29 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) Create(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) (*Authenticator, error) {
-	_, err := p.Store.GetByChannel(userID, channel, phone, email)
-	if err == nil {
-		return nil, authenticator.ErrAuthenticatorAlreadyExists
-	} else if !errors.Is(err, authenticator.ErrAuthenticatorNotFound) {
-		return nil, err
-	}
-
+func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) *Authenticator {
 	a := &Authenticator{
-		ID:        uuid.New(),
-		UserID:    userID,
-		CreatedAt: p.Time.NowUTC(),
-		Channel:   channel,
-		Phone:     phone,
-		Email:     email,
+		ID:      uuid.New(),
+		UserID:  userID,
+		Channel: channel,
+		Phone:   phone,
+		Email:   email,
+	}
+	return a
+}
+
+func (p *Provider) Create(a *Authenticator) error {
+	_, err := p.Store.GetByChannel(a.UserID, a.Channel, a.Phone, a.Email)
+	if err == nil {
+		return authenticator.ErrAuthenticatorAlreadyExists
+	} else if !errors.Is(err, authenticator.ErrAuthenticatorNotFound) {
+		return err
 	}
 
-	err = p.Store.Create(a)
-	if err != nil {
-		return nil, err
-	}
+	now := p.Time.NowUTC()
+	a.CreatedAt = now
 
-	return a, nil
+	return p.Store.Create(a)
 }
 
 func sortAuthenticators(as []*Authenticator) {

@@ -29,32 +29,39 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) Generate(userID string) ([]*Authenticator, error) {
-	now := p.Time.NowUTC()
+func (p *Provider) Generate(userID string) []*Authenticator {
 	var authenticators []*Authenticator
 	for i := 0; i < p.Config.Count; i++ {
 		a := &Authenticator{
-			ID:        uuid.New(),
-			UserID:    userID,
-			Code:      GenerateCode(),
-			CreatedAt: now,
-			Consumed:  false,
+			ID:       uuid.New(),
+			UserID:   userID,
+			Code:     GenerateCode(),
+			Consumed: false,
 		}
 		authenticators = append(authenticators, a)
 	}
 
+	sortAuthenticators(authenticators)
+	return authenticators
+}
+
+func (p *Provider) ReplaceAll(userID string, as []*Authenticator) error {
+	now := p.Time.NowUTC()
+	for _, a := range as {
+		a.CreatedAt = now
+	}
+
 	err := p.Store.DeleteAll(userID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = p.Store.CreateAll(authenticators)
+	err = p.Store.CreateAll(as)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	sortAuthenticators(authenticators)
-	return authenticators, nil
+	return nil
 }
 
 func (p *Provider) Authenticate(authenticator *Authenticator, code string) error {

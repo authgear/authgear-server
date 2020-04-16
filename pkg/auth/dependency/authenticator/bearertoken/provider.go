@@ -31,23 +31,23 @@ func (p *Provider) CleanupExpiredAuthenticators(userID string) error {
 	return p.Store.DeleteAllExpired(userID, p.Time.NowUTC())
 }
 
-func (p *Provider) Create(userID string, parentID string) (*Authenticator, error) {
+func (p *Provider) New(userID string, parentID string) *Authenticator {
+	a := &Authenticator{
+		ID:       uuid.New(),
+		UserID:   userID,
+		ParentID: parentID,
+		Token:    GenerateToken(),
+	}
+	return a
+}
+
+func (p *Provider) Create(a *Authenticator) error {
 	now := p.Time.NowUTC()
 	expireAt := now.Add(gotime.Duration(p.Config.ExpireInDays) * gotime.Hour * 24)
-	a := &Authenticator{
-		ID:        uuid.New(),
-		UserID:    userID,
-		ParentID:  parentID,
-		Token:     GenerateToken(),
-		CreatedAt: now,
-		ExpireAt:  expireAt,
-	}
+	a.CreatedAt = now
+	a.ExpireAt = expireAt
 
-	err := p.Store.Create(a)
-	if err != nil {
-		return nil, err
-	}
-	return a, nil
+	return p.Store.Create(a)
 }
 
 func (p *Provider) Authenticate(authenticator *Authenticator, token string) error {

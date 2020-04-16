@@ -1,6 +1,7 @@
 package totp
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -32,26 +33,26 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) Create(userID string, displayName string) (*Authenticator, error) {
+func (p *Provider) New(userID string, displayName string) *Authenticator {
 	secret, err := GenerateSecret()
 	if err != nil {
-		return nil, err
+		panic(fmt.Errorf("totp: failed to generate secret: %w", err))
 	}
 
 	a := &Authenticator{
 		ID:          uuid.New(),
 		UserID:      userID,
-		CreatedAt:   p.Time.NowUTC(),
 		Secret:      secret,
 		DisplayName: displayName,
 	}
+	return a
+}
 
-	err = p.Store.Create(a)
-	if err != nil {
-		return nil, err
-	}
+func (p *Provider) Create(a *Authenticator) error {
+	now := p.Time.NowUTC()
+	a.CreatedAt = now
 
-	return a, nil
+	return p.Store.Create(a)
 }
 
 func sortAuthenticators(as []*Authenticator) {
