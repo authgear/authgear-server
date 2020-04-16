@@ -3,6 +3,7 @@ package sso
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -19,7 +20,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func decodeResultInURL(urlString string) ([]byte, error) {
+func decodeResultInURL(ssoProvider sso.Provider, urlString string) ([]byte, error) {
 	u, err := url.Parse(urlString)
 	if err != nil {
 		return nil, err
@@ -39,7 +40,8 @@ func decodeResultInURL(urlString string) ([]byte, error) {
 	if !ok {
 		return bytes, nil
 	}
-	code, err := sso.DecodeSkygearAuthorizationCode("secret", "myapp", actualResult.(string))
+
+	code, err := ssoProvider.ConsumeSkygearAuthorizationCode(sso.HashCode(actualResult.(string)))
 	if err != nil {
 		return nil, err
 	}
@@ -47,14 +49,14 @@ func decodeResultInURL(urlString string) ([]byte, error) {
 	return json.Marshal(j)
 }
 
-func decodeUXModeManualResult(bytes []byte) ([]byte, error) {
+func decodeUXModeManualResult(ssoProvider sso.Provider, bytes []byte) ([]byte, error) {
 	var j map[string]interface{}
 	err := json.Unmarshal(bytes, &j)
 	if err != nil {
 		return nil, err
 	}
 	code := j["result"].(string)
-	authCode, err := sso.DecodeSkygearAuthorizationCode("secret", "myapp", code)
+	authCode, err := ssoProvider.ConsumeSkygearAuthorizationCode(sso.HashCode(code))
 	if err != nil {
 		return nil, err
 	}
@@ -89,15 +91,16 @@ func TestAuthPayload(t *testing.T) {
 }
 
 type MockAuthnOAuthProvider struct {
-	Code *sso.SkygearAuthorizationCode
+	Code    *sso.SkygearAuthorizationCode
+	CodeStr string
 }
 
-func (p *MockAuthnOAuthProvider) OAuthAuthenticateCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, err error) {
-	return p.Code, nil
+func (p *MockAuthnOAuthProvider) OAuthAuthenticateCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, codeStr string, err error) {
+	return p.Code, p.CodeStr, nil
 }
 
-func (p *MockAuthnOAuthProvider) OAuthLinkCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error) {
-	return p.Code, nil
+func (p *MockAuthnOAuthProvider) OAuthLinkCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, codeStr string, err error) {
+	return p.Code, p.CodeStr, nil
 }
 
 func TestAuthHandler(t *testing.T) {
@@ -154,7 +157,10 @@ func TestAuthHandler(t *testing.T) {
 		hashedNonce := crypto.SHA256String(nonce)
 
 		Convey("should write code in the response body if ux_mode is manual", func() {
+			authnOAuthProvider.CodeStr = "code"
+			codeHash := crypto.SHA256String(authnOAuthProvider.CodeStr)
 			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
+				CodeHash:            codeHash,
 				Action:              "login",
 				CodeChallenge:       "",
 				UserID:              "a",
@@ -184,22 +190,26 @@ func TestAuthHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
-			actual, err := decodeUXModeManualResult(resp.Body.Bytes())
+			actual, err := decodeUXModeManualResult(sh.SSOProvider, resp.Body.Bytes())
 			So(err, ShouldBeNil)
-			So(actual, ShouldEqualJSON, `
+			So(actual, ShouldEqualJSON, fmt.Sprintf(`
 			{
 				"result": {
+					"code_hash": "%s",
 					"action": "login",
 					"code_challenge": "",
 					"user_id": "a",
 					"principal_id": "b",
 					"session_create_reason": "signup"
 				}
-			}`)
+			}`, codeHash))
 		})
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
+			authnOAuthProvider.CodeStr = "code"
+			codeHash := crypto.SHA256String(authnOAuthProvider.CodeStr)
 			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
+				CodeHash:            codeHash,
 				Action:              "login",
 				CodeChallenge:       "",
 				UserID:              "a",
@@ -234,14 +244,15 @@ func TestAuthHandler(t *testing.T) {
 			// for web_redirect, it should redirect to original callback url
 			So(resp.Code, ShouldEqual, 302)
 			location := resp.Result().Header.Get("Location")
-			actual, err := decodeResultInURL(location)
+			actual, err := decodeResultInURL(sh.SSOProvider, location)
 			So(err, ShouldBeNil)
 
-			So(actual, ShouldEqualJSON, `
+			So(actual, ShouldEqualJSON, fmt.Sprintf(`
 			{
 				"callback_url": "http://localhost:3000",
 				"result": {
 					"result": {
+						"code_hash": "%s",
 						"action": "login",
 						"code_challenge": "",
 						"user_id": "a",
@@ -249,11 +260,14 @@ func TestAuthHandler(t *testing.T) {
 						"session_create_reason": "signup"
 					}
 				}
-			}`)
+			}`, codeHash))
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
+			authnOAuthProvider.CodeStr = "code"
+			codeHash := crypto.SHA256String(authnOAuthProvider.CodeStr)
 			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
+				CodeHash:            codeHash,
 				Action:              "login",
 				CodeChallenge:       "",
 				UserID:              "a",
@@ -289,7 +303,10 @@ func TestAuthHandler(t *testing.T) {
 		})
 
 		Convey("should return callback url with result query parameter when ux_mode is mobile_app", func() {
+			authnOAuthProvider.CodeStr = "code"
+			codeHash := crypto.SHA256String(authnOAuthProvider.CodeStr)
 			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
+				CodeHash:            codeHash,
 				Action:              "login",
 				CodeChallenge:       "",
 				UserID:              "a",
@@ -324,12 +341,13 @@ func TestAuthHandler(t *testing.T) {
 			// for mobile app, it should redirect to original callback url
 			So(resp.Code, ShouldEqual, 302)
 			// check location result query parameter
-			actual, err := decodeResultInURL(resp.Header().Get("Location"))
+			actual, err := decodeResultInURL(sh.SSOProvider, resp.Header().Get("Location"))
 			So(err, ShouldBeNil)
-			So(actual, ShouldEqualJSON, `{
+			So(actual, ShouldEqualJSON, fmt.Sprintf(`{
 				"callback_url": "http://localhost:3000",
 				"result": {
 					"result": {
+						"code_hash": "%s",
 						"action": "login",
 						"code_challenge": "",
 						"user_id": "a",
@@ -337,7 +355,7 @@ func TestAuthHandler(t *testing.T) {
 						"session_create_reason": "signup"
 					}
 				}
-			}`)
+			}`, codeHash))
 		})
 	})
 }

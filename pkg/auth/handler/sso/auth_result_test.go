@@ -12,6 +12,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -55,18 +56,20 @@ func TestAuthResultHandler(t *testing.T) {
 		Convey("invalid code verifier", func() {
 			codeVerifier := "code_verifier"
 			codeChallenge := "nonsense"
+			codeStr := "code"
 			code := &sso.SkygearAuthorizationCode{
+				CodeHash:            crypto.SHA256String(codeStr),
 				Action:              "login",
 				CodeChallenge:       codeChallenge,
 				UserID:              "john.doe.id",
 				PrincipalID:         "john.doe.id",
 				SessionCreateReason: "login",
 			}
-			encodedCode, err := mockProvider.EncodeSkygearAuthorizationCode(*code)
+			err := mockProvider.StoreSkygearAuthorizationCode(code)
 			So(err, ShouldBeNil)
 
 			reqBody := map[string]interface{}{
-				"authorization_code": encodedCode,
+				"authorization_code": codeStr,
 				"code_verifier":      codeVerifier,
 			}
 			reqBodyBytes, err := json.Marshal(reqBody)

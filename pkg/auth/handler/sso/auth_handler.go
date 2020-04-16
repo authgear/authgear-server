@@ -48,13 +48,13 @@ type AuthHandlerAuthnProvider interface {
 		authInfo sso.AuthInfo,
 		codeChallenge string,
 		loginState sso.LoginState,
-	) (*sso.SkygearAuthorizationCode, error)
+	) (*sso.SkygearAuthorizationCode, string, error)
 
 	OAuthLinkCode(
 		authInfo sso.AuthInfo,
 		codeChallenge string,
 		linkState sso.LinkState,
-	) (*sso.SkygearAuthorizationCode, error)
+	) (*sso.SkygearAuthorizationCode, string, error)
 }
 
 // AuthHandler decodes code response and fetch access token from provider.
@@ -169,23 +169,25 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 	return
 }
 
-func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (encodedCode string, err error) {
-	var code *sso.SkygearAuthorizationCode
+func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (code string, err error) {
+	var authzCode *sso.SkygearAuthorizationCode
+	var codeStr string
 	apiSSOState := AuthAPISSOState(state.Extra)
 	if state.Action == "login" {
-		code, err = h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LoginState)
+		authzCode, codeStr, err = h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LoginState)
 	} else {
-		code, err = h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LinkState)
+		authzCode, codeStr, err = h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LinkState)
 	}
 	if err != nil {
 		return
 	}
 
-	encodedCode, err = h.SSOProvider.EncodeSkygearAuthorizationCode(*code)
+	err = h.SSOProvider.StoreSkygearAuthorizationCode(authzCode)
 	if err != nil {
 		return
 	}
 
+	code = codeStr
 	return
 }
 

@@ -65,7 +65,7 @@ type LoginAuthnProvider interface {
 		authInfo sso.AuthInfo,
 		codeChallenge string,
 		loginState sso.LoginState,
-	) (*sso.SkygearAuthorizationCode, error)
+	) (*sso.SkygearAuthorizationCode, string, error)
 
 	OAuthExchangeCode(
 		client config.OAuthClientConfiguration,
@@ -152,11 +152,12 @@ func (h LoginHandler) Handle(r *http.Request, payload LoginRequestPayload) (auth
 		return nil, err
 	}
 
-	code, err := h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, "", loginState)
+	code, _, err := h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, "", loginState)
 	if err != nil {
 		return nil, err
 	}
 
+	// do the exchange immediately, don't need to save code into the store
 	result, err := h.AuthnProvider.OAuthExchangeCode(
 		coreauth.GetAccessKey(r.Context()).Client,
 		nil, // Assume no session for SSO login

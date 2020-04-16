@@ -51,7 +51,7 @@ type LinkAuthnProvider interface {
 		authInfo sso.AuthInfo,
 		codeChallenge string,
 		linkState sso.LinkState,
-	) (*sso.SkygearAuthorizationCode, error)
+	) (*sso.SkygearAuthorizationCode, string, error)
 
 	OAuthExchangeCode(
 		client config.OAuthClientConfiguration,
@@ -129,11 +129,12 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (authn.Resul
 			return err
 		}
 
-		code, err := h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, "", linkState)
+		code, _, err := h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, "", linkState)
 		if err != nil {
 			return err
 		}
 
+		// do the exchange immediately, don't need to save code into the store
 		result, err = h.AuthnProvider.OAuthExchangeCode(
 			coreauth.GetAccessKey(r.Context()).Client,
 			auth.GetSession(r.Context()),

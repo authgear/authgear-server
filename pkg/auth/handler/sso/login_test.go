@@ -25,7 +25,7 @@ func (p *MockLoginAuthnProvider) OAuthAuthenticateCode(
 	authInfo sso.AuthInfo,
 	codeChallenge string,
 	loginState sso.LoginState,
-) (*sso.SkygearAuthorizationCode, error) {
+) (*sso.SkygearAuthorizationCode, string, error) {
 	panic("not mocked")
 }
 

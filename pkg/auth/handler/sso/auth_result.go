@@ -93,7 +93,8 @@ func (h *AuthResultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthResultHandler) Handle(r *http.Request, payload *AuthResultPayload) (authn.Result, error) {
-	code, err := h.SSOProvider.DecodeSkygearAuthorizationCode(payload.AuthorizationCode)
+	codeHash := sso.HashCode(payload.AuthorizationCode)
+	code, err := h.SSOProvider.ConsumeSkygearAuthorizationCode(codeHash)
 	if err != nil {
 		return nil, err
 	}
