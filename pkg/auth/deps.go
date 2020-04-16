@@ -125,12 +125,12 @@ func ProvideWebAppRenderProvider(
 	passwordChecker *audit.PasswordChecker,
 ) webapp.RenderProvider {
 	return &webapp.RenderProviderImpl{
-		StaticAssetURLPrefix: m.StaticAssetURLPrefix,
-		LoginIDConfiguration: config.AppConfig.Identity.LoginID,
-		AuthUIConfiguration:  config.AppConfig.AuthUI,
-		OAuthProviders:       config.AppConfig.Identity.OAuth.Providers,
-		PasswordChecker:      passwordChecker,
-		TemplateEngine:       templateEngine,
+		StaticAssetURLPrefix:        m.StaticAssetURLPrefix,
+		IdentityConfiguration:       config.AppConfig.Identity,
+		AuthenticationConfiguration: config.AppConfig.Authentication,
+		AuthUIConfiguration:         config.AppConfig.AuthUI,
+		PasswordChecker:             passwordChecker,
+		TemplateEngine:              templateEngine,
 	}
 }
 

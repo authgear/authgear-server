@@ -149,7 +149,9 @@ var TemplateAuthUILoginHTML = template.Spec{
 				{{ end }}
 			</form>
 
-			<div class="primary-txt sso-loginid-separator">or</div>
+			{{ if .x_idp_providers }}{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
+			<div class="primary-txt sso-loginid-separator">{{ localize "sso-login-id-separator" }}</div>
+			{{ end }}{{ end }}
 
 			{{ template "ERROR" . }}
 

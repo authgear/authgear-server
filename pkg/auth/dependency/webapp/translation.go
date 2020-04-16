@@ -29,6 +29,7 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"sign-in-instagram": "Sign in with Instagram",
 	"sign-in-linkedin": "Sign in with LinkedIn",
 	"sign-in-azureadv2": "Sign in with Azure AD",
+	"sso-login-id-separator": "or",
 
 	"phone-number-placeholder": "Phone number",
 	"login-id-placeholder": "Email or username",
