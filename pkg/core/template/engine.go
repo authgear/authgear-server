@@ -129,18 +129,9 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options R
 		panic("template: unregistered template type: " + templateType)
 	}
 
-	// Resolve the template body
-	// Take the default value by default
-	templateBody := spec.Default
-	templateItem, err := e.resolveTemplateItem(spec, options.Key)
+	templateBody, err := e.loadTemplateBody(spec, options.Key)
 	if err != nil {
-		// No template item can be resolved. Fallback to default.
-		err = nil
-	} else {
-		templateBody, err = e.loader.Load(templateItem.URI)
-		if err != nil {
-			return
-		}
+		return
 	}
 
 	// Resolve the translations, if any
@@ -153,9 +144,26 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options R
 	}
 
 	result = &resolveResult{
-		TemplateBody: templateBody,
 		Spec:         spec,
+		TemplateBody: templateBody,
 		Translations: translations,
+	}
+
+	return
+}
+
+func (e *Engine) loadTemplateBody(spec Spec, key string) (templateBody string, err error) {
+	// Take the default value by default
+	templateBody = spec.Default
+	templateItem, err := e.resolveTemplateItem(spec, key)
+	if err != nil {
+		// No template item can be resolved. Fallback to default.
+		err = nil
+	} else {
+		templateBody, err = e.loader.Load(templateItem.URI)
+		if err != nil {
+			return
+		}
 	}
 	return
 }
