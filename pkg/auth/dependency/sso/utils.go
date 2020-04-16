@@ -60,35 +60,3 @@ func DecodeState(secret string, audience string, encoded string) (*State, error)
 	}
 	return &claims.State, nil
 }
-
-type CodeClaims struct {
-	SkygearAuthorizationCode
-	jwt.StandardClaims
-}
-
-func EncodeSkygearAuthorizationCode(secret string, audience string, code SkygearAuthorizationCode) (string, error) {
-	claims := CodeClaims{
-		code,
-		makeStandardClaims(audience),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
-}
-
-func DecodeSkygearAuthorizationCode(secret string, audience, encoded string) (*SkygearAuthorizationCode, error) {
-	claims := CodeClaims{}
-	_, err := jwt.ParseWithClaims(encoded, &claims, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected JWT alg")
-		}
-		return []byte(secret), nil
-	})
-	if err != nil {
-		return nil, NewSSOFailed(InvalidParams, "invalid authorization code")
-	}
-	ok := isValidStandardClaims(audience, claims.StandardClaims)
-	if !ok {
-		return nil, NewSSOFailed(InvalidParams, "invalid authorization code")
-	}
-	return &claims.SkygearAuthorizationCode, nil
-}

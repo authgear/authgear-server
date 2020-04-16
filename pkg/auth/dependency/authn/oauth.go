@@ -14,32 +14,38 @@ type OAuthCoordinator struct {
 	Signup *SignupProcess
 }
 
-func (c *OAuthCoordinator) AuthenticateCode(authInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, err error) {
+func (c *OAuthCoordinator) AuthenticateCode(authInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (*sso.SkygearAuthorizationCode, string, error) {
 	p, sessionCreateReason, err := c.Authenticate(authInfo, loginState)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
+	code := sso.GenerateCode()
+	codeHash := sso.HashCode(code)
 	return &sso.SkygearAuthorizationCode{
+		CodeHash:            codeHash,
 		Action:              "login",
 		CodeChallenge:       codeChallenge,
 		UserID:              p.PrincipalUserID(),
 		PrincipalID:         p.PrincipalID(),
 		SessionCreateReason: string(sessionCreateReason),
-	}, nil
+	}, code, nil
 }
 
-func (c *OAuthCoordinator) LinkCode(authInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, err error) {
+func (c *OAuthCoordinator) LinkCode(authInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (*sso.SkygearAuthorizationCode, string, error) {
 	p, err := c.Link(authInfo, linkState)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
+	code := sso.GenerateCode()
+	codeHash := sso.HashCode(code)
 	return &sso.SkygearAuthorizationCode{
+		CodeHash:      codeHash,
 		Action:        "link",
 		CodeChallenge: codeChallenge,
 		UserID:        p.PrincipalUserID(),
 		PrincipalID:   p.PrincipalID(),
-	}, nil
+	}, code, nil
 }
 
 func (c *OAuthCoordinator) ExchangeCode(code *sso.SkygearAuthorizationCode) (principal.Principal, error) {
