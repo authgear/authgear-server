@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"net/url"
 	"sort"
@@ -9,6 +10,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	coreurl "github.com/skygeario/skygear-server/pkg/core/url"
 )
+
+const AuthorizationResultHTML = `<!DOCTYPE html>
+<head>
+<meta http-equiv="refresh" content="0;url={{ .redirect_uri }}" />
+</head>
+<script>
+window.location.href = "{{ .redirect_uri }}"
+</script>`
 
 type AuthorizationResult interface {
 	WriteResponse(rw http.ResponseWriter, r *http.Request)
@@ -34,7 +43,7 @@ type (
 
 func (a authorizationResultRedirect) WriteResponse(rw http.ResponseWriter, r *http.Request) {
 	redirectURI := coreurl.WithQueryParamsAdded(a.RedirectURI, a.Response)
-	http.Redirect(rw, r, redirectURI.String(), http.StatusFound)
+	redirect(rw, redirectURI.String())
 }
 
 func (a authorizationResultRedirect) IsInternalError() bool {
@@ -44,7 +53,7 @@ func (a authorizationResultRedirect) IsInternalError() bool {
 func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.Request) {
 	if a.RedirectURI != nil {
 		redirectURI := coreurl.WithQueryParamsAdded(a.RedirectURI, a.Response)
-		http.Redirect(rw, r, redirectURI.String(), http.StatusFound)
+		redirect(rw, redirectURI.String())
 	} else {
 		err := "Invalid OAuth authorization request:\n"
 		keys := make([]string, 0, len(a.Response))
@@ -83,4 +92,21 @@ func (a authorizationResultRequireAuthn) WriteResponse(rw http.ResponseWriter, r
 
 func (a authorizationResultRequireAuthn) IsInternalError() bool {
 	return false
+}
+
+func redirect(rw http.ResponseWriter, redirectURI string) {
+	rw.Header().Set("Location", redirectURI)
+	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
+	rw.WriteHeader(http.StatusFound)
+
+	tmpl, err := template.New("authorization_result").Parse(AuthorizationResultHTML)
+	if err != nil {
+		panic("oauth: invalid authorization result page template")
+	}
+	err = tmpl.Execute(rw, map[string]string{
+		"redirect_uri": redirectURI,
+	})
+	if err != nil {
+		panic("oauth: failed to load authorization result page")
+	}
 }
