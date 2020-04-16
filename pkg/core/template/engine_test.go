@@ -197,6 +197,74 @@ func TestResolveTranslations(t *testing.T) {
 	})
 }
 
+func TestResolveComponents(t *testing.T) {
+	componentA := Spec{
+		Type:    "componentA",
+		Default: "componentA",
+	}
+	componentB := Spec{
+		Type:    "componentB",
+		Default: "componentB",
+	}
+	componentC := Spec{
+		Type:       "componentC",
+		Default:    "componentC",
+		Components: []config.TemplateItemType{"componentA", "componentB"},
+	}
+	pageA := Spec{
+		Type:    "pageA",
+		Default: "pageA",
+	}
+	pageB := Spec{
+		Type:       "pageB",
+		Default:    "pageB",
+		Components: []config.TemplateItemType{"componentA"},
+	}
+	pageC := Spec{
+		Type:       "pageC",
+		Default:    "pageC",
+		Components: []config.TemplateItemType{"componentC"},
+	}
+	pageD := Spec{
+		Type:       "pageD",
+		Default:    "pageD",
+		Components: []config.TemplateItemType{"componentA", "componentC"},
+	}
+
+	specs := []Spec{
+		componentA,
+		componentB,
+		componentC,
+		pageA,
+		pageB,
+		pageC,
+		pageD,
+	}
+
+	test := func(spec Spec, expected []string) {
+		e := NewEngine(NewEngineOptions{})
+		for _, s := range specs {
+			e.Register(s)
+		}
+		e.loader = &mockLoader{}
+
+		actual, err := e.resolveComponents(spec.Components, "")
+		So(err, ShouldBeNil)
+		So(actual, ShouldResemble, expected)
+	}
+
+	Convey("resolveComponents", t, func() {
+		// No components
+		test(pageA, nil)
+		// Only one component
+		test(pageB, []string{"componentA"})
+		// Transitive components
+		test(pageC, []string{"componentC", "componentA", "componentB"})
+		// Duplicate transitive components
+		test(pageD, []string{"componentA", "componentC", "componentB"})
+	})
+}
+
 func TestMakeLocalize(t *testing.T) {
 	key := "key1"
 	Convey("makeLocalize", t, func() {

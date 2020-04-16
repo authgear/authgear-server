@@ -30,6 +30,7 @@ type resolveResult struct {
 	//   }
 	// }
 	Translations map[string]map[string]string
+	Components   []string
 }
 
 type NewEngineOptions struct {
@@ -98,10 +99,13 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context ma
 		return
 	}
 
+	defines := []string{}
+	defines = append(defines, result.Spec.Defines...)
+	defines = append(defines, result.Components...)
 	renderOptions := RenderOptions{
 		Name:          string(templateType),
 		TemplateBody:  result.TemplateBody,
-		Defines:       result.Spec.Defines,
+		Defines:       defines,
 		Context:       context,
 		ValidatorOpts: e.validatorOptions,
 	}
@@ -143,10 +147,17 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options R
 		}
 	}
 
+	// Resolve components
+	components, err := e.resolveComponents(spec.Components, options.Key)
+	if err != nil {
+		return
+	}
+
 	result = &resolveResult{
 		Spec:         spec,
 		TemplateBody: templateBody,
 		Translations: translations,
+		Components:   components,
 	}
 
 	return
@@ -262,6 +273,44 @@ func (e *Engine) resolveTranslations(templateType config.TemplateItemType) (tran
 			return
 		}
 		insertTranslation(translations, item.LanguageTag, translation)
+	}
+
+	return
+}
+
+func (e *Engine) resolveComponents(types []config.TemplateItemType, key string) (bodies []string, err error) {
+	return e.resolveComponents0(types, key, make(map[config.TemplateItemType]struct{}))
+}
+
+func (e *Engine) resolveComponents0(types []config.TemplateItemType, key string, seen map[config.TemplateItemType]struct{}) (bodies []string, err error) {
+	for _, templateType := range types {
+		// Do not need to load the same type more than once.
+		_, ok := seen[templateType]
+		if ok {
+			continue
+		}
+		seen[templateType] = struct{}{}
+
+		spec, ok := e.TemplateSpecs[templateType]
+		if !ok {
+			panic("template: unregistered template type: " + templateType)
+		}
+		var body string
+		body, err = e.loadTemplateBody(spec, key)
+		if err != nil {
+			return
+		}
+
+		bodies = append(bodies, body)
+
+		// recursive
+		var moreBodies []string
+		moreBodies, err = e.resolveComponents0(spec.Components, key, seen)
+		if err != nil {
+			return
+		}
+
+		bodies = append(bodies, moreBodies...)
 	}
 
 	return
