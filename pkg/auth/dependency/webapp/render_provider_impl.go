@@ -19,12 +19,12 @@ import (
 )
 
 type RenderProviderImpl struct {
-	StaticAssetURLPrefix string
-	LoginIDConfiguration *config.LoginIDConfiguration
-	AuthUIConfiguration  *config.AuthUIConfiguration
-	OAuthProviders       []config.OAuthProviderConfiguration
-	TemplateEngine       *template.Engine
-	PasswordChecker      *audit.PasswordChecker
+	StaticAssetURLPrefix        string
+	IdentityConfiguration       *config.IdentityConfiguration
+	AuthenticationConfiguration *config.AuthenticationConfiguration
+	AuthUIConfiguration         *config.AuthUIConfiguration
+	TemplateEngine              *template.Engine
+	PasswordChecker             *audit.PasswordChecker
 }
 
 func (p *RenderProviderImpl) asAPIError(anyError interface{}) *skyerr.APIError {
@@ -60,12 +60,26 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 
 	data["x_static_asset_url_prefix"] = p.StaticAssetURLPrefix
 
+	// Find out what identity is enabled.
+	loginID := false
+	oauth := false
+	for _, identity := range p.AuthenticationConfiguration.Identities {
+		if identity == "login_id" {
+			loginID = true
+		}
+		if identity == "oauth" {
+			oauth = true
+		}
+	}
+
 	var providers []map[string]interface{}
-	for _, provider := range p.OAuthProviders {
-		providers = append(providers, map[string]interface{}{
-			"id":   provider.ID,
-			"type": provider.Type,
-		})
+	if oauth {
+		for _, provider := range p.IdentityConfiguration.OAuth.Providers {
+			providers = append(providers, map[string]interface{}{
+				"id":   provider.ID,
+				"type": provider.Type,
+			})
+		}
 	}
 	data["x_idp_providers"] = providers
 
@@ -74,25 +88,29 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 
 	data["x_calling_codes"] = p.AuthUIConfiguration.CountryCallingCode.Values
 
-	for _, keyConfig := range p.LoginIDConfiguration.Keys {
-		if string(keyConfig.Type) == "phone" {
-			data["x_login_id_input_type_has_phone"] = true
-		} else {
-			data["x_login_id_input_type_has_text"] = true
+	if loginID {
+		for _, keyConfig := range p.IdentityConfiguration.LoginID.Keys {
+			if string(keyConfig.Type) == "phone" {
+				data["x_login_id_input_type_has_phone"] = true
+			} else {
+				data["x_login_id_input_type_has_text"] = true
+			}
 		}
 	}
 
 	var loginIDKeys []map[string]interface{}
-	for _, loginIDKey := range p.LoginIDConfiguration.Keys {
-		inputType := "text"
-		if loginIDKey.Type == "phone" {
-			inputType = "phone"
+	if loginID {
+		for _, loginIDKey := range p.IdentityConfiguration.LoginID.Keys {
+			inputType := "text"
+			if loginIDKey.Type == "phone" {
+				inputType = "phone"
+			}
+			loginIDKeys = append(loginIDKeys, map[string]interface{}{
+				"key":        loginIDKey.Key,
+				"type":       loginIDKey.Type,
+				"input_type": inputType,
+			})
 		}
-		loginIDKeys = append(loginIDKeys, map[string]interface{}{
-			"key":        loginIDKey.Key,
-			"type":       loginIDKey.Type,
-			"input_type": inputType,
-		})
 	}
 	data["x_login_id_keys"] = loginIDKeys
 
