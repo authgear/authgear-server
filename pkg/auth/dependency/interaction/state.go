@@ -9,8 +9,9 @@ type State struct {
 type StepAction string
 
 const (
-	StepActionAuthenticatePrimary   StepAction = "authenticate.primary"
-	StepActionAuthenticateSecondary StepAction = "authenticate.secondary"
-	StepActionSetupAuthenticator    StepAction = "setup-authenticator"
-	StepActionCompleted             StepAction = "completed"
+	StepActionAuthenticatePrimary         StepAction = "authenticate.primary"
+	StepActionAuthenticateSecondary       StepAction = "authenticate.secondary"
+	StepActionSetupPrimaryAuthenticator   StepAction = "setup.primary"
+	StepActionSetupSecondaryAuthenticator StepAction = "setup.secondary"
+	StepActionCommit                      StepAction = "commit"
 )

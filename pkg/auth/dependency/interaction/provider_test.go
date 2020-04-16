@@ -29,7 +29,7 @@ func TestProvider(t *testing.T) {
 
 					state, err := p.GetInteractionState(i)
 					So(err, ShouldBeNil)
-					So(state.RequiredAction, ShouldEqual, interaction.StepActionSetupAuthenticator)
+					So(state.RequiredAction, ShouldEqual, interaction.StepActionSetupPrimaryAuthenticator)
 					So(state.AvailableAuthenticators, ShouldNotBeEmpty)
 					So(state.AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
 						Type:  interaction.AuthenticatorTypePassword,
@@ -47,7 +47,7 @@ func TestProvider(t *testing.T) {
 
 					state, err := p.GetInteractionState(i)
 					So(err, ShouldBeNil)
-					So(state.RequiredAction, ShouldEqual, interaction.StepActionAuthenticatePrimary)
+					So(state.RequiredAction, ShouldEqual, interaction.StepActionSetupPrimaryAuthenticator)
 					So(state.AvailableAuthenticators, ShouldNotBeEmpty)
 					So(state.AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
 						Type:  interaction.AuthenticatorTypePassword,
@@ -62,7 +62,7 @@ func TestProvider(t *testing.T) {
 
 					state, err = p.GetInteractionState(i)
 					So(err, ShouldBeNil)
-					So(state.RequiredAction, ShouldEqual, interaction.StepActionCompleted)
+					So(state.RequiredAction, ShouldEqual, interaction.StepActionCommit)
 
 					err = p.Commit(i)
 					So(err, ShouldBeNil)
@@ -115,7 +115,7 @@ func TestProvider(t *testing.T) {
 
 					state, err = p.GetInteractionState(i)
 					So(err, ShouldBeNil)
-					So(state.RequiredAction, ShouldEqual, interaction.StepActionCompleted)
+					So(state.RequiredAction, ShouldEqual, interaction.StepActionCommit)
 
 					err = p.Commit(i)
 					So(err, ShouldBeNil)
@@ -182,7 +182,7 @@ func TestProvider(t *testing.T) {
 
 				state, err = p.GetInteractionState(i)
 				So(err, ShouldBeNil)
-				So(state.RequiredAction, ShouldEqual, interaction.StepActionCompleted)
+				So(state.RequiredAction, ShouldEqual, interaction.StepActionCommit)
 
 				err = p.Commit(i)
 				So(err, ShouldBeNil)
@@ -214,7 +214,7 @@ func TestProvider(t *testing.T) {
 
 				state, err := p.GetInteractionState(i)
 				So(err, ShouldBeNil)
-				So(state.RequiredAction, ShouldEqual, interaction.StepActionSetupAuthenticator)
+				So(state.RequiredAction, ShouldEqual, interaction.StepActionSetupSecondaryAuthenticator)
 
 				err = p.PerformAction(i, interaction.ActionAuthenticate{
 					Secret: "123456",
@@ -223,7 +223,7 @@ func TestProvider(t *testing.T) {
 
 				state, err = p.GetInteractionState(i)
 				So(err, ShouldBeNil)
-				So(state.RequiredAction, ShouldEqual, interaction.StepActionCompleted)
+				So(state.RequiredAction, ShouldEqual, interaction.StepActionCommit)
 
 				err = p.Commit(i)
 				So(err, ShouldBeNil)
