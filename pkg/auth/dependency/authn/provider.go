@@ -140,6 +140,43 @@ func (p *Provider) OAuthExchangeCode(
 	return p.AuthnSession.StepSession(as, "")
 }
 
+func (p *Provider) OAuthAuthenticate(
+	client config.OAuthClientConfiguration,
+	authInfo sso.AuthInfo,
+	loginState sso.LoginState,
+) (Result, error) {
+	pr, sessionCreateReason, err := p.OAuth.Authenticate(authInfo, loginState)
+	if err != nil {
+		return nil, err
+	}
+
+	reason := auth.SessionCreateReason(sessionCreateReason)
+	as, err := p.AuthnSession.BeginSession(client, pr.PrincipalUserID(), pr, reason)
+	if err != nil {
+		return nil, err
+	}
+	as.ForAuthAPI = p.ForAuthAPI
+
+	return p.AuthnSession.StepSession(as, "")
+}
+
+func (p *Provider) OAuthLink(
+	client config.OAuthClientConfiguration,
+	authInfo sso.AuthInfo,
+	linkState sso.LinkState,
+	s auth.AuthSession,
+) (Result, error) {
+	_, err := p.OAuth.Link(authInfo, linkState)
+	if err != nil {
+		return nil, err
+	}
+
+	if s == nil {
+		return nil, authz.ErrNotAuthenticated
+	}
+	return p.AuthnSession.MakeResult(client, s, "")
+}
+
 func (p *Provider) WriteCookie(rw http.ResponseWriter, result *CompletionResult) {
 	if result.UseCookie() {
 		if result.SessionToken != "" {

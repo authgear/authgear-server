@@ -7,6 +7,7 @@ package webapp
 
 import (
 	"github.com/google/wire"
+	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
@@ -27,6 +28,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
@@ -115,14 +117,21 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Context: context,
 	}
+	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
+		SSOProvider:      provider2,
 	}
+	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
+	redirectURLFunc := provideRedirectURIForWebAppFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, provider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProvider := provideOAuthProviderFromLoginForm(r, oAuthProviderFactory)
 	loginHandler := &LoginHandler{
-		Provider: authenticateProviderImpl,
+		Provider:      authenticateProviderImpl,
+		oauthProvider: oAuthProvider,
 	}
 	return loginHandler
 }
@@ -204,11 +213,13 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Context: context,
 	}
+	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
+		SSOProvider:      provider2,
 	}
 	loginPasswordHandler := &LoginPasswordHandler{
 		Provider: authenticateProviderImpl,
@@ -289,11 +300,13 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Context: context,
 	}
+	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
+		SSOProvider:      provider2,
 	}
 	signupHandler := &SignupHandler{
 		Provider: authenticateProviderImpl,
@@ -374,11 +387,13 @@ func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Context: context,
 	}
+	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
+		SSOProvider:      provider2,
 	}
 	signupPasswordHandler := &SignupPasswordHandler{
 		Provider: authenticateProviderImpl,
@@ -449,6 +464,112 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	return logoutHandler
 }
 
+func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
+	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
+	provider := time.NewProvider()
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
+	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
+	oauthProvider := oauth.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
+	v := auth.ProvidePrincipalProviders(oauthProvider, passwordProvider)
+	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
+	authenticateProcess := authn.ProvideAuthenticateProcess(factory, provider, passwordProvider, oauthProvider, identityProvider)
+	loginIDChecker := loginid.ProvideLoginIDChecker(tenantConfiguration, reservedNameChecker)
+	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	executor := auth.ProvideTaskExecutor(m)
+	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	oAuthCoordinator := &authn.OAuthCoordinator{
+		Authn:  authenticateProcess,
+		Signup: signupProcess,
+	}
+	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	client := sms.ProvideSMSClient(context, tenantConfiguration)
+	sender := mail.ProvideMailSender(context, tenantConfiguration)
+	mfaSender := mfa.ProvideMFASender(tenantConfiguration, client, sender, engine)
+	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, provider, mfaSender)
+	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
+	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
+	authorizationStore := &pq4.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	authAccessEventProvider := auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, identityProvider, provider)
+	tokenGenerator := _wireTokenGeneratorValue
+	tokenHandler := handler.ProvideTokenHandler(r, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, authAccessEventProvider, sessionProvider, idTokenIssuer, tokenGenerator, provider)
+	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider, tokenHandler)
+	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
+	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
+	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
+	providerFactory := &authn.ProviderFactory{
+		OAuth:                   oAuthCoordinator,
+		Authn:                   authenticateProcess,
+		Signup:                  signupProcess,
+		AuthnSession:            authnSessionProvider,
+		Session:                 sessionProvider,
+		SessionCookieConfig:     cookieConfiguration,
+		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
+	}
+	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
+		ValidateProvider: validateProvider,
+		RenderProvider:   renderProvider,
+		AuthnProvider:    authnProvider,
+		StateStore:       stateStoreImpl,
+		SSOProvider:      provider2,
+	}
+	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
+	redirectURLFunc := provideRedirectURIForWebAppFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, provider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
+	ssoCallbackHandler := &SSOCallbackHandler{
+		Provider:      authenticateProviderImpl,
+		oauthProvider: oAuthProvider,
+	}
+	return ssoCallbackHandler
+}
+
 // wire.go:
 
 var authDepSet = wire.NewSet(authn.ProvideAuthUIProvider, wire.Bind(new(webapp.AuthnProvider), new(*authn.Provider)), wire.Struct(new(webapp.AuthenticateProviderImpl), "*"))
+
+func provideRedirectURIForWebAppFunc() sso.RedirectURLFunc {
+	return redirectURIForWebApp
+}
+
+func provideOAuthProviderFromLoginForm(r *http.Request, spf *sso.OAuthProviderFactory) sso.OAuthProvider {
+	idp := r.Form.Get("x_idp_id")
+	return spf.NewOAuthProvider(idp)
+}
+
+func provideOAuthProviderFromRequestVars(r *http.Request, spf *sso.OAuthProviderFactory) sso.OAuthProvider {
+	vars := mux.Vars(r)
+	return spf.NewOAuthProvider(vars["provider"])
+}

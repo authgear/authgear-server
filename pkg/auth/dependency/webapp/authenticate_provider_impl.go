@@ -1,12 +1,17 @@
 package webapp
 
 import (
+	"crypto/subtle"
 	"net/http"
+	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/crypto"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -16,6 +21,7 @@ type AuthenticateProviderImpl struct {
 	RenderProvider   RenderProvider
 	AuthnProvider    AuthnProvider
 	StateStore       StateStore
+	SSOProvider      sso.Provider
 }
 
 type AuthnProvider interface {
@@ -36,6 +42,26 @@ type AuthnProvider interface {
 	) (authn.Result, error)
 
 	WriteCookie(rw http.ResponseWriter, result *authn.CompletionResult)
+
+	OAuthAuthenticate(
+		client config.OAuthClientConfiguration,
+		authInfo sso.AuthInfo,
+		loginState sso.LoginState,
+	) (authn.Result, error)
+}
+
+type OAuthProvider interface {
+	GetAuthURL(state sso.State, encodedState string) (url string, err error)
+	GetAuthInfo(r sso.OAuthAuthorizationResponse, state sso.State) (sso.AuthInfo, error)
+}
+
+func (p *AuthenticateProviderImpl) makeState(sid string) *State {
+	s, err := p.StateStore.Get(sid)
+	if err != nil {
+		s = NewState()
+	}
+
+	return s
 }
 
 func (p *AuthenticateProviderImpl) persistState(r *http.Request, inputError error) {
@@ -263,6 +289,150 @@ func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 			return
 		}
 		r.Form.Set("x_login_id", e164)
+	}
+
+	return
+}
+
+func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter, r *http.Request, oauthProvider OAuthProvider) (writeResponse func(err error), err error) {
+	var authURI string
+	writeResponse = func(err error) {
+		p.persistState(r, err)
+		if err != nil {
+			RedirectToPathWithQueryPreserved(w, r, "/login")
+		} else {
+			http.Redirect(w, r, authURI, http.StatusFound)
+		}
+	}
+	// create or update ui state
+	// state id will be set into the request query
+	p.persistState(r, nil)
+
+	// set hashed csrf cookies to sso state
+	// callback will verify if the request has the same cookie
+	cookie, err := r.Cookie(csrfCookieName)
+	if err != nil || cookie.Value == "" {
+		panic(errors.Newf("webapp: missing csrf cookies: %w", err))
+	}
+	hashedNonce := crypto.SHA256String(cookie.Value)
+	webappSSOState := SSOState{}
+	webappSSOState.SetRequestQuery(r.URL.Query().Encode())
+	state := sso.State{
+		Action: "login",
+		LoginState: sso.LoginState{
+			OnUserDuplicate: model.OnUserDuplicateAbort,
+		},
+		HashedNonce: hashedNonce,
+		Extra:       webappSSOState,
+	}
+	encodedState, err := p.SSOProvider.EncodeState(state)
+	if err != nil {
+		return
+	}
+	authURI, err = oauthProvider.GetAuthURL(state, encodedState)
+	return
+}
+
+func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *http.Request, oauthProvider OAuthProvider) (writeResponse func(error), err error) {
+	v := url.Values{}
+	writeResponse = func(err error) {
+		callbackURL := v.Get("redirect_uri")
+		if callbackURL == "" {
+			callbackURL = "/"
+		}
+		sid := v.Get("x_sid")
+
+		if err != nil {
+			// try to obtain state id from sso state
+			// create new state if failed
+			s := p.makeState(sid)
+			s.SetError(err)
+			if e := p.StateStore.Set(s); e != nil {
+				panic(e)
+			}
+			// x_sid maybe new if callback failed to obtain the state
+			v.Set("x_sid", s.ID)
+			RedirectToPathWithQuery(w, r, "/login", v)
+		} else {
+			redirectURI, err := parseRedirectURI(r, callbackURL)
+			if err != nil {
+				redirectURI = DefaultRedirectURI
+			}
+			http.Redirect(w, r, redirectURI, http.StatusFound)
+		}
+	}
+
+	err = p.ValidateProvider.Validate("#SSOCallbackRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	code := r.Form.Get("code")
+	encodedState := r.Form.Get("state")
+	scope := r.Form.Get("scope")
+	state, err := p.SSOProvider.DecodeState(encodedState)
+	if err != nil {
+		return
+	}
+	webappSSOState := SSOState(state.Extra)
+	requestQuery := webappSSOState.RequestQuery()
+	v, err = url.ParseQuery(requestQuery)
+	if err != nil {
+		return writeResponse, validation.NewValidationFailed("", []validation.ErrorCause{
+			validation.ErrorCause{
+				Kind:    validation.ErrorGeneral,
+				Pointer: "/state",
+			},
+		})
+	}
+
+	// verify if the request has the same csrf cookies
+	cookie, err := r.Cookie(csrfCookieName)
+	if err != nil || cookie.Value == "" {
+		err = sso.NewSSOFailed(sso.SSOUnauthorized, "invalid nonce")
+		return
+	}
+	hashedCookie := crypto.SHA256String(cookie.Value)
+	hashedNonce := state.HashedNonce
+	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(hashedCookie)) != 1 {
+		err = sso.NewSSOFailed(sso.SSOUnauthorized, "invalid nonce")
+		return
+	}
+
+	oauthAuthInfo, err := oauthProvider.GetAuthInfo(
+		sso.OAuthAuthorizationResponse{
+			Code:  code,
+			State: encodedState,
+			Scope: scope,
+		},
+		*state,
+	)
+	if err != nil {
+		return
+	}
+
+	var result authn.Result
+	if state.Action == "login" {
+		// TODO(webapp): link provider
+		var client config.OAuthClientConfiguration
+		result, err = p.AuthnProvider.OAuthAuthenticate(
+			client,
+			oauthAuthInfo,
+			state.LoginState,
+		)
+	} else {
+		panic("only login is supported")
+	}
+
+	if err != nil {
+		return
+	}
+
+	switch r := result.(type) {
+	case *authn.CompletionResult:
+		p.AuthnProvider.WriteCookie(w, r)
+	case *authn.InProgressResult:
+		panic("TODO(webapp): handle MFA")
 	}
 
 	return
