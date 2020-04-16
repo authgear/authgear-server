@@ -334,9 +334,14 @@ func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter,
 }
 
 func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *http.Request, oauthProvider OAuthProvider) (writeResponse func(error), err error) {
-	var callbackURL string
-	var sid string
+	v := url.Values{}
 	writeResponse = func(err error) {
+		callbackURL := v.Get("redirect_uri")
+		if callbackURL == "" {
+			callbackURL = "/"
+		}
+		sid := v.Get("x_sid")
+
 		if err != nil {
 			// try to obtain state id from sso state
 			// create new state if failed
@@ -345,9 +350,9 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 			if e := p.StateStore.Set(s); e != nil {
 				panic(e)
 			}
-			RedirectToPathWithQuery(w, r, "/login", url.Values{
-				"x_sid": []string{s.ID},
-			})
+			// x_sid maybe new if callback failed to obtain the state
+			v.Set("x_sid", s.ID)
+			RedirectToPathWithQuery(w, r, "/login", v)
 		} else {
 			redirectURI, err := parseRedirectURI(r, callbackURL)
 			if err != nil {
@@ -369,6 +374,17 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 	if err != nil {
 		return
 	}
+	webappSSOState := SSOState(state.Extra)
+	requestQuery := webappSSOState.RequestQuery()
+	v, err = url.ParseQuery(requestQuery)
+	if err != nil {
+		return writeResponse, validation.NewValidationFailed("", []validation.ErrorCause{
+			validation.ErrorCause{
+				Kind:    validation.ErrorGeneral,
+				Pointer: "/state",
+			},
+		})
+	}
 
 	// verify if the request has the same csrf cookies
 	cookie, err := r.Cookie(csrfCookieName)
@@ -382,24 +398,6 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 		err = sso.NewSSOFailed(sso.SSOUnauthorized, "invalid nonce")
 		return
 	}
-
-	webappSSOState := SSOState(state.Extra)
-	requestQuery := webappSSOState.RequestQuery()
-	v, err := url.ParseQuery(requestQuery)
-	if err != nil {
-		return writeResponse, validation.NewValidationFailed("", []validation.ErrorCause{
-			validation.ErrorCause{
-				Kind:    validation.ErrorGeneral,
-				Pointer: "/state",
-			},
-		})
-	}
-
-	callbackURL = v.Get("redirect_uri")
-	if callbackURL == "" {
-		callbackURL = "/"
-	}
-	sid = v.Get("x_sid")
 
 	oauthAuthInfo, err := oauthProvider.GetAuthInfo(
 		sso.OAuthAuthorizationResponse{
