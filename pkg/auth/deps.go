@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	authredis "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -209,6 +210,7 @@ var CommonDependencySet = wire.NewSet(
 	oidchandler.DependencySet,
 	welcemail.DependencySet,
 	userverify.DependencySet,
+	forgotpassword.DependencySet,
 )
 
 // DependencySet is for HTTP request
