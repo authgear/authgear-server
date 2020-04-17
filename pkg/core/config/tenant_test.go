@@ -226,15 +226,15 @@ func makeFullTenantConfig() TenantConfiguration {
 				},
 			},
 			ForgotPassword: &ForgotPasswordConfiguration{
-				SecureMatch: true,
 				EmailMessage: EmailMessageConfiguration{
 					"sender":   `"Forgot Password Sender" <myforgotpasswordsender@example.com>`,
 					"subject":  "myforgotpasswordsubject",
 					"reply_to": `"Forgot Password Reply To" <myforgotpasswordreplyto@example.com>`,
 				},
-				ResetURLLifetime: 60,
-				SuccessRedirect:  "http://localhost:3000/forgotpassword/success",
-				ErrorRedirect:    "http://localhost:3000/forgotpassword/error",
+				SMSMessage: SMSMessageConfiguration{
+					"sender": "+85212345678",
+				},
+				ResetCodeLifetime: 60,
 			},
 			WelcomeEmail: &WelcomeEmailConfiguration{
 				Enabled: true,

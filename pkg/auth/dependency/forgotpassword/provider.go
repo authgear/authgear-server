@@ -98,7 +98,7 @@ func (p *Provider) SendCode(loginID string) (err error) {
 func (p *Provider) newCode(prin *password.Principal) (code *Code, codeStr string) {
 	createdAt := p.TimeProvider.NowUTC()
 	codeStr = GenerateCode()
-	expireAt := createdAt.Add(time.Duration(p.ForgotPasswordConfiguration.ResetURLLifetime) * time.Second)
+	expireAt := createdAt.Add(time.Duration(p.ForgotPasswordConfiguration.ResetCodeLifetime) * time.Second)
 	code = &Code{
 		CodeHash:    HashCode(codeStr),
 		PrincipalID: prin.ID,

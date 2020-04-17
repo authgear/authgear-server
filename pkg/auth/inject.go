@@ -256,8 +256,6 @@ func (m DependencyMap) Provide(
 		return newLoggerFactory().NewLogger("handler")
 	case "UserProfileStore":
 		return newUserProfileStore()
-	case "ForgotPasswordSecureMatch":
-		return tConfig.AppConfig.ForgotPassword.SecureMatch
 	case "UserVerifyCodeSenderFactory":
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(
 			&tConfig,
