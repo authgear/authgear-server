@@ -2,7 +2,6 @@ package sso
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -30,38 +29,7 @@ func decodeResultInURL(ssoProvider sso.Provider, urlString string) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
-	var j map[string]interface{}
-	err = json.Unmarshal(bytes, &j)
-	if err != nil {
-		return nil, err
-	}
-	innerResult := j["result"].(map[string]interface{})
-	actualResult, ok := innerResult["result"]
-	if !ok {
-		return bytes, nil
-	}
-
-	code, err := ssoProvider.ConsumeSkygearAuthorizationCode(sso.HashCode(actualResult.(string)))
-	if err != nil {
-		return nil, err
-	}
-	innerResult["result"] = code
-	return json.Marshal(j)
-}
-
-func decodeUXModeManualResult(ssoProvider sso.Provider, bytes []byte) ([]byte, error) {
-	var j map[string]interface{}
-	err := json.Unmarshal(bytes, &j)
-	if err != nil {
-		return nil, err
-	}
-	code := j["result"].(string)
-	authCode, err := ssoProvider.ConsumeSkygearAuthorizationCode(sso.HashCode(code))
-	if err != nil {
-		return nil, err
-	}
-	j["result"] = authCode
-	return json.Marshal(j)
+	return bytes, nil
 }
 
 func TestAuthPayload(t *testing.T) {
@@ -189,20 +157,10 @@ func TestAuthHandler(t *testing.T) {
 			req = req.WithContext(auth.WithAccessKey(req.Context(), accessKey))
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
-
-			actual, err := decodeUXModeManualResult(sh.SSOProvider, resp.Body.Bytes())
-			So(err, ShouldBeNil)
-			So(actual, ShouldEqualJSON, fmt.Sprintf(`
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
 			{
-				"result": {
-					"code_hash": "%s",
-					"action": "login",
-					"code_challenge": "",
-					"user_id": "a",
-					"principal_id": "b",
-					"session_create_reason": "signup"
-				}
-			}`, codeHash))
+				"result": "%s"
+			}`, authnOAuthProvider.CodeStr))
 		})
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
@@ -251,16 +209,9 @@ func TestAuthHandler(t *testing.T) {
 			{
 				"callback_url": "http://localhost:3000",
 				"result": {
-					"result": {
-						"code_hash": "%s",
-						"action": "login",
-						"code_challenge": "",
-						"user_id": "a",
-						"principal_id": "b",
-						"session_create_reason": "signup"
-					}
+					"result": "%s"
 				}
-			}`, codeHash))
+			}`, authnOAuthProvider.CodeStr))
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
@@ -346,16 +297,9 @@ func TestAuthHandler(t *testing.T) {
 			So(actual, ShouldEqualJSON, fmt.Sprintf(`{
 				"callback_url": "http://localhost:3000",
 				"result": {
-					"result": {
-						"code_hash": "%s",
-						"action": "login",
-						"code_challenge": "",
-						"user_id": "a",
-						"principal_id": "b",
-						"session_create_reason": "signup"
-					}
+					"result": "%s"
 				}
-			}`, codeHash))
+			}`, authnOAuthProvider.CodeStr))
 		})
 	})
 }

@@ -52,8 +52,7 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	provider := urlprefix.NewProvider(r)
 	authHandlerHTMLProvider := sso.ProvideAuthHandlerHTMLProvider(provider)
-	skygearAuthorizationCodeStore := sso.ProvideSkygearAuthorizationCodeStore(context)
-	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration, skygearAuthorizationCodeStore)
+	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	timeProvider := time.NewProvider()
@@ -75,9 +74,11 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, timeProvider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, provider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
 	client := sms.ProvideSMSClient(context, tenantConfiguration)
@@ -156,9 +157,11 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, provider)
 	client := sms.ProvideSMSClient(context, tenantConfiguration)
@@ -199,8 +202,7 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
 	validator := auth.ProvideValidator(m)
-	skygearAuthorizationCodeStore := sso.ProvideSkygearAuthorizationCodeStore(context)
-	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration, skygearAuthorizationCodeStore)
+	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	httpHandler := provideAuthResultHandler(txContext, requireAuthz, authnProvider, validator, ssoProvider)
 	return httpHandler
 }
@@ -213,8 +215,7 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler2.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
-	skygearAuthorizationCodeStore := sso.ProvideSkygearAuthorizationCodeStore(context)
-	provider := sso.ProvideSSOProvider(context, tenantConfiguration, skygearAuthorizationCodeStore)
+	provider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	timeProvider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
@@ -235,9 +236,11 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, timeProvider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
 	client := sms.ProvideSMSClient(context, tenantConfiguration)
@@ -293,8 +296,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler2.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
-	skygearAuthorizationCodeStore := sso.ProvideSkygearAuthorizationCodeStore(context)
-	provider := sso.ProvideSSOProvider(context, tenantConfiguration, skygearAuthorizationCodeStore)
+	provider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	timeProvider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
@@ -315,9 +317,11 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, timeProvider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
 	client := sms.ProvideSMSClient(context, tenantConfiguration)
@@ -368,8 +372,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 func newAuthRedirectHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context)
-	skygearAuthorizationCodeStore := sso.ProvideSkygearAuthorizationCodeStore(context)
-	provider := sso.ProvideSSOProvider(context, tenantConfiguration, skygearAuthorizationCodeStore)
+	provider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	timeProvider := time.NewProvider()
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
@@ -395,8 +398,7 @@ func newLoginAuthURLHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
-	skygearAuthorizationCodeStore := sso.ProvideSkygearAuthorizationCodeStore(context)
-	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration, skygearAuthorizationCodeStore)
+	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := ProvideRedirectURIForAPIFunc()
@@ -422,8 +424,7 @@ func newLinkAuthURLHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
-	skygearAuthorizationCodeStore := sso.ProvideSkygearAuthorizationCodeStore(context)
-	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration, skygearAuthorizationCodeStore)
+	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := ProvideRedirectURIForAPIFunc()

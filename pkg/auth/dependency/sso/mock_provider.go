@@ -11,13 +11,12 @@ import (
 )
 
 type MockSSOProvider struct {
-	BaseURL           string
-	OAuthConfig       *config.OAuthConfiguration
-	URLPrefix         *url.URL
-	RedirectURLFunc   RedirectURLFunc
-	ProviderConfig    config.OAuthProviderConfiguration
-	UserInfo          ProviderUserInfo
-	AuthorizationCode *SkygearAuthorizationCode
+	BaseURL         string
+	OAuthConfig     *config.OAuthConfiguration
+	URLPrefix       *url.URL
+	RedirectURLFunc RedirectURLFunc
+	ProviderConfig  config.OAuthProviderConfiguration
+	UserInfo        ProviderUserInfo
 }
 
 func (f *MockSSOProvider) Type() config.OAuthProviderType {
@@ -84,21 +83,6 @@ func (f *MockSSOProvider) EncodeState(state State) (encodedState string, err err
 
 func (f *MockSSOProvider) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, "myapp", encodedState)
-}
-
-func (f *MockSSOProvider) StoreSkygearAuthorizationCode(code *SkygearAuthorizationCode) (err error) {
-	f.AuthorizationCode = code
-	return nil
-}
-
-func (f *MockSSOProvider) ConsumeSkygearAuthorizationCode(codeHash string) (*SkygearAuthorizationCode, error) {
-	if f.AuthorizationCode != nil && f.AuthorizationCode.CodeHash == codeHash {
-		code := f.AuthorizationCode
-		f.AuthorizationCode = nil
-		return code, nil
-	}
-
-	return nil, ErrCodeNotFound
 }
 
 func (f *MockSSOProvider) IsValidCallbackURL(client config.OAuthClientConfiguration, u string) bool {

@@ -14,6 +14,7 @@ import (
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -52,6 +53,8 @@ type LinkAuthnProvider interface {
 		codeChallenge string,
 		linkState sso.LinkState,
 	) (*sso.SkygearAuthorizationCode, string, error)
+
+	OAuthConsumeCode(hashCode string) (*sso.SkygearAuthorizationCode, error)
 
 	OAuthExchangeCode(
 		client config.OAuthClientConfiguration,
@@ -134,7 +137,15 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (authn.Resul
 			return err
 		}
 
-		// do the exchange immediately, don't need to save code into the store
+		// consume the code immediately
+		code, err = h.AuthnProvider.OAuthConsumeCode(code.CodeHash)
+		if err != nil {
+			if errors.Is(err, sso.ErrCodeNotFound) {
+				return sso.NewSSOFailed(sso.SSOUnauthorized, "invalid code")
+			}
+			return err
+		}
+
 		result, err = h.AuthnProvider.OAuthExchangeCode(
 			coreauth.GetAccessKey(r.Context()).Client,
 			auth.GetSession(r.Context()),

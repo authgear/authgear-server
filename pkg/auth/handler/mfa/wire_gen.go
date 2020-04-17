@@ -75,9 +75,11 @@ func newActivateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
@@ -159,9 +161,11 @@ func newActivateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
@@ -241,9 +245,11 @@ func newAuthenticateBearerTokenHandler(r *http.Request, m auth.DependencyMap) ht
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
@@ -322,9 +328,11 @@ func newAuthenticateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handl
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
@@ -404,9 +412,11 @@ func newAuthenticateRecoveryCodeHandler(r *http.Request, m auth.DependencyMap) h
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
@@ -486,9 +496,11 @@ func newAuthenticateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
@@ -568,9 +580,11 @@ func newCreateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
@@ -648,9 +662,11 @@ func newCreateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
@@ -728,9 +744,11 @@ func newListAuthenticatorHandler(r *http.Request, m auth.DependencyMap) http.Han
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
@@ -808,9 +826,11 @@ func newTriggerOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)

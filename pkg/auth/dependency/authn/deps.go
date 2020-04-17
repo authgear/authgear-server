@@ -1,6 +1,8 @@
 package authn
 
 import (
+	"context"
+
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -10,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -93,12 +96,17 @@ func ProvideSessionProvider(
 	}
 }
 
+func ProvideAuthorizationCodeStore(ctx context.Context) AuthorizationCodeStore {
+	return sso.NewSkygearAuthorizationCodeStore(ctx)
+}
+
 var DependencySet = wire.NewSet(
 	ProvideSignupProcess,
 	ProvideAuthenticateProcess,
 	wire.Struct(new(OAuthCoordinator), "*"),
 	ProvideSessionProvider,
 	wire.Struct(new(ProviderFactory), "*"),
+	ProvideAuthorizationCodeStore,
 )
 
 func ProvideAuthAPIProvider(f *ProviderFactory) *Provider { return f.ForAuthAPI() }

@@ -29,8 +29,9 @@ func TestOAuthCoordinator(t *testing.T) {
 		authn := &AuthenticateProcess{}
 		signup := &SignupProcess{}
 		oauthc := &OAuthCoordinator{
-			Authn:  authn,
-			Signup: signup,
+			Authn:                  authn,
+			Signup:                 signup,
+			AuthorizationCodeStore: sso.NewMockSkygearAuthorizationCodeStore(),
 		}
 
 		one := 1

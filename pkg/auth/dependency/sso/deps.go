@@ -13,18 +13,12 @@ import (
 func ProvideSSOProvider(
 	ctx context.Context,
 	config *config.TenantConfiguration,
-	store SkygearAuthorizationCodeStore,
 ) Provider {
 	return NewProvider(
 		ctx,
 		config.AppID,
 		config.AppConfig.Identity.OAuth,
-		store,
 	)
-}
-
-func ProvideSkygearAuthorizationCodeStore(ctx context.Context) SkygearAuthorizationCodeStore {
-	return NewSkygearAuthorizationCodeStore(ctx)
 }
 
 func ProvideOAuthProviderFactory(
@@ -43,7 +37,6 @@ func ProvideAuthHandlerHTMLProvider(up urlprefix.Provider) AuthHandlerHTMLProvid
 
 var DependencySet = wire.NewSet(
 	ProvideSSOProvider,
-	ProvideSkygearAuthorizationCodeStore,
 	ProvideOAuthProviderFactory,
 	ProvideAuthHandlerHTMLProvider,
 )

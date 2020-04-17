@@ -14,6 +14,7 @@ import (
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -29,6 +30,8 @@ func AttachAuthResultHandler(
 }
 
 type AuthResultAuthnProvider interface {
+	OAuthConsumeCode(hashCode string) (*sso.SkygearAuthorizationCode, error)
+
 	OAuthExchangeCode(
 		client config.OAuthClientConfiguration,
 		session auth.AuthSession,
@@ -94,8 +97,11 @@ func (h *AuthResultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthResultHandler) Handle(r *http.Request, payload *AuthResultPayload) (authn.Result, error) {
 	codeHash := sso.HashCode(payload.AuthorizationCode)
-	code, err := h.SSOProvider.ConsumeSkygearAuthorizationCode(codeHash)
+	code, err := h.AuthnProvider.OAuthConsumeCode(codeHash)
 	if err != nil {
+		if errors.Is(err, sso.ErrCodeNotFound) {
+			return nil, sso.NewSSOFailed(sso.SSOUnauthorized, "invalid code")
+		}
 		return nil, err
 	}
 

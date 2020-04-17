@@ -112,6 +112,10 @@ func (p *Provider) OAuthLinkCode(
 	return p.OAuth.LinkCode(authInfo, codeChallenge, linkState)
 }
 
+func (p *Provider) OAuthConsumeCode(codeHash string) (*sso.SkygearAuthorizationCode, error) {
+	return p.OAuth.ConsumeCode(codeHash)
+}
+
 func (p *Provider) OAuthExchangeCode(
 	client config.OAuthClientConfiguration,
 	s auth.AuthSession,

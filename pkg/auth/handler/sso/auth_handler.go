@@ -170,24 +170,12 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 }
 
 func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (code string, err error) {
-	var authzCode *sso.SkygearAuthorizationCode
-	var codeStr string
 	apiSSOState := AuthAPISSOState(state.Extra)
 	if state.Action == "login" {
-		authzCode, codeStr, err = h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LoginState)
+		_, code, err = h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LoginState)
 	} else {
-		authzCode, codeStr, err = h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LinkState)
+		_, code, err = h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LinkState)
 	}
-	if err != nil {
-		return
-	}
-
-	err = h.SSOProvider.StoreSkygearAuthorizationCode(authzCode)
-	if err != nil {
-		return
-	}
-
-	code = codeStr
 	return
 }
 

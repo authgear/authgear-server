@@ -8,10 +8,17 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 )
 
+type AuthorizationCodeStore interface {
+	Get(codeHash string) (*sso.SkygearAuthorizationCode, error)
+	Set(code *sso.SkygearAuthorizationCode) error
+	Delete(codeHash string) error
+}
+
 // OAuthCoordinator controls OAuth SSO flow
 type OAuthCoordinator struct {
-	Authn  *AuthenticateProcess
-	Signup *SignupProcess
+	Authn                  *AuthenticateProcess
+	Signup                 *SignupProcess
+	AuthorizationCodeStore AuthorizationCodeStore
 }
 
 func (c *OAuthCoordinator) AuthenticateCode(authInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (*sso.SkygearAuthorizationCode, string, error) {
@@ -20,16 +27,22 @@ func (c *OAuthCoordinator) AuthenticateCode(authInfo sso.AuthInfo, codeChallenge
 		return nil, "", err
 	}
 
-	code := sso.GenerateCode()
-	codeHash := sso.HashCode(code)
-	return &sso.SkygearAuthorizationCode{
+	codeStr := sso.GenerateCode()
+	codeHash := sso.HashCode(codeStr)
+	code := &sso.SkygearAuthorizationCode{
 		CodeHash:            codeHash,
 		Action:              "login",
 		CodeChallenge:       codeChallenge,
 		UserID:              p.PrincipalUserID(),
 		PrincipalID:         p.PrincipalID(),
 		SessionCreateReason: string(sessionCreateReason),
-	}, code, nil
+	}
+
+	err = c.AuthorizationCodeStore.Set(code)
+	if err != nil {
+		return nil, "", err
+	}
+	return code, codeStr, nil
 }
 
 func (c *OAuthCoordinator) LinkCode(authInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (*sso.SkygearAuthorizationCode, string, error) {
@@ -37,15 +50,32 @@ func (c *OAuthCoordinator) LinkCode(authInfo sso.AuthInfo, codeChallenge string,
 	if err != nil {
 		return nil, "", err
 	}
-	code := sso.GenerateCode()
-	codeHash := sso.HashCode(code)
-	return &sso.SkygearAuthorizationCode{
+	codeStr := sso.GenerateCode()
+	codeHash := sso.HashCode(codeStr)
+	code := &sso.SkygearAuthorizationCode{
 		CodeHash:      codeHash,
 		Action:        "link",
 		CodeChallenge: codeChallenge,
 		UserID:        p.PrincipalUserID(),
 		PrincipalID:   p.PrincipalID(),
-	}, code, nil
+	}
+	err = c.AuthorizationCodeStore.Set(code)
+	if err != nil {
+		return nil, "", err
+	}
+	return code, codeStr, nil
+}
+
+func (c *OAuthCoordinator) ConsumeCode(codeHash string) (*sso.SkygearAuthorizationCode, error) {
+	code, err := c.AuthorizationCodeStore.Get(codeHash)
+	if err != nil {
+		return nil, err
+	}
+	err = c.AuthorizationCodeStore.Delete(codeHash)
+	if err != nil {
+		return nil, err
+	}
+	return code, nil
 }
 
 func (c *OAuthCoordinator) ExchangeCode(code *sso.SkygearAuthorizationCode) (principal.Principal, error) {
