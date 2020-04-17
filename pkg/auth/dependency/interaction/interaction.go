@@ -19,15 +19,35 @@ type Interaction struct {
 	Intent Intent           `json:"-"`
 	Error  *skyerr.APIError `json:"error,omitempty"`
 
-	UserID                 string             `json:"user_id"`
-	Identity               *IdentityInfo      `json:"identity"`
-	PrimaryAuthenticator   *AuthenticatorInfo `json:"primary_authenticator"`
-	SecondaryAuthenticator *AuthenticatorInfo `json:"secondary_authenticator"`
+	UserID                      string                 `json:"user_id"`
+	Identity                    *IdentityInfo          `json:"identity"`
+	PrimaryAuthenticator        *AuthenticatorInfo     `json:"primary_authenticator"`
+	PrimaryAuthenticatorState   map[string]interface{} `json:"primary_authenticator_state,omitempty"`
+	SecondaryAuthenticator      *AuthenticatorInfo     `json:"secondary_authenticator"`
+	SecondaryAuthenticatorState map[string]interface{} `json:"secondary_authenticator_state,omitempty"`
 
 	PendingIdentity      *IdentityInfo       `json:"pending_identity,omitempty"`
 	PendingAuthenticator *AuthenticatorInfo  `json:"pending_authenticator,omitempty"`
-	NewIdentiies         []IdentityInfo      `json:"new_identities,omitempty"`
+	NewIdentities        []IdentityInfo      `json:"new_identities,omitempty"`
 	NewAuthenticators    []AuthenticatorInfo `json:"new_authenticators,omitempty"`
+}
+
+func (i *Interaction) IsNewIdentity(id string) bool {
+	for _, identity := range i.NewIdentities {
+		if identity.ID == id {
+			return true
+		}
+	}
+	return false
+}
+
+func (i *Interaction) IsNewAuthenticator(id string) bool {
+	for _, authenticator := range i.NewAuthenticators {
+		if authenticator.ID == id {
+			return true
+		}
+	}
+	return false
 }
 
 func (i *Interaction) MarshalJSON() ([]byte, error) {

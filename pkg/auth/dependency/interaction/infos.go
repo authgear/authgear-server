@@ -1,9 +1,10 @@
 package interaction
 
 type IdentityInfo struct {
-	ID     string                 `json:"id"`
-	Type   IdentityType           `json:"type"`
-	Claims map[string]interface{} `json:"claims"`
+	ID       string                 `json:"id"`
+	Type     IdentityType           `json:"type"`
+	Claims   map[string]interface{} `json:"claims"`
+	Identity interface{}            `json:"-"`
 }
 
 func (i *IdentityInfo) ToSpec() IdentitySpec {
@@ -30,10 +31,11 @@ const (
 )
 
 type AuthenticatorInfo struct {
-	ID     string                 `json:"id"`
-	Type   AuthenticatorType      `json:"type"`
-	Secret string                 `json:"secret"`
-	Props  map[string]interface{} `json:"props"`
+	ID            string                 `json:"id"`
+	Type          AuthenticatorType      `json:"type"`
+	Secret        string                 `json:"secret"`
+	Props         map[string]interface{} `json:"props"`
+	Authenticator interface{}            `json:"-"`
 }
 
 func (i *AuthenticatorInfo) ToSpec() AuthenticatorSpec {
@@ -54,14 +56,15 @@ const (
 	// AuthenticatorPropTOTPDisplayName is a claim with string value for TOTP display name.
 	AuthenticatorPropTOTPDisplayName string = "https://auth.skygear.io/claims/totp/display_name"
 
-	// AuthenticatorPropOOBChannelType is a claim with string value for OOB OTP channel type.
+	// AuthenticatorPropOOBOTPChannelType is a claim with string value for OOB OTP channel type.
 	AuthenticatorPropOOBOTPChannelType string = "https://auth.skygear.io/claims/oob_otp/channel_type"
-	// AuthenticatorPropOOBChannel is a claim with string value for OOB OTP channel (phone/email).
-	AuthenticatorPropOOBOTPChannel string = "https://auth.skygear.io/claims/oob_otp/channel"
-	// AuthenticatorPropOOBTriggerTime is a claim with string value for OOB last trigger time of current interaction.
-	AuthenticatorPropOOBOTPTriggerTime string = "https://auth.skygear.io/claims/oob_otp/trigger_time"
+	// AuthenticatorPropOOBOTPEmail is a claim with string value for OOB OTP email channel.
+	AuthenticatorPropOOBOTPEmail string = "https://auth.skygear.io/claims/oob_otp/email"
+	// AuthenticatorPropOOBOTPPhone is a claim with string value for OOB OTP phone channel.
+	AuthenticatorPropOOBOTPPhone string = "https://auth.skygear.io/claims/oob_otp/phone"
 
-	// AuthenticatorPropBearerTokenParentID is a claim with string value of parent authenticator of the bearer token.
-	// nolint:gosec
-	AuthenticatorPropBearerTokenParentID string = "https://auth.skygear.io/claims/bearer_token/parent_id"
+	// AuthenticatorStateOOBOTPCode is a claim with string value for OOB code of current interaction.
+	AuthenticatorStateOOBOTPCode string = "https://auth.skygear.io/claims/oob_otp/code"
+	// AuthenticatorStateOOBOTPTriggerTime is a claim with string value for OOB last trigger time of current interaction.
+	AuthenticatorStateOOBOTPTriggerTime string = "https://auth.skygear.io/claims/oob_otp/trigger_time"
 )

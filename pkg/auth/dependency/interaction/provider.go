@@ -6,12 +6,22 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
+type IdentityProvider interface {
+	Get(userID string, typ IdentityType, id string) (*IdentityInfo, error)
+}
+
+type AuthenticatorProvider interface {
+	Get(userID string, typ AuthenticatorType, id string) (*AuthenticatorInfo, error)
+}
+
 // TODO(interaction): configurable lifetime
 const interactionIdleTimeout = 5 * gotime.Minute
 
 type Provider struct {
-	Store Store
-	Time  time.Provider
+	Store         Store
+	Time          time.Provider
+	Identity      IdentityProvider
+	Authenticator AuthenticatorProvider
 }
 
 func (p *Provider) GetInteraction(token string) (*Interaction, error) {
@@ -20,7 +30,25 @@ func (p *Provider) GetInteraction(token string) (*Interaction, error) {
 		return nil, err
 	}
 
-	// TODO(interaction): populate identity & authenticator infos
+	if !i.IsNewIdentity(i.Identity.ID) {
+		if i.Identity, err = p.Identity.Get(
+			i.UserID, i.Identity.Type, i.Identity.ID); err != nil {
+			return nil, err
+		}
+	}
+	if !i.IsNewAuthenticator(i.PrimaryAuthenticator.ID) {
+		if i.PrimaryAuthenticator, err = p.Authenticator.Get(
+			i.UserID, i.PrimaryAuthenticator.Type, i.PrimaryAuthenticator.ID); err != nil {
+			return nil, err
+		}
+	}
+	if !i.IsNewAuthenticator(i.SecondaryAuthenticator.ID) {
+		if i.SecondaryAuthenticator, err = p.Authenticator.Get(
+			i.UserID, i.SecondaryAuthenticator.Type, i.SecondaryAuthenticator.ID); err != nil {
+			return nil, err
+		}
+	}
+
 	return i, nil
 }
 
