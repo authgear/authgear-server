@@ -73,9 +73,11 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, provider)
 	client := sms.ProvideSMSClient(context, tenantConfiguration)
@@ -169,9 +171,11 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, provider)
 	client := sms.ProvideSMSClient(context, tenantConfiguration)
@@ -256,9 +260,11 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, provider)
 	client := sms.ProvideSMSClient(context, tenantConfiguration)
@@ -343,9 +349,11 @@ func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, provider)
 	client := sms.ProvideSMSClient(context, tenantConfiguration)
@@ -493,9 +501,11 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
+	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
 	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:  authenticateProcess,
-		Signup: signupProcess,
+		Authn:                  authenticateProcess,
+		Signup:                 signupProcess,
+		AuthorizationCodeStore: authorizationCodeStore,
 	}
 	mfaStore := pq3.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, provider)
 	client := sms.ProvideSMSClient(context, tenantConfiguration)

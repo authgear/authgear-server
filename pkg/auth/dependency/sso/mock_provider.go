@@ -85,14 +85,6 @@ func (f *MockSSOProvider) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, "myapp", encodedState)
 }
 
-func (f *MockSSOProvider) EncodeSkygearAuthorizationCode(code SkygearAuthorizationCode) (encoded string, err error) {
-	return EncodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, "myapp", code)
-}
-
-func (f *MockSSOProvider) DecodeSkygearAuthorizationCode(encoded string) (*SkygearAuthorizationCode, error) {
-	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, "myapp", encoded)
-}
-
 func (f *MockSSOProvider) IsValidCallbackURL(client config.OAuthClientConfiguration, u string) bool {
 	err := ValidateCallbackURL(client.RedirectURIs(), u)
 	return err == nil

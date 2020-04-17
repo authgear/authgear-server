@@ -100,7 +100,7 @@ func (p *Provider) OAuthAuthenticateCode(
 	authInfo sso.AuthInfo,
 	codeChallenge string,
 	loginState sso.LoginState,
-) (*sso.SkygearAuthorizationCode, error) {
+) (*sso.SkygearAuthorizationCode, string, error) {
 	return p.OAuth.AuthenticateCode(authInfo, codeChallenge, loginState)
 }
 
@@ -108,8 +108,12 @@ func (p *Provider) OAuthLinkCode(
 	authInfo sso.AuthInfo,
 	codeChallenge string,
 	linkState sso.LinkState,
-) (*sso.SkygearAuthorizationCode, error) {
+) (*sso.SkygearAuthorizationCode, string, error) {
 	return p.OAuth.LinkCode(authInfo, codeChallenge, linkState)
+}
+
+func (p *Provider) OAuthConsumeCode(codeHash string) (*sso.SkygearAuthorizationCode, error) {
+	return p.OAuth.ConsumeCode(codeHash)
 }
 
 func (p *Provider) OAuthExchangeCode(

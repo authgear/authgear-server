@@ -16,6 +16,7 @@ import (
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -65,7 +66,9 @@ type LoginAuthnProvider interface {
 		authInfo sso.AuthInfo,
 		codeChallenge string,
 		loginState sso.LoginState,
-	) (*sso.SkygearAuthorizationCode, error)
+	) (*sso.SkygearAuthorizationCode, string, error)
+
+	OAuthConsumeCode(hashCode string) (*sso.SkygearAuthorizationCode, error)
 
 	OAuthExchangeCode(
 		client config.OAuthClientConfiguration,
@@ -152,8 +155,17 @@ func (h LoginHandler) Handle(r *http.Request, payload LoginRequestPayload) (auth
 		return nil, err
 	}
 
-	code, err := h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, "", loginState)
+	code, _, err := h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, "", loginState)
 	if err != nil {
+		return nil, err
+	}
+
+	// consume the code immediately
+	code, err = h.AuthnProvider.OAuthConsumeCode(code.CodeHash)
+	if err != nil {
+		if errors.Is(err, sso.ErrCodeNotFound) {
+			return nil, sso.NewSSOFailed(sso.SSOUnauthorized, "invalid code")
+		}
 		return nil, err
 	}
 

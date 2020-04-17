@@ -33,14 +33,6 @@ func (f *providerImpl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, f.AppID, encodedState)
 }
 
-func (f *providerImpl) EncodeSkygearAuthorizationCode(code SkygearAuthorizationCode) (encoded string, err error) {
-	return EncodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, f.AppID, code)
-}
-
-func (f *providerImpl) DecodeSkygearAuthorizationCode(encoded string) (*SkygearAuthorizationCode, error) {
-	return DecodeSkygearAuthorizationCode(f.OAuthConfig.StateJWTSecret, f.AppID, encoded)
-}
-
 func (f *providerImpl) IsValidCallbackURL(client config.OAuthClientConfiguration, u string) bool {
 	var redirectURIs []string
 	if client != nil {

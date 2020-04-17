@@ -10,12 +10,41 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
+
+type MockAuthResultAuthnProvider struct {
+	code *sso.SkygearAuthorizationCode
+}
+
+func (p *MockAuthResultAuthnProvider) OAuthConsumeCode(hashCode string) (*sso.SkygearAuthorizationCode, error) {
+	if hashCode == p.code.CodeHash {
+		code := p.code
+		p.code = nil
+		return code, nil
+	}
+	return nil, sso.ErrCodeNotFound
+}
+
+func (p *MockAuthResultAuthnProvider) OAuthExchangeCode(
+	client config.OAuthClientConfiguration,
+	session auth.AuthSession,
+	code *sso.SkygearAuthorizationCode,
+) (authn.Result, error) {
+	panic("not mocked")
+}
+
+func (p *MockAuthResultAuthnProvider) WriteAPIResult(rw http.ResponseWriter, result authn.Result) {
+	panic("not mocked")
+}
 
 func TestAuthResultHandler(t *testing.T) {
 	stateJWTSecret := "secret"
@@ -45,7 +74,22 @@ func TestAuthResultHandler(t *testing.T) {
 				Email: "mock@example.com",
 			},
 		}
+		codeVerifier := "code_verifier"
+		codeChallenge := "nonsense"
+		codeStr := "code"
+		mockAuthnProvider := &MockAuthResultAuthnProvider{
+			code: &sso.SkygearAuthorizationCode{
+				CodeHash:            crypto.SHA256String(codeStr),
+				Action:              "login",
+				CodeChallenge:       codeChallenge,
+				UserID:              "john.doe.id",
+				PrincipalID:         "john.doe.id",
+				SessionCreateReason: "login",
+			},
+		}
+
 		sh.SSOProvider = &mockProvider
+		sh.AuthnProvider = mockAuthnProvider
 		validator := validation.NewValidator("http://v2.skygear.io")
 		validator.AddSchemaFragments(
 			AuthResultRequestSchema,
@@ -53,20 +97,11 @@ func TestAuthResultHandler(t *testing.T) {
 		sh.Validator = validator
 
 		Convey("invalid code verifier", func() {
-			codeVerifier := "code_verifier"
-			codeChallenge := "nonsense"
-			code := &sso.SkygearAuthorizationCode{
-				Action:              "login",
-				CodeChallenge:       codeChallenge,
-				UserID:              "john.doe.id",
-				PrincipalID:         "john.doe.id",
-				SessionCreateReason: "login",
-			}
-			encodedCode, err := mockProvider.EncodeSkygearAuthorizationCode(*code)
-			So(err, ShouldBeNil)
+			// err := mockProvider.StoreSkygearAuthorizationCode(code)
+			// So(err, ShouldBeNil)
 
 			reqBody := map[string]interface{}{
-				"authorization_code": encodedCode,
+				"authorization_code": codeStr,
 				"code_verifier":      codeVerifier,
 			}
 			reqBodyBytes, err := json.Marshal(reqBody)

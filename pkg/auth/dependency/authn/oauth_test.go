@@ -29,8 +29,9 @@ func TestOAuthCoordinator(t *testing.T) {
 		authn := &AuthenticateProcess{}
 		signup := &SignupProcess{}
 		oauthc := &OAuthCoordinator{
-			Authn:  authn,
-			Signup: signup,
+			Authn:                  authn,
+			Signup:                 signup,
+			AuthorizationCodeStore: sso.NewMockSkygearAuthorizationCodeStore(),
 		}
 
 		one := 1
@@ -123,7 +124,7 @@ func TestOAuthCoordinator(t *testing.T) {
 
 		Convey("Authenticate", func() {
 			Convey("OnUserDuplicateAbort == abort", func() {
-				_, err := oauthc.AuthenticateCode(sso.AuthInfo{
+				_, _, err := oauthc.AuthenticateCode(sso.AuthInfo{
 					ProviderUserInfo: sso.ProviderUserInfo{
 						Email: "john.doe@example.com",
 					},
@@ -143,7 +144,7 @@ func TestOAuthCoordinator(t *testing.T) {
 			})
 
 			Convey("OnUserDuplicateAbort == merge", func() {
-				code, err := oauthc.AuthenticateCode(sso.AuthInfo{
+				code, _, err := oauthc.AuthenticateCode(sso.AuthInfo{
 					ProviderUserInfo: sso.ProviderUserInfo{
 						Email: "john.doe@example.com",
 					},
@@ -155,7 +156,7 @@ func TestOAuthCoordinator(t *testing.T) {
 			})
 
 			Convey("OnUserDuplicateAbort == create", func() {
-				code, err := oauthc.AuthenticateCode(sso.AuthInfo{
+				code, _, err := oauthc.AuthenticateCode(sso.AuthInfo{
 					ProviderUserInfo: sso.ProviderUserInfo{
 						Email: "john.doe@example.com",
 					},
@@ -169,7 +170,7 @@ func TestOAuthCoordinator(t *testing.T) {
 
 		Convey("Link", func() {
 			Convey("never linked before", func() {
-				_, err := oauthc.LinkCode(sso.AuthInfo{
+				_, _, err := oauthc.LinkCode(sso.AuthInfo{
 					ProviderUserInfo: sso.ProviderUserInfo{
 						Email: "john.doe@example.com",
 					},
@@ -194,7 +195,7 @@ func TestOAuthCoordinator(t *testing.T) {
 				signup.OAuthProvider = oauthProvider
 				authn.OAuthProvider = oauthProvider
 
-				_, err := oauthc.LinkCode(sso.AuthInfo{
+				_, _, err := oauthc.LinkCode(sso.AuthInfo{
 					ProviderConfig: config.OAuthProviderConfiguration{
 						Type: config.OAuthProviderType(providerType),
 					},
