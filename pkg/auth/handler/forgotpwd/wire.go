@@ -36,3 +36,26 @@ func newForgotPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler
 	)
 	return nil
 }
+
+func provideResetPasswordHandler(
+	requireAuthz handler.RequireAuthz,
+	v *validation.Validator,
+	rpp ResetPasswordProvider,
+	tx db.TxContext,
+) http.Handler {
+	h := &ResetPasswordHandler{
+		Validator:             v,
+		ResetPasswordProvider: rpp,
+		TxContext:             tx,
+	}
+	return requireAuthz(h, h)
+}
+
+func newResetPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Bind(new(ResetPasswordProvider), new(*forgotpassword.Provider)),
+		provideResetPasswordHandler,
+	)
+	return nil
+}

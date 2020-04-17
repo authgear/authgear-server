@@ -66,11 +66,11 @@ type ForgotPasswordHandler struct {
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
-func (h ForgotPasswordHandler) ProvideAuthzPolicy() coreauthz.Policy {
+func (h *ForgotPasswordHandler) ProvideAuthzPolicy() coreauthz.Policy {
 	return authz.AuthAPIRequireClient
 }
 
-func (h ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var response handler.APIResponse
 	result, err := h.Handle(w, r)
 	if err != nil {
@@ -81,7 +81,7 @@ func (h ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	handler.WriteResponse(w, response)
 }
 
-func (h ForgotPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+func (h *ForgotPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
 	var payload ForgotPasswordPayload
 	if err := handler.BindJSONBody(r, w, h.Validator, "#ForgotPasswordRequest", &payload); err != nil {
 		return nil, err
