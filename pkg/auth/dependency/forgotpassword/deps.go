@@ -41,6 +41,7 @@ func ProvideProvider(
 	return &Provider{
 		AppName:                     tConfig.AppConfig.DisplayAppName,
 		EmailMessageConfiguration:   tConfig.AppConfig.Messages.Email,
+		SMSMessageConfiguration:     tConfig.AppConfig.Messages.SMS,
 		ForgotPasswordConfiguration: tConfig.AppConfig.ForgotPassword,
 		Store:                       store,
 		AuthInfoStore:               ais,

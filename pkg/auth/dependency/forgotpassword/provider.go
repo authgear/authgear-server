@@ -26,6 +26,7 @@ import (
 type Provider struct {
 	AppName                     string
 	EmailMessageConfiguration   config.EmailMessageConfiguration
+	SMSMessageConfiguration     config.SMSMessageConfiguration
 	ForgotPasswordConfiguration *config.ForgotPasswordConfiguration
 
 	Store Store
@@ -172,9 +173,12 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 		return
 	}
 
+	messageConfig := config.NewSMSMessageConfiguration(
+		p.SMSMessageConfiguration,
+		p.ForgotPasswordConfiguration.SMSMessage,
+	)
 	err = p.SMSClient.Send(sms.SendOptions{
-		// TODO(forgotpassword): support SMS message config
-		MessageConfig: nil,
+		MessageConfig: messageConfig,
 		To:            phone,
 		Body:          body,
 	})
