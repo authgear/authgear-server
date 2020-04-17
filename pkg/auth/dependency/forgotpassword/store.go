@@ -1,6 +1,7 @@
 package forgotpassword
 
 type Store interface {
-	StoreCode(code *Code) error
+	Create(code *Code) error
 	Get(codeStr string) (*Code, error)
+	Update(code *Code) error
 }

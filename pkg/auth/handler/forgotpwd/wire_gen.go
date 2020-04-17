@@ -7,10 +7,14 @@ package forgotpwd
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
+	pq2 "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/core/async"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -30,22 +34,27 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
-	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
-	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
-	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
-	provider := time.NewProvider()
-	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
-	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
 	storeImpl := &forgotpassword.StoreImpl{
 		Context: context,
 	}
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	provider := time.NewProvider()
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	passwordhistoryStore := pq2.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
+	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	sender := mail.ProvideMailSender(context, tenantConfiguration)
 	client := sms.ProvideSMSClient(context, tenantConfiguration)
-	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, passwordProvider, storeImpl, provider, urlprefixProvider, engine, sender, client)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	executor := auth.ProvideTaskExecutor(m)
+	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, store, userprofileStore, passwordProvider, passwordChecker, provider, urlprefixProvider, engine, sender, client, queue)
 	httpHandler := provideForgotPasswordHandler(requireAuthz, validator, forgotpasswordProvider, txContext)
 	return httpHandler
 }

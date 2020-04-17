@@ -18,7 +18,7 @@ type StoreImpl struct {
 
 var _ Store = &StoreImpl{}
 
-func (s *StoreImpl) StoreCode(code *Code) (err error) {
+func (s *StoreImpl) Create(code *Code) (err error) {
 	bytes, err := json.Marshal(code)
 	if err != nil {
 		return
@@ -29,6 +29,23 @@ func (s *StoreImpl) StoreCode(code *Code) (err error) {
 	_, err = goredis.String(conn.Do("SET", key, bytes, "PX", codeExpire(code), "NX"))
 	if errors.Is(err, goredis.ErrNil) {
 		err = errors.Newf("duplicated forgot password code: %w", err)
+		return
+	}
+
+	return
+}
+
+func (s *StoreImpl) Update(code *Code) (err error) {
+	bytes, err := json.Marshal(code)
+	if err != nil {
+		return
+	}
+
+	conn := redis.GetConn(s.Context)
+	key := codeKey(code.CodeHash)
+	_, err = goredis.String(conn.Do("SET", key, bytes, "PX", codeExpire(code), "XX"))
+	if errors.Is(err, goredis.ErrNil) {
+		err = errors.Newf("non-existent forgot password code: %w", err)
 		return
 	}
 

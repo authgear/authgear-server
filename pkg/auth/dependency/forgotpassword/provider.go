@@ -5,8 +5,16 @@ import (
 	"path"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
+	taskspec "github.com/skygeario/skygear-server/pkg/auth/task/spec"
+	"github.com/skygeario/skygear-server/pkg/core/async"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -19,13 +27,20 @@ type Provider struct {
 	AppName                     string
 	EmailMessageConfiguration   config.EmailMessageConfiguration
 	ForgotPasswordConfiguration *config.ForgotPasswordConfiguration
-	PasswordAuthProvider        password.Provider
-	Store                       Store
-	TimeProvider                coretime.Provider
-	URLPrefixProvider           urlprefix.Provider
-	TemplateEngine              *template.Engine
-	MailSender                  mail.Sender
-	SMSClient                   sms.Client
+
+	Store Store
+
+	AuthInfoStore        authinfo.Store
+	UserProfileStore     userprofile.Store
+	PasswordAuthProvider password.Provider
+	PasswordChecker      *audit.PasswordChecker
+	HookProvider         hook.Provider
+	TimeProvider         coretime.Provider
+	URLPrefixProvider    urlprefix.Provider
+	TemplateEngine       *template.Engine
+	MailSender           mail.Sender
+	SMSClient            sms.Client
+	TaskQueue            async.Queue
 }
 
 // SendCode checks if loginID is an existing login ID.
@@ -61,7 +76,7 @@ func (p *Provider) SendCode(loginID string) (err error) {
 
 		code, codeStr := p.newCode(prin)
 
-		err = p.Store.StoreCode(code)
+		err = p.Store.Create(code)
 		if err != nil {
 			return
 		}
@@ -187,7 +202,75 @@ func (p *Provider) makeURL(code string) *url.URL {
 // Otherwise, the password is reset to newPassword.
 // newPassword is checked against the password policy so
 // password policy error may also be returned.
-func (p *Provider) ResetPassword(code string, newPassword string) error {
-	// TODO(forgotpassword)
+func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error) {
+	codeHash := HashCode(codeStr)
+	code, err := p.Store.Get(codeHash)
+	if err != nil {
+		return
+	}
+
+	now := p.TimeProvider.NowUTC()
+	if now.After(code.ExpireAt) {
+		err = ErrExpiredCode
+		return
+	}
+	if code.Consumed {
+		err = ErrUsedCode
+		return
+	}
+
+	code.Consumed = true
+	err = p.Store.Update(code)
+	if err != nil {
+		return
+	}
+
+	prin, err := p.PasswordAuthProvider.GetPrincipalByID(code.PrincipalID)
+	if err != nil {
+		return
+	}
+	userID := prin.PrincipalUserID()
+
+	resetPwdCtx := password.ResetPasswordRequestContext{
+		PasswordChecker:      p.PasswordChecker,
+		PasswordAuthProvider: p.PasswordAuthProvider,
+	}
+
+	err = resetPwdCtx.ExecuteWithUserID(newPassword, userID)
+	if err != nil {
+		return
+	}
+
+	var authInfo authinfo.AuthInfo
+	err = p.AuthInfoStore.GetAuth(userID, &authInfo)
+	if err != nil {
+		return
+	}
+
+	userProfile, err := p.UserProfileStore.GetUserProfile(userID)
+	if err != nil {
+		return
+	}
+
+	user := model.NewUser(authInfo, userProfile)
+
+	err = p.HookProvider.DispatchEvent(
+		event.PasswordUpdateEvent{
+			Reason: event.PasswordUpdateReasonResetPassword,
+			User:   user,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
+
+	p.TaskQueue.Enqueue(async.TaskSpec{
+		Name: taskspec.PwHousekeeperTaskName,
+		Param: taskspec.PwHousekeeperTaskParam{
+			AuthID: user.ID,
+		},
+	})
+
 	return nil
 }
