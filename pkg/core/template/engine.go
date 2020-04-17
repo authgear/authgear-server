@@ -279,40 +279,47 @@ func (e *Engine) resolveTranslations(templateType config.TemplateItemType) (tran
 }
 
 func (e *Engine) resolveComponents(types []config.TemplateItemType, key string) (bodies []string, err error) {
-	return e.resolveComponents0(types, key, make(map[config.TemplateItemType]struct{}))
-}
+	resolvedBodies := make(map[config.TemplateItemType]string)
 
-func (e *Engine) resolveComponents0(types []config.TemplateItemType, key string, seen map[config.TemplateItemType]struct{}) (bodies []string, err error) {
-	for _, templateType := range types {
-		// Do not need to load the same type more than once.
-		_, ok := seen[templateType]
-		if ok {
-			continue
+	// We need to declare it first otherwise recur cannot reference itself.
+	var recur func(types []config.TemplateItemType) (err error)
+
+	recur = func(types []config.TemplateItemType) (err error) {
+		for _, templateType := range types {
+			// Do not need to load the same type more than once.
+			_, ok := resolvedBodies[templateType]
+			if ok {
+				continue
+			}
+
+			spec, ok := e.TemplateSpecs[templateType]
+			if !ok {
+				panic("template: unregistered template type: " + templateType)
+			}
+			var body string
+			body, err = e.loadTemplateBody(spec, key)
+			if err != nil {
+				return
+			}
+
+			resolvedBodies[templateType] = body
+
+			err = recur(spec.Components)
+			if err != nil {
+				return
+			}
 		}
-		seen[templateType] = struct{}{}
-
-		spec, ok := e.TemplateSpecs[templateType]
-		if !ok {
-			panic("template: unregistered template type: " + templateType)
-		}
-		var body string
-		body, err = e.loadTemplateBody(spec, key)
-		if err != nil {
-			return
-		}
-
-		bodies = append(bodies, body)
-
-		// recursive
-		var moreBodies []string
-		moreBodies, err = e.resolveComponents0(spec.Components, key, seen)
-		if err != nil {
-			return
-		}
-
-		bodies = append(bodies, moreBodies...)
+		return
 	}
 
+	err = recur(types)
+	if err != nil {
+		return
+	}
+
+	for _, body := range resolvedBodies {
+		bodies = append(bodies, body)
+	}
 	return
 }
 

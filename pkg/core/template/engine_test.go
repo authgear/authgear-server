@@ -6,6 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 )
 
 func TestResolveTemplateItem(t *testing.T) {
@@ -250,7 +251,7 @@ func TestResolveComponents(t *testing.T) {
 
 		actual, err := e.resolveComponents(spec.Components, "")
 		So(err, ShouldBeNil)
-		So(actual, ShouldResemble, expected)
+		So(actual, ShouldEqualStringSliceWithoutOrder, expected)
 	}
 
 	Convey("resolveComponents", t, func() {
