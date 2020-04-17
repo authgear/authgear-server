@@ -6,188 +6,107 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 )
 
-func TestEngine(t *testing.T) {
+func TestResolveTemplateItem(t *testing.T) {
 	const typeA config.TemplateItemType = "typeA"
 	const typeB config.TemplateItemType = "typeB"
 	const keyA = "keyA"
 	const keyB = "keyB"
 	specA := Spec{Type: typeA, IsKeyed: true}
-
-	Convey("Engine", t, func() {
-		Convey("resolveTemplateItem", func() {
-			cases := []struct {
-				TemplateItems         []config.TemplateItem
-				PreferredLanguageTags []string
-
-				Spec Spec
-				Key  string
-
-				Expected *config.TemplateItem
-			}{
-				{
-					// No TemplateItems
-					Spec:     specA,
-					Expected: nil,
-				},
-				{
-					// Select type
-					TemplateItems: []config.TemplateItem{
-						config.TemplateItem{
-							Type: typeA,
-						},
-						config.TemplateItem{
-							Type: typeB,
-						},
-					},
-					Spec: specA,
-					Expected: &config.TemplateItem{
-						Type: typeA,
-					},
-				},
-				{
-					// Select key
-					TemplateItems: []config.TemplateItem{
-						config.TemplateItem{
-							Type: typeA,
-						},
-						config.TemplateItem{
-							Type: typeB,
-						},
-						config.TemplateItem{
-							Type: typeA,
-							Key:  keyA,
-						},
-						config.TemplateItem{
-							Type: typeA,
-							Key:  keyB,
-						},
-					},
-					Spec: specA,
-					Key:  keyA,
-					Expected: &config.TemplateItem{
-						Type: typeA,
-						Key:  keyA,
-					},
-				},
-				{
-					// Select the empty language tag
-					// If no preferred languages are given.
-					TemplateItems: []config.TemplateItem{
-						config.TemplateItem{
-							Type: typeA,
-							URI:  "default",
-						},
-						config.TemplateItem{
-							Type:        typeA,
-							LanguageTag: "en-US",
-							URI:         "American English",
-						},
-						config.TemplateItem{
-							Type:        typeA,
-							LanguageTag: "zh-Hant-HK",
-							URI:         "Traditional Chinese in Hong Kong",
-						},
-					},
-					Spec: specA,
-					Expected: &config.TemplateItem{
-						Type: typeA,
-						URI:  "default",
-					},
-				},
-				{
-					// Select the empty language tag
-					// If no preferred languages can be matched.
-					TemplateItems: []config.TemplateItem{
-						config.TemplateItem{
-							Type: typeA,
-							URI:  "default",
-						},
-						config.TemplateItem{
-							Type:        typeA,
-							LanguageTag: "en-US",
-							URI:         "American English",
-						},
-						config.TemplateItem{
-							Type:        typeA,
-							LanguageTag: "zh-Hant-HK",
-							URI:         "Traditional Chinese in Hong Kong",
-						},
-					},
-					PreferredLanguageTags: []string{"ja-JP"},
-					Spec:                  specA,
-					Expected: &config.TemplateItem{
-						Type: typeA,
-						URI:  "default",
-					},
-				},
-				{
-					// Select the best language tag.
-					TemplateItems: []config.TemplateItem{
-						config.TemplateItem{
-							Type: typeA,
-							URI:  "default",
-						},
-						config.TemplateItem{
-							Type:        typeA,
-							LanguageTag: "en-US",
-							URI:         "American English",
-						},
-						config.TemplateItem{
-							Type:        typeA,
-							LanguageTag: "zh-Hant-HK",
-							URI:         "Traditional Chinese in Hong Kong",
-						},
-					},
-					PreferredLanguageTags: []string{"en"},
-					Spec:                  specA,
-					Expected: &config.TemplateItem{
-						Type:        typeA,
-						LanguageTag: "en-US",
-						URI:         "American English",
-					},
-				},
-				{
-					// Select the best language tag.
-					TemplateItems: []config.TemplateItem{
-						config.TemplateItem{
-							Type: typeA,
-							URI:  "default",
-						},
-						config.TemplateItem{
-							Type:        typeA,
-							LanguageTag: "en-US",
-							URI:         "American English",
-						},
-						config.TemplateItem{
-							Type:        typeA,
-							LanguageTag: "zh-Hant-HK",
-							URI:         "Traditional Chinese in Hong Kong",
-						},
-					},
-					PreferredLanguageTags: []string{"ja-JP", "en-GB"},
-					Spec:                  specA,
-					Expected: &config.TemplateItem{
-						Type:        typeA,
-						LanguageTag: "en-US",
-						URI:         "American English",
-					},
-				},
+	Convey("resolveTemplateItem", t, func() {
+		test := func(templateItems []config.TemplateItem, tags []string, key string, expected *config.TemplateItem) {
+			e := NewEngine(NewEngineOptions{
+				TemplateItems: templateItems,
+			})
+			e = e.WithPreferredLanguageTags(tags)
+			actual, err := e.resolveTemplateItem(specA, key)
+			if expected == nil {
+				So(err, ShouldBeError)
+			} else {
+				So(actual, ShouldResemble, expected)
 			}
-			for _, c := range cases {
-				e := NewEngine(NewEngineOptions{
-					TemplateItems: c.TemplateItems,
-				})
-				e = e.WithPreferredLanguageTags(c.PreferredLanguageTags)
+		}
 
-				actual, err := e.resolveTemplateItem(c.Spec, c.Key)
-				if c.Expected == nil {
-					So(err, ShouldBeError)
-				} else {
-					So(actual, ShouldResemble, c.Expected)
-				}
-			}
+		// No TemplateItems
+		test(nil, nil, "", nil)
+
+		// Select type
+		test([]config.TemplateItem{
+			config.TemplateItem{
+				Type: typeA,
+			},
+			config.TemplateItem{
+				Type: typeB,
+			},
+		}, nil, "", &config.TemplateItem{
+			Type: typeA,
+		})
+
+		// Select key
+		test([]config.TemplateItem{
+			config.TemplateItem{
+				Type: typeA,
+			},
+			config.TemplateItem{
+				Type: typeB,
+			},
+			config.TemplateItem{
+				Type: typeA,
+				Key:  keyA,
+			},
+			config.TemplateItem{
+				Type: typeA,
+				Key:  keyB,
+			},
+		}, nil, keyA, &config.TemplateItem{
+			Type: typeA,
+			Key:  keyA,
+		})
+
+		// Select the empty language tag
+		// If no preferred languages are given.
+		test([]config.TemplateItem{
+			config.TemplateItem{
+				Type: typeA,
+				URI:  "default",
+			},
+			config.TemplateItem{
+				Type:        typeA,
+				LanguageTag: "en-US",
+				URI:         "American English",
+			},
+			config.TemplateItem{
+				Type:        typeA,
+				LanguageTag: "zh-Hant-HK",
+				URI:         "Traditional Chinese in Hong Kong",
+			},
+		}, nil, "", &config.TemplateItem{
+			Type: typeA,
+			URI:  "default",
+		})
+
+		// Select the best language tag.
+		test([]config.TemplateItem{
+			config.TemplateItem{
+				Type: typeA,
+				URI:  "default",
+			},
+			config.TemplateItem{
+				Type:        typeA,
+				LanguageTag: "en-US",
+				URI:         "American English",
+			},
+			config.TemplateItem{
+				Type:        typeA,
+				LanguageTag: "zh-Hant-HK",
+				URI:         "Traditional Chinese in Hong Kong",
+			},
+		}, []string{"en"}, "", &config.TemplateItem{
+			Type:        typeA,
+			LanguageTag: "en-US",
+			URI:         "American English",
 		})
 	})
 }
@@ -276,6 +195,74 @@ func TestResolveTranslations(t *testing.T) {
 				"ja": "世界",
 			},
 		})
+	})
+}
+
+func TestResolveComponents(t *testing.T) {
+	componentA := Spec{
+		Type:    "componentA",
+		Default: "componentA",
+	}
+	componentB := Spec{
+		Type:    "componentB",
+		Default: "componentB",
+	}
+	componentC := Spec{
+		Type:       "componentC",
+		Default:    "componentC",
+		Components: []config.TemplateItemType{"componentA", "componentB"},
+	}
+	pageA := Spec{
+		Type:    "pageA",
+		Default: "pageA",
+	}
+	pageB := Spec{
+		Type:       "pageB",
+		Default:    "pageB",
+		Components: []config.TemplateItemType{"componentA"},
+	}
+	pageC := Spec{
+		Type:       "pageC",
+		Default:    "pageC",
+		Components: []config.TemplateItemType{"componentC"},
+	}
+	pageD := Spec{
+		Type:       "pageD",
+		Default:    "pageD",
+		Components: []config.TemplateItemType{"componentA", "componentC"},
+	}
+
+	specs := []Spec{
+		componentA,
+		componentB,
+		componentC,
+		pageA,
+		pageB,
+		pageC,
+		pageD,
+	}
+
+	test := func(spec Spec, expected []string) {
+		e := NewEngine(NewEngineOptions{})
+		for _, s := range specs {
+			e.Register(s)
+		}
+		e.loader = &mockLoader{}
+
+		actual, err := e.resolveComponents(spec.Components, "")
+		So(err, ShouldBeNil)
+		So(actual, ShouldEqualStringSliceWithoutOrder, expected)
+	}
+
+	Convey("resolveComponents", t, func() {
+		// No components
+		test(pageA, nil)
+		// Only one component
+		test(pageB, []string{"componentA"})
+		// Transitive components
+		test(pageC, []string{"componentC", "componentA", "componentB"})
+		// Duplicate transitive components
+		test(pageD, []string{"componentA", "componentC", "componentB"})
 	})
 }
 

@@ -46,7 +46,13 @@ func NewEngineWithConfig(
 	e.Register(mfa.TemplateMFAOOBCodeEmailTXT)
 	e.Register(mfa.TemplateMFAOOBCodeEmailHTML)
 
+	// Auth UI
 	e.Register(webapp.TemplateAuthUITranslationJSON)
+
+	e.Register(webapp.TemplateAuthUIHTMLHeadHTML)
+	e.Register(webapp.TemplateAuthUIHeaderHTML)
+	e.Register(webapp.TemplateAuthUIFooterHTML)
+
 	e.Register(webapp.TemplateAuthUILoginHTML)
 	e.Register(webapp.TemplateAuthUILoginPasswordHTML)
 	e.Register(webapp.TemplateAuthUISignupHTML)

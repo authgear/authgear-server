@@ -6,6 +6,10 @@ import (
 )
 
 const (
+	TemplateItemTypeAuthUIHTMLHeadHTML config.TemplateItemType = "auth_ui_html_head.html"
+	TemplateItemTypeAuthUIHeaderHTML   config.TemplateItemType = "auth_ui_header.html"
+	TemplateItemTypeAuthUIFooterHTML   config.TemplateItemType = "auth_ui_footer.html"
+
 	TemplateItemTypeAuthUILoginHTML config.TemplateItemType = "auth_ui_login.html"
 	// nolint: gosec
 	TemplateItemTypeAuthUILoginPasswordHTML config.TemplateItemType = "auth_ui_login_password.html"
@@ -16,8 +20,11 @@ const (
 	TemplateItemTypeAuthUILogoutHTML         config.TemplateItemType = "auth_ui_logout.html"
 )
 
-const defineHead = `
-{{ define "HEAD" }}
+var TemplateAuthUIHTMLHeadHTML = template.Spec{
+	Type:   TemplateItemTypeAuthUIHTMLHeadHTML,
+	IsHTML: true,
+	Default: `
+{{ define "auth_ui_html_head.html" }}
 <head>
 <title>{{ .client_name }}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,17 +37,32 @@ const defineHead = `
 {{ end }}
 </head>
 {{ end }}
-`
+`,
+}
 
-const defineLogo = `
-{{ define "LOGO" }}
+var TemplateAuthUIHeaderHTML = template.Spec{
+	Type:   TemplateItemTypeAuthUIHeaderHTML,
+	IsHTML: true,
+	Default: `
+{{ define "auth_ui_header.html" }}
 {{ if .logo_uri }}
 <div class="logo" style="background-image: url('{{ .logo_uri }}'); background-position: center; background-size: contain; background-repeat: no-repeat"></div>
 {{ else }}
 <div class="logo"></div>
 {{ end }}
 {{ end }}
-`
+`,
+}
+
+var TemplateAuthUIFooterHTML = template.Spec{
+	Type:   TemplateItemTypeAuthUIFooterHTML,
+	IsHTML: true,
+	Default: `
+{{ define "auth_ui_footer.html" }}
+<div class="skygear-logo"></div>
+{{ end }}
+`,
+}
 
 const defineError = `
 {{ define "ERROR" }}
@@ -84,12 +106,6 @@ const defineError = `
 {{ end }}
 `
 
-const defineSkygearLogo = `
-{{ define "SKYGEAR_LOGO" }}
-<div class="skygear-logo"></div>
-{{ end }}
-`
-
 // nolint: gosec
 const definePasswordPolicyClass = `
 {{- define "PASSWORD_POLICY_CLASS" -}}
@@ -104,11 +120,14 @@ passed
 `
 
 var defines = []string{
-	defineHead,
-	defineLogo,
 	defineError,
-	defineSkygearLogo,
 	definePasswordPolicyClass,
+}
+
+var components = []config.TemplateItemType{
+	TemplateItemTypeAuthUIHTMLHeadHTML,
+	TemplateItemTypeAuthUIHeaderHTML,
+	TemplateItemTypeAuthUIFooterHTML,
 }
 
 var TemplateAuthUILoginHTML = template.Spec{
@@ -116,12 +135,13 @@ var TemplateAuthUILoginHTML = template.Spec{
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
+	Components:  components,
 	Default: `<!DOCTYPE html>
 <html>
-{{ template "HEAD" . }}
+{{ template "auth_ui_html_head.html" . }}
 <body class="page">
 	<div class="content">
-		{{ template "LOGO" . }}
+		{{ template "auth_ui_header.html" . }}
 		<div class="authorize-form">
 			<form class="authorize-idp-form" method="post">
 				{{ $.csrfField }}
@@ -198,7 +218,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 				{{ end }}
 			</form>
 		</div>
-		{{ template "SKYGEAR_LOGO" . }}
+		{{ template "auth_ui_footer.html" . }}
 	</div>
 </body>
 </html>
@@ -210,13 +230,14 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
+	Components:  components,
 	Default: `<!DOCTYPE html>
 <html>
-{{ template "HEAD" . }}
+{{ template "auth_ui_html_head.html" . }}
 <body class="page">
 <div class="content">
 
-{{ template "LOGO" . }}
+{{ template "auth_ui_header.html" . }}
 
 <form class="enter-password-form" method="post">
 {{ $.csrfField }}
@@ -250,7 +271,7 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-password-button-label" }}</button>
 
 </form>
-{{ template "SKYGEAR_LOGO" . }}
+{{ template "auth_ui_footer.html" . }}
 
 </div>
 </body>
@@ -263,12 +284,13 @@ var TemplateAuthUISignupHTML = template.Spec{
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
+	Components:  components,
 	Default: `<!DOCTYPE html>
 <html>
-{{ template "HEAD" . }}
+{{ template "auth_ui_html_head.html" . }}
 <body class="page">
 	<div class="content">
-		{{ template "LOGO" . }}
+		{{ template "auth_ui_header.html" . }}
 		<div class="authorize-form">
 			{{ template "ERROR" . }}
 
@@ -320,7 +342,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 				</button>
 			</form>
 		</div>
-		{{ template "SKYGEAR_LOGO" . }}
+		{{ template "auth_ui_footer.html" . }}
 	</div>
 </body>
 </html>
@@ -332,13 +354,14 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
+	Components:  components,
 	Default: `<!DOCTYPE html>
 <html>
-{{ template "HEAD" . }}
+{{ template "auth_ui_html_head.html" . }}
 <body class="page">
 <div class="content">
 
-{{ template "LOGO" . }}
+{{ template "auth_ui_header.html" . }}
 
 <form class="enter-password-form" method="post">
 {{ $.csrfField }}
@@ -440,7 +463,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 {{ end }}
 
 </form>
-{{ template "SKYGEAR_LOGO" . }}
+{{ template "auth_ui_footer.html" . }}
 
 </div>
 </body>
@@ -453,19 +476,20 @@ var TemplateAuthUISettingsHTML = template.Spec{
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
+	Components:  components,
 	Default: `<!DOCTYPE html>
 <html>
-{{ template "HEAD" . }}
+{{ template "auth_ui_html_head.html" . }}
 <body class="page">
 <div class="content">
 
-{{ template "LOGO" . }}
+{{ template "auth_ui_header.html" . }}
 
 <div class="settings-form">
   You are authenticated. To logout, please visit <a href="/logout">here</a>.
 </div>
 
-{{ template "SKYGEAR_LOGO" . }}
+{{ template "auth_ui_footer.html" . }}
 
 </div>
 </body>
@@ -478,13 +502,14 @@ var TemplateAuthUILogoutHTML = template.Spec{
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
+	Components:  components,
 	Default: `<!DOCTYPE html>
 <html>
-{{ template "HEAD" . }}
+{{ template "auth_ui_html_head.html" . }}
 <body class="page">
 <div class="content">
 
-{{ template "LOGO" . }}
+{{ template "auth_ui_header.html" . }}
 
 <form class="logout-form" method="post">
   {{ $.csrfField }}
@@ -492,7 +517,7 @@ var TemplateAuthUILogoutHTML = template.Spec{
   <button class="btn primary-btn align-self-center" type="submit" name="x_action" value="logout">{{ localize "logout-button-label" }}</button>
 </form>
 
-{{ template "SKYGEAR_LOGO" . }}
+{{ template "auth_ui_footer.html" . }}
 
 </div>
 </body>

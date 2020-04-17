@@ -18,4 +18,7 @@ type Spec struct {
 	Defines []string `json:"-"`
 	// Translation expresses that this template depends on another template to provide translation.
 	Translation config.TemplateItemType `json:"-"`
+	// Components is a list of components that this template depends on.
+	// Defines and Translation of components are ignored.
+	Components []config.TemplateItemType `json:"-"`
 }

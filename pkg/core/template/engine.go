@@ -30,6 +30,7 @@ type resolveResult struct {
 	//   }
 	// }
 	Translations map[string]map[string]string
+	Components   []string
 }
 
 type NewEngineOptions struct {
@@ -98,10 +99,13 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context ma
 		return
 	}
 
+	defines := []string{}
+	defines = append(defines, result.Spec.Defines...)
+	defines = append(defines, result.Components...)
 	renderOptions := RenderOptions{
 		Name:          string(templateType),
 		TemplateBody:  result.TemplateBody,
-		Defines:       result.Spec.Defines,
+		Defines:       defines,
 		Context:       context,
 		ValidatorOpts: e.validatorOptions,
 	}
@@ -129,18 +133,9 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options R
 		panic("template: unregistered template type: " + templateType)
 	}
 
-	// Resolve the template body
-	// Take the default value by default
-	templateBody := spec.Default
-	templateItem, err := e.resolveTemplateItem(spec, options.Key)
+	templateBody, err := e.loadTemplateBody(spec, options.Key)
 	if err != nil {
-		// No template item can be resolved. Fallback to default.
-		err = nil
-	} else {
-		templateBody, err = e.loader.Load(templateItem.URI)
-		if err != nil {
-			return
-		}
+		return
 	}
 
 	// Resolve the translations, if any
@@ -152,10 +147,34 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options R
 		}
 	}
 
+	// Resolve components
+	components, err := e.resolveComponents(spec.Components, options.Key)
+	if err != nil {
+		return
+	}
+
 	result = &resolveResult{
-		TemplateBody: templateBody,
 		Spec:         spec,
+		TemplateBody: templateBody,
 		Translations: translations,
+		Components:   components,
+	}
+
+	return
+}
+
+func (e *Engine) loadTemplateBody(spec Spec, key string) (templateBody string, err error) {
+	// Take the default value by default
+	templateBody = spec.Default
+	templateItem, err := e.resolveTemplateItem(spec, key)
+	if err != nil {
+		// No template item can be resolved. Fallback to default.
+		err = nil
+	} else {
+		templateBody, err = e.loader.Load(templateItem.URI)
+		if err != nil {
+			return
+		}
 	}
 	return
 }
@@ -256,6 +275,51 @@ func (e *Engine) resolveTranslations(templateType config.TemplateItemType) (tran
 		insertTranslation(translations, item.LanguageTag, translation)
 	}
 
+	return
+}
+
+func (e *Engine) resolveComponents(types []config.TemplateItemType, key string) (bodies []string, err error) {
+	resolvedBodies := make(map[config.TemplateItemType]string)
+
+	// We need to declare it first otherwise recur cannot reference itself.
+	var recur func(types []config.TemplateItemType) (err error)
+
+	recur = func(types []config.TemplateItemType) (err error) {
+		for _, templateType := range types {
+			// Do not need to load the same type more than once.
+			_, ok := resolvedBodies[templateType]
+			if ok {
+				continue
+			}
+
+			spec, ok := e.TemplateSpecs[templateType]
+			if !ok {
+				panic("template: unregistered template type: " + templateType)
+			}
+			var body string
+			body, err = e.loadTemplateBody(spec, key)
+			if err != nil {
+				return
+			}
+
+			resolvedBodies[templateType] = body
+
+			err = recur(spec.Components)
+			if err != nil {
+				return
+			}
+		}
+		return
+	}
+
+	err = recur(types)
+	if err != nil {
+		return
+	}
+
+	for _, body := range resolvedBodies {
+		bodies = append(bodies, body)
+	}
 	return
 }
 
