@@ -36,19 +36,19 @@ func (p *Provider) GetInteraction(token string) (*Interaction, error) {
 		return nil, err
 	}
 
-	if !i.IsNewIdentity(i.Identity.ID) {
+	if i.Identity != nil && !i.IsNewIdentity(i.Identity.ID) {
 		if i.Identity, err = p.Identity.Get(
 			i.UserID, i.Identity.Type, i.Identity.ID); err != nil {
 			return nil, err
 		}
 	}
-	if !i.IsNewAuthenticator(i.PrimaryAuthenticator.ID) {
+	if i.PrimaryAuthenticator != nil && !i.IsNewAuthenticator(i.PrimaryAuthenticator.ID) {
 		if i.PrimaryAuthenticator, err = p.Authenticator.Get(
 			i.UserID, i.PrimaryAuthenticator.Type, i.PrimaryAuthenticator.ID); err != nil {
 			return nil, err
 		}
 	}
-	if !i.IsNewAuthenticator(i.SecondaryAuthenticator.ID) {
+	if i.SecondaryAuthenticator != nil && !i.IsNewAuthenticator(i.SecondaryAuthenticator.ID) {
 		if i.SecondaryAuthenticator, err = p.Authenticator.Get(
 			i.UserID, i.SecondaryAuthenticator.Type, i.SecondaryAuthenticator.ID); err != nil {
 			return nil, err
