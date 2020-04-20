@@ -250,6 +250,7 @@ func main() {
 	webapphandler.AttachLoginPasswordHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachSignupHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachSignupPasswordHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachForgotPasswordHandler(webappAuthRouter, authDependency)
 
 	webappAuthenticatedRouter := webappRouter.NewRoute().Subrouter()
 	webappAuthenticatedRouter.Use(webapp.RequireAuthenticatedMiddleware{}.Handle)

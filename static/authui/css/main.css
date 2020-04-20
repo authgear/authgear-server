@@ -345,3 +345,41 @@ button.anchor {
 .logout-form .logout-btn {
   align-self: center;
 }
+
+.forgot-password-form {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.forgot-password-form .title {
+  font-size: 24px;
+  font-weight: 600;
+  padding: 8px 0;
+  margin: 0 0 12px 0;
+}
+
+.forgot-password-form .description {
+  font-size: 12px;
+  padding: 8px 0;
+  margin: 12px 0;
+}
+
+.forgot-password-form .login-id {
+  padding: 0 10px;
+}
+
+.forgot-password-form .nav-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.forgot-password-form .anchor {
+  display: block;
+  padding: 4px 0;
+}
+
+.forgot-password-form .submit-btn {
+  margin: 24px 0 0 0;
+}

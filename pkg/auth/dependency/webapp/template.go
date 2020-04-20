@@ -16,6 +16,7 @@ const (
 	TemplateItemTypeAuthUISignupHTML        config.TemplateItemType = "auth_ui_signup.html"
 	// nolint: gosec
 	TemplateItemTypeAuthUISignupPasswordHTML config.TemplateItemType = "auth_ui_signup_password.html"
+	TemplateItemTypeAuthUIForgotPasswordHTML config.TemplateItemType = "auth_ui_forgot_password.html"
 	TemplateItemTypeAuthUISettingsHTML       config.TemplateItemType = "auth_ui_settings.html"
 	TemplateItemTypeAuthUILogoutHTML         config.TemplateItemType = "auth_ui_logout.html"
 )
@@ -211,7 +212,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 					<span class="primary-text">{{ localize "signup-button-hint" }}</span>
 					<a class="anchor" href="{{ call .MakeURLWithPath "/signup" }}">{{ localize "signup-button-label" }}</a>
 				</div>
-				<a class="link anchor align-self-flex-start" href="#">{{ localize "forgot-password-button-label" }}</a>
+				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithPath "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
 
 				{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-login-id-button-label" }}</button>
@@ -279,6 +280,46 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 `,
 }
 
+var TemplateAuthUIForgotPasswordHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIForgotPasswordHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
+	Components:  components,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "auth_ui_header.html" . }}
+
+<form class="forgot-password-form" method="post">
+{{ $.csrfField }}
+
+<div class="nav-bar">
+	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
+</div>
+
+<div class="title primary-txt">{{ localize "forgot-password-page-title" }}</div>
+
+{{ template "ERROR" . }}
+
+<div class="description primary-txt">{{ localize "forgot-password-description" }}</div>
+
+<input class="input text-input" type="text" name="x_login_id" placeholder="{{ localize "email-placeholder" }}" value="{{ .x_login_id }}">
+
+<button class="btn primary-btn submit-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-login-id-button-label" }}</button>
+
+</form>
+{{ template "auth_ui_footer.html" . }}
+
+</div>
+</body>
+</html>
+`,
+}
+
 var TemplateAuthUISignupHTML = template.Spec{
 	Type:        TemplateItemTypeAuthUISignupHTML,
 	IsHTML:      true,
@@ -335,7 +376,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 					<span class="primary-text">{{ localize "login-button-hint" }}</span>
 					<a class="anchor" href="{{ call .MakeURLWithPath "/login" }}">{{ localize "login-button-label" }}<a>
 				</div>
-				<a class="link anchor align-self-flex-start" href="#">{{ localize "forgot-password-button-label" }}</a>
+				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithPath "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
 
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">
 					{{ localize "confirm-login-id-button-label" }}

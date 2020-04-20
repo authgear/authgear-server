@@ -65,6 +65,10 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"password-policy-guessable-level-5": "Very unguessable",
 	"sms-charge-warning": "By providing your phone number, you agree to receive service notifications to your mobile phone. Text messaging rates may apply.",
 
+	"forgot-password-page-title": "Forgot Password",
+	"email-placeholder": "Email",
+	"forgot-password-description": "Enter your email to request instruction to reset your password",
+
 	"logout-button-hint": "To logout, please click the button below.",
 	"logout-button-label": "Logout"
 	}`,

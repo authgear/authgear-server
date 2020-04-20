@@ -46,6 +46,15 @@ func newLoginPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler 
 	return nil
 }
 
+func newForgotPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Struct(new(ForgotPasswordHandler), "*"),
+		wire.Bind(new(http.Handler), new(*ForgotPasswordHandler)),
+	)
+	return nil
+}
+
 func newSignupHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
