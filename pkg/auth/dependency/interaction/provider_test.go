@@ -16,13 +16,14 @@ func TestProvider(t *testing.T) {
 			Convey("Signup", func() {
 				Convey("step 1", func() {
 					i, err := p.NewInteraction(
-						interaction.IntentSignup{
+						&interaction.IntentSignup{
 							Identity: interaction.IdentitySpec{
 								Type:   interaction.IdentityTypeLoginID,
 								Claims: map[string]interface{}{"email": "user@example.com"},
 							},
 							UserMetadata: map[string]interface{}{},
 						},
+						"",
 						nil,
 					)
 					So(err, ShouldBeNil)
@@ -72,10 +73,11 @@ func TestProvider(t *testing.T) {
 			Convey("Login", func() {
 				Convey("step 1", func() {
 					i, err := p.NewInteraction(
-						interaction.IntentLogin{Identity: interaction.IdentitySpec{
+						&interaction.IntentLogin{Identity: interaction.IdentitySpec{
 							Type:   interaction.IdentityTypeLoginID,
 							Claims: map[string]interface{}{"email": "user@example.com"},
 						}},
+						"",
 						nil,
 					)
 					So(err, ShouldBeNil)
@@ -126,7 +128,7 @@ func TestProvider(t *testing.T) {
 		Convey("SSO flow with MFA", func() {
 			Convey("step 1", func() {
 				i, err := p.NewInteraction(
-					interaction.IntentLogin{
+					&interaction.IntentLogin{
 						Identity: interaction.IdentitySpec{
 							Type: interaction.IdentityTypeOAuth,
 							Claims: map[string]interface{}{
@@ -139,6 +141,7 @@ func TestProvider(t *testing.T) {
 							},
 						},
 					},
+					"",
 					nil,
 				)
 				So(err, ShouldBeNil)
@@ -192,7 +195,7 @@ func TestProvider(t *testing.T) {
 		Convey("Setup MFA", func() {
 			Convey("step 1", func() {
 				i, err := p.NewInteraction(
-					interaction.IntentAddAuthenticator{
+					&interaction.IntentAddAuthenticator{
 						Authenticator: interaction.AuthenticatorSpec{
 							Type: interaction.AuthenticatorTypeTOTP,
 							Props: map[string]interface{}{
@@ -200,6 +203,7 @@ func TestProvider(t *testing.T) {
 							},
 						},
 					},
+					"",
 					nil,
 				)
 				So(err, ShouldBeNil)
