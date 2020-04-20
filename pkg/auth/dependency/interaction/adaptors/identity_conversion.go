@@ -1,9 +1,26 @@
 package adaptors
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 )
+
+func loginIDToIdentityInfo(l *loginid.Identity) *interaction.IdentityInfo {
+	claims := map[string]interface{}{
+		interaction.IdentityClaimLoginIDUniqueKey: l.UniqueKey,
+	}
+	for k, v := range l.Claims {
+		claims[k] = v
+	}
+
+	return &interaction.IdentityInfo{
+		Type:     interaction.IdentityTypeLoginID,
+		ID:       l.ID,
+		Claims:   claims,
+		Identity: l,
+	}
+}
 
 func oauthToIdentityInfo(o *oauth.Identity) *interaction.IdentityInfo {
 	provider := map[string]interface{}{

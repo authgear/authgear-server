@@ -9,6 +9,7 @@ import (
 
 type IdentityProvider interface {
 	Get(userID string, typ IdentityType, id string) (*IdentityInfo, error)
+	GetByClaims(typ IdentityType, claims map[string]interface{}) (string, *IdentityInfo, error)
 }
 
 type AuthenticatorProvider interface {
