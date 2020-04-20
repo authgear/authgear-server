@@ -69,7 +69,7 @@ func TestProvider(t *testing.T) {
 					So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
 					So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
 
-					err = p.Commit(i)
+					_, err = p.Commit(i)
 					So(err, ShouldBeNil)
 				})
 			})
@@ -127,7 +127,7 @@ func TestProvider(t *testing.T) {
 					So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
 					So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
 
-					err = p.Commit(i)
+					_, err = p.Commit(i)
 					So(err, ShouldBeNil)
 				})
 			})
@@ -199,7 +199,7 @@ func TestProvider(t *testing.T) {
 				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
 				So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
 
-				err = p.Commit(i)
+				_, err = p.Commit(i)
 				So(err, ShouldBeNil)
 			})
 		})
@@ -244,7 +244,7 @@ func TestProvider(t *testing.T) {
 				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupSecondaryAuthenticator)
 				So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
 
-				err = p.Commit(i)
+				_, err = p.Commit(i)
 				So(err, ShouldBeNil)
 			})
 		})

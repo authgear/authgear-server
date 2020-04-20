@@ -3,6 +3,7 @@ package interaction
 import (
 	gotime "time"
 
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
@@ -74,7 +75,13 @@ func (p *Provider) SaveInteraction(i *Interaction) (string, error) {
 	return i.Token, nil
 }
 
-func (p *Provider) Commit(i *Interaction) error {
-	// TODO(interaction): do something
-	return nil
+func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
+	// TODO(interaction): create new identities & authenticators
+
+	// TODO(interaction): simplify authn attrs and populate them
+	attrs := &authn.Attrs{
+		UserID:        i.UserID,
+		PrincipalType: authn.PrincipalType(i.Identity.Type),
+	}
+	return attrs, nil
 }
