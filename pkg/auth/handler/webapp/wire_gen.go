@@ -236,6 +236,7 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context)
+	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -244,8 +245,12 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
 	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
+	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
+		ValidateProvider: validateProvider,
+		RenderProvider:   renderProvider,
+	}
 	forgotPasswordHandler := &ForgotPasswordHandler{
-		RenderProvider: renderProvider,
+		Provider: webappForgotPasswordProvider,
 	}
 	return forgotPasswordHandler
 }

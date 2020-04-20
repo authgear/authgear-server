@@ -34,6 +34,7 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"phone-number-placeholder": "Phone number",
 	"login-id-placeholder": "Email or username",
 	"use-text-login-id-description": "Use email or username instead",
+	"use-email-login-id-description": "Use email instead",
 	"use-phone-login-id-description": "Use phone number instead",
 	"signup-button-hint": "Don''t have an account yet? ",
 	"signup-button-label": "Create one!",
@@ -67,7 +68,8 @@ var TemplateAuthUITranslationJSON = template.Spec{
 
 	"forgot-password-page-title": "Forgot Password",
 	"email-placeholder": "Email",
-	"forgot-password-description": "Enter your email to request instruction to reset your password",
+	"forgot-password-email-description": "Enter your email to request instruction to reset your password",
+	"forgot-password-phone-description": "Enter your phone to request instruction to reset your password",
 
 	"logout-button-hint": "To logout, please click the button below.",
 	"logout-button-label": "Logout"

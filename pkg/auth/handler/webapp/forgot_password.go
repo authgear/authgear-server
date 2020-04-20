@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 )
 
 func AttachForgotPasswordHandler(
@@ -19,10 +18,23 @@ func AttachForgotPasswordHandler(
 		Handler(auth.MakeHandler(authDependency, newForgotPasswordHandler))
 }
 
+type forgotPasswordProvider interface {
+	GetForgotPasswordForm(w http.ResponseWriter, r *http.Request) (func(error), error)
+}
+
 type ForgotPasswordHandler struct {
-	RenderProvider webapp.RenderProvider
+	Provider forgotPasswordProvider
 }
 
 func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.RenderProvider.WritePage(w, r, webapp.TemplateItemTypeAuthUIForgotPasswordHTML, map[string]interface{}{})
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if r.Method == "GET" {
+		writeResponse, err := h.Provider.GetForgotPasswordForm(w, r)
+		writeResponse(err)
+		return
+	}
 }

@@ -305,11 +305,40 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
-<div class="description primary-txt">{{ localize "forgot-password-description" }}</div>
+{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
+<div class="description primary-txt">{{ localize "forgot-password-phone-description" }}</div>
+<div class="phone-input">
+	<select class="input select" name="x_calling_code">
+		{{ range .x_calling_codes }}
+		<option
+			value="{{ . }}"
+			{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
+			selected
+			{{ end }}{{ end }}
+			>
+			+{{ . }}
+		</option>
+		{{ end }}
+	</select>
+	<input class="input text-input" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ .x_national_number }}">
+</div>
+{{ end }}{{ end }}
 
+{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_text }}
+<div class="description primary-txt">{{ localize "forgot-password-email-description" }}</div>
 <input class="input text-input" type="text" name="x_login_id" placeholder="{{ localize "email-placeholder" }}" value="{{ .x_login_id }}">
+{{ end }}{{ end }}
 
+{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
+<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "text" }}">{{ localize "use-email-login-id-description" }}</a>
+{{ end }}{{ end }}
+{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone }}
+<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "phone" }}">{{ localize "use-phone-login-id-description" }}</a>
+{{ end }}{{ end }}
+
+{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
 <button class="btn primary-btn submit-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-login-id-button-label" }}</button>
+{{ end }}
 
 </form>
 {{ template "auth_ui_footer.html" . }}
