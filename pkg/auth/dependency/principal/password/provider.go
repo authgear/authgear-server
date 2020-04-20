@@ -218,10 +218,20 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 	return p.store.GetPrincipalsByUserID(userID)
 }
 
+// GetPrincipalsByLoginID normalizes loginID and return matching principals.
 func (p *providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string) (principals []*Principal, err error) {
 	var result []*Principal
 	for _, loginIDKeyConfig := range p.loginIDsKeys {
 		if loginIDKey == "" || loginIDKeyConfig.Key == loginIDKey {
+			// Normalize expects loginID is in correct type so we have to validate it first.
+			invalid := p.loginIDChecker.ValidateOne(loginid.LoginID{
+				Key:   loginIDKeyConfig.Key,
+				Value: loginID,
+			})
+			if invalid != nil {
+				continue
+			}
+
 			normalizer := p.loginIDNormalizerFactory.NormalizerWithLoginIDKey(loginIDKeyConfig.Key)
 			normalizedloginID, e := normalizer.Normalize(loginID)
 			if e != nil {
