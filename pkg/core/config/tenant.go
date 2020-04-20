@@ -375,13 +375,13 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 	if len(c.AppConfig.Authentication.PrimaryAuthenticators) == 0 {
 		c.AppConfig.Authentication.PrimaryAuthenticators = []string{
-			"oauth",
 			"password",
 		}
 	}
 	if c.AppConfig.Authentication.SecondaryAuthenticators == nil {
 		c.AppConfig.Authentication.SecondaryAuthenticators = []string{
-			"otp",
+			"totp",
+			"oob_otp",
 			"bearer_token",
 		}
 	}

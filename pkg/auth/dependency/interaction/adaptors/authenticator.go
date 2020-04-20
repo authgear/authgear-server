@@ -11,22 +11,27 @@ import (
 
 type PasswordAuthenticatorProvider interface {
 	Get(userID, id string) (*password.Authenticator, error)
+	List(userID string) ([]*password.Authenticator, error)
 }
 
 type TOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*totp.Authenticator, error)
+	List(userID string) ([]*totp.Authenticator, error)
 }
 
 type OOBOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*oob.Authenticator, error)
+	List(userID string) ([]*oob.Authenticator, error)
 }
 
 type BearerTokenAuthenticatorProvider interface {
 	Get(userID, id string) (*bearertoken.Authenticator, error)
+	List(userID string) ([]*bearertoken.Authenticator, error)
 }
 
 type RecoveryCodeAuthenticatorProvider interface {
 	Get(userID, id string) (*recoverycode.Authenticator, error)
+	List(userID string) ([]*recoverycode.Authenticator, error)
 }
 
 type AuthenticatorAdaptor struct {
@@ -76,4 +81,58 @@ func (a *AuthenticatorAdaptor) Get(userID string, typ interaction.AuthenticatorT
 	}
 
 	panic("interaction_adaptors: unknown authenticator type " + typ)
+}
+
+func (a *AuthenticatorAdaptor) List(userID string, typ interaction.AuthenticatorType) ([]*interaction.AuthenticatorInfo, error) {
+	var ais []*interaction.AuthenticatorInfo
+	switch typ {
+	case interaction.AuthenticatorTypePassword:
+		as, err := a.Password.List(userID)
+		if err != nil {
+			return nil, err
+		}
+		for _, a := range as {
+			ais = append(ais, passwordToAuthenticatorInfo(a))
+		}
+
+	case interaction.AuthenticatorTypeTOTP:
+		as, err := a.TOTP.List(userID)
+		if err != nil {
+			return nil, err
+		}
+		for _, a := range as {
+			ais = append(ais, totpToAuthenticatorInfo(a))
+		}
+
+	case interaction.AuthenticatorTypeOOBOTP:
+		as, err := a.OOBOTP.List(userID)
+		if err != nil {
+			return nil, err
+		}
+		for _, a := range as {
+			ais = append(ais, oobotpToAuthenticatorInfo(a))
+		}
+
+	case interaction.AuthenticatorTypeBearerToken:
+		as, err := a.BearerToken.List(userID)
+		if err != nil {
+			return nil, err
+		}
+		for _, a := range as {
+			ais = append(ais, bearerTokenToAuthenticatorInfo(a))
+		}
+
+	case interaction.AuthenticatorTypeRecoveryCode:
+		as, err := a.RecoveryCode.List(userID)
+		if err != nil {
+			return nil, err
+		}
+		for _, a := range as {
+			ais = append(ais, recoveryCodeToAuthenticatorInfo(a))
+		}
+
+	default:
+		panic("interaction_adaptors: unknown authenticator type " + typ)
+	}
+	return ais, nil
 }

@@ -250,14 +250,14 @@ var (
 				"type": "array",
 				"items": {
 					"type": "string",
-					"enum": ["oauth", "password", "otp"]
+					"enum": ["password", "totp", "oob_otp"]
 				}
 			},
 			"secondary_authenticators": {
 				"type": [ "array", "null" ],
 				"items": {
 					"type": "string",
-					"enum": ["otp", "bearer_token"]
+					"enum": ["totp", "oob_otp", "bearer_token"]
 				}
 			},
 			"secondary_authentication_mode": {

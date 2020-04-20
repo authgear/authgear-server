@@ -3,6 +3,7 @@ package interaction
 import (
 	gotime "time"
 
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -12,6 +13,7 @@ type IdentityProvider interface {
 
 type AuthenticatorProvider interface {
 	Get(userID string, typ AuthenticatorType, id string) (*AuthenticatorInfo, error)
+	List(userID string, typ AuthenticatorType) ([]*AuthenticatorInfo, error)
 }
 
 // TODO(interaction): configurable lifetime
@@ -22,6 +24,7 @@ type Provider struct {
 	Time          time.Provider
 	Identity      IdentityProvider
 	Authenticator AuthenticatorProvider
+	Config        *config.AuthenticationConfiguration
 }
 
 func (p *Provider) GetInteraction(token string) (*Interaction, error) {
