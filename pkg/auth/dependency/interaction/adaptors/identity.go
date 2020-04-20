@@ -60,6 +60,10 @@ func (a *IdentityAdaptor) GetByClaims(typ interaction.IdentityType, claims map[s
 			loginID = vs
 		}
 
+		if loginIDKey == interaction.IdentityClaimLoginIDValue {
+			loginIDKey = ""
+		}
+
 		l, err := a.LoginID.GetByLoginID(loginid.LoginID{Key: loginIDKey, Value: loginID})
 		if err != nil {
 			return "", nil, err
