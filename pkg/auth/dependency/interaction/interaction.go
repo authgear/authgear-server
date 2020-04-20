@@ -50,13 +50,14 @@ func (i *Interaction) IsNewAuthenticator(id string) bool {
 }
 
 func (i *Interaction) MarshalJSON() ([]byte, error) {
+	type interaction Interaction
 	type jsonInteraction struct {
-		*Interaction
+		*interaction
 		Intent     Intent     `json:"intent"`
 		IntentType IntentType `json:"intent_type"`
 	}
 	ji := jsonInteraction{
-		Interaction: i,
+		interaction: (*interaction)(i),
 		Intent:      i.Intent,
 		IntentType:  i.Intent.Type(),
 	}
@@ -64,12 +65,13 @@ func (i *Interaction) MarshalJSON() ([]byte, error) {
 }
 
 func (i *Interaction) UnmarshalJSON(data []byte) error {
+	type interaction Interaction
 	type jsonInteraction struct {
-		*Interaction
+		*interaction
 		Intent     json.RawMessage `json:"intent"`
 		IntentType IntentType      `json:"intent_type"`
 	}
-	ji := &jsonInteraction{Interaction: i}
+	ji := &jsonInteraction{interaction: (*interaction)(i)}
 	if err := json.Unmarshal(data, ji); err != nil {
 		return err
 	}
