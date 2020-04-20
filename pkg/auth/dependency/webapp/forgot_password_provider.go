@@ -69,6 +69,27 @@ func (p *ForgotPasswordProvider) PostForgotPasswordForm(w http.ResponseWriter, r
 	return
 }
 
+func (p *ForgotPasswordProvider) GetForgotPasswordSuccess(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	var state *State
+	writeResponse = func(err error) {
+		var anyError interface{}
+		anyError = err
+		if anyError == nil && state != nil {
+			anyError = state.Error
+		}
+		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUIForgotPasswordSuccessHTML, anyError)
+	}
+
+	state, err = p.restoreState(r)
+	if err != nil {
+		return
+	}
+
+	p.ValidateProvider.PrepareValues(r.Form)
+
+	return
+}
+
 func (p *ForgotPasswordProvider) SetLoginID(r *http.Request) (err error) {
 	if r.Form.Get("x_login_id_input_type") == "phone" {
 		e164, e := phone.Parse(r.Form.Get("x_national_number"), r.Form.Get("x_calling_code"))

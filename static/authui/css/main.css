@@ -109,9 +109,19 @@ select {
   border: 1px solid #8A8886;
 }
 
-.link, .anchor {
+.anchor {
   text-decoration: none;
+}
+
+.link {
   font-size: 12px;
+}
+
+.btn.anchor {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
 
 button.link {
@@ -122,7 +132,7 @@ button.anchor {
   color: #166bef;
 }
 
-.anchor:link, .anchor:visited {
+.link:link, .link:visited {
   color: #166bef;
 }
 
@@ -382,4 +392,23 @@ button.anchor {
 
 .forgot-password-form .submit-btn {
   margin: 24px 0 0 0;
+}
+
+.forgot-password-success {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.forgot-password-success .title {
+  font-size: 24px;
+  font-weight: 600;
+  padding: 8px 0;
+  margin: 0 0 12px 0;
+}
+
+.forgot-password-success .description {
+  font-size: 12px;
+  padding: 8px 0;
+  margin: 12px 0;
 }

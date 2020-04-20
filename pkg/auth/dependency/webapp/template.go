@@ -15,10 +15,11 @@ const (
 	TemplateItemTypeAuthUILoginPasswordHTML config.TemplateItemType = "auth_ui_login_password.html"
 	TemplateItemTypeAuthUISignupHTML        config.TemplateItemType = "auth_ui_signup.html"
 	// nolint: gosec
-	TemplateItemTypeAuthUISignupPasswordHTML config.TemplateItemType = "auth_ui_signup_password.html"
-	TemplateItemTypeAuthUIForgotPasswordHTML config.TemplateItemType = "auth_ui_forgot_password.html"
-	TemplateItemTypeAuthUISettingsHTML       config.TemplateItemType = "auth_ui_settings.html"
-	TemplateItemTypeAuthUILogoutHTML         config.TemplateItemType = "auth_ui_logout.html"
+	TemplateItemTypeAuthUISignupPasswordHTML        config.TemplateItemType = "auth_ui_signup_password.html"
+	TemplateItemTypeAuthUIForgotPasswordHTML        config.TemplateItemType = "auth_ui_forgot_password.html"
+	TemplateItemTypeAuthUIForgotPasswordSuccessHTML config.TemplateItemType = "auth_ui_forgot_password_success.html"
+	TemplateItemTypeAuthUISettingsHTML              config.TemplateItemType = "auth_ui_settings.html"
+	TemplateItemTypeAuthUILogoutHTML                config.TemplateItemType = "auth_ui_logout.html"
 )
 
 var TemplateAuthUIHTMLHeadHTML = template.Spec{
@@ -267,7 +268,7 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 <button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
 <button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
 
-<a class="anchor align-self-flex-start" href="">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
+<a class="anchor link align-self-flex-start" href="{{ call .MakeURLWithPath "/forgot_password" }}">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-password-button-label" }}</button>
 
@@ -341,6 +342,39 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 {{ end }}
 
 </form>
+{{ template "auth_ui_footer.html" . }}
+
+</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUIForgotPasswordSuccessHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIForgotPasswordSuccessHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
+	Components:  components,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "auth_ui_header.html" . }}
+
+<div class="forgot-password-success">
+
+<div class="title primary-txt">{{ localize "forgot-password-success-page-title" }}</div>
+
+{{ template "ERROR" . }}
+
+<div class="description primary-txt">{{ localize "forgot-password-success-description" .x_login_id }}</div>
+
+<a class="anchor btn primary-btn align-self-flex-end" href="{{ call .MakeURLWithPath "/login" }}">{{ localize "login-button-label--forgot-password-success-page" }}</a>
+
+</div>
 {{ template "auth_ui_footer.html" . }}
 
 </div>
