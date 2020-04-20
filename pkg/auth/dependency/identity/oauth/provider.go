@@ -32,8 +32,8 @@ func (p *Provider) ListByClaim(name string, value string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (p *Provider) Get(id string) (*Identity, error) {
-	return p.Store.Get(id)
+func (p *Provider) Get(userID, id string) (*Identity, error) {
+	return p.Store.Get(userID, id)
 }
 
 func (p *Provider) GetByProviderSubject(provider ProviderID, subjectID string) (*Identity, error) {

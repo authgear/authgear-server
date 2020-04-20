@@ -100,8 +100,8 @@ func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) Get(id string) (*Identity, error) {
-	q := s.selectQuery().Where("p.id = ?", id)
+func (s *Store) Get(userID, id string) (*Identity, error) {
+	q := s.selectQuery().Where("p.user_id = ? AND p.id = ?", userID, id)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
 		return nil, err

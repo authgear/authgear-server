@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/lib/pq"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
@@ -14,6 +14,47 @@ import (
 type Store struct {
 	SQLBuilder  db.SQLBuilder
 	SQLExecutor db.SQLExecutor
+}
+
+func (s *Store) Get(userID string, id string) (*Authenticator, error) {
+	q1 := s.SQLBuilder.Tenant().
+		Select(
+			"a.id",
+			"a.user_id",
+			"abt.parent_id",
+			"abt.token",
+			"abt.created_at",
+			"abt.expire_at",
+		).
+		From(s.SQLBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.SQLBuilder.FullTableName("authenticator_bearer_token"),
+			"abt",
+			"a.id = abt.id",
+		).
+		Where("a.user_id = ? AND a.id = ?", userID, id)
+
+	row, err := s.SQLExecutor.QueryRowWith(q1)
+	if err != nil {
+		return nil, err
+	}
+
+	a := &Authenticator{}
+	err = row.Scan(
+		&a.ID,
+		&a.UserID,
+		&a.ParentID,
+		&a.Token,
+		&a.CreatedAt,
+		&a.ExpireAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, authenticator.ErrAuthenticatorNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	return a, nil
 }
 
 func (s *Store) GetByToken(userID string, token string) (*Authenticator, error) {
@@ -52,12 +93,56 @@ func (s *Store) GetByToken(userID string, token string) (*Authenticator, error) 
 		&a.ExpireAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, mfa.ErrNoAuthenticators
+		return nil, authenticator.ErrAuthenticatorNotFound
 	} else if err != nil {
 		return nil, err
 	}
 
 	return a, nil
+}
+
+func (s *Store) List(userID string) ([]*Authenticator, error) {
+	q1 := s.SQLBuilder.Tenant().
+		Select(
+			"a.id",
+			"a.user_id",
+			"abt.parent_id",
+			"abt.token",
+			"abt.created_at",
+			"abt.expire_at",
+		).
+		From(s.SQLBuilder.FullTableName("authenticator"), "a").
+		Join(
+			s.SQLBuilder.FullTableName("authenticator_bearer_token"),
+			"abt",
+			"a.id = abt.id",
+		).
+		Where("a.user_id = ?", userID)
+
+	rows, err := s.SQLExecutor.QueryWith(q1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var authenticators []*Authenticator
+	for rows.Next() {
+		a := &Authenticator{}
+		err = rows.Scan(
+			&a.ID,
+			&a.UserID,
+			&a.ParentID,
+			&a.Token,
+			&a.CreatedAt,
+			&a.ExpireAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		authenticators = append(authenticators, a)
+	}
+
+	return authenticators, nil
 }
 
 func (s *Store) DeleteAll(userID string) error {

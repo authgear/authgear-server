@@ -10,9 +10,19 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	authredis "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
+	authenticatorbearertoken "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/bearertoken"
+	authenticatoroob "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
+	authenticatorpassword "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
+	authenticatorrecoverycode "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
+	authenticatortotp "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	identityloginid "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
+	identityoauth "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	interactionadaptors "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/adaptors"
+	interactionredis "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	mfapq "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
@@ -148,6 +158,28 @@ func ProvideCSRFMiddleware(m DependencyMap, tConfig *config.TenantConfiguration)
 	return middleware.Handle
 }
 
+var interactionDependencySet = wire.NewSet(
+	identityloginid.DependencySet,
+	identityoauth.DependencySet,
+	authenticatorpassword.DependencySet,
+	authenticatortotp.DependencySet,
+	authenticatoroob.DependencySet,
+	authenticatorbearertoken.DependencySet,
+	authenticatorrecoverycode.DependencySet,
+	interaction.DependencySet,
+	interactionadaptors.DependencySet,
+	interactionredis.DependencySet,
+	wire.Bind(new(interaction.IdentityProvider), new(*interactionadaptors.IdentityAdaptor)),
+	wire.Bind(new(interaction.AuthenticatorProvider), new(*interactionadaptors.AuthenticatorAdaptor)),
+	wire.Bind(new(interactionadaptors.LoginIDIdentityProvider), new(*identityloginid.Provider)),
+	wire.Bind(new(interactionadaptors.OAuthIdentityProvider), new(*identityoauth.Provider)),
+	wire.Bind(new(interactionadaptors.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
+	wire.Bind(new(interactionadaptors.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
+	wire.Bind(new(interactionadaptors.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
+	wire.Bind(new(interactionadaptors.BearerTokenAuthenticatorProvider), new(*authenticatorbearertoken.Provider)),
+	wire.Bind(new(interactionadaptors.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
+)
+
 var CommonDependencySet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideSessionInsecureCookieConfig,
@@ -201,6 +233,7 @@ var CommonDependencySet = wire.NewSet(
 	welcemail.DependencySet,
 	userverify.DependencySet,
 	forgotpassword.DependencySet,
+	interactionDependencySet,
 )
 
 // DependencySet is for HTTP request

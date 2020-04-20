@@ -15,8 +15,16 @@ type Provider struct {
 	Time   time.Provider
 }
 
+func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
+	return p.Store.Get(userID, id)
+}
+
 func (p *Provider) GetByToken(userID string, token string) (*Authenticator, error) {
 	return p.Store.GetByToken(userID, token)
+}
+
+func (p *Provider) List(userID string) ([]*Authenticator, error) {
+	return p.Store.List(userID)
 }
 
 func (p *Provider) RevokeAll(userID string) error {
