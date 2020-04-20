@@ -57,7 +57,7 @@ func TestProvider(t *testing.T) {
 						Props: map[string]interface{}{},
 					})
 
-					err = p.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, interaction.ActionAuthenticate{
+					err = p.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionAuthenticate{
 						Authenticator: state.Steps[0].AvailableAuthenticators[0],
 						Secret:        "password",
 					})
@@ -115,7 +115,7 @@ func TestProvider(t *testing.T) {
 						Props: map[string]interface{}{},
 					})
 
-					err = p.PerformAction(i, interaction.StepAuthenticatePrimary, interaction.ActionAuthenticate{
+					err = p.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionAuthenticate{
 						Authenticator: state.Steps[0].AvailableAuthenticators[0],
 						Secret:        "password",
 					})
@@ -187,7 +187,7 @@ func TestProvider(t *testing.T) {
 					},
 				})
 
-				err = p.PerformAction(i, interaction.StepAuthenticateSecondary, interaction.ActionAuthenticate{
+				err = p.PerformAction(i, interaction.StepAuthenticateSecondary, &interaction.ActionAuthenticate{
 					Authenticator: state.Steps[0].AvailableAuthenticators[0],
 					Secret:        "123456",
 				})
@@ -233,7 +233,7 @@ func TestProvider(t *testing.T) {
 				So(state.Steps, ShouldHaveLength, 1)
 				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupSecondaryAuthenticator)
 
-				err = p.PerformAction(i, interaction.StepSetupSecondaryAuthenticator, interaction.ActionAuthenticate{
+				err = p.PerformAction(i, interaction.StepSetupSecondaryAuthenticator, &interaction.ActionAuthenticate{
 					Secret: "123456",
 				})
 				So(err, ShouldBeNil)

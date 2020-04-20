@@ -12,18 +12,18 @@ type ActionAuthenticate struct {
 	Secret        string            `json:"secret"`
 }
 
-func (ActionAuthenticate) actionType() string { return "authenticate" }
+func (*ActionAuthenticate) actionType() string { return "authenticate" }
 
 // ActionTriggerOOBAuthenticator represents an request to trigger the specified OOB OTP authenticator
 type ActionTriggerOOBAuthenticator struct {
 	Authenticator AuthenticatorSpec `json:"spec"`
 }
 
-func (ActionTriggerOOBAuthenticator) actionType() string { return "trigger-oob-authenticator" }
+func (*ActionTriggerOOBAuthenticator) actionType() string { return "trigger-oob-authenticator" }
 
 // ActionSetupAuthenticator represents an request to setup an authenticator
 type ActionSetupAuthenticator struct {
 	Authenticator AuthenticatorSpec `json:"spec"`
 }
 
-func (ActionSetupAuthenticator) actionType() string { return "setup-authenticator" }
+func (*ActionSetupAuthenticator) actionType() string { return "setup-authenticator" }
