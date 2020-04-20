@@ -35,16 +35,9 @@ func (p *Provider) PerformAction(i *Interaction, step Step, action Action) error
 func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step *StepState, s *State, action Action) error {
 	switch step.Step {
 	case StepAuthenticatePrimary, StepAuthenticateSecondary:
-		var astate *map[string]string
-		if step.Step == StepAuthenticatePrimary {
-			astate = &i.PrimaryAuthenticatorState
-		} else {
-			astate = &i.SecondaryAuthenticatorState
-		}
-
 		switch action := action.(type) {
 		case *ActionAuthenticate:
-			authen, err := p.doAuthenticate(i, step, astate, intent.Identity, action.Authenticator, action.Secret)
+			authen, err := p.doAuthenticate(i, step, &i.State, intent.Identity, action.Authenticator, action.Secret)
 			if errors.Is(err, ErrInvalidCredentials) {
 				i.Error = skyerr.AsAPIError(err)
 				return nil
@@ -58,8 +51,7 @@ func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step 
 			} else {
 				i.SecondaryAuthenticator = authen
 			}
-			i.PrimaryAuthenticatorState = nil
-			i.SecondaryAuthenticatorState = nil
+			i.State = nil
 			i.Error = nil
 
 		case *ActionTriggerOOBAuthenticator:

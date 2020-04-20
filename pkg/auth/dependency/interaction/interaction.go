@@ -19,13 +19,12 @@ type Interaction struct {
 	Intent Intent           `json:"-"`
 	Error  *skyerr.APIError `json:"error,omitempty"`
 
-	UserID                      string             `json:"user_id"`
-	Identity                    *IdentityInfo      `json:"identity"`
-	PrimaryAuthenticator        *AuthenticatorInfo `json:"primary_authenticator"`
-	PrimaryAuthenticatorState   map[string]string  `json:"primary_authenticator_state,omitempty"`
-	SecondaryAuthenticator      *AuthenticatorInfo `json:"secondary_authenticator"`
-	SecondaryAuthenticatorState map[string]string  `json:"secondary_authenticator_state,omitempty"`
+	UserID                 string             `json:"user_id"`
+	Identity               *IdentityInfo      `json:"identity"`
+	PrimaryAuthenticator   *AuthenticatorInfo `json:"primary_authenticator"`
+	SecondaryAuthenticator *AuthenticatorInfo `json:"secondary_authenticator"`
 
+	State                map[string]string   `json:"state,omitempty"`
 	PendingIdentity      *IdentityInfo       `json:"pending_identity,omitempty"`
 	PendingAuthenticator *AuthenticatorInfo  `json:"pending_authenticator,omitempty"`
 	NewIdentities        []IdentityInfo      `json:"new_identities,omitempty"`
