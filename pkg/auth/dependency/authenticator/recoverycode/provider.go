@@ -1,7 +1,6 @@
 package recoverycode
 
 import (
-	"errors"
 	"sort"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -64,12 +63,12 @@ func (p *Provider) ReplaceAll(userID string, as []*Authenticator) error {
 	return nil
 }
 
-func (p *Provider) Authenticate(authenticator *Authenticator, code string) error {
-	ok := VerifyCode(authenticator.Code, code)
-	if !ok {
-		return errors.New("invalid recovery code")
+func (p *Provider) Authenticate(candidates []*Authenticator, code string) *Authenticator {
+	for _, a := range candidates {
+		if VerifyCode(a.Code, code) {
+			return a
+		}
 	}
-
 	return nil
 }
 

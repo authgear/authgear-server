@@ -21,9 +21,9 @@ type ActionTriggerOOBAuthenticator struct {
 
 func (ActionTriggerOOBAuthenticator) actionType() string { return "trigger-oob-authenticator" }
 
-// ActionSetupRequiredAuthenticator represents an request to setup a required authenticator
-type ActionSetupRequiredAuthenticator struct {
+// ActionSetupAuthenticator represents an request to setup an authenticator
+type ActionSetupAuthenticator struct {
 	Authenticator AuthenticatorSpec `json:"spec"`
 }
 
-func (ActionSetupRequiredAuthenticator) actionType() string { return "setup-required-authenticator" }
+func (ActionSetupAuthenticator) actionType() string { return "setup-authenticator" }

@@ -55,6 +55,16 @@ func (p *Provider) Create(a *Authenticator) error {
 	return p.Store.Create(a)
 }
 
+func (p *Provider) Authenticate(candidates []*Authenticator, code string) *Authenticator {
+	now := p.Time.NowUTC()
+	for _, a := range candidates {
+		if ValidateCode(a.Secret, code, now) {
+			return a
+		}
+	}
+	return nil
+}
+
 func sortAuthenticators(as []*Authenticator) {
 	sort.Slice(as, func(i, j int) bool {
 		return as[i].CreatedAt.Before(as[j].CreatedAt)

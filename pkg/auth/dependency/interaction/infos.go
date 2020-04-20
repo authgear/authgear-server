@@ -8,7 +8,7 @@ type IdentityInfo struct {
 }
 
 func (i *IdentityInfo) ToSpec() IdentitySpec {
-	return IdentitySpec{Type: i.Type, Claims: i.Claims}
+	return IdentitySpec{ID: i.ID, Type: i.Type, Claims: i.Claims}
 }
 
 type IdentityType string
@@ -39,7 +39,7 @@ type AuthenticatorInfo struct {
 }
 
 func (i *AuthenticatorInfo) ToSpec() AuthenticatorSpec {
-	return AuthenticatorSpec{Type: i.Type, Props: i.Props}
+	return AuthenticatorSpec{ID: i.ID, Type: i.Type, Props: i.Props}
 }
 
 type AuthenticatorType string
@@ -63,6 +63,8 @@ const (
 	// AuthenticatorPropOOBOTPPhone is a claim with string value for OOB OTP phone channel.
 	AuthenticatorPropOOBOTPPhone string = "https://auth.skygear.io/claims/oob_otp/phone"
 
+	// AuthenticatorStateOOBOTPCode is a claim with string value for OOB authenticator ID of current interaction.
+	AuthenticatorStateOOBOTPID string = "https://auth.skygear.io/claims/oob_otp/id"
 	// AuthenticatorStateOOBOTPCode is a claim with string value for OOB code of current interaction.
 	AuthenticatorStateOOBOTPCode string = "https://auth.skygear.io/claims/oob_otp/code"
 	// AuthenticatorStateOOBOTPTriggerTime is a claim with string value for OOB last trigger time of current interaction.

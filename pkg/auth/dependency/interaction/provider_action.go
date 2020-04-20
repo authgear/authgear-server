@@ -1,6 +1,109 @@
 package interaction
 
-func (p *Provider) PerformAction(i *Interaction, action Action) error {
-	// TODO(interaction): do something
-	return nil
+import (
+	"errors"
+	"fmt"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+)
+
+func (p *Provider) PerformAction(i *Interaction, step Step, action Action) error {
+	state, err := p.GetInteractionState(i)
+	if err != nil {
+		return err
+	}
+
+	var stepState *StepState
+	for _, s := range state.Steps {
+		if s.Step == step {
+			stepState = &s
+			break
+		}
+	}
+	if stepState == nil {
+		return ErrInvalidStep
+	}
+
+	switch intent := i.Intent.(type) {
+	case *IntentLogin:
+		return p.performActionLogin(i, intent, stepState, state, action)
+	}
+	panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
+}
+
+func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step *StepState, s *State, action Action) error {
+	switch step.Step {
+	case StepAuthenticatePrimary, StepAuthenticateSecondary:
+		var astate *map[string]string
+		if step.Step == StepAuthenticatePrimary {
+			astate = &i.PrimaryAuthenticatorState
+		} else {
+			astate = &i.SecondaryAuthenticatorState
+		}
+
+		switch action := action.(type) {
+		case *ActionAuthenticate:
+			authen, err := p.doAuthenticate(i, step, astate, intent.Identity, action.Authenticator, action.Secret)
+			if errors.Is(err, ErrInvalidCredentials) {
+				i.Error = skyerr.AsAPIError(err)
+				return nil
+			} else if err != nil {
+				return err
+			}
+
+			if step.Step == StepAuthenticatePrimary {
+				i.PrimaryAuthenticator = authen
+				i.SecondaryAuthenticator = nil
+			} else {
+				i.SecondaryAuthenticator = authen
+			}
+			i.PrimaryAuthenticatorState = nil
+			i.SecondaryAuthenticatorState = nil
+			i.Error = nil
+
+		case *ActionTriggerOOBAuthenticator:
+			// TODO(interaction): handle OOB trigger
+		default:
+			panic(fmt.Sprintf("interaction: unhandled authenticate action %T", action))
+		}
+
+	case StepSetupSecondaryAuthenticator:
+		// TODO(interaction): setup secondary authenticator
+
+	case StepCommit:
+		// TODO(interaction): allow setup bearer token
+
+	}
+	panic("interaction_login: unhandled step " + step.Step)
+}
+
+func (p *Provider) doAuthenticate(i *Interaction, step *StepState, astate *map[string]string, is IdentitySpec, as AuthenticatorSpec, secret string) (*AuthenticatorInfo, error) {
+	userID, iden, err := p.Identity.GetByClaims(is.Type, is.Claims)
+	if errors.Is(err, identity.ErrIdentityNotFound) {
+		return nil, ErrInvalidCredentials
+	} else if err != nil {
+		return nil, err
+	}
+
+	authen, err := p.Authenticator.Authenticate(userID, as, astate, secret)
+	if err != nil {
+		return nil, err
+	}
+
+	ok := false
+	for _, as := range step.AvailableAuthenticators {
+		if as.ID == authen.ID {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		// Authenticator is not available for current step, reject it
+		return nil, ErrInvalidCredentials
+	}
+
+	i.UserID = userID
+	i.Identity = iden
+	return authen, nil
 }

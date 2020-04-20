@@ -15,6 +15,7 @@ type IdentityProvider interface {
 type AuthenticatorProvider interface {
 	Get(userID string, typ AuthenticatorType, id string) (*AuthenticatorInfo, error)
 	List(userID string, typ AuthenticatorType) ([]*AuthenticatorInfo, error)
+	Authenticate(userID string, spec AuthenticatorSpec, state *map[string]string, secret string) (*AuthenticatorInfo, error)
 }
 
 // TODO(interaction): configurable lifetime

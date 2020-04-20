@@ -64,6 +64,14 @@ func (p *Provider) Create(a *Authenticator) error {
 	return p.Store.Create(a)
 }
 
+func (p *Provider) Authenticate(a *Authenticator, expectedCode string, code string) error {
+	ok := VerifyCode(expectedCode, code)
+	if !ok {
+		return errors.New("invalid bearer token")
+	}
+	return nil
+}
+
 func sortAuthenticators(as []*Authenticator) {
 	sort.Slice(as, func(i, j int) bool {
 		return as[i].CreatedAt.Before(as[j].CreatedAt)
