@@ -144,12 +144,9 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 	err := db.WithTx(h.TxContext, func() error {
 		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 
-		var oldPrincipal password.Principal
-		err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(
+		oldPrincipal, err := h.PasswordAuthProvider.GetPrincipalByLoginID(
 			payload.OldLoginID.Key,
 			payload.OldLoginID.Value,
-			password.DefaultRealm,
-			&oldPrincipal,
 		)
 		if err != nil {
 			if errors.Is(err, principal.ErrNotFound) {
@@ -172,7 +169,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 			return err
 		}
 
-		err = h.PasswordAuthProvider.DeletePrincipal(&oldPrincipal)
+		err = h.PasswordAuthProvider.DeletePrincipal(oldPrincipal)
 		if err != nil {
 			return err
 		}
@@ -223,7 +220,7 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 		if err != nil {
 			return err
 		}
-		oldIdentity := model.NewIdentity(&oldPrincipal)
+		oldIdentity := model.NewIdentity(oldPrincipal)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityDeleteEvent{
 				User:     user,

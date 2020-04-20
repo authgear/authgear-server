@@ -17,9 +17,9 @@ type Provider interface {
 	CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []loginid.LoginID, realm string) ([]*Principal, error)
 	CreatePrincipal(principal *Principal) (err error)
 	DeletePrincipal(principal *Principal) (err error)
-	GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error)
 	GetPrincipalsByUserID(userID string) ([]*Principal, error)
 	GetPrincipalsByLoginID(loginIDKey string, loginID string) ([]*Principal, error)
+	GetPrincipalByLoginID(loginIDKey string, loginID string) (*Principal, error)
 	UpdatePassword(principal *Principal, password string) error
 	MigratePassword(principal *Principal, password string) error
 }

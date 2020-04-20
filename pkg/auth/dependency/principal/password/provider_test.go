@@ -127,28 +127,23 @@ func TestProvider(t *testing.T) {
 				}, DefaultRealm)
 				So(err, ShouldBeNil)
 
-				principal := Principal{}
-				err = pwProvider.GetPrincipalByLoginIDWithRealm("email", "Faseng.Cat@example.com", DefaultRealm, &principal)
+				principal, err := pwProvider.GetPrincipalByLoginID("email", "Faseng.Cat@example.com")
 				So(err, ShouldBeNil)
 				So(principal.ID, ShouldEqual, principalID)
 
-				principal = Principal{}
-				err = pwProvider.GetPrincipalByLoginIDWithRealm("email", "FASENGCAT@EXAMPLE.COM", DefaultRealm, &principal)
+				principal, err = pwProvider.GetPrincipalByLoginID("email", "FASENGCAT@EXAMPLE.COM")
 				So(err, ShouldBeNil)
 				So(principal.ID, ShouldEqual, principalID)
 
-				principal = Principal{}
-				err = pwProvider.GetPrincipalByLoginIDWithRealm("email", "fasengcat@example.com", DefaultRealm, &principal)
+				principal, err = pwProvider.GetPrincipalByLoginID("email", "fasengcat@example.com")
 				So(err, ShouldBeNil)
 				So(principal.ID, ShouldEqual, principalID)
 
-				principal = Principal{}
-				err = pwProvider.GetPrincipalByLoginIDWithRealm("email", "chima@example.com", DefaultRealm, &principal)
+				principal, err = pwProvider.GetPrincipalByLoginID("email", "chima@example.com")
 				So(err, ShouldBeNil)
 				So(principal.ID, ShouldNotEqual, principalID)
 
-				principal = Principal{}
-				err = pwProvider.GetPrincipalByLoginIDWithRealm("email", "milktea@example.com", DefaultRealm, &principal)
+				_, err = pwProvider.GetPrincipalByLoginID("email", "milktea@example.com")
 				So(err, ShouldBeError, "principal not found")
 			})
 
@@ -173,18 +168,15 @@ func TestProvider(t *testing.T) {
 				}, DefaultRealm)
 				So(err, ShouldBeNil)
 
-				principal := Principal{}
-				err = pwProvider.GetPrincipalByLoginIDWithRealm("", "faseng.cat@example.com", DefaultRealm, &principal)
+				principal, err := pwProvider.GetPrincipalByLoginID("", "faseng.cat@example.com")
 				So(err, ShouldBeNil)
 				So(principal.ID, ShouldEqual, principalID)
 
-				principal = Principal{}
-				err = pwProvider.GetPrincipalByLoginIDWithRealm("", "chima@example.com", DefaultRealm, &principal)
+				principal, err = pwProvider.GetPrincipalByLoginID("", "chima@example.com")
 				So(err, ShouldBeNil)
 				So(principal.ID, ShouldNotEqual, principalID)
 
-				principal = Principal{}
-				err = pwProvider.GetPrincipalByLoginIDWithRealm("", "milktea@example.com", DefaultRealm, &principal)
+				_, err = pwProvider.GetPrincipalByLoginID("", "milktea@example.com")
 				So(err, ShouldBeError, "principal not found")
 			})
 
@@ -208,8 +200,7 @@ func TestProvider(t *testing.T) {
 				}, DefaultRealm)
 				So(err, ShouldBeNil)
 
-				principal := Principal{}
-				err = pwProvider.GetPrincipalByLoginIDWithRealm("", "faseng.cat@example.com", DefaultRealm, &principal)
+				_, err = pwProvider.GetPrincipalByLoginID("", "faseng.cat@example.com")
 				So(err, ShouldBeError, "multiple principals found")
 
 			})

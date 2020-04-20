@@ -138,18 +138,6 @@ func (m *MockProvider) DeletePrincipal(p *Principal) error {
 	return nil
 }
 
-// GetPrincipalByLoginID get principal in PrincipalMap by login_id
-func (m *MockProvider) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, p *Principal) (err error) {
-	for _, pp := range m.PrincipalMap {
-		if (loginIDKey == "" || pp.LoginIDKey == loginIDKey) && strings.EqualFold(pp.LoginID, loginID) && pp.Realm == realm {
-			*p = pp
-			return
-		}
-	}
-
-	return principal.ErrNotFound
-}
-
 // GetPrincipalsByUserID get principals in PrincipalMap by userID
 func (m *MockProvider) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
 	for _, p := range m.PrincipalMap {
@@ -171,6 +159,24 @@ func (m *MockProvider) GetPrincipalsByLoginID(loginIDKey string, loginID string)
 		}
 	}
 
+	return
+}
+
+func (m *MockProvider) GetPrincipalByLoginID(loginIDKey string, loginID string) (prin *Principal, err error) {
+	prins, err := m.GetPrincipalsByLoginID(loginIDKey, loginID)
+	if err != nil {
+		return
+	}
+
+	if len(prins) <= 0 {
+		err = principal.ErrNotFound
+		return
+	} else if len(prins) > 1 {
+		err = principal.ErrMultipleResultsFound
+		return
+	}
+
+	prin = prins[0]
 	return
 }
 

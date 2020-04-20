@@ -189,14 +189,12 @@ func TestAddLoginIDHandler(t *testing.T) {
 			}`)
 
 			So(passwordAuthProvider.PrincipalMap, ShouldHaveLength, 4)
-			var p1 password.Principal
-			err := passwordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "user1a", password.DefaultRealm, &p1)
+			p1, err := passwordAuthProvider.GetPrincipalByLoginID("username", "user1a")
 			So(err, ShouldBeNil)
 			So(p1.UserID, ShouldEqual, "user-id-1")
 			So(p1.LoginIDKey, ShouldEqual, "username")
 			So(p1.LoginID, ShouldEqual, "user1a")
-			var p2 password.Principal
-			err = passwordAuthProvider.GetPrincipalByLoginIDWithRealm("username", "user1b", password.DefaultRealm, &p2)
+			p2, err := passwordAuthProvider.GetPrincipalByLoginID("username", "user1b")
 			So(err, ShouldBeNil)
 			So(p2.UserID, ShouldEqual, "user-id-1")
 			So(p2.LoginIDKey, ShouldEqual, "username")

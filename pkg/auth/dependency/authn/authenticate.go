@@ -22,9 +22,7 @@ type AuthenticateProcess struct {
 }
 
 func (p *AuthenticateProcess) AuthenticateWithLoginID(loginID loginid.LoginID, plainPassword string) (prin principal.Principal, err error) {
-	var passwordPrincipal password.Principal
-	realm := password.DefaultRealm
-	err = p.PasswordProvider.GetPrincipalByLoginIDWithRealm(loginID.Key, loginID.Value, realm, &passwordPrincipal)
+	passwordPrincipal, err := p.PasswordProvider.GetPrincipalByLoginID(loginID.Key, loginID.Value)
 	if err != nil {
 		if errors.Is(err, principal.ErrNotFound) {
 			err = password.ErrInvalidCredentials
@@ -41,11 +39,11 @@ func (p *AuthenticateProcess) AuthenticateWithLoginID(loginID loginid.LoginID, p
 		return
 	}
 
-	if err := p.PasswordProvider.MigratePassword(&passwordPrincipal, plainPassword); err != nil {
+	if err := p.PasswordProvider.MigratePassword(passwordPrincipal, plainPassword); err != nil {
 		p.Logger.WithError(err).Error("failed to migrate password")
 	}
 
-	prin = &passwordPrincipal
+	prin = passwordPrincipal
 	return
 }
 

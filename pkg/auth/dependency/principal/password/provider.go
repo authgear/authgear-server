@@ -174,46 +174,6 @@ func (p *providerImpl) savePasswordHistory(principal *Principal) error {
 	return nil
 }
 
-func (p *providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, pp *Principal) (err error) {
-	var principals []*Principal
-	for _, loginIDKeyConfig := range p.loginIDsKeys {
-		if loginIDKey == "" || loginIDKeyConfig.Key == loginIDKey {
-			invalid := p.loginIDChecker.ValidateOne(loginid.LoginID{
-				Key:   loginIDKeyConfig.Key,
-				Value: loginID,
-			})
-			if invalid != nil {
-				continue
-			}
-
-			normalizer := p.loginIDNormalizerFactory.NormalizerWithLoginIDKey(loginIDKeyConfig.Key)
-			normalizedloginID, e := normalizer.Normalize(loginID)
-			if e != nil {
-				err = errors.HandledWithMessage(e, "failed to normalized login id")
-				return
-			}
-			ps, e := p.store.GetPrincipals(loginIDKeyConfig.Key, normalizedloginID, &realm)
-			if e != nil {
-				err = errors.HandledWithMessage(e, "failed to get principal by login ID & realm")
-				return
-			}
-			if len(ps) > 0 {
-				principals = append(principals, ps...)
-			}
-		}
-	}
-
-	if len(principals) == 0 {
-		err = principal.ErrNotFound
-	} else if len(principals) > 1 {
-		err = principal.ErrMultipleResultsFound
-	} else {
-		*pp = *principals[0]
-	}
-
-	return
-}
-
 func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
 	return p.store.GetPrincipalsByUserID(userID)
 }
@@ -250,6 +210,24 @@ func (p *providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string)
 	}
 
 	principals = result
+	return
+}
+
+func (p *providerImpl) GetPrincipalByLoginID(loginIDKey string, loginID string) (prin *Principal, err error) {
+	prins, err := p.GetPrincipalsByLoginID(loginIDKey, loginID)
+	if err != nil {
+		return
+	}
+
+	if len(prins) <= 0 {
+		err = principal.ErrNotFound
+		return
+	} else if len(prins) > 1 {
+		err = principal.ErrMultipleResultsFound
+		return
+	}
+
+	prin = prins[0]
 	return
 }
 

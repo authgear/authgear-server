@@ -124,8 +124,7 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 		session := auth.GetSession(r.Context())
 		userID := session.AuthnAttrs().UserID
 
-		var p password.Principal
-		err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(payload.Key, payload.Value, password.DefaultRealm, &p)
+		p, err := h.PasswordAuthProvider.GetPrincipalByLoginID(payload.Key, payload.Value)
 		if err != nil {
 			if errors.Is(err, principal.ErrNotFound) {
 				err = password.ErrLoginIDNotFound
@@ -142,7 +141,7 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 			return err
 		}
 
-		err = h.PasswordAuthProvider.DeletePrincipal(&p)
+		err = h.PasswordAuthProvider.DeletePrincipal(p)
 		if err != nil {
 			return err
 		}
@@ -172,7 +171,7 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 			return err
 		}
 
-		identity := model.NewIdentity(&p)
+		identity := model.NewIdentity(p)
 		err = h.HookProvider.DispatchEvent(
 			event.IdentityDeleteEvent{
 				User:     user,

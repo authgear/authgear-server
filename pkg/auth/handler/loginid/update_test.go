@@ -229,10 +229,9 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 			So(w.Code, ShouldEqual, 200)
 
 			So(passwordAuthProvider.PrincipalMap, ShouldHaveLength, 3)
-			var p password.Principal
-			err := passwordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "user1@example.com", password.DefaultRealm, &p)
+			_, err := passwordAuthProvider.GetPrincipalByLoginID("email", "user1@example.com")
 			So(err, ShouldBeError, "principal not found")
-			err = passwordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "user1+a@example.com", password.DefaultRealm, &p)
+			p, err := passwordAuthProvider.GetPrincipalByLoginID("email", "user1+a@example.com")
 			So(err, ShouldBeNil)
 			So(p.UserID, ShouldEqual, "user-id-1")
 			So(p.LoginIDKey, ShouldEqual, "email")
