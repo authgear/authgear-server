@@ -82,6 +82,7 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 	attrs := &authn.Attrs{
 		UserID:        i.UserID,
 		PrincipalType: authn.PrincipalType(i.Identity.Type),
+		PrincipalID:   i.Identity.ID,
 	}
 	return attrs, nil
 }

@@ -12,13 +12,23 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/bearertoken"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
+	password2 "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	loginid2 "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
+	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/adaptors"
+	redis4 "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	pq3 "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
-	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
+	oauth3 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	pq4 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
 	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
@@ -122,12 +132,34 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Context: context,
 	}
 	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
+	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	identityAdaptor := &adaptors.IdentityAdaptor{
+		LoginID: loginidProvider,
+		OAuth:   provider3,
+	}
+	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, store, passwordChecker, tenantConfiguration)
+	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	oobProvider := oob.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	authenticatorAdaptor := &adaptors.AuthenticatorAdaptor{
+		Password:     provider4,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
 		SSOProvider:      provider2,
+		Interactions:     interactionProvider,
+		Sessions:         sessionProvider,
 	}
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
@@ -142,7 +174,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 }
 
 var (
-	_wireTokenGeneratorValue = handler.TokenGenerator(oauth2.GenerateToken)
+	_wireTokenGeneratorValue = handler.TokenGenerator(oauth3.GenerateToken)
 )
 
 func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
@@ -222,12 +254,34 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		Context: context,
 	}
 	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
+	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	identityAdaptor := &adaptors.IdentityAdaptor{
+		LoginID: loginidProvider,
+		OAuth:   provider3,
+	}
+	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, store, passwordChecker, tenantConfiguration)
+	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	oobProvider := oob.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	authenticatorAdaptor := &adaptors.AuthenticatorAdaptor{
+		Password:     provider4,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
 		SSOProvider:      provider2,
+		Interactions:     interactionProvider,
+		Sessions:         sessionProvider,
 	}
 	loginPasswordHandler := &LoginPasswordHandler{
 		Provider:  authenticateProviderImpl,
@@ -489,12 +543,34 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Context: context,
 	}
 	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
+	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	identityAdaptor := &adaptors.IdentityAdaptor{
+		LoginID: loginidProvider,
+		OAuth:   provider3,
+	}
+	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, store, passwordChecker, tenantConfiguration)
+	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	oobProvider := oob.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	authenticatorAdaptor := &adaptors.AuthenticatorAdaptor{
+		Password:     provider4,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
 		SSOProvider:      provider2,
+		Interactions:     interactionProvider,
+		Sessions:         sessionProvider,
 	}
 	signupHandler := &SignupHandler{
 		Provider:  authenticateProviderImpl,
@@ -580,12 +656,34 @@ func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		Context: context,
 	}
 	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
+	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	identityAdaptor := &adaptors.IdentityAdaptor{
+		LoginID: loginidProvider,
+		OAuth:   provider3,
+	}
+	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, store, passwordChecker, tenantConfiguration)
+	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	oobProvider := oob.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	authenticatorAdaptor := &adaptors.AuthenticatorAdaptor{
+		Password:     provider4,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
 		SSOProvider:      provider2,
+		Interactions:     interactionProvider,
+		Sessions:         sessionProvider,
 	}
 	signupPasswordHandler := &SignupPasswordHandler{
 		Provider:  authenticateProviderImpl,
@@ -640,7 +738,7 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	manager := session.ProvideSessionManager(sessionStore, provider, tenantConfiguration, cookieConfiguration)
 	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
-	sessionManager := &oauth2.SessionManager{
+	sessionManager := &oauth3.SessionManager{
 		Store: grantStore,
 		Time:  provider,
 	}
@@ -737,12 +835,34 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Context: context,
 	}
 	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
+	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	identityAdaptor := &adaptors.IdentityAdaptor{
+		LoginID: loginidProvider,
+		OAuth:   provider3,
+	}
+	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, store, passwordChecker, tenantConfiguration)
+	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	oobProvider := oob.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	authenticatorAdaptor := &adaptors.AuthenticatorAdaptor{
+		Password:     provider4,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
 		SSOProvider:      provider2,
+		Interactions:     interactionProvider,
+		Sessions:         sessionProvider,
 	}
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()

@@ -340,6 +340,7 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 <input type="hidden" name="x_calling_code" value="{{ .x_calling_code }}">
 <input type="hidden" name="x_national_number" value="{{ .x_national_number }}">
 <input type="hidden" name="x_login_id" value="{{ .x_login_id }}">
+<input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
 <input id="password" class="input text-input primary-txt" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}" value="{{ .x_password }}">
 

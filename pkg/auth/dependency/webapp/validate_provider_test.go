@@ -167,6 +167,7 @@ func TestValidateProvider(t *testing.T) {
 				"x_login_id_input_type": []string{"text"},
 				"x_login_id":            []string{"john.doe"},
 				"x_password":            []string{"123456"},
+				"x_interaction_token":   []string{"Zu3Zaw4Uav54GOMd2hneCoangX0gvuVi"},
 			})
 			So(err, ShouldBeNil)
 
@@ -175,6 +176,7 @@ func TestValidateProvider(t *testing.T) {
 				"x_calling_code":        []string{"852"},
 				"x_national_number":     []string{"99887766"},
 				"x_password":            []string{"123456"},
+				"x_interaction_token":   []string{"Zu3Zaw4Uav54GOMd2hneCoangX0gvuVi"},
 			})
 			So(err, ShouldBeNil)
 		})

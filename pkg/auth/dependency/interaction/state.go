@@ -5,6 +5,13 @@ type State struct {
 	Steps []StepState
 }
 
+func (s *State) CurrentStep() *StepState {
+	if len(s.Steps) == 0 {
+		panic("interaction: attempted to get current step when empty")
+	}
+	return &s.Steps[len(s.Steps)-1]
+}
+
 type Step string
 
 const (

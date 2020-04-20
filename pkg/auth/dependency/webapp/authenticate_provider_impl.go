@@ -5,10 +5,14 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -16,12 +20,23 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
+type InteractionProvider interface {
+	GetInteraction(token string) (*interaction.Interaction, error)
+	SaveInteraction(*interaction.Interaction) (string, error)
+	Commit(*interaction.Interaction) (*coreauthn.Attrs, error)
+	NewInteraction(intent interaction.Intent, clientID string, session auth.AuthSession) (*interaction.Interaction, error)
+	GetInteractionState(i *interaction.Interaction) (*interaction.State, error)
+	PerformAction(i *interaction.Interaction, step interaction.Step, action interaction.Action) error
+}
+
 type AuthenticateProviderImpl struct {
 	ValidateProvider ValidateProvider
 	RenderProvider   RenderProvider
 	AuthnProvider    AuthnProvider
 	StateStore       StateStore
 	SSOProvider      sso.Provider
+	Interactions     InteractionProvider
+	Sessions         session.Provider
 }
 
 type AuthnProvider interface {
@@ -149,6 +164,31 @@ func (p *AuthenticateProviderImpl) PostLoginID(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	i, err := p.Interactions.NewInteraction(&interaction.IntentLogin{
+		Identity: interaction.IdentitySpec{
+			Type: interaction.IdentityTypeLoginID,
+			Claims: map[string]interface{}{
+				interaction.IdentityClaimLoginIDValue: r.Form.Get("x_login_id"),
+			},
+		},
+	}, "", nil)
+	if err != nil {
+		return
+	}
+
+	s, err := p.Interactions.GetInteractionState(i)
+	if err != nil {
+		return
+	} else if len(s.Steps) != 1 || s.Steps[0].Step != interaction.StepAuthenticatePrimary {
+		panic("webapp: unexpected interaction state")
+	}
+
+	token, err := p.Interactions.SaveInteraction(i)
+	if err != nil {
+		return
+	}
+
+	r.Form["x_interaction_token"] = []string{token}
 	return
 }
 
@@ -174,18 +214,56 @@ func (p *AuthenticateProviderImpl) PostLoginPassword(w http.ResponseWriter, r *h
 		return
 	}
 
-	var client config.OAuthClientConfiguration
-	loginID := loginid.LoginID{Value: r.Form.Get("x_login_id")}
-	result, err := p.AuthnProvider.LoginWithLoginID(client, loginID, r.Form.Get("x_password"))
+	i, err := p.Interactions.GetInteraction(r.Form.Get("x_interaction_token"))
 	if err != nil {
 		return
 	}
 
-	switch r := result.(type) {
-	case *authn.CompletionResult:
-		p.AuthnProvider.WriteCookie(w, r)
-	case *authn.InProgressResult:
+	err = p.Interactions.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionAuthenticate{
+		Authenticator: interaction.AuthenticatorSpec{Type: interaction.AuthenticatorTypePassword},
+		Secret:        r.Form.Get("x_password"),
+	})
+	if err != nil {
+		return
+	}
+
+	_, err = p.Interactions.SaveInteraction(i)
+	if err != nil {
+		return
+	}
+
+	if i.Error != nil {
+		err = i.Error
+		return
+	}
+
+	s, err := p.Interactions.GetInteractionState(i)
+	if err != nil {
+		return
+	}
+
+	switch s.CurrentStep().Step {
+	case interaction.StepAuthenticateSecondary, interaction.StepSetupSecondaryAuthenticator:
 		panic("TODO(webapp): handle MFA")
+	case interaction.StepCommit:
+		var attrs *coreauthn.Attrs
+		attrs, err = p.Interactions.Commit(i)
+		if err != nil {
+			return
+		}
+
+		session, token := p.Sessions.MakeSession(attrs)
+		err = p.Sessions.Create(session)
+		if err != nil {
+			return
+		}
+		// TODO(webapp): refactor this
+		p.AuthnProvider.WriteCookie(w, &authn.CompletionResult{
+			SessionToken: token,
+		})
+
+	default:
+		panic("webapp: unexpected step " + s.CurrentStep().Step)
 	}
 
 	return

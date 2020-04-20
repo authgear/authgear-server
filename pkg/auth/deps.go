@@ -178,6 +178,8 @@ var interactionDependencySet = wire.NewSet(
 	wire.Bind(new(interactionadaptors.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
 	wire.Bind(new(interactionadaptors.BearerTokenAuthenticatorProvider), new(*authenticatorbearertoken.Provider)),
 	wire.Bind(new(interactionadaptors.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
+
+	wire.Bind(new(webapp.InteractionProvider), new(*interaction.Provider)),
 )
 
 var CommonDependencySet = wire.NewSet(

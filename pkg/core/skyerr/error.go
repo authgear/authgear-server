@@ -27,6 +27,8 @@ type APIError struct {
 	Info    map[string]interface{} `json:"info,omitempty"`
 }
 
+func (e *APIError) Error() string { return e.Message }
+
 func (k Kind) New(msg string) error {
 	return &skyerr{kind: k, msg: msg}
 }
@@ -78,6 +80,8 @@ func (e *skyerr) FillDetails(d errors.Details) {
 func AsAPIError(err error) *APIError {
 	if err == nil {
 		return nil
+	} else if err, ok := err.(*APIError); ok {
+		return err
 	}
 
 	var e *skyerr
