@@ -13,6 +13,7 @@ import (
 	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -245,9 +246,31 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
 	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	storeImpl := &forgotpassword.StoreImpl{
+		Context: context,
+	}
+	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	sender := mail.ProvideMailSender(context, tenantConfiguration)
+	client := sms.ProvideSMSClient(context, tenantConfiguration)
+	executor := auth.ProvideTaskExecutor(m)
+	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, sender, client, queue)
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
+		StateStore:       stateStoreImpl,
+		ForgotPassword:   forgotpasswordProvider,
 	}
 	forgotPasswordHandler := &ForgotPasswordHandler{
 		Provider: webappForgotPasswordProvider,

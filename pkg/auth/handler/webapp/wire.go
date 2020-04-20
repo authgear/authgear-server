@@ -11,6 +11,7 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 )
@@ -49,6 +50,7 @@ func newLoginPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler 
 func newForgotPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
+		wire.Bind(new(webapp.ForgotPassword), new(*forgotpassword.Provider)),
 		wire.Struct(new(webapp.ForgotPasswordProvider), "*"),
 		wire.Bind(new(forgotPasswordProvider), new(*webapp.ForgotPasswordProvider)),
 		wire.Struct(new(ForgotPasswordHandler), "*"),
