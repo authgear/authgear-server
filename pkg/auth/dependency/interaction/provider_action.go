@@ -53,6 +53,7 @@ func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step 
 			}
 			i.State = nil
 			i.Error = nil
+			return nil
 
 		case *ActionTriggerOOBAuthenticator:
 			// TODO(interaction): handle OOB trigger
@@ -83,16 +84,18 @@ func (p *Provider) doAuthenticate(i *Interaction, step *StepState, astate *map[s
 		return nil, err
 	}
 
-	ok := false
-	for _, as := range step.AvailableAuthenticators {
-		if as.ID == authen.ID {
-			ok = true
-			break
+	if step.Step == StepAuthenticateSecondary {
+		ok := false
+		for _, as := range step.AvailableAuthenticators {
+			if as.ID == authen.ID {
+				ok = true
+				break
+			}
 		}
-	}
-	if !ok {
-		// Authenticator is not available for current step, reject it
-		return nil, ErrInvalidCredentials
+		if !ok {
+			// Authenticator is not available for current step, reject it
+			return nil, ErrInvalidCredentials
+		}
 	}
 
 	i.UserID = userID
