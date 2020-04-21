@@ -216,12 +216,6 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error)
 		return
 	}
 
-	code.Consumed = true
-	err = p.Store.Update(code)
-	if err != nil {
-		return
-	}
-
 	prin, err := p.PasswordAuthProvider.GetPrincipalByID(code.PrincipalID)
 	if err != nil {
 		return
@@ -258,6 +252,16 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error)
 		},
 		&user,
 	)
+	if err != nil {
+		return
+	}
+
+	// We have to mark the code as consumed at the end
+	// because if we mark it at the beginning,
+	// the code will be consumed if the new password violates
+	// the password policy.
+	code.Consumed = true
+	err = p.Store.Update(code)
 	if err != nil {
 		return
 	}
