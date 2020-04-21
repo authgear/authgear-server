@@ -86,10 +86,9 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 	}
 
 	attrs := &authn.Attrs{
-		UserID:       i.UserID,
-		IdentityType: i.Identity.Type,
-		// TODO(interaction): populate claims
-		IdentityClaims: map[string]interface{}{},
+		UserID:         i.UserID,
+		IdentityType:   i.Identity.Type,
+		IdentityClaims: i.Identity.Claims,
 		// TODO(interaction): populate acr & amr
 	}
 	return attrs, nil

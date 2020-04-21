@@ -54,5 +54,20 @@ func (p *Principal) Attributes() principal.Attributes {
 }
 
 func (p *Principal) Claims() principal.Claims {
-	return p.ClaimsValue
+	providerID := map[string]interface{}{
+		"type": p.ProviderType,
+	}
+	for k, v := range p.ProviderKeys {
+		providerID[k] = v
+	}
+
+	claims := principal.Claims{
+		"https://auth.skygear.io/claims/oauth/provider":   providerID,
+		"https://auth.skygear.io/claims/oauth/subject_id": p.ProviderUserID,
+		"https://auth.skygear.io/claims/oauth/profile":    p.UserProfile,
+	}
+	for k, v := range p.ClaimsValue {
+		claims[k] = v
+	}
+	return claims
 }

@@ -80,19 +80,29 @@ func TestListIdentitiesHandler(t *testing.T) {
 						{
 							"type": "password",
 							"claims": {
-								"email": "user1@example.com"
+								"email": "user1@example.com",
+								"https://auth.skygear.io/claims/login_id/key":   "email",
+								"https://auth.skygear.io/claims/login_id/value": "user1@example.com"
 							}
 						},
 						{
 							"type": "password",
 							"claims": {
-								"username": "user1"
+								"username": "user1",
+								"https://auth.skygear.io/claims/login_id/key":   "username",
+								"https://auth.skygear.io/claims/login_id/value": "user1"
 							}
 						},
 						{
 							"type": "oauth",
 							"claims": {
-								"email": "user1@example.com"
+								"email": "user1@example.com",
+								"https://auth.skygear.io/claims/oauth/provider": {"type": "google"},
+								"https://auth.skygear.io/claims/oauth/subject_id": "google-user-id",
+								"https://auth.skygear.io/claims/oauth/profile": {
+									"email": "user1@example.com",
+									"name": "User 1"
+								}
 							}
 						}
 					]

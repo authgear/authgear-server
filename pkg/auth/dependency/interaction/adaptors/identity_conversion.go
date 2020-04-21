@@ -9,6 +9,8 @@ import (
 
 func loginIDToIdentityInfo(l *loginid.Identity) *interaction.IdentityInfo {
 	claims := map[string]interface{}{
+		interaction.IdentityClaimLoginIDKey:       l.LoginIDKey,
+		interaction.IdentityClaimLoginIDValue:     l.LoginID,
 		interaction.IdentityClaimLoginIDUniqueKey: l.UniqueKey,
 	}
 	for k, v := range l.Claims {

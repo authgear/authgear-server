@@ -231,11 +231,16 @@ func TestSignupWithLoginIDs(t *testing.T) {
 							Type: "password",
 							Claims: principal.Claims{
 								"email": "john.doe@example.com",
+								"https://auth.skygear.io/claims/login_id/key":   "email",
+								"https://auth.skygear.io/claims/login_id/value": "john.doe@example.com",
 							},
 						},
 						model.Identity{
-							Type:   "password",
-							Claims: principal.Claims{},
+							Type: "password",
+							Claims: principal.Claims{
+								"https://auth.skygear.io/claims/login_id/key":   "username",
+								"https://auth.skygear.io/claims/login_id/value": "john.doe",
+							},
 						},
 					},
 				},

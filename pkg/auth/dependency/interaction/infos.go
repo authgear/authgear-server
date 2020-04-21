@@ -21,8 +21,9 @@ const (
 	// IdentityClaimOAuthData is a claim with a map value containing raw OAuth provider profile.
 	IdentityClaimOAuthProfile string = "https://auth.skygear.io/claims/oauth/profile"
 
-	// IdentityClaimLoginIDValue is a claim with a string value indicating only the value of login ID.
-	// Used for logging in without using login ID key.
+	// IdentityClaimLoginIDValue is a claim with a string value indicating the key of login ID.
+	IdentityClaimLoginIDKey string = "https://auth.skygear.io/claims/login_id/key"
+	// IdentityClaimLoginIDValue is a claim with a string value indicating the value of login ID.
 	IdentityClaimLoginIDValue string = "https://auth.skygear.io/claims/login_id/value"
 	// IdentityClaimLoginIDUniqueKey is a claim with a string value containing the unique normalized login ID.
 	IdentityClaimLoginIDUniqueKey string = "https://auth.skygear.io/claims/login_id/unique_key"

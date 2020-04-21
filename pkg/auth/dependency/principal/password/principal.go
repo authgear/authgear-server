@@ -76,5 +76,12 @@ func (p *Principal) Attributes() principal.Attributes {
 }
 
 func (p *Principal) Claims() principal.Claims {
-	return p.ClaimsValue
+	claims := principal.Claims{
+		"https://auth.skygear.io/claims/login_id/key":   p.LoginIDKey,
+		"https://auth.skygear.io/claims/login_id/value": p.LoginID,
+	}
+	for k, v := range p.ClaimsValue {
+		claims[k] = v
+	}
+	return claims
 }

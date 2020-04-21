@@ -213,6 +213,8 @@ func TestAddLoginIDHandler(t *testing.T) {
 						Type: "password",
 						Claims: principal.Claims{
 							"username": "user1a",
+							"https://auth.skygear.io/claims/login_id/key":   "username",
+							"https://auth.skygear.io/claims/login_id/value": "user1a",
 						},
 					},
 				},
@@ -228,6 +230,8 @@ func TestAddLoginIDHandler(t *testing.T) {
 						Type: "password",
 						Claims: principal.Claims{
 							"username": "user1b",
+							"https://auth.skygear.io/claims/login_id/key":   "username",
+							"https://auth.skygear.io/claims/login_id/value": "user1b",
 						},
 					},
 				},
@@ -249,6 +253,8 @@ func TestAddLoginIDHandler(t *testing.T) {
 						Realm:      password.DefaultRealm,
 						ClaimsValue: map[string]interface{}{
 							"email": "user1@example.com",
+							"https://auth.skygear.io/claims/login_id/key":   "email",
+							"https://auth.skygear.io/claims/login_id/value": "user1@example.com",
 						},
 					},
 				},

@@ -186,6 +186,8 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 						Type: "password",
 						Claims: principal.Claims{
 							"email": "user1@example.com",
+							"https://auth.skygear.io/claims/login_id/key":   "email",
+							"https://auth.skygear.io/claims/login_id/value": "user1@example.com",
 						},
 					},
 				},

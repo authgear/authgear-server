@@ -105,6 +105,11 @@ func TestUnlinkHandler(t *testing.T) {
 						Type: "oauth",
 						Claims: principal.Claims{
 							"email": "faseng@example.com",
+							"https://auth.skygear.io/claims/oauth/provider": map[string]interface{}{
+								"type": "google",
+							},
+							"https://auth.skygear.io/claims/oauth/subject_id": "mock_user_id",
+							"https://auth.skygear.io/claims/oauth/profile":    nil,
 						},
 					},
 				},

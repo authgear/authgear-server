@@ -48,21 +48,15 @@ func (a *IdentityAdaptor) Get(userID string, typ authn.IdentityType, id string) 
 func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *interaction.IdentityInfo, error) {
 	switch typ {
 	case authn.IdentityTypeLoginID:
-		if len(claims) != 1 {
-			panic(fmt.Sprintf("interaction_adaptors: expect 1 login ID claim, got %d", len(claims)))
-		}
-		var loginIDKey, loginID string
-		for k, v := range claims {
-			vs, ok := v.(string)
-			if !ok {
-				panic(fmt.Sprintf("interaction_adaptors: expect string login ID value, got %T", v))
+		loginIDKey := ""
+		if v, ok := claims[interaction.IdentityClaimLoginIDKey]; ok {
+			if loginIDKey, ok = v.(string); !ok {
+				panic(fmt.Sprintf("interaction_adaptors: expect string login ID key, got %T", claims[interaction.IdentityClaimLoginIDKey]))
 			}
-			loginIDKey = k
-			loginID = vs
 		}
-
-		if loginIDKey == interaction.IdentityClaimLoginIDValue {
-			loginIDKey = ""
+		loginID, ok := claims[interaction.IdentityClaimLoginIDValue].(string)
+		if !ok {
+			panic(fmt.Sprintf("interaction_adaptors: expect string login ID value, got %T", claims[interaction.IdentityClaimLoginIDValue]))
 		}
 
 		l, err := a.LoginID.GetByLoginID(loginid.LoginID{Key: loginIDKey, Value: loginID})
