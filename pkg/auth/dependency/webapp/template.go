@@ -243,7 +243,7 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 {{ $.csrfField }}
 
 <div class="nav-bar">
-	<button class="btn back-btn" title="{{ localize "back-button-title" }}"></button>
+	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
 	<div class="login-id primary-txt">
 	{{ if .x_national_number }}
 		+{{ .x_calling_code}} {{ .x_national_number }}
@@ -263,8 +263,8 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 
 <input id="password" class="input text-input" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}" value="{{ .x_password }}">
 
-<button class="btn secondary-btn password-visibility-btn show-password">{{ localize "show-password" }}</button>
-<button class="btn secondary-btn password-visibility-btn hide-password">{{ localize "hide-password" }}</button>
+<button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
+<button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
 
 <a class="anchor align-self-flex-start" href="">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
 
@@ -371,7 +371,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 <input type="hidden" name="x_login_id" value="{{ .x_login_id }}">
 
 <div class="nav-bar">
-	<button class="btn back-btn" title="{{ "back-button-title" }}"></button>
+	<button class="btn back-btn" type="button" title="{{ "back-button-title" }}"></button>
 	<div class="login-id primary-txt">
 	{{ if .x_national_number }}
 		+{{ .x_calling_code}} {{ .x_national_number }}
@@ -387,8 +387,8 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 
 <input id="password" data-password-policy-password="" class="input text-input" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}" value="{{ .x_password }}">
 
-<button class="btn secondary-btn password-visibility-btn show-password">{{ localize "show-password" }}</button>
-<button class="btn secondary-btn password-visibility-btn hide-password">{{ localize "hide-password" }}</button>
+<button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
+<button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
 
 {{ if .x_password_policies }}
 <ul>
