@@ -116,6 +116,7 @@ const defineError = `
 {{ end }}
 `
 
+// nolint: gosec
 const definePasswordPolicy = `
 {{ define "PASSWORD_POLICY" }}
 {{ if .x_password_policies }}
