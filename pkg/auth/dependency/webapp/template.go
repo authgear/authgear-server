@@ -106,6 +106,8 @@ const defineError = `
 		<li class="error-txt">{{ localize "error-invalid-credentials" }}</li>
 	{{ else if eq .x_error.reason "PasswordPolicyViolated" }}
 		<!-- This error is handled differently -->
+	{{ else if eq .x_error.reason "PasswordResetFailed" }}
+		<li class="error-txt">{{ localize "error-password-reset-failed" }}</li>
 	{{ else }}
 		<li class="error-txt">{{ .x_error.message }}</li>
 	{{ end }}

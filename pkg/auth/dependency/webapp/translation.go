@@ -20,6 +20,7 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"error-invalid-email": "Invalid email address",
 	"error-invalid-username": "Invalid username",
 	"error-invalid-credentials": "Incorrect email, phone number, username, or password",
+	"error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
 
 	"back-button-title": "Back",
 
