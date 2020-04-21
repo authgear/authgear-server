@@ -245,7 +245,7 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 <div class="nav-bar">
 	<button class="btn back-btn" title="{{ localize "back-button-title" }}"></button>
 	<div class="login-id primary-txt">
-	{{ if .x_calling_code }}
+	{{ if .x_national_number }}
 		+{{ .x_calling_code}} {{ .x_national_number }}
 	{{ else }}
 		{{ .x_login_id }}
@@ -373,7 +373,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 <div class="nav-bar">
 	<button class="btn back-btn" title="{{ "back-button-title" }}"></button>
 	<div class="login-id primary-txt">
-	{{ if .x_calling_code }}
+	{{ if .x_national_number }}
 		+{{ .x_calling_code}} {{ .x_national_number }}
 	{{ else }}
 		{{ .x_login_id }}
