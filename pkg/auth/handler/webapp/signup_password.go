@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
 func AttachSignupPasswordHandler(
@@ -25,7 +26,8 @@ type signupPasswordProvider interface {
 }
 
 type SignupPasswordHandler struct {
-	Provider signupPasswordProvider
+	Provider  signupPasswordProvider
+	TxContext db.TxContext
 }
 
 func (h *SignupPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -34,15 +36,19 @@ func (h *SignupPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if r.Method == "GET" {
-		writeResponse, err := h.Provider.GetSignupPasswordForm(w, r)
-		writeResponse(err)
-		return
-	}
+	db.WithTx(h.TxContext, func() error {
+		if r.Method == "GET" {
+			writeResponse, err := h.Provider.GetSignupPasswordForm(w, r)
+			writeResponse(err)
+			return err
+		}
 
-	if r.Method == "POST" {
-		writeResponse, err := h.Provider.PostSignupPassword(w, r)
-		writeResponse(err)
-		return
-	}
+		if r.Method == "POST" {
+			writeResponse, err := h.Provider.PostSignupPassword(w, r)
+			writeResponse(err)
+			return err
+		}
+
+		return nil
+	})
 }

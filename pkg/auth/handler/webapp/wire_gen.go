@@ -134,6 +134,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	loginHandler := &LoginHandler{
 		Provider:      authenticateProviderImpl,
 		oauthProvider: oAuthProvider,
+		TxContext:     txContext,
 	}
 	return loginHandler
 }
@@ -226,7 +227,8 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		SSOProvider:      provider2,
 	}
 	loginPasswordHandler := &LoginPasswordHandler{
-		Provider: authenticateProviderImpl,
+		Provider:  authenticateProviderImpl,
+		TxContext: txContext,
 	}
 	return loginPasswordHandler
 }
@@ -315,7 +317,8 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SSOProvider:      provider2,
 	}
 	signupHandler := &SignupHandler{
-		Provider: authenticateProviderImpl,
+		Provider:  authenticateProviderImpl,
+		TxContext: txContext,
 	}
 	return signupHandler
 }
@@ -404,7 +407,8 @@ func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		SSOProvider:      provider2,
 	}
 	signupPasswordHandler := &SignupPasswordHandler{
-		Provider: authenticateProviderImpl,
+		Provider:  authenticateProviderImpl,
+		TxContext: txContext,
 	}
 	return signupPasswordHandler
 }
@@ -468,6 +472,7 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	logoutHandler := &LogoutHandler{
 		RenderProvider: renderProvider,
 		SessionManager: authSessionManager,
+		TxContext:      txContext,
 	}
 	return logoutHandler
 }
@@ -562,6 +567,7 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	ssoCallbackHandler := &SSOCallbackHandler{
 		Provider:      authenticateProviderImpl,
 		oauthProvider: oAuthProvider,
+		TxContext:     txContext,
 	}
 	return ssoCallbackHandler
 }

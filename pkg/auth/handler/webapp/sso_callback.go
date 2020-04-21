@@ -7,6 +7,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
 func AttachSSOCallbackHandler(
@@ -27,6 +28,7 @@ type ssoProvider interface {
 type SSOCallbackHandler struct {
 	Provider      ssoProvider
 	oauthProvider webapp.OAuthProvider
+	TxContext     db.TxContext
 }
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +40,10 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}
-	writeResponse, err := h.Provider.HandleSSOCallback(w, r, h.oauthProvider)
-	writeResponse(err)
+
+	db.WithTx(h.TxContext, func() error {
+		writeResponse, err := h.Provider.HandleSSOCallback(w, r, h.oauthProvider)
+		writeResponse(err)
+		return err
+	})
 }

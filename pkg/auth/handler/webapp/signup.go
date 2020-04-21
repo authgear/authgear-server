@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
 func AttachSignupHandler(
@@ -25,7 +26,8 @@ type signupProvider interface {
 }
 
 type SignupHandler struct {
-	Provider signupProvider
+	Provider  signupProvider
+	TxContext db.TxContext
 }
 
 func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -34,15 +36,19 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method == "GET" {
-		writeResponse, err := h.Provider.GetSignupForm(w, r)
-		writeResponse(err)
-		return
-	}
+	db.WithTx(h.TxContext, func() error {
+		if r.Method == "GET" {
+			writeResponse, err := h.Provider.GetSignupForm(w, r)
+			writeResponse(err)
+			return err
+		}
 
-	if r.Method == "POST" {
-		writeResponse, err := h.Provider.PostSignupLoginID(w, r)
-		writeResponse(err)
-		return
-	}
+		if r.Method == "POST" {
+			writeResponse, err := h.Provider.PostSignupLoginID(w, r)
+			writeResponse(err)
+			return err
+		}
+
+		return nil
+	})
 }

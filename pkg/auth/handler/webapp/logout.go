@@ -8,6 +8,7 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
 func AttachLogoutHandler(
@@ -27,14 +28,18 @@ type logoutSessionManager interface {
 type LogoutHandler struct {
 	RenderProvider webapp.RenderProvider
 	SessionManager logoutSessionManager
+	TxContext      db.TxContext
 }
 
 func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" && r.Form.Get("x_action") == "logout" {
-		sess := auth.GetSession(r.Context())
-		h.SessionManager.Logout(sess, w)
-		webapp.RedirectToRedirectURI(w, r)
-	} else {
-		h.RenderProvider.WritePage(w, r, webapp.TemplateItemTypeAuthUILogoutHTML, nil)
-	}
+	db.WithTx(h.TxContext, func() error {
+		if r.Method == "POST" && r.Form.Get("x_action") == "logout" {
+			sess := auth.GetSession(r.Context())
+			h.SessionManager.Logout(sess, w)
+			webapp.RedirectToRedirectURI(w, r)
+		} else {
+			h.RenderProvider.WritePage(w, r, webapp.TemplateItemTypeAuthUILogoutHTML, nil)
+		}
+		return nil
+	})
 }
