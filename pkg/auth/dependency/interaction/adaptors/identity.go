@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 type LoginIDIdentityProvider interface {
@@ -24,16 +25,16 @@ type IdentityAdaptor struct {
 	OAuth   OAuthIdentityProvider
 }
 
-func (a *IdentityAdaptor) Get(userID string, typ interaction.IdentityType, id string) (*interaction.IdentityInfo, error) {
+func (a *IdentityAdaptor) Get(userID string, typ authn.IdentityType, id string) (*interaction.IdentityInfo, error) {
 	switch typ {
-	case interaction.IdentityTypeLoginID:
+	case authn.IdentityTypeLoginID:
 		l, err := a.LoginID.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return loginIDToIdentityInfo(l), nil
 
-	case interaction.IdentityTypeOAuth:
+	case authn.IdentityTypeOAuth:
 		o, err := a.OAuth.Get(userID, id)
 		if err != nil {
 			return nil, err
@@ -44,9 +45,9 @@ func (a *IdentityAdaptor) Get(userID string, typ interaction.IdentityType, id st
 	panic("interaction_adaptors: unknown identity type " + typ)
 }
 
-func (a *IdentityAdaptor) GetByClaims(typ interaction.IdentityType, claims map[string]interface{}) (string, *interaction.IdentityInfo, error) {
+func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *interaction.IdentityInfo, error) {
 	switch typ {
-	case interaction.IdentityTypeLoginID:
+	case authn.IdentityTypeLoginID:
 		if len(claims) != 1 {
 			panic(fmt.Sprintf("interaction_adaptors: expect 1 login ID claim, got %d", len(claims)))
 		}
@@ -72,7 +73,7 @@ func (a *IdentityAdaptor) GetByClaims(typ interaction.IdentityType, claims map[s
 		}
 		return l[0].UserID, loginIDToIdentityInfo(l[0]), nil
 
-	case interaction.IdentityTypeOAuth:
+	case authn.IdentityTypeOAuth:
 		provider, ok := claims[interaction.IdentityClaimOAuthProvider].(map[string]interface{})
 		if !ok {
 			panic(fmt.Sprintf("interaction_adaptors: expect map provider claim, got %T", claims[interaction.IdentityClaimOAuthProvider]))

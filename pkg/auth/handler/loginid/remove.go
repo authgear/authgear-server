@@ -66,11 +66,6 @@ const RemoveLoginIDRequestSchema = `
 }
 `
 
-type removeSessionManager interface {
-	List(userID string) ([]auth.AuthSession, error)
-	Revoke(auth.AuthSession) error
-}
-
 /*
 	@Operation POST /login_id/remove - Remove login ID
 		Remove login ID from current user.
@@ -94,7 +89,6 @@ type RemoveLoginIDHandler struct {
 	AuthInfoStore            authinfo.Store        `dependency:"AuthInfoStore"`
 	PasswordAuthProvider     password.Provider     `dependency:"PasswordAuthProvider"`
 	UserVerificationProvider userverify.Provider   `dependency:"UserVerificationProvider"`
-	SessionManager           removeSessionManager  `dependency:"SessionManager"`
 	TxContext                db.TxContext          `dependency:"TxContext"`
 	UserProfileStore         userprofile.Store     `dependency:"UserProfileStore"`
 	HookProvider             hook.Provider         `dependency:"HookProvider"`
@@ -133,12 +127,6 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 		}
 		if p.UserID != userID {
 			return password.ErrLoginIDNotFound
-		}
-
-		attrs := session.AuthnAttrs()
-		if attrs.PrincipalID != "" && attrs.PrincipalID == p.ID {
-			err = principal.ErrCurrentIdentityBeingDeleted
-			return err
 		}
 
 		err = h.PasswordAuthProvider.DeletePrincipal(p)
@@ -181,23 +169,6 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 		)
 		if err != nil {
 			return err
-		}
-
-		sessions, err := h.SessionManager.List(userID)
-		if err != nil {
-			return err
-		}
-
-		// delete sessions of deleted principal
-		for _, session := range sessions {
-			if session.AuthnAttrs().PrincipalID != p.ID {
-				continue
-			}
-
-			err := h.SessionManager.Revoke(session)
-			if err != nil {
-				h.Logger.WithError(err).Error("Cannot revoke principal session")
-			}
 		}
 
 		return nil

@@ -36,11 +36,6 @@ func AttachUnlinkHandler(
 		Methods("OPTIONS", "POST")
 }
 
-type unlinkSessionManager interface {
-	List(userID string) ([]auth.AuthSession, error)
-	Revoke(auth.AuthSession) error
-}
-
 /*
 	@Operation POST /sso/{provider_id}/unlink - Unlink SSO provider
 		Unlink the specified SSO provider from the current user.
@@ -58,7 +53,6 @@ type unlinkSessionManager interface {
 type UnlinkHandler struct {
 	TxContext         db.TxContext
 	RequireAuthz      handler.RequireAuthz
-	SessionManager    unlinkSessionManager
 	OAuthAuthProvider oauth.Provider
 	AuthInfoStore     authinfo.Store
 	UserProfileStore  userprofile.Store
@@ -110,33 +104,9 @@ func (h UnlinkHandler) Handle(r *http.Request) (resp interface{}, err error) {
 			return err
 		}
 
-		// principalID can be missing
-		principalID := sess.AuthnAttrs().PrincipalID
-		if principalID != "" && principalID == prin.ID {
-			err = principal.ErrCurrentIdentityBeingDeleted
-			return err
-		}
-
 		err = h.OAuthAuthProvider.DeletePrincipal(prin)
 		if err != nil {
 			return err
-		}
-
-		sessions, err := h.SessionManager.List(userID)
-		if err != nil {
-			return err
-		}
-
-		// delete sessions of deleted principal
-		for _, session := range sessions {
-			if session.AuthnAttrs().PrincipalID != prin.ID {
-				continue
-			}
-
-			err := h.SessionManager.Revoke(session)
-			if err != nil {
-				return err
-			}
 		}
 
 		authInfo := &authinfo.AuthInfo{}

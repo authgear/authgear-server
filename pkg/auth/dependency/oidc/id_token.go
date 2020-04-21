@@ -6,7 +6,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -32,7 +31,6 @@ type IDTokenIssuer struct {
 	URLPrefix        urlprefix.Provider
 	AuthInfoStore    authinfo.Store
 	UserProfileStore userprofile.Store
-	IdentityProvider principal.IdentityProvider
 	Time             time.Provider
 }
 
@@ -96,13 +94,8 @@ func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (*UserClaims, 
 		return nil, err
 	}
 
-	principal, err := ti.IdentityProvider.GetPrincipalByID(session.AuthnAttrs().PrincipalID)
-	if err != nil {
-		return nil, err
-	}
-
 	user := model.NewUser(*authInfo, userProfile)
-	identity := model.NewIdentity(principal)
+	identity := model.NewIdentityFromAttrs(session.AuthnAttrs())
 	claims.User = &user
 	claims.Identity = &identity
 	claims.SessionID = session.SessionID()

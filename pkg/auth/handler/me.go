@@ -83,7 +83,6 @@ func (h MeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interfac
 
 	err = db.WithTx(h.TxContext, func() error {
 		sess := auth.GetSession(r.Context())
-		principalID := sess.AuthnAttrs().PrincipalID
 
 		authInfo := &authinfo.AuthInfo{}
 		if err := h.AuthInfoStore.GetAuth(sess.AuthnAttrs().UserID, authInfo); err != nil {
@@ -95,12 +94,7 @@ func (h MeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interfac
 			return err
 		}
 
-		var principal principal.Principal
-		if principal, err = h.IdentityProvider.GetPrincipalByID(principalID); err != nil {
-			return err
-		}
-
-		identity := model.NewIdentity(principal)
+		identity := model.NewIdentityFromAttrs(sess.AuthnAttrs())
 		user := model.NewUser(*authInfo, userProfile)
 
 		resp = model.NewAuthResponseWithUserIdentity(user, identity)

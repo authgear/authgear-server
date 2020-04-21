@@ -211,9 +211,9 @@ func TestSignupWithLoginIDs(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			p, err := passwordProvider.GetPrincipalByLoginID("email", "john.doe@example.com")
+			_, err = passwordProvider.GetPrincipalByLoginID("email", "john.doe@example.com")
 			So(err, ShouldBeNil)
-			p2, err := passwordProvider.GetPrincipalByLoginID("username", "john.doe")
+			_, err = passwordProvider.GetPrincipalByLoginID("username", "john.doe")
 			So(err, ShouldBeNil)
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
@@ -228,23 +228,13 @@ func TestSignupWithLoginIDs(t *testing.T) {
 					},
 					Identities: []model.Identity{
 						model.Identity{
-							ID:   p.ID,
 							Type: "password",
-							Attributes: principal.Attributes{
-								"login_id_key": "email",
-								"login_id":     "john.doe@example.com",
-							},
 							Claims: principal.Claims{
 								"email": "john.doe@example.com",
 							},
 						},
 						model.Identity{
-							ID:   p2.ID,
-							Type: "password",
-							Attributes: principal.Attributes{
-								"login_id_key": "username",
-								"login_id":     "john.doe",
-							},
+							Type:   "password",
 							Claims: principal.Claims{},
 						},
 					},

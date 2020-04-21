@@ -210,12 +210,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 						Metadata:   userprofile.Data{},
 					},
 					Identity: model.Identity{
-						ID:   p1.ID,
 						Type: "password",
-						Attributes: principal.Attributes{
-							"login_id_key": "username",
-							"login_id":     "user1a",
-						},
 						Claims: principal.Claims{
 							"username": "user1a",
 						},
@@ -230,12 +225,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 						Metadata:   userprofile.Data{},
 					},
 					Identity: model.Identity{
-						ID:   p2.ID,
 						Type: "password",
-						Attributes: principal.Attributes{
-							"login_id_key": "username",
-							"login_id":     "user1b",
-						},
 						Claims: principal.Claims{
 							"username": "user1b",
 						},

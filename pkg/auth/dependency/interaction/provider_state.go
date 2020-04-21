@@ -3,6 +3,7 @@ package interaction
 import (
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -66,15 +67,15 @@ func (p *Provider) getStateLogin(i *Interaction, intent *IntentLogin) (*State, e
 	return s, nil
 }
 
-var identityPrimaryAuthenticators = map[IdentityType]map[AuthenticatorType]bool{
-	IdentityTypeLoginID: {
+var identityPrimaryAuthenticators = map[authn.IdentityType]map[AuthenticatorType]bool{
+	authn.IdentityTypeLoginID: {
 		AuthenticatorTypePassword: true,
 		AuthenticatorTypeTOTP:     true,
 		AuthenticatorTypeOOBOTP:   true,
 	},
 }
 
-func (p *Provider) getAvailablePrimaryAuthenticators(typ IdentityType) []AuthenticatorSpec {
+func (p *Provider) getAvailablePrimaryAuthenticators(typ authn.IdentityType) []AuthenticatorSpec {
 	var as []AuthenticatorSpec
 	for _, t := range p.Config.PrimaryAuthenticators {
 		authenticatorType := AuthenticatorType(t)

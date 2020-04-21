@@ -15,7 +15,6 @@ import (
 	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -68,7 +67,6 @@ const AuthenticateTOTPRequestSchema = `
 type AuthenticateTOTPHandler struct {
 	TxContext     db.TxContext
 	Validator     *validation.Validator
-	TimeProvider  time.Provider
 	MFAProvider   mfa.Provider
 	authnResolver authnResolver
 	authnStepper  authnStepper
@@ -108,7 +106,7 @@ func (h *AuthenticateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		}
 
 		attrs := session.AuthnAttrs()
-		a, bearerToken, err := h.MFAProvider.AuthenticateTOTP(
+		_, bearerToken, err := h.MFAProvider.AuthenticateTOTP(
 			attrs.UserID,
 			payload.OTP,
 			payload.RequestBearerToken,
@@ -117,10 +115,9 @@ func (h *AuthenticateTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			return err
 		}
 
-		now := h.TimeProvider.NowUTC()
-		attrs.AuthenticatorID = a.ID
-		attrs.AuthenticatorType = a.Type
-		attrs.AuthenticatorUpdatedAt = &now
+		// TODO(mfa): use correct ACR & AMR
+		attrs.ACR = "http://schemas.openid.net/pape/policies/2007/06/multi-factor"
+		attrs.AMR = append(attrs.AMR, "mfa", "otp")
 
 		result, err = h.authnStepper.StepSession(
 			coreAuth.GetAccessKey(r.Context()).Client,

@@ -69,7 +69,6 @@ func TestListIdentitiesHandler(t *testing.T) {
 			r, _ := http.NewRequest("POST", "", strings.NewReader("{}"))
 			r = authtesting.WithAuthn().
 				UserID("user-id-1").
-				PrincipalID("principal-id-1").
 				ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
@@ -79,33 +78,19 @@ func TestListIdentitiesHandler(t *testing.T) {
 				"result": {
 					"identities": [
 						{
-							"id": "principal-id-1",
 							"type": "password",
-							"login_id_key": "email",
-							"login_id": "user1@example.com",
 							"claims": {
 								"email": "user1@example.com"
 							}
 						},
 						{
-							"id": "principal-id-2",
 							"type": "password",
-							"login_id_key": "username",
-							"login_id": "user1",
 							"claims": {
 								"username": "user1"
 							}
 						},
 						{
-							"id": "principal-id-3",
 							"type": "oauth",
-							"provider_type": "google",
-							"provider_user_id": "google-user-id",
-							"provider_keys": {},
-							"raw_profile": {
-								"name": "User 1",
-								"email": "user1@example.com"
-							},
 							"claims": {
 								"email": "user1@example.com"
 							}

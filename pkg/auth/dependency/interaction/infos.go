@@ -1,8 +1,10 @@
 package interaction
 
+import "github.com/skygeario/skygear-server/pkg/core/authn"
+
 type IdentityInfo struct {
 	ID       string                 `json:"id"`
-	Type     IdentityType           `json:"type"`
+	Type     authn.IdentityType     `json:"type"`
 	Claims   map[string]interface{} `json:"claims"`
 	Identity interface{}            `json:"-"`
 }
@@ -10,13 +12,6 @@ type IdentityInfo struct {
 func (i *IdentityInfo) ToSpec() IdentitySpec {
 	return IdentitySpec{ID: i.ID, Type: i.Type, Claims: i.Claims}
 }
-
-type IdentityType string
-
-const (
-	IdentityTypeLoginID IdentityType = "login_id"
-	IdentityTypeOAuth   IdentityType = "oauth"
-)
 
 const (
 	// IdentityClaimOAuthProvider is a claim with a map value like `{ "type": "azureadv2", "tenant": "test" }`.

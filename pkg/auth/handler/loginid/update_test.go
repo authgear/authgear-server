@@ -1,7 +1,6 @@
 package loginid
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -55,7 +54,6 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 		h.TxContext = db.NewMockTxContext()
 		authctx := authtesting.WithAuthn().
 			UserID("user-id-1").
-			PrincipalID("principal-id-1").
 			Verified(true)
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
@@ -107,15 +105,6 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 			},
 		)
 		h.PasswordAuthProvider = passwordAuthProvider
-		sessionManager := &mockUpdateSessionManager{}
-		sessionManager.Sessions = []auth.AuthSession{
-			authtesting.WithAuthn().
-				SessionID("session-id").
-				UserID("user-id-1").
-				PrincipalID("principal-id-1").
-				ToSession(),
-		}
-		h.SessionManager = sessionManager
 		h.UserVerificationProvider = userverify.NewProvider(nil, nil, &config.UserVerificationConfiguration{
 			Criteria: config.UserVerificationCriteriaAll,
 			LoginIDKeys: []config.UserVerificationKeyConfiguration{
@@ -237,7 +226,7 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 			So(p.LoginIDKey, ShouldEqual, "email")
 			So(p.LoginID, ShouldEqual, "user1+a@example.com")
 
-			So(w.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+			So(w.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {
 					"user": {
 						"id": "user-id-1",
@@ -249,19 +238,13 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 						"metadata": {}
 					},
 					"identity": {
-						"id": "%s",
 						"type": "password",
-						"login_id": "user1+a@example.com",
-						"login_id_key": "email",
 						"claims": {
 							"email": "user1+a@example.com"
 						}
 					}
 				}
-			}`, p.ID))
-
-			So(sessionManager.Sessions, ShouldHaveLength, 1)
-			So(sessionManager.Sessions[0].AuthnAttrs().PrincipalID, ShouldEqual, p.ID)
+			}`)
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.IdentityCreateEvent{
@@ -273,12 +256,7 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 						Metadata:   userprofile.Data{},
 					},
 					Identity: model.Identity{
-						ID:   p.ID,
 						Type: "password",
-						Attributes: principal.Attributes{
-							"login_id_key": "email",
-							"login_id":     "user1+a@example.com",
-						},
 						Claims: principal.Claims{
 							"email": "user1+a@example.com",
 						},
@@ -293,12 +271,7 @@ func TestUpdateLoginIDHandler(t *testing.T) {
 						Metadata:   userprofile.Data{},
 					},
 					Identity: model.Identity{
-						ID:   "principal-id-1",
 						Type: "password",
-						Attributes: principal.Attributes{
-							"login_id_key": "email",
-							"login_id":     "user1@example.com",
-						},
 						Claims: principal.Claims{
 							"email": "user1@example.com",
 						},

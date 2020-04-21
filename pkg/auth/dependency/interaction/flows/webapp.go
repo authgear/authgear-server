@@ -17,7 +17,7 @@ type WebAppFlow struct {
 func (f *WebAppFlow) LoginWithLoginID(loginID string) (*TokenResult, error) {
 	i, err := f.Interactions.NewInteraction(&interaction.IntentLogin{
 		Identity: interaction.IdentitySpec{
-			Type: interaction.IdentityTypeLoginID,
+			Type: authn.IdentityTypeLoginID,
 			Claims: map[string]interface{}{
 				interaction.IdentityClaimLoginIDValue: loginID,
 			},

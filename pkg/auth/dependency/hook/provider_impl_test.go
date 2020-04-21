@@ -50,7 +50,7 @@ func TestDispatchEvent(t *testing.T) {
 				ID: "user-id",
 			}
 			identity := model.Identity{
-				ID: "principal-id",
+				Type: "login_id",
 			}
 			payload := event.SessionCreateEvent{
 				Reason:   "login",
@@ -73,10 +73,9 @@ func TestDispatchEvent(t *testing.T) {
 							Seq:     1,
 							Payload: payload,
 							Context: event.Context{
-								Timestamp:   1136214245,
-								RequestID:   &requestID,
-								UserID:      nil,
-								PrincipalID: nil,
+								Timestamp: 1136214245,
+								RequestID: &requestID,
+								UserID:    nil,
 							},
 						},
 						User: &user,
@@ -127,10 +126,9 @@ func TestDispatchEvent(t *testing.T) {
 							Seq:     1,
 							Payload: payload,
 							Context: event.Context{
-								Timestamp:   1136214245,
-								RequestID:   &requestID,
-								UserID:      nil,
-								PrincipalID: nil,
+								Timestamp: 1136214245,
+								RequestID: &requestID,
+								UserID:    nil,
 							},
 						},
 						User: &user,
@@ -147,14 +145,12 @@ func TestDispatchEvent(t *testing.T) {
 
 			Convey("should include auth info", func() {
 				userID := "user-id"
-				principalID := "principal-id"
 				provider.Context = authn.WithAuthn(
 					context.Background(),
 					&session.IDPSession{
 						ID: "user-id-principal-id",
 						Attrs: authn.Attrs{
-							UserID:      userID,
-							PrincipalID: principalID,
+							UserID: userID,
 						},
 					},
 					&authn.UserInfo{
@@ -169,13 +165,11 @@ func TestDispatchEvent(t *testing.T) {
 
 				So(err, ShouldBeNil)
 				So(deliverer.BeforeEvents[0].Event.Context, ShouldResemble, event.Context{
-					Timestamp:   1136214245,
-					RequestID:   &requestID,
-					UserID:      &userID,
-					PrincipalID: &principalID,
+					Timestamp: 1136214245,
+					RequestID: &requestID,
+					UserID:    &userID,
 					Session: &model.Session{
-						ID:         "user-id-principal-id",
-						IdentityID: "principal-id",
+						ID: "user-id-principal-id",
 					},
 				})
 			})
@@ -249,10 +243,9 @@ func TestDispatchEvent(t *testing.T) {
 							},
 						},
 						Context: event.Context{
-							Timestamp:   1136214245,
-							RequestID:   &requestID,
-							UserID:      nil,
-							PrincipalID: nil,
+							Timestamp: 1136214245,
+							RequestID: &requestID,
+							UserID:    nil,
 						},
 					},
 					&event.Event{
@@ -267,10 +260,9 @@ func TestDispatchEvent(t *testing.T) {
 							},
 						},
 						Context: event.Context{
-							Timestamp:   1136214245,
-							RequestID:   &requestID,
-							UserID:      nil,
-							PrincipalID: nil,
+							Timestamp: 1136214245,
+							RequestID: &requestID,
+							UserID:    nil,
 						},
 					},
 				})
@@ -315,10 +307,9 @@ func TestDispatchEvent(t *testing.T) {
 							},
 						},
 						Context: event.Context{
-							Timestamp:   1136214245,
-							RequestID:   &requestID,
-							UserID:      nil,
-							PrincipalID: nil,
+							Timestamp: 1136214245,
+							RequestID: &requestID,
+							UserID:    nil,
 						},
 					},
 				})

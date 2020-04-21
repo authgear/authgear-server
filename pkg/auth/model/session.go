@@ -8,14 +8,10 @@ import (
 type Session struct {
 	ID string `json:"id"`
 
-	IdentityID        string    `json:"identity_id"`
-	IdentityType      string    `json:"identity_type"`
-	IdentityUpdatedAt time.Time `json:"identity_updated_at"`
-
-	AuthenticatorID         string     `json:"authenticator_id,omitempty"`
-	AuthenticatorType       string     `json:"authenticator_type,omitempty"`
-	AuthenticatorOOBChannel string     `json:"authenticator_oob_channel,omitempty"`
-	AuthenticatorUpdatedAt  *time.Time `json:"authenticator_updated_at,omitempty"`
+	IdentityType   string                 `json:"identity_type"`
+	IdentityClaims map[string]interface{} `json:"identity_claims"`
+	ACR            string                 `json:"acr,omitempty"`
+	AMR            []string               `json:"amr,omitempty"`
 
 	CreatedAt        time.Time `json:"created_at"`
 	LastAccessedAt   time.Time `json:"last_accessed_at"`
@@ -31,14 +27,15 @@ const SessionSchema = `
 	"type": "object",
 	"properties": {
 		"id": { "type": "string" },
-		"identity_id": { "type": "string" },
+		"identity_type": { "type": "string" },
+		"identity_claims": { "type": "object" },
+		"acr": { "type": "string" },
+		"amr": { "type": "array", "items": { "type": "string" } },
 		"created_at": { "type": "string" },
 		"last_accessed_at": { "type": "string" },
 		"created_by_ip": { "type": "string" },
 		"last_accessed_by_ip": { "type": "string" },
-		"user_agent": { "$ref": "#UserAgent" },
-		"name": { "type": "string" },
-		"data": { "type": "object" }
+		"user_agent": { "$ref": "#UserAgent" }
 	}
 }
 `

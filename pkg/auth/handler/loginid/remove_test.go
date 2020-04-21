@@ -57,7 +57,6 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 		h.TxContext = db.NewMockTxContext()
 		authctx := authtesting.WithAuthn().
 			UserID("user-id-1").
-			PrincipalID("principal-id-1").
 			Verified(true)
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
@@ -109,15 +108,6 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 			},
 		)
 		h.PasswordAuthProvider = passwordAuthProvider
-		sessionManager := &mockRemoveSessionManager{}
-		sessionManager.Sessions = []auth.AuthSession{
-			authtesting.WithAuthn().
-				SessionID("session-id").
-				UserID("user-id-1").
-				PrincipalID("principal-id-1").
-				ToSession(),
-		}
-		h.SessionManager = sessionManager
 		h.UserVerificationProvider = userverify.NewProvider(nil, nil, &config.UserVerificationConfiguration{
 			Criteria: config.UserVerificationCriteriaAll,
 			LoginIDKeys: []config.UserVerificationKeyConfiguration{
@@ -166,27 +156,7 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 			}`)
 		})
 
-		Convey("should fail if attempted to delete current identity", func() {
-			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"key": "email", "value": "user1@example.com"
-			}`))
-			r = authctx.ToRequest(r)
-			r.Header.Set("Content-Type", "application/json")
-			w := httptest.NewRecorder()
-			h.ServeHTTP(w, r)
-
-			So(w.Body.Bytes(), ShouldEqualJSON, `{
-				"error": {
-					"name": "Invalid",
-					"reason": "CurrentIdentityBeingDeleted",
-					"message": "must not delete current identity",
-					"code": 400
-				}
-			}`)
-		})
-
 		Convey("should remove login ID", func() {
-			authctx = authctx.PrincipalID("principal-id-2")
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"key": "email", "value": "user1@example.com"
 			}`))
@@ -203,8 +173,6 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 			_, err := passwordAuthProvider.GetPrincipalByLoginID("email", "user1@example.com")
 			So(err, ShouldBeError, "principal not found")
 
-			So(sessionManager.Sessions, ShouldBeEmpty)
-
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{
 				event.IdentityDeleteEvent{
 					User: model.User{
@@ -215,12 +183,7 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 						Metadata:   userprofile.Data{},
 					},
 					Identity: model.Identity{
-						ID:   "principal-id-1",
 						Type: "password",
-						Attributes: principal.Attributes{
-							"login_id_key": "email",
-							"login_id":     "user1@example.com",
-						},
 						Claims: principal.Claims{
 							"email": "user1@example.com",
 						},
@@ -230,7 +193,6 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 		})
 
 		Convey("should invalidate verify state", func() {
-			authctx = authctx.PrincipalID("principal-id-2")
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"key": "email", "value": "user1@example.com"
 			}`))

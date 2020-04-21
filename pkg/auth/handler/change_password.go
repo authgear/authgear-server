@@ -142,11 +142,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 			return err
 		}
 
-		principal := principals[0]
 		for _, p := range principals {
-			if p.ID == sess.AuthnAttrs().PrincipalID {
-				principal = p
-			}
 			err = p.VerifyPassword(payload.OldPassword)
 			if err != nil {
 				return err
@@ -168,7 +164,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 		}
 
 		user := model.NewUser(*authInfo, userProfile)
-		identity := model.NewIdentity(principal)
+		identity := model.NewIdentityFromAttrs(sess.AuthnAttrs())
 
 		err = h.HookProvider.DispatchEvent(
 			event.PasswordUpdateEvent{

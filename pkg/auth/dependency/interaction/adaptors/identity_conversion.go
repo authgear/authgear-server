@@ -4,6 +4,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 func loginIDToIdentityInfo(l *loginid.Identity) *interaction.IdentityInfo {
@@ -15,7 +16,7 @@ func loginIDToIdentityInfo(l *loginid.Identity) *interaction.IdentityInfo {
 	}
 
 	return &interaction.IdentityInfo{
-		Type:     interaction.IdentityTypeLoginID,
+		Type:     authn.IdentityTypeLoginID,
 		ID:       l.ID,
 		Claims:   claims,
 		Identity: l,
@@ -40,7 +41,7 @@ func oauthToIdentityInfo(o *oauth.Identity) *interaction.IdentityInfo {
 	}
 
 	return &interaction.IdentityInfo{
-		Type:     interaction.IdentityTypeOAuth,
+		Type:     authn.IdentityTypeOAuth,
 		ID:       o.ID,
 		Claims:   claims,
 		Identity: o,

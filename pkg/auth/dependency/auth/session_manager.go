@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -33,7 +32,6 @@ type AccessTokenSessionManager SessionManagementProvider
 type SessionManager struct {
 	AuthInfoStore       authinfo.Store
 	UserProfileStore    userprofile.Store
-	IdentityProvider    principal.IdentityProvider
 	Hooks               HookProvider
 	IDPSessions         IDPSessionManager
 	AccessTokenSessions AccessTokenSessionManager
@@ -50,13 +48,8 @@ func (m *SessionManager) loadModels(session AuthSession) (*model.User, *model.Id
 		return nil, nil, err
 	}
 
-	principal, err := m.IdentityProvider.GetPrincipalByID(session.AuthnAttrs().PrincipalID)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	user := model.NewUser(*authInfo, profile)
-	identity := model.NewIdentity(principal)
+	identity := model.NewIdentityFromAttrs(session.AuthnAttrs())
 	return &user, &identity, nil
 }
 

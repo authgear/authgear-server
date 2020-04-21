@@ -8,7 +8,6 @@ import (
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -223,7 +222,6 @@ func newLinkAuthURLHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 
 func providerUnlinkHandler(
 	tx db.TxContext,
-	sm unlinkSessionManager,
 	requireAuthz handler.RequireAuthz,
 	oap oauth.Provider,
 	ais authinfo.Store,
@@ -233,7 +231,6 @@ func providerUnlinkHandler(
 ) http.Handler {
 	h := &UnlinkHandler{
 		TxContext:         tx,
-		SessionManager:    sm,
 		OAuthAuthProvider: oap,
 		AuthInfoStore:     ais,
 		UserProfileStore:  ups,
@@ -246,7 +243,6 @@ func providerUnlinkHandler(
 func newUnlinkHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
-		wire.Bind(new(unlinkSessionManager), new(*auth.SessionManager)),
 		providerUnlinkHandler,
 		ProvideRedirectURIForAPIFunc,
 	)

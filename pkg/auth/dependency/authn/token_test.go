@@ -17,12 +17,10 @@ func TestSessionToken(t *testing.T) {
 				RequiredSteps:       []SessionStep{"identity", "mfa"},
 				FinishedSteps:       []SessionStep{"identity"},
 				SessionCreateReason: "reason",
+				IdentityID:          "principal",
 				Attrs: authn.Attrs{
-					UserID:                  "user",
-					PrincipalID:             "principal",
-					AuthenticatorID:         "authenticator",
-					AuthenticatorType:       "totp",
-					AuthenticatorOOBChannel: "sms",
+					UserID:       "user",
+					IdentityType: "password",
 				},
 			},
 		}

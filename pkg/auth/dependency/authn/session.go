@@ -29,7 +29,8 @@ type AuthnSession struct {
 	FinishedSteps       []SessionStep            `json:"finished_steps"`
 	SessionCreateReason auth.SessionCreateReason `json:"session_create_reason"`
 
-	Attrs authn.Attrs `json:"attrs"`
+	IdentityID string      `json:"identity_id"`
+	Attrs      authn.Attrs `json:"attrs"`
 
 	AuthenticatorBearerToken string `json:"authenticator_bearer_token,omitempty"`
 }

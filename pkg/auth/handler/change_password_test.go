@@ -86,8 +86,8 @@ func TestChangePasswordHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID(userID).
-				PrincipalID("john.doe.principal.id0").
 				Verified(true).
+				IdentityType("login_id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -107,10 +107,7 @@ func TestChangePasswordHandler(t *testing.T) {
 					},
 					"identity": {
 						"claims": {},
-						"id": "john.doe.principal.id0",
-						"login_id": "john.doe",
-						"login_id_key": "username",
-						"type": "password"
+						"type": "login_id"
 					}
 				}
 			}`)
@@ -142,7 +139,6 @@ func TestChangePasswordHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID(userID).
-				PrincipalID("john.doe.principal.id0").
 				Verified(true).
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
@@ -175,7 +171,6 @@ func TestChangePasswordHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID(userID).
-				PrincipalID("john.doe.principal.id0").
 				Verified(true).
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")

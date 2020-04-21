@@ -137,7 +137,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -184,7 +183,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -205,7 +203,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -228,7 +225,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -251,7 +247,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -278,7 +273,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -301,7 +295,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()

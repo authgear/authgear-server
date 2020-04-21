@@ -10,8 +10,8 @@ import (
 )
 
 type IdentityProvider interface {
-	Get(userID string, typ IdentityType, id string) (*IdentityInfo, error)
-	GetByClaims(typ IdentityType, claims map[string]interface{}) (string, *IdentityInfo, error)
+	Get(userID string, typ authn.IdentityType, id string) (*IdentityInfo, error)
+	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *IdentityInfo, error)
 }
 
 type AuthenticatorProvider interface {
@@ -85,11 +85,12 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 		p.Logger.WithError(err).Warn("failed to cleanup interaction")
 	}
 
-	// TODO(interaction): simplify authn attrs and populate them
 	attrs := &authn.Attrs{
-		UserID:        i.UserID,
-		PrincipalType: authn.PrincipalType(i.Identity.Type),
-		PrincipalID:   i.Identity.ID,
+		UserID:       i.UserID,
+		IdentityType: i.Identity.Type,
+		// TODO(interaction): populate claims
+		IdentityClaims: map[string]interface{}{},
+		// TODO(interaction): populate acr & amr
 	}
 	return attrs, nil
 }

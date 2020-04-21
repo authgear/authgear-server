@@ -6,6 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 func TestProvider(t *testing.T) {
@@ -18,7 +19,7 @@ func TestProvider(t *testing.T) {
 					i, err := p.NewInteraction(
 						&interaction.IntentSignup{
 							Identity: interaction.IdentitySpec{
-								Type:   interaction.IdentityTypeLoginID,
+								Type:   authn.IdentityTypeLoginID,
 								Claims: map[string]interface{}{"email": "user@example.com"},
 							},
 							UserMetadata: map[string]interface{}{},
@@ -78,7 +79,7 @@ func TestProvider(t *testing.T) {
 				Convey("step 1", func() {
 					i, err := p.NewInteraction(
 						&interaction.IntentLogin{Identity: interaction.IdentitySpec{
-							Type:   interaction.IdentityTypeLoginID,
+							Type:   authn.IdentityTypeLoginID,
 							Claims: map[string]interface{}{"email": "user@example.com"},
 						}},
 						"",
@@ -138,7 +139,7 @@ func TestProvider(t *testing.T) {
 				i, err := p.NewInteraction(
 					&interaction.IntentLogin{
 						Identity: interaction.IdentitySpec{
-							Type: interaction.IdentityTypeOAuth,
+							Type: authn.IdentityTypeOAuth,
 							Claims: map[string]interface{}{
 								interaction.IdentityClaimOAuthProvider: map[string]interface{}{
 									"type":   "azureadv2",

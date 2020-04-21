@@ -15,7 +15,6 @@ import (
 	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -66,7 +65,6 @@ const AuthenticateRecoveryCodeRequestSchema = `
 type AuthenticateRecoveryCodeHandler struct {
 	TxContext     db.TxContext
 	Validator     *validation.Validator
-	TimeProvider  time.Provider
 	MFAProvider   mfa.Provider
 	authnResolver authnResolver
 	authnStepper  authnStepper
@@ -106,7 +104,7 @@ func (h *AuthenticateRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		}
 
 		attrs := session.AuthnAttrs()
-		a, err := h.MFAProvider.AuthenticateRecoveryCode(
+		_, err := h.MFAProvider.AuthenticateRecoveryCode(
 			attrs.UserID,
 			payload.Code,
 		)
@@ -114,10 +112,9 @@ func (h *AuthenticateRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			return err
 		}
 
-		now := h.TimeProvider.NowUTC()
-		attrs.AuthenticatorID = a.ID
-		attrs.AuthenticatorType = a.Type
-		attrs.AuthenticatorUpdatedAt = &now
+		// TODO(mfa): use correct ACR & AMR
+		attrs.ACR = "http://schemas.openid.net/pape/policies/2007/06/multi-factor"
+		attrs.AMR = append(attrs.AMR, "mfa")
 
 		result, err = h.authnStepper.StepSession(
 			coreAuth.GetAccessKey(r.Context()).Client,

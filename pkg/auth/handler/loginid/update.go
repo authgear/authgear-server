@@ -81,11 +81,6 @@ const UpdateLoginIDRequestSchema = `
 }
 `
 
-type updateSessionManager interface {
-	List(userID string) ([]auth.AuthSession, error)
-	Update(auth.AuthSession) error
-}
-
 /*
 	@Operation POST /login_id/update - update login ID
 		Update the specified login ID for current user.
@@ -114,7 +109,6 @@ type UpdateLoginIDHandler struct {
 	AuthInfoStore            authinfo.Store        `dependency:"AuthInfoStore"`
 	PasswordAuthProvider     password.Provider     `dependency:"PasswordAuthProvider"`
 	UserVerificationProvider userverify.Provider   `dependency:"UserVerificationProvider"`
-	SessionManager           updateSessionManager  `dependency:"SessionManager"`
 	TxContext                db.TxContext          `dependency:"TxContext"`
 	UserProfileStore         userprofile.Store     `dependency:"UserProfileStore"`
 	HookProvider             hook.Provider         `dependency:"HookProvider"`
@@ -230,23 +224,6 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (in
 		)
 		if err != nil {
 			return err
-		}
-
-		sessions, err := h.SessionManager.List(userID)
-		if err != nil {
-			return err
-		}
-
-		for _, session := range sessions {
-			attrs := session.AuthnAttrs()
-			if attrs.PrincipalID == oldPrincipal.ID {
-				attrs.PrincipalID = newPrincipal.ID
-				err = h.SessionManager.Update(session)
-				if err != nil {
-					// log and ignore error
-					h.Logger.WithError(err).Error("Cannot update session principal ID")
-				}
-			}
 		}
 
 		user = model.NewUser(*authInfo, userProfile)
