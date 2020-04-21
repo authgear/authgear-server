@@ -176,6 +176,7 @@ const SSOCallbackRequestSchema = `
 }
 `
 
+// nolint: gosec
 const ForgotPasswordRequestSchema = `
 {
 	"$id": "#WebAppForgotPasswordRequest",

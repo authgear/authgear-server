@@ -74,6 +74,9 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"forgot-password-success-description": "If you have an account, please follow the instruction sent to {0} to reset your password",
 	"login-button-label--forgot-password-success-page": "Sign in",
 
+	"reset-password-page-title": "Reset Password",
+	"reset-password-description": "Please enter your new password below.",
+
 	"logout-button-hint": "To logout, please click the button below.",
 	"logout-button-label": "Logout"
 	}`,
