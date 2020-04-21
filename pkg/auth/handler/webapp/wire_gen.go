@@ -153,10 +153,10 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		RecoveryCode: recoverycodeProvider,
 	}
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
+	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, provider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
-		Interactions:        interactionProvider,
-		SessionCookieConfig: cookieConfiguration,
-		Sessions:            sessionProvider,
+		Interactions:   interactionProvider,
+		UserController: userController,
 	}
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
@@ -279,10 +279,10 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		RecoveryCode: recoverycodeProvider,
 	}
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
+	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, provider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
-		Interactions:        interactionProvider,
-		SessionCookieConfig: cookieConfiguration,
-		Sessions:            sessionProvider,
+		Interactions:   interactionProvider,
+		UserController: userController,
 	}
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
@@ -572,10 +572,10 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		RecoveryCode: recoverycodeProvider,
 	}
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
+	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, provider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
-		Interactions:        interactionProvider,
-		SessionCookieConfig: cookieConfiguration,
-		Sessions:            sessionProvider,
+		Interactions:   interactionProvider,
+		UserController: userController,
 	}
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
@@ -689,10 +689,10 @@ func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		RecoveryCode: recoverycodeProvider,
 	}
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
+	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, provider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
-		Interactions:        interactionProvider,
-		SessionCookieConfig: cookieConfiguration,
-		Sessions:            sessionProvider,
+		Interactions:   interactionProvider,
+		UserController: userController,
 	}
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
@@ -868,10 +868,10 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		RecoveryCode: recoverycodeProvider,
 	}
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
+	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, provider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
-		Interactions:        interactionProvider,
-		SessionCookieConfig: cookieConfiguration,
-		Sessions:            sessionProvider,
+		Interactions:   interactionProvider,
+		UserController: userController,
 	}
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,

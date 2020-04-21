@@ -1,17 +1,13 @@
 package flows
 
 import (
-	"net/http"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 type WebAppFlow struct {
-	Interactions        InteractionProvider
-	SessionCookieConfig session.CookieConfiguration
-	Sessions            session.Provider
+	Interactions   InteractionProvider
+	UserController *UserController
 }
 
 func (f *WebAppFlow) LoginWithLoginID(loginID string) (*TokenResult, error) {
@@ -77,21 +73,17 @@ func (f *WebAppFlow) AuthenticatePassword(token string, password string) (*WebAp
 		panic("interaction_flow_webapp: TODO: handle MFA")
 
 	case interaction.StepCommit:
-		var attrs *authn.Attrs
-		attrs, err = f.Interactions.Commit(i)
+		attrs, err := f.Interactions.Commit(i)
 		if err != nil {
 			return nil, err
 		}
 
-		session, token := f.Sessions.MakeSession(attrs)
-		err = f.Sessions.Create(session)
+		result, err := f.UserController.CreateSession(i, attrs, false)
 		if err != nil {
 			return nil, err
 		}
 
-		return &WebAppResult{
-			Cookies: []*http.Cookie{f.SessionCookieConfig.NewCookie(token)},
-		}, nil
+		return &WebAppResult{Cookies: result.Cookies}, nil
 
 	default:
 		panic("interaction_flow_webapp: unexpected step " + s.CurrentStep().Step)
