@@ -9,6 +9,7 @@ import (
 
 type ForgotPassword interface {
 	SendCode(loginID string) error
+	ResetPassword(code string, newPassword string) error
 }
 
 type ForgotPasswordProvider struct {
@@ -112,6 +113,38 @@ func (p *ForgotPasswordProvider) GetResetPasswordForm(w http.ResponseWriter, r *
 }
 
 func (p *ForgotPasswordProvider) PostResetPasswordForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	writeResponse = func(err error) {
+		p.persistState(r, err)
+		if err != nil {
+			RedirectToCurrentPath(w, r)
+		} else {
+			// Remove code from URL
+			u := r.URL
+			q := u.Query()
+			q.Del("code")
+			u.RawQuery = q.Encode()
+			r.URL = u
+
+			RedirectToPathWithQueryPreserved(w, r, "/reset_password/success")
+		}
+	}
+
+	p.ValidateProvider.PrepareValues(r.Form)
+
+	err = p.ValidateProvider.Validate("#WebAppResetPasswordRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	code := r.Form.Get("code")
+	newPassword := r.Form.Get("x_password")
+	r.Form.Del("x_password")
+
+	err = p.ForgotPassword.ResetPassword(code, newPassword)
+	if err != nil {
+		return
+	}
+
 	return
 }
 

@@ -19,6 +19,7 @@ func init() {
 		SignupLoginIDRequestSchema,
 		SignupLoginIDPasswordRequestSchema,
 		ForgotPasswordRequestSchema,
+		ResetPasswordRequestSchema,
 		SSOCallbackRequestSchema,
 	)
 }
@@ -202,6 +203,19 @@ const ForgotPasswordRequestSchema = `
 			"required": ["x_login_id"]
 		}
 	]
+}
+`
+
+// nolint: gosec
+const ResetPasswordRequestSchema = `
+{
+	"$id": "#WebAppResetPasswordRequest",
+	"type": "object",
+	"properties": {
+		"code": { "type": "string" },
+		"x_password": { "type": "string" }
+	},
+	"required": ["code", "x_password"]
 }
 `
 
