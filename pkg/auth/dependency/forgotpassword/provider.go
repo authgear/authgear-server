@@ -45,24 +45,14 @@ type Provider struct {
 }
 
 // SendCode checks if loginID is an existing login ID.
-// If not found, ErrLoginIDNotFound is returned.
-// If the login ID is not of type email or phone, ErrUnsupportedLoginIDType is returned.
-// Otherwise, a code is generated.
+// For each matched login ID, a code is generated.
 // The code expires after a specific time.
 // The code becomes invalid if it is consumed.
 // Finally the code is sent to the login ID asynchronously.
 func (p *Provider) SendCode(loginID string) (err error) {
 	// TODO(forgotpassword): Test SendCode
-	// Send single email
-	// Send multiple email
-	// Send email with the normalized email
 	prins, err := p.PasswordAuthProvider.GetPrincipalsByLoginID("", loginID)
 	if err != nil {
-		return
-	}
-
-	if len(prins) <= 0 {
-		err = ErrLoginIDNotFound
 		return
 	}
 
@@ -71,8 +61,7 @@ func (p *Provider) SendCode(loginID string) (err error) {
 		phone := p.PasswordAuthProvider.CheckLoginIDKeyType(prin.LoginIDKey, metadata.Phone)
 
 		if !email && !phone {
-			err = ErrUnsupportedLoginIDType
-			return
+			continue
 		}
 
 		code, codeStr := p.newCode(prin)
@@ -84,12 +73,16 @@ func (p *Provider) SendCode(loginID string) (err error) {
 
 		if email {
 			err = p.sendEmail(prin.LoginID, codeStr)
-			return
+			if err != nil {
+				return
+			}
 		}
 
 		if phone {
 			err = p.sendSMS(prin.LoginID, codeStr)
-			return
+			if err != nil {
+				return
+			}
 		}
 	}
 

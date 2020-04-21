@@ -1,14 +1,12 @@
 package forgotpwd
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -89,12 +87,6 @@ func (h *ForgotPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (
 
 	err = db.WithTx(h.TxContext, func() (err error) {
 		err = h.ForgotPasswordProvider.SendCode(payload.Email)
-		if errors.Is(err, forgotpassword.ErrLoginIDNotFound) {
-			err = nil
-		}
-		if errors.Is(err, forgotpassword.ErrUnsupportedLoginIDType) {
-			err = nil
-		}
 		return
 	})
 

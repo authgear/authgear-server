@@ -1,13 +1,8 @@
 package forgotpassword
 
 import (
-	"errors"
-
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
-
-var ErrLoginIDNotFound = errors.New("login ID not found")
-var ErrUnsupportedLoginIDType = errors.New("unsupported login ID type")
 
 var PasswordResetFailed = skyerr.Invalid.WithReason("PasswordResetFailed")
 
