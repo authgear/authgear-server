@@ -3,6 +3,7 @@ package interaction
 import (
 	gotime "time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -25,6 +26,7 @@ const interactionIdleTimeout = 5 * gotime.Minute
 type Provider struct {
 	Store         Store
 	Time          time.Provider
+	Logger        *logrus.Entry
 	Identity      IdentityProvider
 	Authenticator AuthenticatorProvider
 	Config        *config.AuthenticationConfiguration
@@ -77,6 +79,11 @@ func (p *Provider) SaveInteraction(i *Interaction) (string, error) {
 
 func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 	// TODO(interaction): create new identities & authenticators
+
+	err := p.Store.Delete(i)
+	if err != nil {
+		p.Logger.WithError(err).Warn("failed to cleanup interaction")
+	}
 
 	// TODO(interaction): simplify authn attrs and populate them
 	attrs := &authn.Attrs{
