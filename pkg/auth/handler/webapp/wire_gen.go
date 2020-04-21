@@ -366,6 +366,50 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	return resetPasswordHandler
 }
 
+func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context)
+	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
+	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
+	provider := time.NewProvider()
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
+	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	storeImpl := &forgotpassword.StoreImpl{
+		Context: context,
+	}
+	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	sender := mail.ProvideMailSender(context, tenantConfiguration)
+	client := sms.ProvideSMSClient(context, tenantConfiguration)
+	executor := auth.ProvideTaskExecutor(m)
+	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, sender, client, queue)
+	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
+		ValidateProvider: validateProvider,
+		RenderProvider:   renderProvider,
+		StateStore:       stateStoreImpl,
+		ForgotPassword:   forgotpasswordProvider,
+	}
+	resetPasswordSuccessHandler := &ResetPasswordSuccessHandler{
+		Provider: webappForgotPasswordProvider,
+	}
+	return resetPasswordSuccessHandler
+}
+
 func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)

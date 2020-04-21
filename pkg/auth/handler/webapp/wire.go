@@ -83,6 +83,18 @@ func newResetPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler 
 	return nil
 }
 
+func newResetPasswordSuccessHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Bind(new(webapp.ForgotPassword), new(*forgotpassword.Provider)),
+		wire.Struct(new(webapp.ForgotPasswordProvider), "*"),
+		wire.Bind(new(resetPasswordSuccessProvider), new(*webapp.ForgotPasswordProvider)),
+		wire.Struct(new(ResetPasswordSuccessHandler), "*"),
+		wire.Bind(new(http.Handler), new(*ResetPasswordSuccessHandler)),
+	)
+	return nil
+}
+
 func newSignupHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,

@@ -22,8 +22,10 @@ const (
 	TemplateItemTypeAuthUIForgotPasswordSuccessHTML config.TemplateItemType = "auth_ui_forgot_password_success.html"
 	// nolint: gosec
 	TemplateItemTypeAuthUIResetPasswordHTML config.TemplateItemType = "auth_ui_reset_password.html"
-	TemplateItemTypeAuthUISettingsHTML      config.TemplateItemType = "auth_ui_settings.html"
-	TemplateItemTypeAuthUILogoutHTML        config.TemplateItemType = "auth_ui_logout.html"
+	// nolint: gosec
+	TemplateItemTypeAuthUIResetPasswordSuccessHTML config.TemplateItemType = "auth_ui_reset_password_success.html"
+	TemplateItemTypeAuthUISettingsHTML             config.TemplateItemType = "auth_ui_settings.html"
+	TemplateItemTypeAuthUILogoutHTML               config.TemplateItemType = "auth_ui_logout.html"
 )
 
 var TemplateAuthUIHTMLHeadHTML = template.Spec{
@@ -490,6 +492,39 @@ var TemplateAuthUIResetPasswordHTML = template.Spec{
 
 </form>
 
+{{ template "auth_ui_footer.html" . }}
+
+</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUIResetPasswordSuccessHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIResetPasswordSuccessHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
+	Components:  components,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "auth_ui_header.html" . }}
+
+<div class="reset-password-success">
+
+<div class="title primary-txt">{{ localize "reset-password-success-page-title" }}</div>
+
+{{ template "ERROR" . }}
+
+<div class="description primary-txt">{{ localize "reset-password-success-description" .x_login_id }}</div>
+
+<a class="anchor btn primary-btn align-self-flex-end" href="{{ call .MakeURLWithPath "/login" }}">{{ localize "login-button-label--reset-password-success-page" }}</a>
+
+</div>
 {{ template "auth_ui_footer.html" . }}
 
 </div>
