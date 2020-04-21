@@ -273,7 +273,8 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		ForgotPassword:   forgotpasswordProvider,
 	}
 	forgotPasswordHandler := &ForgotPasswordHandler{
-		Provider: webappForgotPasswordProvider,
+		Provider:  webappForgotPasswordProvider,
+		TxContext: txContext,
 	}
 	return forgotPasswordHandler
 }
@@ -317,7 +318,8 @@ func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http
 		ForgotPassword:   forgotpasswordProvider,
 	}
 	forgotPasswordSuccessHandler := &ForgotPasswordSuccessHandler{
-		Provider: webappForgotPasswordProvider,
+		Provider:  webappForgotPasswordProvider,
+		TxContext: txContext,
 	}
 	return forgotPasswordSuccessHandler
 }
@@ -361,7 +363,8 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		ForgotPassword:   forgotpasswordProvider,
 	}
 	resetPasswordHandler := &ResetPasswordHandler{
-		Provider: webappForgotPasswordProvider,
+		Provider:  webappForgotPasswordProvider,
+		TxContext: txContext,
 	}
 	return resetPasswordHandler
 }
@@ -405,7 +408,8 @@ func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.
 		ForgotPassword:   forgotpasswordProvider,
 	}
 	resetPasswordSuccessHandler := &ResetPasswordSuccessHandler{
-		Provider: webappForgotPasswordProvider,
+		Provider:  webappForgotPasswordProvider,
+		TxContext: txContext,
 	}
 	return resetPasswordSuccessHandler
 }

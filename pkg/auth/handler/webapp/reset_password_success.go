@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
 func AttachResetPasswordSuccessHandler(
@@ -24,7 +25,8 @@ type resetPasswordSuccessProvider interface {
 }
 
 type ResetPasswordSuccessHandler struct {
-	Provider resetPasswordSuccessProvider
+	Provider  resetPasswordSuccessProvider
+	TxContext db.TxContext
 }
 
 func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -33,9 +35,12 @@ func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if r.Method == "GET" {
-		writeResponse, err := h.Provider.GetResetPasswordSuccess(w, r)
-		writeResponse(err)
-		return
-	}
+	db.WithTx(h.TxContext, func() error {
+		if r.Method == "GET" {
+			writeResponse, err := h.Provider.GetResetPasswordSuccess(w, r)
+			writeResponse(err)
+			return err
+		}
+		return nil
+	})
 }

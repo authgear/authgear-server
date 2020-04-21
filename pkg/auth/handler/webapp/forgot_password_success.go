@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
 func AttachForgotPasswordSuccessHandler(
@@ -24,7 +25,8 @@ type forgotPasswordSuccessProvider interface {
 }
 
 type ForgotPasswordSuccessHandler struct {
-	Provider forgotPasswordSuccessProvider
+	Provider  forgotPasswordSuccessProvider
+	TxContext db.TxContext
 }
 
 func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -33,9 +35,12 @@ func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return
 	}
 
-	if r.Method == "GET" {
-		writeResponse, err := h.Provider.GetForgotPasswordSuccess(w, r)
-		writeResponse(err)
-		return
-	}
+	db.WithTx(h.TxContext, func() error {
+		if r.Method == "GET" {
+			writeResponse, err := h.Provider.GetForgotPasswordSuccess(w, r)
+			writeResponse(err)
+			return err
+		}
+		return nil
+	})
 }
