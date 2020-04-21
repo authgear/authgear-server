@@ -10,6 +10,7 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -19,13 +20,13 @@ import (
 func provideLoginHandler(
 	requireAuthz handler.RequireAuthz,
 	v *validation.Validator,
-	ap LoginAuthnProvider,
+	f LoginInteractionFlow,
 	tx db.TxContext,
 ) http.Handler {
 	h := &LoginHandler{
-		Validator:     v,
-		AuthnProvider: ap,
-		TxContext:     tx,
+		Validator:    v,
+		Interactions: f,
+		TxContext:    tx,
 	}
 	return requireAuthz(h, h)
 }
@@ -33,8 +34,7 @@ func provideLoginHandler(
 func newLoginHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
-		authn.ProvideAuthAPIProvider,
-		wire.Bind(new(LoginAuthnProvider), new(*authn.Provider)),
+		wire.Bind(new(LoginInteractionFlow), new(*interactionflows.AuthAPIFlow)),
 		provideLoginHandler,
 	)
 	return nil
