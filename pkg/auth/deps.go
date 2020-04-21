@@ -22,6 +22,7 @@ import (
 	identityoauth "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	interactionadaptors "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/adaptors"
+	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	interactionredis "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -169,6 +170,8 @@ var interactionDependencySet = wire.NewSet(
 	interaction.DependencySet,
 	interactionadaptors.DependencySet,
 	interactionredis.DependencySet,
+	interactionflows.DependencySet,
+
 	wire.Bind(new(interaction.IdentityProvider), new(*interactionadaptors.IdentityAdaptor)),
 	wire.Bind(new(interaction.AuthenticatorProvider), new(*interactionadaptors.AuthenticatorAdaptor)),
 	wire.Bind(new(interactionadaptors.LoginIDIdentityProvider), new(*identityloginid.Provider)),
@@ -179,7 +182,9 @@ var interactionDependencySet = wire.NewSet(
 	wire.Bind(new(interactionadaptors.BearerTokenAuthenticatorProvider), new(*authenticatorbearertoken.Provider)),
 	wire.Bind(new(interactionadaptors.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
 
-	wire.Bind(new(webapp.InteractionProvider), new(*interaction.Provider)),
+	wire.Bind(new(interactionflows.InteractionProvider), new(*interaction.Provider)),
+
+	wire.Bind(new(webapp.InteractionFlow), new(*interactionflows.WebAppFlow)),
 )
 
 var CommonDependencySet = wire.NewSet(

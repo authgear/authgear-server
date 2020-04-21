@@ -24,6 +24,7 @@ import (
 	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/adaptors"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	redis4 "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -152,14 +153,18 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		RecoveryCode: recoverycodeProvider,
 	}
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
+	webAppFlow := &flows.WebAppFlow{
+		Interactions:        interactionProvider,
+		SessionCookieConfig: cookieConfiguration,
+		Sessions:            sessionProvider,
+	}
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
 		SSOProvider:      provider2,
-		Interactions:     interactionProvider,
-		Sessions:         sessionProvider,
+		Interactions:     webAppFlow,
 	}
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
@@ -274,14 +279,18 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		RecoveryCode: recoverycodeProvider,
 	}
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
+	webAppFlow := &flows.WebAppFlow{
+		Interactions:        interactionProvider,
+		SessionCookieConfig: cookieConfiguration,
+		Sessions:            sessionProvider,
+	}
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
 		SSOProvider:      provider2,
-		Interactions:     interactionProvider,
-		Sessions:         sessionProvider,
+		Interactions:     webAppFlow,
 	}
 	loginPasswordHandler := &LoginPasswordHandler{
 		Provider:  authenticateProviderImpl,
@@ -563,14 +572,18 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		RecoveryCode: recoverycodeProvider,
 	}
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
+	webAppFlow := &flows.WebAppFlow{
+		Interactions:        interactionProvider,
+		SessionCookieConfig: cookieConfiguration,
+		Sessions:            sessionProvider,
+	}
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
 		SSOProvider:      provider2,
-		Interactions:     interactionProvider,
-		Sessions:         sessionProvider,
+		Interactions:     webAppFlow,
 	}
 	signupHandler := &SignupHandler{
 		Provider:  authenticateProviderImpl,
@@ -676,14 +689,18 @@ func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		RecoveryCode: recoverycodeProvider,
 	}
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
+	webAppFlow := &flows.WebAppFlow{
+		Interactions:        interactionProvider,
+		SessionCookieConfig: cookieConfiguration,
+		Sessions:            sessionProvider,
+	}
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
 		SSOProvider:      provider2,
-		Interactions:     interactionProvider,
-		Sessions:         sessionProvider,
+		Interactions:     webAppFlow,
 	}
 	signupPasswordHandler := &SignupPasswordHandler{
 		Provider:  authenticateProviderImpl,
@@ -855,14 +872,18 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		RecoveryCode: recoverycodeProvider,
 	}
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, identityAdaptor, authenticatorAdaptor, tenantConfiguration)
+	webAppFlow := &flows.WebAppFlow{
+		Interactions:        interactionProvider,
+		SessionCookieConfig: cookieConfiguration,
+		Sessions:            sessionProvider,
+	}
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
 		AuthnProvider:    authnProvider,
 		StateStore:       stateStoreImpl,
 		SSOProvider:      provider2,
-		Interactions:     interactionProvider,
-		Sessions:         sessionProvider,
+		Interactions:     webAppFlow,
 	}
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()

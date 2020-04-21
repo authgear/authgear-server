@@ -16,7 +16,7 @@ type CookieConfiguration struct {
 	MaxAge *int
 }
 
-func (c *CookieConfiguration) WriteTo(rw http.ResponseWriter, value string) {
+func (c *CookieConfiguration) NewCookie(value string) *http.Cookie {
 	cookie := &http.Cookie{
 		Name:     c.Name,
 		Path:     c.Path,
@@ -31,7 +31,11 @@ func (c *CookieConfiguration) WriteTo(rw http.ResponseWriter, value string) {
 		cookie.MaxAge = *c.MaxAge
 	}
 
-	UpdateCookie(rw, cookie)
+	return cookie
+}
+
+func (c *CookieConfiguration) WriteTo(rw http.ResponseWriter, value string) {
+	UpdateCookie(rw, c.NewCookie(value))
 }
 
 func (c *CookieConfiguration) Clear(rw http.ResponseWriter) {
