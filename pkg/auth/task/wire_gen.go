@@ -104,6 +104,20 @@ func newPwHouseKeeperTask(ctx context.Context, m auth.DependencyMap) async.Task 
 	return pwHousekeeperTask
 }
 
+func newSendMessagesTask(ctx context.Context, m auth.DependencyMap) async.Task {
+	tenantConfiguration := auth.ProvideTenantConfig(ctx)
+	sender := mail.ProvideMailSender(ctx, tenantConfiguration)
+	client := sms.ProvideSMSClient(ctx, tenantConfiguration)
+	requestID := ProvideLoggingRequestID(ctx)
+	factory := logging.ProvideLoggerFactory(ctx, requestID, tenantConfiguration)
+	sendMessagesTask := &SendMessagesTask{
+		EmailSender:   sender,
+		SMSClient:     client,
+		LoggerFactory: factory,
+	}
+	return sendMessagesTask
+}
+
 // wire.go:
 
 var DependencySet = wire.NewSet(

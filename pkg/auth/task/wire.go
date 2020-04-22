@@ -44,3 +44,13 @@ func newPwHouseKeeperTask(ctx context.Context, m pkg.DependencyMap) async.Task {
 	)
 	return nil
 }
+
+func newSendMessagesTask(ctx context.Context, m pkg.DependencyMap) async.Task {
+	wire.Build(
+		pkg.CommonDependencySet,
+		DependencySet,
+		wire.Struct(new(SendMessagesTask), "*"),
+		wire.Bind(new(async.Task), new(*SendMessagesTask)),
+	)
+	return nil
+}

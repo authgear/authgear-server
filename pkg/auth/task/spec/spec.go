@@ -5,6 +5,8 @@ import (
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/core/sms"
 )
 
 const (
@@ -25,6 +27,7 @@ func (p PwHousekeeperTaskParam) Validate() error {
 }
 
 const (
+	// TODO(verify): Remove VerifyCodeSendTask and use SendMessagesTask
 	// VerifyCodeSendTaskName provides the name for submiting VerifyCodeSendTask
 	VerifyCodeSendTaskName = "VerifyCodeSendTask"
 )
@@ -36,6 +39,7 @@ type VerifyCodeSendTaskParam struct {
 }
 
 const (
+	// TODO(welcome): Remove WelcomeEmailSendTask and use SendMessagesTask
 	// WelcomeEmailSendTaskName provides the name for submiting WelcomeEmailSendTask
 	WelcomeEmailSendTaskName = "WelcomeEmailSendTask"
 )
@@ -44,4 +48,13 @@ type WelcomeEmailSendTaskParam struct {
 	URLPrefix *url.URL
 	Email     string
 	User      model.User
+}
+
+const (
+	SendMessagesTaskName = "SendMessagesTask"
+)
+
+type SendMessagesTaskParam struct {
+	EmailMessages []mail.SendOptions
+	SMSMessages   []sms.SendOptions
 }

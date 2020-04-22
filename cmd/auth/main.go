@@ -183,6 +183,7 @@ func main() {
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
 	task.AttachPwHousekeeperTask(asyncTaskExecutor, authDependency)
 	task.AttachWelcomeEmailSendTask(asyncTaskExecutor, authDependency)
+	task.AttachSendMessagesTask(asyncTaskExecutor, authDependency)
 
 	var router *mux.Router
 	var rootRouter *mux.Router
