@@ -165,3 +165,11 @@ generate-static-asset:
 		--base '../../static' \
 		--dir "dist/git-$(GIT_SHORT_SHA)" \
 		--config postcss.config.js
+
+# Compile html email and print to stdout.
+# You should capture the output and update the default template in Go code.
+# For example,
+# make html-email NAME=scripts/html-email/templates/forgot_password_email.mjml | pbcopy
+.PHONY: html-email
+html-email:
+	@./scripts/html-email/node_modules/.bin/mjml -l strict $(NAME)
