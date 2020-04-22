@@ -29,7 +29,7 @@ import (
 // Injectors from wire.go:
 
 func newWelcomeEmailSendTask(ctx context.Context, m auth.DependencyMap) async.Task {
-	tenantConfiguration := auth.ProvideTenantConfig(ctx)
+	tenantConfiguration := auth.ProvideTenantConfig(ctx, m)
 	sender := mail.ProvideMailSender(ctx, tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	welcemailSender := welcemail.NewDefaultSender(tenantConfiguration, sender, engine)
@@ -51,7 +51,7 @@ func newWelcomeEmailSendTask(ctx context.Context, m auth.DependencyMap) async.Ta
 }
 
 func newVerifyCodeSendTask(ctx context.Context, m auth.DependencyMap) async.Task {
-	tenantConfiguration := auth.ProvideTenantConfig(ctx)
+	tenantConfiguration := auth.ProvideTenantConfig(ctx, m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	sender := mail.ProvideMailSender(ctx, tenantConfiguration)
 	client := sms.ProvideSMSClient(ctx, tenantConfiguration)
@@ -86,7 +86,7 @@ func newVerifyCodeSendTask(ctx context.Context, m auth.DependencyMap) async.Task
 }
 
 func newPwHouseKeeperTask(ctx context.Context, m auth.DependencyMap) async.Task {
-	tenantConfiguration := auth.ProvideTenantConfig(ctx)
+	tenantConfiguration := auth.ProvideTenantConfig(ctx, m)
 	txContext := db.ProvideTxContext(ctx, tenantConfiguration)
 	requestID := ProvideLoggingRequestID(ctx)
 	factory := logging.ProvideLoggerFactory(ctx, requestID, tenantConfiguration)

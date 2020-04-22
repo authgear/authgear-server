@@ -34,7 +34,7 @@ import (
 func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	provider := time.NewProvider()
 	requestID := auth.ProvideLoggingRequestID(r)
@@ -85,7 +85,7 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newListHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
@@ -126,7 +126,7 @@ func newListHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newGetHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
@@ -168,7 +168,7 @@ func newGetHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newRevokeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
@@ -210,7 +210,7 @@ func newRevokeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newRevokeAllHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)

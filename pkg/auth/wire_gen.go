@@ -33,7 +33,7 @@ import (
 
 func NewAccessKeyMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	context := ProvideContext(r)
-	tenantConfiguration := ProvideTenantConfig(context)
+	tenantConfiguration := ProvideTenantConfig(context, m)
 	accessKeyMiddleware := auth.ProvideAccessKeyMiddleware(tenantConfiguration)
 	middlewareFunc := provideMiddleware(accessKeyMiddleware)
 	return middlewareFunc
@@ -42,7 +42,7 @@ func NewAccessKeyMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc
 func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	insecureCookieConfig := ProvideSessionInsecureCookieConfig(m)
 	context := ProvideContext(r)
-	tenantConfiguration := ProvideTenantConfig(context)
+	tenantConfiguration := ProvideTenantConfig(context, m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	provider := time.NewProvider()
 	requestID := ProvideLoggingRequestID(r)
@@ -93,14 +93,14 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 
 func NewCSPMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	context := ProvideContext(r)
-	tenantConfiguration := ProvideTenantConfig(context)
+	tenantConfiguration := ProvideTenantConfig(context, m)
 	middlewareFunc := webapp.ProvideCSPMiddleware(tenantConfiguration)
 	return middlewareFunc
 }
 
 func NewCSRFMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	context := ProvideContext(r)
-	tenantConfiguration := ProvideTenantConfig(context)
+	tenantConfiguration := ProvideTenantConfig(context, m)
 	middlewareFunc := ProvideCSRFMiddleware(m, tenantConfiguration)
 	return middlewareFunc
 }
@@ -116,14 +116,14 @@ func NewStateMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 
 func NewClientIDMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	context := ProvideContext(r)
-	tenantConfiguration := ProvideTenantConfig(context)
+	tenantConfiguration := ProvideTenantConfig(context, m)
 	middlewareFunc := webapp.ProvideClientIDMiddleware(tenantConfiguration)
 	return middlewareFunc
 }
 
 func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 	context := ProvideContext(r)
-	tenantConfiguration := ProvideTenantConfig(context)
+	tenantConfiguration := ProvideTenantConfig(context, m)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	store := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)

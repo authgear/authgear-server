@@ -45,7 +45,7 @@ import (
 func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	requestID := auth.ProvideLoggingRequestID(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
@@ -125,7 +125,7 @@ var (
 func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	requestID := auth.ProvideLoggingRequestID(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
@@ -201,7 +201,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	requestID := auth.ProvideLoggingRequestID(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -242,7 +242,7 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 func newRefreshHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	requestID := auth.ProvideLoggingRequestID(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)

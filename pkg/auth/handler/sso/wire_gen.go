@@ -48,7 +48,7 @@ import (
 
 func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	provider := urlprefix.NewProvider(r)
 	authHandlerHTMLProvider := sso.ProvideAuthHandlerHTMLProvider(provider)
@@ -132,7 +132,7 @@ var (
 
 func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
@@ -209,7 +209,7 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
@@ -290,7 +290,7 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
@@ -371,7 +371,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newAuthRedirectHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	provider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	timeProvider := time.NewProvider()
@@ -385,7 +385,7 @@ func newAuthRedirectHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 
 func newLoginAuthURLHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
@@ -411,7 +411,7 @@ func newLoginAuthURLHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 
 func newLinkAuthURLHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
@@ -437,7 +437,7 @@ func newLinkAuthURLHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newUnlinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)

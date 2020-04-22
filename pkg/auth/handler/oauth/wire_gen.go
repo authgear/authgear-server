@@ -36,7 +36,7 @@ import (
 func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	requestID := auth.ProvideLoggingRequestID(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -67,7 +67,7 @@ var (
 func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	requestID := auth.ProvideLoggingRequestID(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -107,7 +107,7 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 func newRevokeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	requestID := auth.ProvideLoggingRequestID(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -146,7 +146,7 @@ func newMetadataHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newJWKSHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	httpHandler := provideJWKSHandler(tenantConfiguration)
 	return httpHandler
 }
@@ -154,7 +154,7 @@ func newJWKSHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 func newUserInfoHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	requestID := auth.ProvideLoggingRequestID(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	provider := urlprefix.NewProvider(r)
@@ -178,7 +178,7 @@ func newUserInfoHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	requestID := auth.ProvideLoggingRequestID(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	provider := urlprefix.NewProvider(r)

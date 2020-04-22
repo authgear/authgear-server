@@ -74,8 +74,24 @@ func ProvideLoggingRequestID(r *http.Request) logging.RequestID {
 	return logging.RequestID(r.Header.Get(corehttp.HeaderRequestID))
 }
 
-func ProvideTenantConfig(ctx context.Context) *config.TenantConfiguration {
-	return config.GetTenantConfig(ctx)
+func ProvideTenantConfig(ctx context.Context, m DependencyMap) *config.TenantConfiguration {
+	// populate default
+	tc := config.GetTenantConfig(ctx)
+	appConfig := *tc.AppConfig
+	if !appConfig.SMTP.IsValid() {
+		appConfig.SMTP = m.DefaultConfiguration.SMTP
+	}
+
+	if !appConfig.Twilio.IsValid() {
+		appConfig.Twilio = m.DefaultConfiguration.Twilio
+	}
+
+	if !appConfig.Nexmo.IsValid() {
+		appConfig.Nexmo = m.DefaultConfiguration.Nexmo
+	}
+	tConfig := *tc
+	tConfig.AppConfig = &appConfig
+	return &tConfig
 }
 
 func ProvideSessionInsecureCookieConfig(m DependencyMap) session.InsecureCookieConfig {

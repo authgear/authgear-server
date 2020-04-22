@@ -46,7 +46,7 @@ import (
 
 func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()
@@ -145,7 +145,7 @@ var (
 
 func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()
@@ -235,7 +235,7 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 
 func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()
@@ -325,7 +325,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()
@@ -415,7 +415,7 @@ func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 
 func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -432,7 +432,7 @@ func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -479,7 +479,7 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()

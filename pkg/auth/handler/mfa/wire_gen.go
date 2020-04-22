@@ -44,7 +44,7 @@ import (
 
 func newActivateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	validator := auth.ProvideValidator(m)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -130,7 +130,7 @@ var (
 
 func newActivateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	validator := auth.ProvideValidator(m)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -212,7 +212,7 @@ func newActivateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 
 func newAuthenticateBearerTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	validator := auth.ProvideValidator(m)
 	provider := time.NewProvider()
@@ -297,7 +297,7 @@ func newAuthenticateBearerTokenHandler(r *http.Request, m auth.DependencyMap) ht
 
 func newAuthenticateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	validator := auth.ProvideValidator(m)
 	provider := time.NewProvider()
@@ -381,7 +381,7 @@ func newAuthenticateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handl
 
 func newAuthenticateRecoveryCodeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	validator := auth.ProvideValidator(m)
 	provider := time.NewProvider()
@@ -465,7 +465,7 @@ func newAuthenticateRecoveryCodeHandler(r *http.Request, m auth.DependencyMap) h
 
 func newAuthenticateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	validator := auth.ProvideValidator(m)
 	provider := time.NewProvider()
@@ -549,7 +549,7 @@ func newAuthenticateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Hand
 
 func newCreateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	validator := auth.ProvideValidator(m)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -631,7 +631,7 @@ func newCreateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newCreateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	validator := auth.ProvideValidator(m)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -713,7 +713,7 @@ func newCreateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newListAuthenticatorHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	validator := auth.ProvideValidator(m)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -795,7 +795,7 @@ func newListAuthenticatorHandler(r *http.Request, m auth.DependencyMap) http.Han
 
 func newTriggerOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	validator := auth.ProvideValidator(m)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
