@@ -15,3 +15,7 @@ var ErrInvalidAction = errors.New("action is invalid for current interaction sta
 var InvalidCredentials = skyerr.Unauthorized.WithReason("InvalidCredentials")
 
 var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
+
+var DuplicatedIdentity = skyerr.AlreadyExists.WithReason("DuplicatedIdentity")
+
+var ErrDuplicatedIdentity = DuplicatedIdentity.New("duplicate identity exists")

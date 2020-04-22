@@ -22,6 +22,10 @@ type AuthenticatorProvider interface {
 	Authenticate(userID string, spec AuthenticatorSpec, state *map[string]string, secret string) (*AuthenticatorInfo, error)
 }
 
+type UserProvider interface {
+	Create(userID string, metadata map[string]interface{}, identities []*IdentityInfo) error
+}
+
 // TODO(interaction): configurable lifetime
 const interactionIdleTimeout = 5 * gotime.Minute
 
@@ -31,6 +35,7 @@ type Provider struct {
 	Logger        *logrus.Entry
 	Identity      IdentityProvider
 	Authenticator AuthenticatorProvider
+	User          UserProvider
 	Config        *config.AuthenticationConfiguration
 }
 
@@ -77,21 +82,4 @@ func (p *Provider) SaveInteraction(i *Interaction) (string, error) {
 		}
 	}
 	return i.Token, nil
-}
-
-func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
-	// TODO(interaction): create new identities & authenticators
-
-	err := p.Store.Delete(i)
-	if err != nil {
-		p.Logger.WithError(err).Warn("failed to cleanup interaction")
-	}
-
-	attrs := &authn.Attrs{
-		UserID:         i.UserID,
-		IdentityType:   i.Identity.Type,
-		IdentityClaims: i.Identity.Claims,
-		// TODO(interaction): populate acr & amr
-	}
-	return attrs, nil
 }

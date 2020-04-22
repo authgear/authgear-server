@@ -1,6 +1,7 @@
 package adaptors
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
@@ -72,6 +73,24 @@ func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]
 			return "", nil, err
 		}
 		return o.UserID, oauthToIdentityInfo(o), nil
+
+	case "":
+		// return any identity with the specified claims
+		userID, i, err := a.GetByClaims(authn.IdentityTypeLoginID, claims)
+		if err != nil && !errors.Is(err, identity.ErrIdentityNotFound) {
+			return "", nil, err
+		} else if err == nil {
+			return userID, i, nil
+		}
+
+		userID, i, err = a.GetByClaims(authn.IdentityTypeOAuth, claims)
+		if err != nil && !errors.Is(err, identity.ErrIdentityNotFound) {
+			return "", nil, err
+		} else if err == nil {
+			return userID, i, nil
+		}
+
+		return "", nil, identity.ErrIdentityNotFound
 	}
 
 	panic("interaction_adaptors: unknown identity type " + typ)
