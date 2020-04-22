@@ -61,7 +61,8 @@ var inputMinimalJSON = fmt.Sprintf(`
 			"secret": "assetsecret"
 		},
 		"authentication": {
-			"secret": "authnsessionsecret"
+			"secret": "authnsessionsecret",
+			"secondary_authenticators" : null
 		},
 		"hook": {
 			"secret": "hooksecret"
