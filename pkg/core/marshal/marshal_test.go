@@ -49,19 +49,27 @@ func TestUpdateNilFieldsWithZeroValue(t *testing.T) {
 	}
 
 	type TestStruct struct {
-		ChildNode1 *ChildStruct `default_zero_value:"true"`
-		ChildNode2 *ChildStruct
+		ChildNode1    *ChildStruct `default_zero_value:"true"`
+		ChildNode2    *ChildStruct
+		ChildNode3    ChildStruct
+		ChildNodeList []ChildStruct
 	}
 
 	Convey("UpdateNilFieldsWithZeroValue", t, func() {
 		Convey("should update nil fields with tag", func() {
-			s := &TestStruct{}
+			s := &TestStruct{
+				ChildNodeList: []ChildStruct{
+					ChildStruct{},
+				},
+			}
 
 			UpdateNilFieldsWithZeroValue(s)
 			So(s.ChildNode1, ShouldNotBeNil)
 			So(s.ChildNode2, ShouldBeNil)
 			So(s.ChildNode1.Num1, ShouldBeNil)
 			So(s.ChildNode1.Num2, ShouldNotBeNil)
+			So(s.ChildNode3.Num1, ShouldBeNil)
+			So(s.ChildNode3.Num2, ShouldNotBeNil)
 		})
 	})
 }

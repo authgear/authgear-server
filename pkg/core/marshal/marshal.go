@@ -18,26 +18,37 @@ func UpdateNilFieldsWithZeroValue(i interface{}) {
 	if t.Kind() != reflect.Struct {
 		return
 	}
-	numField := t.NumField()
-	for i := 0; i < numField; i++ {
-		zerovalueTag := t.Field(i).Tag.Get("default_zero_value")
-		if zerovalueTag != "true" {
-			continue
-		}
+	updateNilFieldsWithZeroValue(t, v, reflect.StructTag(""))
+}
 
-		field := v.Field(i)
-		ft := t.Field(i)
-		if field.Kind() == reflect.Ptr {
-			ele := field.Elem()
+func updateNilFieldsWithZeroValue(t reflect.Type, v reflect.Value, st reflect.StructTag) {
+	shouldSetZeroValue := st.Get("default_zero_value") == "true"
+
+	switch v.Kind() {
+	case reflect.Struct:
+		numField := t.NumField()
+		for j := 0; j < numField; j++ {
+			field := v.Field(j)
+			ft := t.Field(j)
+			updateNilFieldsWithZeroValue(ft.Type, field, ft.Tag)
+		}
+	case reflect.Ptr:
+		ele := v.Elem()
+		if shouldSetZeroValue {
 			if !ele.IsValid() {
-				ele = reflect.New(ft.Type.Elem())
-				field.Set(ele)
+				ele = reflect.New(t.Elem())
+				v.Set(ele)
 			}
-			UpdateNilFieldsWithZeroValue(field.Interface())
-		} else if field.Kind() == reflect.Map {
-			if field.IsNil() {
-				field.Set(reflect.MakeMap(ft.Type))
-			}
+		}
+		if ele.IsValid() {
+			i := v.Interface()
+			t := reflect.TypeOf(i).Elem()
+			v := reflect.ValueOf(i).Elem()
+			updateNilFieldsWithZeroValue(t, v, reflect.StructTag(""))
+		}
+	case reflect.Map:
+		if shouldSetZeroValue && v.IsNil() {
+			v.Set(reflect.MakeMap(t))
 		}
 	}
 }
