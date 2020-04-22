@@ -11,6 +11,8 @@ func (p *Provider) GetInteractionState(i *Interaction) (*State, error) {
 	switch intent := i.Intent.(type) {
 	case *IntentLogin:
 		return p.getStateLogin(i, intent)
+	case *IntentSignup:
+		return p.getStateSignup(i, intent)
 	}
 	panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 }
@@ -59,6 +61,30 @@ func (p *Provider) getStateLogin(i *Interaction, intent *IntentLogin) (*State, e
 		needSecondaryAuthn = true
 	}
 	if needSecondaryAuthn && i.SecondaryAuthenticator == nil {
+		return s, nil
+	}
+
+	// Commit
+	s.Steps = append(s.Steps, StepState{Step: StepCommit})
+	return s, nil
+}
+
+func (p *Provider) getStateSignup(i *Interaction, intent *IntentSignup) (*State, error) {
+	primaryAuthenticators := p.getAvailablePrimaryAuthenticators(intent.Identity.Type)
+	s := &State{}
+
+	// Setup primary authenticator
+	needPrimaryAuthn := false
+	if len(primaryAuthenticators) > 0 {
+		s.Steps = []StepState{
+			{
+				Step:                    StepAuthenticatePrimary,
+				AvailableAuthenticators: primaryAuthenticators,
+			},
+		}
+		needPrimaryAuthn = true
+	}
+	if needPrimaryAuthn && i.PrimaryAuthenticator == nil {
 		return s, nil
 	}
 

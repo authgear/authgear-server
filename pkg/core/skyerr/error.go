@@ -77,6 +77,19 @@ func (e *skyerr) FillDetails(d errors.Details) {
 	}
 }
 
+func IsAPIError(err error) bool {
+	if _, ok := err.(*APIError); ok {
+		return true
+	}
+
+	var e *skyerr
+	if errors.As(err, &e) {
+		return true
+	}
+
+	return false
+}
+
 func AsAPIError(err error) *APIError {
 	if err == nil {
 		return nil

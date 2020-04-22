@@ -10,23 +10,27 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 type PasswordAuthenticatorProvider interface {
 	Get(userID, id string) (*password.Authenticator, error)
 	List(userID string) ([]*password.Authenticator, error)
+	New(userID string, password string) (*password.Authenticator, error)
 	Authenticate(a *password.Authenticator, password string) error
 }
 
 type TOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*totp.Authenticator, error)
 	List(userID string) ([]*totp.Authenticator, error)
+	New(userID string, displayName string) *totp.Authenticator
 	Authenticate(candidates []*totp.Authenticator, code string) *totp.Authenticator
 }
 
 type OOBOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*oob.Authenticator, error)
 	List(userID string) ([]*oob.Authenticator, error)
+	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) *oob.Authenticator
 	Authenticate(a *oob.Authenticator, expectedCode string, code string) error
 }
 
@@ -34,12 +38,14 @@ type BearerTokenAuthenticatorProvider interface {
 	Get(userID, id string) (*bearertoken.Authenticator, error)
 	GetByToken(userID string, token string) (*bearertoken.Authenticator, error)
 	List(userID string) ([]*bearertoken.Authenticator, error)
+	New(userID string, parentID string) *bearertoken.Authenticator
 	Authenticate(authenticator *bearertoken.Authenticator, token string) error
 }
 
 type RecoveryCodeAuthenticatorProvider interface {
 	Get(userID, id string) (*recoverycode.Authenticator, error)
 	List(userID string) ([]*recoverycode.Authenticator, error)
+	Generate(userID string) []*recoverycode.Authenticator
 	Authenticate(candidates []*recoverycode.Authenticator, code string) *recoverycode.Authenticator
 }
 
@@ -144,6 +150,49 @@ func (a *AuthenticatorAdaptor) List(userID string, typ interaction.Authenticator
 		panic("interaction_adaptors: unknown authenticator type " + typ)
 	}
 	return ais, nil
+}
+
+func (a *AuthenticatorAdaptor) New(userID string, spec interaction.AuthenticatorSpec, secret string) ([]*interaction.AuthenticatorInfo, error) {
+	switch spec.Type {
+	case interaction.AuthenticatorTypePassword:
+		p, err := a.Password.New(userID, secret)
+		if err != nil {
+			return nil, err
+		}
+		return []*interaction.AuthenticatorInfo{passwordToAuthenticatorInfo(p)}, nil
+
+	case interaction.AuthenticatorTypeTOTP:
+		displayName, _ := spec.Props[interaction.AuthenticatorPropTOTPDisplayName].(string)
+		t := a.TOTP.New(userID, displayName)
+		return []*interaction.AuthenticatorInfo{totpToAuthenticatorInfo(t)}, nil
+
+	case interaction.AuthenticatorTypeOOBOTP:
+		channel := spec.Props[interaction.AuthenticatorPropOOBOTPChannelType].(string)
+		var phone, email string
+		switch authn.AuthenticatorOOBChannel(channel) {
+		case authn.AuthenticatorOOBChannelSMS:
+			phone = spec.Props[interaction.AuthenticatorPropOOBOTPPhone].(string)
+		case authn.AuthenticatorOOBChannelEmail:
+			email = spec.Props[interaction.AuthenticatorPropOOBOTPEmail].(string)
+		}
+		o := a.OOBOTP.New(userID, authn.AuthenticatorOOBChannel(channel), phone, email)
+		return []*interaction.AuthenticatorInfo{oobotpToAuthenticatorInfo(o)}, nil
+
+	case interaction.AuthenticatorTypeBearerToken:
+		parentID := spec.Props[interaction.AuthenticatorPropBearerTokenParentID].(string)
+		b := a.BearerToken.New(userID, parentID)
+		return []*interaction.AuthenticatorInfo{bearerTokenToAuthenticatorInfo(b)}, nil
+
+	case interaction.AuthenticatorTypeRecoveryCode:
+		rs := a.RecoveryCode.Generate(userID)
+		var ais []*interaction.AuthenticatorInfo
+		for _, r := range rs {
+			ais = append(ais, recoveryCodeToAuthenticatorInfo(r))
+		}
+		return ais, nil
+	}
+
+	panic("interaction_adaptors: unknown authenticator type " + spec.Type)
 }
 
 func (a *AuthenticatorAdaptor) Authenticate(userID string, spec interaction.AuthenticatorSpec, state *map[string]string, secret string) (*interaction.AuthenticatorInfo, error) {

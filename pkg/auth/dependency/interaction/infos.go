@@ -20,6 +20,8 @@ const (
 	IdentityClaimOAuthSubjectID string = "https://auth.skygear.io/claims/oauth/subject_id"
 	// IdentityClaimOAuthData is a claim with a map value containing raw OAuth provider profile.
 	IdentityClaimOAuthProfile string = "https://auth.skygear.io/claims/oauth/profile"
+	// IdentityClaimOAuthData is a claim with a map value containing mapped OIDC claims.
+	IdentityClaimOAuthClaims string = "https://auth.skygear.io/claims/oauth/claims"
 
 	// IdentityClaimLoginIDValue is a claim with a string value indicating the key of login ID.
 	IdentityClaimLoginIDKey string = "https://auth.skygear.io/claims/login_id/key"
@@ -61,6 +63,10 @@ const (
 	AuthenticatorPropOOBOTPEmail string = "https://auth.skygear.io/claims/oob_otp/email"
 	// AuthenticatorPropOOBOTPPhone is a claim with string value for OOB OTP phone channel.
 	AuthenticatorPropOOBOTPPhone string = "https://auth.skygear.io/claims/oob_otp/phone"
+
+	// AuthenticatorPropBearerTokenParentID is a claim with string value for bearer token parent authenticator.
+	// nolint:gosec
+	AuthenticatorPropBearerTokenParentID string = "https://auth.skygear.io/claims/bearer_token/parent_id"
 
 	// AuthenticatorStateOOBOTPCode is a claim with string value for OOB authenticator ID of current interaction.
 	AuthenticatorStateOOBOTPID string = "https://auth.skygear.io/claims/oob_otp/id"
