@@ -261,11 +261,9 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
-	sender := mail.ProvideMailSender(context, tenantConfiguration)
-	client := sms.ProvideSMSClient(context, tenantConfiguration)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
-	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, sender, client, queue)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
@@ -306,11 +304,9 @@ func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
-	sender := mail.ProvideMailSender(context, tenantConfiguration)
-	client := sms.ProvideSMSClient(context, tenantConfiguration)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
-	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, sender, client, queue)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
@@ -351,11 +347,9 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
-	sender := mail.ProvideMailSender(context, tenantConfiguration)
-	client := sms.ProvideSMSClient(context, tenantConfiguration)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
-	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, sender, client, queue)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
@@ -396,11 +390,9 @@ func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
-	sender := mail.ProvideMailSender(context, tenantConfiguration)
-	client := sms.ProvideSMSClient(context, tenantConfiguration)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
-	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, sender, client, queue)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,

@@ -39,8 +39,6 @@ type Provider struct {
 	TimeProvider         coretime.Provider
 	URLPrefixProvider    urlprefix.Provider
 	TemplateEngine       *template.Engine
-	MailSender           mail.Sender
-	SMSClient            sms.Client
 	TaskQueue            async.Queue
 }
 
@@ -128,19 +126,22 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 		return
 	}
 
-	messageConfig := config.NewEmailMessageConfiguration(
-		p.EmailMessageConfiguration,
-		p.ForgotPasswordConfiguration.EmailMessage,
-	)
-	err = p.MailSender.Send(mail.SendOptions{
-		MessageConfig: messageConfig,
-		Recipient:     email,
-		TextBody:      textBody,
-		HTMLBody:      htmlBody,
+	p.TaskQueue.Enqueue(async.TaskSpec{
+		Name: taskspec.SendMessagesTaskName,
+		Param: taskspec.SendMessagesTaskParam{
+			EmailMessages: []mail.SendOptions{
+				mail.SendOptions{
+					MessageConfig: config.NewEmailMessageConfiguration(
+						p.EmailMessageConfiguration,
+						p.ForgotPasswordConfiguration.EmailMessage,
+					),
+					Recipient: email,
+					TextBody:  textBody,
+					HTMLBody:  htmlBody,
+				},
+			},
+		},
 	})
-	if err != nil {
-		return
-	}
 
 	return
 }
@@ -163,18 +164,21 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 		return
 	}
 
-	messageConfig := config.NewSMSMessageConfiguration(
-		p.SMSMessageConfiguration,
-		p.ForgotPasswordConfiguration.SMSMessage,
-	)
-	err = p.SMSClient.Send(sms.SendOptions{
-		MessageConfig: messageConfig,
-		To:            phone,
-		Body:          body,
+	p.TaskQueue.Enqueue(async.TaskSpec{
+		Name: taskspec.SendMessagesTaskName,
+		Param: taskspec.SendMessagesTaskParam{
+			SMSMessages: []sms.SendOptions{
+				sms.SendOptions{
+					MessageConfig: config.NewSMSMessageConfiguration(
+						p.SMSMessageConfiguration,
+						p.ForgotPasswordConfiguration.SMSMessage,
+					),
+					To:   phone,
+					Body: body,
+				},
+			},
+		},
 	})
-	if err != nil {
-		return
-	}
 
 	return
 }

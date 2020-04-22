@@ -19,8 +19,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/mail"
-	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 	"net/http"
@@ -52,11 +50,9 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, passwordProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
-	sender := mail.ProvideMailSender(context, tenantConfiguration)
-	client := sms.ProvideSMSClient(context, tenantConfiguration)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
-	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, store, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, sender, client, queue)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, store, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
 	httpHandler := provideForgotPasswordHandler(requireAuthz, validator, forgotpasswordProvider, txContext)
 	return httpHandler
 }
@@ -85,11 +81,9 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, passwordProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
-	sender := mail.ProvideMailSender(context, tenantConfiguration)
-	client := sms.ProvideSMSClient(context, tenantConfiguration)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
-	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, store, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, sender, client, queue)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, store, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
 	httpHandler := provideResetPasswordHandler(requireAuthz, validator, forgotpasswordProvider, txContext)
 	return httpHandler
 }

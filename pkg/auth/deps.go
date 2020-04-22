@@ -184,6 +184,8 @@ var CommonDependencySet = wire.NewSet(
 	handler.DependencySet,
 	coreauth.DependencySet,
 	async.DependencySet,
+	// TODO(deps): Remove sms and mail from CommonDependencySet
+	// to prevent their use in HTTP request.
 	sms.DependencySet,
 	mail.DependencySet,
 

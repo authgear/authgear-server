@@ -11,8 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/mail"
-	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 	coretime "github.com/skygeario/skygear-server/pkg/core/time"
 )
@@ -34,8 +32,6 @@ func ProvideProvider(
 	tp coretime.Provider,
 	upp urlprefix.Provider,
 	te *template.Engine,
-	ms mail.Sender,
-	sc sms.Client,
 	tq async.Queue,
 ) *Provider {
 	return &Provider{
@@ -52,8 +48,6 @@ func ProvideProvider(
 		TimeProvider:                tp,
 		URLPrefixProvider:           upp,
 		TemplateEngine:              te,
-		MailSender:                  ms,
-		SMSClient:                   sc,
 		TaskQueue:                   tq,
 	}
 }
