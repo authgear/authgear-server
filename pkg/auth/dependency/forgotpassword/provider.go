@@ -45,7 +45,8 @@ type Provider struct {
 }
 
 // SendCode checks if loginID is an existing login ID.
-// For each matched login ID, a code is generated.
+// For first matched login ID, a code is generated.
+// Other matched login IDs are ignored.
 // The code expires after a specific time.
 // The code becomes invalid if it is consumed.
 // Finally the code is sent to the login ID asynchronously.
@@ -73,16 +74,12 @@ func (p *Provider) SendCode(loginID string) (err error) {
 
 		if email {
 			err = p.sendEmail(prin.LoginID, codeStr)
-			if err != nil {
-				return
-			}
+			return
 		}
 
 		if phone {
 			err = p.sendSMS(prin.LoginID, codeStr)
-			if err != nil {
-				return
-			}
+			return
 		}
 	}
 
