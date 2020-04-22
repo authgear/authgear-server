@@ -49,10 +49,13 @@ func TestUpdateNilFieldsWithZeroValue(t *testing.T) {
 	}
 
 	type TestStruct struct {
-		ChildNode1    *ChildStruct `default_zero_value:"true"`
-		ChildNode2    *ChildStruct
-		ChildNode3    ChildStruct
-		ChildNodeList []ChildStruct
+		ChildNode1          *ChildStruct `default_zero_value:"true"`
+		ChildNode2          *ChildStruct
+		ChildNode3          ChildStruct
+		ChildNodeList       []ChildStruct
+		ChildNodePtrList    []*ChildStruct
+		ChildNodeEmptyList1 []ChildStruct `default_zero_value:"true"`
+		ChildNodeEmptyList2 []ChildStruct
 	}
 
 	Convey("UpdateNilFieldsWithZeroValue", t, func() {
@@ -60,6 +63,9 @@ func TestUpdateNilFieldsWithZeroValue(t *testing.T) {
 			s := &TestStruct{
 				ChildNodeList: []ChildStruct{
 					ChildStruct{},
+				},
+				ChildNodePtrList: []*ChildStruct{
+					&ChildStruct{},
 				},
 			}
 
@@ -70,6 +76,12 @@ func TestUpdateNilFieldsWithZeroValue(t *testing.T) {
 			So(s.ChildNode1.Num2, ShouldNotBeNil)
 			So(s.ChildNode3.Num1, ShouldBeNil)
 			So(s.ChildNode3.Num2, ShouldNotBeNil)
+			So(s.ChildNodeList[0].Num1, ShouldBeNil)
+			So(s.ChildNodeList[0].Num2, ShouldNotBeNil)
+			So(s.ChildNodePtrList[0].Num1, ShouldBeNil)
+			So(s.ChildNodePtrList[0].Num2, ShouldNotBeNil)
+			So(s.ChildNodeEmptyList1, ShouldNotBeNil)
+			So(s.ChildNodeEmptyList2, ShouldBeNil)
 		})
 	})
 }

@@ -25,6 +25,15 @@ func updateNilFieldsWithZeroValue(t reflect.Type, v reflect.Value, st reflect.St
 	shouldSetZeroValue := st.Get("default_zero_value") == "true"
 
 	switch v.Kind() {
+	case reflect.Slice:
+		if shouldSetZeroValue && v.IsNil() {
+			v.Set(reflect.MakeSlice(t, 0, 0))
+		}
+		subt := t.Elem()
+		for i := 0; i < v.Len(); i++ {
+			item := v.Index(i)
+			updateNilFieldsWithZeroValue(subt, item, reflect.StructTag(""))
+		}
 	case reflect.Struct:
 		numField := t.NumField()
 		for j := 0; j < numField; j++ {
