@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/deps"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -22,6 +23,7 @@ var DependencySet = wire.NewSet(
 )
 
 func ProvideProvider(
+	saup deps.StaticAssetURLPrefix,
 	tConfig *config.TenantConfiguration,
 	store Store,
 	ais authinfo.Store,
@@ -35,6 +37,7 @@ func ProvideProvider(
 	tq async.Queue,
 ) *Provider {
 	return &Provider{
+		StaticAssetURLPrefix:        string(saup),
 		AppName:                     tConfig.AppConfig.DisplayAppName,
 		EmailMessageConfiguration:   tConfig.AppConfig.Messages.Email,
 		SMSMessageConfiguration:     tConfig.AppConfig.Messages.SMS,

@@ -34,6 +34,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
+	"github.com/skygeario/skygear-server/pkg/auth/deps"
 	"github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -134,21 +135,8 @@ func ProvidePrincipalProviders(
 	return []principal.Provider{oauth, password}
 }
 
-// ProvideWebAppRenderProvider is placed here because it requires DependencyMap.
-func ProvideWebAppRenderProvider(
-	m DependencyMap,
-	config *config.TenantConfiguration,
-	templateEngine *coretemplate.Engine,
-	passwordChecker *audit.PasswordChecker,
-) webapp.RenderProvider {
-	return &webapp.RenderProviderImpl{
-		StaticAssetURLPrefix:        m.StaticAssetURLPrefix,
-		IdentityConfiguration:       config.AppConfig.Identity,
-		AuthenticationConfiguration: config.AppConfig.Authentication,
-		AuthUIConfiguration:         config.AppConfig.AuthUI,
-		PasswordChecker:             passwordChecker,
-		TemplateEngine:              templateEngine,
-	}
+func ProvideStaticAssetURLPrefix(m DependencyMap) deps.StaticAssetURLPrefix {
+	return deps.StaticAssetURLPrefix(m.StaticAssetURLPrefix)
 }
 
 func ProvideCSRFMiddleware(m DependencyMap, tConfig *config.TenantConfiguration) mux.MiddlewareFunc {
@@ -168,7 +156,7 @@ var CommonDependencySet = wire.NewSet(
 	ProvideReservedNameChecker,
 	ProvideTaskExecutor,
 	ProvideTemplateEngine,
-	ProvideWebAppRenderProvider,
+	ProvideStaticAssetURLPrefix,
 	endpointsProviderSet,
 
 	ProvideAuthSQLBuilder,

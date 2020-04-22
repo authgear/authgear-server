@@ -24,6 +24,7 @@ import (
 )
 
 type Provider struct {
+	StaticAssetURLPrefix        string
 	AppName                     string
 	EmailMessageConfiguration   config.EmailMessageConfiguration
 	SMSMessageConfiguration     config.SMSMessageConfiguration
@@ -102,10 +103,11 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 	u := p.makeURL(code)
 
 	data := map[string]interface{}{
-		"appname": p.AppName,
-		"email":   email,
-		"code":    code,
-		"link":    u.String(),
+		"static_asset_url_prefix": p.StaticAssetURLPrefix,
+		"appname":                 p.AppName,
+		"email":                   email,
+		"code":                    code,
+		"link":                    u.String(),
 	}
 
 	textBody, err := p.TemplateEngine.RenderTemplate(

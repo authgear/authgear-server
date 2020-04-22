@@ -33,6 +33,7 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	storeImpl := &forgotpassword.StoreImpl{
 		Context: context,
 	}
@@ -52,7 +53,7 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
-	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, store, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, store, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
 	httpHandler := provideForgotPasswordHandler(requireAuthz, validator, forgotpasswordProvider, txContext)
 	return httpHandler
 }
@@ -64,6 +65,7 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	storeImpl := &forgotpassword.StoreImpl{
 		Context: context,
 	}
@@ -83,7 +85,7 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
-	forgotpasswordProvider := forgotpassword.ProvideProvider(tenantConfiguration, storeImpl, store, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, store, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
 	httpHandler := provideResetPasswordHandler(requireAuthz, validator, forgotpasswordProvider, txContext)
 	return httpHandler
 }
