@@ -690,7 +690,7 @@ type OIDCSigningKeyConfiguration struct {
 
 type ForgotPasswordConfiguration struct {
 	SecureMatch      bool                      `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
-	EmailMessage     EmailMessageConfiguration `json:"email_message" yaml:"email_message" msg:"email_message" default_zero_value:"true"`
+	EmailMessage     EmailMessageConfiguration `json:"email_message,omitempty" yaml:"email_message" msg:"email_message" default_zero_value:"true"`
 	ResetURLLifetime int                       `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
 	SuccessRedirect  string                    `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
 	ErrorRedirect    string                    `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
@@ -709,7 +709,7 @@ func (destination WelcomeEmailDestination) IsValid() bool {
 
 type WelcomeEmailConfiguration struct {
 	Enabled     bool                      `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
-	Message     EmailMessageConfiguration `json:"message" yaml:"message" msg:"message" default_zero_value:"true"`
+	Message     EmailMessageConfiguration `json:"message,omitempty" yaml:"message" msg:"message" default_zero_value:"true"`
 	Destination WelcomeEmailDestination   `json:"destination,omitempty" yaml:"destination" msg:"destination"`
 }
 
@@ -745,8 +745,8 @@ type UserVerificationKeyConfiguration struct {
 	Expiry          int64                      `json:"expiry,omitempty" yaml:"expiry" msg:"expiry"`
 	SuccessRedirect string                     `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
 	ErrorRedirect   string                     `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
-	SMSMessage      SMSMessageConfiguration    `json:"sms_message" yaml:"sms_message" msg:"sms_message" default_zero_value:"true"`
-	EmailMessage    EmailMessageConfiguration  `json:"email_message" yaml:"email_message" msg:"email_message" default_zero_value:"true"`
+	SMSMessage      SMSMessageConfiguration    `json:"sms_message,omitempty" yaml:"sms_message" msg:"sms_message" default_zero_value:"true"`
+	EmailMessage    EmailMessageConfiguration  `json:"email_message,omitempty" yaml:"email_message" msg:"email_message" default_zero_value:"true"`
 }
 
 func (format UserVerificationCodeFormat) IsValid() bool {
