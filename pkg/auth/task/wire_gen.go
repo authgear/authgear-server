@@ -105,7 +105,7 @@ func newPwHouseKeeperTask(ctx context.Context, m auth.DependencyMap) async.Task 
 }
 
 func newSendMessagesTask(ctx context.Context, m auth.DependencyMap) async.Task {
-	tenantConfiguration := auth.ProvideTenantConfig(ctx)
+	tenantConfiguration := auth.ProvideTenantConfig(ctx, m)
 	sender := mail.ProvideMailSender(ctx, tenantConfiguration)
 	client := sms.ProvideSMSClient(ctx, tenantConfiguration)
 	requestID := ProvideLoggingRequestID(ctx)

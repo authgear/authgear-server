@@ -238,7 +238,7 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 
 func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
 	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
@@ -282,7 +282,7 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 
 func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
 	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
@@ -326,7 +326,7 @@ func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http
 
 func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
 	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
@@ -370,7 +370,7 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 
 func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
 	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)

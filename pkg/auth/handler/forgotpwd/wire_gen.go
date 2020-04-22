@@ -29,7 +29,7 @@ import (
 func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	requestID := auth.ProvideLoggingRequestID(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
@@ -61,7 +61,7 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	requestID := auth.ProvideLoggingRequestID(r)
-	tenantConfiguration := auth.ProvideTenantConfig(context)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
