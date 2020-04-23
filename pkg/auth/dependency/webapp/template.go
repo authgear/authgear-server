@@ -525,8 +525,6 @@ var TemplateAuthUIResetPasswordSuccessHTML = template.Spec{
 
 <div class="description primary-txt">{{ localize "reset-password-success-description" .x_login_id }}</div>
 
-<a class="anchor btn primary-btn align-self-flex-end" href="{{ call .MakeURLWithPath "/login" }}">{{ localize "login-button-label--reset-password-success-page" }}</a>
-
 </div>
 {{ template "auth_ui_footer.html" . }}
 
