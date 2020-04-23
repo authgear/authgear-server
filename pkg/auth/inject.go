@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -257,14 +256,6 @@ func (m DependencyMap) Provide(
 		return newLoggerFactory().NewLogger("handler")
 	case "UserProfileStore":
 		return newUserProfileStore()
-	case "ForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultSender(tConfig, urlprefix.NewProvider(request).Value(), newMailSender(), newTemplateEngine())
-	case "ForgotPasswordCodeGenerator":
-		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.AppConfig.MasterKey}
-	case "ForgotPasswordSecureMatch":
-		return tConfig.AppConfig.ForgotPassword.SecureMatch
-	case "ResetPasswordHTMLProvider":
-		return forgotpwdemail.NewResetPasswordHTMLProvider(urlprefix.NewProvider(request).Value(), tConfig.AppConfig.ForgotPassword, newTemplateEngine())
 	case "UserVerifyCodeSenderFactory":
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(
 			&tConfig,

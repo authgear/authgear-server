@@ -211,11 +211,9 @@ func TestSignupWithLoginIDs(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			var p password.Principal
-			err = passwordProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
+			p, err := passwordProvider.GetPrincipalByLoginID("email", "john.doe@example.com")
 			So(err, ShouldBeNil)
-			var p2 password.Principal
-			err = passwordProvider.GetPrincipalByLoginIDWithRealm("username", "john.doe", password.DefaultRealm, &p2)
+			p2, err := passwordProvider.GetPrincipalByLoginID("username", "john.doe")
 			So(err, ShouldBeNil)
 
 			So(hookProvider.DispatchedEvents, ShouldResemble, []event.Payload{

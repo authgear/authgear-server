@@ -16,8 +16,16 @@ const (
 	TemplateItemTypeAuthUISignupHTML        config.TemplateItemType = "auth_ui_signup.html"
 	// nolint: gosec
 	TemplateItemTypeAuthUISignupPasswordHTML config.TemplateItemType = "auth_ui_signup_password.html"
-	TemplateItemTypeAuthUISettingsHTML       config.TemplateItemType = "auth_ui_settings.html"
-	TemplateItemTypeAuthUILogoutHTML         config.TemplateItemType = "auth_ui_logout.html"
+	// nolint: gosec
+	TemplateItemTypeAuthUIForgotPasswordHTML config.TemplateItemType = "auth_ui_forgot_password.html"
+	// nolint: gosec
+	TemplateItemTypeAuthUIForgotPasswordSuccessHTML config.TemplateItemType = "auth_ui_forgot_password_success.html"
+	// nolint: gosec
+	TemplateItemTypeAuthUIResetPasswordHTML config.TemplateItemType = "auth_ui_reset_password.html"
+	// nolint: gosec
+	TemplateItemTypeAuthUIResetPasswordSuccessHTML config.TemplateItemType = "auth_ui_reset_password_success.html"
+	TemplateItemTypeAuthUISettingsHTML             config.TemplateItemType = "auth_ui_settings.html"
+	TemplateItemTypeAuthUILogoutHTML               config.TemplateItemType = "auth_ui_logout.html"
 )
 
 var TemplateAuthUIHTMLHeadHTML = template.Spec{
@@ -98,9 +106,80 @@ const defineError = `
 		<li class="error-txt">{{ localize "error-invalid-credentials" }}</li>
 	{{ else if eq .x_error.reason "PasswordPolicyViolated" }}
 		<!-- This error is handled differently -->
+	{{ else if eq .x_error.reason "PasswordResetFailed" }}
+		<li class="error-txt">{{ localize "error-password-reset-failed" }}</li>
 	{{ else }}
 		<li class="error-txt">{{ .x_error.message }}</li>
 	{{ end }}
+</ul>
+{{ end }}
+{{ end }}
+`
+
+// nolint: gosec
+const definePasswordPolicy = `
+{{ define "PASSWORD_POLICY" }}
+{{ if .x_password_policies }}
+<ul>
+{{ range .x_password_policies }}
+  {{ if eq .kind "PasswordTooShort" }}
+  <li class="password-policy length {{ template "PASSWORD_POLICY_CLASS" . }}" data-min-length="{{ .min_length}}">
+    {{ localize "password-policy-minimum-length" .min_length }}
+  </li>
+  {{ end }}
+  {{ if eq .kind "PasswordUppercaseRequired" }}
+  <li class="password-policy uppercase {{ template "PASSWORD_POLICY_CLASS" . }}">
+    {{ localize "password-policy-uppercase" }}
+  </li>
+  {{ end }}
+  {{ if eq .kind "PasswordLowercaseRequired" }}
+  <li class="password-policy lowercase {{ template "PASSWORD_POLICY_CLASS" . }}">
+    {{ localize "password-policy-lowercase" }}
+  </li>
+  {{ end }}
+  {{ if eq .kind "PasswordDigitRequired" }}
+  <li class="password-policy digit {{ template "PASSWORD_POLICY_CLASS" . }}">
+    {{ localize "password-policy-digit" }}
+  </li>
+  {{ end }}
+  {{ if eq .kind "PasswordSymbolRequired" }}
+  <li class="password-policy symbol {{ template "PASSWORD_POLICY_CLASS" . }}">
+    {{ localize "password-policy-symbol" }}
+  </li>
+  {{ end }}
+  {{ if eq .kind "PasswordContainingExcludedKeywords" }}
+  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+    {{ localize "password-policy-banned-words" }}
+  </li>
+  {{ end }}
+  {{ if eq .kind "PasswordBelowGuessableLevel" }}
+    {{ if eq .min_level 1.0 }}
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+      {{ localize "password-policy-guessable-level-1" }}
+    </li>
+    {{ end }}
+    {{ if eq .min_level 2.0 }}
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+      {{ localize "password-policy-guessable-level-2" }}
+    </li>
+    {{ end }}
+    {{ if eq .min_level 3.0 }}
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+      {{ localize "password-policy-guessable-level-3" }}
+    </li>
+    {{ end }}
+    {{ if eq .min_level 4.0 }}
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+      {{ localize "password-policy-guessable-level-4" }}
+    </li>
+    {{ end }}
+    {{ if eq .min_level 5.0 }}
+    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+      {{ localize "password-policy-guessable-level-5" }}
+    </li>
+    {{ end }}
+  {{ end }}
+{{ end }}
 </ul>
 {{ end }}
 {{ end }}
@@ -121,6 +200,7 @@ passed
 
 var defines = []string{
 	defineError,
+	definePasswordPolicy,
 	definePasswordPolicyClass,
 }
 
@@ -211,7 +291,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 					<span class="primary-text">{{ localize "signup-button-hint" }}</span>
 					<a class="anchor" href="{{ call .MakeURLWithPath "/signup" }}">{{ localize "signup-button-label" }}</a>
 				</div>
-				<a class="link anchor align-self-flex-start" href="#">{{ localize "forgot-password-button-label" }}</a>
+				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithPath "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
 
 				{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-login-id-button-label" }}</button>
@@ -266,11 +346,186 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 <button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
 <button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
 
-<a class="anchor align-self-flex-start" href="">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
+<a class="anchor link align-self-flex-start" href="{{ call .MakeURLWithPath "/forgot_password" }}">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-password-button-label" }}</button>
 
 </form>
+{{ template "auth_ui_footer.html" . }}
+
+</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUIForgotPasswordHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIForgotPasswordHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
+	Components:  components,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "auth_ui_header.html" . }}
+
+<form class="forgot-password-form" method="post">
+{{ $.csrfField }}
+
+<div class="nav-bar">
+	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
+</div>
+
+<div class="title primary-txt">{{ localize "forgot-password-page-title" }}</div>
+
+{{ template "ERROR" . }}
+
+{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_phone }}
+<div class="description primary-txt">{{ localize "forgot-password-phone-description" }}</div>
+<div class="phone-input">
+	<select class="input select" name="x_calling_code">
+		{{ range .x_calling_codes }}
+		<option
+			value="{{ . }}"
+			{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
+			selected
+			{{ end }}{{ end }}
+			>
+			+{{ . }}
+		</option>
+		{{ end }}
+	</select>
+	<input class="input text-input" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ .x_national_number }}">
+</div>
+{{ end }}{{ end }}
+
+{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_text }}
+<div class="description primary-txt">{{ localize "forgot-password-email-description" }}</div>
+<input class="input text-input" type="text" name="x_login_id" placeholder="{{ localize "email-placeholder" }}" value="{{ .x_login_id }}">
+{{ end }}{{ end }}
+
+{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
+<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "text" }}">{{ localize "use-email-login-id-description" }}</a>
+{{ end }}{{ end }}
+{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_phone }}
+<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "phone" }}">{{ localize "use-phone-login-id-description" }}</a>
+{{ end }}{{ end }}
+
+{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
+<button class="btn primary-btn submit-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-login-id-button-label" }}</button>
+{{ end }}
+
+</form>
+{{ template "auth_ui_footer.html" . }}
+
+</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUIForgotPasswordSuccessHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIForgotPasswordSuccessHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
+	Components:  components,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "auth_ui_header.html" . }}
+
+<div class="forgot-password-success">
+
+<div class="title primary-txt">{{ localize "forgot-password-success-page-title" }}</div>
+
+{{ template "ERROR" . }}
+
+<div class="description primary-txt">{{ localize "forgot-password-success-description" .x_login_id }}</div>
+
+<a class="anchor btn primary-btn align-self-flex-end" href="{{ call .MakeURLWithPath "/login" }}">{{ localize "login-button-label--forgot-password-success-page" }}</a>
+
+</div>
+{{ template "auth_ui_footer.html" . }}
+
+</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUIResetPasswordHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIResetPasswordHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
+	Components:  components,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "auth_ui_header.html" . }}
+
+<form class="reset-password-form" method="post">
+{{ $.csrfField }}
+
+<div class="title primary-txt">{{ localize "reset-password-page-title" }}</div>
+
+{{ template "ERROR" . }}
+
+<div class="description primary-txt">{{ localize "reset-password-description" }}</div>
+
+<input id="password" data-password-policy-password="" class="input text-input" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}" value="{{ .x_password }}">
+
+<button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
+<button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
+
+{{ template "PASSWORD_POLICY" . }}
+
+<button class="btn primary-btn submit-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-password-button-label" }}</button>
+
+</form>
+
+{{ template "auth_ui_footer.html" . }}
+
+</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUIResetPasswordSuccessHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIResetPasswordSuccessHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
+	Components:  components,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "auth_ui_header.html" . }}
+
+<div class="reset-password-success">
+
+<div class="title primary-txt">{{ localize "reset-password-success-page-title" }}</div>
+
+{{ template "ERROR" . }}
+
+<div class="description primary-txt">{{ localize "reset-password-success-description" .x_login_id }}</div>
+
+</div>
 {{ template "auth_ui_footer.html" . }}
 
 </div>
@@ -335,7 +590,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 					<span class="primary-text">{{ localize "login-button-hint" }}</span>
 					<a class="anchor" href="{{ call .MakeURLWithPath "/login" }}">{{ localize "login-button-label" }}<a>
 				</div>
-				<a class="link anchor align-self-flex-start" href="#">{{ localize "forgot-password-button-label" }}</a>
+				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithPath "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
 
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">
 					{{ localize "confirm-login-id-button-label" }}
@@ -390,69 +645,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 <button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
 <button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
 
-{{ if .x_password_policies }}
-<ul>
-{{ range .x_password_policies }}
-  {{ if eq .kind "PasswordTooShort" }}
-  <li class="password-policy length {{ template "PASSWORD_POLICY_CLASS" . }}" data-min-length="{{ .min_length}}">
-    {{ localize "password-policy-minimum-length" .min_length }}
-  </li>
-  {{ end }}
-  {{ if eq .kind "PasswordUppercaseRequired" }}
-  <li class="password-policy uppercase {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ localize "password-policy-uppercase" }}
-  </li>
-  {{ end }}
-  {{ if eq .kind "PasswordLowercaseRequired" }}
-  <li class="password-policy lowercase {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ localize "password-policy-lowercase" }}
-  </li>
-  {{ end }}
-  {{ if eq .kind "PasswordDigitRequired" }}
-  <li class="password-policy digit {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ localize "password-policy-digit" }}
-  </li>
-  {{ end }}
-  {{ if eq .kind "PasswordSymbolRequired" }}
-  <li class="password-policy symbol {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ localize "password-policy-symbol" }}
-  </li>
-  {{ end }}
-  {{ if eq .kind "PasswordContainingExcludedKeywords" }}
-  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ localize "password-policy-banned-words" }}
-  </li>
-  {{ end }}
-  {{ if eq .kind "PasswordBelowGuessableLevel" }}
-    {{ if eq .min_level 1.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ localize "password-policy-guessable-level-1" }}
-    </li>
-    {{ end }}
-    {{ if eq .min_level 2.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ localize "password-policy-guessable-level-2" }}
-    </li>
-    {{ end }}
-    {{ if eq .min_level 3.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ localize "password-policy-guessable-level-3" }}
-    </li>
-    {{ end }}
-    {{ if eq .min_level 4.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ localize "password-policy-guessable-level-4" }}
-    </li>
-    {{ end }}
-    {{ if eq .min_level 5.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ localize "password-policy-guessable-level-5" }}
-    </li>
-    {{ end }}
-  {{ end }}
-{{ end }}
-</ul>
-{{ end }}
+{{ template "PASSWORD_POLICY" . }}
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-password-button-label" }}</button>
 

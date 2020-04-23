@@ -13,6 +13,7 @@ import (
 	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -48,6 +49,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -55,7 +57,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
-	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
+	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
@@ -147,6 +149,7 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -154,7 +157,7 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
-	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
+	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
@@ -233,10 +236,11 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	return loginPasswordHandler
 }
 
-func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -244,7 +248,183 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
-	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
+	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	storeImpl := &forgotpassword.StoreImpl{
+		Context: context,
+	}
+	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	executor := auth.ProvideTaskExecutor(m)
+	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
+	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
+		ValidateProvider: validateProvider,
+		RenderProvider:   renderProvider,
+		StateStore:       stateStoreImpl,
+		ForgotPassword:   forgotpasswordProvider,
+	}
+	forgotPasswordHandler := &ForgotPasswordHandler{
+		Provider:  webappForgotPasswordProvider,
+		TxContext: txContext,
+	}
+	return forgotPasswordHandler
+}
+
+func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
+	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
+	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
+	provider := time.NewProvider()
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
+	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	storeImpl := &forgotpassword.StoreImpl{
+		Context: context,
+	}
+	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	executor := auth.ProvideTaskExecutor(m)
+	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
+	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
+		ValidateProvider: validateProvider,
+		RenderProvider:   renderProvider,
+		StateStore:       stateStoreImpl,
+		ForgotPassword:   forgotpasswordProvider,
+	}
+	forgotPasswordSuccessHandler := &ForgotPasswordSuccessHandler{
+		Provider:  webappForgotPasswordProvider,
+		TxContext: txContext,
+	}
+	return forgotPasswordSuccessHandler
+}
+
+func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
+	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
+	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
+	provider := time.NewProvider()
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
+	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	storeImpl := &forgotpassword.StoreImpl{
+		Context: context,
+	}
+	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	executor := auth.ProvideTaskExecutor(m)
+	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
+	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
+		ValidateProvider: validateProvider,
+		RenderProvider:   renderProvider,
+		StateStore:       stateStoreImpl,
+		ForgotPassword:   forgotpasswordProvider,
+	}
+	resetPasswordHandler := &ResetPasswordHandler{
+		Provider:  webappForgotPasswordProvider,
+		TxContext: txContext,
+	}
+	return resetPasswordHandler
+}
+
+func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
+	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
+	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
+	provider := time.NewProvider()
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
+	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	storeImpl := &forgotpassword.StoreImpl{
+		Context: context,
+	}
+	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	requestID := auth.ProvideLoggingRequestID(r)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	executor := auth.ProvideTaskExecutor(m)
+	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, authinfoStore, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
+	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
+		ValidateProvider: validateProvider,
+		RenderProvider:   renderProvider,
+		StateStore:       stateStoreImpl,
+		ForgotPassword:   forgotpasswordProvider,
+	}
+	resetPasswordSuccessHandler := &ResetPasswordSuccessHandler{
+		Provider:  webappForgotPasswordProvider,
+		TxContext: txContext,
+	}
+	return resetPasswordSuccessHandler
+}
+
+func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
+	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
+	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
+	provider := time.NewProvider()
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
+	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
@@ -327,6 +507,7 @@ func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -334,7 +515,7 @@ func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
-	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
+	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
@@ -414,6 +595,7 @@ func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 }
 
 func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
@@ -423,7 +605,7 @@ func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
-	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
+	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker)
 	settingsHandler := &SettingsHandler{
 		RenderProvider: renderProvider,
 	}
@@ -431,6 +613,7 @@ func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 }
 
 func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
@@ -440,7 +623,7 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
-	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
+	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker)
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	oauthProvider := oauth.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
@@ -481,6 +664,7 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
+	staticAssetURLPrefix := auth.ProvideStaticAssetURLPrefix(m)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -488,7 +672,7 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
-	renderProvider := auth.ProvideWebAppRenderProvider(m, tenantConfiguration, engine, passwordChecker)
+	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker)
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)

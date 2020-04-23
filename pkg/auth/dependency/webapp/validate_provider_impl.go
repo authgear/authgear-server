@@ -18,6 +18,8 @@ func init() {
 		SignupRequestSchema,
 		SignupLoginIDRequestSchema,
 		SignupLoginIDPasswordRequestSchema,
+		ForgotPasswordRequestSchema,
+		ResetPasswordRequestSchema,
 		SSOCallbackRequestSchema,
 	)
 }
@@ -172,6 +174,48 @@ const SSOCallbackRequestSchema = `
 		"scope": { "type": "string" }
 	},
 	"required": ["state", "code"]
+}
+`
+
+// nolint: gosec
+const ForgotPasswordRequestSchema = `
+{
+	"$id": "#WebAppForgotPasswordRequest",
+	"type": "object",
+	"properties": {
+		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
+		"x_calling_code": { "type": "string" },
+		"x_national_number": { "type": "string" },
+		"x_login_id": { "type": "string" }
+	},
+	"required": ["x_login_id_input_type"],
+	"oneOf": [
+		{
+			"properties": {
+				"x_login_id_input_type": { "type": "string", "const": "phone" }
+			},
+			"required": ["x_calling_code", "x_national_number"]
+		},
+		{
+			"properties": {
+				"x_login_id_input_type": { "type": "string", "const": "text" }
+			},
+			"required": ["x_login_id"]
+		}
+	]
+}
+`
+
+// nolint: gosec
+const ResetPasswordRequestSchema = `
+{
+	"$id": "#WebAppResetPasswordRequest",
+	"type": "object",
+	"properties": {
+		"code": { "type": "string" },
+		"x_password": { "type": "string" }
+	},
+	"required": ["code", "x_password"]
 }
 `
 

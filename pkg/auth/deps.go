@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	authredis "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
@@ -33,6 +34,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
+	"github.com/skygeario/skygear-server/pkg/auth/deps"
 	"github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -133,21 +135,8 @@ func ProvidePrincipalProviders(
 	return []principal.Provider{oauth, password}
 }
 
-// ProvideWebAppRenderProvider is placed here because it requires DependencyMap.
-func ProvideWebAppRenderProvider(
-	m DependencyMap,
-	config *config.TenantConfiguration,
-	templateEngine *coretemplate.Engine,
-	passwordChecker *audit.PasswordChecker,
-) webapp.RenderProvider {
-	return &webapp.RenderProviderImpl{
-		StaticAssetURLPrefix:        m.StaticAssetURLPrefix,
-		IdentityConfiguration:       config.AppConfig.Identity,
-		AuthenticationConfiguration: config.AppConfig.Authentication,
-		AuthUIConfiguration:         config.AppConfig.AuthUI,
-		PasswordChecker:             passwordChecker,
-		TemplateEngine:              templateEngine,
-	}
+func ProvideStaticAssetURLPrefix(m DependencyMap) deps.StaticAssetURLPrefix {
+	return deps.StaticAssetURLPrefix(m.StaticAssetURLPrefix)
 }
 
 func ProvideCSRFMiddleware(m DependencyMap, tConfig *config.TenantConfiguration) mux.MiddlewareFunc {
@@ -167,7 +156,7 @@ var CommonDependencySet = wire.NewSet(
 	ProvideReservedNameChecker,
 	ProvideTaskExecutor,
 	ProvideTemplateEngine,
-	ProvideWebAppRenderProvider,
+	ProvideStaticAssetURLPrefix,
 	endpointsProviderSet,
 
 	ProvideAuthSQLBuilder,
@@ -183,6 +172,8 @@ var CommonDependencySet = wire.NewSet(
 	handler.DependencySet,
 	coreauth.DependencySet,
 	async.DependencySet,
+	// TODO(deps): Remove sms and mail from CommonDependencySet
+	// to prevent their use in HTTP request.
 	sms.DependencySet,
 	mail.DependencySet,
 
@@ -209,6 +200,7 @@ var CommonDependencySet = wire.NewSet(
 	oidchandler.DependencySet,
 	welcemail.DependencySet,
 	userverify.DependencySet,
+	forgotpassword.DependencySet,
 )
 
 // DependencySet is for HTTP request

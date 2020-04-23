@@ -1,11 +1,24 @@
 package webapp
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 type StateMiddleware struct {
 	StateStore StateStore
+}
+
+func GetPathComponents(u *url.URL) (out []string) {
+	parts := strings.Split(u.EscapedPath(), "/")
+	for _, part := range parts {
+		if part != "" {
+			out = append(out, fmt.Sprintf("/%s", part))
+		}
+	}
+	return
 }
 
 func (m *StateMiddleware) Handle(next http.Handler) http.Handler {
@@ -20,6 +33,15 @@ func (m *StateMiddleware) Handle(next http.Handler) http.Handler {
 		if sid != "" {
 			_, err := m.StateStore.Get(sid)
 			if err != nil {
+				RedirectToPathWithQueryPreserved(w, r, "/")
+				return
+			}
+		}
+
+		// Redirect to / if sid is supposed to be there.
+		if sid == "" {
+			components := GetPathComponents(r.URL)
+			if len(components) > 1 {
 				RedirectToPathWithQueryPreserved(w, r, "/")
 				return
 			}

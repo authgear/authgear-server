@@ -246,10 +246,45 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.ForgotPassword == nil {
 					z.ForgotPassword = new(ForgotPasswordConfiguration)
 				}
-				err = z.ForgotPassword.DecodeMsg(dc)
+				var zb0005 uint32
+				zb0005, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "ForgotPassword")
 					return
+				}
+				for zb0005 > 0 {
+					zb0005--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "ForgotPassword")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "email_message":
+						err = z.ForgotPassword.EmailMessage.DecodeMsg(dc)
+						if err != nil {
+							err = msgp.WrapError(err, "ForgotPassword", "EmailMessage")
+							return
+						}
+					case "sms_message":
+						err = z.ForgotPassword.SMSMessage.DecodeMsg(dc)
+						if err != nil {
+							err = msgp.WrapError(err, "ForgotPassword", "SMSMessage")
+							return
+						}
+					case "reset_code_lifetime":
+						z.ForgotPassword.ResetCodeLifetime, err = dc.ReadInt()
+						if err != nil {
+							err = msgp.WrapError(err, "ForgotPassword", "ResetCodeLifetime")
+							return
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "ForgotPassword")
+							return
+						}
+					}
 				}
 			}
 		case "welcome_email":
@@ -318,14 +353,14 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Hook == nil {
 					z.Hook = new(HookAppConfiguration)
 				}
-				var zb0005 uint32
-				zb0005, err = dc.ReadMapHeader()
+				var zb0006 uint32
+				zb0006, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Hook")
 					return
 				}
-				for zb0005 > 0 {
-					zb0005--
+				for zb0006 > 0 {
+					zb0006--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Hook")
@@ -395,14 +430,14 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Twilio == nil {
 					z.Twilio = new(TwilioConfiguration)
 				}
-				var zb0006 uint32
-				zb0006, err = dc.ReadMapHeader()
+				var zb0007 uint32
+				zb0007, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Twilio")
 					return
 				}
-				for zb0006 > 0 {
-					zb0006--
+				for zb0007 > 0 {
+					zb0007--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Twilio")
@@ -442,14 +477,14 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Nexmo == nil {
 					z.Nexmo = new(NexmoConfiguration)
 				}
-				var zb0007 uint32
-				zb0007, err = dc.ReadMapHeader()
+				var zb0008 uint32
+				zb0008, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Nexmo")
 					return
 				}
-				for zb0007 > 0 {
-					zb0007--
+				for zb0008 > 0 {
+					zb0008--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Nexmo")
@@ -489,14 +524,14 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				if z.Asset == nil {
 					z.Asset = new(AssetConfiguration)
 				}
-				var zb0008 uint32
-				zb0008, err = dc.ReadMapHeader()
+				var zb0009 uint32
+				zb0009, err = dc.ReadMapHeader()
 				if err != nil {
 					err = msgp.WrapError(err, "Asset")
 					return
 				}
-				for zb0008 > 0 {
-					zb0008--
+				for zb0009 > 0 {
+					zb0009--
 					field, err = dc.ReadMapKeyPtr()
 					if err != nil {
 						err = msgp.WrapError(err, "Asset")
@@ -727,9 +762,35 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	} else {
-		err = z.ForgotPassword.EncodeMsg(en)
+		// map header, size 3
+		// write "email_message"
+		err = en.Append(0x83, 0xad, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
 		if err != nil {
-			err = msgp.WrapError(err, "ForgotPassword")
+			return
+		}
+		err = z.ForgotPassword.EmailMessage.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "ForgotPassword", "EmailMessage")
+			return
+		}
+		// write "sms_message"
+		err = en.Append(0xab, 0x73, 0x6d, 0x73, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+		if err != nil {
+			return
+		}
+		err = z.ForgotPassword.SMSMessage.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "ForgotPassword", "SMSMessage")
+			return
+		}
+		// write "reset_code_lifetime"
+		err = en.Append(0xb3, 0x72, 0x65, 0x73, 0x65, 0x74, 0x5f, 0x63, 0x6f, 0x64, 0x65, 0x5f, 0x6c, 0x69, 0x66, 0x65, 0x74, 0x69, 0x6d, 0x65)
+		if err != nil {
+			return
+		}
+		err = en.WriteInt(z.ForgotPassword.ResetCodeLifetime)
+		if err != nil {
+			err = msgp.WrapError(err, "ForgotPassword", "ResetCodeLifetime")
 			return
 		}
 	}
@@ -1041,11 +1102,24 @@ func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	if z.ForgotPassword == nil {
 		o = msgp.AppendNil(o)
 	} else {
-		o, err = z.ForgotPassword.MarshalMsg(o)
+		// map header, size 3
+		// string "email_message"
+		o = append(o, 0x83, 0xad, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+		o, err = z.ForgotPassword.EmailMessage.MarshalMsg(o)
 		if err != nil {
-			err = msgp.WrapError(err, "ForgotPassword")
+			err = msgp.WrapError(err, "ForgotPassword", "EmailMessage")
 			return
 		}
+		// string "sms_message"
+		o = append(o, 0xab, 0x73, 0x6d, 0x73, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+		o, err = z.ForgotPassword.SMSMessage.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "ForgotPassword", "SMSMessage")
+			return
+		}
+		// string "reset_code_lifetime"
+		o = append(o, 0xb3, 0x72, 0x65, 0x73, 0x65, 0x74, 0x5f, 0x63, 0x6f, 0x64, 0x65, 0x5f, 0x6c, 0x69, 0x66, 0x65, 0x74, 0x69, 0x6d, 0x65)
+		o = msgp.AppendInt(o, z.ForgotPassword.ResetCodeLifetime)
 	}
 	// string "welcome_email"
 	o = append(o, 0xad, 0x77, 0x65, 0x6c, 0x63, 0x6f, 0x6d, 0x65, 0x5f, 0x65, 0x6d, 0x61, 0x69, 0x6c)
@@ -1383,10 +1457,45 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.ForgotPassword == nil {
 					z.ForgotPassword = new(ForgotPasswordConfiguration)
 				}
-				bts, err = z.ForgotPassword.UnmarshalMsg(bts)
+				var zb0005 uint32
+				zb0005, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "ForgotPassword")
 					return
+				}
+				for zb0005 > 0 {
+					zb0005--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "ForgotPassword")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "email_message":
+						bts, err = z.ForgotPassword.EmailMessage.UnmarshalMsg(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "ForgotPassword", "EmailMessage")
+							return
+						}
+					case "sms_message":
+						bts, err = z.ForgotPassword.SMSMessage.UnmarshalMsg(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "ForgotPassword", "SMSMessage")
+							return
+						}
+					case "reset_code_lifetime":
+						z.ForgotPassword.ResetCodeLifetime, bts, err = msgp.ReadIntBytes(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "ForgotPassword", "ResetCodeLifetime")
+							return
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "ForgotPassword")
+							return
+						}
+					}
 				}
 			}
 		case "welcome_email":
@@ -1451,14 +1560,14 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Hook == nil {
 					z.Hook = new(HookAppConfiguration)
 				}
-				var zb0005 uint32
-				zb0005, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0006 uint32
+				zb0006, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Hook")
 					return
 				}
-				for zb0005 > 0 {
-					zb0005--
+				for zb0006 > 0 {
+					zb0006--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Hook")
@@ -1525,14 +1634,14 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Twilio == nil {
 					z.Twilio = new(TwilioConfiguration)
 				}
-				var zb0006 uint32
-				zb0006, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0007 uint32
+				zb0007, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Twilio")
 					return
 				}
-				for zb0006 > 0 {
-					zb0006--
+				for zb0007 > 0 {
+					zb0007--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Twilio")
@@ -1571,14 +1680,14 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Nexmo == nil {
 					z.Nexmo = new(NexmoConfiguration)
 				}
-				var zb0007 uint32
-				zb0007, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0008 uint32
+				zb0008, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Nexmo")
 					return
 				}
-				for zb0007 > 0 {
-					zb0007--
+				for zb0008 > 0 {
+					zb0008--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Nexmo")
@@ -1617,14 +1726,14 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				if z.Asset == nil {
 					z.Asset = new(AssetConfiguration)
 				}
-				var zb0008 uint32
-				zb0008, bts, err = msgp.ReadMapHeaderBytes(bts)
+				var zb0009 uint32
+				zb0009, bts, err = msgp.ReadMapHeaderBytes(bts)
 				if err != nil {
 					err = msgp.WrapError(err, "Asset")
 					return
 				}
-				for zb0008 > 0 {
-					zb0008--
+				for zb0009 > 0 {
+					zb0009--
 					field, bts, err = msgp.ReadMapKeyZC(bts)
 					if err != nil {
 						err = msgp.WrapError(err, "Asset")
@@ -1716,7 +1825,7 @@ func (z *AppConfiguration) Msgsize() (s int) {
 	if z.ForgotPassword == nil {
 		s += msgp.NilSize
 	} else {
-		s += z.ForgotPassword.Msgsize()
+		s += 1 + 14 + z.ForgotPassword.EmailMessage.Msgsize() + 12 + z.ForgotPassword.SMSMessage.Msgsize() + 20 + msgp.IntSize
 	}
 	s += 14
 	if z.WelcomeEmail == nil {
@@ -2379,34 +2488,22 @@ func (z *ForgotPasswordConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "secure_match":
-			z.SecureMatch, err = dc.ReadBool()
-			if err != nil {
-				err = msgp.WrapError(err, "SecureMatch")
-				return
-			}
 		case "email_message":
 			err = z.EmailMessage.DecodeMsg(dc)
 			if err != nil {
 				err = msgp.WrapError(err, "EmailMessage")
 				return
 			}
-		case "reset_url_lifetime":
-			z.ResetURLLifetime, err = dc.ReadInt()
+		case "sms_message":
+			err = z.SMSMessage.DecodeMsg(dc)
 			if err != nil {
-				err = msgp.WrapError(err, "ResetURLLifetime")
+				err = msgp.WrapError(err, "SMSMessage")
 				return
 			}
-		case "success_redirect":
-			z.SuccessRedirect, err = dc.ReadString()
+		case "reset_code_lifetime":
+			z.ResetCodeLifetime, err = dc.ReadInt()
 			if err != nil {
-				err = msgp.WrapError(err, "SuccessRedirect")
-				return
-			}
-		case "error_redirect":
-			z.ErrorRedirect, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "ErrorRedirect")
+				err = msgp.WrapError(err, "ResetCodeLifetime")
 				return
 			}
 		default:
@@ -2422,19 +2519,9 @@ func (z *ForgotPasswordConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *ForgotPasswordConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 5
-	// write "secure_match"
-	err = en.Append(0x85, 0xac, 0x73, 0x65, 0x63, 0x75, 0x72, 0x65, 0x5f, 0x6d, 0x61, 0x74, 0x63, 0x68)
-	if err != nil {
-		return
-	}
-	err = en.WriteBool(z.SecureMatch)
-	if err != nil {
-		err = msgp.WrapError(err, "SecureMatch")
-		return
-	}
+	// map header, size 3
 	// write "email_message"
-	err = en.Append(0xad, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	err = en.Append(0x83, 0xad, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
 	if err != nil {
 		return
 	}
@@ -2443,34 +2530,24 @@ func (z *ForgotPasswordConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "EmailMessage")
 		return
 	}
-	// write "reset_url_lifetime"
-	err = en.Append(0xb2, 0x72, 0x65, 0x73, 0x65, 0x74, 0x5f, 0x75, 0x72, 0x6c, 0x5f, 0x6c, 0x69, 0x66, 0x65, 0x74, 0x69, 0x6d, 0x65)
+	// write "sms_message"
+	err = en.Append(0xab, 0x73, 0x6d, 0x73, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
 	if err != nil {
 		return
 	}
-	err = en.WriteInt(z.ResetURLLifetime)
+	err = z.SMSMessage.EncodeMsg(en)
 	if err != nil {
-		err = msgp.WrapError(err, "ResetURLLifetime")
+		err = msgp.WrapError(err, "SMSMessage")
 		return
 	}
-	// write "success_redirect"
-	err = en.Append(0xb0, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x5f, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.SuccessRedirect)
-	if err != nil {
-		err = msgp.WrapError(err, "SuccessRedirect")
-		return
-	}
-	// write "error_redirect"
-	err = en.Append(0xae, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x5f, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74)
+	// write "reset_code_lifetime"
+	err = en.Append(0xb3, 0x72, 0x65, 0x73, 0x65, 0x74, 0x5f, 0x63, 0x6f, 0x64, 0x65, 0x5f, 0x6c, 0x69, 0x66, 0x65, 0x74, 0x69, 0x6d, 0x65)
 	if err != nil {
 		return
 	}
-	err = en.WriteString(z.ErrorRedirect)
+	err = en.WriteInt(z.ResetCodeLifetime)
 	if err != nil {
-		err = msgp.WrapError(err, "ErrorRedirect")
+		err = msgp.WrapError(err, "ResetCodeLifetime")
 		return
 	}
 	return
@@ -2479,26 +2556,24 @@ func (z *ForgotPasswordConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *ForgotPasswordConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 5
-	// string "secure_match"
-	o = append(o, 0x85, 0xac, 0x73, 0x65, 0x63, 0x75, 0x72, 0x65, 0x5f, 0x6d, 0x61, 0x74, 0x63, 0x68)
-	o = msgp.AppendBool(o, z.SecureMatch)
+	// map header, size 3
 	// string "email_message"
-	o = append(o, 0xad, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	o = append(o, 0x83, 0xad, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
 	o, err = z.EmailMessage.MarshalMsg(o)
 	if err != nil {
 		err = msgp.WrapError(err, "EmailMessage")
 		return
 	}
-	// string "reset_url_lifetime"
-	o = append(o, 0xb2, 0x72, 0x65, 0x73, 0x65, 0x74, 0x5f, 0x75, 0x72, 0x6c, 0x5f, 0x6c, 0x69, 0x66, 0x65, 0x74, 0x69, 0x6d, 0x65)
-	o = msgp.AppendInt(o, z.ResetURLLifetime)
-	// string "success_redirect"
-	o = append(o, 0xb0, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x5f, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74)
-	o = msgp.AppendString(o, z.SuccessRedirect)
-	// string "error_redirect"
-	o = append(o, 0xae, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x5f, 0x72, 0x65, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74)
-	o = msgp.AppendString(o, z.ErrorRedirect)
+	// string "sms_message"
+	o = append(o, 0xab, 0x73, 0x6d, 0x73, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	o, err = z.SMSMessage.MarshalMsg(o)
+	if err != nil {
+		err = msgp.WrapError(err, "SMSMessage")
+		return
+	}
+	// string "reset_code_lifetime"
+	o = append(o, 0xb3, 0x72, 0x65, 0x73, 0x65, 0x74, 0x5f, 0x63, 0x6f, 0x64, 0x65, 0x5f, 0x6c, 0x69, 0x66, 0x65, 0x74, 0x69, 0x6d, 0x65)
+	o = msgp.AppendInt(o, z.ResetCodeLifetime)
 	return
 }
 
@@ -2520,34 +2595,22 @@ func (z *ForgotPasswordConfiguration) UnmarshalMsg(bts []byte) (o []byte, err er
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "secure_match":
-			z.SecureMatch, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "SecureMatch")
-				return
-			}
 		case "email_message":
 			bts, err = z.EmailMessage.UnmarshalMsg(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "EmailMessage")
 				return
 			}
-		case "reset_url_lifetime":
-			z.ResetURLLifetime, bts, err = msgp.ReadIntBytes(bts)
+		case "sms_message":
+			bts, err = z.SMSMessage.UnmarshalMsg(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "ResetURLLifetime")
+				err = msgp.WrapError(err, "SMSMessage")
 				return
 			}
-		case "success_redirect":
-			z.SuccessRedirect, bts, err = msgp.ReadStringBytes(bts)
+		case "reset_code_lifetime":
+			z.ResetCodeLifetime, bts, err = msgp.ReadIntBytes(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "SuccessRedirect")
-				return
-			}
-		case "error_redirect":
-			z.ErrorRedirect, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "ErrorRedirect")
+				err = msgp.WrapError(err, "ResetCodeLifetime")
 				return
 			}
 		default:
@@ -2564,7 +2627,7 @@ func (z *ForgotPasswordConfiguration) UnmarshalMsg(bts []byte) (o []byte, err er
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *ForgotPasswordConfiguration) Msgsize() (s int) {
-	s = 1 + 13 + msgp.BoolSize + 14 + z.EmailMessage.Msgsize() + 19 + msgp.IntSize + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect)
+	s = 1 + 14 + z.EmailMessage.Msgsize() + 12 + z.SMSMessage.Msgsize() + 20 + msgp.IntSize
 	return
 }
 

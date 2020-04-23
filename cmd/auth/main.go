@@ -117,8 +117,6 @@ func main() {
 		handler.UpdateMetadataRequestSchema,
 
 		forgotpwdhandler.ForgotPasswordRequestSchema,
-		forgotpwdhandler.ForgotPasswordResetPageSchema,
-		forgotpwdhandler.ForgotPasswordResetFormSchema,
 		forgotpwdhandler.ForgotPasswordResetRequestSchema,
 
 		mfaHandler.ActivateOOBRequestSchema,
@@ -185,6 +183,7 @@ func main() {
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
 	task.AttachPwHousekeeperTask(asyncTaskExecutor, authDependency)
 	task.AttachWelcomeEmailSendTask(asyncTaskExecutor, authDependency)
+	task.AttachSendMessagesTask(asyncTaskExecutor, authDependency)
 
 	var router *mux.Router
 	var rootRouter *mux.Router
@@ -252,6 +251,10 @@ func main() {
 	webapphandler.AttachLoginPasswordHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachSignupHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachSignupPasswordHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachForgotPasswordHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachForgotPasswordSuccessHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachResetPasswordHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachResetPasswordSuccessHandler(webappAuthRouter, authDependency)
 
 	webappAuthenticatedRouter := webappRouter.NewRoute().Subrouter()
 	webappAuthenticatedRouter.Use(webapp.RequireAuthenticatedMiddleware{}.Handle)

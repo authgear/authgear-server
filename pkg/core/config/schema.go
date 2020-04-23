@@ -366,12 +366,9 @@ var (
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
-			"app_name": { "type": "string" },
-			"secure_match": { "type": "boolean" },
 			"email_message": { "$ref": "#EmailMessageConfiguration" },
-			"reset_url_lifetime": { "$ref": "#NonNegativeInteger" },
-			"success_redirect": { "type": "string" },
-			"error_redirect": { "type": "string" }
+			"sms_message": { "$ref": "#SMSMessageConfiguration" },
+			"reset_code_lifetime": { "$ref": "#NonNegativeInteger" }
 		}
 	},
 	"WelcomeEmailConfiguration": {

@@ -446,8 +446,10 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if emailMsg["subject"] == "" {
 		emailMsg["subject"] = "Reset password instruction"
 	}
-	if c.AppConfig.ForgotPassword.ResetURLLifetime == 0 {
-		c.AppConfig.ForgotPassword.ResetURLLifetime = 43200
+	if c.AppConfig.ForgotPassword.ResetCodeLifetime == 0 {
+		// https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html#step-3-send-a-token-over-a-side-channel
+		// OWASP suggests the lifetime is no more than 20 minutes
+		c.AppConfig.ForgotPassword.ResetCodeLifetime = 1200
 	}
 
 	// Set default SMTPConfiguration
@@ -689,11 +691,9 @@ type OIDCSigningKeyConfiguration struct {
 }
 
 type ForgotPasswordConfiguration struct {
-	SecureMatch      bool                      `json:"secure_match,omitempty" yaml:"secure_match" msg:"secure_match"`
-	EmailMessage     EmailMessageConfiguration `json:"email_message,omitempty" yaml:"email_message" msg:"email_message" default_zero_value:"true"`
-	ResetURLLifetime int                       `json:"reset_url_lifetime,omitempty" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
-	SuccessRedirect  string                    `json:"success_redirect,omitempty" yaml:"success_redirect" msg:"success_redirect"`
-	ErrorRedirect    string                    `json:"error_redirect,omitempty" yaml:"error_redirect" msg:"error_redirect"`
+	EmailMessage      EmailMessageConfiguration `json:"email_message,omitempty" yaml:"email_message" msg:"email_message" default_zero_value:"true"`
+	SMSMessage        SMSMessageConfiguration   `json:"sms_message,omitempty" yaml:"sms_message" msg:"sms_message" default_zero_value:"true"`
+	ResetCodeLifetime int                       `json:"reset_code_lifetime,omitempty" yaml:"reset_code_lifetime" msg:"reset_code_lifetime"`
 }
 
 type WelcomeEmailDestination string

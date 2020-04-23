@@ -1,7 +1,7 @@
 package template
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
@@ -27,12 +27,6 @@ func NewEngineWithConfig(
 		AssetGearLoader:  assetGearLoader,
 	})
 
-	e.Register(forgotpwdemail.TemplatePasswordEmailTXT)
-	e.Register(forgotpwdemail.TemplatePasswordEmailHTML)
-	e.Register(forgotpwdemail.TemplateForgotPasswordResetHTML)
-	e.Register(forgotpwdemail.TemplateForgotPasswordSuccessHTML)
-	e.Register(forgotpwdemail.TemplateForgotPasswordErrorHTML)
-
 	e.Register(welcemail.TemplateWelcomeEmailTXT)
 	e.Register(welcemail.TemplateWelcomeEmailHTML)
 
@@ -55,10 +49,18 @@ func NewEngineWithConfig(
 
 	e.Register(webapp.TemplateAuthUILoginHTML)
 	e.Register(webapp.TemplateAuthUILoginPasswordHTML)
+	e.Register(webapp.TemplateAuthUIForgotPasswordHTML)
+	e.Register(webapp.TemplateAuthUIForgotPasswordSuccessHTML)
+	e.Register(webapp.TemplateAuthUIResetPasswordHTML)
+	e.Register(webapp.TemplateAuthUIResetPasswordSuccessHTML)
 	e.Register(webapp.TemplateAuthUISignupHTML)
 	e.Register(webapp.TemplateAuthUISignupPasswordHTML)
 	e.Register(webapp.TemplateAuthUISettingsHTML)
 	e.Register(webapp.TemplateAuthUILogoutHTML)
+
+	e.Register(forgotpassword.TemplateForgotPasswordEmailTXT)
+	e.Register(forgotpassword.TemplateForgotPasswordEmailHTML)
+	e.Register(forgotpassword.TemplateForgotPasswordSMSTXT)
 
 	return e
 }

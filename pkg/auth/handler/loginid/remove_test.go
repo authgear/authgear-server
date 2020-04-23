@@ -200,8 +200,7 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 			}`)
 
 			So(passwordAuthProvider.PrincipalMap, ShouldHaveLength, 2)
-			var p password.Principal
-			err := passwordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "user1@example.com", password.DefaultRealm, &p)
+			_, err := passwordAuthProvider.GetPrincipalByLoginID("email", "user1@example.com")
 			So(err, ShouldBeError, "principal not found")
 
 			So(sessionManager.Sessions, ShouldBeEmpty)

@@ -11,6 +11,7 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 )
@@ -42,6 +43,54 @@ func newLoginPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler 
 		wire.Bind(new(loginPasswordProvider), new(*webapp.AuthenticateProviderImpl)),
 		wire.Struct(new(LoginPasswordHandler), "*"),
 		wire.Bind(new(http.Handler), new(*LoginPasswordHandler)),
+	)
+	return nil
+}
+
+func newForgotPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Bind(new(webapp.ForgotPassword), new(*forgotpassword.Provider)),
+		wire.Struct(new(webapp.ForgotPasswordProvider), "*"),
+		wire.Bind(new(forgotPasswordProvider), new(*webapp.ForgotPasswordProvider)),
+		wire.Struct(new(ForgotPasswordHandler), "*"),
+		wire.Bind(new(http.Handler), new(*ForgotPasswordHandler)),
+	)
+	return nil
+}
+
+func newForgotPasswordSuccessHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Bind(new(webapp.ForgotPassword), new(*forgotpassword.Provider)),
+		wire.Struct(new(webapp.ForgotPasswordProvider), "*"),
+		wire.Bind(new(forgotPasswordSuccessProvider), new(*webapp.ForgotPasswordProvider)),
+		wire.Struct(new(ForgotPasswordSuccessHandler), "*"),
+		wire.Bind(new(http.Handler), new(*ForgotPasswordSuccessHandler)),
+	)
+	return nil
+}
+
+func newResetPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Bind(new(webapp.ForgotPassword), new(*forgotpassword.Provider)),
+		wire.Struct(new(webapp.ForgotPasswordProvider), "*"),
+		wire.Bind(new(resetPasswordProvider), new(*webapp.ForgotPasswordProvider)),
+		wire.Struct(new(ResetPasswordHandler), "*"),
+		wire.Bind(new(http.Handler), new(*ResetPasswordHandler)),
+	)
+	return nil
+}
+
+func newResetPasswordSuccessHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Bind(new(webapp.ForgotPassword), new(*forgotpassword.Provider)),
+		wire.Struct(new(webapp.ForgotPasswordProvider), "*"),
+		wire.Bind(new(resetPasswordSuccessProvider), new(*webapp.ForgotPasswordProvider)),
+		wire.Struct(new(ResetPasswordSuccessHandler), "*"),
+		wire.Bind(new(http.Handler), new(*ResetPasswordSuccessHandler)),
 	)
 	return nil
 }

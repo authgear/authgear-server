@@ -20,6 +20,7 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"error-invalid-email": "Invalid email address",
 	"error-invalid-username": "Invalid username",
 	"error-invalid-credentials": "Incorrect email, phone number, username, or password",
+	"error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
 
 	"back-button-title": "Back",
 
@@ -34,6 +35,7 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"phone-number-placeholder": "Phone number",
 	"login-id-placeholder": "Email or username",
 	"use-text-login-id-description": "Use email or username instead",
+	"use-email-login-id-description": "Use email instead",
 	"use-phone-login-id-description": "Use phone number instead",
 	"signup-button-hint": "Don''t have an account yet? ",
 	"signup-button-label": "Create one!",
@@ -64,6 +66,20 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"password-policy-guessable-level-4": "Safely unguessable",
 	"password-policy-guessable-level-5": "Very unguessable",
 	"sms-charge-warning": "By providing your phone number, you agree to receive service notifications to your mobile phone. Text messaging rates may apply.",
+
+	"forgot-password-page-title": "Forgot Password",
+	"email-placeholder": "Email",
+	"forgot-password-email-description": "Enter your email to request instruction to reset your password",
+	"forgot-password-phone-description": "Enter your phone to request instruction to reset your password",
+	"forgot-password-success-page-title": "Request received",
+	"forgot-password-success-description": "If you have an account, please follow the instruction sent to {0} to reset your password",
+	"login-button-label--forgot-password-success-page": "Sign in",
+
+	"reset-password-page-title": "Reset Password",
+	"reset-password-description": "Please enter your new password below.",
+
+	"reset-password-success-page-title": "Password Reset",
+	"reset-password-success-description": "You have successfully reset your password. You can now sign in with it.",
 
 	"logout-button-hint": "To logout, please click the button below.",
 	"logout-button-label": "Logout"
