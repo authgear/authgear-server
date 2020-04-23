@@ -13,7 +13,7 @@ type AuthAPIFlow struct {
 func (f *AuthAPIFlow) LoginWithLoginIDPassword(
 	clientID string, loginIDKey string, loginID string, password string,
 ) (*AuthResult, error) {
-	i, err := f.Interactions.NewInteraction(&interaction.IntentLogin{
+	i, err := f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
 		Identity: interaction.IdentitySpec{
 			Type: authn.IdentityTypeLoginID,
 			Claims: map[string]interface{}{
@@ -21,7 +21,7 @@ func (f *AuthAPIFlow) LoginWithLoginIDPassword(
 				interaction.IdentityClaimLoginIDValue: loginID,
 			},
 		},
-	}, clientID, nil)
+	}, clientID)
 	if err != nil {
 		return nil, err
 	}

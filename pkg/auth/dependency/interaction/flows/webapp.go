@@ -11,14 +11,14 @@ type WebAppFlow struct {
 }
 
 func (f *WebAppFlow) LoginWithLoginID(loginID string) (*TokenResult, error) {
-	i, err := f.Interactions.NewInteraction(&interaction.IntentLogin{
+	i, err := f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
 		Identity: interaction.IdentitySpec{
 			Type: authn.IdentityTypeLoginID,
 			Claims: map[string]interface{}{
 				interaction.IdentityClaimLoginIDValue: loginID,
 			},
 		},
-	}, "", nil)
+	}, "")
 	if err != nil {
 		return nil, err
 	}
