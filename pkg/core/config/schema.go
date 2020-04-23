@@ -243,7 +243,7 @@ var (
 				}
 			},
 			"secondary_authenticators": {
-				"type": "array",
+				"type": [ "array", "null" ],
 				"items": {
 					"type": "string",
 					"enum": ["otp", "bearer_token"]
