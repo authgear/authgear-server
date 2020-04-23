@@ -132,7 +132,10 @@ button.anchor {
   color: #166bef;
 }
 
-.link:link, .link:visited {
+.anchor:link,
+.anchor:visited,
+.link:link,
+.link:visited {
   color: #166bef;
 }
 
