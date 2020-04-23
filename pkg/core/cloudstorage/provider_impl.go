@@ -40,6 +40,8 @@ func (p *providerImpl) AssetIDToAssetName(assetID string) string {
 }
 
 func (p *providerImpl) PresignPutRequest(r *PresignUploadRequest) (*PresignUploadResponse, error) {
+	r.Sanitize()
+
 	contentLength := r.ContentLength()
 	if contentLength <= 0 || contentLength > MaxContentLength {
 		return nil, ErrAssetTooLarge
@@ -49,10 +51,6 @@ func (p *providerImpl) PresignPutRequest(r *PresignUploadRequest) (*PresignUploa
 	if err != nil {
 		return nil, err
 	}
-
-	r.SetCacheControl()
-
-	r.RemoveEmptyHeaders()
 
 	assetID := p.AssetNameToAssetID(assetName)
 

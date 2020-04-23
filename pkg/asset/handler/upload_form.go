@@ -158,7 +158,6 @@ func (h *UploadFormHandler) Handle(w http.ResponseWriter, r *http.Request) (err 
 	if err != nil {
 		return
 	}
-	validatedPresignUploadRequest.SetDefaultValue()
 
 	presignUploadResponse, err := h.CloudStorageProvider.PresignPutRequest(&validatedPresignUploadRequest)
 	if err != nil {
