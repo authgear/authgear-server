@@ -65,7 +65,9 @@ select {
   border: none;
   border-radius: 0;
   font-size: 14px;
-  border-bottom: solid 1px #a19f9d;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: #a19f9d;
   height: 32px;
 }
 
@@ -74,7 +76,7 @@ select {
 }
 
 .input:focus {
-  border-bottom: solid 1px #166bef;
+  border-bottom-color: #166bef;
 }
 
 .select {
