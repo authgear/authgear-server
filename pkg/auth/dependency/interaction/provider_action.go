@@ -84,6 +84,9 @@ func (p *Provider) doAuthenticate(i *Interaction, step *StepState, astate *map[s
 		return nil, err
 	}
 
+	// Step should be either StepAuthenticatePrimary or StepAuthenticateSecondary
+	// For primary authentication, we do not provide concrete instance of authenticators
+	// to users, so there is no need to verify availability of authenticator.
 	if step.Step == StepAuthenticateSecondary {
 		ok := false
 		for _, as := range step.AvailableAuthenticators {
