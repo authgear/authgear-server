@@ -79,6 +79,10 @@ select {
   border-bottom-color: #166bef;
 }
 
+.input::placeholder {
+  color: #a19f9d;
+}
+
 .select {
   background-color: transparent;
   height: 32px;
