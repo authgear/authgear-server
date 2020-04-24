@@ -123,58 +123,58 @@ const definePasswordPolicy = `
 <ul>
 {{ range .x_password_policies }}
   {{ if eq .kind "PasswordTooShort" }}
-  <li class="password-policy length {{ template "PASSWORD_POLICY_CLASS" . }}" data-min-length="{{ .min_length}}">
+  <li class="primary-txt password-policy length {{ template "PASSWORD_POLICY_CLASS" . }}" data-min-length="{{ .min_length}}">
     {{ localize "password-policy-minimum-length" .min_length }}
   </li>
   {{ end }}
   {{ if eq .kind "PasswordUppercaseRequired" }}
-  <li class="password-policy uppercase {{ template "PASSWORD_POLICY_CLASS" . }}">
+  <li class="primary-txt password-policy uppercase {{ template "PASSWORD_POLICY_CLASS" . }}">
     {{ localize "password-policy-uppercase" }}
   </li>
   {{ end }}
   {{ if eq .kind "PasswordLowercaseRequired" }}
-  <li class="password-policy lowercase {{ template "PASSWORD_POLICY_CLASS" . }}">
+  <li class="primary-txt password-policy lowercase {{ template "PASSWORD_POLICY_CLASS" . }}">
     {{ localize "password-policy-lowercase" }}
   </li>
   {{ end }}
   {{ if eq .kind "PasswordDigitRequired" }}
-  <li class="password-policy digit {{ template "PASSWORD_POLICY_CLASS" . }}">
+  <li class="primary-txt password-policy digit {{ template "PASSWORD_POLICY_CLASS" . }}">
     {{ localize "password-policy-digit" }}
   </li>
   {{ end }}
   {{ if eq .kind "PasswordSymbolRequired" }}
-  <li class="password-policy symbol {{ template "PASSWORD_POLICY_CLASS" . }}">
+  <li class="primary-txt password-policy symbol {{ template "PASSWORD_POLICY_CLASS" . }}">
     {{ localize "password-policy-symbol" }}
   </li>
   {{ end }}
   {{ if eq .kind "PasswordContainingExcludedKeywords" }}
-  <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+  <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
     {{ localize "password-policy-banned-words" }}
   </li>
   {{ end }}
   {{ if eq .kind "PasswordBelowGuessableLevel" }}
     {{ if eq .min_level 1.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+    <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-1" }}
     </li>
     {{ end }}
     {{ if eq .min_level 2.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+    <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-2" }}
     </li>
     {{ end }}
     {{ if eq .min_level 3.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+    <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-3" }}
     </li>
     {{ end }}
     {{ if eq .min_level 4.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+    <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-4" }}
     </li>
     {{ end }}
     {{ if eq .min_level 5.0 }}
-    <li class="password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+    <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-5" }}
     </li>
     {{ end }}
@@ -650,7 +650,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-password-button-label" }}</button>
 
 {{ if eq .x_login_id_input_type "phone" }}
-<p class="description">
+<p class="secondary-txt description">
 {{ localize "sms-charge-warning" }}
 </p>
 {{ end }}
@@ -678,7 +678,7 @@ var TemplateAuthUISettingsHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<div class="settings-form">
+<div class="settings-form primary-txt">
   You are authenticated. To logout, please visit <a href="/logout">here</a>.
 </div>
 
@@ -706,7 +706,7 @@ var TemplateAuthUILogoutHTML = template.Spec{
 
 <form class="logout-form" method="post">
   {{ $.csrfField }}
-  <p>{{ localize "logout-button-hint" }}</p>
+  <p class="primary-txt">{{ localize "logout-button-hint" }}</p>
   <button class="btn primary-btn align-self-center" type="submit" name="x_action" value="logout">{{ localize "logout-button-label" }}</button>
 </form>
 
