@@ -43,7 +43,9 @@ select {
   color: #333333;
 }
 
-.secondary-txt {}
+.secondary-txt {
+  color: #a19f9d;
+}
 
 .errors {
   list-style-type: none;
@@ -63,7 +65,9 @@ select {
   border: none;
   border-radius: 0;
   font-size: 14px;
-  border-bottom: solid 1px #a19f9d;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: #a19f9d;
   height: 32px;
 }
 
@@ -72,11 +76,15 @@ select {
 }
 
 .input:focus {
-  border-bottom: solid 1px #166bef;
+  border-bottom-color: #166bef;
+}
+
+.input::placeholder {
+  color: #a19f9d;
 }
 
 .select {
-  background-color: white;
+  background-color: transparent;
   height: 32px;
   border-bottom: solid 1px #a19f9d;
   padding: 0 28px 0 8px;
@@ -87,6 +95,7 @@ select {
 }
 
 .text-input {
+  background-color: transparent;
   padding: 0 8px;
 }
 
@@ -294,7 +303,6 @@ button.anchor {
 }
 
 .enter-password-form .description {
-  color: #333333;
   font-size: 12px;
   padding: 8px 0;
   margin: 0;
