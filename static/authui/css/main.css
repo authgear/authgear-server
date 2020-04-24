@@ -78,7 +78,7 @@ select {
 }
 
 .select {
-  background-color: white;
+  background-color: transparent;
   height: 32px;
   border-bottom: solid 1px #a19f9d;
   padding: 0 28px 0 8px;
@@ -89,6 +89,7 @@ select {
 }
 
 .text-input {
+  background-color: transparent;
   padding: 0 8px;
 }
 
