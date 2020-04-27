@@ -10,6 +10,25 @@ func (p *Provider) NewInteractionLogin(intent *IntentLogin, clientID string) (*I
 		Intent:   intent,
 		ClientID: clientID,
 	}
+	if intent.AuthenticatedAs != nil {
+		identity, err := p.Identity.Get(
+			intent.AuthenticatedAs.UserID,
+			intent.Identity.Type,
+			intent.Identity.ID)
+		if err != nil {
+			return nil, err
+		}
+		authenticator, err := p.Authenticator.Get(
+			intent.AuthenticatedAs.UserID,
+			intent.AuthenticatedAs.PrimaryAuthenticator.Type,
+			intent.AuthenticatedAs.PrimaryAuthenticator.ID)
+		if err != nil {
+			return nil, err
+		}
+		i.UserID = intent.AuthenticatedAs.UserID
+		i.Identity = identity
+		i.PrimaryAuthenticator = authenticator
+	}
 	return i, nil
 }
 

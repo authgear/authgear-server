@@ -47,8 +47,14 @@ type IntentSignup struct {
 
 func (*IntentSignup) Type() IntentType { return IntentTypeSignup }
 
+type IntentLoginAuthenticatedAs struct {
+	UserID               string            `json:"user_id"`
+	PrimaryAuthenticator AuthenticatorSpec `json:"primary_authenticator"`
+}
+
 type IntentLogin struct {
-	Identity IdentitySpec `json:"identity"`
+	Identity        IdentitySpec                `json:"identity"`
+	AuthenticatedAs *IntentLoginAuthenticatedAs `json:"authenticated_as,omitempty"`
 }
 
 func (*IntentLogin) Type() IntentType { return IntentTypeLogin }
