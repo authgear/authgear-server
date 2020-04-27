@@ -197,6 +197,7 @@ func (s *Store) Create(i *Identity) error {
 			"provider_user_id",
 			"profile",
 			"claims",
+			"token_response",
 			"_created_at",
 			"_updated_at",
 		).
@@ -207,6 +208,7 @@ func (s *Store) Create(i *Identity) error {
 			i.ProviderSubjectID,
 			profile,
 			claims,
+			[]byte("{}"),
 			i.CreatedAt,
 			i.UpdatedAt,
 		)

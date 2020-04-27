@@ -194,6 +194,8 @@ func (s *Store) Create(a *Authenticator) error {
 			"channel",
 			"phone",
 			"email",
+			"activated",
+			"activated_at",
 		).
 		Values(
 			a.ID,
@@ -201,6 +203,8 @@ func (s *Store) Create(a *Authenticator) error {
 			a.Channel,
 			a.Phone,
 			a.Email,
+			true,
+			a.CreatedAt,
 		)
 	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {
