@@ -15,7 +15,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
@@ -23,17 +22,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/adaptors"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/redis"
-	loginid2 "github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
-	pq4 "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
 	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	handler2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	pq3 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	oauth3 "github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	password2 "github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	redis4 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
@@ -44,8 +38,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/mail"
-	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 	"net/http"
@@ -136,71 +128,66 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	provider := time.NewProvider()
+	store := redis.ProvideStore(context, tenantConfiguration, provider)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
-	store := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password2.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, store, factory, tenantConfiguration, reservedNameChecker)
-	oauthProvider := oauth3.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
-	v := auth.ProvidePrincipalProviders(oauthProvider, passwordProvider)
-	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
-	authenticateProcess := authn.ProvideAuthenticateProcess(factory, provider, passwordProvider, oauthProvider, identityProvider)
-	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, store)
-	loginIDChecker := loginid2.ProvideLoginIDChecker(tenantConfiguration, reservedNameChecker)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	identityAdaptor := &adaptors.IdentityAdaptor{
+		LoginID: loginidProvider,
+		OAuth:   oauthProvider,
+	}
+	passwordhistoryStore := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
+	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
+	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	oobProvider := oob.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
+	authenticatorAdaptor := &adaptors.AuthenticatorAdaptor{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
+	provider2 := password2.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, provider2, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
-	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, provider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, urlprefixProvider, queue)
-	authorizationCodeStore := authn.ProvideAuthorizationCodeStore(context)
-	oAuthCoordinator := &authn.OAuthCoordinator{
-		Authn:                  authenticateProcess,
-		Signup:                 signupProcess,
-		AuthorizationCodeStore: authorizationCodeStore,
-	}
-	mfaStore := pq4.ProvideStore(tenantConfiguration, sqlBuilder, sqlExecutor, provider)
-	client := sms.ProvideSMSClient(context, tenantConfiguration)
-	sender := mail.ProvideMailSender(context, tenantConfiguration)
-	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
-	mfaSender := mfa.ProvideMFASender(tenantConfiguration, client, sender, engine)
-	mfaProvider := mfa.ProvideMFAProvider(mfaStore, tenantConfiguration, provider, mfaSender)
-	sessionStore := redis4.ProvideStore(context, tenantConfiguration, provider, factory)
-	eventStore := redis3.ProvideEventStore(context, tenantConfiguration)
-	accessEventProvider := &auth2.AccessEventProvider{
-		Store: eventStore,
-	}
-	sessionProvider := session.ProvideSessionProvider(r, sessionStore, accessEventProvider, tenantConfiguration)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	interactionProvider := interaction.ProvideProvider(store, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, tenantConfiguration)
 	authorizationStore := &pq3.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	grantStore := redis2.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
-	authAccessEventProvider := auth2.AccessEventProvider{
+	eventStore := redis3.ProvideEventStore(context, tenantConfiguration)
+	accessEventProvider := auth2.AccessEventProvider{
 		Store: eventStore,
 	}
+	sessionStore := redis4.ProvideStore(context, tenantConfiguration, provider, factory)
+	authAccessEventProvider := &auth2.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionProvider := session.ProvideSessionProvider(r, sessionStore, authAccessEventProvider, tenantConfiguration)
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, provider)
 	tokenGenerator := _wireTokenGeneratorValue
-	tokenHandler := handler2.ProvideTokenHandler(r, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, authAccessEventProvider, sessionProvider, idTokenIssuer, tokenGenerator, provider)
-	authnSessionProvider := authn.ProvideSessionProvider(mfaProvider, sessionProvider, tenantConfiguration, provider, authinfoStore, userprofileStore, identityProvider, hookProvider, tokenHandler)
+	tokenHandler := handler2.ProvideTokenHandler(r, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, accessEventProvider, sessionProvider, idTokenIssuer, tokenGenerator, provider)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
-	mfaInsecureCookieConfig := auth.ProvideMFAInsecureCookieConfig(m)
-	bearerTokenCookieConfiguration := mfa.ProvideBearerTokenCookieConfiguration(r, mfaInsecureCookieConfig, tenantConfiguration)
-	providerFactory := &authn.ProviderFactory{
-		OAuth:                   oAuthCoordinator,
-		Authn:                   authenticateProcess,
-		Signup:                  signupProcess,
-		AuthnSession:            authnSessionProvider,
-		Session:                 sessionProvider,
-		SessionCookieConfig:     cookieConfiguration,
-		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
+	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, provider, tenantConfiguration)
+	authAPIFlow := &flows.AuthAPIFlow{
+		Interactions:   interactionProvider,
+		UserController: userController,
 	}
-	authnProvider := authn.ProvideAuthAPIProvider(providerFactory)
-	httpHandler := provideSignupHandler(requireAuthz, validator, authnProvider, txContext)
+	httpHandler := provideSignupHandler(requireAuthz, validator, authAPIFlow, txContext)
 	return httpHandler
 }
 
@@ -296,13 +283,13 @@ func provideLoginHandler(
 func provideSignupHandler(
 	requireAuthz handler.RequireAuthz,
 	v *validation.Validator,
-	ap SignupAuthnProvider,
+	f SignupInteractionFlow,
 	tx db.TxContext,
 ) http.Handler {
 	h := &SignupHandler{
-		Validator:     v,
-		AuthnProvider: ap,
-		TxContext:     tx,
+		Validator:    v,
+		Interactions: f,
+		TxContext:    tx,
 	}
 	return requireAuthz(h, h)
 }

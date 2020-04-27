@@ -6,13 +6,12 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
+	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -51,7 +50,8 @@ const SignupRequestSchema = `
 				},
 				"required": ["key", "value"]
 			},
-			"minItems": 1
+			"minItems": 1,
+			"maxItems": 1
 		},
 		"password": { "type": "string", "minLength": 1 },
 		"metadata": { "type": "object" },
@@ -74,16 +74,15 @@ func (p *SignupRequestPayload) SetDefaultValue() {
 	}
 }
 
-type SignupAuthnProvider interface {
-	SignupWithLoginIDs(
-		client config.OAuthClientConfiguration,
-		loginIDs []loginid.LoginID,
-		plainPassword string,
+type SignupInteractionFlow interface {
+	SignupWithLoginIDPassword(
+		clientID string,
+		loginIDKey string,
+		loginID string,
+		password string,
 		metadata map[string]interface{},
 		onUserDuplicate model.OnUserDuplicate,
-	) (authn.Result, error)
-
-	WriteAPIResult(rw http.ResponseWriter, result authn.Result)
+	) (*interactionflows.AuthResult, error)
 }
 
 /*
@@ -105,10 +104,9 @@ type SignupAuthnProvider interface {
 		@Callback user_sync {UserSyncEvent}
 */
 type SignupHandler struct {
-	RequireAuthz  handler.RequireAuthz
-	Validator     *validation.Validator
-	AuthnProvider SignupAuthnProvider
-	TxContext     db.TxContext
+	Validator    *validation.Validator
+	Interactions SignupInteractionFlow
+	TxContext    db.TxContext
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() coreauthz.Policy {
@@ -129,11 +127,12 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var result authn.Result
+	var result *interactionflows.AuthResult
 	err = db.WithTx(h.TxContext, func() (err error) {
-		result, err = h.AuthnProvider.SignupWithLoginIDs(
-			coreauth.GetAccessKey(req.Context()).Client,
-			payload.LoginIDs,
+		result, err = h.Interactions.SignupWithLoginIDPassword(
+			coreauth.GetAccessKey(req.Context()).Client.ClientID(),
+			payload.LoginIDs[0].Key,
+			payload.LoginIDs[0].Value,
 			payload.Password,
 			payload.Metadata,
 			payload.OnUserDuplicate,
@@ -145,5 +144,5 @@ func (h SignupHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	h.AuthnProvider.WriteAPIResult(resp, result)
+	result.WriteResponse(resp)
 }
