@@ -17,6 +17,7 @@ type PasswordAuthenticatorProvider interface {
 	Get(userID, id string) (*password.Authenticator, error)
 	List(userID string) ([]*password.Authenticator, error)
 	New(userID string, password string) (*password.Authenticator, error)
+	Create(*password.Authenticator) error
 	Authenticate(a *password.Authenticator, password string) error
 }
 
@@ -24,6 +25,7 @@ type TOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*totp.Authenticator, error)
 	List(userID string) ([]*totp.Authenticator, error)
 	New(userID string, displayName string) *totp.Authenticator
+	Create(*totp.Authenticator) error
 	Authenticate(candidates []*totp.Authenticator, code string) *totp.Authenticator
 }
 
@@ -31,6 +33,7 @@ type OOBOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*oob.Authenticator, error)
 	List(userID string) ([]*oob.Authenticator, error)
 	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) *oob.Authenticator
+	Create(*oob.Authenticator) error
 	Authenticate(a *oob.Authenticator, expectedCode string, code string) error
 }
 
@@ -39,6 +42,7 @@ type BearerTokenAuthenticatorProvider interface {
 	GetByToken(userID string, token string) (*bearertoken.Authenticator, error)
 	List(userID string) ([]*bearertoken.Authenticator, error)
 	New(userID string, parentID string) *bearertoken.Authenticator
+	Create(*bearertoken.Authenticator) error
 	Authenticate(authenticator *bearertoken.Authenticator, token string) error
 }
 
@@ -46,6 +50,7 @@ type RecoveryCodeAuthenticatorProvider interface {
 	Get(userID, id string) (*recoverycode.Authenticator, error)
 	List(userID string) ([]*recoverycode.Authenticator, error)
 	Generate(userID string) []*recoverycode.Authenticator
+	ReplaceAll(userID string, as []*recoverycode.Authenticator) error
 	Authenticate(candidates []*recoverycode.Authenticator, code string) *recoverycode.Authenticator
 }
 
@@ -193,6 +198,53 @@ func (a *AuthenticatorAdaptor) New(userID string, spec interaction.Authenticator
 	}
 
 	panic("interaction_adaptors: unknown authenticator type " + spec.Type)
+}
+
+func (a *AuthenticatorAdaptor) CreateAll(userID string, ais []*interaction.AuthenticatorInfo) error {
+	var recoveryCodes []*recoverycode.Authenticator
+	for _, ai := range ais {
+		switch ai.Type {
+		case interaction.AuthenticatorTypePassword:
+			authenticator := passwordFromAuthenticatorInfo(userID, ai)
+			if err := a.Password.Create(authenticator); err != nil {
+				return err
+			}
+
+		case interaction.AuthenticatorTypeTOTP:
+			authenticator := totpFromAuthenticatorInfo(userID, ai)
+			if err := a.TOTP.Create(authenticator); err != nil {
+				return err
+			}
+
+		case interaction.AuthenticatorTypeOOBOTP:
+			authenticator := oobotpFromAuthenticatorInfo(userID, ai)
+			if err := a.OOBOTP.Create(authenticator); err != nil {
+				return err
+			}
+
+		case interaction.AuthenticatorTypeBearerToken:
+			authenticator := bearerTokenFromAuthenticatorInfo(userID, ai)
+			if err := a.BearerToken.Create(authenticator); err != nil {
+				return err
+			}
+
+		case interaction.AuthenticatorTypeRecoveryCode:
+			authenticator := recoveryCodeFromAuthenticatorInfo(userID, ai)
+			recoveryCodes = append(recoveryCodes, authenticator)
+
+		default:
+			panic("interaction_adaptors: unknown authenticator type " + ai.Type)
+		}
+	}
+
+	if len(recoveryCodes) > 0 {
+		err := a.RecoveryCode.ReplaceAll(userID, recoveryCodes)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (a *AuthenticatorAdaptor) Authenticate(userID string, spec interaction.AuthenticatorSpec, state *map[string]string, secret string) (*interaction.AuthenticatorInfo, error) {

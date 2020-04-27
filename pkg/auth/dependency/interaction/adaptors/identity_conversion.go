@@ -9,9 +9,10 @@ import (
 
 func loginIDToIdentityInfo(l *loginid.Identity) *interaction.IdentityInfo {
 	claims := map[string]interface{}{
-		interaction.IdentityClaimLoginIDKey:       l.LoginIDKey,
-		interaction.IdentityClaimLoginIDValue:     l.LoginID,
-		interaction.IdentityClaimLoginIDUniqueKey: l.UniqueKey,
+		interaction.IdentityClaimLoginIDKey:           l.LoginIDKey,
+		interaction.IdentityClaimLoginIDValue:         l.LoginID,
+		interaction.IdentityClaimLoginIDOriginalValue: l.OriginalLoginID,
+		interaction.IdentityClaimLoginIDUniqueKey:     l.UniqueKey,
 	}
 	for k, v := range l.Claims {
 		claims[k] = v
@@ -23,6 +24,29 @@ func loginIDToIdentityInfo(l *loginid.Identity) *interaction.IdentityInfo {
 		Claims:   claims,
 		Identity: l,
 	}
+}
+
+func loginIDFromIdentityInfo(userID string, i *interaction.IdentityInfo) *loginid.Identity {
+	l := &loginid.Identity{
+		ID:     i.ID,
+		UserID: userID,
+		Claims: map[string]string{},
+	}
+	for k, v := range i.Claims {
+		switch k {
+		case interaction.IdentityClaimLoginIDKey:
+			l.LoginIDKey = v.(string)
+		case interaction.IdentityClaimLoginIDValue:
+			l.LoginID = v.(string)
+		case interaction.IdentityClaimLoginIDOriginalValue:
+			l.OriginalLoginID = v.(string)
+		case interaction.IdentityClaimLoginIDUniqueKey:
+			l.UniqueKey = v.(string)
+		default:
+			l.Claims[k] = v.(string)
+		}
+	}
+	return l
 }
 
 func oauthToIdentityInfo(o *oauth.Identity) *interaction.IdentityInfo {
@@ -48,4 +72,32 @@ func oauthToIdentityInfo(o *oauth.Identity) *interaction.IdentityInfo {
 		Claims:   claims,
 		Identity: o,
 	}
+}
+
+func oauthFromIdentityInfo(userID string, i *interaction.IdentityInfo) *oauth.Identity {
+	o := &oauth.Identity{
+		ID:     i.ID,
+		UserID: userID,
+		Claims: map[string]interface{}{},
+	}
+	for k, v := range i.Claims {
+		switch k {
+		case interaction.IdentityClaimOAuthProvider:
+			o.ProviderID.Keys = map[string]interface{}{}
+			for k, v := range v.(map[string]interface{}) {
+				if k == "type" {
+					o.ProviderID.Type = v.(string)
+				} else {
+					o.ProviderID.Keys[k] = v
+				}
+			}
+		case interaction.IdentityClaimOAuthSubjectID:
+			o.ProviderSubjectID = v.(string)
+		case interaction.IdentityClaimOAuthProfile:
+			o.UserProfile = v.(map[string]interface{})
+		default:
+			o.Claims[k] = v
+		}
+	}
+	return o
 }

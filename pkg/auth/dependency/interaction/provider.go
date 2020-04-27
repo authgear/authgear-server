@@ -14,12 +14,14 @@ type IdentityProvider interface {
 	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *IdentityInfo, error)
 	ListByClaims(claims map[string]string) ([]*IdentityInfo, error)
 	New(userID string, typ authn.IdentityType, claims map[string]interface{}) *IdentityInfo
+	CreateAll(userID string, is []*IdentityInfo) error
 }
 
 type AuthenticatorProvider interface {
 	Get(userID string, typ AuthenticatorType, id string) (*AuthenticatorInfo, error)
 	List(userID string, typ AuthenticatorType) ([]*AuthenticatorInfo, error)
 	New(userID string, spec AuthenticatorSpec, secret string) ([]*AuthenticatorInfo, error)
+	CreateAll(userID string, ais []*AuthenticatorInfo) error
 	Authenticate(userID string, spec AuthenticatorSpec, state *map[string]string, secret string) (*AuthenticatorInfo, error)
 }
 

@@ -25,6 +25,8 @@ const (
 
 	// IdentityClaimLoginIDValue is a claim with a string value indicating the key of login ID.
 	IdentityClaimLoginIDKey string = "https://auth.skygear.io/claims/login_id/key"
+	// IdentityClaimLoginIDOriginalValue is a claim with a string value indicating the value of original login ID.
+	IdentityClaimLoginIDOriginalValue string = "https://auth.skygear.io/claims/login_id/original_value"
 	// IdentityClaimLoginIDValue is a claim with a string value indicating the value of login ID.
 	IdentityClaimLoginIDValue string = "https://auth.skygear.io/claims/login_id/value"
 	// IdentityClaimLoginIDUniqueKey is a claim with a string value containing the unique normalized login ID.
@@ -54,6 +56,9 @@ const (
 )
 
 const (
+	// AuthenticatorPropCreatedAt is the creation time of the authenticator
+	AuthenticatorPropCreatedAt string = "https://auth.skygear.io/claims/authenticators/created_at"
+
 	// AuthenticatorPropTOTPDisplayName is a claim with string value for TOTP display name.
 	AuthenticatorPropTOTPDisplayName string = "https://auth.skygear.io/claims/totp/display_name"
 

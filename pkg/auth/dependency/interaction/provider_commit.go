@@ -22,7 +22,13 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 		return nil, err
 	}
 
-	// TODO(interaction): create new identities & authenticators
+	// Create identities & authenticators
+	if err := p.Identity.CreateAll(i.UserID, i.NewIdentities); err != nil {
+		return nil, err
+	}
+	if err := p.Authenticator.CreateAll(i.UserID, i.NewAuthenticators); err != nil {
+		return nil, err
+	}
 
 	err = p.Store.Delete(i)
 	if err != nil {

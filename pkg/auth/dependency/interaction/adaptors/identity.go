@@ -15,6 +15,7 @@ type LoginIDIdentityProvider interface {
 	GetByLoginID(loginID loginid.LoginID) ([]*loginid.Identity, error)
 	ListByClaim(name string, value string) ([]*loginid.Identity, error)
 	New(userID string, loginID loginid.LoginID) *loginid.Identity
+	Create(i *loginid.Identity) error
 }
 
 type OAuthIdentityProvider interface {
@@ -28,6 +29,7 @@ type OAuthIdentityProvider interface {
 		profile map[string]interface{},
 		claims map[string]interface{},
 	) *oauth.Identity
+	Create(i *oauth.Identity) error
 }
 
 type IdentityAdaptor struct {
@@ -126,6 +128,28 @@ func (a *IdentityAdaptor) New(userID string, typ authn.IdentityType, claims map[
 	}
 
 	panic("interaction_adaptors: unknown identity type " + typ)
+}
+
+func (a *IdentityAdaptor) CreateAll(userID string, is []*interaction.IdentityInfo) error {
+	for _, i := range is {
+		switch i.Type {
+		case authn.IdentityTypeLoginID:
+			identity := loginIDFromIdentityInfo(userID, i)
+			if err := a.LoginID.Create(identity); err != nil {
+				return err
+			}
+
+		case authn.IdentityTypeOAuth:
+			identity := oauthFromIdentityInfo(userID, i)
+			if err := a.OAuth.Create(identity); err != nil {
+				return err
+			}
+		default:
+
+			panic("interaction_adaptors: unknown identity type " + i.Type)
+		}
+	}
+	return nil
 }
 
 func extractLoginIDClaims(claims map[string]interface{}) loginid.LoginID {
