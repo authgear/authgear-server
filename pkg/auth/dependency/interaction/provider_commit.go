@@ -1,10 +1,8 @@
 package interaction
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
@@ -56,12 +54,10 @@ func (p *Provider) onCommitSignup(i *Interaction, intent *IntentSignup) error {
 		}
 
 		for email := range emailIdentities {
-			_, _, err := p.Identity.GetByClaims("", map[string]interface{}{string(metadata.Email): email})
-			if errors.Is(err, identity.ErrIdentityNotFound) {
-				continue
-			} else if err != nil {
+			is, err := p.Identity.ListByClaims(map[string]string{string(metadata.Email): email})
+			if err != nil {
 				return err
-			} else {
+			} else if len(is) > 0 {
 				return ErrDuplicatedIdentity
 			}
 		}

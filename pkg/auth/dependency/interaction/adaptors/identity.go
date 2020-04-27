@@ -1,7 +1,6 @@
 package adaptors
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
@@ -14,12 +13,14 @@ import (
 type LoginIDIdentityProvider interface {
 	Get(userID, id string) (*loginid.Identity, error)
 	GetByLoginID(loginID loginid.LoginID) ([]*loginid.Identity, error)
+	ListByClaim(name string, value string) ([]*loginid.Identity, error)
 	New(userID string, loginID loginid.LoginID) *loginid.Identity
 }
 
 type OAuthIdentityProvider interface {
 	Get(userID, id string) (*oauth.Identity, error)
 	GetByProviderSubject(provider oauth.ProviderID, subjectID string) (*oauth.Identity, error)
+	ListByClaim(name string, value string) ([]*oauth.Identity, error)
 	New(
 		userID string,
 		provider oauth.ProviderID,
@@ -73,27 +74,33 @@ func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]
 			return "", nil, err
 		}
 		return o.UserID, oauthToIdentityInfo(o), nil
-
-	case "":
-		// return any identity with the specified claims
-		userID, i, err := a.GetByClaims(authn.IdentityTypeLoginID, claims)
-		if err != nil && !errors.Is(err, identity.ErrIdentityNotFound) {
-			return "", nil, err
-		} else if err == nil {
-			return userID, i, nil
-		}
-
-		userID, i, err = a.GetByClaims(authn.IdentityTypeOAuth, claims)
-		if err != nil && !errors.Is(err, identity.ErrIdentityNotFound) {
-			return "", nil, err
-		} else if err == nil {
-			return userID, i, nil
-		}
-
-		return "", nil, identity.ErrIdentityNotFound
 	}
 
 	panic("interaction_adaptors: unknown identity type " + typ)
+}
+
+func (a *IdentityAdaptor) ListByClaims(claims map[string]string) ([]*interaction.IdentityInfo, error) {
+	var all []*interaction.IdentityInfo
+
+	for name, value := range claims {
+		ls, err := a.LoginID.ListByClaim(name, value)
+		if err != nil {
+			return nil, err
+		}
+		for _, i := range ls {
+			all = append(all, loginIDToIdentityInfo(i))
+		}
+
+		os, err := a.OAuth.ListByClaim(name, value)
+		if err != nil {
+			return nil, err
+		}
+		for _, i := range os {
+			all = append(all, oauthToIdentityInfo(i))
+		}
+	}
+
+	return all, nil
 }
 
 func (a *IdentityAdaptor) New(userID string, typ authn.IdentityType, claims map[string]interface{}) *interaction.IdentityInfo {

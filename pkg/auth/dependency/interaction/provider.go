@@ -12,6 +12,7 @@ import (
 type IdentityProvider interface {
 	Get(userID string, typ authn.IdentityType, id string) (*IdentityInfo, error)
 	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *IdentityInfo, error)
+	ListByClaims(claims map[string]string) ([]*IdentityInfo, error)
 	New(userID string, typ authn.IdentityType, claims map[string]interface{}) *IdentityInfo
 }
 
