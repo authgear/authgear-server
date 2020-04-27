@@ -1,6 +1,8 @@
 package flows
 
 import (
+	"errors"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -21,7 +23,18 @@ func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebApp
 			Claims: claims,
 		},
 	}, "")
-	if err != nil {
+	if errors.Is(err, interaction.ErrInvalidCredentials) {
+		// try signup
+		i, err = f.Interactions.NewInteractionSignup(&interaction.IntentSignup{
+			Identity: interaction.IdentitySpec{
+				Type:   authn.IdentityTypeOAuth,
+				Claims: claims,
+			},
+		}, "")
+		if err != nil {
+			return nil, err
+		}
+	} else if err != nil {
 		return nil, err
 	}
 
