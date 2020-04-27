@@ -24,6 +24,7 @@ func (*ActionTriggerOOBAuthenticator) actionType() string { return "trigger-oob-
 // ActionSetupAuthenticator represents an request to setup an authenticator
 type ActionSetupAuthenticator struct {
 	Authenticator AuthenticatorSpec `json:"spec"`
+	Secret        string            `json:"secret"`
 }
 
 func (*ActionSetupAuthenticator) actionType() string { return "setup-authenticator" }

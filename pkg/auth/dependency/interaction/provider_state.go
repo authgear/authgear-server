@@ -78,7 +78,7 @@ func (p *Provider) getStateSignup(i *Interaction, intent *IntentSignup) (*State,
 	if len(primaryAuthenticators) > 0 {
 		s.Steps = []StepState{
 			{
-				Step:                    StepAuthenticatePrimary,
+				Step:                    StepSetupPrimaryAuthenticator,
 				AvailableAuthenticators: primaryAuthenticators,
 			},
 		}

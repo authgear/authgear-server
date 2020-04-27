@@ -76,7 +76,7 @@ func (p *Provider) performActionSignup(i *Interaction, intent *IntentSignup, ste
 	switch step.Step {
 	case StepSetupPrimaryAuthenticator:
 		switch action := action.(type) {
-		case *ActionAuthenticate:
+		case *ActionSetupAuthenticator:
 			authen, err := p.setupAuthenticator(i, step, &i.State, action.Authenticator, action.Secret)
 			if skyerr.IsAPIError(err) {
 				i.Error = skyerr.AsAPIError(err)
