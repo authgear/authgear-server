@@ -32,6 +32,11 @@ type UserProvider interface {
 	Create(userID string, metadata map[string]interface{}, identities []*IdentityInfo) error
 }
 
+type OOBProvider interface {
+	GenerateCode() string
+	SendCode(spec AuthenticatorSpec, code string) error
+}
+
 // TODO(interaction): configurable lifetime
 const interactionIdleTimeout = 5 * gotime.Minute
 
@@ -42,6 +47,7 @@ type Provider struct {
 	Identity      IdentityProvider
 	Authenticator AuthenticatorProvider
 	User          UserProvider
+	OOB           OOBProvider
 	Config        *config.AuthenticationConfiguration
 }
 

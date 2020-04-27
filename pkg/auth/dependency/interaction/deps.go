@@ -9,8 +9,25 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
+
+func ProvideOOBProvider(
+	c *config.TenantConfiguration,
+	te *template.Engine,
+	upp urlprefix.Provider,
+	tq async.Queue,
+) *OOBProviderImpl {
+	return &OOBProviderImpl{
+		SMSMessageConfiguration:       c.AppConfig.Messages.SMS,
+		EmailMessageConfiguration:     c.AppConfig.Messages.Email,
+		AuthenticatorOOBConfiguration: c.AppConfig.Authenticator.OOB,
+		TemplateEngine:                te,
+		URLPrefixProvider:             upp,
+		TaskQueue:                     tq,
+	}
+}
 
 func ProvideProvider(
 	s Store,
@@ -19,6 +36,7 @@ func ProvideProvider(
 	ip IdentityProvider,
 	ap AuthenticatorProvider,
 	up UserProvider,
+	oob OOBProvider,
 	c *config.TenantConfiguration,
 ) *Provider {
 	return &Provider{
@@ -28,6 +46,7 @@ func ProvideProvider(
 		Identity:      ip,
 		Authenticator: ap,
 		User:          up,
+		OOB:           oob,
 		Config:        c.AppConfig.Authentication,
 	}
 }
@@ -54,6 +73,8 @@ func ProvideUserProvider(
 }
 
 var DependencySet = wire.NewSet(
+	ProvideOOBProvider,
+	wire.Bind(new(OOBProvider), new(*OOBProviderImpl)),
 	ProvideProvider,
 	ProvideUserProvider,
 )

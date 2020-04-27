@@ -58,7 +58,11 @@ func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step 
 			return nil
 
 		case *ActionTriggerOOBAuthenticator:
-			// TODO(interaction): handle OOB trigger
+			err := p.doTriggerOOB(i, action)
+			if err != nil {
+				return err
+			}
+			return nil
 		default:
 			panic(fmt.Sprintf("interaction_login: unhandled authenticate action %T", action))
 		}
@@ -142,4 +146,52 @@ func (p *Provider) setupAuthenticator(i *Interaction, step *StepState, astate *m
 	i.NewAuthenticators = append(i.NewAuthenticators, ais...)
 	i.State = nil
 	return ais[0], nil
+}
+
+func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenticator) (err error) {
+	spec := action.Authenticator
+
+	if spec.ID == "" {
+		panic("expected ActionTriggerOOBAuthenticator.Authenticator.ID to be present")
+	}
+
+	if spec.Type != AuthenticatorTypeOOBOTP {
+		panic("unexpected ActionTriggerOOBAuthenticator.Authenticator.Type: " + spec.Type)
+	}
+
+	now := p.Time.NowUTC()
+	triggerTime, err := now.MarshalText()
+	if err != nil {
+		return
+	}
+
+	if i.State == nil {
+		i.State = map[string]string{}
+	}
+
+	// Check if the authenticator has been changed or unset at all.
+	// If authenticator changes, generate a new code.
+	id := i.State[AuthenticatorStateOOBOTPID]
+	if id != spec.ID {
+		id = spec.ID
+		delete(i.State, AuthenticatorStateOOBOTPCode)
+	}
+
+	// Check if we have a code already.
+	code := i.State[AuthenticatorStateOOBOTPCode]
+	if code == "" {
+		code = p.OOB.GenerateCode()
+	}
+
+	err = p.OOB.SendCode(spec, code)
+	if err != nil {
+		return
+	}
+
+	// Perform mutation on interaction at the end.
+	i.State[AuthenticatorStateOOBOTPID] = id
+	i.State[AuthenticatorStateOOBOTPCode] = code
+	i.State[AuthenticatorStateOOBOTPTriggerTime] = string(triggerTime)
+
+	return
 }

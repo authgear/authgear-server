@@ -55,7 +55,7 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *interaction.AuthenticatorI
 		ID:     o.ID,
 		Secret: "",
 		Props: map[string]interface{}{
-			interaction.AuthenticatorPropOOBOTPChannelType: o.Channel,
+			interaction.AuthenticatorPropOOBOTPChannelType: string(o.Channel),
 			interaction.AuthenticatorPropOOBOTPEmail:       o.Email,
 			interaction.AuthenticatorPropOOBOTPPhone:       o.Phone,
 		},

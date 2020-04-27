@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	oobAlphabet   = "0123456789"
-	oobCodeLength = 6
+	oobAlphabet = "0123456789"
+	// TODO(interaction): configurable OOB code length
+	oobCodeLength = 4
 )
 
 func GenerateCode() string {
