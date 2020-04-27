@@ -37,3 +37,12 @@ func NewProviderID(config config.OAuthProviderConfiguration) ProviderID {
 		Keys: keys,
 	}
 }
+
+func (p *ProviderID) ClaimsValue() map[string]interface{} {
+	claim := map[string]interface{}{}
+	claim["type"] = p.Type
+	for k, v := range p.Keys {
+		claim[k] = v
+	}
+	return claim
+}

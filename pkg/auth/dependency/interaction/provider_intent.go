@@ -1,7 +1,11 @@
 package interaction
 
 import (
+	"errors"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
@@ -40,10 +44,39 @@ func (p *Provider) NewInteractionLoginAs(
 }
 
 func (p *Provider) NewInteractionLogin(intent *IntentLogin, clientID string) (*Interaction, error) {
+	switch intent.Identity.Type {
+	case authn.IdentityTypeLoginID:
+		return p.newInteractionLoginIDLogin(intent, clientID)
+	case authn.IdentityTypeOAuth:
+		return p.newInteractionOAuthLogin(intent, clientID)
+	default:
+		panic("interaction_provider: unknown identity type " + intent.Identity.Type)
+	}
+}
+
+func (p *Provider) newInteractionLoginIDLogin(intent *IntentLogin, clientID string) (*Interaction, error) {
 	i := &Interaction{
 		Intent:   intent,
 		ClientID: clientID,
 	}
+	return i, nil
+}
+
+func (p *Provider) newInteractionOAuthLogin(intent *IntentLogin, clientID string) (*Interaction, error) {
+	i := &Interaction{
+		Intent:               intent,
+		ClientID:             clientID,
+		PrimaryAuthenticator: nil,
+	}
+	userid, iden, err := p.Identity.GetByClaims(intent.Identity.Type, intent.Identity.Claims)
+	if errors.Is(err, identity.ErrIdentityNotFound) {
+		return nil, ErrInvalidCredentials
+	} else if err != nil {
+		return nil, err
+	}
+	i.UserID = userid
+	ir := iden.ToRef()
+	i.Identity = &ir
 	return i, nil
 }
 
