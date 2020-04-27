@@ -19,8 +19,10 @@ import (
 )
 
 type InteractionFlow interface {
-	LoginWithLoginID(loginID string) (*interactionflows.TokenResult, error)
+	LoginWithLoginID(loginID string) (*interactionflows.WebAppResult, error)
+	SignupWithLoginID(loginIDKey, loginID string) (*interactionflows.WebAppResult, error)
 	AuthenticatePassword(token string, password string) (*interactionflows.WebAppResult, error)
+	SetupPassword(token string, password string) (*interactionflows.WebAppResult, error)
 }
 
 type AuthenticateProviderImpl struct {
@@ -233,14 +235,15 @@ func (p *AuthenticateProviderImpl) PostSignupLoginID(w http.ResponseWriter, r *h
 		return
 	}
 
-	err = p.AuthnProvider.ValidateSignupLoginID(loginid.LoginID{
-		Key:   r.Form.Get("x_login_id_key"),
-		Value: r.Form.Get("x_login_id"),
-	})
+	result, err := p.Interactions.SignupWithLoginID(
+		r.Form.Get("x_login_id_key"),
+		r.Form.Get("x_login_id"),
+	)
 	if err != nil {
 		return
 	}
 
+	r.Form["x_interaction_token"] = []string{result.Token}
 	return
 }
 
@@ -262,27 +265,16 @@ func (p *AuthenticateProviderImpl) PostSignupPassword(w http.ResponseWriter, r *
 		return
 	}
 
-	var client config.OAuthClientConfiguration
-	result, err := p.AuthnProvider.SignupWithLoginIDs(
-		client,
-		[]loginid.LoginID{
-			loginid.LoginID{
-				Key:   r.Form.Get("x_login_id_key"),
-				Value: r.Form.Get("x_login_id"),
-			},
-		},
-		r.Form.Get("x_password"), map[string]interface{}{},
-		model.OnUserDuplicateAbort,
+	result, err := p.Interactions.SetupPassword(
+		r.Form.Get("x_interaction_token"),
+		r.Form.Get("x_password"),
 	)
 	if err != nil {
 		return
 	}
 
-	switch r := result.(type) {
-	case *authn.CompletionResult:
-		p.AuthnProvider.WriteCookie(w, r)
-	case *authn.InProgressResult:
-		panic("TODO(webapp): handle MFA")
+	for _, cookie := range result.Cookies {
+		corehttp.UpdateCookie(w, cookie)
 	}
 
 	return

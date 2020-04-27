@@ -145,9 +145,10 @@ const SignupLoginIDPasswordRequestSchema = `
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" },
-		"x_password": { "type": "string" }
+		"x_password": { "type": "string" },
+		"x_interaction_token": { "type": "string" }
 	},
-	"required": ["x_login_id_key", "x_login_id_input_type", "x_password"],
+	"required": ["x_login_id_key", "x_login_id_input_type", "x_password", "x_interaction_token"],
 	"oneOf": [
 		{
 			"properties": {

@@ -8,11 +8,18 @@ import (
 	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
-type TokenResult struct {
-	Token string
-}
+type WebAppStep string
+
+const (
+	WebAppStepAuthenticatePassword WebAppStep = "authenticate.password"
+	WebAppStepSetupPassword        WebAppStep = "setup.password"
+	WebAppStepCompleted            WebAppStep = "completed"
+)
 
 type WebAppResult struct {
+	Step  WebAppStep
+	Token string
+
 	Cookies []*http.Cookie
 }
 

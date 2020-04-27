@@ -625,6 +625,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 <input type="hidden" name="x_calling_code" value="{{ .x_calling_code }}">
 <input type="hidden" name="x_national_number" value="{{ .x_national_number }}">
 <input type="hidden" name="x_login_id" value="{{ .x_login_id }}">
+<input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
 <div class="nav-bar">
 	<button class="btn back-btn" type="button" title="{{ "back-button-title" }}"></button>

@@ -28,9 +28,11 @@ type userProvider struct {
 
 func (p *userProvider) Create(userID string, metadata map[string]interface{}, identities []*IdentityInfo) error {
 	now := p.Time.NowUTC()
-	authInfoS := authinfo.NewAuthInfo()
-	authInfo := &authInfoS
-	authInfo.LastLoginAt = &now
+	authInfo := &authinfo.AuthInfo{
+		ID:          userID,
+		VerifyInfo:  map[string]bool{},
+		LastLoginAt: &now,
+	}
 
 	err := p.AuthInfos.CreateAuth(authInfo)
 	if err != nil {
