@@ -412,7 +412,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	// Set default AuthenticatorOOBConfiguration
 	emailMsg := c.AppConfig.Authenticator.OOB.Email.Message
 	if emailMsg["subject"] == "" {
-		emailMsg["subject"] = "Two Factor Auth Verification instruction"
+		emailMsg["subject"] = "Email Verification Instruction"
 	}
 
 	// Set default user verification settings
