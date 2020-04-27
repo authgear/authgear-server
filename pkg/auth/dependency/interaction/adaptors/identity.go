@@ -16,6 +16,7 @@ type LoginIDIdentityProvider interface {
 	ListByClaim(name string, value string) ([]*loginid.Identity, error)
 	New(userID string, loginID loginid.LoginID) *loginid.Identity
 	Create(i *loginid.Identity) error
+	Validate(loginIDs []loginid.LoginID) error
 }
 
 type OAuthIdentityProvider interface {
@@ -149,6 +150,22 @@ func (a *IdentityAdaptor) CreateAll(userID string, is []*interaction.IdentityInf
 			panic("interaction_adaptors: unknown identity type " + i.Type)
 		}
 	}
+	return nil
+}
+
+func (a *IdentityAdaptor) Validate(is []*interaction.IdentityInfo) error {
+	var loginIDs []loginid.LoginID
+	for _, i := range is {
+		if i.Type == authn.IdentityTypeLoginID {
+			loginID := extractLoginIDClaims(i.Claims)
+			loginIDs = append(loginIDs, loginID)
+		}
+	}
+
+	if err := a.LoginID.Validate(loginIDs); err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -15,6 +15,7 @@ type IdentityProvider interface {
 	ListByClaims(claims map[string]string) ([]*IdentityInfo, error)
 	New(userID string, typ authn.IdentityType, claims map[string]interface{}) *IdentityInfo
 	CreateAll(userID string, is []*IdentityInfo) error
+	Validate(is []*IdentityInfo) error
 }
 
 type AuthenticatorProvider interface {

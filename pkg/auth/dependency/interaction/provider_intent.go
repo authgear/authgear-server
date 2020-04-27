@@ -22,6 +22,10 @@ func (p *Provider) NewInteractionSignup(intent *IntentSignup, clientID string) (
 	identity := p.Identity.New(i.UserID, intent.Identity.Type, intent.Identity.Claims)
 	i.Identity = identity
 	i.NewIdentities = append(i.NewIdentities, identity)
+
+	if err := p.Identity.Validate(i.NewIdentities); err != nil {
+		return nil, err
+	}
 	return i, nil
 }
 
