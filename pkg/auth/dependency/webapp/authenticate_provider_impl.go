@@ -25,6 +25,7 @@ type InteractionFlow interface {
 	AuthenticateSecret(token string, secret string) (*interactionflows.WebAppResult, error)
 	TriggerOOBOTP(token string, step interaction.Step) (*interactionflows.WebAppResult, error)
 	SetupSecret(token string, secret string) (*interactionflows.WebAppResult, error)
+	LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 }
 
 type AuthenticateProviderImpl struct {
@@ -54,12 +55,6 @@ type AuthnProvider interface {
 	) (authn.Result, error)
 
 	WriteCookie(rw http.ResponseWriter, result *authn.CompletionResult)
-
-	OAuthAuthenticate(
-		client config.OAuthClientConfiguration,
-		authInfo sso.AuthInfo,
-		loginState sso.LoginState,
-	) (authn.Result, error)
 }
 
 type OAuthProvider interface {
@@ -505,15 +500,9 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 		return
 	}
 
-	var result authn.Result
+	var result *interactionflows.WebAppResult
 	if state.Action == "login" {
-		// TODO(webapp): link provider
-		var client config.OAuthClientConfiguration
-		result, err = p.AuthnProvider.OAuthAuthenticate(
-			client,
-			oauthAuthInfo,
-			state.LoginState,
-		)
+		result, err = p.Interactions.LoginWithOAuthProvider(oauthAuthInfo)
 	} else {
 		panic("only login is supported")
 	}
@@ -522,11 +511,8 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 		return
 	}
 
-	switch r := result.(type) {
-	case *authn.CompletionResult:
-		p.AuthnProvider.WriteCookie(w, r)
-	case *authn.InProgressResult:
-		panic("TODO(webapp): handle MFA")
+	for _, cookie := range result.Cookies {
+		corehttp.UpdateCookie(w, cookie)
 	}
 
 	return
