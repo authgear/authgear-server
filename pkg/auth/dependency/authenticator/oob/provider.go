@@ -64,7 +64,7 @@ func (p *Provider) Create(a *Authenticator) error {
 	return p.Store.Create(a)
 }
 
-func (p *Provider) Authenticate(a *Authenticator, expectedCode string, code string) error {
+func (p *Provider) Authenticate(expectedCode string, code string) error {
 	ok := VerifyCode(expectedCode, code)
 	if !ok {
 		return errors.New("invalid bearer token")

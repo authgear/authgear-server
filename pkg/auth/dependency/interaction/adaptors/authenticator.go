@@ -34,7 +34,7 @@ type OOBOTPAuthenticatorProvider interface {
 	List(userID string) ([]*oob.Authenticator, error)
 	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) *oob.Authenticator
 	Create(*oob.Authenticator) error
-	Authenticate(a *oob.Authenticator, expectedCode string, code string) error
+	Authenticate(expectedCode string, code string) error
 }
 
 type BearerTokenAuthenticatorProvider interface {
@@ -335,7 +335,7 @@ func (a *AuthenticatorAdaptor) Authenticate(userID string, spec interaction.Auth
 			return nil, err
 		}
 
-		if a.OOBOTP.Authenticate(o, code, secret) != nil {
+		if a.OOBOTP.Authenticate(code, secret) != nil {
 			return nil, interaction.ErrInvalidCredentials
 		}
 		return oobotpToAuthenticatorInfo(o), nil
