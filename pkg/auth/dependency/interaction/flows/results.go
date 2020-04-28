@@ -12,7 +12,9 @@ type WebAppStep string
 
 const (
 	WebAppStepAuthenticatePassword WebAppStep = "authenticate.password"
+	WebAppStepAuthenticateOOBOTP   WebAppStep = "authenticate.oob_otp"
 	WebAppStepSetupPassword        WebAppStep = "setup.password"
+	WebAppStepSetupOOBOTP          WebAppStep = "setup.oob_otp"
 	WebAppStepCompleted            WebAppStep = "completed"
 )
 

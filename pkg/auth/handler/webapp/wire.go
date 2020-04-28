@@ -126,6 +126,17 @@ func newSettingsHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	return nil
 }
 
+func newLoginOOBOTPHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		authDepSet,
+		wire.Bind(new(loginOOBOTPProvider), new(*webapp.AuthenticateProviderImpl)),
+		wire.Struct(new(LoginOOBOTPHandler), "*"),
+		wire.Bind(new(http.Handler), new(*LoginOOBOTPHandler)),
+	)
+	return nil
+}
+
 func newLogoutHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,

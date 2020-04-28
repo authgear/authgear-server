@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/csrf"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/intl"
@@ -62,6 +63,8 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	data[csrf.TemplateTag] = csrf.TemplateField(r)
 
 	data["x_static_asset_url_prefix"] = p.StaticAssetURLPrefix
+
+	data["x_oob_otp_code_length"] = oob.OOBCodeLength
 
 	// Find out what identity is enabled.
 	loginID := false

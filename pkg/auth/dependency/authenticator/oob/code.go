@@ -9,11 +9,11 @@ import (
 const (
 	oobAlphabet = "0123456789"
 	// TODO(interaction): configurable OOB code length
-	oobCodeLength = 4
+	OOBCodeLength = 4
 )
 
 func GenerateCode() string {
-	code := rand.StringWithAlphabet(oobCodeLength, oobAlphabet, rand.SecureRand)
+	code := rand.StringWithAlphabet(OOBCodeLength, oobAlphabet, rand.SecureRand)
 	return code
 }
 

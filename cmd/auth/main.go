@@ -249,6 +249,7 @@ func main() {
 	webapphandler.AttachRootHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachLoginHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachLoginPasswordHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachLoginOOBOTPHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachSignupHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachSignupPasswordHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachForgotPasswordHandler(webappAuthRouter, authDependency)

@@ -31,13 +31,25 @@ func (f *WebAppFlow) LoginWithLoginID(loginID string) (*WebAppResult, error) {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
+	step := WebAppStepAuthenticatePassword
+	// Trigger OOB OTP if the first authenticator is OOB OTP
+	if len(s.Steps[0].AvailableAuthenticators) > 0 && s.Steps[0].AvailableAuthenticators[0].Type == interaction.AuthenticatorTypeOOBOTP {
+		step = WebAppStepAuthenticateOOBOTP
+		err = f.Interactions.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionTriggerOOBAuthenticator{
+			Authenticator: s.Steps[0].AvailableAuthenticators[0],
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	token, err := f.Interactions.SaveInteraction(i)
 	if err != nil {
 		return nil, err
 	}
 
 	return &WebAppResult{
-		Step:  WebAppStepAuthenticatePassword,
+		Step:  step,
 		Token: token,
 	}, nil
 }
@@ -100,7 +112,6 @@ func (f *WebAppFlow) AuthenticatePassword(token string, password string) (*WebAp
 
 	return f.afterPrimaryAuthentication(i)
 }
-
 func (f *WebAppFlow) SetupPassword(token string, password string) (*WebAppResult, error) {
 	i, err := f.Interactions.GetInteraction(token)
 	if err != nil {
@@ -162,6 +173,74 @@ func (f *WebAppFlow) SetupPassword(token string, password string) (*WebAppResult
 	default:
 		panic("interaction_flow_webapp: unexpected interaction intent")
 	}
+}
+
+func (f *WebAppFlow) AuthenticateOOBOTP(token string, otp string) (*WebAppResult, error) {
+	i, err := f.Interactions.GetInteraction(token)
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := f.Interactions.GetInteractionState(i)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(s.Steps) <= 0 || len(s.Steps[0].AvailableAuthenticators) <= 0 || s.Steps[0].AvailableAuthenticators[0].Type != interaction.AuthenticatorTypeOOBOTP {
+		panic("interaction_flow_webapp: unexpected interaction state")
+	}
+
+	err = f.Interactions.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionAuthenticate{
+		Authenticator: s.Steps[0].AvailableAuthenticators[0],
+		Secret:        otp,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = f.Interactions.SaveInteraction(i)
+	if err != nil {
+		return nil, err
+	}
+
+	if i.Error != nil {
+		return nil, i.Error
+	}
+
+	return f.afterPrimaryAuthentication(i)
+}
+
+func (f *WebAppFlow) TriggerOOBOTP(token string) (*WebAppResult, error) {
+	i, err := f.Interactions.GetInteraction(token)
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := f.Interactions.GetInteractionState(i)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(s.Steps) <= 0 || len(s.Steps[0].AvailableAuthenticators) <= 0 || s.Steps[0].AvailableAuthenticators[0].Type != interaction.AuthenticatorTypeOOBOTP {
+		panic("interaction_flow_webapp: unexpected interaction state")
+	}
+
+	err = f.Interactions.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionTriggerOOBAuthenticator{
+		Authenticator: s.Steps[0].AvailableAuthenticators[0],
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	token, err = f.Interactions.SaveInteraction(i)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WebAppResult{
+		Step:  WebAppStepAuthenticateOOBOTP,
+		Token: token,
+	}, nil
 }
 
 func (f *WebAppFlow) afterPrimaryAuthentication(i *interaction.Interaction) (*WebAppResult, error) {

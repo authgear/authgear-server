@@ -48,6 +48,13 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"confirm-password-button-label": "Next",
 	"show-password": "Show Password",
 	"hide-password": "Hide Password",
+
+	"oob-otp-page-title--sms": "SMS Verification",
+	"oob-otp-page-title--email": "Email Verification",
+	"oob-otp-placeholder": "Enter code",
+	"oob-otp-description--sms": "We have sent a {0} digit code to +{1}{2}. Please enter the code below to continue",
+	"oob-otp-description--email": "We have sent a {0} digit code to {1}. Please enter the code below to continue",
+	"confirm-oob-otp-button-label": "Next",
 	
 	"use-login-id-key": "Use {0} instead",
 	"login-button-hint": "Have an account already? ",
