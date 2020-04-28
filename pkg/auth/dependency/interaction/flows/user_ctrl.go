@@ -99,8 +99,10 @@ func (c *UserController) CreateSession(
 	result.Response.SessionID = authSession.SessionID()
 
 	reason := auth.SessionCreateReasonLogin
-	if i.Intent.Type() == interaction.IntentTypeSignup {
-		reason = auth.SessionCreateReasonSignup
+	if intent, ok := i.Intent.(*interaction.IntentLogin); ok {
+		if intent.OriginalIntentType == interaction.IntentTypeSignup {
+			reason = auth.SessionCreateReasonSignup
+		}
 	}
 	err = c.Hooks.DispatchEvent(
 		event.SessionCreateEvent{

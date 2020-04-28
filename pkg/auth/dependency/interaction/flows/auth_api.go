@@ -136,6 +136,7 @@ func (f *AuthAPIFlow) SignupWithLoginIDPassword(
 			UserID:               i.UserID,
 			PrimaryAuthenticator: i.PrimaryAuthenticator.ToSpec(),
 		},
+		OriginalIntentType: i.Intent.Type(),
 	}, i.ClientID)
 	if err != nil {
 		return nil, err

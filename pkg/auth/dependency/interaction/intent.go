@@ -53,8 +53,9 @@ type IntentLoginAuthenticatedAs struct {
 }
 
 type IntentLogin struct {
-	Identity        IdentitySpec                `json:"identity"`
-	AuthenticatedAs *IntentLoginAuthenticatedAs `json:"authenticated_as,omitempty"`
+	Identity           IdentitySpec                `json:"identity"`
+	AuthenticatedAs    *IntentLoginAuthenticatedAs `json:"authenticated_as,omitempty"`
+	OriginalIntentType IntentType                  `json:"original_intent_type,omitempty"`
 }
 
 func (*IntentLogin) Type() IntentType { return IntentTypeLogin }
