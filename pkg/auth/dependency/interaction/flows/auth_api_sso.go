@@ -1,12 +1,20 @@
 package flows
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/base64"
 	"errors"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
+)
+
+const (
+	// AuthAPIStateOAuthCodeChallenge is a claim with string value for sso code challenge of current interaction in auth api
+	AuthAPIStateOAuthCodeChallenge string = "https://auth.skygear.io/claims/auth_api/sso/code_challenge"
 )
 
 func (f *AuthAPIFlow) LoginWithOAuthProvider(clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string) (string, error) {
@@ -24,6 +32,7 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(clientID string, oauthAuthInfo sso.
 		},
 	}, clientID)
 	if err == nil {
+		i.State[AuthAPIStateOAuthCodeChallenge] = codeChallenge
 		return f.Interactions.SaveInteraction(i)
 	}
 	if !errors.Is(err, interaction.ErrInvalidCredentials) {
@@ -63,13 +72,22 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(clientID string, oauthAuthInfo sso.
 	if err != nil {
 		return "", err
 	}
-
+	i.State[AuthAPIStateOAuthCodeChallenge] = codeChallenge
 	return f.Interactions.SaveInteraction(i)
 }
 
 func (f *AuthAPIFlow) ExchangeCode(interactionToken string, verifier string) (*AuthResult, error) {
 	i, err := f.Interactions.GetInteraction(interactionToken)
 	if err != nil {
+		return nil, err
+	}
+
+	challenge := i.State[AuthAPIStateOAuthCodeChallenge]
+	if challenge == "" {
+		panic("interaction_flow_auth_api: missing code challenge in interaction state")
+	}
+
+	if err := verifyPKCE(challenge, verifier); err != nil {
 		return nil, err
 	}
 
@@ -99,4 +117,13 @@ func (f *AuthAPIFlow) ExchangeCode(interactionToken string, verifier string) (*A
 	default:
 		return nil, ErrUnsupportedConfiguration
 	}
+}
+
+func verifyPKCE(challenge string, verifier string) error {
+	sha256Arr := sha256.Sum256([]byte(verifier))
+	expectedChallenge := base64.RawURLEncoding.EncodeToString(sha256Arr[:])
+	if subtle.ConstantTimeCompare([]byte(challenge), []byte(expectedChallenge)) != 1 {
+		return sso.NewSSOFailed(sso.InvalidCodeVerifier, "invalid code verifier")
+	}
+	return nil
 }

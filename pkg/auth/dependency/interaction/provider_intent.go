@@ -67,6 +67,7 @@ func (p *Provider) newInteractionOAuthLogin(intent *IntentLogin, clientID string
 		Intent:               intent,
 		ClientID:             clientID,
 		PrimaryAuthenticator: nil,
+		State:                map[string]string{},
 	}
 	userid, iden, err := p.Identity.GetByClaims(intent.Identity.Type, intent.Identity.Claims)
 	if errors.Is(err, identity.ErrIdentityNotFound) {
