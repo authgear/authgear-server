@@ -5,12 +5,14 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 var DependencySet = wire.NewSet(
 	NewDefaultUserVerifyCodeSenderFactory,
 	ProvideProvider,
+	ProviderHTMLProvider,
 )
 
 func ProvideProvider(
@@ -28,4 +30,8 @@ func ProvideProvider(
 		tConfig.AppConfig.UserVerification,
 		time,
 	)
+}
+
+func ProviderHTMLProvider(tConfig *config.TenantConfiguration, templateEngine *template.Engine) *VerifyHTMLProvider {
+	return NewVerifyHTMLProvider(tConfig.AppConfig.UserVerification, templateEngine)
 }

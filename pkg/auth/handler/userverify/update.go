@@ -16,8 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -27,20 +25,12 @@ func AttachUpdateHandler(
 ) {
 	router.NewRoute().
 		Path("/update_verify_state").
-		Handler(server.FactoryToHandler(&UpdateHandlerFactory{
-			authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newUpdateHandler)).
 		Methods("OPTIONS", "POST")
 }
 
 type UpdateHandlerFactory struct {
 	Dependency auth.DependencyMap
-}
-
-func (f UpdateHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &UpdateHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type UpdateVerifyStatePayload struct {
@@ -81,22 +71,21 @@ const UpdateVerifyStateRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type UpdateHandler struct {
-	Validator                *validation.Validator `dependency:"Validator"`
-	RequireAuthz             handler.RequireAuthz  `dependency:"RequireAuthz"`
-	AuthInfoStore            authinfo.Store        `dependency:"AuthInfoStore"`
-	UserProfileStore         userprofile.Store     `dependency:"UserProfileStore"`
-	LoginIDProvider          LoginIDProvider       `dependency:"LoginIDProvider"`
-	UserVerificationProvider userverify.Provider   `dependency:"UserVerificationProvider"`
-	HookProvider             hook.Provider         `dependency:"HookProvider"`
-	TxContext                db.TxContext          `dependency:"TxContext"`
+	Validator                *validation.Validator
+	AuthInfoStore            authinfo.Store
+	UserProfileStore         userprofile.Store
+	LoginIDProvider          LoginIDProvider
+	UserVerificationProvider userverify.Provider
+	HookProvider             hook.Provider
+	TxContext                db.TxContext
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
-func (h UpdateHandler) ProvideAuthzPolicy() authz.Policy {
+func (h *UpdateHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.RequireMasterKey)
 }
 
-func (h UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	result, err := h.Handle(w, r)
 	if err == nil {
 		handler.WriteResponse(w, handler.APIResponse{Result: result})
@@ -105,7 +94,7 @@ func (h UpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
+func (h *UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interface{}, err error) {
 	var payload UpdateVerifyStatePayload
 	if err = handler.BindJSONBody(r, w, h.Validator, "#UpdateVerifyStateRequest", &payload); err != nil {
 		return

@@ -7,9 +7,6 @@ import (
 	"testing"
 	gotime "time"
 
-	"github.com/sirupsen/logrus"
-	"github.com/sirupsen/logrus/hooks/test"
-
 	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
@@ -36,8 +33,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			VerifyCodeRequestSchema,
 		)
 		vh.Validator = validator
-		logger, _ := test.NewNullLogger()
-		vh.Logger = logrus.NewEntry(logger)
 		vh.TxContext = db.NewMockTxContext()
 
 		vh.LoginIDProvider = &mockLoginIDProvider{
