@@ -166,8 +166,11 @@ func (a *IdentityAdaptor) Validate(is []*interaction.IdentityInfo) error {
 		}
 	}
 
-	if err := a.LoginID.Validate(loginIDs); err != nil {
-		return err
+	// if there is IdentityInfo with type is loginid
+	if len(loginIDs) > 0 {
+		if err := a.LoginID.Validate(loginIDs); err != nil {
+			return err
+		}
 	}
 
 	return nil
