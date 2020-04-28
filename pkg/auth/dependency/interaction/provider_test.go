@@ -218,11 +218,13 @@ func TestProvider(t *testing.T) {
 				)
 				So(err, ShouldBeNil)
 
-				So(i.PendingAuthenticator, ShouldNotBeEmpty)
-				So(i.PendingAuthenticator, ShouldResemble, interaction.AuthenticatorSpec{
-					Type: authn.AuthenticatorTypeTOTP,
-					Props: map[string]interface{}{
-						interaction.AuthenticatorPropTOTPDisplayName: "My Authenticator",
+				So(i.NewAuthenticators, ShouldNotBeEmpty)
+				So(i.NewAuthenticators, ShouldResemble, []interaction.AuthenticatorSpec{
+					{
+						Type: authn.AuthenticatorTypeTOTP,
+						Props: map[string]interface{}{
+							interaction.AuthenticatorPropTOTPDisplayName: "My Authenticator",
+						},
 					},
 				})
 

@@ -24,11 +24,9 @@ type Interaction struct {
 	PrimaryAuthenticator   *AuthenticatorRef `json:"primary_authenticator"`
 	SecondaryAuthenticator *AuthenticatorRef `json:"secondary_authenticator"`
 
-	State                map[string]string    `json:"state,omitempty"`
-	PendingIdentity      *IdentityInfo        `json:"pending_identity,omitempty"`
-	PendingAuthenticator *AuthenticatorInfo   `json:"pending_authenticator,omitempty"`
-	NewIdentities        []*IdentityInfo      `json:"new_identities,omitempty"`
-	NewAuthenticators    []*AuthenticatorInfo `json:"new_authenticators,omitempty"`
+	State             map[string]string    `json:"state,omitempty"`
+	NewIdentities     []*IdentityInfo      `json:"new_identities,omitempty"`
+	NewAuthenticators []*AuthenticatorInfo `json:"new_authenticators,omitempty"`
 }
 
 func (i *Interaction) IsNewIdentity(id string) bool {
