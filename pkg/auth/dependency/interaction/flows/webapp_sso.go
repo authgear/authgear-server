@@ -23,48 +23,45 @@ func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebApp
 			Claims: claims,
 		},
 	}, "")
-	if errors.Is(err, interaction.ErrInvalidCredentials) {
-		// try signup
-		i, err = f.Interactions.NewInteractionSignup(&interaction.IntentSignup{
-			Identity: interaction.IdentitySpec{
-				Type:   authn.IdentityTypeOAuth,
-				Claims: claims,
-			},
-		}, "")
-		if err != nil {
-			return nil, err
-		}
-	} else if err != nil {
+	if err == nil {
+		return f.afterPrimaryAuthentication(i)
+	}
+	if !errors.Is(err, interaction.ErrInvalidCredentials) {
 		return nil, err
 	}
 
+	// try signup
+	i, err = f.Interactions.NewInteractionSignup(&interaction.IntentSignup{
+		Identity: interaction.IdentitySpec{
+			Type:   authn.IdentityTypeOAuth,
+			Claims: claims,
+		},
+	}, "")
+	if err != nil {
+		return nil, err
+	}
 	s, err := f.Interactions.GetInteractionState(i)
 	if err != nil {
 		return nil, err
 	}
-
-	switch s.CurrentStep().Step {
-	case interaction.StepAuthenticateSecondary, interaction.StepSetupSecondaryAuthenticator:
-		panic("interaction_flow_webapp: TODO: handle MFA")
-
-	case interaction.StepCommit:
-		// TODO(interaction): update user last login / sso profile in login commit
-		attrs, err := f.Interactions.Commit(i)
-		if err != nil {
-			return nil, err
-		}
-
-		result, err := f.UserController.CreateSession(i, attrs, false)
-		if err != nil {
-			return nil, err
-		}
-
-		return &WebAppResult{
-			Step:    WebAppStepCompleted,
-			Cookies: result.Cookies,
-		}, nil
-	default:
-		panic("interaction_flow_webapp: unexpected step " + s.CurrentStep().Step)
+	if s.CurrentStep().Step != interaction.StepCommit {
+		panic("interaction_flow_webapp: unexpected interaction state")
+	}
+	_, err = f.Interactions.Commit(i)
+	if err != nil {
+		return nil, err
 	}
 
+	// create new interaction after signup
+	i, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
+		Identity: i.Identity.ToSpec(),
+		AuthenticatedAs: &interaction.IntentLoginAuthenticatedAs{
+			UserID: i.UserID,
+		},
+		OriginalIntentType: i.Intent.Type(),
+	}, i.ClientID)
+	if err != nil {
+		return nil, err
+	}
+	return f.afterPrimaryAuthentication(i)
 }
