@@ -51,6 +51,15 @@ func (p *Provider) GetByLoginID(loginID loginid.LoginID) ([]*Identity, error) {
 			continue
 		}
 
+		// Normalize expects loginID is in correct type so we have to validate it first.
+		invalid := p.LoginIDChecker.ValidateOne(loginid.LoginID{
+			Key:   config.Key,
+			Value: loginID.Value,
+		})
+		if invalid != nil {
+			continue
+		}
+
 		normalizer := p.LoginIDNormalizerFactory.NormalizerWithLoginIDKey(config.Key)
 		normalizedloginID, err := normalizer.Normalize(loginID.Value)
 		if err != nil {

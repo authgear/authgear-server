@@ -3,8 +3,10 @@ package interaction
 import (
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 func (p *Provider) GetInteractionState(i *Interaction) (*State, error) {
@@ -18,23 +20,30 @@ func (p *Provider) GetInteractionState(i *Interaction) (*State, error) {
 }
 
 func (p *Provider) getStateLogin(i *Interaction, intent *IntentLogin) (*State, error) {
+	// Whether or not primary authentication is needed or not
+	// solely depends on the identity being used.
+	// If for some reason, the user uses login ID Identity but
+	// they do not have any authenticator, we must not skip primary authentication.
+	needPrimaryAuthn := len(identityPrimaryAuthenticators[intent.Identity.Type]) > 0
+
+	primaryAuthenticators, err := p.listPrimaryAuthenticators(intent.Identity)
+	if err != nil {
+		return nil, err
+	}
 	secondaryAuthenticators, err := p.listSecondaryAuthenticators(i.UserID)
 	if err != nil {
 		return nil, err
 	}
-	primaryAuthenticators := p.getAvailablePrimaryAuthenticators(intent.Identity.Type)
 	s := &State{}
 
 	// Primary authentication
-	needPrimaryAuthn := false
-	if len(primaryAuthenticators) > 0 {
+	if needPrimaryAuthn {
 		s.Steps = []StepState{
 			{
 				Step:                    StepAuthenticatePrimary,
 				AvailableAuthenticators: primaryAuthenticators,
 			},
 		}
-		needPrimaryAuthn = true
 	}
 	if needPrimaryAuthn && i.PrimaryAuthenticator == nil {
 		return s, nil
@@ -119,6 +128,35 @@ func (p *Provider) getAvailableSecondaryAuthenticators() []AuthenticatorSpec {
 		as = append(as, AuthenticatorSpec{Type: authn.AuthenticatorType(t), Props: map[string]interface{}{}})
 	}
 	return as
+}
+
+func (p *Provider) listPrimaryAuthenticators(is IdentitySpec) (specs []AuthenticatorSpec, err error) {
+	// Now we use skygear claims to find exactly one identity.
+	// In the future we may use OIDC claims to list all identities and
+	// resolve which user the actor want to authenticate as.
+	userID, ii, err := p.Identity.GetByClaims(is.Type, is.Claims)
+	if errors.Is(err, identity.ErrIdentityNotFound) {
+		// Now we eagerly check if the identity exists or not.
+		err = ErrInvalidCredentials
+		return
+	} else if err != nil {
+		return
+	}
+
+	ais, err := p.Authenticator.ListByIdentity(userID, ii)
+	if err != nil {
+		return
+	}
+
+	for _, ai := range ais {
+		for _, t := range p.Config.PrimaryAuthenticators {
+			if string(ai.Type) == t {
+				specs = append(specs, ai.ToSpec())
+			}
+		}
+	}
+
+	return
 }
 
 func (p *Provider) listSecondaryAuthenticators(userID string) ([]AuthenticatorSpec, error) {

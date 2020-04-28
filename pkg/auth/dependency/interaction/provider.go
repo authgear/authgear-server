@@ -23,6 +23,7 @@ type IdentityProvider interface {
 type AuthenticatorProvider interface {
 	Get(userID string, typ authn.AuthenticatorType, id string) (*AuthenticatorInfo, error)
 	List(userID string, typ authn.AuthenticatorType) ([]*AuthenticatorInfo, error)
+	ListByIdentity(userID string, ii *IdentityInfo) ([]*AuthenticatorInfo, error)
 	New(userID string, spec AuthenticatorSpec, secret string) ([]*AuthenticatorInfo, error)
 	CreateAll(userID string, ais []*AuthenticatorInfo) error
 	Authenticate(userID string, spec AuthenticatorSpec, state *map[string]string, secret string) (*AuthenticatorInfo, error)
