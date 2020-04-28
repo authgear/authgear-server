@@ -58,6 +58,7 @@ func (a *IdentityAdaptor) Get(userID string, typ authn.IdentityType, id string) 
 	panic("interaction_adaptors: unknown identity type " + typ)
 }
 
+// GetByClaims return user ID and information about the identity the matches the provided skygear claims.
 func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *interaction.IdentityInfo, error) {
 	switch typ {
 	case authn.IdentityTypeLoginID:
@@ -82,6 +83,7 @@ func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]
 	panic("interaction_adaptors: unknown identity type " + typ)
 }
 
+// ListByClaims return list of identities the matches the provided OIDC standard claims.
 func (a *IdentityAdaptor) ListByClaims(claims map[string]string) ([]*interaction.IdentityInfo, error) {
 	var all []*interaction.IdentityInfo
 

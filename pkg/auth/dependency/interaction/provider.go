@@ -11,7 +11,9 @@ import (
 
 type IdentityProvider interface {
 	Get(userID string, typ authn.IdentityType, id string) (*IdentityInfo, error)
+	// GetByClaims return user ID and information about the identity the matches the provided skygear claims.
 	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *IdentityInfo, error)
+	// ListByClaims return list of identities the matches the provided OIDC standard claims.
 	ListByClaims(claims map[string]string) ([]*IdentityInfo, error)
 	New(userID string, typ authn.IdentityType, claims map[string]interface{}) *IdentityInfo
 	CreateAll(userID string, is []*IdentityInfo) error
