@@ -10,8 +10,8 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -57,12 +57,12 @@ const (
 	loginIDTypePhone loginIDType = "phone"
 )
 
-func (t loginIDType) MatchPrincipal(principal *password.Principal, provider password.Provider) bool {
+func (t loginIDType) MatchIdentity(i *loginid.Identity, provider LoginIDProvider) bool {
 	switch t {
 	case loginIDTypeEmail:
-		return provider.CheckLoginIDKeyType(principal.LoginIDKey, metadata.Email)
+		return provider.IsLoginIDKeyType(i.LoginIDKey, metadata.Email)
 	case loginIDTypePhone:
-		return provider.CheckLoginIDKeyType(principal.LoginIDKey, metadata.Phone)
+		return provider.IsLoginIDKeyType(i.LoginIDKey, metadata.Phone)
 	default:
 		return false
 	}
@@ -120,7 +120,7 @@ type VerifyRequestHandler struct {
 	UserVerificationProvider userverify.Provider          `dependency:"UserVerificationProvider"`
 	AuthInfoStore            authinfo.Store               `dependency:"AuthInfoStore"`
 	UserProfileStore         userprofile.Store            `dependency:"UserProfileStore"`
-	PasswordAuthProvider     password.Provider            `dependency:"PasswordAuthProvider"`
+	LoginIDProvider          LoginIDProvider              `dependency:"LoginIDProvider"`
 	IdentityProvider         principal.IdentityProvider   `dependency:"IdentityProvider"`
 	Logger                   *logrus.Entry                `dependency:"HandlerLogger"`
 }
@@ -160,21 +160,19 @@ func (h VerifyRequestHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 			return
 		}
 
-		// We don't check realms. i.e. Verifying a email means every email login IDs
-		// of that email is verified, regardless the realm.
-		principals, err := h.PasswordAuthProvider.GetPrincipalsByLoginID("", payload.LoginID)
+		is, err := h.LoginIDProvider.GetByLoginID(loginid.LoginID{Value: payload.LoginID})
 		if err != nil {
 			return
 		}
 
-		var userPrincipal *password.Principal
-		for _, principal := range principals {
-			if principal.UserID == userID && payload.LoginIDType.MatchPrincipal(principal, h.PasswordAuthProvider) {
-				userPrincipal = principal
+		var identity *loginid.Identity
+		for _, i := range is {
+			if i.UserID == userID && payload.LoginIDType.MatchIdentity(i, h.LoginIDProvider) {
+				identity = i
 				break
 			}
 		}
-		if userPrincipal == nil {
+		if identity == nil {
 			err = validation.NewValidationFailed("invalid request body", []validation.ErrorCause{{
 				Kind:    validation.ErrorGeneral,
 				Pointer: "/login_id",
@@ -183,12 +181,12 @@ func (h VerifyRequestHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 			return
 		}
 
-		verifyCode, err := h.UserVerificationProvider.CreateVerifyCode(userPrincipal)
+		verifyCode, err := h.UserVerificationProvider.CreateVerifyCode(identity)
 		if err != nil {
 			return
 		}
 
-		codeSender := h.CodeSenderFactory.NewCodeSender(h.URLPrefix, userPrincipal.LoginIDKey)
+		codeSender := h.CodeSenderFactory.NewCodeSender(h.URLPrefix, identity.LoginIDKey)
 		user := model.NewUser(*authInfo, userProfile)
 		if err = codeSender.Send(*verifyCode, user); err != nil {
 			return

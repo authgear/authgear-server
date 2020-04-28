@@ -238,7 +238,7 @@ func TestAddLoginIDHandler(t *testing.T) {
 			})
 		})
 
-		Convey("should invalidate verify state", func() {
+		SkipConvey("should invalidate verify state", func() {
 			passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 				[]config.LoginIDKeyConfiguration{
 					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 2),

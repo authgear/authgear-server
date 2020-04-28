@@ -1,13 +1,13 @@
 package userverify
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 func IsUserVerified(
 	verifyInfo map[string]bool,
-	principals []*password.Principal,
+	identities []*loginid.Identity,
 	criteria config.UserVerificationCriteria,
 	verifyConfigs []config.UserVerificationKeyConfiguration,
 ) (verified bool) {
@@ -20,7 +20,7 @@ func IsUserVerified(
 	case config.UserVerificationCriteriaAll:
 		// Login IDs to verify exist and all are verified
 		loginIDToVerify := 0
-		for _, principal := range principals {
+		for _, principal := range identities {
 			for _, c := range verifyConfigs {
 				if principal.LoginIDKey != c.Key {
 					continue
@@ -36,7 +36,7 @@ func IsUserVerified(
 
 	case config.UserVerificationCriteriaAny:
 		// Login IDs to verify exist and some are verified
-		for _, principal := range principals {
+		for _, principal := range identities {
 			for _, c := range verifyConfigs {
 				if principal.LoginIDKey != c.Key {
 					continue

@@ -7,7 +7,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -86,7 +85,7 @@ type UpdateHandler struct {
 	RequireAuthz             handler.RequireAuthz  `dependency:"RequireAuthz"`
 	AuthInfoStore            authinfo.Store        `dependency:"AuthInfoStore"`
 	UserProfileStore         userprofile.Store     `dependency:"UserProfileStore"`
-	PasswordAuthProvider     password.Provider     `dependency:"PasswordAuthProvider"`
+	LoginIDProvider          LoginIDProvider       `dependency:"LoginIDProvider"`
 	UserVerificationProvider userverify.Provider   `dependency:"UserVerificationProvider"`
 	HookProvider             hook.Provider         `dependency:"HookProvider"`
 	TxContext                db.TxContext          `dependency:"TxContext"`
@@ -125,7 +124,7 @@ func (h UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) (resp inte
 
 		oldUser := authModel.NewUser(info, profile)
 
-		principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(info.ID)
+		principals, err := h.LoginIDProvider.List(info.ID)
 		if err != nil {
 			return err
 		}

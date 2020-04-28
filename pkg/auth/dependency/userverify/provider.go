@@ -9,13 +9,18 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 )
 
+type LoginIDProvider interface {
+	GetByLoginID(loginid.LoginID) ([]*loginid.Identity, error)
+	List(userID string) ([]*loginid.Identity, error)
+}
+
 type Provider interface {
-	CreateVerifyCode(principal *password.Principal) (*VerifyCode, error)
+	CreateVerifyCode(*loginid.Identity) (*VerifyCode, error)
 	VerifyUser(
-		passwordProvider password.Provider,
+		loginIDProvider LoginIDProvider,
 		authStore authinfo.Store,
 		authInfo *authinfo.AuthInfo,
 		code string,
@@ -23,7 +28,7 @@ type Provider interface {
 	UpdateVerificationState(
 		authInfo *authinfo.AuthInfo,
 		authStore authinfo.Store,
-		principals []*password.Principal,
+		identities []*loginid.Identity,
 	) error
 }
 
@@ -48,18 +53,18 @@ func NewProvider(
 	}
 }
 
-func (provider *providerImpl) CreateVerifyCode(principal *password.Principal) (*VerifyCode, error) {
-	_, isValid := provider.config.GetLoginIDKey(principal.LoginIDKey)
+func (provider *providerImpl) CreateVerifyCode(i *loginid.Identity) (*VerifyCode, error) {
+	_, isValid := provider.config.GetLoginIDKey(i.LoginIDKey)
 	if !isValid {
 		return nil, ErrUnknownLoginIDKey
 	}
 
-	code := provider.codeGenerator.Generate(principal.LoginIDKey)
+	code := provider.codeGenerator.Generate(i.LoginIDKey)
 
 	verifyCode := NewVerifyCode()
-	verifyCode.UserID = principal.UserID
-	verifyCode.LoginIDKey = principal.LoginIDKey
-	verifyCode.LoginID = principal.LoginID
+	verifyCode.UserID = i.UserID
+	verifyCode.LoginIDKey = i.LoginIDKey
+	verifyCode.LoginID = i.LoginID
 	verifyCode.Code = code
 	verifyCode.Consumed = false
 	verifyCode.CreatedAt = provider.time.NowUTC()
@@ -72,7 +77,7 @@ func (provider *providerImpl) CreateVerifyCode(principal *password.Principal) (*
 }
 
 func (provider *providerImpl) VerifyUser(
-	passwordProvider password.Provider,
+	loginIDProvider LoginIDProvider,
 	authStore authinfo.Store,
 	authInfo *authinfo.AuthInfo,
 	code string,
@@ -93,24 +98,23 @@ func (provider *providerImpl) VerifyUser(
 		return nil, NewUserVerificationFailed(UsedCode, "verification code is used")
 	}
 
-	principals, err := passwordProvider.GetPrincipalsByLoginID(
-		verifyCode.LoginIDKey,
-		verifyCode.LoginID,
-	)
+	is, err := loginIDProvider.GetByLoginID(loginid.LoginID{
+		Key:   verifyCode.LoginIDKey,
+		Value: verifyCode.LoginID,
+	})
 	if err != nil {
-		return nil, errors.HandledWithMessage(err, "failed to get principals to verify")
+		return nil, errors.HandledWithMessage(err, "failed to get identities to verify")
 	}
 
 	// filter principals belonging to the user
-	userPrincipals := []*password.Principal{}
-	for _, principal := range principals {
-		if principal.UserID == authInfo.ID {
-			userPrincipals = append(userPrincipals, principal)
+	var identities []*loginid.Identity
+	for _, i := range is {
+		if i.UserID == authInfo.ID {
+			identities = append(identities, i)
 		}
 	}
-	principals = userPrincipals
 
-	if len(principals) == 0 {
+	if len(identities) == 0 {
 		return nil, NewUserVerificationFailed(InvalidCode, "invalid verification code")
 	}
 
@@ -124,7 +128,7 @@ func (provider *providerImpl) VerifyUser(
 		return nil, NewUserVerificationFailed(ExpiredCode, "verification code has expired")
 	}
 
-	err = provider.markUserVerified(passwordProvider, authStore, authInfo, verifyCode)
+	err = provider.markUserVerified(loginIDProvider, authStore, authInfo, verifyCode)
 	if err != nil {
 		return nil, errors.HandledWithMessage(err, "failed to mark user as verified")
 	}
@@ -133,7 +137,7 @@ func (provider *providerImpl) VerifyUser(
 }
 
 func (provider *providerImpl) markUserVerified(
-	passwordProvider password.Provider,
+	loginIDProvider LoginIDProvider,
 	authStore authinfo.Store,
 	authInfo *authinfo.AuthInfo,
 	verifyCode *VerifyCode,
@@ -142,14 +146,14 @@ func (provider *providerImpl) markUserVerified(
 		return
 	}
 
-	principals, err := passwordProvider.GetPrincipalsByUserID(authInfo.ID)
+	is, err := loginIDProvider.List(authInfo.ID)
 	if err != nil {
 		return
 	}
 
 	// Update user
 	authInfo.VerifyInfo[verifyCode.LoginID] = true
-	if err = provider.UpdateVerificationState(authInfo, authStore, principals); err != nil {
+	if err = provider.UpdateVerificationState(authInfo, authStore, is); err != nil {
 		return
 	}
 
@@ -159,11 +163,11 @@ func (provider *providerImpl) markUserVerified(
 func (provider *providerImpl) UpdateVerificationState(
 	authInfo *authinfo.AuthInfo,
 	authStore authinfo.Store,
-	principals []*password.Principal,
+	identities []*loginid.Identity,
 ) error {
 	isVerified := IsUserVerified(
 		authInfo.VerifyInfo,
-		principals,
+		identities,
 		provider.config.Criteria,
 		provider.config.LoginIDKeys,
 	)

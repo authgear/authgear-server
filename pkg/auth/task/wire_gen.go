@@ -10,10 +10,8 @@ import (
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	pq2 "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
@@ -63,22 +61,17 @@ func newVerifyCodeSendTask(ctx context.Context, m auth.DependencyMap) async.Task
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	userverifyProvider := userverify.ProvideProvider(tenantConfiguration, provider, sqlBuilder, sqlExecutor)
-	passwordhistoryStore := pq2.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	txContext := db.ProvideTxContext(ctx, tenantConfiguration)
 	requestID := ProvideLoggingRequestID(ctx)
 	factory := logging.ProvideLoggerFactory(ctx, requestID, tenantConfiguration)
-	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	oauthProvider := oauth.ProvideOAuthProvider(sqlBuilder, sqlExecutor)
-	v := auth.ProvidePrincipalProviders(oauthProvider, passwordProvider)
-	identityProvider := principal.ProvideIdentityProvider(sqlBuilder, sqlExecutor, v)
-	txContext := db.ProvideTxContext(ctx, tenantConfiguration)
 	verifyCodeSendTask := &VerifyCodeSendTask{
 		CodeSenderFactory:        codeSenderFactory,
 		AuthInfoStore:            store,
 		UserProfileStore:         userprofileStore,
 		UserVerificationProvider: userverifyProvider,
-		PasswordAuthProvider:     passwordProvider,
-		IdentityProvider:         identityProvider,
+		LoginIDProvider:          loginidProvider,
 		TxContext:                txContext,
 		LoggerFactory:            factory,
 	}

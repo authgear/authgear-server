@@ -188,10 +188,7 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 			}
 		}
 
-		err = h.UserVerificationProvider.UpdateVerificationState(authInfo, h.AuthInfoStore, principals)
-		if err != nil {
-			return err
-		}
+		// TODO(interaction): update verification state
 
 		return nil
 	})

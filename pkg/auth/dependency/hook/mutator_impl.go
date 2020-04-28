@@ -2,7 +2,6 @@ package hook
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -65,21 +64,9 @@ func (mutator *mutatorImpl) Add(mutations event.Mutations) error {
 		if mutations.VerifyInfo != nil {
 			verifyInfo = *mutations.VerifyInfo
 		}
-		// TODO(identity): remove conversion for compatibility
-		var principals []*password.Principal
-		for _, i := range *mutator.LoginIDIdentities {
-			principals = append(principals, &password.Principal{
-				ID:              i.ID,
-				UserID:          i.UserID,
-				LoginIDKey:      i.LoginIDKey,
-				LoginID:         i.LoginID,
-				OriginalLoginID: i.OriginalLoginID,
-				UniqueKey:       i.UniqueKey,
-			})
-		}
 		isVerified := userverify.IsUserVerified(
 			verifyInfo,
-			principals,
+			*mutator.LoginIDIdentities,
 			mutator.UserVerificationConfig.Criteria,
 			mutator.UserVerificationConfig.LoginIDKeys,
 		)
@@ -133,21 +120,9 @@ func (mutator *mutatorImpl) Apply() error {
 	}
 
 	if mutations.VerifyInfo != nil {
-		// TODO(identity): remove conversion for compatibility
-		var principals []*password.Principal
-		for _, i := range *mutator.LoginIDIdentities {
-			principals = append(principals, &password.Principal{
-				ID:              i.ID,
-				UserID:          i.UserID,
-				LoginIDKey:      i.LoginIDKey,
-				LoginID:         i.LoginID,
-				OriginalLoginID: i.OriginalLoginID,
-				UniqueKey:       i.UniqueKey,
-			})
-		}
 		isVerified := userverify.IsUserVerified(
 			authInfo.VerifyInfo,
-			principals,
+			*mutator.LoginIDIdentities,
 			mutator.UserVerificationConfig.Criteria,
 			mutator.UserVerificationConfig.LoginIDKeys,
 		)

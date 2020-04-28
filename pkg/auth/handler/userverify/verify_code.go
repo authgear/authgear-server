@@ -10,7 +10,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -93,7 +92,7 @@ type VerifyCodeHandler struct {
 	RequireAuthz             handler.RequireAuthz  `dependency:"RequireAuthz"`
 	UserVerificationProvider userverify.Provider   `dependency:"UserVerificationProvider"`
 	AuthInfoStore            authinfo.Store        `dependency:"AuthInfoStore"`
-	PasswordAuthProvider     password.Provider     `dependency:"PasswordAuthProvider"`
+	LoginIDProvider          LoginIDProvider       `dependency:"LoginIDProvider"`
 	UserProfileStore         userprofile.Store     `dependency:"UserProfileStore"`
 	HookProvider             hook.Provider         `dependency:"HookProvider"`
 	Logger                   *logrus.Entry         `dependency:"HandlerLogger"`
@@ -137,7 +136,7 @@ func (h VerifyCodeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp 
 
 		oldUser := model.NewUser(*authInfo, userProfile)
 
-		_, err = h.UserVerificationProvider.VerifyUser(h.PasswordAuthProvider, h.AuthInfoStore, authInfo, payload.Code)
+		_, err = h.UserVerificationProvider.VerifyUser(h.LoginIDProvider, h.AuthInfoStore, authInfo, payload.Code)
 		if err != nil {
 			return
 		}

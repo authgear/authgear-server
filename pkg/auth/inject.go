@@ -258,6 +258,8 @@ func (m DependencyMap) Provide(
 		return newLoginIDChecker()
 	case "PasswordAuthProvider":
 		return newPasswordAuthProvider()
+	case "LoginIDProvider":
+		return newLoginIDProvider()
 	case "HandlerLogger":
 		return newLoggerFactory().NewLogger("handler")
 	case "UserProfileStore":

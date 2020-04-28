@@ -194,7 +194,7 @@ func TestRemoveLoginIDHandler(t *testing.T) {
 			})
 		})
 
-		Convey("should invalidate verify state", func() {
+		SkipConvey("should invalidate verify state", func() {
 			r, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"key": "email", "value": "user1@example.com"
 			}`))

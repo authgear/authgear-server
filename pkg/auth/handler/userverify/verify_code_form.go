@@ -8,7 +8,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -68,7 +67,7 @@ type VerifyCodeFormHandler struct {
 	VerifyHTMLProvider       *userverify.VerifyHTMLProvider `dependency:"VerifyHTMLProvider"`
 	UserVerificationProvider userverify.Provider            `dependency:"UserVerificationProvider"`
 	AuthInfoStore            authinfo.Store                 `dependency:"AuthInfoStore"`
-	PasswordAuthProvider     password.Provider              `dependency:"PasswordAuthProvider"`
+	LoginIDProvider          LoginIDProvider                `dependency:"LoginIDProvider"`
 	UserProfileStore         userprofile.Store              `dependency:"UserProfileStore"`
 	HookProvider             hook.Provider                  `dependency:"HookProvider"`
 	TxContext                db.TxContext                   `dependency:"TxContext"`
@@ -109,7 +108,7 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 	oldUser := model.NewUser(authInfo, userProfile)
 	ctx.user = oldUser
 
-	verifyCode, err := h.UserVerificationProvider.VerifyUser(h.PasswordAuthProvider, h.AuthInfoStore, &authInfo, payload.Code)
+	verifyCode, err := h.UserVerificationProvider.VerifyUser(h.LoginIDProvider, h.AuthInfoStore, &authInfo, payload.Code)
 	if err != nil {
 		return
 	}

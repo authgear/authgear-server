@@ -153,11 +153,7 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 		}
 		user := model.NewUser(*authInfo, userProfile)
 
-		delete(authInfo.VerifyInfo, p.LoginID)
-		err = h.UserVerificationProvider.UpdateVerificationState(authInfo, h.AuthInfoStore, principals)
-		if err != nil {
-			return err
-		}
+		// TODO(interaction): update verification state
 
 		identity := model.NewIdentity(p)
 		err = h.HookProvider.DispatchEvent(
