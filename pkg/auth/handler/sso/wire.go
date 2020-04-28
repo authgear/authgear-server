@@ -10,6 +10,7 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -37,6 +38,7 @@ func provideAuthHandler(
 	sp sso.Provider,
 	ap AuthHandlerAuthnProvider,
 	op sso.OAuthProvider,
+	f OAuthHandlerInteractionFlow,
 ) http.Handler {
 	h := &AuthHandler{
 		TxContext:               tx,
@@ -45,6 +47,7 @@ func provideAuthHandler(
 		SSOProvider:             sp,
 		AuthnProvider:           ap,
 		OAuthProvider:           op,
+		Interactions:            f,
 	}
 	return h
 }
@@ -57,6 +60,7 @@ func newAuthHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 		provideOAuthProviderFromRequestVars,
 		provideAuthHandler,
 		ProvideRedirectURIForAPIFunc,
+		wire.Bind(new(OAuthHandlerInteractionFlow), new(*interactionflows.AuthAPIFlow)),
 	)
 	return nil
 }
@@ -67,12 +71,14 @@ func provideAuthResultHandler(
 	ap AuthResultAuthnProvider,
 	v *validation.Validator,
 	sp sso.Provider,
+	f OAuthResultInteractionFlow,
 ) http.Handler {
 	h := &AuthResultHandler{
 		TxContext:     tx,
 		AuthnProvider: ap,
 		Validator:     v,
 		SSOProvider:   sp,
+		Interactions:  f,
 	}
 	return requireAuthz(h, h)
 }
@@ -83,6 +89,7 @@ func newAuthResultHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 		authn.ProvideAuthAPIProvider,
 		wire.Bind(new(AuthResultAuthnProvider), new(*authn.Provider)),
 		provideAuthResultHandler,
+		wire.Bind(new(OAuthResultInteractionFlow), new(*interactionflows.AuthAPIFlow)),
 	)
 	return nil
 }

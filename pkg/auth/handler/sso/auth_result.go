@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
+	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -29,6 +30,10 @@ func AttachAuthResultHandler(
 		Methods("OPTIONS", "POST")
 }
 
+type OAuthResultInteractionFlow interface {
+	ExchangeCode(codeHash string, verifier string) (*interactionflows.AuthResult, error)
+}
+
 type AuthResultAuthnProvider interface {
 	OAuthConsumeCode(hashCode string) (*sso.SkygearAuthorizationCode, error)
 
@@ -46,6 +51,7 @@ type AuthResultHandler struct {
 	AuthnProvider AuthResultAuthnProvider
 	Validator     *validation.Validator
 	SSOProvider   sso.Provider
+	Interactions  OAuthResultInteractionFlow
 }
 
 func (h *AuthResultHandler) ProvideAuthzPolicy() coreauthz.Policy {
@@ -82,17 +88,31 @@ func (h *AuthResultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result authn.Result
+	var authnResult authn.Result
+	var result *interactionflows.AuthResult
 	err = db.WithTx(h.TxContext, func() (err error) {
-		result, err = h.Handle(r, payload)
+		result, err = h.Interactions.ExchangeCode(
+			payload.AuthorizationCode,
+			payload.CodeVerifier,
+		)
+		if err == nil {
+			return
+		}
+		// TODO(interaction-sso): sso-link remove after integrate with interactions
+		// try link in old flow
+		authnResult, err = h.Handle(r, payload)
 		return
 	})
 	if err != nil {
 		handler.WriteResponse(w, handler.APIResponse{Error: err})
 		return
 	}
-
-	h.AuthnProvider.WriteAPIResult(w, result)
+	if authnResult != nil {
+		h.AuthnProvider.WriteAPIResult(w, authnResult)
+	} else {
+		// new interaction login
+		result.WriteResponse(w)
+	}
 }
 
 func (h *AuthResultHandler) Handle(r *http.Request, payload *AuthResultPayload) (authn.Result, error) {

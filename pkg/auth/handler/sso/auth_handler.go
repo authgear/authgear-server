@@ -43,13 +43,13 @@ func (p AuthRequestPayload) Validate() error {
 	return nil
 }
 
-type AuthHandlerAuthnProvider interface {
-	OAuthAuthenticateCode(
-		authInfo sso.AuthInfo,
-		codeChallenge string,
-		loginState sso.LoginState,
-	) (*sso.SkygearAuthorizationCode, string, error)
+type OAuthHandlerInteractionFlow interface {
+	LoginWithOAuthProvider(
+		clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string,
+	) (string, error)
+}
 
+type AuthHandlerAuthnProvider interface {
 	OAuthLinkCode(
 		authInfo sso.AuthInfo,
 		codeChallenge string,
@@ -65,6 +65,7 @@ type AuthHandler struct {
 	SSOProvider             sso.Provider
 	AuthnProvider           AuthHandlerAuthnProvider
 	OAuthProvider           sso.OAuthProvider
+	Interactions            OAuthHandlerInteractionFlow
 }
 
 func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
@@ -172,7 +173,7 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (code string, err error) {
 	apiSSOState := AuthAPISSOState(state.Extra)
 	if state.Action == "login" {
-		_, code, err = h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LoginState)
+		code, err = h.Interactions.LoginWithOAuthProvider(state.APIClientID, oauthAuthInfo, apiSSOState.CodeChallenge())
 	} else {
 		_, code, err = h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LinkState)
 	}

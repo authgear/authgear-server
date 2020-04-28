@@ -58,17 +58,12 @@ func TestAuthPayload(t *testing.T) {
 	})
 }
 
-type MockAuthnOAuthProvider struct {
-	Code    *sso.SkygearAuthorizationCode
+type MockOAuthHandlerInteractionFlow struct {
 	CodeStr string
 }
 
-func (p *MockAuthnOAuthProvider) OAuthAuthenticateCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, codeStr string, err error) {
-	return p.Code, p.CodeStr, nil
-}
-
-func (p *MockAuthnOAuthProvider) OAuthLinkCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, codeStr string, err error) {
-	return p.Code, p.CodeStr, nil
+func (m *MockOAuthHandlerInteractionFlow) LoginWithOAuthProvider(clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string) (string, error) {
+	return m.CodeStr, nil
 }
 
 func TestAuthHandler(t *testing.T) {
@@ -118,23 +113,14 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
-		authnOAuthProvider := &MockAuthnOAuthProvider{}
-		sh.AuthnProvider = authnOAuthProvider
+		interactions := &MockOAuthHandlerInteractionFlow{}
+		sh.Interactions = interactions
 
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)
 
 		Convey("should write code in the response body if ux_mode is manual", func() {
-			authnOAuthProvider.CodeStr = "code"
-			codeHash := crypto.SHA256String(authnOAuthProvider.CodeStr)
-			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
-				CodeHash:            codeHash,
-				Action:              "login",
-				CodeChallenge:       "",
-				UserID:              "a",
-				PrincipalID:         "b",
-				SessionCreateReason: "signup",
-			}
+			interactions.CodeStr = "code"
 			// oauth state
 			state := sso.State{
 				APIClientID: "client-id",
@@ -160,21 +146,11 @@ func TestAuthHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
 			{
 				"result": "%s"
-			}`, authnOAuthProvider.CodeStr))
+			}`, interactions.CodeStr))
 		})
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
-			authnOAuthProvider.CodeStr = "code"
-			codeHash := crypto.SHA256String(authnOAuthProvider.CodeStr)
-			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
-				CodeHash:            codeHash,
-				Action:              "login",
-				CodeChallenge:       "",
-				UserID:              "a",
-				PrincipalID:         "b",
-				SessionCreateReason: "signup",
-			}
-
+			interactions.CodeStr = "code"
 			// oauth state
 			state := sso.State{
 				APIClientID: "client-id",
@@ -211,20 +187,11 @@ func TestAuthHandler(t *testing.T) {
 				"result": {
 					"result": "%s"
 				}
-			}`, authnOAuthProvider.CodeStr))
+			}`, interactions.CodeStr))
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
-			authnOAuthProvider.CodeStr = "code"
-			codeHash := crypto.SHA256String(authnOAuthProvider.CodeStr)
-			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
-				CodeHash:            codeHash,
-				Action:              "login",
-				CodeChallenge:       "",
-				UserID:              "a",
-				PrincipalID:         "b",
-				SessionCreateReason: "signup",
-			}
+			interactions.CodeStr = "code"
 			// oauth state
 			state := sso.State{
 				APIClientID: "client-id",
@@ -254,17 +221,7 @@ func TestAuthHandler(t *testing.T) {
 		})
 
 		Convey("should return callback url with result query parameter when ux_mode is mobile_app", func() {
-			authnOAuthProvider.CodeStr = "code"
-			codeHash := crypto.SHA256String(authnOAuthProvider.CodeStr)
-			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
-				CodeHash:            codeHash,
-				Action:              "login",
-				CodeChallenge:       "",
-				UserID:              "a",
-				PrincipalID:         "b",
-				SessionCreateReason: "signup",
-			}
-
+			interactions.CodeStr = "code"
 			// oauth state
 			state := sso.State{
 				APIClientID: "client-id",
@@ -299,7 +256,7 @@ func TestAuthHandler(t *testing.T) {
 				"result": {
 					"result": "%s"
 				}
-			}`, authnOAuthProvider.CodeStr))
+			}`, interactions.CodeStr))
 		})
 	})
 }

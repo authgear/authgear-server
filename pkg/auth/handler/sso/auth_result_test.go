@@ -3,6 +3,7 @@ package sso
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
@@ -20,6 +22,13 @@ import (
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
+
+type MockOAuthResultInteractionFlow struct {
+}
+
+func (p *MockOAuthResultInteractionFlow) ExchangeCode(codeHash string, verifier string) (*interactionflows.AuthResult, error) {
+	return nil, errors.New("not mocked")
+}
 
 type MockAuthResultAuthnProvider struct {
 	code *sso.SkygearAuthorizationCode
@@ -95,11 +104,11 @@ func TestAuthResultHandler(t *testing.T) {
 			AuthResultRequestSchema,
 		)
 		sh.Validator = validator
+		sh.Interactions = &MockOAuthResultInteractionFlow{}
 
 		Convey("invalid code verifier", func() {
-			// err := mockProvider.StoreSkygearAuthorizationCode(code)
-			// So(err, ShouldBeNil)
-
+			// this test is testing the old flow that
+			// code verifier is validation in handler
 			reqBody := map[string]interface{}{
 				"authorization_code": codeStr,
 				"code_verifier":      codeVerifier,
