@@ -21,8 +21,7 @@ import (
 type InteractionFlow interface {
 	LoginWithLoginID(loginID string) (*interactionflows.WebAppResult, error)
 	SignupWithLoginID(loginIDKey, loginID string) (*interactionflows.WebAppResult, error)
-	AuthenticatePassword(token string, password string) (*interactionflows.WebAppResult, error)
-	AuthenticateOOBOTP(token string, otp string) (*interactionflows.WebAppResult, error)
+	AuthenticateSecret(token string, password string) (*interactionflows.WebAppResult, error)
 	TriggerOOBOTP(tokens string) (*interactionflows.WebAppResult, error)
 	SetupPassword(token string, password string) (*interactionflows.WebAppResult, error)
 }
@@ -202,7 +201,7 @@ func (p *AuthenticateProviderImpl) PostLoginPassword(w http.ResponseWriter, r *h
 		return
 	}
 
-	result, err := p.Interactions.AuthenticatePassword(
+	result, err := p.Interactions.AuthenticateSecret(
 		r.Form.Get("x_interaction_token"),
 		r.Form.Get("x_password"),
 	)
@@ -243,7 +242,7 @@ func (p *AuthenticateProviderImpl) PostLoginOOBOTP(w http.ResponseWriter, r *htt
 	// to write interaction token to r.Form and
 	// and set cookies to w.
 	// It is not harmful to always do that.
-	result, err := p.Interactions.AuthenticateOOBOTP(
+	result, err := p.Interactions.AuthenticateSecret(
 		r.Form.Get("x_interaction_token"),
 		r.Form.Get("x_password"),
 	)

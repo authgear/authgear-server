@@ -112,6 +112,7 @@ func (f *WebAppFlow) AuthenticatePassword(token string, password string) (*WebAp
 
 	return f.afterPrimaryAuthentication(i)
 }
+
 func (f *WebAppFlow) SetupPassword(token string, password string) (*WebAppResult, error) {
 	i, err := f.Interactions.GetInteraction(token)
 	if err != nil {
@@ -175,7 +176,7 @@ func (f *WebAppFlow) SetupPassword(token string, password string) (*WebAppResult
 	}
 }
 
-func (f *WebAppFlow) AuthenticateOOBOTP(token string, otp string) (*WebAppResult, error) {
+func (f *WebAppFlow) AuthenticateSecret(token string, secret string) (*WebAppResult, error) {
 	i, err := f.Interactions.GetInteraction(token)
 	if err != nil {
 		return nil, err
@@ -186,13 +187,13 @@ func (f *WebAppFlow) AuthenticateOOBOTP(token string, otp string) (*WebAppResult
 		return nil, err
 	}
 
-	if len(s.Steps) <= 0 || len(s.Steps[0].AvailableAuthenticators) <= 0 || s.Steps[0].AvailableAuthenticators[0].Type != interaction.AuthenticatorTypeOOBOTP {
+	if len(s.Steps) <= 0 || len(s.Steps[0].AvailableAuthenticators) <= 0 {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
 	err = f.Interactions.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionAuthenticate{
 		Authenticator: s.Steps[0].AvailableAuthenticators[0],
-		Secret:        otp,
+		Secret:        secret,
 	})
 	if err != nil {
 		return nil, err
