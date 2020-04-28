@@ -77,6 +77,7 @@ func (f *AuthAPIFlow) LoginWithLoginIDPassword(
 	}
 }
 
+// TODO(interaction): support multiple login IDs
 func (f *AuthAPIFlow) SignupWithLoginIDPassword(
 	clientID string,
 	loginIDKey string,
