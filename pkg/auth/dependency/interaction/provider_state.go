@@ -79,7 +79,7 @@ func (p *Provider) getStateLogin(i *Interaction, intent *IntentLogin) (*State, e
 }
 
 func (p *Provider) getStateSignup(i *Interaction, intent *IntentSignup) (*State, error) {
-	primaryAuthenticators := p.getAvailablePrimaryAuthenticators(intent.Identity.Type)
+	primaryAuthenticators := p.getAvailablePrimaryAuthenticators(intent.Identity)
 	s := &State{}
 
 	// Setup primary authenticator
@@ -110,14 +110,20 @@ var identityPrimaryAuthenticators = map[authn.IdentityType]map[authn.Authenticat
 	},
 }
 
-func (p *Provider) getAvailablePrimaryAuthenticators(typ authn.IdentityType) []AuthenticatorSpec {
+func (p *Provider) getAvailablePrimaryAuthenticators(is IdentitySpec) []AuthenticatorSpec {
 	var as []AuthenticatorSpec
 	for _, t := range p.Config.PrimaryAuthenticators {
 		authenticatorType := authn.AuthenticatorType(t)
-		if !identityPrimaryAuthenticators[typ][authenticatorType] {
+		if !identityPrimaryAuthenticators[is.Type][authenticatorType] {
 			continue
 		}
-		as = append(as, AuthenticatorSpec{Type: authenticatorType, Props: map[string]interface{}{}})
+		spec := p.Identity.RelateIdentityToAuthenticator(is, &AuthenticatorSpec{
+			Type:  authenticatorType,
+			Props: map[string]interface{}{},
+		})
+		if spec != nil {
+			as = append(as, *spec)
+		}
 	}
 	return as
 }

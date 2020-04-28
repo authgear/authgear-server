@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -17,6 +18,7 @@ type LoginIDIdentityProvider interface {
 	New(userID string, loginID loginid.LoginID) *loginid.Identity
 	Create(i *loginid.Identity) error
 	Validate(loginIDs []loginid.LoginID) error
+	Normalize(loginID loginid.LoginID) (normalized *loginid.LoginID, typ string, err error)
 }
 
 type OAuthIdentityProvider interface {
@@ -169,6 +171,38 @@ func (a *IdentityAdaptor) Validate(is []*interaction.IdentityInfo) error {
 	}
 
 	return nil
+}
+
+func (a *IdentityAdaptor) RelateIdentityToAuthenticator(is interaction.IdentitySpec, as *interaction.AuthenticatorSpec) *interaction.AuthenticatorSpec {
+	switch is.Type {
+	case authn.IdentityTypeLoginID:
+		// Early return for other authenticators.
+		if as.Type != interaction.AuthenticatorTypeOOBOTP {
+			return as
+		}
+
+		loginID, loginIDType, err := a.LoginID.Normalize(extractLoginIDClaims(is.Claims))
+		if err != nil {
+			return nil
+		}
+
+		switch loginIDType {
+		case string(metadata.Email):
+			as.Props[interaction.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelEmail)
+			as.Props[interaction.AuthenticatorPropOOBOTPEmail] = loginID.Value
+			return as
+		case string(metadata.Phone):
+			as.Props[interaction.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelSMS)
+			as.Props[interaction.AuthenticatorPropOOBOTPPhone] = loginID.Value
+			return as
+		default:
+			return nil
+		}
+	case authn.IdentityTypeOAuth:
+		return nil
+	}
+
+	panic("interaction_adaptors: unknown identity type " + is.Type)
 }
 
 func extractLoginIDClaims(claims map[string]interface{}) loginid.LoginID {

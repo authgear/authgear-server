@@ -87,6 +87,26 @@ func (p *Provider) IsLoginIDKeyType(loginIDKey string, loginIDKeyType metadata.S
 	return p.LoginIDChecker.CheckType(loginIDKey, loginIDKeyType)
 }
 
+func (p *Provider) Normalize(loginID loginid.LoginID) (normalized *loginid.LoginID, typ string, err error) {
+	config := p.lookupLoginIDConfig(loginID)
+	if config == nil {
+		panic("loginid: unknown login ID key " + loginID.Key)
+	}
+
+	normalizer := p.LoginIDNormalizerFactory.NormalizerWithLoginIDKey(loginID.Key)
+	normalizedloginID, err := normalizer.Normalize(loginID.Value)
+	if err != nil {
+		return
+	}
+
+	normalized = &loginid.LoginID{
+		Key:   loginID.Key,
+		Value: normalizedloginID,
+	}
+	typ = string(config.Type)
+	return
+}
+
 func (p *Provider) Validate(loginIDs []loginid.LoginID) error {
 	return p.LoginIDChecker.Validate(loginIDs)
 }
