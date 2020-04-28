@@ -1,3 +1,7 @@
+/* NOTE(1) */
+/* The font-size of focusable elements must be >= 16px otherwise */
+/* Safari iOS will zoom the page. */
+
 html, body {
   margin: 0;
   padding: 0;
@@ -58,13 +62,15 @@ select {
 }
 
 .btn {
-  font-size: 14px;
+  /* NOTE(1) */
+  font-size: 16px;
 }
 
 .input {
   border: none;
   border-radius: 0;
-  font-size: 14px;
+  /* NOTE(1) */
+  font-size: 16px;
   border-bottom-style: solid;
   border-bottom-width: 1px;
   border-bottom-color: #a19f9d;
