@@ -69,35 +69,5 @@ func TestDoTriggerOOB(t *testing.T) {
 			So(i.State[AuthenticatorStateOOBOTPCode], ShouldEqual, "0")
 			So(i.State[AuthenticatorStateOOBOTPTriggerTime], ShouldEqual, "2006-01-02T15:04:06Z")
 		})
-
-		Convey("switch authenticator", func() {
-			i := &Interaction{}
-			spec1 := AuthenticatorSpec{
-				ID:   "1",
-				Type: AuthenticatorTypeOOBOTP,
-			}
-			action := &ActionTriggerOOBAuthenticator{
-				Authenticator: spec1,
-			}
-
-			p.doTriggerOOB(i, action)
-			So(i.State[AuthenticatorStateOOBOTPID], ShouldEqual, "1")
-			So(i.State[AuthenticatorStateOOBOTPCode], ShouldEqual, "0")
-			So(i.State[AuthenticatorStateOOBOTPTriggerTime], ShouldEqual, "2006-01-02T15:04:05Z")
-
-			timeProvider.AdvanceSeconds(1)
-			spec2 := AuthenticatorSpec{
-				ID:   "2",
-				Type: AuthenticatorTypeOOBOTP,
-			}
-			action = &ActionTriggerOOBAuthenticator{
-				Authenticator: spec2,
-			}
-
-			p.doTriggerOOB(i, action)
-			So(i.State[AuthenticatorStateOOBOTPID], ShouldEqual, "2")
-			So(i.State[AuthenticatorStateOOBOTPCode], ShouldEqual, "1")
-			So(i.State[AuthenticatorStateOOBOTPTriggerTime], ShouldEqual, "2006-01-02T15:04:06Z")
-		})
 	})
 }

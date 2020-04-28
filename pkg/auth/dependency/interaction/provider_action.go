@@ -151,12 +151,8 @@ func (p *Provider) setupAuthenticator(i *Interaction, step *StepState, astate *m
 func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenticator) (err error) {
 	spec := action.Authenticator
 
-	if spec.ID == "" {
-		panic("expected ActionTriggerOOBAuthenticator.Authenticator.ID to be present")
-	}
-
 	if spec.Type != AuthenticatorTypeOOBOTP {
-		panic("unexpected ActionTriggerOOBAuthenticator.Authenticator.Type: " + spec.Type)
+		panic("interaction: unexpected ActionTriggerOOBAuthenticator.Authenticator.Type: " + spec.Type)
 	}
 
 	now := p.Time.NowUTC()
@@ -169,15 +165,9 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 		i.State = map[string]string{}
 	}
 
-	// Check if the authenticator has been changed or unset at all.
-	// If authenticator changes, generate a new code.
-	id := i.State[AuthenticatorStateOOBOTPID]
-	if id != spec.ID {
-		id = spec.ID
-		delete(i.State, AuthenticatorStateOOBOTPCode)
-	}
-
 	// Check if we have a code already.
+	// The code remains unchanged through out the entire interaction once it was generated.
+	// Therefore it expires when the interaction expires.
 	code := i.State[AuthenticatorStateOOBOTPCode]
 	if code == "" {
 		code = p.OOB.GenerateCode()
@@ -189,7 +179,12 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 	}
 
 	// Perform mutation on interaction at the end.
-	i.State[AuthenticatorStateOOBOTPID] = id
+
+	// This function can be called by login or signup.
+	// In case of signup, the spec does not have an ID yet.
+	if spec.ID != "" {
+		i.State[AuthenticatorStateOOBOTPID] = spec.ID
+	}
 	i.State[AuthenticatorStateOOBOTPCode] = code
 	i.State[AuthenticatorStateOOBOTPTriggerTime] = string(triggerTime)
 

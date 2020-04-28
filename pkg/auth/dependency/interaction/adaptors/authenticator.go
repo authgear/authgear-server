@@ -328,18 +328,27 @@ func (a *AuthenticatorAdaptor) Authenticate(userID string, spec interaction.Auth
 		id := (*state)[interaction.AuthenticatorStateOOBOTPID]
 		code := (*state)[interaction.AuthenticatorStateOOBOTPCode]
 
-		o, err := a.OOBOTP.Get(userID, id)
-		if errors.Is(err, authenticator.ErrAuthenticatorNotFound) {
-			return nil, interaction.ErrInvalidCredentials
-		} else if err != nil {
-			return nil, err
+		var o *oob.Authenticator
+		// This function can be called by login or signup.
+		// In case of login, we must check if the authenticator belongs to the user.
+		if id != "" {
+			var err error
+			o, err = a.OOBOTP.Get(userID, id)
+			if errors.Is(err, authenticator.ErrAuthenticatorNotFound) {
+				return nil, interaction.ErrInvalidCredentials
+			} else if err != nil {
+				return nil, err
+			}
 		}
 
 		if a.OOBOTP.Authenticate(code, secret) != nil {
 			return nil, interaction.ErrInvalidCredentials
 		}
-		return oobotpToAuthenticatorInfo(o), nil
 
+		if o != nil {
+			return oobotpToAuthenticatorInfo(o), nil
+		}
+		return nil, nil
 	case authn.AuthenticatorTypeBearerToken:
 		b, err := a.BearerToken.GetByToken(userID, secret)
 		if errors.Is(err, authenticator.ErrAuthenticatorNotFound) {
