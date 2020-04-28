@@ -186,6 +186,8 @@ var interactionDependencySet = wire.NewSet(
 	wire.Bind(new(interactionflows.InteractionProvider), new(*interaction.Provider)),
 
 	wire.Bind(new(webapp.InteractionFlow), new(*interactionflows.WebAppFlow)),
+
+	wire.Bind(new(hook.LoginIDProvider), new(*identityloginid.Provider)),
 )
 
 var CommonDependencySet = wire.NewSet(

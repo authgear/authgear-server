@@ -28,7 +28,6 @@ import (
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
-	password2 "github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	redis4 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
@@ -85,8 +84,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
-	provider2 := password2.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, provider2, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, loginidProvider, factory)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(store, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration)
 	authorizationStore := &pq3.AuthorizationStore{
@@ -161,8 +159,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
-	provider2 := password2.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, provider2, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, loginidProvider, factory)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(store, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration)
 	authorizationStore := &pq3.AuthorizationStore{
@@ -206,10 +203,9 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	passwordhistoryStore := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password2.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
 	sessionStore := redis4.ProvideStore(context, tenantConfiguration, provider, factory)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)

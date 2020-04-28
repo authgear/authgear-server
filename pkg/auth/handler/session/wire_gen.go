@@ -10,11 +10,10 @@ import (
 	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
 	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
-	pq3 "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -92,11 +91,10 @@ func newListHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	requestID := auth.ProvideLoggingRequestID(r)
-	passwordhistoryStore := pq3.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -129,11 +127,10 @@ func newGetHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	requestID := auth.ProvideLoggingRequestID(r)
-	passwordhistoryStore := pq3.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -167,11 +164,10 @@ func newRevokeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	requestID := auth.ProvideLoggingRequestID(r)
-	passwordhistoryStore := pq3.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -205,11 +201,10 @@ func newRevokeAllHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	requestID := auth.ProvideLoggingRequestID(r)
-	passwordhistoryStore := pq3.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)

@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	pq2 "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
@@ -48,7 +49,8 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	executor := auth.ProvideTaskExecutor(m)
@@ -80,7 +82,8 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	executor := auth.ProvideTaskExecutor(m)

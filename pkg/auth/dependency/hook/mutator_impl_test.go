@@ -3,7 +3,7 @@ package hook
 import (
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -12,6 +12,21 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+type mockLoginIDProvider struct {
+	Identities []loginid.Identity
+}
+
+func (p *mockLoginIDProvider) List(userID string) ([]*loginid.Identity, error) {
+	var is []*loginid.Identity
+	for _, i := range p.Identities {
+		if i.UserID == userID {
+			ii := i
+			is = append(is, &ii)
+		}
+	}
+	return is, nil
+}
 
 func TestMutator(t *testing.T) {
 	Convey("Hook Mutator", t, func() {
@@ -22,10 +37,7 @@ func TestMutator(t *testing.T) {
 				config.UserVerificationKeyConfiguration{Key: "email"},
 			},
 		}
-		passwordAuthProvider := password.NewMockProvider(
-			[]config.LoginIDKeyConfiguration{},
-			[]string{},
-		)
+		loginIDProvider := &mockLoginIDProvider{}
 		authInfoStore := authinfo.NewMockStore()
 		userProfileStore := userprofile.NewMockUserProfileStore()
 
@@ -38,14 +50,14 @@ func TestMutator(t *testing.T) {
 					VerifyInfo: user.VerifyInfo,
 				},
 			}
-			passwordAuthProvider.PrincipalMap = map[string]password.Principal{
-				"principal-id-1": password.Principal{
+			loginIDProvider.Identities = []loginid.Identity{
+				{
 					ID:         "principal-id-1",
 					UserID:     user.ID,
 					LoginIDKey: "email",
 					LoginID:    "test-1@example.com",
 				},
-				"principal-id-2": password.Principal{
+				{
 					ID:         "principal-id-2",
 					UserID:     user.ID,
 					LoginIDKey: "email",
@@ -75,7 +87,7 @@ func TestMutator(t *testing.T) {
 
 		newBool := func(v bool) *bool { return &v }
 
-		mutator := NewMutator(verifyConfig, passwordAuthProvider, authInfoStore, userProfileStore)
+		mutator := NewMutator(verifyConfig, loginIDProvider, authInfoStore, userProfileStore)
 
 		Convey("should do nothing", func() {
 			user := model.User{

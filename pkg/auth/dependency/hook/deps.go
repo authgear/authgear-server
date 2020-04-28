@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -24,7 +23,7 @@ func ProvideHookProvider(
 	timeProvider time.Provider,
 	authInfoStore authinfo.Store,
 	userProfileStore userprofile.Store,
-	passwordProvider password.Provider,
+	loginIDProvider LoginIDProvider,
 	loggerFactory logging.Factory,
 ) Provider {
 	return NewProvider(
@@ -40,7 +39,7 @@ func ProvideHookProvider(
 			timeProvider,
 			NewMutator(
 				tConfig.AppConfig.UserVerification,
-				passwordProvider,
+				loginIDProvider,
 				authInfoStore,
 				userProfileStore,
 			),

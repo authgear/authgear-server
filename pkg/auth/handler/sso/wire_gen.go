@@ -81,7 +81,8 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	loginIDChecker := loginid.ProvideLoginIDChecker(tenantConfiguration, reservedNameChecker)
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, passwordProvider, factory)
+	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
 	signupProcess := authn.ProvideSignupProcess(passwordChecker, loginIDChecker, identityProvider, passwordProvider, oauthProvider, timeProvider, authinfoStore, userprofileStore, hookProvider, tenantConfiguration, provider, queue)
@@ -134,7 +135,6 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, provider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, timeProvider)
-	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
 	provider2 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	identityAdaptor := &adaptors.IdentityAdaptor{
 		LoginID: loginidProvider,
@@ -189,7 +189,8 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	loginIDChecker := loginid.ProvideLoginIDChecker(tenantConfiguration, reservedNameChecker)
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, passwordProvider, factory)
+	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, loginidProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
@@ -241,7 +242,6 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	validator := auth.ProvideValidator(m)
 	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
-	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
 	provider2 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
 	identityAdaptor := &adaptors.IdentityAdaptor{
 		LoginID: loginidProvider,
@@ -294,7 +294,8 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	loginIDChecker := loginid.ProvideLoginIDChecker(tenantConfiguration, reservedNameChecker)
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, passwordProvider, factory)
+	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
@@ -392,8 +393,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	provider2 := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, provider2, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration)
 	authorizationStore := &pq4.AuthorizationStore{
@@ -508,10 +508,9 @@ func newUnlinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	store := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	timeProvider := time.NewProvider()
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	passwordhistoryStore := pq.ProvidePasswordHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, store, userprofileStore, passwordProvider, factory)
+	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, store, userprofileStore, loginidProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := ProvideRedirectURIForAPIFunc()

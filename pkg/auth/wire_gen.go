@@ -10,11 +10,10 @@ import (
 	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
 	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
-	pq3 "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -130,11 +129,10 @@ func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
 	requestID := ProvideLoggingRequestID(r)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	passwordhistoryStore := pq3.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	reservedNameChecker := ProvideReservedNameChecker(m)
-	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, passwordProvider, factory)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	insecureCookieConfig := ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
