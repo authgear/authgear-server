@@ -295,49 +295,6 @@ button.anchor {
   margin: 6px 0 30px 0;
 }
 
-.enter-password-form {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.enter-password-form .title {
-  font-size: 24px;
-  font-weight: 600;
-  padding: 8px 0;
-  margin: 0 0 30px 0;
-}
-
-.enter-password-form .description {
-  font-size: 12px;
-  padding: 8px 0;
-  margin: 0;
-}
-
-.enter-password-form .login-id {
-  padding: 0 10px;
-}
-
-.enter-password-form .nav-bar {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.enter-password-form .anchor {
-  display: block;
-  padding: 4px 0;
-}
-
-.enter-password-form #password {
-  display: block;
-  margin: 0 0 20px 0;
-}
-
-.enter-password-form .password-visibility-btn {
-  margin: 0 0 20px 0;
-}
-
 .password-visibility-btn {
   max-width: 170px;
   padding: 0 0 0 12px;
@@ -373,110 +330,41 @@ button.anchor {
   align-self: center;
 }
 
-.forgot-password-form {
+.simple-form {
   display: flex;
   flex-direction: column;
   padding: 20px;
 }
 
-.forgot-password-form .title {
+.simple-form .title {
   font-size: 24px;
   font-weight: 600;
-  padding: 8px 0;
-  margin: 0 0 12px 0;
 }
 
-.forgot-password-form .description {
+.simple-form .description {
   font-size: 12px;
-  padding: 8px 0;
-  margin: 12px 0;
 }
 
-.forgot-password-form .login-id {
-  padding: 0 10px;
-}
-
-.forgot-password-form .nav-bar {
+.simple-form .nav-bar {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
 
-.forgot-password-form .anchor {
-  display: block;
+.simple-form .login-id {
+  margin: 0 10px;
+}
+
+.simple-form .anchor {
   padding: 4px 0;
 }
 
-.forgot-password-form .submit-btn {
-  margin: 24px 0 0 0;
+.simple-form > input,
+.simple-form > div {
+  margin: 10px 0;
 }
 
-.forgot-password-success {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.forgot-password-success .title {
-  font-size: 24px;
-  font-weight: 600;
-  padding: 8px 0;
-  margin: 0 0 12px 0;
-}
-
-.forgot-password-success .description {
-  font-size: 12px;
-  padding: 8px 0;
-  margin: 12px 0;
-}
-
-.reset-password-form {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.reset-password-form .title {
-  font-size: 24px;
-  font-weight: 600;
-  padding: 8px 0;
-  margin: 0 0 12px 0;
-}
-
-.reset-password-form .description {
-  font-size: 12px;
-  padding: 8px 0;
-  margin: 12px 0;
-}
-
-.reset-password-form #password {
-  display: block;
-  margin: 12px 0;
-}
-
-.reset-password-form .password-visibility-btn {
-  margin: 12px 0;
-}
-
-.reset-password-form .submit-btn {
-  margin: 12px 0;
-}
-
-.reset-password-success {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.reset-password-success .title {
-  font-size: 24px;
-  font-weight: 600;
-  padding: 8px 0;
-  margin: 0 0 12px 0;
-}
-
-.reset-password-success .description {
-  font-size: 12px;
-  padding: 8px 0;
-  margin: 12px 0;
+.simple-form > .anchor,
+.simple-form > .btn {
+  margin: 2px 0;
 }

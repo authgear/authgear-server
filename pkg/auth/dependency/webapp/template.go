@@ -319,7 +319,7 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="enter-password-form" method="post">
+<form class="simple-form enter-password-form" method="post">
 {{ $.csrfField }}
 
 <div class="nav-bar">
@@ -374,7 +374,7 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="forgot-password-form" method="post">
+<form class="simple-form forgot-password-form" method="post">
 {{ $.csrfField }}
 
 <div class="nav-bar">
@@ -443,7 +443,7 @@ var TemplateAuthUIForgotPasswordSuccessHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<div class="forgot-password-success">
+<div class="simple-form forgot-password-success">
 
 <div class="title primary-txt">{{ localize "forgot-password-success-page-title" }}</div>
 
@@ -476,7 +476,7 @@ var TemplateAuthUIResetPasswordHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="reset-password-form" method="post">
+<form class="simple-form reset-password-form" method="post">
 {{ $.csrfField }}
 
 <div class="title primary-txt">{{ localize "reset-password-page-title" }}</div>
@@ -518,7 +518,7 @@ var TemplateAuthUIResetPasswordSuccessHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<div class="reset-password-success">
+<div class="simple-form reset-password-success">
 
 <div class="title primary-txt">{{ localize "reset-password-success-page-title" }}</div>
 
@@ -619,7 +619,7 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="enter-password-form" method="post">
+<form class="simple-form enter-password-form" method="post">
 {{ $.csrfField }}
 <input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
 <input type="hidden" name="x_calling_code" value="{{ .x_calling_code }}">
