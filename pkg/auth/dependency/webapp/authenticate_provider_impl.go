@@ -21,9 +21,9 @@ import (
 type InteractionFlow interface {
 	LoginWithLoginID(loginID string) (*interactionflows.WebAppResult, error)
 	SignupWithLoginID(loginIDKey, loginID string) (*interactionflows.WebAppResult, error)
-	AuthenticateSecret(token string, password string) (*interactionflows.WebAppResult, error)
+	AuthenticateSecret(token string, secret string) (*interactionflows.WebAppResult, error)
 	TriggerOOBOTP(tokens string) (*interactionflows.WebAppResult, error)
-	SetupPassword(token string, password string) (*interactionflows.WebAppResult, error)
+	SetupSecret(token string, secret string) (*interactionflows.WebAppResult, error)
 }
 
 type AuthenticateProviderImpl struct {
@@ -184,36 +184,7 @@ func (p *AuthenticateProviderImpl) GetLoginPasswordForm(w http.ResponseWriter, r
 }
 
 func (p *AuthenticateProviderImpl) PostLoginPassword(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
-	writeResponse = func(err error) {
-		r.Form.Del("x_password")
-		p.persistState(r, err)
-		if err != nil {
-			RedirectToCurrentPath(w, r)
-		} else {
-			RedirectToRedirectURI(w, r)
-		}
-	}
-
-	p.ValidateProvider.PrepareValues(r.Form)
-
-	err = p.ValidateProvider.Validate("#WebAppLoginLoginIDPasswordRequest", r.Form)
-	if err != nil {
-		return
-	}
-
-	result, err := p.Interactions.AuthenticateSecret(
-		r.Form.Get("x_interaction_token"),
-		r.Form.Get("x_password"),
-	)
-	if err != nil {
-		return
-	}
-
-	for _, cookie := range result.Cookies {
-		corehttp.UpdateCookie(w, cookie)
-	}
-
-	return
+	return p.PostLoginOOBOTP(w, r)
 }
 
 func (p *AuthenticateProviderImpl) GetLoginOOBOTPForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
@@ -289,13 +260,27 @@ func (p *AuthenticateProviderImpl) GetSignupPasswordForm(w http.ResponseWriter, 
 	return p.get(w, r, "#WebAppSignupLoginIDRequest", TemplateItemTypeAuthUISignupPasswordHTML)
 }
 
+func (p *AuthenticateProviderImpl) GetSignupOOBOTPForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	return p.get(w, r, "#WebAppSignupLoginIDRequest", TemplateItemTypeAuthUIOOBOTPHTML)
+}
+
 func (p *AuthenticateProviderImpl) PostSignupLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	var result *interactionflows.WebAppResult
 	writeResponse = func(err error) {
 		p.persistState(r, err)
 		if err != nil {
 			RedirectToCurrentPath(w, r)
 		} else {
-			RedirectToPathWithQueryPreserved(w, r, "/signup/password")
+			var nextPath string
+			switch result.Step {
+			case interactionflows.WebAppStepSetupPassword:
+				nextPath = "/signup/password"
+			case interactionflows.WebAppStepSetupOOBOTP:
+				nextPath = "/signup/oob_otp"
+			default:
+				panic("interaction_flow_webapp: unexpected step " + result.Step)
+			}
+			RedirectToPathWithQueryPreserved(w, r, nextPath)
 		}
 	}
 
@@ -311,7 +296,7 @@ func (p *AuthenticateProviderImpl) PostSignupLoginID(w http.ResponseWriter, r *h
 		return
 	}
 
-	result, err := p.Interactions.SignupWithLoginID(
+	result, err = p.Interactions.SignupWithLoginID(
 		r.Form.Get("x_login_id_key"),
 		r.Form.Get("x_login_id"),
 	)
@@ -324,6 +309,10 @@ func (p *AuthenticateProviderImpl) PostSignupLoginID(w http.ResponseWriter, r *h
 }
 
 func (p *AuthenticateProviderImpl) PostSignupPassword(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	return p.PostSignupOOBOTP(w, r)
+}
+
+func (p *AuthenticateProviderImpl) PostSignupOOBOTP(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
 		r.Form.Del("x_password")
 		p.persistState(r, err)
@@ -341,7 +330,7 @@ func (p *AuthenticateProviderImpl) PostSignupPassword(w http.ResponseWriter, r *
 		return
 	}
 
-	result, err := p.Interactions.SetupPassword(
+	result, err := p.Interactions.SetupSecret(
 		r.Form.Get("x_interaction_token"),
 		r.Form.Get("x_password"),
 	)

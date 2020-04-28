@@ -76,67 +76,62 @@ func (f *WebAppFlow) SignupWithLoginID(loginIDKey, loginID string) (*WebAppResul
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
+	step := WebAppStepSetupPassword
+	// Trigger OOB OTP if the first authenticator is OOB OTP
+	if len(s.Steps[0].AvailableAuthenticators) > 0 && s.Steps[0].AvailableAuthenticators[0].Type == interaction.AuthenticatorTypeOOBOTP {
+		step = WebAppStepSetupOOBOTP
+		err = f.Interactions.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionTriggerOOBAuthenticator{
+			Authenticator: s.Steps[0].AvailableAuthenticators[0],
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	token, err := f.Interactions.SaveInteraction(i)
 	if err != nil {
 		return nil, err
 	}
 
 	return &WebAppResult{
-		Step:  WebAppStepSetupPassword,
+		Step:  step,
 		Token: token,
 	}, nil
 }
 
-func (f *WebAppFlow) AuthenticatePassword(token string, password string) (*WebAppResult, error) {
+func (f *WebAppFlow) SetupSecret(token string, secret string) (*WebAppResult, error) {
 	i, err := f.Interactions.GetInteraction(token)
 	if err != nil {
 		return nil, err
-	}
-
-	err = f.Interactions.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionAuthenticate{
-		Authenticator: interaction.AuthenticatorSpec{Type: authn.AuthenticatorTypePassword},
-		Secret:        password,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = f.Interactions.SaveInteraction(i)
-	if err != nil {
-		return nil, err
-	}
-
-	if i.Error != nil {
-		return nil, i.Error
-	}
-
-	return f.afterPrimaryAuthentication(i)
-}
-
-func (f *WebAppFlow) SetupPassword(token string, password string) (*WebAppResult, error) {
-	i, err := f.Interactions.GetInteraction(token)
-	if err != nil {
-		return nil, err
-	}
-
-	err = f.Interactions.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionSetupAuthenticator{
-		Authenticator: interaction.AuthenticatorSpec{Type: authn.AuthenticatorTypePassword},
-		Secret:        password,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = f.Interactions.SaveInteraction(i)
-	if err != nil {
-		return nil, err
-	}
-
-	if i.Error != nil {
-		return nil, i.Error
 	}
 
 	s, err := f.Interactions.GetInteractionState(i)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(s.Steps) <= 0 || len(s.Steps[0].AvailableAuthenticators) <= 0 {
+		panic("interaction_flow_webapp: unexpected interaction state")
+	}
+
+	err = f.Interactions.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionSetupAuthenticator{
+		Authenticator: s.Steps[0].AvailableAuthenticators[0],
+		Secret:        secret,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = f.Interactions.SaveInteraction(i)
+	if err != nil {
+		return nil, err
+	}
+
+	if i.Error != nil {
+		return nil, i.Error
+	}
+
+	s, err = f.Interactions.GetInteractionState(i)
 	if err != nil {
 		return nil, err
 	} else if s.CurrentStep().Step != interaction.StepCommit {

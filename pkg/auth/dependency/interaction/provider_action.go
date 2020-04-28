@@ -96,7 +96,11 @@ func (p *Provider) performActionSignup(i *Interaction, intent *IntentSignup, ste
 			return nil
 
 		case *ActionTriggerOOBAuthenticator:
-			// TODO(interaction): handle OOB trigger
+			err := p.doTriggerOOB(i, action)
+			if err != nil {
+				return err
+			}
+			return nil
 		default:
 			panic(fmt.Sprintf("interaction_signup: unhandled authenticate action %T", action))
 		}
@@ -138,7 +142,19 @@ func (p *Provider) setupAuthenticator(i *Interaction, step *StepState, astate *m
 		return nil, ErrInvalidAction
 	}
 
-	// TODO(interaction): special handling for OTP
+	switch as.Type {
+	case AuthenticatorTypePassword:
+		// Nothing special needs to be done
+		break
+	case AuthenticatorTypeOOBOTP:
+		_, err := p.Authenticator.Authenticate( /* userID */ "", as, astate, secret)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		panic("interaction_signup: setup up unexpected authenticator type: " + as.Type)
+	}
+
 	ais, err := p.Authenticator.New(i.UserID, as, secret)
 	if err != nil {
 		return nil, err
