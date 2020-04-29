@@ -407,6 +407,11 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-oob-otp-button-label" }}</button>
 
+<div class="link">
+	<span class="primary-txt">{{ localize "oob-otp-resend-button-hint" }}</span>
+	<button class="anchor" type="submit" name="trigger" value="true">{{ localize "oob-otp-resend-button-label" }}</button>
+</div>
+
 </form>
 {{ template "auth_ui_footer.html" . }}
 

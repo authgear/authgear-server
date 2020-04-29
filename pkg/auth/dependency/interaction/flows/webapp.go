@@ -206,7 +206,7 @@ func (f *WebAppFlow) AuthenticateSecret(token string, secret string) (*WebAppRes
 	return f.afterPrimaryAuthentication(i)
 }
 
-func (f *WebAppFlow) TriggerOOBOTP(token string) (*WebAppResult, error) {
+func (f *WebAppFlow) TriggerOOBOTP(token string, step interaction.Step) (*WebAppResult, error) {
 	i, err := f.Interactions.GetInteraction(token)
 	if err != nil {
 		return nil, err
@@ -221,7 +221,7 @@ func (f *WebAppFlow) TriggerOOBOTP(token string) (*WebAppResult, error) {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
-	err = f.Interactions.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionTriggerOOBAuthenticator{
+	err = f.Interactions.PerformAction(i, step, &interaction.ActionTriggerOOBAuthenticator{
 		Authenticator: s.Steps[0].AvailableAuthenticators[0],
 	})
 	if err != nil {

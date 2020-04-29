@@ -23,7 +23,7 @@ func AttachLoginOOBOTPHandler(
 type loginOOBOTPProvider interface {
 	GetLoginOOBOTPForm(w http.ResponseWriter, r *http.Request) (func(err error), error)
 	PostLoginOOBOTP(w http.ResponseWriter, r *http.Request) (func(err error), error)
-	TriggerOOBOTP(w http.ResponseWriter, r *http.Request) (func(err error), error)
+	TriggerLoginOOBOTP(w http.ResponseWriter, r *http.Request) (func(err error), error)
 }
 
 type LoginOOBOTPHandler struct {
@@ -45,7 +45,13 @@ func (h *LoginOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if r.Method == "POST" {
-			// TODO(interaction): resend OOB OTP
+			if r.Form.Get("trigger") == "true" {
+				r.Form.Del("trigger")
+				writeResponse, err := h.Provider.TriggerLoginOOBOTP(w, r)
+				writeResponse(err)
+				return err
+			}
+
 			writeResponse, err := h.Provider.PostLoginOOBOTP(w, r)
 			writeResponse(err)
 			return err

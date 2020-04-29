@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -22,7 +23,7 @@ type InteractionFlow interface {
 	LoginWithLoginID(loginID string) (*interactionflows.WebAppResult, error)
 	SignupWithLoginID(loginIDKey, loginID string) (*interactionflows.WebAppResult, error)
 	AuthenticateSecret(token string, secret string) (*interactionflows.WebAppResult, error)
-	TriggerOOBOTP(tokens string) (*interactionflows.WebAppResult, error)
+	TriggerOOBOTP(token string, step interaction.Step) (*interactionflows.WebAppResult, error)
 	SetupSecret(token string, secret string) (*interactionflows.WebAppResult, error)
 }
 
@@ -228,7 +229,7 @@ func (p *AuthenticateProviderImpl) PostLoginOOBOTP(w http.ResponseWriter, r *htt
 	return
 }
 
-func (p *AuthenticateProviderImpl) TriggerOOBOTP(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+func (p *AuthenticateProviderImpl) TriggerLoginOOBOTP(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
 		r.Form.Del("x_password")
 		p.persistState(r, err)
@@ -237,12 +238,36 @@ func (p *AuthenticateProviderImpl) TriggerOOBOTP(w http.ResponseWriter, r *http.
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	err = p.ValidateProvider.Validate("#WebAppLoginLoginIDPasswordRequest", r.Form)
+	err = p.ValidateProvider.Validate("#WebAppLoginLoginIDRequest", r.Form)
 	if err != nil {
 		return
 	}
 
-	result, err := p.Interactions.TriggerOOBOTP(r.Form.Get("x_interaction_token"))
+	result, err := p.Interactions.TriggerOOBOTP(r.Form.Get("x_interaction_token"), interaction.StepAuthenticatePrimary)
+	if err != nil {
+		return
+	}
+
+	r.Form["x_interaction_token"] = []string{result.Token}
+
+	return
+}
+
+func (p *AuthenticateProviderImpl) TriggerSignupOOBOTP(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	writeResponse = func(err error) {
+		r.Form.Del("x_password")
+		p.persistState(r, err)
+		RedirectToCurrentPath(w, r)
+	}
+
+	p.ValidateProvider.PrepareValues(r.Form)
+
+	err = p.ValidateProvider.Validate("#WebAppSignupLoginIDRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	result, err := p.Interactions.TriggerOOBOTP(r.Form.Get("x_interaction_token"), interaction.StepSetupPrimaryAuthenticator)
 	if err != nil {
 		return
 	}
