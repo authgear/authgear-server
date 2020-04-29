@@ -50,6 +50,7 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 }
 
 func (p *Provider) onCommitSignup(i *Interaction, intent *IntentSignup) error {
+	// TODO(interaction-sso): handle OnUserDuplicateMerge
 	if intent.OnUserDuplicate == model.OnUserDuplicateAbort {
 		emailIdentities := map[string]struct{}{}
 		for _, i := range i.NewIdentities {
