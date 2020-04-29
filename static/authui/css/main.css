@@ -22,8 +22,14 @@ button {
   padding: 0;
   background-color: transparent;
   border: none;
-  /* cursor: pointer is required because appearance: none makes cursor non-poiner */
+}
+
+button:not([disabled]):hover {
   cursor: pointer;
+}
+
+button[disabled] {
+  cursor: not-allowed;
 }
 
 select {
@@ -103,10 +109,6 @@ select {
 .text-input {
   background-color: transparent;
   padding: 0 8px;
-}
-
-.btn:hover {
-  cursor: pointer;
 }
 
 .primary-btn {

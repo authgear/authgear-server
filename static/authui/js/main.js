@@ -120,7 +120,37 @@ window.addEventListener("load", function() {
     });
   }
 
+  function attachResendButtonBehavior() {
+    var el = document.querySelector("#resend-button");
+    if (el == null) {
+      return;
+    }
+
+
+    var scheduledAt = new Date();
+    var countDown = 60 * 1000;
+    var token;
+    var tick = function() {
+      var now = new Date();
+      var timeElapsed = now - scheduledAt;
+
+      var displaySeconds = 0;
+      if (timeElapsed > countDown) {
+        el.disabled = false;
+        clearInterval(token);
+      } else {
+        el.disabled = true;
+        displaySeconds = Math.round((countDown - timeElapsed) / 1000);
+      }
+
+      el.textContent = (el.textContent || "").replace(/\d+/, String(displaySeconds));
+    }
+    token = setInterval(tick, 500);
+    tick();
+  }
+
   attachPasswordVisibilityClick();
   attachBackButtonClick();
   attachPasswordPolicyCheck();
+  attachResendButtonBehavior();
 });
