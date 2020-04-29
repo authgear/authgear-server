@@ -87,12 +87,11 @@ func (f *AuthAPIFlow) ExchangeCode(interactionToken string, verifier string) (*A
 	}
 
 	challenge := i.State[AuthAPIStateOAuthCodeChallenge]
-	if challenge == "" {
-		panic("interaction_flow_auth_api: missing code challenge in interaction state")
-	}
-
-	if err := verifyPKCE(challenge, verifier); err != nil {
-		return nil, err
+	// challenge can be empty for api login with access token flow
+	if challenge != "" {
+		if err := verifyPKCE(challenge, verifier); err != nil {
+			return nil, err
+		}
 	}
 
 	s, err := f.Interactions.GetInteractionState(i)

@@ -129,7 +129,8 @@ func TestAuthHandler(t *testing.T) {
 				APIClientID: "client-id",
 				Action:      action,
 				Extra: AuthAPISSOState{
-					"callback_url": "http://localhost:3000",
+					"callback_url":   "http://localhost:3000",
+					"code_challenge": "code",
 				},
 				UXMode:      sso.UXModeManual,
 				HashedNonce: hashedNonce,
@@ -159,7 +160,8 @@ func TestAuthHandler(t *testing.T) {
 				APIClientID: "client-id",
 				Action:      action,
 				Extra: AuthAPISSOState{
-					"callback_url": "http://localhost:3000",
+					"callback_url":   "http://localhost:3000",
+					"code_challenge": "code",
 				},
 				UXMode:      sso.UXModeWebRedirect,
 				HashedNonce: hashedNonce,
@@ -200,7 +202,8 @@ func TestAuthHandler(t *testing.T) {
 				APIClientID: "client-id",
 				Action:      action,
 				Extra: AuthAPISSOState{
-					"callback_url": "http://localhost:3000",
+					"callback_url":   "http://localhost:3000",
+					"code_challenge": "code",
 				},
 				UXMode:      sso.UXModeWebPopup,
 				HashedNonce: hashedNonce,
@@ -230,7 +233,8 @@ func TestAuthHandler(t *testing.T) {
 				APIClientID: "client-id",
 				Action:      action,
 				Extra: AuthAPISSOState{
-					"callback_url": "http://localhost:3000",
+					"callback_url":   "http://localhost:3000",
+					"code_challenge": "code",
 				},
 				UXMode:      sso.UXModeMobileApp,
 				HashedNonce: hashedNonce,

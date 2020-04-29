@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
+	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -16,7 +17,6 @@ import (
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -61,6 +61,14 @@ const LoginRequestSchema = `
 }
 `
 
+type OAuthLoginInteractionFlow interface {
+	LoginWithOAuthProvider(
+		clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string, onUserDuplicate model.OnUserDuplicate,
+	) (string, error)
+
+	ExchangeCode(codeHash string, verifier string) (*interactionflows.AuthResult, error)
+}
+
 type LoginAuthnProvider interface {
 	OAuthAuthenticateCode(
 		authInfo sso.AuthInfo,
@@ -100,7 +108,7 @@ type LoginHandler struct {
 	TxContext     db.TxContext
 	Validator     *validation.Validator
 	SSOProvider   sso.Provider
-	AuthnProvider LoginAuthnProvider
+	Interactions  OAuthLoginInteractionFlow
 	OAuthProvider sso.OAuthProvider
 }
 
@@ -122,7 +130,7 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var result authn.Result
+	var result *interactionflows.AuthResult
 	err = db.WithTx(h.TxContext, func() (err error) {
 		result, err = h.Handle(req, payload)
 		return
@@ -132,10 +140,10 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	h.AuthnProvider.WriteAPIResult(resp, result)
+	result.WriteResponse(resp)
 }
 
-func (h LoginHandler) Handle(r *http.Request, payload LoginRequestPayload) (authn.Result, error) {
+func (h LoginHandler) Handle(r *http.Request, payload LoginRequestPayload) (*interactionflows.AuthResult, error) {
 	if !h.SSOProvider.IsExternalAccessTokenFlowEnabled() {
 		return nil, skyerr.NewNotFound("external access token flow is disabled")
 	}
@@ -155,25 +163,17 @@ func (h LoginHandler) Handle(r *http.Request, payload LoginRequestPayload) (auth
 		return nil, err
 	}
 
-	code, _, err := h.AuthnProvider.OAuthAuthenticateCode(oauthAuthInfo, "", loginState)
-	if err != nil {
-		return nil, err
-	}
-
-	// consume the code immediately
-	code, err = h.AuthnProvider.OAuthConsumeCode(code.CodeHash)
-	if err != nil {
-		if errors.Is(err, sso.ErrCodeNotFound) {
-			return nil, sso.NewSSOFailed(sso.SSOUnauthorized, "invalid code")
-		}
-		return nil, err
-	}
-
-	result, err := h.AuthnProvider.OAuthExchangeCode(
-		coreauth.GetAccessKey(r.Context()).Client,
-		nil, // Assume no session for SSO login
-		code,
+	code, err := h.Interactions.LoginWithOAuthProvider(
+		coreauth.GetAccessKey(r.Context()).Client.ClientID(),
+		oauthAuthInfo,
+		"",
+		loginState.OnUserDuplicate,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := h.Interactions.ExchangeCode(code, "")
 	if err != nil {
 		return nil, err
 	}

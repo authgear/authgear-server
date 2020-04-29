@@ -174,6 +174,9 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (code string, err error) {
 	apiSSOState := AuthAPISSOState(state.Extra)
 	if state.Action == "login" {
+		if apiSSOState.CodeChallenge() == "" {
+			panic("api_sso_auth_handler: missing code challenge")
+		}
 		code, err = h.Interactions.LoginWithOAuthProvider(
 			state.APIClientID, oauthAuthInfo, apiSSOState.CodeChallenge(), state.LoginState.OnUserDuplicate,
 		)

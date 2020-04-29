@@ -129,15 +129,15 @@ func provideLoginHandler(
 	requireAuthz handler.RequireAuthz,
 	v *validation.Validator,
 	sp sso.Provider,
-	ap LoginAuthnProvider,
+	f OAuthLoginInteractionFlow,
 	op sso.OAuthProvider,
 ) http.Handler {
 	h := &LoginHandler{
 		TxContext:     tx,
 		Validator:     v,
 		SSOProvider:   sp,
-		AuthnProvider: ap,
 		OAuthProvider: op,
+		Interactions:  f,
 	}
 	return requireAuthz(h, h)
 }
@@ -145,11 +145,10 @@ func provideLoginHandler(
 func newLoginHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
-		authn.ProvideAuthAPIProvider,
-		wire.Bind(new(LoginAuthnProvider), new(*authn.Provider)),
 		provideOAuthProviderFromRequestVars,
 		provideLoginHandler,
 		ProvideRedirectURIForAPIFunc,
+		wire.Bind(new(OAuthLoginInteractionFlow), new(*interactionflows.AuthAPIFlow)),
 	)
 	return nil
 }
