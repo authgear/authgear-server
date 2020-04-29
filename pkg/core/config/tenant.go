@@ -567,6 +567,7 @@ type AppConfiguration struct {
 	SMTP             *SMTPConfiguration             `json:"smtp,omitempty" yaml:"smtp" msg:"smtp" default_zero_value:"true"`
 	Twilio           *TwilioConfiguration           `json:"twilio,omitempty" yaml:"twilio" msg:"twilio" default_zero_value:"true"`
 	Nexmo            *NexmoConfiguration            `json:"nexmo,omitempty" yaml:"nexmo" msg:"nexmo" default_zero_value:"true"`
+	Localization     *LocalizationConfiguration     `json:"localization,omitempty" yaml:"localization" msg:"localization" default_zero_value:"true"`
 	Asset            *AssetConfiguration            `json:"asset,omitempty" yaml:"asset" msg:"asset" default_zero_value:"true"`
 }
 
