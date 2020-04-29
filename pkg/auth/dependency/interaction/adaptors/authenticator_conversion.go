@@ -12,7 +12,7 @@ import (
 
 func passwordToAuthenticatorInfo(p *password.Authenticator) *interaction.AuthenticatorInfo {
 	return &interaction.AuthenticatorInfo{
-		Type:          interaction.AuthenticatorTypePassword,
+		Type:          authn.AuthenticatorTypePassword,
 		ID:            p.ID,
 		Secret:        string(p.PasswordHash),
 		Props:         map[string]interface{}{},
@@ -30,7 +30,7 @@ func passwordFromAuthenticatorInfo(userID string, a *interaction.AuthenticatorIn
 
 func totpToAuthenticatorInfo(t *totp.Authenticator) *interaction.AuthenticatorInfo {
 	return &interaction.AuthenticatorInfo{
-		Type:   interaction.AuthenticatorTypeTOTP,
+		Type:   authn.AuthenticatorTypeTOTP,
 		ID:     t.ID,
 		Secret: t.Secret,
 		Props: map[string]interface{}{
@@ -51,7 +51,7 @@ func totpFromAuthenticatorInfo(userID string, a *interaction.AuthenticatorInfo) 
 
 func oobotpToAuthenticatorInfo(o *oob.Authenticator) *interaction.AuthenticatorInfo {
 	return &interaction.AuthenticatorInfo{
-		Type:   interaction.AuthenticatorTypeOOBOTP,
+		Type:   authn.AuthenticatorTypeOOB,
 		ID:     o.ID,
 		Secret: "",
 		Props: map[string]interface{}{
@@ -75,7 +75,7 @@ func oobotpFromAuthenticatorInfo(userID string, a *interaction.AuthenticatorInfo
 
 func bearerTokenToAuthenticatorInfo(b *bearertoken.Authenticator) *interaction.AuthenticatorInfo {
 	return &interaction.AuthenticatorInfo{
-		Type:   interaction.AuthenticatorTypeBearerToken,
+		Type:   authn.AuthenticatorTypeBearerToken,
 		ID:     b.ID,
 		Secret: b.Token,
 		Props: map[string]interface{}{
@@ -96,7 +96,7 @@ func bearerTokenFromAuthenticatorInfo(userID string, a *interaction.Authenticato
 
 func recoveryCodeToAuthenticatorInfo(r *recoverycode.Authenticator) *interaction.AuthenticatorInfo {
 	return &interaction.AuthenticatorInfo{
-		Type:          interaction.AuthenticatorTypeBearerToken,
+		Type:          authn.AuthenticatorTypeBearerToken,
 		ID:            r.ID,
 		Secret:        r.Code,
 		Props:         map[string]interface{}{},

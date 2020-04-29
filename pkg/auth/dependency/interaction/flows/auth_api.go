@@ -38,7 +38,7 @@ func (f *AuthAPIFlow) LoginWithLoginIDPassword(
 		i,
 		interaction.StepAuthenticatePrimary,
 		&interaction.ActionAuthenticate{
-			Authenticator: interaction.AuthenticatorSpec{Type: interaction.AuthenticatorTypePassword},
+			Authenticator: interaction.AuthenticatorSpec{Type: authn.AuthenticatorTypePassword},
 			Secret:        password,
 		},
 	)
@@ -112,7 +112,7 @@ func (f *AuthAPIFlow) SignupWithLoginIDPassword(
 		i,
 		interaction.StepSetupPrimaryAuthenticator,
 		&interaction.ActionSetupAuthenticator{
-			Authenticator: interaction.AuthenticatorSpec{Type: interaction.AuthenticatorTypePassword},
+			Authenticator: interaction.AuthenticatorSpec{Type: authn.AuthenticatorTypePassword},
 			Secret:        password,
 		},
 	)
@@ -124,21 +124,26 @@ func (f *AuthAPIFlow) SignupWithLoginIDPassword(
 		return nil, i.Error
 	}
 
-	_, err = f.Interactions.Commit(i)
+	attrs, err := f.Interactions.Commit(i)
 	if err != nil {
 		return nil, err
 	}
 
 	// Login with new user:
 
-	i, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
-		Identity: i.Identity.ToSpec(),
-		AuthenticatedAs: &interaction.IntentLoginAuthenticatedAs{
-			UserID:               i.UserID,
-			PrimaryAuthenticator: i.PrimaryAuthenticator.ToSpec(),
+	i, err = f.Interactions.NewInteractionLoginAs(
+		&interaction.IntentLogin{
+			Identity: interaction.IdentitySpec{
+				Type:   attrs.IdentityType,
+				Claims: attrs.IdentityClaims,
+			},
+			OriginalIntentType: i.Intent.Type(),
 		},
-		OriginalIntentType: i.Intent.Type(),
-	}, i.ClientID)
+		attrs.UserID,
+		i.Identity,
+		i.PrimaryAuthenticator,
+		i.ClientID,
+	)
 	if err != nil {
 		return nil, err
 	}

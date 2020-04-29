@@ -62,37 +62,37 @@ type AuthenticatorAdaptor struct {
 	RecoveryCode RecoveryCodeAuthenticatorProvider
 }
 
-func (a *AuthenticatorAdaptor) Get(userID string, typ interaction.AuthenticatorType, id string) (*interaction.AuthenticatorInfo, error) {
+func (a *AuthenticatorAdaptor) Get(userID string, typ authn.AuthenticatorType, id string) (*interaction.AuthenticatorInfo, error) {
 	switch typ {
-	case interaction.AuthenticatorTypePassword:
+	case authn.AuthenticatorTypePassword:
 		p, err := a.Password.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return passwordToAuthenticatorInfo(p), nil
 
-	case interaction.AuthenticatorTypeTOTP:
+	case authn.AuthenticatorTypeTOTP:
 		t, err := a.TOTP.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return totpToAuthenticatorInfo(t), nil
 
-	case interaction.AuthenticatorTypeOOBOTP:
+	case authn.AuthenticatorTypeOOB:
 		o, err := a.OOBOTP.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return oobotpToAuthenticatorInfo(o), nil
 
-	case interaction.AuthenticatorTypeBearerToken:
+	case authn.AuthenticatorTypeBearerToken:
 		b, err := a.BearerToken.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return bearerTokenToAuthenticatorInfo(b), nil
 
-	case interaction.AuthenticatorTypeRecoveryCode:
+	case authn.AuthenticatorTypeRecoveryCode:
 		r, err := a.RecoveryCode.Get(userID, id)
 		if err != nil {
 			return nil, err
@@ -103,10 +103,10 @@ func (a *AuthenticatorAdaptor) Get(userID string, typ interaction.AuthenticatorT
 	panic("interaction_adaptors: unknown authenticator type " + typ)
 }
 
-func (a *AuthenticatorAdaptor) List(userID string, typ interaction.AuthenticatorType) ([]*interaction.AuthenticatorInfo, error) {
+func (a *AuthenticatorAdaptor) List(userID string, typ authn.AuthenticatorType) ([]*interaction.AuthenticatorInfo, error) {
 	var ais []*interaction.AuthenticatorInfo
 	switch typ {
-	case interaction.AuthenticatorTypePassword:
+	case authn.AuthenticatorTypePassword:
 		as, err := a.Password.List(userID)
 		if err != nil {
 			return nil, err
@@ -115,7 +115,7 @@ func (a *AuthenticatorAdaptor) List(userID string, typ interaction.Authenticator
 			ais = append(ais, passwordToAuthenticatorInfo(a))
 		}
 
-	case interaction.AuthenticatorTypeTOTP:
+	case authn.AuthenticatorTypeTOTP:
 		as, err := a.TOTP.List(userID)
 		if err != nil {
 			return nil, err
@@ -124,7 +124,7 @@ func (a *AuthenticatorAdaptor) List(userID string, typ interaction.Authenticator
 			ais = append(ais, totpToAuthenticatorInfo(a))
 		}
 
-	case interaction.AuthenticatorTypeOOBOTP:
+	case authn.AuthenticatorTypeOOB:
 		as, err := a.OOBOTP.List(userID)
 		if err != nil {
 			return nil, err
@@ -133,7 +133,7 @@ func (a *AuthenticatorAdaptor) List(userID string, typ interaction.Authenticator
 			ais = append(ais, oobotpToAuthenticatorInfo(a))
 		}
 
-	case interaction.AuthenticatorTypeBearerToken:
+	case authn.AuthenticatorTypeBearerToken:
 		as, err := a.BearerToken.List(userID)
 		if err != nil {
 			return nil, err
@@ -142,7 +142,7 @@ func (a *AuthenticatorAdaptor) List(userID string, typ interaction.Authenticator
 			ais = append(ais, bearerTokenToAuthenticatorInfo(a))
 		}
 
-	case interaction.AuthenticatorTypeRecoveryCode:
+	case authn.AuthenticatorTypeRecoveryCode:
 		as, err := a.RecoveryCode.List(userID)
 		if err != nil {
 			return nil, err
@@ -159,19 +159,19 @@ func (a *AuthenticatorAdaptor) List(userID string, typ interaction.Authenticator
 
 func (a *AuthenticatorAdaptor) New(userID string, spec interaction.AuthenticatorSpec, secret string) ([]*interaction.AuthenticatorInfo, error) {
 	switch spec.Type {
-	case interaction.AuthenticatorTypePassword:
+	case authn.AuthenticatorTypePassword:
 		p, err := a.Password.New(userID, secret)
 		if err != nil {
 			return nil, err
 		}
 		return []*interaction.AuthenticatorInfo{passwordToAuthenticatorInfo(p)}, nil
 
-	case interaction.AuthenticatorTypeTOTP:
+	case authn.AuthenticatorTypeTOTP:
 		displayName, _ := spec.Props[interaction.AuthenticatorPropTOTPDisplayName].(string)
 		t := a.TOTP.New(userID, displayName)
 		return []*interaction.AuthenticatorInfo{totpToAuthenticatorInfo(t)}, nil
 
-	case interaction.AuthenticatorTypeOOBOTP:
+	case authn.AuthenticatorTypeOOB:
 		channel := spec.Props[interaction.AuthenticatorPropOOBOTPChannelType].(string)
 		var phone, email string
 		switch authn.AuthenticatorOOBChannel(channel) {
@@ -183,12 +183,12 @@ func (a *AuthenticatorAdaptor) New(userID string, spec interaction.Authenticator
 		o := a.OOBOTP.New(userID, authn.AuthenticatorOOBChannel(channel), phone, email)
 		return []*interaction.AuthenticatorInfo{oobotpToAuthenticatorInfo(o)}, nil
 
-	case interaction.AuthenticatorTypeBearerToken:
+	case authn.AuthenticatorTypeBearerToken:
 		parentID := spec.Props[interaction.AuthenticatorPropBearerTokenParentID].(string)
 		b := a.BearerToken.New(userID, parentID)
 		return []*interaction.AuthenticatorInfo{bearerTokenToAuthenticatorInfo(b)}, nil
 
-	case interaction.AuthenticatorTypeRecoveryCode:
+	case authn.AuthenticatorTypeRecoveryCode:
 		rs := a.RecoveryCode.Generate(userID)
 		var ais []*interaction.AuthenticatorInfo
 		for _, r := range rs {
@@ -204,31 +204,31 @@ func (a *AuthenticatorAdaptor) CreateAll(userID string, ais []*interaction.Authe
 	var recoveryCodes []*recoverycode.Authenticator
 	for _, ai := range ais {
 		switch ai.Type {
-		case interaction.AuthenticatorTypePassword:
+		case authn.AuthenticatorTypePassword:
 			authenticator := passwordFromAuthenticatorInfo(userID, ai)
 			if err := a.Password.Create(authenticator); err != nil {
 				return err
 			}
 
-		case interaction.AuthenticatorTypeTOTP:
+		case authn.AuthenticatorTypeTOTP:
 			authenticator := totpFromAuthenticatorInfo(userID, ai)
 			if err := a.TOTP.Create(authenticator); err != nil {
 				return err
 			}
 
-		case interaction.AuthenticatorTypeOOBOTP:
+		case authn.AuthenticatorTypeOOB:
 			authenticator := oobotpFromAuthenticatorInfo(userID, ai)
 			if err := a.OOBOTP.Create(authenticator); err != nil {
 				return err
 			}
 
-		case interaction.AuthenticatorTypeBearerToken:
+		case authn.AuthenticatorTypeBearerToken:
 			authenticator := bearerTokenFromAuthenticatorInfo(userID, ai)
 			if err := a.BearerToken.Create(authenticator); err != nil {
 				return err
 			}
 
-		case interaction.AuthenticatorTypeRecoveryCode:
+		case authn.AuthenticatorTypeRecoveryCode:
 			authenticator := recoveryCodeFromAuthenticatorInfo(userID, ai)
 			recoveryCodes = append(recoveryCodes, authenticator)
 
@@ -249,7 +249,7 @@ func (a *AuthenticatorAdaptor) CreateAll(userID string, ais []*interaction.Authe
 
 func (a *AuthenticatorAdaptor) Authenticate(userID string, spec interaction.AuthenticatorSpec, state *map[string]string, secret string) (*interaction.AuthenticatorInfo, error) {
 	switch spec.Type {
-	case interaction.AuthenticatorTypePassword:
+	case authn.AuthenticatorTypePassword:
 		ps, err := a.Password.List(userID)
 		if err != nil {
 			return nil, err
@@ -263,7 +263,7 @@ func (a *AuthenticatorAdaptor) Authenticate(userID string, spec interaction.Auth
 		}
 		return passwordToAuthenticatorInfo(ps[0]), nil
 
-	case interaction.AuthenticatorTypeTOTP:
+	case authn.AuthenticatorTypeTOTP:
 		ts, err := a.TOTP.List(userID)
 		if err != nil {
 			return nil, err
@@ -275,7 +275,7 @@ func (a *AuthenticatorAdaptor) Authenticate(userID string, spec interaction.Auth
 		}
 		return totpToAuthenticatorInfo(t), nil
 
-	case interaction.AuthenticatorTypeOOBOTP:
+	case authn.AuthenticatorTypeOOB:
 		if state == nil {
 			return nil, interaction.ErrInvalidCredentials
 		}
@@ -294,7 +294,7 @@ func (a *AuthenticatorAdaptor) Authenticate(userID string, spec interaction.Auth
 		}
 		return oobotpToAuthenticatorInfo(o), nil
 
-	case interaction.AuthenticatorTypeBearerToken:
+	case authn.AuthenticatorTypeBearerToken:
 		b, err := a.BearerToken.GetByToken(userID, secret)
 		if errors.Is(err, authenticator.ErrAuthenticatorNotFound) {
 			return nil, interaction.ErrInvalidCredentials
@@ -307,7 +307,7 @@ func (a *AuthenticatorAdaptor) Authenticate(userID string, spec interaction.Auth
 		}
 		return bearerTokenToAuthenticatorInfo(b), nil
 
-	case interaction.AuthenticatorTypeRecoveryCode:
+	case authn.AuthenticatorTypeRecoveryCode:
 		rs, err := a.RecoveryCode.List(userID)
 		if err != nil {
 			return nil, err

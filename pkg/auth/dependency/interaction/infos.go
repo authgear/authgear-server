@@ -10,7 +10,11 @@ type IdentityInfo struct {
 }
 
 func (i *IdentityInfo) ToSpec() IdentitySpec {
-	return IdentitySpec{ID: i.ID, Type: i.Type, Claims: i.Claims}
+	return IdentitySpec{Type: i.Type, Claims: i.Claims}
+}
+
+func (i *IdentityInfo) ToRef() IdentityRef {
+	return IdentityRef{ID: i.ID, Type: i.Type}
 }
 
 const (
@@ -34,26 +38,20 @@ const (
 )
 
 type AuthenticatorInfo struct {
-	ID            string                 `json:"id"`
-	Type          AuthenticatorType      `json:"type"`
-	Secret        string                 `json:"secret"`
-	Props         map[string]interface{} `json:"props"`
-	Authenticator interface{}            `json:"-"`
+	ID            string                  `json:"id"`
+	Type          authn.AuthenticatorType `json:"type"`
+	Secret        string                  `json:"secret"`
+	Props         map[string]interface{}  `json:"props"`
+	Authenticator interface{}             `json:"-"`
 }
 
 func (i *AuthenticatorInfo) ToSpec() AuthenticatorSpec {
-	return AuthenticatorSpec{ID: i.ID, Type: i.Type, Props: i.Props}
+	return AuthenticatorSpec{Type: i.Type, Props: i.Props}
 }
 
-type AuthenticatorType string
-
-const (
-	AuthenticatorTypePassword     AuthenticatorType = "password"
-	AuthenticatorTypeTOTP         AuthenticatorType = "totp"
-	AuthenticatorTypeOOBOTP       AuthenticatorType = "oob_otp"
-	AuthenticatorTypeBearerToken  AuthenticatorType = "bearer_token"
-	AuthenticatorTypeRecoveryCode AuthenticatorType = "recovery_code"
-)
+func (i *AuthenticatorInfo) ToRef() AuthenticatorRef {
+	return AuthenticatorRef{ID: i.ID, Type: i.Type}
+}
 
 const (
 	// AuthenticatorPropCreatedAt is the creation time of the authenticator

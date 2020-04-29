@@ -82,7 +82,7 @@ func (f *WebAppFlow) AuthenticatePassword(token string, password string) (*WebAp
 	}
 
 	err = f.Interactions.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionAuthenticate{
-		Authenticator: interaction.AuthenticatorSpec{Type: interaction.AuthenticatorTypePassword},
+		Authenticator: interaction.AuthenticatorSpec{Type: authn.AuthenticatorTypePassword},
 		Secret:        password,
 	})
 	if err != nil {
@@ -108,7 +108,7 @@ func (f *WebAppFlow) SetupPassword(token string, password string) (*WebAppResult
 	}
 
 	err = f.Interactions.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionSetupAuthenticator{
-		Authenticator: interaction.AuthenticatorSpec{Type: interaction.AuthenticatorTypePassword},
+		Authenticator: interaction.AuthenticatorSpec{Type: authn.AuthenticatorTypePassword},
 		Secret:        password,
 	})
 	if err != nil {
@@ -139,14 +139,19 @@ func (f *WebAppFlow) SetupPassword(token string, password string) (*WebAppResult
 	switch i.Intent.Type() {
 	case interaction.IntentTypeSignup:
 		// New interaction for logging in after signup
-		i, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
-			Identity: i.Identity.ToSpec(),
-			AuthenticatedAs: &interaction.IntentLoginAuthenticatedAs{
-				UserID:               attrs.UserID,
-				PrimaryAuthenticator: i.PrimaryAuthenticator.ToSpec(),
+		i, err = f.Interactions.NewInteractionLoginAs(
+			&interaction.IntentLogin{
+				Identity: interaction.IdentitySpec{
+					Type:   attrs.IdentityType,
+					Claims: attrs.IdentityClaims,
+				},
+				OriginalIntentType: i.Intent.Type(),
 			},
-			OriginalIntentType: i.Intent.Type(),
-		}, i.ClientID)
+			attrs.UserID,
+			i.Identity,
+			i.PrimaryAuthenticator,
+			i.ClientID,
+		)
 		if err != nil {
 			return nil, err
 		}

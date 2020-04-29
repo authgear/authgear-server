@@ -30,6 +30,11 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 		return nil, err
 	}
 
+	identity, err := p.Identity.Get(i.UserID, i.Identity.Type, i.Identity.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	err = p.Store.Delete(i)
 	if err != nil {
 		p.Logger.WithError(err).Warn("failed to cleanup interaction")
@@ -37,8 +42,8 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 
 	attrs := &authn.Attrs{
 		UserID:         i.UserID,
-		IdentityType:   i.Identity.Type,
-		IdentityClaims: i.Identity.Claims,
+		IdentityType:   identity.Type,
+		IdentityClaims: identity.Claims,
 		// TODO(interaction): populate acr & amr
 	}
 	return attrs, nil

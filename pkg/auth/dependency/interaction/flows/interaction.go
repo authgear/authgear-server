@@ -10,6 +10,13 @@ type InteractionProvider interface {
 	SaveInteraction(*interaction.Interaction) (string, error)
 	Commit(*interaction.Interaction) (*authn.Attrs, error)
 	NewInteractionLogin(intent *interaction.IntentLogin, clientID string) (*interaction.Interaction, error)
+	NewInteractionLoginAs(
+		intent *interaction.IntentLogin,
+		userID string,
+		identityRef *interaction.IdentityRef,
+		primaryAuthenticatorRef *interaction.AuthenticatorRef,
+		clientID string,
+	) (*interaction.Interaction, error)
 	NewInteractionSignup(intent *interaction.IntentSignup, clientID string) (*interaction.Interaction, error)
 	GetInteractionState(i *interaction.Interaction) (*interaction.State, error)
 	PerformAction(i *interaction.Interaction, step interaction.Step, action interaction.Action) error

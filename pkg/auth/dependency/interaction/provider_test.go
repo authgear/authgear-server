@@ -34,7 +34,7 @@ func TestProvider(t *testing.T) {
 					So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
 					So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
 					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
-						Type:  interaction.AuthenticatorTypePassword,
+						Type:  authn.AuthenticatorTypePassword,
 						Props: map[string]interface{}{},
 					})
 
@@ -53,7 +53,7 @@ func TestProvider(t *testing.T) {
 					So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
 					So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
 					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
-						Type:  interaction.AuthenticatorTypePassword,
+						Type:  authn.AuthenticatorTypePassword,
 						Props: map[string]interface{}{},
 					})
 
@@ -91,7 +91,7 @@ func TestProvider(t *testing.T) {
 					So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
 					So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
 					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
-						Type:  interaction.AuthenticatorTypePassword,
+						Type:  authn.AuthenticatorTypePassword,
 						Props: map[string]interface{}{},
 					})
 
@@ -110,7 +110,7 @@ func TestProvider(t *testing.T) {
 					So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
 					So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
 					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
-						Type:  interaction.AuthenticatorTypePassword,
+						Type:  authn.AuthenticatorTypePassword,
 						Props: map[string]interface{}{},
 					})
 
@@ -158,7 +158,7 @@ func TestProvider(t *testing.T) {
 				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
 				So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
 				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
-					Type: interaction.AuthenticatorTypeTOTP,
+					Type: authn.AuthenticatorTypeTOTP,
 					Props: map[string]interface{}{
 						interaction.AuthenticatorPropTOTPDisplayName: "My Authenticator",
 					},
@@ -179,7 +179,7 @@ func TestProvider(t *testing.T) {
 				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
 				So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
 				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
-					Type: interaction.AuthenticatorTypeTOTP,
+					Type: authn.AuthenticatorTypeTOTP,
 					Props: map[string]interface{}{
 						interaction.AuthenticatorPropTOTPDisplayName: "My Authenticator",
 					},
@@ -207,7 +207,7 @@ func TestProvider(t *testing.T) {
 				i, err := p.NewInteractionAddAuthenticator(
 					&interaction.IntentAddAuthenticator{
 						Authenticator: interaction.AuthenticatorSpec{
-							Type: interaction.AuthenticatorTypeTOTP,
+							Type: authn.AuthenticatorTypeTOTP,
 							Props: map[string]interface{}{
 								interaction.AuthenticatorPropTOTPDisplayName: "My Authenticator",
 							},
@@ -220,7 +220,7 @@ func TestProvider(t *testing.T) {
 
 				So(i.PendingAuthenticator, ShouldNotBeEmpty)
 				So(i.PendingAuthenticator, ShouldResemble, interaction.AuthenticatorSpec{
-					Type: interaction.AuthenticatorTypeTOTP,
+					Type: authn.AuthenticatorTypeTOTP,
 					Props: map[string]interface{}{
 						interaction.AuthenticatorPropTOTPDisplayName: "My Authenticator",
 					},

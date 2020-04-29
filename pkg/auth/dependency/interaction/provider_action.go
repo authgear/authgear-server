@@ -47,11 +47,12 @@ func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step 
 				return err
 			}
 
+			ar := authen.ToRef()
 			if step.Step == StepAuthenticatePrimary {
-				i.PrimaryAuthenticator = authen
+				i.PrimaryAuthenticator = &ar
 				i.SecondaryAuthenticator = nil
 			} else {
-				i.SecondaryAuthenticator = authen
+				i.SecondaryAuthenticator = &ar
 			}
 			i.Error = nil
 			return nil
@@ -85,7 +86,8 @@ func (p *Provider) performActionSignup(i *Interaction, intent *IntentSignup, ste
 				return err
 			}
 
-			i.PrimaryAuthenticator = authen
+			ar := authen.ToRef()
+			i.PrimaryAuthenticator = &ar
 			i.Error = nil
 			return nil
 
@@ -112,25 +114,9 @@ func (p *Provider) doAuthenticate(i *Interaction, step *StepState, astate *map[s
 		return nil, err
 	}
 
-	// Step should be either StepAuthenticatePrimary or StepAuthenticateSecondary
-	// For primary authentication, we do not provide concrete instance of authenticators
-	// to users, so there is no need to verify availability of authenticator.
-	if step.Step == StepAuthenticateSecondary {
-		ok := false
-		for _, as := range step.AvailableAuthenticators {
-			if as.ID == authen.ID {
-				ok = true
-				break
-			}
-		}
-		if !ok {
-			// Authenticator is not available for current step, reject it
-			return nil, ErrInvalidCredentials
-		}
-	}
-
 	i.UserID = userID
-	i.Identity = iden
+	ir := iden.ToRef()
+	i.Identity = &ir
 	i.State = nil
 	return authen, nil
 }
