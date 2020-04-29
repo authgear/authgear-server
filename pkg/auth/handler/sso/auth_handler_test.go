@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
@@ -62,7 +63,9 @@ type MockOAuthHandlerInteractionFlow struct {
 	CodeStr string
 }
 
-func (m *MockOAuthHandlerInteractionFlow) LoginWithOAuthProvider(clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string) (string, error) {
+func (m *MockOAuthHandlerInteractionFlow) LoginWithOAuthProvider(
+	clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string, onUserDuplicate authModel.OnUserDuplicate,
+) (string, error) {
 	return m.CodeStr, nil
 }
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -45,7 +46,7 @@ func (p AuthRequestPayload) Validate() error {
 
 type OAuthHandlerInteractionFlow interface {
 	LoginWithOAuthProvider(
-		clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string,
+		clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string, onUserDuplicate authModel.OnUserDuplicate,
 	) (string, error)
 }
 
@@ -173,7 +174,9 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (code string, err error) {
 	apiSSOState := AuthAPISSOState(state.Extra)
 	if state.Action == "login" {
-		code, err = h.Interactions.LoginWithOAuthProvider(state.APIClientID, oauthAuthInfo, apiSSOState.CodeChallenge())
+		code, err = h.Interactions.LoginWithOAuthProvider(
+			state.APIClientID, oauthAuthInfo, apiSSOState.CodeChallenge(), state.LoginState.OnUserDuplicate,
+		)
 	} else {
 		_, code, err = h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LinkState)
 	}

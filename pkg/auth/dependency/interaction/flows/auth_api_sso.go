@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -17,7 +18,9 @@ const (
 	AuthAPIStateOAuthCodeChallenge string = "https://auth.skygear.io/claims/auth_api/sso/code_challenge"
 )
 
-func (f *AuthAPIFlow) LoginWithOAuthProvider(clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string) (string, error) {
+func (f *AuthAPIFlow) LoginWithOAuthProvider(
+	clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string, onUserDuplicate model.OnUserDuplicate,
+) (string, error) {
 	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
 	claims := map[string]interface{}{
 		interaction.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
@@ -45,6 +48,7 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(clientID string, oauthAuthInfo sso.
 			Type:   authn.IdentityTypeOAuth,
 			Claims: claims,
 		},
+		OnUserDuplicate: onUserDuplicate,
 	}, clientID)
 	if err != nil {
 		return "", err

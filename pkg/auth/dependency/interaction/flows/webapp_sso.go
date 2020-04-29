@@ -6,6 +6,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -36,6 +37,7 @@ func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebApp
 			Type:   authn.IdentityTypeOAuth,
 			Claims: claims,
 		},
+		OnUserDuplicate: model.OnUserDuplicateAbort,
 	}, "")
 	if err != nil {
 		return nil, err
