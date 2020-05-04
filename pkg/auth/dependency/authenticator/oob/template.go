@@ -1,4 +1,4 @@
-package interaction
+package oob
 
 import (
 	"github.com/skygeario/skygear-server/pkg/core/config"

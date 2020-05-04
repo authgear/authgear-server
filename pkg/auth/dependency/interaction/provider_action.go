@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -191,7 +192,20 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 		code = p.OOB.GenerateCode()
 	}
 
-	err = p.OOB.SendCode(spec, code)
+	opts := oob.SendCodeOptions{
+		Code: code,
+	}
+	if channel, ok := spec.Props[AuthenticatorPropOOBOTPChannelType].(string); ok {
+		opts.Channel = channel
+	}
+	if email, ok := spec.Props[AuthenticatorPropOOBOTPEmail].(string); ok {
+		opts.Email = email
+	}
+	if phone, ok := spec.Props[AuthenticatorPropOOBOTPPhone].(string); ok {
+		opts.Phone = phone
+	}
+
+	err = p.OOB.SendCode(opts)
 	if err != nil {
 		return
 	}

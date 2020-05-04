@@ -172,6 +172,7 @@ var interactionDependencySet = wire.NewSet(
 	interactionredis.DependencySet,
 	interactionflows.DependencySet,
 
+	wire.Bind(new(interaction.OOBProvider), new(*authenticatoroob.Provider)),
 	wire.Bind(new(interaction.IdentityProvider), new(*interactionadaptors.IdentityAdaptor)),
 	wire.Bind(new(interaction.AuthenticatorProvider), new(*interactionadaptors.AuthenticatorAdaptor)),
 	wire.Bind(new(interactionadaptors.LoginIDIdentityProvider), new(*identityloginid.Provider)),

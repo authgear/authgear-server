@@ -1,8 +1,8 @@
 package template
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
@@ -42,9 +42,9 @@ func NewEngineWithConfig(
 	e.Register(mfa.TemplateMFAOOBCodeEmailTXT)
 	e.Register(mfa.TemplateMFAOOBCodeEmailHTML)
 
-	e.Register(interaction.TemplateOOBCodeSMSTXT)
-	e.Register(interaction.TemplateOOBCodeEmailTXT)
-	e.Register(interaction.TemplateOOBCodeEmailHTML)
+	e.Register(oob.TemplateOOBCodeSMSTXT)
+	e.Register(oob.TemplateOOBCodeEmailTXT)
+	e.Register(oob.TemplateOOBCodeEmailHTML)
 
 	// Auth UI
 	e.Register(webapp.TemplateAuthUITranslationJSON)

@@ -7,6 +7,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	coretime "github.com/skygeario/skygear-server/pkg/core/time"
 )
@@ -21,7 +22,7 @@ func (p *mockOOBProvider) GenerateCode() string {
 	return strconv.Itoa(code)
 }
 
-func (p *mockOOBProvider) SendCode(spec AuthenticatorSpec, code string) error {
+func (p *mockOOBProvider) SendCode(opts oob.SendCodeOptions) error {
 	return nil
 }
 

@@ -4,6 +4,8 @@ import (
 	gotime "time"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -50,7 +52,7 @@ type UserProvider interface {
 
 type OOBProvider interface {
 	GenerateCode() string
-	SendCode(spec AuthenticatorSpec, code string) error
+	SendCode(opts oob.SendCodeOptions) error
 }
 
 // TODO(interaction): configurable lifetime
