@@ -148,7 +148,8 @@ func (p *Provider) setupAuthenticator(i *Interaction, step *StepState, astate *m
 		// Nothing special needs to be done
 		break
 	case authn.AuthenticatorTypeOOB:
-		_, err := p.Authenticator.Authenticate( /* userID */ "", as, astate, secret)
+		// Ignoring the first return value because it is always nil.
+		_, err := p.Authenticator.Authenticate(i.UserID, as, astate, secret)
 		if err != nil {
 			return nil, err
 		}
