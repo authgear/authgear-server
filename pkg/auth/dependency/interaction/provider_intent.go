@@ -23,14 +23,6 @@ func (p *Provider) NewInteractionLoginAs(
 	if err != nil {
 		return nil, err
 	}
-	primaryAuthenticator, err := p.Authenticator.Get(
-		userID,
-		primaryAuthenticatorRef.Type,
-		primaryAuthenticatorRef.ID)
-	if err != nil {
-		return nil, err
-	}
-
 	i, err := p.NewInteractionLogin(intent, clientID)
 	if err != nil {
 		return nil, err
@@ -38,8 +30,17 @@ func (p *Provider) NewInteractionLoginAs(
 	i.UserID = userID
 	ir := identity.ToRef()
 	i.Identity = &ir
-	ar := primaryAuthenticator.ToRef()
-	i.PrimaryAuthenticator = &ar
+	if primaryAuthenticatorRef != nil {
+		primaryAuthenticator, err := p.Authenticator.Get(
+			userID,
+			primaryAuthenticatorRef.Type,
+			primaryAuthenticatorRef.ID)
+		if err != nil {
+			return nil, err
+		}
+		ar := primaryAuthenticator.ToRef()
+		i.PrimaryAuthenticator = &ar
+	}
 	return i, nil
 }
 
