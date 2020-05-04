@@ -49,6 +49,7 @@ func TestDoTriggerOOB(t *testing.T) {
 			p.doTriggerOOB(i, action)
 			So(i.State[AuthenticatorStateOOBOTPID], ShouldEqual, "1")
 			So(i.State[AuthenticatorStateOOBOTPCode], ShouldEqual, "0")
+			So(i.State[AuthenticatorStateOOBOTPGenerateTime], ShouldEqual, "2006-01-02T15:04:05Z")
 			So(i.State[AuthenticatorStateOOBOTPTriggerTime], ShouldEqual, "2006-01-02T15:04:05Z")
 		})
 
@@ -67,13 +68,42 @@ func TestDoTriggerOOB(t *testing.T) {
 			p.doTriggerOOB(i, action)
 			So(i.State[AuthenticatorStateOOBOTPID], ShouldEqual, "1")
 			So(i.State[AuthenticatorStateOOBOTPCode], ShouldEqual, "0")
+			So(i.State[AuthenticatorStateOOBOTPGenerateTime], ShouldEqual, "2006-01-02T15:04:05Z")
 			So(i.State[AuthenticatorStateOOBOTPTriggerTime], ShouldEqual, "2006-01-02T15:04:05Z")
 
 			timeProvider.AdvanceSeconds(1)
 			p.doTriggerOOB(i, action)
 			So(i.State[AuthenticatorStateOOBOTPID], ShouldEqual, "1")
 			So(i.State[AuthenticatorStateOOBOTPCode], ShouldEqual, "0")
+			So(i.State[AuthenticatorStateOOBOTPGenerateTime], ShouldEqual, "2006-01-02T15:04:05Z")
 			So(i.State[AuthenticatorStateOOBOTPTriggerTime], ShouldEqual, "2006-01-02T15:04:06Z")
+		})
+
+		Convey("generate new code", func() {
+			i := &Interaction{}
+			spec := AuthenticatorSpec{
+				Type: authn.AuthenticatorTypeOOB,
+				Props: map[string]interface{}{
+					AuthenticatorPropOOBOTPID: "1",
+				},
+			}
+			action := &ActionTriggerOOBAuthenticator{
+				Authenticator: spec,
+			}
+
+			p.doTriggerOOB(i, action)
+			So(i.State[AuthenticatorStateOOBOTPID], ShouldEqual, "1")
+			So(i.State[AuthenticatorStateOOBOTPCode], ShouldEqual, "0")
+			So(i.State[AuthenticatorStateOOBOTPGenerateTime], ShouldEqual, "2006-01-02T15:04:05Z")
+			So(i.State[AuthenticatorStateOOBOTPTriggerTime], ShouldEqual, "2006-01-02T15:04:05Z")
+
+			// 20 minutes plus 1 second
+			timeProvider.AdvanceSeconds(1201)
+			p.doTriggerOOB(i, action)
+			So(i.State[AuthenticatorStateOOBOTPID], ShouldEqual, "1")
+			So(i.State[AuthenticatorStateOOBOTPCode], ShouldEqual, "1")
+			So(i.State[AuthenticatorStateOOBOTPGenerateTime], ShouldEqual, "2006-01-02T15:24:06Z")
+			So(i.State[AuthenticatorStateOOBOTPTriggerTime], ShouldEqual, "2006-01-02T15:24:06Z")
 		})
 	})
 }

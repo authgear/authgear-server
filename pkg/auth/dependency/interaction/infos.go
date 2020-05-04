@@ -77,6 +77,8 @@ const (
 	AuthenticatorStateOOBOTPID string = AuthenticatorPropOOBOTPID
 	// AuthenticatorStateOOBOTPCode is a claim with string value for OOB code of current interaction.
 	AuthenticatorStateOOBOTPCode string = "https://auth.skygear.io/claims/oob_otp/code"
+	// AuthenticatorStateOOBOTPGenerateTime is a claim with string value for OOB code generate time.
+	AuthenticatorStateOOBOTPGenerateTime string = "https://auth.skygear.io/claims/oob_otp/generate_time"
 	// AuthenticatorStateOOBOTPTriggerTime is a claim with string value for OOB last trigger time of current interaction.
 	AuthenticatorStateOOBOTPTriggerTime string = "https://auth.skygear.io/claims/oob_otp/trigger_time"
 )

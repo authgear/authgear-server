@@ -3,6 +3,7 @@ package interaction
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
@@ -175,21 +176,34 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 	}
 
 	now := p.Time.NowUTC()
-	triggerTime, err := now.MarshalText()
+	nowBytes, err := now.MarshalText()
 	if err != nil {
 		return
 	}
+	nowStr := string(nowBytes)
 
 	if i.State == nil {
 		i.State = map[string]string{}
 	}
 
-	// Check if we have a code already.
-	// The code remains unchanged through out the entire interaction once it was generated.
-	// Therefore it expires when the interaction expires.
+	// Rotate the code according to oob.OOBCodeValidDuration
 	code := i.State[AuthenticatorStateOOBOTPCode]
-	if code == "" {
+	generateTimeStr := i.State[AuthenticatorStateOOBOTPGenerateTime]
+	if generateTimeStr == "" {
 		code = p.OOB.GenerateCode()
+		generateTimeStr = nowStr
+	} else {
+		var tt time.Time
+		err = tt.UnmarshalText([]byte(generateTimeStr))
+		if err != nil {
+			return
+		}
+
+		// Expire
+		if tt.Add(oob.OOBCodeValidDuration).Before(now) {
+			code = p.OOB.GenerateCode()
+			generateTimeStr = nowStr
+		}
 	}
 
 	opts := oob.SendCodeOptions{
@@ -218,7 +232,8 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 		i.State[AuthenticatorStateOOBOTPID] = id
 	}
 	i.State[AuthenticatorStateOOBOTPCode] = code
-	i.State[AuthenticatorStateOOBOTPTriggerTime] = string(triggerTime)
+	i.State[AuthenticatorStateOOBOTPGenerateTime] = generateTimeStr
+	i.State[AuthenticatorStateOOBOTPTriggerTime] = nowStr
 
 	return
 }
