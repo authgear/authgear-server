@@ -19,3 +19,5 @@ var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
 var DuplicatedIdentity = skyerr.AlreadyExists.WithReason("DuplicatedIdentity")
 
 var ErrDuplicatedIdentity = DuplicatedIdentity.New("duplicate identity exists")
+
+var ErrOOBOTPCooldown = skyerr.TooManyRequest.WithReason("OOBOTPCooldown").New("OOB OTP cooldown")

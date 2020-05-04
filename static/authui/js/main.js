@@ -128,19 +128,19 @@ window.addEventListener("load", function() {
 
 
     var scheduledAt = new Date();
-    var countDown = 60 * 1000;
+    var cooldown = parseInt(el.getAttribute("data-cooldown"), 10) * 1000;
     var token;
     var tick = function() {
       var now = new Date();
       var timeElapsed = now - scheduledAt;
 
       var displaySeconds = 0;
-      if (timeElapsed > countDown) {
+      if (timeElapsed > cooldown) {
         el.disabled = false;
         clearInterval(token);
       } else {
         el.disabled = true;
-        displaySeconds = Math.round((countDown - timeElapsed) / 1000);
+        displaySeconds = Math.round((cooldown - timeElapsed) / 1000);
       }
 
       el.textContent = (el.textContent || "").replace(/\d+/, String(displaySeconds));

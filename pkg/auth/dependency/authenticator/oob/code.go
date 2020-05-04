@@ -17,6 +17,8 @@ const (
 	// OOBCodeValidDuration is 20 minutes according to the suggestion in
 	// https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html#step-3-send-a-token-over-a-side-channel
 	OOBCodeValidDuration time.Duration = 20 * time.Minute
+	// OOBCodeSendCooldownSeconds is 60 seconds.
+	OOBCodeSendCooldownSeconds = 60
 )
 
 func GenerateCode() string {

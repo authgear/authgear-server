@@ -65,6 +65,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	data["x_static_asset_url_prefix"] = p.StaticAssetURLPrefix
 
 	data["x_oob_otp_code_length"] = oob.OOBCodeLength
+	data["x_oob_otp_code_send_cooldown"] = oob.OOBCodeSendCooldownSeconds
 
 	// Find out what identity is enabled.
 	loginID := false

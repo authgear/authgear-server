@@ -206,6 +206,21 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 		}
 	}
 
+	// Respect cooldown
+	triggerTimeStr := i.State[AuthenticatorStateOOBOTPTriggerTime]
+	if triggerTimeStr != "" {
+		var tt time.Time
+		err = tt.UnmarshalText([]byte(triggerTimeStr))
+		if err != nil {
+			return
+		}
+
+		if tt.Add(oob.OOBCodeSendCooldownSeconds * time.Second).After(now) {
+			err = ErrOOBOTPCooldown
+			return
+		}
+	}
+
 	opts := oob.SendCodeOptions{
 		Code: code,
 	}
