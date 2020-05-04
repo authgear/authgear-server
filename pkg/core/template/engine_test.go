@@ -145,10 +145,10 @@ func TestResolveTranslations(t *testing.T) {
 		// No provided translations
 		test([]config.TemplateItem{}, map[string]map[string]string{
 			"key1": map[string]string{
-				"": "Hello",
+				"en": "Hello",
 			},
 			"key2": map[string]string{
-				"": "World",
+				"en": "World",
 			},
 		})
 
@@ -184,13 +184,12 @@ func TestResolveTranslations(t *testing.T) {
 			},
 		}, map[string]map[string]string{
 			"key1": map[string]string{
-				"":   "Hello",
 				"en": "Hey",
 				"zh": "你好",
 				"ja": "こんにちは",
 			},
 			"key2": map[string]string{
-				"":   "World",
+				"en": "World",
 				"zh": "世界",
 				"ja": "世界",
 			},
@@ -270,7 +269,7 @@ func TestMakeLocalize(t *testing.T) {
 	key := "key1"
 	Convey("makeLocalize", t, func() {
 		test := func(m map[string]string, preferredLanguageTags []string, expected string) {
-			localize := makeLocalize(preferredLanguageTags, map[string]map[string]string{
+			localize := makeLocalize(preferredLanguageTags, "en", map[string]map[string]string{
 				key: m,
 			})
 			actual, err := localize(key)
@@ -280,23 +279,18 @@ func TestMakeLocalize(t *testing.T) {
 
 		// Select default if there is no preferred languages
 		test(map[string]string{
-			"":   "Hello from default",
 			"en": "Hello from en",
 			"ja": "Hello from ja",
 			"zh": "Hello from zh",
-		}, nil, "Hello from default")
-
-		// Select default if there is no preferred languages
+		}, nil, "Hello from en")
 		test(map[string]string{
-			"":   "Hello from default",
 			"en": "Hello from en",
 			"ja": "Hello from ja",
 			"zh": "Hello from zh",
-		}, []string{}, "Hello from default")
+		}, []string{}, "Hello from en")
 
 		// Simply select japanese
 		test(map[string]string{
-			"":   "Hello from default",
 			"en": "Hello from en",
 			"ja": "Hello from ja",
 			"zh": "Hello from zh",
@@ -304,22 +298,22 @@ func TestMakeLocalize(t *testing.T) {
 
 		// Select the default because korean is not supported
 		test(map[string]string{
-			"":   "Hello from default",
+			"en": "Hello from en",
 			"ja": "Hello from ja",
 			"zh": "Hello from zh",
-		}, []string{"kr-KR"}, "Hello from default")
+		}, []string{"kr-KR"}, "Hello from en")
 	})
 }
 
 func TestLocalize(t *testing.T) {
 	translations := map[string]map[string]string{
 		"key": map[string]string{
-			"": "Hello {0}",
+			"en": "Hello {0}",
 		},
 	}
 	Convey("localize", t, func() {
 		test := func(key string, expected string, args ...interface{}) {
-			localize := makeLocalize(nil, translations)
+			localize := makeLocalize(nil, "en", translations)
 			actual, err := localize(key, args...)
 			So(err, ShouldBeNil)
 			So(actual, ShouldEqual, expected)

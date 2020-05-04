@@ -29,6 +29,7 @@ func ProvideRenderProvider(
 		IdentityConfiguration:       config.AppConfig.Identity,
 		AuthenticationConfiguration: config.AppConfig.Authentication,
 		AuthUIConfiguration:         config.AppConfig.AuthUI,
+		LocalizationConfiguration:   config.AppConfig.Localization,
 		PasswordChecker:             passwordChecker,
 		TemplateEngine:              templateEngine,
 	}

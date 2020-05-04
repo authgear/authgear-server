@@ -5,6 +5,10 @@ import (
 )
 
 func SortSupported(supportedLanguageTags []string, fallbackLanguageTag string) []string {
+	if fallbackLanguageTag == "" {
+		fallbackLanguageTag = DefaultLanguage
+	}
+
 	fallbackIdx := -1
 	for i, tag := range supportedLanguageTags {
 		if tag == fallbackLanguageTag {

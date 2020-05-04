@@ -200,7 +200,7 @@ func (m DependencyMap) Provide(
 	}
 
 	newMailSender := func() mail.Sender {
-		return mail.NewSender(ctx, tConfig.AppConfig.SMTP)
+		return mail.NewSender(ctx, &tConfig)
 	}
 
 	newMFAProvider := func() mfa.Provider {

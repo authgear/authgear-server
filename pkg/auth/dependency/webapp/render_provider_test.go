@@ -90,6 +90,9 @@ func TestRenderProvider(t *testing.T) {
 					Default: "852",
 				},
 			},
+			LocalizationConfiguration: &config.LocalizationConfiguration{
+				FallbackLanguage: "en",
+			},
 			TemplateEngine:  engine,
 			PasswordChecker: &audit.PasswordChecker{},
 		}
