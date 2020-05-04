@@ -60,19 +60,25 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(
 	if s.CurrentStep().Step != interaction.StepCommit {
 		panic("interaction_flow_auth_api: unexpected interaction state")
 	}
-	_, err = f.Interactions.Commit(i)
+	attrs, err := f.Interactions.Commit(i)
 	if err != nil {
 		return "", err
 	}
 
 	// create new interaction after signup
-	i, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
-		Identity: i.Identity.ToSpec(),
-		AuthenticatedAs: &interaction.IntentLoginAuthenticatedAs{
-			UserID: i.UserID,
+	i, err = f.Interactions.NewInteractionLoginAs(
+		&interaction.IntentLogin{
+			Identity: interaction.IdentitySpec{
+				Type:   attrs.IdentityType,
+				Claims: attrs.IdentityClaims,
+			},
+			OriginalIntentType: i.Intent.Type(),
 		},
-		OriginalIntentType: i.Intent.Type(),
-	}, clientID)
+		attrs.UserID,
+		i.Identity,
+		i.PrimaryAuthenticator,
+		i.ClientID,
+	)
 	if err != nil {
 		return "", err
 	}
