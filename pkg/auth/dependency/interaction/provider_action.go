@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -143,10 +144,10 @@ func (p *Provider) setupAuthenticator(i *Interaction, step *StepState, astate *m
 	}
 
 	switch as.Type {
-	case AuthenticatorTypePassword:
+	case authn.AuthenticatorTypePassword:
 		// Nothing special needs to be done
 		break
-	case AuthenticatorTypeOOBOTP:
+	case authn.AuthenticatorTypeOOB:
 		_, err := p.Authenticator.Authenticate( /* userID */ "", as, astate, secret)
 		if err != nil {
 			return nil, err
@@ -167,7 +168,7 @@ func (p *Provider) setupAuthenticator(i *Interaction, step *StepState, astate *m
 func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenticator) (err error) {
 	spec := action.Authenticator
 
-	if spec.Type != AuthenticatorTypeOOBOTP {
+	if spec.Type != authn.AuthenticatorTypeOOB {
 		panic("interaction: unexpected ActionTriggerOOBAuthenticator.Authenticator.Type: " + spec.Type)
 	}
 
@@ -198,8 +199,8 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 
 	// This function can be called by login or signup.
 	// In case of signup, the spec does not have an ID yet.
-	if spec.ID != "" {
-		i.State[AuthenticatorStateOOBOTPID] = spec.ID
+	if id, ok := spec.Props[AuthenticatorPropOOBOTPID].(string); ok {
+		i.State[AuthenticatorStateOOBOTPID] = id
 	}
 	i.State[AuthenticatorStateOOBOTPCode] = code
 	i.State[AuthenticatorStateOOBOTPTriggerTime] = string(triggerTime)

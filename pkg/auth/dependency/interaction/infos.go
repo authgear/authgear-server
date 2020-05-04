@@ -60,6 +60,8 @@ const (
 	// AuthenticatorPropTOTPDisplayName is a claim with string value for TOTP display name.
 	AuthenticatorPropTOTPDisplayName string = "https://auth.skygear.io/claims/totp/display_name"
 
+	// AuthenticatorPropOOBOTPID is a claim with string value for OOB authenticator ID.
+	AuthenticatorPropOOBOTPID string = "https://auth.skygear.io/claims/oob_otp/id"
 	// AuthenticatorPropOOBOTPChannelType is a claim with string value for OOB OTP channel type.
 	AuthenticatorPropOOBOTPChannelType string = "https://auth.skygear.io/claims/oob_otp/channel_type"
 	// AuthenticatorPropOOBOTPEmail is a claim with string value for OOB OTP email channel.
@@ -71,8 +73,8 @@ const (
 	// nolint:gosec
 	AuthenticatorPropBearerTokenParentID string = "https://auth.skygear.io/claims/bearer_token/parent_id"
 
-	// AuthenticatorStateOOBOTPCode is a claim with string value for OOB authenticator ID of current interaction.
-	AuthenticatorStateOOBOTPID string = "https://auth.skygear.io/claims/oob_otp/id"
+	// AuthenticatorStateOOBOTPID is a claim with string value for OOB authenticator ID of current interaction.
+	AuthenticatorStateOOBOTPID string = AuthenticatorPropOOBOTPID
 	// AuthenticatorStateOOBOTPCode is a claim with string value for OOB code of current interaction.
 	AuthenticatorStateOOBOTPCode string = "https://auth.skygear.io/claims/oob_otp/code"
 	// AuthenticatorStateOOBOTPTriggerTime is a claim with string value for OOB last trigger time of current interaction.

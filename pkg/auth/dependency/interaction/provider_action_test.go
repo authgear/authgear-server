@@ -7,6 +7,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	coretime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -35,8 +36,10 @@ func TestDoTriggerOOB(t *testing.T) {
 		Convey("trigger first time", func() {
 			i := &Interaction{}
 			spec := AuthenticatorSpec{
-				ID:   "1",
-				Type: AuthenticatorTypeOOBOTP,
+				Type: authn.AuthenticatorTypeOOB,
+				Props: map[string]interface{}{
+					AuthenticatorPropOOBOTPID: "1",
+				},
 			}
 			action := &ActionTriggerOOBAuthenticator{
 				Authenticator: spec,
@@ -51,8 +54,10 @@ func TestDoTriggerOOB(t *testing.T) {
 		Convey("trigger second time", func() {
 			i := &Interaction{}
 			spec := AuthenticatorSpec{
-				ID:   "1",
-				Type: AuthenticatorTypeOOBOTP,
+				Type: authn.AuthenticatorTypeOOB,
+				Props: map[string]interface{}{
+					AuthenticatorPropOOBOTPID: "1",
+				},
 			}
 			action := &ActionTriggerOOBAuthenticator{
 				Authenticator: spec,

@@ -177,7 +177,7 @@ func (a *IdentityAdaptor) RelateIdentityToAuthenticator(is interaction.IdentityS
 	switch is.Type {
 	case authn.IdentityTypeLoginID:
 		// Early return for other authenticators.
-		if as.Type != interaction.AuthenticatorTypeOOBOTP {
+		if as.Type != authn.AuthenticatorTypeOOB {
 			return as
 		}
 
