@@ -9,6 +9,10 @@ import (
 )
 
 func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
+	if i.saved {
+		panic("interaction: see NOTE(interaction): save-commit")
+	}
+
 	var err error
 	switch intent := i.Intent.(type) {
 	case *IntentLogin:
@@ -51,6 +55,9 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 		IdentityClaims: identity.Claims,
 		// TODO(interaction): populate acr & amr
 	}
+
+	i.committed = true
+
 	return attrs, nil
 }
 

@@ -11,6 +11,15 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
+//go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package interaction_test
+
+type Store interface {
+	Create(i *Interaction) error
+	Get(token string) (*Interaction, error)
+	Update(i *Interaction) error
+	Delete(i *Interaction) error
+}
+
 type IdentityProvider interface {
 	Get(userID string, typ authn.IdentityType, id string) (*IdentityInfo, error)
 	// GetByClaims return user ID and information about the identity the matches the provided skygear claims.
@@ -60,7 +69,8 @@ type OOBProvider interface {
 // TODO(interaction): configurable lifetime
 const interactionIdleTimeout = 5 * gotime.Minute
 
-// NOTE(interaction): SaveInteraction and Commit are mutually exclusively within a request.
+// NOTE(interaction): save-commit
+// SaveInteraction and Commit are mutually exclusively within a request.
 // You either do something with the interaction, SaveInteraction and return the token.
 // Or do something with the interaction, Commit and discard the interaction.
 //
@@ -95,6 +105,10 @@ func (p *Provider) GetInteraction(token string) (*Interaction, error) {
 }
 
 func (p *Provider) SaveInteraction(i *Interaction) (string, error) {
+	if i.committed {
+		panic("interaction: see NOTE(interaction): save-commit")
+	}
+
 	if i.Token == "" {
 		i.Token = generateToken()
 		i.CreatedAt = p.Time.NowUTC()
@@ -108,5 +122,8 @@ func (p *Provider) SaveInteraction(i *Interaction) (string, error) {
 			return "", err
 		}
 	}
+
+	i.saved = true
+
 	return i.Token, nil
 }

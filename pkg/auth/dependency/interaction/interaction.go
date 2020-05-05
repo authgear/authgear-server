@@ -28,6 +28,10 @@ type Interaction struct {
 	UpdateIdentities  []*IdentityInfo      `json:"update_identities,omitempty"`
 	NewIdentities     []*IdentityInfo      `json:"new_identities,omitempty"`
 	NewAuthenticators []*AuthenticatorInfo `json:"new_authenticators,omitempty"`
+
+	// The following fields are for checking programming errors.
+	saved     bool
+	committed bool
 }
 
 func (i *Interaction) IsNewIdentity(id string) bool {
