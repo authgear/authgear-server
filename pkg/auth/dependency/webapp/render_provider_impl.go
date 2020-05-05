@@ -56,8 +56,8 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
 
 	clientMetadata := accessKey.Client
-	data["client_name"] = intl.LocalizeJSONObject(preferredLanguageTags, p.LocalizationConfiguration.FallbackLanguage, clientMetadata, "client_name")
-	data["logo_uri"] = intl.LocalizeJSONObject(preferredLanguageTags, p.LocalizationConfiguration.FallbackLanguage, clientMetadata, "logo_uri")
+	data["client_name"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), clientMetadata, "client_name")
+	data["logo_uri"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), clientMetadata, "logo_uri")
 
 	data[csrf.TemplateTag] = csrf.TemplateField(r)
 

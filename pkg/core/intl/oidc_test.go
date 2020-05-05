@@ -15,7 +15,7 @@ func TestLocalizeJSONObject(t *testing.T) {
 		}
 
 		test := func(tags []string, expected string) {
-			value := LocalizeJSONObject(tags, DefaultLanguage, jsonObject, "client_name")
+			value := LocalizeJSONObject(tags, "", jsonObject, "client_name")
 			So(value, ShouldEqual, expected)
 		}
 
@@ -34,7 +34,7 @@ func TestLocalizeStringMap(t *testing.T) {
 		}
 
 		test := func(tags []string, expected string) {
-			value := LocalizeStringMap(tags, DefaultLanguage, stringMap, "subject")
+			value := LocalizeStringMap(tags, "", stringMap, "subject")
 			So(value, ShouldEqual, expected)
 		}
 

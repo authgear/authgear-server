@@ -6,7 +6,8 @@ import (
 )
 
 // LocalizeJSONObject returns the localized value of key in jsonObject according to preferredLanguageTags.
-func LocalizeJSONObject(preferredLanguageTags []string, fallbackLanguageTag string, jsonObject map[string]interface{}, key string) string {
+func LocalizeJSONObject(preferredLanguageTags []string, fallbackLanguage FallbackLanguage, jsonObject map[string]interface{}, key string) string {
+	fallbackLanguageTag := string(fallbackLanguage)
 	prefix := fmt.Sprintf("%s#", key)
 	m := map[string]string{}
 	for k, v := range jsonObject {
@@ -26,7 +27,7 @@ func LocalizeJSONObject(preferredLanguageTags []string, fallbackLanguageTag stri
 	for tag := range m {
 		supportedLanguageTags = append(supportedLanguageTags, tag)
 	}
-	supportedLanguageTags = SortSupported(supportedLanguageTags, fallbackLanguageTag)
+	supportedLanguageTags = SortSupported(supportedLanguageTags, fallbackLanguage)
 
 	idx, _ := Match(preferredLanguageTags, supportedLanguageTags)
 	tag := supportedLanguageTags[idx]
@@ -35,7 +36,8 @@ func LocalizeJSONObject(preferredLanguageTags []string, fallbackLanguageTag stri
 }
 
 // LocalizeStringMap returns the localized value of key in stringMap according to preferredLanguageTags.
-func LocalizeStringMap(preferredLanguageTags []string, fallbackLanguageTag string, stringMap map[string]string, key string) string {
+func LocalizeStringMap(preferredLanguageTags []string, fallbackLanguage FallbackLanguage, stringMap map[string]string, key string) string {
+	fallbackLanguageTag := string(fallbackLanguage)
 	prefix := fmt.Sprintf("%s#", key)
 	m := map[string]string{}
 	for k, stringValue := range stringMap {
@@ -51,7 +53,7 @@ func LocalizeStringMap(preferredLanguageTags []string, fallbackLanguageTag strin
 	for tag := range m {
 		supportedLanguageTags = append(supportedLanguageTags, tag)
 	}
-	supportedLanguageTags = SortSupported(supportedLanguageTags, fallbackLanguageTag)
+	supportedLanguageTags = SortSupported(supportedLanguageTags, fallbackLanguage)
 
 	idx, _ := Match(preferredLanguageTags, supportedLanguageTags)
 	tag := supportedLanguageTags[idx]

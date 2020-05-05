@@ -338,7 +338,7 @@ func makeLocalize(preferredLanguageTags []string, fallbackLanguageTag string, tr
 		for tag := range m {
 			supportedLanguageTags = append(supportedLanguageTags, tag)
 		}
-		supportedLanguageTags = intl.SortSupported(supportedLanguageTags, fallbackLanguageTag)
+		supportedLanguageTags = intl.SortSupported(supportedLanguageTags, intl.Fallback(fallbackLanguageTag))
 
 		idx, tag := intl.Match(preferredLanguageTags, supportedLanguageTags)
 		pattern := m[supportedLanguageTags[idx]]

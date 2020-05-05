@@ -4,10 +4,8 @@ import (
 	"golang.org/x/text/language"
 )
 
-func SortSupported(supportedLanguageTags []string, fallbackLanguageTag string) []string {
-	if fallbackLanguageTag == "" {
-		fallbackLanguageTag = DefaultLanguage
-	}
+func SortSupported(supportedLanguageTags []string, fallbackLanguage FallbackLanguage) []string {
+	fallbackLanguageTag := string(fallbackLanguage)
 
 	fallbackIdx := -1
 	for i, tag := range supportedLanguageTags {
