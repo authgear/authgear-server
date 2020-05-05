@@ -4,34 +4,9 @@ import (
 	"golang.org/x/text/language"
 )
 
-func SortSupported(supportedLanguageTags []string, fallbackLanguage FallbackLanguage) []string {
-	fallbackLanguageTag := string(fallbackLanguage)
-
-	fallbackIdx := -1
-	for i, tag := range supportedLanguageTags {
-		if tag == fallbackLanguageTag {
-			fallbackIdx = i
-			break
-		}
-	}
-
-	if fallbackIdx < 0 {
-		var s []string
-		s = append(s, fallbackLanguageTag)
-		s = append(s, supportedLanguageTags[:]...)
-		return s
-	}
-
-	var s []string
-	s = append(s, fallbackLanguageTag)
-	s = append(s, supportedLanguageTags[:fallbackIdx]...)
-	s = append(s, supportedLanguageTags[fallbackIdx+1:]...)
-	return s
-}
-
 // Match matches preferredLanguageTags to supportedLanguageTags
 // using fallbackLanguageTag as fallback.
-func Match(preferredLanguageTags []string, supportedLanguageTags []string) (int, language.Tag) {
+func Match(preferredLanguageTags []string, supportedLanguageTags SupportedLanguages) (int, language.Tag) {
 	if len(supportedLanguageTags) <= 0 {
 		return -1, language.Und
 	}

@@ -6,22 +6,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestSortSupported(t *testing.T) {
-	Convey("SortSupported", t, func() {
-		test := func(supported []string, expected []string) {
-			actual := SortSupported(supported, "en")
-			So(actual, ShouldResemble, expected)
-		}
-
-		test(nil, []string{"en"})
-		test([]string{}, []string{"en"})
-		test([]string{"ja", "en"}, []string{"en", "ja"})
-		test([]string{"ja", "en", "zh"}, []string{"en", "ja", "zh"})
-		test([]string{"ja", "zh", "en"}, []string{"en", "ja", "zh"})
-		test([]string{"en", "ja", "zh"}, []string{"en", "ja", "zh"})
-	})
-}
-
 func TestMatch(t *testing.T) {
 	Convey("Match", t, func() {
 		test := func(preferred []string, supported []string, expected int) {

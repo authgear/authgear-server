@@ -27,7 +27,7 @@ func LocalizeJSONObject(preferredLanguageTags []string, fallbackLanguage Fallbac
 	for tag := range m {
 		supportedLanguageTags = append(supportedLanguageTags, tag)
 	}
-	supportedLanguageTags = SortSupported(supportedLanguageTags, fallbackLanguage)
+	supportedLanguageTags = Supported(supportedLanguageTags, fallbackLanguage)
 
 	idx, _ := Match(preferredLanguageTags, supportedLanguageTags)
 	tag := supportedLanguageTags[idx]
@@ -53,7 +53,7 @@ func LocalizeStringMap(preferredLanguageTags []string, fallbackLanguage Fallback
 	for tag := range m {
 		supportedLanguageTags = append(supportedLanguageTags, tag)
 	}
-	supportedLanguageTags = SortSupported(supportedLanguageTags, fallbackLanguage)
+	supportedLanguageTags = Supported(supportedLanguageTags, fallbackLanguage)
 
 	idx, _ := Match(preferredLanguageTags, supportedLanguageTags)
 	tag := supportedLanguageTags[idx]
