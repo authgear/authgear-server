@@ -302,6 +302,12 @@ func TestMakeLocalize(t *testing.T) {
 			"ja": "Hello from ja",
 			"zh": "Hello from zh",
 		}, []string{"kr-KR"}, "Hello from en")
+
+		// Return empty string if fallback is invalid
+		test(map[string]string{
+			"ja": "Hello from ja",
+			"zh": "Hello from zh",
+		}, nil, "")
 	})
 }
 
