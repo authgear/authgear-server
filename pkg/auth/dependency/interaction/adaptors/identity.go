@@ -33,6 +33,7 @@ type OAuthIdentityProvider interface {
 		claims map[string]interface{},
 	) *oauth.Identity
 	Create(i *oauth.Identity) error
+	Update(i *oauth.Identity) error
 }
 
 type IdentityAdaptor struct {
@@ -135,6 +136,23 @@ func (a *IdentityAdaptor) New(userID string, typ authn.IdentityType, claims map[
 	panic("interaction_adaptors: unknown identity type " + typ)
 }
 
+func (a *IdentityAdaptor) WithClaims(userID string, ii *interaction.IdentityInfo, claims map[string]interface{}) *interaction.IdentityInfo {
+	switch ii.Type {
+	case authn.IdentityTypeLoginID:
+		panic("interaction_adaptors: update no support for identity type " + ii.Type)
+	case authn.IdentityTypeOAuth:
+		var profile map[string]interface{}
+		var ok bool
+		if profile, ok = claims[interaction.IdentityClaimOAuthProfile].(map[string]interface{}); !ok {
+			profile = map[string]interface{}{}
+		}
+		i := oauthFromIdentityInfo(userID, ii)
+		i.UserProfile = profile
+		return oauthToIdentityInfo(i)
+	}
+	panic("interaction_adaptors: unknown identity type " + ii.Type)
+}
+
 func (a *IdentityAdaptor) CreateAll(userID string, is []*interaction.IdentityInfo) error {
 	for _, i := range is {
 		switch i.Type {
@@ -151,6 +169,23 @@ func (a *IdentityAdaptor) CreateAll(userID string, is []*interaction.IdentityInf
 			}
 		default:
 
+			panic("interaction_adaptors: unknown identity type " + i.Type)
+		}
+	}
+	return nil
+}
+
+func (a *IdentityAdaptor) UpdateAll(userID string, is []*interaction.IdentityInfo) error {
+	for _, i := range is {
+		switch i.Type {
+		case authn.IdentityTypeLoginID:
+			panic("interaction_adaptors: update no support for identity type " + i.Type)
+		case authn.IdentityTypeOAuth:
+			identity := oauthFromIdentityInfo(userID, i)
+			if err := a.OAuth.Update(identity); err != nil {
+				return err
+			}
+		default:
 			panic("interaction_adaptors: unknown identity type " + i.Type)
 		}
 	}

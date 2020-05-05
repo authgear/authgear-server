@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
@@ -216,6 +217,36 @@ func (s *Store) Create(i *Identity) error {
 	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s *Store) Update(i *Identity) error {
+	profile, err := json.Marshal(i.UserProfile)
+	if err != nil {
+		return err
+	}
+	q := s.SQLBuilder.Tenant().
+		Update(s.SQLBuilder.FullTableName("identity_oauth")).
+		Set("profile", profile).
+		Set("_updated_at", i.UpdatedAt).
+		Where("identity_id = ?", i.ID)
+
+	result, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return identity.ErrIdentityNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Sprintf("identity_oauth: want 1 row updated, got %v", rowsAffected))
 	}
 
 	return nil

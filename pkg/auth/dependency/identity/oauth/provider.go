@@ -69,6 +69,12 @@ func (p *Provider) Create(i *Identity) error {
 	return p.Store.Create(i)
 }
 
+func (p *Provider) Update(i *Identity) error {
+	now := p.Time.NowUTC()
+	i.UpdatedAt = now
+	return p.Store.Update(i)
+}
+
 func (p *Provider) Delete(i *Identity) error {
 	return p.Store.Delete(i)
 }

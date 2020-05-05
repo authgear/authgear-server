@@ -12,7 +12,7 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 	var err error
 	switch intent := i.Intent.(type) {
 	case *IntentLogin:
-		break
+		err = p.onCommitLogin(i, intent)
 	case *IntentSignup:
 		err = p.onCommitSignup(i, intent)
 	default:
@@ -27,6 +27,11 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 		return nil, err
 	}
 	if err := p.Authenticator.CreateAll(i.UserID, i.NewAuthenticators); err != nil {
+		return nil, err
+	}
+
+	// Update identities
+	if err := p.Identity.UpdateAll(i.UserID, i.UpdateIdentities); err != nil {
 		return nil, err
 	}
 
@@ -47,6 +52,25 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 		// TODO(interaction): populate acr & amr
 	}
 	return attrs, nil
+}
+
+func (p *Provider) onCommitLogin(i *Interaction, intent *IntentLogin) error {
+	if intent.Identity.Type == authn.IdentityTypeOAuth {
+		// skip update if login is triggered by signup
+		if intent.OriginalIntentType == IntentTypeSignup {
+			return nil
+		}
+
+		ii, err := p.Identity.Get(i.UserID, intent.Identity.Type, i.Identity.ID)
+		if err != nil {
+			p.Logger.WithError(err).Warn("failed to new identity for update")
+			return err
+		}
+		ui := p.Identity.WithClaims(i.UserID, ii, intent.Identity.Claims)
+		i.UpdateIdentities = append(i.UpdateIdentities, ui)
+	}
+
+	return nil
 }
 
 func (p *Provider) onCommitSignup(i *Interaction, intent *IntentSignup) error {

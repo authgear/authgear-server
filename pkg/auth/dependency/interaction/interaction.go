@@ -25,6 +25,7 @@ type Interaction struct {
 	SecondaryAuthenticator *AuthenticatorRef `json:"secondary_authenticator"`
 
 	State             map[string]string    `json:"state,omitempty"`
+	UpdateIdentities  []*IdentityInfo      `json:"update_identities,omitempty"`
 	NewIdentities     []*IdentityInfo      `json:"new_identities,omitempty"`
 	NewAuthenticators []*AuthenticatorInfo `json:"new_authenticators,omitempty"`
 }
