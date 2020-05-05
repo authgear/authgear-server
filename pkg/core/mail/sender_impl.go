@@ -13,24 +13,27 @@ import (
 var ErrMissingSMTPConfiguration = errors.New("mail: configuration is missing")
 
 type senderImpl struct {
-	GomailDialer *gomail.Dialer
-	Context      context.Context
+	LocalizationConfiguration *config.LocalizationConfiguration
+	GomailDialer              *gomail.Dialer
+	Context                   context.Context
 }
 
-func NewSender(ctx context.Context, c *config.SMTPConfiguration) Sender {
+func NewSender(ctx context.Context, c *config.TenantConfiguration) Sender {
 	var dialer *gomail.Dialer
-	if c != nil && c.IsValid() {
-		dialer = gomail.NewPlainDialer(c.Host, c.Port, c.Login, c.Password)
+	smtp := c.AppConfig.SMTP
+	if smtp != nil && smtp.IsValid() {
+		dialer = gomail.NewPlainDialer(smtp.Host, smtp.Port, smtp.Login, smtp.Password)
 	}
-	switch c.Mode {
+	switch smtp.Mode {
 	case config.SMTPModeNormal:
 		// gomail will infer according to port
 	case config.SMTPModeSSL:
 		dialer.SSL = true
 	}
 	return &senderImpl{
-		GomailDialer: dialer,
-		Context:      ctx,
+		LocalizationConfiguration: c.AppConfig.Localization,
+		GomailDialer:              dialer,
+		Context:                   ctx,
 	}
 }
 
@@ -69,7 +72,7 @@ func (s *senderImpl) Send(opts SendOptions) (err error) {
 
 func (s *senderImpl) applyFrom(opts *SendOptions, message *gomail.Message) error {
 	tags := intl.GetPreferredLanguageTags(s.Context)
-	sender := intl.LocalizeStringMap(tags, opts.MessageConfig, "sender")
+	sender := intl.LocalizeStringMap(tags, intl.Fallback(s.LocalizationConfiguration.FallbackLanguage), opts.MessageConfig, "sender")
 	if sender == "" {
 		return errors.New("mail: sender address is missing")
 	}
@@ -88,7 +91,7 @@ func applyTo(opts *SendOptions, message *gomail.Message) error {
 
 func (s *senderImpl) applyReplyTo(opts *SendOptions, message *gomail.Message) error {
 	tags := intl.GetPreferredLanguageTags(s.Context)
-	replyTo := intl.LocalizeStringMap(tags, opts.MessageConfig, "reply_to")
+	replyTo := intl.LocalizeStringMap(tags, intl.Fallback(s.LocalizationConfiguration.FallbackLanguage), opts.MessageConfig, "reply_to")
 	if replyTo == "" {
 		return nil
 	}
@@ -99,7 +102,7 @@ func (s *senderImpl) applyReplyTo(opts *SendOptions, message *gomail.Message) er
 
 func (s *senderImpl) applySubject(opts *SendOptions, message *gomail.Message) error {
 	tags := intl.GetPreferredLanguageTags(s.Context)
-	subject := intl.LocalizeStringMap(tags, opts.MessageConfig, "subject")
+	subject := intl.LocalizeStringMap(tags, intl.Fallback(s.LocalizationConfiguration.FallbackLanguage), opts.MessageConfig, "subject")
 	if subject == "" {
 		return errors.New("mail: subject is missing")
 	}

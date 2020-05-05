@@ -79,9 +79,20 @@ var (
 			"smtp" : { "$ref": "#SMTPConfiguration" },
 			"twilio" : { "$ref": "#TwilioConfiguration" },
 			"nexmo" : { "$ref": "#NexmoConfiguration" },
-			"asset": { "$ref": "#AssetConfiguration" }
+			"asset": { "$ref": "#AssetConfiguration" },
+			"localization": { "$ref": "#LocalizationConfiguration" }
 		},
 		"required": ["api_version", "master_key", "authentication", "hook", "asset"]
+	},
+	"LocalizationConfiguration": {
+		"$id": "#LocalizationConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"fallback_language": {
+				"type": "string"
+			}
+		}
 	},
 	"AssetConfiguration": {
 		"$id": "#AssetConfiguration",

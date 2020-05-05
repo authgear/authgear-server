@@ -22,6 +22,7 @@ type RenderProviderImpl struct {
 	IdentityConfiguration       *config.IdentityConfiguration
 	AuthenticationConfiguration *config.AuthenticationConfiguration
 	AuthUIConfiguration         *config.AuthUIConfiguration
+	LocalizationConfiguration   *config.LocalizationConfiguration
 	TemplateEngine              *template.Engine
 	PasswordChecker             *audit.PasswordChecker
 }
@@ -55,8 +56,8 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
 
 	clientMetadata := accessKey.Client
-	data["client_name"] = intl.LocalizeJSONObject(preferredLanguageTags, clientMetadata, "client_name")
-	data["logo_uri"] = intl.LocalizeJSONObject(preferredLanguageTags, clientMetadata, "logo_uri")
+	data["client_name"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), clientMetadata, "client_name")
+	data["logo_uri"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), clientMetadata, "logo_uri")
 
 	data[csrf.TemplateTag] = csrf.TemplateField(r)
 

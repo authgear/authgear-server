@@ -8,7 +8,7 @@ import (
 )
 
 func ProvideMailSender(ctx context.Context, config *config.TenantConfiguration) Sender {
-	return NewSender(ctx, config.AppConfig.SMTP)
+	return NewSender(ctx, config)
 }
 
 var DependencySet = wire.NewSet(ProvideMailSender)

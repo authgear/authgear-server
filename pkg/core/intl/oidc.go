@@ -2,14 +2,12 @@ package intl
 
 import (
 	"fmt"
-	"sort"
 	"strings"
-
-	"golang.org/x/text/language"
 )
 
 // LocalizeJSONObject returns the localized value of key in jsonObject according to preferredLanguageTags.
-func LocalizeJSONObject(preferredLanguageTags []string, jsonObject map[string]interface{}, key string) string {
+func LocalizeJSONObject(preferredLanguageTags []string, fallbackLanguage FallbackLanguage, jsonObject map[string]interface{}, key string) string {
+	fallbackLanguageTag := string(fallbackLanguage)
 	prefix := fmt.Sprintf("%s#", key)
 	m := map[string]string{}
 	for k, v := range jsonObject {
@@ -18,66 +16,47 @@ func LocalizeJSONObject(preferredLanguageTags []string, jsonObject map[string]in
 			continue
 		}
 		if k == key {
-			m[""] = stringValue
+			m[fallbackLanguageTag] = stringValue
 		} else if strings.HasPrefix(k, prefix) {
 			tag := strings.TrimPrefix(k, prefix)
 			m[tag] = stringValue
 		}
 	}
-	_, value := Localize(preferredLanguageTags, m)
+
+	var supportedLanguageTags []string
+	for tag := range m {
+		supportedLanguageTags = append(supportedLanguageTags, tag)
+	}
+	supportedLanguageTags = Supported(supportedLanguageTags, fallbackLanguage)
+
+	idx, _ := Match(preferredLanguageTags, supportedLanguageTags)
+	tag := supportedLanguageTags[idx]
+	value := m[tag]
 	return value
 }
 
 // LocalizeStringMap returns the localized value of key in stringMap according to preferredLanguageTags.
-func LocalizeStringMap(preferredLanguageTags []string, stringMap map[string]string, key string) string {
+func LocalizeStringMap(preferredLanguageTags []string, fallbackLanguage FallbackLanguage, stringMap map[string]string, key string) string {
+	fallbackLanguageTag := string(fallbackLanguage)
 	prefix := fmt.Sprintf("%s#", key)
 	m := map[string]string{}
 	for k, stringValue := range stringMap {
 		if k == key {
-			m[""] = stringValue
+			m[fallbackLanguageTag] = stringValue
 		} else if strings.HasPrefix(k, prefix) {
 			tag := strings.TrimPrefix(k, prefix)
 			m[tag] = stringValue
 		}
 	}
-	_, value := Localize(preferredLanguageTags, m)
+
+	var supportedLanguageTags []string
+	for tag := range m {
+		supportedLanguageTags = append(supportedLanguageTags, tag)
+	}
+	supportedLanguageTags = Supported(supportedLanguageTags, fallbackLanguage)
+
+	idx, _ := Match(preferredLanguageTags, supportedLanguageTags)
+	tag := supportedLanguageTags[idx]
+	value := m[tag]
 	return value
-}
-
-// Localize selects the best value from m according to preferredLanguageTags.
-// m must be non-empty.
-func Localize(preferredLanguageTags []string, m map[string]string) (language.Tag, string) {
-	if len(m) <= 0 {
-		return language.Und, ""
-	}
-
-	supportedTagStrings := make([]string, len(m))
-	for tagStr := range m {
-		supportedTagStrings = append(supportedTagStrings, tagStr)
-	}
-
-	// The first item in tags is used as fallback.
-	// So we have sort the templates so that template with empty
-	// language tag comes first.
-	sort.Slice(supportedTagStrings, func(i, j int) bool {
-		return supportedTagStrings[i] < supportedTagStrings[j]
-	})
-
-	supportedTags := make([]language.Tag, len(supportedTagStrings))
-	for i, item := range supportedTagStrings {
-		supportedTags[i] = language.Make(item)
-	}
-	matcher := language.NewMatcher(supportedTags)
-
-	preferredTags := make([]language.Tag, len(preferredLanguageTags))
-	for i, tagStr := range preferredLanguageTags {
-		preferredTags[i] = language.Make(tagStr)
-	}
-
-	_, idx, _ := matcher.Match(preferredTags...)
-
-	tag := supportedTags[idx]
-	pattern := m[supportedTagStrings[idx]]
-
-	return tag, pattern
 }

@@ -349,6 +349,9 @@ func makeFullTenantConfig() TenantConfiguration {
 				APIKey:    "mynexmoapikey",
 				APISecret: "mynexmoapisecret",
 			},
+			Localization: &LocalizationConfiguration{
+				FallbackLanguage: "en",
+			},
 		},
 		TemplateItems: []TemplateItem{
 			TemplateItem{

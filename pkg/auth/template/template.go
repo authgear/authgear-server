@@ -25,6 +25,7 @@ func NewEngineWithConfig(
 		EnableFileLoader: enableFileSystemTemplate,
 		TemplateItems:    tConfig.TemplateItems,
 		AssetGearLoader:  assetGearLoader,
+		FallbackLanguage: tConfig.AppConfig.Localization.FallbackLanguage,
 	})
 
 	e.Register(welcemail.TemplateWelcomeEmailTXT)

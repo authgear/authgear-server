@@ -512,6 +512,24 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
+		case "localization":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "Localization")
+					return
+				}
+				z.Localization = nil
+			} else {
+				if z.Localization == nil {
+					z.Localization = new(LocalizationConfiguration)
+				}
+				err = z.Localization.DecodeMsg(dc)
+				if err != nil {
+					err = msgp.WrapError(err, "Localization")
+					return
+				}
+			}
 		case "asset":
 			if dc.IsNil() {
 				err = dc.ReadNil()
@@ -566,9 +584,9 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 21
+	// map header, size 22
 	// write "api_version"
-	err = en.Append(0xde, 0x0, 0x15, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0xde, 0x0, 0x16, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
@@ -968,6 +986,23 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	}
+	// write "localization"
+	err = en.Append(0xac, 0x6c, 0x6f, 0x63, 0x61, 0x6c, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e)
+	if err != nil {
+		return
+	}
+	if z.Localization == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = z.Localization.EncodeMsg(en)
+		if err != nil {
+			err = msgp.WrapError(err, "Localization")
+			return
+		}
+	}
 	// write "asset"
 	err = en.Append(0xa5, 0x61, 0x73, 0x73, 0x65, 0x74)
 	if err != nil {
@@ -997,9 +1032,9 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 21
+	// map header, size 22
 	// string "api_version"
-	o = append(o, 0xde, 0x0, 0x15, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0xde, 0x0, 0x16, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	o = msgp.AppendString(o, z.APIVersion)
 	// string "display_app_name"
 	o = append(o, 0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
@@ -1211,6 +1246,17 @@ func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		// string "api_secret"
 		o = append(o, 0xaa, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74)
 		o = msgp.AppendString(o, z.Nexmo.APISecret)
+	}
+	// string "localization"
+	o = append(o, 0xac, 0x6c, 0x6f, 0x63, 0x61, 0x6c, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e)
+	if z.Localization == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o, err = z.Localization.MarshalMsg(o)
+		if err != nil {
+			err = msgp.WrapError(err, "Localization")
+			return
+		}
 	}
 	// string "asset"
 	o = append(o, 0xa5, 0x61, 0x73, 0x73, 0x65, 0x74)
@@ -1715,6 +1761,23 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 				}
 			}
+		case "localization":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Localization = nil
+			} else {
+				if z.Localization == nil {
+					z.Localization = new(LocalizationConfiguration)
+				}
+				bts, err = z.Localization.UnmarshalMsg(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Localization")
+					return
+				}
+			}
 		case "asset":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
@@ -1874,6 +1937,12 @@ func (z *AppConfiguration) Msgsize() (s int) {
 		s += msgp.NilSize
 	} else {
 		s += 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 11 + msgp.StringPrefixSize + len(z.Nexmo.APISecret)
+	}
+	s += 13
+	if z.Localization == nil {
+		s += msgp.NilSize
+	} else {
+		s += z.Localization.Msgsize()
 	}
 	s += 6
 	if z.Asset == nil {

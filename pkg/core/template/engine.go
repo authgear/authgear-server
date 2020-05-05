@@ -3,9 +3,6 @@ package template
 import (
 	"encoding/json"
 	"fmt"
-	"sort"
-
-	"golang.org/x/text/language"
 
 	"github.com/iawaknahc/gomessageformat"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -23,7 +20,6 @@ type resolveResult struct {
 	// For example,
 	// {
 	//   "key1": {
-	//     "": "Hello",
 	//     "en": "Hello",
 	//     "en-US": "Hi!",
 	//     "zh": "你好"
@@ -38,6 +34,7 @@ type NewEngineOptions struct {
 	EnableDataLoader bool
 	AssetGearLoader  *AssetGearLoader
 	TemplateItems    []config.TemplateItem
+	FallbackLanguage string
 }
 
 type Loader interface {
@@ -50,6 +47,7 @@ type Engine struct {
 	TemplateSpecs         map[config.TemplateItemType]Spec
 	templateItems         []config.TemplateItem
 	preferredLanguageTags []string
+	fallbackLanguageTag   string
 	validatorOptions      []ValidatorOption
 }
 
@@ -58,9 +56,10 @@ func NewEngine(opts NewEngineOptions) *Engine {
 	uriLoader.EnableFileLoader = opts.EnableFileLoader
 	uriLoader.EnableDataLoader = opts.EnableDataLoader
 	return &Engine{
-		loader:        uriLoader,
-		templateItems: opts.TemplateItems,
-		TemplateSpecs: map[config.TemplateItemType]Spec{},
+		loader:              uriLoader,
+		templateItems:       opts.TemplateItems,
+		TemplateSpecs:       map[config.TemplateItemType]Spec{},
+		fallbackLanguageTag: opts.FallbackLanguage,
 	}
 }
 
@@ -114,6 +113,7 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, context ma
 		renderOptions.Funcs = map[string]interface{}{
 			"localize": makeLocalize(
 				e.preferredLanguageTags,
+				e.fallbackLanguageTag,
 				result.Translations,
 			),
 		}
@@ -210,30 +210,33 @@ func (e *Engine) resolveTemplateItem(spec Spec, key string) (templateItem *confi
 		return
 	}
 
-	// We have a list of templates of different language tags.
-	// The first item in tags is used as fallback.
-	// So we have sort the templates so that template with empty
-	// language tag comes first.
-	//
-	// language.Make("") is "und"
-	sort.Slice(input, func(i, j int) bool {
-		return input[i].LanguageTag < input[j].LanguageTag
-	})
-
-	supportedTags := make([]language.Tag, len(input))
+	// Set the empty language tag to fallback language.
 	for i, item := range input {
-		supportedTags[i] = language.Make(item.LanguageTag)
-	}
-	matcher := language.NewMatcher(supportedTags)
-
-	preferredTags := make([]language.Tag, len(e.preferredLanguageTags))
-	for i, tagStr := range e.preferredLanguageTags {
-		preferredTags[i] = language.Make(tagStr)
+		if item.LanguageTag == "" {
+			item.LanguageTag = string(intl.Fallback(e.fallbackLanguageTag))
+			input[i] = item
+		}
 	}
 
-	_, idx, _ := matcher.Match(preferredTags...)
+	// Build a map from language tag to item and supported languages tags.
+	languageTagToItem := make(map[string]config.TemplateItem)
+	var rawSupported []string
+	for _, item := range input {
+		languageTagToItem[item.LanguageTag] = item
+		rawSupported = append(rawSupported, item.LanguageTag)
+	}
+	supportedLanguageTags := intl.Supported(rawSupported, intl.Fallback(e.fallbackLanguageTag))
 
-	return &input[idx], nil
+	idx, _ := intl.Match(e.preferredLanguageTags, supportedLanguageTags)
+	tag := supportedLanguageTags[idx]
+
+	item, ok := languageTagToItem[tag]
+	if !ok {
+		err = &errNotFound{name: string(spec.Type)}
+		return
+	}
+
+	return &item, nil
 }
 
 func (e *Engine) resolveTranslations(templateType config.TemplateItemType) (translations map[string]map[string]string, err error) {
@@ -249,7 +252,7 @@ func (e *Engine) resolveTranslations(templateType config.TemplateItemType) (tran
 	if err != nil {
 		return
 	}
-	insertTranslation(translations, "", defaultTranslation)
+	insertTranslation(translations, intl.DefaultLanguage, defaultTranslation)
 
 	// Find out all items
 	var items []config.TemplateItem
@@ -323,7 +326,7 @@ func (e *Engine) resolveComponents(types []config.TemplateItemType, key string) 
 	return
 }
 
-func makeLocalize(preferredLanguageTags []string, translations map[string]map[string]string) func(key string, args ...interface{}) (string, error) {
+func makeLocalize(preferredLanguageTags []string, fallbackLanguageTag string, translations map[string]map[string]string) func(key string, args ...interface{}) (string, error) {
 	return func(key string, args ...interface{}) (out string, err error) {
 		m, ok := translations[key]
 		if !ok {
@@ -331,7 +334,14 @@ func makeLocalize(preferredLanguageTags []string, translations map[string]map[st
 			return
 		}
 
-		tag, pattern := intl.Localize(preferredLanguageTags, m)
+		var supportedLanguageTags []string
+		for tag := range m {
+			supportedLanguageTags = append(supportedLanguageTags, tag)
+		}
+		supportedLanguageTags = intl.Supported(supportedLanguageTags, intl.Fallback(fallbackLanguageTag))
+
+		idx, tag := intl.Match(preferredLanguageTags, supportedLanguageTags)
+		pattern := m[supportedLanguageTags[idx]]
 
 		out, err = messageformat.FormatPositional(tag, pattern, args...)
 		if err != nil {

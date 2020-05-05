@@ -15,8 +15,9 @@ type RawClient interface {
 }
 
 type ClientImpl struct {
-	RawClient RawClient
-	Context   context.Context
+	LocalizationConfiguration *config.LocalizationConfiguration
+	RawClient                 RawClient
+	Context                   context.Context
 }
 
 func NewClient(ctx context.Context, appConfig *config.AppConfiguration) Client {
@@ -37,15 +38,16 @@ func NewClient(ctx context.Context, appConfig *config.AppConfiguration) Client {
 	}
 
 	return &ClientImpl{
-		RawClient: client,
-		Context:   ctx,
+		LocalizationConfiguration: appConfig.Localization,
+		RawClient:                 client,
+		Context:                   ctx,
 	}
 }
 
 func (c *ClientImpl) Send(opts SendOptions) error {
 	if c.RawClient != nil {
 		tags := intl.GetPreferredLanguageTags(c.Context)
-		from := intl.LocalizeStringMap(tags, opts.MessageConfig, "sender")
+		from := intl.LocalizeStringMap(tags, intl.Fallback(c.LocalizationConfiguration.FallbackLanguage), opts.MessageConfig, "sender")
 		return c.RawClient.Send(from, opts.To, opts.Body)
 	}
 	return ErrNoAvailableClient
