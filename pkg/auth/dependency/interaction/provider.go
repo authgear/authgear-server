@@ -60,6 +60,20 @@ type OOBProvider interface {
 // TODO(interaction): configurable lifetime
 const interactionIdleTimeout = 5 * gotime.Minute
 
+// NOTE(interaction): SaveInteraction and Commit are mutually exclusively within a request.
+// You either do something with the interaction, SaveInteraction and return the token.
+// Or do something with the interaction, Commit and discard the interaction.
+//
+// Mixing SaveInteraction and Commit may lead to data corruption.
+// For example, given the following call sequence in a function.
+//
+// PerformAction
+// SaveInteraction
+// Commit
+//
+// If Commit fails for some reason, the interaction has already been mutated by SaveInteraction.
+// If the function is retried, PerformAction is applied twice, leading to data corruption.
+
 type Provider struct {
 	Store         Store
 	Time          time.Provider

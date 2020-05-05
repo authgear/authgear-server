@@ -122,11 +122,6 @@ func (f *WebAppFlow) SetupSecret(token string, secret string) (*WebAppResult, er
 		return nil, err
 	}
 
-	_, err = f.Interactions.SaveInteraction(i)
-	if err != nil {
-		return nil, err
-	}
-
 	if i.Error != nil {
 		return nil, i.Error
 	}
@@ -190,11 +185,6 @@ func (f *WebAppFlow) AuthenticateSecret(token string, secret string) (*WebAppRes
 		Authenticator: s.Steps[0].AvailableAuthenticators[0],
 		Secret:        secret,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = f.Interactions.SaveInteraction(i)
 	if err != nil {
 		return nil, err
 	}
