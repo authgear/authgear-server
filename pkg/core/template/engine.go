@@ -3,9 +3,6 @@ package template
 import (
 	"encoding/json"
 	"fmt"
-	"sort"
-
-	"golang.org/x/text/language"
 
 	"github.com/iawaknahc/gomessageformat"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -213,30 +210,33 @@ func (e *Engine) resolveTemplateItem(spec Spec, key string) (templateItem *confi
 		return
 	}
 
-	// We have a list of templates of different language tags.
-	// The first item in tags is used as fallback.
-	// So we have sort the templates so that template with empty
-	// language tag comes first.
-	//
-	// language.Make("") is "und"
-	sort.Slice(input, func(i, j int) bool {
-		return input[i].LanguageTag < input[j].LanguageTag
-	})
-
-	supportedTags := make([]language.Tag, len(input))
+	// Set the empty language tag to fallback language.
 	for i, item := range input {
-		supportedTags[i] = language.Make(item.LanguageTag)
-	}
-	matcher := language.NewMatcher(supportedTags)
-
-	preferredTags := make([]language.Tag, len(e.preferredLanguageTags))
-	for i, tagStr := range e.preferredLanguageTags {
-		preferredTags[i] = language.Make(tagStr)
+		if item.LanguageTag == "" {
+			item.LanguageTag = string(intl.Fallback(e.fallbackLanguageTag))
+			input[i] = item
+		}
 	}
 
-	_, idx, _ := matcher.Match(preferredTags...)
+	// Build a map from language tag to item and supported languages tags.
+	languageTagToItem := make(map[string]config.TemplateItem)
+	var rawSupported []string
+	for _, item := range input {
+		languageTagToItem[item.LanguageTag] = item
+		rawSupported = append(rawSupported, item.LanguageTag)
+	}
+	supportedLanguageTags := intl.Supported(rawSupported, intl.Fallback(e.fallbackLanguageTag))
 
-	return &input[idx], nil
+	idx, _ := intl.Match(e.preferredLanguageTags, supportedLanguageTags)
+	tag := supportedLanguageTags[idx]
+
+	item, ok := languageTagToItem[tag]
+	if !ok {
+		err = &errNotFound{name: string(spec.Type)}
+		return
+	}
+
+	return &item, nil
 }
 
 func (e *Engine) resolveTranslations(templateType config.TemplateItemType) (translations map[string]map[string]string, err error) {

@@ -41,7 +41,8 @@ func TestResolveTemplateItem(t *testing.T) {
 				Type: typeB,
 			},
 		}, nil, "", &config.TemplateItem{
-			Type: typeA,
+			Type:        typeA,
+			LanguageTag: "en",
 		})
 
 		// Select key
@@ -61,8 +62,9 @@ func TestResolveTemplateItem(t *testing.T) {
 				Key:  keyB,
 			},
 		}, nil, keyA, &config.TemplateItem{
-			Type: typeA,
-			Key:  keyA,
+			Type:        typeA,
+			Key:         keyA,
+			LanguageTag: "en",
 		})
 
 		// Select the empty language tag
@@ -83,8 +85,9 @@ func TestResolveTemplateItem(t *testing.T) {
 				URI:         "Traditional Chinese in Hong Kong",
 			},
 		}, nil, "", &config.TemplateItem{
-			Type: typeA,
-			URI:  "default",
+			Type:        typeA,
+			URI:         "default",
+			LanguageTag: "en",
 		})
 
 		// Select the best language tag.
@@ -103,10 +106,31 @@ func TestResolveTemplateItem(t *testing.T) {
 				LanguageTag: "zh-Hant-HK",
 				URI:         "Traditional Chinese in Hong Kong",
 			},
-		}, []string{"en"}, "", &config.TemplateItem{
+		}, []string{"en-US"}, "", &config.TemplateItem{
 			Type:        typeA,
 			LanguageTag: "en-US",
 			URI:         "American English",
+		})
+
+		// Invalid fallback.
+		test([]config.TemplateItem{
+			config.TemplateItem{
+				Type:        typeA,
+				LanguageTag: "en-US",
+				URI:         "American English",
+			},
+		}, []string{"zh-Hant-HK"}, "", nil)
+
+		// Select fallback.
+		test([]config.TemplateItem{
+			config.TemplateItem{
+				Type: typeA,
+				URI:  "fallback",
+			},
+		}, []string{"zh-Hant-HK"}, "", &config.TemplateItem{
+			Type:        typeA,
+			URI:         "fallback",
+			LanguageTag: "en",
 		})
 	})
 }
