@@ -8,19 +8,10 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -30,20 +21,8 @@ func AttachAddLoginIDHandler(
 ) {
 	router.NewRoute().
 		Path("/login_id/add").
-		Handler(server.FactoryToHandler(&AddLoginIDHandlerFactory{
-			authDependency,
-		})).
+		Handler(pkg.MakeHandler(authDependency, newAddLoginIDHandler)).
 		Methods("OPTIONS", "POST")
-}
-
-type AddLoginIDHandlerFactory struct {
-	Dependency pkg.DependencyMap
-}
-
-func (f AddLoginIDHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &AddLoginIDHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type AddLoginIDRequestPayload struct {
@@ -73,6 +52,12 @@ const AddLoginIDRequestSchema = `
 }
 `
 
+type AddLoginIDInteractionFlow interface {
+	AddLoginID(
+		loginIDKey string, loginID string, session auth.AuthSession,
+	) error
+}
+
 /*
 	@Operation POST /login_id/add - Add login ID
 		Add new login ID for current user.
@@ -91,14 +76,9 @@ const AddLoginIDRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type AddLoginIDHandler struct {
-	Validator                *validation.Validator `dependency:"Validator"`
-	RequireAuthz             handler.RequireAuthz  `dependency:"RequireAuthz"`
-	AuthInfoStore            authinfo.Store        `dependency:"AuthInfoStore"`
-	PasswordAuthProvider     password.Provider     `dependency:"PasswordAuthProvider"`
-	UserVerificationProvider userverify.Provider   `dependency:"UserVerificationProvider"`
-	TxContext                db.TxContext          `dependency:"TxContext"`
-	UserProfileStore         userprofile.Store     `dependency:"UserProfileStore"`
-	HookProvider             hook.Provider         `dependency:"HookProvider"`
+	Validator    *validation.Validator
+	TxContext    db.TxContext
+	Interactions AddLoginIDInteractionFlow
 }
 
 func (h AddLoginIDHandler) ProvideAuthzPolicy() coreauthz.Policy {
@@ -121,68 +101,16 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	err := db.WithTx(h.TxContext, func() error {
-		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
-
-		principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(userID)
-		if err != nil {
-			return err
-		}
-
-		loginIDs := extractLoginIDs(principals)
-		newLoginIDBeginIndex := len(loginIDs)
-		loginIDs = append(loginIDs, payload.LoginIDs...)
-		err = validateLoginIDs(h.PasswordAuthProvider, loginIDs, newLoginIDBeginIndex)
-		if err != nil {
-			if causes := validation.ErrorCauses(err); len(causes) > 0 {
-				for i, cause := range causes {
-					if cause.Pointer != "" {
-						cause.Pointer = "/login_ids" + cause.Pointer
-						causes[i] = cause
-					}
-				}
-				return validation.NewValidationFailed("invalid login ID", causes)
-			}
-			return err
-		}
-
-		authInfo := &authinfo.AuthInfo{}
-		if err := h.AuthInfoStore.GetAuth(userID, authInfo); err != nil {
-			return err
-		}
-		userProfile, err := h.UserProfileStore.GetUserProfile(userID)
-		if err != nil {
-			return err
-		}
-		user := model.NewUser(*authInfo, userProfile)
+		userSession := auth.GetSession(r.Context())
 
 		for _, loginID := range payload.LoginIDs {
-			newPrincipal, err := h.PasswordAuthProvider.MakePrincipal(userID, "", loginID, password.DefaultRealm)
-			if err != nil {
-				return err
-			}
-			if len(principals) > 0 {
-				newPrincipal.HashedPassword = principals[0].HashedPassword
-			} else {
-				// NOTE: if there is no existing password principals,
-				// we use a empty password hash to make it unable to be used
-				// to login.
-				newPrincipal.HashedPassword = nil
-			}
 
-			err = h.PasswordAuthProvider.CreatePrincipal(newPrincipal)
-			if err != nil {
-				return err
-			}
-			principals = append(principals, newPrincipal)
+			// TODO(interaction): validation
 
-			identity := model.NewIdentity(newPrincipal)
-			err = h.HookProvider.DispatchEvent(
-				event.IdentityCreateEvent{
-					User:     user,
-					Identity: identity,
-				},
-				&user,
-			)
+			err := h.Interactions.AddLoginID(loginID.Key, loginID.Value, userSession)
+
+			// TODO(interaction): hook identity create event
+
 			if err != nil {
 				return err
 			}

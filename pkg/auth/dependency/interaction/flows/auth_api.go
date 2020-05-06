@@ -1,6 +1,7 @@
 package flows
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
@@ -173,4 +174,38 @@ func (f *AuthAPIFlow) SignupWithLoginIDPassword(
 	default:
 		return nil, ErrUnsupportedConfiguration
 	}
+}
+
+func (f *AuthAPIFlow) AddLoginID(
+	loginIDKey string, loginID string, session auth.AuthSession,
+) error {
+	i, err := f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
+		Identity: interaction.IdentitySpec{
+			Type: authn.IdentityTypeLoginID,
+			Claims: map[string]interface{}{
+				interaction.IdentityClaimLoginIDKey:   loginIDKey,
+				interaction.IdentityClaimLoginIDValue: loginID,
+			},
+		},
+	}, session.GetClientID(), session.AuthnAttrs().UserID)
+	if err != nil {
+		return err
+	}
+
+	s, err := f.Interactions.GetInteractionState(i)
+	if err != nil {
+		return err
+	} else if s.CurrentStep().Step != interaction.StepCommit {
+		// in auth api, only password authenticator is supported for login id
+		// password authenticator should be setup during sign up
+		// so the current step must be commit
+		return ErrUnsupportedConfiguration
+	}
+
+	_, err = f.Interactions.Commit(i)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

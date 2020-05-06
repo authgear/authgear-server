@@ -18,6 +18,7 @@ type InteractionProvider interface {
 		clientID string,
 	) (*interaction.Interaction, error)
 	NewInteractionSignup(intent *interaction.IntentSignup, clientID string) (*interaction.Interaction, error)
+	NewInteractionAddIdentity(intent *interaction.IntentAddIdentity, clientID string, userID string) (*interaction.Interaction, error)
 	GetInteractionState(i *interaction.Interaction) (*interaction.State, error)
 	PerformAction(i *interaction.Interaction, step interaction.Step, action interaction.Action) error
 }
