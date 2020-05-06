@@ -16,6 +16,7 @@ import (
 	authenticatorrecoverycode "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
 	authenticatortotp "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	identityanonymous "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
@@ -195,6 +196,11 @@ var interactionDependencySet = wire.NewSet(
 	wire.Bind(new(hook.LoginIDProvider), new(*identityloginid.Provider)),
 )
 
+var challengeDependencySet = wire.NewSet(
+	challenge.DependencySet,
+	wire.Bind(new(int), new(*challenge.Provider)),
+)
+
 var CommonDependencySet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideSessionInsecureCookieConfig,
@@ -248,6 +254,7 @@ var CommonDependencySet = wire.NewSet(
 	welcemail.DependencySet,
 	userverify.DependencySet,
 	forgotpassword.DependencySet,
+	challengeDependencySet,
 	interactionDependencySet,
 )
 

@@ -5,6 +5,9 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 )
 
+// nolint:gosec
+const RequestTokenType = "vnd.skygear.auth.anonymous-request"
+
 type RequestAction string
 
 const (

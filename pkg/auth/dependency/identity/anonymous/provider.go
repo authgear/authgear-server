@@ -105,9 +105,13 @@ func (p *Provider) ParseRequest(requestJWT string) (*Identity, *Request, error) 
 	}
 
 	req := &Request{}
-	_, err := jwt.ParseWithClaims(requestJWT, req, keyFunc)
+	token, err := jwt.ParseWithClaims(requestJWT, req, keyFunc)
 	if err != nil {
 		return nil, nil, fmt.Errorf("invalid JWT signature: %w", err)
+	}
+
+	if typ, ok := token.Header["typ"].(string); !ok || typ != RequestTokenType {
+		return nil, nil, errors.New("invalid JWT type")
 	}
 
 	req.Key = key

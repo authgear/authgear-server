@@ -3,6 +3,7 @@ package flows
 import (
 	"encoding/json"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -13,19 +14,30 @@ type AnonymousIdentityProvider interface {
 	ParseRequest(requestJWT string) (*anonymous.Identity, *anonymous.Request, error)
 }
 
+type ChallengeProvider interface {
+	Consume(token string) (*challenge.Purpose, error)
+}
+
 type AnonymousFlow struct {
 	Interactions InteractionProvider
 	Anonymous    AnonymousIdentityProvider
+	Challenges   ChallengeProvider
 }
 
 func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn.Attrs, error) {
 	identity, request, err := f.Anonymous.ParseRequest(requestJWT)
-	if err != nil {
+	if err != nil || request.Action != anonymous.RequestActionAuth {
 		return nil, interaction.ErrInvalidCredentials
 	}
 
 	var keyID string
 	if identity != nil {
+		// Verify challenge to use existing identity
+		purpose, err := f.Challenges.Consume(request.Challenge)
+		if err != nil || *purpose != challenge.PurposeAnonymousRequest {
+			return nil, interaction.ErrInvalidCredentials
+		}
+
 		keyID = identity.KeyID
 	} else {
 		// Sign up if identity does not exist
