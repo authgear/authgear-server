@@ -36,7 +36,6 @@ func provideAuthHandler(
 	cfg *config.TenantConfiguration,
 	hp sso.AuthHandlerHTMLProvider,
 	sp sso.Provider,
-	ap AuthHandlerAuthnProvider,
 	op sso.OAuthProvider,
 	f OAuthHandlerInteractionFlow,
 ) http.Handler {
@@ -45,7 +44,6 @@ func provideAuthHandler(
 		TenantConfiguration:     cfg,
 		AuthHandlerHTMLProvider: hp,
 		SSOProvider:             sp,
-		AuthnProvider:           ap,
 		OAuthProvider:           op,
 		Interactions:            f,
 	}
@@ -55,8 +53,6 @@ func provideAuthHandler(
 func newAuthHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
-		authn.ProvideAuthAPIProvider,
-		wire.Bind(new(AuthHandlerAuthnProvider), new(*authn.Provider)),
 		provideOAuthProviderFromRequestVars,
 		provideAuthHandler,
 		ProvideRedirectURIForAPIFunc,
@@ -68,17 +64,15 @@ func newAuthHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 func provideAuthResultHandler(
 	tx db.TxContext,
 	requireAuthz handler.RequireAuthz,
-	ap AuthResultAuthnProvider,
 	v *validation.Validator,
 	sp sso.Provider,
 	f OAuthResultInteractionFlow,
 ) http.Handler {
 	h := &AuthResultHandler{
-		TxContext:     tx,
-		AuthnProvider: ap,
-		Validator:     v,
-		SSOProvider:   sp,
-		Interactions:  f,
+		TxContext:    tx,
+		Validator:    v,
+		SSOProvider:  sp,
+		Interactions: f,
 	}
 	return requireAuthz(h, h)
 }
@@ -86,8 +80,6 @@ func provideAuthResultHandler(
 func newAuthResultHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
-		authn.ProvideAuthAPIProvider,
-		wire.Bind(new(AuthResultAuthnProvider), new(*authn.Provider)),
 		provideAuthResultHandler,
 		wire.Bind(new(OAuthResultInteractionFlow), new(*interactionflows.AuthAPIFlow)),
 	)

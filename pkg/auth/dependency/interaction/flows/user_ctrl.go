@@ -125,6 +125,15 @@ func (c *UserController) CreateSession(
 	return result, nil
 }
 
+func (c *UserController) MakeAuthResult(attrs *authn.Attrs) (*AuthResult, error) {
+	resp, err := c.makeResponse(attrs)
+	if err != nil {
+		return nil, err
+	}
+	result := &AuthResult{Response: resp}
+	return result, nil
+}
+
 func (c *UserController) updateLoginTime(userID string) error {
 	authInfo := &authinfo.AuthInfo{}
 	err := c.AuthInfos.GetAuth(userID, authInfo)

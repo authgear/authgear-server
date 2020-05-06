@@ -69,6 +69,12 @@ func (m *MockOAuthHandlerInteractionFlow) LoginWithOAuthProvider(
 	return m.CodeStr, nil
 }
 
+func (m *MockOAuthHandlerInteractionFlow) LinkWithOAuthProvider(
+	clientID string, userID string, oauthAuthInfo sso.AuthInfo, codeChallenge string,
+) (string, error) {
+	panic("not mocked")
+}
+
 func TestAuthHandler(t *testing.T) {
 	Convey("Test AuthHandler with login action", t, func() {
 		action := "login"

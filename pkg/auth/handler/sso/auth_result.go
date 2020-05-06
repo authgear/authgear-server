@@ -6,16 +6,11 @@ import (
 	"github.com/gorilla/mux"
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -34,24 +29,11 @@ type OAuthResultInteractionFlow interface {
 	ExchangeCode(codeHash string, verifier string) (*interactionflows.AuthResult, error)
 }
 
-type AuthResultAuthnProvider interface {
-	OAuthConsumeCode(hashCode string) (*sso.SkygearAuthorizationCode, error)
-
-	OAuthExchangeCode(
-		client config.OAuthClientConfiguration,
-		session auth.AuthSession,
-		code *sso.SkygearAuthorizationCode,
-	) (authn.Result, error)
-
-	WriteAPIResult(rw http.ResponseWriter, result authn.Result)
-}
-
 type AuthResultHandler struct {
-	TxContext     db.TxContext
-	AuthnProvider AuthResultAuthnProvider
-	Validator     *validation.Validator
-	SSOProvider   sso.Provider
-	Interactions  OAuthResultInteractionFlow
+	TxContext    db.TxContext
+	Validator    *validation.Validator
+	SSOProvider  sso.Provider
+	Interactions OAuthResultInteractionFlow
 }
 
 func (h *AuthResultHandler) ProvideAuthzPolicy() coreauthz.Policy {
@@ -88,56 +70,17 @@ func (h *AuthResultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var authnResult authn.Result
 	var result *interactionflows.AuthResult
 	err = db.WithTx(h.TxContext, func() (err error) {
 		result, err = h.Interactions.ExchangeCode(
 			payload.AuthorizationCode,
 			payload.CodeVerifier,
 		)
-		if err == nil {
-			return
-		}
-		// TODO(interaction-sso): sso-link remove after integrate with interactions
-		// try link in old flow
-		authnResult, err = h.Handle(r, payload)
 		return
 	})
 	if err != nil {
 		handler.WriteResponse(w, handler.APIResponse{Error: err})
 		return
 	}
-	if authnResult != nil {
-		h.AuthnProvider.WriteAPIResult(w, authnResult)
-	} else {
-		// new interaction login
-		result.WriteResponse(w)
-	}
-}
-
-func (h *AuthResultHandler) Handle(r *http.Request, payload *AuthResultPayload) (authn.Result, error) {
-	codeHash := sso.HashCode(payload.AuthorizationCode)
-	code, err := h.AuthnProvider.OAuthConsumeCode(codeHash)
-	if err != nil {
-		if errors.Is(err, sso.ErrCodeNotFound) {
-			return nil, sso.NewSSOFailed(sso.SSOUnauthorized, "invalid code")
-		}
-		return nil, err
-	}
-
-	err = h.SSOProvider.VerifyPKCE(code, payload.CodeVerifier)
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := h.AuthnProvider.OAuthExchangeCode(
-		coreauth.GetAccessKey(r.Context()).Client,
-		auth.GetSession(r.Context()),
-		code,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	result.WriteResponse(w)
 }

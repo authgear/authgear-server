@@ -1,6 +1,7 @@
 package adaptors
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
@@ -25,6 +26,7 @@ type LoginIDIdentityProvider interface {
 type OAuthIdentityProvider interface {
 	Get(userID, id string) (*oauth.Identity, error)
 	GetByProviderSubject(provider oauth.ProviderID, subjectID string) (*oauth.Identity, error)
+	GetByUserProvider(userID string, provider oauth.ProviderID) (*oauth.Identity, error)
 	ListByClaim(name string, value string) ([]*oauth.Identity, error)
 	New(
 		userID string,
@@ -213,12 +215,19 @@ func (a *IdentityAdaptor) Validate(is []*interaction.IdentityInfo) error {
 }
 
 func (a *IdentityAdaptor) ValidateWithUser(userID string, is []*interaction.IdentityInfo) error {
-	// TODO(interaction): do not allow user link to same provider twice
 	var loginIDs []loginid.LoginID
 	for _, i := range is {
 		if i.Type == authn.IdentityTypeLoginID {
 			loginID := extractLoginIDClaims(i.Claims)
 			loginIDs = append(loginIDs, loginID)
+		} else if i.Type == authn.IdentityTypeOAuth {
+			providerID, _ := extractOAuthClaims(i.Claims)
+			_, err := a.OAuth.GetByUserProvider(userID, providerID)
+			if err == nil {
+				return identity.ErrIdentityAlreadyExists
+			} else if !errors.Is(err, identity.ErrIdentityNotFound) {
+				return err
+			}
 		}
 	}
 

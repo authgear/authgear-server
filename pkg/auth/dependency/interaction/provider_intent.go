@@ -104,16 +104,20 @@ func (p *Provider) NewInteractionAddIdentity(intent *IntentAddIdentity, clientID
 		Intent:   intent,
 		ClientID: clientID,
 		UserID:   userID,
+		State:    map[string]string{},
 	}
-	identity := p.Identity.New(i.UserID, intent.Identity.Type, intent.Identity.Claims)
-	ir := identity.ToRef()
+	id := p.Identity.New(i.UserID, intent.Identity.Type, intent.Identity.Claims)
+	ir := id.ToRef()
 	i.Identity = &ir
-	i.NewIdentities = append(i.NewIdentities, identity)
+	i.NewIdentities = append(i.NewIdentities, id)
 
 	if err := p.Identity.Validate(i.NewIdentities); err != nil {
 		return nil, err
 	}
 	if err := p.Identity.ValidateWithUser(i.UserID, i.NewIdentities); err != nil {
+		if errors.Is(err, identity.ErrIdentityAlreadyExists) {
+			return nil, ErrDuplicatedIdentity
+		}
 		return nil, err
 	}
 	return i, nil

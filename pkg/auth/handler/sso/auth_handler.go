@@ -48,14 +48,10 @@ type OAuthHandlerInteractionFlow interface {
 	LoginWithOAuthProvider(
 		clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string, onUserDuplicate authModel.OnUserDuplicate,
 	) (string, error)
-}
 
-type AuthHandlerAuthnProvider interface {
-	OAuthLinkCode(
-		authInfo sso.AuthInfo,
-		codeChallenge string,
-		linkState sso.LinkState,
-	) (*sso.SkygearAuthorizationCode, string, error)
+	LinkWithOAuthProvider(
+		clientID string, userID string, oauthAuthInfo sso.AuthInfo, codeChallenge string,
+	) (string, error)
 }
 
 // AuthHandler decodes code response and fetch access token from provider.
@@ -64,7 +60,6 @@ type AuthHandler struct {
 	TenantConfiguration     *config.TenantConfiguration
 	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider
 	SSOProvider             sso.Provider
-	AuthnProvider           AuthHandlerAuthnProvider
 	OAuthProvider           sso.OAuthProvider
 	Interactions            OAuthHandlerInteractionFlow
 }
@@ -173,15 +168,17 @@ func (h AuthHandler) Handle(w http.ResponseWriter, r *http.Request) (success boo
 
 func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (code string, err error) {
 	apiSSOState := AuthAPISSOState(state.Extra)
+	if apiSSOState.CodeChallenge() == "" {
+		panic("api_sso_auth_handler: missing code challenge")
+	}
 	if state.Action == "login" {
-		if apiSSOState.CodeChallenge() == "" {
-			panic("api_sso_auth_handler: missing code challenge")
-		}
 		code, err = h.Interactions.LoginWithOAuthProvider(
 			state.APIClientID, oauthAuthInfo, apiSSOState.CodeChallenge(), state.LoginState.OnUserDuplicate,
 		)
 	} else {
-		_, code, err = h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, apiSSOState.CodeChallenge(), state.LinkState)
+		code, err = h.Interactions.LinkWithOAuthProvider(
+			state.APIClientID, state.LinkState.UserID, oauthAuthInfo, apiSSOState.CodeChallenge(),
+		)
 	}
 	return
 }

@@ -86,6 +86,42 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(
 	return f.Interactions.SaveInteraction(i)
 }
 
+func (f *AuthAPIFlow) LinkWithOAuthProvider(
+	clientID string, userID string, oauthAuthInfo sso.AuthInfo, codeChallenge string,
+) (string, error) {
+	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
+	claims := map[string]interface{}{
+		interaction.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
+		interaction.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
+		interaction.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
+		interaction.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
+	}
+	i, err := f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
+		Identity: interaction.IdentitySpec{
+			Type:   authn.IdentityTypeOAuth,
+			Claims: claims,
+		},
+	}, clientID, userID)
+	if err != nil {
+		if errors.Is(err, interaction.ErrDuplicatedIdentity) {
+			return "", sso.NewSSOFailed(sso.AlreadyLinked, "user is already linked to this provider")
+		}
+		return "", err
+	}
+
+	s, err := f.Interactions.GetInteractionState(i)
+	if err != nil {
+		return "", err
+	} else if s.CurrentStep().Step != interaction.StepCommit {
+		// authenticator is not needed for oauth identity
+		// so the current step must be commit
+		panic("interaction_flow_auth_api: unexpected interaction step")
+	}
+
+	i.State[AuthAPIStateOAuthCodeChallenge] = codeChallenge
+	return f.Interactions.SaveInteraction(i)
+}
+
 func (f *AuthAPIFlow) ExchangeCode(interactionToken string, verifier string) (*AuthResult, error) {
 	i, err := f.Interactions.GetInteraction(interactionToken)
 	if err != nil {
@@ -100,12 +136,23 @@ func (f *AuthAPIFlow) ExchangeCode(interactionToken string, verifier string) (*A
 		}
 	}
 
+	if _, ok := i.Intent.(*interaction.IntentAddIdentity); ok {
+		// link
+		attrs, err := f.Interactions.Commit(i)
+		if err != nil {
+			return nil, err
+		}
+		result, err := f.UserController.MakeAuthResult(attrs)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+	}
+
 	s, err := f.Interactions.GetInteractionState(i)
 	if err != nil {
 		return nil, err
 	}
-
-	// code verifier
 
 	switch s.CurrentStep().Step {
 	case interaction.StepAuthenticateSecondary, interaction.StepSetupSecondaryAuthenticator:
