@@ -80,15 +80,6 @@ func (r AccessTokenResp) TokenType() string {
 	}
 }
 
-func (r AccessTokenResp) Validate() error {
-	if r.AccessToken() == "" {
-		err := NewSSOFailed(SSOUnauthorized, "unexpected authorization response")
-		return err
-	}
-
-	return nil
-}
-
 func fetchAccessTokenResp(
 	code string,
 	accessTokenURL string,
