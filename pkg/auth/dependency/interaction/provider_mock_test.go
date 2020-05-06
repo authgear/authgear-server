@@ -231,6 +231,20 @@ func (mr *MockIdentityProviderMockRecorder) Validate(is interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockIdentityProvider)(nil).Validate), is)
 }
 
+// ValidateWithUser mocks base method
+func (m *MockIdentityProvider) ValidateWithUser(userID string, is []*interaction.IdentityInfo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidateWithUser", userID, is)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ValidateWithUser indicates an expected call of ValidateWithUser
+func (mr *MockIdentityProviderMockRecorder) ValidateWithUser(userID, is interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateWithUser", reflect.TypeOf((*MockIdentityProvider)(nil).ValidateWithUser), userID, is)
+}
+
 // RelateIdentityToAuthenticator mocks base method
 func (m *MockIdentityProvider) RelateIdentityToAuthenticator(identitySpec interaction.IdentitySpec, authenticatorSpec *interaction.AuthenticatorSpec) *interaction.AuthenticatorSpec {
 	m.ctrl.T.Helper()

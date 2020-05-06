@@ -31,6 +31,7 @@ type IdentityProvider interface {
 	CreateAll(userID string, is []*IdentityInfo) error
 	UpdateAll(userID string, is []*IdentityInfo) error
 	Validate(is []*IdentityInfo) error
+	ValidateWithUser(userID string, is []*IdentityInfo) error
 	// RelateIdentityToAuthenticator tells if authenticatorSpec is compatible with and related to identitySpec.
 	//
 	// A authenticatorSpec is compatible with identitySpec if authenticator can be used as authentication for the identity.

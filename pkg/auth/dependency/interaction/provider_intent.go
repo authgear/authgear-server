@@ -113,6 +113,9 @@ func (p *Provider) NewInteractionAddIdentity(intent *IntentAddIdentity, clientID
 	if err := p.Identity.Validate(i.NewIdentities); err != nil {
 		return nil, err
 	}
+	if err := p.Identity.ValidateWithUser(i.UserID, i.NewIdentities); err != nil {
+		return nil, err
+	}
 	return i, nil
 }
 

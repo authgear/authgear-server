@@ -105,8 +105,6 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 
 		for idx, loginID := range payload.LoginIDs {
 
-			// TODO(interaction): validation
-
 			err := h.Interactions.AddLoginID(loginID.Key, loginID.Value, userSession)
 
 			// TODO(interaction): hook identity create event

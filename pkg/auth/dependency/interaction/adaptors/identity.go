@@ -18,6 +18,7 @@ type LoginIDIdentityProvider interface {
 	New(userID string, loginID loginid.LoginID) *loginid.Identity
 	Create(i *loginid.Identity) error
 	Validate(loginIDs []loginid.LoginID) error
+	ValidateMax(userID string, loginIDs []loginid.LoginID) error
 	Normalize(loginID loginid.LoginID) (normalized *loginid.LoginID, typ string, err error)
 }
 
@@ -204,6 +205,26 @@ func (a *IdentityAdaptor) Validate(is []*interaction.IdentityInfo) error {
 	// if there is IdentityInfo with type is loginid
 	if len(loginIDs) > 0 {
 		if err := a.LoginID.Validate(loginIDs); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *IdentityAdaptor) ValidateWithUser(userID string, is []*interaction.IdentityInfo) error {
+	// TODO(interaction): do not allow user link to same provider twice
+	var loginIDs []loginid.LoginID
+	for _, i := range is {
+		if i.Type == authn.IdentityTypeLoginID {
+			loginID := extractLoginIDClaims(i.Claims)
+			loginIDs = append(loginIDs, loginID)
+		}
+	}
+
+	// adding login id
+	if len(loginIDs) > 0 {
+		if err := a.LoginID.ValidateMax(userID, loginIDs); err != nil {
 			return err
 		}
 	}
