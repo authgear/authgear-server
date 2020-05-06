@@ -45,7 +45,7 @@ type AnonymousIdentityProvider interface {
 	Get(userID, id string) (*anonymous.Identity, error)
 	GetByKeyID(keyID string) (*anonymous.Identity, error)
 	ListByClaim(name string, value string) ([]*anonymous.Identity, error)
-	New(userID string, keyID string, key string) *anonymous.Identity
+	New(userID string, keyID string, key []byte) *anonymous.Identity
 	Create(i *anonymous.Identity) error
 }
 
@@ -189,7 +189,7 @@ func (a *IdentityAdaptor) New(userID string, typ authn.IdentityType, claims map[
 
 	case authn.IdentityTypeAnonymous:
 		keyID, key := extractAnonymousClaims(claims)
-		a := a.Anonymous.New(userID, keyID, key)
+		a := a.Anonymous.New(userID, keyID, []byte(key))
 		return anonymousToIdentityInfo(a)
 	}
 

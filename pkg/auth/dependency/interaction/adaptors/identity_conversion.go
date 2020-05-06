@@ -106,7 +106,7 @@ func oauthFromIdentityInfo(userID string, i *interaction.IdentityInfo) *oauth.Id
 func anonymousToIdentityInfo(a *anonymous.Identity) *interaction.IdentityInfo {
 	claims := map[string]interface{}{
 		interaction.IdentityClaimAnonymousKeyID: a.KeyID,
-		interaction.IdentityClaimAnonymousKey:   a.Key,
+		interaction.IdentityClaimAnonymousKey:   string(a.Key),
 	}
 
 	return &interaction.IdentityInfo{
@@ -127,7 +127,7 @@ func anonymousFromIdentityInfo(userID string, i *interaction.IdentityInfo) *anon
 		case interaction.IdentityClaimAnonymousKeyID:
 			a.KeyID = v.(string)
 		case interaction.IdentityClaimAnonymousKey:
-			a.Key = v.(string)
+			a.Key = []byte(v.(string))
 		}
 	}
 	return a
