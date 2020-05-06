@@ -40,12 +40,15 @@ func (d *UserInfoDecoderImpl) DecodeUserInfo(providerType config.OAuthProviderTy
 		panic(fmt.Sprintf("sso: unknown provider type: %v", providerType))
 	}
 
-	normalizer := d.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyType("email"))
-	email, err := normalizer.Normalize(providerUserInfo.Email)
-	if err != nil {
-		return
+	if providerUserInfo.Email != "" {
+		var email string
+		normalizer := d.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyType("email"))
+		email, err = normalizer.Normalize(providerUserInfo.Email)
+		if err != nil {
+			return
+		}
+		providerUserInfo.Email = email
 	}
-	providerUserInfo.Email = email
 
 	return
 }
