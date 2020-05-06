@@ -47,15 +47,15 @@ func (p *Provider) NewInteractionLoginAs(
 func (p *Provider) NewInteractionLogin(intent *IntentLogin, clientID string) (*Interaction, error) {
 	switch intent.Identity.Type {
 	case authn.IdentityTypeLoginID:
-		return p.newInteractionLoginIDLogin(intent, clientID)
-	case authn.IdentityTypeOAuth:
-		return p.newInteractionOAuthLogin(intent, clientID)
+		return p.newInteractionLogin(intent, clientID)
+	case authn.IdentityTypeOAuth, authn.IdentityTypeAnonymous:
+		return p.newInteractionLoginRequireIdentity(intent, clientID)
 	default:
 		panic("interaction_provider: unknown identity type " + intent.Identity.Type)
 	}
 }
 
-func (p *Provider) newInteractionLoginIDLogin(intent *IntentLogin, clientID string) (*Interaction, error) {
+func (p *Provider) newInteractionLogin(intent *IntentLogin, clientID string) (*Interaction, error) {
 	i := &Interaction{
 		Intent:   intent,
 		ClientID: clientID,
@@ -63,7 +63,7 @@ func (p *Provider) newInteractionLoginIDLogin(intent *IntentLogin, clientID stri
 	return i, nil
 }
 
-func (p *Provider) newInteractionOAuthLogin(intent *IntentLogin, clientID string) (*Interaction, error) {
+func (p *Provider) newInteractionLoginRequireIdentity(intent *IntentLogin, clientID string) (*Interaction, error) {
 	i := &Interaction{
 		Intent:               intent,
 		ClientID:             clientID,
