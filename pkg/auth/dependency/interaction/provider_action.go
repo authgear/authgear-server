@@ -33,6 +33,8 @@ func (p *Provider) PerformAction(i *Interaction, step Step, action Action) error
 		return p.performActionLogin(i, intent, stepState, state, action)
 	case *IntentSignup:
 		return p.performActionSignup(i, intent, stepState, state, action)
+	case *IntentAddIdentity:
+		return p.performActionAddIdentity(i, intent, stepState, state, action)
 	}
 	panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 }
@@ -83,33 +85,44 @@ func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step 
 func (p *Provider) performActionSignup(i *Interaction, intent *IntentSignup, step *StepState, s *State, action Action) error {
 	switch step.Step {
 	case StepSetupPrimaryAuthenticator:
-		switch action := action.(type) {
-		case *ActionSetupAuthenticator:
-			authen, err := p.setupAuthenticator(i, step, &i.State, action.Authenticator, action.Secret)
-			if skyerr.IsAPIError(err) {
-				i.Error = skyerr.AsAPIError(err)
-				return nil
-			} else if err != nil {
-				return err
-			}
-
-			ar := authen.ToRef()
-			i.PrimaryAuthenticator = &ar
-			i.Error = nil
-			return nil
-
-		case *ActionTriggerOOBAuthenticator:
-			err := p.doTriggerOOB(i, action)
-			if err != nil {
-				return err
-			}
-			return nil
-		default:
-			panic(fmt.Sprintf("interaction_signup: unhandled authenticate action %T", action))
-		}
-
+		return p.setupPrimaryAuthenticator(i, step, s, action)
 	}
 	panic("interaction_signup: unhandled step " + step.Step)
+}
+
+func (p *Provider) performActionAddIdentity(i *Interaction, intent *IntentAddIdentity, step *StepState, s *State, action Action) error {
+	switch step.Step {
+	case StepSetupPrimaryAuthenticator:
+		return p.setupPrimaryAuthenticator(i, step, s, action)
+	}
+	panic("interaction_add_identity: unhandled step " + step.Step)
+}
+
+func (p *Provider) setupPrimaryAuthenticator(i *Interaction, step *StepState, s *State, action Action) error {
+	switch action := action.(type) {
+	case *ActionSetupAuthenticator:
+		authen, err := p.setupAuthenticator(i, step, &i.State, action.Authenticator, action.Secret)
+		if skyerr.IsAPIError(err) {
+			i.Error = skyerr.AsAPIError(err)
+			return nil
+		} else if err != nil {
+			return err
+		}
+
+		ar := authen.ToRef()
+		i.PrimaryAuthenticator = &ar
+		i.Error = nil
+		return nil
+
+	case *ActionTriggerOOBAuthenticator:
+		err := p.doTriggerOOB(i, action)
+		if err != nil {
+			return err
+		}
+		return nil
+	default:
+		panic(fmt.Sprintf("interaction_signup: unhandled authenticate action %T", action))
+	}
 }
 
 func (p *Provider) doAuthenticate(i *Interaction, step *StepState, astate *map[string]string, is IdentitySpec, as AuthenticatorSpec, secret string) (*AuthenticatorInfo, error) {

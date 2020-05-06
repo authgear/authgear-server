@@ -15,6 +15,8 @@ func (p *Provider) GetInteractionState(i *Interaction) (*State, error) {
 		return p.getStateLogin(i, intent)
 	case *IntentSignup:
 		return p.getStateSignup(i, intent)
+	case *IntentAddIdentity:
+		return p.getStateAddIdentity(i, intent)
 	}
 	panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 }
@@ -98,6 +100,43 @@ func (p *Provider) getStateSignup(i *Interaction, intent *IntentSignup) (*State,
 	}
 
 	// Commit
+	s.Steps = append(s.Steps, StepState{Step: StepCommit})
+	return s, nil
+}
+
+func (p *Provider) getStateAddIdentity(i *Interaction, intent *IntentAddIdentity) (*State, error) {
+	s := &State{}
+	if len(i.NewIdentities) != 1 {
+		panic("interaction: unexpected number of new identities")
+	}
+	availableAuthenticators := p.getAvailablePrimaryAuthenticators(intent.Identity)
+	identityAuthenticators, err := p.Authenticator.ListByIdentity(i.UserID, i.NewIdentities[0])
+	if err != nil {
+		return nil, err
+	}
+
+	found := false
+	for _, as := range availableAuthenticators {
+		for _, ia := range identityAuthenticators {
+			if as.Type == ia.Type {
+				found = true
+			}
+		}
+	}
+
+	needPrimaryAuthn := len(availableAuthenticators) > 0 && !found
+	if needPrimaryAuthn {
+		s.Steps = []StepState{
+			{
+				Step:                    StepSetupPrimaryAuthenticator,
+				AvailableAuthenticators: availableAuthenticators,
+			},
+		}
+		if i.PrimaryAuthenticator == nil {
+			return s, nil
+		}
+	}
+
 	s.Steps = append(s.Steps, StepState{Step: StepCommit})
 	return s, nil
 }

@@ -99,6 +99,23 @@ func (p *Provider) NewInteractionSignup(intent *IntentSignup, clientID string) (
 	return i, nil
 }
 
+func (p *Provider) NewInteractionAddIdentity(intent *IntentAddIdentity, clientID string, userID string) (*Interaction, error) {
+	i := &Interaction{
+		Intent:   intent,
+		ClientID: clientID,
+		UserID:   userID,
+	}
+	identity := p.Identity.New(i.UserID, intent.Identity.Type, intent.Identity.Claims)
+	ir := identity.ToRef()
+	i.Identity = &ir
+	i.NewIdentities = append(i.NewIdentities, identity)
+
+	if err := p.Identity.Validate(i.NewIdentities); err != nil {
+		return nil, err
+	}
+	return i, nil
+}
+
 func (p *Provider) NewInteractionAddAuthenticator(intent *IntentAddAuthenticator, clientID string, session auth.AuthSession) (*Interaction, error) {
 	panic("TODO(interaction): implement it")
 }

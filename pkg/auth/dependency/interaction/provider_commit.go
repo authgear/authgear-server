@@ -19,6 +19,8 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 		err = p.onCommitLogin(i, intent)
 	case *IntentSignup:
 		err = p.onCommitSignup(i, intent)
+	case *IntentAddIdentity:
+		err = p.onCommitAddIdentity(i, intent)
 	default:
 		panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 	}
@@ -83,32 +85,49 @@ func (p *Provider) onCommitLogin(i *Interaction, intent *IntentLogin) error {
 func (p *Provider) onCommitSignup(i *Interaction, intent *IntentSignup) error {
 	// TODO(interaction-sso): handle OnUserDuplicateMerge
 	if intent.OnUserDuplicate == model.OnUserDuplicateAbort {
-		emailIdentities := map[string]struct{}{}
-		for _, i := range i.NewIdentities {
-			email, hasEmail := i.Claims[string(metadata.Email)].(string)
-			if !hasEmail {
-				continue
-			}
-
-			if _, exists := emailIdentities[email]; exists {
-				return ErrDuplicatedIdentity
-			}
-			emailIdentities[email] = struct{}{}
-		}
-
-		for email := range emailIdentities {
-			is, err := p.Identity.ListByClaims(map[string]string{string(metadata.Email): email})
-			if err != nil {
-				return err
-			} else if len(is) > 0 {
-				return ErrDuplicatedIdentity
-			}
+		err := p.checkIdentitiesDuplicated(i.NewIdentities)
+		if err != nil {
+			return err
 		}
 	}
 
 	err := p.User.Create(i.UserID, intent.UserMetadata, i.NewIdentities)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (p *Provider) onCommitAddIdentity(i *Interaction, intent *IntentAddIdentity) error {
+	err := p.checkIdentitiesDuplicated(i.NewIdentities)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *Provider) checkIdentitiesDuplicated(iis []*IdentityInfo) error {
+	emailIdentities := map[string]struct{}{}
+	for _, i := range iis {
+		email, hasEmail := i.Claims[string(metadata.Email)].(string)
+		if !hasEmail {
+			continue
+		}
+
+		if _, exists := emailIdentities[email]; exists {
+			return ErrDuplicatedIdentity
+		}
+		emailIdentities[email] = struct{}{}
+	}
+
+	for email := range emailIdentities {
+		is, err := p.Identity.ListByClaims(map[string]string{string(metadata.Email): email})
+		if err != nil {
+			return err
+		} else if len(is) > 0 {
+			return ErrDuplicatedIdentity
+		}
 	}
 
 	return nil
