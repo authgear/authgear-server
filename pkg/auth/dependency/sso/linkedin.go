@@ -52,20 +52,7 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	return h.getAuthInfo(r, state)
 }
 
-func (f *LinkedInImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
-	h := getAuthInfoRequest{
-		redirectURL:     f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
-		oauthConfig:     f.OAuthConfig,
-		providerConfig:  f.ProviderConfig,
-		accessTokenURL:  linkedinTokenURL,
-		userProfileURL:  linkedinUserInfoURL,
-		userInfoDecoder: f.UserInfoDecoder,
-	}
-	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
-}
-
 var (
-	_ OAuthProvider                   = &LinkedInImpl{}
-	_ NonOpenIDConnectProvider        = &LinkedInImpl{}
-	_ ExternalAccessTokenFlowProvider = &LinkedInImpl{}
+	_ OAuthProvider            = &LinkedInImpl{}
+	_ NonOpenIDConnectProvider = &LinkedInImpl{}
 )

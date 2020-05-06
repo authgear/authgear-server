@@ -11,9 +11,6 @@ import (
 
 const (
 	googleOIDCDiscoveryDocumentURL string = "https://accounts.google.com/.well-known/openid-configuration"
-	// nolint: gosec
-	googleTokenURL    string = "https://www.googleapis.com/oauth2/v4/token"
-	googleUserInfoURL string = "https://www.googleapis.com/oauth2/v1/userinfo"
 )
 
 type GoogleImpl struct {
@@ -119,20 +116,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 	return
 }
 
-func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
-	h := getAuthInfoRequest{
-		redirectURL:     f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
-		oauthConfig:     f.OAuthConfig,
-		providerConfig:  f.ProviderConfig,
-		accessTokenURL:  googleTokenURL,
-		userProfileURL:  googleUserInfoURL,
-		userInfoDecoder: f.UserInfoDecoder,
-	}
-	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
-}
-
 var (
-	_ OAuthProvider                   = &GoogleImpl{}
-	_ OpenIDConnectProvider           = &GoogleImpl{}
-	_ ExternalAccessTokenFlowProvider = &GoogleImpl{}
+	_ OAuthProvider         = &GoogleImpl{}
+	_ OpenIDConnectProvider = &GoogleImpl{}
 )
