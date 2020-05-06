@@ -17,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	loginid2 "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
@@ -130,9 +131,11 @@ func newActivateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	challengeProvider := challenge.ProvideProvider(context, provider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, provider)
 	tokenGenerator := _wireTokenGeneratorValue
@@ -243,9 +246,11 @@ func newActivateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	}
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	challengeProvider := challenge.ProvideProvider(context, provider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, provider)
 	tokenGenerator := _wireTokenGeneratorValue
@@ -354,9 +359,11 @@ func newAuthenticateBearerTokenHandler(r *http.Request, m auth.DependencyMap) ht
 	}
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	challengeProvider := challenge.ProvideProvider(context, provider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, provider)
 	tokenGenerator := _wireTokenGeneratorValue
@@ -463,9 +470,11 @@ func newAuthenticateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handl
 	}
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	challengeProvider := challenge.ProvideProvider(context, provider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, provider)
 	tokenGenerator := _wireTokenGeneratorValue
@@ -573,9 +582,11 @@ func newAuthenticateRecoveryCodeHandler(r *http.Request, m auth.DependencyMap) h
 	}
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	challengeProvider := challenge.ProvideProvider(context, provider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, provider)
 	tokenGenerator := _wireTokenGeneratorValue
@@ -683,9 +694,11 @@ func newAuthenticateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	}
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	challengeProvider := challenge.ProvideProvider(context, provider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, provider)
 	tokenGenerator := _wireTokenGeneratorValue
@@ -793,9 +806,11 @@ func newCreateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	challengeProvider := challenge.ProvideProvider(context, provider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, provider)
 	tokenGenerator := _wireTokenGeneratorValue
@@ -902,9 +917,11 @@ func newCreateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	challengeProvider := challenge.ProvideProvider(context, provider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, provider)
 	tokenGenerator := _wireTokenGeneratorValue
@@ -1011,9 +1028,11 @@ func newListAuthenticatorHandler(r *http.Request, m auth.DependencyMap) http.Han
 	}
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	challengeProvider := challenge.ProvideProvider(context, provider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, provider)
 	tokenGenerator := _wireTokenGeneratorValue
@@ -1120,9 +1139,11 @@ func newTriggerOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	challengeProvider := challenge.ProvideProvider(context, provider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, provider)
 	tokenGenerator := _wireTokenGeneratorValue

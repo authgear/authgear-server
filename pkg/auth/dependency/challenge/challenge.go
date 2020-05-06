@@ -13,6 +13,14 @@ const (
 	PurposeAnonymousRequest Purpose = "anonymous_request"
 )
 
+func (p Purpose) IsValid() bool {
+	switch p {
+	case PurposeAnonymousRequest:
+		return true
+	}
+	return false
+}
+
 func (p Purpose) ValidityPeriod() time.Duration {
 	// TODO(challenge): allow customization?
 	switch p {

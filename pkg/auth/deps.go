@@ -198,7 +198,7 @@ var interactionDependencySet = wire.NewSet(
 
 var challengeDependencySet = wire.NewSet(
 	challenge.DependencySet,
-	wire.Bind(new(int), new(*challenge.Provider)),
+	wire.Bind(new(interactionflows.ChallengeProvider), new(*challenge.Provider)),
 )
 
 var CommonDependencySet = wire.NewSet(
