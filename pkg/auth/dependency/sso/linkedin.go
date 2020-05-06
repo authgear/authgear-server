@@ -10,7 +10,7 @@ const (
 	linkedinAuthorizationURL string = "https://www.linkedin.com/oauth/v2/authorization"
 	// nolint: gosec
 	linkedinTokenURL    string = "https://www.linkedin.com/oauth/v2/accessToken"
-	linkedinUserInfoURL string = "https://www.linkedin.com/v1/people/~?format=json"
+	linkedinUserInfoURL string = "https://api.linkedin.com/v2/me"
 )
 
 type LinkedInImpl struct {
