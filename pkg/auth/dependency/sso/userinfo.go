@@ -31,7 +31,7 @@ func (d *UserInfoDecoderImpl) DecodeUserInfo(providerType config.OAuthProviderTy
 	case config.OAuthProviderTypeInstagram:
 		providerUserInfo = d.decodeInstagram(userInfo)
 	case config.OAuthProviderTypeLinkedIn:
-		providerUserInfo = d.decodeDefault(userInfo)
+		providerUserInfo = d.decodeLinkedIn(userInfo)
 	case config.OAuthProviderTypeAzureADv2:
 		providerUserInfo = d.decodeAzureADv2(userInfo)
 	case config.OAuthProviderTypeApple:
@@ -90,6 +90,34 @@ func (d *UserInfoDecoderImpl) decodeAzureADv2(userInfo map[string]interface{}) *
 func (d *UserInfoDecoderImpl) decodeApple(userInfo map[string]interface{}) *ProviderUserInfo {
 	id, _ := userInfo["sub"].(string)
 	email, _ := userInfo["email"].(string)
+
+	return &ProviderUserInfo{
+		ID:    id,
+		Email: email,
+	}
+}
+
+func (d *UserInfoDecoderImpl) decodeLinkedIn(userInfo map[string]interface{}) *ProviderUserInfo {
+	profile := userInfo["profile"].(map[string]interface{})
+	id := profile["id"].(string)
+
+	email := ""
+	primaryContact := userInfo["primary_contact"].(map[string]interface{})
+	elements := primaryContact["elements"].([]interface{})
+	for _, e := range elements {
+		element := e.(map[string]interface{})
+		if primary, ok := element["primary"].(bool); !ok || !primary {
+			continue
+		}
+		if typ, ok := element["type"].(string); !ok || typ != "EMAIL" {
+			continue
+		}
+		handleTilde, ok := element["handle~"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		email, _ = handleTilde["emailAddress"].(string)
+	}
 
 	return &ProviderUserInfo{
 		ID:    id,
