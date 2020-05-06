@@ -10,6 +10,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
@@ -20,6 +21,12 @@ import (
 )
 
 // TODO(oauth): write tests
+
+// whitelistedGrantTypes is a list of grant types that would be always allowed
+// to all clients.
+var whitelistedGrantTypes = []string{
+	"urn:skygear-auth:params:oauth:grant-type:anonymous-request",
+}
 
 type IDTokenIssuer interface {
 	IssueIDToken(client config.OAuthClientConfiguration, session auth.AuthSession, nonce string) (token string, err error)
@@ -37,6 +44,7 @@ type TokenHandler struct {
 	AccessGrants   oauth.AccessGrantStore
 	AccessEvents   auth.AccessEventProvider
 	Sessions       session.Provider
+	Anonymous      AnonymousInteractionFlow
 	IDTokenIssuer  IDTokenIssuer
 	GenerateToken  TokenGenerator
 	Time           time.Provider
@@ -79,6 +87,8 @@ func (h *TokenHandler) doHandle(
 	if len(allowedGrantTypes) == 0 {
 		allowedGrantTypes = []string{"authorization_code"}
 	}
+	allowedGrantTypes = append(allowedGrantTypes, whitelistedGrantTypes...)
+
 	ok := false
 	for _, grantType := range allowedGrantTypes {
 		if r.GrantType() == grantType {
@@ -99,6 +109,8 @@ func (h *TokenHandler) doHandle(
 			return nil, err
 		}
 		return tokenResultOK{Response: resp}, nil
+	case "urn:skygear-auth:params:oauth:grant-type:anonymous-request":
+		return h.handleAnonymousRequest(client, r)
 	default:
 		panic("oauth: unexpected grant type")
 	}
@@ -117,9 +129,12 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest) error {
 		if r.RefreshToken() == "" {
 			return protocol.NewError("invalid_request", "refresh token is required")
 		}
+	case "urn:skygear-auth:params:oauth:grant-type:anonymous-request":
+		if r.JWT() == "" {
+			return protocol.NewError("invalid_request", "jwt is required")
+		}
 	default:
-		return protocol.NewError("unsupported_grant_type",
-			"only 'authorization_code' and 'refresh_token' grant types are supported")
+		return protocol.NewError("unsupported_grant_type", "grant type is not supported")
 	}
 
 	return nil
@@ -219,6 +234,50 @@ func (h *TokenHandler) handleRefreshToken(
 	}
 
 	return resp, nil
+}
+
+var errInvalidAnonymousRequest = protocol.NewError("invalid_grant", "invalid anonymous request")
+
+func (h *TokenHandler) handleAnonymousRequest(
+	client config.OAuthClientConfiguration,
+	r protocol.TokenRequest,
+) (TokenResult, error) {
+	attrs, err := h.Anonymous.Authenticate(r.JWT(), client.ClientID())
+	if errors.Is(err, interaction.ErrInvalidCredentials) {
+		return nil, errInvalidAnonymousRequest
+	} else if err != nil {
+		return nil, err
+	}
+
+	// TODO(oauth): allow specifying scopes
+	scopes := []string{"openid", oauth.FullAccessScope}
+
+	authz, err := checkAuthorization(
+		h.Authorizations,
+		h.Time.NowUTC(),
+		h.AppID,
+		client.ClientID(),
+		attrs.UserID,
+		scopes,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := protocol.TokenResponse{}
+
+	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.issueAccessGrant(client, scopes, authz.ID,
+		offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return tokenResultOK{Response: resp}, nil
 }
 
 func (h *TokenHandler) issueTokensForAuthorizationCode(
