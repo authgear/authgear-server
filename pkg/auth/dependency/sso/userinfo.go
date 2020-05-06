@@ -28,8 +28,6 @@ func (d *UserInfoDecoderImpl) DecodeUserInfo(providerType config.OAuthProviderTy
 		providerUserInfo = d.decodeDefault(userInfo)
 	case config.OAuthProviderTypeFacebook:
 		providerUserInfo = d.decodeDefault(userInfo)
-	case config.OAuthProviderTypeInstagram:
-		providerUserInfo = d.decodeInstagram(userInfo)
 	case config.OAuthProviderTypeLinkedIn:
 		providerUserInfo = d.decodeLinkedIn(userInfo)
 	case config.OAuthProviderTypeAzureADv2:
@@ -61,20 +59,6 @@ func (d *UserInfoDecoderImpl) decodeDefault(userInfo map[string]interface{}) *Pr
 		ID:    id,
 		Email: email,
 	}
-}
-
-func (d *UserInfoDecoderImpl) decodeInstagram(userInfo map[string]interface{}) *ProviderUserInfo {
-	// Check GET /users/self response
-	// https://www.instagram.com/developer/endpoints/users/
-	info := &ProviderUserInfo{}
-	data, ok := userInfo["data"].(map[string]interface{})
-	if !ok {
-		return info
-	}
-
-	info.ID, _ = data["id"].(string)
-	info.Email, _ = data["email"].(string)
-	return info
 }
 
 func (d *UserInfoDecoderImpl) decodeAzureADv2(userInfo map[string]interface{}) *ProviderUserInfo {

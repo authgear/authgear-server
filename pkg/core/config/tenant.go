@@ -484,11 +484,6 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
 				c.AppConfig.Identity.OAuth.Providers[i].Scope = "email"
 			}
-		case OAuthProviderTypeInstagram:
-			if provider.Scope == "" {
-				// https://www.instagram.com/developer/authorization/
-				c.AppConfig.Identity.OAuth.Providers[i].Scope = "basic"
-			}
 		case OAuthProviderTypeLinkedIn:
 			if provider.Scope == "" {
 				// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api?context=linkedin/compliance/context

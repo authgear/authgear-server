@@ -237,9 +237,6 @@ var TemplateAuthUILoginHTML = template.Spec{
 					{{- if eq .type "facebook" -}}
 					{{ localize "sign-in-facebook" }}
 					{{- end -}}
-					{{- if eq .type "instagram" -}}
-					{{ localize "sign-in-instagram" }}
-					{{- end -}}
 					{{- if eq .type "linkedin" -}}
 					{{ localize "sign-in-linkedin" }}
 					{{- end -}}
