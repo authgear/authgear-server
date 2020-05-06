@@ -30,14 +30,14 @@ func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn
 		return nil, interaction.ErrInvalidCredentials
 	}
 
+	// Verify challenge token
+	purpose, err := f.Challenges.Consume(request.Challenge)
+	if err != nil || *purpose != challenge.PurposeAnonymousRequest {
+		return nil, interaction.ErrInvalidCredentials
+	}
+
 	var keyID string
 	if identity != nil {
-		// Verify challenge to use existing identity
-		purpose, err := f.Challenges.Consume(request.Challenge)
-		if err != nil || *purpose != challenge.PurposeAnonymousRequest {
-			return nil, interaction.ErrInvalidCredentials
-		}
-
 		keyID = identity.KeyID
 	} else {
 		// Sign up if identity does not exist
