@@ -20,6 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	identityloginid "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	identityoauth "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
+	identityanonymous "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	interactionadaptors "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/adaptors"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
@@ -162,6 +163,7 @@ func ProvideCSRFMiddleware(m DependencyMap, tConfig *config.TenantConfiguration)
 var interactionDependencySet = wire.NewSet(
 	identityloginid.DependencySet,
 	identityoauth.DependencySet,
+	identityanonymous.DependencySet,
 	authenticatorpassword.DependencySet,
 	authenticatortotp.DependencySet,
 	authenticatoroob.DependencySet,
