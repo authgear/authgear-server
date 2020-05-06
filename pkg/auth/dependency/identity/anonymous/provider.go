@@ -113,6 +113,9 @@ func (p *Provider) ParseRequest(requestJWT string) (*Identity, *Request, error) 
 	if typ, ok := token.Header["typ"].(string); !ok || typ != RequestTokenType {
 		return nil, nil, errors.New("invalid JWT type")
 	}
+	if !KeyIDFormat.MatchString(key.KeyID()) {
+		return nil, nil, errors.New("invalid key ID format")
+	}
 
 	req.Key = key
 	return iden, req, nil
