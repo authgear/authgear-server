@@ -50,3 +50,19 @@ func validateLoginIDs(provider password.Provider, loginIDs []loginid.LoginID, ne
 	}
 	return nil
 }
+
+// correctErrorCausePointer check and update the error causes pointer with a
+// given index
+func correctErrorCausePointer(err error, idx int) error {
+	if causes := validation.ErrorCauses(err); len(causes) > 0 {
+		for i, cause := range causes {
+			matches := loginIDPointerPrefixRegex.FindStringSubmatch(cause.Pointer)
+			if len(matches) > 0 {
+				cause.Pointer = fmt.Sprintf("/login_ids/%d/%s", idx, cause.Pointer[len(matches[0]):])
+			}
+			causes[i] = cause
+		}
+		err = validation.NewValidationFailed("invalid login ID", causes)
+	}
+	return err
+}

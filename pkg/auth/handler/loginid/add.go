@@ -103,7 +103,7 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 	err := db.WithTx(h.TxContext, func() error {
 		userSession := auth.GetSession(r.Context())
 
-		for _, loginID := range payload.LoginIDs {
+		for idx, loginID := range payload.LoginIDs {
 
 			// TODO(interaction): validation
 
@@ -112,6 +112,7 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 			// TODO(interaction): hook identity create event
 
 			if err != nil {
+				err = correctErrorCausePointer(err, idx)
 				return err
 			}
 		}
