@@ -196,6 +196,9 @@ func (a *AuthenticatorAdaptor) ListByIdentity(userID string, ii *interaction.Ide
 				ais = append(ais, oobotpToAuthenticatorInfo(oa))
 			}
 		}
+	case authn.IdentityTypeAnonymous:
+		// Anonymous Identity does not have associated authenticators.
+		return
 	default:
 		panic("interaction_adaptors: unknown identity type " + ii.Type)
 	}

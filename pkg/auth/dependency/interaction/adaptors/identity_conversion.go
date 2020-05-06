@@ -1,6 +1,7 @@
 package adaptors
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
@@ -100,4 +101,34 @@ func oauthFromIdentityInfo(userID string, i *interaction.IdentityInfo) *oauth.Id
 		}
 	}
 	return o
+}
+
+func anonymousToIdentityInfo(a *anonymous.Identity) *interaction.IdentityInfo {
+	claims := map[string]interface{}{
+		interaction.IdentityClaimAnonymousKeyID: a.KeyID,
+		interaction.IdentityClaimAnonymousKey:   a.Key,
+	}
+
+	return &interaction.IdentityInfo{
+		Type:     authn.IdentityTypeAnonymous,
+		ID:       a.ID,
+		Claims:   claims,
+		Identity: a,
+	}
+}
+
+func anonymousFromIdentityInfo(userID string, i *interaction.IdentityInfo) *anonymous.Identity {
+	a := &anonymous.Identity{
+		ID:     i.ID,
+		UserID: userID,
+	}
+	for k, v := range i.Claims {
+		switch k {
+		case interaction.IdentityClaimAnonymousKeyID:
+			a.KeyID = v.(string)
+		case interaction.IdentityClaimAnonymousKey:
+			a.Key = v.(string)
+		}
+	}
+	return a
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
@@ -60,9 +61,11 @@ func newAddLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	identityAdaptor := &adaptors.IdentityAdaptor{
-		LoginID: loginidProvider,
-		OAuth:   oauthProvider,
+		LoginID:   loginidProvider,
+		OAuth:     oauthProvider,
+		Anonymous: anonymousProvider,
 	}
 	passwordhistoryStore := pq.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)

@@ -35,6 +35,11 @@ const (
 	IdentityClaimLoginIDValue string = "https://auth.skygear.io/claims/login_id/value"
 	// IdentityClaimLoginIDUniqueKey is a claim with a string value containing the unique normalized login ID.
 	IdentityClaimLoginIDUniqueKey string = "https://auth.skygear.io/claims/login_id/unique_key"
+
+	// IdentityClaimAnonymousKeyID is a claim with a string value containing anonymous key ID.
+	IdentityClaimAnonymousKeyID string = "https://auth.skygear.io/claims/anonymous/key_id"
+	// IdentityClaimAnonymousKey is a claim with a string value containing anonymous public key JWK.
+	IdentityClaimAnonymousKey string = "https://auth.skygear.io/claims/anonymous/key"
 )
 
 type AuthenticatorInfo struct {

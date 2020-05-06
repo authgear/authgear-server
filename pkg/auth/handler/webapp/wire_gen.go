@@ -20,6 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	loginid2 "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
@@ -136,9 +137,11 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	identityAdaptor := &adaptors.IdentityAdaptor{
-		LoginID: loginidProvider,
-		OAuth:   provider3,
+		LoginID:   loginidProvider,
+		OAuth:     provider3,
+		Anonymous: anonymousProvider,
 	}
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, store, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
@@ -263,9 +266,11 @@ func newLoginPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	identityAdaptor := &adaptors.IdentityAdaptor{
-		LoginID: loginidProvider,
-		OAuth:   provider3,
+		LoginID:   loginidProvider,
+		OAuth:     provider3,
+		Anonymous: anonymousProvider,
 	}
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, store, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
@@ -561,9 +566,11 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	identityAdaptor := &adaptors.IdentityAdaptor{
-		LoginID: loginidProvider,
-		OAuth:   provider3,
+		LoginID:   loginidProvider,
+		OAuth:     provider3,
+		Anonymous: anonymousProvider,
 	}
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, store, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
@@ -679,9 +686,11 @@ func newSignupPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	identityAdaptor := &adaptors.IdentityAdaptor{
-		LoginID: loginidProvider,
-		OAuth:   provider3,
+		LoginID:   loginidProvider,
+		OAuth:     provider3,
+		Anonymous: anonymousProvider,
 	}
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, store, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
@@ -815,9 +824,11 @@ func newLoginOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	identityAdaptor := &adaptors.IdentityAdaptor{
-		LoginID: loginidProvider,
-		OAuth:   provider3,
+		LoginID:   loginidProvider,
+		OAuth:     provider3,
+		Anonymous: anonymousProvider,
 	}
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, store, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
@@ -933,9 +944,11 @@ func newSignupOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	identityAdaptor := &adaptors.IdentityAdaptor{
-		LoginID: loginidProvider,
-		OAuth:   provider3,
+		LoginID:   loginidProvider,
+		OAuth:     provider3,
+		Anonymous: anonymousProvider,
 	}
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, store, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)
@@ -1095,9 +1108,11 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	provider2 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, provider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, provider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	identityAdaptor := &adaptors.IdentityAdaptor{
-		LoginID: loginidProvider,
-		OAuth:   provider3,
+		LoginID:   loginidProvider,
+		OAuth:     provider3,
+		Anonymous: anonymousProvider,
 	}
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, provider, factory, store, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration)

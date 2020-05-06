@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
@@ -40,9 +41,18 @@ type OAuthIdentityProvider interface {
 	Update(i *oauth.Identity) error
 }
 
+type AnonymousIdentityProvider interface {
+	Get(userID, id string) (*anonymous.Identity, error)
+	GetByKeyID(keyID string) (*anonymous.Identity, error)
+	ListByClaim(name string, value string) ([]*anonymous.Identity, error)
+	New(userID string, keyID string, key string) *anonymous.Identity
+	Create(i *anonymous.Identity) error
+}
+
 type IdentityAdaptor struct {
-	LoginID LoginIDIdentityProvider
-	OAuth   OAuthIdentityProvider
+	LoginID   LoginIDIdentityProvider
+	OAuth     OAuthIdentityProvider
+	Anonymous AnonymousIdentityProvider
 }
 
 func (a *IdentityAdaptor) Get(userID string, typ authn.IdentityType, id string) (*interaction.IdentityInfo, error) {
@@ -60,6 +70,13 @@ func (a *IdentityAdaptor) Get(userID string, typ authn.IdentityType, id string) 
 			return nil, err
 		}
 		return oauthToIdentityInfo(o), nil
+
+	case authn.IdentityTypeAnonymous:
+		a, err := a.Anonymous.Get(userID, id)
+		if err != nil {
+			return nil, err
+		}
+		return anonymousToIdentityInfo(a), nil
 	}
 
 	panic("interaction_adaptors: unknown identity type " + typ)
@@ -85,6 +102,14 @@ func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]
 			return "", nil, err
 		}
 		return o.UserID, oauthToIdentityInfo(o), nil
+
+	case authn.IdentityTypeAnonymous:
+		keyID, _ := extractAnonymousClaims(claims)
+		a, err := a.Anonymous.GetByKeyID(keyID)
+		if err != nil {
+			return "", nil, err
+		}
+		return a.UserID, anonymousToIdentityInfo(a), nil
 	}
 
 	panic("interaction_adaptors: unknown identity type " + typ)
@@ -110,6 +135,8 @@ func (a *IdentityAdaptor) ListByClaims(claims map[string]string) ([]*interaction
 		for _, i := range os {
 			all = append(all, oauthToIdentityInfo(i))
 		}
+
+		// Skip anonymous: no standard claims for anonymous identity
 	}
 
 	return all, nil
@@ -159,6 +186,11 @@ func (a *IdentityAdaptor) New(userID string, typ authn.IdentityType, claims map[
 
 		o := a.OAuth.New(userID, providerID, subjectID, profile, oidcClaims)
 		return oauthToIdentityInfo(o)
+
+	case authn.IdentityTypeAnonymous:
+		keyID, key := extractAnonymousClaims(claims)
+		a := a.Anonymous.New(userID, keyID, key)
+		return anonymousToIdentityInfo(a)
 	}
 
 	panic("interaction_adaptors: unknown identity type " + typ)
@@ -177,6 +209,8 @@ func (a *IdentityAdaptor) WithClaims(userID string, ii *interaction.IdentityInfo
 		i := oauthFromIdentityInfo(userID, ii)
 		i.UserProfile = profile
 		return oauthToIdentityInfo(i)
+	case authn.IdentityTypeAnonymous:
+		panic("interaction_adaptors: update no support for identity type " + ii.Type)
 	}
 	panic("interaction_adaptors: unknown identity type " + ii.Type)
 }
@@ -195,8 +229,14 @@ func (a *IdentityAdaptor) CreateAll(userID string, is []*interaction.IdentityInf
 			if err := a.OAuth.Create(identity); err != nil {
 				return err
 			}
-		default:
 
+		case authn.IdentityTypeAnonymous:
+			identity := anonymousFromIdentityInfo(userID, i)
+			if err := a.Anonymous.Create(identity); err != nil {
+				return err
+			}
+
+		default:
 			panic("interaction_adaptors: unknown identity type " + i.Type)
 		}
 	}
@@ -213,6 +253,8 @@ func (a *IdentityAdaptor) UpdateAll(userID string, is []*interaction.IdentityInf
 			if err := a.OAuth.Update(identity); err != nil {
 				return err
 			}
+		case authn.IdentityTypeAnonymous:
+			panic("interaction_adaptors: update no support for identity type " + i.Type)
 		default:
 			panic("interaction_adaptors: unknown identity type " + i.Type)
 		}
@@ -281,6 +323,8 @@ func (a *IdentityAdaptor) RelateIdentityToAuthenticator(is interaction.IdentityS
 		}
 	case authn.IdentityTypeOAuth:
 		return nil
+	case authn.IdentityTypeAnonymous:
+		return nil
 	}
 
 	panic("interaction_adaptors: unknown identity type " + is.Type)
@@ -323,5 +367,19 @@ func extractOAuthClaims(claims map[string]interface{}) (providerID oauth.Provide
 		}
 	}
 
+	return
+}
+
+func extractAnonymousClaims(claims map[string]interface{}) (keyID string, key string) {
+	if v, ok := claims[interaction.IdentityClaimAnonymousKeyID]; ok {
+		if keyID, ok = v.(string); !ok {
+			panic(fmt.Sprintf("interaction_adaptors: expect string key ID, got %T", claims[interaction.IdentityClaimAnonymousKeyID]))
+		}
+	}
+	if v, ok := claims[interaction.IdentityClaimAnonymousKey]; ok {
+		if key, ok = v.(string); !ok {
+			panic(fmt.Sprintf("interaction_adaptors: expect string key, got %T", claims[interaction.IdentityClaimAnonymousKey]))
+		}
+	}
 	return
 }

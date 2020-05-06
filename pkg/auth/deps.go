@@ -18,9 +18,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	identityanonymous "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	identityloginid "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	identityoauth "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
-	identityanonymous "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	interactionadaptors "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/adaptors"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
@@ -179,6 +179,7 @@ var interactionDependencySet = wire.NewSet(
 	wire.Bind(new(interaction.AuthenticatorProvider), new(*interactionadaptors.AuthenticatorAdaptor)),
 	wire.Bind(new(interactionadaptors.LoginIDIdentityProvider), new(*identityloginid.Provider)),
 	wire.Bind(new(interactionadaptors.OAuthIdentityProvider), new(*identityoauth.Provider)),
+	wire.Bind(new(interactionadaptors.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 	wire.Bind(new(interactionadaptors.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
 	wire.Bind(new(interactionadaptors.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
 	wire.Bind(new(interactionadaptors.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),

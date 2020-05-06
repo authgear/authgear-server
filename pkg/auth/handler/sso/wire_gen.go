@@ -17,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	loginid2 "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
@@ -72,9 +73,11 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	identityAdaptor := &adaptors.IdentityAdaptor{
-		LoginID: loginidProvider,
-		OAuth:   oauthProvider,
+		LoginID:   loginidProvider,
+		OAuth:     oauthProvider,
+		Anonymous: anonymousProvider,
 	}
 	passwordhistoryStore := pq.ProvidePasswordHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
@@ -147,9 +150,11 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	identityAdaptor := &adaptors.IdentityAdaptor{
-		LoginID: loginidProvider,
-		OAuth:   oauthProvider,
+		LoginID:   loginidProvider,
+		OAuth:     oauthProvider,
+		Anonymous: anonymousProvider,
 	}
 	passwordhistoryStore := pq.ProvidePasswordHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
@@ -224,9 +229,11 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	identityAdaptor := &adaptors.IdentityAdaptor{
-		LoginID: loginidProvider,
-		OAuth:   oauthProvider,
+		LoginID:   loginidProvider,
+		OAuth:     oauthProvider,
+		Anonymous: anonymousProvider,
 	}
 	passwordhistoryStore := pq.ProvidePasswordHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
@@ -295,9 +302,11 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	loginidProvider := loginid2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	identityAdaptor := &adaptors.IdentityAdaptor{
-		LoginID: loginidProvider,
-		OAuth:   oauthProvider,
+		LoginID:   loginidProvider,
+		OAuth:     oauthProvider,
+		Anonymous: anonymousProvider,
 	}
 	passwordhistoryStore := pq.ProvidePasswordHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
