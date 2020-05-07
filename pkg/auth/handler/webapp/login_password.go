@@ -21,8 +21,8 @@ func AttachLoginPasswordHandler(
 }
 
 type loginPasswordProvider interface {
-	GetLoginPasswordForm(w http.ResponseWriter, r *http.Request) (func(err error), error)
-	PostLoginPassword(w http.ResponseWriter, r *http.Request) (func(err error), error)
+	GetEnterPasswordForm(w http.ResponseWriter, r *http.Request) (func(err error), error)
+	EnterSecret(w http.ResponseWriter, r *http.Request) (func(err error), error)
 }
 
 type LoginPasswordHandler struct {
@@ -38,13 +38,13 @@ func (h *LoginPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	db.WithTx(h.TxContext, func() error {
 		if r.Method == "GET" {
-			writeResponse, err := h.Provider.GetLoginPasswordForm(w, r)
+			writeResponse, err := h.Provider.GetEnterPasswordForm(w, r)
 			writeResponse(err)
 			return err
 		}
 
 		if r.Method == "POST" {
-			writeResponse, err := h.Provider.PostLoginPassword(w, r)
+			writeResponse, err := h.Provider.EnterSecret(w, r)
 			writeResponse(err)
 			return err
 		}

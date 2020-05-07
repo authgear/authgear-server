@@ -12,10 +12,10 @@ const (
 
 	TemplateItemTypeAuthUILoginHTML config.TemplateItemType = "auth_ui_login.html"
 	// nolint: gosec
-	TemplateItemTypeAuthUILoginPasswordHTML config.TemplateItemType = "auth_ui_login_password.html"
+	TemplateItemTypeAuthUIEnterPasswordHTML config.TemplateItemType = "auth_ui_enter_password.html"
 	TemplateItemTypeAuthUISignupHTML        config.TemplateItemType = "auth_ui_signup.html"
 	// nolint: gosec
-	TemplateItemTypeAuthUISignupPasswordHTML config.TemplateItemType = "auth_ui_signup_password.html"
+	TemplateItemTypeAuthUICreatePasswordHTML config.TemplateItemType = "auth_ui_create_password.html"
 	TemplateItemTypeAuthUIOOBOTPHTML         config.TemplateItemType = "auth_ui_oob_otp_html"
 	// nolint: gosec
 	TemplateItemTypeAuthUIForgotPasswordHTML config.TemplateItemType = "auth_ui_forgot_password.html"
@@ -303,8 +303,8 @@ var TemplateAuthUILoginHTML = template.Spec{
 `,
 }
 
-var TemplateAuthUILoginPasswordHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUILoginPasswordHTML,
+var TemplateAuthUIEnterPasswordHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIEnterPasswordHTML,
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
@@ -335,9 +335,6 @@ var TemplateAuthUILoginPasswordHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
-<input type="hidden" name="x_calling_code" value="{{ .x_calling_code }}">
-<input type="hidden" name="x_national_number" value="{{ .x_national_number }}">
-<input type="hidden" name="x_login_id" value="{{ .x_login_id }}">
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
 <input id="password" class="input text-input primary-txt" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}" value="{{ .x_password }}">
@@ -395,9 +392,6 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 <div class="description primary-txt">{{ localize "oob-otp-description--email" .x_oob_otp_code_length .x_login_id }}</div>
 {{ end }}
 
-<input type="hidden" name="x_calling_code" value="{{ .x_calling_code }}">
-<input type="hidden" name="x_national_number" value="{{ .x_national_number }}">
-<input type="hidden" name="x_login_id" value="{{ .x_login_id }}">
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
 <input class="input text-input primary-txt" type="text" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}" value="{{ .x_password }}">
@@ -663,8 +657,8 @@ var TemplateAuthUISignupHTML = template.Spec{
 `,
 }
 
-var TemplateAuthUISignupPasswordHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUISignupPasswordHTML,
+var TemplateAuthUICreatePasswordHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUICreatePasswordHTML,
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
@@ -679,10 +673,6 @@ var TemplateAuthUISignupPasswordHTML = template.Spec{
 
 <form class="simple-form enter-password-form" method="post">
 {{ $.csrfField }}
-<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
-<input type="hidden" name="x_calling_code" value="{{ .x_calling_code }}">
-<input type="hidden" name="x_national_number" value="{{ .x_national_number }}">
-<input type="hidden" name="x_login_id" value="{{ .x_login_id }}">
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
 <div class="nav-bar">

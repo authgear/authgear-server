@@ -21,8 +21,8 @@ func AttachSignupPasswordHandler(
 }
 
 type signupPasswordProvider interface {
-	GetSignupPasswordForm(w http.ResponseWriter, r *http.Request) (func(err error), error)
-	PostSignupPassword(w http.ResponseWriter, r *http.Request) (func(err error), error)
+	GetCreatePasswordForm(w http.ResponseWriter, r *http.Request) (func(err error), error)
+	CreateSecret(w http.ResponseWriter, r *http.Request) (func(err error), error)
 }
 
 type SignupPasswordHandler struct {
@@ -38,13 +38,13 @@ func (h *SignupPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	db.WithTx(h.TxContext, func() error {
 		if r.Method == "GET" {
-			writeResponse, err := h.Provider.GetSignupPasswordForm(w, r)
+			writeResponse, err := h.Provider.GetCreatePasswordForm(w, r)
 			writeResponse(err)
 			return err
 		}
 
 		if r.Method == "POST" {
-			writeResponse, err := h.Provider.PostSignupPassword(w, r)
+			writeResponse, err := h.Provider.CreateSecret(w, r)
 			writeResponse(err)
 			return err
 		}
