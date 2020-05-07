@@ -287,9 +287,9 @@ var TemplateAuthUILoginHTML = template.Spec{
 
 				<div class="link">
 					<span class="primary-text">{{ localize "signup-button-hint" }}</span>
-					<a class="anchor" href="{{ call .MakeURLWithPath "/signup" }}">{{ localize "signup-button-label" }}</a>
+					<a class="anchor" href="{{ call .MakeURLWithPathWithoutX "/signup" }}">{{ localize "signup-button-label" }}</a>
 				</div>
-				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithPath "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
+				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
 
 				{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-login-id-button-label" }}</button>
@@ -342,7 +342,7 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 <button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
 <button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
 
-<a class="anchor link align-self-flex-start" href="{{ call .MakeURLWithPath "/forgot_password" }}">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
+<a class="anchor link align-self-flex-start" href="{{ call .MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "confirm-password-button-label" }}</button>
 
@@ -503,7 +503,7 @@ var TemplateAuthUIForgotPasswordSuccessHTML = template.Spec{
 
 <div class="description primary-txt">{{ localize "forgot-password-success-description" .x_login_id }}</div>
 
-<a class="anchor btn primary-btn align-self-flex-end" href="{{ call .MakeURLWithPath "/login" }}">{{ localize "login-button-label--forgot-password-success-page" }}</a>
+<a class="anchor btn primary-btn align-self-flex-end" href="{{ call .MakeURLWithPathWithoutX "/login" }}">{{ localize "login-button-label--forgot-password-success-page" }}</a>
 
 </div>
 {{ template "auth_ui_footer.html" . }}
@@ -641,9 +641,9 @@ var TemplateAuthUISignupHTML = template.Spec{
 
 				<div class="link align-self-flex-start">
 					<span class="primary-text">{{ localize "login-button-hint" }}</span>
-					<a class="anchor" href="{{ call .MakeURLWithPath "/login" }}">{{ localize "login-button-label" }}<a>
+					<a class="anchor" href="{{ call .MakeURLWithPathWithoutX "/login" }}">{{ localize "login-button-label" }}<a>
 				</div>
-				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithPath "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
+				<a class="link anchor align-self-flex-start" href="{{ call .MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
 
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">
 					{{ localize "confirm-login-id-button-label" }}

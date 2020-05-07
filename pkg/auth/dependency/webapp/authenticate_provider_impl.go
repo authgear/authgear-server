@@ -139,9 +139,9 @@ func (p *AuthenticateProviderImpl) EnterLoginID(w http.ResponseWriter, r *http.R
 			var nextPath string
 			switch result.Step {
 			case interactionflows.WebAppStepAuthenticatePassword:
-				nextPath = "/login/password"
+				nextPath = "/enter_password"
 			case interactionflows.WebAppStepAuthenticateOOBOTP:
-				nextPath = "/login/oob_otp"
+				nextPath = "/oob_otp"
 			default:
 				panic("interaction_flow_webapp: unexpected step " + result.Step)
 			}
@@ -252,9 +252,9 @@ func (p *AuthenticateProviderImpl) CreateLoginID(w http.ResponseWriter, r *http.
 			var nextPath string
 			switch result.Step {
 			case interactionflows.WebAppStepSetupPassword:
-				nextPath = "/signup/password"
+				nextPath = "/create_password"
 			case interactionflows.WebAppStepSetupOOBOTP:
-				nextPath = "/signup/oob_otp"
+				nextPath = "/oob_otp"
 			default:
 				panic("interaction_flow_webapp: unexpected step " + result.Step)
 			}

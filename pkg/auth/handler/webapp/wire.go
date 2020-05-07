@@ -36,13 +36,13 @@ func newLoginHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	return nil
 }
 
-func newLoginPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+func newEnterPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
 		authDepSet,
-		wire.Bind(new(loginPasswordProvider), new(*webapp.AuthenticateProviderImpl)),
-		wire.Struct(new(LoginPasswordHandler), "*"),
-		wire.Bind(new(http.Handler), new(*LoginPasswordHandler)),
+		wire.Bind(new(enterPasswordProvider), new(*webapp.AuthenticateProviderImpl)),
+		wire.Struct(new(EnterPasswordHandler), "*"),
+		wire.Bind(new(http.Handler), new(*EnterPasswordHandler)),
 	)
 	return nil
 }
@@ -106,13 +106,13 @@ func newSignupHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	return nil
 }
 
-func newSignupPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+func newCreatePasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
 		authDepSet,
-		wire.Bind(new(signupPasswordProvider), new(*webapp.AuthenticateProviderImpl)),
-		wire.Struct(new(SignupPasswordHandler), "*"),
-		wire.Bind(new(http.Handler), new(*SignupPasswordHandler)),
+		wire.Bind(new(createPasswordProvider), new(*webapp.AuthenticateProviderImpl)),
+		wire.Struct(new(CreatePasswordHandler), "*"),
+		wire.Bind(new(http.Handler), new(*CreatePasswordHandler)),
 	)
 	return nil
 }
@@ -126,24 +126,13 @@ func newSettingsHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	return nil
 }
 
-func newLoginOOBOTPHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+func newOOBOTPHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
 		authDepSet,
-		wire.Bind(new(loginOOBOTPProvider), new(*webapp.AuthenticateProviderImpl)),
-		wire.Struct(new(LoginOOBOTPHandler), "*"),
-		wire.Bind(new(http.Handler), new(*LoginOOBOTPHandler)),
-	)
-	return nil
-}
-
-func newSignupOOBOTPHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
-	wire.Build(
-		pkg.DependencySet,
-		authDepSet,
-		wire.Bind(new(signupOOBOTPProvider), new(*webapp.AuthenticateProviderImpl)),
-		wire.Struct(new(SignupOOBOTPHandler), "*"),
-		wire.Bind(new(http.Handler), new(*SignupOOBOTPHandler)),
+		wire.Bind(new(OOBOTPProvider), new(*webapp.AuthenticateProviderImpl)),
+		wire.Struct(new(OOBOTPHandler), "*"),
+		wire.Bind(new(http.Handler), new(*OOBOTPHandler)),
 	)
 	return nil
 }

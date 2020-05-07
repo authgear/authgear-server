@@ -50,8 +50,8 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		return MakeURLWithQuery(r.URL, q)
 	}
 
-	data["MakeURLWithPath"] = func(path string) string {
-		return MakeURLWithPath(r.URL, path)
+	data["MakeURLWithPathWithoutX"] = func(path string) string {
+		return MakeURLWithPathWithoutX(r.URL, path)
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())

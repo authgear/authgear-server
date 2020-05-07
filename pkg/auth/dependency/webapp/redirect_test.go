@@ -151,24 +151,35 @@ func TestRedirectToRedirectURI(t *testing.T) {
 	})
 }
 
-func TestMakeURLWithPath(t *testing.T) {
-	Convey("MakeURLWithPath", t, func() {
+func TestMakeURLWithPathWithQueryPreserved(t *testing.T) {
+	Convey("MakeURLWithPathWithQueryPreserved", t, func() {
 		test := func(str string, path string, expected string) {
 			u, err := url.Parse(str)
 			So(err, ShouldBeNil)
-			actual := MakeURLWithPath(u, path)
+			actual := MakeURLWithPathWithQueryPreserved(u, path)
 			So(actual, ShouldEqual, expected)
 		}
 
 		test("http://example.com", "/login", "/login")
-
 		test("http://example.com?a=a", "/login", "/login?a=a")
 		test("http://example.com/login?a=a", "/login", "/login?a=a")
+		test("http://example.com/login?a=a&x_a=a", "/login", "/login?a=a&x_a=a")
+	})
+}
 
-		test("http://example.com/login?a=a&x_a=a", "/signup", "/signup?a=a")
-		test("http://example.com/login?a=a&x_a=a", "/", "/?a=a")
+func TestMakeURLWithPathWithoutX(t *testing.T) {
+	Convey("MakeURLWithPathWithoutX", t, func() {
+		test := func(str string, path string, expected string) {
+			u, err := url.Parse(str)
+			So(err, ShouldBeNil)
+			actual := MakeURLWithPathWithoutX(u, path)
+			So(actual, ShouldEqual, expected)
+		}
 
-		test("http://example.com/login?a=a&x_a=a", "/login/password", "/login/password?a=a&x_a=a")
+		test("http://example.com", "/login", "/login")
+		test("http://example.com?a=a", "/login", "/login?a=a")
+		test("http://example.com/login?a=a", "/login", "/login?a=a")
+		test("http://example.com/login?a=a&x_a=a", "/login", "/login?a=a")
 	})
 }
 

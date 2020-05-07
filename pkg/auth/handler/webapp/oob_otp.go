@@ -9,29 +9,29 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
-func AttachLoginOOBOTPHandler(
+func AttachOOBOTPHandler(
 	router *mux.Router,
 	authDependency auth.DependencyMap,
 ) {
 	router.
 		NewRoute().
-		Path("/login/oob_otp").
+		Path("/oob_otp").
 		Methods("OPTIONS", "POST", "GET").
-		Handler(auth.MakeHandler(authDependency, newLoginOOBOTPHandler))
+		Handler(auth.MakeHandler(authDependency, newOOBOTPHandler))
 }
 
-type loginOOBOTPProvider interface {
+type OOBOTPProvider interface {
 	GetOOBOTPForm(w http.ResponseWriter, r *http.Request) (func(err error), error)
 	EnterSecret(w http.ResponseWriter, r *http.Request) (func(err error), error)
 	TriggerOOBOTP(w http.ResponseWriter, r *http.Request) (func(err error), error)
 }
 
-type LoginOOBOTPHandler struct {
-	Provider  loginOOBOTPProvider
+type OOBOTPHandler struct {
+	Provider  OOBOTPProvider
 	TxContext db.TxContext
 }
 
-func (h *LoginOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

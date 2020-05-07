@@ -27,7 +27,7 @@ func RedirectToRedirectURI(w http.ResponseWriter, r *http.Request) {
 }
 
 func RedirectToPathWithQueryPreserved(w http.ResponseWriter, r *http.Request, path string) {
-	http.Redirect(w, r, MakeURLWithPath(r.URL, path), http.StatusFound)
+	http.Redirect(w, r, MakeURLWithPathWithQueryPreserved(r.URL, path), http.StatusFound)
 }
 
 func RedirectToCurrentPath(w http.ResponseWriter, r *http.Request) {
@@ -72,40 +72,33 @@ func parseRedirectURI(r *http.Request, redirectURL string) (out string, err erro
 	return
 }
 
-// MakeURLWithPath generates a relative URL with path and query only.
-// The query is preserved.
-// If the length of the common prefix is shorter than 2, then x_* query is removed.
-// This behavior enables a automatic state cleanup mechanism
-// For example, /login shares state with /login/password because the two paths
-// together represent the login flow.
-// When the user navigates from /login to /signup, all state is cleaned up.
-// Query that does not start with x_ e.g. redirect_uri is always preserved.
-func MakeURLWithPath(i *url.URL, path string) string {
+func MakeURLWithPathWithQueryPreserved(i *url.URL, path string) string {
 	u := *i
+	u.Path = path
+	u.Scheme = ""
+	u.Opaque = ""
+	u.Host = ""
+	u.User = nil
+	return u.String()
+}
 
-	prefix := ""
-	if strings.HasPrefix(path, u.Path) && len(u.Path) > len(prefix) {
-		prefix = u.Path
-	}
-	if strings.HasPrefix(u.Path, path) && len(path) > len(prefix) {
-		prefix = path
-	}
-
-	if len(prefix) < 2 {
-		q := u.Query()
-		for name := range q {
-			if strings.HasPrefix(name, "x_") {
-				delete(q, name)
-			}
-		}
-		u.RawQuery = q.Encode()
-	}
+func MakeURLWithPathWithoutX(i *url.URL, path string) string {
+	u := *i
 
 	u.Path = path
 	u.Scheme = ""
 	u.Opaque = ""
 	u.Host = ""
 	u.User = nil
+
+	q := u.Query()
+	for name := range q {
+		if strings.HasPrefix(name, "x_") {
+			delete(q, name)
+		}
+	}
+	u.RawQuery = q.Encode()
+
 	return u.String()
 }
 
