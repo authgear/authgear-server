@@ -111,10 +111,19 @@ func (p *Provider) NewInteractionAddIdentity(intent *IntentAddIdentity, clientID
 	i.Identity = &ir
 	i.NewIdentities = append(i.NewIdentities, id)
 
-	if err := p.Identity.Validate(i.NewIdentities); err != nil {
+	ois, err := p.Identity.ListByUser(userID)
+	if err != nil {
 		return nil, err
 	}
-	if err := p.Identity.ValidateWithUser(i.UserID, i.NewIdentities); err != nil {
+	existingIdentities := []*IdentityInfo{}
+	for _, oi := range ois {
+		if oi.Type == id.Type {
+			existingIdentities = append(existingIdentities, oi)
+		}
+	}
+	checkIdentities := append(i.NewIdentities, existingIdentities...)
+
+	if err := p.Identity.Validate(checkIdentities); err != nil {
 		if errors.Is(err, identity.ErrIdentityAlreadyExists) {
 			return nil, ErrDuplicatedIdentity
 		}

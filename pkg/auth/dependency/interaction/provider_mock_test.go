@@ -161,6 +161,21 @@ func (mr *MockIdentityProviderMockRecorder) ListByClaims(claims interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaims", reflect.TypeOf((*MockIdentityProvider)(nil).ListByClaims), claims)
 }
 
+// ListByUser mocks base method
+func (m *MockIdentityProvider) ListByUser(userID string) ([]*interaction.IdentityInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByUser", userID)
+	ret0, _ := ret[0].([]*interaction.IdentityInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByUser indicates an expected call of ListByUser
+func (mr *MockIdentityProviderMockRecorder) ListByUser(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockIdentityProvider)(nil).ListByUser), userID)
+}
+
 // New mocks base method
 func (m *MockIdentityProvider) New(userID string, typ authn.IdentityType, claims map[string]interface{}) *interaction.IdentityInfo {
 	m.ctrl.T.Helper()
@@ -229,20 +244,6 @@ func (m *MockIdentityProvider) Validate(is []*interaction.IdentityInfo) error {
 func (mr *MockIdentityProviderMockRecorder) Validate(is interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockIdentityProvider)(nil).Validate), is)
-}
-
-// ValidateWithUser mocks base method
-func (m *MockIdentityProvider) ValidateWithUser(userID string, is []*interaction.IdentityInfo) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ValidateWithUser", userID, is)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// ValidateWithUser indicates an expected call of ValidateWithUser
-func (mr *MockIdentityProviderMockRecorder) ValidateWithUser(userID, is interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateWithUser", reflect.TypeOf((*MockIdentityProvider)(nil).ValidateWithUser), userID, is)
 }
 
 // RelateIdentityToAuthenticator mocks base method

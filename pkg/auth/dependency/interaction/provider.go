@@ -26,12 +26,12 @@ type IdentityProvider interface {
 	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *IdentityInfo, error)
 	// ListByClaims return list of identities the matches the provided OIDC standard claims.
 	ListByClaims(claims map[string]string) ([]*IdentityInfo, error)
+	ListByUser(userID string) ([]*IdentityInfo, error)
 	New(userID string, typ authn.IdentityType, claims map[string]interface{}) *IdentityInfo
 	WithClaims(userID string, ii *IdentityInfo, claims map[string]interface{}) *IdentityInfo
 	CreateAll(userID string, is []*IdentityInfo) error
 	UpdateAll(userID string, is []*IdentityInfo) error
 	Validate(is []*IdentityInfo) error
-	ValidateWithUser(userID string, is []*IdentityInfo) error
 	// RelateIdentityToAuthenticator tells if authenticatorSpec is compatible with and related to identitySpec.
 	//
 	// A authenticatorSpec is compatible with identitySpec if authenticator can be used as authentication for the identity.

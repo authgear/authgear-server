@@ -10,7 +10,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
-	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 type Provider struct {
@@ -110,44 +109,6 @@ func (p *Provider) Normalize(loginID loginid.LoginID) (normalized *loginid.Login
 
 func (p *Provider) Validate(loginIDs []loginid.LoginID) error {
 	return p.LoginIDChecker.Validate(loginIDs)
-}
-
-func (p *Provider) ValidateMax(userID string, loginIDs []loginid.LoginID) error {
-	maxConfig := map[string]int{}
-	amounts := map[string]int{}
-	for _, loginID := range loginIDs {
-		amounts[loginID.Key]++
-		config := p.lookupLoginIDConfig(loginID)
-		if config == nil {
-			panic("loginid: unknown login ID key " + loginID.Key)
-		}
-		if config.Maximum != nil {
-			maxConfig[config.Key] = *config.Maximum
-		}
-	}
-
-	is, err := p.Store.List(userID)
-	if err != nil {
-		return err
-	}
-
-	for _, i := range is {
-		amounts[i.LoginIDKey]++
-	}
-
-	for k, max := range maxConfig {
-		if amount, ok := amounts[k]; ok {
-			if amount > max {
-				return validation.NewValidationFailed("invalid login IDs", []validation.ErrorCause{{
-					Kind:    validation.ErrorEntryAmount,
-					Pointer: "",
-					Message: "too many login IDs",
-					Details: map[string]interface{}{"key": k, "lte": max},
-				}})
-			}
-		}
-	}
-	return nil
 }
 
 func (p *Provider) New(userID string, loginID loginid.LoginID) *Identity {
