@@ -21,6 +21,7 @@ func ProvideProvider(
 	up UserProvider,
 	oob OOBProvider,
 	c *config.TenantConfiguration,
+	hp hook.Provider,
 ) *Provider {
 	return &Provider{
 		Store:         s,
@@ -30,6 +31,7 @@ func ProvideProvider(
 		Authenticator: ap,
 		User:          up,
 		OOB:           oob,
+		Hooks:         hp,
 		Config:        c.AppConfig.Authentication,
 	}
 }

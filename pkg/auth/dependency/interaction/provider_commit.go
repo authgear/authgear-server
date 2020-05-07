@@ -3,6 +3,7 @@ package interaction
 import (
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
@@ -20,7 +21,7 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 	case *IntentSignup:
 		err = p.onCommitSignup(i, intent)
 	case *IntentAddIdentity:
-		err = p.onCommitAddIdentity(i, intent)
+		err = p.onCommitAddIdentity(i, intent, i.UserID)
 	default:
 		panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 	}
@@ -99,11 +100,34 @@ func (p *Provider) onCommitSignup(i *Interaction, intent *IntentSignup) error {
 	return nil
 }
 
-func (p *Provider) onCommitAddIdentity(i *Interaction, intent *IntentAddIdentity) error {
+func (p *Provider) onCommitAddIdentity(i *Interaction, intent *IntentAddIdentity, userID string) error {
 	err := p.checkIdentitiesDuplicated(i.NewIdentities)
 	if err != nil {
 		return err
 	}
+
+	user, err := p.User.Get(userID)
+	if err != nil {
+		return err
+	}
+
+	for _, i := range i.NewIdentities {
+		identity := model.Identity{
+			Type:   string(i.Type),
+			Claims: i.Claims,
+		}
+		err = p.Hooks.DispatchEvent(
+			event.IdentityCreateEvent{
+				User:     *user,
+				Identity: identity,
+			},
+			user,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

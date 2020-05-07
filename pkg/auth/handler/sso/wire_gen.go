@@ -97,7 +97,7 @@ func newAuthHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, provider, queue, tenantConfiguration)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq3.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -173,7 +173,7 @@ func newAuthResultHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq3.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -249,7 +249,7 @@ func newLinkHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq3.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -321,7 +321,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq3.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,

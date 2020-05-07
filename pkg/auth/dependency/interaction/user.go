@@ -74,6 +74,22 @@ func (p *userProvider) Create(userID string, metadata map[string]interface{}, id
 	return nil
 }
 
+func (p *userProvider) Get(userID string) (*model.User, error) {
+	var authInfo authinfo.AuthInfo
+	err := p.AuthInfos.GetAuth(userID, &authInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	userProfile, err := p.UserProfiles.GetUserProfile(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	u := model.NewUser(authInfo, userProfile)
+	return &u, nil
+}
+
 func (p *userProvider) enqueueSendWelcomeEmailTasks(user model.User, identities []*IdentityInfo) {
 	var emails []string
 	for _, i := range identities {
