@@ -1,7 +1,6 @@
 package anonymous
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -68,18 +67,26 @@ func (p *Provider) Delete(i *Identity) error {
 
 func (p *Provider) ParseRequest(requestJWT string) (*Identity, *Request, error) {
 	var iden *Identity
-	key := &jwk.RSAPublicKey{}
+	var key jwk.Key
 	keyFunc := func(token *jwt.Token) (interface{}, error) {
 		// Provided key material has higher priority than key ID
 		if jwkMap, ok := token.Header["jwk"].(map[string]interface{}); ok {
-			if err := key.ExtractMap(jwkMap); err != nil {
+			keySet := &jwk.Set{}
+			if err := keySet.ExtractMap(map[string]interface{}{
+				"keys": []interface{}{jwkMap},
+			}); err != nil {
 				return nil, fmt.Errorf("invalid JWK: %w", err)
 			}
+			key = keySet.Keys[0]
 
 			var err error
 			iden, err = p.Store.GetByKeyID(key.KeyID())
 			if err != nil && !errors.Is(err, identity.ErrIdentityNotFound) {
 				return nil, err
+			} else if err == nil {
+				if key, err = iden.toJWK(); err != nil {
+					return nil, fmt.Errorf("invalid JWK: %w", err)
+				}
 			}
 
 			return key.Materialize()
@@ -91,11 +98,7 @@ func (p *Provider) ParseRequest(requestJWT string) (*Identity, *Request, error) 
 				return nil, fmt.Errorf("unknown key ID: %w", err)
 			}
 
-			var jwkMap map[string]interface{}
-			if err := json.Unmarshal(iden.Key, &jwkMap); err != nil {
-				return nil, fmt.Errorf("invalid JWK: %w", err)
-			}
-			if err := key.ExtractMap(jwkMap); err != nil {
+			if key, err = iden.toJWK(); err != nil {
 				return nil, fmt.Errorf("invalid JWK: %w", err)
 			}
 			return key.Materialize()
