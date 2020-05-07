@@ -1,4 +1,4 @@
-package challenge
+package oauth
 
 import (
 	"net/http"
@@ -12,21 +12,21 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-func AttachCreateHandler(
+func AttachChallengeHandler(
 	router *mux.Router,
 	authDependency auth.DependencyMap,
 ) {
 	router.NewRoute().
-		Path("/challenge").
-		Handler(auth.MakeHandler(authDependency, newCreateHandler)).
+		Path("/oauth2/challenge").
+		Handler(auth.MakeHandler(authDependency, newChallengeHandler)).
 		Methods("OPTIONS", "POST")
 }
 
-type CreateRequest struct {
+type ChallengeRequest struct {
 	Purpose challenge.Purpose `json:"purpose"`
 }
 
-func (p *CreateRequest) Validate() []validation.ErrorCause {
+func (p *ChallengeRequest) Validate() []validation.ErrorCause {
 	if !p.Purpose.IsValid() {
 		return []validation.ErrorCause{{
 			Kind:    validation.ErrorGeneral,
@@ -38,9 +38,9 @@ func (p *CreateRequest) Validate() []validation.ErrorCause {
 }
 
 // @JSONSchema
-const CreateRequestSchema = `
+const ChallengeRequestSchema = `
 {
-	"$id": "#CreateChallengeRequest",
+	"$id": "#OAuthChallengeRequest",
 	"type": "object",
 	"properties": {
 		"purpose": { "type": "string" }
@@ -49,15 +49,15 @@ const CreateRequestSchema = `
 }
 `
 
-type CreateResponse struct {
+type ChallengeResponse struct {
 	Token    string    `json:"token"`
 	ExpireAt time.Time `json:"expire_at"`
 }
 
 // @JSONSchema
-const CreateResponseSchema = `
+const ChallengeResponseSchema = `
 {
-	"$id": "#CreateChallengeResponse",
+	"$id": "#OAuthChallengeResponse",
 	"type": "object",
 	"properties": {
 		"token": { "type": "string" }
@@ -73,25 +73,25 @@ type challengeProvider interface {
 
 /*
 	@Operation POST /challenge - Obtain new challenge
-		Obtain a new challenge for challenge-based authentication.
+		Obtain a new challenge for challenge-based OAuth authentication.
 		Challenges can be used once only.
 
 		@Tag User
 
 		@RequestBody
 			Describe purpose of the challenge.
-			@JSONSchema {CreateChallengeRequest}
+			@JSONSchema {OAuthChallengeRequest}
 
 		@Response 200
 			Created challenge information.
-			@JSONSchema {CreateChallengeResponse}
+			@JSONSchema {OAuthChallengeResponse}
 */
-type CreateHandler struct {
+type ChallengeHandler struct {
 	Validator  *validation.Validator
 	Challenges challengeProvider
 }
 
-func (h *CreateHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	result, err := h.Handle(resp, req)
 	if err == nil {
 		handler.WriteResponse(resp, handler.APIResponse{Result: result})
@@ -100,9 +100,9 @@ func (h *CreateHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (h *CreateHandler) Handle(resp http.ResponseWriter, req *http.Request) (*CreateResponse, error) {
-	var payload CreateRequest
-	if err := handler.BindJSONBody(req, resp, h.Validator, "#CreateChallengeRequest", &payload); err != nil {
+func (h *ChallengeHandler) Handle(resp http.ResponseWriter, req *http.Request) (*ChallengeResponse, error) {
+	var payload ChallengeRequest
+	if err := handler.BindJSONBody(req, resp, h.Validator, "#OAuthChallengeRequest", &payload); err != nil {
 		return nil, err
 	}
 
@@ -111,5 +111,5 @@ func (h *CreateHandler) Handle(resp http.ResponseWriter, req *http.Request) (*Cr
 		return nil, err
 	}
 
-	return &CreateResponse{Token: c.Token, ExpireAt: c.ExpireAt}, nil
+	return &ChallengeResponse{Token: c.Token, ExpireAt: c.ExpireAt}, nil
 }

@@ -134,11 +134,11 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, authinfoStore, userprofileStore, loginidProvider, factory)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, provider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
 	interactionProvider := interaction.ProvideProvider(redisStore, provider, factory, identityAdaptor, authenticatorAdaptor, userProvider, oobProvider, tenantConfiguration, hookProvider)
-	challengeProvider := challenge.ProvideProvider(context, provider, tenantConfiguration)
+	provider2 := challenge.ProvideProvider(context, provider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
+		Challenges:   provider2,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, provider)
 	tokenGenerator := _wireTokenGeneratorValue
@@ -227,6 +227,20 @@ func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	return httpHandler
 }
 
+func newChallengeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	validator := auth.ProvideValidator(m)
+	context := auth.ProvideContext(r)
+	provider := time.NewProvider()
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
+	provider2 := challenge.ProvideProvider(context, provider, tenantConfiguration)
+	challengeHandler := &ChallengeHandler{
+		Validator:  validator,
+		Challenges: provider2,
+	}
+	httpHandler := provideChallengeHandler(challengeHandler)
+	return httpHandler
+}
+
 // wire.go:
 
 func provideAuthorizeHandler(lf logging.Factory, tx db.TxContext, ah oauthAuthorizeHandler) http.Handler {
@@ -285,5 +299,9 @@ func provideEndSessionHandler(lf logging.Factory, tx db.TxContext, esh oidcEndSe
 		txContext:         tx,
 		endSessionHandler: esh,
 	}
+	return h
+}
+
+func provideChallengeHandler(h *ChallengeHandler) http.Handler {
 	return h
 }

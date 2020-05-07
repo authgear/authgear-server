@@ -12,7 +12,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
-	challengehandler "github.com/skygeario/skygear-server/pkg/auth/handler/challenge"
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
 	gearHandler "github.com/skygeario/skygear-server/pkg/auth/handler/gear"
 	loginidhandler "github.com/skygeario/skygear-server/pkg/auth/handler/loginid"
@@ -280,6 +279,7 @@ func main() {
 	oauthhandler.AttachRevokeHandler(oauthRouter, authDependency)
 	oauthhandler.AttachUserInfoHandler(oauthRouter, authDependency)
 	oauthhandler.AttachEndSessionHandler(oauthRouter, authDependency)
+	oauthhandler.AttachChallengeHandler(oauthRouter, authDependency)
 
 	handler.AttachSignupHandler(apiRouter, authDependency)
 	handler.AttachLoginHandler(apiRouter, authDependency)
@@ -326,7 +326,6 @@ func main() {
 	loginidhandler.AttachAddLoginIDHandler(apiRouter, authDependency)
 	loginidhandler.AttachRemoveLoginIDHandler(apiRouter, authDependency)
 	loginidhandler.AttachUpdateLoginIDHandler(apiRouter, authDependency)
-	challengehandler.AttachCreateHandler(apiRouter, authDependency)
 
 	srv := &http.Server{
 		Addr:    configuration.Host,
