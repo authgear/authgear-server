@@ -45,7 +45,8 @@ const AddLoginIDRequestSchema = `
 				},
 				"required": ["key", "value"]
 			},
-			"minItems": 1
+			"minItems": 1,
+			"maxItems": 1
 		}
 	},
 	"required": ["login_ids"]
