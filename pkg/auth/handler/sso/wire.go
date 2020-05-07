@@ -8,7 +8,6 @@ import (
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -91,15 +90,15 @@ func provideLinkHandler(
 	requireAuthz handler.RequireAuthz,
 	v *validation.Validator,
 	sp sso.Provider,
-	ap LinkAuthnProvider,
 	op sso.OAuthProvider,
+	f OAuthLinkInteractionFlow,
 ) http.Handler {
 	h := &LinkHandler{
 		TxContext:     tx,
 		Validator:     v,
 		SSOProvider:   sp,
-		AuthnProvider: ap,
 		OAuthProvider: op,
+		Interactions:  f,
 	}
 	return requireAuthz(h, h)
 }
@@ -107,11 +106,10 @@ func provideLinkHandler(
 func newLinkHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
-		authn.ProvideAuthAPIProvider,
-		wire.Bind(new(LinkAuthnProvider), new(*authn.Provider)),
 		provideOAuthProviderFromRequestVars,
 		provideLinkHandler,
 		ProvideRedirectURIForAPIFunc,
+		wire.Bind(new(OAuthLinkInteractionFlow), new(*interactionflows.AuthAPIFlow)),
 	)
 	return nil
 }
