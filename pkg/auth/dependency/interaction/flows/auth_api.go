@@ -195,10 +195,38 @@ func (f *AuthAPIFlow) AddLoginID(
 	s, err := f.Interactions.GetInteractionState(i)
 	if err != nil {
 		return err
-	} else if s.CurrentStep().Step != interaction.StepCommit {
-		// in auth api, only password authenticator is supported for login id
-		// password authenticator should be setup during sign up
-		// so the current step must be commit
+	}
+
+	// in auth api, only password authenticator is supported for login id
+	// if the step is StepSetupPrimaryAuthenticator, it must be password authenticator
+	// if user has password authenticator already, the step should be commit
+	ss := s.CurrentStep()
+	if ss.Step == interaction.StepSetupPrimaryAuthenticator &&
+		len(ss.AvailableAuthenticators) > 0 &&
+		ss.AvailableAuthenticators[0].Type == authn.AuthenticatorTypePassword {
+		passwordAuthenticator := ss.AvailableAuthenticators[0]
+
+		// Set password authenticator to no password
+		// Before resetting the password, user cannot use this authenticator to authenticate
+		err = f.Interactions.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionSetupAuthenticator{
+			Authenticator: passwordAuthenticator,
+			Secret:        "",
+		})
+		if err != nil {
+			return err
+		}
+
+		if i.Error != nil {
+			return i.Error
+		}
+
+		s, err = f.Interactions.GetInteractionState(i)
+		if err != nil {
+			return err
+		}
+	}
+
+	if s.CurrentStep().Step != interaction.StepCommit {
 		return ErrUnsupportedConfiguration
 	}
 

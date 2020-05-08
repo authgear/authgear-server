@@ -41,14 +41,22 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 }
 
 func (p *Provider) New(userID string, password string) (*Authenticator, error) {
-	err := p.isPasswordAllowed(userID, password)
-	if err != nil {
-		return nil, err
-	}
+	var hash []byte
+	// Empty password is not supported in password authenticator
+	// If the password is empty string means no password for this password authenticator
+	// In this case, the authenticator cannot be used to authenticate successfully
+	if password != "" {
+		err := p.isPasswordAllowed(userID, password)
+		if err != nil {
+			return nil, err
+		}
 
-	hash, err := pwd.Hash([]byte(password))
-	if err != nil {
-		panic(errors.Newf("password: failed to hash password: %w", err))
+		hash, err = pwd.Hash([]byte(password))
+		if err != nil {
+			panic(errors.Newf("password: failed to hash password: %w", err))
+		}
+	} else {
+		hash = nil
 	}
 
 	a := &Authenticator{
