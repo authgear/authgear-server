@@ -98,8 +98,6 @@ func (h RemoveLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) err
 			return err
 		}
 
-		// TODO(interaction): remove identity hook
-
 		// TODO(interaction): update verification state
 
 		return nil

@@ -9,6 +9,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	coretime "github.com/skygeario/skygear-server/pkg/core/time"
@@ -361,7 +362,7 @@ func TestProviderCommit(t *testing.T) {
 		identityProvider.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(&interaction.IdentityInfo{}, nil).AnyTimes()
 		authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 		authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-		userProvider.EXPECT().Get(gomock.Any()).Return(&model.User{}, nil).AnyTimes()
+		userProvider.EXPECT().Get(userID).Return(&model.User{ID: userID}, nil).AnyTimes()
 
 		Convey("should cleanup authenticators", func() {
 			// remove login id
@@ -384,6 +385,16 @@ func TestProviderCommit(t *testing.T) {
 			sort.Sort(authenticatorInfoSlice(expected))
 			sort.Sort(authenticatorInfoSlice(actual))
 			So(expected, ShouldResemble, actual)
+
+			So(hooks.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.IdentityDeleteEvent{
+					User: model.User{ID: userID},
+					Identity: model.Identity{
+						Type:   string(loginID1.Type),
+						Claims: loginID1.Claims,
+					},
+				},
+			})
 		})
 
 		Convey("should not remove authenticators when removing identity has no related authenticator", func() {
@@ -401,6 +412,16 @@ func TestProviderCommit(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			So(len(i.RemoveAuthenticators), ShouldEqual, 0)
+
+			So(hooks.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.IdentityDeleteEvent{
+					User: model.User{ID: userID},
+					Identity: model.Identity{
+						Type:   string(oauthID.Type),
+						Claims: oauthID.Claims,
+					},
+				},
+			})
 		})
 
 		Convey("should keep authenticators which related to existing identities", func() {
@@ -426,6 +447,16 @@ func TestProviderCommit(t *testing.T) {
 			sort.Sort(authenticatorInfoSlice(expected))
 			sort.Sort(authenticatorInfoSlice(actual))
 			So(expected, ShouldResemble, actual)
+
+			So(hooks.DispatchedEvents, ShouldResemble, []event.Payload{
+				event.IdentityDeleteEvent{
+					User: model.User{ID: userID},
+					Identity: model.Identity{
+						Type:   string(loginID2.Type),
+						Claims: loginID2.Claims,
+					},
+				},
+			})
 		})
 	})
 }

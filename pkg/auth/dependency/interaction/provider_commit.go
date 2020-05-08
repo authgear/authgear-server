@@ -143,6 +143,7 @@ func (p *Provider) onCommitAddIdentity(i *Interaction, intent *IntentAddIdentity
 }
 
 func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveIdentity, userID string) error {
+	// populate remove authenticators
 	ois, err := p.Identity.ListByUser(userID)
 	if err != nil {
 		return err
@@ -176,6 +177,29 @@ func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveId
 		if _, ok := keepAuthenticators[a.ID]; !ok {
 			// not found in the keep authenticators list
 			i.RemoveAuthenticators = append(i.RemoveAuthenticators, a)
+		}
+	}
+
+	// remove identity event
+	user, err := p.User.Get(userID)
+	if err != nil {
+		return err
+	}
+
+	for _, i := range i.RemoveIdentities {
+		identity := model.Identity{
+			Type:   string(i.Type),
+			Claims: i.Claims,
+		}
+		err = p.Hooks.DispatchEvent(
+			event.IdentityDeleteEvent{
+				User:     *user,
+				Identity: identity,
+			},
+			user,
+		)
+		if err != nil {
+			return err
 		}
 	}
 
