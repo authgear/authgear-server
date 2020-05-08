@@ -147,6 +147,21 @@ func (mr *MockIdentityProviderMockRecorder) GetByClaims(typ, claims interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByClaims", reflect.TypeOf((*MockIdentityProvider)(nil).GetByClaims), typ, claims)
 }
 
+// GetByUserAndClaims mocks base method
+func (m *MockIdentityProvider) GetByUserAndClaims(typ authn.IdentityType, userID string, claims map[string]interface{}) (*interaction.IdentityInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUserAndClaims", typ, userID, claims)
+	ret0, _ := ret[0].(*interaction.IdentityInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUserAndClaims indicates an expected call of GetByUserAndClaims
+func (mr *MockIdentityProviderMockRecorder) GetByUserAndClaims(typ, userID, claims interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserAndClaims", reflect.TypeOf((*MockIdentityProvider)(nil).GetByUserAndClaims), typ, userID, claims)
+}
+
 // ListByClaims mocks base method
 func (m *MockIdentityProvider) ListByClaims(claims map[string]string) ([]*interaction.IdentityInfo, error) {
 	m.ctrl.T.Helper()

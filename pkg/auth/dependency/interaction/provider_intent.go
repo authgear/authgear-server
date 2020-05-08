@@ -138,8 +138,8 @@ func (p *Provider) NewInteractionRemoveIdentity(intent *IntentRemoveIdentity, cl
 		ClientID: clientID,
 		UserID:   userID,
 	}
-	uid, iden, err := p.Identity.GetByClaims(intent.Identity.Type, intent.Identity.Claims)
-	if errors.Is(err, identity.ErrIdentityNotFound) || uid != userID {
+	iden, err := p.Identity.GetByUserAndClaims(intent.Identity.Type, userID, intent.Identity.Claims)
+	if errors.Is(err, identity.ErrIdentityNotFound) {
 		return nil, ErrIdentityNotFound
 	} else if err != nil {
 		return nil, err

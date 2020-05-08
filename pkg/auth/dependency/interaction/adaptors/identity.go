@@ -117,6 +117,32 @@ func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]
 	panic("interaction_adaptors: unknown identity type " + typ)
 }
 
+// GetByUserAndClaims return user's identity that matches the provide skygear claims.
+//
+// Given that user id is provided, the matching rule of this function is less strict than GetByClaims.
+// For example, login id identity needs match both key and value and oauth identity only needs to match provider id.
+// This function is currently in used by remove identity interaction.
+func (a *IdentityAdaptor) GetByUserAndClaims(typ authn.IdentityType, userID string, claims map[string]interface{}) (*interaction.IdentityInfo, error) {
+	switch typ {
+	case authn.IdentityTypeOAuth:
+		providerID := extractOAuthProviderClaims(claims)
+		o, err := a.OAuth.GetByUserProvider(userID, providerID)
+		if err != nil {
+			return nil, err
+		}
+		return oauthToIdentityInfo(o), nil
+	default:
+		uid, iden, err := a.GetByClaims(typ, claims)
+		if err != nil {
+			return nil, err
+		}
+		if uid != userID {
+			return nil, identity.ErrIdentityNotFound
+		}
+		return iden, nil
+	}
+}
+
 // ListByClaims return list of identities the matches the provided OIDC standard claims.
 func (a *IdentityAdaptor) ListByClaims(claims map[string]string) ([]*interaction.IdentityInfo, error) {
 	var all []*interaction.IdentityInfo
@@ -368,16 +394,23 @@ func extractLoginIDClaims(claims map[string]interface{}) loginid.LoginID {
 }
 
 func extractOAuthClaims(claims map[string]interface{}) (providerID oauth.ProviderID, subjectID string) {
-	provider, ok := claims[interaction.IdentityClaimOAuthProvider].(map[string]interface{})
-	if !ok {
-		panic(fmt.Sprintf("interaction_adaptors: expect map provider claim, got %T", claims[interaction.IdentityClaimOAuthProvider]))
-	}
-	subjectID, ok = claims[interaction.IdentityClaimOAuthSubjectID].(string)
+	providerID = extractOAuthProviderClaims(claims)
+
+	subjectID, ok := claims[interaction.IdentityClaimOAuthSubjectID].(string)
 	if !ok {
 		panic(fmt.Sprintf("interaction_adaptors: expect string subject ID claim, got %T", claims[interaction.IdentityClaimOAuthSubjectID]))
 	}
 
-	providerID = oauth.ProviderID{Keys: map[string]interface{}{}}
+	return
+}
+
+func extractOAuthProviderClaims(claims map[string]interface{}) oauth.ProviderID {
+	provider, ok := claims[interaction.IdentityClaimOAuthProvider].(map[string]interface{})
+	if !ok {
+		panic(fmt.Sprintf("interaction_adaptors: expect map provider claim, got %T", claims[interaction.IdentityClaimOAuthProvider]))
+	}
+
+	providerID := oauth.ProviderID{Keys: map[string]interface{}{}}
 	for k, v := range provider {
 		if k == "type" {
 			providerID.Type, ok = v.(string)
@@ -389,7 +422,7 @@ func extractOAuthClaims(claims map[string]interface{}) (providerID oauth.Provide
 		}
 	}
 
-	return
+	return providerID
 }
 
 func extractAnonymousClaims(claims map[string]interface{}) (keyID string, key string) {
