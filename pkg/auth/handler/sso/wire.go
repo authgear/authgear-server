@@ -8,13 +8,9 @@ import (
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -219,19 +215,13 @@ func newLinkAuthURLHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 func providerUnlinkHandler(
 	tx db.TxContext,
 	requireAuthz handler.RequireAuthz,
-	oap oauth.Provider,
-	ais authinfo.Store,
-	ups userprofile.Store,
-	hp hook.Provider,
 	spf *sso.OAuthProviderFactory,
+	f OAuthUnlinkInteractionFlow,
 ) http.Handler {
 	h := &UnlinkHandler{
-		TxContext:         tx,
-		OAuthAuthProvider: oap,
-		AuthInfoStore:     ais,
-		UserProfileStore:  ups,
-		HookProvider:      hp,
-		ProviderFactory:   spf,
+		TxContext:       tx,
+		ProviderFactory: spf,
+		Interactions:    f,
 	}
 	return requireAuthz(h, h)
 }
@@ -241,6 +231,7 @@ func newUnlinkHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 		pkg.DependencySet,
 		providerUnlinkHandler,
 		ProvideRedirectURIForAPIFunc,
+		wire.Bind(new(OAuthUnlinkInteractionFlow), new(*interactionflows.AuthAPIFlow)),
 	)
 	return nil
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 const (
@@ -173,6 +174,39 @@ func (f *AuthAPIFlow) ExchangeCode(interactionToken string, verifier string) (*A
 	default:
 		return nil, ErrUnsupportedConfiguration
 	}
+}
+
+func (f *AuthAPIFlow) UnlinkkWithOAuthProvider(
+	clientID string, userID string, oauthProviderInfo config.OAuthProviderConfiguration,
+) error {
+	providerID := oauth.NewProviderID(oauthProviderInfo)
+	i, err := f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
+		Identity: interaction.IdentitySpec{
+			Type: authn.IdentityTypeOAuth,
+			Claims: map[string]interface{}{
+				interaction.IdentityClaimOAuthProvider: providerID.ClaimsValue(),
+			},
+		},
+	}, clientID, userID)
+	if err != nil {
+		return err
+	}
+
+	s, err := f.Interactions.GetInteractionState(i)
+	if err != nil {
+		return err
+	}
+
+	if s.CurrentStep().Step != interaction.StepCommit {
+		panic("interaction_flow_webapp: unexpected step " + s.CurrentStep().Step)
+	}
+
+	_, err = f.Interactions.Commit(i)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func verifyPKCE(challenge string, verifier string) error {
