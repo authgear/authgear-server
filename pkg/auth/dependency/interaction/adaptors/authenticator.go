@@ -18,6 +18,7 @@ type PasswordAuthenticatorProvider interface {
 	List(userID string) ([]*password.Authenticator, error)
 	New(userID string, password string) (*password.Authenticator, error)
 	Create(*password.Authenticator) error
+	Delete(*password.Authenticator) error
 	Authenticate(a *password.Authenticator, password string) error
 }
 
@@ -26,6 +27,7 @@ type TOTPAuthenticatorProvider interface {
 	List(userID string) ([]*totp.Authenticator, error)
 	New(userID string, displayName string) *totp.Authenticator
 	Create(*totp.Authenticator) error
+	Delete(*totp.Authenticator) error
 	Authenticate(candidates []*totp.Authenticator, code string) *totp.Authenticator
 }
 
@@ -34,6 +36,7 @@ type OOBOTPAuthenticatorProvider interface {
 	List(userID string) ([]*oob.Authenticator, error)
 	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) *oob.Authenticator
 	Create(*oob.Authenticator) error
+	Delete(*oob.Authenticator) error
 	Authenticate(expectedCode string, code string) error
 }
 
@@ -290,6 +293,34 @@ func (a *AuthenticatorAdaptor) CreateAll(userID string, ais []*interaction.Authe
 		err := a.RecoveryCode.ReplaceAll(userID, recoveryCodes)
 		if err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *AuthenticatorAdaptor) DeleteAll(userID string, ais []*interaction.AuthenticatorInfo) error {
+	for _, ai := range ais {
+		switch ai.Type {
+		case authn.AuthenticatorTypePassword:
+			authenticator := passwordFromAuthenticatorInfo(userID, ai)
+			if err := a.Password.Delete(authenticator); err != nil {
+				return err
+			}
+
+		case authn.AuthenticatorTypeTOTP:
+			authenticator := totpFromAuthenticatorInfo(userID, ai)
+			if err := a.TOTP.Delete(authenticator); err != nil {
+				return err
+			}
+
+		case authn.AuthenticatorTypeOOB:
+			authenticator := oobotpFromAuthenticatorInfo(userID, ai)
+			if err := a.OOBOTP.Delete(authenticator); err != nil {
+				return err
+			}
+		default:
+			panic("interaction_adaptors: delete authenticator is not supported yet for type " + ai.Type)
 		}
 	}
 

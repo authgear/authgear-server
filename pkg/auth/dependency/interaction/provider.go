@@ -33,6 +33,7 @@ type IdentityProvider interface {
 	WithClaims(userID string, ii *IdentityInfo, claims map[string]interface{}) *IdentityInfo
 	CreateAll(userID string, is []*IdentityInfo) error
 	UpdateAll(userID string, is []*IdentityInfo) error
+	DeleteAll(userID string, is []*IdentityInfo) error
 	Validate(is []*IdentityInfo) error
 	// RelateIdentityToAuthenticator tells if authenticatorSpec is compatible with and related to identitySpec.
 	//
@@ -57,6 +58,7 @@ type AuthenticatorProvider interface {
 	ListByIdentity(userID string, ii *IdentityInfo) ([]*AuthenticatorInfo, error)
 	New(userID string, spec AuthenticatorSpec, secret string) ([]*AuthenticatorInfo, error)
 	CreateAll(userID string, ais []*AuthenticatorInfo) error
+	DeleteAll(userID string, ais []*AuthenticatorInfo) error
 	Authenticate(userID string, spec AuthenticatorSpec, state *map[string]string, secret string) (*AuthenticatorInfo, error)
 }
 

@@ -20,6 +20,7 @@ type LoginIDIdentityProvider interface {
 	ListByClaim(name string, value string) ([]*loginid.Identity, error)
 	New(userID string, loginID loginid.LoginID) *loginid.Identity
 	Create(i *loginid.Identity) error
+	Delete(i *loginid.Identity) error
 	Validate(loginIDs []loginid.LoginID) error
 	Normalize(loginID loginid.LoginID) (normalized *loginid.LoginID, typ string, err error)
 }
@@ -39,6 +40,7 @@ type OAuthIdentityProvider interface {
 	) *oauth.Identity
 	Create(i *oauth.Identity) error
 	Update(i *oauth.Identity) error
+	Delete(i *oauth.Identity) error
 }
 
 type AnonymousIdentityProvider interface {
@@ -255,6 +257,26 @@ func (a *IdentityAdaptor) UpdateAll(userID string, is []*interaction.IdentityInf
 			}
 		case authn.IdentityTypeAnonymous:
 			panic("interaction_adaptors: update no support for identity type " + i.Type)
+		default:
+			panic("interaction_adaptors: unknown identity type " + i.Type)
+		}
+	}
+	return nil
+}
+
+func (a *IdentityAdaptor) DeleteAll(userID string, is []*interaction.IdentityInfo) error {
+	for _, i := range is {
+		switch i.Type {
+		case authn.IdentityTypeLoginID:
+			identity := loginIDFromIdentityInfo(userID, i)
+			if err := a.LoginID.Delete(identity); err != nil {
+				return err
+			}
+		case authn.IdentityTypeOAuth:
+			identity := oauthFromIdentityInfo(userID, i)
+			if err := a.OAuth.Delete(identity); err != nil {
+				return err
+			}
 		default:
 			panic("interaction_adaptors: unknown identity type " + i.Type)
 		}

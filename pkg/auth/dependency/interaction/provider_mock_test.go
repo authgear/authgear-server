@@ -233,6 +233,20 @@ func (mr *MockIdentityProviderMockRecorder) UpdateAll(userID, is interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAll", reflect.TypeOf((*MockIdentityProvider)(nil).UpdateAll), userID, is)
 }
 
+// DeleteAll mocks base method
+func (m *MockIdentityProvider) DeleteAll(userID string, is []*interaction.IdentityInfo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAll", userID, is)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAll indicates an expected call of DeleteAll
+func (mr *MockIdentityProviderMockRecorder) DeleteAll(userID, is interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockIdentityProvider)(nil).DeleteAll), userID, is)
+}
+
 // Validate mocks base method
 func (m *MockIdentityProvider) Validate(is []*interaction.IdentityInfo) error {
 	m.ctrl.T.Helper()
@@ -356,6 +370,20 @@ func (m *MockAuthenticatorProvider) CreateAll(userID string, ais []*interaction.
 func (mr *MockAuthenticatorProviderMockRecorder) CreateAll(userID, ais interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAll", reflect.TypeOf((*MockAuthenticatorProvider)(nil).CreateAll), userID, ais)
+}
+
+// DeleteAll mocks base method
+func (m *MockAuthenticatorProvider) DeleteAll(userID string, ais []*interaction.AuthenticatorInfo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAll", userID, ais)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAll indicates an expected call of DeleteAll
+func (mr *MockAuthenticatorProviderMockRecorder) DeleteAll(userID, ais interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockAuthenticatorProvider)(nil).DeleteAll), userID, ais)
 }
 
 // Authenticate mocks base method
