@@ -237,3 +237,36 @@ func (f *AuthAPIFlow) AddLoginID(
 
 	return nil
 }
+
+func (f *AuthAPIFlow) RemoveLoginID(
+	loginIDKey string, loginID string, session auth.AuthSession,
+) error {
+	i, err := f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
+		Identity: interaction.IdentitySpec{
+			Type: authn.IdentityTypeLoginID,
+			Claims: map[string]interface{}{
+				interaction.IdentityClaimLoginIDKey:   loginIDKey,
+				interaction.IdentityClaimLoginIDValue: loginID,
+			},
+		},
+	}, session.GetClientID(), session.AuthnAttrs().UserID)
+	if err != nil {
+		return err
+	}
+
+	s, err := f.Interactions.GetInteractionState(i)
+	if err != nil {
+		return err
+	}
+
+	if s.CurrentStep().Step != interaction.StepCommit {
+		panic("interaction_flow_webapp: unexpected step " + s.CurrentStep().Step)
+	}
+
+	_, err = f.Interactions.Commit(i)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -25,6 +25,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
+func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, max int) config.LoginIDKeyConfiguration {
+	return config.LoginIDKeyConfiguration{
+		Key:     key,
+		Type:    t,
+		Maximum: &max,
+	}
+}
+
 type mockUpdateSessionManager struct {
 	Sessions []auth.AuthSession
 }
