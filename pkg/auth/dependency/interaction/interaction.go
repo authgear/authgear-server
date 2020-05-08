@@ -24,10 +24,12 @@ type Interaction struct {
 	PrimaryAuthenticator   *AuthenticatorRef `json:"primary_authenticator"`
 	SecondaryAuthenticator *AuthenticatorRef `json:"secondary_authenticator"`
 
-	State             map[string]string    `json:"state,omitempty"`
-	UpdateIdentities  []*IdentityInfo      `json:"update_identities,omitempty"`
-	NewIdentities     []*IdentityInfo      `json:"new_identities,omitempty"`
-	NewAuthenticators []*AuthenticatorInfo `json:"new_authenticators,omitempty"`
+	State                map[string]string    `json:"state,omitempty"`
+	UpdateIdentities     []*IdentityInfo      `json:"update_identities,omitempty"`
+	NewIdentities        []*IdentityInfo      `json:"new_identities,omitempty"`
+	NewAuthenticators    []*AuthenticatorInfo `json:"new_authenticators,omitempty"`
+	RemoveIdentities     []*IdentityInfo      `json:"remove_identities,omitempty"`
+	RemoveAuthenticators []*AuthenticatorInfo `json:"remove_authenticators,omitempty"`
 
 	// The following fields are for checking programming errors.
 	saved     bool

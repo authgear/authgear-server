@@ -20,4 +20,12 @@ var DuplicatedIdentity = skyerr.AlreadyExists.WithReason("DuplicatedIdentity")
 
 var ErrDuplicatedIdentity = DuplicatedIdentity.New("duplicate identity exists")
 
+var IdentityNotFound = skyerr.NotFound.WithReason("IdentityNotFound")
+
+var ErrIdentityNotFound = IdentityNotFound.New("identity not found")
+
 var ErrOOBOTPCooldown = skyerr.TooManyRequest.WithReason("OOBOTPCooldown").New("OOB OTP cooldown")
+
+var InvalidIdentityRequest = skyerr.Invalid.WithReason("InvalidIdentityRequest")
+
+var ErrCannotRemoveLastIdentity = InvalidIdentityRequest.NewWithCause("cannot remove last identity", skyerr.StringCause("IdentityRequired"))

@@ -17,6 +17,8 @@ func (p *Provider) GetInteractionState(i *Interaction) (*State, error) {
 		return p.getStateSignup(i, intent)
 	case *IntentAddIdentity:
 		return p.getStateAddIdentity(i, intent)
+	case *IntentRemoveIdentity:
+		return p.getStateRemoveIdentity(i, intent)
 	}
 	panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 }
@@ -137,6 +139,15 @@ func (p *Provider) getStateAddIdentity(i *Interaction, intent *IntentAddIdentity
 		}
 	}
 
+	s.Steps = append(s.Steps, StepState{Step: StepCommit})
+	return s, nil
+}
+
+func (p *Provider) getStateRemoveIdentity(i *Interaction, intent *IntentRemoveIdentity) (*State, error) {
+	s := &State{}
+	if len(i.RemoveIdentities) != 1 {
+		panic("interaction: unexpected number of identities to be removed")
+	}
 	s.Steps = append(s.Steps, StepState{Step: StepCommit})
 	return s, nil
 }

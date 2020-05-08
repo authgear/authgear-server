@@ -132,6 +132,33 @@ func (p *Provider) NewInteractionAddIdentity(intent *IntentAddIdentity, clientID
 	return i, nil
 }
 
+func (p *Provider) NewInteractionRemoveIdentity(intent *IntentRemoveIdentity, clientID string, userID string) (*Interaction, error) {
+	i := &Interaction{
+		Intent:   intent,
+		ClientID: clientID,
+		UserID:   userID,
+	}
+	uid, iden, err := p.Identity.GetByClaims(intent.Identity.Type, intent.Identity.Claims)
+	if errors.Is(err, identity.ErrIdentityNotFound) || uid != userID {
+		return nil, ErrIdentityNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	ois, err := p.Identity.ListByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	if len(ois) <= 1 {
+		return nil, ErrCannotRemoveLastIdentity
+	}
+
+	ir := iden.ToRef()
+	i.Identity = &ir
+	i.RemoveIdentities = append(i.RemoveIdentities, iden)
+	return i, nil
+}
+
 func (p *Provider) NewInteractionAddAuthenticator(intent *IntentAddAuthenticator, clientID string, session auth.AuthSession) (*Interaction, error) {
 	panic("TODO(interaction): implement it")
 }
