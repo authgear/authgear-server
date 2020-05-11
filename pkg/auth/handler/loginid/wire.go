@@ -59,3 +59,26 @@ func newRemoveLoginIDHandler(r *http.Request, m pkg.DependencyMap) http.Handler 
 	)
 	return nil
 }
+
+func provideUpdateLoginIDHandler(
+	v *validation.Validator,
+	requireAuthz handler.RequireAuthz,
+	tx db.TxContext,
+	f UpdateLoginIDInteractionFlow,
+) http.Handler {
+	h := &UpdateLoginIDHandler{
+		Validator:    v,
+		TxContext:    tx,
+		Interactions: f,
+	}
+	return requireAuthz(h, h)
+}
+
+func newUpdateLoginIDHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		provideUpdateLoginIDHandler,
+		wire.Bind(new(UpdateLoginIDInteractionFlow), new(*interactionflows.AuthAPIFlow)),
+	)
+	return nil
+}

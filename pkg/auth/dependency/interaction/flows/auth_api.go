@@ -3,6 +3,7 @@ package flows
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
@@ -269,4 +270,51 @@ func (f *AuthAPIFlow) RemoveLoginID(
 	}
 
 	return nil
+}
+
+func (f *AuthAPIFlow) UpdateLoginID(
+	oldLoginID loginid.LoginID, newLoginID loginid.LoginID, session auth.AuthSession,
+) (*AuthResult, error) {
+	i, err := f.Interactions.NewInteractionUpdateIdentity(&interaction.IntentUpdateIdentity{
+		OldIdentity: interaction.IdentitySpec{
+			Type: authn.IdentityTypeLoginID,
+			Claims: map[string]interface{}{
+				interaction.IdentityClaimLoginIDKey:   oldLoginID.Key,
+				interaction.IdentityClaimLoginIDValue: oldLoginID.Value,
+			},
+		},
+		NewIdentity: interaction.IdentitySpec{
+			Type: authn.IdentityTypeLoginID,
+			Claims: map[string]interface{}{
+				interaction.IdentityClaimLoginIDKey:   newLoginID.Key,
+				interaction.IdentityClaimLoginIDValue: newLoginID.Value,
+			},
+		},
+	}, session.GetClientID(), session.AuthnAttrs().UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := f.Interactions.GetInteractionState(i)
+	if err != nil {
+		return nil, err
+	}
+
+	// in auth api, only password authenticator is supported for login id
+	// so user should have password authenticator for the original identity
+	// already and should not need to setup new primary authenticator
+	// current step must be commit
+	if s.CurrentStep().Step != interaction.StepCommit {
+		return nil, ErrUnsupportedConfiguration
+	}
+
+	attrs, err := f.Interactions.Commit(i)
+	if err != nil {
+		return nil, err
+	}
+	result, err := f.UserController.MakeAuthResult(attrs)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
