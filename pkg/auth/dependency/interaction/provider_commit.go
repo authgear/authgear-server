@@ -218,7 +218,9 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 		panic("interaction: unexpected number of identities to be updated")
 	}
 
+	var originalIdentityInfo *IdentityInfo
 	updateIdentityInfo := i.UpdateIdentities[0]
+
 	// check if there is any authenticators need to be deleted after identity update
 	keepAuthenticators := map[string]*AuthenticatorInfo{}
 	removeAuthenticators := map[string]*AuthenticatorInfo{}
@@ -238,11 +240,16 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 			if toRemove {
 				// authenticators get by the original indentity info
 				removeAuthenticators[a.ID] = a
+				originalIdentityInfo = oi
 			} else {
 				// authenticators of the existing identities
 				keepAuthenticators[a.ID] = a
 			}
 		}
+	}
+
+	if originalIdentityInfo == nil {
+		panic("interaction: unexpected original identity info not found")
 	}
 
 	// authenticators get by the updated indentity info
@@ -261,6 +268,40 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 		}
 	}
 
+	// update identity event
+	user, err := p.User.Get(userID)
+	if err != nil {
+		return err
+	}
+
+	updatedIdentity := model.Identity{
+		Type:   string(updateIdentityInfo.Type),
+		Claims: updateIdentityInfo.Claims,
+	}
+	err = p.Hooks.DispatchEvent(
+		event.IdentityCreateEvent{
+			User:     *user,
+			Identity: updatedIdentity,
+		},
+		user,
+	)
+	if err != nil {
+		return err
+	}
+	originalIdentity := model.Identity{
+		Type:   string(updateIdentityInfo.Type),
+		Claims: originalIdentityInfo.Claims,
+	}
+	err = p.Hooks.DispatchEvent(
+		event.IdentityDeleteEvent{
+			User:     *user,
+			Identity: originalIdentity,
+		},
+		user,
+	)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
