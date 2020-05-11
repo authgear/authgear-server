@@ -1,6 +1,7 @@
 package loginid
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -108,10 +109,10 @@ func (h AddLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) error 
 
 			err := h.Interactions.AddLoginID(loginID.Key, loginID.Value, userSession)
 
-			// TODO(interaction): hook identity create event
-
 			if err != nil {
-				err = correctErrorCausePointer(err, idx)
+				err = correctErrorCausePointer(err, func(relativePath string) string {
+					return fmt.Sprintf("/login_ids/%d/%s", idx, relativePath)
+				})
 				return err
 			}
 		}

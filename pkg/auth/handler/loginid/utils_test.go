@@ -1,6 +1,7 @@
 package loginid
 
 import (
+	"fmt"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -17,7 +18,9 @@ func TestCorrectErrorCausePointer(t *testing.T) {
 				Pointer: "/0/value",
 				Message: "invalid login ID format",
 				Details: map[string]interface{}{"format": "email"},
-			}}), 1)
+			}}), func(relativePath string) string {
+				return fmt.Sprintf("/login_ids/%d/%s", 1, relativePath)
+			})
 			causes := validation.ErrorCauses(err)
 
 			So(len(causes), ShouldEqual, 1)

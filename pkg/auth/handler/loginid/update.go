@@ -1,6 +1,7 @@
 package loginid
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -119,6 +120,9 @@ func (h UpdateLoginIDHandler) Handle(w http.ResponseWriter, r *http.Request) (*i
 
 		result, err = h.Interactions.UpdateLoginID(payload.OldLoginID, payload.NewLoginID, session)
 		if err != nil {
+			err = correctErrorCausePointer(err, func(relativePath string) string {
+				return fmt.Sprintf("/new_login_id/%s", relativePath)
+			})
 			return err
 		}
 
