@@ -12,6 +12,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
+	coreurl "github.com/skygeario/skygear-server/pkg/core/url"
+	"github.com/skygeario/skygear-server/pkg/core/utils"
 )
 
 const CodeGrantValidDuration = 5 * gotime.Minute
@@ -88,6 +90,25 @@ func (h *AuthorizationHandler) doHandle(
 			Request:         r,
 		}, nil
 	}
+	if utils.StringSliceContains(r.Prompt(), "login") {
+		// Request login prompt => force re-authentication and retry
+		r2 := protocol.AuthorizationRequest{}
+		for k, v := range r {
+			r2[k] = v
+		}
+		prompt := utils.StringSliceExcept(r.Prompt(), []string{"login"})
+		r2.SetPrompt(prompt)
+
+		authnURI := h.AuthenticateEndpoint.AuthenticateEndpointURI()
+		authnURI = coreurl.WithQueryParamsAdded(authnURI, map[string]string{
+			"prompt": "login",
+		})
+		return authorizationResultRequireAuthn{
+			AuthenticateURI: authnURI,
+			AuthorizeURI:    h.AuthorizeEndpoint.AuthorizeEndpointURI(),
+			Request:         r2,
+		}, nil
+	}
 
 	authz, err := checkAuthorization(
 		h.Authorizations,
@@ -149,6 +170,10 @@ func (h *AuthorizationHandler) validateRequest(
 
 	if len(r.Scope()) == 0 {
 		return protocol.NewError("invalid_request", "scope is required")
+	}
+
+	if utils.StringSliceContains(r.Prompt(), "none") && len(r.Prompt()) != 1 {
+		return protocol.NewError("invalid_request", "prompt cannot have other values when none is set")
 	}
 
 	switch r.ResponseType() {
