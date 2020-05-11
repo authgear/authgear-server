@@ -35,6 +35,8 @@ func (p *Provider) PerformAction(i *Interaction, step Step, action Action) error
 		return p.performActionSignup(i, intent, stepState, state, action)
 	case *IntentAddIdentity:
 		return p.performActionAddIdentity(i, intent, stepState, state, action)
+	case *IntentUpdateIdentity:
+		return p.performActionUpdateIdentity(i, intent, stepState, state, action)
 	}
 	panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 }
@@ -93,6 +95,15 @@ func (p *Provider) performActionSignup(i *Interaction, intent *IntentSignup, ste
 func (p *Provider) performActionAddIdentity(i *Interaction, intent *IntentAddIdentity, step *StepState, s *State, action Action) error {
 	switch step.Step {
 	case StepSetupPrimaryAuthenticator:
+		return p.setupPrimaryAuthenticator(i, step, s, action)
+	}
+	panic("interaction_add_identity: unhandled step " + step.Step)
+}
+
+func (p *Provider) performActionUpdateIdentity(i *Interaction, intent *IntentUpdateIdentity, step *StepState, s *State, action Action) error {
+	switch step.Step {
+	case StepSetupPrimaryAuthenticator:
+		// setup primary authenticator for updated identity
 		return p.setupPrimaryAuthenticator(i, step, s, action)
 	}
 	panic("interaction_add_identity: unhandled step " + step.Step)

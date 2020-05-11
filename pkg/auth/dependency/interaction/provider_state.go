@@ -19,6 +19,8 @@ func (p *Provider) GetInteractionState(i *Interaction) (*State, error) {
 		return p.getStateAddIdentity(i, intent)
 	case *IntentRemoveIdentity:
 		return p.getStateRemoveIdentity(i, intent)
+	case *IntentUpdateIdentity:
+		return p.getStateUpdateIdentity(i, intent)
 	}
 	panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 }
@@ -111,27 +113,17 @@ func (p *Provider) getStateAddIdentity(i *Interaction, intent *IntentAddIdentity
 	if len(i.NewIdentities) != 1 {
 		panic("interaction: unexpected number of new identities")
 	}
-	availableAuthenticators := p.getAvailablePrimaryAuthenticators(intent.Identity)
-	identityAuthenticators, err := p.Authenticator.ListByIdentity(i.UserID, i.NewIdentities[0])
+
+	// check if new authenticator is needed for new identity
+	needSetupPrimaryAuthenticators, err := p.getNeedSetupPrimaryAuthenticatorsWithNewIdentity(i.UserID, intent.Identity, i.NewIdentities[0])
 	if err != nil {
 		return nil, err
 	}
-
-	found := false
-	for _, as := range availableAuthenticators {
-		for _, ia := range identityAuthenticators {
-			if as.Type == ia.Type {
-				found = true
-			}
-		}
-	}
-
-	needPrimaryAuthn := len(availableAuthenticators) > 0 && !found
-	if needPrimaryAuthn {
+	if len(needSetupPrimaryAuthenticators) > 0 {
 		s.Steps = []StepState{
 			{
 				Step:                    StepSetupPrimaryAuthenticator,
-				AvailableAuthenticators: availableAuthenticators,
+				AvailableAuthenticators: needSetupPrimaryAuthenticators,
 			},
 		}
 		if i.PrimaryAuthenticator == nil {
@@ -148,6 +140,33 @@ func (p *Provider) getStateRemoveIdentity(i *Interaction, intent *IntentRemoveId
 	if len(i.RemoveIdentities) != 1 {
 		panic("interaction: unexpected number of identities to be removed")
 	}
+	s.Steps = append(s.Steps, StepState{Step: StepCommit})
+	return s, nil
+}
+
+func (p *Provider) getStateUpdateIdentity(i *Interaction, intent *IntentUpdateIdentity) (*State, error) {
+	s := &State{}
+	if len(i.UpdateIdentities) != 1 {
+		panic("interaction: unexpected number of identities to be updated")
+	}
+
+	// check if new authenticator is needed for updated identity
+	needSetupPrimaryAuthenticators, err := p.getNeedSetupPrimaryAuthenticatorsWithNewIdentity(i.UserID, intent.NewIdentity, i.UpdateIdentities[0])
+	if err != nil {
+		return nil, err
+	}
+	if len(needSetupPrimaryAuthenticators) > 0 {
+		s.Steps = []StepState{
+			{
+				Step:                    StepSetupPrimaryAuthenticator,
+				AvailableAuthenticators: needSetupPrimaryAuthenticators,
+			},
+		}
+		if i.PrimaryAuthenticator == nil {
+			return s, nil
+		}
+	}
+
 	s.Steps = append(s.Steps, StepState{Step: StepCommit})
 	return s, nil
 }
@@ -227,4 +246,27 @@ func (p *Provider) listSecondaryAuthenticators(userID string) ([]AuthenticatorSp
 		}
 	}
 	return as, nil
+}
+
+func (p *Provider) getNeedSetupPrimaryAuthenticatorsWithNewIdentity(userID string, is IdentitySpec, ii *IdentityInfo) ([]AuthenticatorSpec, error) {
+	availableAuthenticators := p.getAvailablePrimaryAuthenticators(is)
+	identityAuthenticators, err := p.Authenticator.ListByIdentity(userID, ii)
+	if err != nil {
+		return nil, err
+	}
+
+	found := false
+	for _, as := range availableAuthenticators {
+		for _, ia := range identityAuthenticators {
+			if as.Type == ia.Type {
+				found = true
+			}
+		}
+	}
+
+	needPrimaryAuthn := len(availableAuthenticators) > 0 && !found
+	if needPrimaryAuthn {
+		return availableAuthenticators, nil
+	}
+	return []AuthenticatorSpec{}, nil
 }

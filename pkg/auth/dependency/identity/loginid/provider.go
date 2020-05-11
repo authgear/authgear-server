@@ -143,8 +143,43 @@ func (p *Provider) New(userID string, loginID loginid.LoginID) *Identity {
 	}
 }
 
+func (p *Provider) WithLoginID(iden *Identity, loginID loginid.LoginID) *Identity {
+	config := p.lookupLoginIDConfig(loginID)
+	if config == nil {
+		panic("loginid: unknown login ID key " + loginID.Key)
+	}
+
+	normalizer := p.LoginIDNormalizerFactory.NormalizerWithLoginIDKey(loginID.Key)
+	normalizedloginIDValue, err := normalizer.Normalize(loginID.Value)
+	if err != nil {
+		panic(errors.Newf("loginid: failed to normalize login ID: %w", err))
+	}
+	uniqueKey, err := normalizer.ComputeUniqueKey(normalizedloginIDValue)
+	if err != nil {
+		panic(errors.Newf("loginid: failed to compute login ID unique key: %w", err))
+	}
+
+	claims := map[string]string{}
+	if standardKey, ok := p.LoginIDChecker.StandardKey(loginID.Key); ok {
+		claims[string(standardKey)] = normalizedloginIDValue
+	}
+
+	newIden := *iden
+	newIden.LoginIDKey = loginID.Key
+	newIden.OriginalLoginID = loginID.Value
+	newIden.LoginID = normalizedloginIDValue
+	newIden.UniqueKey = uniqueKey
+	newIden.Claims = claims
+
+	return &newIden
+}
+
 func (p *Provider) Create(i *Identity) error {
 	return p.Store.Create(i)
+}
+
+func (p *Provider) Update(i *Identity) error {
+	return p.Store.Update(i)
 }
 
 func (p *Provider) Delete(i *Identity) error {

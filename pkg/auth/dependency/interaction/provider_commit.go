@@ -24,6 +24,8 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 		err = p.onCommitAddIdentity(i, intent, i.UserID)
 	case *IntentRemoveIdentity:
 		err = p.onCommitRemoveIdentity(i, intent, i.UserID)
+	case *IntentUpdateIdentity:
+		err = p.onCommitUpdateIdentity(i, intent, i.UserID)
 	default:
 		panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 	}
@@ -200,6 +202,62 @@ func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveId
 		)
 		if err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateIdentity, userID string) error {
+	err := p.checkIdentitiesDuplicated(i.UpdateIdentities)
+	if err != nil {
+		return err
+	}
+
+	if len(i.UpdateIdentities) != 1 {
+		panic("interaction: unexpected number of identities to be updated")
+	}
+
+	updateIdentityInfo := i.UpdateIdentities[0]
+	// check if there is any authenticators need to be deleted after identity update
+	keepAuthenticators := map[string]*AuthenticatorInfo{}
+	removeAuthenticators := map[string]*AuthenticatorInfo{}
+
+	ois, err := p.Identity.ListByUser(userID)
+	if err != nil {
+		return err
+	}
+
+	for _, oi := range ois {
+		authenticators, err := p.Authenticator.ListByIdentity(userID, oi)
+		if err != nil {
+			return err
+		}
+		toRemove := updateIdentityInfo.ID == oi.ID
+		for _, a := range authenticators {
+			if toRemove {
+				// authenticators get by the original indentity info
+				removeAuthenticators[a.ID] = a
+			} else {
+				// authenticators of the existing identities
+				keepAuthenticators[a.ID] = a
+			}
+		}
+	}
+
+	// authenticators get by the updated indentity info
+	authenticators, err := p.Authenticator.ListByIdentity(userID, updateIdentityInfo)
+	if err != nil {
+		return err
+	}
+	for _, a := range authenticators {
+		keepAuthenticators[a.ID] = a
+	}
+
+	for _, a := range removeAuthenticators {
+		if _, ok := keepAuthenticators[a.ID]; !ok {
+			// not found in the keep authenticators list
+			i.RemoveAuthenticators = append(i.RemoveAuthenticators, a)
 		}
 	}
 

@@ -19,7 +19,9 @@ type LoginIDIdentityProvider interface {
 	GetByLoginID(loginID loginid.LoginID) ([]*loginid.Identity, error)
 	ListByClaim(name string, value string) ([]*loginid.Identity, error)
 	New(userID string, loginID loginid.LoginID) *loginid.Identity
+	WithLoginID(iden *loginid.Identity, loginID loginid.LoginID) *loginid.Identity
 	Create(i *loginid.Identity) error
+	Update(i *loginid.Identity) error
 	Delete(i *loginid.Identity) error
 	Validate(loginIDs []loginid.LoginID) error
 	Normalize(loginID loginid.LoginID) (normalized *loginid.LoginID, typ string, err error)
@@ -227,7 +229,11 @@ func (a *IdentityAdaptor) New(userID string, typ authn.IdentityType, claims map[
 func (a *IdentityAdaptor) WithClaims(userID string, ii *interaction.IdentityInfo, claims map[string]interface{}) *interaction.IdentityInfo {
 	switch ii.Type {
 	case authn.IdentityTypeLoginID:
-		panic("interaction_adaptors: update no support for identity type " + ii.Type)
+		oldIden := loginIDFromIdentityInfo(userID, ii)
+		newLoginID := extractLoginIDClaims(claims)
+		newIden := a.LoginID.WithLoginID(oldIden, newLoginID)
+		return loginIDToIdentityInfo(newIden)
+
 	case authn.IdentityTypeOAuth:
 		var profile map[string]interface{}
 		var ok bool
@@ -275,7 +281,10 @@ func (a *IdentityAdaptor) UpdateAll(userID string, is []*interaction.IdentityInf
 	for _, i := range is {
 		switch i.Type {
 		case authn.IdentityTypeLoginID:
-			panic("interaction_adaptors: update no support for identity type " + i.Type)
+			identity := loginIDFromIdentityInfo(userID, i)
+			if err := a.LoginID.Update(identity); err != nil {
+				return err
+			}
 		case authn.IdentityTypeOAuth:
 			identity := oauthFromIdentityInfo(userID, i)
 			if err := a.OAuth.Update(identity); err != nil {

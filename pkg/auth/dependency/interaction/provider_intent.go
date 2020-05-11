@@ -132,6 +132,50 @@ func (p *Provider) NewInteractionAddIdentity(intent *IntentAddIdentity, clientID
 	return i, nil
 }
 
+func (p *Provider) NewInteractionUpdateIdentity(intent *IntentUpdateIdentity, clientID string, userID string) (*Interaction, error) {
+	i := &Interaction{
+		Intent:   intent,
+		ClientID: clientID,
+		UserID:   userID,
+	}
+
+	if intent.OldIdentity.Type != intent.NewIdentity.Type {
+		panic("interaction: update identity type is not expected")
+	}
+
+	uid, oldIden, err := p.Identity.GetByClaims(intent.OldIdentity.Type, intent.OldIdentity.Claims)
+	if errors.Is(err, identity.ErrIdentityNotFound) || uid != userID {
+		return nil, ErrIdentityNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	updateIden := p.Identity.WithClaims(userID, oldIden, intent.NewIdentity.Claims)
+	ir := oldIden.ToRef()
+	i.Identity = &ir
+	i.UpdateIdentities = append(i.UpdateIdentities, updateIden)
+
+	ois, err := p.Identity.ListByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	checkIdentities := []*IdentityInfo{}
+	for _, oi := range ois {
+		if oi.Type == updateIden.Type {
+			if oi.ID == updateIden.ID {
+				checkIdentities = append(checkIdentities, updateIden)
+			} else {
+				checkIdentities = append(checkIdentities, oi)
+			}
+		}
+	}
+
+	if err := p.Identity.Validate(checkIdentities); err != nil {
+		return nil, err
+	}
+	return i, nil
+}
+
 func (p *Provider) NewInteractionRemoveIdentity(intent *IntentRemoveIdentity, clientID string, userID string) (*Interaction, error) {
 	i := &Interaction{
 		Intent:   intent,
