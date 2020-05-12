@@ -1,4 +1,4 @@
-package adaptors
+package provider
 
 import (
 	"errors"
@@ -58,7 +58,7 @@ type RecoveryCodeAuthenticatorProvider interface {
 	Authenticate(candidates []*recoverycode.Authenticator, code string) *recoverycode.Authenticator
 }
 
-type AuthenticatorAdaptor struct {
+type Provider struct {
 	Password     PasswordAuthenticatorProvider
 	TOTP         TOTPAuthenticatorProvider
 	OOBOTP       OOBOTPAuthenticatorProvider
@@ -66,7 +66,7 @@ type AuthenticatorAdaptor struct {
 	RecoveryCode RecoveryCodeAuthenticatorProvider
 }
 
-func (a *AuthenticatorAdaptor) Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error) {
+func (a *Provider) Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error) {
 	switch typ {
 	case authn.AuthenticatorTypePassword:
 		p, err := a.Password.Get(userID, id)
@@ -107,7 +107,7 @@ func (a *AuthenticatorAdaptor) Get(userID string, typ authn.AuthenticatorType, i
 	panic("interaction_adaptors: unknown authenticator type " + typ)
 }
 
-func (a *AuthenticatorAdaptor) List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error) {
+func (a *Provider) List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error) {
 	var ais []*authenticator.Info
 	switch typ {
 	case authn.AuthenticatorTypePassword:
@@ -161,7 +161,7 @@ func (a *AuthenticatorAdaptor) List(userID string, typ authn.AuthenticatorType) 
 	return ais, nil
 }
 
-func (a *AuthenticatorAdaptor) ListByIdentity(userID string, ii *identity.Info) (ais []*authenticator.Info, err error) {
+func (a *Provider) ListByIdentity(userID string, ii *identity.Info) (ais []*authenticator.Info, err error) {
 	// This function takes IdentityInfo instead of IdentitySpec because
 	// The login ID value in IdentityInfo is normalized.
 	switch ii.Type {
@@ -210,7 +210,7 @@ func (a *AuthenticatorAdaptor) ListByIdentity(userID string, ii *identity.Info) 
 	return
 }
 
-func (a *AuthenticatorAdaptor) New(userID string, spec authenticator.Spec, secret string) ([]*authenticator.Info, error) {
+func (a *Provider) New(userID string, spec authenticator.Spec, secret string) ([]*authenticator.Info, error) {
 	switch spec.Type {
 	case authn.AuthenticatorTypePassword:
 		p, err := a.Password.New(userID, secret)
@@ -253,7 +253,7 @@ func (a *AuthenticatorAdaptor) New(userID string, spec authenticator.Spec, secre
 	panic("interaction_adaptors: unknown authenticator type " + spec.Type)
 }
 
-func (a *AuthenticatorAdaptor) CreateAll(userID string, ais []*authenticator.Info) error {
+func (a *Provider) CreateAll(userID string, ais []*authenticator.Info) error {
 	var recoveryCodes []*recoverycode.Authenticator
 	for _, ai := range ais {
 		switch ai.Type {
@@ -300,7 +300,7 @@ func (a *AuthenticatorAdaptor) CreateAll(userID string, ais []*authenticator.Inf
 	return nil
 }
 
-func (a *AuthenticatorAdaptor) DeleteAll(userID string, ais []*authenticator.Info) error {
+func (a *Provider) DeleteAll(userID string, ais []*authenticator.Info) error {
 	for _, ai := range ais {
 		switch ai.Type {
 		case authn.AuthenticatorTypePassword:
@@ -328,7 +328,7 @@ func (a *AuthenticatorAdaptor) DeleteAll(userID string, ais []*authenticator.Inf
 	return nil
 }
 
-func (a *AuthenticatorAdaptor) Authenticate(userID string, spec authenticator.Spec, state *map[string]string, secret string) (*authenticator.Info, error) {
+func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state *map[string]string, secret string) (*authenticator.Info, error) {
 	switch spec.Type {
 	case authn.AuthenticatorTypePassword:
 		ps, err := a.Password.List(userID)

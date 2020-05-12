@@ -1,4 +1,4 @@
-package adaptors
+package provider
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"

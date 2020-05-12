@@ -13,6 +13,7 @@ import (
 	authenticatorbearertoken "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/bearertoken"
 	authenticatoroob "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	authenticatorpassword "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
+	authenticatorprovider "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/provider"
 	authenticatorrecoverycode "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
 	authenticatortotp "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
@@ -24,7 +25,6 @@ import (
 	identityoauth "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	identityprovider "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/provider"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	interactionadaptors "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/adaptors"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	interactionredis "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
@@ -172,22 +172,22 @@ var interactionDependencySet = wire.NewSet(
 	authenticatoroob.DependencySet,
 	authenticatorbearertoken.DependencySet,
 	authenticatorrecoverycode.DependencySet,
+	authenticatorprovider.DependencySet,
 	interaction.DependencySet,
-	interactionadaptors.DependencySet,
 	interactionredis.DependencySet,
 	interactionflows.DependencySet,
 
 	wire.Bind(new(interaction.OOBProvider), new(*authenticatoroob.Provider)),
 	wire.Bind(new(interaction.IdentityProvider), new(*identityprovider.Provider)),
-	wire.Bind(new(interaction.AuthenticatorProvider), new(*interactionadaptors.AuthenticatorAdaptor)),
+	wire.Bind(new(interaction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
 	wire.Bind(new(identityprovider.LoginIDIdentityProvider), new(*identityloginid.Provider)),
 	wire.Bind(new(identityprovider.OAuthIdentityProvider), new(*identityoauth.Provider)),
 	wire.Bind(new(identityprovider.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
-	wire.Bind(new(interactionadaptors.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
-	wire.Bind(new(interactionadaptors.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
-	wire.Bind(new(interactionadaptors.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
-	wire.Bind(new(interactionadaptors.BearerTokenAuthenticatorProvider), new(*authenticatorbearertoken.Provider)),
-	wire.Bind(new(interactionadaptors.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
+	wire.Bind(new(authenticatorprovider.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
+	wire.Bind(new(authenticatorprovider.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
+	wire.Bind(new(authenticatorprovider.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
+	wire.Bind(new(authenticatorprovider.BearerTokenAuthenticatorProvider), new(*authenticatorbearertoken.Provider)),
+	wire.Bind(new(authenticatorprovider.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
 
 	wire.Bind(new(interactionflows.InteractionProvider), new(*interaction.Provider)),
 	wire.Bind(new(interactionflows.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
