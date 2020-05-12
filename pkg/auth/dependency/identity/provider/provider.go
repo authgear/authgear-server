@@ -1,4 +1,4 @@
-package adaptors
+package provider
 
 import (
 	"fmt"
@@ -53,13 +53,13 @@ type AnonymousIdentityProvider interface {
 	Create(i *anonymous.Identity) error
 }
 
-type IdentityAdaptor struct {
+type Provider struct {
 	LoginID   LoginIDIdentityProvider
 	OAuth     OAuthIdentityProvider
 	Anonymous AnonymousIdentityProvider
 }
 
-func (a *IdentityAdaptor) Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
+func (a *Provider) Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
 	switch typ {
 	case authn.IdentityTypeLoginID:
 		l, err := a.LoginID.Get(userID, id)
@@ -87,7 +87,7 @@ func (a *IdentityAdaptor) Get(userID string, typ authn.IdentityType, id string) 
 }
 
 // GetByClaims return user ID and information about the identity the matches the provided skygear claims.
-func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error) {
+func (a *Provider) GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error) {
 	switch typ {
 	case authn.IdentityTypeLoginID:
 		loginID := extractLoginIDClaims(claims)
@@ -124,7 +124,7 @@ func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]
 // Given that user id is provided, the matching rule of this function is less strict than GetByClaims.
 // For example, login id identity needs match both key and value and oauth identity only needs to match provider id.
 // This function is currently in used by remove identity interaction.
-func (a *IdentityAdaptor) GetByUserAndClaims(typ authn.IdentityType, userID string, claims map[string]interface{}) (*identity.Info, error) {
+func (a *Provider) GetByUserAndClaims(typ authn.IdentityType, userID string, claims map[string]interface{}) (*identity.Info, error) {
 	switch typ {
 	case authn.IdentityTypeOAuth:
 		providerID := extractOAuthProviderClaims(claims)
@@ -146,7 +146,7 @@ func (a *IdentityAdaptor) GetByUserAndClaims(typ authn.IdentityType, userID stri
 }
 
 // ListByClaims return list of identities the matches the provided OIDC standard claims.
-func (a *IdentityAdaptor) ListByClaims(claims map[string]string) ([]*identity.Info, error) {
+func (a *Provider) ListByClaims(claims map[string]string) ([]*identity.Info, error) {
 	var all []*identity.Info
 
 	for name, value := range claims {
@@ -172,7 +172,7 @@ func (a *IdentityAdaptor) ListByClaims(claims map[string]string) ([]*identity.In
 	return all, nil
 }
 
-func (a *IdentityAdaptor) ListByUser(userID string) ([]*identity.Info, error) {
+func (a *Provider) ListByUser(userID string) ([]*identity.Info, error) {
 	iis := []*identity.Info{}
 
 	// login id
@@ -196,7 +196,7 @@ func (a *IdentityAdaptor) ListByUser(userID string) ([]*identity.Info, error) {
 	return iis, nil
 }
 
-func (a *IdentityAdaptor) New(userID string, typ authn.IdentityType, claims map[string]interface{}) *identity.Info {
+func (a *Provider) New(userID string, typ authn.IdentityType, claims map[string]interface{}) *identity.Info {
 	switch typ {
 	case authn.IdentityTypeLoginID:
 		loginID := extractLoginIDClaims(claims)
@@ -226,7 +226,7 @@ func (a *IdentityAdaptor) New(userID string, typ authn.IdentityType, claims map[
 	panic("interaction_adaptors: unknown identity type " + typ)
 }
 
-func (a *IdentityAdaptor) WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) *identity.Info {
+func (a *Provider) WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) *identity.Info {
 	switch ii.Type {
 	case authn.IdentityTypeLoginID:
 		oldIden := loginIDFromIdentityInfo(userID, ii)
@@ -249,7 +249,7 @@ func (a *IdentityAdaptor) WithClaims(userID string, ii *identity.Info, claims ma
 	panic("interaction_adaptors: unknown identity type " + ii.Type)
 }
 
-func (a *IdentityAdaptor) CreateAll(userID string, is []*identity.Info) error {
+func (a *Provider) CreateAll(userID string, is []*identity.Info) error {
 	for _, i := range is {
 		switch i.Type {
 		case authn.IdentityTypeLoginID:
@@ -277,7 +277,7 @@ func (a *IdentityAdaptor) CreateAll(userID string, is []*identity.Info) error {
 	return nil
 }
 
-func (a *IdentityAdaptor) UpdateAll(userID string, is []*identity.Info) error {
+func (a *Provider) UpdateAll(userID string, is []*identity.Info) error {
 	for _, i := range is {
 		switch i.Type {
 		case authn.IdentityTypeLoginID:
@@ -299,7 +299,7 @@ func (a *IdentityAdaptor) UpdateAll(userID string, is []*identity.Info) error {
 	return nil
 }
 
-func (a *IdentityAdaptor) DeleteAll(userID string, is []*identity.Info) error {
+func (a *Provider) DeleteAll(userID string, is []*identity.Info) error {
 	for _, i := range is {
 		switch i.Type {
 		case authn.IdentityTypeLoginID:
@@ -319,7 +319,7 @@ func (a *IdentityAdaptor) DeleteAll(userID string, is []*identity.Info) error {
 	return nil
 }
 
-func (a *IdentityAdaptor) Validate(is []*identity.Info) error {
+func (a *Provider) Validate(is []*identity.Info) error {
 	var loginIDs []loginid.LoginID
 	var oauthProviderIDs []oauth.ProviderID
 	for _, i := range is {
@@ -353,7 +353,7 @@ func (a *IdentityAdaptor) Validate(is []*identity.Info) error {
 	return nil
 }
 
-func (a *IdentityAdaptor) RelateIdentityToAuthenticator(is identity.Spec, as *interaction.AuthenticatorSpec) *interaction.AuthenticatorSpec {
+func (a *Provider) RelateIdentityToAuthenticator(is identity.Spec, as *interaction.AuthenticatorSpec) *interaction.AuthenticatorSpec {
 	switch is.Type {
 	case authn.IdentityTypeLoginID:
 		// Early return for other authenticators.
