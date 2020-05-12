@@ -261,6 +261,7 @@ func main() {
 	webappAuthenticatedRouter := webappRouter.NewRoute().Subrouter()
 	webappAuthenticatedRouter.Use(webapp.RequireAuthenticatedMiddleware{}.Handle)
 	webapphandler.AttachSettingsHandler(webappAuthenticatedRouter, authDependency)
+	webapphandler.AttachSettingsIdentityHandler(webappAuthenticatedRouter, authDependency)
 	webapphandler.AttachLogoutHandler(webappAuthenticatedRouter, authDependency)
 
 	webappSSOCallbackRouter := rootRouter.NewRoute().Subrouter()

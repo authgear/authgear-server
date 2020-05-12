@@ -6,17 +6,23 @@ import (
 )
 
 const (
+	// Components
 	TemplateItemTypeAuthUIHTMLHeadHTML config.TemplateItemType = "auth_ui_html_head.html"
 	TemplateItemTypeAuthUIHeaderHTML   config.TemplateItemType = "auth_ui_header.html"
 	TemplateItemTypeAuthUIFooterHTML   config.TemplateItemType = "auth_ui_footer.html"
 
-	TemplateItemTypeAuthUILoginHTML config.TemplateItemType = "auth_ui_login.html"
+	// Interaction entrypoints
+	TemplateItemTypeAuthUILoginHTML  config.TemplateItemType = "auth_ui_login.html"
+	TemplateItemTypeAuthUISignupHTML config.TemplateItemType = "auth_ui_signup.html"
+
+	// Interaction steps
 	// nolint: gosec
 	TemplateItemTypeAuthUIEnterPasswordHTML config.TemplateItemType = "auth_ui_enter_password.html"
-	TemplateItemTypeAuthUISignupHTML        config.TemplateItemType = "auth_ui_signup.html"
 	// nolint: gosec
 	TemplateItemTypeAuthUICreatePasswordHTML config.TemplateItemType = "auth_ui_create_password.html"
 	TemplateItemTypeAuthUIOOBOTPHTML         config.TemplateItemType = "auth_ui_oob_otp_html"
+
+	// Forgot Password
 	// nolint: gosec
 	TemplateItemTypeAuthUIForgotPasswordHTML config.TemplateItemType = "auth_ui_forgot_password.html"
 	// nolint: gosec
@@ -25,8 +31,13 @@ const (
 	TemplateItemTypeAuthUIResetPasswordHTML config.TemplateItemType = "auth_ui_reset_password.html"
 	// nolint: gosec
 	TemplateItemTypeAuthUIResetPasswordSuccessHTML config.TemplateItemType = "auth_ui_reset_password_success.html"
-	TemplateItemTypeAuthUISettingsHTML             config.TemplateItemType = "auth_ui_settings.html"
-	TemplateItemTypeAuthUILogoutHTML               config.TemplateItemType = "auth_ui_logout.html"
+
+	// Logout
+	TemplateItemTypeAuthUILogoutHTML config.TemplateItemType = "auth_ui_logout.html"
+
+	// Settings
+	TemplateItemTypeAuthUISettingsHTML         config.TemplateItemType = "auth_ui_settings.html"
+	TemplateItemTypeAuthUISettingsIdentityHTML config.TemplateItemType = "auth_ui_settings_identity.html"
 )
 
 var TemplateAuthUIHTMLHeadHTML = template.Spec{
@@ -782,6 +793,72 @@ var TemplateAuthUISettingsHTML = template.Spec{
 
 <div class="settings-form primary-txt">
   You are authenticated. To logout, please visit <a href="/logout">here</a>.
+</div>
+
+{{ template "auth_ui_footer.html" . }}
+
+</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUISettingsIdentityHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUISettingsIdentityHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
+	Components:  components,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "auth_ui_header.html" . }}
+
+<div class="settings-identity">
+  <h1 class="title primary-txt">{{ localize "settings-identity-title" }}</h1>
+  {{ range .x_identity_candidates }}
+  <div class="identity">
+    <div class="icon {{ .type }} {{ .provider_type }} {{ .login_id_type }}"></div>
+    <div class="identity-info">
+      <h2 class="identity-name primary-txt">
+         {{ if eq .type "oauth" }}
+           {{ if eq .provider_type "google" }}
+           {{ localize "settings-identity-oauth-google" }}
+           {{ end }}
+           {{ if eq .provider_type "apple" }}
+           {{ localize "settings-identity-oauth-apple" }}
+           {{ end }}
+           {{ if eq .provider_type "facebook" }}
+           {{ localize "settings-identity-oauth-facebook" }}
+           {{ end }}
+           {{ if eq .provider_type "linkedin" }}
+           {{ localize "settings-identity-oauth-linkedin" }}
+           {{ end }}
+           {{ if eq .provider_type "azureadv2" }}
+           {{ localize "settings-identity-oauth-azureadv2" }}
+           {{ end }}
+         {{ end }}
+         {{ if eq .type "login_id" }}
+           {{ if eq .login_id_type "email" }}
+           {{ localize "settings-identity-login-id-email" }}
+           {{ end }}
+           {{ if eq .login_id_type "phone" }}
+           {{ localize "settings-identity-login-id-phone" }}
+           {{ end }}
+           {{ if eq .login_id_type "username" }}
+           {{ localize "settings-identity-login-id-username" }}
+           {{ end }}
+           {{ if eq .login_id_type "raw" }}
+           {{ localize "settings-identity-login-id-raw" }}
+           {{ end }}
+         {{ end }}
+      </h2>
+    </div>
+  </div>
+  {{ end }}
 </div>
 
 {{ template "auth_ui_footer.html" . }}

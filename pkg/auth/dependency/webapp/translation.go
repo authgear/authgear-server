@@ -90,6 +90,17 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"reset-password-success-description": "You have successfully reset your password. You can now sign in with it.",
 
 	"logout-button-hint": "To logout, please click the button below.",
-	"logout-button-label": "Logout"
+	"logout-button-label": "Logout",
+
+	"settings-identity-title": "Account settings",
+	"settings-identity-oauth-google": "Google",
+	"settings-identity-oauth-apple": "Apple",
+	"settings-identity-oauth-facebook": "Facebook",
+	"settings-identity-oauth-linkedin": "LinkedIn",
+	"settings-identity-oauth-azureadv2": "Azure AD",
+	"settings-identity-login-id-email": "Email Address",
+	"settings-identity-login-id-phone": "Phone Number",
+	"settings-identity-login-id-username": "Username",
+	"settings-identity-login-id-raw": "Username"
 	}`,
 }

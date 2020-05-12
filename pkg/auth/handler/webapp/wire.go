@@ -129,6 +129,15 @@ func newSettingsHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	return nil
 }
 
+func newSettingsIdentityHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Struct(new(SettingsIdentityHandler), "*"),
+		wire.Bind(new(http.Handler), new(*SettingsIdentityHandler)),
+	)
+	return nil
+}
+
 func newOOBOTPHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		pkg.DependencySet,
