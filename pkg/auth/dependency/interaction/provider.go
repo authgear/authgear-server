@@ -7,6 +7,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -23,24 +24,24 @@ type Store interface {
 }
 
 type IdentityProvider interface {
-	Get(userID string, typ authn.IdentityType, id string) (*IdentityInfo, error)
+	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
 	// GetByClaims return user ID and information about the identity the matches the provided skygear claims.
-	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *IdentityInfo, error)
+	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error)
 	// GetByUserAndClaims return user's identity that matches the provide skygear claims.
 	//
 	// Given that user id is provided, the matching rule of this function is less strict than GetByClaims.
 	// For example, login id identity needs match both key and value and oauth identity only needs to match provider id.
 	// This function is currently in used by remove identity interaction.
-	GetByUserAndClaims(typ authn.IdentityType, userID string, claims map[string]interface{}) (*IdentityInfo, error)
+	GetByUserAndClaims(typ authn.IdentityType, userID string, claims map[string]interface{}) (*identity.Info, error)
 	// ListByClaims return list of identities the matches the provided OIDC standard claims.
-	ListByClaims(claims map[string]string) ([]*IdentityInfo, error)
-	ListByUser(userID string) ([]*IdentityInfo, error)
-	New(userID string, typ authn.IdentityType, claims map[string]interface{}) *IdentityInfo
-	WithClaims(userID string, ii *IdentityInfo, claims map[string]interface{}) *IdentityInfo
-	CreateAll(userID string, is []*IdentityInfo) error
-	UpdateAll(userID string, is []*IdentityInfo) error
-	DeleteAll(userID string, is []*IdentityInfo) error
-	Validate(is []*IdentityInfo) error
+	ListByClaims(claims map[string]string) ([]*identity.Info, error)
+	ListByUser(userID string) ([]*identity.Info, error)
+	New(userID string, typ authn.IdentityType, claims map[string]interface{}) *identity.Info
+	WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) *identity.Info
+	CreateAll(userID string, is []*identity.Info) error
+	UpdateAll(userID string, is []*identity.Info) error
+	DeleteAll(userID string, is []*identity.Info) error
+	Validate(is []*identity.Info) error
 	// RelateIdentityToAuthenticator tells if authenticatorSpec is compatible with and related to identitySpec.
 	//
 	// A authenticatorSpec is compatible with identitySpec if authenticator can be used as authentication for the identity.
@@ -55,13 +56,13 @@ type IdentityProvider interface {
 	// Currently on the following case mutation would occur.
 	//
 	//   - login ID identity of login ID type email or phone and OOB OTP authenticator.
-	RelateIdentityToAuthenticator(identitySpec IdentitySpec, authenticatorSpec *AuthenticatorSpec) *AuthenticatorSpec
+	RelateIdentityToAuthenticator(identitySpec identity.Spec, authenticatorSpec *AuthenticatorSpec) *AuthenticatorSpec
 }
 
 type AuthenticatorProvider interface {
 	Get(userID string, typ authn.AuthenticatorType, id string) (*AuthenticatorInfo, error)
 	List(userID string, typ authn.AuthenticatorType) ([]*AuthenticatorInfo, error)
-	ListByIdentity(userID string, ii *IdentityInfo) ([]*AuthenticatorInfo, error)
+	ListByIdentity(userID string, ii *identity.Info) ([]*AuthenticatorInfo, error)
 	New(userID string, spec AuthenticatorSpec, secret string) ([]*AuthenticatorInfo, error)
 	CreateAll(userID string, ais []*AuthenticatorInfo) error
 	DeleteAll(userID string, ais []*AuthenticatorInfo) error
@@ -69,7 +70,7 @@ type AuthenticatorProvider interface {
 }
 
 type UserProvider interface {
-	Create(userID string, metadata map[string]interface{}, identities []*IdentityInfo) error
+	Create(userID string, metadata map[string]interface{}, identities []*identity.Info) error
 	Get(userID string) (*model.User, error)
 }
 

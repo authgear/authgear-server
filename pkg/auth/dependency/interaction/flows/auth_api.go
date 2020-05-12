@@ -2,6 +2,7 @@ package flows
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -17,11 +18,11 @@ func (f *AuthAPIFlow) LoginWithLoginIDPassword(
 	clientID string, loginIDKey string, loginID string, password string,
 ) (*AuthResult, error) {
 	i, err := f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type: authn.IdentityTypeLoginID,
 			Claims: map[string]interface{}{
-				interaction.IdentityClaimLoginIDKey:   loginIDKey,
-				interaction.IdentityClaimLoginIDValue: loginID,
+				identity.IdentityClaimLoginIDKey:   loginIDKey,
+				identity.IdentityClaimLoginIDValue: loginID,
 			},
 		},
 	}, clientID)
@@ -89,11 +90,11 @@ func (f *AuthAPIFlow) SignupWithLoginIDPassword(
 	onUserDuplicate model.OnUserDuplicate,
 ) (*AuthResult, error) {
 	i, err := f.Interactions.NewInteractionSignup(&interaction.IntentSignup{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type: authn.IdentityTypeLoginID,
 			Claims: map[string]interface{}{
-				interaction.IdentityClaimLoginIDKey:   loginIDKey,
-				interaction.IdentityClaimLoginIDValue: loginID,
+				identity.IdentityClaimLoginIDKey:   loginIDKey,
+				identity.IdentityClaimLoginIDValue: loginID,
 			},
 		},
 		OnUserDuplicate: onUserDuplicate,
@@ -135,7 +136,7 @@ func (f *AuthAPIFlow) SignupWithLoginIDPassword(
 
 	i, err = f.Interactions.NewInteractionLoginAs(
 		&interaction.IntentLogin{
-			Identity: interaction.IdentitySpec{
+			Identity: identity.Spec{
 				Type:   attrs.IdentityType,
 				Claims: attrs.IdentityClaims,
 			},
@@ -181,11 +182,11 @@ func (f *AuthAPIFlow) AddLoginID(
 	loginIDKey string, loginID string, session auth.AuthSession,
 ) error {
 	i, err := f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type: authn.IdentityTypeLoginID,
 			Claims: map[string]interface{}{
-				interaction.IdentityClaimLoginIDKey:   loginIDKey,
-				interaction.IdentityClaimLoginIDValue: loginID,
+				identity.IdentityClaimLoginIDKey:   loginIDKey,
+				identity.IdentityClaimLoginIDValue: loginID,
 			},
 		},
 	}, session.GetClientID(), session.AuthnAttrs().UserID)
@@ -243,11 +244,11 @@ func (f *AuthAPIFlow) RemoveLoginID(
 	loginIDKey string, loginID string, session auth.AuthSession,
 ) error {
 	i, err := f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type: authn.IdentityTypeLoginID,
 			Claims: map[string]interface{}{
-				interaction.IdentityClaimLoginIDKey:   loginIDKey,
-				interaction.IdentityClaimLoginIDValue: loginID,
+				identity.IdentityClaimLoginIDKey:   loginIDKey,
+				identity.IdentityClaimLoginIDValue: loginID,
 			},
 		},
 	}, session.GetClientID(), session.AuthnAttrs().UserID)

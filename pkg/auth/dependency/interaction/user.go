@@ -2,6 +2,7 @@ package interaction
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -26,7 +27,7 @@ type userProvider struct {
 	UserVerificationConfiguration *config.UserVerificationConfiguration
 }
 
-func (p *userProvider) Create(userID string, metadata map[string]interface{}, identities []*IdentityInfo) error {
+func (p *userProvider) Create(userID string, metadata map[string]interface{}, identities []*identity.Info) error {
 	now := p.Time.NowUTC()
 	authInfo := &authinfo.AuthInfo{
 		ID:          userID,
@@ -90,7 +91,7 @@ func (p *userProvider) Get(userID string) (*model.User, error) {
 	return &u, nil
 }
 
-func (p *userProvider) enqueueSendWelcomeEmailTasks(user model.User, identities []*IdentityInfo) {
+func (p *userProvider) enqueueSendWelcomeEmailTasks(user model.User, identities []*identity.Info) {
 	var emails []string
 	for _, i := range identities {
 		if email, ok := i.Claims[string(metadata.Email)].(string); ok {
@@ -122,13 +123,13 @@ func (p *userProvider) enqueueSendWelcomeEmailTasks(user model.User, identities 
 	}
 }
 
-func (p *userProvider) enqueueSendVerificationCodeTasks(user model.User, identities []*IdentityInfo) {
+func (p *userProvider) enqueueSendVerificationCodeTasks(user model.User, identities []*identity.Info) {
 	for _, i := range identities {
 		if i.Type != authn.IdentityTypeLoginID {
 			continue
 		}
-		loginIDKey := i.Claims[IdentityClaimLoginIDKey].(string)
-		loginID := i.Claims[IdentityClaimLoginIDValue].(string)
+		loginIDKey := i.Claims[identity.IdentityClaimLoginIDKey].(string)
+		loginID := i.Claims[identity.IdentityClaimLoginIDValue].(string)
 
 		for _, keyConfig := range p.UserVerificationConfiguration.LoginIDKeys {
 			if keyConfig.Key == loginIDKey {

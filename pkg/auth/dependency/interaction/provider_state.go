@@ -179,7 +179,7 @@ var identityPrimaryAuthenticators = map[authn.IdentityType]map[authn.Authenticat
 	},
 }
 
-func (p *Provider) getAvailablePrimaryAuthenticators(is IdentitySpec) []AuthenticatorSpec {
+func (p *Provider) getAvailablePrimaryAuthenticators(is identity.Spec) []AuthenticatorSpec {
 	var as []AuthenticatorSpec
 	for _, t := range p.Config.PrimaryAuthenticators {
 		authenticatorType := authn.AuthenticatorType(t)
@@ -205,7 +205,7 @@ func (p *Provider) getAvailableSecondaryAuthenticators() []AuthenticatorSpec {
 	return as
 }
 
-func (p *Provider) listPrimaryAuthenticators(is IdentitySpec) (specs []AuthenticatorSpec, err error) {
+func (p *Provider) listPrimaryAuthenticators(is identity.Spec) (specs []AuthenticatorSpec, err error) {
 	// Now we use skygear claims to find exactly one identity.
 	// In the future we may use OIDC claims to list all identities and
 	// resolve which user the actor want to authenticate as.

@@ -1,6 +1,7 @@
 package flows
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
@@ -13,10 +14,10 @@ type WebAppFlow struct {
 
 func (f *WebAppFlow) LoginWithLoginID(loginID string) (*WebAppResult, error) {
 	i, err := f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type: authn.IdentityTypeLoginID,
 			Claims: map[string]interface{}{
-				interaction.IdentityClaimLoginIDValue: loginID,
+				identity.IdentityClaimLoginIDValue: loginID,
 			},
 		},
 	}, "")
@@ -56,11 +57,11 @@ func (f *WebAppFlow) LoginWithLoginID(loginID string) (*WebAppResult, error) {
 
 func (f *WebAppFlow) SignupWithLoginID(loginIDKey, loginID string) (*WebAppResult, error) {
 	i, err := f.Interactions.NewInteractionSignup(&interaction.IntentSignup{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type: authn.IdentityTypeLoginID,
 			Claims: map[string]interface{}{
-				interaction.IdentityClaimLoginIDKey:   loginIDKey,
-				interaction.IdentityClaimLoginIDValue: loginID,
+				identity.IdentityClaimLoginIDKey:   loginIDKey,
+				identity.IdentityClaimLoginIDValue: loginID,
 			},
 		},
 		OnUserDuplicate: model.OnUserDuplicateAbort,
@@ -143,7 +144,7 @@ func (f *WebAppFlow) SetupSecret(token string, secret string) (*WebAppResult, er
 		// New interaction for logging in after signup
 		i, err = f.Interactions.NewInteractionLoginAs(
 			&interaction.IntentLogin{
-				Identity: interaction.IdentitySpec{
+				Identity: identity.Spec{
 					Type:   attrs.IdentityType,
 					Claims: attrs.IdentityClaims,
 				},

@@ -136,7 +136,7 @@ func (p *Provider) setupPrimaryAuthenticator(i *Interaction, step *StepState, s 
 	}
 }
 
-func (p *Provider) doAuthenticate(i *Interaction, step *StepState, astate *map[string]string, is IdentitySpec, as AuthenticatorSpec, secret string) (*AuthenticatorInfo, error) {
+func (p *Provider) doAuthenticate(i *Interaction, step *StepState, astate *map[string]string, is identity.Spec, as AuthenticatorSpec, secret string) (*AuthenticatorInfo, error) {
 	userID, iden, err := p.Identity.GetByClaims(is.Type, is.Claims)
 	if errors.Is(err, identity.ErrIdentityNotFound) {
 		return nil, ErrInvalidCredentials

@@ -3,6 +3,7 @@ package flows
 import (
 	"errors"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -13,13 +14,13 @@ import (
 func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
 	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
 	claims := map[string]interface{}{
-		interaction.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
-		interaction.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
-		interaction.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
-		interaction.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
+		identity.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
+		identity.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
+		identity.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
+		identity.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
 	}
 	i, err := f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type:   authn.IdentityTypeOAuth,
 			Claims: claims,
 		},
@@ -33,7 +34,7 @@ func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebApp
 
 	// try signup
 	i, err = f.Interactions.NewInteractionSignup(&interaction.IntentSignup{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type:   authn.IdentityTypeOAuth,
 			Claims: claims,
 		},
@@ -57,7 +58,7 @@ func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebApp
 	// create new interaction after signup
 	i, err = f.Interactions.NewInteractionLoginAs(
 		&interaction.IntentLogin{
-			Identity: interaction.IdentitySpec{
+			Identity: identity.Spec{
 				Type:   attrs.IdentityType,
 				Claims: attrs.IdentityClaims,
 			},

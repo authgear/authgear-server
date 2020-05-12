@@ -59,7 +59,7 @@ type IdentityAdaptor struct {
 	Anonymous AnonymousIdentityProvider
 }
 
-func (a *IdentityAdaptor) Get(userID string, typ authn.IdentityType, id string) (*interaction.IdentityInfo, error) {
+func (a *IdentityAdaptor) Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
 	switch typ {
 	case authn.IdentityTypeLoginID:
 		l, err := a.LoginID.Get(userID, id)
@@ -87,7 +87,7 @@ func (a *IdentityAdaptor) Get(userID string, typ authn.IdentityType, id string) 
 }
 
 // GetByClaims return user ID and information about the identity the matches the provided skygear claims.
-func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *interaction.IdentityInfo, error) {
+func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error) {
 	switch typ {
 	case authn.IdentityTypeLoginID:
 		loginID := extractLoginIDClaims(claims)
@@ -124,7 +124,7 @@ func (a *IdentityAdaptor) GetByClaims(typ authn.IdentityType, claims map[string]
 // Given that user id is provided, the matching rule of this function is less strict than GetByClaims.
 // For example, login id identity needs match both key and value and oauth identity only needs to match provider id.
 // This function is currently in used by remove identity interaction.
-func (a *IdentityAdaptor) GetByUserAndClaims(typ authn.IdentityType, userID string, claims map[string]interface{}) (*interaction.IdentityInfo, error) {
+func (a *IdentityAdaptor) GetByUserAndClaims(typ authn.IdentityType, userID string, claims map[string]interface{}) (*identity.Info, error) {
 	switch typ {
 	case authn.IdentityTypeOAuth:
 		providerID := extractOAuthProviderClaims(claims)
@@ -146,8 +146,8 @@ func (a *IdentityAdaptor) GetByUserAndClaims(typ authn.IdentityType, userID stri
 }
 
 // ListByClaims return list of identities the matches the provided OIDC standard claims.
-func (a *IdentityAdaptor) ListByClaims(claims map[string]string) ([]*interaction.IdentityInfo, error) {
-	var all []*interaction.IdentityInfo
+func (a *IdentityAdaptor) ListByClaims(claims map[string]string) ([]*identity.Info, error) {
+	var all []*identity.Info
 
 	for name, value := range claims {
 		ls, err := a.LoginID.ListByClaim(name, value)
@@ -172,8 +172,8 @@ func (a *IdentityAdaptor) ListByClaims(claims map[string]string) ([]*interaction
 	return all, nil
 }
 
-func (a *IdentityAdaptor) ListByUser(userID string) ([]*interaction.IdentityInfo, error) {
-	iis := []*interaction.IdentityInfo{}
+func (a *IdentityAdaptor) ListByUser(userID string) ([]*identity.Info, error) {
+	iis := []*identity.Info{}
 
 	// login id
 	lis, err := a.LoginID.List(userID)
@@ -196,7 +196,7 @@ func (a *IdentityAdaptor) ListByUser(userID string) ([]*interaction.IdentityInfo
 	return iis, nil
 }
 
-func (a *IdentityAdaptor) New(userID string, typ authn.IdentityType, claims map[string]interface{}) *interaction.IdentityInfo {
+func (a *IdentityAdaptor) New(userID string, typ authn.IdentityType, claims map[string]interface{}) *identity.Info {
 	switch typ {
 	case authn.IdentityTypeLoginID:
 		loginID := extractLoginIDClaims(claims)
@@ -207,10 +207,10 @@ func (a *IdentityAdaptor) New(userID string, typ authn.IdentityType, claims map[
 		providerID, subjectID := extractOAuthClaims(claims)
 		var profile, oidcClaims map[string]interface{}
 		var ok bool
-		if profile, ok = claims[interaction.IdentityClaimOAuthProfile].(map[string]interface{}); !ok {
+		if profile, ok = claims[identity.IdentityClaimOAuthProfile].(map[string]interface{}); !ok {
 			profile = map[string]interface{}{}
 		}
-		if oidcClaims, ok = claims[interaction.IdentityClaimOAuthClaims].(map[string]interface{}); !ok {
+		if oidcClaims, ok = claims[identity.IdentityClaimOAuthClaims].(map[string]interface{}); !ok {
 			oidcClaims = map[string]interface{}{}
 		}
 
@@ -226,7 +226,7 @@ func (a *IdentityAdaptor) New(userID string, typ authn.IdentityType, claims map[
 	panic("interaction_adaptors: unknown identity type " + typ)
 }
 
-func (a *IdentityAdaptor) WithClaims(userID string, ii *interaction.IdentityInfo, claims map[string]interface{}) *interaction.IdentityInfo {
+func (a *IdentityAdaptor) WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) *identity.Info {
 	switch ii.Type {
 	case authn.IdentityTypeLoginID:
 		oldIden := loginIDFromIdentityInfo(userID, ii)
@@ -237,7 +237,7 @@ func (a *IdentityAdaptor) WithClaims(userID string, ii *interaction.IdentityInfo
 	case authn.IdentityTypeOAuth:
 		var profile map[string]interface{}
 		var ok bool
-		if profile, ok = claims[interaction.IdentityClaimOAuthProfile].(map[string]interface{}); !ok {
+		if profile, ok = claims[identity.IdentityClaimOAuthProfile].(map[string]interface{}); !ok {
 			profile = map[string]interface{}{}
 		}
 		i := oauthFromIdentityInfo(userID, ii)
@@ -249,7 +249,7 @@ func (a *IdentityAdaptor) WithClaims(userID string, ii *interaction.IdentityInfo
 	panic("interaction_adaptors: unknown identity type " + ii.Type)
 }
 
-func (a *IdentityAdaptor) CreateAll(userID string, is []*interaction.IdentityInfo) error {
+func (a *IdentityAdaptor) CreateAll(userID string, is []*identity.Info) error {
 	for _, i := range is {
 		switch i.Type {
 		case authn.IdentityTypeLoginID:
@@ -277,7 +277,7 @@ func (a *IdentityAdaptor) CreateAll(userID string, is []*interaction.IdentityInf
 	return nil
 }
 
-func (a *IdentityAdaptor) UpdateAll(userID string, is []*interaction.IdentityInfo) error {
+func (a *IdentityAdaptor) UpdateAll(userID string, is []*identity.Info) error {
 	for _, i := range is {
 		switch i.Type {
 		case authn.IdentityTypeLoginID:
@@ -299,7 +299,7 @@ func (a *IdentityAdaptor) UpdateAll(userID string, is []*interaction.IdentityInf
 	return nil
 }
 
-func (a *IdentityAdaptor) DeleteAll(userID string, is []*interaction.IdentityInfo) error {
+func (a *IdentityAdaptor) DeleteAll(userID string, is []*identity.Info) error {
 	for _, i := range is {
 		switch i.Type {
 		case authn.IdentityTypeLoginID:
@@ -319,7 +319,7 @@ func (a *IdentityAdaptor) DeleteAll(userID string, is []*interaction.IdentityInf
 	return nil
 }
 
-func (a *IdentityAdaptor) Validate(is []*interaction.IdentityInfo) error {
+func (a *IdentityAdaptor) Validate(is []*identity.Info) error {
 	var loginIDs []loginid.LoginID
 	var oauthProviderIDs []oauth.ProviderID
 	for _, i := range is {
@@ -353,7 +353,7 @@ func (a *IdentityAdaptor) Validate(is []*interaction.IdentityInfo) error {
 	return nil
 }
 
-func (a *IdentityAdaptor) RelateIdentityToAuthenticator(is interaction.IdentitySpec, as *interaction.AuthenticatorSpec) *interaction.AuthenticatorSpec {
+func (a *IdentityAdaptor) RelateIdentityToAuthenticator(is identity.Spec, as *interaction.AuthenticatorSpec) *interaction.AuthenticatorSpec {
 	switch is.Type {
 	case authn.IdentityTypeLoginID:
 		// Early return for other authenticators.
@@ -389,14 +389,14 @@ func (a *IdentityAdaptor) RelateIdentityToAuthenticator(is interaction.IdentityS
 
 func extractLoginIDClaims(claims map[string]interface{}) loginid.LoginID {
 	loginIDKey := ""
-	if v, ok := claims[interaction.IdentityClaimLoginIDKey]; ok {
+	if v, ok := claims[identity.IdentityClaimLoginIDKey]; ok {
 		if loginIDKey, ok = v.(string); !ok {
-			panic(fmt.Sprintf("interaction_adaptors: expect string login ID key, got %T", claims[interaction.IdentityClaimLoginIDKey]))
+			panic(fmt.Sprintf("interaction_adaptors: expect string login ID key, got %T", claims[identity.IdentityClaimLoginIDKey]))
 		}
 	}
-	loginID, ok := claims[interaction.IdentityClaimLoginIDValue].(string)
+	loginID, ok := claims[identity.IdentityClaimLoginIDValue].(string)
 	if !ok {
-		panic(fmt.Sprintf("interaction_adaptors: expect string login ID value, got %T", claims[interaction.IdentityClaimLoginIDValue]))
+		panic(fmt.Sprintf("interaction_adaptors: expect string login ID value, got %T", claims[identity.IdentityClaimLoginIDValue]))
 	}
 
 	return loginid.LoginID{Key: loginIDKey, Value: loginID}
@@ -405,18 +405,18 @@ func extractLoginIDClaims(claims map[string]interface{}) loginid.LoginID {
 func extractOAuthClaims(claims map[string]interface{}) (providerID oauth.ProviderID, subjectID string) {
 	providerID = extractOAuthProviderClaims(claims)
 
-	subjectID, ok := claims[interaction.IdentityClaimOAuthSubjectID].(string)
+	subjectID, ok := claims[identity.IdentityClaimOAuthSubjectID].(string)
 	if !ok {
-		panic(fmt.Sprintf("interaction_adaptors: expect string subject ID claim, got %T", claims[interaction.IdentityClaimOAuthSubjectID]))
+		panic(fmt.Sprintf("interaction_adaptors: expect string subject ID claim, got %T", claims[identity.IdentityClaimOAuthSubjectID]))
 	}
 
 	return
 }
 
 func extractOAuthProviderClaims(claims map[string]interface{}) oauth.ProviderID {
-	provider, ok := claims[interaction.IdentityClaimOAuthProvider].(map[string]interface{})
+	provider, ok := claims[identity.IdentityClaimOAuthProvider].(map[string]interface{})
 	if !ok {
-		panic(fmt.Sprintf("interaction_adaptors: expect map provider claim, got %T", claims[interaction.IdentityClaimOAuthProvider]))
+		panic(fmt.Sprintf("interaction_adaptors: expect map provider claim, got %T", claims[identity.IdentityClaimOAuthProvider]))
 	}
 
 	providerID := oauth.ProviderID{Keys: map[string]interface{}{}}
@@ -435,14 +435,14 @@ func extractOAuthProviderClaims(claims map[string]interface{}) oauth.ProviderID 
 }
 
 func extractAnonymousClaims(claims map[string]interface{}) (keyID string, key string) {
-	if v, ok := claims[interaction.IdentityClaimAnonymousKeyID]; ok {
+	if v, ok := claims[identity.IdentityClaimAnonymousKeyID]; ok {
 		if keyID, ok = v.(string); !ok {
-			panic(fmt.Sprintf("interaction_adaptors: expect string key ID, got %T", claims[interaction.IdentityClaimAnonymousKeyID]))
+			panic(fmt.Sprintf("interaction_adaptors: expect string key ID, got %T", claims[identity.IdentityClaimAnonymousKeyID]))
 		}
 	}
-	if v, ok := claims[interaction.IdentityClaimAnonymousKey]; ok {
+	if v, ok := claims[identity.IdentityClaimAnonymousKey]; ok {
 		if key, ok = v.(string); !ok {
-			panic(fmt.Sprintf("interaction_adaptors: expect string key, got %T", claims[interaction.IdentityClaimAnonymousKey]))
+			panic(fmt.Sprintf("interaction_adaptors: expect string key, got %T", claims[identity.IdentityClaimAnonymousKey]))
 		}
 	}
 	return

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -25,7 +26,7 @@ type AnonymousFlow struct {
 }
 
 func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn.Attrs, error) {
-	identity, request, err := f.Anonymous.ParseRequest(requestJWT)
+	iden, request, err := f.Anonymous.ParseRequest(requestJWT)
 	if err != nil || request.Action != anonymous.RequestActionAuth {
 		return nil, interaction.ErrInvalidCredentials
 	}
@@ -37,8 +38,8 @@ func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn
 	}
 
 	var keyID string
-	if identity != nil {
-		keyID = identity.KeyID
+	if iden != nil {
+		keyID = iden.KeyID
 	} else {
 		// Sign up if identity does not exist
 		jwk, err := json.Marshal(request.Key)
@@ -47,11 +48,11 @@ func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn
 		}
 
 		i, err := f.Interactions.NewInteractionSignup(&interaction.IntentSignup{
-			Identity: interaction.IdentitySpec{
+			Identity: identity.Spec{
 				Type: authn.IdentityTypeAnonymous,
 				Claims: map[string]interface{}{
-					interaction.IdentityClaimAnonymousKeyID: request.Key.KeyID(),
-					interaction.IdentityClaimAnonymousKey:   string(jwk),
+					identity.IdentityClaimAnonymousKeyID: request.Key.KeyID(),
+					identity.IdentityClaimAnonymousKey:   string(jwk),
 				},
 			},
 			OnUserDuplicate: model.OnUserDuplicateAbort,
@@ -76,10 +77,10 @@ func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn
 
 	// Login after ensuring user & identity exists
 	i, err := f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type: authn.IdentityTypeAnonymous,
 			Claims: map[string]interface{}{
-				interaction.IdentityClaimAnonymousKeyID: keyID,
+				identity.IdentityClaimAnonymousKeyID: keyID,
 			},
 		},
 	}, clientID)

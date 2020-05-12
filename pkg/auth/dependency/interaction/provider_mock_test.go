@@ -7,6 +7,7 @@ package interaction_test
 import (
 	gomock "github.com/golang/mock/gomock"
 	oob "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
+	identity "github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	interaction "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	model "github.com/skygeario/skygear-server/pkg/auth/model"
 	authn "github.com/skygeario/skygear-server/pkg/core/authn"
@@ -117,10 +118,10 @@ func (m *MockIdentityProvider) EXPECT() *MockIdentityProviderMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockIdentityProvider) Get(userID string, typ authn.IdentityType, id string) (*interaction.IdentityInfo, error) {
+func (m *MockIdentityProvider) Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", userID, typ, id)
-	ret0, _ := ret[0].(*interaction.IdentityInfo)
+	ret0, _ := ret[0].(*identity.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -132,11 +133,11 @@ func (mr *MockIdentityProviderMockRecorder) Get(userID, typ, id interface{}) *go
 }
 
 // GetByClaims mocks base method
-func (m *MockIdentityProvider) GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *interaction.IdentityInfo, error) {
+func (m *MockIdentityProvider) GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByClaims", typ, claims)
 	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(*interaction.IdentityInfo)
+	ret1, _ := ret[1].(*identity.Info)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -148,10 +149,10 @@ func (mr *MockIdentityProviderMockRecorder) GetByClaims(typ, claims interface{})
 }
 
 // GetByUserAndClaims mocks base method
-func (m *MockIdentityProvider) GetByUserAndClaims(typ authn.IdentityType, userID string, claims map[string]interface{}) (*interaction.IdentityInfo, error) {
+func (m *MockIdentityProvider) GetByUserAndClaims(typ authn.IdentityType, userID string, claims map[string]interface{}) (*identity.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByUserAndClaims", typ, userID, claims)
-	ret0, _ := ret[0].(*interaction.IdentityInfo)
+	ret0, _ := ret[0].(*identity.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -163,10 +164,10 @@ func (mr *MockIdentityProviderMockRecorder) GetByUserAndClaims(typ, userID, clai
 }
 
 // ListByClaims mocks base method
-func (m *MockIdentityProvider) ListByClaims(claims map[string]string) ([]*interaction.IdentityInfo, error) {
+func (m *MockIdentityProvider) ListByClaims(claims map[string]string) ([]*identity.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByClaims", claims)
-	ret0, _ := ret[0].([]*interaction.IdentityInfo)
+	ret0, _ := ret[0].([]*identity.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -178,10 +179,10 @@ func (mr *MockIdentityProviderMockRecorder) ListByClaims(claims interface{}) *go
 }
 
 // ListByUser mocks base method
-func (m *MockIdentityProvider) ListByUser(userID string) ([]*interaction.IdentityInfo, error) {
+func (m *MockIdentityProvider) ListByUser(userID string) ([]*identity.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByUser", userID)
-	ret0, _ := ret[0].([]*interaction.IdentityInfo)
+	ret0, _ := ret[0].([]*identity.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -193,10 +194,10 @@ func (mr *MockIdentityProviderMockRecorder) ListByUser(userID interface{}) *gomo
 }
 
 // New mocks base method
-func (m *MockIdentityProvider) New(userID string, typ authn.IdentityType, claims map[string]interface{}) *interaction.IdentityInfo {
+func (m *MockIdentityProvider) New(userID string, typ authn.IdentityType, claims map[string]interface{}) *identity.Info {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New", userID, typ, claims)
-	ret0, _ := ret[0].(*interaction.IdentityInfo)
+	ret0, _ := ret[0].(*identity.Info)
 	return ret0
 }
 
@@ -207,10 +208,10 @@ func (mr *MockIdentityProviderMockRecorder) New(userID, typ, claims interface{})
 }
 
 // WithClaims mocks base method
-func (m *MockIdentityProvider) WithClaims(userID string, ii *interaction.IdentityInfo, claims map[string]interface{}) *interaction.IdentityInfo {
+func (m *MockIdentityProvider) WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) *identity.Info {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithClaims", userID, ii, claims)
-	ret0, _ := ret[0].(*interaction.IdentityInfo)
+	ret0, _ := ret[0].(*identity.Info)
 	return ret0
 }
 
@@ -221,7 +222,7 @@ func (mr *MockIdentityProviderMockRecorder) WithClaims(userID, ii, claims interf
 }
 
 // CreateAll mocks base method
-func (m *MockIdentityProvider) CreateAll(userID string, is []*interaction.IdentityInfo) error {
+func (m *MockIdentityProvider) CreateAll(userID string, is []*identity.Info) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAll", userID, is)
 	ret0, _ := ret[0].(error)
@@ -235,7 +236,7 @@ func (mr *MockIdentityProviderMockRecorder) CreateAll(userID, is interface{}) *g
 }
 
 // UpdateAll mocks base method
-func (m *MockIdentityProvider) UpdateAll(userID string, is []*interaction.IdentityInfo) error {
+func (m *MockIdentityProvider) UpdateAll(userID string, is []*identity.Info) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAll", userID, is)
 	ret0, _ := ret[0].(error)
@@ -249,7 +250,7 @@ func (mr *MockIdentityProviderMockRecorder) UpdateAll(userID, is interface{}) *g
 }
 
 // DeleteAll mocks base method
-func (m *MockIdentityProvider) DeleteAll(userID string, is []*interaction.IdentityInfo) error {
+func (m *MockIdentityProvider) DeleteAll(userID string, is []*identity.Info) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAll", userID, is)
 	ret0, _ := ret[0].(error)
@@ -263,7 +264,7 @@ func (mr *MockIdentityProviderMockRecorder) DeleteAll(userID, is interface{}) *g
 }
 
 // Validate mocks base method
-func (m *MockIdentityProvider) Validate(is []*interaction.IdentityInfo) error {
+func (m *MockIdentityProvider) Validate(is []*identity.Info) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Validate", is)
 	ret0, _ := ret[0].(error)
@@ -277,7 +278,7 @@ func (mr *MockIdentityProviderMockRecorder) Validate(is interface{}) *gomock.Cal
 }
 
 // RelateIdentityToAuthenticator mocks base method
-func (m *MockIdentityProvider) RelateIdentityToAuthenticator(identitySpec interaction.IdentitySpec, authenticatorSpec *interaction.AuthenticatorSpec) *interaction.AuthenticatorSpec {
+func (m *MockIdentityProvider) RelateIdentityToAuthenticator(identitySpec identity.Spec, authenticatorSpec *interaction.AuthenticatorSpec) *interaction.AuthenticatorSpec {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RelateIdentityToAuthenticator", identitySpec, authenticatorSpec)
 	ret0, _ := ret[0].(*interaction.AuthenticatorSpec)
@@ -344,7 +345,7 @@ func (mr *MockAuthenticatorProviderMockRecorder) List(userID, typ interface{}) *
 }
 
 // ListByIdentity mocks base method
-func (m *MockAuthenticatorProvider) ListByIdentity(userID string, ii *interaction.IdentityInfo) ([]*interaction.AuthenticatorInfo, error) {
+func (m *MockAuthenticatorProvider) ListByIdentity(userID string, ii *identity.Info) ([]*interaction.AuthenticatorInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByIdentity", userID, ii)
 	ret0, _ := ret[0].([]*interaction.AuthenticatorInfo)
@@ -440,7 +441,7 @@ func (m *MockUserProvider) EXPECT() *MockUserProviderMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockUserProvider) Create(userID string, metadata map[string]interface{}, identities []*interaction.IdentityInfo) error {
+func (m *MockUserProvider) Create(userID string, metadata map[string]interface{}, identities []*identity.Info) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", userID, metadata, identities)
 	ret0, _ := ret[0].(error)

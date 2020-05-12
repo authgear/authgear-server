@@ -12,7 +12,7 @@ import (
 func (p *Provider) NewInteractionLoginAs(
 	intent *IntentLogin,
 	userID string,
-	identityRef *IdentityRef,
+	identityRef *identity.Ref,
 	primaryAuthenticatorRef *AuthenticatorRef,
 	clientID string,
 ) (*Interaction, error) {
@@ -115,7 +115,7 @@ func (p *Provider) NewInteractionAddIdentity(intent *IntentAddIdentity, clientID
 	if err != nil {
 		return nil, err
 	}
-	existingIdentities := []*IdentityInfo{}
+	existingIdentities := []*identity.Info{}
 	for _, oi := range ois {
 		if oi.Type == id.Type {
 			existingIdentities = append(existingIdentities, oi)

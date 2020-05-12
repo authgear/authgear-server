@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -24,13 +25,13 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(
 ) (string, error) {
 	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
 	claims := map[string]interface{}{
-		interaction.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
-		interaction.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
-		interaction.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
-		interaction.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
+		identity.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
+		identity.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
+		identity.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
+		identity.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
 	}
 	i, err := f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type:   authn.IdentityTypeOAuth,
 			Claims: claims,
 		},
@@ -45,7 +46,7 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(
 
 	// try signup
 	i, err = f.Interactions.NewInteractionSignup(&interaction.IntentSignup{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type:   authn.IdentityTypeOAuth,
 			Claims: claims,
 		},
@@ -69,7 +70,7 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(
 	// create new interaction after signup
 	i, err = f.Interactions.NewInteractionLoginAs(
 		&interaction.IntentLogin{
-			Identity: interaction.IdentitySpec{
+			Identity: identity.Spec{
 				Type:   attrs.IdentityType,
 				Claims: attrs.IdentityClaims,
 			},
@@ -92,13 +93,13 @@ func (f *AuthAPIFlow) LinkWithOAuthProvider(
 ) (string, error) {
 	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
 	claims := map[string]interface{}{
-		interaction.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
-		interaction.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
-		interaction.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
-		interaction.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
+		identity.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
+		identity.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
+		identity.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
+		identity.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
 	}
 	i, err := f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type:   authn.IdentityTypeOAuth,
 			Claims: claims,
 		},
@@ -181,10 +182,10 @@ func (f *AuthAPIFlow) UnlinkkWithOAuthProvider(
 ) error {
 	providerID := oauth.NewProviderID(oauthProviderInfo)
 	i, err := f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
-		Identity: interaction.IdentitySpec{
+		Identity: identity.Spec{
 			Type: authn.IdentityTypeOAuth,
 			Claims: map[string]interface{}{
-				interaction.IdentityClaimOAuthProvider: providerID.ClaimsValue(),
+				identity.IdentityClaimOAuthProvider: providerID.ClaimsValue(),
 			},
 		},
 	}, clientID, userID)

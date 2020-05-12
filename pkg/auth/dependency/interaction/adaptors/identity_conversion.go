@@ -1,25 +1,25 @@
 package adaptors
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
-func loginIDToIdentityInfo(l *loginid.Identity) *interaction.IdentityInfo {
+func loginIDToIdentityInfo(l *loginid.Identity) *identity.Info {
 	claims := map[string]interface{}{
-		interaction.IdentityClaimLoginIDKey:           l.LoginIDKey,
-		interaction.IdentityClaimLoginIDValue:         l.LoginID,
-		interaction.IdentityClaimLoginIDOriginalValue: l.OriginalLoginID,
-		interaction.IdentityClaimLoginIDUniqueKey:     l.UniqueKey,
+		identity.IdentityClaimLoginIDKey:           l.LoginIDKey,
+		identity.IdentityClaimLoginIDValue:         l.LoginID,
+		identity.IdentityClaimLoginIDOriginalValue: l.OriginalLoginID,
+		identity.IdentityClaimLoginIDUniqueKey:     l.UniqueKey,
 	}
 	for k, v := range l.Claims {
 		claims[k] = v
 	}
 
-	return &interaction.IdentityInfo{
+	return &identity.Info{
 		Type:     authn.IdentityTypeLoginID,
 		ID:       l.ID,
 		Claims:   claims,
@@ -27,7 +27,7 @@ func loginIDToIdentityInfo(l *loginid.Identity) *interaction.IdentityInfo {
 	}
 }
 
-func loginIDFromIdentityInfo(userID string, i *interaction.IdentityInfo) *loginid.Identity {
+func loginIDFromIdentityInfo(userID string, i *identity.Info) *loginid.Identity {
 	l := &loginid.Identity{
 		ID:     i.ID,
 		UserID: userID,
@@ -35,13 +35,13 @@ func loginIDFromIdentityInfo(userID string, i *interaction.IdentityInfo) *logini
 	}
 	for k, v := range i.Claims {
 		switch k {
-		case interaction.IdentityClaimLoginIDKey:
+		case identity.IdentityClaimLoginIDKey:
 			l.LoginIDKey = v.(string)
-		case interaction.IdentityClaimLoginIDValue:
+		case identity.IdentityClaimLoginIDValue:
 			l.LoginID = v.(string)
-		case interaction.IdentityClaimLoginIDOriginalValue:
+		case identity.IdentityClaimLoginIDOriginalValue:
 			l.OriginalLoginID = v.(string)
-		case interaction.IdentityClaimLoginIDUniqueKey:
+		case identity.IdentityClaimLoginIDUniqueKey:
 			l.UniqueKey = v.(string)
 		default:
 			l.Claims[k] = v.(string)
@@ -50,7 +50,7 @@ func loginIDFromIdentityInfo(userID string, i *interaction.IdentityInfo) *logini
 	return l
 }
 
-func oauthToIdentityInfo(o *oauth.Identity) *interaction.IdentityInfo {
+func oauthToIdentityInfo(o *oauth.Identity) *identity.Info {
 	provider := map[string]interface{}{
 		"type": o.ProviderID.Type,
 	}
@@ -59,15 +59,15 @@ func oauthToIdentityInfo(o *oauth.Identity) *interaction.IdentityInfo {
 	}
 
 	claims := map[string]interface{}{
-		interaction.IdentityClaimOAuthProvider:  provider,
-		interaction.IdentityClaimOAuthSubjectID: o.ProviderSubjectID,
-		interaction.IdentityClaimOAuthProfile:   o.UserProfile,
+		identity.IdentityClaimOAuthProvider:  provider,
+		identity.IdentityClaimOAuthSubjectID: o.ProviderSubjectID,
+		identity.IdentityClaimOAuthProfile:   o.UserProfile,
 	}
 	for k, v := range o.Claims {
 		claims[k] = v
 	}
 
-	return &interaction.IdentityInfo{
+	return &identity.Info{
 		Type:     authn.IdentityTypeOAuth,
 		ID:       o.ID,
 		Claims:   claims,
@@ -75,7 +75,7 @@ func oauthToIdentityInfo(o *oauth.Identity) *interaction.IdentityInfo {
 	}
 }
 
-func oauthFromIdentityInfo(userID string, i *interaction.IdentityInfo) *oauth.Identity {
+func oauthFromIdentityInfo(userID string, i *identity.Info) *oauth.Identity {
 	o := &oauth.Identity{
 		ID:     i.ID,
 		UserID: userID,
@@ -83,7 +83,7 @@ func oauthFromIdentityInfo(userID string, i *interaction.IdentityInfo) *oauth.Id
 	}
 	for k, v := range i.Claims {
 		switch k {
-		case interaction.IdentityClaimOAuthProvider:
+		case identity.IdentityClaimOAuthProvider:
 			o.ProviderID.Keys = map[string]interface{}{}
 			for k, v := range v.(map[string]interface{}) {
 				if k == "type" {
@@ -92,9 +92,9 @@ func oauthFromIdentityInfo(userID string, i *interaction.IdentityInfo) *oauth.Id
 					o.ProviderID.Keys[k] = v
 				}
 			}
-		case interaction.IdentityClaimOAuthSubjectID:
+		case identity.IdentityClaimOAuthSubjectID:
 			o.ProviderSubjectID = v.(string)
-		case interaction.IdentityClaimOAuthProfile:
+		case identity.IdentityClaimOAuthProfile:
 			o.UserProfile = v.(map[string]interface{})
 		default:
 			o.Claims[k] = v
@@ -103,13 +103,13 @@ func oauthFromIdentityInfo(userID string, i *interaction.IdentityInfo) *oauth.Id
 	return o
 }
 
-func anonymousToIdentityInfo(a *anonymous.Identity) *interaction.IdentityInfo {
+func anonymousToIdentityInfo(a *anonymous.Identity) *identity.Info {
 	claims := map[string]interface{}{
-		interaction.IdentityClaimAnonymousKeyID: a.KeyID,
-		interaction.IdentityClaimAnonymousKey:   string(a.Key),
+		identity.IdentityClaimAnonymousKeyID: a.KeyID,
+		identity.IdentityClaimAnonymousKey:   string(a.Key),
 	}
 
-	return &interaction.IdentityInfo{
+	return &identity.Info{
 		Type:     authn.IdentityTypeAnonymous,
 		ID:       a.ID,
 		Claims:   claims,
@@ -117,16 +117,16 @@ func anonymousToIdentityInfo(a *anonymous.Identity) *interaction.IdentityInfo {
 	}
 }
 
-func anonymousFromIdentityInfo(userID string, i *interaction.IdentityInfo) *anonymous.Identity {
+func anonymousFromIdentityInfo(userID string, i *identity.Info) *anonymous.Identity {
 	a := &anonymous.Identity{
 		ID:     i.ID,
 		UserID: userID,
 	}
 	for k, v := range i.Claims {
 		switch k {
-		case interaction.IdentityClaimAnonymousKeyID:
+		case identity.IdentityClaimAnonymousKeyID:
 			a.KeyID = v.(string)
-		case interaction.IdentityClaimAnonymousKey:
+		case identity.IdentityClaimAnonymousKey:
 			a.Key = []byte(v.(string))
 		}
 	}

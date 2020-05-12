@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
@@ -160,7 +161,7 @@ func (a *AuthenticatorAdaptor) List(userID string, typ authn.AuthenticatorType) 
 	return ais, nil
 }
 
-func (a *AuthenticatorAdaptor) ListByIdentity(userID string, ii *interaction.IdentityInfo) (ais []*interaction.AuthenticatorInfo, err error) {
+func (a *AuthenticatorAdaptor) ListByIdentity(userID string, ii *identity.Info) (ais []*interaction.AuthenticatorInfo, err error) {
 	// This function takes IdentityInfo instead of IdentitySpec because
 	// The login ID value in IdentityInfo is normalized.
 	switch ii.Type {
@@ -188,7 +189,7 @@ func (a *AuthenticatorAdaptor) ListByIdentity(userID string, ii *interaction.Ide
 			ais = append(ais, totpToAuthenticatorInfo(ta))
 		}
 
-		loginID := ii.Claims[interaction.IdentityClaimLoginIDValue]
+		loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
 		var oas []*oob.Authenticator
 		oas, err = a.OOBOTP.List(userID)
 		if err != nil {

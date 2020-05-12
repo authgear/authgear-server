@@ -3,6 +3,7 @@ package interaction
 import (
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
@@ -217,7 +218,7 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 		panic("interaction: unexpected number of identities to be updated")
 	}
 
-	var originalIdentityInfo *IdentityInfo
+	var originalIdentityInfo *identity.Info
 	updateIdentityInfo := i.UpdateIdentities[0]
 
 	// check if there is any authenticators need to be deleted after identity update
@@ -304,7 +305,7 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 	return nil
 }
 
-func (p *Provider) checkIdentitiesDuplicated(iis []*IdentityInfo) error {
+func (p *Provider) checkIdentitiesDuplicated(iis []*identity.Info) error {
 	emailIdentities := map[string]struct{}{}
 	for _, i := range iis {
 		email, hasEmail := i.Claims[string(metadata.Email)].(string)

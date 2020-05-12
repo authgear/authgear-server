@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -20,15 +21,15 @@ type Interaction struct {
 	Error  *skyerr.APIError `json:"error,omitempty"`
 
 	UserID                 string            `json:"user_id"`
-	Identity               *IdentityRef      `json:"identity"`
+	Identity               *identity.Ref     `json:"identity"`
 	PrimaryAuthenticator   *AuthenticatorRef `json:"primary_authenticator"`
 	SecondaryAuthenticator *AuthenticatorRef `json:"secondary_authenticator"`
 
 	State                map[string]string    `json:"state,omitempty"`
-	UpdateIdentities     []*IdentityInfo      `json:"update_identities,omitempty"`
-	NewIdentities        []*IdentityInfo      `json:"new_identities,omitempty"`
+	UpdateIdentities     []*identity.Info     `json:"update_identities,omitempty"`
+	NewIdentities        []*identity.Info     `json:"new_identities,omitempty"`
 	NewAuthenticators    []*AuthenticatorInfo `json:"new_authenticators,omitempty"`
-	RemoveIdentities     []*IdentityInfo      `json:"remove_identities,omitempty"`
+	RemoveIdentities     []*identity.Info     `json:"remove_identities,omitempty"`
 	RemoveAuthenticators []*AuthenticatorInfo `json:"remove_authenticators,omitempty"`
 
 	// The following fields are for checking programming errors.

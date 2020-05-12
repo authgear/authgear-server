@@ -1,6 +1,9 @@
 package interaction
 
-import "github.com/skygeario/skygear-server/pkg/auth/model"
+import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
+)
 
 // Intent represents the intention that triggered the interaction.
 type Intent interface {
@@ -41,34 +44,34 @@ func NewIntent(t IntentType) Intent {
 
 type IntentSignup struct {
 	UserMetadata    map[string]interface{} `json:"user_metadata"`
-	Identity        IdentitySpec           `json:"identity"`
+	Identity        identity.Spec          `json:"identity"`
 	OnUserDuplicate model.OnUserDuplicate  `json:"on_user_duplicate"`
 }
 
 func (*IntentSignup) Type() IntentType { return IntentTypeSignup }
 
 type IntentLogin struct {
-	Identity           IdentitySpec `json:"identity"`
-	OriginalIntentType IntentType   `json:"original_intent_type,omitempty"`
+	Identity           identity.Spec `json:"identity"`
+	OriginalIntentType IntentType    `json:"original_intent_type,omitempty"`
 }
 
 func (*IntentLogin) Type() IntentType { return IntentTypeLogin }
 
 type IntentAddIdentity struct {
-	Identity IdentitySpec `json:"identity"`
+	Identity identity.Spec `json:"identity"`
 }
 
 func (*IntentAddIdentity) Type() IntentType { return IntentTypeAddIdentity }
 
 type IntentRemoveIdentity struct {
-	Identity IdentitySpec `json:"identity"`
+	Identity identity.Spec `json:"identity"`
 }
 
 func (*IntentRemoveIdentity) Type() IntentType { return IntentTypeRemoveIdentity }
 
 type IntentUpdateIdentity struct {
-	OldIdentity IdentitySpec `json:"old_identity"`
-	NewIdentity IdentitySpec `json:"new_identity"`
+	OldIdentity identity.Spec `json:"old_identity"`
+	NewIdentity identity.Spec `json:"new_identity"`
 }
 
 func (*IntentUpdateIdentity) Type() IntentType { return IntentTypeUpdateIdentity }
