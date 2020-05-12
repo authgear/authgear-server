@@ -153,7 +153,7 @@ func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveId
 
 	removeIdentitiesID := map[string]interface{}{}
 	keepAuthenticators := map[string]*AuthenticatorInfo{}
-	removeAuthenticators := map[string]*AuthenticatorInfo{}
+	allAuthenticators := map[string]*AuthenticatorInfo{}
 
 	// compute set of removing identities id
 	for _, iden := range i.RemoveIdentities {
@@ -167,15 +167,14 @@ func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveId
 		}
 		_, toRemove := removeIdentitiesID[oi.ID]
 		for _, a := range authenticators {
-			if toRemove {
-				removeAuthenticators[a.ID] = a
-			} else {
+			allAuthenticators[a.ID] = a
+			if !toRemove {
 				keepAuthenticators[a.ID] = a
 			}
 		}
 	}
 
-	for _, a := range removeAuthenticators {
+	for _, a := range allAuthenticators {
 		if _, ok := keepAuthenticators[a.ID]; !ok {
 			// not found in the keep authenticators list
 			i.RemoveAuthenticators = append(i.RemoveAuthenticators, a)
@@ -223,7 +222,7 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 
 	// check if there is any authenticators need to be deleted after identity update
 	keepAuthenticators := map[string]*AuthenticatorInfo{}
-	removeAuthenticators := map[string]*AuthenticatorInfo{}
+	allAuthenticators := map[string]*AuthenticatorInfo{}
 
 	ois, err := p.Identity.ListByUser(userID)
 	if err != nil {
@@ -237,9 +236,9 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 		}
 		toRemove := updateIdentityInfo.ID == oi.ID
 		for _, a := range authenticators {
+			allAuthenticators[a.ID] = a
 			if toRemove {
 				// authenticators get by the original indentity info
-				removeAuthenticators[a.ID] = a
 				originalIdentityInfo = oi
 			} else {
 				// authenticators of the existing identities
@@ -261,7 +260,7 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 		keepAuthenticators[a.ID] = a
 	}
 
-	for _, a := range removeAuthenticators {
+	for _, a := range allAuthenticators {
 		if _, ok := keepAuthenticators[a.ID]; !ok {
 			// not found in the keep authenticators list
 			i.RemoveAuthenticators = append(i.RemoveAuthenticators, a)
