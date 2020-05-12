@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type LoginIDIdentityProvider interface {
@@ -54,9 +55,11 @@ type AnonymousIdentityProvider interface {
 }
 
 type Provider struct {
-	LoginID   LoginIDIdentityProvider
-	OAuth     OAuthIdentityProvider
-	Anonymous AnonymousIdentityProvider
+	Authentication *config.AuthenticationConfiguration
+	Identity       *config.IdentityConfiguration
+	LoginID        LoginIDIdentityProvider
+	OAuth          OAuthIdentityProvider
+	Anonymous      AnonymousIdentityProvider
 }
 
 func (a *Provider) Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
@@ -385,6 +388,23 @@ func (a *Provider) RelateIdentityToAuthenticator(is identity.Spec, as *authentic
 	}
 
 	panic("interaction_adaptors: unknown identity type " + is.Type)
+}
+
+func (a *Provider) ListCandidates() (out []identity.Candidate) {
+	for _, i := range a.Authentication.Identities {
+		switch i {
+		case string(authn.IdentityTypeOAuth):
+			for _, providerConfig := range a.Identity.OAuth.Providers {
+				out = append(out, identity.NewOAuthCandidate(&providerConfig))
+			}
+		case string(authn.IdentityTypeLoginID):
+			for _, loginIDKeyConfig := range a.Identity.LoginID.Keys {
+				out = append(out, identity.NewLoginIDCandidate(&loginIDKeyConfig))
+			}
+		}
+	}
+
+	return
 }
 
 func extractLoginIDClaims(claims map[string]interface{}) loginid.LoginID {

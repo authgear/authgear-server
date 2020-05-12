@@ -113,11 +113,7 @@ func newActivateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, timeProvider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
-	providerProvider := &provider.Provider{
-		LoginID:   loginidProvider,
-		OAuth:     provider3,
-		Anonymous: anonymousProvider,
-	}
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, provider3, anonymousProvider)
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
@@ -228,11 +224,7 @@ func newActivateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, timeProvider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
-	providerProvider := &provider.Provider{
-		LoginID:   loginidProvider,
-		OAuth:     provider3,
-		Anonymous: anonymousProvider,
-	}
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, provider3, anonymousProvider)
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
@@ -341,11 +333,7 @@ func newAuthenticateBearerTokenHandler(r *http.Request, m auth.DependencyMap) ht
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, timeProvider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
-	providerProvider := &provider.Provider{
-		LoginID:   loginidProvider,
-		OAuth:     provider3,
-		Anonymous: anonymousProvider,
-	}
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, provider3, anonymousProvider)
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
@@ -452,11 +440,7 @@ func newAuthenticateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handl
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, timeProvider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
-	providerProvider := &provider.Provider{
-		LoginID:   loginidProvider,
-		OAuth:     provider3,
-		Anonymous: anonymousProvider,
-	}
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, provider3, anonymousProvider)
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
@@ -564,11 +548,7 @@ func newAuthenticateRecoveryCodeHandler(r *http.Request, m auth.DependencyMap) h
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, timeProvider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
-	providerProvider := &provider.Provider{
-		LoginID:   loginidProvider,
-		OAuth:     provider3,
-		Anonymous: anonymousProvider,
-	}
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, provider3, anonymousProvider)
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
@@ -676,11 +656,7 @@ func newAuthenticateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, timeProvider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
-	providerProvider := &provider.Provider{
-		LoginID:   loginidProvider,
-		OAuth:     provider3,
-		Anonymous: anonymousProvider,
-	}
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, provider3, anonymousProvider)
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
@@ -788,11 +764,7 @@ func newCreateOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, timeProvider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
-	providerProvider := &provider.Provider{
-		LoginID:   loginidProvider,
-		OAuth:     provider3,
-		Anonymous: anonymousProvider,
-	}
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, provider3, anonymousProvider)
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
@@ -899,11 +871,7 @@ func newCreateTOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, timeProvider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
-	providerProvider := &provider.Provider{
-		LoginID:   loginidProvider,
-		OAuth:     provider3,
-		Anonymous: anonymousProvider,
-	}
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, provider3, anonymousProvider)
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
@@ -1010,11 +978,7 @@ func newListAuthenticatorHandler(r *http.Request, m auth.DependencyMap) http.Han
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, timeProvider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
-	providerProvider := &provider.Provider{
-		LoginID:   loginidProvider,
-		OAuth:     provider3,
-		Anonymous: anonymousProvider,
-	}
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, provider3, anonymousProvider)
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
@@ -1121,11 +1085,7 @@ func newTriggerOOBHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	redisStore := redis4.ProvideStore(context, tenantConfiguration, timeProvider)
 	provider3 := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
-	providerProvider := &provider.Provider{
-		LoginID:   loginidProvider,
-		OAuth:     provider3,
-		Anonymous: anonymousProvider,
-	}
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, provider3, anonymousProvider)
 	provider4 := password2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
