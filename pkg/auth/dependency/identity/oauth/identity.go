@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"reflect"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -80,4 +81,8 @@ func (p *ProviderID) ClaimsValue() map[string]interface{} {
 		claim[k] = v
 	}
 	return claim
+}
+
+func (p *ProviderID) Equal(that *ProviderID) bool {
+	return reflect.DeepEqual(p, that)
 }

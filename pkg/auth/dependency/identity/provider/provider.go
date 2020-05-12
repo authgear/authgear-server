@@ -14,6 +14,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
+//go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package provider
+
 type LoginIDIdentityProvider interface {
 	Get(userID, id string) (*loginid.Identity, error)
 	List(userID string) ([]*loginid.Identity, error)
@@ -390,16 +392,50 @@ func (a *Provider) RelateIdentityToAuthenticator(is identity.Spec, as *authentic
 	panic("interaction_adaptors: unknown identity type " + is.Type)
 }
 
-func (a *Provider) ListCandidates() (out []identity.Candidate) {
+func (a *Provider) ListCandidates(userID string) (out []identity.Candidate, err error) {
+	var loginIDs []*loginid.Identity
+	var oauths []*oauth.Identity
+
+	if userID != "" {
+		loginIDs, err = a.LoginID.List(userID)
+		if err != nil {
+			return
+		}
+		oauths, err = a.OAuth.List(userID)
+		if err != nil {
+			return
+		}
+		// No need to consider anonymous identity
+	}
+
 	for _, i := range a.Authentication.Identities {
 		switch i {
 		case string(authn.IdentityTypeOAuth):
 			for _, providerConfig := range a.Identity.OAuth.Providers {
-				out = append(out, identity.NewOAuthCandidate(&providerConfig))
+				configProviderID := oauth.NewProviderID(providerConfig)
+				candidate := identity.NewOAuthCandidate(&providerConfig)
+				for _, iden := range oauths {
+					if iden.ProviderID.Equal(&configProviderID) {
+						candidate[identity.CandidateKeyProviderSubjectID] = string(iden.ProviderSubjectID)
+						if email, ok := iden.Claims["email"].(string); ok {
+							candidate[identity.CandidateKeyEmail] = email
+						}
+					}
+				}
+				out = append(out, candidate)
 			}
 		case string(authn.IdentityTypeLoginID):
 			for _, loginIDKeyConfig := range a.Identity.LoginID.Keys {
-				out = append(out, identity.NewLoginIDCandidate(&loginIDKeyConfig))
+				candidate := identity.NewLoginIDCandidate(&loginIDKeyConfig)
+				for _, iden := range loginIDs {
+					if loginIDKeyConfig.Key == iden.LoginIDKey {
+						candidate[identity.CandidateKeyLoginIDValue] = iden.LoginID
+						if email, ok := iden.Claims["email"]; ok {
+							candidate[identity.CandidateKeyEmail] = email
+						}
+					}
+				}
+				out = append(out, candidate)
 			}
 		}
 	}

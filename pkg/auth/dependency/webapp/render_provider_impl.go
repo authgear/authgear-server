@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/csrf"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -21,7 +22,7 @@ import (
 )
 
 type IdentityProvider interface {
-	ListCandidates() []identity.Candidate
+	ListCandidates(userID string) ([]identity.Candidate, error)
 }
 
 type RenderProviderImpl struct {
@@ -78,8 +79,17 @@ func (p *RenderProviderImpl) PrepareStaticData(data map[string]interface{}) {
 	data["x_css"] = htmlTemplate.CSS(p.AuthUIConfiguration.CSS)
 }
 
-func (p *RenderProviderImpl) PrepareIdentityData(data map[string]interface{}) {
-	identityCandidates := p.Identity.ListCandidates()
+func (p *RenderProviderImpl) PrepareIdentityData(r *http.Request, data map[string]interface{}) (err error) {
+	userID := ""
+	if sess := auth.GetSession(r.Context()); sess != nil {
+		userID = sess.AuthnAttrs().UserID
+	}
+
+	identityCandidates, err := p.Identity.ListCandidates(userID)
+	if err != nil {
+		return
+	}
+
 	for _, c := range identityCandidates {
 		if c[identity.CandidateKeyType] == string(authn.IdentityTypeLoginID) {
 			if c[identity.CandidateKeyLoginIDType] == "phone" {
@@ -92,6 +102,8 @@ func (p *RenderProviderImpl) PrepareIdentityData(data map[string]interface{}) {
 		}
 	}
 	data["x_identity_candidates"] = identityCandidates
+
+	return
 }
 
 func (p *RenderProviderImpl) PreparePasswordPolicyData(anyError interface{}, data map[string]interface{}) {
@@ -149,7 +161,10 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	data := FormToJSON(r.Form)
 
 	p.PrepareStaticData(data)
-	p.PrepareIdentityData(data)
+	err := p.PrepareIdentityData(r, data)
+	if err != nil {
+		panic(err)
+	}
 	p.PrepareRequestData(r, data)
 	p.PreparePasswordPolicyData(anyError, data)
 	p.PrepareErrorData(anyError, data)

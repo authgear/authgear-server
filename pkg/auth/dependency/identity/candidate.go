@@ -10,25 +10,33 @@ type Candidate map[string]interface{}
 const (
 	CandidateKeyType = "type"
 
-	CandidateKeyProviderType  = "provider_type"
-	CandidateKeyProviderAlias = "provider_alias"
+	CandidateKeyEmail = "email"
 
-	CandidateKeyLoginIDType = "login_id_type"
-	CandidateKeyLoginIDKey  = "login_id_key"
+	CandidateKeyProviderType      = "provider_type"
+	CandidateKeyProviderAlias     = "provider_alias"
+	CandidateKeyProviderSubjectID = "provider_subject_id"
+
+	CandidateKeyLoginIDType  = "login_id_type"
+	CandidateKeyLoginIDKey   = "login_id_key"
+	CandidateKeyLoginIDValue = "login_id_value"
 )
 
 func NewOAuthCandidate(c *config.OAuthProviderConfiguration) Candidate {
 	return Candidate{
-		CandidateKeyType:          string(authn.IdentityTypeOAuth),
-		CandidateKeyProviderType:  string(c.Type),
-		CandidateKeyProviderAlias: string(c.ID),
+		CandidateKeyType:              string(authn.IdentityTypeOAuth),
+		CandidateKeyEmail:             "",
+		CandidateKeyProviderType:      string(c.Type),
+		CandidateKeyProviderAlias:     string(c.ID),
+		CandidateKeyProviderSubjectID: "",
 	}
 }
 
 func NewLoginIDCandidate(c *config.LoginIDKeyConfiguration) Candidate {
 	return Candidate{
-		CandidateKeyType:        string(authn.IdentityTypeLoginID),
-		CandidateKeyLoginIDType: string(c.Type),
-		CandidateKeyLoginIDKey:  string(c.Key),
+		CandidateKeyType:         string(authn.IdentityTypeLoginID),
+		CandidateKeyEmail:        "",
+		CandidateKeyLoginIDType:  string(c.Type),
+		CandidateKeyLoginIDKey:   string(c.Key),
+		CandidateKeyLoginIDValue: "",
 	}
 }
