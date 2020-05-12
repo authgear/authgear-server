@@ -23,6 +23,7 @@ func ProvideRenderProvider(
 	config *config.TenantConfiguration,
 	templateEngine *template.Engine,
 	passwordChecker *audit.PasswordChecker,
+	identityProvider IdentityProvider,
 ) RenderProvider {
 	return &RenderProviderImpl{
 		StaticAssetURLPrefix:        string(saup),
@@ -32,6 +33,7 @@ func ProvideRenderProvider(
 		LocalizationConfiguration:   config.AppConfig.Localization,
 		PasswordChecker:             passwordChecker,
 		TemplateEngine:              templateEngine,
+		Identity:                    identityProvider,
 	}
 }
 

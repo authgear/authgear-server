@@ -11,12 +11,18 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/intl"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
+
+type IdentityProvider interface {
+	ListCandidates() []identity.Candidate
+}
 
 type RenderProviderImpl struct {
 	StaticAssetURLPrefix        string
@@ -26,6 +32,7 @@ type RenderProviderImpl struct {
 	LocalizationConfiguration   *config.LocalizationConfiguration
 	TemplateEngine              *template.Engine
 	PasswordChecker             *audit.PasswordChecker
+	Identity                    IdentityProvider
 }
 
 func (p *RenderProviderImpl) asAPIError(anyError interface{}) *skyerr.APIError {
@@ -38,10 +45,7 @@ func (p *RenderProviderImpl) asAPIError(anyError interface{}) *skyerr.APIError {
 	return nil
 }
 
-func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, anyError interface{}) {
-	data := FormToJSON(r.Form)
-	accessKey := coreAuth.GetAccessKey(r.Context())
-
+func (p *RenderProviderImpl) PrepareRequestData(r *http.Request, data map[string]interface{}) {
 	data["MakeURLWithQuery"] = func(pairs ...string) string {
 		q := url.Values{}
 		for i := 0; i < len(pairs); i += 2 {
@@ -54,73 +58,43 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		return MakeURLWithPathWithoutX(r.URL, path)
 	}
 
-	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
-
+	accessKey := coreAuth.GetAccessKey(r.Context())
 	clientMetadata := accessKey.Client
+	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
 	data["client_name"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), clientMetadata, "client_name")
 	data["logo_uri"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), clientMetadata, "logo_uri")
 
 	data[csrf.TemplateTag] = csrf.TemplateField(r)
 
-	data["x_static_asset_url_prefix"] = p.StaticAssetURLPrefix
+}
 
+func (p *RenderProviderImpl) PrepareStaticData(data map[string]interface{}) {
 	data["x_oob_otp_code_length"] = oob.OOBCodeLength
 	data["x_oob_otp_code_send_cooldown"] = oob.OOBCodeSendCooldownSeconds
-
-	// Find out what identity is enabled.
-	loginID := false
-	oauth := false
-	for _, identity := range p.AuthenticationConfiguration.Identities {
-		if identity == "login_id" {
-			loginID = true
-		}
-		if identity == "oauth" {
-			oauth = true
-		}
-	}
-
-	var providers []map[string]interface{}
-	if oauth {
-		for _, provider := range p.IdentityConfiguration.OAuth.Providers {
-			providers = append(providers, map[string]interface{}{
-				"id":   provider.ID,
-				"type": provider.Type,
-			})
-		}
-	}
-	data["x_idp_providers"] = providers
+	data["x_static_asset_url_prefix"] = p.StaticAssetURLPrefix
+	data["x_calling_codes"] = p.AuthUIConfiguration.CountryCallingCode.Values
 
 	// NOTE(authui): We assume the CSS provided by the developer is trusted.
 	data["x_css"] = htmlTemplate.CSS(p.AuthUIConfiguration.CSS)
+}
 
-	data["x_calling_codes"] = p.AuthUIConfiguration.CountryCallingCode.Values
-
-	if loginID {
-		for _, keyConfig := range p.IdentityConfiguration.LoginID.Keys {
-			if string(keyConfig.Type) == "phone" {
+func (p *RenderProviderImpl) PrepareIdentityData(data map[string]interface{}) {
+	identityCandidates := p.Identity.ListCandidates()
+	for _, c := range identityCandidates {
+		if c[identity.CandidateKeyType] == string(authn.IdentityTypeLoginID) {
+			if c[identity.CandidateKeyLoginIDType] == "phone" {
+				c["login_id_input_type"] = "phone"
 				data["x_login_id_input_type_has_phone"] = true
 			} else {
+				c["login_id_input_type"] = "text"
 				data["x_login_id_input_type_has_text"] = true
 			}
 		}
 	}
+	data["x_identity_candidates"] = identityCandidates
+}
 
-	var loginIDKeys []map[string]interface{}
-	if loginID {
-		for _, loginIDKey := range p.IdentityConfiguration.LoginID.Keys {
-			inputType := "text"
-			if loginIDKey.Type == "phone" {
-				inputType = "phone"
-			}
-			loginIDKeys = append(loginIDKeys, map[string]interface{}{
-				"key":        loginIDKey.Key,
-				"type":       loginIDKey.Type,
-				"input_type": inputType,
-			})
-		}
-	}
-	data["x_login_id_keys"] = loginIDKeys
-
+func (p *RenderProviderImpl) PreparePasswordPolicyData(anyError interface{}, data map[string]interface{}) {
 	passwordPolicy := p.PasswordChecker.PasswordPolicy()
 	if apiError := p.asAPIError(anyError); apiError != nil {
 		if apiError.Reason == "PasswordPolicyViolated" {
@@ -152,8 +126,9 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		panic(err)
 	}
 	data["x_password_policies"] = passwordPolicyJSON
+}
 
-	// Populate inputErr into data
+func (p *RenderProviderImpl) PrepareErrorData(anyError interface{}, data map[string]interface{}) {
 	if apiError := p.asAPIError(anyError); apiError != nil {
 		b, err := json.Marshal(struct {
 			Error *skyerr.APIError `json:"error"`
@@ -168,10 +143,22 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 		}
 		data["x_error"] = eJSON["error"]
 	}
+}
 
+func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, anyError interface{}) {
+	data := FormToJSON(r.Form)
+
+	p.PrepareStaticData(data)
+	p.PrepareIdentityData(data)
+	p.PrepareRequestData(r, data)
+	p.PreparePasswordPolicyData(anyError, data)
+	p.PrepareErrorData(anyError, data)
+
+	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
 	out, err := p.TemplateEngine.WithValidatorOptions(
 		template.AllowRangeNode(true),
 		template.AllowTemplateNode(true),
+		template.AllowDeclaration(true),
 		template.MaxDepth(15),
 	).WithPreferredLanguageTags(preferredLanguageTags).RenderTemplate(
 		templateType,
@@ -181,6 +168,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	if err != nil {
 		panic(err)
 	}
+
 	body := []byte(out)
 	// It is very important to specify the encoding
 	// because browsers assume ASCII if encoding is not specified.

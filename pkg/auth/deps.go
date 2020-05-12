@@ -167,6 +167,7 @@ var interactionDependencySet = wire.NewSet(
 	identityoauth.DependencySet,
 	identityanonymous.DependencySet,
 	identityprovider.DependencySet,
+	wire.Bind(new(webapp.IdentityProvider), new(*identityprovider.Provider)),
 	authenticatorpassword.DependencySet,
 	authenticatortotp.DependencySet,
 	authenticatoroob.DependencySet,
