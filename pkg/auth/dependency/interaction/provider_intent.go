@@ -57,20 +57,13 @@ func (p *Provider) NewInteractionLogin(intent *IntentLogin, clientID string) (*I
 }
 
 func (p *Provider) newInteractionLogin(intent *IntentLogin, clientID string) (*Interaction, error) {
-	i := &Interaction{
-		Intent:   intent,
-		ClientID: clientID,
-	}
+	i := newInteraction(clientID, intent)
 	return i, nil
 }
 
 func (p *Provider) newInteractionLoginRequireIdentity(intent *IntentLogin, clientID string) (*Interaction, error) {
-	i := &Interaction{
-		Intent:               intent,
-		ClientID:             clientID,
-		PrimaryAuthenticator: nil,
-		State:                map[string]string{},
-	}
+	i := newInteraction(clientID, intent)
+
 	userid, iden, err := p.Identity.GetByClaims(intent.Identity.Type, intent.Identity.Claims)
 	if errors.Is(err, identity.ErrIdentityNotFound) {
 		return nil, ErrInvalidCredentials
@@ -84,11 +77,9 @@ func (p *Provider) newInteractionLoginRequireIdentity(intent *IntentLogin, clien
 }
 
 func (p *Provider) NewInteractionSignup(intent *IntentSignup, clientID string) (*Interaction, error) {
-	i := &Interaction{
-		Intent:   intent,
-		ClientID: clientID,
-		UserID:   uuid.New(),
-	}
+	i := newInteraction(clientID, intent)
+	i.UserID = uuid.New()
+
 	identity := p.Identity.New(i.UserID, intent.Identity.Type, intent.Identity.Claims)
 	ir := identity.ToRef()
 	i.Identity = &ir
@@ -101,12 +92,9 @@ func (p *Provider) NewInteractionSignup(intent *IntentSignup, clientID string) (
 }
 
 func (p *Provider) NewInteractionAddIdentity(intent *IntentAddIdentity, clientID string, userID string) (*Interaction, error) {
-	i := &Interaction{
-		Intent:   intent,
-		ClientID: clientID,
-		UserID:   userID,
-		State:    map[string]string{},
-	}
+	i := newInteraction(clientID, intent)
+	i.UserID = userID
+
 	id := p.Identity.New(i.UserID, intent.Identity.Type, intent.Identity.Claims)
 	ir := id.ToRef()
 	i.Identity = &ir
@@ -134,11 +122,8 @@ func (p *Provider) NewInteractionAddIdentity(intent *IntentAddIdentity, clientID
 }
 
 func (p *Provider) NewInteractionUpdateIdentity(intent *IntentUpdateIdentity, clientID string, userID string) (*Interaction, error) {
-	i := &Interaction{
-		Intent:   intent,
-		ClientID: clientID,
-		UserID:   userID,
-	}
+	i := newInteraction(clientID, intent)
+	i.UserID = userID
 
 	if intent.OldIdentity.Type != intent.NewIdentity.Type {
 		panic("interaction: update identity type is not expected")
@@ -178,11 +163,9 @@ func (p *Provider) NewInteractionUpdateIdentity(intent *IntentUpdateIdentity, cl
 }
 
 func (p *Provider) NewInteractionRemoveIdentity(intent *IntentRemoveIdentity, clientID string, userID string) (*Interaction, error) {
-	i := &Interaction{
-		Intent:   intent,
-		ClientID: clientID,
-		UserID:   userID,
-	}
+	i := newInteraction(clientID, intent)
+	i.UserID = userID
+
 	iden, err := p.Identity.GetByUserAndClaims(intent.Identity.Type, userID, intent.Identity.Claims)
 	if errors.Is(err, identity.ErrIdentityNotFound) {
 		return nil, ErrIdentityNotFound

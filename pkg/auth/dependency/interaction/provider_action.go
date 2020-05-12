@@ -187,7 +187,7 @@ func (p *Provider) doAuthenticate(i *Interaction, step *StepState, astate *map[s
 	i.UserID = userID
 	ir := iden.ToRef()
 	i.Identity = &ir
-	i.State = nil
+	i.State = map[string]string{}
 	return authen, nil
 }
 
@@ -223,7 +223,7 @@ func (p *Provider) setupAuthenticator(i *Interaction, step *StepState, astate *m
 		return nil, err
 	}
 	i.NewAuthenticators = append(i.NewAuthenticators, ais...)
-	i.State = nil
+	i.State = map[string]string{}
 	return ais[0], nil
 }
 

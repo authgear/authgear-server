@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	// AuthAPIStateOAuthCodeChallenge is a claim with string value for sso code challenge of current interaction in auth api
-	AuthAPIStateOAuthCodeChallenge string = "https://auth.skygear.io/claims/auth_api/sso/code_challenge"
+	// AuthAPIExtraStateOAuthCodeChallenge is a extra state with string value for sso code challenge of current interaction in auth api
+	AuthAPIExtraStateOAuthCodeChallenge string = "https://auth.skygear.io/claims/auth_api/sso/code_challenge"
 )
 
 func (f *AuthAPIFlow) LoginWithOAuthProvider(
@@ -37,7 +37,7 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(
 		},
 	}, clientID)
 	if err == nil {
-		i.State[AuthAPIStateOAuthCodeChallenge] = codeChallenge
+		i.Extra[AuthAPIExtraStateOAuthCodeChallenge] = codeChallenge
 		return f.Interactions.SaveInteraction(i)
 	}
 	if !errors.Is(err, interaction.ErrInvalidCredentials) {
@@ -84,7 +84,7 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(
 	if err != nil {
 		return "", err
 	}
-	i.State[AuthAPIStateOAuthCodeChallenge] = codeChallenge
+	i.Extra[AuthAPIExtraStateOAuthCodeChallenge] = codeChallenge
 	return f.Interactions.SaveInteraction(i)
 }
 
@@ -120,7 +120,7 @@ func (f *AuthAPIFlow) LinkWithOAuthProvider(
 		panic("interaction_flow_auth_api: unexpected interaction step")
 	}
 
-	i.State[AuthAPIStateOAuthCodeChallenge] = codeChallenge
+	i.Extra[AuthAPIExtraStateOAuthCodeChallenge] = codeChallenge
 	return f.Interactions.SaveInteraction(i)
 }
 
@@ -130,7 +130,7 @@ func (f *AuthAPIFlow) ExchangeCode(interactionToken string, verifier string) (*A
 		return nil, err
 	}
 
-	challenge := i.State[AuthAPIStateOAuthCodeChallenge]
+	challenge := i.Extra[AuthAPIExtraStateOAuthCodeChallenge]
 	// challenge can be empty for api login with access token flow
 	if challenge != "" {
 		if err := verifyPKCE(challenge, verifier); err != nil {

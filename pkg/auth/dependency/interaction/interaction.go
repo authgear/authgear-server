@@ -35,9 +35,21 @@ type Interaction struct {
 	RemoveIdentities     []*identity.Info      `json:"remove_identities,omitempty"`
 	RemoveAuthenticators []*authenticator.Info `json:"remove_authenticators,omitempty"`
 
+	// Extra is used to persist extra data across the interaction.
+	Extra map[string]string `json:"extra,omitempty"`
+
 	// The following fields are for checking programming errors.
 	saved     bool
 	committed bool
+}
+
+func newInteraction(clientID string, intent Intent) *Interaction {
+	return &Interaction{
+		ClientID: clientID,
+		Intent:   intent,
+		State:    map[string]string{},
+		Extra:    map[string]string{},
+	}
 }
 
 func (i *Interaction) IsNewIdentity(id string) bool {
