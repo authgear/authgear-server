@@ -1,5 +1,9 @@
 package interaction
 
+import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
+)
+
 // State represent the derived current state of interaction.
 type State struct {
 	Steps []StepState
@@ -24,5 +28,5 @@ const (
 
 type StepState struct {
 	Step                    Step
-	AvailableAuthenticators []AuthenticatorSpec
+	AvailableAuthenticators []authenticator.Spec
 }

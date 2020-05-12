@@ -5,6 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
@@ -56,17 +57,17 @@ type IdentityProvider interface {
 	// Currently on the following case mutation would occur.
 	//
 	//   - login ID identity of login ID type email or phone and OOB OTP authenticator.
-	RelateIdentityToAuthenticator(identitySpec identity.Spec, authenticatorSpec *AuthenticatorSpec) *AuthenticatorSpec
+	RelateIdentityToAuthenticator(identitySpec identity.Spec, authenticatorSpec *authenticator.Spec) *authenticator.Spec
 }
 
 type AuthenticatorProvider interface {
-	Get(userID string, typ authn.AuthenticatorType, id string) (*AuthenticatorInfo, error)
-	List(userID string, typ authn.AuthenticatorType) ([]*AuthenticatorInfo, error)
-	ListByIdentity(userID string, ii *identity.Info) ([]*AuthenticatorInfo, error)
-	New(userID string, spec AuthenticatorSpec, secret string) ([]*AuthenticatorInfo, error)
-	CreateAll(userID string, ais []*AuthenticatorInfo) error
-	DeleteAll(userID string, ais []*AuthenticatorInfo) error
-	Authenticate(userID string, spec AuthenticatorSpec, state *map[string]string, secret string) (*AuthenticatorInfo, error)
+	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
+	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
+	ListByIdentity(userID string, ii *identity.Info) ([]*authenticator.Info, error)
+	New(userID string, spec authenticator.Spec, secret string) ([]*authenticator.Info, error)
+	CreateAll(userID string, ais []*authenticator.Info) error
+	DeleteAll(userID string, ais []*authenticator.Info) error
+	Authenticate(userID string, spec authenticator.Spec, state *map[string]string, secret string) (*authenticator.Info, error)
 }
 
 type UserProvider interface {

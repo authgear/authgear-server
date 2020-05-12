@@ -1,17 +1,17 @@
 package adaptors
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/bearertoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
-func passwordToAuthenticatorInfo(p *password.Authenticator) *interaction.AuthenticatorInfo {
-	return &interaction.AuthenticatorInfo{
+func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info {
+	return &authenticator.Info{
 		Type:          authn.AuthenticatorTypePassword,
 		ID:            p.ID,
 		Secret:        string(p.PasswordHash),
@@ -20,7 +20,7 @@ func passwordToAuthenticatorInfo(p *password.Authenticator) *interaction.Authent
 	}
 }
 
-func passwordFromAuthenticatorInfo(userID string, a *interaction.AuthenticatorInfo) *password.Authenticator {
+func passwordFromAuthenticatorInfo(userID string, a *authenticator.Info) *password.Authenticator {
 	return &password.Authenticator{
 		ID:           a.ID,
 		UserID:       userID,
@@ -28,75 +28,75 @@ func passwordFromAuthenticatorInfo(userID string, a *interaction.AuthenticatorIn
 	}
 }
 
-func totpToAuthenticatorInfo(t *totp.Authenticator) *interaction.AuthenticatorInfo {
-	return &interaction.AuthenticatorInfo{
+func totpToAuthenticatorInfo(t *totp.Authenticator) *authenticator.Info {
+	return &authenticator.Info{
 		Type:   authn.AuthenticatorTypeTOTP,
 		ID:     t.ID,
 		Secret: t.Secret,
 		Props: map[string]interface{}{
-			interaction.AuthenticatorPropTOTPDisplayName: t.DisplayName,
+			authenticator.AuthenticatorPropTOTPDisplayName: t.DisplayName,
 		},
 		Authenticator: t,
 	}
 }
 
-func totpFromAuthenticatorInfo(userID string, a *interaction.AuthenticatorInfo) *totp.Authenticator {
+func totpFromAuthenticatorInfo(userID string, a *authenticator.Info) *totp.Authenticator {
 	return &totp.Authenticator{
 		ID:          a.ID,
 		UserID:      userID,
 		Secret:      a.Secret,
-		DisplayName: a.Props[interaction.AuthenticatorPropTOTPDisplayName].(string),
+		DisplayName: a.Props[authenticator.AuthenticatorPropTOTPDisplayName].(string),
 	}
 }
 
-func oobotpToAuthenticatorInfo(o *oob.Authenticator) *interaction.AuthenticatorInfo {
-	return &interaction.AuthenticatorInfo{
+func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
+	return &authenticator.Info{
 		Type:   authn.AuthenticatorTypeOOB,
 		ID:     o.ID,
 		Secret: "",
 		Props: map[string]interface{}{
-			interaction.AuthenticatorPropOOBOTPID:          o.ID,
-			interaction.AuthenticatorPropOOBOTPChannelType: string(o.Channel),
-			interaction.AuthenticatorPropOOBOTPEmail:       o.Email,
-			interaction.AuthenticatorPropOOBOTPPhone:       o.Phone,
+			authenticator.AuthenticatorPropOOBOTPID:          o.ID,
+			authenticator.AuthenticatorPropOOBOTPChannelType: string(o.Channel),
+			authenticator.AuthenticatorPropOOBOTPEmail:       o.Email,
+			authenticator.AuthenticatorPropOOBOTPPhone:       o.Phone,
 		},
 		Authenticator: o,
 	}
 }
 
-func oobotpFromAuthenticatorInfo(userID string, a *interaction.AuthenticatorInfo) *oob.Authenticator {
+func oobotpFromAuthenticatorInfo(userID string, a *authenticator.Info) *oob.Authenticator {
 	return &oob.Authenticator{
 		ID:      a.ID,
 		UserID:  userID,
-		Channel: authn.AuthenticatorOOBChannel(a.Props[interaction.AuthenticatorPropOOBOTPChannelType].(string)),
-		Phone:   a.Props[interaction.AuthenticatorPropOOBOTPPhone].(string),
-		Email:   a.Props[interaction.AuthenticatorPropOOBOTPEmail].(string),
+		Channel: authn.AuthenticatorOOBChannel(a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)),
+		Phone:   a.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string),
+		Email:   a.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string),
 	}
 }
 
-func bearerTokenToAuthenticatorInfo(b *bearertoken.Authenticator) *interaction.AuthenticatorInfo {
-	return &interaction.AuthenticatorInfo{
+func bearerTokenToAuthenticatorInfo(b *bearertoken.Authenticator) *authenticator.Info {
+	return &authenticator.Info{
 		Type:   authn.AuthenticatorTypeBearerToken,
 		ID:     b.ID,
 		Secret: b.Token,
 		Props: map[string]interface{}{
-			interaction.AuthenticatorPropBearerTokenParentID: b.ParentID,
+			authenticator.AuthenticatorPropBearerTokenParentID: b.ParentID,
 		},
 		Authenticator: b,
 	}
 }
 
-func bearerTokenFromAuthenticatorInfo(userID string, a *interaction.AuthenticatorInfo) *bearertoken.Authenticator {
+func bearerTokenFromAuthenticatorInfo(userID string, a *authenticator.Info) *bearertoken.Authenticator {
 	return &bearertoken.Authenticator{
 		ID:       a.ID,
 		UserID:   userID,
-		ParentID: a.Props[interaction.AuthenticatorPropBearerTokenParentID].(string),
+		ParentID: a.Props[authenticator.AuthenticatorPropBearerTokenParentID].(string),
 		Token:    a.Secret,
 	}
 }
 
-func recoveryCodeToAuthenticatorInfo(r *recoverycode.Authenticator) *interaction.AuthenticatorInfo {
-	return &interaction.AuthenticatorInfo{
+func recoveryCodeToAuthenticatorInfo(r *recoverycode.Authenticator) *authenticator.Info {
+	return &authenticator.Info{
 		Type:          authn.AuthenticatorTypeBearerToken,
 		ID:            r.ID,
 		Secret:        r.Code,
@@ -105,7 +105,7 @@ func recoveryCodeToAuthenticatorInfo(r *recoverycode.Authenticator) *interaction
 	}
 }
 
-func recoveryCodeFromAuthenticatorInfo(userID string, a *interaction.AuthenticatorInfo) *recoverycode.Authenticator {
+func recoveryCodeFromAuthenticatorInfo(userID string, a *authenticator.Info) *recoverycode.Authenticator {
 	return &recoverycode.Authenticator{
 		ID:     a.ID,
 		UserID: userID,

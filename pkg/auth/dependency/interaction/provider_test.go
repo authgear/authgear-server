@@ -7,6 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
@@ -40,7 +41,7 @@ func TestProvider(t *testing.T) {
 					So(state.Steps, ShouldHaveLength, 1)
 					So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
 					So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
+					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 						Type:  authn.AuthenticatorTypePassword,
 						Props: map[string]interface{}{},
 					})
@@ -59,7 +60,7 @@ func TestProvider(t *testing.T) {
 					So(state.Steps, ShouldHaveLength, 1)
 					So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
 					So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
+					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 						Type:  authn.AuthenticatorTypePassword,
 						Props: map[string]interface{}{},
 					})
@@ -97,7 +98,7 @@ func TestProvider(t *testing.T) {
 					So(state.Steps, ShouldHaveLength, 1)
 					So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
 					So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
+					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 						Type:  authn.AuthenticatorTypePassword,
 						Props: map[string]interface{}{},
 					})
@@ -116,7 +117,7 @@ func TestProvider(t *testing.T) {
 					So(state.Steps, ShouldHaveLength, 1)
 					So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
 					So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
+					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 						Type:  authn.AuthenticatorTypePassword,
 						Props: map[string]interface{}{},
 					})
@@ -164,10 +165,10 @@ func TestProvider(t *testing.T) {
 				So(state.Steps, ShouldHaveLength, 1)
 				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
 				So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
+				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 					Type: authn.AuthenticatorTypeTOTP,
 					Props: map[string]interface{}{
-						interaction.AuthenticatorPropTOTPDisplayName: "My Authenticator",
+						authenticator.AuthenticatorPropTOTPDisplayName: "My Authenticator",
 					},
 				})
 
@@ -185,10 +186,10 @@ func TestProvider(t *testing.T) {
 				So(state.Steps, ShouldHaveLength, 1)
 				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
 				So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, interaction.AuthenticatorSpec{
+				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 					Type: authn.AuthenticatorTypeTOTP,
 					Props: map[string]interface{}{
-						interaction.AuthenticatorPropTOTPDisplayName: "My Authenticator",
+						authenticator.AuthenticatorPropTOTPDisplayName: "My Authenticator",
 					},
 				})
 
@@ -213,10 +214,10 @@ func TestProvider(t *testing.T) {
 			Convey("step 1", func() {
 				i, err := p.NewInteractionAddAuthenticator(
 					&interaction.IntentAddAuthenticator{
-						Authenticator: interaction.AuthenticatorSpec{
+						Authenticator: authenticator.Spec{
 							Type: authn.AuthenticatorTypeTOTP,
 							Props: map[string]interface{}{
-								interaction.AuthenticatorPropTOTPDisplayName: "My Authenticator",
+								authenticator.AuthenticatorPropTOTPDisplayName: "My Authenticator",
 							},
 						},
 					},
@@ -226,11 +227,11 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				So(i.NewAuthenticators, ShouldNotBeEmpty)
-				So(i.NewAuthenticators, ShouldResemble, []interaction.AuthenticatorSpec{
+				So(i.NewAuthenticators, ShouldResemble, []authenticator.Spec{
 					{
 						Type: authn.AuthenticatorTypeTOTP,
 						Props: map[string]interface{}{
-							interaction.AuthenticatorPropTOTPDisplayName: "My Authenticator",
+							authenticator.AuthenticatorPropTOTPDisplayName: "My Authenticator",
 						},
 					},
 				})
@@ -334,26 +335,26 @@ func TestProviderCommit(t *testing.T) {
 			ID:   "iid3",
 			Type: authn.IdentityTypeOAuth,
 		}
-		pwAuthenticator := &interaction.AuthenticatorInfo{
+		pwAuthenticator := &authenticator.Info{
 			ID:   "aid1",
 			Type: authn.AuthenticatorTypePassword,
 		}
-		totpAuthenticator := &interaction.AuthenticatorInfo{
+		totpAuthenticator := &authenticator.Info{
 			ID:   "aid2",
 			Type: authn.AuthenticatorTypeTOTP,
 		}
-		oobAuthenticator := &interaction.AuthenticatorInfo{
+		oobAuthenticator := &authenticator.Info{
 			ID:   "aid3",
 			Type: authn.AuthenticatorTypeOOB,
 		}
 
-		authenticatorProvider.EXPECT().ListByIdentity(userID, loginID1).Return([]*interaction.AuthenticatorInfo{
+		authenticatorProvider.EXPECT().ListByIdentity(userID, loginID1).Return([]*authenticator.Info{
 			pwAuthenticator, totpAuthenticator,
 		}, nil).AnyTimes()
-		authenticatorProvider.EXPECT().ListByIdentity(userID, loginID2).Return([]*interaction.AuthenticatorInfo{
+		authenticatorProvider.EXPECT().ListByIdentity(userID, loginID2).Return([]*authenticator.Info{
 			pwAuthenticator, totpAuthenticator, oobAuthenticator,
 		}, nil).AnyTimes()
-		authenticatorProvider.EXPECT().ListByIdentity(userID, oauthID).Return([]*interaction.AuthenticatorInfo{}, nil).AnyTimes()
+		authenticatorProvider.EXPECT().ListByIdentity(userID, oauthID).Return([]*authenticator.Info{}, nil).AnyTimes()
 
 		store.EXPECT().Create(gomock.Any()).Return(nil).AnyTimes()
 		store.EXPECT().Delete(gomock.Any()).Return(nil).AnyTimes()
@@ -380,7 +381,7 @@ func TestProviderCommit(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			expected := i.RemoveAuthenticators
-			actual := []*interaction.AuthenticatorInfo{
+			actual := []*authenticator.Info{
 				pwAuthenticator, totpAuthenticator,
 			}
 			sort.Sort(authenticatorInfoSlice(expected))
@@ -442,7 +443,7 @@ func TestProviderCommit(t *testing.T) {
 			// pw and otp authenticators are used by login id 1 which should be kept
 
 			expected := i.RemoveAuthenticators
-			actual := []*interaction.AuthenticatorInfo{
+			actual := []*authenticator.Info{
 				oobAuthenticator,
 			}
 			sort.Sort(authenticatorInfoSlice(expected))
@@ -462,7 +463,7 @@ func TestProviderCommit(t *testing.T) {
 	})
 }
 
-type authenticatorInfoSlice []*interaction.AuthenticatorInfo
+type authenticatorInfoSlice []*authenticator.Info
 
 func (s authenticatorInfoSlice) Len() int           { return len(s) }
 func (s authenticatorInfoSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }

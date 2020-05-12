@@ -6,6 +6,7 @@ package interaction_test
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	authenticator "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	oob "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	identity "github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	interaction "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
@@ -278,10 +279,10 @@ func (mr *MockIdentityProviderMockRecorder) Validate(is interface{}) *gomock.Cal
 }
 
 // RelateIdentityToAuthenticator mocks base method
-func (m *MockIdentityProvider) RelateIdentityToAuthenticator(identitySpec identity.Spec, authenticatorSpec *interaction.AuthenticatorSpec) *interaction.AuthenticatorSpec {
+func (m *MockIdentityProvider) RelateIdentityToAuthenticator(identitySpec identity.Spec, authenticatorSpec *authenticator.Spec) *authenticator.Spec {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RelateIdentityToAuthenticator", identitySpec, authenticatorSpec)
-	ret0, _ := ret[0].(*interaction.AuthenticatorSpec)
+	ret0, _ := ret[0].(*authenticator.Spec)
 	return ret0
 }
 
@@ -315,10 +316,10 @@ func (m *MockAuthenticatorProvider) EXPECT() *MockAuthenticatorProviderMockRecor
 }
 
 // Get mocks base method
-func (m *MockAuthenticatorProvider) Get(userID string, typ authn.AuthenticatorType, id string) (*interaction.AuthenticatorInfo, error) {
+func (m *MockAuthenticatorProvider) Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", userID, typ, id)
-	ret0, _ := ret[0].(*interaction.AuthenticatorInfo)
+	ret0, _ := ret[0].(*authenticator.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -330,10 +331,10 @@ func (mr *MockAuthenticatorProviderMockRecorder) Get(userID, typ, id interface{}
 }
 
 // List mocks base method
-func (m *MockAuthenticatorProvider) List(userID string, typ authn.AuthenticatorType) ([]*interaction.AuthenticatorInfo, error) {
+func (m *MockAuthenticatorProvider) List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", userID, typ)
-	ret0, _ := ret[0].([]*interaction.AuthenticatorInfo)
+	ret0, _ := ret[0].([]*authenticator.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -345,10 +346,10 @@ func (mr *MockAuthenticatorProviderMockRecorder) List(userID, typ interface{}) *
 }
 
 // ListByIdentity mocks base method
-func (m *MockAuthenticatorProvider) ListByIdentity(userID string, ii *identity.Info) ([]*interaction.AuthenticatorInfo, error) {
+func (m *MockAuthenticatorProvider) ListByIdentity(userID string, ii *identity.Info) ([]*authenticator.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByIdentity", userID, ii)
-	ret0, _ := ret[0].([]*interaction.AuthenticatorInfo)
+	ret0, _ := ret[0].([]*authenticator.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -360,10 +361,10 @@ func (mr *MockAuthenticatorProviderMockRecorder) ListByIdentity(userID, ii inter
 }
 
 // New mocks base method
-func (m *MockAuthenticatorProvider) New(userID string, spec interaction.AuthenticatorSpec, secret string) ([]*interaction.AuthenticatorInfo, error) {
+func (m *MockAuthenticatorProvider) New(userID string, spec authenticator.Spec, secret string) ([]*authenticator.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New", userID, spec, secret)
-	ret0, _ := ret[0].([]*interaction.AuthenticatorInfo)
+	ret0, _ := ret[0].([]*authenticator.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -375,7 +376,7 @@ func (mr *MockAuthenticatorProviderMockRecorder) New(userID, spec, secret interf
 }
 
 // CreateAll mocks base method
-func (m *MockAuthenticatorProvider) CreateAll(userID string, ais []*interaction.AuthenticatorInfo) error {
+func (m *MockAuthenticatorProvider) CreateAll(userID string, ais []*authenticator.Info) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAll", userID, ais)
 	ret0, _ := ret[0].(error)
@@ -389,7 +390,7 @@ func (mr *MockAuthenticatorProviderMockRecorder) CreateAll(userID, ais interface
 }
 
 // DeleteAll mocks base method
-func (m *MockAuthenticatorProvider) DeleteAll(userID string, ais []*interaction.AuthenticatorInfo) error {
+func (m *MockAuthenticatorProvider) DeleteAll(userID string, ais []*authenticator.Info) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAll", userID, ais)
 	ret0, _ := ret[0].(error)
@@ -403,10 +404,10 @@ func (mr *MockAuthenticatorProviderMockRecorder) DeleteAll(userID, ais interface
 }
 
 // Authenticate mocks base method
-func (m *MockAuthenticatorProvider) Authenticate(userID string, spec interaction.AuthenticatorSpec, state *map[string]string, secret string) (*interaction.AuthenticatorInfo, error) {
+func (m *MockAuthenticatorProvider) Authenticate(userID string, spec authenticator.Spec, state *map[string]string, secret string) (*authenticator.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Authenticate", userID, spec, state, secret)
-	ret0, _ := ret[0].(*interaction.AuthenticatorInfo)
+	ret0, _ := ret[0].(*authenticator.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

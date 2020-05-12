@@ -1,22 +1,4 @@
-package interaction
-
-import "github.com/skygeario/skygear-server/pkg/core/authn"
-
-type AuthenticatorInfo struct {
-	ID            string                  `json:"id"`
-	Type          authn.AuthenticatorType `json:"type"`
-	Secret        string                  `json:"secret"`
-	Props         map[string]interface{}  `json:"props"`
-	Authenticator interface{}             `json:"-"`
-}
-
-func (i *AuthenticatorInfo) ToSpec() AuthenticatorSpec {
-	return AuthenticatorSpec{Type: i.Type, Props: i.Props}
-}
-
-func (i *AuthenticatorInfo) ToRef() AuthenticatorRef {
-	return AuthenticatorRef{ID: i.ID, Type: i.Type}
-}
+package authenticator
 
 const (
 	// AuthenticatorPropCreatedAt is the creation time of the authenticator

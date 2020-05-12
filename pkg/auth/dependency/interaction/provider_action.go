@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
@@ -136,7 +137,7 @@ func (p *Provider) setupPrimaryAuthenticator(i *Interaction, step *StepState, s 
 	}
 }
 
-func (p *Provider) doAuthenticate(i *Interaction, step *StepState, astate *map[string]string, is identity.Spec, as AuthenticatorSpec, secret string) (*AuthenticatorInfo, error) {
+func (p *Provider) doAuthenticate(i *Interaction, step *StepState, astate *map[string]string, is identity.Spec, as authenticator.Spec, secret string) (*authenticator.Info, error) {
 	userID, iden, err := p.Identity.GetByClaims(is.Type, is.Claims)
 	if errors.Is(err, identity.ErrIdentityNotFound) {
 		return nil, ErrInvalidCredentials
@@ -156,7 +157,7 @@ func (p *Provider) doAuthenticate(i *Interaction, step *StepState, astate *map[s
 	return authen, nil
 }
 
-func (p *Provider) setupAuthenticator(i *Interaction, step *StepState, astate *map[string]string, as AuthenticatorSpec, secret string) (*AuthenticatorInfo, error) {
+func (p *Provider) setupAuthenticator(i *Interaction, step *StepState, astate *map[string]string, as authenticator.Spec, secret string) (*authenticator.Info, error) {
 	ok := false
 	for _, aa := range step.AvailableAuthenticators {
 		if aa.Type == as.Type {
@@ -211,8 +212,8 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 	}
 
 	// Rotate the code according to oob.OOBCodeValidDuration
-	code := i.State[AuthenticatorStateOOBOTPCode]
-	generateTimeStr := i.State[AuthenticatorStateOOBOTPGenerateTime]
+	code := i.State[authenticator.AuthenticatorStateOOBOTPCode]
+	generateTimeStr := i.State[authenticator.AuthenticatorStateOOBOTPGenerateTime]
 	if generateTimeStr == "" {
 		code = p.OOB.GenerateCode()
 		generateTimeStr = nowStr
@@ -231,7 +232,7 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 	}
 
 	// Respect cooldown
-	triggerTimeStr := i.State[AuthenticatorStateOOBOTPTriggerTime]
+	triggerTimeStr := i.State[authenticator.AuthenticatorStateOOBOTPTriggerTime]
 	if triggerTimeStr != "" {
 		var tt time.Time
 		err = tt.UnmarshalText([]byte(triggerTimeStr))
@@ -248,13 +249,13 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 	opts := oob.SendCodeOptions{
 		Code: code,
 	}
-	if channel, ok := spec.Props[AuthenticatorPropOOBOTPChannelType].(string); ok {
+	if channel, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string); ok {
 		opts.Channel = channel
 	}
-	if email, ok := spec.Props[AuthenticatorPropOOBOTPEmail].(string); ok {
+	if email, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string); ok {
 		opts.Email = email
 	}
-	if phone, ok := spec.Props[AuthenticatorPropOOBOTPPhone].(string); ok {
+	if phone, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string); ok {
 		opts.Phone = phone
 	}
 
@@ -267,12 +268,12 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 
 	// This function can be called by login or signup.
 	// In case of signup, the spec does not have an ID yet.
-	if id, ok := spec.Props[AuthenticatorPropOOBOTPID].(string); ok {
-		i.State[AuthenticatorStateOOBOTPID] = id
+	if id, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPID].(string); ok {
+		i.State[authenticator.AuthenticatorStateOOBOTPID] = id
 	}
-	i.State[AuthenticatorStateOOBOTPCode] = code
-	i.State[AuthenticatorStateOOBOTPGenerateTime] = generateTimeStr
-	i.State[AuthenticatorStateOOBOTPTriggerTime] = nowStr
+	i.State[authenticator.AuthenticatorStateOOBOTPCode] = code
+	i.State[authenticator.AuthenticatorStateOOBOTPGenerateTime] = generateTimeStr
+	i.State[authenticator.AuthenticatorStateOOBOTPTriggerTime] = nowStr
 
 	return
 }

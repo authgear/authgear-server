@@ -66,7 +66,7 @@ type AuthenticatorAdaptor struct {
 	RecoveryCode RecoveryCodeAuthenticatorProvider
 }
 
-func (a *AuthenticatorAdaptor) Get(userID string, typ authn.AuthenticatorType, id string) (*interaction.AuthenticatorInfo, error) {
+func (a *AuthenticatorAdaptor) Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error) {
 	switch typ {
 	case authn.AuthenticatorTypePassword:
 		p, err := a.Password.Get(userID, id)
@@ -107,8 +107,8 @@ func (a *AuthenticatorAdaptor) Get(userID string, typ authn.AuthenticatorType, i
 	panic("interaction_adaptors: unknown authenticator type " + typ)
 }
 
-func (a *AuthenticatorAdaptor) List(userID string, typ authn.AuthenticatorType) ([]*interaction.AuthenticatorInfo, error) {
-	var ais []*interaction.AuthenticatorInfo
+func (a *AuthenticatorAdaptor) List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error) {
+	var ais []*authenticator.Info
 	switch typ {
 	case authn.AuthenticatorTypePassword:
 		as, err := a.Password.List(userID)
@@ -161,7 +161,7 @@ func (a *AuthenticatorAdaptor) List(userID string, typ authn.AuthenticatorType) 
 	return ais, nil
 }
 
-func (a *AuthenticatorAdaptor) ListByIdentity(userID string, ii *identity.Info) (ais []*interaction.AuthenticatorInfo, err error) {
+func (a *AuthenticatorAdaptor) ListByIdentity(userID string, ii *identity.Info) (ais []*authenticator.Info, err error) {
 	// This function takes IdentityInfo instead of IdentitySpec because
 	// The login ID value in IdentityInfo is normalized.
 	switch ii.Type {
@@ -210,40 +210,40 @@ func (a *AuthenticatorAdaptor) ListByIdentity(userID string, ii *identity.Info) 
 	return
 }
 
-func (a *AuthenticatorAdaptor) New(userID string, spec interaction.AuthenticatorSpec, secret string) ([]*interaction.AuthenticatorInfo, error) {
+func (a *AuthenticatorAdaptor) New(userID string, spec authenticator.Spec, secret string) ([]*authenticator.Info, error) {
 	switch spec.Type {
 	case authn.AuthenticatorTypePassword:
 		p, err := a.Password.New(userID, secret)
 		if err != nil {
 			return nil, err
 		}
-		return []*interaction.AuthenticatorInfo{passwordToAuthenticatorInfo(p)}, nil
+		return []*authenticator.Info{passwordToAuthenticatorInfo(p)}, nil
 
 	case authn.AuthenticatorTypeTOTP:
-		displayName, _ := spec.Props[interaction.AuthenticatorPropTOTPDisplayName].(string)
+		displayName, _ := spec.Props[authenticator.AuthenticatorPropTOTPDisplayName].(string)
 		t := a.TOTP.New(userID, displayName)
-		return []*interaction.AuthenticatorInfo{totpToAuthenticatorInfo(t)}, nil
+		return []*authenticator.Info{totpToAuthenticatorInfo(t)}, nil
 
 	case authn.AuthenticatorTypeOOB:
-		channel := spec.Props[interaction.AuthenticatorPropOOBOTPChannelType].(string)
+		channel := spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
 		var phone, email string
 		switch authn.AuthenticatorOOBChannel(channel) {
 		case authn.AuthenticatorOOBChannelSMS:
-			phone = spec.Props[interaction.AuthenticatorPropOOBOTPPhone].(string)
+			phone = spec.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
 		case authn.AuthenticatorOOBChannelEmail:
-			email = spec.Props[interaction.AuthenticatorPropOOBOTPEmail].(string)
+			email = spec.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
 		}
 		o := a.OOBOTP.New(userID, authn.AuthenticatorOOBChannel(channel), phone, email)
-		return []*interaction.AuthenticatorInfo{oobotpToAuthenticatorInfo(o)}, nil
+		return []*authenticator.Info{oobotpToAuthenticatorInfo(o)}, nil
 
 	case authn.AuthenticatorTypeBearerToken:
-		parentID := spec.Props[interaction.AuthenticatorPropBearerTokenParentID].(string)
+		parentID := spec.Props[authenticator.AuthenticatorPropBearerTokenParentID].(string)
 		b := a.BearerToken.New(userID, parentID)
-		return []*interaction.AuthenticatorInfo{bearerTokenToAuthenticatorInfo(b)}, nil
+		return []*authenticator.Info{bearerTokenToAuthenticatorInfo(b)}, nil
 
 	case authn.AuthenticatorTypeRecoveryCode:
 		rs := a.RecoveryCode.Generate(userID)
-		var ais []*interaction.AuthenticatorInfo
+		var ais []*authenticator.Info
 		for _, r := range rs {
 			ais = append(ais, recoveryCodeToAuthenticatorInfo(r))
 		}
@@ -253,7 +253,7 @@ func (a *AuthenticatorAdaptor) New(userID string, spec interaction.Authenticator
 	panic("interaction_adaptors: unknown authenticator type " + spec.Type)
 }
 
-func (a *AuthenticatorAdaptor) CreateAll(userID string, ais []*interaction.AuthenticatorInfo) error {
+func (a *AuthenticatorAdaptor) CreateAll(userID string, ais []*authenticator.Info) error {
 	var recoveryCodes []*recoverycode.Authenticator
 	for _, ai := range ais {
 		switch ai.Type {
@@ -300,7 +300,7 @@ func (a *AuthenticatorAdaptor) CreateAll(userID string, ais []*interaction.Authe
 	return nil
 }
 
-func (a *AuthenticatorAdaptor) DeleteAll(userID string, ais []*interaction.AuthenticatorInfo) error {
+func (a *AuthenticatorAdaptor) DeleteAll(userID string, ais []*authenticator.Info) error {
 	for _, ai := range ais {
 		switch ai.Type {
 		case authn.AuthenticatorTypePassword:
@@ -328,7 +328,7 @@ func (a *AuthenticatorAdaptor) DeleteAll(userID string, ais []*interaction.Authe
 	return nil
 }
 
-func (a *AuthenticatorAdaptor) Authenticate(userID string, spec interaction.AuthenticatorSpec, state *map[string]string, secret string) (*interaction.AuthenticatorInfo, error) {
+func (a *AuthenticatorAdaptor) Authenticate(userID string, spec authenticator.Spec, state *map[string]string, secret string) (*authenticator.Info, error) {
 	switch spec.Type {
 	case authn.AuthenticatorTypePassword:
 		ps, err := a.Password.List(userID)
@@ -360,8 +360,8 @@ func (a *AuthenticatorAdaptor) Authenticate(userID string, spec interaction.Auth
 		if state == nil {
 			return nil, interaction.ErrInvalidCredentials
 		}
-		id := (*state)[interaction.AuthenticatorStateOOBOTPID]
-		code := (*state)[interaction.AuthenticatorStateOOBOTPCode]
+		id := (*state)[authenticator.AuthenticatorStateOOBOTPID]
+		code := (*state)[authenticator.AuthenticatorStateOOBOTPCode]
 
 		var o *oob.Authenticator
 		// This function can be called by login or signup.

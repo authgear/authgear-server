@@ -3,6 +3,7 @@ package interaction
 import (
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -153,8 +154,8 @@ func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveId
 	}
 
 	removeIdentitiesID := map[string]interface{}{}
-	keepAuthenticators := map[string]*AuthenticatorInfo{}
-	allAuthenticators := map[string]*AuthenticatorInfo{}
+	keepAuthenticators := map[string]*authenticator.Info{}
+	allAuthenticators := map[string]*authenticator.Info{}
 
 	// compute set of removing identities id
 	for _, iden := range i.RemoveIdentities {
@@ -222,8 +223,8 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 	updateIdentityInfo := i.UpdateIdentities[0]
 
 	// check if there is any authenticators need to be deleted after identity update
-	keepAuthenticators := map[string]*AuthenticatorInfo{}
-	allAuthenticators := map[string]*AuthenticatorInfo{}
+	keepAuthenticators := map[string]*authenticator.Info{}
+	allAuthenticators := map[string]*authenticator.Info{}
 
 	ois, err := p.Identity.ListByUser(userID)
 	if err != nil {

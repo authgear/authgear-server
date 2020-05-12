@@ -2,6 +2,7 @@ package flows
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
@@ -41,7 +42,7 @@ func (f *AuthAPIFlow) LoginWithLoginIDPassword(
 		i,
 		interaction.StepAuthenticatePrimary,
 		&interaction.ActionAuthenticate{
-			Authenticator: interaction.AuthenticatorSpec{Type: authn.AuthenticatorTypePassword},
+			Authenticator: authenticator.Spec{Type: authn.AuthenticatorTypePassword},
 			Secret:        password,
 		},
 	)
@@ -115,7 +116,7 @@ func (f *AuthAPIFlow) SignupWithLoginIDPassword(
 		i,
 		interaction.StepSetupPrimaryAuthenticator,
 		&interaction.ActionSetupAuthenticator{
-			Authenticator: interaction.AuthenticatorSpec{Type: authn.AuthenticatorTypePassword},
+			Authenticator: authenticator.Spec{Type: authn.AuthenticatorTypePassword},
 			Secret:        password,
 		},
 	)

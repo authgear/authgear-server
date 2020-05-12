@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
@@ -353,7 +353,7 @@ func (a *Provider) Validate(is []*identity.Info) error {
 	return nil
 }
 
-func (a *Provider) RelateIdentityToAuthenticator(is identity.Spec, as *interaction.AuthenticatorSpec) *interaction.AuthenticatorSpec {
+func (a *Provider) RelateIdentityToAuthenticator(is identity.Spec, as *authenticator.Spec) *authenticator.Spec {
 	switch is.Type {
 	case authn.IdentityTypeLoginID:
 		// Early return for other authenticators.
@@ -368,12 +368,12 @@ func (a *Provider) RelateIdentityToAuthenticator(is identity.Spec, as *interacti
 
 		switch loginIDType {
 		case string(metadata.Email):
-			as.Props[interaction.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelEmail)
-			as.Props[interaction.AuthenticatorPropOOBOTPEmail] = loginID.Value
+			as.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelEmail)
+			as.Props[authenticator.AuthenticatorPropOOBOTPEmail] = loginID.Value
 			return as
 		case string(metadata.Phone):
-			as.Props[interaction.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelSMS)
-			as.Props[interaction.AuthenticatorPropOOBOTPPhone] = loginID.Value
+			as.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelSMS)
+			as.Props[authenticator.AuthenticatorPropOOBOTPPhone] = loginID.Value
 			return as
 		default:
 			return nil

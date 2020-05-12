@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -13,7 +14,7 @@ func (p *Provider) NewInteractionLoginAs(
 	intent *IntentLogin,
 	userID string,
 	identityRef *identity.Ref,
-	primaryAuthenticatorRef *AuthenticatorRef,
+	primaryAuthenticatorRef *authenticator.Ref,
 	clientID string,
 ) (*Interaction, error) {
 	identity, err := p.Identity.Get(

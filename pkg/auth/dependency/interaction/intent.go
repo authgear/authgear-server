@@ -1,6 +1,7 @@
 package interaction
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 )
@@ -77,14 +78,14 @@ type IntentUpdateIdentity struct {
 func (*IntentUpdateIdentity) Type() IntentType { return IntentTypeUpdateIdentity }
 
 type IntentAddAuthenticator struct {
-	Authenticator AuthenticatorSpec `json:"authenticator"`
-	Secret        string            `json:"secret"`
+	Authenticator authenticator.Spec `json:"authenticator"`
+	Secret        string             `json:"secret"`
 }
 
 func (*IntentAddAuthenticator) Type() IntentType { return IntentTypeAddAuthenticator }
 
 type IntentRemoveAuthenticator struct {
-	Authenticator AuthenticatorSpec `json:"authenticator"`
+	Authenticator authenticator.Spec `json:"authenticator"`
 }
 
 func (*IntentRemoveAuthenticator) Type() IntentType { return IntentTypeRemoveAuthenticator }
