@@ -249,7 +249,7 @@ func (p *Provider) listSecondaryAuthenticators(userID string) ([]authenticator.S
 	return as, nil
 }
 
-func (p *Provider) getNeedSetupPrimaryAuthenticatorsWithNewIdentity(userID string, is IdentitySpec, ii *IdentityInfo) ([]AuthenticatorSpec, error) {
+func (p *Provider) getNeedSetupPrimaryAuthenticatorsWithNewIdentity(userID string, is identity.Spec, ii *identity.Info) ([]authenticator.Spec, error) {
 	availableAuthenticators := p.getAvailablePrimaryAuthenticators(is)
 	identityAuthenticators, err := p.Authenticator.ListByIdentity(userID, ii)
 	if err != nil {
@@ -269,5 +269,5 @@ func (p *Provider) getNeedSetupPrimaryAuthenticatorsWithNewIdentity(userID strin
 	if needPrimaryAuthn {
 		return availableAuthenticators, nil
 	}
-	return []AuthenticatorSpec{}, nil
+	return []authenticator.Spec{}, nil
 }

@@ -160,7 +160,7 @@ func (p *Provider) NewInteractionUpdateIdentity(intent *IntentUpdateIdentity, cl
 	if err != nil {
 		return nil, err
 	}
-	checkIdentities := []*IdentityInfo{}
+	checkIdentities := []*identity.Info{}
 	for _, oi := range ois {
 		if oi.Type == updateIden.Type {
 			if oi.ID == updateIden.ID {

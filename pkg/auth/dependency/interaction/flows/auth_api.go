@@ -278,18 +278,18 @@ func (f *AuthAPIFlow) UpdateLoginID(
 	oldLoginID loginid.LoginID, newLoginID loginid.LoginID, session auth.AuthSession,
 ) (*AuthResult, error) {
 	i, err := f.Interactions.NewInteractionUpdateIdentity(&interaction.IntentUpdateIdentity{
-		OldIdentity: interaction.IdentitySpec{
+		OldIdentity: identity.Spec{
 			Type: authn.IdentityTypeLoginID,
 			Claims: map[string]interface{}{
-				interaction.IdentityClaimLoginIDKey:   oldLoginID.Key,
-				interaction.IdentityClaimLoginIDValue: oldLoginID.Value,
+				identity.IdentityClaimLoginIDKey:   oldLoginID.Key,
+				identity.IdentityClaimLoginIDValue: oldLoginID.Value,
 			},
 		},
-		NewIdentity: interaction.IdentitySpec{
+		NewIdentity: identity.Spec{
 			Type: authn.IdentityTypeLoginID,
 			Claims: map[string]interface{}{
-				interaction.IdentityClaimLoginIDKey:   newLoginID.Key,
-				interaction.IdentityClaimLoginIDValue: newLoginID.Value,
+				identity.IdentityClaimLoginIDKey:   newLoginID.Key,
+				identity.IdentityClaimLoginIDValue: newLoginID.Value,
 			},
 		},
 	}, session.GetClientID(), session.AuthnAttrs().UserID)
