@@ -114,6 +114,59 @@ func (f *WebAppFlow) SignupWithLoginID(loginIDKey, loginID string) (*WebAppResul
 	}, nil
 }
 
+func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID string) (*WebAppResult, error) {
+	i, err := f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
+		Identity: identity.Spec{
+			Type: authn.IdentityTypeLoginID,
+			Claims: map[string]interface{}{
+				identity.IdentityClaimLoginIDKey:   loginIDKey,
+				identity.IdentityClaimLoginIDValue: loginID,
+			},
+		},
+	}, "", userID)
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := f.Interactions.GetInteractionState(i)
+	if err != nil {
+		return nil, err
+	}
+
+	if s.CurrentStep().Step != interaction.StepSetupPrimaryAuthenticator || len(s.CurrentStep().AvailableAuthenticators) <= 0 {
+		panic("interaction_flow_webapp: unexpected interaction state")
+	}
+
+	var step WebAppStep
+
+	switch s.CurrentStep().AvailableAuthenticators[0].Type {
+	case authn.AuthenticatorTypeOOB:
+		step = WebAppStepSetupOOBOTP
+		err = f.Interactions.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionTriggerOOBAuthenticator{
+			Authenticator: s.CurrentStep().AvailableAuthenticators[0],
+		})
+		if err != nil {
+			return nil, err
+		}
+	case authn.AuthenticatorTypePassword:
+		step = WebAppStepSetupPassword
+	default:
+		panic("interaction_flow_webapp: unexpected authenticator type")
+	}
+
+	i.Extra[WebAppExtraStateAnonymousUserPromotion] = "true"
+
+	token, err := f.Interactions.SaveInteraction(i)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WebAppResult{
+		Step:  step,
+		Token: token,
+	}, nil
+}
+
 func (f *WebAppFlow) EnterSecret(token string, secret string) (*WebAppResult, error) {
 	i, err := f.Interactions.GetInteraction(token)
 	if err != nil {
@@ -200,6 +253,15 @@ func (f *WebAppFlow) SetupSecret(token string, secret string) (*WebAppResult, er
 
 		// Primary authentication is done using `AuthenticatedAs`
 		return f.afterPrimaryAuthentication(i)
+
+	case interaction.IntentTypeAddIdentity:
+		if i.Extra[WebAppExtraStateAnonymousUserPromotion] == "true" {
+			return f.afterAnonymousUserPromotion(attrs)
+		}
+
+		return &WebAppResult{
+			Step: WebAppStepCompleted,
+		}, nil
 
 	default:
 		return &WebAppResult{

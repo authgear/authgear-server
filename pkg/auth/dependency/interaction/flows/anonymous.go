@@ -101,3 +101,18 @@ func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn
 
 	return attrs, nil
 }
+
+func (f *AnonymousFlow) DecodeUserID(requestJWT string) (string, anonymous.RequestAction, error) {
+	identity, request, err := f.Anonymous.ParseRequest(requestJWT)
+	if err != nil {
+		return "", "", interaction.ErrInvalidCredentials
+	}
+
+	// Verify challenge token
+	purpose, err := f.Challenges.Consume(request.Challenge)
+	if err != nil || *purpose != challenge.PurposeAnonymousRequest {
+		return "", "", interaction.ErrInvalidCredentials
+	}
+
+	return identity.UserID, request.Action, nil
+}

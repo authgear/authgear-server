@@ -51,6 +51,7 @@ type OAuthIdentityProvider interface {
 type AnonymousIdentityProvider interface {
 	Get(userID, id string) (*anonymous.Identity, error)
 	GetByKeyID(keyID string) (*anonymous.Identity, error)
+	List(userID string) ([]*anonymous.Identity, error)
 	ListByClaim(name string, value string) ([]*anonymous.Identity, error)
 	New(userID string, keyID string, key []byte) *anonymous.Identity
 	Create(i *anonymous.Identity) error
@@ -138,6 +139,14 @@ func (a *Provider) GetByUserAndClaims(typ authn.IdentityType, userID string, cla
 			return nil, err
 		}
 		return oauthToIdentityInfo(o), nil
+	case authn.IdentityTypeAnonymous:
+		as, err := a.Anonymous.List(userID)
+		if err != nil {
+			return nil, err
+		} else if len(as) == 0 {
+			return nil, identity.ErrIdentityNotFound
+		}
+		return anonymousToIdentityInfo(as[0]), nil
 	default:
 		uid, iden, err := a.GetByClaims(typ, claims)
 		if err != nil {
