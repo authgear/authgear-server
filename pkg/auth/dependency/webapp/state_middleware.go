@@ -20,7 +20,7 @@ func (m *StateMiddleware) Handle(next http.Handler) http.Handler {
 		if sid != "" {
 			_, err := m.StateStore.Get(sid)
 			if err != nil {
-				RedirectToPathWithQueryPreserved(w, r, "/")
+				RedirectToPathWithoutX(w, r, "/")
 				return
 			}
 		}

@@ -145,7 +145,7 @@ func (p *AuthenticateProviderImpl) EnterLoginID(w http.ResponseWriter, r *http.R
 			default:
 				panic("interaction_flow_webapp: unexpected step " + result.Step)
 			}
-			RedirectToPathWithQueryPreserved(w, r, nextPath)
+			RedirectToPathWithX(w, r, nextPath)
 		}
 	}
 
@@ -258,7 +258,7 @@ func (p *AuthenticateProviderImpl) CreateLoginID(w http.ResponseWriter, r *http.
 			default:
 				panic("interaction_flow_webapp: unexpected step " + result.Step)
 			}
-			RedirectToPathWithQueryPreserved(w, r, nextPath)
+			RedirectToPathWithX(w, r, nextPath)
 		}
 	}
 
@@ -342,7 +342,7 @@ func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter,
 	writeResponse = func(err error) {
 		p.persistState(r, err)
 		if err != nil {
-			RedirectToPathWithQueryPreserved(w, r, "/login")
+			RedirectToPathWithX(w, r, "/login")
 		} else {
 			http.Redirect(w, r, authURI, http.StatusFound)
 		}

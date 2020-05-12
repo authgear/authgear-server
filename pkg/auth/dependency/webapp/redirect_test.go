@@ -151,12 +151,12 @@ func TestRedirectToRedirectURI(t *testing.T) {
 	})
 }
 
-func TestMakeURLWithPathWithQueryPreserved(t *testing.T) {
-	Convey("MakeURLWithPathWithQueryPreserved", t, func() {
+func TestMakeURLWithPathWithX(t *testing.T) {
+	Convey("MakeURLWithPathWithX", t, func() {
 		test := func(str string, path string, expected string) {
 			u, err := url.Parse(str)
 			So(err, ShouldBeNil)
-			actual := MakeURLWithPathWithQueryPreserved(u, path)
+			actual := MakeURLWithPathWithX(u, path)
 			So(actual, ShouldEqual, expected)
 		}
 

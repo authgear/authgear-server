@@ -46,7 +46,7 @@ func (p *ForgotPasswordProvider) PostForgotPasswordForm(w http.ResponseWriter, r
 		if err != nil {
 			RedirectToCurrentPath(w, r)
 		} else {
-			RedirectToPathWithQueryPreserved(w, r, "/forgot_password/success")
+			RedirectToPathWithX(w, r, "/forgot_password/success")
 		}
 	}
 
@@ -125,7 +125,7 @@ func (p *ForgotPasswordProvider) PostResetPasswordForm(w http.ResponseWriter, r 
 			u.RawQuery = q.Encode()
 			r.URL = u
 
-			RedirectToPathWithQueryPreserved(w, r, "/reset_password/success")
+			RedirectToPathWithX(w, r, "/reset_password/success")
 		}
 	}
 

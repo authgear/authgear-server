@@ -26,12 +26,16 @@ func RedirectToRedirectURI(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func RedirectToPathWithQueryPreserved(w http.ResponseWriter, r *http.Request, path string) {
-	http.Redirect(w, r, MakeURLWithPathWithQueryPreserved(r.URL, path), http.StatusFound)
+func RedirectToPathWithX(w http.ResponseWriter, r *http.Request, path string) {
+	http.Redirect(w, r, MakeURLWithPathWithX(r.URL, path), http.StatusFound)
+}
+
+func RedirectToPathWithoutX(w http.ResponseWriter, r *http.Request, path string) {
+	http.Redirect(w, r, MakeURLWithPathWithoutX(r.URL, path), http.StatusFound)
 }
 
 func RedirectToCurrentPath(w http.ResponseWriter, r *http.Request) {
-	RedirectToPathWithQueryPreserved(w, r, r.URL.Path)
+	RedirectToPathWithX(w, r, r.URL.Path)
 }
 
 func RedirectToPathWithQuery(w http.ResponseWriter, r *http.Request, path string, query url.Values) {
@@ -72,7 +76,7 @@ func parseRedirectURI(r *http.Request, redirectURL string) (out string, err erro
 	return
 }
 
-func MakeURLWithPathWithQueryPreserved(i *url.URL, path string) string {
+func MakeURLWithPathWithX(i *url.URL, path string) string {
 	u := *i
 	u.Path = path
 	u.Scheme = ""

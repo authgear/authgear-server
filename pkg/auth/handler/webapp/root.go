@@ -22,5 +22,5 @@ func AttachRootHandler(
 type RootHandler struct{}
 
 func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	webapp.RedirectToPathWithQueryPreserved(w, r, "/login")
+	webapp.RedirectToPathWithoutX(w, r, "/login")
 }
