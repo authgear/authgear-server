@@ -257,6 +257,8 @@ func main() {
 	webapphandler.AttachRootHandler(webappAuthEntryPointRouter, authDependency)
 	webapphandler.AttachLoginHandler(webappAuthEntryPointRouter, authDependency)
 	webapphandler.AttachSignupHandler(webappAuthEntryPointRouter, authDependency)
+	webapphandler.AttachPromoteHandler(webappAuthEntryPointRouter, authDependency)
+
 	webapphandler.AttachEnterPasswordHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachEnterLoginIDHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachOOBOTPHandler(webappAuthRouter, authDependency)

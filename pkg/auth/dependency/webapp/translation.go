@@ -29,10 +29,15 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"change-button-label": "Change",
 
 	"sign-in-apple": "Sign in with Apple",
+	"sign-up-apple": "Sign up with Apple",
 	"sign-in-google": "Sign in with Google",
+	"sign-up-google": "Sign up with Google",
 	"sign-in-facebook": "Sign in with Facebook",
+	"sign-up-facebook": "Sign up with Facebook",
 	"sign-in-linkedin": "Sign in with LinkedIn",
+	"sign-up-linkedin": "Sign up with LinkedIn",
 	"sign-in-azureadv2": "Sign in with Azure AD",
+	"sign-up-azureadv2": "Sign up with Azure AD",
 	"sso-login-id-separator": "or",
 
 	"phone-number-placeholder": "Phone number",

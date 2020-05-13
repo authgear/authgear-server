@@ -12,8 +12,9 @@ const (
 	TemplateItemTypeAuthUIFooterHTML   config.TemplateItemType = "auth_ui_footer.html"
 
 	// Interaction entrypoints
-	TemplateItemTypeAuthUILoginHTML  config.TemplateItemType = "auth_ui_login.html"
-	TemplateItemTypeAuthUISignupHTML config.TemplateItemType = "auth_ui_signup.html"
+	TemplateItemTypeAuthUILoginHTML   config.TemplateItemType = "auth_ui_login.html"
+	TemplateItemTypeAuthUISignupHTML  config.TemplateItemType = "auth_ui_signup.html"
+	TemplateItemTypeAuthUIPromoteHTML config.TemplateItemType = "auth_ui_promote.html"
 
 	// Interaction steps
 	// nolint: gosec
@@ -710,19 +711,19 @@ var TemplateAuthUISignupHTML = template.Spec{
 				{{ if eq .type "oauth" }}
 				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}">
 					{{- if eq .provider_type "apple" -}}
-					{{ localize "sign-in-apple" }}
+					{{ localize "sign-up-apple" }}
 					{{- end -}}
 					{{- if eq .provider_type "google" -}}
-					{{ localize "sign-in-google" }}
+					{{ localize "sign-up-google" }}
 					{{- end -}}
 					{{- if eq .provider_type "facebook" -}}
-					{{ localize "sign-in-facebook" }}
+					{{ localize "sign-up-facebook" }}
 					{{- end -}}
 					{{- if eq .provider_type "linkedin" -}}
-					{{ localize "sign-in-linkedin" }}
+					{{ localize "sign-up-linkedin" }}
 					{{- end -}}
 					{{- if eq .provider_type "azureadv2" -}}
-					{{ localize "sign-in-azureadv2" }}
+					{{ localize "sign-up-azureadv2" }}
 					{{- end -}}
 				</button>
 				{{ end }}
@@ -789,6 +790,109 @@ var TemplateAuthUISignupHTML = template.Spec{
 
 				{{ if .x_password_authenticator_enabled }}
 				<a class="link align-self-flex-start" href="{{ call .MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
+				{{ end }}
+
+				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">
+					{{ localize "next-button-label" }}
+				</button>
+			</form>
+		</div>
+		{{ template "auth_ui_footer.html" . }}
+	</div>
+</body>
+</html>
+`,
+}
+
+var TemplateAuthUIPromoteHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIPromoteHTML,
+	IsHTML:      true,
+	Translation: TemplateItemTypeAuthUITranslationJSON,
+	Defines:     defines,
+	Components:  components,
+	Default: `<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+	<div class="content">
+		{{ template "auth_ui_header.html" . }}
+		<div class="authorize-form">
+			<form class="authorize-idp-form" method="post">
+				{{ $.csrfField }}
+				{{ range .x_identity_candidates }}
+				{{ if eq .type "oauth" }}
+				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}">
+					{{- if eq .provider_type "apple" -}}
+					{{ localize "sign-up-apple" }}
+					{{- end -}}
+					{{- if eq .provider_type "google" -}}
+					{{ localize "sign-up-google" }}
+					{{- end -}}
+					{{- if eq .provider_type "facebook" -}}
+					{{ localize "sign-up-facebook" }}
+					{{- end -}}
+					{{- if eq .provider_type "linkedin" -}}
+					{{ localize "sign-up-linkedin" }}
+					{{- end -}}
+					{{- if eq .provider_type "azureadv2" -}}
+					{{ localize "sign-up-azureadv2" }}
+					{{- end -}}
+				</button>
+				{{ end }}
+				{{ end }}
+			</form>
+
+			{{ $has_oauth := false }}
+			{{ $has_login_id := false }}
+			{{ range .x_identity_candidates }}
+				{{ if eq .type "oauth" }}
+				{{ $has_oauth = true }}
+				{{ end }}
+				{{ if eq .type "login_id" }}
+				{{ $has_login_id = true }}
+				{{ end }}
+			{{ end }}
+			{{ if $has_oauth }}{{ if $has_login_id }}
+			<div class="primary-txt sso-loginid-separator">{{ localize "sso-login-id-separator" }}</div>
+			{{ end }}{{ end }}
+
+			{{ template "ERROR" . }}
+
+			<form class="authorize-loginid-form" method="post">
+				{{ $.csrfField }}
+				<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
+
+				{{ range .x_identity_candidates }}
+				{{ if eq .type "login_id" }}{{ if eq .login_id_key $.x_login_id_key }}
+				{{ if eq .login_id_type "phone" }}
+					<div class="phone-input">
+						<select class="input select primary-txt" name="x_calling_code">
+							{{ range $.x_calling_codes }}
+							<option
+								value="{{ . }}"
+								{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
+								selected
+								{{ end }}{{ end }}
+								>
+								+{{ . }}
+							</option>
+							{{ end }}
+						</select>
+						<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ $.x_national_number }}">
+					</div>
+				{{ else }}
+					<input class="input text-input primary-txt" type="text" name="x_login_id" placeholder="{{ .login_id_type }}" value="{{ $.x_login_id }}">
+				{{ end }}
+				{{ end }}{{ end }}
+				{{ end }}
+
+				{{ range .x_identity_candidates }}
+				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
+					<a class="link align-self-flex-start"
+						href="{{ call $.MakeURLWithQuery "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
+						{{ localize "use-login-id-key" .login_id_key }}
+					</a>
+				{{ end }}{{ end }}
 				{{ end }}
 
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">

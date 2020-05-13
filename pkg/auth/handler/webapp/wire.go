@@ -100,6 +100,16 @@ func newSignupHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	return nil
 }
 
+func newPromoteHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		dependencySet,
+		wire.Bind(new(promoteProvider), new(*webapp.AuthenticateProviderImpl)),
+		wire.Struct(new(PromoteHandler), "*"),
+		wire.Bind(new(http.Handler), new(*PromoteHandler)),
+	)
+	return nil
+}
+
 func newCreatePasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		dependencySet,
