@@ -7,6 +7,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
 func AttachSettingsIdentityHandler(
@@ -19,10 +20,40 @@ func AttachSettingsIdentityHandler(
 		Handler(auth.MakeHandler(authDependency, newSettingsIdentityHandler))
 }
 
+type settingsIdentityProvider interface {
+	GetSettingsIdentity(w http.ResponseWriter, r *http.Request) (func(error), error)
+	LinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
+}
+
 type SettingsIdentityHandler struct {
 	RenderProvider webapp.RenderProvider
+	Provider       settingsIdentityProvider
+	TxContext      db.TxContext
 }
 
 func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.RenderProvider.WritePage(w, r, webapp.TemplateItemTypeAuthUISettingsIdentityHTML, nil)
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	db.WithTx(h.TxContext, func() error {
+		if r.Method == "GET" {
+			writeResponse, err := h.Provider.GetSettingsIdentity(w, r)
+			writeResponse(err)
+			return err
+		}
+
+		if r.Method == "POST" {
+			if r.Form.Get("x_idp_id") != "" {
+				if r.Form.Get("x_action") == "link" {
+					writeResponse, err := h.Provider.LinkIdentityProvider(w, r, r.Form.Get("x_idp_id"))
+					writeResponse(err)
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
 }

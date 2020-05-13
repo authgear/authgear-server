@@ -122,6 +122,7 @@ func newSettingsHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 func newSettingsIdentityHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		dependencySet,
+		wire.Bind(new(settingsIdentityProvider), new(*webapp.AuthenticateProviderImpl)),
 		wire.Struct(new(SettingsIdentityHandler), "*"),
 		wire.Bind(new(http.Handler), new(*SettingsIdentityHandler)),
 	)

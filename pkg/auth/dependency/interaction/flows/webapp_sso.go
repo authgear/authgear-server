@@ -74,3 +74,46 @@ func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebApp
 	}
 	return f.afterPrimaryAuthentication(i)
 }
+
+func (f *WebAppFlow) LinkWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (result *WebAppResult, err error) {
+	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
+	claims := map[string]interface{}{
+		identity.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
+		identity.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
+		identity.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
+		identity.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
+	}
+
+	clientID := ""
+	i, err := f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
+		Identity: identity.Spec{
+			Type:   authn.IdentityTypeOAuth,
+			Claims: claims,
+		},
+	}, clientID, userID)
+	if err != nil {
+		return
+	}
+
+	s, err := f.Interactions.GetInteractionState(i)
+	if err != nil {
+		return
+	}
+
+	if s.CurrentStep().Step != interaction.StepCommit {
+		// authenticator is not needed for oauth identity
+		// so the current step must be commit
+		panic("interaction_flow_webapp: unexpected interaction step")
+	}
+
+	_, err = f.Interactions.Commit(i)
+	if err != nil {
+		return nil, err
+	}
+
+	result = &WebAppResult{
+		Step: WebAppStepCompleted,
+	}
+
+	return
+}

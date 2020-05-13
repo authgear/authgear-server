@@ -819,6 +819,9 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
 
 <div class="settings-identity">
   <h1 class="title primary-txt">{{ localize "settings-identity-title" }}</h1>
+
+  {{ template "ERROR" . }}
+
   {{ range .x_identity_candidates }}
   <div class="identity">
     <div class="icon {{ .type }} {{ .provider_type }} {{ .login_id_type }}"></div>
@@ -871,11 +874,15 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
     </div>
 
     {{ if eq .type "oauth" }}
+      <form method="post">
+      {{ $.csrfField }}
+      <input type="hidden" name="x_idp_id" value="{{ .provider_alias }}">
       {{ if .provider_subject_id }}
-      <button class="btn destructive-btn" type="button">{{ localize "settings-identity-disconnect" }}</button>
+      <button class="btn destructive-btn" type="submit" name="x_action" value="unlink">{{ localize "settings-identity-disconnect" }}</button>
       {{ else }}
-      <button class="btn primary-btn" type="button">{{ localize "settings-identity-connect" }}</button>
+      <button class="btn primary-btn" type="submit" name="x_action" value="link">{{ localize "settings-identity-connect" }}</button>
       {{ end }}
+      </form>
     {{ end }}
 
     {{ if eq .type "login_id" }}
