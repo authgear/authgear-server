@@ -18,66 +18,6 @@ func TestProvider(t *testing.T) {
 		var p *interaction.Provider
 
 		Convey("Common password flow", func() {
-			Convey("Signup", func() {
-				Convey("step 1", func() {
-					i, err := p.NewInteractionSignup(
-						&interaction.IntentSignup{
-							Identity: identity.Spec{
-								Type:   authn.IdentityTypeLoginID,
-								Claims: map[string]interface{}{"email": "user@example.com"},
-							},
-							UserMetadata: map[string]interface{}{},
-						},
-						"",
-					)
-					So(err, ShouldBeNil)
-
-					state, err := p.GetInteractionState(i)
-					So(err, ShouldBeNil)
-					So(state.Steps, ShouldHaveLength, 1)
-					So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
-					So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
-						Type:  authn.AuthenticatorTypePassword,
-						Props: map[string]interface{}{},
-					})
-
-					token, err := p.SaveInteraction(i)
-					So(err, ShouldBeNil)
-					So(token, ShouldNotBeEmpty)
-				})
-				Convey("step 2", func() {
-					var token string
-					i, err := p.GetInteraction(token)
-					So(err, ShouldBeNil)
-
-					state, err := p.GetInteractionState(i)
-					So(err, ShouldBeNil)
-					So(state.Steps, ShouldHaveLength, 1)
-					So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
-					So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-					So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
-						Type:  authn.AuthenticatorTypePassword,
-						Props: map[string]interface{}{},
-					})
-
-					err = p.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionAuthenticate{
-						Authenticator: state.Steps[0].AvailableAuthenticators[0],
-						Secret:        "password",
-					})
-					So(err, ShouldBeNil)
-
-					state, err = p.GetInteractionState(i)
-					So(err, ShouldBeNil)
-					So(state.Steps, ShouldHaveLength, 2)
-					So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
-					So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
-
-					_, err = p.Commit(i)
-					So(err, ShouldBeNil)
-				})
-			})
-
 			Convey("Login", func() {
 				Convey("step 1", func() {
 					i, err := p.NewInteractionLogin(
