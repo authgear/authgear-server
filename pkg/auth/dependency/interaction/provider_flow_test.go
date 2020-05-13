@@ -148,7 +148,105 @@ func TestProviderFlow(t *testing.T) {
 				_, err = p.Commit(i2)
 				So(err, ShouldBeNil)
 			})
-		})
 
+			Convey("Login", func() {
+				// step 1 setup
+				userID := "user_id_1"
+				loginIDClaims := map[string]interface{}{"email": "user@example.com"}
+				ii := &identity.Info{
+					ID:     "identity_id_1",
+					Type:   authn.IdentityTypeLoginID,
+					Claims: loginIDClaims,
+				}
+				ai := &authenticator.Info{
+					ID:     "authenticator_id_1",
+					Type:   authn.AuthenticatorTypePassword,
+					Props:  map[string]interface{}{},
+					Secret: "password",
+				}
+				store.EXPECT().Create(gomock.Any()).Return(nil)
+
+				identityProvider.EXPECT().GetByClaims(
+					gomock.Eq(authn.IdentityTypeLoginID), gomock.Eq(loginIDClaims),
+				).Return(userID, ii, nil).AnyTimes()
+				authenticatorProvider.EXPECT().ListByIdentity(
+					gomock.Eq(userID), gomock.Eq(ii),
+				).Return([]*authenticator.Info{ai}, nil).AnyTimes()
+
+				// step 1
+				i, err := p.NewInteractionLogin(
+					&interaction.IntentLogin{Identity: identity.Spec{
+						Type:   authn.IdentityTypeLoginID,
+						Claims: loginIDClaims,
+					}},
+					"",
+				)
+				So(err, ShouldBeNil)
+
+				state, err := p.GetInteractionState(i)
+				So(err, ShouldBeNil)
+				So(state.Steps, ShouldHaveLength, 1)
+				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
+				So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
+				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
+					Type:  authn.AuthenticatorTypePassword,
+					Props: map[string]interface{}{},
+				})
+
+				iCopy := *i
+				token, err := p.SaveInteraction(i)
+				So(err, ShouldBeNil)
+				So(token, ShouldNotBeEmpty)
+
+				// step 2 setup
+				store.EXPECT().Get(gomock.Eq(token)).Return(&iCopy, nil)
+				store.EXPECT().Delete(gomock.Any()).Return(nil)
+
+				authenticatorProvider.EXPECT().Authenticate(
+					gomock.Eq(userID), gomock.Eq(ai.ToSpec()), gomock.Any(), gomock.Any(),
+				).Return(ai, nil)
+
+				var emptyIdentityInfoList []*identity.Info
+				identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().Get(gomock.Eq(userID), ii.Type, ii.ID).Return(ii, nil)
+
+				var emptyAuthenticatorInfoList []*authenticator.Info
+				authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+
+				// step 2
+				i2, err := p.GetInteraction(token)
+				So(err, ShouldBeNil)
+
+				state, err = p.GetInteractionState(i2)
+				So(err, ShouldBeNil)
+				So(state.Steps, ShouldHaveLength, 1)
+				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
+				So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
+				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
+					Type:  authn.AuthenticatorTypePassword,
+					Props: map[string]interface{}{},
+				})
+
+				err = p.PerformAction(i2, interaction.StepAuthenticatePrimary, &interaction.ActionAuthenticate{
+					Authenticator: state.Steps[0].AvailableAuthenticators[0],
+					Secret:        "password",
+				})
+				So(err, ShouldBeNil)
+
+				state, err = p.GetInteractionState(i2)
+				So(err, ShouldBeNil)
+				So(state.Steps, ShouldHaveLength, 2)
+				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
+				So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
+
+				_, err = p.Commit(i2)
+				So(err, ShouldBeNil)
+
+			})
+		})
 	})
+
 }
