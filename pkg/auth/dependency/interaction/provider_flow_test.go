@@ -247,6 +247,136 @@ func TestProviderFlow(t *testing.T) {
 
 			})
 		})
+
+		Convey("SSO flow with MFA", func() {
+			authnConfig := &config.AuthenticationConfiguration{
+				SecondaryAuthenticators:     []string{"totp"},
+				SecondaryAuthenticationMode: config.SecondaryAuthenticationModeIfExists,
+			}
+			p.Config = authnConfig
+
+			userID := "user_id_1"
+			oauthClaims := map[string]interface{}{
+				identity.IdentityClaimOAuthProvider: map[string]interface{}{
+					"type":   "azureadv2",
+					"tenant": "example",
+				},
+				identity.IdentityClaimOAuthSubjectID: "9A8822AA-4F18-4E4C-84AF-E0FD9AB86CB2",
+				identity.IdentityClaimOAuthProfile:   map[string]interface{}{},
+			}
+			ii := &identity.Info{
+				ID:     "identity_id_1",
+				Type:   authn.IdentityTypeOAuth,
+				Claims: oauthClaims,
+			}
+			ai := &authenticator.Info{
+				ID:   "authenticator_id_1",
+				Type: authn.AuthenticatorTypeTOTP,
+				Props: map[string]interface{}{
+					"https://auth.skygear.io/claims/totp/display_name": "My Authenticator",
+				},
+			}
+
+			// step 1 setup
+			identityProvider.EXPECT().GetByClaims(
+				gomock.Eq(authn.IdentityTypeOAuth), gomock.Eq(oauthClaims),
+			).Return(userID, ii, nil).AnyTimes()
+			// no primary authenticator for oauth identity
+			authenticatorProvider.EXPECT().ListByIdentity(
+				gomock.Eq(userID), gomock.Eq(ii),
+			).Return([]*authenticator.Info{}, nil).AnyTimes()
+			// simulate user has setup totp authenticator
+			authenticatorProvider.EXPECT().List(
+				gomock.Eq(userID), gomock.Eq(authn.AuthenticatorTypeTOTP),
+			).Return([]*authenticator.Info{ai}, nil).AnyTimes()
+			store.EXPECT().Create(gomock.Any()).Return(nil)
+
+			// step 1
+			i, err := p.NewInteractionLogin(
+				&interaction.IntentLogin{
+					Identity: identity.Spec{
+						Type:   authn.IdentityTypeOAuth,
+						Claims: oauthClaims,
+					},
+				},
+				"",
+			)
+			So(err, ShouldBeNil)
+
+			state, err := p.GetInteractionState(i)
+			So(err, ShouldBeNil)
+			So(state.Steps, ShouldHaveLength, 1)
+			So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
+			So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
+			So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
+				Type: authn.AuthenticatorTypeTOTP,
+				Props: map[string]interface{}{
+					authenticator.AuthenticatorPropTOTPDisplayName: "My Authenticator",
+				},
+			})
+
+			iCopy := *i
+			token, err := p.SaveInteraction(i)
+			So(err, ShouldBeNil)
+			So(token, ShouldNotBeEmpty)
+
+			// step 2 setup
+			store.EXPECT().Get(gomock.Eq(token)).Return(&iCopy, nil)
+			store.EXPECT().Delete(gomock.Any()).Return(nil)
+
+			identityProvider.EXPECT().Get(gomock.Eq(userID), ii.Type, ii.ID).Return(ii, nil)
+			identityProvider.EXPECT().WithClaims(
+				gomock.Eq(userID), gomock.Eq(ii), gomock.Eq(oauthClaims),
+			).Return(ii)
+
+			// update oauth claims when login
+			identityProvider.EXPECT().UpdateAll(gomock.Any(), []*identity.Info{ii}).Return(nil)
+
+			var emptyIdentityInfoList []*identity.Info
+			identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+			identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+			identityProvider.EXPECT().Get(gomock.Eq(userID), ii.Type, ii.ID).Return(ii, nil)
+
+			var emptyAuthenticatorInfoList []*authenticator.Info
+			authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+			authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+
+			// step 2 authenticate secondary authenticator
+			i2, err := p.GetInteraction(token)
+			So(err, ShouldBeNil)
+
+			authenticatorProvider.EXPECT().Authenticate(
+				gomock.Eq(userID), gomock.Eq(ai.ToSpec()), gomock.Any(), gomock.Any(),
+			).Return(ai, nil)
+
+			state, err = p.GetInteractionState(i2)
+			So(err, ShouldBeNil)
+			So(state.Steps, ShouldHaveLength, 1)
+			So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
+			So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
+			So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
+				Type: authn.AuthenticatorTypeTOTP,
+				Props: map[string]interface{}{
+					authenticator.AuthenticatorPropTOTPDisplayName: "My Authenticator",
+				},
+			})
+
+			err = p.PerformAction(i2, interaction.StepAuthenticateSecondary, &interaction.ActionAuthenticate{
+				Authenticator: state.Steps[0].AvailableAuthenticators[0],
+				Secret:        "123456",
+			})
+			So(err, ShouldBeNil)
+
+			state, err = p.GetInteractionState(i2)
+			So(err, ShouldBeNil)
+			So(state.Steps, ShouldHaveLength, 2)
+			So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
+			So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
+
+			_, err = p.Commit(i2)
+			So(err, ShouldBeNil)
+		})
+
 	})
 
 }
