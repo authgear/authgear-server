@@ -22,7 +22,7 @@ func AttachCreatePasswordHandler(
 
 type createPasswordProvider interface {
 	GetCreatePasswordForm(w http.ResponseWriter, r *http.Request) (func(err error), error)
-	CreateSecret(w http.ResponseWriter, r *http.Request) (func(err error), error)
+	EnterSecret(w http.ResponseWriter, r *http.Request) (func(err error), error)
 }
 
 type CreatePasswordHandler struct {
@@ -44,7 +44,7 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		}
 
 		if r.Method == "POST" {
-			writeResponse, err := h.Provider.CreateSecret(w, r)
+			writeResponse, err := h.Provider.EnterSecret(w, r)
 			writeResponse(err)
 			return err
 		}
