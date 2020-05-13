@@ -28,6 +28,7 @@ type InteractionFlow interface {
 	LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	LinkWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	UnlinkWithOAuthProvider(userID string, providerConfig config.OAuthProviderConfiguration) (*interactionflows.WebAppResult, error)
+	PromoteWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	AddLoginID(userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
 	UpdateLoginID(userID string, oldLoginID loginid.LoginID, newLoginID loginid.LoginID) (*interactionflows.WebAppResult, error)
 	RemoveLoginID(userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
@@ -461,6 +462,57 @@ func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r
 	return
 }
 
+func (p *AuthenticateProviderImpl) PromoteIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
+	var authURI string
+	writeResponse = func(err error) {
+		p.persistState(r, err)
+		if err != nil {
+			RedirectToCurrentPath(w, r)
+		} else {
+			http.Redirect(w, r, authURI, http.StatusFound)
+		}
+	}
+
+	oauthProvider := p.OAuthProviderFactory.NewOAuthProvider(providerAlias)
+	if oauthProvider == nil {
+		err = ErrOAuthProviderNotFound
+		return
+	}
+
+	webappState, err := p.restoreState(r)
+	if err != nil {
+		return
+	}
+
+	// create or update ui state
+	// state id will be set into the request query
+	p.persistState(r, nil)
+
+	// set hashed csrf cookies to sso state
+	// callback will verify if the request has the same cookie
+	cookie, err := r.Cookie(csrfCookieName)
+	if err != nil || cookie.Value == "" {
+		panic(errors.Newf("webapp: missing csrf cookies: %w", err))
+	}
+	hashedNonce := crypto.SHA256String(cookie.Value)
+	webappSSOState := SSOState{}
+	webappSSOState.SetRequestQuery(r.URL.Query().Encode())
+	state := sso.State{
+		Action: "promote",
+		LinkState: sso.LinkState{
+			UserID: webappState.AnonymousUserID,
+		},
+		HashedNonce: hashedNonce,
+		Extra:       webappSSOState,
+	}
+	encodedState, err := p.SSOProvider.EncodeState(state)
+	if err != nil {
+		return
+	}
+	authURI, err = oauthProvider.GetAuthURL(state, encodedState)
+	return
+}
+
 func (p *AuthenticateProviderImpl) UnlinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
 	var result *interactionflows.WebAppResult
 	writeResponse = func(err error) {
@@ -694,6 +746,8 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 		result, err = p.Interactions.LoginWithOAuthProvider(oauthAuthInfo)
 	case "link":
 		result, err = p.Interactions.LinkWithOAuthProvider(state.LinkState.UserID, oauthAuthInfo)
+	case "promote":
+		result, err = p.Interactions.PromoteWithOAuthProvider(state.LinkState.UserID, oauthAuthInfo)
 	}
 
 	if err != nil {

@@ -23,6 +23,7 @@ func AttachPromoteHandler(
 type promoteProvider interface {
 	GetPromoteLoginIDForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 	PromoteLoginID(w http.ResponseWriter, r *http.Request) (func(error), error)
+	PromoteIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
 }
 
 type PromoteHandler struct {
@@ -44,6 +45,12 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if r.Method == "POST" {
+			if r.Form.Get("x_idp_id") != "" {
+				writeResponse, err := h.Provider.PromoteIdentityProvider(w, r, r.Form.Get("x_idp_id"))
+				writeResponse(err)
+				return err
+			}
+
 			writeResponse, err := h.Provider.PromoteLoginID(w, r)
 			writeResponse(err)
 			return err
