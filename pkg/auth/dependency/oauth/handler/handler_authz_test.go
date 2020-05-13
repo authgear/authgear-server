@@ -29,13 +29,13 @@ func TestAuthorizationHandler(t *testing.T) {
 			AppID:   "app-id",
 			Clients: []config.OAuthClientConfiguration{},
 
-			Authorizations:       authzStore,
-			CodeGrants:           codeGrantStore,
-			AuthorizeEndpoint:    mockEndpointsProvider{},
-			AuthenticateEndpoint: mockEndpointsProvider{},
-			ValidateScopes:       func(config.OAuthClientConfiguration, []string) error { return nil },
-			CodeGenerator:        func() string { return "authz-code" },
-			Time:                 mockTime,
+			Authorizations:  authzStore,
+			CodeGrants:      codeGrantStore,
+			AuthorizeURL:    mockEndpointsProvider{},
+			AuthenticateURL: mockEndpointsProvider{},
+			ValidateScopes:  func(config.OAuthClientConfiguration, []string) error { return nil },
+			CodeGenerator:   func() string { return "authz-code" },
+			Time:            mockTime,
 		}
 		handle := func(r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
 			result := h.Handle(r)

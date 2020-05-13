@@ -207,6 +207,27 @@ var challengeDependencySet = wire.NewSet(
 	wire.Bind(new(interactionflows.ChallengeProvider), new(*challenge.Provider)),
 )
 
+var endpointsDependencySet = wire.NewSet(
+	endpointsProviderSet,
+
+	wire.Bind(new(oauth.AuthorizeEndpointProvider), new(*EndpointsProvider)),
+	wire.Bind(new(oauth.TokenEndpointProvider), new(*EndpointsProvider)),
+	wire.Bind(new(oauth.RevokeEndpointProvider), new(*EndpointsProvider)),
+	wire.Bind(new(oidc.JWKSEndpointProvider), new(*EndpointsProvider)),
+	wire.Bind(new(oidc.UserInfoEndpointProvider), new(*EndpointsProvider)),
+	wire.Bind(new(oidc.EndSessionEndpointProvider), new(*EndpointsProvider)),
+	wire.Bind(new(oauthhandler.EndpointsProvider), new(*EndpointsProvider)),
+	wire.Bind(new(webapp.EndpointsProvider), new(*EndpointsProvider)),
+)
+
+var webappDependencySet = wire.NewSet(
+	webapp.DependencySet,
+
+	wire.Bind(new(oauthhandler.AuthenticateURLProvider), new(*webapp.URLProvider)),
+	wire.Bind(new(oidchandler.LogoutURLProvider), new(*webapp.URLProvider)),
+	wire.Bind(new(oidchandler.SettingsURLProvider), new(*webapp.URLProvider)),
+)
+
 var CommonDependencySet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideSessionInsecureCookieConfig,
@@ -216,7 +237,7 @@ var CommonDependencySet = wire.NewSet(
 	ProvideTaskExecutor,
 	ProvideTemplateEngine,
 	ProvideStaticAssetURLPrefix,
-	endpointsProviderSet,
+	endpointsDependencySet,
 
 	ProvideAuthSQLBuilder,
 	ProvidePrincipalProviders,
@@ -250,7 +271,7 @@ var CommonDependencySet = wire.NewSet(
 	urlprefix.DependencySet,
 	mfa.DependencySet,
 	mfapq.DependencySet,
-	webapp.DependencySet,
+	webappDependencySet,
 	oauthhandler.DependencySet,
 	oauth.DependencySet,
 	oauthpq.DependencySet,

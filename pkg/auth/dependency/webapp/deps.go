@@ -41,6 +41,7 @@ var DependencySet = wire.NewSet(
 	ProvideRenderProvider,
 	wire.Struct(new(StateStoreImpl), "*"),
 	wire.Bind(new(StateStore), new(*StateStoreImpl)),
+	wire.Struct(new(URLProvider), "*"),
 )
 
 func ProvideCSPMiddleware(tConfig *config.TenantConfiguration) mux.MiddlewareFunc {

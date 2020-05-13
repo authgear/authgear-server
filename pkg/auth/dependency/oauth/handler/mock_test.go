@@ -4,21 +4,18 @@ import (
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 )
 
 type mockEndpointsProvider struct{}
 
-func (mockEndpointsProvider) AuthorizeEndpointURI() *url.URL {
+func (mockEndpointsProvider) AuthorizeURI(r protocol.AuthorizationRequest) *url.URL {
 	u, _ := url.Parse("https://auth/authorize")
 	return u
 }
 
-func (mockEndpointsProvider) TokenEndpointURI() *url.URL {
-	u, _ := url.Parse("https://auth/token")
-	return u
-}
-
-func (mockEndpointsProvider) AuthenticateEndpointURI() *url.URL {
+func (mockEndpointsProvider) AuthenticateURI(opts webapp.AuthenticateURLOptions) *url.URL {
 	u, _ := url.Parse("https://auth/authenticate")
 	return u
 }

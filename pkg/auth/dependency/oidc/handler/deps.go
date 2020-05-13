@@ -2,7 +2,6 @@ package handler
 
 import (
 	"github.com/google/wire"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -10,14 +9,14 @@ import (
 func ProvideEndSessionHandler(
 	cfg *config.TenantConfiguration,
 	endSession oidc.EndSessionEndpointProvider,
-	logout oauth.LogoutEndpointProvider,
-	settings oauth.SettingsEndpointProvider,
+	logout LogoutURLProvider,
+	settings SettingsURLProvider,
 ) *EndSessionHandler {
 	return &EndSessionHandler{
 		Clients:            cfg.AppConfig.Clients,
 		EndSessionEndpoint: endSession,
-		LogoutEndpoint:     logout,
-		SettingsEndpoint:   settings,
+		LogoutURL:          logout,
+		SettingsURL:        settings,
 	}
 }
 

@@ -36,6 +36,7 @@ import (
 	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	pq3 "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -66,9 +67,15 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	endpointsProvider := &auth.EndpointsProvider{
 		PrefixProvider: urlprefixProvider,
 	}
+	urlProvider := &handler.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	webappURLProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
-	authorizationHandler := handler.ProvideAuthorizationHandler(context, tenantConfiguration, factory, authorizationStore, grantStore, endpointsProvider, endpointsProvider, scopesValidator, tokenGenerator, provider)
+	authorizationHandler := handler.ProvideAuthorizationHandler(context, tenantConfiguration, factory, authorizationStore, grantStore, urlProvider, webappURLProvider, scopesValidator, tokenGenerator, provider)
 	httpHandler := provideAuthorizeHandler(factory, txContext, authorizationHandler)
 	return httpHandler
 }
@@ -169,10 +176,9 @@ func newMetadataHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		PrefixProvider: urlprefixProvider,
 	}
 	metadataProvider := &oauth.MetadataProvider{
-		AuthorizeEndpoint:    endpointsProvider,
-		TokenEndpoint:        endpointsProvider,
-		RevokeEndpoint:       endpointsProvider,
-		AuthenticateEndpoint: endpointsProvider,
+		AuthorizeEndpoint: endpointsProvider,
+		TokenEndpoint:     endpointsProvider,
+		RevokeEndpoint:    endpointsProvider,
 	}
 	oidcMetadataProvider := &oidc.MetadataProvider{
 		URLPrefix:          urlprefixProvider,
@@ -219,7 +225,10 @@ func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	endpointsProvider := &auth.EndpointsProvider{
 		PrefixProvider: urlprefixProvider,
 	}
-	endSessionHandler := handler2.ProvideEndSessionHandler(tenantConfiguration, endpointsProvider, endpointsProvider, endpointsProvider)
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	endSessionHandler := handler2.ProvideEndSessionHandler(tenantConfiguration, endpointsProvider, urlProvider, urlProvider)
 	httpHandler := provideEndSessionHandler(factory, txContext, endSessionHandler)
 	return httpHandler
 }

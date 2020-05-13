@@ -21,8 +21,8 @@ func ProvideAuthorizationHandler(
 	lf logging.Factory,
 	as oauth.AuthorizationStore,
 	cs oauth.CodeGrantStore,
-	authze oauth.AuthorizeEndpointProvider,
-	authne oauth.AuthenticateEndpointProvider,
+	authze AuthorizeURLProvider,
+	authne AuthenticateURLProvider,
 	vs ScopesValidator,
 	cg TokenGenerator,
 	tp time.Provider,
@@ -33,13 +33,13 @@ func ProvideAuthorizationHandler(
 		Clients: cfg.AppConfig.Clients,
 		Logger:  lf.NewLogger("oauth-authz"),
 
-		Authorizations:       as,
-		CodeGrants:           cs,
-		AuthorizeEndpoint:    authze,
-		AuthenticateEndpoint: authne,
-		ValidateScopes:       vs,
-		CodeGenerator:        cg,
-		Time:                 tp,
+		Authorizations:  as,
+		CodeGrants:      cs,
+		AuthorizeURL:    authze,
+		AuthenticateURL: authne,
+		ValidateScopes:  vs,
+		CodeGenerator:   cg,
+		Time:            tp,
 	}
 }
 
@@ -84,4 +84,6 @@ var DependencySet = wire.NewSet(
 	wire.Value(TokenGenerator(oauth.GenerateToken)),
 	wire.Bind(new(authn.TokenIssuer), new(*TokenHandler)),
 	wire.Bind(new(interactionflows.AuthAPITokenIssuer), new(*TokenHandler)),
+	wire.Struct(new(URLProvider), "*"),
+	wire.Bind(new(AuthorizeURLProvider), new(*URLProvider)),
 )

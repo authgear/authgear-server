@@ -36,8 +36,6 @@ type (
 	}
 	authorizationResultRequireAuthn struct {
 		AuthenticateURI *url.URL
-		AuthorizeURI    *url.URL
-		Request         protocol.AuthorizationRequest
 	}
 )
 
@@ -76,18 +74,7 @@ func (a authorizationResultError) IsInternalError() bool {
 }
 
 func (a authorizationResultRequireAuthn) WriteResponse(rw http.ResponseWriter, r *http.Request) {
-	authorizeURI := coreurl.WithQueryParamsAdded(a.AuthorizeURI, a.Request)
-
-	q := map[string]string{
-		"redirect_uri": authorizeURI.String(),
-		"client_id":    a.Request.ClientID(),
-	}
-	if uiLocales, ok := a.Request["ui_locales"]; ok {
-		q["ui_locales"] = uiLocales
-	}
-	authenticateURI := coreurl.WithQueryParamsAdded(a.AuthenticateURI, q)
-
-	http.Redirect(rw, r, authenticateURI.String(), http.StatusFound)
+	http.Redirect(rw, r, a.AuthenticateURI.String(), http.StatusFound)
 }
 
 func (a authorizationResultRequireAuthn) IsInternalError() bool {
