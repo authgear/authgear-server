@@ -59,7 +59,7 @@ select {
 
 .errors {
   list-style-type: none;
-  margin: 0;
+  margin: 10px;
   padding: 0;
 }
 
@@ -111,22 +111,24 @@ select {
   font-size: 16px;
   height: 32px;
   border-radius: 2px;
-  min-width: 100px;
 }
 
 .primary-btn {
   color: white;
   background-color: #166bef;
+  min-width: 100px;
 }
 
 .secondary-btn {
   color: #323130;
   border: 1px solid #8A8886;
+  min-width: 100px;
 }
 
 .destructive-btn {
   color: #323130;
   background-color: #CACACA;
+  min-width: 100px;
 }
 
 .anchor {
@@ -220,17 +222,19 @@ button.anchor {
 .authorize-form {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 10px;
 }
 
 .authorize-idp-form {
   display: flex;
   flex-direction: column;
+  margin: 10px;
 }
 
 .authorize-loginid-form {
   display: flex;
   flex-direction: column;
+  margin: 10px;
 }
 
 .authorize-loginid-form .phone-input {
@@ -297,7 +301,7 @@ button.anchor {
 
 .sso-loginid-separator {
   text-align: center;
-  margin: 15px 0;
+  margin: 10px;
 }
 
 .password-visibility-btn {
@@ -338,7 +342,7 @@ button.anchor {
 .simple-form {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 10px;
 }
 
 .simple-form .title {
@@ -357,21 +361,14 @@ button.anchor {
 }
 
 .simple-form .login-id {
-  margin: 0 10px;
-}
-
-.simple-form .anchor {
-  padding: 4px 0;
+  margin: 10px;
 }
 
 .simple-form > input,
+.simple-form > button,
+.simple-form > a,
 .simple-form > div {
-  margin: 10px 0;
-}
-
-.simple-form > .anchor,
-.simple-form > .btn {
-  margin: 2px 0;
+  margin: 10px;
 }
 
 .settings-identity {
