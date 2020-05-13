@@ -28,6 +28,7 @@ type InteractionFlow interface {
 	SetupSecret(token string, secret string) (*interactionflows.WebAppResult, error)
 	LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	LinkWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
+	UnlinkWithOAuthProvider(userID string, providerConfig config.OAuthProviderConfiguration) (*interactionflows.WebAppResult, error)
 }
 
 type AuthenticateProviderImpl struct {
@@ -62,6 +63,7 @@ type AuthnProvider interface {
 
 type OAuthProviderFactory interface {
 	NewOAuthProvider(alias string) sso.OAuthProvider
+	GetOAuthProviderConfig(alias string) (config.OAuthProviderConfiguration, bool)
 }
 
 func (p *AuthenticateProviderImpl) makeState(sid string) *State {
@@ -437,6 +439,32 @@ func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r
 		return
 	}
 	authURI, err = oauthProvider.GetAuthURL(state, encodedState)
+	return
+}
+
+func (p *AuthenticateProviderImpl) UnlinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
+	writeResponse = func(err error) {
+		p.persistState(r, err)
+		RedirectToCurrentPath(w, r)
+	}
+
+	providerConfig, ok := p.OAuthProviderFactory.GetOAuthProviderConfig(providerAlias)
+	if !ok {
+		err = ErrOAuthProviderNotFound
+		return
+	}
+
+	userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
+
+	// create or update ui state
+	// state id will be set into the request query
+	p.persistState(r, nil)
+
+	_, err = p.Interactions.UnlinkWithOAuthProvider(userID, providerConfig)
+	if err != nil {
+		return
+	}
+
 	return
 }
 

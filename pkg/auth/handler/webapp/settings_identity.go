@@ -23,6 +23,7 @@ func AttachSettingsIdentityHandler(
 type settingsIdentityProvider interface {
 	GetSettingsIdentity(w http.ResponseWriter, r *http.Request) (func(error), error)
 	LinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
+	UnlinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
 }
 
 type SettingsIdentityHandler struct {
@@ -48,6 +49,11 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			if r.Form.Get("x_idp_id") != "" {
 				if r.Form.Get("x_action") == "link" {
 					writeResponse, err := h.Provider.LinkIdentityProvider(w, r, r.Form.Get("x_idp_id"))
+					writeResponse(err)
+					return err
+				}
+				if r.Form.Get("x_action") == "unlink" {
+					writeResponse, err := h.Provider.UnlinkIdentityProvider(w, r, r.Form.Get("x_idp_id"))
 					writeResponse(err)
 					return err
 				}
