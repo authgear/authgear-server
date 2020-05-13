@@ -274,29 +274,19 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 	if err != nil {
 		return err
 	}
-
+	originalIdentity := model.Identity{
+		Type:   string(updateIdentityInfo.Type),
+		Claims: originalIdentityInfo.Claims,
+	}
 	updatedIdentity := model.Identity{
 		Type:   string(updateIdentityInfo.Type),
 		Claims: updateIdentityInfo.Claims,
 	}
 	err = p.Hooks.DispatchEvent(
-		event.IdentityCreateEvent{
-			User:     *user,
-			Identity: updatedIdentity,
-		},
-		user,
-	)
-	if err != nil {
-		return err
-	}
-	originalIdentity := model.Identity{
-		Type:   string(updateIdentityInfo.Type),
-		Claims: originalIdentityInfo.Claims,
-	}
-	err = p.Hooks.DispatchEvent(
-		event.IdentityDeleteEvent{
-			User:     *user,
-			Identity: originalIdentity,
+		event.IdentityUpdateEvent{
+			User:        *user,
+			OldIdentity: originalIdentity,
+			NewIdentity: updatedIdentity,
 		},
 		user,
 	)
