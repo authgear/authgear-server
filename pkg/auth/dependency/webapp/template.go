@@ -856,6 +856,18 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
            {{ end }}
          {{ end }}
       </h2>
+
+      {{ if eq .type "oauth" }}{{ if .email }}
+      <h3 class="identity-claim secondary-txt">
+        {{ .email }}
+      </h3>
+      {{ end }}{{ end }}
+
+      {{ if eq .type "login_id" }}{{ if .login_id_value }}
+      <h3 class="identity-claim secondary-txt">
+        {{ .login_id_value }}
+      </h3>
+      {{ end }}{{ end }}
     </div>
   </div>
   {{ end }}
