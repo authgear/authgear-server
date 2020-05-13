@@ -32,6 +32,16 @@ button[disabled] {
   cursor: not-allowed;
 }
 
+a {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+a:link,
+a:visited {
+  color: #166bef;
+}
+
 select {
   -moz-appearance: none;
   -webkit-appearance: none;
@@ -131,19 +141,8 @@ select {
   min-width: 100px;
 }
 
-.anchor {
-  text-decoration: none;
-}
-
 .link {
   font-size: 12px;
-}
-
-.btn.anchor {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
 }
 
 button.link {
@@ -154,11 +153,11 @@ button.anchor {
   color: #166bef;
 }
 
-.anchor:link,
-.anchor:visited,
-.link:link,
-.link:visited {
-  color: #166bef;
+a.btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
 
 .page {
