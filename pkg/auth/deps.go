@@ -195,6 +195,7 @@ var interactionDependencySet = wire.NewSet(
 
 	wire.Bind(new(webapp.InteractionFlow), new(*interactionflows.WebAppFlow)),
 	wire.Bind(new(oauthhandler.AnonymousInteractionFlow), new(*interactionflows.AnonymousFlow)),
+	wire.Bind(new(webapp.AnonymousFlow), new(*interactionflows.AnonymousFlow)),
 
 	wire.Bind(new(hook.LoginIDProvider), new(*identityloginid.Provider)),
 

@@ -15,9 +15,9 @@ func (mockEndpointsProvider) AuthorizeURI(r protocol.AuthorizationRequest) *url.
 	return u
 }
 
-func (mockEndpointsProvider) AuthenticateURI(opts webapp.AuthenticateURLOptions) *url.URL {
+func (mockEndpointsProvider) AuthenticateURI(opts webapp.AuthenticateURLOptions) (*url.URL, error) {
 	u, _ := url.Parse("https://auth/authenticate")
-	return u
+	return u, nil
 }
 
 type mockAuthzStore struct {

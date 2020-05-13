@@ -31,6 +31,8 @@ type State struct {
 	Form string `json:"form"`
 	// Error is either reset to nil or set to non-nil in every POST request.
 	Error *skyerr.APIError `json:"error"`
+	// AnonymousUserID is the ID of anonymous user during promotion flow.
+	AnonymousUserID string `json:"anonymous_user_id,omitempty"`
 }
 
 func NewState() *State {

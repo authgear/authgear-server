@@ -9,6 +9,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
@@ -24,7 +25,7 @@ type AuthorizeURLProvider interface {
 }
 
 type AuthenticateURLProvider interface {
-	AuthenticateURI(options webapp.AuthenticateURLOptions) *url.URL
+	AuthenticateURI(options webapp.AuthenticateURLOptions) (*url.URL, error)
 }
 
 type AuthorizationHandler struct {
@@ -108,12 +109,19 @@ func (h *AuthorizationHandler) doHandle(
 	}
 	if session == nil || session.SessionType() != auth.SessionTypeIdentityProvider {
 		// Not authenticated as IdP session => request authentication and retry
-		authorizeURI := h.AuthorizeURL.AuthorizeURI(r)
-		authnOptions.RedirectURI = authorizeURI.String()
 		authnOptions.ClientID = r.ClientID()
 		authnOptions.UILocales = strings.Join(r.UILocales(), " ")
 		authnOptions.LoginHint = r.LoginHint()
-		authenticateURI := h.AuthenticateURL.AuthenticateURI(authnOptions)
+		r.SetLoginHint("")
+		authorizeURI := h.AuthorizeURL.AuthorizeURI(r)
+		authnOptions.RedirectURI = authorizeURI.String()
+
+		authenticateURI, err := h.AuthenticateURL.AuthenticateURI(authnOptions)
+		if errors.Is(err, interaction.ErrInvalidCredentials) {
+			return nil, protocol.NewError("invalid_request", "invalid credentials")
+		} else if err != nil {
+			return nil, err
+		}
 
 		return authorizationResultRequireAuthn{
 			AuthenticateURI: authenticateURI,
