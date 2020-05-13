@@ -6,64 +6,10 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
 	coretime "github.com/skygeario/skygear-server/pkg/core/time"
 )
-
-func TestProvider(t *testing.T) {
-	SkipConvey("Interaction Provider", t, func() {
-		var p *interaction.Provider
-		Convey("Setup MFA", func() {
-			Convey("step 1", func() {
-				i, err := p.NewInteractionAddAuthenticator(
-					&interaction.IntentAddAuthenticator{
-						Authenticator: authenticator.Spec{
-							Type: authn.AuthenticatorTypeTOTP,
-							Props: map[string]interface{}{
-								authenticator.AuthenticatorPropTOTPDisplayName: "My Authenticator",
-							},
-						},
-					},
-					"",
-					nil,
-				)
-				So(err, ShouldBeNil)
-
-				So(i.NewAuthenticators, ShouldNotBeEmpty)
-				So(i.NewAuthenticators, ShouldResemble, []authenticator.Spec{
-					{
-						Type: authn.AuthenticatorTypeTOTP,
-						Props: map[string]interface{}{
-							authenticator.AuthenticatorPropTOTPDisplayName: "My Authenticator",
-						},
-					},
-				})
-
-				state, err := p.GetInteractionState(i)
-				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 1)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupSecondaryAuthenticator)
-
-				err = p.PerformAction(i, interaction.StepSetupSecondaryAuthenticator, &interaction.ActionAuthenticate{
-					Secret: "123456",
-				})
-				So(err, ShouldBeNil)
-
-				state, err = p.GetInteractionState(i)
-				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 2)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupSecondaryAuthenticator)
-				So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
-
-				_, err = p.Commit(i)
-				So(err, ShouldBeNil)
-			})
-		})
-	})
-}
 
 func TestInteractionProviderProgrammingError(t *testing.T) {
 	Convey("InteractionProviderProgrammingError", t, func() {
