@@ -722,6 +722,112 @@ func TestProviderFlow(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
+		Convey("Remove identity", func() {
+			// setup
+			p.Config = &config.AuthenticationConfiguration{
+				PrimaryAuthenticators: []string{"password"},
+			}
+			userID := "user_id_1"
+			loginIDClaims := map[string]interface{}{
+				identity.IdentityClaimLoginIDKey:   "email",
+				identity.IdentityClaimLoginIDValue: "user@example.com",
+			}
+			ii := &identity.Info{
+				ID:     "identity_id_1",
+				Type:   authn.IdentityTypeLoginID,
+				Claims: loginIDClaims,
+			}
+			ii2 := &identity.Info{
+				ID:   "identity_id_2",
+				Type: authn.IdentityTypeLoginID,
+				Claims: map[string]interface{}{
+					identity.IdentityClaimLoginIDKey:   "email",
+					identity.IdentityClaimLoginIDValue: "user2@example.com",
+				},
+			}
+
+			identityProvider.EXPECT().GetByUserAndClaims(
+				gomock.Eq(authn.IdentityTypeLoginID), gomock.Eq(userID), gomock.Eq(loginIDClaims),
+			).Return(ii, nil)
+
+			Convey("should disallow remove the last identity", func() {
+				identityProvider.EXPECT().ListByUser(
+					gomock.Eq(userID),
+				).Return([]*identity.Info{ii}, nil)
+
+				_, err := p.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
+					Identity: identity.Spec{
+						Type:   authn.IdentityTypeLoginID,
+						Claims: loginIDClaims,
+					},
+				}, "", userID)
+				So(err, ShouldEqual, interaction.ErrCannotRemoveLastIdentity)
+			})
+
+			Convey("should remove identity", func() {
+				// setup
+				// user had 2 identities
+
+				ai1 := &authenticator.Info{
+					ID:   "authenticator_id_1",
+					Type: authn.AuthenticatorTypePassword,
+				}
+				ai2 := &authenticator.Info{
+					ID:   "authenticator_id_2",
+					Type: authn.AuthenticatorTypeOOB,
+				}
+				ai3 := &authenticator.Info{
+					ID:   "authenticator_id_3",
+					Type: authn.AuthenticatorTypeOOB,
+				}
+
+				identityProvider.EXPECT().ListByUser(
+					gomock.Eq(userID),
+				).Return([]*identity.Info{ii, ii2}, nil).AnyTimes()
+				var emptyIdentityInfoList []*identity.Info
+				identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq([]*identity.Info{ii})).Return(nil)
+				identityProvider.EXPECT().Get(gomock.Any(), ii.Type, ii.ID).Return(ii, nil)
+
+				// identity ii related to authenticators ai1 and ai2
+				// identity ii2 related to authenticators ai1 and ai3
+				// so ai2 should be removed and ai1 and ai3 should be kept
+				authenticatorProvider.EXPECT().ListByIdentity(
+					gomock.Eq(userID), gomock.Eq(ii),
+				).Return([]*authenticator.Info{ai1, ai2}, nil)
+				authenticatorProvider.EXPECT().ListByIdentity(
+					gomock.Eq(userID), gomock.Eq(ii2),
+				).Return([]*authenticator.Info{ai1, ai3}, nil)
+				var emptyAuthenticatorInfoList []*authenticator.Info
+				authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq([]*authenticator.Info{ai2})).Return(nil)
+
+				// get user for hook
+				userProvider.EXPECT().Get(gomock.Eq(userID)).Return(&model.User{}, nil)
+
+				store.EXPECT().Delete(gomock.Any()).Return(nil)
+
+				// start flow
+				i, err := p.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
+					Identity: identity.Spec{
+						Type:   authn.IdentityTypeLoginID,
+						Claims: loginIDClaims,
+					},
+				}, "", userID)
+				So(err, ShouldBeNil)
+
+				state, err := p.GetInteractionState(i)
+				So(err, ShouldBeNil)
+				So(state.Steps, ShouldHaveLength, 1)
+				So(state.Steps[0].Step, ShouldEqual, interaction.StepCommit)
+
+				_, err = p.Commit(i)
+				So(err, ShouldBeNil)
+			})
+
+		})
+
 	})
 
 }
