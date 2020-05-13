@@ -7,7 +7,6 @@ package webapp
 
 import (
 	"github.com/google/wire"
-	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
@@ -166,22 +165,21 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
-	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
-		ValidateProvider: validateProvider,
-		RenderProvider:   renderProvider,
-		AuthnProvider:    authnProvider,
-		StateStore:       stateStoreImpl,
-		SSOProvider:      provider6,
-		Interactions:     webAppFlow,
-	}
 	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
-	oAuthProvider := provideOAuthProviderFromForm(r, oAuthProviderFactory)
+	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
+		ValidateProvider:     validateProvider,
+		RenderProvider:       renderProvider,
+		AuthnProvider:        authnProvider,
+		StateStore:           stateStoreImpl,
+		SSOProvider:          provider6,
+		Interactions:         webAppFlow,
+		OAuthProviderFactory: oAuthProviderFactory,
+	}
 	loginHandler := &LoginHandler{
-		Provider:      authenticateProviderImpl,
-		oauthProvider: oAuthProvider,
-		TxContext:     txContext,
+		Provider:  authenticateProviderImpl,
+		TxContext: txContext,
 	}
 	return loginHandler
 }
@@ -297,13 +295,17 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
+	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
+	redirectURLFunc := provideRedirectURIForWebAppFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
-		ValidateProvider: validateProvider,
-		RenderProvider:   renderProvider,
-		AuthnProvider:    authnProvider,
-		StateStore:       stateStoreImpl,
-		SSOProvider:      provider6,
-		Interactions:     webAppFlow,
+		ValidateProvider:     validateProvider,
+		RenderProvider:       renderProvider,
+		AuthnProvider:        authnProvider,
+		StateStore:           stateStoreImpl,
+		SSOProvider:          provider6,
+		Interactions:         webAppFlow,
+		OAuthProviderFactory: oAuthProviderFactory,
 	}
 	enterPasswordHandler := &EnterPasswordHandler{
 		Provider:  authenticateProviderImpl,
@@ -611,22 +613,21 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
-	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
-		ValidateProvider: validateProvider,
-		RenderProvider:   renderProvider,
-		AuthnProvider:    authnProvider,
-		StateStore:       stateStoreImpl,
-		SSOProvider:      provider6,
-		Interactions:     webAppFlow,
-	}
 	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
-	oAuthProvider := provideOAuthProviderFromForm(r, oAuthProviderFactory)
+	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
+		ValidateProvider:     validateProvider,
+		RenderProvider:       renderProvider,
+		AuthnProvider:        authnProvider,
+		StateStore:           stateStoreImpl,
+		SSOProvider:          provider6,
+		Interactions:         webAppFlow,
+		OAuthProviderFactory: oAuthProviderFactory,
+	}
 	signupHandler := &SignupHandler{
-		Provider:      authenticateProviderImpl,
-		oauthProvider: oAuthProvider,
-		TxContext:     txContext,
+		Provider:  authenticateProviderImpl,
+		TxContext: txContext,
 	}
 	return signupHandler
 }
@@ -738,13 +739,17 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
+	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
+	redirectURLFunc := provideRedirectURIForWebAppFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
-		ValidateProvider: validateProvider,
-		RenderProvider:   renderProvider,
-		AuthnProvider:    authnProvider,
-		StateStore:       stateStoreImpl,
-		SSOProvider:      provider6,
-		Interactions:     webAppFlow,
+		ValidateProvider:     validateProvider,
+		RenderProvider:       renderProvider,
+		AuthnProvider:        authnProvider,
+		StateStore:           stateStoreImpl,
+		SSOProvider:          provider6,
+		Interactions:         webAppFlow,
+		OAuthProviderFactory: oAuthProviderFactory,
 	}
 	createPasswordHandler := &CreatePasswordHandler{
 		Provider:  authenticateProviderImpl,
@@ -906,13 +911,17 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
+	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
+	redirectURLFunc := provideRedirectURIForWebAppFunc()
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
-		ValidateProvider: validateProvider,
-		RenderProvider:   renderProvider,
-		AuthnProvider:    authnProvider,
-		StateStore:       stateStoreImpl,
-		SSOProvider:      provider6,
-		Interactions:     webAppFlow,
+		ValidateProvider:     validateProvider,
+		RenderProvider:       renderProvider,
+		AuthnProvider:        authnProvider,
+		StateStore:           stateStoreImpl,
+		SSOProvider:          provider6,
+		Interactions:         webAppFlow,
+		OAuthProviderFactory: oAuthProviderFactory,
 	}
 	oobotpHandler := &OOBOTPHandler{
 		Provider:  authenticateProviderImpl,
@@ -1075,40 +1084,29 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
-	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
-		ValidateProvider: validateProvider,
-		RenderProvider:   renderProvider,
-		AuthnProvider:    authnProvider,
-		StateStore:       stateStoreImpl,
-		SSOProvider:      provider6,
-		Interactions:     webAppFlow,
-	}
 	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
-	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
+	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
+		ValidateProvider:     validateProvider,
+		RenderProvider:       renderProvider,
+		AuthnProvider:        authnProvider,
+		StateStore:           stateStoreImpl,
+		SSOProvider:          provider6,
+		Interactions:         webAppFlow,
+		OAuthProviderFactory: oAuthProviderFactory,
+	}
 	ssoCallbackHandler := &SSOCallbackHandler{
-		Provider:      authenticateProviderImpl,
-		oauthProvider: oAuthProvider,
-		TxContext:     txContext,
+		Provider:  authenticateProviderImpl,
+		TxContext: txContext,
 	}
 	return ssoCallbackHandler
 }
 
 // wire.go:
 
-var authDepSet = wire.NewSet(authn.ProvideAuthUIProvider, wire.Bind(new(webapp.AuthnProvider), new(*authn.Provider)), wire.Struct(new(webapp.AuthenticateProviderImpl), "*"))
-
 func provideRedirectURIForWebAppFunc() sso.RedirectURLFunc {
 	return redirectURIForWebApp
 }
 
-func provideOAuthProviderFromForm(r *http.Request, spf *sso.OAuthProviderFactory) sso.OAuthProvider {
-	idp := r.Form.Get("x_idp_id")
-	return spf.NewOAuthProvider(idp)
-}
-
-func provideOAuthProviderFromRequestVars(r *http.Request, spf *sso.OAuthProviderFactory) sso.OAuthProvider {
-	vars := mux.Vars(r)
-	return spf.NewOAuthProvider(vars["provider"])
-}
+var dependencySet = wire.NewSet(auth.DependencySet, authn.ProvideAuthUIProvider, wire.Bind(new(webapp.AuthnProvider), new(*authn.Provider)), wire.Bind(new(webapp.OAuthProviderFactory), new(*sso.OAuthProviderFactory)), wire.Struct(new(webapp.AuthenticateProviderImpl), "*"), wire.Bind(new(webapp.ForgotPassword), new(*forgotpassword.Provider)), wire.Struct(new(webapp.ForgotPasswordProvider), "*"), provideRedirectURIForWebAppFunc)

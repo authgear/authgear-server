@@ -1,7 +1,6 @@
 package webapp
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,7 +9,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
@@ -35,13 +33,12 @@ func redirectURIForWebApp(urlPrefix *url.URL, providerConfig config.OAuthProvide
 type loginProvider interface {
 	GetEnterLoginIDForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 	EnterLoginID(w http.ResponseWriter, r *http.Request) (func(error), error)
-	ChooseIdentityProvider(w http.ResponseWriter, r *http.Request, oauthProvider webapp.OAuthProvider) (func(error), error)
+	LoginIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
 }
 
 type LoginHandler struct {
-	Provider      loginProvider
-	oauthProvider webapp.OAuthProvider
-	TxContext     db.TxContext
+	Provider  loginProvider
+	TxContext db.TxContext
 }
 
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -59,11 +56,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "POST" {
 			if r.Form.Get("x_idp_id") != "" {
-				if h.oauthProvider == nil {
-					http.Error(w, "Not found", http.StatusNotFound)
-					return errors.New("oauth provider not found")
-				}
-				writeResponse, err := h.Provider.ChooseIdentityProvider(w, r, h.oauthProvider)
+				writeResponse, err := h.Provider.LoginIdentityProvider(w, r, r.Form.Get("x_idp_id"))
 				writeResponse(err)
 				return err
 			}

@@ -29,12 +29,13 @@ type InteractionFlow interface {
 }
 
 type AuthenticateProviderImpl struct {
-	ValidateProvider ValidateProvider
-	RenderProvider   RenderProvider
-	AuthnProvider    AuthnProvider
-	StateStore       StateStore
-	SSOProvider      sso.Provider
-	Interactions     InteractionFlow
+	ValidateProvider     ValidateProvider
+	RenderProvider       RenderProvider
+	AuthnProvider        AuthnProvider
+	StateStore           StateStore
+	SSOProvider          sso.Provider
+	Interactions         InteractionFlow
+	OAuthProviderFactory OAuthProviderFactory
 }
 
 type AuthnProvider interface {
@@ -57,9 +58,8 @@ type AuthnProvider interface {
 	WriteCookie(rw http.ResponseWriter, result *authn.CompletionResult)
 }
 
-type OAuthProvider interface {
-	GetAuthURL(state sso.State, encodedState string) (url string, err error)
-	GetAuthInfo(r sso.OAuthAuthorizationResponse, state sso.State) (sso.AuthInfo, error)
+type OAuthProviderFactory interface {
+	NewOAuthProvider(alias string) sso.OAuthProvider
 }
 
 func (p *AuthenticateProviderImpl) makeState(sid string) *State {
@@ -337,16 +337,23 @@ func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 	return
 }
 
-func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter, r *http.Request, oauthProvider OAuthProvider) (writeResponse func(err error), err error) {
+func (p *AuthenticateProviderImpl) LoginIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
 	var authURI string
 	writeResponse = func(err error) {
 		p.persistState(r, err)
 		if err != nil {
-			RedirectToPathWithX(w, r, "/login")
+			RedirectToCurrentPath(w, r)
 		} else {
 			http.Redirect(w, r, authURI, http.StatusFound)
 		}
 	}
+
+	oauthProvider := p.OAuthProviderFactory.NewOAuthProvider(providerAlias)
+	if oauthProvider == nil {
+		err = ErrOAuthProviderNotFound
+		return
+	}
+
 	// create or update ui state
 	// state id will be set into the request query
 	p.persistState(r, nil)
@@ -376,7 +383,7 @@ func (p *AuthenticateProviderImpl) ChooseIdentityProvider(w http.ResponseWriter,
 	return
 }
 
-func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *http.Request, oauthProvider OAuthProvider) (writeResponse func(error), err error) {
+func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(error), err error) {
 	v := url.Values{}
 	writeResponse = func(err error) {
 		callbackURL := v.Get("redirect_uri")
@@ -403,6 +410,12 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 			}
 			http.Redirect(w, r, redirectURI, http.StatusFound)
 		}
+	}
+
+	oauthProvider := p.OAuthProviderFactory.NewOAuthProvider(providerAlias)
+	if oauthProvider == nil {
+		err = ErrOAuthProviderNotFound
+		return
 	}
 
 	err = p.ValidateProvider.Validate("#SSOCallbackRequest", r.Form)
