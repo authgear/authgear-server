@@ -101,6 +101,9 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"settings-identity-login-id-email": "Email Address",
 	"settings-identity-login-id-phone": "Phone Number",
 	"settings-identity-login-id-username": "Username",
-	"settings-identity-login-id-raw": "Username"
+	"settings-identity-login-id-raw": "Username",
+	"settings-identity-connect": "Connect",
+	"settings-identity-disconnect": "Disconnect",
+	"settings-identity-change": "Change"
 	}`,
 }

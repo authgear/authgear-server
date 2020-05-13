@@ -869,6 +869,22 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
       </h3>
       {{ end }}{{ end }}
     </div>
+
+    {{ if eq .type "oauth" }}
+      {{ if .provider_subject_id }}
+      <button class="btn destructive-btn" type="button">{{ localize "settings-identity-disconnect" }}</button>
+      {{ else }}
+      <button class="btn primary-btn" type="button">{{ localize "settings-identity-connect" }}</button>
+      {{ end }}
+    {{ end }}
+
+    {{ if eq .type "login_id" }}
+      {{ if .login_id_value }}
+      <button class="btn secondary-btn" type="button">{{ localize "settings-identity-change" }}</button>
+      {{ else }}
+      <button class="btn primary-btn" type="button">{{ localize "settings-identity-connect" }}</button>
+      {{ end }}
+    {{ end }}
   </div>
   {{ end }}
 </div>

@@ -67,11 +67,6 @@ select {
   color: #e30f0f;
 }
 
-.btn {
-  /* NOTE(1) */
-  font-size: 16px;
-}
-
 .input {
   border: none;
   border-radius: 0;
@@ -111,20 +106,27 @@ select {
   padding: 0 8px;
 }
 
-.primary-btn {
+.btn {
+  /* NOTE(1) */
+  font-size: 16px;
   height: 32px;
   border-radius: 2px;
-  color: white;
   min-width: 100px;
+}
+
+.primary-btn {
+  color: white;
   background-color: #166bef;
 }
 
 .secondary-btn {
-  height: 32px;
-  border-radius: 2px;
   color: #323130;
-  min-width: 100px;
   border: 1px solid #8A8886;
+}
+
+.destructive-btn {
+  color: #323130;
+  background-color: #CACACA;
 }
 
 .anchor {
