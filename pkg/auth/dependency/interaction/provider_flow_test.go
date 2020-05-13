@@ -614,6 +614,114 @@ func TestProviderFlow(t *testing.T) {
 			})
 
 		})
+
+		Convey("Update identity", func() {
+			// setup
+			p.Config = &config.AuthenticationConfiguration{
+				PrimaryAuthenticators: []string{"password"},
+			}
+
+			userID := "user_id_1"
+			oldClaims := map[string]interface{}{
+				identity.IdentityClaimLoginIDKey:   "email",
+				identity.IdentityClaimLoginIDValue: "old@example.com",
+			}
+			newClaims := map[string]interface{}{
+				identity.IdentityClaimLoginIDKey:   "email",
+				identity.IdentityClaimLoginIDValue: "new@example.com",
+			}
+			oii := &identity.Info{
+				ID:     "identity_id_1",
+				Type:   authn.IdentityTypeLoginID,
+				Claims: oldClaims,
+			}
+			nii := &identity.Info{
+				ID:     "identity_id_1",
+				Type:   authn.IdentityTypeLoginID,
+				Claims: newClaims,
+			}
+			ai := &authenticator.Info{
+				ID:     "authenticator_id_1",
+				Type:   authn.AuthenticatorTypePassword,
+				Props:  map[string]interface{}{},
+				Secret: "password",
+			}
+			oobai := &authenticator.Info{
+				ID:   "authenticator_id_2",
+				Type: authn.AuthenticatorTypeOOB,
+			}
+			as := &authenticator.Spec{
+				Type:  authn.AuthenticatorTypePassword,
+				Props: map[string]interface{}{},
+			}
+
+			identityProvider.EXPECT().GetByClaims(
+				gomock.Eq(authn.IdentityTypeLoginID), gomock.Eq(oldClaims),
+			).Return(userID, oii, nil)
+			identityProvider.EXPECT().WithClaims(
+				gomock.Eq(userID), gomock.Eq(oii), gomock.Eq(newClaims),
+			).Return(nii)
+			identityProvider.EXPECT().ListByUser(
+				gomock.Eq(userID),
+			).Return([]*identity.Info{oii}, nil).AnyTimes()
+			// should include updated identity in validation
+			identityProvider.EXPECT().Validate(
+				gomock.Eq([]*identity.Info{nii}),
+			).Return(nil)
+			// return updated identity related authenticator spec
+			identityProvider.EXPECT().RelateIdentityToAuthenticator(
+				gomock.Eq(nii.ToSpec()), gomock.Eq(as),
+			).Return(as)
+
+			var emptyIdentityInfoList []*identity.Info
+			identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+			identityProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq([]*identity.Info{nii})).Return(nil)
+			identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+			identityProvider.EXPECT().Get(gomock.Any(), nii.Type, nii.ID).Return(nii, nil)
+
+			// simulate original identity related to password and oob authenticators
+			// updated identity related to password authenticator
+			// the oob authenticator should be removed
+			authenticatorProvider.EXPECT().ListByIdentity(
+				gomock.Eq(userID), gomock.Eq(oii),
+			).Return([]*authenticator.Info{ai, oobai}, nil).AnyTimes()
+			authenticatorProvider.EXPECT().ListByIdentity(
+				gomock.Eq(userID), gomock.Eq(nii),
+			).Return([]*authenticator.Info{ai}, nil).AnyTimes()
+
+			var emptyAuthenticatorInfoList []*authenticator.Info
+			authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+			// remove oob authenticator
+			authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq([]*authenticator.Info{oobai})).Return(nil)
+
+			// get user for hook
+			userProvider.EXPECT().Get(gomock.Eq(userID)).Return(&model.User{}, nil)
+
+			store.EXPECT().Delete(gomock.Any()).Return(nil)
+
+			// start flow
+			i, err := p.NewInteractionUpdateIdentity(&interaction.IntentUpdateIdentity{
+				OldIdentity: identity.Spec{
+					Type:   authn.IdentityTypeLoginID,
+					Claims: oldClaims,
+				},
+				NewIdentity: identity.Spec{
+					Type:   authn.IdentityTypeLoginID,
+					Claims: newClaims,
+				},
+			}, "", userID)
+			So(err, ShouldBeNil)
+
+			state, err := p.GetInteractionState(i)
+			So(err, ShouldBeNil)
+
+			So(state.Steps, ShouldHaveLength, 1)
+			So(state.Steps[0].Step, ShouldEqual, interaction.StepCommit)
+
+			_, err = p.Commit(i)
+			So(err, ShouldBeNil)
+		})
+
 	})
 
 }
