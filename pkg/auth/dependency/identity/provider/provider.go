@@ -55,6 +55,7 @@ type AnonymousIdentityProvider interface {
 	ListByClaim(name string, value string) ([]*anonymous.Identity, error)
 	New(userID string, keyID string, key []byte) *anonymous.Identity
 	Create(i *anonymous.Identity) error
+	Delete(i *anonymous.Identity) error
 }
 
 type Provider struct {
@@ -207,6 +208,15 @@ func (a *Provider) ListByUser(userID string) ([]*identity.Info, error) {
 		iis = append(iis, oauthToIdentityInfo(i))
 	}
 
+	// anonymous
+	ais, err := a.Anonymous.List(userID)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range ais {
+		iis = append(iis, anonymousToIdentityInfo(i))
+	}
+
 	return iis, nil
 }
 
@@ -324,6 +334,11 @@ func (a *Provider) DeleteAll(userID string, is []*identity.Info) error {
 		case authn.IdentityTypeOAuth:
 			identity := oauthFromIdentityInfo(userID, i)
 			if err := a.OAuth.Delete(identity); err != nil {
+				return err
+			}
+		case authn.IdentityTypeAnonymous:
+			identity := anonymousFromIdentityInfo(userID, i)
+			if err := a.Anonymous.Delete(identity); err != nil {
 				return err
 			}
 		default:

@@ -22,6 +22,7 @@ import (
 type InteractionFlow interface {
 	LoginWithLoginID(loginID string) (*interactionflows.WebAppResult, error)
 	SignupWithLoginID(loginIDKey, loginID string) (*interactionflows.WebAppResult, error)
+	PromoteWithLoginID(loginIDKey, loginID string, userID string) (*interactionflows.WebAppResult, error)
 	EnterSecret(token string, secret string) (*interactionflows.WebAppResult, error)
 	TriggerOOBOTP(token string) (*interactionflows.WebAppResult, error)
 	LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
@@ -295,6 +296,39 @@ func (p *AuthenticateProviderImpl) GetPromoteLoginIDForm(w http.ResponseWriter, 
 }
 
 func (p *AuthenticateProviderImpl) PromoteLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	var result *interactionflows.WebAppResult
+	writeResponse = func(err error) {
+		p.persistState(r, err)
+		p.handleResult(w, r, result, err)
+	}
+
+	state, err := p.restoreState(r)
+	if err != nil {
+		return
+	}
+
+	p.ValidateProvider.PrepareValues(r.Form)
+
+	err = p.ValidateProvider.Validate("#WebAppPromoteLoginIDRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	err = p.SetLoginID(r)
+	if err != nil {
+		return
+	}
+
+	result, err = p.Interactions.PromoteWithLoginID(
+		r.Form.Get("x_login_id_key"),
+		r.Form.Get("x_login_id"),
+		state.AnonymousUserID,
+	)
+	if err != nil {
+		return
+	}
+
+	r.Form["x_interaction_token"] = []string{result.Token}
 	return
 }
 
