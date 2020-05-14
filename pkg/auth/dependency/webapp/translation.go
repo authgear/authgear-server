@@ -24,6 +24,9 @@ var TemplateAuthUITranslationJSON = template.Spec{
 
 	"back-button-title": "Back",
 	"next-button-label": "Next",
+	"connect-button-label": "Connect",
+	"disconnect-button-label": "Disconnect",
+	"change-button-label": "Change",
 
 	"sign-in-apple": "Sign in with Apple",
 	"sign-in-google": "Sign in with Google",
@@ -100,9 +103,6 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"settings-identity-login-id-phone": "Phone Number",
 	"settings-identity-login-id-username": "Username",
 	"settings-identity-login-id-raw": "Username",
-	"settings-identity-connect": "Connect",
-	"settings-identity-disconnect": "Disconnect",
-	"settings-identity-change": "Change",
 
 	"enter-login-id-page-title--change": "Change your {0}",
 	"enter-login-id-page-title--add": "Enter your {0}"

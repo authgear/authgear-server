@@ -948,9 +948,9 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
       {{ $.csrfField }}
       <input type="hidden" name="x_idp_id" value="{{ .provider_alias }}">
       {{ if .provider_subject_id }}
-      <button class="btn destructive-btn" type="submit" name="x_action" value="unlink">{{ localize "settings-identity-disconnect" }}</button>
+      <button class="btn destructive-btn" type="submit" name="x_action" value="unlink">{{ localize "disconnect-button-label" }}</button>
       {{ else }}
-      <button class="btn primary-btn" type="submit" name="x_action" value="link">{{ localize "settings-identity-connect" }}</button>
+      <button class="btn primary-btn" type="submit" name="x_action" value="link">{{ localize "connect-button-label" }}</button>
       {{ end }}
       </form>
     {{ end }}
@@ -966,9 +966,9 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
       {{ end }}
       {{ if .login_id_value }}
       <input type="hidden" name="x_old_login_id_value" value="{{ .login_id_value }}">
-      <button class="btn secondary-btn" type="submit" name="x_action" value="login_id">{{ localize "settings-identity-change" }}</a>
+      <button class="btn secondary-btn" type="submit" name="x_action" value="login_id">{{ localize "change-button-label" }}</a>
       {{ else }}
-      <button class="btn primary-btn" type="submit" name="x_action" value="login_id">{{ localize "settings-identity-connect" }}</a>
+      <button class="btn primary-btn" type="submit" name="x_action" value="login_id">{{ localize "connect-button-label" }}</a>
       {{ end }}
       </form>
     {{ end }}
