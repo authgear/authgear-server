@@ -38,6 +38,8 @@ func (p *Provider) PerformAction(i *Interaction, step Step, action Action) error
 		return p.performActionAddIdentity(i, intent, stepState, state, action)
 	case *IntentUpdateIdentity:
 		return p.performActionUpdateIdentity(i, intent, stepState, state, action)
+	case *IntentUpdateAuthenticator:
+		return p.performActionUpdateAuthenticator(i, intent, stepState, state, action)
 	}
 	panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 }
@@ -108,6 +110,48 @@ func (p *Provider) performActionUpdateIdentity(i *Interaction, intent *IntentUpd
 		return p.setupPrimaryAuthenticator(i, step, s, action)
 	}
 	panic("interaction_add_identity: unhandled step " + step.Step)
+}
+
+func (p *Provider) performActionUpdateAuthenticator(i *Interaction, intent *IntentUpdateAuthenticator, step *StepState, s *State, action Action) error {
+	if step.Step != StepSetupPrimaryAuthenticator {
+		panic("interaction_update_authenticator: expected step " + step.Step)
+	}
+
+	act, ok := action.(*ActionSetupAuthenticator)
+	if !ok {
+		panic("interaction_update_authenticator: expected action type")
+	}
+
+	// Update password authenticator is the only use case for now
+	as := act.Authenticator
+	ais, err := p.Authenticator.List(i.UserID, as.Type)
+	if err != nil {
+		return err
+	}
+
+	if len(ais) == 0 {
+		return ErrAuthenticatorNotFound
+	}
+
+	ai := ais[0]
+	changed, newAuthen, err := p.Authenticator.WithSecret(i.UserID, ai, act.Secret)
+	if skyerr.IsAPIError(err) {
+		i.Error = skyerr.AsAPIError(err)
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	// Add authenticator to UpdateAuthenticators if it is changed only
+	if changed {
+		i.UpdateAuthenticators = append(i.UpdateAuthenticators, newAuthen)
+	}
+
+	ar := newAuthen.ToRef()
+	i.PrimaryAuthenticator = &ar
+	i.Error = nil
+	return nil
+
 }
 
 func (p *Provider) setupPrimaryAuthenticator(i *Interaction, step *StepState, s *State, action Action) error {

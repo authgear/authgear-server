@@ -375,6 +375,22 @@ func (mr *MockAuthenticatorProviderMockRecorder) New(userID, spec, secret interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockAuthenticatorProvider)(nil).New), userID, spec, secret)
 }
 
+// WithSecret mocks base method
+func (m *MockAuthenticatorProvider) WithSecret(userID string, a *authenticator.Info, secret string) (bool, *authenticator.Info, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithSecret", userID, a, secret)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*authenticator.Info)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// WithSecret indicates an expected call of WithSecret
+func (mr *MockAuthenticatorProviderMockRecorder) WithSecret(userID, a, secret interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithSecret", reflect.TypeOf((*MockAuthenticatorProvider)(nil).WithSecret), userID, a, secret)
+}
+
 // CreateAll mocks base method
 func (m *MockAuthenticatorProvider) CreateAll(userID string, ais []*authenticator.Info) error {
 	m.ctrl.T.Helper()
@@ -387,6 +403,20 @@ func (m *MockAuthenticatorProvider) CreateAll(userID string, ais []*authenticato
 func (mr *MockAuthenticatorProviderMockRecorder) CreateAll(userID, ais interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAll", reflect.TypeOf((*MockAuthenticatorProvider)(nil).CreateAll), userID, ais)
+}
+
+// UpdateAll mocks base method
+func (m *MockAuthenticatorProvider) UpdateAll(userID string, ais []*authenticator.Info) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAll", userID, ais)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateAll indicates an expected call of UpdateAll
+func (mr *MockAuthenticatorProviderMockRecorder) UpdateAll(userID, ais interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAll", reflect.TypeOf((*MockAuthenticatorProvider)(nil).UpdateAll), userID, ais)
 }
 
 // DeleteAll mocks base method

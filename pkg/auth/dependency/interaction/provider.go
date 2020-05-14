@@ -65,7 +65,10 @@ type AuthenticatorProvider interface {
 	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
 	ListByIdentity(userID string, ii *identity.Info) ([]*authenticator.Info, error)
 	New(userID string, spec authenticator.Spec, secret string) ([]*authenticator.Info, error)
+	// WithSecret returns bool to indicate if the authenticator changed
+	WithSecret(userID string, a *authenticator.Info, secret string) (bool, *authenticator.Info, error)
 	CreateAll(userID string, ais []*authenticator.Info) error
+	UpdateAll(userID string, ais []*authenticator.Info) error
 	DeleteAll(userID string, ais []*authenticator.Info) error
 	Authenticate(userID string, spec authenticator.Spec, state *map[string]string, secret string) (*authenticator.Info, error)
 }

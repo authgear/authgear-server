@@ -18,7 +18,11 @@ type PasswordAuthenticatorProvider interface {
 	Get(userID, id string) (*password.Authenticator, error)
 	List(userID string) ([]*password.Authenticator, error)
 	New(userID string, password string) (*password.Authenticator, error)
+	// WithPassword returns new authenticator pointer if password is changed
+	// Otherwise original authenticator will be returned
+	WithPassword(userID string, a *password.Authenticator, password string) (*password.Authenticator, error)
 	Create(*password.Authenticator) error
+	UpdatePassword(*password.Authenticator) error
 	Delete(*password.Authenticator) error
 	Authenticate(a *password.Authenticator, password string) error
 }
@@ -253,6 +257,22 @@ func (a *Provider) New(userID string, spec authenticator.Spec, secret string) ([
 	panic("interaction_adaptors: unknown authenticator type " + spec.Type)
 }
 
+func (a *Provider) WithSecret(userID string, ai *authenticator.Info, secret string) (bool, *authenticator.Info, error) {
+	changed := false
+	switch ai.Type {
+	case authn.AuthenticatorTypePassword:
+		authenticator := passwordFromAuthenticatorInfo(userID, ai)
+		newAuth, err := a.Password.WithPassword(userID, authenticator, secret)
+		if err != nil {
+			return false, nil, err
+		}
+		changed = (newAuth != authenticator)
+		return changed, passwordToAuthenticatorInfo(newAuth), nil
+	}
+
+	panic("interaction_adaptors: update authenticator is not supported for type " + ai.Type)
+}
+
 func (a *Provider) CreateAll(userID string, ais []*authenticator.Info) error {
 	var recoveryCodes []*recoverycode.Authenticator
 	for _, ai := range ais {
@@ -287,6 +307,30 @@ func (a *Provider) CreateAll(userID string, ais []*authenticator.Info) error {
 
 		default:
 			panic("interaction_adaptors: unknown authenticator type " + ai.Type)
+		}
+	}
+
+	if len(recoveryCodes) > 0 {
+		err := a.RecoveryCode.ReplaceAll(userID, recoveryCodes)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *Provider) UpdateAll(userID string, ais []*authenticator.Info) error {
+	var recoveryCodes []*recoverycode.Authenticator
+	for _, ai := range ais {
+		switch ai.Type {
+		case authn.AuthenticatorTypePassword:
+			authenticator := passwordFromAuthenticatorInfo(userID, ai)
+			if err := a.Password.UpdatePassword(authenticator); err != nil {
+				return err
+			}
+		default:
+			panic("interaction_adaptors: unknown authenticator type for update" + ai.Type)
 		}
 	}
 

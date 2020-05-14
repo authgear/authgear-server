@@ -22,6 +22,8 @@ func (p *Provider) GetInteractionState(i *Interaction) (*State, error) {
 		return p.getStateRemoveIdentity(i, intent)
 	case *IntentUpdateIdentity:
 		return p.getStateUpdateIdentity(i, intent)
+	case *IntentUpdateAuthenticator:
+		return p.getStateUpdateAuthenticator(i, intent)
 	}
 	panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 }
@@ -168,6 +170,31 @@ func (p *Provider) getStateUpdateIdentity(i *Interaction, intent *IntentUpdateId
 		}
 	}
 
+	s.Steps = append(s.Steps, StepState{Step: StepCommit})
+	return s, nil
+}
+
+func (p *Provider) getStateUpdateAuthenticator(i *Interaction, intent *IntentUpdateAuthenticator) (*State, error) {
+	s := &State{}
+	// only password authenticator support update
+	if intent.Authenticator.Type != authn.AuthenticatorTypePassword {
+		panic("interaction: unexpected authenticator type for update " + intent.Authenticator.Type)
+	}
+	availableAuthenticators := []authenticator.Spec{
+		authenticator.Spec{
+			Type:  intent.Authenticator.Type,
+			Props: map[string]interface{}{},
+		},
+	}
+	s.Steps = []StepState{
+		{
+			Step:                    StepSetupPrimaryAuthenticator,
+			AvailableAuthenticators: availableAuthenticators,
+		},
+	}
+	if i.PrimaryAuthenticator == nil {
+		return s, nil
+	}
 	s.Steps = append(s.Steps, StepState{Step: StepCommit})
 	return s, nil
 }

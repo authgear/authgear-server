@@ -41,7 +41,10 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 }
 
 func (p *Provider) New(userID string, password string) (*Authenticator, error) {
-	var hash []byte
+	authen := &Authenticator{
+		ID:     uuid.New(),
+		UserID: userID,
+	}
 	// Empty password is not supported in password authenticator
 	// If the password is empty string means no password for this password authenticator
 	// In this case, the authenticator cannot be used to authenticate successfully
@@ -51,20 +54,37 @@ func (p *Provider) New(userID string, password string) (*Authenticator, error) {
 			return nil, err
 		}
 
-		hash, err = pwd.Hash([]byte(password))
-		if err != nil {
-			panic(errors.Newf("password: failed to hash password: %w", err))
-		}
+		authen = p.populatePasswordHash(authen, password)
 	} else {
-		hash = nil
+		authen.PasswordHash = nil
+	}
+	return authen, nil
+}
+
+// WithPassword return new authenticator pointer if password is changed
+// Otherwise original authenticator will be returned
+func (p *Provider) WithPassword(userID string, a *Authenticator, password string) (*Authenticator, error) {
+	var newAuthen *Authenticator
+	if password != "" {
+		err := p.isPasswordAllowed(userID, password)
+		if err != nil {
+			return nil, err
+		}
+
+		// If password is not changed, skip the logic.
+		// Return original authenticator pointer
+		if pwd.Compare([]byte(password), a.PasswordHash) == nil {
+			return a, nil
+		}
+
+		newAuthen = p.populatePasswordHash(a, password)
+	} else {
+		c := *a
+		c.PasswordHash = nil
+		newAuthen = &c
 	}
 
-	a := &Authenticator{
-		ID:           uuid.New(),
-		UserID:       userID,
-		PasswordHash: hash,
-	}
-	return a, nil
+	return newAuthen, nil
 }
 
 func (p *Provider) Create(a *Authenticator) error {
@@ -103,29 +123,13 @@ func (p *Provider) isPasswordAllowed(userID string, password string) error {
 	})
 }
 
-func (p *Provider) UpdatePassword(a *Authenticator, password string) error {
-	err := p.isPasswordAllowed(a.UserID, password)
+func (p *Provider) UpdatePassword(a *Authenticator) error {
+	err := p.Store.UpdatePasswordHash(a)
 	if err != nil {
 		return err
 	}
 
-	// If password is not changed, skip the logic.
-	if pwd.Compare([]byte(password), a.PasswordHash) == nil {
-		return nil
-	}
-
-	hash, err := pwd.Hash([]byte(password))
-	if err != nil {
-		return err
-	}
-
-	a.PasswordHash = hash
-	err = p.Store.UpdatePasswordHash(a)
-	if err != nil {
-		return err
-	}
-
-	err = p.PasswordHistory.CreatePasswordHistory(a.UserID, hash, p.Time.NowUTC())
+	err = p.PasswordHistory.CreatePasswordHistory(a.UserID, a.PasswordHash, p.Time.NowUTC())
 	if err != nil {
 		return err
 	}
@@ -137,4 +141,16 @@ func sortAuthenticators(as []*Authenticator) {
 	sort.Slice(as, func(i, j int) bool {
 		return as[i].ID < as[j].ID
 	})
+}
+
+func (p *Provider) populatePasswordHash(a *Authenticator, password string) *Authenticator {
+	hash, err := pwd.Hash([]byte(password))
+	if err != nil {
+		panic(errors.Newf("password: failed to hash password: %w", err))
+	}
+
+	newAuthn := *a
+	newAuthn.PasswordHash = hash
+
+	return &newAuthn
 }

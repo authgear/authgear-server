@@ -207,3 +207,11 @@ func (p *Provider) NewInteractionRemoveIdentity(intent *IntentRemoveIdentity, cl
 func (p *Provider) NewInteractionAddAuthenticator(intent *IntentAddAuthenticator, clientID string, session auth.AuthSession) (*Interaction, error) {
 	panic("TODO(interaction): implement it")
 }
+
+func (p *Provider) NewInteractionUpdateAuthenticator(intent *IntentUpdateAuthenticator, clientID string, userID string) (*Interaction, error) {
+	return &Interaction{
+		Intent:   intent,
+		ClientID: clientID,
+		UserID:   userID,
+	}, nil
+}

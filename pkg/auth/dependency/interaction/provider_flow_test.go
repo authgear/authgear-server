@@ -118,6 +118,7 @@ func TestProviderFlow(t *testing.T) {
 				).Return([]*authenticator.Info{ai}, nil)
 				authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq([]*authenticator.Info{ai})).Return(nil)
 				var emptyAuthenticatorInfoList []*authenticator.Info
+				authenticatorProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 
 				// step 2
@@ -215,6 +216,7 @@ func TestProviderFlow(t *testing.T) {
 
 				var emptyAuthenticatorInfoList []*authenticator.Info
 				authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+				authenticatorProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 
 				// step 2
@@ -340,6 +342,7 @@ func TestProviderFlow(t *testing.T) {
 
 			var emptyAuthenticatorInfoList []*authenticator.Info
 			authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+			authenticatorProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 			authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 
 			// step 2 authenticate secondary authenticator
@@ -569,6 +572,7 @@ func TestProviderFlow(t *testing.T) {
 				).Return([]*authenticator.Info{ai}, nil)
 				authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq([]*authenticator.Info{ai})).Return(nil)
 				var emptyAuthenticatorInfoList []*authenticator.Info
+				authenticatorProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 
 				// get user for hook
@@ -691,6 +695,7 @@ func TestProviderFlow(t *testing.T) {
 
 			var emptyAuthenticatorInfoList []*authenticator.Info
 			authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+			authenticatorProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 			// remove oob authenticator
 			authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq([]*authenticator.Info{oobai})).Return(nil)
 
@@ -801,6 +806,7 @@ func TestProviderFlow(t *testing.T) {
 				).Return([]*authenticator.Info{ai1, ai3}, nil)
 				var emptyAuthenticatorInfoList []*authenticator.Info
 				authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+				authenticatorProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq([]*authenticator.Info{ai2})).Return(nil)
 
 				// get user for hook

@@ -24,6 +24,10 @@ var IdentityNotFound = skyerr.NotFound.WithReason("IdentityNotFound")
 
 var ErrIdentityNotFound = IdentityNotFound.New("identity not found")
 
+var AuthenticatorNotFound = skyerr.NotFound.WithReason("AuthenticatorNotFound")
+
+var ErrAuthenticatorNotFound = AuthenticatorNotFound.New("authenticator not found")
+
 var ErrOOBOTPCooldown = skyerr.TooManyRequest.WithReason("OOBOTPCooldown").New("OOB OTP cooldown")
 
 var InvalidIdentityRequest = skyerr.Invalid.WithReason("InvalidIdentityRequest")

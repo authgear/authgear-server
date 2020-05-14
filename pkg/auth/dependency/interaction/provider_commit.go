@@ -28,6 +28,8 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 		err = p.onCommitRemoveIdentity(i, intent, i.UserID)
 	case *IntentUpdateIdentity:
 		err = p.onCommitUpdateIdentity(i, intent, i.UserID)
+	case *IntentUpdateAuthenticator:
+		break
 	default:
 		panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 	}
@@ -45,6 +47,11 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 
 	// Update identities
 	if err := p.Identity.UpdateAll(i.UserID, i.UpdateIdentities); err != nil {
+		return nil, err
+	}
+
+	// Update authenticators
+	if err := p.Authenticator.UpdateAll(i.UserID, i.UpdateAuthenticators); err != nil {
 		return nil, err
 	}
 
@@ -240,7 +247,7 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 		for _, a := range authenticators {
 			allAuthenticators[a.ID] = a
 			if toRemove {
-				// authenticators get by the original indentity info
+				// authenticators get by the original identity info
 				originalIdentityInfo = oi
 			} else {
 				// authenticators of the existing identities
@@ -253,7 +260,7 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 		panic("interaction: unexpected original identity info not found")
 	}
 
-	// authenticators get by the updated indentity info
+	// authenticators get by the updated identity info
 	authenticators, err := p.Authenticator.ListByIdentity(userID, updateIdentityInfo)
 	if err != nil {
 		return err
