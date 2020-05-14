@@ -15,9 +15,8 @@ func (f *PasswordFlow) ChangePassword(userID string, OldPassword string, newPass
 		Authenticator: authenticator.Spec{
 			Type: authn.AuthenticatorTypePassword,
 		},
-	}, "", userID, map[string]string{
-		authenticator.AuthenticatorStatePasswordCheckOldPassword: OldPassword,
-	})
+		OldSecret: OldPassword,
+	}, "", userID)
 
 	if err != nil {
 		return err
@@ -31,7 +30,8 @@ func (f *PasswordFlow) ResetPassword(userID string, password string) error {
 		Authenticator: authenticator.Spec{
 			Type: authn.AuthenticatorTypePassword,
 		},
-	}, "", userID, map[string]string{})
+		SkipVerifySecret: true,
+	}, "", userID)
 
 	if err != nil {
 		return err

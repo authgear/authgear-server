@@ -92,7 +92,9 @@ type IntentRemoveAuthenticator struct {
 func (*IntentRemoveAuthenticator) Type() IntentType { return IntentTypeRemoveAuthenticator }
 
 type IntentUpdateAuthenticator struct {
-	Authenticator authenticator.Spec `json:"authenticator"`
+	Authenticator    authenticator.Spec `json:"authenticator"`
+	OldSecret        string             `json:"-"`
+	SkipVerifySecret bool               `json:"-"`
 }
 
 func (*IntentUpdateAuthenticator) Type() IntentType { return IntentTypeUpdateAuthenticator }

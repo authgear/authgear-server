@@ -23,7 +23,7 @@ type InteractionProvider interface {
 	NewInteractionAddIdentity(intent *interaction.IntentAddIdentity, clientID string, userID string) (*interaction.Interaction, error)
 	NewInteractionRemoveIdentity(intent *interaction.IntentRemoveIdentity, clientID string, userID string) (*interaction.Interaction, error)
 	NewInteractionUpdateIdentity(intent *interaction.IntentUpdateIdentity, clientID string, userID string) (*interaction.Interaction, error)
-	NewInteractionUpdateAuthenticator(intent *interaction.IntentUpdateAuthenticator, clientID string, userID string, state map[string]string) (*interaction.Interaction, error)
+	NewInteractionUpdateAuthenticator(intent *interaction.IntentUpdateAuthenticator, clientID string, userID string) (*interaction.Interaction, error)
 	GetInteractionState(i *interaction.Interaction) (*interaction.State, error)
 	PerformAction(i *interaction.Interaction, step interaction.Step, action interaction.Action) error
 }

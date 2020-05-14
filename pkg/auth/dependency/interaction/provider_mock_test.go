@@ -376,9 +376,9 @@ func (mr *MockAuthenticatorProviderMockRecorder) New(userID, spec, secret interf
 }
 
 // WithSecret mocks base method
-func (m *MockAuthenticatorProvider) WithSecret(userID string, a *authenticator.Info, secret string, state *map[string]string) (bool, *authenticator.Info, error) {
+func (m *MockAuthenticatorProvider) WithSecret(userID string, a *authenticator.Info, secret string) (bool, *authenticator.Info, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithSecret", userID, a, secret, state)
+	ret := m.ctrl.Call(m, "WithSecret", userID, a, secret)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(*authenticator.Info)
 	ret2, _ := ret[2].(error)
@@ -386,9 +386,9 @@ func (m *MockAuthenticatorProvider) WithSecret(userID string, a *authenticator.I
 }
 
 // WithSecret indicates an expected call of WithSecret
-func (mr *MockAuthenticatorProviderMockRecorder) WithSecret(userID, a, secret, state interface{}) *gomock.Call {
+func (mr *MockAuthenticatorProviderMockRecorder) WithSecret(userID, a, secret interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithSecret", reflect.TypeOf((*MockAuthenticatorProvider)(nil).WithSecret), userID, a, secret, state)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithSecret", reflect.TypeOf((*MockAuthenticatorProvider)(nil).WithSecret), userID, a, secret)
 }
 
 // CreateAll mocks base method
@@ -446,6 +446,20 @@ func (m *MockAuthenticatorProvider) Authenticate(userID string, spec authenticat
 func (mr *MockAuthenticatorProviderMockRecorder) Authenticate(userID, spec, state, secret interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authenticate", reflect.TypeOf((*MockAuthenticatorProvider)(nil).Authenticate), userID, spec, state, secret)
+}
+
+// VerifySecret mocks base method
+func (m *MockAuthenticatorProvider) VerifySecret(userID string, a *authenticator.Info, secret string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifySecret", userID, a, secret)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifySecret indicates an expected call of VerifySecret
+func (mr *MockAuthenticatorProviderMockRecorder) VerifySecret(userID, a, secret interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifySecret", reflect.TypeOf((*MockAuthenticatorProvider)(nil).VerifySecret), userID, a, secret)
 }
 
 // MockUserProvider is a mock of UserProvider interface

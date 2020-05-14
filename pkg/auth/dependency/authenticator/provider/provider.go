@@ -21,7 +21,6 @@ type PasswordAuthenticatorProvider interface {
 	// WithPassword returns new authenticator pointer if password is changed
 	// Otherwise original authenticator will be returned
 	WithPassword(userID string, a *password.Authenticator, password string) (*password.Authenticator, error)
-	VerifyPassword(a *password.Authenticator, password string) bool
 	Create(*password.Authenticator) error
 	UpdatePassword(*password.Authenticator) error
 	Delete(*password.Authenticator) error
@@ -258,20 +257,11 @@ func (a *Provider) New(userID string, spec authenticator.Spec, secret string) ([
 	panic("interaction_adaptors: unknown authenticator type " + spec.Type)
 }
 
-func (a *Provider) WithSecret(userID string, ai *authenticator.Info, secret string, state *map[string]string) (bool, *authenticator.Info, error) {
+func (a *Provider) WithSecret(userID string, ai *authenticator.Info, secret string) (bool, *authenticator.Info, error) {
 	changed := false
 	switch ai.Type {
 	case authn.AuthenticatorTypePassword:
 		authen := passwordFromAuthenticatorInfo(userID, ai)
-		if state == nil {
-			return false, nil, interaction.ErrInvalidCredentials
-		}
-		oldPassword, ok := (*state)[authenticator.AuthenticatorStatePasswordCheckOldPassword]
-		if ok {
-			if !a.Password.VerifyPassword(authen, oldPassword) {
-				return false, nil, interaction.ErrInvalidCredentials
-			}
-		}
 		newAuth, err := a.Password.WithPassword(userID, authen, secret)
 		if err != nil {
 			return false, nil, err
@@ -465,4 +455,17 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state *m
 	}
 
 	panic("interaction_adaptors: unknown authenticator type " + spec.Type)
+}
+
+func (a *Provider) VerifySecret(userID string, ai *authenticator.Info, secret string) error {
+	switch ai.Type {
+	case authn.AuthenticatorTypePassword:
+		authen := passwordFromAuthenticatorInfo(userID, ai)
+		if a.Password.Authenticate(authen, secret) != nil {
+			return interaction.ErrInvalidCredentials
+		}
+		return nil
+	}
+
+	panic("interaction_adaptors: unhandled authenticator type " + ai.Type)
 }

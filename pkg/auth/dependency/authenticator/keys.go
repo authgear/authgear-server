@@ -28,8 +28,4 @@ const (
 	AuthenticatorStateOOBOTPGenerateTime string = "https://auth.skygear.io/claims/oob_otp/generate_time"
 	// AuthenticatorStateOOBOTPTriggerTime is a claim with string value for OOB last trigger time of current interaction.
 	AuthenticatorStateOOBOTPTriggerTime string = "https://auth.skygear.io/claims/oob_otp/trigger_time"
-
-	// AuthenticatorStatePasswordCheckOldPassword is a claim with string value for checking old password.
-	// nolint:gosec
-	AuthenticatorStatePasswordCheckOldPassword string = "https://auth.skygear.io/claims/password/old_password"
 )

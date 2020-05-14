@@ -122,19 +122,8 @@ func (p *Provider) performActionUpdateAuthenticator(i *Interaction, intent *Inte
 		panic("interaction_update_authenticator: expected action type")
 	}
 
-	// Update password authenticator is the only use case for now
-	as := act.Authenticator
-	ais, err := p.Authenticator.List(i.UserID, as.Type)
-	if err != nil {
-		return err
-	}
-
-	if len(ais) == 0 {
-		return ErrAuthenticatorNotFound
-	}
-
-	ai := ais[0]
-	changed, newAuthen, err := p.Authenticator.WithSecret(i.UserID, ai, act.Secret, &i.State)
+	ai := i.PendingAuthenticator
+	changed, newAuthen, err := p.Authenticator.WithSecret(i.UserID, ai, act.Secret)
 	if skyerr.IsAPIError(err) {
 		i.Error = skyerr.AsAPIError(err)
 		return nil
@@ -149,6 +138,7 @@ func (p *Provider) performActionUpdateAuthenticator(i *Interaction, intent *Inte
 
 	ar := newAuthen.ToRef()
 	i.PrimaryAuthenticator = &ar
+	i.PendingAuthenticator = nil
 	i.Error = nil
 	return nil
 

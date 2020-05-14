@@ -867,8 +867,12 @@ func TestProviderFlow(t *testing.T) {
 			Convey("should update authenticator", func() {
 				// setup
 				authenticatorProvider.EXPECT().WithSecret(
-					gomock.Eq(userID), gomock.Any(), gomock.Eq("newpassword"), gomock.Any(),
+					gomock.Eq(userID), gomock.Any(), gomock.Eq("newpassword"),
 				).Return(true, nai, nil)
+				// should verify old secret
+				authenticatorProvider.EXPECT().VerifySecret(
+					gomock.Eq(userID), gomock.Any(), gomock.Eq("samepassword"),
+				).Return(nil)
 				// should update authenticator
 				authenticatorProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq([]*authenticator.Info{nai})).Return(nil)
 
@@ -877,7 +881,8 @@ func TestProviderFlow(t *testing.T) {
 					Authenticator: authenticator.Spec{
 						Type: authn.AuthenticatorTypePassword,
 					},
-				}, "", userID, nil)
+					OldSecret: "samepassword",
+				}, "", userID)
 				So(err, ShouldBeNil)
 
 				state, err := p.GetInteractionState(i)
@@ -904,7 +909,7 @@ func TestProviderFlow(t *testing.T) {
 			Convey("should not update authenticator if no change", func() {
 				// setup
 				authenticatorProvider.EXPECT().WithSecret(
-					gomock.Eq(userID), gomock.Any(), gomock.Eq("samepassword"), gomock.Any(),
+					gomock.Eq(userID), gomock.Any(), gomock.Eq("samepassword"),
 				).Return(false, nai, nil)
 				// should not update any authenticator
 				authenticatorProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
@@ -914,7 +919,8 @@ func TestProviderFlow(t *testing.T) {
 					Authenticator: authenticator.Spec{
 						Type: authn.AuthenticatorTypePassword,
 					},
-				}, "", userID, nil)
+					SkipVerifySecret: true,
+				}, "", userID)
 				So(err, ShouldBeNil)
 
 				state, err := p.GetInteractionState(i)
