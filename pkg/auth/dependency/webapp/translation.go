@@ -23,6 +23,7 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
 
 	"back-button-title": "Back",
+	"next-button-label": "Next",
 
 	"sign-in-apple": "Sign in with Apple",
 	"sign-in-google": "Sign in with Google",
@@ -39,12 +40,10 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"signup-button-hint": "Don''t have an account yet? ",
 	"signup-button-label": "Create one!",
 	"forgot-password-button-label": "Can''t access your account?",
-	"confirm-login-id-button-label": "Next",
 
 	"enter-password-page-title": "Enter password",
 	"password-placeholder": "Password",
 	"forgot-password-button-label--enter-password-page": "Forgot Password?",
-	"confirm-password-button-label": "Next",
 	"show-password": "Show Password",
 	"hide-password": "Hide Password",
 
@@ -53,7 +52,6 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"oob-otp-placeholder": "Enter code",
 	"oob-otp-description--sms": "We have sent a {0} digit code to +{1}{2}. Please enter the code below to continue",
 	"oob-otp-description--email": "We have sent a {0} digit code to {1}. Please enter the code below to continue",
-	"confirm-oob-otp-button-label": "Next",
 	"oob-otp-resend-button-hint": "Didn''t receive the code? ",
 	"oob-otp-resend-button-label": "Resend (0s)",
 	
