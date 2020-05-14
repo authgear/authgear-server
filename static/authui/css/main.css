@@ -432,3 +432,9 @@ a.btn {
 .login_id.phone {
   background-image: url("../image/ic_login_id_phone.png");
 }
+
+.enter-login-id-form .buttons {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}

@@ -495,7 +495,12 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 <input class="input text-input primary-txt" type="text" name="x_login_id" placeholder="{{ localize "login-id-placeholder" }}" value="{{ .x_login_id }}">
 {{ end }}
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
+<div class="buttons">
+  <button class="btn primary-btn" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
+  {{ if .x_old_login_id_value }}
+  <button class="anchor" type="submit" name="x_action" value="remove">{{ localize "disconnect-button-label" }}</button>
+  {{ end }}
+</div>
 
 </form>
 {{ template "auth_ui_footer.html" . }}
