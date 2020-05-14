@@ -139,6 +139,16 @@ func newOOBOTPHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	return nil
 }
 
+func newEnterLoginIDHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		dependencySet,
+		wire.Bind(new(EnterLoginIDProvider), new(*webapp.AuthenticateProviderImpl)),
+		wire.Struct(new(EnterLoginIDHandler), "*"),
+		wire.Bind(new(http.Handler), new(*EnterLoginIDHandler)),
+	)
+	return nil
+}
+
 func newLogoutHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 	wire.Build(
 		dependencySet,

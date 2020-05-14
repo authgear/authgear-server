@@ -151,7 +151,7 @@ func (p *AuthenticateProviderImpl) handleResult(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (p *AuthenticateProviderImpl) GetEnterLoginIDForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+func (p *AuthenticateProviderImpl) GetLoginForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	return p.get(w, r, TemplateItemTypeAuthUILoginHTML)
 }
 
@@ -415,6 +415,26 @@ func (p *AuthenticateProviderImpl) UnlinkIdentityProvider(w http.ResponseWriter,
 	}
 
 	return
+}
+
+func (p *AuthenticateProviderImpl) AddOrChangeLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(error), err error) {
+	writeResponse = func(err error) {
+		p.persistState(r, err)
+		RedirectToPathWithX(w, r, "/enter_login_id")
+	}
+
+	p.ValidateProvider.PrepareValues(r.Form)
+
+	err = p.ValidateProvider.Validate("#WebAppAddOrChangeLoginIDRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (p *AuthenticateProviderImpl) GetEnterLoginIDForm(w http.ResponseWriter, r *http.Request) (writeResponse func(error), err error) {
+	return p.get(w, r, TemplateItemTypeAuthUIEnterLoginIDHTML)
 }
 
 func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(error), err error) {

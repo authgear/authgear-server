@@ -104,6 +104,9 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"settings-identity-login-id-raw": "Username",
 	"settings-identity-connect": "Connect",
 	"settings-identity-disconnect": "Disconnect",
-	"settings-identity-change": "Change"
+	"settings-identity-change": "Change",
+
+	"enter-login-id-page-title--change": "Change your {0}",
+	"enter-login-id-page-title--add": "Enter your {0}"
 	}`,
 }

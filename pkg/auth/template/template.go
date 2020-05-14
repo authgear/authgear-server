@@ -59,6 +59,7 @@ func NewEngineWithConfig(
 	e.Register(webapp.TemplateAuthUIEnterPasswordHTML)
 	e.Register(webapp.TemplateAuthUICreatePasswordHTML)
 	e.Register(webapp.TemplateAuthUIOOBOTPHTML)
+	e.Register(webapp.TemplateAuthUIEnterLoginIDHTML)
 
 	e.Register(webapp.TemplateAuthUIForgotPasswordHTML)
 	e.Register(webapp.TemplateAuthUIForgotPasswordSuccessHTML)

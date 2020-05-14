@@ -218,6 +218,20 @@ a.btn {
   }
 }
 
+.phone-input {
+  display: flex;
+  flex-direction: row;
+}
+
+.phone-input [name="x_calling_code"] {
+  margin: 0 3px 0 0;
+}
+
+.phone-input [name="x_national_number"] {
+  flex: 1;
+  margin: 0 0 0 3px;
+}
+
 .authorize-form {
   display: flex;
   flex-direction: column;
@@ -236,23 +250,9 @@ a.btn {
   margin: 10px;
 }
 
-.authorize-loginid-form .phone-input {
-  display: flex;
-  flex-direction: row;
-}
-
 .authorize-loginid-form .link {
   display: block;
   padding: 4px 0;
-}
-
-.authorize-loginid-form [name="x_calling_code"] {
-  margin: 0 3px 0 0;
-}
-
-.authorize-loginid-form [name="x_national_number"] {
-  flex: 1;
-  margin: 0 0 0 3px;
 }
 
 .sso-btn {
