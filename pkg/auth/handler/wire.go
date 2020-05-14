@@ -9,8 +9,12 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/core/async"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -102,6 +106,37 @@ func newRefreshHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
 		pkg.DependencySet,
 		wire.Bind(new(refreshProvider), new(*oauthhandler.TokenHandler)),
 		provideRefreshHandler,
+	)
+	return nil
+}
+
+func provideChangePasswordHandler(
+	requireAuthz handler.RequireAuthz,
+	v *validation.Validator,
+	as authinfo.Store,
+	tx db.TxContext,
+	ups userprofile.Store,
+	hp hook.Provider,
+	aq async.Queue,
+	f PasswordFlow,
+) http.Handler {
+	h := &ChangePasswordHandler{
+		Validator:        v,
+		AuthInfoStore:    as,
+		TxContext:        tx,
+		UserProfileStore: ups,
+		HookProvider:     hp,
+		TaskQueue:        aq,
+		Interactions:     f,
+	}
+	return requireAuthz(h, h)
+}
+
+func newChangePasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Bind(new(PasswordFlow), new(*interactionflows.PasswordFlow)),
+		provideChangePasswordHandler,
 	)
 	return nil
 }

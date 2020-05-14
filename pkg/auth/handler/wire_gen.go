@@ -36,6 +36,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/async"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	pq2 "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -305,6 +306,58 @@ func newRefreshHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	return httpHandler
 }
 
+func newChangePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	requestID := auth.ProvideLoggingRequestID(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
+	validator := auth.ProvideValidator(m)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	timeProvider := time.NewProvider()
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, store, userprofileStore, loginidProvider, factory)
+	executor := auth.ProvideTaskExecutor(m)
+	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	redisStore := redis.ProvideStore(context, tenantConfiguration, timeProvider)
+	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
+	providerProvider := &provider.Provider{
+		LoginID:   loginidProvider,
+		OAuth:     oauthProvider,
+		Anonymous: anonymousProvider,
+	}
+	passwordhistoryStore := pq.ProvidePasswordHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
+	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
+	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
+	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
+	urlprefixProvider := urlprefix.NewProvider(r)
+	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	provider3 := &provider2.Provider{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	passwordFlow := &flows.PasswordFlow{
+		Interactions: interactionProvider,
+	}
+	httpHandler := provideChangePasswordHandler(requireAuthz, validator, store, txContext, userprofileStore, hookProvider, queue, passwordFlow)
+	return httpHandler
+}
+
 // wire.go:
 
 func provideLoginHandler(
@@ -357,6 +410,28 @@ func provideRefreshHandler(
 		validator:       v,
 		refreshProvider: rp,
 		txContext:       tx,
+	}
+	return requireAuthz(h, h)
+}
+
+func provideChangePasswordHandler(
+	requireAuthz handler.RequireAuthz,
+	v *validation.Validator,
+	as authinfo.Store,
+	tx db.TxContext,
+	ups userprofile.Store,
+	hp hook.Provider,
+	aq async.Queue,
+	f PasswordFlow,
+) http.Handler {
+	h := &ChangePasswordHandler{
+		Validator:        v,
+		AuthInfoStore:    as,
+		TxContext:        tx,
+		UserProfileStore: ups,
+		HookProvider:     hp,
+		TaskQueue:        aq,
+		Interactions:     f,
 	}
 	return requireAuthz(h, h)
 }

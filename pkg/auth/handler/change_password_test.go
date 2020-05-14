@@ -8,21 +8,25 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
+
+type MockPasswordFlow struct {
+}
+
+func (m *MockPasswordFlow) ChangePassword(userID string, OldPassword string, newPassword string) error {
+	return nil
+}
 
 func TestChangePasswordHandler(t *testing.T) {
 	Convey("Test ChangePasswordHandler", t, func() {
@@ -47,38 +51,12 @@ func TestChangePasswordHandler(t *testing.T) {
 		}
 		lh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 		lh.TxContext = db.NewMockTxContext()
-		lh.PasswordChecker = &authAudit.PasswordChecker{
-			PwMinLength: 6,
-		}
-		lh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			[]config.LoginIDKeyConfiguration{},
-			[]string{password.DefaultRealm},
-			map[string]password.Principal{
-				"john.doe.principal.id0": password.Principal{
-					ID:             "john.doe.principal.id0",
-					UserID:         userID,
-					LoginIDKey:     "username",
-					LoginID:        "john.doe",
-					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
-					ClaimsValue:    map[string]interface{}{},
-				},
-				"john.doe.principal.id1": password.Principal{
-					ID:             "john.doe.principal.id1",
-					UserID:         userID,
-					LoginIDKey:     "email",
-					LoginID:        "john.doe@example.com",
-					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
-					ClaimsValue: map[string]interface{}{
-						"email": "john.doe@example.com",
-					},
-				},
-			},
-		)
 		lh.TaskQueue = mockTaskQueue
 		hookProvider := hook.NewMockProvider()
 		lh.HookProvider = hookProvider
+		lh.Interactions = &MockPasswordFlow{}
 
-		Convey("change password success", func(c C) {
+		Convey("should trigger hook when update password success", func(c C) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"old_password": "123456",
@@ -129,65 +107,6 @@ func TestChangePasswordHandler(t *testing.T) {
 					},
 				},
 			})
-		})
-
-		Convey("change to a weak password", func(c C) {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
-			{
-				"old_password": "123456",
-				"password": "1234"
-			}`))
-			req = authtesting.WithAuthn().
-				UserID(userID).
-				Verified(true).
-				ToRequest(req)
-			req.Header.Set("Content-Type", "application/json")
-			resp := httptest.NewRecorder()
-			lh.ServeHTTP(resp, req)
-
-			So(resp.Body.Bytes(), ShouldEqualJSON, `
-				{
-					"error": {
-						"name": "Invalid",
-						"reason": "PasswordPolicyViolated",
-						"message": "password policy violated",
-						"code": 400,
-						"info": {
-							"causes": [
-								{ "kind": "PasswordTooShort", "min_length": 6, "pw_length": 4 }
-							]
-						}
-					}
-				}
-			`)
-			So(resp.Code, ShouldEqual, 400)
-		})
-
-		Convey("old password incorrect", func(c C) {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
-			{
-				"old_password": "wrong_password",
-				"password": "123456"
-			}`))
-			req = authtesting.WithAuthn().
-				UserID(userID).
-				Verified(true).
-				ToRequest(req)
-			req.Header.Set("Content-Type", "application/json")
-			resp := httptest.NewRecorder()
-			lh.ServeHTTP(resp, req)
-
-			So(resp.Body.Bytes(), ShouldEqualJSON, `
-				{
-					"error": {
-						"name": "Unauthorized",
-						"reason": "InvalidCredentials",
-						"message": "invalid credentials",
-						"code": 401
-					}
-				}
-			`)
-			So(resp.Code, ShouldEqual, 401)
 		})
 	})
 }

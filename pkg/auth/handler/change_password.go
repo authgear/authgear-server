@@ -6,11 +6,9 @@ import (
 	"github.com/gorilla/mux"
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -20,9 +18,6 @@ import (
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -32,22 +27,12 @@ func AttachChangePasswordHandler(
 ) {
 	router.NewRoute().
 		Path("/change_password").
-		Handler(server.FactoryToHandler(&ChangePasswordHandlerFactory{
-			authDependency,
-		})).
+		Handler(pkg.MakeHandler(authDependency, newChangePasswordHandler)).
 		Methods("OPTIONS", "POST")
 }
 
-// ChangePasswordHandlerFactory creates ChangePasswordHandler
-type ChangePasswordHandlerFactory struct {
-	Dependency pkg.DependencyMap
-}
-
-// NewHandler creates new handler
-func (f ChangePasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &ChangePasswordHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
+type PasswordFlow interface {
+	ChangePassword(userID string, OldPassword string, newPassword string) error
 }
 
 type ChangePasswordRequestPayload struct {
@@ -89,15 +74,13 @@ const ChangePasswordRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type ChangePasswordHandler struct {
-	Validator            *validation.Validator      `dependency:"Validator"`
-	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
-	TxContext            db.TxContext               `dependency:"TxContext"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	HookProvider         hook.Provider              `dependency:"HookProvider"`
-	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
+	Validator        *validation.Validator
+	AuthInfoStore    authinfo.Store
+	TxContext        db.TxContext
+	UserProfileStore userprofile.Store
+	HookProvider     hook.Provider
+	TaskQueue        async.Queue
+	Interactions     PasswordFlow
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -126,31 +109,10 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 		sess := auth.GetSession(r.Context())
 		userID := sess.AuthnAttrs().UserID
 
-		if err := h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
-			PlainPassword: payload.NewPassword,
-			AuthID:        userID,
-		}); err != nil {
+		if err := h.Interactions.ChangePassword(
+			userID, payload.OldPassword, payload.NewPassword,
+		); err != nil {
 			return err
-		}
-
-		principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(userID)
-		if err != nil {
-			return err
-		}
-		if len(principals) == 0 {
-			err = skyerr.NewInvalid("user has no password")
-			return err
-		}
-
-		for _, p := range principals {
-			err = p.VerifyPassword(payload.OldPassword)
-			if err != nil {
-				return err
-			}
-			err = h.PasswordAuthProvider.UpdatePassword(p, payload.NewPassword)
-			if err != nil {
-				return err
-			}
 		}
 
 		authInfo := &authinfo.AuthInfo{}
