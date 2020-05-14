@@ -56,9 +56,14 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 	}
 
 	// get the identity before deleting
-	identity, err := p.Identity.Get(i.UserID, i.Identity.Type, i.Identity.ID)
-	if err != nil {
-		return nil, err
+	var identity identity.Info
+	// authenticator interaction doesn't not involve identity
+	if i.Identity != nil {
+		ii, err := p.Identity.Get(i.UserID, i.Identity.Type, i.Identity.ID)
+		if err != nil {
+			return nil, err
+		}
+		identity = *ii
 	}
 
 	// Delete identities & authenticators
