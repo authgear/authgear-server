@@ -23,6 +23,7 @@ func AttachEnterLoginIDHandler(
 type EnterLoginIDProvider interface {
 	GetEnterLoginIDForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 	EnterLoginID(w http.ResponseWriter, r *http.Request) (func(error), error)
+	RemoveLoginID(w http.ResponseWriter, r *http.Request) (func(error), error)
 }
 
 type EnterLoginIDHandler struct {
@@ -44,6 +45,12 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 
 		if r.Method == "POST" {
+			if r.Form.Get("x_action") == "remove" {
+				writeResponse, err := h.Provider.RemoveLoginID(w, r)
+				writeResponse(err)
+				return err
+			}
+
 			writeResponse, err := h.Provider.EnterLoginID(w, r)
 			writeResponse(err)
 			return err

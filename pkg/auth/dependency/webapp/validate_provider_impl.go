@@ -19,6 +19,7 @@ func init() {
 		ResetPasswordRequestSchema,
 		SSOCallbackRequestSchema,
 		AddOrChangeLoginIDRequestSchema,
+		RemoveLoginIDRequestSchema,
 	)
 }
 
@@ -156,6 +157,18 @@ const AddOrChangeLoginIDRequestSchema = `
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] }
 	},
 	"required": ["x_login_id_key", "x_login_id_input_type"]
+}
+`
+
+const RemoveLoginIDRequestSchema = `
+{
+	"$id": "#WebAppRemoveLoginIDRequest",
+	"type": "object",
+	"properties": {
+		"x_login_id_key": { "type": "string" },
+		"x_old_login_id_value": { "type": "string" }
+	},
+	"required": ["x_login_id_key", "x_old_login_id_value"]
 }
 `
 

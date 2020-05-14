@@ -276,6 +276,24 @@ func (f *WebAppFlow) AddLoginID(userID string, loginID loginid.LoginID) (result 
 	return f.afterAddUpdateRemoveLoginID(i)
 }
 
+func (f *WebAppFlow) RemoveLoginID(userID string, loginID loginid.LoginID) (result *WebAppResult, err error) {
+	clientID := ""
+	i, err := f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
+		Identity: identity.Spec{
+			Type: authn.IdentityTypeLoginID,
+			Claims: map[string]interface{}{
+				identity.IdentityClaimLoginIDKey:   loginID.Key,
+				identity.IdentityClaimLoginIDValue: loginID.Value,
+			},
+		},
+	}, clientID, userID)
+	if err != nil {
+		return
+	}
+
+	return f.afterAddUpdateRemoveLoginID(i)
+}
+
 func (f *WebAppFlow) UpdateLoginID(userID string, oldLoginID loginid.LoginID, newLoginID loginid.LoginID) (result *WebAppResult, err error) {
 	clientID := ""
 	i, err := f.Interactions.NewInteractionUpdateIdentity(&interaction.IntentUpdateIdentity{

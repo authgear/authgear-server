@@ -29,6 +29,7 @@ type InteractionFlow interface {
 	UnlinkWithOAuthProvider(userID string, providerConfig config.OAuthProviderConfiguration) (*interactionflows.WebAppResult, error)
 	AddLoginID(userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
 	UpdateLoginID(userID string, oldLoginID loginid.LoginID, newLoginID loginid.LoginID) (*interactionflows.WebAppResult, error)
+	RemoveLoginID(userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
 }
 
 type AuthenticateProviderImpl struct {
@@ -525,6 +526,39 @@ func (p *AuthenticateProviderImpl) EnterLoginID(w http.ResponseWriter, r *http.R
 	}
 
 	r.Form["x_interaction_token"] = []string{result.Token}
+	return
+}
+
+func (p *AuthenticateProviderImpl) RemoveLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(error), err error) {
+	var result *interactionflows.WebAppResult
+	writeResponse = func(err error) {
+		p.persistState(r, err)
+		p.handleResult(w, r, result, err)
+	}
+
+	_, err = p.restoreState(r)
+	if err != nil {
+		return
+	}
+
+	p.ValidateProvider.PrepareValues(r.Form)
+
+	err = p.ValidateProvider.Validate("#WebAppRemoveLoginIDRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
+
+	result, err = p.Interactions.RemoveLoginID(userID, loginid.LoginID{
+		Key:   r.Form.Get("x_login_id_key"),
+		Value: r.Form.Get("x_old_login_id_value"),
+	})
+
+	if err != nil {
+		return
+	}
+
 	return
 }
 
