@@ -140,3 +140,34 @@ func newChangePasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler
 	)
 	return nil
 }
+
+func provideResetPasswordHandler(
+	requireAuthz handler.RequireAuthz,
+	v *validation.Validator,
+	ups userprofile.Store,
+	as authinfo.Store,
+	tx db.TxContext,
+	aq async.Queue,
+	hp hook.Provider,
+	f ResetPasswordFlow,
+) http.Handler {
+	h := &ResetPasswordHandler{
+		Validator:        v,
+		UserProfileStore: ups,
+		AuthInfoStore:    as,
+		TxContext:        tx,
+		TaskQueue:        aq,
+		HookProvider:     hp,
+		Interactions:     f,
+	}
+	return requireAuthz(h, h)
+}
+
+func newResetPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Bind(new(ResetPasswordFlow), new(*interactionflows.PasswordFlow)),
+		provideResetPasswordHandler,
+	)
+	return nil
+}
