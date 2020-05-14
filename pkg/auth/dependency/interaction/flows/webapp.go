@@ -29,13 +29,15 @@ func (f *WebAppFlow) LoginWithLoginID(loginID string) (*WebAppResult, error) {
 	s, err := f.Interactions.GetInteractionState(i)
 	if err != nil {
 		return nil, err
-	} else if s.CurrentStep().Step != interaction.StepAuthenticatePrimary {
+	}
+
+	if s.CurrentStep().Step != interaction.StepAuthenticatePrimary || len(s.CurrentStep().AvailableAuthenticators) <= 0 {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
-	step := WebAppStepAuthenticatePassword
-	// Trigger OOB OTP if the first authenticator is OOB OTP
-	if len(s.CurrentStep().AvailableAuthenticators) > 0 && s.CurrentStep().AvailableAuthenticators[0].Type == authn.AuthenticatorTypeOOB {
+	var step WebAppStep
+	switch s.CurrentStep().AvailableAuthenticators[0].Type {
+	case authn.AuthenticatorTypeOOB:
 		step = WebAppStepAuthenticateOOBOTP
 		err = f.Interactions.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionTriggerOOBAuthenticator{
 			Authenticator: s.CurrentStep().AvailableAuthenticators[0],
@@ -43,6 +45,10 @@ func (f *WebAppFlow) LoginWithLoginID(loginID string) (*WebAppResult, error) {
 		if err != nil {
 			return nil, err
 		}
+	case authn.AuthenticatorTypePassword:
+		step = WebAppStepAuthenticatePassword
+	default:
+		panic("interaction_flow_webapp: unexpected authenticator type")
 	}
 
 	token, err := f.Interactions.SaveInteraction(i)
@@ -74,13 +80,16 @@ func (f *WebAppFlow) SignupWithLoginID(loginIDKey, loginID string) (*WebAppResul
 	s, err := f.Interactions.GetInteractionState(i)
 	if err != nil {
 		return nil, err
-	} else if s.CurrentStep().Step != interaction.StepSetupPrimaryAuthenticator {
+	}
+
+	if s.CurrentStep().Step != interaction.StepSetupPrimaryAuthenticator || len(s.CurrentStep().AvailableAuthenticators) <= 0 {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
-	step := WebAppStepSetupPassword
-	// Trigger OOB OTP if the first authenticator is OOB OTP
-	if len(s.CurrentStep().AvailableAuthenticators) > 0 && s.CurrentStep().AvailableAuthenticators[0].Type == authn.AuthenticatorTypeOOB {
+	var step WebAppStep
+
+	switch s.CurrentStep().AvailableAuthenticators[0].Type {
+	case authn.AuthenticatorTypeOOB:
 		step = WebAppStepSetupOOBOTP
 		err = f.Interactions.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionTriggerOOBAuthenticator{
 			Authenticator: s.CurrentStep().AvailableAuthenticators[0],
@@ -88,6 +97,10 @@ func (f *WebAppFlow) SignupWithLoginID(loginIDKey, loginID string) (*WebAppResul
 		if err != nil {
 			return nil, err
 		}
+	case authn.AuthenticatorTypePassword:
+		step = WebAppStepSetupPassword
+	default:
+		panic("interaction_flow_webapp: unexpected authenticator type")
 	}
 
 	token, err := f.Interactions.SaveInteraction(i)
@@ -340,9 +353,13 @@ func (f *WebAppFlow) afterAddUpdateRemoveLoginID(i *interaction.Interaction) (re
 	}
 
 	// Or have more steps to go through
-	step := WebAppStepSetupPassword
-	// Trigger OOB OTP if the first authenticator is OOB OTP
-	if len(s.CurrentStep().AvailableAuthenticators) > 0 && s.CurrentStep().AvailableAuthenticators[0].Type == authn.AuthenticatorTypeOOB {
+	if s.CurrentStep().Step != interaction.StepSetupPrimaryAuthenticator || len(s.CurrentStep().AvailableAuthenticators) <= 0 {
+		panic("interaction_flow_webapp: unexpected interaction state")
+	}
+
+	var step WebAppStep
+	switch s.CurrentStep().AvailableAuthenticators[0].Type {
+	case authn.AuthenticatorTypeOOB:
 		step = WebAppStepSetupOOBOTP
 		err = f.Interactions.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionTriggerOOBAuthenticator{
 			Authenticator: s.CurrentStep().AvailableAuthenticators[0],
@@ -350,6 +367,10 @@ func (f *WebAppFlow) afterAddUpdateRemoveLoginID(i *interaction.Interaction) (re
 		if err != nil {
 			return nil, err
 		}
+	case authn.AuthenticatorTypePassword:
+		step = WebAppStepSetupPassword
+	default:
+		panic("interaction_flow_webapp: unexpected authenticator type")
 	}
 
 	token, err := f.Interactions.SaveInteraction(i)
