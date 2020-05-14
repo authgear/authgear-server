@@ -5,6 +5,10 @@ import (
 )
 
 // State represent the derived current state of interaction.
+// Steps contains the steps that have been executed and the next step to be executed.
+// The following invariants hold:
+// The last item is the next step to be executed.
+// Any other preceding items are steps that have been executed in this interaction.
 type State struct {
 	Steps []StepState
 }
