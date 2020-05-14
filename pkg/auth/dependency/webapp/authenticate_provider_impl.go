@@ -28,6 +28,7 @@ type InteractionFlow interface {
 	LinkWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	UnlinkWithOAuthProvider(userID string, providerConfig config.OAuthProviderConfiguration) (*interactionflows.WebAppResult, error)
 	AddLoginID(userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
+	UpdateLoginID(userID string, oldLoginID loginid.LoginID, newLoginID loginid.LoginID) (*interactionflows.WebAppResult, error)
 }
 
 type AuthenticateProviderImpl struct {
@@ -461,15 +462,25 @@ func (p *AuthenticateProviderImpl) EnterLoginID(w http.ResponseWriter, r *http.R
 
 	oldLoginID := r.Form.Get("x_old_login_id_value")
 	if oldLoginID != "" {
-		// TODO(interaction): Update
+		result, err = p.Interactions.UpdateLoginID(
+			userID,
+			loginid.LoginID{
+				Key:   r.Form.Get("x_login_id_key"),
+				Value: oldLoginID,
+			},
+			loginid.LoginID{
+				Key:   r.Form.Get("x_login_id_key"),
+				Value: r.Form.Get("x_login_id"),
+			},
+		)
 	} else {
 		result, err = p.Interactions.AddLoginID(userID, loginid.LoginID{
 			Key:   r.Form.Get("x_login_id_key"),
 			Value: r.Form.Get("x_login_id"),
 		})
-		if err != nil {
-			return
-		}
+	}
+	if err != nil {
+		return
 	}
 
 	r.Form["x_interaction_token"] = []string{result.Token}

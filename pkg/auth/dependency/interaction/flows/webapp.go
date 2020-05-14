@@ -273,9 +273,38 @@ func (f *WebAppFlow) AddLoginID(userID string, loginID loginid.LoginID) (result 
 		return
 	}
 
+	return f.afterAddUpdateRemoveLoginID(i)
+}
+
+func (f *WebAppFlow) UpdateLoginID(userID string, oldLoginID loginid.LoginID, newLoginID loginid.LoginID) (result *WebAppResult, err error) {
+	clientID := ""
+	i, err := f.Interactions.NewInteractionUpdateIdentity(&interaction.IntentUpdateIdentity{
+		OldIdentity: identity.Spec{
+			Type: authn.IdentityTypeLoginID,
+			Claims: map[string]interface{}{
+				identity.IdentityClaimLoginIDKey:   oldLoginID.Key,
+				identity.IdentityClaimLoginIDValue: oldLoginID.Value,
+			},
+		},
+		NewIdentity: identity.Spec{
+			Type: authn.IdentityTypeLoginID,
+			Claims: map[string]interface{}{
+				identity.IdentityClaimLoginIDKey:   newLoginID.Key,
+				identity.IdentityClaimLoginIDValue: newLoginID.Value,
+			},
+		},
+	}, clientID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return f.afterAddUpdateRemoveLoginID(i)
+}
+
+func (f *WebAppFlow) afterAddUpdateRemoveLoginID(i *interaction.Interaction) (result *WebAppResult, err error) {
 	s, err := f.Interactions.GetInteractionState(i)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	// Either commit

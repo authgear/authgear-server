@@ -471,6 +471,7 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 <input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
 <input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
+<input type="hidden" name="x_old_login_id_value" value="{{ .x_old_login_id_value }}">
 
 {{ if eq .x_login_id_input_type "phone" }}
 <div class="phone-input">
