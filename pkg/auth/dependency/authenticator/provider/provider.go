@@ -21,6 +21,7 @@ type PasswordAuthenticatorProvider interface {
 	// WithPassword returns new authenticator pointer if password is changed
 	// Otherwise original authenticator will be returned
 	WithPassword(userID string, a *password.Authenticator, password string) (*password.Authenticator, error)
+	VerifyPassword(a *password.Authenticator, password string) bool
 	Create(*password.Authenticator) error
 	UpdatePassword(*password.Authenticator) error
 	Delete(*password.Authenticator) error
@@ -257,16 +258,25 @@ func (a *Provider) New(userID string, spec authenticator.Spec, secret string) ([
 	panic("interaction_adaptors: unknown authenticator type " + spec.Type)
 }
 
-func (a *Provider) WithSecret(userID string, ai *authenticator.Info, secret string) (bool, *authenticator.Info, error) {
+func (a *Provider) WithSecret(userID string, ai *authenticator.Info, secret string, state *map[string]string) (bool, *authenticator.Info, error) {
 	changed := false
 	switch ai.Type {
 	case authn.AuthenticatorTypePassword:
-		authenticator := passwordFromAuthenticatorInfo(userID, ai)
-		newAuth, err := a.Password.WithPassword(userID, authenticator, secret)
+		authen := passwordFromAuthenticatorInfo(userID, ai)
+		if state == nil {
+			return false, nil, interaction.ErrInvalidCredentials
+		}
+		oldPassword, ok := (*state)[authenticator.AuthenticatorStatePasswordCheckOldPassword]
+		if ok {
+			if !a.Password.VerifyPassword(authen, oldPassword) {
+				return false, nil, interaction.ErrInvalidCredentials
+			}
+		}
+		newAuth, err := a.Password.WithPassword(userID, authen, secret)
 		if err != nil {
 			return false, nil, err
 		}
-		changed = (newAuth != authenticator)
+		changed = (newAuth != authen)
 		return changed, passwordToAuthenticatorInfo(newAuth), nil
 	}
 

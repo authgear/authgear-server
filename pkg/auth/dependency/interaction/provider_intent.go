@@ -208,10 +208,13 @@ func (p *Provider) NewInteractionAddAuthenticator(intent *IntentAddAuthenticator
 	panic("TODO(interaction): implement it")
 }
 
-func (p *Provider) NewInteractionUpdateAuthenticator(intent *IntentUpdateAuthenticator, clientID string, userID string) (*Interaction, error) {
+func (p *Provider) NewInteractionUpdateAuthenticator(
+	intent *IntentUpdateAuthenticator, clientID string, userID string, state map[string]string,
+) (*Interaction, error) {
 	return &Interaction{
 		Intent:   intent,
 		ClientID: clientID,
 		UserID:   userID,
+		State:    state,
 	}, nil
 }

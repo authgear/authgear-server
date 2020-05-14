@@ -376,9 +376,9 @@ func (mr *MockAuthenticatorProviderMockRecorder) New(userID, spec, secret interf
 }
 
 // WithSecret mocks base method
-func (m *MockAuthenticatorProvider) WithSecret(userID string, a *authenticator.Info, secret string) (bool, *authenticator.Info, error) {
+func (m *MockAuthenticatorProvider) WithSecret(userID string, a *authenticator.Info, secret string, state *map[string]string) (bool, *authenticator.Info, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithSecret", userID, a, secret)
+	ret := m.ctrl.Call(m, "WithSecret", userID, a, secret, state)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(*authenticator.Info)
 	ret2, _ := ret[2].(error)
@@ -386,9 +386,9 @@ func (m *MockAuthenticatorProvider) WithSecret(userID string, a *authenticator.I
 }
 
 // WithSecret indicates an expected call of WithSecret
-func (mr *MockAuthenticatorProviderMockRecorder) WithSecret(userID, a, secret interface{}) *gomock.Call {
+func (mr *MockAuthenticatorProviderMockRecorder) WithSecret(userID, a, secret, state interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithSecret", reflect.TypeOf((*MockAuthenticatorProvider)(nil).WithSecret), userID, a, secret)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithSecret", reflect.TypeOf((*MockAuthenticatorProvider)(nil).WithSecret), userID, a, secret, state)
 }
 
 // CreateAll mocks base method

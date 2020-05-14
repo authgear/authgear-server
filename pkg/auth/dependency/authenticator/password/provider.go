@@ -87,6 +87,10 @@ func (p *Provider) WithPassword(userID string, a *Authenticator, password string
 	return newAuthen, nil
 }
 
+func (p *Provider) VerifyPassword(a *Authenticator, password string) bool {
+	return pwd.Compare([]byte(password), a.PasswordHash) == nil
+}
+
 func (p *Provider) Create(a *Authenticator) error {
 	return p.Store.Create(a)
 }

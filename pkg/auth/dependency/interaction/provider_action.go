@@ -134,7 +134,7 @@ func (p *Provider) performActionUpdateAuthenticator(i *Interaction, intent *Inte
 	}
 
 	ai := ais[0]
-	changed, newAuthen, err := p.Authenticator.WithSecret(i.UserID, ai, act.Secret)
+	changed, newAuthen, err := p.Authenticator.WithSecret(i.UserID, ai, act.Secret, &i.State)
 	if skyerr.IsAPIError(err) {
 		i.Error = skyerr.AsAPIError(err)
 		return nil
