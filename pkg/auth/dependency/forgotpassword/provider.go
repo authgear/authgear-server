@@ -5,9 +5,8 @@ import (
 	"path"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -23,6 +22,15 @@ import (
 	coretime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
+type ResetPasswordFlow interface {
+	ResetPassword(userID string, password string) error
+}
+
+type LoginIDProvider interface {
+	GetByLoginID(loginID loginid.LoginID) ([]*loginid.Identity, error)
+	IsLoginIDKeyType(loginIDKey string, loginIDKeyType metadata.StandardKey) bool
+}
+
 type Provider struct {
 	StaticAssetURLPrefix        string
 	AppName                     string
@@ -32,15 +40,16 @@ type Provider struct {
 
 	Store Store
 
-	AuthInfoStore        authinfo.Store
-	UserProfileStore     userprofile.Store
-	PasswordAuthProvider password.Provider
-	PasswordChecker      *audit.PasswordChecker
-	HookProvider         hook.Provider
-	TimeProvider         coretime.Provider
-	URLPrefixProvider    urlprefix.Provider
-	TemplateEngine       *template.Engine
-	TaskQueue            async.Queue
+	AuthInfoStore     authinfo.Store
+	UserProfileStore  userprofile.Store
+	HookProvider      hook.Provider
+	TimeProvider      coretime.Provider
+	URLPrefixProvider urlprefix.Provider
+	TemplateEngine    *template.Engine
+	TaskQueue         async.Queue
+
+	Interactions    ResetPasswordFlow
+	LoginIDProvider LoginIDProvider
 }
 
 // SendCode checks if loginID is an existing login ID.
@@ -51,20 +60,25 @@ type Provider struct {
 // Finally the code is sent to the login ID asynchronously.
 func (p *Provider) SendCode(loginID string) (err error) {
 	// TODO(forgotpassword): Test SendCode
-	prins, err := p.PasswordAuthProvider.GetPrincipalsByLoginID("", loginID)
+	idens, err := p.LoginIDProvider.GetByLoginID(
+		loginid.LoginID{
+			Key:   "",
+			Value: loginID,
+		},
+	)
 	if err != nil {
 		return
 	}
 
-	for _, prin := range prins {
-		email := p.PasswordAuthProvider.CheckLoginIDKeyType(prin.LoginIDKey, metadata.Email)
-		phone := p.PasswordAuthProvider.CheckLoginIDKeyType(prin.LoginIDKey, metadata.Phone)
+	for _, iden := range idens {
+		email := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, metadata.Email)
+		phone := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, metadata.Phone)
 
 		if !email && !phone {
 			continue
 		}
 
-		code, codeStr := p.newCode(prin)
+		code, codeStr := p.newCode(iden.UserID)
 
 		err = p.Store.Create(code)
 		if err != nil {
@@ -72,12 +86,12 @@ func (p *Provider) SendCode(loginID string) (err error) {
 		}
 
 		if email {
-			err = p.sendEmail(prin.LoginID, codeStr)
+			err = p.sendEmail(iden.LoginID, codeStr)
 			return
 		}
 
 		if phone {
-			err = p.sendSMS(prin.LoginID, codeStr)
+			err = p.sendSMS(iden.LoginID, codeStr)
 			return
 		}
 	}
@@ -85,16 +99,16 @@ func (p *Provider) SendCode(loginID string) (err error) {
 	return
 }
 
-func (p *Provider) newCode(prin *password.Principal) (code *Code, codeStr string) {
+func (p *Provider) newCode(userID string) (code *Code, codeStr string) {
 	createdAt := p.TimeProvider.NowUTC()
 	codeStr = GenerateCode()
 	expireAt := createdAt.Add(time.Duration(p.ForgotPasswordConfiguration.ResetCodeLifetime) * time.Second)
 	code = &Code{
-		CodeHash:    HashCode(codeStr),
-		PrincipalID: prin.ID,
-		CreatedAt:   createdAt,
-		ExpireAt:    expireAt,
-		Consumed:    false,
+		CodeHash:  HashCode(codeStr),
+		UserID:    userID,
+		CreatedAt: createdAt,
+		ExpireAt:  expireAt,
+		Consumed:  false,
 	}
 	return
 }
@@ -219,20 +233,10 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error)
 		return
 	}
 
-	prin, err := p.PasswordAuthProvider.GetPrincipalByID(code.PrincipalID)
+	userID := code.UserID
+	err = p.Interactions.ResetPassword(userID, newPassword)
 	if err != nil {
-		return
-	}
-	userID := prin.PrincipalUserID()
-
-	resetPwdCtx := password.ResetPasswordRequestContext{
-		PasswordChecker:      p.PasswordChecker,
-		PasswordAuthProvider: p.PasswordAuthProvider,
-	}
-
-	err = resetPwdCtx.ExecuteWithUserID(newPassword, userID)
-	if err != nil {
-		return
+		return err
 	}
 
 	var authInfo authinfo.AuthInfo

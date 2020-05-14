@@ -197,6 +197,9 @@ var interactionDependencySet = wire.NewSet(
 	wire.Bind(new(oauthhandler.AnonymousInteractionFlow), new(*interactionflows.AnonymousFlow)),
 
 	wire.Bind(new(hook.LoginIDProvider), new(*identityloginid.Provider)),
+
+	wire.Bind(new(forgotpassword.LoginIDProvider), new(*identityloginid.Provider)),
+	wire.Bind(new(forgotpassword.ResetPasswordFlow), new(*interactionflows.PasswordFlow)),
 )
 
 var challengeDependencySet = wire.NewSet(

@@ -8,11 +8,22 @@ package forgotpwd
 import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/bearertoken"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
+	provider2 "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/provider"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/provider"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/redis"
 	pq2 "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -41,21 +52,41 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	store := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
-	provider := time.NewProvider()
+	timeProvider := time.NewProvider()
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
-	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
-	passwordhistoryStore := pq2.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
-	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
+	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, store, userprofileStore, loginidProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
-	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, store, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
+	redisStore := redis.ProvideStore(context, tenantConfiguration, timeProvider)
+	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
+	passwordhistoryStore := pq2.ProvidePasswordHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
+	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
+	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
+	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	provider3 := &provider2.Provider{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	passwordFlow := &flows.PasswordFlow{
+		Interactions: interactionProvider,
+	}
+	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, store, userprofileStore, hookProvider, timeProvider, urlprefixProvider, engine, queue, passwordFlow, loginidProvider)
 	httpHandler := provideForgotPasswordHandler(requireAuthz, validator, forgotpasswordProvider, txContext)
 	return httpHandler
 }
@@ -74,21 +105,41 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	store := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
-	provider := time.NewProvider()
+	timeProvider := time.NewProvider()
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
-	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
-	passwordhistoryStore := pq2.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
-	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, provider, passwordhistoryStore, factory, tenantConfiguration, reservedNameChecker)
-	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
+	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, reservedNameChecker)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, store, userprofileStore, loginidProvider, factory)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
-	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, store, userprofileStore, passwordProvider, passwordChecker, hookProvider, provider, urlprefixProvider, engine, queue)
+	redisStore := redis.ProvideStore(context, tenantConfiguration, timeProvider)
+	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
+	passwordhistoryStore := pq2.ProvidePasswordHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
+	passwordChecker := audit.ProvidePasswordChecker(tenantConfiguration, passwordhistoryStore)
+	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, passwordhistoryStore, passwordChecker, tenantConfiguration)
+	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	provider3 := &provider2.Provider{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	passwordFlow := &flows.PasswordFlow{
+		Interactions: interactionProvider,
+	}
+	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, store, userprofileStore, hookProvider, timeProvider, urlprefixProvider, engine, queue, passwordFlow, loginidProvider)
 	httpHandler := provideResetPasswordHandler(requireAuthz, validator, forgotpasswordProvider, txContext)
 	return httpHandler
 }

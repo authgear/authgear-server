@@ -9,11 +9,11 @@ import (
 )
 
 type Code struct {
-	CodeHash    string    `json:"code_hash"`
-	PrincipalID string    `json:"principal_id"`
-	CreatedAt   time.Time `json:"created_at"`
-	ExpireAt    time.Time `json:"expire_at"`
-	Consumed    bool      `json:"consumed"`
+	CodeHash  string    `json:"code_hash"`
+	UserID    string    `json:"user_id"`
+	CreatedAt time.Time `json:"created_at"`
+	ExpireAt  time.Time `json:"expire_at"`
+	Consumed  bool      `json:"consumed"`
 }
 
 func GenerateCode() string {
