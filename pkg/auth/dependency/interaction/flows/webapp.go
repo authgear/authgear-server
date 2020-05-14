@@ -3,6 +3,7 @@ package flows
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
@@ -188,7 +189,9 @@ func (f *WebAppFlow) SetupSecret(token string, secret string) (*WebAppResult, er
 		return f.afterPrimaryAuthentication(i)
 
 	default:
-		panic("interaction_flow_webapp: unexpected interaction intent")
+		return &WebAppResult{
+			Step: WebAppStepCompleted,
+		}, nil
 	}
 }
 
@@ -251,6 +254,64 @@ func (f *WebAppFlow) TriggerOOBOTP(token string) (*WebAppResult, error) {
 
 	return &WebAppResult{
 		Step:  WebAppStepAuthenticateOOBOTP,
+		Token: token,
+	}, nil
+}
+
+func (f *WebAppFlow) AddLoginID(userID string, loginID loginid.LoginID) (result *WebAppResult, err error) {
+	clientID := ""
+	i, err := f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
+		Identity: identity.Spec{
+			Type: authn.IdentityTypeLoginID,
+			Claims: map[string]interface{}{
+				identity.IdentityClaimLoginIDKey:   loginID.Key,
+				identity.IdentityClaimLoginIDValue: loginID.Value,
+			},
+		},
+	}, clientID, userID)
+	if err != nil {
+		return
+	}
+
+	s, err := f.Interactions.GetInteractionState(i)
+	if err != nil {
+		return
+	}
+
+	// Either commit
+	if s.CurrentStep().Step == interaction.StepCommit {
+		_, err = f.Interactions.Commit(i)
+		if err != nil {
+			return
+		}
+
+		result = &WebAppResult{
+			Step: WebAppStepCompleted,
+		}
+
+		return
+	}
+
+	// Or have more steps to go through
+	step := WebAppStepSetupPassword
+	// Trigger OOB OTP if the first authenticator is OOB OTP
+	if len(s.Steps[0].AvailableAuthenticators) > 0 && s.Steps[0].AvailableAuthenticators[0].Type == authn.AuthenticatorTypeOOB {
+		step = WebAppStepSetupOOBOTP
+		err = f.Interactions.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionTriggerOOBAuthenticator{
+			Authenticator: s.Steps[0].AvailableAuthenticators[0],
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	token, err := f.Interactions.SaveInteraction(i)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WebAppResult{
+		Step:  step,
 		Token: token,
 	}, nil
 }

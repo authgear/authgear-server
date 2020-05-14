@@ -22,6 +22,7 @@ func AttachEnterLoginIDHandler(
 
 type EnterLoginIDProvider interface {
 	GetEnterLoginIDForm(w http.ResponseWriter, r *http.Request) (func(error), error)
+	EnterLoginID(w http.ResponseWriter, r *http.Request) (func(error), error)
 }
 
 type EnterLoginIDHandler struct {
@@ -38,6 +39,12 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	db.WithTx(h.TxContext, func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetEnterLoginIDForm(w, r)
+			writeResponse(err)
+			return err
+		}
+
+		if r.Method == "POST" {
+			writeResponse, err := h.Provider.EnterLoginID(w, r)
 			writeResponse(err)
 			return err
 		}

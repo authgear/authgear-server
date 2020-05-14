@@ -27,6 +27,7 @@ type InteractionFlow interface {
 	LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	LinkWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	UnlinkWithOAuthProvider(userID string, providerConfig config.OAuthProviderConfiguration) (*interactionflows.WebAppResult, error)
+	AddLoginID(userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
 }
 
 type AuthenticateProviderImpl struct {
@@ -155,7 +156,7 @@ func (p *AuthenticateProviderImpl) GetLoginForm(w http.ResponseWriter, r *http.R
 	return p.get(w, r, TemplateItemTypeAuthUILoginHTML)
 }
 
-func (p *AuthenticateProviderImpl) EnterLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+func (p *AuthenticateProviderImpl) LoginWithLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	var result *interactionflows.WebAppResult
 	writeResponse = func(err error) {
 		p.persistState(r, err)
@@ -435,6 +436,44 @@ func (p *AuthenticateProviderImpl) AddOrChangeLoginID(w http.ResponseWriter, r *
 
 func (p *AuthenticateProviderImpl) GetEnterLoginIDForm(w http.ResponseWriter, r *http.Request) (writeResponse func(error), err error) {
 	return p.get(w, r, TemplateItemTypeAuthUIEnterLoginIDHTML)
+}
+
+func (p *AuthenticateProviderImpl) EnterLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(error), err error) {
+	var result *interactionflows.WebAppResult
+	writeResponse = func(err error) {
+		p.persistState(r, err)
+		p.handleResult(w, r, result, err)
+	}
+
+	p.ValidateProvider.PrepareValues(r.Form)
+
+	err = p.ValidateProvider.Validate("#WebAppEnterLoginIDRequest", r.Form)
+	if err != nil {
+		return
+	}
+
+	err = p.SetLoginID(r)
+	if err != nil {
+		return
+	}
+
+	userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
+
+	oldLoginID := r.Form.Get("x_old_login_id_value")
+	if oldLoginID != "" {
+		// TODO(interaction): Update
+	} else {
+		result, err = p.Interactions.AddLoginID(userID, loginid.LoginID{
+			Key:   r.Form.Get("x_login_id_key"),
+			Value: r.Form.Get("x_login_id"),
+		})
+		if err != nil {
+			return
+		}
+	}
+
+	r.Form["x_interaction_token"] = []string{result.Token}
+	return
 }
 
 func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(error), err error) {
