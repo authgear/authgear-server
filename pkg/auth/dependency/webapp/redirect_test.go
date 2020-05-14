@@ -133,7 +133,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 			check(w, DefaultRedirectURI)
 		})
 
-		Convey("prevent recursion", func() {
+		Convey("prevent recursion if redirect_uri is given externally", func() {
 			w := httptest.NewRecorder()
 
 			r, _ := http.NewRequest("GET", (&url.URL{
@@ -147,6 +147,22 @@ func TestRedirectToRedirectURI(t *testing.T) {
 
 			RedirectToRedirectURI(w, r)
 			check(w, DefaultRedirectURI)
+		})
+
+		Convey("allow recursion if redirect_uri is given internally", func() {
+			w := httptest.NewRecorder()
+
+			r, _ := http.NewRequest("GET", (&url.URL{
+				Scheme: "http",
+				Host:   "example.com",
+				Path:   "/",
+			}).String(), nil)
+			r.Form = url.Values{
+				"redirect_uri": []string{"/"},
+			}
+
+			RedirectToRedirectURI(w, r)
+			check(w, "http://example.com/")
 		})
 	})
 }

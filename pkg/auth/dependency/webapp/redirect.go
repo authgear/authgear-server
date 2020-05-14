@@ -43,17 +43,26 @@ func RedirectToPathWithQuery(w http.ResponseWriter, r *http.Request, path string
 }
 
 func getRedirectURI(r *http.Request) (out string, err error) {
-	out = r.URL.Query().Get("redirect_uri")
-	if out == "" {
-		err = errors.New("not found")
+	formRedirectURI := r.Form.Get("redirect_uri")
+	queryRedirectURI := r.URL.Query().Get("redirect_uri")
+
+	// Look at form body first
+	if queryRedirectURI == "" && formRedirectURI != "" {
+		out, err = parseRedirectURI(r, formRedirectURI, true)
 		return
 	}
 
-	out, err = parseRedirectURI(r, out)
+	// Look at query then
+	if queryRedirectURI != "" {
+		out, err = parseRedirectURI(r, queryRedirectURI, false)
+		return
+	}
+
+	err = errors.New("not found")
 	return
 }
 
-func parseRedirectURI(r *http.Request, redirectURL string) (out string, err error) {
+func parseRedirectURI(r *http.Request, redirectURL string, allowRecursive bool) (out string, err error) {
 	u, err := r.URL.Parse(redirectURL)
 	if err != nil {
 		return
@@ -67,7 +76,7 @@ func parseRedirectURI(r *http.Request, redirectURL string) (out string, err erro
 		return
 	}
 
-	if recursive {
+	if recursive && !allowRecursive {
 		err = errors.New("recursive")
 		return
 	}

@@ -164,6 +164,11 @@ func (p *AuthenticateProviderImpl) LoginWithLoginID(w http.ResponseWriter, r *ht
 		p.handleResult(w, r, result, err)
 	}
 
+	_, err = p.restoreState(r)
+	if err != nil {
+		return
+	}
+
 	p.ValidateProvider.PrepareValues(r.Form)
 
 	err = p.ValidateProvider.Validate("#WebAppEnterLoginIDRequest", r.Form)
@@ -199,6 +204,11 @@ func (p *AuthenticateProviderImpl) EnterSecret(w http.ResponseWriter, r *http.Re
 		r.Form.Del("x_password")
 		p.persistState(r, err)
 		p.handleResult(w, r, result, err)
+	}
+
+	_, err = p.restoreState(r)
+	if err != nil {
+		return
 	}
 
 	p.ValidateProvider.PrepareValues(r.Form)
@@ -248,6 +258,11 @@ func (p *AuthenticateProviderImpl) CreateLoginID(w http.ResponseWriter, r *http.
 	writeResponse = func(err error) {
 		p.persistState(r, err)
 		p.handleResult(w, r, result, err)
+	}
+
+	_, err = p.restoreState(r)
+	if err != nil {
+		return
 	}
 
 	p.ValidateProvider.PrepareValues(r.Form)
@@ -309,6 +324,11 @@ func (p *AuthenticateProviderImpl) LoginIdentityProvider(w http.ResponseWriter, 
 		return
 	}
 
+	_, err = p.restoreState(r)
+	if err != nil {
+		return
+	}
+
 	// create or update ui state
 	// state id will be set into the request query
 	p.persistState(r, nil)
@@ -361,6 +381,11 @@ func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r
 
 	userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 
+	_, err = p.restoreState(r)
+	if err != nil {
+		return
+	}
+
 	// create or update ui state
 	// state id will be set into the request query
 	p.persistState(r, nil)
@@ -394,9 +419,10 @@ func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r
 }
 
 func (p *AuthenticateProviderImpl) UnlinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
+	var result *interactionflows.WebAppResult
 	writeResponse = func(err error) {
 		p.persistState(r, err)
-		RedirectToCurrentPath(w, r)
+		p.handleResult(w, r, result, err)
 	}
 
 	providerConfig, ok := p.OAuthProviderFactory.GetOAuthProviderConfig(providerAlias)
@@ -407,11 +433,14 @@ func (p *AuthenticateProviderImpl) UnlinkIdentityProvider(w http.ResponseWriter,
 
 	userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 
-	// create or update ui state
-	// state id will be set into the request query
-	p.persistState(r, nil)
+	_, err = p.restoreState(r)
+	if err != nil {
+		return
+	}
 
-	_, err = p.Interactions.UnlinkWithOAuthProvider(userID, providerConfig)
+	r.Form.Set("redirect_uri", r.URL.Path)
+
+	result, err = p.Interactions.UnlinkWithOAuthProvider(userID, providerConfig)
 	if err != nil {
 		return
 	}
@@ -425,12 +454,19 @@ func (p *AuthenticateProviderImpl) AddOrChangeLoginID(w http.ResponseWriter, r *
 		RedirectToPathWithX(w, r, "/enter_login_id")
 	}
 
+	_, err = p.restoreState(r)
+	if err != nil {
+		return
+	}
+
 	p.ValidateProvider.PrepareValues(r.Form)
 
 	err = p.ValidateProvider.Validate("#WebAppAddOrChangeLoginIDRequest", r.Form)
 	if err != nil {
 		return
 	}
+
+	r.Form.Set("redirect_uri", r.URL.Path)
 
 	return
 }
@@ -444,6 +480,11 @@ func (p *AuthenticateProviderImpl) EnterLoginID(w http.ResponseWriter, r *http.R
 	writeResponse = func(err error) {
 		p.persistState(r, err)
 		p.handleResult(w, r, result, err)
+	}
+
+	_, err = p.restoreState(r)
+	if err != nil {
+		return
 	}
 
 	p.ValidateProvider.PrepareValues(r.Form)
@@ -508,7 +549,7 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 			v.Set("x_sid", s.ID)
 			RedirectToPathWithQuery(w, r, callbackURL, v)
 		} else {
-			redirectURI, err := parseRedirectURI(r, callbackURL)
+			redirectURI, err := parseRedirectURI(r, callbackURL, false)
 			if err != nil {
 				redirectURI = DefaultRedirectURI
 			}

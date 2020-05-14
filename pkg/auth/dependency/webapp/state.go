@@ -22,8 +22,6 @@ var (
 //
 // In the first POST request of a flow, a state object is created.
 // The x_sid query parameter in the URL identities a state object.
-// POST request writes state and never read it. POST request only read form.
-// GET request reads state.
 //
 // This approach does not use cookie at all.
 type State struct {
