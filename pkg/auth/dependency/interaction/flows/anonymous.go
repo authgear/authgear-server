@@ -104,7 +104,7 @@ func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn
 
 func (f *AnonymousFlow) DecodeUserID(requestJWT string) (string, anonymous.RequestAction, error) {
 	identity, request, err := f.Anonymous.ParseRequest(requestJWT)
-	if err != nil {
+	if err != nil || identity == nil {
 		return "", "", interaction.ErrInvalidCredentials
 	}
 
