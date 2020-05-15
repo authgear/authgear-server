@@ -237,6 +237,13 @@ func main() {
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
 
 	webappRouter = rootRouter.NewRoute().Subrouter()
+	// When StrictSlash is true, the path in the browser URL always matches
+	// the path specified in the route.
+	// Trailing slash or missing slash will be corrected.
+	// See http://www.gorillatoolkit.org/pkg/mux#Router.StrictSlash
+	// Since our routes are specified without trailing slash,
+	// the effect is that trailing slash is corrected with HTTP 301 by mux.
+	webappRouter.StrictSlash(true)
 	webappRouter.Use(webapp.IntlMiddleware)
 	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewClientIDMiddleware))
 	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewCSPMiddleware))
