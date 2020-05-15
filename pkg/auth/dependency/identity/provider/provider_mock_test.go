@@ -402,6 +402,21 @@ func (mr *MockAnonymousIdentityProviderMockRecorder) GetByKeyID(keyID interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByKeyID", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).GetByKeyID), keyID)
 }
 
+// List mocks base method
+func (m *MockAnonymousIdentityProvider) List(userID string) ([]*anonymous.Identity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", userID)
+	ret0, _ := ret[0].([]*anonymous.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List
+func (mr *MockAnonymousIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).List), userID)
+}
+
 // ListByClaim mocks base method
 func (m *MockAnonymousIdentityProvider) ListByClaim(name, value string) ([]*anonymous.Identity, error) {
 	m.ctrl.T.Helper()
@@ -443,4 +458,18 @@ func (m *MockAnonymousIdentityProvider) Create(i *anonymous.Identity) error {
 func (mr *MockAnonymousIdentityProviderMockRecorder) Create(i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).Create), i)
+}
+
+// Delete mocks base method
+func (m *MockAnonymousIdentityProvider) Delete(i *anonymous.Identity) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", i)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete
+func (mr *MockAnonymousIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).Delete), i)
 }
