@@ -27,7 +27,6 @@ type IdentityProvider interface {
 
 type RenderProviderImpl struct {
 	StaticAssetURLPrefix        string
-	IdentityConfiguration       *config.IdentityConfiguration
 	AuthenticationConfiguration *config.AuthenticationConfiguration
 	AuthUIConfiguration         *config.AuthUIConfiguration
 	LocalizationConfiguration   *config.LocalizationConfiguration
@@ -140,6 +139,16 @@ func (p *RenderProviderImpl) PreparePasswordPolicyData(anyError interface{}, dat
 	data["x_password_policies"] = passwordPolicyJSON
 }
 
+func (p *RenderProviderImpl) PrepareAuthenticationData(data map[string]interface{}) {
+	passwordAuthenticatorEnabled := false
+	for _, s := range p.AuthenticationConfiguration.PrimaryAuthenticators {
+		if s == string(authn.AuthenticatorTypePassword) {
+			passwordAuthenticatorEnabled = true
+		}
+	}
+	data["x_password_authenticator_enabled"] = passwordAuthenticatorEnabled
+}
+
 func (p *RenderProviderImpl) PrepareErrorData(anyError interface{}, data map[string]interface{}) {
 	if apiError := p.asAPIError(anyError); apiError != nil {
 		b, err := json.Marshal(struct {
@@ -167,6 +176,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	}
 	p.PrepareRequestData(r, data)
 	p.PreparePasswordPolicyData(anyError, data)
+	p.PrepareAuthenticationData(data)
 	p.PrepareErrorData(anyError, data)
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())

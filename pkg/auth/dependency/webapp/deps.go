@@ -27,7 +27,6 @@ func ProvideRenderProvider(
 ) RenderProvider {
 	return &RenderProviderImpl{
 		StaticAssetURLPrefix:        string(saup),
-		IdentityConfiguration:       config.AppConfig.Identity,
 		AuthenticationConfiguration: config.AppConfig.Authentication,
 		AuthUIConfiguration:         config.AppConfig.AuthUI,
 		LocalizationConfiguration:   config.AppConfig.Localization,

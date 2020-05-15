@@ -314,7 +314,10 @@ var TemplateAuthUILoginHTML = template.Spec{
 					<span class="primary-text">{{ localize "signup-button-hint" }}</span>
 					<a href="{{ call .MakeURLWithPathWithoutX "/signup" }}">{{ localize "signup-button-label" }}</a>
 				</div>
+
+				{{ if .x_password_authenticator_enabled }}
 				<a class="link align-self-flex-start" href="{{ call .MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
+				{{ end }}
 
 				{{ if or .x_login_id_input_type_has_phone .x_login_id_input_type_has_text }}
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
@@ -367,7 +370,9 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 <button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
 <button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
 
+{{ if .x_password_authenticator_enabled }}
 <a class="link align-self-flex-start" href="{{ call .MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
+{{ end }}
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 
@@ -779,9 +784,12 @@ var TemplateAuthUISignupHTML = template.Spec{
 
 				<div class="link align-self-flex-start">
 					<span class="primary-text">{{ localize "login-button-hint" }}</span>
-					<a href="{{ call .MakeURLWithPathWithoutX "/login" }}">{{ localize "login-button-label" }}<a>
+					<a href="{{ call .MakeURLWithPathWithoutX "/login" }}">{{ localize "login-button-label" }}</a>
 				</div>
+
+				{{ if .x_password_authenticator_enabled }}
 				<a class="link align-self-flex-start" href="{{ call .MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
+				{{ end }}
 
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">
 					{{ localize "next-button-label" }}
