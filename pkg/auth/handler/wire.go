@@ -10,6 +10,7 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	identityprovider "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/provider"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -168,6 +169,27 @@ func newResetPasswordHandler(r *http.Request, m pkg.DependencyMap) http.Handler 
 		pkg.DependencySet,
 		wire.Bind(new(ResetPasswordFlow), new(*interactionflows.PasswordFlow)),
 		provideResetPasswordHandler,
+	)
+	return nil
+}
+
+func providerListIdentitiesHandler(
+	requireAuthz handler.RequireAuthz,
+	tx db.TxContext,
+	ip ListIdentityProvider,
+) http.Handler {
+	h := &ListIdentitiesHandler{
+		TxContext:        tx,
+		IdentityProvider: ip,
+	}
+	return requireAuthz(h, h)
+}
+
+func newListIdentitiesHandler(r *http.Request, m pkg.DependencyMap) http.Handler {
+	wire.Build(
+		pkg.DependencySet,
+		wire.Bind(new(ListIdentityProvider), new(*identityprovider.Provider)),
+		providerListIdentitiesHandler,
 	)
 	return nil
 }

@@ -402,6 +402,26 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	return httpHandler
 }
 
+func newListIdentitiesHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	context := auth.ProvideContext(r)
+	requestID := auth.ProvideLoggingRequestID(r)
+	tenantConfiguration := auth.ProvideTenantConfig(context, m)
+	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	requireAuthz := handler.NewRequireAuthzFactory(factory)
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
+	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	timeProvider := time.NewProvider()
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
+	httpHandler := providerListIdentitiesHandler(requireAuthz, txContext, providerProvider)
+	return httpHandler
+}
+
 // wire.go:
 
 func provideLoginHandler(
@@ -498,6 +518,18 @@ func provideResetPasswordHandler(
 		TaskQueue:        aq,
 		HookProvider:     hp,
 		Interactions:     f,
+	}
+	return requireAuthz(h, h)
+}
+
+func providerListIdentitiesHandler(
+	requireAuthz handler.RequireAuthz,
+	tx db.TxContext,
+	ip ListIdentityProvider,
+) http.Handler {
+	h := &ListIdentitiesHandler{
+		TxContext:        tx,
+		IdentityProvider: ip,
 	}
 	return requireAuthz(h, h)
 }
