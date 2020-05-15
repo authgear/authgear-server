@@ -1,13 +1,13 @@
 package interaction
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -113,7 +113,7 @@ func (p *Provider) onCommitLogin(i *Interaction, intent *IntentLogin) error {
 func (p *Provider) onCommitSignup(i *Interaction, intent *IntentSignup) error {
 	// TODO(interaction-sso): handle OnUserDuplicateMerge
 	if intent.OnUserDuplicate == model.OnUserDuplicateAbort {
-		err := p.checkIdentitiesDuplicated(i.NewIdentities)
+		err := p.checkIdentitiesDuplicated(i.NewIdentities, "")
 		if err != nil {
 			return err
 		}
@@ -128,7 +128,7 @@ func (p *Provider) onCommitSignup(i *Interaction, intent *IntentSignup) error {
 }
 
 func (p *Provider) onCommitAddIdentity(i *Interaction, intent *IntentAddIdentity, userID string) error {
-	err := p.checkIdentitiesDuplicated(i.NewIdentities)
+	err := p.checkIdentitiesDuplicated(i.NewIdentities, userID)
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveId
 }
 
 func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateIdentity, userID string) error {
-	err := p.checkIdentitiesDuplicated(i.UpdateIdentities)
+	err := p.checkIdentitiesDuplicated(i.UpdateIdentities, userID)
 	if err != nil {
 		return err
 	}
@@ -308,28 +308,15 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 	return nil
 }
 
-func (p *Provider) checkIdentitiesDuplicated(iis []*identity.Info) error {
-	emailIdentities := map[string]struct{}{}
+func (p *Provider) checkIdentitiesDuplicated(iis []*identity.Info, userID string) error {
 	for _, i := range iis {
-		email, hasEmail := i.Claims[string(metadata.Email)].(string)
-		if !hasEmail {
-			continue
-		}
-
-		if _, exists := emailIdentities[email]; exists {
-			return ErrDuplicatedIdentity
-		}
-		emailIdentities[email] = struct{}{}
-	}
-
-	for email := range emailIdentities {
-		is, err := p.Identity.ListByClaims(map[string]string{string(metadata.Email): email})
+		err := p.Identity.CheckIdentityDuplicated(i, userID)
 		if err != nil {
+			if errors.Is(err, identity.ErrIdentityAlreadyExists) {
+				err = ErrDuplicatedIdentity
+			}
 			return err
-		} else if len(is) > 0 {
-			return ErrDuplicatedIdentity
 		}
 	}
-
 	return nil
 }

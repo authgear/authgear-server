@@ -28,6 +28,7 @@ type LoginIDIdentityProvider interface {
 	Delete(i *loginid.Identity) error
 	Validate(loginIDs []loginid.LoginID) error
 	Normalize(loginID loginid.LoginID) (normalized *loginid.LoginID, typ string, err error)
+	CheckDuplicated(uniqueKey string, standardClaims map[string]string, userID string) error
 }
 
 type OAuthIdentityProvider interface {
@@ -46,6 +47,7 @@ type OAuthIdentityProvider interface {
 	Create(i *oauth.Identity) error
 	Update(i *oauth.Identity) error
 	Delete(i *oauth.Identity) error
+	CheckDuplicated(standardClaims map[string]string, userID string) error
 }
 
 type AnonymousIdentityProvider interface {
@@ -414,6 +416,36 @@ func (a *Provider) RelateIdentityToAuthenticator(is identity.Spec, as *authentic
 	}
 
 	panic("interaction_adaptors: unknown identity type " + is.Type)
+}
+
+func (a *Provider) CheckIdentityDuplicated(is *identity.Info, userID string) (err error) {
+	// extract login id unique key
+	loginIDUniqueKey := ""
+	if is.Type == authn.IdentityTypeLoginID {
+		li := loginIDFromIdentityInfo(userID, is)
+		loginIDUniqueKey = li.UniqueKey
+	}
+
+	// extract standard claims
+	claims := map[string]string{}
+	email, hasEmail := is.Claims[string(metadata.Email)].(string)
+	if hasEmail {
+		claims[string(metadata.Email)] = email
+	}
+
+	err = a.LoginID.CheckDuplicated(loginIDUniqueKey, claims, userID)
+	if err != nil {
+		return err
+	}
+
+	err = a.OAuth.CheckDuplicated(claims, userID)
+	if err != nil {
+		return err
+	}
+
+	// No need to consider anonymous identity
+
+	return
 }
 
 func (a *Provider) ListCandidates(userID string) (out []identity.Candidate, err error) {

@@ -58,6 +58,7 @@ type IdentityProvider interface {
 	//
 	//   - login ID identity of login ID type email or phone and OOB OTP authenticator.
 	RelateIdentityToAuthenticator(identitySpec identity.Spec, authenticatorSpec *authenticator.Spec) *authenticator.Spec
+	CheckIdentityDuplicated(is *identity.Info, userID string) error
 }
 
 type AuthenticatorProvider interface {
