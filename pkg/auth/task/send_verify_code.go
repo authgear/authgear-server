@@ -6,8 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -26,13 +25,16 @@ func AttachVerifyCodeSendTask(
 	executor.Register(spec.VerifyCodeSendTaskName, MakeTask(authDependency, newVerifyCodeSendTask))
 }
 
+type VerifyCodeLoginIDProvider interface {
+	GetByLoginID(loginid.LoginID) ([]*loginid.Identity, error)
+}
+
 type VerifyCodeSendTask struct {
 	CodeSenderFactory        userverify.CodeSenderFactory
 	AuthInfoStore            authinfo.Store
 	UserProfileStore         userprofile.Store
 	UserVerificationProvider userverify.Provider
-	PasswordAuthProvider     password.Provider
-	IdentityProvider         principal.IdentityProvider
+	LoginIDProvider          VerifyCodeLoginIDProvider
 	TxContext                db.TxContext
 	LoggerFactory            logging.Factory
 }
@@ -60,31 +62,29 @@ func (v *VerifyCodeSendTask) run(param interface{}) (err error) {
 		return
 	}
 
-	// We don't check realms. i.e. Verifying a email means every email login IDs
-	// of that email is verified, regardless the realm.
-	principals, err := v.PasswordAuthProvider.GetPrincipalsByLoginID("", loginID)
+	is, err := v.LoginIDProvider.GetByLoginID(loginid.LoginID{Value: loginID})
 	if err != nil {
 		return
 	}
 
-	var userPrincipal *password.Principal
-	for _, principal := range principals {
-		if principal.UserID == authInfo.ID {
-			userPrincipal = principal
+	var identity *loginid.Identity
+	for _, i := range is {
+		if i.UserID == authInfo.ID {
+			identity = i
 			break
 		}
 	}
-	if userPrincipal == nil {
+	if identity == nil {
 		err = errors.WithDetails(errors.New("login ID not found"), errors.Details{"user_id": userID})
 		return
 	}
 
-	verifyCode, err := v.UserVerificationProvider.CreateVerifyCode(userPrincipal)
+	verifyCode, err := v.UserVerificationProvider.CreateVerifyCode(identity)
 	if err != nil {
 		return
 	}
 
-	codeSender := v.CodeSenderFactory.NewCodeSender(taskParam.URLPrefix, userPrincipal.LoginIDKey)
+	codeSender := v.CodeSenderFactory.NewCodeSender(taskParam.URLPrefix, identity.LoginIDKey)
 	user := model.NewUser(authInfo, userProfile)
 	if err = codeSender.Send(*verifyCode, user); err != nil {
 		err = errors.WithDetails(err, errors.Details{"user_id": userID})

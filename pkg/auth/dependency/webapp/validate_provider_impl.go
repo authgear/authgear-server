@@ -12,32 +12,20 @@ var validator *validation.Validator
 func init() {
 	validator = validation.NewValidator("https://accounts.skygear.io")
 	validator.AddSchemaFragments(
-		LoginRequestSchema,
-		LoginLoginIDRequestSchema,
-		LoginLoginIDPasswordRequestSchema,
-		SignupRequestSchema,
-		SignupLoginIDRequestSchema,
-		SignupLoginIDPasswordRequestSchema,
+		EnterLoginIDRequestSchema,
+		CreateLoginIDRequestSchema,
+		EnterPasswordRequestSchema,
 		ForgotPasswordRequestSchema,
 		ResetPasswordRequestSchema,
 		SSOCallbackRequestSchema,
+		AddOrChangeLoginIDRequestSchema,
+		RemoveLoginIDRequestSchema,
 	)
 }
 
-const LoginRequestSchema = `
+const EnterLoginIDRequestSchema = `
 {
-	"$id": "#WebAppLoginRequest",
-	"type": "object",
-	"properties": {
-		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] }
-	},
-	"required": ["x_login_id_input_type"]
-}
-`
-
-const LoginLoginIDRequestSchema = `
-{
-	"$id": "#WebAppLoginLoginIDRequest",
+	"$id": "#WebAppEnterLoginIDRequest",
 	"type": "object",
 	"properties": {
 		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
@@ -64,49 +52,21 @@ const LoginLoginIDRequestSchema = `
 `
 
 // nolint: gosec
-const LoginLoginIDPasswordRequestSchema = `
+const EnterPasswordRequestSchema = `
 {
-	"$id": "#WebAppLoginLoginIDPasswordRequest",
+	"$id": "#WebAppEnterPasswordRequest",
 	"type": "object",
 	"properties": {
-		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
-		"x_calling_code": { "type": "string" },
-		"x_national_number": { "type": "string" },
-		"x_login_id": { "type": "string" },
-		"x_password": { "type": "string" }
+		"x_password": { "type": "string" },
+		"x_interaction_token": { "type": "string" }
 	},
-	"required": ["x_login_id_input_type", "x_password"],
-	"oneOf": [
-		{
-			"properties": {
-				"x_login_id_input_type": { "type": "string", "const": "phone" }
-			},
-			"required": ["x_calling_code", "x_national_number"]
-		},
-		{
-			"properties": {
-				"x_login_id_input_type": { "type": "string", "const": "text" }
-			},
-			"required": ["x_login_id"]
-		}
-	]
+	"required": ["x_password", "x_interaction_token"]
 }
 `
 
-const SignupRequestSchema = `
+const CreateLoginIDRequestSchema = `
 {
-	"$id": "#WebAppSignupRequest",
-	"type": "object",
-	"properties": {
-		"x_login_id_key": { "type": "string" }
-	},
-	"required": ["x_login_id_key"]
-}
-`
-
-const SignupLoginIDRequestSchema = `
-{
-	"$id": "#WebAppSignupLoginIDRequest",
+	"$id": "#WebAppCreateLoginIDRequest",
 	"type": "object",
 	"properties": {
 		"x_login_id_key": { "type": "string" },
@@ -116,37 +76,6 @@ const SignupLoginIDRequestSchema = `
 		"x_login_id": { "type": "string" }
 	},
 	"required": ["x_login_id_key", "x_login_id_input_type"],
-	"oneOf": [
-		{
-			"properties": {
-				"x_login_id_input_type": { "type": "string", "const": "phone" }
-			},
-			"required": ["x_calling_code", "x_national_number"]
-		},
-		{
-			"properties": {
-				"x_login_id_input_type": { "type": "string", "const": "text" }
-			},
-			"required": ["x_login_id"]
-		}
-	]
-}
-`
-
-// nolint: gosec
-const SignupLoginIDPasswordRequestSchema = `
-{
-	"$id": "#WebAppSignupLoginIDPasswordRequest",
-	"type": "object",
-	"properties": {
-		"x_login_id_key": { "type": "string" },
-		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
-		"x_calling_code": { "type": "string" },
-		"x_national_number": { "type": "string" },
-		"x_login_id": { "type": "string" },
-		"x_password": { "type": "string" }
-	},
-	"required": ["x_login_id_key", "x_login_id_input_type", "x_password"],
 	"oneOf": [
 		{
 			"properties": {
@@ -216,6 +145,30 @@ const ResetPasswordRequestSchema = `
 		"x_password": { "type": "string" }
 	},
 	"required": ["code", "x_password"]
+}
+`
+
+const AddOrChangeLoginIDRequestSchema = `
+{
+	"$id": "#WebAppAddOrChangeLoginIDRequest",
+	"type": "object",
+	"properties": {
+		"x_login_id_key": { "type": "string" },
+		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] }
+	},
+	"required": ["x_login_id_key", "x_login_id_input_type"]
+}
+`
+
+const RemoveLoginIDRequestSchema = `
+{
+	"$id": "#WebAppRemoveLoginIDRequest",
+	"type": "object",
+	"properties": {
+		"x_login_id_key": { "type": "string" },
+		"x_old_login_id_value": { "type": "string" }
+	},
+	"required": ["x_login_id_key", "x_old_login_id_value"]
 }
 `
 

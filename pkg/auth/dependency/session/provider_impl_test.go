@@ -52,8 +52,7 @@ func TestProvider(t *testing.T) {
 		Convey("creating session", func() {
 			Convey("should be successful", func() {
 				session, token := provider.MakeSession(&authn.Attrs{
-					UserID:      "user-id",
-					PrincipalID: "principal-id",
+					UserID: "user-id",
 				})
 				err := provider.Create(session)
 
@@ -62,8 +61,7 @@ func TestProvider(t *testing.T) {
 				So(session, ShouldResemble, &IDPSession{
 					ID: session.ID,
 					Attrs: authn.Attrs{
-						UserID:      "user-id",
-						PrincipalID: "principal-id",
+						UserID: "user-id",
 					},
 					AccessInfo: auth.AccessInfo{
 						InitialAccess: accessEvent,
@@ -73,59 +71,13 @@ func TestProvider(t *testing.T) {
 					TokenHash: session.TokenHash,
 				})
 			})
-
-			Convey("should allow creating multiple sessions for same principal", func() {
-				session1, _ := provider.MakeSession(&authn.Attrs{
-					UserID:      "user-id",
-					PrincipalID: "principal-id",
-				})
-				err := provider.Create(session1)
-				So(err, ShouldBeNil)
-				So(session1, ShouldResemble, &IDPSession{
-					ID: session1.ID,
-					Attrs: authn.Attrs{
-						UserID:      "user-id",
-						PrincipalID: "principal-id",
-					},
-					AccessInfo: auth.AccessInfo{
-						InitialAccess: accessEvent,
-						LastAccess:    accessEvent,
-					},
-					CreatedAt: initialTime,
-					TokenHash: session1.TokenHash,
-				})
-
-				session2, _ := provider.MakeSession(&authn.Attrs{
-					UserID:      "user-id",
-					PrincipalID: "principal-id",
-				})
-				err = provider.Create(session2)
-				So(err, ShouldBeNil)
-				So(session2, ShouldResemble, &IDPSession{
-					ID: session2.ID,
-					Attrs: authn.Attrs{
-						UserID:      "user-id",
-						PrincipalID: "principal-id",
-					},
-					AccessInfo: auth.AccessInfo{
-						InitialAccess: accessEvent,
-						LastAccess:    accessEvent,
-					},
-					CreatedAt: initialTime,
-					TokenHash: session2.TokenHash,
-				})
-
-				So(session1.ID, ShouldNotEqual, session2.ID)
-				So(session1.TokenHash, ShouldNotEqual, session2.TokenHash)
-			})
 		})
 
 		Convey("getting session", func() {
 			fixtureSession := IDPSession{
 				ID: "session-id",
 				Attrs: authn.Attrs{
-					UserID:      "user-id",
-					PrincipalID: "principal-id",
+					UserID: "user-id",
 				},
 				CreatedAt: initialTime,
 				TokenHash: "15be5b9c05673532b445d3295a86afd6b2615775e0233e9798cbe3c846a08d05",

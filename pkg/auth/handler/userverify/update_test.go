@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -31,28 +31,22 @@ func TestUpdateHandler(t *testing.T) {
 		vh.Validator = validator
 		vh.TxContext = db.NewMockTxContext()
 
-		one := 1
-		loginIDsKeys := []config.LoginIDKeyConfiguration{
-			config.LoginIDKeyConfiguration{Key: "email", Maximum: &one},
-		}
-		vh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			loginIDsKeys,
-			[]string{password.DefaultRealm},
-			map[string]password.Principal{
-				"principal-id-1": password.Principal{
+		vh.LoginIDProvider = &mockLoginIDProvider{
+			Identities: []loginid.Identity{
+				{
 					ID:         "principal-id-1",
 					UserID:     "user-id-1",
 					LoginIDKey: "email",
 					LoginID:    "user+1@example.com",
 				},
-				"principal-id-2": password.Principal{
+				{
 					ID:         "principal-id-2",
 					UserID:     "user-id-1",
 					LoginIDKey: "email",
 					LoginID:    "user+2@example.com",
 				},
 			},
-		)
+		}
 
 		authInfo := authinfo.AuthInfo{
 			ID:               "user-id-1",

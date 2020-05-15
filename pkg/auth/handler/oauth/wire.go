@@ -8,6 +8,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
@@ -134,6 +135,20 @@ func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		auth.DependencySet,
 		wire.Bind(new(oidcEndSessionHandler), new(*oidchandler.EndSessionHandler)),
 		provideEndSessionHandler,
+	)
+	return nil
+}
+
+func provideChallengeHandler(h *ChallengeHandler) http.Handler {
+	return h
+}
+
+func newChallengeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
+	wire.Build(
+		auth.DependencySet,
+		wire.Bind(new(challengeProvider), new(*challenge.Provider)),
+		wire.Struct(new(ChallengeHandler), "*"),
+		provideChallengeHandler,
 	)
 	return nil
 }

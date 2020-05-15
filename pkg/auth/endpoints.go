@@ -5,8 +5,6 @@ import (
 	"path"
 
 	"github.com/google/wire"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 )
 
@@ -26,19 +24,11 @@ func (p *EndpointsProvider) RevokeEndpointURI() *url.URL       { return p.urlOf(
 func (p *EndpointsProvider) JWKSEndpointURI() *url.URL         { return p.urlOf("oauth2/jwks") }
 func (p *EndpointsProvider) UserInfoEndpointURI() *url.URL     { return p.urlOf("oauth2/userinfo") }
 func (p *EndpointsProvider) EndSessionEndpointURI() *url.URL   { return p.urlOf("oauth2/end_session") }
-func (p *EndpointsProvider) AuthenticateEndpointURI() *url.URL { return p.urlOf(".") }
+func (p *EndpointsProvider) AuthenticateEndpointURI() *url.URL { return p.urlOf("./login") }
+func (p *EndpointsProvider) PromoteUserEndpointURI() *url.URL  { return p.urlOf("./promote_user") }
 func (p *EndpointsProvider) LogoutEndpointURI() *url.URL       { return p.urlOf("./logout") }
 func (p *EndpointsProvider) SettingsEndpointURI() *url.URL     { return p.urlOf("./settings") }
 
 var endpointsProviderSet = wire.NewSet(
 	wire.Struct(new(EndpointsProvider), "*"),
-	wire.Bind(new(oauth.AuthorizeEndpointProvider), new(*EndpointsProvider)),
-	wire.Bind(new(oauth.TokenEndpointProvider), new(*EndpointsProvider)),
-	wire.Bind(new(oauth.RevokeEndpointProvider), new(*EndpointsProvider)),
-	wire.Bind(new(oidc.JWKSEndpointProvider), new(*EndpointsProvider)),
-	wire.Bind(new(oidc.UserInfoEndpointProvider), new(*EndpointsProvider)),
-	wire.Bind(new(oidc.EndSessionEndpointProvider), new(*EndpointsProvider)),
-	wire.Bind(new(oauth.AuthenticateEndpointProvider), new(*EndpointsProvider)),
-	wire.Bind(new(oauth.LogoutEndpointProvider), new(*EndpointsProvider)),
-	wire.Bind(new(oauth.SettingsEndpointProvider), new(*EndpointsProvider)),
 )

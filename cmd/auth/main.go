@@ -237,6 +237,13 @@ func main() {
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
 
 	webappRouter = rootRouter.NewRoute().Subrouter()
+	// When StrictSlash is true, the path in the browser URL always matches
+	// the path specified in the route.
+	// Trailing slash or missing slash will be corrected.
+	// See http://www.gorillatoolkit.org/pkg/mux#Router.StrictSlash
+	// Since our routes are specified without trailing slash,
+	// the effect is that trailing slash is corrected with HTTP 301 by mux.
+	webappRouter.StrictSlash(true)
 	webappRouter.Use(webapp.IntlMiddleware)
 	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewClientIDMiddleware))
 	webappRouter.Use(auth.MakeMiddleware(authDependency, auth.NewCSPMiddleware))
@@ -244,13 +251,18 @@ func main() {
 	webappRouter.Use(webapp.PostNoCacheMiddleware)
 
 	webappAuthRouter := webappRouter.NewRoute().Subrouter()
-	webappAuthRouter.Use(webapp.RequireNotAuthenticatedMiddleware{}.Handle)
 	webappAuthRouter.Use(auth.MakeMiddleware(authDependency, auth.NewStateMiddleware))
-	webapphandler.AttachRootHandler(webappAuthRouter, authDependency)
-	webapphandler.AttachLoginHandler(webappAuthRouter, authDependency)
-	webapphandler.AttachLoginPasswordHandler(webappAuthRouter, authDependency)
-	webapphandler.AttachSignupHandler(webappAuthRouter, authDependency)
-	webapphandler.AttachSignupPasswordHandler(webappAuthRouter, authDependency)
+	webappAuthEntryPointRouter := webappAuthRouter.NewRoute().Subrouter()
+	webappAuthEntryPointRouter.Use(webapp.AuthEntryPointMiddleware{}.Handle)
+	webapphandler.AttachRootHandler(webappAuthEntryPointRouter, authDependency)
+	webapphandler.AttachLoginHandler(webappAuthEntryPointRouter, authDependency)
+	webapphandler.AttachSignupHandler(webappAuthEntryPointRouter, authDependency)
+	webapphandler.AttachPromoteHandler(webappAuthEntryPointRouter, authDependency)
+
+	webapphandler.AttachEnterPasswordHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachEnterLoginIDHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachOOBOTPHandler(webappAuthRouter, authDependency)
+	webapphandler.AttachCreatePasswordHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachForgotPasswordHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachForgotPasswordSuccessHandler(webappAuthRouter, authDependency)
 	webapphandler.AttachResetPasswordHandler(webappAuthRouter, authDependency)
@@ -259,6 +271,7 @@ func main() {
 	webappAuthenticatedRouter := webappRouter.NewRoute().Subrouter()
 	webappAuthenticatedRouter.Use(webapp.RequireAuthenticatedMiddleware{}.Handle)
 	webapphandler.AttachSettingsHandler(webappAuthenticatedRouter, authDependency)
+	webapphandler.AttachSettingsIdentityHandler(webappAuthenticatedRouter, authDependency)
 	webapphandler.AttachLogoutHandler(webappAuthenticatedRouter, authDependency)
 
 	webappSSOCallbackRouter := rootRouter.NewRoute().Subrouter()
@@ -276,6 +289,7 @@ func main() {
 	oauthhandler.AttachRevokeHandler(oauthRouter, authDependency)
 	oauthhandler.AttachUserInfoHandler(oauthRouter, authDependency)
 	oauthhandler.AttachEndSessionHandler(oauthRouter, authDependency)
+	oauthhandler.AttachChallengeHandler(oauthRouter, authDependency)
 
 	handler.AttachSignupHandler(apiRouter, authDependency)
 	handler.AttachLoginHandler(apiRouter, authDependency)

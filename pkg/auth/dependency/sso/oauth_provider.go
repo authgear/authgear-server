@@ -16,7 +16,7 @@ type OAuthProvider interface {
 
 // NonOpenIDConnectProvider are OAuth 2.0 provider that does not
 // implement OpenID Connect or we do not implement yet.
-// They are Google, Facebook, Instagram and LinkedIn.
+// They are Google, Facebook and LinkedIn.
 type NonOpenIDConnectProvider interface {
 	NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error)
 }
@@ -24,7 +24,7 @@ type NonOpenIDConnectProvider interface {
 // ExternalAccessTokenFlowProvider is provider that the developer
 // can somehow acquire an access token and that access token
 // can be used to fetch user info.
-// They are Google, Facebook, Instagram and LinkedIn.
+// They are Facebook.
 type ExternalAccessTokenFlowProvider interface {
 	ExternalAccessTokenGetAuthInfo(AccessTokenResp) (AuthInfo, error)
 }
@@ -73,14 +73,6 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 		}
 	case config.OAuthProviderTypeFacebook:
 		return &FacebookImpl{
-			URLPrefix:       p.urlPrefixProvider.Value(),
-			RedirectURLFunc: p.redirectURIFunc,
-			OAuthConfig:     p.tenantConfig.AppConfig.Identity.OAuth,
-			ProviderConfig:  providerConfig,
-			UserInfoDecoder: p.userInfoDecoder,
-		}
-	case config.OAuthProviderTypeInstagram:
-		return &InstagramImpl{
 			URLPrefix:       p.urlPrefixProvider.Value(),
 			RedirectURLFunc: p.redirectURIFunc,
 			OAuthConfig:     p.tenantConfig.AppConfig.Identity.OAuth,

@@ -77,7 +77,6 @@ type OAuthProviderType string
 const (
 	OAuthProviderTypeGoogle    OAuthProviderType = "google"
 	OAuthProviderTypeFacebook  OAuthProviderType = "facebook"
-	OAuthProviderTypeInstagram OAuthProviderType = "instagram"
 	OAuthProviderTypeLinkedIn  OAuthProviderType = "linkedin"
 	OAuthProviderTypeAzureADv2 OAuthProviderType = "azureadv2"
 	OAuthProviderTypeApple     OAuthProviderType = "apple"

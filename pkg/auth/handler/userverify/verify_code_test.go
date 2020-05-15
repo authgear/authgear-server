@@ -7,12 +7,9 @@ import (
 	"testing"
 	gotime "time"
 
-	"github.com/sirupsen/logrus"
-	"github.com/sirupsen/logrus/hooks/test"
-
 	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -36,44 +33,30 @@ func TestVerifyCodeHandler(t *testing.T) {
 			VerifyCodeRequestSchema,
 		)
 		vh.Validator = validator
-		logger, _ := test.NewNullLogger()
-		vh.Logger = logrus.NewEntry(logger)
 		vh.TxContext = db.NewMockTxContext()
 
-		one := 1
-		loginIDsKeys := []config.LoginIDKeyConfiguration{
-			config.LoginIDKeyConfiguration{Key: "email", Maximum: &one},
-		}
-		vh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			loginIDsKeys,
-			[]string{password.DefaultRealm},
-			map[string]password.Principal{
-				"faseng1": password.Principal{
-					ID:             "id1",
-					UserID:         "faseng.cat.id",
-					LoginIDKey:     "email",
-					LoginID:        "faseng.cat.id@example.com",
-					Realm:          "default",
-					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+		vh.LoginIDProvider = &mockLoginIDProvider{
+			Identities: []loginid.Identity{
+				{
+					ID:         "id1",
+					UserID:     "faseng.cat.id",
+					LoginIDKey: "email",
+					LoginID:    "faseng.cat.id@example.com",
 				},
-				"faseng2": password.Principal{
-					ID:             "id2",
-					UserID:         "faseng.cat.id",
-					LoginIDKey:     "phone",
-					LoginID:        "+85299999999",
-					Realm:          "default",
-					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				{
+					ID:         "id2",
+					UserID:     "faseng.cat.id",
+					LoginIDKey: "phone",
+					LoginID:    "+85299999999",
 				},
-				"chima1": password.Principal{
-					ID:             "id2",
-					UserID:         "chima.cat.id",
-					LoginIDKey:     "email",
-					LoginID:        "chima.cat.id@example.com",
-					Realm:          "default",
-					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				{
+					ID:         "id3",
+					UserID:     "chima.cat.id",
+					LoginIDKey: "email",
+					LoginID:    "chima.cat.id@example.com",
 				},
 			},
-		)
+		}
 
 		authInfo := authinfo.AuthInfo{
 			ID:         "faseng.cat.id",
@@ -137,7 +120,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -184,7 +166,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -205,7 +186,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -228,7 +208,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -251,7 +230,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -278,7 +256,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -301,7 +278,6 @@ func TestVerifyCodeHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()

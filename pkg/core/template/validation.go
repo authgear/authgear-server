@@ -11,6 +11,7 @@ import (
 type Validator struct {
 	allowRangeNode    bool
 	allowTemplateNode bool
+	allowDeclaration  bool
 	maxDepth          int
 }
 
@@ -25,6 +26,12 @@ func AllowRangeNode(b bool) ValidatorOption {
 func AllowTemplateNode(b bool) ValidatorOption {
 	return func(v *Validator) {
 		v.allowTemplateNode = b
+	}
+}
+
+func AllowDeclaration(b bool) ValidatorOption {
+	return func(v *Validator) {
+		v.allowDeclaration = b
 	}
 }
 
@@ -83,7 +90,7 @@ func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 			case *parse.IfNode, *parse.ListNode, *parse.ActionNode, *parse.TextNode:
 				break
 			case *parse.PipeNode:
-				if len(n.Decl) > 0 {
+				if len(n.Decl) > 0 && !v.allowDeclaration {
 					err = fmt.Errorf("%s: declaration is forbidden", formatLocation(tree, n))
 				} else if len(n.Cmds) > 1 {
 					err = fmt.Errorf("%s: pipeline is forbidden", formatLocation(tree, n))

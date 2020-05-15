@@ -6,12 +6,10 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -49,14 +47,10 @@ const LoginRequestSchema = `
 }
 `
 
-type LoginAuthnProvider interface {
-	LoginWithLoginID(
-		client config.OAuthClientConfiguration,
-		loginID loginid.LoginID,
-		plainPassword string,
-	) (authn.Result, error)
-
-	WriteAPIResult(rw http.ResponseWriter, result authn.Result)
+type LoginInteractionFlow interface {
+	LoginWithLoginIDPassword(
+		clientID string, loginIDKey string, loginID string, password string,
+	) (*interactionflows.AuthResult, error)
 }
 
 /*
@@ -77,9 +71,9 @@ type LoginAuthnProvider interface {
 		@Callback user_sync {UserSyncEvent}
 */
 type LoginHandler struct {
-	Validator     *validation.Validator
-	AuthnProvider LoginAuthnProvider
-	TxContext     db.TxContext
+	Validator    *validation.Validator
+	Interactions LoginInteractionFlow
+	TxContext    db.TxContext
 }
 
 // ProvideAuthzPolicy provides authorization policy
@@ -102,14 +96,12 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var result authn.Result
+	var result *interactionflows.AuthResult
 	err = db.WithTx(h.TxContext, func() (err error) {
-		result, err = h.AuthnProvider.LoginWithLoginID(
-			coreauth.GetAccessKey(req.Context()).Client,
-			loginid.LoginID{
-				Key:   payload.LoginIDKey,
-				Value: payload.LoginID,
-			},
+		result, err = h.Interactions.LoginWithLoginIDPassword(
+			coreauth.GetAccessKey(req.Context()).Client.ClientID(),
+			payload.LoginIDKey,
+			payload.LoginID,
 			payload.Password,
 		)
 		return
@@ -119,5 +111,5 @@ func (h LoginHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	h.AuthnProvider.WriteAPIResult(resp, result)
+	result.WriteResponse(resp)
 }

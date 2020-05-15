@@ -21,8 +21,9 @@ func AttachSignupHandler(
 }
 
 type signupProvider interface {
-	GetSignupForm(w http.ResponseWriter, r *http.Request) (func(error), error)
-	PostSignupLoginID(w http.ResponseWriter, r *http.Request) (func(error), error)
+	GetCreateLoginIDForm(w http.ResponseWriter, r *http.Request) (func(error), error)
+	CreateLoginID(w http.ResponseWriter, r *http.Request) (func(error), error)
+	LoginIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
 }
 
 type SignupHandler struct {
@@ -38,13 +39,19 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	db.WithTx(h.TxContext, func() error {
 		if r.Method == "GET" {
-			writeResponse, err := h.Provider.GetSignupForm(w, r)
+			writeResponse, err := h.Provider.GetCreateLoginIDForm(w, r)
 			writeResponse(err)
 			return err
 		}
 
 		if r.Method == "POST" {
-			writeResponse, err := h.Provider.PostSignupLoginID(w, r)
+			if r.Form.Get("x_idp_id") != "" {
+				writeResponse, err := h.Provider.LoginIdentityProvider(w, r, r.Form.Get("x_idp_id"))
+				writeResponse(err)
+				return err
+			}
+
+			writeResponse, err := h.Provider.CreateLoginID(w, r)
 			writeResponse(err)
 			return err
 		}

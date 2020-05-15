@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
@@ -22,13 +21,12 @@ func AttachSSOCallbackHandler(
 }
 
 type ssoProvider interface {
-	HandleSSOCallback(w http.ResponseWriter, r *http.Request, oauthProvider webapp.OAuthProvider) (func(error), error)
+	HandleSSOCallback(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
 }
 
 type SSOCallbackHandler struct {
-	Provider      ssoProvider
-	oauthProvider webapp.OAuthProvider
-	TxContext     db.TxContext
+	Provider  ssoProvider
+	TxContext db.TxContext
 }
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -36,13 +34,12 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if h.oauthProvider == nil {
-		http.Error(w, "Not found", http.StatusNotFound)
-		return
-	}
+
+	vars := mux.Vars(r)
+	providerAlias := vars["provider"]
 
 	db.WithTx(h.TxContext, func() error {
-		writeResponse, err := h.Provider.HandleSSOCallback(w, r, h.oauthProvider)
+		writeResponse, err := h.Provider.HandleSSOCallback(w, r, providerAlias)
 		writeResponse(err)
 		return err
 	})

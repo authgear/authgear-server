@@ -9,41 +9,24 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
+	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-type MockLoginAuthnProvider struct{}
+type MockOAuthLoginInteractionFlow struct{}
 
-func (p *MockLoginAuthnProvider) OAuthAuthenticateCode(
-	authInfo sso.AuthInfo,
-	codeChallenge string,
-	loginState sso.LoginState,
-) (*sso.SkygearAuthorizationCode, string, error) {
+func (m *MockOAuthLoginInteractionFlow) LoginWithOAuthProvider(
+	clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string, onUserDuplicate model.OnUserDuplicate,
+) (string, error) {
 	panic("not mocked")
 }
 
-func (p *MockLoginAuthnProvider) OAuthConsumeCode(
-	codeHash string,
-) (*sso.SkygearAuthorizationCode, error) {
-	panic("not mocked")
-}
-
-func (p *MockLoginAuthnProvider) OAuthExchangeCode(
-	client config.OAuthClientConfiguration,
-	session auth.AuthSession,
-	code *sso.SkygearAuthorizationCode,
-) (authn.Result, error) {
-	panic("not mocked")
-}
-
-func (p *MockLoginAuthnProvider) WriteAPIResult(http.ResponseWriter, authn.Result) {
+func (m *MockOAuthLoginInteractionFlow) ExchangeCode(codeHash string, verifier string) (*interactionflows.AuthResult, error) {
 	panic("not mocked")
 }
 
@@ -83,7 +66,7 @@ func TestLoginHandler(t *testing.T) {
 		}
 		sh.OAuthProvider = &mockProvider
 		sh.SSOProvider = &mockProvider
-		sh.AuthnProvider = &MockLoginAuthnProvider{}
+		sh.Interactions = &MockOAuthLoginInteractionFlow{}
 
 		Convey("should reject payload without access token", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{}`))

@@ -1,7 +1,7 @@
 package hook
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -10,27 +10,31 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
+type LoginIDProvider interface {
+	List(userID string) ([]*loginid.Identity, error)
+}
+
 type mutatorImpl struct {
-	Event                  *event.Event
-	User                   *model.User
-	UserPasswordPrincipals *[]*password.Principal
-	Mutations              event.Mutations
+	Event             *event.Event
+	User              *model.User
+	LoginIDIdentities *[]*loginid.Identity
+	Mutations         event.Mutations
 
 	UserVerificationConfig *config.UserVerificationConfiguration
-	PasswordAuthProvider   password.Provider
+	LoginIDs               LoginIDProvider
 	AuthInfoStore          authinfo.Store
 	UserProfileStore       userprofile.Store
 }
 
 func NewMutator(
 	verifyConfig *config.UserVerificationConfiguration,
-	passwordProvider password.Provider,
+	loginIDProvider LoginIDProvider,
 	authInfoStore authinfo.Store,
 	userProfileStore userprofile.Store,
 ) Mutator {
 	return &mutatorImpl{
 		UserVerificationConfig: verifyConfig,
-		PasswordAuthProvider:   passwordProvider,
+		LoginIDs:               loginIDProvider,
 		AuthInfoStore:          authInfoStore,
 		UserProfileStore:       userProfileStore,
 	}
@@ -48,12 +52,12 @@ func (mutator *mutatorImpl) Add(mutations event.Mutations) error {
 	// update computed verified status if needed
 	if mutations.VerifyInfo != nil || mutations.IsManuallyVerified != nil {
 		// update IsVerified
-		if mutator.UserPasswordPrincipals == nil {
-			principals, err := mutator.PasswordAuthProvider.GetPrincipalsByUserID(mutator.User.ID)
+		if mutator.LoginIDIdentities == nil {
+			is, err := mutator.LoginIDs.List(mutator.User.ID)
 			if err != nil {
 				return err
 			}
-			mutator.UserPasswordPrincipals = &principals
+			mutator.LoginIDIdentities = &is
 		}
 
 		verifyInfo := mutator.User.VerifyInfo
@@ -62,7 +66,7 @@ func (mutator *mutatorImpl) Add(mutations event.Mutations) error {
 		}
 		isVerified := userverify.IsUserVerified(
 			verifyInfo,
-			*mutator.UserPasswordPrincipals,
+			*mutator.LoginIDIdentities,
 			mutator.UserVerificationConfig.Criteria,
 			mutator.UserVerificationConfig.LoginIDKeys,
 		)
@@ -118,7 +122,7 @@ func (mutator *mutatorImpl) Apply() error {
 	if mutations.VerifyInfo != nil {
 		isVerified := userverify.IsUserVerified(
 			authInfo.VerifyInfo,
-			*mutator.UserPasswordPrincipals,
+			*mutator.LoginIDIdentities,
 			mutator.UserVerificationConfig.Criteria,
 			mutator.UserVerificationConfig.LoginIDKeys,
 		)

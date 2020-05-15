@@ -39,19 +39,16 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 	return &model.Session{
 		ID: s.ID,
 
-		IdentityID:        s.Attrs.PrincipalID,
-		IdentityType:      string(s.Attrs.PrincipalType),
-		IdentityUpdatedAt: s.Attrs.PrincipalUpdatedAt,
+		IdentityType:   string(s.Attrs.IdentityType),
+		IdentityClaims: s.Attrs.IdentityClaims,
 
-		AuthenticatorID:         s.Attrs.AuthenticatorID,
-		AuthenticatorType:       string(s.Attrs.AuthenticatorType),
-		AuthenticatorOOBChannel: string(s.Attrs.AuthenticatorOOBChannel),
-		AuthenticatorUpdatedAt:  s.Attrs.AuthenticatorUpdatedAt,
-		CreatedAt:               s.CreatedAt,
-		LastAccessedAt:          s.AccessInfo.LastAccess.Timestamp,
-		CreatedByIP:             s.AccessInfo.InitialAccess.Remote.IP(),
-		LastAccessedByIP:        s.AccessInfo.LastAccess.Remote.IP(),
-		UserAgent:               ua,
+		ACR:              s.Attrs.ACR,
+		AMR:              s.Attrs.AMR,
+		CreatedAt:        s.CreatedAt,
+		LastAccessedAt:   s.AccessInfo.LastAccess.Timestamp,
+		CreatedByIP:      s.AccessInfo.InitialAccess.Remote.IP(),
+		LastAccessedByIP: s.AccessInfo.LastAccess.Remote.IP(),
+		UserAgent:        ua,
 	}
 }
 

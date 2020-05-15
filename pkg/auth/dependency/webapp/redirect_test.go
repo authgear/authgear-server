@@ -133,7 +133,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 			check(w, DefaultRedirectURI)
 		})
 
-		Convey("prevent recursion", func() {
+		Convey("prevent recursion if redirect_uri is given externally", func() {
 			w := httptest.NewRecorder()
 
 			r, _ := http.NewRequest("GET", (&url.URL{
@@ -148,27 +148,54 @@ func TestRedirectToRedirectURI(t *testing.T) {
 			RedirectToRedirectURI(w, r)
 			check(w, DefaultRedirectURI)
 		})
+
+		Convey("allow recursion if redirect_uri is given internally", func() {
+			w := httptest.NewRecorder()
+
+			r, _ := http.NewRequest("GET", (&url.URL{
+				Scheme: "http",
+				Host:   "example.com",
+				Path:   "/",
+			}).String(), nil)
+			r.Form = url.Values{
+				"redirect_uri": []string{"/"},
+			}
+
+			RedirectToRedirectURI(w, r)
+			check(w, "http://example.com/")
+		})
 	})
 }
 
-func TestMakeURLWithPath(t *testing.T) {
-	Convey("MakeURLWithPath", t, func() {
+func TestMakeURLWithPathWithX(t *testing.T) {
+	Convey("MakeURLWithPathWithX", t, func() {
 		test := func(str string, path string, expected string) {
 			u, err := url.Parse(str)
 			So(err, ShouldBeNil)
-			actual := MakeURLWithPath(u, path)
+			actual := MakeURLWithPathWithX(u, path)
 			So(actual, ShouldEqual, expected)
 		}
 
 		test("http://example.com", "/login", "/login")
-
 		test("http://example.com?a=a", "/login", "/login?a=a")
 		test("http://example.com/login?a=a", "/login", "/login?a=a")
+		test("http://example.com/login?a=a&x_a=a", "/login", "/login?a=a&x_a=a")
+	})
+}
 
-		test("http://example.com/login?a=a&x_a=a", "/signup", "/signup?a=a")
-		test("http://example.com/login?a=a&x_a=a", "/", "/?a=a")
+func TestMakeURLWithPathWithoutX(t *testing.T) {
+	Convey("MakeURLWithPathWithoutX", t, func() {
+		test := func(str string, path string, expected string) {
+			u, err := url.Parse(str)
+			So(err, ShouldBeNil)
+			actual := MakeURLWithPathWithoutX(u, path)
+			So(actual, ShouldEqual, expected)
+		}
 
-		test("http://example.com/login?a=a&x_a=a", "/login/password", "/login/password?a=a&x_a=a")
+		test("http://example.com", "/login", "/login")
+		test("http://example.com?a=a", "/login", "/login?a=a")
+		test("http://example.com/login?a=a", "/login", "/login?a=a")
+		test("http://example.com/login?a=a&x_a=a", "/login", "/login?a=a")
 	})
 }
 

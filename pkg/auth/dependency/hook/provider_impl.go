@@ -197,7 +197,7 @@ func (provider *providerImpl) dispatchSyncUserEventIfNeeded() error {
 }
 
 func (provider *providerImpl) makeContext() event.Context {
-	var requestID, userID, principalID *string
+	var requestID, userID *string
 	var session *model.Session
 
 	if provider.RequestID == "" {
@@ -210,19 +210,16 @@ func (provider *providerImpl) makeContext() event.Context {
 	sess := authn.GetSession(provider.Context)
 	if user == nil {
 		userID = nil
-		principalID = nil
 		session = nil
 	} else {
 		userID = &user.ID
-		principalID = &sess.AuthnAttrs().PrincipalID
 		session = sess.(auth.AuthSession).ToAPIModel()
 	}
 
 	return event.Context{
-		Timestamp:   provider.TimeProvider.NowUTC().Unix(),
-		RequestID:   requestID,
-		UserID:      userID,
-		PrincipalID: principalID,
-		Session:     session,
+		Timestamp: provider.TimeProvider.NowUTC().Unix(),
+		RequestID: requestID,
+		UserID:    userID,
+		Session:   session,
 	}
 }

@@ -4,13 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -19,8 +17,6 @@ import (
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -31,28 +27,12 @@ func AttachVerifyCodeHandler(
 ) {
 	router.NewRoute().
 		Path("/verify_code").
-		Handler(server.FactoryToHandler(&VerifyCodeHandlerFactory{
-			authDependency,
-		})).
+		Handler(pkg.MakeHandler(authDependency, newVerifyCodeHandler)).
 		Methods("OPTIONS", "POST")
 	router.NewRoute().
 		Path("/verify_code_form").
-		Handler(server.FactoryToHandler(&VerifyCodeFormHandlerFactory{
-			authDependency,
-		})).
+		Handler(pkg.MakeHandler(authDependency, newVerifyCodeFormHandler)).
 		Methods("OPTIONS", "POST", "GET")
-}
-
-// VerifyCodeHandlerFactory creates VerifyCodeHandler
-type VerifyCodeHandlerFactory struct {
-	Dependency pkg.DependencyMap
-}
-
-// NewHandler creates new VerifyCodeHandler
-func (f VerifyCodeHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &VerifyCodeHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
 }
 
 type VerifyCodePayload struct {
@@ -88,15 +68,13 @@ const VerifyCodeRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type VerifyCodeHandler struct {
-	TxContext                db.TxContext          `dependency:"TxContext"`
-	Validator                *validation.Validator `dependency:"Validator"`
-	RequireAuthz             handler.RequireAuthz  `dependency:"RequireAuthz"`
-	UserVerificationProvider userverify.Provider   `dependency:"UserVerificationProvider"`
-	AuthInfoStore            authinfo.Store        `dependency:"AuthInfoStore"`
-	PasswordAuthProvider     password.Provider     `dependency:"PasswordAuthProvider"`
-	UserProfileStore         userprofile.Store     `dependency:"UserProfileStore"`
-	HookProvider             hook.Provider         `dependency:"HookProvider"`
-	Logger                   *logrus.Entry         `dependency:"HandlerLogger"`
+	TxContext                db.TxContext
+	Validator                *validation.Validator
+	UserVerificationProvider userverify.Provider
+	AuthInfoStore            authinfo.Store
+	LoginIDProvider          LoginIDProvider
+	UserProfileStore         userprofile.Store
+	HookProvider             hook.Provider
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -137,7 +115,7 @@ func (h VerifyCodeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp 
 
 		oldUser := model.NewUser(*authInfo, userProfile)
 
-		_, err = h.UserVerificationProvider.VerifyUser(h.PasswordAuthProvider, h.AuthInfoStore, authInfo, payload.Code)
+		_, err = h.UserVerificationProvider.VerifyUser(h.LoginIDProvider, h.AuthInfoStore, authInfo, payload.Code)
 		if err != nil {
 			return
 		}

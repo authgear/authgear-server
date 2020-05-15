@@ -11,6 +11,10 @@ const CookieName = "session"
 
 type CookieConfiguration corehttp.CookieConfiguration
 
+func (c *CookieConfiguration) NewCookie(value string) *http.Cookie {
+	return (*corehttp.CookieConfiguration)(c).NewCookie(value)
+}
+
 func (c *CookieConfiguration) WriteTo(rw http.ResponseWriter, value string) {
 	(*corehttp.CookieConfiguration)(c).WriteTo(rw, value)
 }

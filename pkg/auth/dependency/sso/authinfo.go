@@ -57,11 +57,6 @@ func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse, state Stat
 	if err != nil {
 		return
 	}
-
-	err = accessTokenResp.Validate()
-	if err != nil {
-		return
-	}
 	authInfo.ProviderAccessTokenResp = accessTokenResp
 
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)

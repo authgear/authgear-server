@@ -22,8 +22,6 @@ var (
 //
 // In the first POST request of a flow, a state object is created.
 // The x_sid query parameter in the URL identities a state object.
-// POST request writes state and never read it. POST request only read form.
-// GET request reads state.
 //
 // This approach does not use cookie at all.
 type State struct {
@@ -33,6 +31,8 @@ type State struct {
 	Form string `json:"form"`
 	// Error is either reset to nil or set to non-nil in every POST request.
 	Error *skyerr.APIError `json:"error"`
+	// AnonymousUserID is the ID of anonymous user during promotion flow.
+	AnonymousUserID string `json:"anonymous_user_id,omitempty"`
 }
 
 func NewState() *State {

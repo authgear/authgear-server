@@ -9,13 +9,11 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 )
 
 func AttachListIdentitiesHandler(
@@ -24,20 +22,12 @@ func AttachListIdentitiesHandler(
 ) {
 	router.NewRoute().
 		Path("/identity/list").
-		Handler(server.FactoryToHandler(&ListIdentitiesHandlerFactory{
-			authDependency,
-		})).
+		Handler(pkg.MakeHandler(authDependency, newListIdentitiesHandler)).
 		Methods("OPTIONS", "POST")
 }
 
-type ListIdentitiesHandlerFactory struct {
-	Dependency pkg.DependencyMap
-}
-
-func (f ListIdentitiesHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &ListIdentitiesHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
+type ListIdentityProvider interface {
+	ListByUser(userID string) ([]*identity.Info, error)
 }
 
 // @JSONSchema
@@ -76,9 +66,8 @@ type IdentityListResponse struct {
 			@JSONSchema {IdentityListResponse}
 */
 type ListIdentitiesHandler struct {
-	RequireAuthz     handler.RequireAuthz       `dependency:"RequireAuthz"`
-	TxContext        db.TxContext               `dependency:"TxContext"`
-	IdentityProvider principal.IdentityProvider `dependency:"IdentityProvider"`
+	TxContext        db.TxContext
+	IdentityProvider ListIdentityProvider
 }
 
 func (h ListIdentitiesHandler) ProvideAuthzPolicy() coreauthz.Policy {
@@ -102,18 +91,21 @@ func (h ListIdentitiesHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 	err = db.WithTx(h.TxContext, func() error {
 		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 
-		principals, err := h.IdentityProvider.ListPrincipalsByUserID(userID)
+		iis, err := h.IdentityProvider.ListByUser(userID)
 		if err != nil {
 			return err
 		}
 
-		sort.Slice(principals, func(i, j int) bool {
-			return principals[i].PrincipalID() < principals[j].PrincipalID()
+		sort.Slice(iis, func(i, j int) bool {
+			return iis[i].ID < iis[j].ID
 		})
 
-		identities := make([]model.Identity, len(principals))
-		for i, p := range principals {
-			identities[i] = model.NewIdentity(p)
+		identities := make([]model.Identity, len(iis))
+		for i, ii := range iis {
+			identities[i] = model.Identity{
+				Type:   string(ii.Type),
+				Claims: ii.Claims,
+			}
 		}
 
 		resp = IdentityListResponse{Identities: identities}

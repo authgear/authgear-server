@@ -9,67 +9,57 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 )
+
+type MockListIdentityProvider struct{}
+
+func (m *MockListIdentityProvider) ListByUser(userID string) ([]*identity.Info, error) {
+	return []*identity.Info{
+		&identity.Info{
+			Type: authn.IdentityTypeLoginID,
+			Claims: map[string]interface{}{
+				"email":                            "user1@example.com",
+				identity.IdentityClaimLoginIDKey:   "email",
+				identity.IdentityClaimLoginIDValue: "user1@example.com",
+			},
+		},
+		&identity.Info{
+			Type: authn.IdentityTypeLoginID,
+			Claims: map[string]interface{}{
+				"username":                         "user1",
+				identity.IdentityClaimLoginIDKey:   "username",
+				identity.IdentityClaimLoginIDValue: "user1",
+			},
+		},
+		&identity.Info{
+			Type: authn.IdentityTypeOAuth,
+			Claims: map[string]interface{}{
+				"email":                              "user1@example.com",
+				identity.IdentityClaimOAuthProvider:  map[string]interface{}{"type": "google"},
+				identity.IdentityClaimOAuthSubjectID: "google-user-id",
+				identity.IdentityClaimOAuthProfile: map[string]interface{}{
+					"email": "user1@example.com",
+					"name":  "User 1",
+				},
+			},
+		},
+	}, nil
+}
 
 func TestListIdentitiesHandler(t *testing.T) {
 	Convey("Test ListIdentitiesHandler", t, func() {
 		h := &ListIdentitiesHandler{}
 		h.TxContext = db.NewMockTxContext()
-		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			[]config.LoginIDKeyConfiguration{},
-			[]string{password.DefaultRealm},
-			map[string]password.Principal{
-				"principal-id-1": password.Principal{
-					ID:         "principal-id-1",
-					UserID:     "user-id-1",
-					LoginIDKey: "email",
-					LoginID:    "user1@example.com",
-					Realm:      password.DefaultRealm,
-					ClaimsValue: map[string]interface{}{
-						"email": "user1@example.com",
-					},
-				},
-				"principal-id-2": password.Principal{
-					ID:         "principal-id-2",
-					UserID:     "user-id-1",
-					LoginIDKey: "username",
-					LoginID:    "user1",
-					Realm:      password.DefaultRealm,
-					ClaimsValue: map[string]interface{}{
-						"username": "user1",
-					},
-				},
-			},
-		)
-		oauthProvider := oauth.NewMockProvider([]*oauth.Principal{
-			&oauth.Principal{
-				ID:             "principal-id-3",
-				UserID:         "user-id-1",
-				ProviderType:   "google",
-				ProviderKeys:   map[string]interface{}{},
-				ProviderUserID: "google-user-id",
-				UserProfile: map[string]interface{}{
-					"name":  "User 1",
-					"email": "user1@example.com",
-				},
-				ClaimsValue: map[string]interface{}{
-					"email": "user1@example.com",
-				},
-			},
-		})
-		h.IdentityProvider = principal.NewMockIdentityProvider(passwordAuthProvider, oauthProvider)
+		h.IdentityProvider = &MockListIdentityProvider{}
 
 		Convey("should return list of identities", func() {
 			r, _ := http.NewRequest("POST", "", strings.NewReader("{}"))
 			r = authtesting.WithAuthn().
 				UserID("user-id-1").
-				PrincipalID("principal-id-1").
 				ToRequest(r)
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
@@ -79,35 +69,31 @@ func TestListIdentitiesHandler(t *testing.T) {
 				"result": {
 					"identities": [
 						{
-							"id": "principal-id-1",
-							"type": "password",
-							"login_id_key": "email",
-							"login_id": "user1@example.com",
+							"type": "login_id",
 							"claims": {
-								"email": "user1@example.com"
+								"email": "user1@example.com",
+								"https://auth.skygear.io/claims/login_id/key":   "email",
+								"https://auth.skygear.io/claims/login_id/value": "user1@example.com"
 							}
 						},
 						{
-							"id": "principal-id-2",
-							"type": "password",
-							"login_id_key": "username",
-							"login_id": "user1",
+							"type": "login_id",
 							"claims": {
-								"username": "user1"
+								"username": "user1",
+								"https://auth.skygear.io/claims/login_id/key":   "username",
+								"https://auth.skygear.io/claims/login_id/value": "user1"
 							}
 						},
 						{
-							"id": "principal-id-3",
 							"type": "oauth",
-							"provider_type": "google",
-							"provider_user_id": "google-user-id",
-							"provider_keys": {},
-							"raw_profile": {
-								"name": "User 1",
-								"email": "user1@example.com"
-							},
 							"claims": {
-								"email": "user1@example.com"
+								"email": "user1@example.com",
+								"https://auth.skygear.io/claims/oauth/provider": {"type": "google"},
+								"https://auth.skygear.io/claims/oauth/subject_id": "google-user-id",
+								"https://auth.skygear.io/claims/oauth/profile": {
+									"email": "user1@example.com",
+									"name": "User 1"
+								}
 							}
 						}
 					]

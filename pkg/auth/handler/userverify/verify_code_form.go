@@ -4,11 +4,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/sirupsen/logrus"
-
-	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -16,22 +12,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
-
-// VerifyCodeFormHandlerFactory creates VerifyCodeFormHandler
-type VerifyCodeFormHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-// NewHandler creates new VerifyCodeFormHandler
-func (f VerifyCodeFormHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &VerifyCodeFormHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h
-}
 
 type VerifyCodeFormPayload struct {
 	UserID string `json:"user_id"`
@@ -64,15 +47,14 @@ func decodeVerifyCodeFormRequest(request *http.Request) (payload VerifyCodeFormP
 
 // VerifyCodeFormHandler reset user password with given code from email.
 type VerifyCodeFormHandler struct {
-	Validator                *validation.Validator          `dependency:"Validator"`
-	VerifyHTMLProvider       *userverify.VerifyHTMLProvider `dependency:"VerifyHTMLProvider"`
-	UserVerificationProvider userverify.Provider            `dependency:"UserVerificationProvider"`
-	AuthInfoStore            authinfo.Store                 `dependency:"AuthInfoStore"`
-	PasswordAuthProvider     password.Provider              `dependency:"PasswordAuthProvider"`
-	UserProfileStore         userprofile.Store              `dependency:"UserProfileStore"`
-	HookProvider             hook.Provider                  `dependency:"HookProvider"`
-	TxContext                db.TxContext                   `dependency:"TxContext"`
-	Logger                   *logrus.Entry                  `dependency:"HandlerLogger"`
+	Validator                *validation.Validator
+	VerifyHTMLProvider       *userverify.VerifyHTMLProvider
+	UserVerificationProvider userverify.Provider
+	AuthInfoStore            authinfo.Store
+	LoginIDProvider          LoginIDProvider
+	UserProfileStore         userprofile.Store
+	HookProvider             hook.Provider
+	TxContext                db.TxContext
 }
 
 type resultTemplateContext struct {
@@ -109,7 +91,7 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 	oldUser := model.NewUser(authInfo, userProfile)
 	ctx.user = oldUser
 
-	verifyCode, err := h.UserVerificationProvider.VerifyUser(h.PasswordAuthProvider, h.AuthInfoStore, &authInfo, payload.Code)
+	verifyCode, err := h.UserVerificationProvider.VerifyUser(h.LoginIDProvider, h.AuthInfoStore, &authInfo, payload.Code)
 	if err != nil {
 		return
 	}

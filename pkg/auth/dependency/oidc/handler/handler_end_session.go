@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/protocol"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -14,11 +13,19 @@ import (
 
 // TODO(oidc): write tests
 
+type LogoutURLProvider interface {
+	LogoutURI() *url.URL
+}
+
+type SettingsURLProvider interface {
+	SettingsURI() *url.URL
+}
+
 type EndSessionHandler struct {
 	Clients            []config.OAuthClientConfiguration
 	EndSessionEndpoint oidc.EndSessionEndpointProvider
-	LogoutEndpoint     oauth.LogoutEndpointProvider
-	SettingsEndpoint   oauth.SettingsEndpointProvider
+	LogoutURL          LogoutURLProvider
+	SettingsURL        SettingsURLProvider
 }
 
 func (h *EndSessionHandler) Handle(s auth.AuthSession, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
@@ -28,7 +35,7 @@ func (h *EndSessionHandler) Handle(s auth.AuthSession, req protocol.EndSessionRe
 			req,
 		)
 		logoutURI := coreurl.WithQueryParamsAdded(
-			h.LogoutEndpoint.LogoutEndpointURI(),
+			h.LogoutURL.LogoutURI(),
 			map[string]string{"redirect_uri": endSessionURI.String()},
 		)
 
@@ -43,7 +50,7 @@ func (h *EndSessionHandler) Handle(s auth.AuthSession, req protocol.EndSessionRe
 		if client != nil && client.ClientURI() != "" {
 			redirectURI = client.ClientURI()
 		} else {
-			redirectURI = h.SettingsEndpoint.SettingsEndpointURI().String()
+			redirectURI = h.SettingsURL.SettingsURI().String()
 		}
 		http.Redirect(rw, r, redirectURI, http.StatusFound)
 		return nil

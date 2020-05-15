@@ -63,7 +63,8 @@ func (r AccessTokenResp) ExpiresIn() int {
 func (r AccessTokenResp) TokenType() string {
 	tokenType, ok := r["token_type"].(string)
 	if !ok {
-		return ""
+		// LinkedIn does not include token_type in the response.
+		return "Bearer"
 	}
 	tokenType = strings.ToLower(tokenType)
 	switch tokenType {
@@ -77,15 +78,6 @@ func (r AccessTokenResp) TokenType() string {
 	default:
 		return tokenType
 	}
-}
-
-func (r AccessTokenResp) Validate() error {
-	if r.AccessToken() == "" {
-		err := NewSSOFailed(SSOUnauthorized, "unexpected authorization response")
-		return err
-	}
-
-	return nil
 }
 
 func fetchAccessTokenResp(

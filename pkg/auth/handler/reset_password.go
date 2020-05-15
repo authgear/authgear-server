@@ -6,13 +6,11 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	task "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -20,8 +18,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -31,20 +27,12 @@ func AttachResetPasswordHandler(
 ) {
 	router.NewRoute().
 		Path("/reset_password").
-		Handler(server.FactoryToHandler(&ResetPasswordHandlerFactory{
-			authDependency,
-		})).
+		Handler(auth.MakeHandler(authDependency, newResetPasswordHandler)).
 		Methods("OPTIONS", "POST")
 }
 
-type ResetPasswordHandlerFactory struct {
-	Dependency auth.DependencyMap
-}
-
-func (f ResetPasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &ResetPasswordHandler{}
-	inject.DefaultRequestInject(h, f.Dependency, request)
-	return h.RequireAuthz(h, h)
+type ResetPasswordFlow interface {
+	ResetPassword(userID string, password string) error
 }
 
 type ResetPasswordRequestPayload struct {
@@ -84,15 +72,13 @@ const ResetPasswordRequestSchema = `
 		@Callback user_sync {UserSyncEvent}
 */
 type ResetPasswordHandler struct {
-	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
-	Validator            *validation.Validator      `dependency:"Validator"`
-	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	TxContext            db.TxContext               `dependency:"TxContext"`
-	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
-	HookProvider         hook.Provider              `dependency:"HookProvider"`
+	Validator        *validation.Validator `dependency:"Validator"`
+	UserProfileStore userprofile.Store     `dependency:"UserProfileStore"`
+	AuthInfoStore    authinfo.Store        `dependency:"AuthInfoStore"`
+	TxContext        db.TxContext          `dependency:"TxContext"`
+	TaskQueue        async.Queue           `dependency:"AsyncTaskQueue"`
+	HookProvider     hook.Provider         `dependency:"HookProvider"`
+	Interactions     ResetPasswordFlow
 }
 
 func (h ResetPasswordHandler) ProvideAuthzPolicy() authz.Policy {
@@ -117,17 +103,12 @@ func (h ResetPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (re
 	}
 
 	err = db.WithTx(h.TxContext, func() error {
-		authinfo := authinfo.AuthInfo{}
-		if err := h.AuthInfoStore.GetAuth(payload.UserID, &authinfo); err != nil {
+		if err := h.Interactions.ResetPassword(payload.UserID, payload.Password); err != nil {
 			return err
 		}
 
-		resetPwdCtx := password.ResetPasswordRequestContext{
-			PasswordChecker:      h.PasswordChecker,
-			PasswordAuthProvider: h.PasswordAuthProvider,
-		}
-
-		if err := resetPwdCtx.ExecuteWithUserID(payload.Password, authinfo.ID); err != nil {
+		authinfo := authinfo.AuthInfo{}
+		if err := h.AuthInfoStore.GetAuth(payload.UserID, &authinfo); err != nil {
 			return err
 		}
 

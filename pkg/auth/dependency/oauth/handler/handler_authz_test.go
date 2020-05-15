@@ -29,13 +29,13 @@ func TestAuthorizationHandler(t *testing.T) {
 			AppID:   "app-id",
 			Clients: []config.OAuthClientConfiguration{},
 
-			Authorizations:       authzStore,
-			CodeGrants:           codeGrantStore,
-			AuthorizeEndpoint:    mockEndpointsProvider{},
-			AuthenticateEndpoint: mockEndpointsProvider{},
-			ValidateScopes:       func(config.OAuthClientConfiguration, []string) error { return nil },
-			CodeGenerator:        func() string { return "authz-code" },
-			Time:                 mockTime,
+			Authorizations:  authzStore,
+			CodeGrants:      codeGrantStore,
+			AuthorizeURL:    mockEndpointsProvider{},
+			AuthenticateURL: mockEndpointsProvider{},
+			ValidateScopes:  func(config.OAuthClientConfiguration, []string) error { return nil },
+			CodeGenerator:   func() string { return "authz-code" },
+			Time:            mockTime,
 		}
 		handle := func(r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
 			result := h.Handle(r)
@@ -161,8 +161,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					"ui_locales":            "ja",
 				})
 				So(resp.Result().StatusCode, ShouldEqual, 302)
-				So(redirection(resp), ShouldEqual,
-					"https://auth/authenticate?client_id=client-id&redirect_uri=https%3A%2F%2Fauth%2Fauthorize%3Fclient_id%3Dclient-id%26code_challenge%3DE9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM%26code_challenge_method%3DS256%26response_type%3Dcode%26scope%3Dopenid%26ui_locales%3Dja&ui_locales=ja")
+				So(redirection(resp), ShouldEqual, "https://auth/authenticate")
 			})
 			Convey("return authorization code", func() {
 				h.Context = authtesting.WithAuthn().
@@ -302,8 +301,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					"scope":         "openid",
 				})
 				So(resp.Result().StatusCode, ShouldEqual, 302)
-				So(redirection(resp), ShouldEqual,
-					"https://auth/authenticate?client_id=client-id&redirect_uri=https%3A%2F%2Fauth%2Fauthorize%3Fclient_id%3Dclient-id%26response_type%3Dnone%26scope%3Dopenid")
+				So(redirection(resp), ShouldEqual, "https://auth/authenticate")
 			})
 			Convey("redirect to URI", func() {
 				h.Context = authtesting.WithAuthn().

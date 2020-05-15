@@ -4,17 +4,29 @@ import (
 	"context"
 	"errors"
 	"net/url"
+	"strings"
 	gotime "time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/core/utils"
 )
 
 const CodeGrantValidDuration = 5 * gotime.Minute
+
+type AuthorizeURLProvider interface {
+	AuthorizeURI(r protocol.AuthorizationRequest) *url.URL
+}
+
+type AuthenticateURLProvider interface {
+	AuthenticateURI(options webapp.AuthenticateURLOptions) (*url.URL, error)
+}
 
 type AuthorizationHandler struct {
 	Context context.Context
@@ -22,13 +34,13 @@ type AuthorizationHandler struct {
 	Clients []config.OAuthClientConfiguration
 	Logger  *logrus.Entry
 
-	Authorizations       oauth.AuthorizationStore
-	CodeGrants           oauth.CodeGrantStore
-	AuthorizeEndpoint    oauth.AuthorizeEndpointProvider
-	AuthenticateEndpoint oauth.AuthenticateEndpointProvider
-	ValidateScopes       ScopesValidator
-	CodeGenerator        TokenGenerator
-	Time                 time.Provider
+	Authorizations  oauth.AuthorizationStore
+	CodeGrants      oauth.CodeGrantStore
+	AuthorizeURL    AuthorizeURLProvider
+	AuthenticateURL AuthenticateURLProvider
+	ValidateScopes  ScopesValidator
+	CodeGenerator   TokenGenerator
+	Time            time.Provider
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) AuthorizationResult {
@@ -80,12 +92,39 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	session := auth.GetSession(h.Context)
+	authnOptions := webapp.AuthenticateURLOptions{}
+	if utils.StringSliceContains(r.Prompt(), "login") {
+		// Request login prompt => force re-authentication and retry
+		r2 := protocol.AuthorizationRequest{}
+		for k, v := range r {
+			r2[k] = v
+		}
+		prompt := utils.StringSliceExcept(r.Prompt(), []string{"login"})
+		r2.SetPrompt(prompt)
+		authnOptions.Prompt = "login"
+
+		r = r2
+		// Treat as not authenticated
+		session = nil
+	}
 	if session == nil || session.SessionType() != auth.SessionTypeIdentityProvider {
 		// Not authenticated as IdP session => request authentication and retry
+		authnOptions.ClientID = r.ClientID()
+		authnOptions.UILocales = strings.Join(r.UILocales(), " ")
+		authnOptions.LoginHint = r.LoginHint()
+		r.SetLoginHint("")
+		authorizeURI := h.AuthorizeURL.AuthorizeURI(r)
+		authnOptions.RedirectURI = authorizeURI.String()
+
+		authenticateURI, err := h.AuthenticateURL.AuthenticateURI(authnOptions)
+		if errors.Is(err, interaction.ErrInvalidCredentials) {
+			return nil, protocol.NewError("invalid_request", "invalid credentials")
+		} else if err != nil {
+			return nil, err
+		}
+
 		return authorizationResultRequireAuthn{
-			AuthenticateURI: h.AuthenticateEndpoint.AuthenticateEndpointURI(),
-			AuthorizeURI:    h.AuthorizeEndpoint.AuthorizeEndpointURI(),
-			Request:         r,
+			AuthenticateURI: authenticateURI,
 		}, nil
 	}
 
@@ -149,6 +188,10 @@ func (h *AuthorizationHandler) validateRequest(
 
 	if len(r.Scope()) == 0 {
 		return protocol.NewError("invalid_request", "scope is required")
+	}
+
+	if utils.StringSliceContains(r.Prompt(), "none") && len(r.Prompt()) != 1 {
+		return protocol.NewError("invalid_request", "prompt cannot have other values when none is set")
 	}
 
 	switch r.ResponseType() {

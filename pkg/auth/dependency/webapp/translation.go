@@ -23,13 +23,21 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
 
 	"back-button-title": "Back",
+	"next-button-label": "Next",
+	"connect-button-label": "Connect",
+	"disconnect-button-label": "Disconnect",
+	"change-button-label": "Change",
 
 	"sign-in-apple": "Sign in with Apple",
+	"sign-up-apple": "Sign up with Apple",
 	"sign-in-google": "Sign in with Google",
+	"sign-up-google": "Sign up with Google",
 	"sign-in-facebook": "Sign in with Facebook",
-	"sign-in-instagram": "Sign in with Instagram",
+	"sign-up-facebook": "Sign up with Facebook",
 	"sign-in-linkedin": "Sign in with LinkedIn",
+	"sign-up-linkedin": "Sign up with LinkedIn",
 	"sign-in-azureadv2": "Sign in with Azure AD",
+	"sign-up-azureadv2": "Sign up with Azure AD",
 	"sso-login-id-separator": "or",
 
 	"phone-number-placeholder": "Phone number",
@@ -40,14 +48,20 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"signup-button-hint": "Don''t have an account yet? ",
 	"signup-button-label": "Create one!",
 	"forgot-password-button-label": "Can''t access your account?",
-	"confirm-login-id-button-label": "Next",
 
 	"enter-password-page-title": "Enter password",
 	"password-placeholder": "Password",
 	"forgot-password-button-label--enter-password-page": "Forgot Password?",
-	"confirm-password-button-label": "Next",
 	"show-password": "Show Password",
 	"hide-password": "Hide Password",
+
+	"oob-otp-page-title--sms": "SMS Verification",
+	"oob-otp-page-title--email": "Email Verification",
+	"oob-otp-placeholder": "Enter code",
+	"oob-otp-description--sms": "We have sent a {0} digit code to +{1}{2}. Please enter the code below to continue",
+	"oob-otp-description--email": "We have sent a {0} digit code to {1}. Please enter the code below to continue",
+	"oob-otp-resend-button-hint": "Didn''t receive the code? ",
+	"oob-otp-resend-button-label": "Resend (0s)",
 	
 	"use-login-id-key": "Use {0} instead",
 	"login-button-hint": "Have an account already? ",
@@ -82,6 +96,20 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"reset-password-success-description": "You have successfully reset your password. You can now sign in with it.",
 
 	"logout-button-hint": "To logout, please click the button below.",
-	"logout-button-label": "Logout"
+	"logout-button-label": "Logout",
+
+	"settings-identity-title": "Account settings",
+	"settings-identity-oauth-google": "Google",
+	"settings-identity-oauth-apple": "Apple",
+	"settings-identity-oauth-facebook": "Facebook",
+	"settings-identity-oauth-linkedin": "LinkedIn",
+	"settings-identity-oauth-azureadv2": "Azure AD",
+	"settings-identity-login-id-email": "Email Address",
+	"settings-identity-login-id-phone": "Phone Number",
+	"settings-identity-login-id-username": "Username",
+	"settings-identity-login-id-raw": "Username",
+
+	"enter-login-id-page-title--change": "Change your {0}",
+	"enter-login-id-page-title--add": "Enter your {0}"
 	}`,
 }

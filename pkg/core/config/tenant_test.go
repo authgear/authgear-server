@@ -179,8 +179,8 @@ func makeFullTenantConfig() TenantConfiguration {
 			Authentication: &AuthenticationConfiguration{
 				Secret:                      "authnsessionsecret",
 				Identities:                  []string{"login_id", "oauth"},
-				PrimaryAuthenticators:       []string{"oauth", "password"},
-				SecondaryAuthenticators:     []string{"otp", "bearer_token"},
+				PrimaryAuthenticators:       []string{"password"},
+				SecondaryAuthenticators:     []string{"totp", "oob_otp", "bearer_token"},
 				SecondaryAuthenticationMode: SecondaryAuthenticationModeIfExists,
 			},
 			Authenticator: &AuthenticatorConfiguration{

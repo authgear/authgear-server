@@ -3,6 +3,7 @@ package http
 import (
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/net/publicsuffix"
@@ -16,7 +17,7 @@ type CookieConfiguration struct {
 	MaxAge *int
 }
 
-func (c *CookieConfiguration) WriteTo(rw http.ResponseWriter, value string) {
+func (c *CookieConfiguration) NewCookie(value string) *http.Cookie {
 	cookie := &http.Cookie{
 		Name:     c.Name,
 		Path:     c.Path,
@@ -31,7 +32,11 @@ func (c *CookieConfiguration) WriteTo(rw http.ResponseWriter, value string) {
 		cookie.MaxAge = *c.MaxAge
 	}
 
-	UpdateCookie(rw, cookie)
+	return cookie
+}
+
+func (c *CookieConfiguration) WriteTo(rw http.ResponseWriter, value string) {
+	UpdateCookie(rw, c.NewCookie(value))
 }
 
 func (c *CookieConfiguration) Clear(rw http.ResponseWriter) {
@@ -87,9 +92,22 @@ func CookieDomainFromETLDPlusOneWithoutPort(host string) string {
 	if h, _, err := net.SplitHostPort(host); err == nil {
 		host = h
 	}
+
+	if strings.HasPrefix(host, "[") && strings.HasSuffix(host, "]") {
+		ipv6Str := host[1 : len(host)-1]
+		if ipv6 := net.ParseIP(ipv6Str); ipv6 != nil {
+			return ""
+		}
+	}
+
+	if ipv4or6 := net.ParseIP(host); ipv4or6 != nil {
+		return ""
+	}
+
 	host, err := publicsuffix.EffectiveTLDPlusOne(host)
 	if err != nil {
 		return ""
 	}
+
 	return host
 }

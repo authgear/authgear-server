@@ -1,10 +1,9 @@
 package oauth
 
 type MetadataProvider struct {
-	AuthorizeEndpoint    AuthorizeEndpointProvider
-	TokenEndpoint        TokenEndpointProvider
-	RevokeEndpoint       RevokeEndpointProvider
-	AuthenticateEndpoint AuthenticateEndpointProvider
+	AuthorizeEndpoint AuthorizeEndpointProvider
+	TokenEndpoint     TokenEndpointProvider
+	RevokeEndpoint    RevokeEndpointProvider
 }
 
 func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {

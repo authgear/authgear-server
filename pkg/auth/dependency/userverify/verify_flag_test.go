@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -32,10 +32,10 @@ func TestIsUserVerified(t *testing.T) {
 				verifyInfo[loginID] = true
 			}
 
-			principals := []*password.Principal{}
+			identities := []*loginid.Identity{}
 			for key, value := range request.LoginIDs {
 				for _, loginID := range strings.Split(value, " ") {
-					principals = append(principals, &password.Principal{
+					identities = append(identities, &loginid.Identity{
 						LoginIDKey: key,
 						LoginID:    loginID,
 					})
@@ -43,8 +43,8 @@ func TestIsUserVerified(t *testing.T) {
 			}
 
 			return verifyResult{
-				All: IsUserVerified(verifyInfo, principals, config.UserVerificationCriteriaAll, verifyConfigs),
-				Any: IsUserVerified(verifyInfo, principals, config.UserVerificationCriteriaAny, verifyConfigs),
+				All: IsUserVerified(verifyInfo, identities, config.UserVerificationCriteriaAll, verifyConfigs),
+				Any: IsUserVerified(verifyInfo, identities, config.UserVerificationCriteriaAny, verifyConfigs),
 			}
 		}
 

@@ -15,38 +15,28 @@
 package model
 
 import (
-	"encoding/json"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
-// Identity is a principal of user
+// Identity is an identity of user
 type Identity struct {
-	principal.Attributes
-	ID     string
-	Type   string
-	Claims principal.Claims
+	Type   string                 `json:"type"`
+	Claims map[string]interface{} `json:"claims"`
 }
 
 func NewIdentity(principal principal.Principal) Identity {
 	return Identity{
-		ID:         principal.PrincipalID(),
-		Type:       principal.ProviderID(),
-		Claims:     principal.Claims(),
-		Attributes: principal.Attributes(),
+		Type:   principal.ProviderID(),
+		Claims: principal.Claims(),
 	}
 }
 
-func (identity Identity) MarshalJSON() ([]byte, error) {
-	attrs := map[string]interface{}{}
-	for key, value := range identity.Attributes {
-		attrs[key] = value
+func NewIdentityFromAttrs(attrs *authn.Attrs) Identity {
+	return Identity{
+		Type:   string(attrs.IdentityType),
+		Claims: attrs.IdentityClaims,
 	}
-	attrs["id"] = identity.ID
-	attrs["type"] = identity.Type
-	attrs["claims"] = identity.Claims
-
-	return json.Marshal(attrs)
 }
 
 // @JSONSchema
@@ -55,7 +45,6 @@ const IdentitySchema = `
 	"$id": "#Identity",
 	"type": "object",
 	"properties": {
-		"id": { "type": "string" },
 		"type": { "type": "string" },
 		"claims": { "type": "object" }
 	}

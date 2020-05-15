@@ -111,6 +111,13 @@ func TestCookieDomainFromETLDPlusOneWithoutPort(t *testing.T) {
 			So(out, ShouldEqual, actual)
 		}
 		check("localhost", "")
+		check("localhost:3000", "")
+
+		check("[::1]:3000", "")
+		check("[::1]", "")
+
+		check("10.0.2.2:3000", "")
+		check("10.0.2.2", "")
 
 		check("accounts.localhost", "accounts.localhost")
 		check("accounts.localhost:8081", "accounts.localhost")

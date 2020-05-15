@@ -92,7 +92,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID(userID).
-				PrincipalID("john.doe.principal.id0").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -151,7 +150,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID(userID).
-				PrincipalID("john.doe.principal.id0").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -186,7 +184,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID(userID).
-				PrincipalID("john.doe.principal.id0").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp = httptest.NewRecorder()
@@ -223,7 +220,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			}`))
 			req = authtesting.WithAuthn().
 				UserID(userID).
-				PrincipalID("john.doe.principal.id0").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()

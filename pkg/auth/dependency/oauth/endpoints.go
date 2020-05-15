@@ -13,15 +13,3 @@ type TokenEndpointProvider interface {
 type RevokeEndpointProvider interface {
 	RevokeEndpointURI() *url.URL
 }
-
-type AuthenticateEndpointProvider interface {
-	AuthenticateEndpointURI() *url.URL
-}
-
-type LogoutEndpointProvider interface {
-	LogoutEndpointURI() *url.URL
-}
-
-type SettingsEndpointProvider interface {
-	SettingsEndpointURI() *url.URL
-}

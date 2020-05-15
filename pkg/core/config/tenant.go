@@ -375,13 +375,13 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 	if len(c.AppConfig.Authentication.PrimaryAuthenticators) == 0 {
 		c.AppConfig.Authentication.PrimaryAuthenticators = []string{
-			"oauth",
 			"password",
 		}
 	}
 	if c.AppConfig.Authentication.SecondaryAuthenticators == nil {
 		c.AppConfig.Authentication.SecondaryAuthenticators = []string{
-			"otp",
+			"totp",
+			"oob_otp",
 			"bearer_token",
 		}
 	}
@@ -412,7 +412,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	// Set default AuthenticatorOOBConfiguration
 	emailMsg := c.AppConfig.Authenticator.OOB.Email.Message
 	if emailMsg["subject"] == "" {
-		emailMsg["subject"] = "Two Factor Auth Verification instruction"
+		emailMsg["subject"] = "Email Verification Instruction"
 	}
 
 	// Set default user verification settings
@@ -483,11 +483,6 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-default
 				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
 				c.AppConfig.Identity.OAuth.Providers[i].Scope = "email"
-			}
-		case OAuthProviderTypeInstagram:
-			if provider.Scope == "" {
-				// https://www.instagram.com/developer/authorization/
-				c.AppConfig.Identity.OAuth.Providers[i].Scope = "basic"
 			}
 		case OAuthProviderTypeLinkedIn:
 			if provider.Scope == "" {

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
@@ -58,17 +59,20 @@ func TestAuthPayload(t *testing.T) {
 	})
 }
 
-type MockAuthnOAuthProvider struct {
-	Code    *sso.SkygearAuthorizationCode
+type MockOAuthHandlerInteractionFlow struct {
 	CodeStr string
 }
 
-func (p *MockAuthnOAuthProvider) OAuthAuthenticateCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, loginState sso.LoginState) (code *sso.SkygearAuthorizationCode, codeStr string, err error) {
-	return p.Code, p.CodeStr, nil
+func (m *MockOAuthHandlerInteractionFlow) LoginWithOAuthProvider(
+	clientID string, oauthAuthInfo sso.AuthInfo, codeChallenge string, onUserDuplicate authModel.OnUserDuplicate,
+) (string, error) {
+	return m.CodeStr, nil
 }
 
-func (p *MockAuthnOAuthProvider) OAuthLinkCode(oauthAuthInfo sso.AuthInfo, codeChallenge string, linkState sso.LinkState) (code *sso.SkygearAuthorizationCode, codeStr string, err error) {
-	return p.Code, p.CodeStr, nil
+func (m *MockOAuthHandlerInteractionFlow) LinkWithOAuthProvider(
+	clientID string, userID string, oauthAuthInfo sso.AuthInfo, codeChallenge string,
+) (string, error) {
+	panic("not mocked")
 }
 
 func TestAuthHandler(t *testing.T) {
@@ -118,29 +122,21 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			&url.URL{Scheme: "https", Host: "api.example.com"},
 		)
-		authnOAuthProvider := &MockAuthnOAuthProvider{}
-		sh.AuthnProvider = authnOAuthProvider
+		interactions := &MockOAuthHandlerInteractionFlow{}
+		sh.Interactions = interactions
 
 		nonce := "nonce"
 		hashedNonce := crypto.SHA256String(nonce)
 
 		Convey("should write code in the response body if ux_mode is manual", func() {
-			authnOAuthProvider.CodeStr = "code"
-			codeHash := crypto.SHA256String(authnOAuthProvider.CodeStr)
-			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
-				CodeHash:            codeHash,
-				Action:              "login",
-				CodeChallenge:       "",
-				UserID:              "a",
-				PrincipalID:         "b",
-				SessionCreateReason: "signup",
-			}
+			interactions.CodeStr = "code"
 			// oauth state
 			state := sso.State{
 				APIClientID: "client-id",
 				Action:      action,
 				Extra: AuthAPISSOState{
-					"callback_url": "http://localhost:3000",
+					"callback_url":   "http://localhost:3000",
+					"code_challenge": "code",
 				},
 				UXMode:      sso.UXModeManual,
 				HashedNonce: hashedNonce,
@@ -160,27 +156,18 @@ func TestAuthHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
 			{
 				"result": "%s"
-			}`, authnOAuthProvider.CodeStr))
+			}`, interactions.CodeStr))
 		})
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
-			authnOAuthProvider.CodeStr = "code"
-			codeHash := crypto.SHA256String(authnOAuthProvider.CodeStr)
-			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
-				CodeHash:            codeHash,
-				Action:              "login",
-				CodeChallenge:       "",
-				UserID:              "a",
-				PrincipalID:         "b",
-				SessionCreateReason: "signup",
-			}
-
+			interactions.CodeStr = "code"
 			// oauth state
 			state := sso.State{
 				APIClientID: "client-id",
 				Action:      action,
 				Extra: AuthAPISSOState{
-					"callback_url": "http://localhost:3000",
+					"callback_url":   "http://localhost:3000",
+					"code_challenge": "code",
 				},
 				UXMode:      sso.UXModeWebRedirect,
 				HashedNonce: hashedNonce,
@@ -211,26 +198,18 @@ func TestAuthHandler(t *testing.T) {
 				"result": {
 					"result": "%s"
 				}
-			}`, authnOAuthProvider.CodeStr))
+			}`, interactions.CodeStr))
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
-			authnOAuthProvider.CodeStr = "code"
-			codeHash := crypto.SHA256String(authnOAuthProvider.CodeStr)
-			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
-				CodeHash:            codeHash,
-				Action:              "login",
-				CodeChallenge:       "",
-				UserID:              "a",
-				PrincipalID:         "b",
-				SessionCreateReason: "signup",
-			}
+			interactions.CodeStr = "code"
 			// oauth state
 			state := sso.State{
 				APIClientID: "client-id",
 				Action:      action,
 				Extra: AuthAPISSOState{
-					"callback_url": "http://localhost:3000",
+					"callback_url":   "http://localhost:3000",
+					"code_challenge": "code",
 				},
 				UXMode:      sso.UXModeWebPopup,
 				HashedNonce: hashedNonce,
@@ -254,23 +233,14 @@ func TestAuthHandler(t *testing.T) {
 		})
 
 		Convey("should return callback url with result query parameter when ux_mode is mobile_app", func() {
-			authnOAuthProvider.CodeStr = "code"
-			codeHash := crypto.SHA256String(authnOAuthProvider.CodeStr)
-			authnOAuthProvider.Code = &sso.SkygearAuthorizationCode{
-				CodeHash:            codeHash,
-				Action:              "login",
-				CodeChallenge:       "",
-				UserID:              "a",
-				PrincipalID:         "b",
-				SessionCreateReason: "signup",
-			}
-
+			interactions.CodeStr = "code"
 			// oauth state
 			state := sso.State{
 				APIClientID: "client-id",
 				Action:      action,
 				Extra: AuthAPISSOState{
-					"callback_url": "http://localhost:3000",
+					"callback_url":   "http://localhost:3000",
+					"code_challenge": "code",
 				},
 				UXMode:      sso.UXModeMobileApp,
 				HashedNonce: hashedNonce,
@@ -299,7 +269,7 @@ func TestAuthHandler(t *testing.T) {
 				"result": {
 					"result": "%s"
 				}
-			}`, authnOAuthProvider.CodeStr))
+			}`, interactions.CodeStr))
 		})
 	})
 }

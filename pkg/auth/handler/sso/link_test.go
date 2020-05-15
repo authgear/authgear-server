@@ -58,7 +58,6 @@ func TestLinkHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{}`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -90,7 +89,6 @@ func TestLinkHandler(t *testing.T) {
                        }`))
 			req = authtesting.WithAuthn().
 				UserID("faseng.cat.id").
-				PrincipalID("faseng.cat.principal.id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()

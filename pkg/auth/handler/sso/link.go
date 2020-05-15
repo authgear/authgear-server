@@ -7,14 +7,12 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
+	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -47,22 +45,12 @@ const LinkRequestSchema = `
 }
 `
 
-type LinkAuthnProvider interface {
-	OAuthLinkCode(
-		authInfo sso.AuthInfo,
-		codeChallenge string,
-		linkState sso.LinkState,
-	) (*sso.SkygearAuthorizationCode, string, error)
+type OAuthLinkInteractionFlow interface {
+	LinkWithOAuthProvider(
+		clientID string, userID string, oauthAuthInfo sso.AuthInfo, codeChallenge string,
+	) (string, error)
 
-	OAuthConsumeCode(hashCode string) (*sso.SkygearAuthorizationCode, error)
-
-	OAuthExchangeCode(
-		client config.OAuthClientConfiguration,
-		session auth.AuthSession,
-		code *sso.SkygearAuthorizationCode,
-	) (authn.Result, error)
-
-	WriteAPIResult(rw http.ResponseWriter, result authn.Result)
+	ExchangeCode(codeHash string, verifier string) (*interactionflows.AuthResult, error)
 }
 
 /*
@@ -87,8 +75,8 @@ type LinkHandler struct {
 	TxContext     db.TxContext
 	Validator     *validation.Validator
 	SSOProvider   sso.Provider
-	AuthnProvider LinkAuthnProvider
 	OAuthProvider sso.OAuthProvider
+	Interactions  OAuthLinkInteractionFlow
 }
 
 func (h LinkHandler) ProvideAuthzPolicy() coreauthz.Policy {
@@ -102,10 +90,10 @@ func (h LinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.AuthnProvider.WriteAPIResult(w, result)
+	result.WriteResponse(w)
 }
 
-func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (authn.Result, error) {
+func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (*interactionflows.AuthResult, error) {
 	var payload LinkRequestPayload
 	if err := handler.BindJSONBody(r, w, h.Validator, "#SSOLinkRequest", &payload); err != nil {
 		return nil, err
@@ -120,41 +108,28 @@ func (h LinkHandler) Handle(w http.ResponseWriter, r *http.Request) (authn.Resul
 		return nil, skyerr.NewNotFound("unknown provider")
 	}
 
-	var result authn.Result
+	var result *interactionflows.AuthResult
 	err := db.WithTx(h.TxContext, func() error {
 		userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
-
-		linkState := sso.LinkState{
-			UserID: userID,
-		}
 		oauthAuthInfo, err := provider.ExternalAccessTokenGetAuthInfo(sso.NewBearerAccessTokenResp(payload.AccessToken))
 		if err != nil {
 			return err
 		}
 
-		code, _, err := h.AuthnProvider.OAuthLinkCode(oauthAuthInfo, "", linkState)
-		if err != nil {
-			return err
-		}
-
-		// consume the code immediately
-		code, err = h.AuthnProvider.OAuthConsumeCode(code.CodeHash)
-		if err != nil {
-			if errors.Is(err, sso.ErrCodeNotFound) {
-				return sso.NewSSOFailed(sso.SSOUnauthorized, "invalid code")
-			}
-			return err
-		}
-
-		result, err = h.AuthnProvider.OAuthExchangeCode(
-			coreauth.GetAccessKey(r.Context()).Client,
-			auth.GetSession(r.Context()),
-			code,
+		code, err := h.Interactions.LinkWithOAuthProvider(
+			coreauth.GetAccessKey(r.Context()).Client.ClientID(),
+			userID,
+			oauthAuthInfo,
+			"",
 		)
 		if err != nil {
 			return err
 		}
 
+		result, err = h.Interactions.ExchangeCode(code, "")
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 	return result, err

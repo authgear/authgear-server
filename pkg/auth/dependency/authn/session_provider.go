@@ -44,7 +44,6 @@ type SessionProvider struct {
 }
 
 func (p *SessionProvider) BeginSession(client config.OAuthClientConfiguration, userID string, prin principal.Principal, reason auth.SessionCreateReason) (*AuthnSession, error) {
-	now := p.TimeProvider.NowUTC()
 	requiredSteps, err := p.getRequiredSteps(userID)
 	if err != nil {
 		return nil, errors.HandledWithMessage(err, "cannot get required authn steps")
@@ -56,12 +55,12 @@ func (p *SessionProvider) BeginSession(client config.OAuthClientConfiguration, u
 		clientID = client.ClientID()
 	}
 	return &AuthnSession{
-		ClientID: clientID,
+		ClientID:   clientID,
+		IdentityID: prin.PrincipalID(),
 		Attrs: authn.Attrs{
-			UserID:             userID,
-			PrincipalID:        prin.PrincipalID(),
-			PrincipalType:      authn.PrincipalType(prin.ProviderID()),
-			PrincipalUpdatedAt: now,
+			UserID:         userID,
+			IdentityType:   authn.IdentityType(prin.ProviderID()),
+			IdentityClaims: prin.Claims(),
 		},
 		RequiredSteps:       requiredSteps,
 		FinishedSteps:       finishedSteps,
@@ -140,13 +139,8 @@ func (p *SessionProvider) loadData(attrs *authn.Attrs) (*model.User, *model.Iden
 		return nil, nil, err
 	}
 
-	prin, err := p.IdentityProvider.GetPrincipalByID(attrs.PrincipalID)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	user := model.NewUser(authInfo, userProfile)
-	identity := model.NewIdentity(prin)
+	identity := model.NewIdentityFromAttrs(attrs)
 
 	return &user, &identity, nil
 }
@@ -287,9 +281,9 @@ func (p *SessionProvider) getRequiredSteps(userID string) ([]SessionStep, error)
 func (p *SessionProvider) isStepFinished(step SessionStep, attrs *authn.Attrs) bool {
 	switch step {
 	case SessionStepIdentity:
-		return attrs.PrincipalID != ""
+		return attrs.IdentityType != ""
 	case SessionStepMFAAuthn, SessionStepMFASetup:
-		return attrs.AuthenticatorID != ""
+		return attrs.ACR != ""
 	default:
 		panic("authn: unknown authn session step " + step)
 	}

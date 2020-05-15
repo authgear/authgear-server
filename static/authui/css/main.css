@@ -22,8 +22,25 @@ button {
   padding: 0;
   background-color: transparent;
   border: none;
-  /* cursor: pointer is required because appearance: none makes cursor non-poiner */
+}
+
+button:not([disabled]):hover {
   cursor: pointer;
+}
+
+button[disabled] {
+  cursor: not-allowed;
+}
+
+a {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* a:link is more specific than .primary-btn so we need to add :not here */
+a:not(.btn):link,
+a:not(.btn):visited {
+  color: #166bef;
 }
 
 select {
@@ -53,17 +70,12 @@ select {
 
 .errors {
   list-style-type: none;
-  margin: 0;
+  margin: 10px;
   padding: 0;
 }
 
 .error-txt {
   color: #e30f0f;
-}
-
-.btn {
-  /* NOTE(1) */
-  font-size: 16px;
 }
 
 .input {
@@ -105,38 +117,33 @@ select {
   padding: 0 8px;
 }
 
-.btn:hover {
-  cursor: pointer;
+.btn {
+  /* NOTE(1) */
+  font-size: 16px;
+  height: 32px;
+  border-radius: 2px;
 }
 
 .primary-btn {
-  height: 32px;
-  border-radius: 2px;
   color: white;
-  padding: 0 20px;
   background-color: #166bef;
+  min-width: 100px;
 }
 
 .secondary-btn {
-  height: 32px;
-  border-radius: 2px;
   color: #323130;
   border: 1px solid #8A8886;
+  min-width: 100px;
 }
 
-.anchor {
-  text-decoration: none;
+.destructive-btn {
+  color: #323130;
+  background-color: #CACACA;
+  min-width: 100px;
 }
 
 .link {
   font-size: 12px;
-}
-
-.btn.anchor {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
 }
 
 button.link {
@@ -147,11 +154,11 @@ button.anchor {
   color: #166bef;
 }
 
-.anchor:link,
-.anchor:visited,
-.link:link,
-.link:visited {
-  color: #166bef;
+a.btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
 
 .page {
@@ -212,39 +219,41 @@ button.anchor {
   }
 }
 
+.phone-input {
+  display: flex;
+  flex-direction: row;
+}
+
+.phone-input [name="x_calling_code"] {
+  margin: 0 3px 0 0;
+}
+
+.phone-input [name="x_national_number"] {
+  flex: 1;
+  margin: 0 0 0 3px;
+}
+
 .authorize-form {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 10px;
 }
 
 .authorize-idp-form {
   display: flex;
   flex-direction: column;
+  margin: 10px;
 }
 
 .authorize-loginid-form {
   display: flex;
   flex-direction: column;
-}
-
-.authorize-loginid-form .phone-input {
-  display: flex;
-  flex-direction: row;
+  margin: 10px;
 }
 
 .authorize-loginid-form .link {
   display: block;
   padding: 4px 0;
-}
-
-.authorize-loginid-form [name="x_calling_code"] {
-  margin: 0 3px 0 0;
-}
-
-.authorize-loginid-form [name="x_national_number"] {
-  flex: 1;
-  margin: 0 0 0 3px;
 }
 
 .sso-btn {
@@ -260,31 +269,31 @@ button.anchor {
   background-repeat: no-repeat;
 }
 
-.sso-btn.apple {
+.apple {
   color: white;
   background-color: black;
   background-image: url("../image/ic_idp_apple.png");
 }
 
-.sso-btn.google {
+.google {
   color: #333333;
   background-color: white;
   background-image: url("../image/ic_idp_google.png");
 }
 
-.sso-btn.facebook {
+.facebook {
   color: white;
   background-color: #3b5998;
   background-image: url("../image/ic_idp_facebook.png");
 }
 
-.sso-btn.linkedin {
+.linkedin {
   color: white;
   background-color: #187fb8;
   background-image: url("../image/ic_idp_linkedin.png");
 }
 
-.sso-btn.azureadv2 {
+.azureadv2 {
   color: #333333;
   background-color: #e2e2e2;
   background-image: url("../image/ic_idp_azuread.png");
@@ -292,50 +301,7 @@ button.anchor {
 
 .sso-loginid-separator {
   text-align: center;
-  margin: 6px 0 30px 0;
-}
-
-.enter-password-form {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.enter-password-form .title {
-  font-size: 24px;
-  font-weight: 600;
-  padding: 8px 0;
-  margin: 0 0 30px 0;
-}
-
-.enter-password-form .description {
-  font-size: 12px;
-  padding: 8px 0;
-  margin: 0;
-}
-
-.enter-password-form .login-id {
-  padding: 0 10px;
-}
-
-.enter-password-form .nav-bar {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.enter-password-form .anchor {
-  display: block;
-  padding: 4px 0;
-}
-
-.enter-password-form #password {
-  display: block;
-  margin: 0 0 20px 0;
-}
-
-.enter-password-form .password-visibility-btn {
-  margin: 0 0 20px 0;
+  margin: 10px;
 }
 
 .password-visibility-btn {
@@ -373,110 +339,103 @@ button.anchor {
   align-self: center;
 }
 
-.forgot-password-form {
+.simple-form {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 10px;
 }
 
-.forgot-password-form .title {
+.simple-form .title {
   font-size: 24px;
   font-weight: 600;
-  padding: 8px 0;
-  margin: 0 0 12px 0;
 }
 
-.forgot-password-form .description {
+.simple-form .description {
   font-size: 12px;
-  padding: 8px 0;
-  margin: 12px 0;
 }
 
-.forgot-password-form .login-id {
-  padding: 0 10px;
-}
-
-.forgot-password-form .nav-bar {
+.simple-form .nav-bar {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
 
-.forgot-password-form .anchor {
-  display: block;
-  padding: 4px 0;
+.simple-form .login-id {
+  margin: 10px;
 }
 
-.forgot-password-form .submit-btn {
-  margin: 24px 0 0 0;
+.simple-form > input,
+.simple-form > button,
+.simple-form > a,
+.simple-form > div {
+  margin: 10px;
 }
 
-.forgot-password-success {
+.settings-identity {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 10px;
 }
 
-.forgot-password-success .title {
+.settings-identity .title {
+  margin: 0;
+  padding: 10px;
   font-size: 24px;
-  font-weight: 600;
-  padding: 8px 0;
-  margin: 0 0 12px 0;
 }
 
-.forgot-password-success .description {
-  font-size: 12px;
-  padding: 8px 0;
-  margin: 12px 0;
-}
-
-.reset-password-form {
+.settings-identity .identity {
   display: flex;
-  flex-direction: column;
-  padding: 20px;
+  flex-direction: row;
+  align-items: center;
+  height: 70px;
+  border: solid 1px #d8d8d8;
+  margin: 5px 10px;
+  padding: 6px;
 }
 
-.reset-password-form .title {
-  font-size: 24px;
-  font-weight: 600;
-  padding: 8px 0;
-  margin: 0 0 12px 0;
+.settings-identity .icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 6px;
 }
 
-.reset-password-form .description {
-  font-size: 12px;
-  padding: 8px 0;
-  margin: 12px 0;
+.settings-identity .icon.oauth {
+  background-size: 24px auto;
 }
 
-.reset-password-form #password {
-  display: block;
-  margin: 12px 0;
+.settings-identity .icon.login_id {
+  background-size: 40px auto;
 }
 
-.reset-password-form .password-visibility-btn {
-  margin: 12px 0;
+.settings-identity .identity-info {
+  margin: 2px;
+  flex: 1;
 }
 
-.reset-password-form .submit-btn {
-  margin: 12px 0;
+.settings-identity .identity-name,
+.settings-identity .identity-claim {
+  margin: 0;
+  padding: 2px;
+  font-size: 14px;
 }
 
-.reset-password-success {
+.settings-identity .identity .btn {
+  margin: 6px;
+}
+
+.login_id.email {
+  background-image: url("../image/ic_login_id_email.png");
+}
+
+.login_id.phone {
+  background-image: url("../image/ic_login_id_phone.png");
+}
+
+.enter-login-id-form .buttons {
   display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.reset-password-success .title {
-  font-size: 24px;
-  font-weight: 600;
-  padding: 8px 0;
-  margin: 0 0 12px 0;
-}
-
-.reset-password-success .description {
-  font-size: 12px;
-  padding: 8px 0;
-  margin: 12px 0;
+  flex-direction: row-reverse;
+  justify-content: space-between;
 }

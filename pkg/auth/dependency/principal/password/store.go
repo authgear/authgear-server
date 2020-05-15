@@ -36,10 +36,10 @@ func NewStore(builder db.SQLBuilder, executor db.SQLExecutor) Store {
 
 func (s *storeImpl) CreatePrincipal(principal *Principal) (err error) {
 	builder := s.sqlBuilder.Tenant().
-		Insert(s.sqlBuilder.FullTableName("principal")).
+		Insert(s.sqlBuilder.FullTableName("identity")).
 		Columns(
 			"id",
-			"provider",
+			"type",
 			"user_id",
 		).
 		Values(
@@ -59,9 +59,9 @@ func (s *storeImpl) CreatePrincipal(principal *Principal) (err error) {
 	}
 
 	builder = s.sqlBuilder.Tenant().
-		Insert(s.sqlBuilder.FullTableName("provider_password")).
+		Insert(s.sqlBuilder.FullTableName("identity_login_id")).
 		Columns(
-			"principal_id",
+			"identity_id",
 			"login_id_key",
 			"login_id",
 			"original_login_id",
@@ -93,8 +93,8 @@ func (s *storeImpl) CreatePrincipal(principal *Principal) (err error) {
 
 func (s *storeImpl) DeletePrincipal(principal *Principal) error {
 	builder := s.sqlBuilder.Tenant().
-		Delete(s.sqlBuilder.FullTableName("provider_password")).
-		Where("principal_id = ?", principal.ID)
+		Delete(s.sqlBuilder.FullTableName("identity_login_id")).
+		Where("identity_id = ?", principal.ID)
 
 	_, err := s.sqlExecutor.ExecWith(builder)
 	if err != nil {
@@ -102,7 +102,7 @@ func (s *storeImpl) DeletePrincipal(principal *Principal) error {
 	}
 
 	builder = s.sqlBuilder.Tenant().
-		Delete(s.sqlBuilder.FullTableName("principal")).
+		Delete(s.sqlBuilder.FullTableName("identity")).
 		Where("id = ?", principal.ID)
 
 	_, err = s.sqlExecutor.ExecWith(builder)
@@ -210,9 +210,9 @@ func (s *storeImpl) GetPrincipalsByClaim(claimName string, claimValue string) (p
 
 func (s *storeImpl) UpdatePassword(principal *Principal, password string) (err error) {
 	builder := s.sqlBuilder.Tenant().
-		Update(s.sqlBuilder.FullTableName("provider_password")).
+		Update(s.sqlBuilder.FullTableName("identity_login_id")).
 		Set("password", principal.HashedPassword).
-		Where("principal_id = ?", principal.ID)
+		Where("identity_id = ?", principal.ID)
 
 	_, err = s.sqlExecutor.ExecWith(builder)
 	return
@@ -231,8 +231,8 @@ func (s *storeImpl) selectBuilder() db.SelectBuilder {
 			"pp.password",
 			"pp.claims",
 		).
-		From(s.sqlBuilder.FullTableName("principal"), "p").
-		Join(s.sqlBuilder.FullTableName("provider_password"), "pp", "p.id = pp.principal_id")
+		From(s.sqlBuilder.FullTableName("identity"), "p").
+		Join(s.sqlBuilder.FullTableName("identity_login_id"), "pp", "p.id = pp.identity_id")
 }
 
 func (s *storeImpl) scan(scanner db.Scanner, principal *Principal) error {

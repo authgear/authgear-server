@@ -15,7 +15,6 @@ import (
 	coreauthn "github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -68,7 +67,6 @@ const AuthenticateOOBRequestSchema = `
 type AuthenticateOOBHandler struct {
 	TxContext     db.TxContext
 	Validator     *validation.Validator
-	TimeProvider  time.Provider
 	MFAProvider   mfa.Provider
 	authnResolver authnResolver
 	authnStepper  authnStepper
@@ -108,7 +106,7 @@ func (h *AuthenticateOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		}
 
 		attrs := session.AuthnAttrs()
-		a, bearerToken, err := h.MFAProvider.AuthenticateOOB(
+		_, bearerToken, err := h.MFAProvider.AuthenticateOOB(
 			attrs.UserID,
 			payload.Code,
 			payload.RequestBearerToken,
@@ -117,11 +115,9 @@ func (h *AuthenticateOOBHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			return err
 		}
 
-		now := h.TimeProvider.NowUTC()
-		attrs.AuthenticatorID = a.ID
-		attrs.AuthenticatorType = a.Type
-		attrs.AuthenticatorOOBChannel = a.Channel
-		attrs.AuthenticatorUpdatedAt = &now
+		// TODO(mfa): use correct ACR & AMR
+		attrs.ACR = "http://schemas.openid.net/pape/policies/2007/06/multi-factor"
+		attrs.AMR = append(attrs.AMR, "mfa", "otp")
 
 		result, err = h.authnStepper.StepSession(
 			coreAuth.GetAccessKey(r.Context()).Client,

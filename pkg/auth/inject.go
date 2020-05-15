@@ -6,6 +6,7 @@ import (
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	identityloginid "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	mfaPQ "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
@@ -161,6 +162,11 @@ func (m DependencyMap) Provide(
 		)
 	}
 
+	newLoginIDProvider := func() *identityloginid.Provider {
+		return identityloginid.ProvideProvider(
+			newSQLBuilder(), newSQLExecutor(), newTimeProvider(), &tConfig, m.ReservedNameChecker)
+	}
+
 	newHookProvider := func() hook.Provider {
 		return inject.Scoped(ctx, "HookProvider", func() interface{} {
 			return hook.NewProvider(
@@ -176,7 +182,7 @@ func (m DependencyMap) Provide(
 					newTimeProvider(),
 					hook.NewMutator(
 						tConfig.AppConfig.UserVerification,
-						newPasswordAuthProvider(),
+						newLoginIDProvider(),
 						newAuthInfoStore(),
 						newUserProfileStore(),
 					),
@@ -252,6 +258,8 @@ func (m DependencyMap) Provide(
 		return newLoginIDChecker()
 	case "PasswordAuthProvider":
 		return newPasswordAuthProvider()
+	case "LoginIDProvider":
+		return newLoginIDProvider()
 	case "HandlerLogger":
 		return newLoggerFactory().NewLogger("handler")
 	case "UserProfileStore":

@@ -23,15 +23,16 @@ func ProvideRenderProvider(
 	config *config.TenantConfiguration,
 	templateEngine *template.Engine,
 	passwordChecker *audit.PasswordChecker,
+	identityProvider IdentityProvider,
 ) RenderProvider {
 	return &RenderProviderImpl{
 		StaticAssetURLPrefix:        string(saup),
-		IdentityConfiguration:       config.AppConfig.Identity,
 		AuthenticationConfiguration: config.AppConfig.Authentication,
 		AuthUIConfiguration:         config.AppConfig.AuthUI,
 		LocalizationConfiguration:   config.AppConfig.Localization,
 		PasswordChecker:             passwordChecker,
 		TemplateEngine:              templateEngine,
+		Identity:                    identityProvider,
 	}
 }
 
@@ -40,6 +41,7 @@ var DependencySet = wire.NewSet(
 	ProvideRenderProvider,
 	wire.Struct(new(StateStoreImpl), "*"),
 	wire.Bind(new(StateStore), new(*StateStoreImpl)),
+	wire.Struct(new(URLProvider), "*"),
 )
 
 func ProvideCSPMiddleware(tConfig *config.TenantConfiguration) mux.MiddlewareFunc {

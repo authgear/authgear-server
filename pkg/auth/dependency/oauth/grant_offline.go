@@ -47,18 +47,16 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 	return &model.Session{
 		ID: g.ID,
 
-		IdentityID:        g.Attrs.PrincipalID,
-		IdentityType:      string(g.Attrs.PrincipalType),
-		IdentityUpdatedAt: g.Attrs.PrincipalUpdatedAt,
+		IdentityType:   string(g.Attrs.IdentityType),
+		IdentityClaims: g.Attrs.IdentityClaims,
 
-		AuthenticatorID:         g.Attrs.AuthenticatorID,
-		AuthenticatorType:       string(g.Attrs.AuthenticatorType),
-		AuthenticatorOOBChannel: string(g.Attrs.AuthenticatorOOBChannel),
-		AuthenticatorUpdatedAt:  g.Attrs.AuthenticatorUpdatedAt,
-		CreatedAt:               g.CreatedAt,
-		LastAccessedAt:          g.AccessInfo.LastAccess.Timestamp,
-		CreatedByIP:             g.AccessInfo.InitialAccess.Remote.IP(),
-		LastAccessedByIP:        g.AccessInfo.LastAccess.Remote.IP(),
-		UserAgent:               ua,
+		AMR: g.Attrs.AMR,
+		ACR: g.Attrs.ACR,
+
+		CreatedAt:        g.CreatedAt,
+		LastAccessedAt:   g.AccessInfo.LastAccess.Timestamp,
+		CreatedByIP:      g.AccessInfo.InitialAccess.Remote.IP(),
+		LastAccessedByIP: g.AccessInfo.LastAccess.Remote.IP(),
+		UserAgent:        ua,
 	}
 }

@@ -19,8 +19,8 @@ func WithAuthn() Builder {
 		session: &session.IDPSession{
 			ID: "session-id",
 			Attrs: authn.Attrs{
-				UserID:      "user-id",
-				PrincipalID: "principal-id",
+				UserID:         "user-id",
+				IdentityClaims: map[string]interface{}{},
 			},
 		},
 		user: &authn.UserInfo{
@@ -47,8 +47,8 @@ func (b Builder) UserID(id string) Builder {
 	return b
 }
 
-func (b Builder) PrincipalID(id string) Builder {
-	b.session.Attrs.PrincipalID = id
+func (b Builder) IdentityType(t authn.IdentityType) Builder {
+	b.session.Attrs.IdentityType = t
 	return b
 }
 
