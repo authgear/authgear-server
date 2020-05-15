@@ -37,8 +37,9 @@ a {
   cursor: pointer;
 }
 
-a:link,
-a:visited {
+/* a:link is more specific than .primary-btn so we need to add :not here */
+a:not(.btn):link,
+a:not(.btn):visited {
   color: #166bef;
 }
 
