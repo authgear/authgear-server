@@ -427,11 +427,7 @@ func (a *Provider) CheckIdentityDuplicated(is *identity.Info, userID string) (er
 	}
 
 	// extract standard claims
-	claims := map[string]string{}
-	email, hasEmail := is.Claims[string(metadata.Email)].(string)
-	if hasEmail {
-		claims[string(metadata.Email)] = email
-	}
+	claims := extractStandardClaims(is.Claims)
 
 	err = a.LoginID.CheckDuplicated(loginIDUniqueKey, claims, userID)
 	if err != nil {
@@ -558,4 +554,14 @@ func extractAnonymousClaims(claims map[string]interface{}) (keyID string, key st
 		}
 	}
 	return
+}
+
+func extractStandardClaims(claims map[string]interface{}) map[string]string {
+	standardClaims := map[string]string{}
+	email, hasEmail := claims[string(metadata.Email)].(string)
+	if hasEmail {
+		standardClaims[string(metadata.Email)] = email
+	}
+
+	return standardClaims
 }
