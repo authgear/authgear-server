@@ -41,6 +41,8 @@ script:
   - git status | grep "go.mod$"; test $? -eq 1
   - make lint
   - make test
+  - make generate-doc-auth > /dev/null
+  - make generate-doc-asset > /dev/null
 
 before_deploy:
   - make generate-static-asset

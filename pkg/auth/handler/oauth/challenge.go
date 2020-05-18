@@ -60,7 +60,7 @@ const ChallengeResponseSchema = `
 	"$id": "#OAuthChallengeResponse",
 	"type": "object",
 	"properties": {
-		"token": { "type": "string" }
+		"token": { "type": "string" },
 		"expire_at": { "type": "string" }
 	},
 	"required": ["token", "expire_at"]
