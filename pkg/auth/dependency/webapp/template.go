@@ -95,7 +95,7 @@ const defineError = `
 		{{ if and (eq .kind "Required") (eq .pointer "/x_login_id" ) }}
 		<li class="error-txt">{{ localize "error-email-or-username-required" }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_password" ) }}
-		<li class="error-txt">{{ localize "error-password-required" }}</li>
+		<li class="error-txt">{{ localize "error-password-or-code-required" }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_calling_code" ) }}
 		<li class="error-txt">{{ localize "error-calling-code-required" }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_national_number" ) }}
