@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package audit
+package password
 
 import (
 	"testing"
 	"time"
 
-	ph "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -135,21 +134,21 @@ func TestGetDictionary(t *testing.T) {
 func TestValidatePassword(t *testing.T) {
 	// fixture
 	authID := "chima"
-	phData := map[string][]ph.PasswordHistory{
-		authID: []ph.PasswordHistory{
-			ph.PasswordHistory{
+	phData := map[string][]History{
+		authID: []History{
+			{
 				ID:             "1",
 				UserID:         authID,
 				HashedPassword: []byte("$2a$10$EazYxG5cUdf99wGXDU1fguNxvCe7xQLEgr/Ay6VS9fkkVjHZtpJfm"), // "chima"
 				LoggedAt:       time.Date(2017, 11, 3, 0, 0, 0, 0, time.UTC),
 			},
-			ph.PasswordHistory{
+			{
 				ID:             "2",
 				UserID:         authID,
 				HashedPassword: []byte("$2a$10$8Z0zqmCZ3pZUlvLD8lN.B.ecN7MX8uVcZooPUFnCcB8tWR6diVc1a"), // "faseng"
 				LoggedAt:       time.Date(2017, 11, 2, 0, 0, 0, 0, time.UTC),
 			},
-			ph.PasswordHistory{
+			{
 				ID:             "3",
 				UserID:         authID,
 				HashedPassword: []byte("$2a$10$qzmi8TkYosj66xHvc9EfEulKjGoZswJSyNVEmmbLDxNGP/lMm6UXC"), // "coffee"
@@ -157,122 +156,122 @@ func TestValidatePassword(t *testing.T) {
 			},
 		},
 	}
-	phStore := ph.NewMockPasswordHistoryStoreWithData(
-		phData,
-		func() time.Time { return time.Date(2017, 11, 4, 0, 0, 0, 0, time.UTC) },
-	)
+	phStore := &mockPasswordHistoryStoreImpl{
+		Data:    phData,
+		TimeNow: func() time.Time { return time.Date(2017, 11, 4, 0, 0, 0, 0, time.UTC) },
+	}
 
 	Convey("validate short password", t, func() {
 		password := "1"
-		pc := &PasswordChecker{
+		pc := &Checker{
 			PwMinLength: 2,
 		}
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordPolicy{Name: PasswordTooShort, Info: map[string]interface{}{"min_length": 2, "pw_length": 1}},
+					Policy{Name: PasswordTooShort, Info: map[string]interface{}{"min_length": 2, "pw_length": 1}},
 				},
 			},
 		)
 	})
 	Convey("validate uppercase password", t, func() {
 		password := "a"
-		pc := &PasswordChecker{
+		pc := &Checker{
 			PwUppercaseRequired: true,
 		}
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordPolicy{Name: PasswordUppercaseRequired},
+					Policy{Name: PasswordUppercaseRequired},
 				},
 			},
 		)
 	})
 	Convey("validate lowercase password", t, func() {
 		password := "A"
-		pc := &PasswordChecker{
+		pc := &Checker{
 			PwLowercaseRequired: true,
 		}
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordPolicy{Name: PasswordLowercaseRequired},
+					Policy{Name: PasswordLowercaseRequired},
 				},
 			},
 		)
 	})
 	Convey("validate digit password", t, func() {
 		password := "-"
-		pc := &PasswordChecker{
+		pc := &Checker{
 			PwDigitRequired: true,
 		}
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordPolicy{Name: PasswordDigitRequired},
+					Policy{Name: PasswordDigitRequired},
 				},
 			},
 		)
 	})
 	Convey("validate symbol password", t, func() {
 		password := "azAZ09"
-		pc := &PasswordChecker{
+		pc := &Checker{
 			PwSymbolRequired: true,
 		}
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordPolicy{Name: PasswordSymbolRequired},
+					Policy{Name: PasswordSymbolRequired},
 				},
 			},
 		)
 	})
 	Convey("validate excluded keywords password", t, func() {
 		password := "useradmin1"
-		pc := &PasswordChecker{
+		pc := &Checker{
 			PwExcludedKeywords: []string{"user"},
 		}
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordPolicy{Name: PasswordContainingExcludedKeywords},
+					Policy{Name: PasswordContainingExcludedKeywords},
 				},
 			},
 		)
 	})
 	Convey("validate excluded fields password", t, func() {
 		password := "adalovelace"
-		pc := &PasswordChecker{
+		pc := &Checker{
 			PwExcludedFields: []string{"first_name"},
 		}
 		userData := map[string]interface{}{
@@ -280,7 +279,7 @@ func TestValidatePassword(t *testing.T) {
 			"last_name":  "Lovelace",
 		}
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: password,
 				UserData:      userData,
 			}),
@@ -288,25 +287,25 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordPolicy{Name: PasswordContainingExcludedKeywords},
+					Policy{Name: PasswordContainingExcludedKeywords},
 				},
 			},
 		)
 	})
 	Convey("validate guessable password", t, func() {
 		password := "abcde123456"
-		pc := &PasswordChecker{
+		pc := &Checker{
 			PwMinGuessableLevel: 5,
 		}
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordPolicy{Name: PasswordBelowGuessableLevel, Info: map[string]interface{}{"min_level": 5, "pw_level": 1}},
+					Policy{Name: PasswordBelowGuessableLevel, Info: map[string]interface{}{"min_level": 5, "pw_level": 1}},
 				},
 			},
 		)
@@ -316,7 +315,7 @@ func TestValidatePassword(t *testing.T) {
 		historySize := 12
 		historyDays := 365
 
-		pc := &PasswordChecker{
+		pc := &Checker{
 			PwHistorySize:          historySize,
 			PwHistoryDays:          historyDays,
 			PasswordHistoryEnabled: true,
@@ -324,7 +323,7 @@ func TestValidatePassword(t *testing.T) {
 		}
 
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: "chima",
 				AuthID:        authID,
 			}),
@@ -332,13 +331,13 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordPolicy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
 				},
 			},
 		)
 
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: "coffee",
 				AuthID:        authID,
 			}),
@@ -346,13 +345,13 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordPolicy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
 				},
 			},
 		)
 
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: "milktea",
 				AuthID:        authID,
 			}),
@@ -364,7 +363,7 @@ func TestValidatePassword(t *testing.T) {
 		historySize := 2
 		historyDays := 0
 
-		pc := &PasswordChecker{
+		pc := &Checker{
 			PwHistorySize:          historySize,
 			PwHistoryDays:          historyDays,
 			PasswordHistoryEnabled: true,
@@ -372,7 +371,7 @@ func TestValidatePassword(t *testing.T) {
 		}
 
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: "chima",
 				AuthID:        authID,
 			}),
@@ -380,13 +379,13 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordPolicy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
 				},
 			},
 		)
 
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: "coffee",
 				AuthID:        authID,
 			}),
@@ -398,7 +397,7 @@ func TestValidatePassword(t *testing.T) {
 		historySize := 0
 		historyDays := 2
 
-		pc := &PasswordChecker{
+		pc := &Checker{
 			PwHistorySize:          historySize,
 			PwHistoryDays:          historyDays,
 			PasswordHistoryEnabled: true,
@@ -406,7 +405,7 @@ func TestValidatePassword(t *testing.T) {
 		}
 
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: "chima",
 				AuthID:        authID,
 			}),
@@ -414,13 +413,13 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					PasswordPolicy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
 				},
 			},
 		)
 
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: "coffee",
 				AuthID:        authID,
 			}),
@@ -431,7 +430,7 @@ func TestValidatePassword(t *testing.T) {
 	Convey("validate strong password", t, func() {
 		// nolint:gosec
 		password := "N!hon-no-tsuk!-wa-seka!-1ban-k!re!desu" // 日本の月は世界一番きれいです
-		pc := &PasswordChecker{
+		pc := &Checker{
 			PwMinLength:         8,
 			PwUppercaseRequired: true,
 			PwLowercaseRequired: true,
@@ -446,7 +445,7 @@ func TestValidatePassword(t *testing.T) {
 			"last_name":  "Souseki",
 		}
 		So(
-			pc.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: password,
 				UserData:      userData,
 			}),
@@ -459,16 +458,16 @@ func TestValidatePassword(t *testing.T) {
 func TestPasswordPolicy(t *testing.T) {
 	Convey("PasswordPolicy", t, func() {
 		Convey("empty", func() {
-			pc := &PasswordChecker{}
+			pc := &Checker{}
 			So(pc.PasswordPolicy(), ShouldBeEmpty)
 			So(pc.PasswordPolicy(), ShouldNotBeNil)
 		})
 		Convey("length", func() {
-			pc := &PasswordChecker{
+			pc := &Checker{
 				PwMinLength: 8,
 			}
-			So(pc.PasswordPolicy(), ShouldResemble, []PasswordPolicy{
-				PasswordPolicy{
+			So(pc.PasswordPolicy(), ShouldResemble, []Policy{
+				Policy{
 					Name: PasswordTooShort,
 					Info: map[string]interface{}{
 						"min_length": 8,
@@ -477,11 +476,11 @@ func TestPasswordPolicy(t *testing.T) {
 			})
 		})
 		Convey("guessable level", func() {
-			pc := &PasswordChecker{
+			pc := &Checker{
 				PwMinGuessableLevel: 3,
 			}
-			So(pc.PasswordPolicy(), ShouldResemble, []PasswordPolicy{
-				PasswordPolicy{
+			So(pc.PasswordPolicy(), ShouldResemble, []Policy{
+				Policy{
 					Name: PasswordBelowGuessableLevel,
 					Info: map[string]interface{}{
 						"min_level": 3,
@@ -490,13 +489,13 @@ func TestPasswordPolicy(t *testing.T) {
 			})
 		})
 		Convey("history", func() {
-			pc := &PasswordChecker{
+			pc := &Checker{
 				PasswordHistoryEnabled: true,
 				PwHistorySize:          10,
 				PwHistoryDays:          90,
 			}
-			So(pc.PasswordPolicy(), ShouldResemble, []PasswordPolicy{
-				PasswordPolicy{
+			So(pc.PasswordPolicy(), ShouldResemble, []Policy{
+				Policy{
 					Name: PasswordReused,
 					Info: map[string]interface{}{
 						"history_size": 10,
@@ -506,15 +505,15 @@ func TestPasswordPolicy(t *testing.T) {
 			})
 		})
 		Convey("only output effective policies", func() {
-			pc := &PasswordChecker{
+			pc := &Checker{
 				PwUppercaseRequired: true,
 				PwDigitRequired:     true,
 			}
-			So(pc.PasswordPolicy(), ShouldResemble, []PasswordPolicy{
-				PasswordPolicy{
+			So(pc.PasswordPolicy(), ShouldResemble, []Policy{
+				Policy{
 					Name: PasswordUppercaseRequired,
 				},
-				PasswordPolicy{
+				Policy{
 					Name: PasswordDigitRequired,
 				},
 			})

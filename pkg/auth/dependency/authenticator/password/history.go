@@ -1,11 +1,11 @@
-package passwordhistory
+package password
 
 import (
 	"time"
 )
 
-// PasswordHistory contains a password history of a user
-type PasswordHistory struct {
+// History contains a password history of a user
+type History struct {
 	ID             string
 	UserID         string
 	HashedPassword []byte

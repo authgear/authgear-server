@@ -1,31 +1,50 @@
-package pq
+package password
 
 import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
-type passwordHistoryStore struct {
+type HistoryStore interface {
+	// CreatePasswordHistory create new password history.
+	CreatePasswordHistory(userID string, hashedPassword []byte, loggedAt time.Time) error
+
+	// GetPasswordHistory returns a slice of PasswordHistory of the given user
+	//
+	// If historySize is greater than 0, the returned slice contains history
+	// of that size.
+	// If historyDays is greater than 0, the returned slice contains history
+	// up to now.
+	//
+	// If both historySize and historyDays are greater than 0, the returned slice
+	// is the longer of the result.
+	GetPasswordHistory(userID string, historySize, historyDays int) ([]History, error)
+
+	// RemovePasswordHistory removes old password history.
+	// It uses GetPasswordHistory to query active history and then purge old history.
+	RemovePasswordHistory(userID string, historySize, historyDays int) error
+}
+
+type HistoryStoreImpl struct {
 	timeProvider coreTime.Provider
 	sqlBuilder   db.SQLBuilder
 	sqlExecutor  db.SQLExecutor
 }
 
-func NewPasswordHistoryStore(timeProvider coreTime.Provider, builder db.SQLBuilder, executor db.SQLExecutor) passwordhistory.Store {
-	return &passwordHistoryStore{
+func NewHistoryStore(timeProvider coreTime.Provider, builder db.SQLBuilder, executor db.SQLExecutor) *HistoryStoreImpl {
+	return &HistoryStoreImpl{
 		timeProvider: timeProvider,
 		sqlBuilder:   builder,
 		sqlExecutor:  executor,
 	}
 }
 
-func (p *passwordHistoryStore) CreatePasswordHistory(userID string, hashedPassword []byte, loggedAt time.Time) error {
+func (p *HistoryStoreImpl) CreatePasswordHistory(userID string, hashedPassword []byte, loggedAt time.Time) error {
 	updateBuilder := p.insertPasswordHistoryBuilder(
 		userID,
 		hashedPassword,
@@ -37,9 +56,9 @@ func (p *passwordHistoryStore) CreatePasswordHistory(userID string, hashedPasswo
 	return nil
 }
 
-func (p *passwordHistoryStore) GetPasswordHistory(userID string, historySize, historyDays int) ([]passwordhistory.PasswordHistory, error) {
+func (p *HistoryStoreImpl) GetPasswordHistory(userID string, historySize, historyDays int) ([]History, error) {
 	var err error
-	var sizeHistory, daysHistory []passwordhistory.PasswordHistory
+	var sizeHistory, daysHistory []History
 	t := p.timeProvider.NowUTC()
 
 	if historySize > 0 {
@@ -68,7 +87,7 @@ func (p *passwordHistoryStore) GetPasswordHistory(userID string, historySize, hi
 	return daysHistory, nil
 }
 
-func (p *passwordHistoryStore) RemovePasswordHistory(userID string, historySize, historyDays int) error {
+func (p *HistoryStoreImpl) RemovePasswordHistory(userID string, historySize, historyDays int) error {
 	history, err := p.GetPasswordHistory(userID, historySize, historyDays)
 	if err != nil {
 		return err
@@ -94,7 +113,7 @@ func (p *passwordHistoryStore) RemovePasswordHistory(userID string, historySize,
 	return err
 }
 
-func (p *passwordHistoryStore) basePasswordHistoryBuilder(userID string) db.SelectBuilder {
+func (p *HistoryStoreImpl) basePasswordHistoryBuilder(userID string) db.SelectBuilder {
 	return p.sqlBuilder.Tenant().
 		Select("id", "user_id", "password", "logged_at").
 		From(p.sqlBuilder.FullTableName("password_history")).
@@ -102,7 +121,7 @@ func (p *passwordHistoryStore) basePasswordHistoryBuilder(userID string) db.Sele
 		OrderBy("logged_at DESC")
 }
 
-func (p *passwordHistoryStore) insertPasswordHistoryBuilder(userID string, hashedPassword []byte, loggedAt time.Time) db.InsertBuilder {
+func (p *HistoryStoreImpl) insertPasswordHistoryBuilder(userID string, hashedPassword []byte, loggedAt time.Time) db.InsertBuilder {
 	return p.sqlBuilder.Tenant().
 		Insert(p.sqlBuilder.FullTableName("password_history")).
 		Columns(
@@ -119,13 +138,13 @@ func (p *passwordHistoryStore) insertPasswordHistoryBuilder(userID string, hashe
 		)
 }
 
-func (p *passwordHistoryStore) doQueryPasswordHistory(builder db.SelectBuilder) ([]passwordhistory.PasswordHistory, error) {
+func (p *HistoryStoreImpl) doQueryPasswordHistory(builder db.SelectBuilder) ([]History, error) {
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	out := []passwordhistory.PasswordHistory{}
+	out := []History{}
 	for rows.Next() {
 		var (
 			id                string
@@ -136,7 +155,7 @@ func (p *passwordHistoryStore) doQueryPasswordHistory(builder db.SelectBuilder) 
 		if err := rows.Scan(&id, &userID, &hashedPasswordStr, &loggedAt); err != nil {
 			return nil, err
 		}
-		passwordHistory := passwordhistory.PasswordHistory{
+		passwordHistory := History{
 			ID:             id,
 			UserID:         userID,
 			HashedPassword: []byte(hashedPasswordStr),
@@ -146,7 +165,3 @@ func (p *passwordHistoryStore) doQueryPasswordHistory(builder db.SelectBuilder) 
 	}
 	return out, nil
 }
-
-var (
-	_ passwordhistory.Store = &passwordHistoryStore{}
-)

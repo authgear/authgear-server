@@ -7,7 +7,6 @@ import (
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	authredis "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	authenticatorbearertoken "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/bearertoken"
@@ -33,7 +32,6 @@ import (
 	oauthredis "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	oidchandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/handler"
-	passwordhistorypq "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	sessionredis "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -242,9 +240,7 @@ var CommonDependencySet = wire.NewSet(
 	hook.DependencySet,
 	auth.DependencySet,
 	authredis.DependencySet,
-	audit.DependencySet,
 	loginid.DependencySet,
-	passwordhistorypq.DependencySet,
 	sso.DependencySet,
 	urlprefix.DependencySet,
 	webappDependencySet,

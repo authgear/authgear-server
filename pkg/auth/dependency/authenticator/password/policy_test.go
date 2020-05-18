@@ -1,4 +1,4 @@
-package audit
+package password
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 
 func TestPasswordPolicyJSON(t *testing.T) {
 	Convey("PasswordPolicy JSON serialization", t, func() {
-		v := PasswordPolicy{
+		v := Policy{
 			Name: PasswordTooShort,
 			Info: map[string]interface{}{
 				"min_length": 8,

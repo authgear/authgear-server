@@ -1,4 +1,4 @@
-package audit
+package password
 
 import (
 	"encoding/json"
@@ -8,40 +8,40 @@ import (
 
 var PasswordPolicyViolated skyerr.Kind = skyerr.Invalid.WithReason("PasswordPolicyViolated")
 
-type PasswordPolicyName string
+type PolicyName string
 
 const (
 	// PasswordTooShort is self-explanatory
-	PasswordTooShort PasswordPolicyName = "PasswordTooShort"
+	PasswordTooShort PolicyName = "PasswordTooShort"
 	// PasswordUppercaseRequired means the password does not contain ASCII uppercase character
-	PasswordUppercaseRequired PasswordPolicyName = "PasswordUppercaseRequired"
+	PasswordUppercaseRequired PolicyName = "PasswordUppercaseRequired"
 	// PasswordLowercaseRequired means the password does not contain ASCII lowercase character
-	PasswordLowercaseRequired PasswordPolicyName = "PasswordLowercaseRequired"
+	PasswordLowercaseRequired PolicyName = "PasswordLowercaseRequired"
 	// PasswordDigitRequired means the password does not contain ASCII digit character
-	PasswordDigitRequired PasswordPolicyName = "PasswordDigitRequired"
+	PasswordDigitRequired PolicyName = "PasswordDigitRequired"
 	// PasswordSymbolRequired means the password does not contain ASCII non-alphanumeric character
-	PasswordSymbolRequired PasswordPolicyName = "PasswordSymbolRequired"
+	PasswordSymbolRequired PolicyName = "PasswordSymbolRequired"
 	// PasswordContainingExcludedKeywords means the password contains configured excluded keywords
-	PasswordContainingExcludedKeywords PasswordPolicyName = "PasswordContainingExcludedKeywords"
+	PasswordContainingExcludedKeywords PolicyName = "PasswordContainingExcludedKeywords"
 	// PasswordBelowGuessableLevel means the password's guessable level is below configured level.
 	// The current implementation uses Dropbox's zxcvbn.
-	PasswordBelowGuessableLevel PasswordPolicyName = "PasswordBelowGuessableLevel"
+	PasswordBelowGuessableLevel PolicyName = "PasswordBelowGuessableLevel"
 	// PasswordReused is self-explanatory
-	PasswordReused PasswordPolicyName = "PasswordReused"
+	PasswordReused PolicyName = "PasswordReused"
 	// PasswordExpired is self-explanatory
-	PasswordExpired PasswordPolicyName = "PasswordExpired"
+	PasswordExpired PolicyName = "PasswordExpired"
 )
 
-type PasswordPolicy struct {
-	Name PasswordPolicyName
+type Policy struct {
+	Name PolicyName
 	Info map[string]interface{}
 }
 
-func (v PasswordPolicy) Kind() string {
+func (v Policy) Kind() string {
 	return string(v.Name)
 }
 
-func (v PasswordPolicy) MarshalJSON() ([]byte, error) {
+func (v Policy) MarshalJSON() ([]byte, error) {
 	d := map[string]interface{}{"kind": v.Name}
 	for k, v := range v.Info {
 		d[k] = v

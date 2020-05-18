@@ -9,9 +9,9 @@ import (
 
 	"github.com/gorilla/csrf"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
@@ -31,7 +31,7 @@ type RenderProviderImpl struct {
 	AuthUIConfiguration         *config.AuthUIConfiguration
 	LocalizationConfiguration   *config.LocalizationConfiguration
 	TemplateEngine              *template.Engine
-	PasswordChecker             *audit.PasswordChecker
+	PasswordChecker             *password.Checker
 	Identity                    IdentityProvider
 }
 

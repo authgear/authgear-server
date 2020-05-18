@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package audit
+package password
 
 import (
 	"regexp"
@@ -20,7 +20,6 @@ import (
 
 	"github.com/nbutton23/zxcvbn-go"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	corepassword "github.com/skygeario/skygear-server/pkg/core/password"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -172,13 +171,13 @@ func filterDictionaryTakeAll(m map[string]string) []string {
 	return filterDictionary(m, predicate)
 }
 
-type ValidatePasswordPayload struct {
+type ValidatePayload struct {
 	AuthID        string
 	PlainPassword string
 	UserData      map[string]interface{}
 }
 
-type PasswordChecker struct {
+type Checker struct {
 	PwMinLength            int
 	PwUppercaseRequired    bool
 	PwLowercaseRequired    bool
@@ -190,11 +189,11 @@ type PasswordChecker struct {
 	PwHistorySize          int
 	PwHistoryDays          int
 	PasswordHistoryEnabled bool
-	PasswordHistoryStore   passwordhistory.Store
+	PasswordHistoryStore   HistoryStore
 }
 
-func (pc *PasswordChecker) policyPasswordLength() PasswordPolicy {
-	return PasswordPolicy{
+func (pc *Checker) policyPasswordLength() Policy {
+	return Policy{
 		Name: PasswordTooShort,
 		Info: map[string]interface{}{
 			"min_length": pc.PwMinLength,
@@ -202,7 +201,7 @@ func (pc *PasswordChecker) policyPasswordLength() PasswordPolicy {
 	}
 }
 
-func (pc *PasswordChecker) checkPasswordLength(password string) *PasswordPolicy {
+func (pc *Checker) checkPasswordLength(password string) *Policy {
 	v := pc.policyPasswordLength()
 	minLength := pc.PwMinLength
 	if minLength > 0 && !checkPasswordLength(password, minLength) {
@@ -212,56 +211,56 @@ func (pc *PasswordChecker) checkPasswordLength(password string) *PasswordPolicy 
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordUppercase(password string) *PasswordPolicy {
+func (pc *Checker) checkPasswordUppercase(password string) *Policy {
 	if pc.PwUppercaseRequired && !checkPasswordUppercase(password) {
-		return &PasswordPolicy{Name: PasswordUppercaseRequired}
+		return &Policy{Name: PasswordUppercaseRequired}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordLowercase(password string) *PasswordPolicy {
+func (pc *Checker) checkPasswordLowercase(password string) *Policy {
 	if pc.PwLowercaseRequired && !checkPasswordLowercase(password) {
-		return &PasswordPolicy{Name: PasswordLowercaseRequired}
+		return &Policy{Name: PasswordLowercaseRequired}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordDigit(password string) *PasswordPolicy {
+func (pc *Checker) checkPasswordDigit(password string) *Policy {
 	if pc.PwDigitRequired && !checkPasswordDigit(password) {
-		return &PasswordPolicy{Name: PasswordDigitRequired}
+		return &Policy{Name: PasswordDigitRequired}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordSymbol(password string) *PasswordPolicy {
+func (pc *Checker) checkPasswordSymbol(password string) *Policy {
 	if pc.PwSymbolRequired && !checkPasswordSymbol(password) {
-		return &PasswordPolicy{Name: PasswordSymbolRequired}
+		return &Policy{Name: PasswordSymbolRequired}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordExcludedKeywords(password string) *PasswordPolicy {
+func (pc *Checker) checkPasswordExcludedKeywords(password string) *Policy {
 	keywords := pc.PwExcludedKeywords
 	if len(keywords) > 0 && !checkPasswordExcludedKeywords(password, keywords) {
-		return &PasswordPolicy{Name: PasswordContainingExcludedKeywords}
+		return &Policy{Name: PasswordContainingExcludedKeywords}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) checkPasswordExcludedFields(password string, userData map[string]interface{}) *PasswordPolicy {
+func (pc *Checker) checkPasswordExcludedFields(password string, userData map[string]interface{}) *Policy {
 	fields := pc.PwExcludedFields
 	if len(fields) > 0 {
 		dict := userDataToStringStringMap(userData)
 		keywords := filterDictionaryByKeys(dict, fields)
 		if !checkPasswordExcludedKeywords(password, keywords) {
-			return &PasswordPolicy{Name: PasswordContainingExcludedKeywords}
+			return &Policy{Name: PasswordContainingExcludedKeywords}
 		}
 	}
 	return nil
 }
 
-func (pc *PasswordChecker) policyPasswordGuessableLevel() PasswordPolicy {
-	return PasswordPolicy{
+func (pc *Checker) policyPasswordGuessableLevel() Policy {
+	return Policy{
 		Name: PasswordBelowGuessableLevel,
 		Info: map[string]interface{}{
 			"min_level": pc.PwMinGuessableLevel,
@@ -269,7 +268,7 @@ func (pc *PasswordChecker) policyPasswordGuessableLevel() PasswordPolicy {
 	}
 }
 
-func (pc *PasswordChecker) checkPasswordGuessableLevel(password string, userData map[string]interface{}) *PasswordPolicy {
+func (pc *Checker) checkPasswordGuessableLevel(password string, userData map[string]interface{}) *Policy {
 	v := pc.policyPasswordGuessableLevel()
 	minLevel := pc.PwMinGuessableLevel
 	if minLevel > 0 {
@@ -284,8 +283,8 @@ func (pc *PasswordChecker) checkPasswordGuessableLevel(password string, userData
 	return nil
 }
 
-func (pc *PasswordChecker) policyPasswordHistory() PasswordPolicy {
-	return PasswordPolicy{
+func (pc *Checker) policyPasswordHistory() Policy {
+	return Policy{
 		Name: PasswordReused,
 		Info: map[string]interface{}{
 			"history_size": pc.PwHistorySize,
@@ -294,7 +293,7 @@ func (pc *PasswordChecker) policyPasswordHistory() PasswordPolicy {
 	}
 }
 
-func (pc *PasswordChecker) checkPasswordHistory(password, authID string) *PasswordPolicy {
+func (pc *Checker) checkPasswordHistory(password, authID string) *Policy {
 	v := pc.policyPasswordHistory()
 	if pc.shouldCheckPasswordHistory() && authID != "" {
 		history, err := pc.PasswordHistoryStore.GetPasswordHistory(
@@ -314,13 +313,13 @@ func (pc *PasswordChecker) checkPasswordHistory(password, authID string) *Passwo
 	return nil
 }
 
-func (pc *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) error {
+func (pc *Checker) ValidatePassword(payload ValidatePayload) error {
 	password := payload.PlainPassword
 	userData := payload.UserData
 	authID := payload.AuthID
 
 	var violations []skyerr.Cause
-	check := func(v *PasswordPolicy) {
+	check := func(v *Policy) {
 		if v != nil {
 			violations = append(violations, *v)
 		}
@@ -344,24 +343,24 @@ func (pc *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) err
 }
 
 // PasswordPolicy outputs a list of PasswordPolicy to reflect the password policy.
-func (pc *PasswordChecker) PasswordPolicy() (out []PasswordPolicy) {
+func (pc *Checker) PasswordPolicy() (out []Policy) {
 	if pc.PwMinLength > 0 {
 		out = append(out, pc.policyPasswordLength())
 	}
 	if pc.PwUppercaseRequired {
-		out = append(out, PasswordPolicy{Name: PasswordUppercaseRequired})
+		out = append(out, Policy{Name: PasswordUppercaseRequired})
 	}
 	if pc.PwLowercaseRequired {
-		out = append(out, PasswordPolicy{Name: PasswordLowercaseRequired})
+		out = append(out, Policy{Name: PasswordLowercaseRequired})
 	}
 	if pc.PwDigitRequired {
-		out = append(out, PasswordPolicy{Name: PasswordDigitRequired})
+		out = append(out, Policy{Name: PasswordDigitRequired})
 	}
 	if pc.PwSymbolRequired {
-		out = append(out, PasswordPolicy{Name: PasswordSymbolRequired})
+		out = append(out, Policy{Name: PasswordSymbolRequired})
 	}
 	if len(pc.PwExcludedKeywords) > 0 {
-		out = append(out, PasswordPolicy{Name: PasswordContainingExcludedKeywords})
+		out = append(out, Policy{Name: PasswordContainingExcludedKeywords})
 	}
 	if pc.PwMinGuessableLevel > 0 {
 		out = append(out, pc.policyPasswordGuessableLevel())
@@ -370,16 +369,16 @@ func (pc *PasswordChecker) PasswordPolicy() (out []PasswordPolicy) {
 		out = append(out, pc.policyPasswordHistory())
 	}
 	if out == nil {
-		out = []PasswordPolicy{}
+		out = []Policy{}
 	}
 	return
 }
 
-func (pc *PasswordChecker) ShouldSavePasswordHistory() bool {
+func (pc *Checker) ShouldSavePasswordHistory() bool {
 	return pc.PasswordHistoryEnabled
 }
 
-func (pc *PasswordChecker) shouldCheckPasswordHistory() bool {
+func (pc *Checker) shouldCheckPasswordHistory() bool {
 	return pc.ShouldSavePasswordHistory()
 }
 

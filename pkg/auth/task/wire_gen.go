@@ -9,9 +9,8 @@ import (
 	"context"
 	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	pq2 "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
@@ -87,12 +86,12 @@ func newPwHouseKeeperTask(ctx context.Context, m auth.DependencyMap) async.Task 
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
 	sqlExecutor := db.ProvideSQLExecutor(ctx, tenantConfiguration)
-	store := pq2.ProvidePasswordHistoryStore(provider, sqlBuilder, sqlExecutor)
-	pwHousekeeper := audit.ProvidePwHousekeeper(store, factory, tenantConfiguration)
+	historyStoreImpl := password.ProvideHistoryStore(provider, sqlBuilder, sqlExecutor)
+	housekeeper := password.ProvideHousekeeper(historyStoreImpl, factory, tenantConfiguration)
 	pwHousekeeperTask := &PwHousekeeperTask{
 		TxContext:     txContext,
 		LoggerFactory: factory,
-		PwHousekeeper: pwHousekeeper,
+		PwHousekeeper: housekeeper,
 	}
 	return pwHousekeeperTask
 }

@@ -4,12 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	identityloginid "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
-	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -91,14 +88,6 @@ func (m DependencyMap) Provide(
 		return time.NewProvider()
 	}
 
-	newPasswordHistoryStore := func() passwordhistory.Store {
-		return pqPWHistory.NewPasswordHistoryStore(
-			newTimeProvider(),
-			newSQLBuilder(),
-			newSQLExecutor(),
-		)
-	}
-
 	newTemplateEngine := func() *template.Engine {
 		return authTemplate.NewEngineWithConfig(
 			tConfig,
@@ -175,10 +164,6 @@ func (m DependencyMap) Provide(
 		)
 	}
 
-	newPasswordChecker := func() *authAudit.PasswordChecker {
-		return authAudit.ProvidePasswordChecker(&tConfig, newPasswordHistoryStore())
-	}
-
 	switch dependencyName {
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
@@ -190,8 +175,6 @@ func (m DependencyMap) Provide(
 		return m.Validator
 	case "AuthInfoStore":
 		return newAuthInfoStore()
-	case "PasswordChecker":
-		return newPasswordChecker()
 	case "LoginIDChecker":
 		return newLoginIDChecker()
 	case "LoginIDProvider":

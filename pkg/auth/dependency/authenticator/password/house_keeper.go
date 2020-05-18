@@ -12,23 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package audit
+package password
 
 import (
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
-func NewPwHousekeeper(
-	passwordHistoryStore passwordhistory.Store,
+func NewHousekeeper(
+	passwordHistoryStore HistoryStore,
 	loggerFactory logging.Factory,
 	pwHistorySize int,
 	pwHistoryDays int,
 	passwordHistoryEnabled bool,
-) *PwHousekeeper {
-	return &PwHousekeeper{
+) *Housekeeper {
+	return &Housekeeper{
 		passwordHistoryStore:   passwordHistoryStore,
 		logger:                 loggerFactory.NewLogger("password-housekeeper"),
 		pwHistorySize:          pwHistorySize,
@@ -37,15 +36,15 @@ func NewPwHousekeeper(
 	}
 }
 
-type PwHousekeeper struct {
-	passwordHistoryStore   passwordhistory.Store
+type Housekeeper struct {
+	passwordHistoryStore   HistoryStore
 	logger                 *logrus.Entry
 	pwHistorySize          int
 	pwHistoryDays          int
 	passwordHistoryEnabled bool
 }
 
-func (p *PwHousekeeper) Housekeep(authID string) (err error) {
+func (p *Housekeeper) Housekeep(authID string) (err error) {
 	if !p.enabled() {
 		return
 	}
@@ -59,6 +58,6 @@ func (p *PwHousekeeper) Housekeep(authID string) (err error) {
 	return
 }
 
-func (p *PwHousekeeper) enabled() bool {
+func (p *Housekeeper) enabled() bool {
 	return p.passwordHistoryEnabled
 }
