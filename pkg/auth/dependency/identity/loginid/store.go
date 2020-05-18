@@ -121,6 +121,16 @@ func (s *Store) GetByLoginID(loginIDKey string, loginID string) (*Identity, erro
 	return s.scan(rows)
 }
 
+func (s *Store) GetByUniqueKey(uniqueKey string) (*Identity, error) {
+	q := s.selectQuery().Where(`l.unique_key = ?`, uniqueKey)
+	rows, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.scan(rows)
+}
+
 func (s *Store) Create(i *Identity) error {
 	builder := s.SQLBuilder.Tenant().
 		Insert(s.SQLBuilder.FullTableName("identity")).

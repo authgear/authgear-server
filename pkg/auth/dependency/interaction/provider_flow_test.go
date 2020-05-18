@@ -544,7 +544,7 @@ func TestProviderFlow(t *testing.T) {
 				// return user's existing identities
 				identityProvider.EXPECT().ListByUser(
 					gomock.Eq(userID),
-				).Return([]*identity.Info{oii}, nil)
+				).Return([]*identity.Info{oii}, nil).AnyTimes()
 				// validation should have the new identity only, since the
 				// existing identity is in different type
 				identityProvider.EXPECT().Validate(
@@ -555,6 +555,8 @@ func TestProviderFlow(t *testing.T) {
 				identityProvider.EXPECT().RelateIdentityToAuthenticator(
 					gomock.Eq(ii.ToSpec()), gomock.Eq(as),
 				).Return(as).AnyTimes()
+
+				identityProvider.EXPECT().CheckIdentityDuplicated(gomock.Eq(ii), gomock.Eq(userID)).Return(nil)
 
 				identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq([]*identity.Info{ii})).Return(nil)
 				var emptyIdentityInfoList []*identity.Info
@@ -676,6 +678,8 @@ func TestProviderFlow(t *testing.T) {
 			identityProvider.EXPECT().RelateIdentityToAuthenticator(
 				gomock.Eq(nii.ToSpec()), gomock.Eq(as),
 			).Return(as)
+
+			identityProvider.EXPECT().CheckIdentityDuplicated(gomock.Eq(nii), gomock.Eq(userID)).Return(nil)
 
 			var emptyIdentityInfoList []*identity.Info
 			identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
@@ -945,7 +949,6 @@ func TestProviderFlow(t *testing.T) {
 			})
 
 		})
-
 	})
 
 }

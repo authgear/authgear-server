@@ -132,6 +132,33 @@ func (p *Provider) WithLoginID(iden *Identity, loginID loginid.LoginID) *Identit
 	return newIden
 }
 
+func (p *Provider) CheckDuplicated(uniqueKey string, standardClaims map[string]string, userID string) error {
+	// check duplication with unique key
+	_, err := p.Store.GetByUniqueKey(uniqueKey)
+	if err == nil {
+		return identity.ErrIdentityAlreadyExists
+	} else if !errors.Is(err, identity.ErrIdentityNotFound) {
+		return err
+	}
+
+	// check duplication with standard claims
+	for name, value := range standardClaims {
+		ls, err := p.ListByClaim(name, value)
+		if err != nil {
+			return err
+		}
+
+		for _, i := range ls {
+			if i.UserID == userID {
+				continue
+			}
+			return identity.ErrIdentityAlreadyExists
+		}
+	}
+
+	return nil
+}
+
 func (p *Provider) Create(i *Identity) error {
 	return p.Store.Create(i)
 }

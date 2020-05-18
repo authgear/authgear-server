@@ -5,6 +5,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 )
 
 type Provider struct {
@@ -60,6 +62,25 @@ func (p *Provider) New(
 		Claims:            claims,
 	}
 	return i
+}
+
+func (p *Provider) CheckDuplicated(standardClaims map[string]string, userID string) error {
+	// check duplication with standard claims
+	for name, value := range standardClaims {
+		ls, err := p.ListByClaim(name, value)
+		if err != nil {
+			return err
+		}
+
+		for _, i := range ls {
+			if i.UserID == userID {
+				continue
+			}
+			return identity.ErrIdentityAlreadyExists
+		}
+	}
+
+	return nil
 }
 
 func (p *Provider) Create(i *Identity) error {

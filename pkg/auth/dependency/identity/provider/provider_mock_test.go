@@ -195,6 +195,20 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) Normalize(loginID interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Normalize", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Normalize), loginID)
 }
 
+// CheckDuplicated mocks base method
+func (m *MockLoginIDIdentityProvider) CheckDuplicated(uniqueKey string, standardClaims map[string]string, userID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckDuplicated", uniqueKey, standardClaims, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CheckDuplicated indicates an expected call of CheckDuplicated
+func (mr *MockLoginIDIdentityProviderMockRecorder) CheckDuplicated(uniqueKey, standardClaims, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckDuplicated", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).CheckDuplicated), uniqueKey, standardClaims, userID)
+}
+
 // MockOAuthIdentityProvider is a mock of OAuthIdentityProvider interface
 type MockOAuthIdentityProvider struct {
 	ctrl     *gomock.Controller
@@ -347,6 +361,20 @@ func (m *MockOAuthIdentityProvider) Delete(i *oauth.Identity) error {
 func (mr *MockOAuthIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).Delete), i)
+}
+
+// CheckDuplicated mocks base method
+func (m *MockOAuthIdentityProvider) CheckDuplicated(standardClaims map[string]string, userID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckDuplicated", standardClaims, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CheckDuplicated indicates an expected call of CheckDuplicated
+func (mr *MockOAuthIdentityProviderMockRecorder) CheckDuplicated(standardClaims, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckDuplicated", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).CheckDuplicated), standardClaims, userID)
 }
 
 // MockAnonymousIdentityProvider is a mock of AnonymousIdentityProvider interface
