@@ -123,6 +123,10 @@ const defineError = `
 		<!-- This error is handled differently -->
 	{{ else if eq .x_error.reason "PasswordResetFailed" }}
 		<li class="error-txt">{{ localize "error-password-reset-failed" }}</li>
+	{{ else if eq .x_error.reason "DuplicatedIdentity" }}
+		<li class="error-txt">{{ localize "error-duplicated-identity" }}</li>
+	{{ else if eq .x_error.reason "InvalidIdentityRequest" }}
+		<li class="error-txt">{{ localize "error-remove-last-identity" }}</li>
 	{{ else }}
 		<li class="error-txt">{{ .x_error.message }}</li>
 	{{ end }}

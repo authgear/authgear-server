@@ -21,6 +21,8 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"error-invalid-username": "Invalid username",
 	"error-invalid-credentials": "Incorrect email, phone number, username, or password",
 	"error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
+	"error-duplicated-identity": "This identity has been claimed by another user.",
+	"error-remove-last-identity": "Cannot disconnect. You need to keep at least 1 identity.",
 
 	"back-button-title": "Back",
 	"next-button-label": "Next",
