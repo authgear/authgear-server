@@ -8,8 +8,6 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -55,12 +53,10 @@ func (f MeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 			@JSONSchema {UserIdentityResponse}
 */
 type MeHandler struct {
-	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
-	TxContext            db.TxContext               `dependency:"TxContext"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
+	RequireAuthz     handler.RequireAuthz `dependency:"RequireAuthz"`
+	TxContext        db.TxContext         `dependency:"TxContext"`
+	AuthInfoStore    authinfo.Store       `dependency:"AuthInfoStore"`
+	UserProfileStore userprofile.Store    `dependency:"UserProfileStore"`
 }
 
 func (h MeHandler) ProvideAuthzPolicy() coreauthz.Policy {

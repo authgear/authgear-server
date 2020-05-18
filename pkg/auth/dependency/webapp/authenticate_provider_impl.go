@@ -6,7 +6,6 @@ import (
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -38,30 +37,9 @@ type AuthenticateProviderImpl struct {
 	ValidateProvider     ValidateProvider
 	RenderProvider       RenderProvider
 	StateProvider        StateProvider
-	AuthnProvider        AuthnProvider
 	SSOProvider          sso.Provider
 	Interactions         InteractionFlow
 	OAuthProviderFactory OAuthProviderFactory
-}
-
-type AuthnProvider interface {
-	LoginWithLoginID(
-		client config.OAuthClientConfiguration,
-		loginID loginid.LoginID,
-		plainPassword string,
-	) (authn.Result, error)
-
-	ValidateSignupLoginID(loginid loginid.LoginID) error
-
-	SignupWithLoginIDs(
-		client config.OAuthClientConfiguration,
-		loginIDs []loginid.LoginID,
-		plainPassword string,
-		metadata map[string]interface{},
-		onUserDuplicate model.OnUserDuplicate,
-	) (authn.Result, error)
-
-	WriteCookie(rw http.ResponseWriter, result *authn.CompletionResult)
 }
 
 type OAuthProviderFactory interface {

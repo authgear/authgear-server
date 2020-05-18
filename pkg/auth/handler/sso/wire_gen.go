@@ -33,7 +33,6 @@ import (
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
-	password2 "github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	redis4 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -393,21 +392,15 @@ func newLoginAuthURLHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler2.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
-	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
-	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
-	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
-	timeProvider := time.NewProvider()
-	store := pq.ProvidePasswordHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
-	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password2.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, store, factory, tenantConfiguration, reservedNameChecker)
 	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
+	timeProvider := time.NewProvider()
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := ProvideRedirectURIForAPIFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
 	ssoSsoAction := providerLoginSSOAction()
-	httpHandler := provideAuthURLHandler(txContext, requireAuthz, validator, passwordProvider, ssoProvider, tenantConfiguration, oAuthProvider, ssoSsoAction)
+	httpHandler := provideAuthURLHandler(txContext, requireAuthz, validator, ssoProvider, tenantConfiguration, oAuthProvider, ssoSsoAction)
 	return httpHandler
 }
 
@@ -419,21 +412,15 @@ func newLinkAuthURLHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	requireAuthz := handler2.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
-	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
-	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
-	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
-	timeProvider := time.NewProvider()
-	store := pq.ProvidePasswordHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
-	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	passwordProvider := password2.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, store, factory, tenantConfiguration, reservedNameChecker)
 	ssoProvider := sso.ProvideSSOProvider(context, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
+	timeProvider := time.NewProvider()
 	loginIDNormalizerFactory := loginid.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := ProvideRedirectURIForAPIFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
 	oAuthProvider := provideOAuthProviderFromRequestVars(r, oAuthProviderFactory)
 	ssoSsoAction := providerLinkSSOAction()
-	httpHandler := provideAuthURLHandler(txContext, requireAuthz, validator, passwordProvider, ssoProvider, tenantConfiguration, oAuthProvider, ssoSsoAction)
+	httpHandler := provideAuthURLHandler(txContext, requireAuthz, validator, ssoProvider, tenantConfiguration, oAuthProvider, ssoSsoAction)
 	return httpHandler
 }
 
@@ -611,7 +598,6 @@ func provideAuthURLHandler(
 	tx db.TxContext,
 	requireAuthz handler2.RequireAuthz,
 	v *validation.Validator,
-	pp password2.Provider,
 	sp sso.Provider,
 	cfg *config.TenantConfiguration,
 	op sso.OAuthProvider,
@@ -620,7 +606,6 @@ func provideAuthURLHandler(
 	h := &AuthURLHandler{
 		TxContext:                  tx,
 		Validator:                  v,
-		PasswordAuthProvider:       pp,
 		SSOProvider:                sp,
 		OAuthConflictConfiguration: cfg.AppConfig.AuthAPI.OnIdentityConflict.OAuth,
 		OAuthProvider:              op,

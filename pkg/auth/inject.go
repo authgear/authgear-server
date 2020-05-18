@@ -8,13 +8,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	identityloginid "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
-	mfaPQ "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -96,13 +91,6 @@ func (m DependencyMap) Provide(
 		return time.NewProvider()
 	}
 
-	newPasswordStore := func() password.Store {
-		return password.NewStore(
-			newSQLBuilder(),
-			newSQLExecutor(),
-		)
-	}
-
 	newPasswordHistoryStore := func() passwordhistory.Store {
 		return pqPWHistory.NewPasswordHistoryStore(
 			newTimeProvider(),
@@ -142,26 +130,6 @@ func (m DependencyMap) Provide(
 		)
 	}
 
-	newPasswordAuthProvider := func() password.Provider {
-		return password.NewProvider(
-			newTimeProvider(),
-			newPasswordStore(),
-			newPasswordHistoryStore(),
-			newLoggerFactory(),
-			tConfig.AppConfig.Identity.LoginID.Keys,
-			tConfig.AppConfig.Identity.LoginID.Types,
-			tConfig.AppConfig.Authenticator.Password.Policy.IsPasswordHistoryEnabled(),
-			m.ReservedNameChecker,
-		)
-	}
-
-	newOAuthAuthProvider := func() oauth.Provider {
-		return oauth.NewProvider(
-			newSQLBuilder(),
-			newSQLExecutor(),
-		)
-	}
-
 	newLoginIDProvider := func() *identityloginid.Provider {
 		return identityloginid.ProvideProvider(
 			newSQLBuilder(), newSQLExecutor(), newTimeProvider(), &tConfig, m.ReservedNameChecker)
@@ -192,40 +160,12 @@ func (m DependencyMap) Provide(
 		})().(hook.Provider)
 	}
 
-	newIdentityProvider := func() principal.IdentityProvider {
-		return principal.NewIdentityProvider(
-			newSQLBuilder(),
-			newSQLExecutor(),
-			newOAuthAuthProvider(),
-			newPasswordAuthProvider(),
-		)
-	}
-
 	newSMSClient := func() sms.Client {
 		return sms.NewClient(ctx, tConfig.AppConfig)
 	}
 
 	newMailSender := func() mail.Sender {
 		return mail.NewSender(ctx, &tConfig)
-	}
-
-	newMFAProvider := func() mfa.Provider {
-		return mfa.NewProvider(
-			mfaPQ.NewStore(
-				tConfig.AppConfig.Authenticator.RecoveryCode,
-				newSQLBuilder(),
-				newSQLExecutor(),
-				newTimeProvider(),
-			),
-			tConfig.AppConfig.Authenticator,
-			newTimeProvider(),
-			mfa.NewSender(
-				tConfig,
-				newSMSClient(),
-				newMailSender(),
-				newTemplateEngine(),
-			),
-		)
 	}
 
 	newLoginIDNormalizerFactory := func() loginid.LoginIDNormalizerFactory {
@@ -248,16 +188,12 @@ func (m DependencyMap) Provide(
 		return handler.NewRequireAuthzFactory(newLoggerFactory())
 	case "Validator":
 		return m.Validator
-	case "MFAProvider":
-		return newMFAProvider()
 	case "AuthInfoStore":
 		return newAuthInfoStore()
 	case "PasswordChecker":
 		return newPasswordChecker()
 	case "LoginIDChecker":
 		return newLoginIDChecker()
-	case "PasswordAuthProvider":
-		return newPasswordAuthProvider()
 	case "LoginIDProvider":
 		return newLoginIDProvider()
 	case "HandlerLogger":
@@ -289,8 +225,6 @@ func (m DependencyMap) Provide(
 		return userverify.NewVerifyHTMLProvider(tConfig.AppConfig.UserVerification, newTemplateEngine())
 	case "LoginIDNormalizerFactory":
 		return newLoginIDNormalizerFactory()
-	case "IdentityProvider":
-		return newIdentityProvider()
 	case "AuthHandlerHTMLProvider":
 		return sso.NewAuthHandlerHTMLProvider(urlprefix.NewProvider(request).Value())
 	case "AsyncTaskQueue":
