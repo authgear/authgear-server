@@ -236,9 +236,9 @@ func makeFullTenantConfig() TenantConfiguration {
 				},
 				ResetCodeLifetime: 60,
 			},
-			WelcomeEmail: &WelcomeEmailConfiguration{
+			WelcomeMessage: &WelcomeMessageConfiguration{
 				Enabled: true,
-				Message: EmailMessageConfiguration{
+				EmailMessage: EmailMessageConfiguration{
 					"sender":   `"Welcome Email Sender" <welcomeemailsender@example.com>`,
 					"subject":  "welcomeemailsubject",
 					"reply_to": `"Welcome Email Reply To" <welcomeemailreplyto@example.com>`,
@@ -558,7 +558,7 @@ func TestTenantConfig(t *testing.T) {
 			So(userConfig.Authentication, ShouldBeNil)
 			So(userConfig.Authenticator, ShouldBeNil)
 			So(userConfig.ForgotPassword, ShouldBeNil)
-			So(userConfig.WelcomeEmail, ShouldBeNil)
+			So(userConfig.WelcomeMessage, ShouldBeNil)
 			So(userConfig.Identity, ShouldBeNil)
 			So(userConfig.UserVerification, ShouldBeNil)
 			So(userConfig.Hook, ShouldBeNil)
@@ -573,7 +573,7 @@ func TestTenantConfig(t *testing.T) {
 			So(userConfig.Authentication, ShouldNotBeNil)
 			So(userConfig.Authenticator, ShouldNotBeNil)
 			So(userConfig.ForgotPassword, ShouldNotBeNil)
-			So(userConfig.WelcomeEmail, ShouldNotBeNil)
+			So(userConfig.WelcomeMessage, ShouldNotBeNil)
 			So(userConfig.Identity, ShouldNotBeNil)
 			So(userConfig.UserVerification, ShouldNotBeNil)
 			So(userConfig.Hook, ShouldNotBeNil)

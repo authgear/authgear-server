@@ -52,7 +52,7 @@ func ProvideUserProvider(
 		Hooks:                         hp,
 		URLPrefix:                     up,
 		TaskQueue:                     q,
-		WelcomeEmailConfiguration:     config.AppConfig.WelcomeEmail,
+		WelcomeMessageConfiguration:   config.AppConfig.WelcomeMessage,
 		UserVerificationConfiguration: config.AppConfig.UserVerification,
 	}
 }

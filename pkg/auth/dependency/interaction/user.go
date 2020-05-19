@@ -23,7 +23,7 @@ type userProvider struct {
 	Hooks                         hook.Provider
 	URLPrefix                     urlprefix.Provider
 	TaskQueue                     async.Queue
-	WelcomeEmailConfiguration     *config.WelcomeEmailConfiguration
+	WelcomeMessageConfiguration   *config.WelcomeMessageConfiguration
 	UserVerificationConfiguration *config.UserVerificationConfiguration
 }
 
@@ -64,7 +64,7 @@ func (p *userProvider) Create(userID string, metadata map[string]interface{}, id
 		return err
 	}
 
-	if p.WelcomeEmailConfiguration.Enabled {
+	if p.WelcomeMessageConfiguration.Enabled {
 		p.enqueueSendWelcomeEmailTasks(user, identities)
 	}
 
@@ -104,10 +104,10 @@ func (p *userProvider) enqueueSendWelcomeEmailTasks(user model.User, identities 
 	}
 
 	var destinationEmails []string
-	switch p.WelcomeEmailConfiguration.Destination {
-	case config.WelcomeEmailDestinationAll:
+	switch p.WelcomeMessageConfiguration.Destination {
+	case config.WelcomeMessageDestinationAll:
 		destinationEmails = emails
-	case config.WelcomeEmailDestinationFirst:
+	case config.WelcomeMessageDestinationFirst:
 		destinationEmails = emails[:1]
 	}
 

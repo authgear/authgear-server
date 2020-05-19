@@ -287,21 +287,21 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
-		case "welcome_email":
+		case "welcome_message":
 			if dc.IsNil() {
 				err = dc.ReadNil()
 				if err != nil {
-					err = msgp.WrapError(err, "WelcomeEmail")
+					err = msgp.WrapError(err, "WelcomeMessage")
 					return
 				}
-				z.WelcomeEmail = nil
+				z.WelcomeMessage = nil
 			} else {
-				if z.WelcomeEmail == nil {
-					z.WelcomeEmail = new(WelcomeEmailConfiguration)
+				if z.WelcomeMessage == nil {
+					z.WelcomeMessage = new(WelcomeMessageConfiguration)
 				}
-				err = z.WelcomeEmail.DecodeMsg(dc)
+				err = z.WelcomeMessage.DecodeMsg(dc)
 				if err != nil {
-					err = msgp.WrapError(err, "WelcomeEmail")
+					err = msgp.WrapError(err, "WelcomeMessage")
 					return
 				}
 			}
@@ -812,20 +812,20 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	}
-	// write "welcome_email"
-	err = en.Append(0xad, 0x77, 0x65, 0x6c, 0x63, 0x6f, 0x6d, 0x65, 0x5f, 0x65, 0x6d, 0x61, 0x69, 0x6c)
+	// write "welcome_message"
+	err = en.Append(0xaf, 0x77, 0x65, 0x6c, 0x63, 0x6f, 0x6d, 0x65, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
 	if err != nil {
 		return
 	}
-	if z.WelcomeEmail == nil {
+	if z.WelcomeMessage == nil {
 		err = en.WriteNil()
 		if err != nil {
 			return
 		}
 	} else {
-		err = z.WelcomeEmail.EncodeMsg(en)
+		err = z.WelcomeMessage.EncodeMsg(en)
 		if err != nil {
-			err = msgp.WrapError(err, "WelcomeEmail")
+			err = msgp.WrapError(err, "WelcomeMessage")
 			return
 		}
 	}
@@ -1156,14 +1156,14 @@ func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		o = append(o, 0xb3, 0x72, 0x65, 0x73, 0x65, 0x74, 0x5f, 0x63, 0x6f, 0x64, 0x65, 0x5f, 0x6c, 0x69, 0x66, 0x65, 0x74, 0x69, 0x6d, 0x65)
 		o = msgp.AppendInt(o, z.ForgotPassword.ResetCodeLifetime)
 	}
-	// string "welcome_email"
-	o = append(o, 0xad, 0x77, 0x65, 0x6c, 0x63, 0x6f, 0x6d, 0x65, 0x5f, 0x65, 0x6d, 0x61, 0x69, 0x6c)
-	if z.WelcomeEmail == nil {
+	// string "welcome_message"
+	o = append(o, 0xaf, 0x77, 0x65, 0x6c, 0x63, 0x6f, 0x6d, 0x65, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	if z.WelcomeMessage == nil {
 		o = msgp.AppendNil(o)
 	} else {
-		o, err = z.WelcomeEmail.MarshalMsg(o)
+		o, err = z.WelcomeMessage.MarshalMsg(o)
 		if err != nil {
-			err = msgp.WrapError(err, "WelcomeEmail")
+			err = msgp.WrapError(err, "WelcomeMessage")
 			return
 		}
 	}
@@ -1544,20 +1544,20 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 				}
 			}
-		case "welcome_email":
+		case "welcome_message":
 			if msgp.IsNil(bts) {
 				bts, err = msgp.ReadNilBytes(bts)
 				if err != nil {
 					return
 				}
-				z.WelcomeEmail = nil
+				z.WelcomeMessage = nil
 			} else {
-				if z.WelcomeEmail == nil {
-					z.WelcomeEmail = new(WelcomeEmailConfiguration)
+				if z.WelcomeMessage == nil {
+					z.WelcomeMessage = new(WelcomeMessageConfiguration)
 				}
-				bts, err = z.WelcomeEmail.UnmarshalMsg(bts)
+				bts, err = z.WelcomeMessage.UnmarshalMsg(bts)
 				if err != nil {
-					err = msgp.WrapError(err, "WelcomeEmail")
+					err = msgp.WrapError(err, "WelcomeMessage")
 					return
 				}
 			}
@@ -1890,11 +1890,11 @@ func (z *AppConfiguration) Msgsize() (s int) {
 	} else {
 		s += 1 + 14 + z.ForgotPassword.EmailMessage.Msgsize() + 12 + z.ForgotPassword.SMSMessage.Msgsize() + 20 + msgp.IntSize
 	}
-	s += 14
-	if z.WelcomeEmail == nil {
+	s += 16
+	if z.WelcomeMessage == nil {
 		s += msgp.NilSize
 	} else {
-		s += z.WelcomeEmail.Msgsize()
+		s += z.WelcomeMessage.Msgsize()
 	}
 	s += 9
 	if z.Identity == nil {
@@ -5974,7 +5974,7 @@ func (z *UserVerificationKeyConfiguration) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
-func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
+func (z *WelcomeMessageConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -5997,10 +5997,10 @@ func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "Enabled")
 				return
 			}
-		case "message":
-			err = z.Message.DecodeMsg(dc)
+		case "email_message":
+			err = z.EmailMessage.DecodeMsg(dc)
 			if err != nil {
-				err = msgp.WrapError(err, "Message")
+				err = msgp.WrapError(err, "EmailMessage")
 				return
 			}
 		case "destination":
@@ -6011,7 +6011,7 @@ func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					err = msgp.WrapError(err, "Destination")
 					return
 				}
-				z.Destination = WelcomeEmailDestination(zb0002)
+				z.Destination = WelcomeMessageDestination(zb0002)
 			}
 		default:
 			err = dc.Skip()
@@ -6025,7 +6025,7 @@ func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z *WelcomeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+func (z *WelcomeMessageConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 3
 	// write "enabled"
 	err = en.Append(0x83, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
@@ -6037,14 +6037,14 @@ func (z *WelcomeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "Enabled")
 		return
 	}
-	// write "message"
-	err = en.Append(0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	// write "email_message"
+	err = en.Append(0xad, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
 	if err != nil {
 		return
 	}
-	err = z.Message.EncodeMsg(en)
+	err = z.EmailMessage.EncodeMsg(en)
 	if err != nil {
-		err = msgp.WrapError(err, "Message")
+		err = msgp.WrapError(err, "EmailMessage")
 		return
 	}
 	// write "destination"
@@ -6061,17 +6061,17 @@ func (z *WelcomeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z *WelcomeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+func (z *WelcomeMessageConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 3
 	// string "enabled"
 	o = append(o, 0x83, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	o = msgp.AppendBool(o, z.Enabled)
-	// string "message"
-	o = append(o, 0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
-	o, err = z.Message.MarshalMsg(o)
+	// string "email_message"
+	o = append(o, 0xad, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	o, err = z.EmailMessage.MarshalMsg(o)
 	if err != nil {
-		err = msgp.WrapError(err, "Message")
+		err = msgp.WrapError(err, "EmailMessage")
 		return
 	}
 	// string "destination"
@@ -6081,7 +6081,7 @@ func (z *WelcomeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
-func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
+func (z *WelcomeMessageConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -6104,10 +6104,10 @@ func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err erro
 				err = msgp.WrapError(err, "Enabled")
 				return
 			}
-		case "message":
-			bts, err = z.Message.UnmarshalMsg(bts)
+		case "email_message":
+			bts, err = z.EmailMessage.UnmarshalMsg(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "Message")
+				err = msgp.WrapError(err, "EmailMessage")
 				return
 			}
 		case "destination":
@@ -6118,7 +6118,7 @@ func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err erro
 					err = msgp.WrapError(err, "Destination")
 					return
 				}
-				z.Destination = WelcomeEmailDestination(zb0002)
+				z.Destination = WelcomeMessageDestination(zb0002)
 			}
 		default:
 			bts, err = msgp.Skip(bts)
@@ -6133,13 +6133,13 @@ func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err erro
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *WelcomeEmailConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.BoolSize + 8 + z.Message.Msgsize() + 12 + msgp.StringPrefixSize + len(string(z.Destination))
+func (z *WelcomeMessageConfiguration) Msgsize() (s int) {
+	s = 1 + 8 + msgp.BoolSize + 14 + z.EmailMessage.Msgsize() + 12 + msgp.StringPrefixSize + len(string(z.Destination))
 	return
 }
 
 // DecodeMsg implements msgp.Decodable
-func (z *WelcomeEmailDestination) DecodeMsg(dc *msgp.Reader) (err error) {
+func (z *WelcomeMessageDestination) DecodeMsg(dc *msgp.Reader) (err error) {
 	{
 		var zb0001 string
 		zb0001, err = dc.ReadString()
@@ -6147,13 +6147,13 @@ func (z *WelcomeEmailDestination) DecodeMsg(dc *msgp.Reader) (err error) {
 			err = msgp.WrapError(err)
 			return
 		}
-		(*z) = WelcomeEmailDestination(zb0001)
+		(*z) = WelcomeMessageDestination(zb0001)
 	}
 	return
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z WelcomeEmailDestination) EncodeMsg(en *msgp.Writer) (err error) {
+func (z WelcomeMessageDestination) EncodeMsg(en *msgp.Writer) (err error) {
 	err = en.WriteString(string(z))
 	if err != nil {
 		err = msgp.WrapError(err)
@@ -6163,14 +6163,14 @@ func (z WelcomeEmailDestination) EncodeMsg(en *msgp.Writer) (err error) {
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z WelcomeEmailDestination) MarshalMsg(b []byte) (o []byte, err error) {
+func (z WelcomeMessageDestination) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	o = msgp.AppendString(o, string(z))
 	return
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
-func (z *WelcomeEmailDestination) UnmarshalMsg(bts []byte) (o []byte, err error) {
+func (z *WelcomeMessageDestination) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	{
 		var zb0001 string
 		zb0001, bts, err = msgp.ReadStringBytes(bts)
@@ -6178,14 +6178,14 @@ func (z *WelcomeEmailDestination) UnmarshalMsg(bts []byte) (o []byte, err error)
 			err = msgp.WrapError(err)
 			return
 		}
-		(*z) = WelcomeEmailDestination(zb0001)
+		(*z) = WelcomeMessageDestination(zb0001)
 	}
 	o = bts
 	return
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z WelcomeEmailDestination) Msgsize() (s int) {
+func (z WelcomeMessageDestination) Msgsize() (s int) {
 	s = msgp.StringPrefixSize + len(string(z))
 	return
 }

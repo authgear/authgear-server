@@ -30,7 +30,7 @@ func NewDefaultSender(
 		AppName: c.AppName,
 		EmailConfig: config.NewEmailMessageConfiguration(
 			c.AppConfig.Messages.Email,
-			c.AppConfig.WelcomeEmail.Message,
+			c.AppConfig.WelcomeMessage.EmailMessage,
 		),
 		Sender:         sender,
 		TemplateEngine: templateEngine,
