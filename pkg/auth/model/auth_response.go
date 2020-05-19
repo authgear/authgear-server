@@ -15,12 +15,11 @@
 package model
 
 type AuthResponse struct {
-	User           User   `json:"user"`
-	AccessToken    string `json:"access_token,omitempty"`
-	RefreshToken   string `json:"refresh_token,omitempty"`
-	ExpiresIn      int    `json:"expires_in,omitempty"`
-	MFABearerToken string `json:"mfa_bearer_token,omitempty"`
-	SessionID      string `json:"session_id,omitempty"`
+	User         User   `json:"user"`
+	AccessToken  string `json:"access_token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+	ExpiresIn    int    `json:"expires_in,omitempty"`
+	SessionID    string `json:"session_id,omitempty"`
 }
 
 func NewAuthResponse(user User) AuthResponse {

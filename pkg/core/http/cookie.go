@@ -56,8 +56,6 @@ func (c *CookieConfiguration) Clear(rw http.ResponseWriter) {
 // Cookie names
 const (
 	CookieNameSession = "session"
-	// nolint: gosec
-	CookieNameMFABearerToken = "mfa_bearer_token"
 )
 
 func UpdateCookie(w http.ResponseWriter, cookie *http.Cookie) {
