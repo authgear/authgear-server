@@ -17,6 +17,7 @@ func (m *StateMiddleware) Handle(next http.Handler) http.Handler {
 
 		q := r.URL.Query()
 		sid := q.Get("x_sid")
+
 		if sid != "" {
 			_, err := m.StateStore.Get(sid)
 			if err != nil {

@@ -15,7 +15,7 @@ type ForgotPassword interface {
 type ForgotPasswordProvider struct {
 	ValidateProvider ValidateProvider
 	RenderProvider   RenderProvider
-	StateStore       StateStore
+	StateProvider    StateProvider
 	ForgotPassword   ForgotPassword
 }
 
@@ -30,7 +30,7 @@ func (p *ForgotPasswordProvider) GetForgotPasswordForm(w http.ResponseWriter, r 
 		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUIForgotPasswordHTML, anyError)
 	}
 
-	state, err = p.restoreState(r)
+	state, err = p.StateProvider.RestoreState(r, true)
 	if err != nil {
 		return
 	}
@@ -42,7 +42,7 @@ func (p *ForgotPasswordProvider) GetForgotPasswordForm(w http.ResponseWriter, r 
 
 func (p *ForgotPasswordProvider) PostForgotPasswordForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
-		p.persistState(r, err)
+		p.StateProvider.CreateState(r, err)
 		if err != nil {
 			RedirectToCurrentPath(w, r)
 		} else {
@@ -81,7 +81,7 @@ func (p *ForgotPasswordProvider) GetForgotPasswordSuccess(w http.ResponseWriter,
 		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUIForgotPasswordSuccessHTML, anyError)
 	}
 
-	state, err = p.restoreState(r)
+	state, err = p.StateProvider.RestoreState(r, true)
 	if err != nil {
 		return
 	}
@@ -102,7 +102,7 @@ func (p *ForgotPasswordProvider) GetResetPasswordForm(w http.ResponseWriter, r *
 		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUIResetPasswordHTML, anyError)
 	}
 
-	state, err = p.restoreState(r)
+	state, err = p.StateProvider.RestoreState(r, true)
 	if err != nil {
 		return
 	}
@@ -114,7 +114,7 @@ func (p *ForgotPasswordProvider) GetResetPasswordForm(w http.ResponseWriter, r *
 
 func (p *ForgotPasswordProvider) PostResetPasswordForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
-		p.persistState(r, err)
+		p.StateProvider.CreateState(r, err)
 		if err != nil {
 			RedirectToCurrentPath(w, r)
 		} else {
@@ -159,7 +159,7 @@ func (p *ForgotPasswordProvider) GetResetPasswordSuccess(w http.ResponseWriter, 
 		p.RenderProvider.WritePage(w, r, TemplateItemTypeAuthUIResetPasswordSuccessHTML, anyError)
 	}
 
-	state, err = p.restoreState(r)
+	state, err = p.StateProvider.RestoreState(r, true)
 	if err != nil {
 		return
 	}
@@ -185,37 +185,4 @@ func (p *ForgotPasswordProvider) SetLoginID(r *http.Request) (err error) {
 	}
 
 	return
-}
-
-func (p *ForgotPasswordProvider) persistState(r *http.Request, inputError error) {
-	s, err := p.StateStore.Get(r.URL.Query().Get("x_sid"))
-	if err != nil {
-		s = NewState()
-		q := r.URL.Query()
-		q.Set("x_sid", s.ID)
-		r.URL.RawQuery = q.Encode()
-	}
-
-	s.SetForm(r.Form)
-	s.SetError(inputError)
-
-	err = p.StateStore.Set(s)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (p *ForgotPasswordProvider) restoreState(r *http.Request) (state *State, err error) {
-	state, err = p.StateStore.Get(r.URL.Query().Get("x_sid"))
-	if err != nil {
-		if err == ErrStateNotFound {
-			err = nil
-		}
-		return
-	}
-	err = state.Restore(r.Form)
-	if err != nil {
-		return
-	}
-	return state, nil
 }

@@ -41,6 +41,8 @@ var DependencySet = wire.NewSet(
 	ProvideRenderProvider,
 	wire.Struct(new(StateStoreImpl), "*"),
 	wire.Bind(new(StateStore), new(*StateStoreImpl)),
+	wire.Struct(new(StateProviderImpl), "*"),
+	wire.Bind(new(StateProvider), new(*StateProviderImpl)),
 	wire.Struct(new(URLProvider), "*"),
 )
 

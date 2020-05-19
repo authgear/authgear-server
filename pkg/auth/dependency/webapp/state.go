@@ -1,11 +1,14 @@
 package webapp
 
 import (
+	"errors"
 	"net/url"
 
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
+
+var ErrStateNotFound = errors.New("state not found")
 
 var (
 	stateIDAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

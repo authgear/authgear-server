@@ -76,6 +76,12 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker, providerProvider)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, store, factory, tenantConfiguration, reservedNameChecker)
@@ -156,9 +162,6 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
-	stateStoreImpl := &webapp.StateStoreImpl{
-		Context: context,
-	}
 	provider6 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
@@ -171,8 +174,8 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
+		StateProvider:        stateProviderImpl,
 		AuthnProvider:        authnProvider,
-		StateStore:           stateStoreImpl,
 		SSOProvider:          provider6,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -206,6 +209,12 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker, providerProvider)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, store, factory, tenantConfiguration, reservedNameChecker)
@@ -286,9 +295,6 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
-	stateStoreImpl := &webapp.StateStoreImpl{
-		Context: context,
-	}
 	provider6 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
@@ -301,8 +307,8 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
+		StateProvider:        stateProviderImpl,
 		AuthnProvider:        authnProvider,
-		StateStore:           stateStoreImpl,
 		SSOProvider:          provider6,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -335,6 +341,9 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Context: context,
 	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	storeImpl := &forgotpassword.StoreImpl{
 		Context: context,
 	}
@@ -369,7 +378,7 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
-		StateStore:       stateStoreImpl,
+		StateProvider:    stateProviderImpl,
 		ForgotPassword:   forgotpasswordProvider,
 	}
 	forgotPasswordHandler := &ForgotPasswordHandler{
@@ -400,6 +409,9 @@ func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Context: context,
 	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	storeImpl := &forgotpassword.StoreImpl{
 		Context: context,
 	}
@@ -434,7 +446,7 @@ func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
-		StateStore:       stateStoreImpl,
+		StateProvider:    stateProviderImpl,
 		ForgotPassword:   forgotpasswordProvider,
 	}
 	forgotPasswordSuccessHandler := &ForgotPasswordSuccessHandler{
@@ -465,6 +477,9 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Context: context,
 	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	storeImpl := &forgotpassword.StoreImpl{
 		Context: context,
 	}
@@ -499,7 +514,7 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
-		StateStore:       stateStoreImpl,
+		StateProvider:    stateProviderImpl,
 		ForgotPassword:   forgotpasswordProvider,
 	}
 	resetPasswordHandler := &ResetPasswordHandler{
@@ -530,6 +545,9 @@ func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Context: context,
 	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	storeImpl := &forgotpassword.StoreImpl{
 		Context: context,
 	}
@@ -564,7 +582,7 @@ func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
-		StateStore:       stateStoreImpl,
+		StateProvider:    stateProviderImpl,
 		ForgotPassword:   forgotpasswordProvider,
 	}
 	resetPasswordSuccessHandler := &ResetPasswordSuccessHandler{
@@ -592,6 +610,12 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker, providerProvider)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, store, factory, tenantConfiguration, reservedNameChecker)
@@ -672,9 +696,6 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
-	stateStoreImpl := &webapp.StateStoreImpl{
-		Context: context,
-	}
 	provider6 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
@@ -687,8 +708,8 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
+		StateProvider:        stateProviderImpl,
 		AuthnProvider:        authnProvider,
-		StateStore:           stateStoreImpl,
 		SSOProvider:          provider6,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -718,6 +739,12 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker, providerProvider)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, store, factory, tenantConfiguration, reservedNameChecker)
@@ -798,9 +825,6 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
-	stateStoreImpl := &webapp.StateStoreImpl{
-		Context: context,
-	}
 	provider6 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
@@ -813,8 +837,8 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
+		StateProvider:        stateProviderImpl,
 		AuthnProvider:        authnProvider,
-		StateStore:           stateStoreImpl,
 		SSOProvider:          provider6,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -844,6 +868,12 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker, providerProvider)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, store, factory, tenantConfiguration, reservedNameChecker)
@@ -924,9 +954,6 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
-	stateStoreImpl := &webapp.StateStoreImpl{
-		Context: context,
-	}
 	provider6 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
@@ -939,8 +966,8 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
+		StateProvider:        stateProviderImpl,
 		AuthnProvider:        authnProvider,
-		StateStore:           stateStoreImpl,
 		SSOProvider:          provider6,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -993,6 +1020,12 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker, providerProvider)
 	validateProvider := webapp.ProvideValidateProvider(tenantConfiguration)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, store, factory, tenantConfiguration, reservedNameChecker)
@@ -1073,9 +1106,6 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
-	stateStoreImpl := &webapp.StateStoreImpl{
-		Context: context,
-	}
 	provider6 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
@@ -1088,8 +1118,8 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
+		StateProvider:        stateProviderImpl,
 		AuthnProvider:        authnProvider,
-		StateStore:           stateStoreImpl,
 		SSOProvider:          provider6,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -1120,6 +1150,12 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker, providerProvider)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, store, factory, tenantConfiguration, reservedNameChecker)
@@ -1200,9 +1236,6 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
-	stateStoreImpl := &webapp.StateStoreImpl{
-		Context: context,
-	}
 	provider6 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
@@ -1215,8 +1248,8 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
+		StateProvider:        stateProviderImpl,
 		AuthnProvider:        authnProvider,
-		StateStore:           stateStoreImpl,
 		SSOProvider:          provider6,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -1246,6 +1279,12 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker, providerProvider)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, store, factory, tenantConfiguration, reservedNameChecker)
@@ -1326,9 +1365,6 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
-	stateStoreImpl := &webapp.StateStoreImpl{
-		Context: context,
-	}
 	provider6 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
@@ -1341,8 +1377,8 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
+		StateProvider:        stateProviderImpl,
 		AuthnProvider:        authnProvider,
-		StateStore:           stateStoreImpl,
 		SSOProvider:          provider6,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -1419,6 +1455,12 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	renderProvider := webapp.ProvideRenderProvider(staticAssetURLPrefix, tenantConfiguration, engine, passwordChecker, providerProvider)
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Context: context,
+	}
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+	}
 	requestID := auth.ProvideLoggingRequestID(r)
 	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
 	passwordProvider := password.ProvidePasswordProvider(sqlBuilder, sqlExecutor, timeProvider, store, factory, tenantConfiguration, reservedNameChecker)
@@ -1499,9 +1541,6 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerTokenCookieConfig: bearerTokenCookieConfiguration,
 	}
 	authnProvider := authn.ProvideAuthUIProvider(providerFactory)
-	stateStoreImpl := &webapp.StateStoreImpl{
-		Context: context,
-	}
 	provider6 := sso.ProvideSSOProvider(context, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, userprofileStore, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
 	webAppFlow := &flows.WebAppFlow{
@@ -1514,8 +1553,8 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
+		StateProvider:        stateProviderImpl,
 		AuthnProvider:        authnProvider,
-		StateStore:           stateStoreImpl,
 		SSOProvider:          provider6,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
