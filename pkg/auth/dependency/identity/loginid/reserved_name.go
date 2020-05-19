@@ -28,7 +28,7 @@ func NewReservedNameChecker(sourceFile string) (*ReservedNameChecker, error) {
 	}, nil
 }
 
-func (c *ReservedNameChecker) isReserved(name string) (bool, error) {
+func (c *ReservedNameChecker) IsReserved(name string) (bool, error) {
 	for i := 0; i < len(c.reservedWords); i++ {
 		if c.reservedWords[i] == name {
 			return true, nil

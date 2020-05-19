@@ -26,7 +26,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/redis"
-	loginid2 "github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	pq2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
@@ -61,7 +60,10 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -127,9 +129,8 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
-	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
@@ -162,7 +163,10 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -228,9 +232,8 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
-	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
@@ -259,7 +262,10 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -327,7 +333,10 @@ func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -395,7 +404,10 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -463,7 +475,10 @@ func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -531,7 +546,10 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -597,9 +615,8 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
-	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
@@ -628,7 +645,10 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -694,9 +714,8 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
-	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
@@ -725,7 +744,10 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -791,9 +813,8 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
-	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
@@ -821,7 +842,10 @@ func newSettingsHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -844,7 +868,10 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -911,9 +938,8 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
-	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
@@ -943,7 +969,10 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -1009,9 +1038,8 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
-	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
@@ -1040,7 +1068,10 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -1106,9 +1137,8 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
-	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
@@ -1136,7 +1166,10 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -1184,7 +1217,10 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	checker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, reservedNameChecker)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	loginidChecker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, loginidChecker, normalizerFactory)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
@@ -1250,9 +1286,8 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
-	loginIDNormalizerFactory := loginid2.ProvideLoginIDNormalizerFactory(tenantConfiguration)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
-	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, loginIDNormalizerFactory, redirectURLFunc)
+	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,

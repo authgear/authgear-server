@@ -8,7 +8,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -27,7 +27,7 @@ type AppleImpl struct {
 	OAuthConfig              *config.OAuthConfiguration
 	ProviderConfig           config.OAuthProviderConfiguration
 	TimeProvider             coreTime.Provider
-	LoginIDNormalizerFactory loginid.LoginIDNormalizerFactory
+	LoginIDNormalizerFactory *loginid.NormalizerFactory
 }
 
 func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {

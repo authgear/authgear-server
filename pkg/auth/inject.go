@@ -5,8 +5,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	identityloginid "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -111,17 +110,13 @@ func (m DependencyMap) Provide(
 		)
 	}
 
-	newLoginIDChecker := func() loginid.LoginIDChecker {
-		return loginid.NewDefaultLoginIDChecker(
-			tConfig.AppConfig.Identity.LoginID.Keys,
-			tConfig.AppConfig.Identity.LoginID.Types,
-			m.ReservedNameChecker,
+	newLoginIDProvider := func() *loginid.Provider {
+		return loginid.ProvideProvider(
+			newSQLBuilder(), newSQLExecutor(), newTimeProvider(),
+			&tConfig,
+			loginid.ProvideChecker(&tConfig, loginid.ProvideTypeCheckerFactory(&tConfig, m.ReservedNameChecker)),
+			loginid.ProvideNormalizerFactory(&tConfig),
 		)
-	}
-
-	newLoginIDProvider := func() *identityloginid.Provider {
-		return identityloginid.ProvideProvider(
-			newSQLBuilder(), newSQLExecutor(), newTimeProvider(), &tConfig, m.ReservedNameChecker)
 	}
 
 	newHookProvider := func() hook.Provider {
@@ -157,28 +152,15 @@ func (m DependencyMap) Provide(
 		return mail.NewSender(ctx, &tConfig)
 	}
 
-	newLoginIDNormalizerFactory := func() loginid.LoginIDNormalizerFactory {
-		return loginid.NewLoginIDNormalizerFactory(
-			tConfig.AppConfig.Identity.LoginID.Keys,
-			tConfig.AppConfig.Identity.LoginID.Types,
-		)
-	}
-
 	switch dependencyName {
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
-	case "LoggerFactory":
-		return newLoggerFactory()
 	case "RequireAuthz":
 		return handler.NewRequireAuthzFactory(newLoggerFactory())
 	case "Validator":
 		return m.Validator
 	case "AuthInfoStore":
 		return newAuthInfoStore()
-	case "LoginIDChecker":
-		return newLoginIDChecker()
-	case "LoginIDProvider":
-		return newLoginIDProvider()
 	case "HandlerLogger":
 		return newLoggerFactory().NewLogger("handler")
 	case "UserProfileStore":
@@ -206,8 +188,6 @@ func (m DependencyMap) Provide(
 		)
 	case "VerifyHTMLProvider":
 		return userverify.NewVerifyHTMLProvider(tConfig.AppConfig.UserVerification, newTemplateEngine())
-	case "LoginIDNormalizerFactory":
-		return newLoginIDNormalizerFactory()
 	case "AuthHandlerHTMLProvider":
 		return sso.NewAuthHandlerHTMLProvider(urlprefix.NewProvider(request).Value())
 	case "AsyncTaskQueue":

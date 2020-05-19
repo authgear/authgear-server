@@ -40,19 +40,25 @@ func newLoginIDTypesConfig() *config.LoginIDTypesConfiguration {
 
 }
 
-func TestLoginID(t *testing.T) {
-	Convey("Test isValid", t, func() {
+func TestLoginIDChecker(t *testing.T) {
+	Convey("LoginIDChecker.Validate", t, func() {
 		Convey("Validate by config: username (0-1), email (0-1)", func() {
-			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
-			checker := NewDefaultLoginIDChecker(
-				[]config.LoginIDKeyConfiguration{
-					newLoginIDKeyConfig("username", config.LoginIDKeyTypeRaw, 1),
-					newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 1),
-					newLoginIDKeyConfig("phone", config.LoginIDKeyType(metadata.Phone), 1),
+			reservedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
+			keysConfig := []config.LoginIDKeyConfiguration{
+				newLoginIDKeyConfig("username", config.LoginIDKeyTypeRaw, 1),
+				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 1),
+				newLoginIDKeyConfig("phone", config.LoginIDKeyType(metadata.Phone), 1),
+			}
+			typesConfig := newLoginIDTypesConfig()
+			checker := &Checker{
+				Keys:  keysConfig,
+				Types: typesConfig,
+				TypeCheckerFactory: &TypeCheckerFactory{
+					Keys:                keysConfig,
+					Types:               typesConfig,
+					ReservedNameChecker: reservedNameChecker,
 				},
-				newLoginIDTypesConfig(),
-				reversedNameChecker,
-			)
+			}
 			var loginIDs []LoginID
 
 			loginIDs = []LoginID{

@@ -17,59 +17,40 @@ const usernameFormat = `^[a-zA-Z0-9_\-.]*$`
 
 var usernameRegex = regexp.MustCompile(usernameFormat)
 
-// nolint: golint
-type LoginIDTypeChecker interface {
+type TypeChecker interface {
 	Validate(loginID string) error
 }
 
-// nolint: golint
-type LoginIDTypeCheckerFactory interface {
-	NewChecker(loginIDKey config.LoginIDKeyType) LoginIDTypeChecker
+type TypeCheckerFactory struct {
+	Keys                []config.LoginIDKeyConfiguration
+	Types               *config.LoginIDTypesConfiguration
+	ReservedNameChecker *ReservedNameChecker
 }
 
-func NewLoginIDTypeCheckerFactory(
-	loginIDsKeys []config.LoginIDKeyConfiguration,
-	loginIDTypes *config.LoginIDTypesConfiguration,
-	reservedNameChecker *ReservedNameChecker,
-) LoginIDTypeCheckerFactory {
-	return &checkerFactoryImpl{
-		loginIDsKeys:        loginIDsKeys,
-		loginIDTypes:        loginIDTypes,
-		reservedNameChecker: reservedNameChecker,
-	}
-}
-
-type checkerFactoryImpl struct {
-	loginIDsKeys        []config.LoginIDKeyConfiguration
-	loginIDTypes        *config.LoginIDTypesConfiguration
-	reservedNameChecker *ReservedNameChecker
-}
-
-func (f *checkerFactoryImpl) NewChecker(loginIDKeyType config.LoginIDKeyType) LoginIDTypeChecker {
+func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) TypeChecker {
 	metadataKey, _ := loginIDKeyType.MetadataKey()
 	switch metadataKey {
 	case metadata.Email:
-		return &LoginIDEmailChecker{
-			config: f.loginIDTypes.Email,
+		return &EmailChecker{
+			Config: f.Types.Email,
 		}
 	case metadata.Username:
-		return &LoginIDUsernameChecker{
-			config:              f.loginIDTypes.Username,
-			reservedNameChecker: f.reservedNameChecker,
+		return &UsernameChecker{
+			Config:              f.Types.Username,
+			ReservedNameChecker: f.ReservedNameChecker,
 		}
 	case metadata.Phone:
-		return &LoginIDPhoneChecker{}
+		return &PhoneChecker{}
 	}
 
-	return &LoginIDNullChecker{}
+	return &NullChecker{}
 }
 
-// nolint: golint
-type LoginIDEmailChecker struct {
-	config *config.LoginIDTypeEmailConfiguration
+type EmailChecker struct {
+	Config *config.LoginIDTypeEmailConfiguration
 }
 
-func (c *LoginIDEmailChecker) Validate(loginID string) error {
+func (c *EmailChecker) Validate(loginID string) error {
 	invalidFormatError := validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
 		Kind:    validation.ErrorStringFormat,
 		Pointer: "/value",
@@ -81,7 +62,7 @@ func (c *LoginIDEmailChecker) Validate(loginID string) error {
 		return invalidFormatError
 	}
 
-	if *c.config.BlockPlusSign {
+	if *c.Config.BlockPlusSign {
 		// refs from stdlib
 		// https://golang.org/src/net/mail/message.go?s=5217:5250#L172
 		at := strings.LastIndex(loginID, "@")
@@ -98,13 +79,12 @@ func (c *LoginIDEmailChecker) Validate(loginID string) error {
 	return nil
 }
 
-// nolint: golint
-type LoginIDUsernameChecker struct {
-	config              *config.LoginIDTypeUsernameConfiguration
-	reservedNameChecker *ReservedNameChecker
+type UsernameChecker struct {
+	Config              *config.LoginIDTypeUsernameConfiguration
+	ReservedNameChecker *ReservedNameChecker
 }
 
-func (c *LoginIDUsernameChecker) Validate(loginID string) error {
+func (c *UsernameChecker) Validate(loginID string) error {
 	invalidFormatError := validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
 		Kind:    validation.ErrorStringFormat,
 		Pointer: "/value",
@@ -121,8 +101,8 @@ func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 		return invalidFormatError
 	}
 
-	if *c.config.BlockReservedUsernames {
-		reserved, err := c.reservedNameChecker.isReserved(cfLoginID)
+	if *c.Config.BlockReservedUsernames {
+		reserved, err := c.ReservedNameChecker.IsReserved(cfLoginID)
 		if err != nil {
 			return err
 		}
@@ -135,7 +115,7 @@ func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 		}
 	}
 
-	for _, item := range c.config.ExcludedKeywords {
+	for _, item := range c.Config.ExcludedKeywords {
 		cfItem, err := p.String(item)
 		if err != nil {
 			panic(errors.Newf("password: invalid exclude keywords: %s", item))
@@ -150,7 +130,7 @@ func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 		}
 	}
 
-	if *c.config.ASCIIOnly {
+	if *c.Config.ASCIIOnly {
 		if !usernameRegex.MatchString(loginID) {
 			return invalidFormatError
 		}
@@ -168,10 +148,9 @@ func (c *LoginIDUsernameChecker) Validate(loginID string) error {
 	return nil
 }
 
-// nolint: golint
-type LoginIDPhoneChecker struct{}
+type PhoneChecker struct{}
 
-func (c *LoginIDPhoneChecker) Validate(loginID string) error {
+func (c *PhoneChecker) Validate(loginID string) error {
 	ok := validation.E164Phone{}.IsFormat(loginID)
 	if ok {
 		return nil
@@ -184,9 +163,8 @@ func (c *LoginIDPhoneChecker) Validate(loginID string) error {
 	}})
 }
 
-// nolint: golint
-type LoginIDNullChecker struct{}
+type NullChecker struct{}
 
-func (c *LoginIDNullChecker) Validate(loginID string) error {
+func (c *NullChecker) Validate(loginID string) error {
 	return nil
 }

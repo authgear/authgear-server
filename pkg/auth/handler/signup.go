@@ -7,8 +7,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"

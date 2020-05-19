@@ -25,7 +25,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	interactionredis "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/redis"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	oauthpq "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
@@ -110,7 +109,7 @@ func ProvideValidator(m DependencyMap) *validation.Validator {
 	return m.Validator
 }
 
-func ProvideReservedNameChecker(m DependencyMap) *loginid.ReservedNameChecker {
+func ProvideReservedNameChecker(m DependencyMap) *identityloginid.ReservedNameChecker {
 	return m.ReservedNameChecker
 }
 
@@ -240,7 +239,6 @@ var CommonDependencySet = wire.NewSet(
 	hook.DependencySet,
 	auth.DependencySet,
 	authredis.DependencySet,
-	loginid.DependencySet,
 	sso.DependencySet,
 	urlprefix.DependencySet,
 	webappDependencySet,

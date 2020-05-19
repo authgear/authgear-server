@@ -6,8 +6,8 @@ import (
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"

@@ -8,12 +8,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-func TestLoginIDChecker(t *testing.T) {
+func TestLoginIDTypeCheckers(t *testing.T) {
 	type Case struct {
 		LoginID string
 		Err     string
 	}
-	f := func(c Case, check LoginIDTypeChecker) {
+	f := func(c Case, check TypeChecker) {
 		err := check.Validate(c.LoginID)
 
 		if c.Err == "" {
@@ -30,7 +30,7 @@ func TestLoginIDChecker(t *testing.T) {
 		b := false
 		return &b
 	}
-	Convey("TestLoginIDEmailChecker", t, func() {
+	Convey("EmailChecker", t, func() {
 		Convey("default setting", func() {
 			cases := []Case{
 				{"Faseng@Example.com", ""},
@@ -45,8 +45,8 @@ func TestLoginIDChecker(t *testing.T) {
 				{`"faseng@"@example.com`, ""},
 			}
 
-			check := &LoginIDEmailChecker{
-				config: &config.LoginIDTypeEmailConfiguration{
+			check := &EmailChecker{
+				Config: &config.LoginIDTypeEmailConfiguration{
 					BlockPlusSign: newFalse(),
 				},
 			}
@@ -63,8 +63,8 @@ func TestLoginIDChecker(t *testing.T) {
 				{`"faseng@cat+123"@example.com`, "invalid login ID"},
 			}
 
-			checker := &LoginIDEmailChecker{
-				config: &config.LoginIDTypeEmailConfiguration{
+			checker := &EmailChecker{
+				Config: &config.LoginIDTypeEmailConfiguration{
 					BlockPlusSign: newTrue(),
 				},
 			}
@@ -75,7 +75,7 @@ func TestLoginIDChecker(t *testing.T) {
 		})
 	})
 
-	Convey("TestLoginIDUsernameChecker", t, func() {
+	Convey("UsernameChecker", t, func() {
 		Convey("allow all", func() {
 			cases := []Case{
 				{"admin", ""},
@@ -95,8 +95,8 @@ func TestLoginIDChecker(t *testing.T) {
 				{string([]byte{109, 105, 99, 114, 111, 115, 208, 190, 102, 116}), "invalid login ID"},
 			}
 
-			n := &LoginIDUsernameChecker{
-				config: &config.LoginIDTypeUsernameConfiguration{
+			n := &UsernameChecker{
+				Config: &config.LoginIDTypeUsernameConfiguration{
 					BlockReservedUsernames: newFalse(),
 					ExcludedKeywords:       []string{},
 					ASCIIOnly:              newFalse(),
@@ -120,14 +120,14 @@ func TestLoginIDChecker(t *testing.T) {
 				{"faseng_chima-the.cat", ""},
 			}
 
-			reversedNameChecker, _ := NewReservedNameChecker("../../../../reserved_name.txt")
-			n := &LoginIDUsernameChecker{
-				config: &config.LoginIDTypeUsernameConfiguration{
+			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
+			n := &UsernameChecker{
+				Config: &config.LoginIDTypeUsernameConfiguration{
 					BlockReservedUsernames: newTrue(),
 					ExcludedKeywords:       []string{"skygear"},
 					ASCIIOnly:              newTrue(),
 				},
-				reservedNameChecker: reversedNameChecker,
+				ReservedNameChecker: reversedNameChecker,
 			}
 
 			for _, c := range cases {

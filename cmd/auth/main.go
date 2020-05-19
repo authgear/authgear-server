@@ -9,7 +9,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
