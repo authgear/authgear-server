@@ -6,10 +6,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -19,9 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
-	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -144,14 +139,6 @@ func (m DependencyMap) Provide(
 		})().(hook.Provider)
 	}
 
-	newSMSClient := func() sms.Client {
-		return sms.NewClient(ctx, tConfig.AppConfig)
-	}
-
-	newMailSender := func() mail.Sender {
-		return mail.NewSender(ctx, &tConfig)
-	}
-
 	switch dependencyName {
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
@@ -161,53 +148,14 @@ func (m DependencyMap) Provide(
 		return m.Validator
 	case "AuthInfoStore":
 		return newAuthInfoStore()
-	case "HandlerLogger":
-		return newLoggerFactory().NewLogger("handler")
 	case "UserProfileStore":
 		return newUserProfileStore()
-	case "UserVerifyCodeSenderFactory":
-		return userverify.NewDefaultUserVerifyCodeSenderFactory(
-			&tConfig,
-			newTemplateEngine(),
-			newMailSender(),
-			newSMSClient(),
-		)
-	case "AutoSendUserVerifyCodeOnSignup":
-		return tConfig.AppConfig.UserVerification.AutoSendOnSignup
-	case "UserVerifyLoginIDKeys":
-		return tConfig.AppConfig.UserVerification.LoginIDKeys
-	case "UserVerificationProvider":
-		return userverify.NewProvider(
-			userverify.NewCodeGenerator(&tConfig),
-			userverify.NewStore(
-				newSQLBuilder(),
-				newSQLExecutor(),
-			),
-			tConfig.AppConfig.UserVerification,
-			newTimeProvider(),
-		)
-	case "VerifyHTMLProvider":
-		return userverify.NewVerifyHTMLProvider(tConfig.AppConfig.UserVerification, newTemplateEngine())
-	case "AuthHandlerHTMLProvider":
-		return sso.NewAuthHandlerHTMLProvider(urlprefix.NewProvider(request).Value())
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, db.NewTxContextWithContext(ctx, tConfig), requestID, &tConfig, m.AsyncTaskExecutor)
 	case "HookProvider":
 		return newHookProvider()
-	case "AuthenticatorConfiguration":
-		return *tConfig.AppConfig.Authenticator
-	case "OAuthConflictConfiguration":
-		return tConfig.AppConfig.AuthAPI.OnIdentityConflict.OAuth
-	case "TenantConfiguration":
-		return &tConfig
-	case "URLPrefix":
-		return urlprefix.NewProvider(request).Value()
 	case "TemplateEngine":
 		return newTemplateEngine()
-	case "TimeProvider":
-		return newTimeProvider()
-	case "SessionManager":
-		return newSessionManager(request, m)
 	default:
 		return nil
 	}
