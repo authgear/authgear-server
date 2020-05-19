@@ -17,7 +17,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -59,15 +58,10 @@ func TestAuthURLHandler(t *testing.T) {
 			OAuthConfig:     oauthConfig,
 			ProviderConfig:  providerConfig,
 		}
-		mockPasswordProvider := password.NewMockProvider(
-			nil,
-			[]string{password.DefaultRealm},
-		)
 		h.OAuthConflictConfiguration = &coreconfig.AuthAPIOAuthConflictConfiguration{}
 		h.TxContext = db.NewMockTxContext()
 		h.OAuthProvider = &mockProvider
 		h.SSOProvider = &mockProvider
-		h.PasswordAuthProvider = mockPasswordProvider
 		h.Action = "login"
 
 		router := mux.NewRouter()

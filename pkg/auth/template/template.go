@@ -3,7 +3,6 @@ package template
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
@@ -37,10 +36,6 @@ func NewEngineWithConfig(
 	e.Register(userverify.TemplateUserVerificationEmailHTML)
 	e.Register(userverify.TemplateUserVerificationSuccessHTML)
 	e.Register(userverify.TemplateUserVerificationErrorHTML)
-
-	e.Register(mfa.TemplateMFAOOBCodeSMSTXT)
-	e.Register(mfa.TemplateMFAOOBCodeEmailTXT)
-	e.Register(mfa.TemplateMFAOOBCodeEmailHTML)
 
 	e.Register(oob.TemplateOOBCodeSMSTXT)
 	e.Register(oob.TemplateOOBCodeEmailTXT)

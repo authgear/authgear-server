@@ -6,7 +6,6 @@ import (
 
 // LoginState stores login specific state.
 type LoginState struct {
-	MergeRealm      string                `json:"merge_realm,omitempty"`
 	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate,omitempty"`
 }
 

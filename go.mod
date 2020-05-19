@@ -9,7 +9,6 @@ require (
 	github.com/FZambia/sentinel v1.1.0
 	github.com/Masterminds/squirrel v1.1.0
 	github.com/aws/aws-sdk-go v1.25.6
-	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
 	github.com/davidbyttow/govips v0.0.0-20190304175058-d272f04c0fea
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/getsentry/sentry-go v0.3.0

@@ -10,7 +10,6 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -120,34 +119,20 @@ type AuthURLRequestPayload struct {
 	CodeChallenge   string                `json:"code_challenge"`
 	CallbackURL     string                `json:"callback_url"`
 	UXMode          sso.UXMode            `json:"ux_mode"`
-	MergeRealm      string                `json:"-"`
 	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 
-	Client               config.OAuthClientConfiguration           `json:"-"`
-	PasswordAuthProvider password.Provider                         `json:"-"`
-	SSOProvider          sso.Provider                              `json:"-"`
-	ConflictConfig       *config.AuthAPIOAuthConflictConfiguration `json:"-"`
+	Client         config.OAuthClientConfiguration           `json:"-"`
+	SSOProvider    sso.Provider                              `json:"-"`
+	ConflictConfig *config.AuthAPIOAuthConflictConfiguration `json:"-"`
 }
 
 func (p *AuthURLRequestPayload) SetDefaultValue() {
-	if p.MergeRealm == "" {
-		p.MergeRealm = password.DefaultRealm
-	}
-
 	if p.OnUserDuplicate == "" {
 		p.OnUserDuplicate = model.OnUserDuplicateDefault
 	}
 }
 
 func (p *AuthURLRequestPayload) Validate() []validation.ErrorCause {
-	if !p.PasswordAuthProvider.IsRealmValid(p.MergeRealm) {
-		return []validation.ErrorCause{{
-			Kind:    validation.ErrorGeneral,
-			Pointer: "/merge_realm",
-			Message: "merge_realm is not a valid realm",
-		}}
-	}
-
 	if !model.IsAllowedOnUserDuplicate(
 		p.ConflictConfig.AllowAutoMergeUser,
 		p.ConflictConfig.AllowCreateNewUser,
@@ -206,7 +191,6 @@ type AuthURLHandler struct {
 	TxContext                  db.TxContext
 	Validator                  *validation.Validator
 	RequireAuthz               handler.RequireAuthz
-	PasswordAuthProvider       password.Provider
 	SSOProvider                sso.Provider
 	OAuthConflictConfiguration *config.AuthAPIOAuthConflictConfiguration
 	OAuthProvider              sso.OAuthProvider
@@ -242,7 +226,6 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 
 	payload := AuthURLRequestPayload{}
 	payload.Client = coreauth.GetAccessKey(r.Context()).Client
-	payload.PasswordAuthProvider = h.PasswordAuthProvider
 	payload.SSOProvider = h.SSOProvider
 	payload.ConflictConfig = h.OAuthConflictConfiguration
 	err = handler.BindJSONBody(r, w, h.Validator, "#AuthURLRequest", &payload)
@@ -261,7 +244,6 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	apiSSOState.SetCodeChallenge(payload.CodeChallenge)
 	state := sso.State{
 		LoginState: sso.LoginState{
-			MergeRealm:      payload.MergeRealm,
 			OnUserDuplicate: payload.OnUserDuplicate,
 		},
 		Extra:       apiSSOState,

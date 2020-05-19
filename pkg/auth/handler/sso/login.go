@@ -6,16 +6,12 @@ import (
 	"github.com/gorilla/mux"
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	coreauthz "github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -35,14 +31,10 @@ func AttachLoginHandler(
 // LoginRequestPayload login handler request payload
 type LoginRequestPayload struct {
 	AccessToken     string                `json:"access_token"`
-	MergeRealm      string                `json:"-"`
 	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate"`
 }
 
 func (p *LoginRequestPayload) SetDefaultValue() {
-	if p.MergeRealm == "" {
-		p.MergeRealm = password.DefaultRealm
-	}
 	if p.OnUserDuplicate == "" {
 		p.OnUserDuplicate = model.OnUserDuplicateDefault
 	}
@@ -67,24 +59,6 @@ type OAuthLoginInteractionFlow interface {
 	) (string, error)
 
 	ExchangeCode(codeHash string, verifier string) (*interactionflows.AuthResult, error)
-}
-
-type LoginAuthnProvider interface {
-	OAuthAuthenticateCode(
-		authInfo sso.AuthInfo,
-		codeChallenge string,
-		loginState sso.LoginState,
-	) (*sso.SkygearAuthorizationCode, string, error)
-
-	OAuthConsumeCode(hashCode string) (*sso.SkygearAuthorizationCode, error)
-
-	OAuthExchangeCode(
-		client config.OAuthClientConfiguration,
-		session auth.AuthSession,
-		code *sso.SkygearAuthorizationCode,
-	) (authn.Result, error)
-
-	WriteAPIResult(rw http.ResponseWriter, result authn.Result)
 }
 
 /*
@@ -154,7 +128,6 @@ func (h LoginHandler) Handle(r *http.Request, payload LoginRequestPayload) (*int
 	}
 
 	loginState := sso.LoginState{
-		MergeRealm:      payload.MergeRealm,
 		OnUserDuplicate: payload.OnUserDuplicate,
 	}
 

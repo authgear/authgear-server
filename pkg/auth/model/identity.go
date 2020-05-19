@@ -15,7 +15,6 @@
 package model
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -23,13 +22,6 @@ import (
 type Identity struct {
 	Type   string                 `json:"type"`
 	Claims map[string]interface{} `json:"claims"`
-}
-
-func NewIdentity(principal principal.Principal) Identity {
-	return Identity{
-		Type:   principal.ProviderID(),
-		Claims: principal.Claims(),
-	}
 }
 
 func NewIdentityFromAttrs(attrs *authn.Attrs) Identity {

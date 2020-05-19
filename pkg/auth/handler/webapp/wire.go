@@ -9,7 +9,6 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
@@ -21,8 +20,6 @@ func provideRedirectURIForWebAppFunc() sso.RedirectURLFunc {
 
 var dependencySet = wire.NewSet(
 	pkg.DependencySet,
-	authn.ProvideAuthUIProvider,
-	wire.Bind(new(webapp.AuthnProvider), new(*authn.Provider)),
 	wire.Bind(new(webapp.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
 	wire.Struct(new(webapp.AuthenticateProviderImpl), "*"),
 	wire.Bind(new(webapp.ForgotPassword), new(*forgotpassword.Provider)),

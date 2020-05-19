@@ -4,7 +4,6 @@ import (
 	"sort"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -13,11 +12,11 @@ import (
 )
 
 type Provider struct {
-	Store                    *Store
-	Time                     time.Provider
-	Config                   config.LoginIDConfiguration
-	LoginIDChecker           loginid.LoginIDChecker
-	LoginIDNormalizerFactory loginid.LoginIDNormalizerFactory
+	Store             *Store
+	Time              time.Provider
+	Config            config.LoginIDConfiguration
+	Checker           *Checker
+	NormalizerFactory *NormalizerFactory
 }
 
 func (p *Provider) List(userID string) ([]*Identity, error) {
@@ -44,7 +43,7 @@ func (p *Provider) Get(userID, id string) (*Identity, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetByLoginID(loginID loginid.LoginID) ([]*Identity, error) {
+func (p *Provider) GetByLoginID(loginID LoginID) ([]*Identity, error) {
 	im := map[string]*Identity{}
 	for _, config := range p.Config.Keys {
 		if !(loginID.Key == "" || config.Key == loginID.Key) {
@@ -52,7 +51,7 @@ func (p *Provider) GetByLoginID(loginID loginid.LoginID) ([]*Identity, error) {
 		}
 
 		// Normalize expects loginID is in correct type so we have to validate it first.
-		invalid := p.LoginIDChecker.ValidateOne(loginid.LoginID{
+		invalid := p.Checker.ValidateOne(LoginID{
 			Key:   config.Key,
 			Value: loginID.Value,
 		})
@@ -60,7 +59,7 @@ func (p *Provider) GetByLoginID(loginID loginid.LoginID) ([]*Identity, error) {
 			continue
 		}
 
-		normalizer := p.LoginIDNormalizerFactory.NormalizerWithLoginIDKey(config.Key)
+		normalizer := p.NormalizerFactory.NormalizerWithLoginIDKey(config.Key)
 		normalizedloginID, err := normalizer.Normalize(loginID.Value)
 		if err != nil {
 			return nil, err
@@ -84,22 +83,22 @@ func (p *Provider) GetByLoginID(loginID loginid.LoginID) ([]*Identity, error) {
 }
 
 func (p *Provider) IsLoginIDKeyType(loginIDKey string, loginIDKeyType metadata.StandardKey) bool {
-	return p.LoginIDChecker.CheckType(loginIDKey, loginIDKeyType)
+	return p.Checker.CheckType(loginIDKey, loginIDKeyType)
 }
 
-func (p *Provider) Normalize(loginID loginid.LoginID) (normalized *loginid.LoginID, typ string, err error) {
+func (p *Provider) Normalize(loginID LoginID) (normalized *LoginID, typ string, err error) {
 	config := p.lookupLoginIDConfig(loginID)
 	if config == nil {
 		panic("loginid: unknown login ID key " + loginID.Key)
 	}
 
-	normalizer := p.LoginIDNormalizerFactory.NormalizerWithLoginIDKey(loginID.Key)
+	normalizer := p.NormalizerFactory.NormalizerWithLoginIDKey(loginID.Key)
 	normalizedloginID, err := normalizer.Normalize(loginID.Value)
 	if err != nil {
 		return
 	}
 
-	normalized = &loginid.LoginID{
+	normalized = &LoginID{
 		Key:   loginID.Key,
 		Value: normalizedloginID,
 	}
@@ -107,11 +106,11 @@ func (p *Provider) Normalize(loginID loginid.LoginID) (normalized *loginid.Login
 	return
 }
 
-func (p *Provider) Validate(loginIDs []loginid.LoginID) error {
-	return p.LoginIDChecker.Validate(loginIDs)
+func (p *Provider) Validate(loginIDs []LoginID) error {
+	return p.Checker.Validate(loginIDs)
 }
 
-func (p *Provider) New(userID string, loginID loginid.LoginID) *Identity {
+func (p *Provider) New(userID string, loginID LoginID) *Identity {
 	iden := &Identity{
 		ID:     uuid.New(),
 		UserID: userID,
@@ -124,7 +123,7 @@ func (p *Provider) New(userID string, loginID loginid.LoginID) *Identity {
 	return iden
 }
 
-func (p *Provider) WithLoginID(iden *Identity, loginID loginid.LoginID) *Identity {
+func (p *Provider) WithLoginID(iden *Identity, loginID LoginID) *Identity {
 	newIden, err := p.populateLoginID(iden, loginID)
 	if err != nil {
 		panic(err)
@@ -171,7 +170,7 @@ func (p *Provider) Delete(i *Identity) error {
 	return p.Store.Delete(i)
 }
 
-func (p *Provider) lookupLoginIDConfig(loginID loginid.LoginID) *config.LoginIDKeyConfiguration {
+func (p *Provider) lookupLoginIDConfig(loginID LoginID) *config.LoginIDKeyConfiguration {
 	for _, c := range p.Config.Keys {
 		if c.Key == loginID.Key {
 			return &c
@@ -186,13 +185,13 @@ func sortIdentities(is []*Identity) {
 	})
 }
 
-func (p *Provider) populateLoginID(i *Identity, loginID loginid.LoginID) (*Identity, error) {
+func (p *Provider) populateLoginID(i *Identity, loginID LoginID) (*Identity, error) {
 	config := p.lookupLoginIDConfig(loginID)
 	if config == nil {
 		return nil, errors.Newf("loginid: unknown login ID key %s", loginID.Key)
 	}
 
-	normalizer := p.LoginIDNormalizerFactory.NormalizerWithLoginIDKey(loginID.Key)
+	normalizer := p.NormalizerFactory.NormalizerWithLoginIDKey(loginID.Key)
 	normalizedloginIDValue, err := normalizer.Normalize(loginID.Value)
 	if err != nil {
 		return nil, errors.Newf("loginid: failed to normalize login ID: %w", err)
@@ -203,7 +202,7 @@ func (p *Provider) populateLoginID(i *Identity, loginID loginid.LoginID) (*Ident
 	}
 
 	claims := map[string]string{}
-	if standardKey, ok := p.LoginIDChecker.StandardKey(loginID.Key); ok {
+	if standardKey, ok := p.Checker.StandardKey(loginID.Key); ok {
 		claims[string(standardKey)] = normalizedloginIDValue
 	}
 

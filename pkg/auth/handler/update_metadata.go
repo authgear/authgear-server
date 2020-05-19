@@ -9,8 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authz"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
@@ -100,14 +98,12 @@ func (p *UpdateMetadataRequestPayload) Validate() []validation.ErrorCause {
 		@Callback user_sync {UserSyncEvent}
 */
 type UpdateMetadataHandler struct {
-	Validator            *validation.Validator      `dependency:"Validator"`
-	RequireAuthz         handler.RequireAuthz       `dependency:"RequireAuthz"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	TxContext            db.TxContext               `dependency:"TxContext"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
-	HookProvider         hook.Provider              `dependency:"HookProvider"`
+	Validator        *validation.Validator `dependency:"Validator"`
+	RequireAuthz     handler.RequireAuthz  `dependency:"RequireAuthz"`
+	AuthInfoStore    authinfo.Store        `dependency:"AuthInfoStore"`
+	TxContext        db.TxContext          `dependency:"TxContext"`
+	UserProfileStore userprofile.Store     `dependency:"UserProfileStore"`
+	HookProvider     hook.Provider         `dependency:"HookProvider"`
 }
 
 func (h UpdateMetadataHandler) ProvideAuthzPolicy() coreauthz.Policy {

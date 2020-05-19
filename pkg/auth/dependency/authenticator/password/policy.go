@@ -1,0 +1,50 @@
+package password
+
+import (
+	"encoding/json"
+
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+)
+
+var PasswordPolicyViolated skyerr.Kind = skyerr.Invalid.WithReason("PasswordPolicyViolated")
+
+type PolicyName string
+
+const (
+	// PasswordTooShort is self-explanatory
+	PasswordTooShort PolicyName = "PasswordTooShort"
+	// PasswordUppercaseRequired means the password does not contain ASCII uppercase character
+	PasswordUppercaseRequired PolicyName = "PasswordUppercaseRequired"
+	// PasswordLowercaseRequired means the password does not contain ASCII lowercase character
+	PasswordLowercaseRequired PolicyName = "PasswordLowercaseRequired"
+	// PasswordDigitRequired means the password does not contain ASCII digit character
+	PasswordDigitRequired PolicyName = "PasswordDigitRequired"
+	// PasswordSymbolRequired means the password does not contain ASCII non-alphanumeric character
+	PasswordSymbolRequired PolicyName = "PasswordSymbolRequired"
+	// PasswordContainingExcludedKeywords means the password contains configured excluded keywords
+	PasswordContainingExcludedKeywords PolicyName = "PasswordContainingExcludedKeywords"
+	// PasswordBelowGuessableLevel means the password's guessable level is below configured level.
+	// The current implementation uses Dropbox's zxcvbn.
+	PasswordBelowGuessableLevel PolicyName = "PasswordBelowGuessableLevel"
+	// PasswordReused is self-explanatory
+	PasswordReused PolicyName = "PasswordReused"
+	// PasswordExpired is self-explanatory
+	PasswordExpired PolicyName = "PasswordExpired"
+)
+
+type Policy struct {
+	Name PolicyName
+	Info map[string]interface{}
+}
+
+func (v Policy) Kind() string {
+	return string(v.Name)
+}
+
+func (v Policy) MarshalJSON() ([]byte, error) {
+	d := map[string]interface{}{"kind": v.Name}
+	for k, v := range v.Info {
+		d[k] = v
+	}
+	return json.Marshal(d)
+}

@@ -1,7 +1,7 @@
 package sso
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
@@ -41,10 +41,10 @@ type OAuthProviderFactory struct {
 	tenantConfig             config.TenantConfiguration
 	timeProvider             coreTime.Provider
 	userInfoDecoder          UserInfoDecoder
-	loginIDNormalizerFactory loginid.LoginIDNormalizerFactory
+	loginIDNormalizerFactory *loginid.NormalizerFactory
 }
 
-func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider, timeProvider coreTime.Provider, userInfoDecoder UserInfoDecoder, loginIDNormalizerFactory loginid.LoginIDNormalizerFactory, redirectURIFunc RedirectURLFunc) *OAuthProviderFactory {
+func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider, timeProvider coreTime.Provider, userInfoDecoder UserInfoDecoder, loginIDNormalizerFactory *loginid.NormalizerFactory, redirectURIFunc RedirectURLFunc) *OAuthProviderFactory {
 	return &OAuthProviderFactory{
 		tenantConfig:             tenantConfig,
 		urlPrefixProvider:        urlPrefixProvider,

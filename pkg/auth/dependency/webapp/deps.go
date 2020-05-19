@@ -4,7 +4,7 @@ import (
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/deps"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/template"
@@ -22,7 +22,7 @@ func ProvideRenderProvider(
 	saup deps.StaticAssetURLPrefix,
 	config *config.TenantConfiguration,
 	templateEngine *template.Engine,
-	passwordChecker *audit.PasswordChecker,
+	passwordChecker *password.Checker,
 	identityProvider IdentityProvider,
 ) RenderProvider {
 	return &RenderProviderImpl{

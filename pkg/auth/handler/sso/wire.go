@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/mux"
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -164,7 +163,6 @@ func provideAuthURLHandler(
 	tx db.TxContext,
 	requireAuthz handler.RequireAuthz,
 	v *validation.Validator,
-	pp password.Provider,
 	sp sso.Provider,
 	cfg *config.TenantConfiguration,
 	op sso.OAuthProvider,
@@ -173,7 +171,6 @@ func provideAuthURLHandler(
 	h := &AuthURLHandler{
 		TxContext:                  tx,
 		Validator:                  v,
-		PasswordAuthProvider:       pp,
 		SSOProvider:                sp,
 		OAuthConflictConfiguration: cfg.AppConfig.AuthAPI.OnIdentityConflict.OAuth,
 		OAuthProvider:              op,

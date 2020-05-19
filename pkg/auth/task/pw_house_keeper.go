@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -23,7 +23,7 @@ func AttachPwHousekeeperTask(
 type PwHousekeeperTask struct {
 	TxContext     db.TxContext
 	LoggerFactory logging.Factory
-	PwHousekeeper *audit.PwHousekeeper
+	PwHousekeeper *password.Housekeeper
 }
 
 func (t *PwHousekeeperTask) Run(ctx context.Context, param interface{}) (err error) {

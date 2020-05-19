@@ -7,7 +7,6 @@ import (
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	authredis "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	authenticatorbearertoken "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/bearertoken"
@@ -16,7 +15,6 @@ import (
 	authenticatorprovider "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/provider"
 	authenticatorrecoverycode "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
 	authenticatortotp "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authn"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -27,19 +25,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	interactionredis "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/redis"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
-	mfapq "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	oauthpq "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
 	oauthredis "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	oidchandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/handler"
-	passwordhistorypq "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	oauthprincipal "github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
-	passwordprincipal "github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	sessionredis "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -114,15 +105,11 @@ func ProvideSessionInsecureCookieConfig(m DependencyMap) session.InsecureCookieC
 	return session.InsecureCookieConfig(m.UseInsecureCookie)
 }
 
-func ProvideMFAInsecureCookieConfig(m DependencyMap) mfa.InsecureCookieConfig {
-	return mfa.InsecureCookieConfig(m.UseInsecureCookie)
-}
-
 func ProvideValidator(m DependencyMap) *validation.Validator {
 	return m.Validator
 }
 
-func ProvideReservedNameChecker(m DependencyMap) *loginid.ReservedNameChecker {
+func ProvideReservedNameChecker(m DependencyMap) *identityloginid.ReservedNameChecker {
 	return m.ReservedNameChecker
 }
 
@@ -140,13 +127,6 @@ func ProvideTemplateEngine(config *config.TenantConfiguration, m DependencyMap) 
 
 func ProvideAuthSQLBuilder(f db.SQLBuilderFactory) db.SQLBuilder {
 	return f("auth")
-}
-
-func ProvidePrincipalProviders(
-	oauth oauthprincipal.Provider,
-	password passwordprincipal.Provider,
-) []principal.Provider {
-	return []principal.Provider{oauth, password}
 }
 
 func ProvideStaticAssetURLPrefix(m DependencyMap) deps.StaticAssetURLPrefix {
@@ -232,7 +212,6 @@ var webappDependencySet = wire.NewSet(
 var CommonDependencySet = wire.NewSet(
 	ProvideTenantConfig,
 	ProvideSessionInsecureCookieConfig,
-	ProvideMFAInsecureCookieConfig,
 	ProvideValidator,
 	ProvideReservedNameChecker,
 	ProvideTaskExecutor,
@@ -241,7 +220,6 @@ var CommonDependencySet = wire.NewSet(
 	endpointsDependencySet,
 
 	ProvideAuthSQLBuilder,
-	ProvidePrincipalProviders,
 
 	logging.DependencySet,
 	time.DependencySet,
@@ -261,17 +239,8 @@ var CommonDependencySet = wire.NewSet(
 	hook.DependencySet,
 	auth.DependencySet,
 	authredis.DependencySet,
-	authn.DependencySet,
-	audit.DependencySet,
-	loginid.DependencySet,
-	passwordhistorypq.DependencySet,
-	principal.DependencySet,
-	oauthprincipal.DependencySet,
-	passwordprincipal.DependencySet,
 	sso.DependencySet,
 	urlprefix.DependencySet,
-	mfa.DependencySet,
-	mfapq.DependencySet,
 	webappDependencySet,
 	oauthhandler.DependencySet,
 	oauth.DependencySet,

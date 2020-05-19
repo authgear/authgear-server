@@ -4,8 +4,6 @@ import (
 	"sort"
 
 	"github.com/sirupsen/logrus"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	pwd "github.com/skygeario/skygear-server/pkg/core/password"
@@ -18,8 +16,8 @@ type Provider struct {
 	Config          *config.AuthenticatorPasswordConfiguration
 	Time            time.Provider
 	Logger          *logrus.Entry
-	PasswordHistory passwordhistory.Store
-	PasswordChecker *audit.PasswordChecker
+	PasswordHistory HistoryStore
+	PasswordChecker *Checker
 }
 
 func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
@@ -117,7 +115,7 @@ func (p *Provider) Authenticate(a *Authenticator, password string) error {
 }
 
 func (p *Provider) isPasswordAllowed(userID string, password string) error {
-	return p.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+	return p.PasswordChecker.ValidatePassword(ValidatePayload{
 		AuthID:        userID,
 		PlainPassword: password,
 	})

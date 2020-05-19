@@ -9,14 +9,11 @@ import (
 
 	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -51,32 +48,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		}
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
-		loginIDsKeys := []config.LoginIDKeyConfiguration{}
-		allowedRealms := []string{password.DefaultRealm}
-		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeys,
-			allowedRealms,
-			map[string]password.Principal{
-				"john.doe.principal.id0": password.Principal{
-					ID:             "john.doe.principal.id0",
-					UserID:         "john.doe.id",
-					LoginIDKey:     "username",
-					LoginID:        "john.doe",
-					Realm:          "default",
-					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
-				},
-				"john.doe.principal.id1": password.Principal{
-					ID:             "john.doe.principal.id1",
-					UserID:         "john.doe.id",
-					LoginIDKey:     "email",
-					LoginID:        "john.doe@example.com",
-					Realm:          "default",
-					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
-				},
-			},
-		)
-		uh.PasswordAuthProvider = passwordAuthProvider
-		uh.IdentityProvider = principal.NewMockIdentityProvider(uh.PasswordAuthProvider)
 		hookProvider := hook.NewMockProvider()
 		uh.HookProvider = hookProvider
 		uh.TxContext = db.NewMockTxContext()
@@ -265,29 +236,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		}
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
-		loginIDsKeys := []config.LoginIDKeyConfiguration{}
-		allowedRealms := []string{password.DefaultRealm}
-		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeys,
-			allowedRealms,
-			map[string]password.Principal{
-				"john.doe.principal.id0": password.Principal{
-					ID:             "john.doe.principal.id0",
-					UserID:         "john.doe.id",
-					LoginIDKey:     "username",
-					LoginID:        "john.doe",
-					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
-				},
-				"john.doe.principal.id1": password.Principal{
-					ID:             "john.doe.principal.id1",
-					UserID:         "john.doe.id",
-					LoginIDKey:     "email",
-					LoginID:        "john.doe@example.com",
-					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
-				},
-			},
-		)
-		uh.PasswordAuthProvider = passwordAuthProvider
 		uh.TxContext = db.NewMockTxContext()
 		uh.HookProvider = hook.NewMockProvider()
 

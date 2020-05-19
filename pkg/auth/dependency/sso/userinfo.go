@@ -3,7 +3,7 @@ package sso
 import (
 	"fmt"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -13,10 +13,10 @@ type UserInfoDecoder interface {
 }
 
 type UserInfoDecoderImpl struct {
-	LoginIDNormalizerFactory loginid.LoginIDNormalizerFactory
+	LoginIDNormalizerFactory *loginid.NormalizerFactory
 }
 
-func NewUserInfoDecoder(loginIDNormalizerFactory loginid.LoginIDNormalizerFactory) *UserInfoDecoderImpl {
+func NewUserInfoDecoder(loginIDNormalizerFactory *loginid.NormalizerFactory) *UserInfoDecoderImpl {
 	return &UserInfoDecoderImpl{
 		LoginIDNormalizerFactory: loginIDNormalizerFactory,
 	}

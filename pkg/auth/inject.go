@@ -4,21 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	identityloginid "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/mfa"
-	mfaPQ "github.com/skygeario/skygear-server/pkg/auth/dependency/mfa/pq"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
-	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -28,9 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
-	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -96,21 +82,6 @@ func (m DependencyMap) Provide(
 		return time.NewProvider()
 	}
 
-	newPasswordStore := func() password.Store {
-		return password.NewStore(
-			newSQLBuilder(),
-			newSQLExecutor(),
-		)
-	}
-
-	newPasswordHistoryStore := func() passwordhistory.Store {
-		return pqPWHistory.NewPasswordHistoryStore(
-			newTimeProvider(),
-			newSQLBuilder(),
-			newSQLExecutor(),
-		)
-	}
-
 	newTemplateEngine := func() *template.Engine {
 		return authTemplate.NewEngineWithConfig(
 			tConfig,
@@ -134,37 +105,13 @@ func (m DependencyMap) Provide(
 		)
 	}
 
-	newLoginIDChecker := func() loginid.LoginIDChecker {
-		return loginid.NewDefaultLoginIDChecker(
-			tConfig.AppConfig.Identity.LoginID.Keys,
-			tConfig.AppConfig.Identity.LoginID.Types,
-			m.ReservedNameChecker,
+	newLoginIDProvider := func() *loginid.Provider {
+		return loginid.ProvideProvider(
+			newSQLBuilder(), newSQLExecutor(), newTimeProvider(),
+			&tConfig,
+			loginid.ProvideChecker(&tConfig, loginid.ProvideTypeCheckerFactory(&tConfig, m.ReservedNameChecker)),
+			loginid.ProvideNormalizerFactory(&tConfig),
 		)
-	}
-
-	newPasswordAuthProvider := func() password.Provider {
-		return password.NewProvider(
-			newTimeProvider(),
-			newPasswordStore(),
-			newPasswordHistoryStore(),
-			newLoggerFactory(),
-			tConfig.AppConfig.Identity.LoginID.Keys,
-			tConfig.AppConfig.Identity.LoginID.Types,
-			tConfig.AppConfig.Authenticator.Password.Policy.IsPasswordHistoryEnabled(),
-			m.ReservedNameChecker,
-		)
-	}
-
-	newOAuthAuthProvider := func() oauth.Provider {
-		return oauth.NewProvider(
-			newSQLBuilder(),
-			newSQLExecutor(),
-		)
-	}
-
-	newLoginIDProvider := func() *identityloginid.Provider {
-		return identityloginid.ProvideProvider(
-			newSQLBuilder(), newSQLExecutor(), newTimeProvider(), &tConfig, m.ReservedNameChecker)
 	}
 
 	newHookProvider := func() hook.Provider {
@@ -192,125 +139,23 @@ func (m DependencyMap) Provide(
 		})().(hook.Provider)
 	}
 
-	newIdentityProvider := func() principal.IdentityProvider {
-		return principal.NewIdentityProvider(
-			newSQLBuilder(),
-			newSQLExecutor(),
-			newOAuthAuthProvider(),
-			newPasswordAuthProvider(),
-		)
-	}
-
-	newSMSClient := func() sms.Client {
-		return sms.NewClient(ctx, tConfig.AppConfig)
-	}
-
-	newMailSender := func() mail.Sender {
-		return mail.NewSender(ctx, &tConfig)
-	}
-
-	newMFAProvider := func() mfa.Provider {
-		return mfa.NewProvider(
-			mfaPQ.NewStore(
-				tConfig.AppConfig.Authenticator.RecoveryCode,
-				newSQLBuilder(),
-				newSQLExecutor(),
-				newTimeProvider(),
-			),
-			tConfig.AppConfig.Authenticator,
-			newTimeProvider(),
-			mfa.NewSender(
-				tConfig,
-				newSMSClient(),
-				newMailSender(),
-				newTemplateEngine(),
-			),
-		)
-	}
-
-	newLoginIDNormalizerFactory := func() loginid.LoginIDNormalizerFactory {
-		return loginid.NewLoginIDNormalizerFactory(
-			tConfig.AppConfig.Identity.LoginID.Keys,
-			tConfig.AppConfig.Identity.LoginID.Types,
-		)
-	}
-
-	newPasswordChecker := func() *authAudit.PasswordChecker {
-		return authAudit.ProvidePasswordChecker(&tConfig, newPasswordHistoryStore())
-	}
-
 	switch dependencyName {
 	case "TxContext":
 		return db.NewTxContextWithContext(ctx, tConfig)
-	case "LoggerFactory":
-		return newLoggerFactory()
 	case "RequireAuthz":
 		return handler.NewRequireAuthzFactory(newLoggerFactory())
 	case "Validator":
 		return m.Validator
-	case "MFAProvider":
-		return newMFAProvider()
 	case "AuthInfoStore":
 		return newAuthInfoStore()
-	case "PasswordChecker":
-		return newPasswordChecker()
-	case "LoginIDChecker":
-		return newLoginIDChecker()
-	case "PasswordAuthProvider":
-		return newPasswordAuthProvider()
-	case "LoginIDProvider":
-		return newLoginIDProvider()
-	case "HandlerLogger":
-		return newLoggerFactory().NewLogger("handler")
 	case "UserProfileStore":
 		return newUserProfileStore()
-	case "UserVerifyCodeSenderFactory":
-		return userverify.NewDefaultUserVerifyCodeSenderFactory(
-			&tConfig,
-			newTemplateEngine(),
-			newMailSender(),
-			newSMSClient(),
-		)
-	case "AutoSendUserVerifyCodeOnSignup":
-		return tConfig.AppConfig.UserVerification.AutoSendOnSignup
-	case "UserVerifyLoginIDKeys":
-		return tConfig.AppConfig.UserVerification.LoginIDKeys
-	case "UserVerificationProvider":
-		return userverify.NewProvider(
-			userverify.NewCodeGenerator(&tConfig),
-			userverify.NewStore(
-				newSQLBuilder(),
-				newSQLExecutor(),
-			),
-			tConfig.AppConfig.UserVerification,
-			newTimeProvider(),
-		)
-	case "VerifyHTMLProvider":
-		return userverify.NewVerifyHTMLProvider(tConfig.AppConfig.UserVerification, newTemplateEngine())
-	case "LoginIDNormalizerFactory":
-		return newLoginIDNormalizerFactory()
-	case "IdentityProvider":
-		return newIdentityProvider()
-	case "AuthHandlerHTMLProvider":
-		return sso.NewAuthHandlerHTMLProvider(urlprefix.NewProvider(request).Value())
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, db.NewTxContextWithContext(ctx, tConfig), requestID, &tConfig, m.AsyncTaskExecutor)
 	case "HookProvider":
 		return newHookProvider()
-	case "AuthenticatorConfiguration":
-		return *tConfig.AppConfig.Authenticator
-	case "OAuthConflictConfiguration":
-		return tConfig.AppConfig.AuthAPI.OnIdentityConflict.OAuth
-	case "TenantConfiguration":
-		return &tConfig
-	case "URLPrefix":
-		return urlprefix.NewProvider(request).Value()
 	case "TemplateEngine":
 		return newTemplateEngine()
-	case "TimeProvider":
-		return newTimeProvider()
-	case "SessionManager":
-		return newSessionManager(request, m)
 	default:
 		return nil
 	}
