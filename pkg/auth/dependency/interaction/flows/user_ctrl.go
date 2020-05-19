@@ -50,8 +50,6 @@ func (c *UserController) makeResponse(attrs *authn.Attrs) (*model.AuthResponse, 
 	}
 
 	resp.User = model.NewUser(authInfo, userProfile)
-	identity := model.NewIdentityFromAttrs(attrs)
-	resp.Identity = &identity
 
 	return resp, nil
 }
@@ -98,17 +96,19 @@ func (c *UserController) CreateSession(
 
 	result.Response.SessionID = authSession.SessionID()
 
+	identity := model.NewIdentityFromAttrs(attrs)
 	reason := auth.SessionCreateReasonLogin
 	if intent, ok := i.Intent.(*interaction.IntentLogin); ok {
 		if intent.OriginalIntentType == interaction.IntentTypeSignup {
 			reason = auth.SessionCreateReasonSignup
 		}
 	}
+
 	err = c.Hooks.DispatchEvent(
 		event.SessionCreateEvent{
 			Reason:   string(reason),
 			User:     result.Response.User,
-			Identity: *result.Response.Identity,
+			Identity: identity,
 			Session:  *authSession.ToAPIModel(),
 		},
 		&result.Response.User,

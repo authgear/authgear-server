@@ -50,7 +50,7 @@ func (f MeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 
 		@Response 200
 			Current user and identity info.
-			@JSONSchema {UserIdentityResponse}
+			@JSONSchema {UserResponse}
 */
 type MeHandler struct {
 	RequireAuthz     handler.RequireAuthz `dependency:"RequireAuthz"`
@@ -90,10 +90,9 @@ func (h MeHandler) Handle(w http.ResponseWriter, r *http.Request) (resp interfac
 			return err
 		}
 
-		identity := model.NewIdentityFromAttrs(sess.AuthnAttrs())
 		user := model.NewUser(*authInfo, userProfile)
 
-		resp = model.NewAuthResponseWithUserIdentity(user, identity)
+		resp = model.NewAuthResponse(user)
 		return nil
 	})
 	return

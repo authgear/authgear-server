@@ -81,7 +81,7 @@ type UpdateLoginIDInteractionFlow interface {
 
 		@Response 200
 			Updated user and identity info.
-			@JSONSchema {UserIdentityResponse}
+			@JSONSchema {UserResponse}
 
 		@Callback identity_create {UserSyncEvent}
 		@Callback identity_delete {UserSyncEvent}

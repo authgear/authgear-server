@@ -82,10 +82,6 @@ func TestChangePasswordHandler(t *testing.T) {
 						"is_verified": true,
 						"metadata": {},
 						"verify_info": {}
-					},
-					"identity": {
-						"claims": {},
-						"type": "login_id"
 					}
 				}
 			}`)

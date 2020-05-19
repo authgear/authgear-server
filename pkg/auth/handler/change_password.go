@@ -126,7 +126,6 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 		}
 
 		user := model.NewUser(*authInfo, userProfile)
-		identity := model.NewIdentityFromAttrs(sess.AuthnAttrs())
 
 		err = h.HookProvider.DispatchEvent(
 			event.PasswordUpdateEvent{
@@ -139,7 +138,7 @@ func (h ChangePasswordHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 			return err
 		}
 
-		resp = model.NewAuthResponseWithUserIdentity(user, identity)
+		resp = model.NewAuthResponse(user)
 
 		// password house keeper
 		h.TaskQueue.Enqueue(async.TaskSpec{

@@ -170,7 +170,7 @@ func (h UpdateMetadataHandler) Handle(resp http.ResponseWriter, req *http.Reques
 			return err
 		}
 
-		result = authModel.NewAuthResponseWithUser(user)
+		result = authModel.NewAuthResponse(user)
 		return nil
 	})
 	return

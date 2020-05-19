@@ -15,25 +15,17 @@
 package model
 
 type AuthResponse struct {
-	User           User      `json:"user"`
-	Identity       *Identity `json:"identity,omitempty"`
-	AccessToken    string    `json:"access_token,omitempty"`
-	RefreshToken   string    `json:"refresh_token,omitempty"`
-	ExpiresIn      int       `json:"expires_in,omitempty"`
-	MFABearerToken string    `json:"mfa_bearer_token,omitempty"`
-	SessionID      string    `json:"session_id,omitempty"`
+	User           User   `json:"user"`
+	AccessToken    string `json:"access_token,omitempty"`
+	RefreshToken   string `json:"refresh_token,omitempty"`
+	ExpiresIn      int    `json:"expires_in,omitempty"`
+	MFABearerToken string `json:"mfa_bearer_token,omitempty"`
+	SessionID      string `json:"session_id,omitempty"`
 }
 
-func NewAuthResponseWithUser(user User) AuthResponse {
+func NewAuthResponse(user User) AuthResponse {
 	return AuthResponse{
 		User: user,
-	}
-}
-
-func NewAuthResponseWithUserIdentity(user User, identity Identity) AuthResponse {
-	return AuthResponse{
-		User:     user,
-		Identity: &identity,
 	}
 }
 
@@ -54,23 +46,6 @@ const UserResponseSchema = `
 `
 
 // @JSONSchema
-const UserIdentityResponseSchema = `
-{
-	"$id": "#UserIdentityResponse",
-	"type": "object",
-	"properties": {
-		"result": {
-			"type": "object",
-			"properties": {
-				"user": { "$ref": "#User" },
-				"identity": { "$ref": "#Identity" }
-			}
-		}
-	}
-}
-`
-
-// @JSONSchema
 const AuthResponseSchema = `
 {
 	"$id": "#AuthResponse",
@@ -80,7 +55,6 @@ const AuthResponseSchema = `
 			"type": "object",
 			"properties": {
 				"user": { "$ref": "#User" },
-				"identity": { "$ref": "#Identity" },
 				"access_token": { "type": "string" },
 				"refresh_token": { "type": "string" },
 				"session_id": { "type": "string" }

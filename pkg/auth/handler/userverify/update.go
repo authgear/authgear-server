@@ -152,7 +152,7 @@ func (h *UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) (resp int
 			return err
 		}
 
-		resp = authModel.NewAuthResponseWithUser(user)
+		resp = authModel.NewAuthResponse(user)
 		return nil
 	})
 	return
