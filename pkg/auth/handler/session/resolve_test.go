@@ -26,11 +26,8 @@ func TestResolveHandler(t *testing.T) {
 				IsVerified: true,
 			}
 			s := &session.IDPSession{
-				ID: "session-id",
-				Attrs: authn.Attrs{
-					IdentityType:   "password",
-					IdentityClaims: map[string]interface{}{},
-				},
+				ID:    "session-id",
+				Attrs: authn.Attrs{},
 			}
 			r, _ := http.NewRequest("POST", "/", nil)
 			r = r.WithContext(authn.WithAuthn(r.Context(), s, u))
@@ -40,15 +37,13 @@ func TestResolveHandler(t *testing.T) {
 			resp := rw.Result()
 			So(resp.StatusCode, ShouldEqual, 200)
 			So(resp.Header, ShouldResemble, http.Header{
-				"X-Skygear-Session-Valid":           []string{"true"},
-				"X-Skygear-User-Id":                 []string{"user-id"},
-				"X-Skygear-User-Verified":           []string{"true"},
-				"X-Skygear-User-Disabled":           []string{"false"},
-				"X-Skygear-Session-Identity-Type":   []string{"password"},
-				"X-Skygear-Session-Identity-Claims": []string{"e30"},
-				"X-Skygear-Session-Acr":             []string{""},
-				"X-Skygear-Session-Amr":             []string{""},
-				"X-Skygear-Is-Master-Key":           []string{"false"},
+				"X-Skygear-Session-Valid": []string{"true"},
+				"X-Skygear-User-Id":       []string{"user-id"},
+				"X-Skygear-User-Verified": []string{"true"},
+				"X-Skygear-User-Disabled": []string{"false"},
+				"X-Skygear-Session-Acr":   []string{""},
+				"X-Skygear-Session-Amr":   []string{""},
+				"X-Skygear-Is-Master-Key": []string{"false"},
 			})
 		})
 

@@ -226,7 +226,7 @@ func (f *WebAppFlow) SetupSecret(token string, secret string) (*WebAppResult, er
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
-	attrs, err := f.Interactions.Commit(i)
+	result, err := f.Interactions.Commit(i)
 	if err != nil {
 		return nil, err
 	}
@@ -237,12 +237,12 @@ func (f *WebAppFlow) SetupSecret(token string, secret string) (*WebAppResult, er
 		i, err = f.Interactions.NewInteractionLoginAs(
 			&interaction.IntentLogin{
 				Identity: identity.Spec{
-					Type:   attrs.IdentityType,
-					Claims: attrs.IdentityClaims,
+					Type:   result.Identity.Type,
+					Claims: result.Identity.Claims,
 				},
 				OriginalIntentType: i.Intent.Type(),
 			},
-			attrs.UserID,
+			result.Attrs.UserID,
 			i.Identity,
 			i.PrimaryAuthenticator,
 			i.ClientID,
@@ -256,7 +256,7 @@ func (f *WebAppFlow) SetupSecret(token string, secret string) (*WebAppResult, er
 
 	case interaction.IntentTypeAddIdentity:
 		if i.Extra[WebAppExtraStateAnonymousUserPromotion] == "true" {
-			return f.afterAnonymousUserPromotion(attrs)
+			return f.afterAnonymousUserPromotion(result)
 		}
 
 		return &WebAppResult{
@@ -456,12 +456,12 @@ func (f *WebAppFlow) afterPrimaryAuthentication(i *interaction.Interaction) (*We
 		panic("interaction_flow_webapp: TODO: handle MFA")
 
 	case interaction.StepCommit:
-		attrs, err := f.Interactions.Commit(i)
+		ir, err := f.Interactions.Commit(i)
 		if err != nil {
 			return nil, err
 		}
 
-		result, err := f.UserController.CreateSession(i, attrs, false)
+		result, err := f.UserController.CreateSession(i, ir, false)
 		if err != nil {
 			return nil, err
 		}

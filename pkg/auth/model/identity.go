@@ -15,7 +15,7 @@
 package model
 
 import (
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 )
 
 // Identity is an identity of user
@@ -24,10 +24,10 @@ type Identity struct {
 	Claims map[string]interface{} `json:"claims"`
 }
 
-func NewIdentityFromAttrs(attrs *authn.Attrs) Identity {
-	return Identity{
-		Type:   string(attrs.IdentityType),
-		Claims: attrs.IdentityClaims,
+func NewIdentity(info identity.Info) *Identity {
+	return &Identity{
+		Type:   string(info.Type),
+		Claims: info.Claims,
 	}
 }
 

@@ -65,7 +65,6 @@ func TestChangePasswordHandler(t *testing.T) {
 			req = authtesting.WithAuthn().
 				UserID(userID).
 				Verified(true).
-				IdentityType("login_id").
 				ToRequest(req)
 			req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
@@ -82,10 +81,6 @@ func TestChangePasswordHandler(t *testing.T) {
 						"is_verified": true,
 						"metadata": {},
 						"verify_info": {}
-					},
-					"identity": {
-						"claims": {},
-						"type": "login_id"
 					}
 				}
 			}`)

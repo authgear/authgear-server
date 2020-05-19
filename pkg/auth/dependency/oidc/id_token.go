@@ -16,9 +16,8 @@ import (
 
 type UserClaims struct {
 	jwt.StandardClaims
-	User      *model.User     `json:"skygear_user,omitempty"`
-	Identity  *model.Identity `json:"skygear_identity,omitempty"`
-	SessionID string          `json:"skygear_session_id,omitempty"`
+	User      *model.User `json:"skygear_user,omitempty"`
+	SessionID string      `json:"skygear_session_id,omitempty"`
 }
 
 type IDTokenClaims struct {
@@ -95,9 +94,7 @@ func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (*UserClaims, 
 	}
 
 	user := model.NewUser(*authInfo, userProfile)
-	identity := model.NewIdentityFromAttrs(session.AuthnAttrs())
 	claims.User = &user
-	claims.Identity = &identity
 	claims.SessionID = session.SessionID()
 
 	return claims, nil

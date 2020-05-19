@@ -51,7 +51,7 @@ func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebApp
 	if s.CurrentStep().Step != interaction.StepCommit {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
-	attrs, err := f.Interactions.Commit(i)
+	result, err := f.Interactions.Commit(i)
 	if err != nil {
 		return nil, err
 	}
@@ -60,12 +60,12 @@ func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebApp
 	i, err = f.Interactions.NewInteractionLoginAs(
 		&interaction.IntentLogin{
 			Identity: identity.Spec{
-				Type:   attrs.IdentityType,
-				Claims: attrs.IdentityClaims,
+				Type:   result.Identity.Type,
+				Claims: result.Identity.Claims,
 			},
 			OriginalIntentType: i.Intent.Type(),
 		},
-		attrs.UserID,
+		result.Attrs.UserID,
 		i.Identity,
 		i.PrimaryAuthenticator,
 		i.ClientID,
@@ -184,10 +184,10 @@ func (f *WebAppFlow) PromoteWithOAuthProvider(userID string, oauthAuthInfo sso.A
 		panic("interaction_flow_webapp: unexpected interaction step")
 	}
 
-	attrs, err := f.Interactions.Commit(i)
+	result, err := f.Interactions.Commit(i)
 	if err != nil {
 		return nil, err
 	}
 
-	return f.afterAnonymousUserPromotion(attrs)
+	return f.afterAnonymousUserPromotion(result)
 }

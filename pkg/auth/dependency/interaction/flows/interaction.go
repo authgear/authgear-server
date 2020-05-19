@@ -4,13 +4,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 type InteractionProvider interface {
 	GetInteraction(token string) (*interaction.Interaction, error)
 	SaveInteraction(*interaction.Interaction) (string, error)
-	Commit(*interaction.Interaction) (*authn.Attrs, error)
+	Commit(*interaction.Interaction) (*interaction.Result, error)
 	NewInteractionLogin(intent *interaction.IntentLogin, clientID string) (*interaction.Interaction, error)
 	NewInteractionLoginAs(
 		intent *interaction.IntentLogin,

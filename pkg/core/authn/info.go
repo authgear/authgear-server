@@ -1,8 +1,6 @@
 package authn
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,36 +12,30 @@ type Info struct {
 	UserVerified bool
 	UserDisabled bool
 
-	SessionIdentityType   IdentityType
-	SessionIdentityClaims map[string]interface{}
-	SessionACR            string
-	SessionAMR            []string
+	SessionACR string
+	SessionAMR []string
 }
 
 var _ Session = &Info{}
 
 func NewAuthnInfo(attrs *Attrs, user *UserInfo) *Info {
 	return &Info{
-		IsValid:               true,
-		UserID:                user.ID,
-		UserVerified:          user.IsVerified,
-		UserDisabled:          user.IsDisabled,
-		SessionIdentityType:   attrs.IdentityType,
-		SessionIdentityClaims: attrs.IdentityClaims,
-		SessionACR:            attrs.ACR,
-		SessionAMR:            attrs.AMR,
+		IsValid:      true,
+		UserID:       user.ID,
+		UserVerified: user.IsVerified,
+		UserDisabled: user.IsDisabled,
+		SessionACR:   attrs.ACR,
+		SessionAMR:   attrs.AMR,
 	}
 }
 
 const (
-	headerSessionValid          = "X-Skygear-Session-Valid"
-	headerUserID                = "X-Skygear-User-Id"
-	headerUserVerified          = "X-Skygear-User-Verified"
-	headerUserDisabled          = "X-Skygear-User-Disabled"
-	headerSessionIdentityType   = "X-Skygear-Session-Identity-Type"
-	headerSessionIdentityClaims = "X-Skygear-Session-Identity-Claims"
-	headerSessionAcr            = "X-Skygear-Session-Acr"
-	headerSessionAmr            = "X-Skygear-Session-Amr"
+	headerSessionValid = "X-Skygear-Session-Valid"
+	headerUserID       = "X-Skygear-User-Id"
+	headerUserVerified = "X-Skygear-User-Verified"
+	headerUserDisabled = "X-Skygear-User-Disabled"
+	headerSessionAcr   = "X-Skygear-Session-Acr"
+	headerSessionAmr   = "X-Skygear-Session-Amr"
 )
 
 func (i *Info) PopulateHeaders(rw http.ResponseWriter) {
@@ -60,15 +52,6 @@ func (i *Info) PopulateHeaders(rw http.ResponseWriter) {
 	rw.Header().Set(headerUserVerified, strconv.FormatBool(i.UserVerified))
 	rw.Header().Set(headerUserDisabled, strconv.FormatBool(i.UserDisabled))
 
-	rw.Header().Set(headerSessionIdentityType, string(i.SessionIdentityType))
-
-	claimsJSON, err := json.Marshal(i.SessionIdentityClaims)
-	if err != nil {
-		panic(err)
-	}
-	claims := base64.RawURLEncoding.EncodeToString(claimsJSON)
-	rw.Header().Set(headerSessionIdentityClaims, claims)
-
 	rw.Header().Set(headerSessionAcr, i.SessionACR)
 	rw.Header().Set(headerSessionAmr, strings.Join(i.SessionAMR, " "))
 }
@@ -79,10 +62,9 @@ func (i *Info) SessionType() SessionType { return SessionTypeAuthnInfo }
 
 func (i *Info) AuthnAttrs() *Attrs {
 	return &Attrs{
-		UserID:       i.UserID,
-		IdentityType: i.SessionIdentityType,
-		ACR:          i.SessionACR,
-		AMR:          i.SessionAMR,
+		UserID: i.UserID,
+		ACR:    i.SessionACR,
+		AMR:    i.SessionAMR,
 	}
 }
 
@@ -110,16 +92,6 @@ func ParseHeaders(r *http.Request) (*Info, error) {
 		return nil, err
 	}
 	if i.UserDisabled, err = strconv.ParseBool(r.Header.Get(headerUserDisabled)); err != nil {
-		return nil, err
-	}
-
-	i.SessionIdentityType = IdentityType(r.Header.Get(headerSessionIdentityType))
-
-	claimsJSON, err := base64.RawURLEncoding.DecodeString(r.Header.Get(headerSessionIdentityClaims))
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal(claimsJSON, &i.SessionIdentityClaims); err != nil {
 		return nil, err
 	}
 
