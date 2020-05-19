@@ -5,7 +5,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
@@ -28,8 +28,8 @@ func NewEngineWithConfig(
 		FallbackLanguage: tConfig.AppConfig.Localization.FallbackLanguage,
 	})
 
-	e.Register(welcemail.TemplateWelcomeEmailTXT)
-	e.Register(welcemail.TemplateWelcomeEmailHTML)
+	e.Register(welcomemessage.TemplateWelcomeEmailTXT)
+	e.Register(welcomemessage.TemplateWelcomeEmailHTML)
 
 	e.Register(userverify.TemplateUserVerificationSMSTXT)
 	e.Register(userverify.TemplateUserVerificationEmailTXT)

@@ -38,7 +38,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/skygeario/skygear-server/pkg/auth/deps"
 	"github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -248,7 +248,7 @@ var CommonDependencySet = wire.NewSet(
 	oauthredis.DependencySet,
 	oidc.DependencySet,
 	oidchandler.DependencySet,
-	welcemail.DependencySet,
+	welcomemessage.DependencySet,
 	userverify.DependencySet,
 	forgotpassword.DependencySet,
 	challengeDependencySet,

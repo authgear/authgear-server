@@ -13,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -24,28 +23,6 @@ import (
 )
 
 // Injectors from wire.go:
-
-func newWelcomeEmailSendTask(ctx context.Context, m auth.DependencyMap) async.Task {
-	tenantConfiguration := auth.ProvideTenantConfig(ctx, m)
-	sender := mail.ProvideMailSender(ctx, tenantConfiguration)
-	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
-	welcemailSender := welcemail.NewDefaultSender(tenantConfiguration, sender, engine)
-	provider := time.NewProvider()
-	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
-	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
-	sqlExecutor := db.ProvideSQLExecutor(ctx, tenantConfiguration)
-	store := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
-	txContext := db.ProvideTxContext(ctx, tenantConfiguration)
-	requestID := ProvideLoggingRequestID(ctx)
-	factory := logging.ProvideLoggerFactory(ctx, requestID, tenantConfiguration)
-	welcomeEmailSendTask := &WelcomeEmailSendTask{
-		WelcomeEmailSender: welcemailSender,
-		UserProfileStore:   store,
-		TxContext:          txContext,
-		LoggerFactory:      factory,
-	}
-	return welcomeEmailSendTask
-}
 
 func newVerifyCodeSendTask(ctx context.Context, m auth.DependencyMap) async.Task {
 	tenantConfiguration := auth.ProvideTenantConfig(ctx, m)

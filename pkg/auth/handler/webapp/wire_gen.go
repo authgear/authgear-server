@@ -37,6 +37,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -97,7 +98,9 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -200,7 +203,9 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -301,7 +306,9 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,
@@ -372,7 +379,9 @@ func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,
@@ -443,7 +452,9 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,
@@ -514,7 +525,9 @@ func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,
@@ -583,7 +596,9 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -682,7 +697,9 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -781,7 +798,9 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -906,7 +925,9 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -1006,7 +1027,9 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -1105,7 +1128,9 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -1254,7 +1279,9 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,

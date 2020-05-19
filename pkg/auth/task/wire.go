@@ -16,16 +16,6 @@ var DependencySet = wire.NewSet(
 	ProvideLoggingRequestID,
 )
 
-func newWelcomeEmailSendTask(ctx context.Context, m pkg.DependencyMap) async.Task {
-	wire.Build(
-		pkg.CommonDependencySet,
-		DependencySet,
-		wire.Struct(new(WelcomeEmailSendTask), "*"),
-		wire.Bind(new(async.Task), new(*WelcomeEmailSendTask)),
-	)
-	return nil
-}
-
 func newVerifyCodeSendTask(ctx context.Context, m pkg.DependencyMap) async.Task {
 	wire.Build(
 		pkg.CommonDependencySet,

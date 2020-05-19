@@ -10,11 +10,14 @@ import (
 	task "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
+
+type WelcomeMessageProvider interface {
+	SendToIdentityInfos(infos []*identity.Info) error
+}
 
 type userProvider struct {
 	AuthInfos                     authinfo.Store
@@ -23,8 +26,8 @@ type userProvider struct {
 	Hooks                         hook.Provider
 	URLPrefix                     urlprefix.Provider
 	TaskQueue                     async.Queue
-	WelcomeMessageConfiguration   *config.WelcomeMessageConfiguration
 	UserVerificationConfiguration *config.UserVerificationConfiguration
+	WelcomeMessageProvider        WelcomeMessageProvider
 }
 
 func (p *userProvider) Create(userID string, metadata map[string]interface{}, identities []*identity.Info) error {
@@ -64,8 +67,9 @@ func (p *userProvider) Create(userID string, metadata map[string]interface{}, id
 		return err
 	}
 
-	if p.WelcomeMessageConfiguration.Enabled {
-		p.enqueueSendWelcomeEmailTasks(user, identities)
+	err = p.WelcomeMessageProvider.SendToIdentityInfos(identities)
+	if err != nil {
+		return err
 	}
 
 	if p.UserVerificationConfiguration.AutoSendOnSignup {
@@ -89,38 +93,6 @@ func (p *userProvider) Get(userID string) (*model.User, error) {
 
 	u := model.NewUser(authInfo, userProfile)
 	return &u, nil
-}
-
-func (p *userProvider) enqueueSendWelcomeEmailTasks(user model.User, identities []*identity.Info) {
-	var emails []string
-	for _, i := range identities {
-		if email, ok := i.Claims[string(metadata.Email)].(string); ok {
-			emails = append(emails, email)
-		}
-	}
-
-	if len(emails) == 0 {
-		return
-	}
-
-	var destinationEmails []string
-	switch p.WelcomeMessageConfiguration.Destination {
-	case config.WelcomeMessageDestinationAll:
-		destinationEmails = emails
-	case config.WelcomeMessageDestinationFirst:
-		destinationEmails = emails[:1]
-	}
-
-	for _, email := range destinationEmails {
-		p.TaskQueue.Enqueue(async.TaskSpec{
-			Name: task.WelcomeEmailSendTaskName,
-			Param: task.WelcomeEmailSendTaskParam{
-				URLPrefix: p.URLPrefix.Value(),
-				Email:     email,
-				User:      user,
-			},
-		})
-	}
 }
 
 func (p *userProvider) enqueueSendVerificationCodeTasks(user model.User, identities []*identity.Info) {
