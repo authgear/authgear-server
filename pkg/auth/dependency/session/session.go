@@ -39,9 +39,6 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 	return &model.Session{
 		ID: s.ID,
 
-		IdentityType:   string(s.Attrs.IdentityType),
-		IdentityClaims: s.Attrs.IdentityClaims,
-
 		ACR:              s.Attrs.ACR,
 		AMR:              s.Attrs.AMR,
 		CreatedAt:        s.CreatedAt,

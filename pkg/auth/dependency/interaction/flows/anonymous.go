@@ -94,12 +94,12 @@ func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn
 	if s.CurrentStep().Step != interaction.StepCommit {
 		panic("interaction_flow_anonymous: unexpected interaction state")
 	}
-	attrs, err := f.Interactions.Commit(i)
+	result, err := f.Interactions.Commit(i)
 	if err != nil {
 		return nil, err
 	}
 
-	return attrs, nil
+	return result.Attrs, nil
 }
 
 func (f *AnonymousFlow) DecodeUserID(requestJWT string) (string, anonymous.RequestAction, error) {

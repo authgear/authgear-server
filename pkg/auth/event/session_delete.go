@@ -22,10 +22,9 @@ const (
 			@Response 200 {EmptyResponse}
 */
 type SessionDeleteEvent struct {
-	Reason   string         `json:"reason"`
-	User     model.User     `json:"user"`
-	Identity model.Identity `json:"identity"`
-	Session  model.Session  `json:"session"`
+	Reason  string        `json:"reason"`
+	User    model.User    `json:"user"`
+	Session model.Session `json:"session"`
 }
 
 // @JSONSchema
@@ -66,7 +65,6 @@ const SessionDeleteEventPayloadSchema = `
 	"properties": {
 		"reason": { "type": "string" },
 		"user": { "$ref": "#User" },
-		"identity": { "$ref": "#Identity" },
 		"session": { "$ref": "#Session" }
 	}
 }
@@ -84,9 +82,8 @@ func (event SessionDeleteEvent) WithMutationsApplied(mutations Mutations) UserAw
 	user := event.User
 	mutations.ApplyToUser(&user)
 	return SessionDeleteEvent{
-		Reason:   event.Reason,
-		User:     user,
-		Identity: event.Identity,
+		Reason: event.Reason,
+		User:   user,
 	}
 }
 

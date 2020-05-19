@@ -62,7 +62,7 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(
 	if s.CurrentStep().Step != interaction.StepCommit {
 		panic("interaction_flow_auth_api: unexpected interaction state")
 	}
-	attrs, err := f.Interactions.Commit(i)
+	result, err := f.Interactions.Commit(i)
 	if err != nil {
 		return "", err
 	}
@@ -71,12 +71,12 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(
 	i, err = f.Interactions.NewInteractionLoginAs(
 		&interaction.IntentLogin{
 			Identity: identity.Spec{
-				Type:   attrs.IdentityType,
-				Claims: attrs.IdentityClaims,
+				Type:   result.Identity.Type,
+				Claims: result.Identity.Claims,
 			},
 			OriginalIntentType: i.Intent.Type(),
 		},
-		attrs.UserID,
+		result.Attrs.UserID,
 		i.Identity,
 		i.PrimaryAuthenticator,
 		i.ClientID,
@@ -140,11 +140,11 @@ func (f *AuthAPIFlow) ExchangeCode(interactionToken string, verifier string) (*A
 
 	if _, ok := i.Intent.(*interaction.IntentAddIdentity); ok {
 		// link
-		attrs, err := f.Interactions.Commit(i)
+		ir, err := f.Interactions.Commit(i)
 		if err != nil {
 			return nil, err
 		}
-		result, err := f.UserController.MakeAuthResult(attrs)
+		result, err := f.UserController.MakeAuthResult(ir.Attrs)
 		if err != nil {
 			return nil, err
 		}
@@ -161,12 +161,12 @@ func (f *AuthAPIFlow) ExchangeCode(interactionToken string, verifier string) (*A
 		panic("interaction_flow_auth_api: TODO: handle MFA")
 
 	case interaction.StepCommit:
-		attrs, err := f.Interactions.Commit(i)
+		ir, err := f.Interactions.Commit(i)
 		if err != nil {
 			return nil, err
 		}
 
-		result, err := f.UserController.CreateSession(i, attrs, true)
+		result, err := f.UserController.CreateSession(i, ir, true)
 		if err != nil {
 			return nil, err
 		}

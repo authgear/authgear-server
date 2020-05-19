@@ -37,20 +37,19 @@ type SessionManager struct {
 	AccessTokenSessions AccessTokenSessionManager
 }
 
-func (m *SessionManager) loadModels(session AuthSession) (*model.User, *model.Identity, error) {
+func (m *SessionManager) loadUser(session AuthSession) (*model.User, error) {
 	authInfo := &authinfo.AuthInfo{}
 	if err := m.AuthInfoStore.GetAuth(session.AuthnAttrs().UserID, authInfo); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	profile, err := m.UserProfileStore.GetUserProfile(session.AuthnAttrs().UserID)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	user := model.NewUser(*authInfo, profile)
-	identity := model.NewIdentityFromAttrs(session.AuthnAttrs())
-	return &user, &identity, nil
+	return &user, nil
 }
 
 func (m *SessionManager) resolveManagementProvider(session AuthSession) SessionManagementProvider {
@@ -65,7 +64,7 @@ func (m *SessionManager) resolveManagementProvider(session AuthSession) SessionM
 }
 
 func (m *SessionManager) invalidate(session AuthSession, reason SessionDeleteReason) (SessionManagementProvider, error) {
-	user, identity, err := m.loadModels(session)
+	user, err := m.loadUser(session)
 	if err != nil {
 		return nil, err
 	}
@@ -73,10 +72,9 @@ func (m *SessionManager) invalidate(session AuthSession, reason SessionDeleteRea
 
 	err = m.Hooks.DispatchEvent(
 		event.SessionDeleteEvent{
-			Reason:   string(reason),
-			User:     *user,
-			Identity: *identity,
-			Session:  *s,
+			Reason:  string(reason),
+			User:    *user,
+			Session: *s,
 		},
 		user,
 	)

@@ -56,7 +56,7 @@ func (c *UserController) makeResponse(attrs *authn.Attrs) (*model.AuthResponse, 
 
 func (c *UserController) CreateSession(
 	i *interaction.Interaction,
-	attrs *authn.Attrs,
+	ir *interaction.Result,
 	isAuthAPI bool,
 ) (*AuthResult, error) {
 	client, ok := coremodel.GetClientConfig(c.Clients, i.ClientID)
@@ -64,7 +64,7 @@ func (c *UserController) CreateSession(
 		return nil, interaction.ErrInvalidCredentials
 	}
 
-	resp, err := c.makeResponse(attrs)
+	resp, err := c.makeResponse(ir.Attrs)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (c *UserController) CreateSession(
 	var authSession auth.AuthSession
 	if isAuthAPI && !client.AuthAPIUseCookie() {
 		session, resp, err := c.TokenIssuer.IssueAuthAPITokens(
-			client, attrs,
+			client, ir.Attrs,
 		)
 		if err != nil {
 			return nil, err
@@ -84,7 +84,7 @@ func (c *UserController) CreateSession(
 		result.Response.RefreshToken = resp.GetRefreshToken()
 		result.Response.ExpiresIn = resp.GetExpiresIn()
 	} else {
-		session, token := c.Sessions.MakeSession(attrs)
+		session, token := c.Sessions.MakeSession(ir.Attrs)
 		err = c.Sessions.Create(session)
 		if err != nil {
 			return nil, err
@@ -96,7 +96,7 @@ func (c *UserController) CreateSession(
 
 	result.Response.SessionID = authSession.SessionID()
 
-	identity := model.NewIdentityFromAttrs(attrs)
+	identity := model.NewIdentity(ir.Identity)
 	reason := auth.SessionCreateReasonLogin
 	if intent, ok := i.Intent.(*interaction.IntentLogin); ok {
 		if intent.OriginalIntentType == interaction.IntentTypeSignup {
@@ -108,7 +108,7 @@ func (c *UserController) CreateSession(
 		event.SessionCreateEvent{
 			Reason:   string(reason),
 			User:     result.Response.User,
-			Identity: identity,
+			Identity: *identity,
 			Session:  *authSession.ToAPIModel(),
 		},
 		&result.Response.User,
@@ -117,7 +117,7 @@ func (c *UserController) CreateSession(
 		return nil, err
 	}
 
-	err = c.updateLoginTime(attrs.UserID)
+	err = c.updateLoginTime(ir.Attrs.UserID)
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
-func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
+func (p *Provider) Commit(i *Interaction) (*Result, error) {
 	if i.saved {
 		panic("interaction: see NOTE(interaction): save-commit")
 	}
@@ -80,15 +80,16 @@ func (p *Provider) Commit(i *Interaction) (*authn.Attrs, error) {
 	}
 
 	attrs := &authn.Attrs{
-		UserID:         i.UserID,
-		IdentityType:   identity.Type,
-		IdentityClaims: identity.Claims,
+		UserID: i.UserID,
 		// TODO(interaction): populate acr & amr
 	}
 
 	i.committed = true
 
-	return attrs, nil
+	return &Result{
+		Attrs:    attrs,
+		Identity: identity,
+	}, nil
 }
 
 func (p *Provider) onCommitLogin(i *Interaction, intent *IntentLogin) error {

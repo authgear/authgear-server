@@ -8,10 +8,8 @@ import (
 type Session struct {
 	ID string `json:"id"`
 
-	IdentityType   string                 `json:"identity_type"`
-	IdentityClaims map[string]interface{} `json:"identity_claims"`
-	ACR            string                 `json:"acr,omitempty"`
-	AMR            []string               `json:"amr,omitempty"`
+	ACR string   `json:"acr,omitempty"`
+	AMR []string `json:"amr,omitempty"`
 
 	CreatedAt        time.Time `json:"created_at"`
 	LastAccessedAt   time.Time `json:"last_accessed_at"`

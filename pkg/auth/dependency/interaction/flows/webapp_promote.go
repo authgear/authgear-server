@@ -12,14 +12,14 @@ const (
 	WebAppExtraStateAnonymousUserPromotion string = "https://auth.skygear.io/claims/web_app/anonymous_user_promotion"
 )
 
-func (f *WebAppFlow) afterAnonymousUserPromotion(attrs *authn.Attrs) (*WebAppResult, error) {
+func (f *WebAppFlow) afterAnonymousUserPromotion(ir *interaction.Result) (*WebAppResult, error) {
 	// Remove anonymous identity
 	i, err := f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
 		Identity: identity.Spec{
 			Type:   authn.IdentityTypeAnonymous,
 			Claims: map[string]interface{}{},
 		},
-	}, "", attrs.UserID)
+	}, "", ir.Attrs.UserID)
 	if err != nil {
 		return nil, err
 	}

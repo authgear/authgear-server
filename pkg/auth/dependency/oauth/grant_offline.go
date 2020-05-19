@@ -47,9 +47,6 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 	return &model.Session{
 		ID: g.ID,
 
-		IdentityType:   string(g.Attrs.IdentityType),
-		IdentityClaims: g.Attrs.IdentityClaims,
-
 		AMR: g.Attrs.AMR,
 		ACR: g.Attrs.ACR,
 
