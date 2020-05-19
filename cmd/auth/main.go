@@ -15,7 +15,6 @@ import (
 	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
 	gearHandler "github.com/skygeario/skygear-server/pkg/auth/handler/gear"
 	loginidhandler "github.com/skygeario/skygear-server/pkg/auth/handler/loginid"
-	mfaHandler "github.com/skygeario/skygear-server/pkg/auth/handler/mfa"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
@@ -118,18 +117,6 @@ func main() {
 
 		forgotpwdhandler.ForgotPasswordRequestSchema,
 		forgotpwdhandler.ForgotPasswordResetRequestSchema,
-
-		mfaHandler.ActivateOOBRequestSchema,
-		mfaHandler.ActivateTOTPRequestSchema,
-		mfaHandler.AuthenticateBearerTokenRequestSchema,
-		mfaHandler.AuthenticateOOBRequestSchema,
-		mfaHandler.AuthenticateRecoveryCodeRequestSchema,
-		mfaHandler.AuthenticateTOTPRequestSchema,
-		mfaHandler.CreateOOBRequestSchema,
-		mfaHandler.CreateTOTPRequestSchema,
-		mfaHandler.DeleteAuthenticatorRequestSchema,
-		mfaHandler.ListAuthenticatorRequestSchema,
-		mfaHandler.TriggerOOBRequestSchema,
 
 		session.GetRequestSchema,
 		session.RevokeRequestSchema,
@@ -318,20 +305,6 @@ func main() {
 	session.AttachRevokeHandler(apiRouter, authDependency)
 	session.AttachRevokeAllHandler(apiRouter, authDependency)
 	session.AttachResolveHandler(apiRouter, authDependency)
-	mfaHandler.AttachListRecoveryCodeHandler(apiRouter, authDependency)
-	mfaHandler.AttachRegenerateRecoveryCodeHandler(apiRouter, authDependency)
-	mfaHandler.AttachListAuthenticatorHandler(apiRouter, authDependency)
-	mfaHandler.AttachCreateTOTPHandler(apiRouter, authDependency)
-	mfaHandler.AttachActivateTOTPHandler(apiRouter, authDependency)
-	mfaHandler.AttachDeleteAuthenticatorHandler(apiRouter, authDependency)
-	mfaHandler.AttachAuthenticateTOTPHandler(apiRouter, authDependency)
-	mfaHandler.AttachRevokeAllBearerTokenHandler(apiRouter, authDependency)
-	mfaHandler.AttachAuthenticateRecoveryCodeHandler(apiRouter, authDependency)
-	mfaHandler.AttachAuthenticateBearerTokenHandler(apiRouter, authDependency)
-	mfaHandler.AttachCreateOOBHandler(apiRouter, authDependency)
-	mfaHandler.AttachTriggerOOBHandler(apiRouter, authDependency)
-	mfaHandler.AttachActivateOOBHandler(apiRouter, authDependency)
-	mfaHandler.AttachAuthenticateOOBHandler(apiRouter, authDependency)
 	gearHandler.AttachTemplatesHandler(apiRouter, authDependency)
 	loginidhandler.AttachAddLoginIDHandler(apiRouter, authDependency)
 	loginidhandler.AttachRemoveLoginIDHandler(apiRouter, authDependency)
