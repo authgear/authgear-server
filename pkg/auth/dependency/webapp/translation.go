@@ -13,7 +13,7 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	Type: TemplateItemTypeAuthUITranslationJSON,
 	Default: `{
 	"error-email-or-username-required": "Email or Username is required",
-	"error-password-required": "Password is required",
+	"error-password-or-code-required": "Password or Code is required",
 	"error-calling-code-required": "Calling code is required",
 	"error-phone-number-required": "Phone number is required",
 	"error-phone-number-format": "Phone number must contains digits only",
@@ -21,6 +21,8 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"error-invalid-username": "Invalid username",
 	"error-invalid-credentials": "Incorrect email, phone number, username, or password",
 	"error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
+	"error-duplicated-identity": "This identity has been claimed by another user.",
+	"error-remove-last-identity": "Cannot disconnect. You need to keep at least 1 identity.",
 
 	"back-button-title": "Back",
 	"next-button-label": "Next",

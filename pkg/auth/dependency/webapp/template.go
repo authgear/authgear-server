@@ -95,7 +95,7 @@ const defineError = `
 		{{ if and (eq .kind "Required") (eq .pointer "/x_login_id" ) }}
 		<li class="error-txt">{{ localize "error-email-or-username-required" }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_password" ) }}
-		<li class="error-txt">{{ localize "error-password-required" }}</li>
+		<li class="error-txt">{{ localize "error-password-or-code-required" }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_calling_code" ) }}
 		<li class="error-txt">{{ localize "error-calling-code-required" }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_national_number" ) }}
@@ -123,6 +123,10 @@ const defineError = `
 		<!-- This error is handled differently -->
 	{{ else if eq .x_error.reason "PasswordResetFailed" }}
 		<li class="error-txt">{{ localize "error-password-reset-failed" }}</li>
+	{{ else if eq .x_error.reason "DuplicatedIdentity" }}
+		<li class="error-txt">{{ localize "error-duplicated-identity" }}</li>
+	{{ else if eq .x_error.reason "InvalidIdentityRequest" }}
+		<li class="error-txt">{{ localize "error-remove-last-identity" }}</li>
 	{{ else }}
 		<li class="error-txt">{{ .x_error.message }}</li>
 	{{ end }}
