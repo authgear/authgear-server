@@ -84,8 +84,7 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		RecoveryCode: recoverycodeProvider,
 	}
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
-	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
-	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
+	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,
@@ -142,8 +141,7 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		RecoveryCode: recoverycodeProvider,
 	}
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
-	welcomeMessageProvider := interaction.ProvideWelcomeMessageProvider(welcomemessageProvider)
-	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomeMessageProvider)
+	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,

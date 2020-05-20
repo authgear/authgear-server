@@ -157,7 +157,9 @@ var interactionDependencySet = wire.NewSet(
 	interaction.DependencySet,
 	interactionredis.DependencySet,
 	interactionflows.DependencySet,
+	welcomemessage.DependencySet,
 
+	wire.Bind(new(interaction.WelcomeMessageProvider), new(*welcomemessage.Provider)),
 	wire.Bind(new(interaction.OOBProvider), new(*authenticatoroob.Provider)),
 	wire.Bind(new(interaction.IdentityProvider), new(*identityprovider.Provider)),
 	wire.Bind(new(interaction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
@@ -248,7 +250,6 @@ var CommonDependencySet = wire.NewSet(
 	oauthredis.DependencySet,
 	oidc.DependencySet,
 	oidchandler.DependencySet,
-	welcomemessage.DependencySet,
 	userverify.DependencySet,
 	forgotpassword.DependencySet,
 	challengeDependencySet,

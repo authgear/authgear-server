@@ -5,7 +5,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -59,12 +58,7 @@ func ProvideUserProvider(
 	}
 }
 
-func ProvideWelcomeMessageProvider(p *welcomemessage.Provider) WelcomeMessageProvider {
-	return p
-}
-
 var DependencySet = wire.NewSet(
-	ProvideWelcomeMessageProvider,
 	ProvideProvider,
 	ProvideUserProvider,
 )
