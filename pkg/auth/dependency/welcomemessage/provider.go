@@ -24,7 +24,13 @@ func (p *Provider) send(emails []string) (err error) {
 	}
 
 	if p.WelcomeMessageConfiguration.Destination == config.WelcomeMessageDestinationFirst {
-		emails = emails[0:1]
+		if len(emails) > 1 {
+			emails = emails[0:1]
+		}
+	}
+
+	if len(emails) <= 0 {
+		return
 	}
 
 	var emailMessages []mail.SendOptions
