@@ -9,15 +9,24 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
-func provideResolveHandler(m *auth.Middleware, t time.Provider) http.Handler {
+func provideResolveHandler(
+	m *auth.Middleware,
+	lf logging.Factory,
+	t time.Provider,
+	ap *anonymous.Provider,
+) http.Handler {
 	return m.Handle(&ResolveHandler{
-		TimeProvider: t,
+		TimeProvider:  t,
+		LoggerFactory: lf,
+		Anonymous:     ap,
 	})
 }
 
