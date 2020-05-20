@@ -50,31 +50,6 @@ func loginIDFromIdentityInfo(userID string, i *identity.Info) *loginid.Identity 
 	return l
 }
 
-func oauthToIdentityInfo(o *oauth.Identity) *identity.Info {
-	provider := map[string]interface{}{
-		"type": o.ProviderID.Type,
-	}
-	for k, v := range o.ProviderID.Keys {
-		provider[k] = v
-	}
-
-	claims := map[string]interface{}{
-		identity.IdentityClaimOAuthProvider:  provider,
-		identity.IdentityClaimOAuthSubjectID: o.ProviderSubjectID,
-		identity.IdentityClaimOAuthProfile:   o.UserProfile,
-	}
-	for k, v := range o.Claims {
-		claims[k] = v
-	}
-
-	return &identity.Info{
-		Type:     authn.IdentityTypeOAuth,
-		ID:       o.ID,
-		Claims:   claims,
-		Identity: o,
-	}
-}
-
 func oauthFromIdentityInfo(userID string, i *identity.Info) *oauth.Identity {
 	o := &oauth.Identity{
 		ID:     i.ID,
@@ -83,7 +58,7 @@ func oauthFromIdentityInfo(userID string, i *identity.Info) *oauth.Identity {
 	}
 	for k, v := range i.Claims {
 		switch k {
-		case identity.IdentityClaimOAuthProvider:
+		case identity.IdentityClaimOAuthProviderKeys:
 			o.ProviderID.Keys = map[string]interface{}{}
 			for k, v := range v.(map[string]interface{}) {
 				if k == "type" {

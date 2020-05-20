@@ -260,7 +260,7 @@ func TestProviderFlow(t *testing.T) {
 
 			userID := "user_id_1"
 			oauthClaims := map[string]interface{}{
-				identity.IdentityClaimOAuthProvider: map[string]interface{}{
+				identity.IdentityClaimOAuthProviderKeys: map[string]interface{}{
 					"type":   "azureadv2",
 					"tenant": "example",
 				},
@@ -520,7 +520,7 @@ func TestProviderFlow(t *testing.T) {
 					ID:   "identity_id_1",
 					Type: authn.IdentityTypeOAuth,
 					Claims: map[string]interface{}{
-						identity.IdentityClaimOAuthProvider: map[string]interface{}{
+						identity.IdentityClaimOAuthProviderKeys: map[string]interface{}{
 							"type":   "azureadv2",
 							"tenant": "example",
 						},

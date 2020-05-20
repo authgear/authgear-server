@@ -51,10 +51,7 @@ func (p *userProvider) Create(userID string, metadata map[string]interface{}, id
 	user := model.NewUser(*authInfo, userProfile)
 	var identityModels []model.Identity
 	for _, i := range identities {
-		identityModels = append(identityModels, model.Identity{
-			Type:   string(i.Type),
-			Claims: i.Claims,
-		})
+		identityModels = append(identityModels, i.ToModel())
 	}
 	err = p.Hooks.DispatchEvent(
 		event.UserCreateEvent{

@@ -25,10 +25,10 @@ func (f *AuthAPIFlow) LoginWithOAuthProvider(
 ) (string, error) {
 	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
 	claims := map[string]interface{}{
-		identity.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
-		identity.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
-		identity.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
-		identity.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
+		identity.IdentityClaimOAuthProviderKeys: providerID.ClaimsValue(),
+		identity.IdentityClaimOAuthSubjectID:    oauthAuthInfo.ProviderUserInfo.ID,
+		identity.IdentityClaimOAuthProfile:      oauthAuthInfo.ProviderRawProfile,
+		identity.IdentityClaimOAuthClaims:       oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
 	}
 	i, err := f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
 		Identity: identity.Spec{
@@ -93,10 +93,10 @@ func (f *AuthAPIFlow) LinkWithOAuthProvider(
 ) (string, error) {
 	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
 	claims := map[string]interface{}{
-		identity.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
-		identity.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
-		identity.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
-		identity.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
+		identity.IdentityClaimOAuthProviderKeys: providerID.ClaimsValue(),
+		identity.IdentityClaimOAuthSubjectID:    oauthAuthInfo.ProviderUserInfo.ID,
+		identity.IdentityClaimOAuthProfile:      oauthAuthInfo.ProviderRawProfile,
+		identity.IdentityClaimOAuthClaims:       oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
 	}
 	i, err := f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
 		Identity: identity.Spec{
@@ -185,7 +185,7 @@ func (f *AuthAPIFlow) UnlinkkWithOAuthProvider(
 		Identity: identity.Spec{
 			Type: authn.IdentityTypeOAuth,
 			Claims: map[string]interface{}{
-				identity.IdentityClaimOAuthProvider: providerID.ClaimsValue(),
+				identity.IdentityClaimOAuthProviderKeys: providerID.ClaimsValue(),
 			},
 		},
 	}, clientID, userID)

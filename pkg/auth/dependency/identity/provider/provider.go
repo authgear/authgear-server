@@ -82,7 +82,7 @@ func (a *Provider) Get(userID string, typ authn.IdentityType, id string) (*ident
 		if err != nil {
 			return nil, err
 		}
-		return oauthToIdentityInfo(o), nil
+		return a.toIdentityInfo(o), nil
 
 	case authn.IdentityTypeAnonymous:
 		a, err := a.Anonymous.Get(userID, id)
@@ -114,7 +114,7 @@ func (a *Provider) GetByClaims(typ authn.IdentityType, claims map[string]interfa
 		if err != nil {
 			return "", nil, err
 		}
-		return o.UserID, oauthToIdentityInfo(o), nil
+		return o.UserID, a.toIdentityInfo(o), nil
 
 	case authn.IdentityTypeAnonymous:
 		keyID, _ := extractAnonymousClaims(claims)
@@ -141,7 +141,7 @@ func (a *Provider) GetByUserAndClaims(typ authn.IdentityType, userID string, cla
 		if err != nil {
 			return nil, err
 		}
-		return oauthToIdentityInfo(o), nil
+		return a.toIdentityInfo(o), nil
 	case authn.IdentityTypeAnonymous:
 		as, err := a.Anonymous.List(userID)
 		if err != nil {
@@ -180,7 +180,7 @@ func (a *Provider) ListByClaims(claims map[string]string) ([]*identity.Info, err
 			return nil, err
 		}
 		for _, i := range os {
-			all = append(all, oauthToIdentityInfo(i))
+			all = append(all, a.toIdentityInfo(i))
 		}
 
 		// Skip anonymous: no standard claims for anonymous identity
@@ -207,7 +207,7 @@ func (a *Provider) ListByUser(userID string) ([]*identity.Info, error) {
 		return nil, err
 	}
 	for _, i := range ois {
-		iis = append(iis, oauthToIdentityInfo(i))
+		iis = append(iis, a.toIdentityInfo(i))
 	}
 
 	// anonymous
@@ -241,7 +241,7 @@ func (a *Provider) New(userID string, typ authn.IdentityType, claims map[string]
 		}
 
 		o := a.OAuth.New(userID, providerID, subjectID, profile, oidcClaims)
-		return oauthToIdentityInfo(o)
+		return a.toIdentityInfo(o)
 
 	case authn.IdentityTypeAnonymous:
 		keyID, key := extractAnonymousClaims(claims)
@@ -268,7 +268,7 @@ func (a *Provider) WithClaims(userID string, ii *identity.Info, claims map[strin
 		}
 		i := oauthFromIdentityInfo(userID, ii)
 		i.UserProfile = profile
-		return oauthToIdentityInfo(i)
+		return a.toIdentityInfo(i)
 	case authn.IdentityTypeAnonymous:
 		panic("interaction_adaptors: update no support for identity type " + ii.Type)
 	}
@@ -495,6 +495,44 @@ func (a *Provider) ListCandidates(userID string) (out []identity.Candidate, err 
 	return
 }
 
+func (a *Provider) toIdentityInfo(o *oauth.Identity) *identity.Info {
+	provider := map[string]interface{}{
+		"type": o.ProviderID.Type,
+	}
+	for k, v := range o.ProviderID.Keys {
+		provider[k] = v
+	}
+
+	claims := map[string]interface{}{
+		identity.IdentityClaimOAuthProviderKeys: provider,
+		identity.IdentityClaimOAuthProviderType: o.ProviderID.Type,
+		identity.IdentityClaimOAuthSubjectID:    o.ProviderSubjectID,
+		identity.IdentityClaimOAuthProfile:      o.UserProfile,
+	}
+
+	alias := ""
+	for _, providerConfig := range a.Identity.OAuth.Providers {
+		providerID := oauth.NewProviderID(providerConfig)
+		if providerID.Equal(&o.ProviderID) {
+			alias = providerConfig.ID
+		}
+	}
+	if alias != "" {
+		claims[identity.IdentityClaimOAuthProviderAlias] = alias
+	}
+
+	for k, v := range o.Claims {
+		claims[k] = v
+	}
+
+	return &identity.Info{
+		Type:     authn.IdentityTypeOAuth,
+		ID:       o.ID,
+		Claims:   claims,
+		Identity: o,
+	}
+}
+
 func extractLoginIDClaims(claims map[string]interface{}) loginid.LoginID {
 	loginIDKey := ""
 	if v, ok := claims[identity.IdentityClaimLoginIDKey]; ok {
@@ -522,9 +560,9 @@ func extractOAuthClaims(claims map[string]interface{}) (providerID oauth.Provide
 }
 
 func extractOAuthProviderClaims(claims map[string]interface{}) oauth.ProviderID {
-	provider, ok := claims[identity.IdentityClaimOAuthProvider].(map[string]interface{})
+	provider, ok := claims[identity.IdentityClaimOAuthProviderKeys].(map[string]interface{})
 	if !ok {
-		panic(fmt.Sprintf("interaction_adaptors: expect map provider claim, got %T", claims[identity.IdentityClaimOAuthProvider]))
+		panic(fmt.Sprintf("interaction_adaptors: expect map provider claim, got %T", claims[identity.IdentityClaimOAuthProviderKeys]))
 	}
 
 	providerID := oauth.ProviderID{Keys: map[string]interface{}{}}

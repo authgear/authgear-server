@@ -140,10 +140,7 @@ func (p *Provider) onCommitAddIdentity(i *Interaction, intent *IntentAddIdentity
 	}
 
 	for _, i := range i.NewIdentities {
-		identity := model.Identity{
-			Type:   string(i.Type),
-			Claims: i.Claims,
-		}
+		identity := i.ToModel()
 		err = p.Hooks.DispatchEvent(
 			event.IdentityCreateEvent{
 				User:     *user,
@@ -203,10 +200,7 @@ func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveId
 	}
 
 	for _, i := range i.RemoveIdentities {
-		identity := model.Identity{
-			Type:   string(i.Type),
-			Claims: i.Claims,
-		}
+		identity := i.ToModel()
 		err = p.Hooks.DispatchEvent(
 			event.IdentityDeleteEvent{
 				User:     *user,
@@ -287,14 +281,8 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 	if err != nil {
 		return err
 	}
-	originalIdentity := model.Identity{
-		Type:   string(updateIdentityInfo.Type),
-		Claims: originalIdentityInfo.Claims,
-	}
-	updatedIdentity := model.Identity{
-		Type:   string(updateIdentityInfo.Type),
-		Claims: updateIdentityInfo.Claims,
-	}
+	originalIdentity := originalIdentityInfo.ToModel()
+	updatedIdentity := updateIdentityInfo.ToModel()
 	err = p.Hooks.DispatchEvent(
 		event.IdentityUpdateEvent{
 			User:        *user,

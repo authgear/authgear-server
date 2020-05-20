@@ -15,10 +15,10 @@ import (
 func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
 	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
 	claims := map[string]interface{}{
-		identity.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
-		identity.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
-		identity.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
-		identity.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
+		identity.IdentityClaimOAuthProviderKeys: providerID.ClaimsValue(),
+		identity.IdentityClaimOAuthSubjectID:    oauthAuthInfo.ProviderUserInfo.ID,
+		identity.IdentityClaimOAuthProfile:      oauthAuthInfo.ProviderRawProfile,
+		identity.IdentityClaimOAuthClaims:       oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
 	}
 	i, err := f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
 		Identity: identity.Spec{
@@ -79,10 +79,10 @@ func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebApp
 func (f *WebAppFlow) LinkWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (result *WebAppResult, err error) {
 	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
 	claims := map[string]interface{}{
-		identity.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
-		identity.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
-		identity.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
-		identity.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
+		identity.IdentityClaimOAuthProviderKeys: providerID.ClaimsValue(),
+		identity.IdentityClaimOAuthSubjectID:    oauthAuthInfo.ProviderUserInfo.ID,
+		identity.IdentityClaimOAuthProfile:      oauthAuthInfo.ProviderRawProfile,
+		identity.IdentityClaimOAuthClaims:       oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
 	}
 
 	clientID := ""
@@ -126,7 +126,7 @@ func (f *WebAppFlow) UnlinkWithOAuthProvider(userID string, providerConfig confi
 		Identity: identity.Spec{
 			Type: authn.IdentityTypeOAuth,
 			Claims: map[string]interface{}{
-				identity.IdentityClaimOAuthProvider: providerID.ClaimsValue(),
+				identity.IdentityClaimOAuthProviderKeys: providerID.ClaimsValue(),
 			},
 		},
 	}, clientID, userID)
@@ -158,10 +158,10 @@ func (f *WebAppFlow) UnlinkWithOAuthProvider(userID string, providerConfig confi
 func (f *WebAppFlow) PromoteWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
 	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
 	claims := map[string]interface{}{
-		identity.IdentityClaimOAuthProvider:  providerID.ClaimsValue(),
-		identity.IdentityClaimOAuthSubjectID: oauthAuthInfo.ProviderUserInfo.ID,
-		identity.IdentityClaimOAuthProfile:   oauthAuthInfo.ProviderRawProfile,
-		identity.IdentityClaimOAuthClaims:    oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
+		identity.IdentityClaimOAuthProviderKeys: providerID.ClaimsValue(),
+		identity.IdentityClaimOAuthSubjectID:    oauthAuthInfo.ProviderUserInfo.ID,
+		identity.IdentityClaimOAuthProfile:      oauthAuthInfo.ProviderRawProfile,
+		identity.IdentityClaimOAuthClaims:       oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
 	}
 
 	clientID := ""

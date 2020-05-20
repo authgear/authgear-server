@@ -38,16 +38,19 @@ func TestProviderCommit(t *testing.T) {
 		}
 		userID := "userid1"
 		loginID1 := &identity.Info{
-			ID:   "iid1",
-			Type: authn.IdentityTypeLoginID,
+			ID:     "iid1",
+			Type:   authn.IdentityTypeLoginID,
+			Claims: make(map[string]interface{}),
 		}
 		loginID2 := &identity.Info{
-			ID:   "iid2",
-			Type: authn.IdentityTypeLoginID,
+			ID:     "iid2",
+			Type:   authn.IdentityTypeLoginID,
+			Claims: make(map[string]interface{}),
 		}
 		oauthID := &identity.Info{
-			ID:   "iid3",
-			Type: authn.IdentityTypeOAuth,
+			ID:     "iid3",
+			Type:   authn.IdentityTypeOAuth,
+			Claims: make(map[string]interface{}),
 		}
 		pwAuthenticator := &authenticator.Info{
 			ID:   "aid1",

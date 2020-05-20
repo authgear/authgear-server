@@ -14,21 +14,10 @@
 
 package model
 
-import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-)
-
 // Identity is an identity of user
 type Identity struct {
 	Type   string                 `json:"type"`
 	Claims map[string]interface{} `json:"claims"`
-}
-
-func NewIdentity(info identity.Info) *Identity {
-	return &Identity{
-		Type:   string(info.Type),
-		Claims: info.Claims,
-	}
 }
 
 // @JSONSchema

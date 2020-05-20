@@ -96,7 +96,7 @@ func (c *UserController) CreateSession(
 
 	result.Response.SessionID = authSession.SessionID()
 
-	identity := model.NewIdentity(ir.Identity)
+	identity := ir.Identity.ToModel()
 	reason := auth.SessionCreateReasonLogin
 	if intent, ok := i.Intent.(*interaction.IntentLogin); ok {
 		if intent.OriginalIntentType == interaction.IntentTypeSignup {
@@ -108,7 +108,7 @@ func (c *UserController) CreateSession(
 		event.SessionCreateEvent{
 			Reason:   string(reason),
 			User:     result.Response.User,
-			Identity: *identity,
+			Identity: identity,
 			Session:  *authSession.ToAPIModel(),
 		},
 		&result.Response.User,

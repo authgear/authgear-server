@@ -38,9 +38,9 @@ func (m *MockListIdentityProvider) ListByUser(userID string) ([]*identity.Info, 
 		&identity.Info{
 			Type: authn.IdentityTypeOAuth,
 			Claims: map[string]interface{}{
-				"email":                              "user1@example.com",
-				identity.IdentityClaimOAuthProvider:  map[string]interface{}{"type": "google"},
-				identity.IdentityClaimOAuthSubjectID: "google-user-id",
+				"email":                                 "user1@example.com",
+				identity.IdentityClaimOAuthProviderKeys: map[string]interface{}{"type": "google"},
+				identity.IdentityClaimOAuthSubjectID:    "google-user-id",
 				identity.IdentityClaimOAuthProfile: map[string]interface{}{
 					"email": "user1@example.com",
 					"name":  "User 1",
@@ -88,7 +88,6 @@ func TestListIdentitiesHandler(t *testing.T) {
 							"type": "oauth",
 							"claims": {
 								"email": "user1@example.com",
-								"https://auth.skygear.io/claims/oauth/provider": {"type": "google"},
 								"https://auth.skygear.io/claims/oauth/subject_id": "google-user-id",
 								"https://auth.skygear.io/claims/oauth/profile": {
 									"email": "user1@example.com",

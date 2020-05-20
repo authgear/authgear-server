@@ -102,10 +102,7 @@ func (h ListIdentitiesHandler) Handle(w http.ResponseWriter, r *http.Request) (r
 
 		identities := make([]model.Identity, len(iis))
 		for i, ii := range iis {
-			identities[i] = model.Identity{
-				Type:   string(ii.Type),
-				Claims: ii.Claims,
-			}
+			identities[i] = ii.ToModel()
 		}
 
 		resp = IdentityListResponse{Identities: identities}

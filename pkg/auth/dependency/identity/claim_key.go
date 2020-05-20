@@ -1,8 +1,15 @@
 package identity
 
 const (
-	// IdentityClaimOAuthProvider is a claim with a map value like `{ "type": "azureadv2", "tenant": "test" }`.
-	IdentityClaimOAuthProvider string = "https://auth.skygear.io/claims/oauth/provider"
+	// IdentityClaimOAuthProviderType is a claim with a string value.
+	// This claim is intended for external use only.
+	IdentityClaimOAuthProviderType string = "https://auth.skygear.io/claims/oauth/provider_type"
+	// IdentityClaimOAuthProviderAlias is a claim with a string value.
+	// This claim is intended for external use only.
+	IdentityClaimOAuthProviderAlias string = "https://auth.skygear.io/claims/oauth/provider_alias"
+	// IdentityClaimOAuthProviderKeys is a claim with a map value like `{ "type": "azureadv2", "tenant": "test" }`.
+	// This claim is intended for internal use only.
+	IdentityClaimOAuthProviderKeys string = "https://auth.skygear.io/claims/oauth/provider_keys"
 	// IdentityClaimOAuthSubjectID is a claim with a string value like `1098765432`.
 	IdentityClaimOAuthSubjectID string = "https://auth.skygear.io/claims/oauth/subject_id"
 	// IdentityClaimOAuthData is a claim with a map value containing raw OAuth provider profile.
