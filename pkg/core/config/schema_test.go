@@ -303,7 +303,7 @@ func TestParseAppConfiguration(t *testing.T) {
 			"/authenticator/recovery_code/list_enabled: Type map[expected:boolean]",
 			"/authenticator/totp/maximum: NumberRange map[lte:999]",
 		)
-		// WelcomeEmailConfiguration
+		// WelcomeMessageConfiguration
 		test(`
 			{
 				"api_version": "v2.1",
@@ -335,11 +335,11 @@ func TestParseAppConfiguration(t *testing.T) {
 				"hook": {
 					"secret": "hooksecret"
 				},
-				"welcome_email": {
+				"welcome_message": {
 					"destination": "invalid"
 				}
 			}`,
-			"/welcome_email/destination: Enum map[expected:[first all]]",
+			"/welcome_message/destination: Enum map[expected:[first all]]",
 		)
 		// OAuth
 		test(`

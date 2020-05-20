@@ -38,7 +38,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/skygeario/skygear-server/pkg/auth/deps"
 	"github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -157,7 +157,9 @@ var interactionDependencySet = wire.NewSet(
 	interaction.DependencySet,
 	interactionredis.DependencySet,
 	interactionflows.DependencySet,
+	welcomemessage.DependencySet,
 
+	wire.Bind(new(interaction.WelcomeMessageProvider), new(*welcomemessage.Provider)),
 	wire.Bind(new(interaction.OOBProvider), new(*authenticatoroob.Provider)),
 	wire.Bind(new(interaction.IdentityProvider), new(*identityprovider.Provider)),
 	wire.Bind(new(interaction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
@@ -248,7 +250,6 @@ var CommonDependencySet = wire.NewSet(
 	oauthredis.DependencySet,
 	oidc.DependencySet,
 	oidchandler.DependencySet,
-	welcemail.DependencySet,
 	userverify.DependencySet,
 	forgotpassword.DependencySet,
 	challengeDependencySet,

@@ -44,6 +44,7 @@ func ProvideUserProvider(
 	up urlprefix.Provider,
 	q async.Queue,
 	config *config.TenantConfiguration,
+	wmp WelcomeMessageProvider,
 ) UserProvider {
 	return &userProvider{
 		AuthInfos:                     ais,
@@ -52,8 +53,8 @@ func ProvideUserProvider(
 		Hooks:                         hp,
 		URLPrefix:                     up,
 		TaskQueue:                     q,
-		WelcomeEmailConfiguration:     config.AppConfig.WelcomeEmail,
 		UserVerificationConfiguration: config.AppConfig.UserVerification,
+		WelcomeMessageProvider:        wmp,
 	}
 }
 

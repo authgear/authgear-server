@@ -24,6 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -82,7 +83,8 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,
@@ -138,7 +140,8 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	userProvider := interaction.ProvideUserProvider(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,

@@ -71,7 +71,7 @@ var (
 			"auth_ui": { "$ref": "#AuthUIConfiguration" },
 			"authenticator": { "$ref": "#AuthenticatorConfiguration" },
 			"forgot_password": { "$ref": "#ForgotPasswordConfiguration" },
-			"welcome_email": { "$ref": "#WelcomeEmailConfiguration" },
+			"welcome_message": { "$ref": "#WelcomeMessageConfiguration" },
 			"identity": { "$ref": "#IdentityConfiguration" },
 			"user_verification": { "$ref": "#UserVerificationConfiguration" },
 			"hook": { "$ref": "#HookAppConfiguration" },
@@ -382,13 +382,13 @@ var (
 			"reset_code_lifetime": { "$ref": "#NonNegativeInteger" }
 		}
 	},
-	"WelcomeEmailConfiguration": {
-		"$id": "#WelcomeEmailConfiguration",
+	"WelcomeMessageConfiguration": {
+		"$id": "#WelcomeMessageConfiguration",
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
 			"enabled": { "type": "boolean" },
-			"message": { "$ref": "#EmailMessageConfiguration" },
+			"email_message": { "$ref": "#EmailMessageConfiguration" },
 			"destination": {
 				"type": "string",
 				"enum": ["first", "all"]

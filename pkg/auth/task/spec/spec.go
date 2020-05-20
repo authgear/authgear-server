@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 )
@@ -36,18 +35,6 @@ type VerifyCodeSendTaskParam struct {
 	URLPrefix *url.URL
 	LoginID   string
 	UserID    string
-}
-
-const (
-	// TODO(welcome): Remove WelcomeEmailSendTask and use SendMessagesTask
-	// WelcomeEmailSendTaskName provides the name for submiting WelcomeEmailSendTask
-	WelcomeEmailSendTaskName = "WelcomeEmailSendTask"
-)
-
-type WelcomeEmailSendTaskParam struct {
-	URLPrefix *url.URL
-	Email     string
-	User      model.User
 }
 
 const (

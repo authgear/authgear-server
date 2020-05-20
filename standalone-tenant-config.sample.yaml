@@ -24,7 +24,7 @@ app_config:
     secret: assetsecret
   hook:
     secret: hooksecret
-  welcome_email:
+  welcome_message:
     enabled: true
   user_verification:
     login_id_keys:

@@ -33,6 +33,7 @@ import (
 	redis4 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -87,7 +88,8 @@ func newAddLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -169,7 +171,8 @@ func newRemoveLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -247,7 +250,8 @@ func newUpdateLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration)
+	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,

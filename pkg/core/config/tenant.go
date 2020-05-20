@@ -432,11 +432,11 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.AppConfig.UserVerification.LoginIDKeys[i] = config
 	}
 
-	// Set default WelcomeEmailConfiguration
-	if c.AppConfig.WelcomeEmail.Destination == "" {
-		c.AppConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
+	// Set default WelcomeMessageConfiguration
+	if c.AppConfig.WelcomeMessage.Destination == "" {
+		c.AppConfig.WelcomeMessage.Destination = WelcomeMessageDestinationFirst
 	}
-	emailMsg = c.AppConfig.WelcomeEmail.Message
+	emailMsg = c.AppConfig.WelcomeMessage.EmailMessage
 	if emailMsg["subject"] == "" {
 		emailMsg["subject"] = "Welcome!"
 	}
@@ -554,7 +554,7 @@ type AppConfiguration struct {
 	OIDC             *OIDCConfiguration             `json:"oidc,omitempty" yaml:"oidc" msg:"oidc" default_zero_value:"true"`
 	Authenticator    *AuthenticatorConfiguration    `json:"authenticator,omitempty" yaml:"authenticator" msg:"authenticator" default_zero_value:"true"`
 	ForgotPassword   *ForgotPasswordConfiguration   `json:"forgot_password,omitempty" yaml:"forgot_password" msg:"forgot_password" default_zero_value:"true"`
-	WelcomeEmail     *WelcomeEmailConfiguration     `json:"welcome_email,omitempty" yaml:"welcome_email" msg:"welcome_email" default_zero_value:"true"`
+	WelcomeMessage   *WelcomeMessageConfiguration   `json:"welcome_message,omitempty" yaml:"welcome_message" msg:"welcome_message" default_zero_value:"true"`
 	Identity         *IdentityConfiguration         `json:"identity,omitempty" yaml:"identity" msg:"identity" default_zero_value:"true"`
 	UserVerification *UserVerificationConfiguration `json:"user_verification,omitempty" yaml:"user_verification" msg:"user_verification" default_zero_value:"true"`
 	Hook             *HookAppConfiguration          `json:"hook,omitempty" yaml:"hook" msg:"hook" default_zero_value:"true"`
@@ -692,21 +692,21 @@ type ForgotPasswordConfiguration struct {
 	ResetCodeLifetime int                       `json:"reset_code_lifetime,omitempty" yaml:"reset_code_lifetime" msg:"reset_code_lifetime"`
 }
 
-type WelcomeEmailDestination string
+type WelcomeMessageDestination string
 
 const (
-	WelcomeEmailDestinationFirst WelcomeEmailDestination = "first"
-	WelcomeEmailDestinationAll   WelcomeEmailDestination = "all"
+	WelcomeMessageDestinationFirst WelcomeMessageDestination = "first"
+	WelcomeMessageDestinationAll   WelcomeMessageDestination = "all"
 )
 
-func (destination WelcomeEmailDestination) IsValid() bool {
-	return destination == WelcomeEmailDestinationFirst || destination == WelcomeEmailDestinationAll
+func (destination WelcomeMessageDestination) IsValid() bool {
+	return destination == WelcomeMessageDestinationFirst || destination == WelcomeMessageDestinationAll
 }
 
-type WelcomeEmailConfiguration struct {
-	Enabled     bool                      `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
-	Message     EmailMessageConfiguration `json:"message,omitempty" yaml:"message" msg:"message" default_zero_value:"true"`
-	Destination WelcomeEmailDestination   `json:"destination,omitempty" yaml:"destination" msg:"destination"`
+type WelcomeMessageConfiguration struct {
+	Enabled      bool                      `json:"enabled,omitempty" yaml:"enabled" msg:"enabled"`
+	EmailMessage EmailMessageConfiguration `json:"email_message,omitempty" yaml:"email_message" msg:"email_message" default_zero_value:"true"`
+	Destination  WelcomeMessageDestination `json:"destination,omitempty" yaml:"destination" msg:"destination"`
 }
 
 type UserVerificationCriteria string
