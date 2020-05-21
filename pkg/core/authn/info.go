@@ -7,10 +7,11 @@ import (
 )
 
 type Info struct {
-	IsValid      bool
-	UserID       string
-	UserVerified bool
-	UserDisabled bool
+	IsValid       bool
+	UserID        string
+	UserVerified  bool
+	UserDisabled  bool
+	UserAnonymous bool
 
 	SessionACR string
 	SessionAMR []string
@@ -18,24 +19,26 @@ type Info struct {
 
 var _ Session = &Info{}
 
-func NewAuthnInfo(attrs *Attrs, user *UserInfo) *Info {
+func NewAuthnInfo(attrs *Attrs, user *UserInfo, isAnonymous bool) *Info {
 	return &Info{
-		IsValid:      true,
-		UserID:       user.ID,
-		UserVerified: user.IsVerified,
-		UserDisabled: user.IsDisabled,
-		SessionACR:   attrs.ACR,
-		SessionAMR:   attrs.AMR,
+		IsValid:       true,
+		UserID:        user.ID,
+		UserVerified:  user.IsVerified,
+		UserDisabled:  user.IsDisabled,
+		UserAnonymous: isAnonymous,
+		SessionACR:    attrs.ACR,
+		SessionAMR:    attrs.AMR,
 	}
 }
 
 const (
-	headerSessionValid = "X-Skygear-Session-Valid"
-	headerUserID       = "X-Skygear-User-Id"
-	headerUserVerified = "X-Skygear-User-Verified"
-	headerUserDisabled = "X-Skygear-User-Disabled"
-	headerSessionAcr   = "X-Skygear-Session-Acr"
-	headerSessionAmr   = "X-Skygear-Session-Amr"
+	headerSessionValid  = "X-Skygear-Session-Valid"
+	headerUserID        = "X-Skygear-User-Id"
+	headerUserVerified  = "X-Skygear-User-Verified"
+	headerUserDisabled  = "X-Skygear-User-Disabled"
+	headerUserAnonymous = "X-Skygear-User-Anonymous"
+	headerSessionAcr    = "X-Skygear-Session-Acr"
+	headerSessionAmr    = "X-Skygear-Session-Amr"
 )
 
 func (i *Info) PopulateHeaders(rw http.ResponseWriter) {
@@ -51,6 +54,7 @@ func (i *Info) PopulateHeaders(rw http.ResponseWriter) {
 	rw.Header().Set(headerUserID, i.UserID)
 	rw.Header().Set(headerUserVerified, strconv.FormatBool(i.UserVerified))
 	rw.Header().Set(headerUserDisabled, strconv.FormatBool(i.UserDisabled))
+	rw.Header().Set(headerUserAnonymous, strconv.FormatBool(i.UserAnonymous))
 
 	rw.Header().Set(headerSessionAcr, i.SessionACR)
 	rw.Header().Set(headerSessionAmr, strings.Join(i.SessionAMR, " "))
@@ -92,6 +96,9 @@ func ParseHeaders(r *http.Request) (*Info, error) {
 		return nil, err
 	}
 	if i.UserDisabled, err = strconv.ParseBool(r.Header.Get(headerUserDisabled)); err != nil {
+		return nil, err
+	}
+	if i.UserAnonymous, err = strconv.ParseBool(r.Header.Get(headerUserAnonymous)); err != nil {
 		return nil, err
 	}
 

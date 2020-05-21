@@ -10,6 +10,7 @@ import (
 	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
@@ -76,7 +77,8 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Time:                       provider,
 		TxContext:                  txContext,
 	}
-	handler := provideResolveHandler(middleware, provider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
+	handler := provideResolveHandler(middleware, factory, provider, anonymousProvider)
 	return handler
 }
 
@@ -240,9 +242,16 @@ func newRevokeAllHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 // wire.go:
 
-func provideResolveHandler(m *auth2.Middleware, t time.Provider) http.Handler {
+func provideResolveHandler(
+	m *auth2.Middleware,
+	lf logging.Factory,
+	t time.Provider,
+	ap *anonymous.Provider,
+) http.Handler {
 	return m.Handle(&ResolveHandler{
-		TimeProvider: t,
+		TimeProvider:  t,
+		LoggerFactory: lf,
+		Anonymous:     ap,
 	})
 }
 

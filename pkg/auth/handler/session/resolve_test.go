@@ -5,8 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	gomock "github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
@@ -15,8 +17,13 @@ import (
 
 func TestResolveHandler(t *testing.T) {
 	Convey("/session/resolve", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		anonymousProvider := NewMockAnonymousIdentityProvider(ctrl)
 		h := &ResolveHandler{
 			TimeProvider: &time.MockProvider{},
+			Anonymous:    anonymousProvider,
 		}
 
 		Convey("should attach headers for valid sessions", func() {
@@ -31,19 +38,45 @@ func TestResolveHandler(t *testing.T) {
 			}
 			r, _ := http.NewRequest("POST", "/", nil)
 			r = r.WithContext(authn.WithAuthn(r.Context(), s, u))
-			rw := httptest.NewRecorder()
-			h.ServeHTTP(rw, r)
 
-			resp := rw.Result()
-			So(resp.StatusCode, ShouldEqual, 200)
-			So(resp.Header, ShouldResemble, http.Header{
-				"X-Skygear-Session-Valid": []string{"true"},
-				"X-Skygear-User-Id":       []string{"user-id"},
-				"X-Skygear-User-Verified": []string{"true"},
-				"X-Skygear-User-Disabled": []string{"false"},
-				"X-Skygear-Session-Acr":   []string{""},
-				"X-Skygear-Session-Amr":   []string{""},
-				"X-Skygear-Is-Master-Key": []string{"false"},
+			Convey("for normal user", func() {
+				anonymousProvider.EXPECT().List("user-id").Return([]*anonymous.Identity{}, nil)
+				rw := httptest.NewRecorder()
+				h.ServeHTTP(rw, r)
+
+				resp := rw.Result()
+				So(resp.StatusCode, ShouldEqual, 200)
+				So(resp.Header, ShouldResemble, http.Header{
+					"X-Skygear-Session-Valid":  []string{"true"},
+					"X-Skygear-User-Id":        []string{"user-id"},
+					"X-Skygear-User-Verified":  []string{"true"},
+					"X-Skygear-User-Disabled":  []string{"false"},
+					"X-Skygear-User-Anonymous": []string{"false"},
+					"X-Skygear-Session-Acr":    []string{""},
+					"X-Skygear-Session-Amr":    []string{""},
+					"X-Skygear-Is-Master-Key":  []string{"false"},
+				})
+			})
+
+			Convey("for anonymous user", func() {
+				anonymousProvider.EXPECT().List("user-id").Return([]*anonymous.Identity{
+					{ID: "anonymous-identity"},
+				}, nil)
+				rw := httptest.NewRecorder()
+				h.ServeHTTP(rw, r)
+
+				resp := rw.Result()
+				So(resp.StatusCode, ShouldEqual, 200)
+				So(resp.Header, ShouldResemble, http.Header{
+					"X-Skygear-Session-Valid":  []string{"true"},
+					"X-Skygear-User-Id":        []string{"user-id"},
+					"X-Skygear-User-Verified":  []string{"true"},
+					"X-Skygear-User-Disabled":  []string{"false"},
+					"X-Skygear-User-Anonymous": []string{"true"},
+					"X-Skygear-Session-Acr":    []string{""},
+					"X-Skygear-Session-Amr":    []string{""},
+					"X-Skygear-Is-Master-Key":  []string{"false"},
+				})
 			})
 		})
 

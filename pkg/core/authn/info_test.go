@@ -44,22 +44,24 @@ func TestAuthnInfo(t *testing.T) {
 
 			Convey("valid auth", func() {
 				var i *authn.Info = &authn.Info{
-					IsValid:      true,
-					UserID:       "user-id",
-					UserVerified: true,
-					UserDisabled: false,
-					SessionACR:   "http://schemas.openid.net/pape/policies/2007/06/multi-factor",
-					SessionAMR:   []string{"pwd", "mfa", "otp"},
+					IsValid:       true,
+					UserID:        "user-id",
+					UserVerified:  true,
+					UserDisabled:  false,
+					UserAnonymous: true,
+					SessionACR:    "http://schemas.openid.net/pape/policies/2007/06/multi-factor",
+					SessionAMR:    []string{"pwd", "mfa", "otp"},
 				}
 
 				i.PopulateHeaders(rw)
 				So(rw.Header(), ShouldResemble, http.Header{
-					"X-Skygear-Session-Valid": []string{"true"},
-					"X-Skygear-User-Id":       []string{"user-id"},
-					"X-Skygear-User-Verified": []string{"true"},
-					"X-Skygear-User-Disabled": []string{"false"},
-					"X-Skygear-Session-Acr":   []string{"http://schemas.openid.net/pape/policies/2007/06/multi-factor"},
-					"X-Skygear-Session-Amr":   []string{"pwd mfa otp"},
+					"X-Skygear-Session-Valid":  []string{"true"},
+					"X-Skygear-User-Id":        []string{"user-id"},
+					"X-Skygear-User-Verified":  []string{"true"},
+					"X-Skygear-User-Disabled":  []string{"false"},
+					"X-Skygear-User-Anonymous": []string{"true"},
+					"X-Skygear-Session-Acr":    []string{"http://schemas.openid.net/pape/policies/2007/06/multi-factor"},
+					"X-Skygear-Session-Amr":    []string{"pwd mfa otp"},
 				})
 
 				r := &http.Request{Header: rw.Header()}
