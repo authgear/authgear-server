@@ -23,10 +23,27 @@ func (i *Info) ToRef() Ref {
 func (i *Info) ToModel() model.Identity {
 	claims := make(map[string]interface{})
 	for key, value := range i.Claims {
-		// Hide IdentityClaimOAuthProviderKeys because
-		// It may contain client_id, tenant or team_id.
-		if key == IdentityClaimOAuthProviderKeys {
+		switch key {
+		// It contains client_id, tenant or team_id, which should not
+		// be exposed to clients.
+		case IdentityClaimOAuthProviderKeys:
 			continue
+
+		// It contains OIDC standard claims, which is already exposed
+		// as top-level claims.
+		case IdentityClaimOAuthClaims:
+			continue
+
+		// It is a implementation details of login ID normalization,
+		// so it should not be used by clients.
+		case IdentityClaimLoginIDUniqueKey:
+			continue
+
+		// It is not useful to clients, since key ID should be
+		// sufficient to identify a key.
+		case IdentityClaimAnonymousKey:
+			continue
+
 		}
 		claims[key] = value
 	}
