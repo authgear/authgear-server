@@ -19,7 +19,7 @@ func AttachResolveHandler(
 	authDependency pkg.DependencyMap,
 ) {
 	router.NewRoute().
-		Path("/session/resolve").
+		Path("/_auth/session/resolve").
 		Handler(pkg.MakeHandler(authDependency, newResolveHandler))
 }
 

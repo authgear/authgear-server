@@ -191,13 +191,29 @@ func main() {
 		router.HandleFunc("/healthz", server.HealthCheckHandler)
 
 		rootRouter = router.PathPrefix("/").Subrouter()
-		rootRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
 		rootRouter.Use(middleware.RequestIDMiddleware{}.Handle)
 		rootRouter.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
 				return *tenantConfig, nil
 			}),
 		}.Handle)
+	} else {
+		router = server.NewRouter()
+		router.HandleFunc("/healthz", server.HealthCheckHandler)
+
+		rootRouter = router.PathPrefix("/").Subrouter()
+		rootRouter.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
+	}
+
+	rootRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
+	rootRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
+	rootRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
+
+	if configuration.Standalone {
+		// Attach resolve endpoint in the router that does not validate host.
+		session.AttachResolveHandler(rootRouter, authDependency)
+		rootRouter = rootRouter.NewRoute().Subrouter()
+		rootRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
 
 		apiRouter = rootRouter.PathPrefix("/_auth").Subrouter()
 		apiRouter.Use(middleware.CORSMiddleware{}.Handle)
@@ -205,20 +221,12 @@ func main() {
 		oauthRouter = rootRouter.NewRoute().Subrouter()
 		oauthRouter.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		router = server.NewRouter()
-		router.HandleFunc("/healthz", server.HealthCheckHandler)
-
-		rootRouter = router.PathPrefix("/").Subrouter()
-		rootRouter.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
+		session.AttachResolveHandler(rootRouter, authDependency)
 
 		apiRouter = rootRouter.PathPrefix("/_auth").Subrouter()
 
 		oauthRouter = rootRouter.NewRoute().Subrouter()
 	}
-
-	rootRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
-	rootRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
-	rootRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
 
 	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
 
@@ -303,7 +311,6 @@ func main() {
 	session.AttachGetHandler(apiRouter, authDependency)
 	session.AttachRevokeHandler(apiRouter, authDependency)
 	session.AttachRevokeAllHandler(apiRouter, authDependency)
-	session.AttachResolveHandler(apiRouter, authDependency)
 	gearHandler.AttachTemplatesHandler(apiRouter, authDependency)
 	loginidhandler.AttachAddLoginIDHandler(apiRouter, authDependency)
 	loginidhandler.AttachRemoveLoginIDHandler(apiRouter, authDependency)
