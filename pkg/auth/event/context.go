@@ -11,7 +11,6 @@ const ContextSchema = `
 	"type": "object",
 	"properties": {
 		"timestamp": { "type": "integer" },
-		"request_id": { "type": "string" },
 		"user_id": { "type": "string" },
 		"identity_id": { "type": "string" },
 		"session": { "$ref": "#Session" }
@@ -21,7 +20,6 @@ const ContextSchema = `
 
 type Context struct {
 	Timestamp int64          `json:"timestamp"`
-	RequestID *string        `json:"request_id"`
 	UserID    *string        `json:"user_id"`
 	Session   *model.Session `json:"session"`
 }

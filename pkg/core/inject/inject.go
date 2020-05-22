@@ -8,11 +8,10 @@ import (
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
 type DependencyMap interface {
-	Provide(name string, request *http.Request, ctx context.Context, requestID string, tenantConfig config.TenantConfiguration) interface{}
+	Provide(name string, request *http.Request, ctx context.Context, tenantConfig config.TenantConfiguration) interface{}
 }
 
 func DefaultRequestInject(
@@ -26,7 +25,6 @@ func DefaultRequestInject(
 			name,
 			request,
 			ctx,
-			request.Header.Get(coreHttp.HeaderRequestID),
 			*config.GetTenantConfig(request.Context()),
 		)
 	})

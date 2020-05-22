@@ -17,7 +17,6 @@ func ProvideHookProvider(
 	ctx context.Context,
 	sqlb db.SQLBuilder,
 	sqle db.SQLExecutor,
-	requestID logging.RequestID,
 	tConfig *config.TenantConfiguration,
 	txContext db.TxContext,
 	timeProvider time.Provider,
@@ -28,7 +27,6 @@ func ProvideHookProvider(
 ) Provider {
 	return NewProvider(
 		ctx,
-		string(requestID),
 		NewStore(sqlb, sqle),
 		txContext,
 		timeProvider,

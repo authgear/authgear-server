@@ -191,7 +191,6 @@ func main() {
 		router.HandleFunc("/healthz", server.HealthCheckHandler)
 
 		rootRouter = router.PathPrefix("/").Subrouter()
-		rootRouter.Use(middleware.RequestIDMiddleware{}.Handle)
 		rootRouter.Use(middleware.WriteTenantConfigMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
 				return *tenantConfig, nil

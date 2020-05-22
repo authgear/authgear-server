@@ -39,7 +39,6 @@ func (m DependencyMap) Provide(
 	dependencyName string,
 	request *http.Request,
 	ctx context.Context,
-	requestID string,
 	tc config.TenantConfiguration,
 ) interface{} {
 	// populate default
@@ -63,11 +62,7 @@ func (m DependencyMap) Provide(
 	newLoggerFactory := func() logging.Factory {
 		logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
 		sentryHook := sentry.NewLogHookFromContext(ctx)
-		if request == nil {
-			return logging.NewFactoryFromRequestID(requestID, logHook, sentryHook)
-		} else {
-			return logging.NewFactoryFromRequest(request, logHook, sentryHook)
-		}
+		return logging.NewFactory(logHook, sentryHook)
 	}
 
 	newSQLBuilder := func() db.SQLBuilder {
@@ -118,7 +113,6 @@ func (m DependencyMap) Provide(
 		return inject.Scoped(ctx, "HookProvider", func() interface{} {
 			return hook.NewProvider(
 				ctx,
-				requestID,
 				hook.NewStore(newSQLBuilder(), newSQLExecutor()),
 				db.NewTxContextWithContext(ctx, tConfig),
 				newTimeProvider(),
@@ -151,7 +145,7 @@ func (m DependencyMap) Provide(
 	case "UserProfileStore":
 		return newUserProfileStore()
 	case "AsyncTaskQueue":
-		return async.NewQueue(ctx, db.NewTxContextWithContext(ctx, tConfig), requestID, &tConfig, m.AsyncTaskExecutor)
+		return async.NewQueue(ctx, db.NewTxContextWithContext(ctx, tConfig), &tConfig, m.AsyncTaskExecutor)
 	case "HookProvider":
 		return newHookProvider()
 	case "TemplateEngine":

@@ -8,12 +8,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 )
 
-type RequestID string
-
-func ProvideLoggerFactory(ctx context.Context, rid RequestID, c *config.TenantConfiguration) Factory {
+func ProvideLoggerFactory(ctx context.Context, c *config.TenantConfiguration) Factory {
 	logHook := NewDefaultLogHook(c.DefaultSensitiveLoggerValues())
 	sentryHook := sentry.NewLogHookFromContext(ctx)
-	return NewFactoryFromRequestID(string(rid), logHook, sentryHook)
+	return NewFactory(logHook, sentryHook)
 }
 
 var DependencySet = wire.NewSet(

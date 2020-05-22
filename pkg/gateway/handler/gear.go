@@ -33,7 +33,7 @@ type GearHandler struct {
 // NewGearHandler takes an incoming request and sends it to coresponding
 // gear server
 func (h *GearHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	loggerFactory := logging.NewFactoryFromRequest(r,
+	loggerFactory := logging.NewFactory(
 		logging.NewDefaultLogHook(nil),
 		sentry.NewLogHookFromContext(r.Context()),
 	)

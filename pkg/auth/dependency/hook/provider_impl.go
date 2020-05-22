@@ -21,7 +21,6 @@ import (
 )
 
 type providerImpl struct {
-	RequestID               string
 	Store                   Store
 	Context                 context.Context
 	TxContext               db.TxContext
@@ -37,7 +36,6 @@ type providerImpl struct {
 
 func NewProvider(
 	ctx context.Context,
-	requestID string,
 	store Store,
 	txContext db.TxContext,
 	timeProvider time.Provider,
@@ -48,7 +46,6 @@ func NewProvider(
 ) Provider {
 	return &providerImpl{
 		Context:          ctx,
-		RequestID:        requestID,
 		Store:            store,
 		TxContext:        txContext,
 		TimeProvider:     timeProvider,
@@ -197,14 +194,8 @@ func (provider *providerImpl) dispatchSyncUserEventIfNeeded() error {
 }
 
 func (provider *providerImpl) makeContext() event.Context {
-	var requestID, userID *string
+	var userID *string
 	var session *model.Session
-
-	if provider.RequestID == "" {
-		requestID = nil
-	} else {
-		requestID = &provider.RequestID
-	}
 
 	user := authn.GetUser(provider.Context)
 	sess := authn.GetSession(provider.Context)
@@ -218,7 +209,6 @@ func (provider *providerImpl) makeContext() event.Context {
 
 	return event.Context{
 		Timestamp: provider.TimeProvider.NowUTC().Unix(),
-		RequestID: requestID,
 		UserID:    userID,
 		Session:   session,
 	}

@@ -30,11 +30,10 @@ func (e *Executor) Execute(ctx context.Context, spec TaskSpec) {
 	task := e.tasks[spec.Name]
 
 	tConfig := config.GetTenantConfig(ctx)
-	requestID := GetRequestID(ctx)
 
 	logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
 	sentryHook := &sentry.LogHook{Hub: sentry.DefaultClient.Hub}
-	loggerFactory := logging.NewFactoryFromRequestID(requestID, logHook, sentryHook)
+	loggerFactory := logging.NewFactory(logHook, sentryHook)
 	logger := loggerFactory.NewLogger("async-executor")
 	go func() {
 		defer func() {

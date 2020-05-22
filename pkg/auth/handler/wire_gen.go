@@ -49,9 +49,8 @@ import (
 
 func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	timeProvider := time.NewProvider()
@@ -75,7 +74,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	urlprefixProvider := urlprefix.NewProvider(r)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	executor := auth.ProvideTaskExecutor(m)
-	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
@@ -88,7 +87,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
@@ -132,9 +131,8 @@ var (
 
 func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	timeProvider := time.NewProvider()
@@ -158,7 +156,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	urlprefixProvider := urlprefix.NewProvider(r)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	executor := auth.ProvideTaskExecutor(m)
-	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
@@ -171,7 +169,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
@@ -211,9 +209,8 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
@@ -227,7 +224,7 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
 	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, store, userprofileStore, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, store, userprofileStore, loginidProvider, factory)
 	sessionStore := redis4.ProvideStore(context, tenantConfiguration, timeProvider, factory)
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -250,9 +247,8 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newRefreshHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -290,7 +286,7 @@ func newRefreshHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	urlprefixProvider := urlprefix.NewProvider(r)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	executor := auth.ProvideTaskExecutor(m)
-	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
@@ -303,7 +299,7 @@ func newRefreshHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
@@ -322,9 +318,8 @@ func newRefreshHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newChangePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -339,9 +334,9 @@ func newChangePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
 	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, store, userprofileStore, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, store, userprofileStore, loginidProvider, factory)
 	executor := auth.ProvideTaskExecutor(m)
-	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
 	redisStore := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
@@ -374,9 +369,8 @@ func newChangePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 
 func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	timeProvider := time.NewProvider()
@@ -387,13 +381,13 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	authinfoStore := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	executor := auth.ProvideTaskExecutor(m)
-	queue := async.ProvideTaskQueue(context, txContext, requestID, tenantConfiguration, executor)
+	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
 	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, timeProvider, authinfoStore, store, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, store, loginidProvider, factory)
 	redisStore := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
@@ -426,9 +420,8 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 
 func newListIdentitiesHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)

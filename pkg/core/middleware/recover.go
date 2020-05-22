@@ -31,7 +31,7 @@ func (m RecoverMiddleware) Handle(next http.Handler) http.Handler {
 				} else {
 					logHook = logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
 				}
-				loggerFactory := logging.NewFactoryFromRequest(r, logHook, sentry.NewLogHookFromContext(r.Context()))
+				loggerFactory := logging.NewFactory(logHook, sentry.NewLogHookFromContext(r.Context()))
 				logger := loggerFactory.NewLogger("recovery")
 
 				const errorTypeUnexpected = 0

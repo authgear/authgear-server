@@ -15,9 +15,6 @@ const (
 	// nolint: gosec
 	HeaderTryRefreshToken = "x-skygear-try-refresh-token"
 
-	// Headers appearing in proxied request
-	HeaderRequestID = "x-skygear-request-id"
-
 	// Headers appearing in proxied microservice request
 	HeaderUserID                         = "x-skygear-user-id"
 	HeaderUserDisabled                   = "x-skygear-user-disabled"

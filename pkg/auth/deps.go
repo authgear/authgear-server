@@ -47,7 +47,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
@@ -75,10 +74,6 @@ func MakeMiddleware(deps DependencyMap, factory func(r *http.Request, m Dependen
 
 func ProvideContext(r *http.Request) context.Context {
 	return r.Context()
-}
-
-func ProvideLoggingRequestID(r *http.Request) logging.RequestID {
-	return logging.RequestID(r.Header.Get(corehttp.HeaderRequestID))
 }
 
 func ProvideTenantConfig(ctx context.Context, m DependencyMap) *config.TenantConfiguration {
@@ -260,5 +255,4 @@ var CommonDependencySet = wire.NewSet(
 var DependencySet = wire.NewSet(
 	CommonDependencySet,
 	ProvideContext,
-	ProvideLoggingRequestID,
 )
