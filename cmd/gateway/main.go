@@ -92,7 +92,6 @@ func main() {
 	r.Use(sentry.Middleware(sentry.DefaultClient.Hub))
 	r.Use(coreMiddleware.RecoverMiddleware{}.Handle)
 
-	r.Use(coreMiddleware.RequestIDMiddleware{}.Handle)
 	r.Use(middleware.FindAppMiddleware{Store: store}.Handle)
 
 	r.Use(coreMiddleware.WriteTenantConfigMiddleware{

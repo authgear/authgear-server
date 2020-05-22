@@ -13,7 +13,7 @@ func reverseProxyErrorHandler(w http.ResponseWriter, r *http.Request, err error)
 	tConfig := ctx.App.Config
 	logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
 	// The sentry hook is not added here because the error we are logging is from upstream.
-	loggerFactory := logging.NewFactoryFromRequest(r, logHook)
+	loggerFactory := logging.NewFactory(logHook)
 	logger := loggerFactory.NewLogger("deployment_route")
 	logger.WithError(err).
 		WithField("request_uri", r.RequestURI).

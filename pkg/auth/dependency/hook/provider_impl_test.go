@@ -21,7 +21,6 @@ import (
 
 func TestDispatchEvent(t *testing.T) {
 	Convey("Hook Provider", t, func() {
-		requestID := "request-id"
 		timeProvider := time.MockProvider{TimeNowUTC: gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)}
 		store := newMockStore()
 		deliverer := newMockDeliverer()
@@ -31,7 +30,6 @@ func TestDispatchEvent(t *testing.T) {
 
 		provider := NewProvider(
 			ctx,
-			requestID,
 			store,
 			db.NewMockTxContext(),
 			&timeProvider,
@@ -74,7 +72,6 @@ func TestDispatchEvent(t *testing.T) {
 							Payload: payload,
 							Context: event.Context{
 								Timestamp: 1136214245,
-								RequestID: &requestID,
 								UserID:    nil,
 							},
 						},
@@ -127,7 +124,6 @@ func TestDispatchEvent(t *testing.T) {
 							Payload: payload,
 							Context: event.Context{
 								Timestamp: 1136214245,
-								RequestID: &requestID,
 								UserID:    nil,
 							},
 						},
@@ -166,7 +162,6 @@ func TestDispatchEvent(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(deliverer.BeforeEvents[0].Event.Context, ShouldResemble, event.Context{
 					Timestamp: 1136214245,
-					RequestID: &requestID,
 					UserID:    &userID,
 					Session: &model.Session{
 						ID: "user-id-principal-id",
@@ -244,7 +239,6 @@ func TestDispatchEvent(t *testing.T) {
 						},
 						Context: event.Context{
 							Timestamp: 1136214245,
-							RequestID: &requestID,
 							UserID:    nil,
 						},
 					},
@@ -261,7 +255,6 @@ func TestDispatchEvent(t *testing.T) {
 						},
 						Context: event.Context{
 							Timestamp: 1136214245,
-							RequestID: &requestID,
 							UserID:    nil,
 						},
 					},
@@ -308,7 +301,6 @@ func TestDispatchEvent(t *testing.T) {
 						},
 						Context: event.Context{
 							Timestamp: 1136214245,
-							RequestID: &requestID,
 							UserID:    nil,
 						},
 					},

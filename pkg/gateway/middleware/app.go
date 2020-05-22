@@ -18,7 +18,7 @@ type FindAppMiddleware struct {
 
 func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		loggerFactory := logging.NewFactoryFromRequest(r,
+		loggerFactory := logging.NewFactory(
 			logging.NewDefaultLogHook(nil),
 			sentry.NewLogHookFromContext(r.Context()),
 		)

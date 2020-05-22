@@ -21,17 +21,12 @@ func (m DependencyMap) Provide(
 	dependencyName string,
 	request *http.Request,
 	ctx context.Context,
-	requestID string,
 	tConfig config.TenantConfiguration,
 ) interface{} {
 	newLoggerFactory := func() logging.Factory {
 		logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
 		sentryHook := sentry.NewLogHookFromContext(ctx)
-		if request == nil {
-			return logging.NewFactoryFromRequestID(requestID, logHook, sentryHook)
-		} else {
-			return logging.NewFactoryFromRequest(request, logHook, sentryHook)
-		}
+		return logging.NewFactory(logHook, sentryHook)
 	}
 
 	switch dependencyName {

@@ -26,9 +26,8 @@ import (
 
 func newUpdateHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	validator := auth.ProvideValidator(m)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -44,7 +43,7 @@ func newUpdateHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, checker, normalizerFactory)
 	userverifyProvider := userverify.ProvideProvider(tenantConfiguration, provider, sqlBuilder, sqlExecutor)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
 	updateHandler := &UpdateHandler{
 		Validator:                validator,
 		AuthInfoStore:            store,
@@ -60,9 +59,8 @@ func newUpdateHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 
 func newVerifyCodeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	validator := auth.ProvideValidator(m)
@@ -78,7 +76,7 @@ func newVerifyCodeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
 	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, checker, normalizerFactory)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
 	verifyCodeHandler := &VerifyCodeHandler{
 		TxContext:                txContext,
 		Validator:                validator,
@@ -110,10 +108,9 @@ func newVerifyCodeFormHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
 	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, checker, normalizerFactory)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
-	requestID := auth.ProvideLoggingRequestID(r)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, requestID, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
+	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
 	verifyCodeFormHandler := &VerifyCodeFormHandler{
 		Validator:                validator,
 		VerifyHTMLProvider:       verifyHTMLProvider,
@@ -130,9 +127,8 @@ func newVerifyCodeFormHandler(r *http.Request, m auth.DependencyMap) http.Handle
 
 func newVerifyRequestHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
-	requestID := auth.ProvideLoggingRequestID(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
-	factory := logging.ProvideLoggerFactory(context, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	requireAuthz := handler.NewRequireAuthzFactory(factory)
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	validator := auth.ProvideValidator(m)

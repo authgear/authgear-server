@@ -8,16 +8,12 @@ import (
 // Header names
 const (
 	// Headers appearing in client request
-	HeaderAPIKey           = "x-skygear-api-key"
 	HeaderSessionExtraInfo = "x-skygear-extra-info"
 
 	// Headers appearing in server response
 	// When you add a new header, you must expose it in CORSMiddleware.
 	// nolint: gosec
 	HeaderTryRefreshToken = "x-skygear-try-refresh-token"
-
-	// Headers appearing in proxied request
-	HeaderRequestID = "x-skygear-request-id"
 
 	// Headers appearing in proxied microservice request
 	HeaderUserID                         = "x-skygear-user-id"
@@ -34,10 +30,6 @@ const (
 
 	// Headers appearing in proxied gear request
 	HeaderTenantConfig = "x-skygear-app-config"
-
-	// Internal headers
-	HeaderAccessKeyType = "x-skygear-access-key-type"
-	HeaderClientID      = "x-skygear-client-id"
 
 	// Outbound webhook request
 	HeaderRequestBodySignature = "x-skygear-body-signature"

@@ -30,7 +30,7 @@ func (f AuthnMiddlewareFactory) NewInjectableMiddleware() coreMiddleware.Injecta
 
 func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		loggerFactory := logging.NewFactoryFromRequest(r,
+		loggerFactory := logging.NewFactory(
 			logging.NewDefaultLogHook(nil),
 			sentry.NewLogHookFromContext(r.Context()),
 		)
@@ -88,10 +88,6 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 					continue
 				}
 			}
-			// keep the original request id
-			if isRequestIDHeader(key) {
-				continue
-			}
 			if isSkygearHeader(key) {
 				r.Header.Del(key)
 			}
@@ -99,10 +95,6 @@ func (m *AuthnMiddleware) Handle(next http.Handler) http.Handler {
 
 		// copy resolve endpoint X-Skygear-* headers to request
 		for key, values := range resolveResp.Header {
-			// keep the original request id
-			if isRequestIDHeader(key) {
-				continue
-			}
 			if isSkygearHeader(key) {
 				for _, v := range values {
 					r.Header.Add(key, v)
@@ -120,10 +112,6 @@ func isSkygearHeader(key string) bool {
 
 func isTenantConfigHeader(key string) bool {
 	return strings.EqualFold(key, corehttp.HeaderTenantConfig)
-}
-
-func isRequestIDHeader(key string) bool {
-	return strings.EqualFold(key, corehttp.HeaderRequestID)
 }
 
 func pipeResponse(rw http.ResponseWriter, response *http.Response) {

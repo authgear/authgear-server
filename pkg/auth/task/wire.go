@@ -12,14 +12,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 )
 
-var DependencySet = wire.NewSet(
-	ProvideLoggingRequestID,
-)
-
 func newVerifyCodeSendTask(ctx context.Context, m pkg.DependencyMap) async.Task {
 	wire.Build(
 		pkg.CommonDependencySet,
-		DependencySet,
 		wire.Bind(new(VerifyCodeLoginIDProvider), new(*loginid.Provider)),
 		wire.Struct(new(VerifyCodeSendTask), "*"),
 		wire.Bind(new(async.Task), new(*VerifyCodeSendTask)),
@@ -30,7 +25,6 @@ func newVerifyCodeSendTask(ctx context.Context, m pkg.DependencyMap) async.Task 
 func newPwHouseKeeperTask(ctx context.Context, m pkg.DependencyMap) async.Task {
 	wire.Build(
 		pkg.CommonDependencySet,
-		DependencySet,
 		wire.Struct(new(PwHousekeeperTask), "*"),
 		wire.Bind(new(async.Task), new(*PwHousekeeperTask)),
 	)
@@ -40,7 +34,6 @@ func newPwHouseKeeperTask(ctx context.Context, m pkg.DependencyMap) async.Task {
 func newSendMessagesTask(ctx context.Context, m pkg.DependencyMap) async.Task {
 	wire.Build(
 		pkg.CommonDependencySet,
-		DependencySet,
 		wire.Struct(new(SendMessagesTask), "*"),
 		wire.Bind(new(async.Task), new(*SendMessagesTask)),
 	)

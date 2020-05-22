@@ -7,7 +7,6 @@ package task
 
 import (
 	"context"
-	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
@@ -43,8 +42,7 @@ func newVerifyCodeSendTask(ctx context.Context, m auth.DependencyMap) async.Task
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
 	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, checker, normalizerFactory)
 	txContext := db.ProvideTxContext(ctx, tenantConfiguration)
-	requestID := ProvideLoggingRequestID(ctx)
-	factory := logging.ProvideLoggerFactory(ctx, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(ctx, tenantConfiguration)
 	verifyCodeSendTask := &VerifyCodeSendTask{
 		CodeSenderFactory:        codeSenderFactory,
 		AuthInfoStore:            store,
@@ -60,8 +58,7 @@ func newVerifyCodeSendTask(ctx context.Context, m auth.DependencyMap) async.Task
 func newPwHouseKeeperTask(ctx context.Context, m auth.DependencyMap) async.Task {
 	tenantConfiguration := auth.ProvideTenantConfig(ctx, m)
 	txContext := db.ProvideTxContext(ctx, tenantConfiguration)
-	requestID := ProvideLoggingRequestID(ctx)
-	factory := logging.ProvideLoggerFactory(ctx, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(ctx, tenantConfiguration)
 	provider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
@@ -80,8 +77,7 @@ func newSendMessagesTask(ctx context.Context, m auth.DependencyMap) async.Task {
 	tenantConfiguration := auth.ProvideTenantConfig(ctx, m)
 	sender := mail.ProvideMailSender(ctx, tenantConfiguration)
 	client := sms.ProvideSMSClient(ctx, tenantConfiguration)
-	requestID := ProvideLoggingRequestID(ctx)
-	factory := logging.ProvideLoggerFactory(ctx, requestID, tenantConfiguration)
+	factory := logging.ProvideLoggerFactory(ctx, tenantConfiguration)
 	sendMessagesTask := &SendMessagesTask{
 		EmailSender:   sender,
 		SMSClient:     client,
@@ -89,9 +85,3 @@ func newSendMessagesTask(ctx context.Context, m auth.DependencyMap) async.Task {
 	}
 	return sendMessagesTask
 }
-
-// wire.go:
-
-var DependencySet = wire.NewSet(
-	ProvideLoggingRequestID,
-)

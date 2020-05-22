@@ -29,7 +29,6 @@ func (s dmap) Provide(
 	dependencyName string,
 	request *http.Request,
 	ctx context.Context,
-	requestID string,
 	tConfig config.TenantConfiguration,
 ) interface{} {
 	switch dependencyName {

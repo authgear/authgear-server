@@ -18,8 +18,6 @@ type queue struct {
 	context   context.Context
 	txContext db.TxContext
 
-	// Request-scoped fields
-	requestID    string
 	tenantConfig *config.TenantConfiguration
 
 	pendingTasks []TaskSpec
@@ -30,14 +28,12 @@ type queue struct {
 func NewQueue(
 	ctx context.Context,
 	txContext db.TxContext,
-	requestID string,
 	tenantConfig *config.TenantConfiguration,
 	taskExecutor *Executor,
 ) Queue {
 	return &queue{
 		context:      ctx,
 		txContext:    txContext,
-		requestID:    requestID,
 		tenantConfig: tenantConfig,
 		taskExecutor: taskExecutor,
 	}
@@ -69,7 +65,6 @@ func (s *queue) DidCommitTx() {
 
 func (s *queue) execute(spec TaskSpec) {
 	ctx := context.Background()
-	ctx = WithRequestID(ctx, s.requestID)
 	ctx = config.WithTenantConfig(ctx, s.tenantConfig)
 	ctx = intl.WithPreferredLanguageTags(ctx, intl.GetPreferredLanguageTags(s.context))
 	s.taskExecutor.Execute(ctx, spec)

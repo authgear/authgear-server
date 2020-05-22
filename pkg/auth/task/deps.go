@@ -6,7 +6,6 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 type taskFunc func(ctx context.Context, param interface{}) error
@@ -20,8 +19,4 @@ func MakeTask(deps pkg.DependencyMap, factory func(ctx context.Context, m pkg.De
 		task := factory(ctx, deps)
 		return task.Run(ctx, param)
 	})
-}
-
-func ProvideLoggingRequestID(ctx context.Context) logging.RequestID {
-	return logging.RequestID(async.GetRequestID(ctx))
 }
