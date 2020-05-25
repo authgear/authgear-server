@@ -89,18 +89,43 @@ func (p *RenderProviderImpl) PrepareIdentityData(r *http.Request, data map[strin
 		return
 	}
 
+	hasEmail := false
+	hasUsername := false
+	hasPhone := false
 	for _, c := range identityCandidates {
 		if c[identity.CandidateKeyType] == string(authn.IdentityTypeLoginID) {
 			if c[identity.CandidateKeyLoginIDType] == "phone" {
 				c["login_id_input_type"] = "phone"
+				hasPhone = true
 			} else if c[identity.CandidateKeyLoginIDType] == "email" {
 				c["login_id_input_type"] = "email"
+				hasEmail = true
 			} else {
 				c["login_id_input_type"] = "text"
+				hasUsername = true
 			}
 		}
 	}
 	data["x_identity_candidates"] = identityCandidates
+
+	data["x_login_page_login_id_has_phone"] = hasPhone
+	if hasEmail {
+		if hasUsername {
+			data["x_login_page_text_login_id_variant"] = "email_or_username"
+			data["x_login_page_text_login_id_input_type"] = "text"
+		} else {
+			data["x_login_page_text_login_id_variant"] = "email"
+			data["x_login_page_text_login_id_input_type"] = "email"
+		}
+	} else {
+		if hasUsername {
+			data["x_login_page_text_login_id_variant"] = "username"
+			data["x_login_page_text_login_id_input_type"] = "text"
+		} else {
+			data["x_login_page_text_login_id_variant"] = "none"
+			data["x_login_page_text_login_id_input_type"] = "text"
+		}
+	}
 
 	return
 }

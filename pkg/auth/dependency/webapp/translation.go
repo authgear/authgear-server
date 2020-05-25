@@ -43,8 +43,8 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"sso-login-id-separator": "or",
 
 	"phone-number-placeholder": "Phone number",
-	"login-id-placeholder": "Email or username",
-	"use-text-login-id-description": "Use email or username instead",
+	"login-id-placeholder": "{0, select, email {Email} username {Username} other {Email or username}}",
+	"use-text-login-id-description": "Use {0, select, email {Email} username {Username} other {Email or username}} instead",
 	"use-email-login-id-description": "Use email instead",
 	"use-phone-login-id-description": "Use phone number instead",
 	"signup-button-hint": "Don''t have an account yet? ",

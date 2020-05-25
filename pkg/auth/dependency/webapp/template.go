@@ -286,7 +286,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 			<form class="authorize-loginid-form" method="post">
 				{{ $.csrfField }}
 
-				{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}
+				{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}{{ if .x_login_page_login_id_has_phone }}
 				<div class="phone-input">
 					<select class="input select primary-txt" name="x_calling_code">
 						{{ range .x_calling_codes }}
@@ -302,18 +302,19 @@ var TemplateAuthUILoginHTML = template.Spec{
 					</select>
 					<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ .x_national_number }}">
 				</div>
-				{{ end }}{{ end }}
+				{{ end }}{{ end }}{{ end }}
 
-				{{ if .x_login_id_input_type }}{{ if (not (eq .x_login_id_input_type "phone")) }}
-				<input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" }}" value="{{ .x_login_id }}">
-				{{ end }}{{ end }}
+				{{ if .x_login_id_input_type }}{{ if not (eq .x_login_id_input_type "phone") }}{{ if (not (eq .x_login_page_text_login_id_variant "none")) }}
+				<input class="input text-input primary-txt" type="{{ .x_login_page_text_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .x_login_page_text_login_id_variant }}" value="{{ .x_login_id }}">
+				{{ end }}{{ end }}{{ end }}
 
-				{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}
-				<a class="link align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "text" }}">{{ localize "use-text-login-id-description" }}</a>
-				{{ end }}{{ end }}
-				{{ if .x_login_id_input_type }}{{ if (not (eq .x_login_id_input_type "phone")) }}
+				{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}{{ if (not (eq .x_login_page_text_login_id_variant "none")) }}
+				<a class="link align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" .x_login_page_text_login_id_input_type }}">{{ localize "use-text-login-id-description" .x_login_page_text_login_id_variant }}</a>
+				{{ end }}{{ end }}{{ end }}
+
+				{{ if .x_login_id_input_type }}{{ if not (eq .x_login_id_input_type "phone") }}{{ if .x_login_page_login_id_has_phone }}
 				<a class="link align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "phone" }}">{{ localize "use-phone-login-id-description" }}</a>
-				{{ end }}{{ end }}
+				{{ end }}{{ end }}{{ end }}
 
 				<div class="link">
 					<span class="primary-text">{{ localize "signup-button-hint" }}</span>
@@ -324,7 +325,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 				<a class="link align-self-flex-start" href="{{ call .MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
 				{{ end }}
 
-				{{ if .x_login_id_input_type }}
+				{{ if or .x_login_page_login_id_has_phone (not (eq .x_login_page_text_login_id_variant "none")) }}
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 				{{ end }}
 			</form>
@@ -414,7 +415,7 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 {{ if eq .x_login_id_input_type "phone" }}
 <div class="title primary-txt">{{ localize "oob-otp-page-title--sms" }}</div>
 {{ end }}
-{{ if eq .x_login_id_input_type "email" }}
+{{ if not (eq .x_login_id_input_type "phone") }}
 <div class="title primary-txt">{{ localize "oob-otp-page-title--email" }}</div>
 {{ end }}
 
@@ -423,7 +424,7 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 {{ if eq .x_login_id_input_type "phone" }}
 <div class="description primary-txt">{{ localize "oob-otp-description--sms" .x_oob_otp_code_length .x_calling_code .x_national_number }}</div>
 {{ end }}
-{{ if eq .x_login_id_input_type "email" }}
+{{ if not (eq .x_login_id_input_type "phone") }}
 <div class="description primary-txt">{{ localize "oob-otp-description--email" .x_oob_otp_code_length .x_login_id }}</div>
 {{ end }}
 
@@ -480,6 +481,7 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 <input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
+<input type="hidden" name="x_login_id_type" value="{{ .x_login_id_type }}">
 <input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
 <input type="hidden" name="x_old_login_id_value" value="{{ .x_old_login_id_value }}">
 
@@ -500,7 +502,7 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 	<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ .x_national_number }}">
 </div>
 {{ else }}
-<input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" }}" value="{{ .x_login_id }}">
+<input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .x_login_id_type }}" value="{{ .x_login_id }}">
 {{ end }}
 
 <div class="buttons">
@@ -544,7 +546,7 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
-{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}
+{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}{{ if .x_login_page_login_id_has_phone }}
 <div class="description primary-txt">{{ localize "forgot-password-phone-description" }}</div>
 <div class="phone-input">
 	<select class="input select primary-txt" name="x_calling_code">
@@ -561,21 +563,22 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 	</select>
 	<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ .x_national_number }}">
 </div>
-{{ end }}{{ end }}
+{{ end }}{{ end }}{{ end }}
 
-{{ if .x_login_id_input_type }}{{ if (not (eq .x_login_id_input_type "phone")) }}
+{{ if .x_login_id_input_type }}{{ if (not (eq .x_login_id_input_type "phone")) }}{{ if or (eq .x_login_page_text_login_id_variant "email") (eq .x_login_page_text_login_id_variant "email_or_username") }}
 <div class="description primary-txt">{{ localize "forgot-password-email-description" }}</div>
 <input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "email-placeholder" }}" value="{{ .x_login_id }}">
-{{ end }}{{ end }}
+{{ end }}{{ end }}{{ end }}
 
-{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}
-<a class="link align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "text" }}">{{ localize "use-email-login-id-description" }}</a>
-{{ end }}{{ end }}
-{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "email" }}
+{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}{{ if or (eq .x_login_page_text_login_id_variant "email") (eq .x_login_page_text_login_id_variant "email_or_username") }}
+<a class="link align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "email" }}">{{ localize "use-email-login-id-description" }}</a>
+{{ end }}{{ end }}{{ end }}
+
+{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "email" }}{{ if .x_login_page_login_id_has_phone }}
 <a class="link align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "phone" }}">{{ localize "use-phone-login-id-description" }}</a>
-{{ end }}{{ end }}
+{{ end }}{{ end }}{{ end }}
 
-{{ if .x_login_id_input_type }}
+{{ if or .x_login_page_login_id_has_phone (not (eq .x_login_page_text_login_id_variant "none")) }}
 <button class="btn primary-btn submit-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 {{ end }}
 
@@ -1078,6 +1081,7 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
       <form method="post">
       {{ $.csrfField }}
       <input type="hidden" name="x_login_id_key" value="{{ .login_id_key }}">
+      <input type="hidden" name="x_login_id_type" value="{{ .login_id_type }}">
       {{ if eq .login_id_type "phone" }}
       <input type="hidden" name="x_login_id_input_type" value="phone">
       {{ else if eq .login_id_type "email" }}
