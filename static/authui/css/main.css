@@ -48,6 +48,19 @@ select {
   -webkit-appearance: none;
 }
 
+/* min-width and max-width initial value is auto, which means content size. */
+/* So setting min-width and min-height to 0 will make flex child not to overflow its parent */
+.flex-child-no-overflow {
+  min-width: 0;
+  min-height: 0;
+}
+
+.text-ellipsis {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 .align-self-flex-start {
   align-self: flex-start;
 }

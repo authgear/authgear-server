@@ -1016,7 +1016,7 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
   {{ range .x_identity_candidates }}
   <div class="identity">
     <div class="icon {{ .type }} {{ .provider_type }} {{ .login_id_type }}"></div>
-    <div class="identity-info">
+    <div class="identity-info flex-child-no-overflow">
       <h2 class="identity-name primary-txt">
          {{ if eq .type "oauth" }}
            {{ if eq .provider_type "google" }}
@@ -1052,13 +1052,13 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
       </h2>
 
       {{ if eq .type "oauth" }}{{ if .email }}
-      <h3 class="identity-claim secondary-txt">
+      <h3 class="identity-claim secondary-txt text-ellipsis">
         {{ .email }}
       </h3>
       {{ end }}{{ end }}
 
       {{ if eq .type "login_id" }}{{ if .login_id_value }}
-      <h3 class="identity-claim secondary-txt">
+      <h3 class="identity-claim secondary-txt text-ellipsis">
         {{ .login_id_value }}
       </h3>
       {{ end }}{{ end }}
