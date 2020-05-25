@@ -93,13 +93,10 @@ func (p *RenderProviderImpl) PrepareIdentityData(r *http.Request, data map[strin
 		if c[identity.CandidateKeyType] == string(authn.IdentityTypeLoginID) {
 			if c[identity.CandidateKeyLoginIDType] == "phone" {
 				c["login_id_input_type"] = "phone"
-				data["x_login_id_input_type_has_phone"] = true
 			} else if c[identity.CandidateKeyLoginIDType] == "email" {
 				c["login_id_input_type"] = "email"
-				data["x_login_id_input_type_has_text"] = true
 			} else {
 				c["login_id_input_type"] = "text"
-				data["x_login_id_input_type_has_text"] = true
 			}
 		}
 	}
