@@ -305,7 +305,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 				{{ end }}{{ end }}
 
 				{{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_text }}
-				<input class="input text-input primary-txt" type="text" name="x_login_id" placeholder="{{ localize "login-id-placeholder" }}" value="{{ .x_login_id }}">
+				<input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" }}" value="{{ .x_login_id }}">
 				{{ end }}{{ end }}
 
 				{{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
@@ -414,7 +414,7 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 {{ if eq .x_login_id_input_type "phone" }}
 <div class="title primary-txt">{{ localize "oob-otp-page-title--sms" }}</div>
 {{ end }}
-{{ if eq .x_login_id_input_type "text" }}
+{{ if eq .x_login_id_input_type "email" }}
 <div class="title primary-txt">{{ localize "oob-otp-page-title--email" }}</div>
 {{ end }}
 
@@ -423,7 +423,7 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 {{ if eq .x_login_id_input_type "phone" }}
 <div class="description primary-txt">{{ localize "oob-otp-description--sms" .x_oob_otp_code_length .x_calling_code .x_national_number }}</div>
 {{ end }}
-{{ if eq .x_login_id_input_type "text" }}
+{{ if eq .x_login_id_input_type "email" }}
 <div class="description primary-txt">{{ localize "oob-otp-description--email" .x_oob_otp_code_length .x_login_id }}</div>
 {{ end }}
 
@@ -499,10 +499,8 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 	</select>
 	<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ .x_national_number }}">
 </div>
-{{ end }}
-
-{{ if eq .x_login_id_input_type "text" }}
-<input class="input text-input primary-txt" type="text" name="x_login_id" placeholder="{{ localize "login-id-placeholder" }}" value="{{ .x_login_id }}">
+{{ else }}
+<input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" }}" value="{{ .x_login_id }}">
 {{ end }}
 
 <div class="buttons">
@@ -567,7 +565,7 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 
 {{ if .x_login_id_input_type }}{{ if and (not (eq .x_login_id_input_type "phone")) .x_login_id_input_type_has_text }}
 <div class="description primary-txt">{{ localize "forgot-password-email-description" }}</div>
-<input class="input text-input primary-txt" type="text" name="x_login_id" placeholder="{{ localize "email-placeholder" }}" value="{{ .x_login_id }}">
+<input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "email-placeholder" }}" value="{{ .x_login_id }}">
 {{ end }}{{ end }}
 
 {{ if .x_login_id_input_type }}{{ if and (eq .x_login_id_input_type "phone") .x_login_id_input_type_has_text }}
@@ -773,7 +771,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 						<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ $.x_national_number }}">
 					</div>
 				{{ else }}
-					<input class="input text-input primary-txt" type="text" name="x_login_id" placeholder="{{ .login_id_type }}" value="{{ $.x_login_id }}">
+					<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ .login_id_type }}" value="{{ $.x_login_id }}">
 				{{ end }}
 				{{ end }}{{ end }}
 				{{ end }}
@@ -885,7 +883,7 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 						<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ $.x_national_number }}">
 					</div>
 				{{ else }}
-					<input class="input text-input primary-txt" type="text" name="x_login_id" placeholder="{{ .login_id_type }}" value="{{ $.x_login_id }}">
+					<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ .login_id_type }}" value="{{ $.x_login_id }}">
 				{{ end }}
 				{{ end }}{{ end }}
 				{{ end }}
@@ -1082,6 +1080,8 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
       <input type="hidden" name="x_login_id_key" value="{{ .login_id_key }}">
       {{ if eq .login_id_type "phone" }}
       <input type="hidden" name="x_login_id_input_type" value="phone">
+      {{ else if eq .login_id_type "email" }}
+      <input type="hidden" name="x_login_id_input_type" value="email">
       {{ else }}
       <input type="hidden" name="x_login_id_input_type" value="text">
       {{ end }}
