@@ -11,14 +11,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
-	"github.com/skygeario/skygear-server/pkg/auth/handler"
-	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
-	gearHandler "github.com/skygeario/skygear-server/pkg/auth/handler/gear"
-	loginidhandler "github.com/skygeario/skygear-server/pkg/auth/handler/loginid"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
-	ssohandler "github.com/skygeario/skygear-server/pkg/auth/handler/sso"
-	userverifyhandler "github.com/skygeario/skygear-server/pkg/auth/handler/userverify"
 	webapphandler "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -106,35 +100,6 @@ func main() {
 	}
 
 	validator := validation.NewValidator("http://v2.skgyear.io")
-	validator.AddSchemaFragments(
-		handler.ChangePasswordRequestSchema,
-		handler.SetDisableRequestSchema,
-		handler.RefreshRequestSchema,
-		handler.ResetPasswordRequestSchema,
-		handler.LoginRequestSchema,
-		handler.SignupRequestSchema,
-		handler.UpdateMetadataRequestSchema,
-
-		forgotpwdhandler.ForgotPasswordRequestSchema,
-		forgotpwdhandler.ForgotPasswordResetRequestSchema,
-
-		session.GetRequestSchema,
-		session.RevokeRequestSchema,
-
-		ssohandler.AuthURLRequestSchema,
-		ssohandler.LoginRequestSchema,
-		ssohandler.LinkRequestSchema,
-		ssohandler.AuthResultRequestSchema,
-
-		userverifyhandler.VerifyCodeRequestSchema,
-		userverifyhandler.VerifyRequestSchema,
-		userverifyhandler.VerifyCodeFormSchema,
-		userverifyhandler.UpdateVerifyStateRequestSchema,
-
-		loginidhandler.AddLoginIDRequestSchema,
-		loginidhandler.RemoveLoginIDRequestSchema,
-		loginidhandler.UpdateLoginIDRequestSchema,
-	)
 
 	dbPool := db.NewPool()
 	redisPool, err := redis.NewPool(configuration.Redis)
@@ -283,37 +248,6 @@ func main() {
 	oauthhandler.AttachUserInfoHandler(oauthRouter, authDependency)
 	oauthhandler.AttachEndSessionHandler(oauthRouter, authDependency)
 	oauthhandler.AttachChallengeHandler(oauthRouter, authDependency)
-
-	handler.AttachSignupHandler(apiRouter, authDependency)
-	handler.AttachLoginHandler(apiRouter, authDependency)
-	handler.AttachLogoutHandler(apiRouter, authDependency)
-	handler.AttachRefreshHandler(apiRouter, authDependency)
-	handler.AttachMeHandler(apiRouter, authDependency)
-	handler.AttachSetDisableHandler(apiRouter, authDependency)
-	handler.AttachChangePasswordHandler(apiRouter, authDependency)
-	handler.AttachResetPasswordHandler(apiRouter, authDependency)
-	handler.AttachUpdateMetadataHandler(apiRouter, authDependency)
-	handler.AttachListIdentitiesHandler(apiRouter, authDependency)
-	forgotpwdhandler.AttachForgotPasswordHandler(apiRouter, authDependency)
-	forgotpwdhandler.AttachForgotPasswordResetHandler(apiRouter, authDependency)
-	userverifyhandler.AttachVerifyRequestHandler(apiRouter, authDependency)
-	userverifyhandler.AttachVerifyCodeHandler(apiRouter, authDependency)
-	userverifyhandler.AttachUpdateHandler(apiRouter, authDependency)
-	ssohandler.AttachAuthURLHandler(apiRouter, authDependency)
-	ssohandler.AttachAuthRedirectHandler(apiRouter, authDependency)
-	ssohandler.AttachAuthHandler(apiRouter, authDependency)
-	ssohandler.AttachAuthResultHandler(apiRouter, authDependency)
-	ssohandler.AttachLoginHandler(apiRouter, authDependency)
-	ssohandler.AttachLinkHandler(apiRouter, authDependency)
-	ssohandler.AttachUnlinkHandler(apiRouter, authDependency)
-	session.AttachListHandler(apiRouter, authDependency)
-	session.AttachGetHandler(apiRouter, authDependency)
-	session.AttachRevokeHandler(apiRouter, authDependency)
-	session.AttachRevokeAllHandler(apiRouter, authDependency)
-	gearHandler.AttachTemplatesHandler(apiRouter, authDependency)
-	loginidhandler.AttachAddLoginIDHandler(apiRouter, authDependency)
-	loginidhandler.AttachRemoveLoginIDHandler(apiRouter, authDependency)
-	loginidhandler.AttachUpdateLoginIDHandler(apiRouter, authDependency)
 
 	srv := &http.Server{
 		Addr:    configuration.Host,
