@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	coremodel "github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
@@ -57,44 +56,22 @@ func (c *UserController) makeResponse(attrs *authn.Attrs) (*model.AuthResponse, 
 func (c *UserController) CreateSession(
 	i *interaction.Interaction,
 	ir *interaction.Result,
-	isAuthAPI bool,
 ) (*AuthResult, error) {
-	client, ok := coremodel.GetClientConfig(c.Clients, i.ClientID)
-	if !ok && isAuthAPI {
-		return nil, interaction.ErrInvalidCredentials
-	}
-
 	resp, err := c.makeResponse(ir.Attrs)
 	if err != nil {
 		return nil, err
 	}
 	result := &AuthResult{Response: resp}
 
-	var authSession auth.AuthSession
-	if isAuthAPI && !client.AuthAPIUseCookie() {
-		session, resp, err := c.TokenIssuer.IssueAuthAPITokens(
-			client, ir.Attrs,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		authSession = session
-		result.Response.AccessToken = resp.GetAccessToken()
-		result.Response.RefreshToken = resp.GetRefreshToken()
-		result.Response.ExpiresIn = resp.GetExpiresIn()
-	} else {
-		session, token := c.Sessions.MakeSession(ir.Attrs)
-		err = c.Sessions.Create(session)
-		if err != nil {
-			return nil, err
-		}
-
-		authSession = session
-		result.Cookies = []*http.Cookie{c.SessionCookieConfig.NewCookie(token)}
+	session, token := c.Sessions.MakeSession(ir.Attrs)
+	err = c.Sessions.Create(session)
+	if err != nil {
+		return nil, err
 	}
 
-	result.Response.SessionID = authSession.SessionID()
+	result.Cookies = []*http.Cookie{c.SessionCookieConfig.NewCookie(token)}
+
+	result.Response.SessionID = session.SessionID()
 
 	identity := ir.Identity.ToModel()
 	reason := auth.SessionCreateReasonLogin
@@ -109,7 +86,7 @@ func (c *UserController) CreateSession(
 			Reason:   string(reason),
 			User:     result.Response.User,
 			Identity: identity,
-			Session:  *authSession.ToAPIModel(),
+			Session:  *session.ToAPIModel(),
 		},
 		&result.Response.User,
 	)

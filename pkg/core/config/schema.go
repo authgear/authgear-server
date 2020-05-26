@@ -67,7 +67,6 @@ var (
 			"cors": { "$ref": "#CORSConfiguration" },
 			"oidc": { "$ref": "#OIDCConfiguration" },
 			"authentication": { "$ref": "#AuthenticationConfiguration" },
-			"auth_api": { "$ref": "#AuthAPIConfiguration" },
 			"auth_ui": { "$ref": "#AuthUIConfiguration" },
 			"authenticator": { "$ref": "#AuthenticatorConfiguration" },
 			"forgot_password": { "$ref": "#ForgotPasswordConfiguration" },
@@ -126,7 +125,6 @@ var (
 				"type": "array",
 				"items": { "type": "string" }
 			},
-			"auth_api_use_cookie": { "type": "boolean" },
 			"access_token_lifetime": { "type": "integer", "minimum": 0 },
 			"refresh_token_lifetime": { "type": "integer", "minimum": 0 },
 			"grant_types": {
@@ -197,41 +195,6 @@ var (
 				"minItems": 1
 			},
 			"default": { "$ref": "#CountryCallingCode" }
-		}
-	},
-	"AuthAPIConfiguration": {
-		"$id": "#AuthAPIConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"enabled": { "type": "boolean" },
-			"on_identity_conflict": { "$ref": "#AuthAPIIdentityConflictConfiguration" }
-		}
-	},
-	"AuthAPIIdentityConflictConfiguration": {
-		"$id": "#AuthAPIIdentityConflictConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"login_id": { "$ref": "#AuthAPILoginIDConflictConfiguration" },
-			"oauth": { "$ref": "#AuthAPIOAuthConflictConfiguration" }
-		}
-	},
-	"AuthAPILoginIDConflictConfiguration": {
-		"$id": "#AuthAPILoginIDConflictConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"allow_create_new_user": { "type": "boolean" }
-		}
-	},
-	"AuthAPIOAuthConflictConfiguration": {
-		"$id": "#AuthAPIOAuthConflictConfiguration",
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"allow_create_new_user": { "type": "boolean" },
-			"allow_auto_merge_user": { "type": "boolean" }
 		}
 	},
 	"AuthenticationConfiguration": {

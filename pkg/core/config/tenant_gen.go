@@ -144,24 +144,6 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
-		case "auth_api":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "AuthAPI")
-					return
-				}
-				z.AuthAPI = nil
-			} else {
-				if z.AuthAPI == nil {
-					z.AuthAPI = new(AuthAPIConfiguration)
-				}
-				err = z.AuthAPI.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "AuthAPI")
-					return
-				}
-			}
 		case "authentication":
 			if dc.IsNil() {
 				err = dc.ReadNil()
@@ -584,9 +566,9 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 22
+	// map header, size 21
 	// write "api_version"
-	err = en.Append(0xde, 0x0, 0x16, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0xde, 0x0, 0x15, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
@@ -681,23 +663,6 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		err = en.WriteString(z.CORS.Origin)
 		if err != nil {
 			err = msgp.WrapError(err, "CORS", "Origin")
-			return
-		}
-	}
-	// write "auth_api"
-	err = en.Append(0xa8, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x61, 0x70, 0x69)
-	if err != nil {
-		return
-	}
-	if z.AuthAPI == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.AuthAPI.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "AuthAPI")
 			return
 		}
 	}
@@ -1032,9 +997,9 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 22
+	// map header, size 21
 	// string "api_version"
-	o = append(o, 0xde, 0x0, 0x16, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0xde, 0x0, 0x15, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	o = msgp.AppendString(o, z.APIVersion)
 	// string "display_app_name"
 	o = append(o, 0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
@@ -1076,17 +1041,6 @@ func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		// string "origin"
 		o = append(o, 0x81, 0xa6, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e)
 		o = msgp.AppendString(o, z.CORS.Origin)
-	}
-	// string "auth_api"
-	o = append(o, 0xa8, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x61, 0x70, 0x69)
-	if z.AuthAPI == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.AuthAPI.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "AuthAPI")
-			return
-		}
 	}
 	// string "authentication"
 	o = append(o, 0xae, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e)
@@ -1405,23 +1359,6 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 							return
 						}
 					}
-				}
-			}
-		case "auth_api":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.AuthAPI = nil
-			} else {
-				if z.AuthAPI == nil {
-					z.AuthAPI = new(AuthAPIConfiguration)
-				}
-				bts, err = z.AuthAPI.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "AuthAPI")
-					return
 				}
 			}
 		case "authentication":
@@ -1853,12 +1790,6 @@ func (z *AppConfiguration) Msgsize() (s int) {
 		s += msgp.NilSize
 	} else {
 		s += 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin)
-	}
-	s += 9
-	if z.AuthAPI == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.AuthAPI.Msgsize()
 	}
 	s += 15
 	if z.Authentication == nil {

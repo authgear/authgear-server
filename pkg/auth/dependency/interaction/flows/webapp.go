@@ -459,7 +459,7 @@ func (f *WebAppFlow) afterPrimaryAuthentication(i *interaction.Interaction) (*We
 			return nil, err
 		}
 
-		result, err := f.UserController.CreateSession(i, ir, false)
+		result, err := f.UserController.CreateSession(i, ir)
 		if err != nil {
 			return nil, err
 		}
