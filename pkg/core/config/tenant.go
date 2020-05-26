@@ -548,7 +548,6 @@ type AppConfiguration struct {
 	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
 	Session          *SessionConfiguration          `json:"session,omitempty" yaml:"session" msg:"session" default_zero_value:"true"`
 	CORS             *CORSConfiguration             `json:"cors,omitempty" yaml:"cors" msg:"cors" default_zero_value:"true"`
-	AuthAPI          *AuthAPIConfiguration          `json:"auth_api,omitempty" yaml:"auth_api" msg:"auth_api" default_zero_value:"true"`
 	Authentication   *AuthenticationConfiguration   `json:"authentication,omitempty" yaml:"authentication" msg:"authentication" default_zero_value:"true"`
 	AuthUI           *AuthUIConfiguration           `json:"auth_ui,omitempty" yaml:"auth_ui" msg:"auth_ui" default_zero_value:"true"`
 	OIDC             *OIDCConfiguration             `json:"oidc,omitempty" yaml:"oidc" msg:"oidc" default_zero_value:"true"`
@@ -595,13 +594,6 @@ func (c OAuthClientConfiguration) RedirectURIs() (out []string) {
 		}
 	}
 	return
-}
-
-func (c OAuthClientConfiguration) AuthAPIUseCookie() bool {
-	if b, ok := c["auth_api_use_cookie"].(bool); ok {
-		return b
-	}
-	return false
 }
 
 func (c OAuthClientConfiguration) AccessTokenLifetime() int {

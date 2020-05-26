@@ -7,7 +7,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -55,7 +54,6 @@ func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn
 					identity.IdentityClaimAnonymousKey:   string(jwk),
 				},
 			},
-			OnUserDuplicate: model.OnUserDuplicateAbort,
 		}, clientID)
 		if err != nil {
 			return nil, err

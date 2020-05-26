@@ -9,7 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -33,11 +32,16 @@ type InteractionFlow interface {
 	RemoveLoginID(userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
 }
 
+type SSOStateCodec interface {
+	EncodeState(state sso.State) (string, error)
+	DecodeState(encodedState string) (*sso.State, error)
+}
+
 type AuthenticateProviderImpl struct {
 	ValidateProvider     ValidateProvider
 	RenderProvider       RenderProvider
 	StateProvider        StateProvider
-	SSOProvider          sso.Provider
+	SSOStateCodec        SSOStateCodec
 	Interactions         InteractionFlow
 	OAuthProviderFactory OAuthProviderFactory
 }
@@ -309,14 +313,11 @@ func (p *AuthenticateProviderImpl) LoginIdentityProvider(w http.ResponseWriter, 
 	webappSSOState := SSOState{}
 	webappSSOState.SetRequestQuery(r.URL.Query().Encode())
 	state := sso.State{
-		Action: "login",
-		LoginState: sso.LoginState{
-			OnUserDuplicate: model.OnUserDuplicateAbort,
-		},
+		Action:      "login",
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}
-	encodedState, err := p.SSOProvider.EncodeState(state)
+	encodedState, err := p.SSOStateCodec.EncodeState(state)
 	if err != nil {
 		return
 	}
@@ -362,14 +363,12 @@ func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r
 	q.Set("redirect_uri", r.URL.Path)
 	webappSSOState.SetRequestQuery(q.Encode())
 	state := sso.State{
-		Action: "link",
-		LinkState: sso.LinkState{
-			UserID: userID,
-		},
+		Action:      "link",
+		UserID:      userID,
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}
-	encodedState, err := p.SSOProvider.EncodeState(state)
+	encodedState, err := p.SSOStateCodec.EncodeState(state)
 	if err != nil {
 		return
 	}
@@ -409,14 +408,12 @@ func (p *AuthenticateProviderImpl) PromoteIdentityProvider(w http.ResponseWriter
 	webappSSOState := SSOState{}
 	webappSSOState.SetRequestQuery(r.URL.Query().Encode())
 	state := sso.State{
-		Action: "promote",
-		LinkState: sso.LinkState{
-			UserID: webappState.AnonymousUserID,
-		},
+		Action:      "promote",
+		UserID:      webappState.AnonymousUserID,
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}
-	encodedState, err := p.SSOProvider.EncodeState(state)
+	encodedState, err := p.SSOStateCodec.EncodeState(state)
 	if err != nil {
 		return
 	}
@@ -594,7 +591,7 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 	code := r.Form.Get("code")
 	encodedState := r.Form.Get("state")
 	scope := r.Form.Get("scope")
-	state, err := p.SSOProvider.DecodeState(encodedState)
+	state, err := p.SSOStateCodec.DecodeState(encodedState)
 	if err != nil {
 		return
 	}
@@ -640,9 +637,9 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 	case "login":
 		result, err = p.Interactions.LoginWithOAuthProvider(oauthAuthInfo)
 	case "link":
-		result, err = p.Interactions.LinkWithOAuthProvider(state.LinkState.UserID, oauthAuthInfo)
+		result, err = p.Interactions.LinkWithOAuthProvider(state.UserID, oauthAuthInfo)
 	case "promote":
-		result, err = p.Interactions.PromoteWithOAuthProvider(state.LinkState.UserID, oauthAuthInfo)
+		result, err = p.Interactions.PromoteWithOAuthProvider(state.UserID, oauthAuthInfo)
 	}
 
 	if err != nil {

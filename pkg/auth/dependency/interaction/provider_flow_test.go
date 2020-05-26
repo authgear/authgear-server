@@ -107,6 +107,8 @@ func TestProviderFlow(t *testing.T) {
 					gomock.Any(), gomock.Any(), gomock.Eq([]*identity.Info{ii}),
 				).Return(nil)
 
+				identityProvider.EXPECT().CheckIdentityDuplicated(gomock.Eq(ii), gomock.Eq("")).Return(nil)
+
 				identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq([]*identity.Info{ii})).Return(nil)
 				var emptyIdentityInfoList []*identity.Info
 				identityProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)

@@ -33,10 +33,6 @@ func (f *FacebookImpl) GetAuthURL(state State, encodedState string) (string, err
 		encodedState:   encodedState,
 		baseURL:        facebookAuthorizationURL,
 	}
-	if state.UXMode == UXModeWebPopup {
-		// https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow
-		p.display = "popup"
-	}
 	return authURL(p)
 }
 

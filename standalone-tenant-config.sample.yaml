@@ -30,8 +30,6 @@ app_config:
     login_id_keys:
     - key: email
     - key: phone
-  auth_api:
-    enabled: true
   authentication:
     secret: authnsessionsecret
   identity:

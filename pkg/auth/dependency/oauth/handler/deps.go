@@ -81,7 +81,7 @@ var DependencySet = wire.NewSet(
 	ProvideTokenHandler,
 	wire.Struct(new(RevokeHandler), "*"),
 	wire.Value(TokenGenerator(oauth.GenerateToken)),
-	wire.Bind(new(interactionflows.AuthAPITokenIssuer), new(*TokenHandler)),
+	wire.Bind(new(interactionflows.TokenIssuer), new(*TokenHandler)),
 	wire.Struct(new(URLProvider), "*"),
 	wire.Bind(new(AuthorizeURLProvider), new(*URLProvider)),
 )

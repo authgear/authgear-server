@@ -164,18 +164,6 @@ func makeFullTenantConfig() TenantConfiguration {
 					Default: "852",
 				},
 			},
-			AuthAPI: &AuthAPIConfiguration{
-				Enabled: true,
-				OnIdentityConflict: &AuthAPIIdentityConflictConfiguration{
-					LoginID: &AuthAPILoginIDConflictConfiguration{
-						AllowCreateNewUser: true,
-					},
-					OAuth: &AuthAPIOAuthConflictConfiguration{
-						AllowCreateNewUser: true,
-						AllowAutoMergeUser: true,
-					},
-				},
-			},
 			Authentication: &AuthenticationConfiguration{
 				Secret:                      "authnsessionsecret",
 				Identities:                  []string{"login_id", "oauth"},
