@@ -1,20 +1,10 @@
 package sso
 
-// LoginState stores login specific state.
-type LoginState struct {
-}
-
-// LinkState stores link specific state.
-type LinkState struct {
-	UserID string `json:"user_id,omitempty"`
-}
-
 // State is an opaque value used by the client to maintain
 // state between the request and callback.
 // See https://tools.ietf.org/html/rfc6749#section-4.1.1
 type State struct {
-	LoginState
-	LinkState
+	UserID      string            `json:"user_id,omitempty"`
 	Extra       map[string]string `json:"extra,omitempty"`
 	Action      string            `json:"action,omitempty"`
 	HashedNonce string            `json:"hashed_nonce"`

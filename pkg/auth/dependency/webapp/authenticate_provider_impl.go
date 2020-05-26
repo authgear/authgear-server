@@ -314,7 +314,6 @@ func (p *AuthenticateProviderImpl) LoginIdentityProvider(w http.ResponseWriter, 
 	webappSSOState.SetRequestQuery(r.URL.Query().Encode())
 	state := sso.State{
 		Action:      "login",
-		LoginState:  sso.LoginState{},
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}
@@ -364,10 +363,8 @@ func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r
 	q.Set("redirect_uri", r.URL.Path)
 	webappSSOState.SetRequestQuery(q.Encode())
 	state := sso.State{
-		Action: "link",
-		LinkState: sso.LinkState{
-			UserID: userID,
-		},
+		Action:      "link",
+		UserID:      userID,
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}
@@ -411,10 +408,8 @@ func (p *AuthenticateProviderImpl) PromoteIdentityProvider(w http.ResponseWriter
 	webappSSOState := SSOState{}
 	webappSSOState.SetRequestQuery(r.URL.Query().Encode())
 	state := sso.State{
-		Action: "promote",
-		LinkState: sso.LinkState{
-			UserID: webappState.AnonymousUserID,
-		},
+		Action:      "promote",
+		UserID:      webappState.AnonymousUserID,
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}
@@ -642,9 +637,9 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 	case "login":
 		result, err = p.Interactions.LoginWithOAuthProvider(oauthAuthInfo)
 	case "link":
-		result, err = p.Interactions.LinkWithOAuthProvider(state.LinkState.UserID, oauthAuthInfo)
+		result, err = p.Interactions.LinkWithOAuthProvider(state.UserID, oauthAuthInfo)
 	case "promote":
-		result, err = p.Interactions.PromoteWithOAuthProvider(state.LinkState.UserID, oauthAuthInfo)
+		result, err = p.Interactions.PromoteWithOAuthProvider(state.UserID, oauthAuthInfo)
 	}
 
 	if err != nil {
