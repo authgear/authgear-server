@@ -7,7 +7,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -112,15 +111,12 @@ func (p *Provider) onCommitLogin(i *Interaction, intent *IntentLogin) error {
 }
 
 func (p *Provider) onCommitSignup(i *Interaction, intent *IntentSignup) error {
-	// TODO(interaction-sso): handle OnUserDuplicateMerge
-	if intent.OnUserDuplicate == model.OnUserDuplicateAbort {
-		err := p.checkIdentitiesDuplicated(i.NewIdentities, "")
-		if err != nil {
-			return err
-		}
+	err := p.checkIdentitiesDuplicated(i.NewIdentities, "")
+	if err != nil {
+		return err
 	}
 
-	err := p.User.Create(i.UserID, intent.UserMetadata, i.NewIdentities)
+	err = p.User.Create(i.UserID, intent.UserMetadata, i.NewIdentities)
 	if err != nil {
 		return err
 	}

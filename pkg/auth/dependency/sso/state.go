@@ -1,12 +1,7 @@
 package sso
 
-import (
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-)
-
 // LoginState stores login specific state.
 type LoginState struct {
-	OnUserDuplicate model.OnUserDuplicate `json:"on_user_duplicate,omitempty"`
 }
 
 // LinkState stores link specific state.

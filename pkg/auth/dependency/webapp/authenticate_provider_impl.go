@@ -9,7 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -314,10 +313,8 @@ func (p *AuthenticateProviderImpl) LoginIdentityProvider(w http.ResponseWriter, 
 	webappSSOState := SSOState{}
 	webappSSOState.SetRequestQuery(r.URL.Query().Encode())
 	state := sso.State{
-		Action: "login",
-		LoginState: sso.LoginState{
-			OnUserDuplicate: model.OnUserDuplicateAbort,
-		},
+		Action:      "login",
+		LoginState:  sso.LoginState{},
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}

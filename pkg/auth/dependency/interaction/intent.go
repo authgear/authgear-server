@@ -3,7 +3,6 @@ package interaction
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 )
 
 // Intent represents the intention that triggered the interaction.
@@ -45,9 +44,8 @@ func NewIntent(t IntentType) Intent {
 }
 
 type IntentSignup struct {
-	UserMetadata    map[string]interface{} `json:"user_metadata"`
-	Identity        identity.Spec          `json:"identity"`
-	OnUserDuplicate model.OnUserDuplicate  `json:"on_user_duplicate"`
+	UserMetadata map[string]interface{} `json:"user_metadata"`
+	Identity     identity.Spec          `json:"identity"`
 }
 
 func (*IntentSignup) Type() IntentType { return IntentTypeSignup }

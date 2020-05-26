@@ -4,7 +4,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -71,7 +70,6 @@ func (f *WebAppFlow) SignupWithLoginID(loginIDKey, loginID string) (*WebAppResul
 				identity.IdentityClaimLoginIDValue: loginID,
 			},
 		},
-		OnUserDuplicate: model.OnUserDuplicateAbort,
 	}, "")
 	if err != nil {
 		return nil, err
