@@ -16,6 +16,7 @@ import (
 	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
@@ -126,6 +127,11 @@ func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 	provider := time.NewProvider()
 	sqlBuilder := ProvideAuthSQLBuilder(sqlBuilderFactory)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	queries := &user.Queries{
+		AuthInfos:    store,
+		UserProfiles: userprofileStore,
+		Time:         provider,
+	}
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	reservedNameChecker := ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
@@ -133,7 +139,7 @@ func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
 	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, checker, normalizerFactory)
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, provider, store, userprofileStore, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, provider, queries, store, userprofileStore, loginidProvider, factory)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
 	insecureCookieConfig := ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
@@ -144,8 +150,7 @@ func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 		Time:  provider,
 	}
 	authSessionManager := &auth2.SessionManager{
-		AuthInfoStore:       store,
-		UserProfileStore:    userprofileStore,
+		Users:               queries,
 		Hooks:               hookProvider,
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,

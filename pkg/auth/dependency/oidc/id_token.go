@@ -7,12 +7,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
+
+type UserProvider interface {
+	Get(id string) (*model.User, error)
+}
 
 type UserClaims struct {
 	jwt.StandardClaims
@@ -26,11 +28,10 @@ type IDTokenClaims struct {
 }
 
 type IDTokenIssuer struct {
-	OIDCConfig       config.OIDCConfiguration
-	URLPrefix        urlprefix.Provider
-	AuthInfoStore    authinfo.Store
-	UserProfileStore userprofile.Store
-	Time             time.Provider
+	OIDCConfig config.OIDCConfiguration
+	URLPrefix  urlprefix.Provider
+	Users      UserProvider
+	Time       time.Provider
 }
 
 // IDTokenValidDuration is the valid period of ID token.
@@ -83,18 +84,12 @@ func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (*UserClaims, 
 		return claims, nil
 	}
 
-	authInfo := &authinfo.AuthInfo{}
-	if err := ti.AuthInfoStore.GetAuth(session.AuthnAttrs().UserID, authInfo); err != nil {
-		return nil, err
-	}
-
-	userProfile, err := ti.UserProfileStore.GetUserProfile(session.AuthnAttrs().UserID)
+	user, err := ti.Users.Get(session.AuthnAttrs().UserID)
 	if err != nil {
 		return nil, err
 	}
 
-	user := model.NewUser(*authInfo, userProfile)
-	claims.User = &user
+	claims.User = user
 	claims.SessionID = session.SessionID()
 
 	return claims, nil

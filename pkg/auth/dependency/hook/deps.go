@@ -20,6 +20,7 @@ func ProvideHookProvider(
 	tConfig *config.TenantConfiguration,
 	txContext db.TxContext,
 	timeProvider time.Provider,
+	users UserProvider,
 	authInfoStore authinfo.Store,
 	userProfileStore userprofile.Store,
 	loginIDProvider LoginIDProvider,
@@ -30,8 +31,7 @@ func ProvideHookProvider(
 		NewStore(sqlb, sqle),
 		txContext,
 		timeProvider,
-		authInfoStore,
-		userProfileStore,
+		users,
 		NewDeliverer(
 			tConfig,
 			timeProvider,

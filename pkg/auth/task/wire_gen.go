@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -35,6 +36,11 @@ func newVerifyCodeSendTask(ctx context.Context, m auth.DependencyMap) async.Task
 	provider := time.NewProvider()
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
 	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
+	queries := &user.Queries{
+		AuthInfos:    store,
+		UserProfiles: userprofileStore,
+		Time:         provider,
+	}
 	userverifyProvider := userverify.ProvideProvider(tenantConfiguration, provider, sqlBuilder, sqlExecutor)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
@@ -45,8 +51,7 @@ func newVerifyCodeSendTask(ctx context.Context, m auth.DependencyMap) async.Task
 	factory := logging.ProvideLoggerFactory(ctx, tenantConfiguration)
 	verifyCodeSendTask := &VerifyCodeSendTask{
 		CodeSenderFactory:        codeSenderFactory,
-		AuthInfoStore:            store,
-		UserProfileStore:         userprofileStore,
+		Users:                    queries,
 		UserVerificationProvider: userverifyProvider,
 		LoginIDProvider:          loginidProvider,
 		TxContext:                txContext,

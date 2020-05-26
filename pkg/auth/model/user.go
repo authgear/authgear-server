@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 )
 
 // User is the unify way of returning a AuthInfo with LoginID to SDK
@@ -31,36 +30,6 @@ type User struct {
 	Disabled         bool             `json:"is_disabled"`
 	VerifyInfo       map[string]bool  `json:"verify_info"`
 	Metadata         userprofile.Data `json:"metadata"`
-}
-
-func NewUser(
-	authInfo authinfo.AuthInfo,
-	userProfile userprofile.UserProfile,
-) User {
-	// copy data to prevent sharing
-	if authInfo.LastLoginAt != nil {
-		lastLoginAt := *authInfo.LastLoginAt
-		authInfo.LastLoginAt = &lastLoginAt
-	}
-	verifyInfo := map[string]bool{}
-	for k, v := range authInfo.VerifyInfo {
-		verifyInfo[k] = v
-	}
-	metadata := userprofile.Data{}
-	for k, v := range userProfile.Data {
-		metadata[k] = v
-	}
-
-	return User{
-		ID:               authInfo.ID,
-		CreatedAt:        userProfile.CreatedAt,
-		LastLoginAt:      authInfo.LastLoginAt,
-		Verified:         authInfo.IsVerified(),
-		ManuallyVerified: authInfo.ManuallyVerified,
-		Disabled:         authInfo.Disabled,
-		VerifyInfo:       verifyInfo,
-		Metadata:         metadata,
-	}
 }
 
 // @JSONSchema

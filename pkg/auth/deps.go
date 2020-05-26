@@ -35,6 +35,7 @@ import (
 	sessionredis "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
@@ -152,9 +153,9 @@ var interactionDependencySet = wire.NewSet(
 	interaction.DependencySet,
 	interactionredis.DependencySet,
 	interactionflows.DependencySet,
-	welcomemessage.DependencySet,
+	welcomemessageDependencySet,
+	userDependencySet,
 
-	wire.Bind(new(interaction.WelcomeMessageProvider), new(*welcomemessage.Provider)),
 	wire.Bind(new(interaction.OOBProvider), new(*authenticatoroob.Provider)),
 	wire.Bind(new(interaction.IdentityProvider), new(*identityprovider.Provider)),
 	wire.Bind(new(interaction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
@@ -210,6 +211,23 @@ var webappDependencySet = wire.NewSet(
 	wire.Bind(new(oauthhandler.AuthenticateURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(oidchandler.LogoutURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(oidchandler.SettingsURLProvider), new(*webapp.URLProvider)),
+)
+
+var welcomemessageDependencySet = wire.NewSet(
+	welcomemessage.DependencySet,
+
+	wire.Bind(new(user.WelcomeMessageProvider), new(*welcomemessage.Provider)),
+)
+
+var userDependencySet = wire.NewSet(
+	user.DependencySet,
+
+	wire.Bind(new(auth.UserProvider), new(*user.Queries)),
+	wire.Bind(new(forgotpassword.UserProvider), new(*user.Queries)),
+	wire.Bind(new(hook.UserProvider), new(*user.Queries)),
+	wire.Bind(new(interaction.UserProvider), new(*user.Provider)),
+	wire.Bind(new(interactionflows.UserProvider), new(*user.Queries)),
+	wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 )
 
 var CommonDependencySet = wire.NewSet(

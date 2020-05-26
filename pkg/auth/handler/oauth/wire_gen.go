@@ -33,6 +33,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	redis4 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
@@ -96,9 +97,18 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
+	queries := &user.Queries{
+		AuthInfos:    authinfoStore,
+		UserProfiles: userprofileStore,
+		Time:         timeProvider,
+	}
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	commands := user.ProvideCommands(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	provider4 := challenge.ProvideProvider(context, timeProvider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
@@ -178,9 +188,18 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
+	queries := &user.Queries{
+		AuthInfos:    authinfoStore,
+		UserProfiles: userprofileStore,
+		Time:         timeProvider,
+	}
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	commands := user.ProvideCommands(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	provider4 := challenge.ProvideProvider(context, timeProvider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
@@ -188,7 +207,7 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Anonymous:    anonymousProvider,
 		Challenges:   provider4,
 	}
-	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, authinfoStore, userprofileStore, timeProvider)
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, queries, timeProvider)
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenHandler := handler.ProvideTokenHandler(r, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, accessEventProvider, sessionProvider, anonymousFlow, idTokenIssuer, tokenGenerator, timeProvider)
 	httpHandler := provideTokenHandler(factory, txContext, tokenHandler)
@@ -252,7 +271,12 @@ func newUserInfoHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	timeProvider := time.NewProvider()
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, store, userprofileStore, timeProvider)
+	queries := &user.Queries{
+		AuthInfos:    store,
+		UserProfiles: userprofileStore,
+		Time:         timeProvider,
+	}
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, queries, timeProvider)
 	httpHandler := provideUserInfoHandler(factory, txContext, idTokenIssuer)
 	return httpHandler
 }
@@ -298,9 +322,18 @@ func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
+	queries := &user.Queries{
+		AuthInfos:    authinfoStore,
+		UserProfiles: userprofileStore,
+		Time:         timeProvider,
+	}
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
-	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	commands := user.ProvideCommands(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	provider4 := challenge.ProvideProvider(context, timeProvider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{

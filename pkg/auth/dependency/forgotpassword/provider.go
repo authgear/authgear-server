@@ -8,12 +8,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	taskspec "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -31,6 +29,10 @@ type LoginIDProvider interface {
 	IsLoginIDKeyType(loginIDKey string, loginIDKeyType metadata.StandardKey) bool
 }
 
+type UserProvider interface {
+	Get(id string) (*model.User, error)
+}
+
 type Provider struct {
 	StaticAssetURLPrefix        string
 	AppName                     string
@@ -40,8 +42,7 @@ type Provider struct {
 
 	Store Store
 
-	AuthInfoStore     authinfo.Store
-	UserProfileStore  userprofile.Store
+	Users             UserProvider
 	HookProvider      hook.Provider
 	TimeProvider      coretime.Provider
 	URLPrefixProvider urlprefix.Provider
@@ -239,25 +240,17 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error)
 		return err
 	}
 
-	var authInfo authinfo.AuthInfo
-	err = p.AuthInfoStore.GetAuth(userID, &authInfo)
+	user, err := p.Users.Get(userID)
 	if err != nil {
 		return
 	}
-
-	userProfile, err := p.UserProfileStore.GetUserProfile(userID)
-	if err != nil {
-		return
-	}
-
-	user := model.NewUser(authInfo, userProfile)
 
 	err = p.HookProvider.DispatchEvent(
 		event.PasswordUpdateEvent{
 			Reason: event.PasswordUpdateReasonResetPassword,
-			User:   user,
+			User:   *user,
 		},
-		&user,
+		user,
 	)
 	if err != nil {
 		return

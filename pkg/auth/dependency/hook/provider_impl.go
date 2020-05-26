@@ -8,10 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -20,13 +18,18 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
+//go:generate mockgen -source=provider_impl.go -destination=provider_impl_mock_test.go -package hook
+
+type UserProvider interface {
+	Get(id string) (*model.User, error)
+}
+
 type providerImpl struct {
 	Store                   Store
 	Context                 context.Context
 	TxContext               db.TxContext
 	TimeProvider            time.Provider
-	AuthInfoStore           authinfo.Store
-	UserProfileStore        userprofile.Store
+	Users                   UserProvider
 	Deliverer               Deliverer
 	PersistentEventPayloads []event.Payload
 	Logger                  *logrus.Entry
@@ -39,20 +42,18 @@ func NewProvider(
 	store Store,
 	txContext db.TxContext,
 	timeProvider time.Provider,
-	authInfoStore authinfo.Store,
-	userProfileStore userprofile.Store,
+	users UserProvider,
 	deliverer Deliverer,
 	loggerFactory logging.Factory,
 ) Provider {
 	return &providerImpl{
-		Context:          ctx,
-		Store:            store,
-		TxContext:        txContext,
-		TimeProvider:     timeProvider,
-		AuthInfoStore:    authInfoStore,
-		UserProfileStore: userProfileStore,
-		Deliverer:        deliverer,
-		Logger:           loggerFactory.NewLogger("hook"),
+		Context:      ctx,
+		Store:        store,
+		TxContext:    txContext,
+		TimeProvider: timeProvider,
+		Users:        users,
+		Deliverer:    deliverer,
+		Logger:       loggerFactory.NewLogger("hook"),
 	}
 }
 
@@ -171,20 +172,13 @@ func (provider *providerImpl) dispatchSyncUserEventIfNeeded() error {
 	}
 
 	for _, userID := range userIDToSync {
-		var authInfo authinfo.AuthInfo
-		err := provider.AuthInfoStore.GetAuth(userID, &authInfo)
+		user, err := provider.Users.Get(userID)
 		if err != nil {
 			return err
 		}
 
-		userProfile, err := provider.UserProfileStore.GetUserProfile(userID)
-		if err != nil {
-			return err
-		}
-
-		user := model.NewUser(authInfo, userProfile)
-		payload := event.UserSyncEvent{User: user}
-		err = provider.DispatchEvent(payload, &user)
+		payload := event.UserSyncEvent{User: *user}
+		err = provider.DispatchEvent(payload, user)
 		if err != nil {
 			return err
 		}

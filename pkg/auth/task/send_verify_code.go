@@ -7,12 +7,10 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -29,10 +27,13 @@ type VerifyCodeLoginIDProvider interface {
 	GetByLoginID(loginid.LoginID) ([]*loginid.Identity, error)
 }
 
+type UserProvider interface {
+	Get(id string) (*model.User, error)
+}
+
 type VerifyCodeSendTask struct {
 	CodeSenderFactory        userverify.CodeSenderFactory
-	AuthInfoStore            authinfo.Store
-	UserProfileStore         userprofile.Store
+	Users                    UserProvider
 	UserVerificationProvider userverify.Provider
 	LoginIDProvider          VerifyCodeLoginIDProvider
 	TxContext                db.TxContext
@@ -51,13 +52,7 @@ func (v *VerifyCodeSendTask) run(param interface{}) (err error) {
 	logger := v.LoggerFactory.NewLogger("verifycode")
 	logger.WithFields(logrus.Fields{"user_id": taskParam.UserID}).Debug("Sending verification code")
 
-	authInfo := authinfo.AuthInfo{}
-	err = v.AuthInfoStore.GetAuth(userID, &authInfo)
-	if err != nil {
-		return
-	}
-
-	userProfile, err := v.UserProfileStore.GetUserProfile(userID)
+	user, err := v.Users.Get(userID)
 	if err != nil {
 		return
 	}
@@ -69,7 +64,7 @@ func (v *VerifyCodeSendTask) run(param interface{}) (err error) {
 
 	var identity *loginid.Identity
 	for _, i := range is {
-		if i.UserID == authInfo.ID {
+		if i.UserID == user.ID {
 			identity = i
 			break
 		}
@@ -85,8 +80,7 @@ func (v *VerifyCodeSendTask) run(param interface{}) (err error) {
 	}
 
 	codeSender := v.CodeSenderFactory.NewCodeSender(taskParam.URLPrefix, identity.LoginIDKey)
-	user := model.NewUser(authInfo, userProfile)
-	if err = codeSender.Send(*verifyCode, user); err != nil {
+	if err = codeSender.Send(*verifyCode, *user); err != nil {
 		err = errors.WithDetails(err, errors.Details{"user_id": userID})
 		return
 	}
