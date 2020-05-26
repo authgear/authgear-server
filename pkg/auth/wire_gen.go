@@ -10,7 +10,10 @@ import (
 	auth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
+	oauth2 "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/provider"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/pq"
 	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
@@ -124,30 +127,34 @@ func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
 	store := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
-	provider := time.NewProvider()
+	timeProvider := time.NewProvider()
 	sqlBuilder := ProvideAuthSQLBuilder(sqlBuilderFactory)
-	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
-	queries := &user.Queries{
-		AuthInfos:    store,
-		UserProfiles: userprofileStore,
-		Time:         provider,
-	}
-	txContext := db.ProvideTxContext(context, tenantConfiguration)
+	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	reservedNameChecker := ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, checker, normalizerFactory)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
+	oauthProvider := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
+	queries := &user.Queries{
+		AuthInfos:    store,
+		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
+		Time:         timeProvider,
+	}
+	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, provider, queries, store, userprofileStore, loginidProvider, factory)
-	sessionStore := redis.ProvideStore(context, tenantConfiguration, provider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, store, userprofileStore, loginidProvider, factory)
+	sessionStore := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
 	insecureCookieConfig := ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
-	manager := session.ProvideSessionManager(sessionStore, provider, tenantConfiguration, cookieConfiguration)
-	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	manager := session.ProvideSessionManager(sessionStore, timeProvider, tenantConfiguration, cookieConfiguration)
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
 	sessionManager := &oauth.SessionManager{
 		Store: grantStore,
-		Time:  provider,
+		Time:  timeProvider,
 	}
 	authSessionManager := &auth2.SessionManager{
 		Users:               queries,

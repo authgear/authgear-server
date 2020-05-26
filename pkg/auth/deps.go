@@ -138,12 +138,27 @@ func ProvideCSRFMiddleware(m DependencyMap, tConfig *config.TenantConfiguration)
 	return middleware.Handle
 }
 
-var interactionDependencySet = wire.NewSet(
+var identityDependencySet = wire.NewSet(
 	identityloginid.DependencySet,
 	identityoauth.DependencySet,
 	identityanonymous.DependencySet,
 	identityprovider.DependencySet,
+
+	wire.Bind(new(identityprovider.LoginIDIdentityProvider), new(*identityloginid.Provider)),
+	wire.Bind(new(hook.LoginIDProvider), new(*identityloginid.Provider)),
+	wire.Bind(new(forgotpassword.LoginIDProvider), new(*identityloginid.Provider)),
+
+	wire.Bind(new(identityprovider.OAuthIdentityProvider), new(*identityoauth.Provider)),
+
+	wire.Bind(new(identityprovider.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+	wire.Bind(new(interactionflows.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+
 	wire.Bind(new(webapp.IdentityProvider), new(*identityprovider.Provider)),
+	wire.Bind(new(interaction.IdentityProvider), new(*identityprovider.Provider)),
+	wire.Bind(new(user.IdentityProvider), new(*identityprovider.Provider)),
+)
+
+var interactionDependencySet = wire.NewSet(
 	authenticatorpassword.DependencySet,
 	authenticatortotp.DependencySet,
 	authenticatoroob.DependencySet,
@@ -157,11 +172,7 @@ var interactionDependencySet = wire.NewSet(
 	userDependencySet,
 
 	wire.Bind(new(interaction.OOBProvider), new(*authenticatoroob.Provider)),
-	wire.Bind(new(interaction.IdentityProvider), new(*identityprovider.Provider)),
 	wire.Bind(new(interaction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
-	wire.Bind(new(identityprovider.LoginIDIdentityProvider), new(*identityloginid.Provider)),
-	wire.Bind(new(identityprovider.OAuthIdentityProvider), new(*identityoauth.Provider)),
-	wire.Bind(new(identityprovider.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 	wire.Bind(new(authenticatorprovider.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
 	wire.Bind(new(authenticatorprovider.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
 	wire.Bind(new(authenticatorprovider.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
@@ -169,15 +180,11 @@ var interactionDependencySet = wire.NewSet(
 	wire.Bind(new(authenticatorprovider.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
 
 	wire.Bind(new(interactionflows.InteractionProvider), new(*interaction.Provider)),
-	wire.Bind(new(interactionflows.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
 	wire.Bind(new(webapp.InteractionFlow), new(*interactionflows.WebAppFlow)),
 	wire.Bind(new(oauthhandler.AnonymousInteractionFlow), new(*interactionflows.AnonymousFlow)),
 	wire.Bind(new(webapp.AnonymousFlow), new(*interactionflows.AnonymousFlow)),
 
-	wire.Bind(new(hook.LoginIDProvider), new(*identityloginid.Provider)),
-
-	wire.Bind(new(forgotpassword.LoginIDProvider), new(*identityloginid.Provider)),
 	wire.Bind(new(forgotpassword.ResetPasswordFlow), new(*interactionflows.PasswordFlow)),
 )
 
@@ -273,6 +280,7 @@ var CommonDependencySet = wire.NewSet(
 	forgotpassword.DependencySet,
 	challengeDependencySet,
 	interactionDependencySet,
+	identityDependencySet,
 )
 
 // DependencySet is for HTTP request

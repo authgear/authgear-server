@@ -100,6 +100,7 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	queries := &user.Queries{
 		AuthInfos:    authinfoStore,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
@@ -191,6 +192,7 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	queries := &user.Queries{
 		AuthInfos:    authinfoStore,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
@@ -271,9 +273,18 @@ func newUserInfoHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	timeProvider := time.NewProvider()
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
+	reservedNameChecker := auth.ProvideReservedNameChecker(m)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
+	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	queries := &user.Queries{
 		AuthInfos:    store,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, queries, timeProvider)
@@ -325,6 +336,7 @@ func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	queries := &user.Queries{
 		AuthInfos:    authinfoStore,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)

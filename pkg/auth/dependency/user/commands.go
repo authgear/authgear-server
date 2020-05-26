@@ -48,7 +48,7 @@ func (c *Commands) Create(userID string, metadata map[string]interface{}, identi
 		return err
 	}
 
-	user := newUser(now, authInfo, &userProfile)
+	user := newUser(now, authInfo, &userProfile, identities)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())

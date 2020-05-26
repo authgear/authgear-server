@@ -28,6 +28,7 @@ type User struct {
 	Verified         bool             `json:"is_verified"`
 	ManuallyVerified bool             `json:"is_manually_verified"`
 	Disabled         bool             `json:"is_disabled"`
+	IsAnonymous      bool             `json:"is_anonymous"`
 	VerifyInfo       map[string]bool  `json:"verify_info"`
 	Metadata         userprofile.Data `json:"metadata"`
 }
@@ -44,6 +45,7 @@ const UserSchema = `
 		"is_verified": { "type": "boolean" },
 		"is_manually_verified": { "type": "boolean" },
 		"is_disabled": { "type": "boolean" },
+		"is_anonymous": { "type": "boolean" },
 		"verify_info": { "type": "object" },
 		"metadata": { "type": "object" }
 	}

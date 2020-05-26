@@ -100,6 +100,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	queries := &user.Queries{
 		AuthInfos:    authinfoStore,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
@@ -212,6 +213,7 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	queries := &user.Queries{
 		AuthInfos:    authinfoStore,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
@@ -304,6 +306,7 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	queries := &user.Queries{
 		AuthInfos:    store,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
@@ -384,6 +387,7 @@ func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http
 	queries := &user.Queries{
 		AuthInfos:    store,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
@@ -464,6 +468,7 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	queries := &user.Queries{
 		AuthInfos:    store,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
@@ -544,6 +549,7 @@ func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.
 	queries := &user.Queries{
 		AuthInfos:    store,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
@@ -640,6 +646,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	queries := &user.Queries{
 		AuthInfos:    authinfoStore,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
@@ -748,6 +755,7 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	queries := &user.Queries{
 		AuthInfos:    authinfoStore,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
@@ -856,6 +864,7 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	queries := &user.Queries{
 		AuthInfos:    authinfoStore,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
@@ -990,6 +999,7 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	queries := &user.Queries{
 		AuthInfos:    authinfoStore,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
@@ -1099,6 +1109,7 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	queries := &user.Queries{
 		AuthInfos:    authinfoStore,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
@@ -1207,6 +1218,7 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	queries := &user.Queries{
 		AuthInfos:    authinfoStore,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
@@ -1289,6 +1301,7 @@ func newLogoutHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	queries := &user.Queries{
 		AuthInfos:    store,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
@@ -1368,6 +1381,7 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	queries := &user.Queries{
 		AuthInfos:    authinfoStore,
 		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
 		Time:         timeProvider,
 	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
