@@ -33,13 +33,13 @@ func TestValidateProvider(t *testing.T) {
 				So(ok, ShouldBeFalse)
 			})
 
-			Convey("prefill text if first login id type is not phone", func() {
+			Convey("prefill email if first login id type is email", func() {
 				form = url.Values{}
 				c.Keys = []config.LoginIDKeyConfiguration{
 					{Key: "email", Type: "email"},
 				}
 				impl.PrepareValues(form)
-				So(form.Get("x_login_id_input_type"), ShouldEqual, "text")
+				So(form.Get("x_login_id_input_type"), ShouldEqual, "email")
 			})
 
 			Convey("prefill phone if first login id type is phone", func() {
@@ -49,6 +49,15 @@ func TestValidateProvider(t *testing.T) {
 				}
 				impl.PrepareValues(form)
 				So(form.Get("x_login_id_input_type"), ShouldEqual, "phone")
+			})
+
+			Convey("prefill text if first login id type is other", func() {
+				form = url.Values{}
+				c.Keys = []config.LoginIDKeyConfiguration{
+					{Key: "username", Type: "username"},
+				}
+				impl.PrepareValues(form)
+				So(form.Get("x_login_id_input_type"), ShouldEqual, "text")
 			})
 
 			Convey("do not prefill if already specified", func() {

@@ -28,7 +28,7 @@ const EnterLoginIDRequestSchema = `
 	"$id": "#WebAppEnterLoginIDRequest",
 	"type": "object",
 	"properties": {
-		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
+		"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" }
@@ -43,7 +43,7 @@ const EnterLoginIDRequestSchema = `
 		},
 		{
 			"properties": {
-				"x_login_id_input_type": { "type": "string", "const": "text" }
+				"x_login_id_input_type": { "type": "string", "enum": ["text", "email"] }
 			},
 			"required": ["x_login_id"]
 		}
@@ -70,7 +70,7 @@ const CreateLoginIDRequestSchema = `
 	"type": "object",
 	"properties": {
 		"x_login_id_key": { "type": "string" },
-		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
+		"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" }
@@ -85,7 +85,7 @@ const CreateLoginIDRequestSchema = `
 		},
 		{
 			"properties": {
-				"x_login_id_input_type": { "type": "string", "const": "text" }
+				"x_login_id_input_type": { "type": "string", "enum": ["text", "email"] }
 			},
 			"required": ["x_login_id"]
 		}
@@ -112,7 +112,7 @@ const ForgotPasswordRequestSchema = `
 	"$id": "#WebAppForgotPasswordRequest",
 	"type": "object",
 	"properties": {
-		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] },
+		"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
 		"x_calling_code": { "type": "string" },
 		"x_national_number": { "type": "string" },
 		"x_login_id": { "type": "string" }
@@ -127,7 +127,7 @@ const ForgotPasswordRequestSchema = `
 		},
 		{
 			"properties": {
-				"x_login_id_input_type": { "type": "string", "const": "text" }
+				"x_login_id_input_type": { "type": "string", "enum": ["text", "email"] }
 			},
 			"required": ["x_login_id"]
 		}
@@ -154,7 +154,7 @@ const AddOrChangeLoginIDRequestSchema = `
 	"type": "object",
 	"properties": {
 		"x_login_id_key": { "type": "string" },
-		"x_login_id_input_type": { "type": "string", "enum": ["phone", "text"] }
+		"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] }
 	},
 	"required": ["x_login_id_key", "x_login_id_input_type"]
 }
@@ -202,6 +202,8 @@ func (p *ValidateProviderImpl) PrepareValues(form url.Values) {
 		if len(p.LoginIDConfiguration.Keys) > 0 {
 			if string(p.LoginIDConfiguration.Keys[0].Type) == "phone" {
 				form.Set("x_login_id_input_type", "phone")
+			} else if string(p.LoginIDConfiguration.Keys[0].Type) == "email" {
+				form.Set("x_login_id_input_type", "email")
 			} else {
 				form.Set("x_login_id_input_type", "text")
 			}
