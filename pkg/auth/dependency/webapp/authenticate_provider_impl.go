@@ -33,11 +33,16 @@ type InteractionFlow interface {
 	RemoveLoginID(userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
 }
 
+type SSOStateCodec interface {
+	EncodeState(state sso.State) (string, error)
+	DecodeState(encodedState string) (*sso.State, error)
+}
+
 type AuthenticateProviderImpl struct {
 	ValidateProvider     ValidateProvider
 	RenderProvider       RenderProvider
 	StateProvider        StateProvider
-	SSOProvider          sso.Provider
+	SSOStateCodec        SSOStateCodec
 	Interactions         InteractionFlow
 	OAuthProviderFactory OAuthProviderFactory
 }
@@ -316,7 +321,7 @@ func (p *AuthenticateProviderImpl) LoginIdentityProvider(w http.ResponseWriter, 
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}
-	encodedState, err := p.SSOProvider.EncodeState(state)
+	encodedState, err := p.SSOStateCodec.EncodeState(state)
 	if err != nil {
 		return
 	}
@@ -369,7 +374,7 @@ func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}
-	encodedState, err := p.SSOProvider.EncodeState(state)
+	encodedState, err := p.SSOStateCodec.EncodeState(state)
 	if err != nil {
 		return
 	}
@@ -416,7 +421,7 @@ func (p *AuthenticateProviderImpl) PromoteIdentityProvider(w http.ResponseWriter
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}
-	encodedState, err := p.SSOProvider.EncodeState(state)
+	encodedState, err := p.SSOStateCodec.EncodeState(state)
 	if err != nil {
 		return
 	}
@@ -594,7 +599,7 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 	code := r.Form.Get("code")
 	encodedState := r.Form.Get("state")
 	scope := r.Form.Get("scope")
-	state, err := p.SSOProvider.DecodeState(encodedState)
+	state, err := p.SSOStateCodec.DecodeState(encodedState)
 	if err != nil {
 		return
 	}

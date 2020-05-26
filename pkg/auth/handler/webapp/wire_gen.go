@@ -75,7 +75,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
 	}
-	provider3 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	stateCodec := sso.ProvideStateCodec(tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
@@ -87,7 +87,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	provider4 := &provider2.Provider{
+	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -99,7 +99,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -136,7 +136,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
 		StateProvider:        stateProviderImpl,
-		SSOProvider:          provider3,
+		SSOStateCodec:        stateCodec,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
 	}
@@ -178,7 +178,7 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
 	}
-	provider3 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	stateCodec := sso.ProvideStateCodec(tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
@@ -190,7 +190,7 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	provider4 := &provider2.Provider{
+	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -202,7 +202,7 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -239,7 +239,7 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
 		StateProvider:        stateProviderImpl,
-		SSOProvider:          provider3,
+		SSOStateCodec:        stateCodec,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
 	}
@@ -561,7 +561,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
 	}
-	provider3 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	stateCodec := sso.ProvideStateCodec(tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
@@ -573,7 +573,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	provider4 := &provider2.Provider{
+	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -585,7 +585,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -622,7 +622,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
 		StateProvider:        stateProviderImpl,
-		SSOProvider:          provider3,
+		SSOStateCodec:        stateCodec,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
 	}
@@ -660,7 +660,7 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
 	}
-	provider3 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	stateCodec := sso.ProvideStateCodec(tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
@@ -672,7 +672,7 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	provider4 := &provider2.Provider{
+	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -684,7 +684,7 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -721,7 +721,7 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
 		StateProvider:        stateProviderImpl,
-		SSOProvider:          provider3,
+		SSOStateCodec:        stateCodec,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
 	}
@@ -759,7 +759,7 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
 	}
-	provider3 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	stateCodec := sso.ProvideStateCodec(tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
@@ -771,7 +771,7 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	provider4 := &provider2.Provider{
+	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -783,7 +783,7 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -820,7 +820,7 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
 		StateProvider:        stateProviderImpl,
-		SSOProvider:          provider3,
+		SSOStateCodec:        stateCodec,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
 	}
@@ -884,7 +884,7 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
 	}
-	provider3 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	stateCodec := sso.ProvideStateCodec(tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
@@ -896,7 +896,7 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	provider4 := &provider2.Provider{
+	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -908,7 +908,7 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -945,7 +945,7 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
 		StateProvider:        stateProviderImpl,
-		SSOProvider:          provider3,
+		SSOStateCodec:        stateCodec,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
 	}
@@ -984,7 +984,7 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
 	}
-	provider3 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	stateCodec := sso.ProvideStateCodec(tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
@@ -996,7 +996,7 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	provider4 := &provider2.Provider{
+	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -1008,7 +1008,7 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1045,7 +1045,7 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
 		StateProvider:        stateProviderImpl,
-		SSOProvider:          provider3,
+		SSOStateCodec:        stateCodec,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
 	}
@@ -1083,7 +1083,7 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
 	}
-	provider3 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	stateCodec := sso.ProvideStateCodec(tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
@@ -1095,7 +1095,7 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	provider4 := &provider2.Provider{
+	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -1107,7 +1107,7 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1144,7 +1144,7 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
 		StateProvider:        stateProviderImpl,
-		SSOProvider:          provider3,
+		SSOStateCodec:        stateCodec,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
 	}
@@ -1231,7 +1231,7 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
 	}
-	provider3 := sso.ProvideSSOProvider(context, tenantConfiguration)
+	stateCodec := sso.ProvideStateCodec(tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
@@ -1243,7 +1243,7 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	provider4 := &provider2.Provider{
+	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -1255,7 +1255,7 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
 	userProvider := interaction.ProvideUserProvider(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider4, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	authorizationStore := &pq2.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1292,7 +1292,7 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		ValidateProvider:     validateProvider,
 		RenderProvider:       renderProvider,
 		StateProvider:        stateProviderImpl,
-		SSOProvider:          provider3,
+		SSOStateCodec:        stateCodec,
 		Interactions:         webAppFlow,
 		OAuthProviderFactory: oAuthProviderFactory,
 	}

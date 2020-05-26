@@ -22,7 +22,6 @@ type State struct {
 	LinkState
 	Extra       map[string]string `json:"extra,omitempty"`
 	Action      string            `json:"action,omitempty"`
-	UXMode      UXMode            `json:"ux_mode,omitempty"`
 	HashedNonce string            `json:"hashed_nonce"`
 	APIClientID string            `json:"api_client_id"`
 }

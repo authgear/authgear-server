@@ -198,6 +198,12 @@ var endpointsDependencySet = wire.NewSet(
 	wire.Bind(new(webapp.EndpointsProvider), new(*EndpointsProvider)),
 )
 
+var ssoDependencySet = wire.NewSet(
+	sso.DependencySet,
+
+	wire.Bind(new(webapp.SSOStateCodec), new(*sso.StateCodec)),
+)
+
 var webappDependencySet = wire.NewSet(
 	webapp.DependencySet,
 
@@ -236,7 +242,7 @@ var CommonDependencySet = wire.NewSet(
 	hook.DependencySet,
 	auth.DependencySet,
 	authredis.DependencySet,
-	sso.DependencySet,
+	ssoDependencySet,
 	urlprefix.DependencySet,
 	webappDependencySet,
 	oauthhandler.DependencySet,
