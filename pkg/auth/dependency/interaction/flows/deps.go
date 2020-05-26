@@ -13,7 +13,7 @@ import (
 func ProvideUserController(
 	ais authinfo.Store,
 	ups userprofile.Store,
-	ti AuthAPITokenIssuer,
+	ti TokenIssuer,
 	scc session.CookieConfiguration,
 	sp session.Provider,
 	hp hook.Provider,

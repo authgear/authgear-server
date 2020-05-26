@@ -17,8 +17,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
-type AuthAPITokenIssuer interface {
-	IssueAuthAPITokens(
+type TokenIssuer interface {
+	IssueTokens(
 		client config.OAuthClientConfiguration,
 		attrs *authn.Attrs,
 	) (auth.AuthSession, oauthprotocol.TokenResponse, error)
@@ -27,7 +27,7 @@ type AuthAPITokenIssuer interface {
 type UserController struct {
 	AuthInfos           authinfo.Store
 	UserProfiles        userprofile.Store
-	TokenIssuer         AuthAPITokenIssuer
+	TokenIssuer         TokenIssuer
 	SessionCookieConfig session.CookieConfiguration
 	Sessions            session.Provider
 	Hooks               hook.Provider

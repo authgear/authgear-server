@@ -8,7 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-func (h *TokenHandler) IssueAuthAPITokens(
+func (h *TokenHandler) IssueTokens(
 	client config.OAuthClientConfiguration,
 	attrs *authn.Attrs,
 ) (auth.AuthSession, protocol.TokenResponse, error) {
