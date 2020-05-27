@@ -9,7 +9,11 @@ import (
 	"context"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/provider"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -32,21 +36,29 @@ func newVerifyCodeSendTask(ctx context.Context, m auth.DependencyMap) async.Task
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(ctx, tenantConfiguration)
 	store := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
-	provider := time.NewProvider()
+	timeProvider := time.NewProvider()
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
-	userprofileStore := userprofile.ProvideStore(provider, sqlBuilder, sqlExecutor)
-	userverifyProvider := userverify.ProvideProvider(tenantConfiguration, provider, sqlBuilder, sqlExecutor)
+	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, provider, tenantConfiguration, checker, normalizerFactory)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
+	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
+	queries := &user.Queries{
+		AuthInfos:    store,
+		UserProfiles: userprofileStore,
+		Identities:   providerProvider,
+		Time:         timeProvider,
+	}
+	userverifyProvider := userverify.ProvideProvider(tenantConfiguration, timeProvider, sqlBuilder, sqlExecutor)
 	txContext := db.ProvideTxContext(ctx, tenantConfiguration)
 	factory := logging.ProvideLoggerFactory(ctx, tenantConfiguration)
 	verifyCodeSendTask := &VerifyCodeSendTask{
 		CodeSenderFactory:        codeSenderFactory,
-		AuthInfoStore:            store,
-		UserProfileStore:         userprofileStore,
+		Users:                    queries,
 		UserVerificationProvider: userverifyProvider,
 		LoginIDProvider:          loginidProvider,
 		TxContext:                txContext,
@@ -59,11 +71,11 @@ func newPwHouseKeeperTask(ctx context.Context, m auth.DependencyMap) async.Task 
 	tenantConfiguration := auth.ProvideTenantConfig(ctx, m)
 	txContext := db.ProvideTxContext(ctx, tenantConfiguration)
 	factory := logging.ProvideLoggerFactory(ctx, tenantConfiguration)
-	provider := time.NewProvider()
+	timeProvider := time.NewProvider()
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
 	sqlExecutor := db.ProvideSQLExecutor(ctx, tenantConfiguration)
-	historyStoreImpl := password.ProvideHistoryStore(provider, sqlBuilder, sqlExecutor)
+	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
 	housekeeper := password.ProvideHousekeeper(historyStoreImpl, factory, tenantConfiguration)
 	pwHousekeeperTask := &PwHousekeeperTask{
 		TxContext:     txContext,

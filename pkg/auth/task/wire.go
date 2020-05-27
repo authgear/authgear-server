@@ -9,6 +9,7 @@ import (
 
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 )
 
@@ -16,6 +17,7 @@ func newVerifyCodeSendTask(ctx context.Context, m pkg.DependencyMap) async.Task 
 	wire.Build(
 		pkg.CommonDependencySet,
 		wire.Bind(new(VerifyCodeLoginIDProvider), new(*loginid.Provider)),
+		wire.Bind(new(UserProvider), new(*user.Queries)),
 		wire.Struct(new(VerifyCodeSendTask), "*"),
 		wire.Bind(new(async.Task), new(*VerifyCodeSendTask)),
 	)

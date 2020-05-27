@@ -1,4 +1,4 @@
-package interaction
+package user
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -19,7 +19,7 @@ type WelcomeMessageProvider interface {
 	SendToIdentityInfos(infos []*identity.Info) error
 }
 
-type userProvider struct {
+type Commands struct {
 	AuthInfos                     authinfo.Store
 	UserProfiles                  userprofile.Store
 	Time                          time.Provider
@@ -30,69 +30,53 @@ type userProvider struct {
 	WelcomeMessageProvider        WelcomeMessageProvider
 }
 
-func (p *userProvider) Create(userID string, metadata map[string]interface{}, identities []*identity.Info) error {
-	now := p.Time.NowUTC()
+func (c *Commands) Create(userID string, metadata map[string]interface{}, identities []*identity.Info) error {
+	now := c.Time.NowUTC()
 	authInfo := &authinfo.AuthInfo{
 		ID:          userID,
 		VerifyInfo:  map[string]bool{},
 		LastLoginAt: &now,
 	}
 
-	err := p.AuthInfos.CreateAuth(authInfo)
+	err := c.AuthInfos.CreateAuth(authInfo)
 	if err != nil {
 		return err
 	}
 
-	userProfile, err := p.UserProfiles.CreateUserProfile(authInfo.ID, metadata)
+	userProfile, err := c.UserProfiles.CreateUserProfile(authInfo.ID, metadata)
 	if err != nil {
 		return err
 	}
 
-	user := model.NewUser(*authInfo, userProfile)
+	user := newUser(now, authInfo, &userProfile, identities)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())
 	}
-	err = p.Hooks.DispatchEvent(
+	err = c.Hooks.DispatchEvent(
 		event.UserCreateEvent{
-			User:       user,
+			User:       *user,
 			Identities: identityModels,
 		},
-		&user,
+		user,
 	)
 	if err != nil {
 		return err
 	}
 
-	err = p.WelcomeMessageProvider.SendToIdentityInfos(identities)
+	err = c.WelcomeMessageProvider.SendToIdentityInfos(identities)
 	if err != nil {
 		return err
 	}
 
-	if p.UserVerificationConfiguration.AutoSendOnSignup {
-		p.enqueueSendVerificationCodeTasks(user, identities)
+	if c.UserVerificationConfiguration.AutoSendOnSignup {
+		c.enqueueSendVerificationCodeTasks(*user, identities)
 	}
 
 	return nil
 }
 
-func (p *userProvider) Get(userID string) (*model.User, error) {
-	var authInfo authinfo.AuthInfo
-	err := p.AuthInfos.GetAuth(userID, &authInfo)
-	if err != nil {
-		return nil, err
-	}
-
-	userProfile, err := p.UserProfiles.GetUserProfile(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	u := model.NewUser(authInfo, userProfile)
-	return &u, nil
-}
-
-func (p *userProvider) enqueueSendVerificationCodeTasks(user model.User, identities []*identity.Info) {
+func (c *Commands) enqueueSendVerificationCodeTasks(user model.User, identities []*identity.Info) {
 	for _, i := range identities {
 		if i.Type != authn.IdentityTypeLoginID {
 			continue
@@ -100,12 +84,12 @@ func (p *userProvider) enqueueSendVerificationCodeTasks(user model.User, identit
 		loginIDKey := i.Claims[identity.IdentityClaimLoginIDKey].(string)
 		loginID := i.Claims[identity.IdentityClaimLoginIDValue].(string)
 
-		for _, keyConfig := range p.UserVerificationConfiguration.LoginIDKeys {
+		for _, keyConfig := range c.UserVerificationConfiguration.LoginIDKeys {
 			if keyConfig.Key == loginIDKey {
-				p.TaskQueue.Enqueue(async.TaskSpec{
+				c.TaskQueue.Enqueue(async.TaskSpec{
 					Name: task.VerifyCodeSendTaskName,
 					Param: task.VerifyCodeSendTaskParam{
-						URLPrefix: p.URLPrefix.Value(),
+						URLPrefix: c.URLPrefix.Value(),
 						LoginID:   loginID,
 						UserID:    user.ID,
 					},

@@ -5,10 +5,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/deps"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 	coretime "github.com/skygeario/skygear-server/pkg/core/time"
@@ -24,8 +22,7 @@ func ProvideProvider(
 	saup deps.StaticAssetURLPrefix,
 	tConfig *config.TenantConfiguration,
 	store Store,
-	ais authinfo.Store,
-	ups userprofile.Store,
+	u UserProvider,
 	hp hook.Provider,
 	tp coretime.Provider,
 	upp urlprefix.Provider,
@@ -41,8 +38,7 @@ func ProvideProvider(
 		SMSMessageConfiguration:     tConfig.AppConfig.Messages.SMS,
 		ForgotPasswordConfiguration: tConfig.AppConfig.ForgotPassword,
 		Store:                       store,
-		AuthInfoStore:               ais,
-		UserProfileStore:            ups,
+		Users:                       u,
 		HookProvider:                hp,
 		TimeProvider:                tp,
 		URLPrefixProvider:           upp,

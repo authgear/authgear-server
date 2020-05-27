@@ -8,7 +8,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	oauthprotocol "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -24,9 +23,13 @@ type TokenIssuer interface {
 	) (auth.AuthSession, oauthprotocol.TokenResponse, error)
 }
 
+type UserProvider interface {
+	Get(id string) (*model.User, error)
+}
+
 type UserController struct {
 	AuthInfos           authinfo.Store
-	UserProfiles        userprofile.Store
+	Users               UserProvider
 	TokenIssuer         TokenIssuer
 	SessionCookieConfig session.CookieConfiguration
 	Sessions            session.Provider
@@ -36,20 +39,13 @@ type UserController struct {
 }
 
 func (c *UserController) makeResponse(attrs *authn.Attrs) (*model.AuthResponse, error) {
+	user, err := c.Users.Get(attrs.UserID)
+	if err != nil {
+		return nil, err
+	}
+
 	resp := &model.AuthResponse{}
-	var authInfo authinfo.AuthInfo
-	err := c.AuthInfos.GetAuth(attrs.UserID, &authInfo)
-	if err != nil {
-		return nil, err
-	}
-
-	userProfile, err := c.UserProfiles.GetUserProfile(attrs.UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	resp.User = model.NewUser(authInfo, userProfile)
-
+	resp.User = *user
 	return resp, nil
 }
 

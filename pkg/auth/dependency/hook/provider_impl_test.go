@@ -6,11 +6,10 @@ import (
 	"testing"
 	gotime "time"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -21,11 +20,13 @@ import (
 
 func TestDispatchEvent(t *testing.T) {
 	Convey("Hook Provider", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
 		timeProvider := time.MockProvider{TimeNowUTC: gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)}
 		store := newMockStore()
 		deliverer := newMockDeliverer()
-		authInfoStore := authinfo.NewMockStore()
-		userProfileStore := userprofile.NewMockUserProfileStore()
+		users := NewMockUserProvider(ctrl)
 		ctx := context.Background()
 
 		provider := NewProvider(
@@ -33,14 +34,11 @@ func TestDispatchEvent(t *testing.T) {
 			store,
 			db.NewMockTxContext(),
 			&timeProvider,
-			authInfoStore,
-			userProfileStore,
+			users,
 			deliverer,
 			logging.NewNullFactory(),
 		).(*providerImpl)
 
-		authInfoStore.AuthInfoMap = map[string]authinfo.AuthInfo{}
-		userProfileStore.Data = map[string]map[string]interface{}{}
 		provider.PersistentEventPayloads = nil
 
 		Convey("dispatching operation events", func() {
@@ -213,15 +211,13 @@ func TestDispatchEvent(t *testing.T) {
 						},
 					},
 				}
-				authInfoStore.AuthInfoMap = map[string]authinfo.AuthInfo{
-					"user-id": authinfo.AuthInfo{
-						ID:         "user-id",
-						VerifyInfo: map[string]bool{"user@example.com": true},
+				users.EXPECT().Get("user-id").Return(&model.User{
+					ID:         "user-id",
+					VerifyInfo: map[string]bool{"user@example.com": true},
+					Metadata: map[string]interface{}{
+						"user": true,
 					},
-				}
-				userProfileStore.Data = map[string]map[string]interface{}{
-					"user-id": map[string]interface{}{"user": true},
-				}
+				}, nil)
 
 				err := provider.WillCommitTx()
 
@@ -272,15 +268,13 @@ func TestDispatchEvent(t *testing.T) {
 						},
 					},
 				}
-				authInfoStore.AuthInfoMap = map[string]authinfo.AuthInfo{
-					"user-id": authinfo.AuthInfo{
-						ID:         "user-id",
-						VerifyInfo: map[string]bool{"user@example.com": true},
+				users.EXPECT().Get("user-id").Return(&model.User{
+					ID:         "user-id",
+					VerifyInfo: map[string]bool{"user@example.com": true},
+					Metadata: map[string]interface{}{
+						"user": true,
 					},
-				}
-				userProfileStore.Data = map[string]map[string]interface{}{
-					"user-id": map[string]interface{}{"user": true},
-				}
+				}, nil)
 
 				err := provider.WillCommitTx()
 

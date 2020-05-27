@@ -5,10 +5,8 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
@@ -17,6 +15,10 @@ type HookProvider interface {
 }
 
 var ErrSessionNotFound = errors.New("session not found")
+
+type UserProvider interface {
+	Get(id string) (*model.User, error)
+}
 
 type SessionManagementProvider interface {
 	CookieConfig() *corehttp.CookieConfiguration
@@ -30,26 +32,10 @@ type IDPSessionManager SessionManagementProvider
 type AccessTokenSessionManager SessionManagementProvider
 
 type SessionManager struct {
-	AuthInfoStore       authinfo.Store
-	UserProfileStore    userprofile.Store
+	Users               UserProvider
 	Hooks               HookProvider
 	IDPSessions         IDPSessionManager
 	AccessTokenSessions AccessTokenSessionManager
-}
-
-func (m *SessionManager) loadUser(session AuthSession) (*model.User, error) {
-	authInfo := &authinfo.AuthInfo{}
-	if err := m.AuthInfoStore.GetAuth(session.AuthnAttrs().UserID, authInfo); err != nil {
-		return nil, err
-	}
-
-	profile, err := m.UserProfileStore.GetUserProfile(session.AuthnAttrs().UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	user := model.NewUser(*authInfo, profile)
-	return &user, nil
 }
 
 func (m *SessionManager) resolveManagementProvider(session AuthSession) SessionManagementProvider {
@@ -64,7 +50,7 @@ func (m *SessionManager) resolveManagementProvider(session AuthSession) SessionM
 }
 
 func (m *SessionManager) invalidate(session AuthSession, reason SessionDeleteReason) (SessionManagementProvider, error) {
-	user, err := m.loadUser(session)
+	user, err := m.Users.Get(session.AuthnAttrs().UserID)
 	if err != nil {
 		return nil, err
 	}
