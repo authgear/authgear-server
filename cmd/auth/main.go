@@ -138,7 +138,6 @@ func main() {
 
 	var router *mux.Router
 	var rootRouter *mux.Router
-	var apiRouter *mux.Router
 	var webappRouter *mux.Router
 	var oauthRouter *mux.Router
 	if configuration.Standalone {
@@ -172,6 +171,9 @@ func main() {
 	rootRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
 	rootRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
 	rootRouter.Use(auth.MakeMiddleware(authDependency, auth.NewSessionMiddleware))
+	// The resolve endpoint is now mounted at root router.
+	// Therefore the access key middleware needs to be mounted at root router as well.
+	rootRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
 
 	if configuration.Standalone {
 		// Attach resolve endpoint in the router that does not validate host.
@@ -179,20 +181,13 @@ func main() {
 		rootRouter = rootRouter.NewRoute().Subrouter()
 		rootRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: configuration.ValidHosts}.Handle)
 
-		apiRouter = rootRouter.PathPrefix("/_auth").Subrouter()
-		apiRouter.Use(middleware.CORSMiddleware{}.Handle)
-
 		oauthRouter = rootRouter.NewRoute().Subrouter()
 		oauthRouter.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
 		session.AttachResolveHandler(rootRouter, authDependency)
 
-		apiRouter = rootRouter.PathPrefix("/_auth").Subrouter()
-
 		oauthRouter = rootRouter.NewRoute().Subrouter()
 	}
-
-	apiRouter.Use(auth.MakeMiddleware(authDependency, auth.NewAccessKeyMiddleware))
 
 	webappRouter = rootRouter.NewRoute().Subrouter()
 	// When StrictSlash is true, the path in the browser URL always matches
