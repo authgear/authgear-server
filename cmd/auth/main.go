@@ -100,6 +100,9 @@ func main() {
 	}
 
 	validator := validation.NewValidator("http://v2.skgyear.io")
+	validator.AddSchemaFragments(
+		oauthhandler.ChallengeRequestSchema,
+	)
 
 	dbPool := db.NewPool()
 	redisPool, err := redis.NewPool(configuration.Redis)
