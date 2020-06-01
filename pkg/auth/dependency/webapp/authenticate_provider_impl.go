@@ -607,7 +607,11 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 
 	oauthError := r.Form.Get("error")
 	if oauthError != "" {
-		err = sso.NewSSOFailed(sso.SSOUnauthorized, "login failed")
+		msg := "login failed"
+		if desc := r.Form.Get("error_description"); desc != "" {
+			msg += ": " + desc
+		}
+		err = sso.NewSSOFailed(sso.SSOUnauthorized, msg)
 		return
 	}
 
