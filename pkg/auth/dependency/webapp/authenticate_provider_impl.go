@@ -559,7 +559,7 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 	writeResponse = func(err error) {
 		callbackURL := v.Get("redirect_uri")
 		if callbackURL == "" {
-			callbackURL = "/"
+			callbackURL = "/login"
 		}
 		sid := v.Get("x_sid")
 
