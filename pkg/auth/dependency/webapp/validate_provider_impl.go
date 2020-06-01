@@ -98,11 +98,12 @@ const SSOCallbackRequestSchema = `
 	"$id": "#SSOCallbackRequest",
 	"type": "object",
 	"properties": {
+		"error": { "type": "string" },
 		"state": { "type": "string" },
 		"code": { "type": "string" },
 		"scope": { "type": "string" }
 	},
-	"required": ["state", "code"]
+	"required": ["state"]
 }
 `
 
