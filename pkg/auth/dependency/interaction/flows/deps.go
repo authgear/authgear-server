@@ -46,12 +46,16 @@ func ProvideIsAnonymousIdentityEnabled(c *config.TenantConfiguration) IsAnonymou
 func ProvideWebAppFlow(
 	c *config.TenantConfiguration,
 	idp IdentityProvider,
+	up UserProvider,
+	hp hook.Provider,
 	ip InteractionProvider,
 	uc *UserController,
 ) *WebAppFlow {
 	return &WebAppFlow{
 		ConflictConfig: c.AppConfig.Identity.OnConflict,
 		Identities:     idp,
+		Users:          up,
+		Hooks:          hp,
 		Interactions:   ip,
 		UserController: uc,
 	}

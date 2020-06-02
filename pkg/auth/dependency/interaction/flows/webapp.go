@@ -1,6 +1,7 @@
 package flows
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
@@ -11,6 +12,8 @@ import (
 type WebAppFlow struct {
 	ConflictConfig *config.IdentityConflictConfiguration
 	Identities     IdentityProvider
+	Users          UserProvider
+	Hooks          hook.Provider
 	Interactions   InteractionProvider
 	UserController *UserController
 }

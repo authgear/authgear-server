@@ -3,6 +3,8 @@ package flows
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
@@ -75,6 +77,11 @@ func (f *WebAppFlow) afterAnonymousUserPromotion(i *interaction.Interaction, ir 
 	var err error
 	anonUserID := i.Extra[WebAppExtraStateAnonymousUserPromotion]
 
+	anonUser, err := f.Users.Get(anonUserID)
+	if err != nil {
+		return nil, err
+	}
+
 	// Remove anonymous identity if the same user is reused
 	if anonUserID == ir.Attrs.UserID {
 		i, err = f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
@@ -100,6 +107,25 @@ func (f *WebAppFlow) afterAnonymousUserPromotion(i *interaction.Interaction, ir 
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	user, err := f.Users.Get(ir.Attrs.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = f.Hooks.DispatchEvent(
+		event.UserPromoteEvent{
+			AnonymousUser: *anonUser,
+			User:          *user,
+			Identities: []model.Identity{
+				ir.Identity.ToModel(),
+			},
+		},
+		user,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	result, err := f.UserController.CreateSession(i, ir)
