@@ -5,8 +5,9 @@ import "github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 //go:generate msgp -tests=false
 
 type IdentityConfiguration struct {
-	LoginID *LoginIDConfiguration `json:"login_id,omitempty" yaml:"login_id" msg:"login_id" default_zero_value:"true"`
-	OAuth   *OAuthConfiguration   `json:"oauth,omitempty" yaml:"oauth" msg:"oauth" default_zero_value:"true"`
+	LoginID    *LoginIDConfiguration          `json:"login_id,omitempty" yaml:"login_id" msg:"login_id" default_zero_value:"true"`
+	OAuth      *OAuthConfiguration            `json:"oauth,omitempty" yaml:"oauth" msg:"oauth" default_zero_value:"true"`
+	OnConflict *IdentityConflictConfiguration `json:"on_conflict,omitempty" yaml:"on_conflict" msg:"on_conflict" default_zero_value:"true"`
 }
 
 type LoginIDConfiguration struct {
@@ -94,3 +95,14 @@ type OAuthProviderConfiguration struct {
 	KeyID  string `json:"key_id,omitempty" yaml:"key_id" msg:"key_id"`
 	TeamID string `json:"team_id,omitempty" yaml:"team_id" msg:"team_id"`
 }
+
+type IdentityConflictConfiguration struct {
+	Promotion PromotionConflictBehavior `json:"promotion"`
+}
+
+type PromotionConflictBehavior string
+
+const (
+	PromotionConflictBehaviorError PromotionConflictBehavior = "error"
+	PromotionConflictBehaviorLogin PromotionConflictBehavior = "login"
+)
