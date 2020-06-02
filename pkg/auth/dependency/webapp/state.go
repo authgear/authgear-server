@@ -70,3 +70,25 @@ func (s *State) Restore(form url.Values) (err error) {
 	}
 	return
 }
+
+func (s *State) ClearErrorIfFormChanges(form url.Values) (change bool, err error) {
+	thisForm, err := url.ParseQuery(s.Form)
+	if err != nil {
+		return
+	}
+
+	for name := range form {
+		thatValue := form.Get(name)
+		thisValue := thisForm.Get(name)
+		if thisValue != thatValue {
+			change = true
+			break
+		}
+	}
+
+	if change {
+		s.Error = nil
+	}
+
+	return
+}

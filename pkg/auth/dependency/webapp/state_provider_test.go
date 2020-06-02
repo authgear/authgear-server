@@ -7,6 +7,8 @@ import (
 
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func TestStateProvider(t *testing.T) {
@@ -34,6 +36,7 @@ func TestStateProvider(t *testing.T) {
 
 		Convey("CreateState ignore existing sid", func() {
 			r, _ := http.NewRequest("GET", "/?x_sid=a", nil)
+			_ = r.ParseForm()
 			store.EXPECT().Set(gomock.Any()).Return(nil)
 
 			p.CreateState(r, nil)
@@ -84,7 +87,8 @@ func TestStateProvider(t *testing.T) {
 
 		Convey("RestoreState restores r.Form", func() {
 			state := &State{
-				Form: "b=42",
+				Form:  "x_sid=a&b=42",
+				Error: &skyerr.APIError{},
 			}
 			r, _ := http.NewRequest("GET", "/?x_sid=a", nil)
 			_ = r.ParseForm()
@@ -95,6 +99,25 @@ func TestStateProvider(t *testing.T) {
 			So(s, ShouldEqual, state)
 			So(err, ShouldBeNil)
 			So(r.Form.Get("b"), ShouldEqual, "42")
+			So(s.Error, ShouldNotBeNil)
+		})
+
+		Convey("RestoreState clears error", func() {
+			state := &State{
+				Form:  "x_sid=a&b=42",
+				Error: &skyerr.APIError{},
+			}
+			r, _ := http.NewRequest("GET", "/?x_sid=a&b=24", nil)
+			_ = r.ParseForm()
+
+			store.EXPECT().Get(gomock.Eq("a")).Return(state, nil)
+			store.EXPECT().Set(gomock.Eq(state)).Return(nil)
+
+			s, err := p.RestoreState(r, false)
+			So(s, ShouldEqual, state)
+			So(err, ShouldBeNil)
+			So(r.Form.Get("b"), ShouldEqual, "24")
+			So(s.Error, ShouldBeNil)
 		})
 	})
 }

@@ -38,6 +38,7 @@ func (p *StateProviderImpl) UpdateError(id string, inputError error) {
 func (p *StateProviderImpl) CreateState(r *http.Request, inputError error) {
 	s := NewState()
 
+	r.Form.Set("x_sid", s.ID)
 	s.SetForm(r.Form)
 	s.SetError(inputError)
 
@@ -78,6 +79,18 @@ func (p *StateProviderImpl) RestoreState(r *http.Request, optional bool) (state 
 	state, err = p.StateStore.Get(sid)
 	if err != nil {
 		return
+	}
+
+	change, err := state.ClearErrorIfFormChanges(r.Form)
+	if err != nil {
+		return
+	}
+
+	if change {
+		err = p.StateStore.Set(state)
+		if err != nil {
+			return
+		}
 	}
 
 	err = state.Restore(r.Form)
