@@ -559,7 +559,7 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 	writeResponse = func(err error) {
 		callbackURL := v.Get("redirect_uri")
 		if callbackURL == "" {
-			callbackURL = "/"
+			callbackURL = "/login"
 		}
 		sid := v.Get("x_sid")
 
@@ -588,9 +588,7 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 		return
 	}
 
-	code := r.Form.Get("code")
 	encodedState := r.Form.Get("state")
-	scope := r.Form.Get("scope")
 	state, err := p.SSOStateCodec.DecodeState(encodedState)
 	if err != nil {
 		return
@@ -607,6 +605,16 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 		})
 	}
 
+	oauthError := r.Form.Get("error")
+	if oauthError != "" {
+		msg := "login failed"
+		if desc := r.Form.Get("error_description"); desc != "" {
+			msg += ": " + desc
+		}
+		err = sso.NewSSOFailed(sso.SSOUnauthorized, msg)
+		return
+	}
+
 	// verify if the request has the same csrf cookies
 	cookie, err := r.Cookie(csrfCookieName)
 	if err != nil || cookie.Value == "" {
@@ -620,6 +628,8 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 		return
 	}
 
+	code := r.Form.Get("code")
+	scope := r.Form.Get("scope")
 	oauthAuthInfo, err := oauthProvider.GetAuthInfo(
 		sso.OAuthAuthorizationResponse{
 			Code:  code,
