@@ -5,9 +5,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type WebAppFlow struct {
+	ConflictConfig *config.IdentityConflictConfiguration
+	Identities     IdentityProvider
 	Interactions   InteractionProvider
 	UserController *UserController
 }
@@ -25,29 +28,9 @@ func (f *WebAppFlow) LoginWithLoginID(loginID string) (*WebAppResult, error) {
 		return nil, err
 	}
 
-	s, err := f.Interactions.GetInteractionState(i)
+	step, err := f.handleLogin(i)
 	if err != nil {
 		return nil, err
-	}
-
-	if s.CurrentStep().Step != interaction.StepAuthenticatePrimary || len(s.CurrentStep().AvailableAuthenticators) <= 0 {
-		panic("interaction_flow_webapp: unexpected interaction state")
-	}
-
-	var step WebAppStep
-	switch s.CurrentStep().AvailableAuthenticators[0].Type {
-	case authn.AuthenticatorTypeOOB:
-		step = WebAppStepAuthenticateOOBOTP
-		err = f.Interactions.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionTriggerOOBAuthenticator{
-			Authenticator: s.CurrentStep().AvailableAuthenticators[0],
-		})
-		if err != nil {
-			return nil, err
-		}
-	case authn.AuthenticatorTypePassword:
-		step = WebAppStepAuthenticatePassword
-	default:
-		panic("interaction_flow_webapp: unexpected authenticator type")
 	}
 
 	token, err := f.Interactions.SaveInteraction(i)
@@ -75,30 +58,9 @@ func (f *WebAppFlow) SignupWithLoginID(loginIDKey, loginID string) (*WebAppResul
 		return nil, err
 	}
 
-	s, err := f.Interactions.GetInteractionState(i)
+	step, err := f.handleSignup(i)
 	if err != nil {
 		return nil, err
-	}
-
-	if s.CurrentStep().Step != interaction.StepSetupPrimaryAuthenticator || len(s.CurrentStep().AvailableAuthenticators) <= 0 {
-		panic("interaction_flow_webapp: unexpected interaction state")
-	}
-
-	var step WebAppStep
-
-	switch s.CurrentStep().AvailableAuthenticators[0].Type {
-	case authn.AuthenticatorTypeOOB:
-		step = WebAppStepSetupOOBOTP
-		err = f.Interactions.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionTriggerOOBAuthenticator{
-			Authenticator: s.CurrentStep().AvailableAuthenticators[0],
-		})
-		if err != nil {
-			return nil, err
-		}
-	case authn.AuthenticatorTypePassword:
-		step = WebAppStepSetupPassword
-	default:
-		panic("interaction_flow_webapp: unexpected authenticator type")
 	}
 
 	token, err := f.Interactions.SaveInteraction(i)
@@ -112,23 +74,39 @@ func (f *WebAppFlow) SignupWithLoginID(loginIDKey, loginID string) (*WebAppResul
 	}, nil
 }
 
-func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID string) (*WebAppResult, error) {
-	i, err := f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
-		Identity: identity.Spec{
-			Type: authn.IdentityTypeLoginID,
-			Claims: map[string]interface{}{
-				identity.IdentityClaimLoginIDKey:   loginIDKey,
-				identity.IdentityClaimLoginIDValue: loginID,
-			},
-		},
-	}, "", userID)
-	if err != nil {
-		return nil, err
-	}
-
+func (f *WebAppFlow) handleLogin(i *interaction.Interaction) (WebAppStep, error) {
 	s, err := f.Interactions.GetInteractionState(i)
 	if err != nil {
-		return nil, err
+		return "", err
+	}
+
+	if s.CurrentStep().Step != interaction.StepAuthenticatePrimary || len(s.CurrentStep().AvailableAuthenticators) <= 0 {
+		panic("interaction_flow_webapp: unexpected interaction state")
+	}
+
+	var step WebAppStep
+	switch s.CurrentStep().AvailableAuthenticators[0].Type {
+	case authn.AuthenticatorTypeOOB:
+		step = WebAppStepAuthenticateOOBOTP
+		err = f.Interactions.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionTriggerOOBAuthenticator{
+			Authenticator: s.CurrentStep().AvailableAuthenticators[0],
+		})
+		if err != nil {
+			return "", err
+		}
+	case authn.AuthenticatorTypePassword:
+		step = WebAppStepAuthenticatePassword
+	default:
+		panic("interaction_flow_webapp: unexpected authenticator type")
+	}
+
+	return step, nil
+}
+
+func (f *WebAppFlow) handleSignup(i *interaction.Interaction) (WebAppStep, error) {
+	s, err := f.Interactions.GetInteractionState(i)
+	if err != nil {
+		return "", err
 	}
 
 	if s.CurrentStep().Step != interaction.StepSetupPrimaryAuthenticator || len(s.CurrentStep().AvailableAuthenticators) <= 0 {
@@ -144,7 +122,7 @@ func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID strin
 			Authenticator: s.CurrentStep().AvailableAuthenticators[0],
 		})
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 	case authn.AuthenticatorTypePassword:
 		step = WebAppStepSetupPassword
@@ -152,17 +130,7 @@ func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID strin
 		panic("interaction_flow_webapp: unexpected authenticator type")
 	}
 
-	i.Extra[WebAppExtraStateAnonymousUserPromotion] = "true"
-
-	token, err := f.Interactions.SaveInteraction(i)
-	if err != nil {
-		return nil, err
-	}
-
-	return &WebAppResult{
-		Step:  step,
-		Token: token,
-	}, nil
+	return step, nil
 }
 
 func (f *WebAppFlow) EnterSecret(token string, secret string) (*WebAppResult, error) {
@@ -253,8 +221,8 @@ func (f *WebAppFlow) SetupSecret(token string, secret string) (*WebAppResult, er
 		return f.afterPrimaryAuthentication(i)
 
 	case interaction.IntentTypeAddIdentity:
-		if i.Extra[WebAppExtraStateAnonymousUserPromotion] == "true" {
-			return f.afterAnonymousUserPromotion(result)
+		if i.Extra[WebAppExtraStateAnonymousUserPromotion] != "" {
+			return f.afterAnonymousUserPromotion(i, result)
 		}
 
 		return &WebAppResult{
@@ -457,6 +425,10 @@ func (f *WebAppFlow) afterPrimaryAuthentication(i *interaction.Interaction) (*We
 		ir, err := f.Interactions.Commit(i)
 		if err != nil {
 			return nil, err
+		}
+
+		if i.Extra[WebAppExtraStateAnonymousUserPromotion] != "" {
+			return f.afterAnonymousUserPromotion(i, ir)
 		}
 
 		result, err := f.UserController.CreateSession(i, ir)

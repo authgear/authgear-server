@@ -139,10 +139,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, queries, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
-	webAppFlow := &flows.WebAppFlow{
-		Interactions:   interactionProvider,
-		UserController: userController,
-	}
+	webAppFlow := flows.ProvideWebAppFlow(tenantConfiguration, providerProvider, interactionProvider, userController)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
@@ -254,10 +251,7 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, queries, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
-	webAppFlow := &flows.WebAppFlow{
-		Interactions:   interactionProvider,
-		UserController: userController,
-	}
+	webAppFlow := flows.ProvideWebAppFlow(tenantConfiguration, providerProvider, interactionProvider, userController)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
@@ -689,10 +683,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, queries, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
-	webAppFlow := &flows.WebAppFlow{
-		Interactions:   interactionProvider,
-		UserController: userController,
-	}
+	webAppFlow := flows.ProvideWebAppFlow(tenantConfiguration, providerProvider, interactionProvider, userController)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
@@ -800,10 +791,7 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, queries, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
-	webAppFlow := &flows.WebAppFlow{
-		Interactions:   interactionProvider,
-		UserController: userController,
-	}
+	webAppFlow := flows.ProvideWebAppFlow(tenantConfiguration, providerProvider, interactionProvider, userController)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
@@ -911,10 +899,7 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, queries, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
-	webAppFlow := &flows.WebAppFlow{
-		Interactions:   interactionProvider,
-		UserController: userController,
-	}
+	webAppFlow := flows.ProvideWebAppFlow(tenantConfiguration, providerProvider, interactionProvider, userController)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
@@ -1048,10 +1033,7 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, queries, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
-	webAppFlow := &flows.WebAppFlow{
-		Interactions:   interactionProvider,
-		UserController: userController,
-	}
+	webAppFlow := flows.ProvideWebAppFlow(tenantConfiguration, providerProvider, interactionProvider, userController)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
@@ -1160,10 +1142,7 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, queries, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
-	webAppFlow := &flows.WebAppFlow{
-		Interactions:   interactionProvider,
-		UserController: userController,
-	}
+	webAppFlow := flows.ProvideWebAppFlow(tenantConfiguration, providerProvider, interactionProvider, userController)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
@@ -1271,10 +1250,7 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, queries, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
-	webAppFlow := &flows.WebAppFlow{
-		Interactions:   interactionProvider,
-		UserController: userController,
-	}
+	webAppFlow := flows.ProvideWebAppFlow(tenantConfiguration, providerProvider, interactionProvider, userController)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{
@@ -1436,10 +1412,7 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	userController := flows.ProvideUserController(authinfoStore, queries, tokenHandler, cookieConfiguration, sessionProvider, hookProvider, timeProvider, tenantConfiguration)
-	webAppFlow := &flows.WebAppFlow{
-		Interactions:   interactionProvider,
-		UserController: userController,
-	}
+	webAppFlow := flows.ProvideWebAppFlow(tenantConfiguration, providerProvider, interactionProvider, userController)
 	redirectURLFunc := provideRedirectURIForWebAppFunc()
 	oAuthProviderFactory := sso.ProvideOAuthProviderFactory(tenantConfiguration, urlprefixProvider, timeProvider, normalizerFactory, redirectURLFunc)
 	authenticateProviderImpl := &webapp.AuthenticateProviderImpl{

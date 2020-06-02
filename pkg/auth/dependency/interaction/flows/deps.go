@@ -43,8 +43,22 @@ func ProvideIsAnonymousIdentityEnabled(c *config.TenantConfiguration) IsAnonymou
 	return false
 }
 
+func ProvideWebAppFlow(
+	c *config.TenantConfiguration,
+	idp IdentityProvider,
+	ip InteractionProvider,
+	uc *UserController,
+) *WebAppFlow {
+	return &WebAppFlow{
+		ConflictConfig: c.AppConfig.Identity.OnConflict,
+		Identities:     idp,
+		Interactions:   ip,
+		UserController: uc,
+	}
+}
+
 var DependencySet = wire.NewSet(
-	wire.Struct(new(WebAppFlow), "*"),
+	ProvideWebAppFlow,
 	wire.Struct(new(AnonymousFlow), "*"),
 	wire.Struct(new(PasswordFlow), "*"),
 	ProvideIsAnonymousIdentityEnabled,

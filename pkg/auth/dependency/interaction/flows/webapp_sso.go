@@ -187,5 +187,5 @@ func (f *WebAppFlow) PromoteWithOAuthProvider(userID string, oauthAuthInfo sso.A
 		return nil, err
 	}
 
-	return f.afterAnonymousUserPromotion(result)
+	return f.afterAnonymousUserPromotion(i, result)
 }
