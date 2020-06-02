@@ -149,8 +149,26 @@ window.addEventListener("load", function() {
     tick();
   }
 
+  // Disable all form submission if any form has been submitted once.
+  function attachFormSubmit() {
+    var submitted = false;
+    var els = document.querySelectorAll("form");
+    for (var i = 0; i < els.length; ++i) {
+      var form = els[i];
+      form.addEventListener("submit", function(e) {
+        if (!submitted) {
+          submitted = true;
+        } else {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+    }
+  }
+
   attachPasswordVisibilityClick();
   attachBackButtonClick();
   attachPasswordPolicyCheck();
   attachResendButtonBehavior();
+  attachFormSubmit();
 });
