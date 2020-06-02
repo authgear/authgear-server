@@ -19,12 +19,17 @@ type ChallengeProvider interface {
 }
 
 type AnonymousFlow struct {
+	Enabled      IsAnonymousIdentityEnabled
 	Interactions InteractionProvider
 	Anonymous    AnonymousIdentityProvider
 	Challenges   ChallengeProvider
 }
 
 func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn.Attrs, error) {
+	if !f.Enabled {
+		return nil, ErrAnonymousDisabled
+	}
+
 	iden, request, err := f.Anonymous.ParseRequest(requestJWT)
 	if err != nil || request.Action != anonymous.RequestActionAuth {
 		return nil, interaction.ErrInvalidCredentials
@@ -101,6 +106,10 @@ func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn
 }
 
 func (f *AnonymousFlow) DecodeUserID(requestJWT string) (string, anonymous.RequestAction, error) {
+	if !f.Enabled {
+		return "", "", ErrAnonymousDisabled
+	}
+
 	identity, request, err := f.Anonymous.ParseRequest(requestJWT)
 	if err != nil || identity == nil {
 		return "", "", interaction.ErrInvalidCredentials

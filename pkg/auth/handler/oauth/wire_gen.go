@@ -69,6 +69,7 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	urlProvider := &handler.URLProvider{
 		Endpoints: endpointsProvider,
 	}
+	isAnonymousIdentityEnabled := flows.ProvideIsAnonymousIdentityEnabled(tenantConfiguration)
 	store := redis2.ProvideStore(context, tenantConfiguration, timeProvider)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
@@ -113,6 +114,7 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	provider4 := challenge.ProvideProvider(context, timeProvider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
+		Enabled:      isAnonymousIdentityEnabled,
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
 		Challenges:   provider4,
@@ -160,6 +162,7 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Store: eventStore,
 	}
 	sessionProvider := session.ProvideSessionProvider(r, store, authAccessEventProvider, tenantConfiguration)
+	isAnonymousIdentityEnabled := flows.ProvideIsAnonymousIdentityEnabled(tenantConfiguration)
 	redisStore := redis2.ProvideStore(context, tenantConfiguration, timeProvider)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
@@ -205,6 +208,7 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	provider4 := challenge.ProvideProvider(context, timeProvider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
+		Enabled:      isAnonymousIdentityEnabled,
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
 		Challenges:   provider4,
@@ -301,6 +305,7 @@ func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	endpointsProvider := &auth.EndpointsProvider{
 		PrefixProvider: urlprefixProvider,
 	}
+	isAnonymousIdentityEnabled := flows.ProvideIsAnonymousIdentityEnabled(tenantConfiguration)
 	timeProvider := time.NewProvider()
 	store := redis2.ProvideStore(context, tenantConfiguration, timeProvider)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
@@ -349,6 +354,7 @@ func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
 	provider4 := challenge.ProvideProvider(context, timeProvider, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
+		Enabled:      isAnonymousIdentityEnabled,
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
 		Challenges:   provider4,

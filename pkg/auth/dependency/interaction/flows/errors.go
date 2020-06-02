@@ -7,3 +7,7 @@ var UnsupportedConfiguration = skyerr.Forbidden.WithReason("UnsupportedConfigura
 var ErrUnsupportedConfiguration = UnsupportedConfiguration.New(
 	"this operation is not supported by app configuration",
 )
+
+var ErrAnonymousDisabled = UnsupportedConfiguration.New(
+	"anonymous user is disabled by configuration",
+)

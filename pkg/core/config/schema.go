@@ -206,7 +206,7 @@ var (
 				"type": "array",
 				"items": {
 					"type": "string",
-					"enum": ["oauth", "login_id"]
+					"enum": ["oauth", "login_id", "anonymous"]
 				}
 			},
 			"primary_authenticators": {
