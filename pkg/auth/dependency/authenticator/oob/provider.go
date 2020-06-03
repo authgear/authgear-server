@@ -18,6 +18,7 @@ import (
 )
 
 type Provider struct {
+	AppName                   string
 	SMSMessageConfiguration   config.SMSMessageConfiguration
 	EmailMessageConfiguration config.EmailMessageConfiguration
 	Config                    *config.AuthenticatorOOBConfiguration
@@ -102,10 +103,11 @@ func (p *Provider) SendCode(opts SendCodeOptions) (err error) {
 	code := opts.Code
 
 	data := map[string]interface{}{
-		"email": email,
-		"phone": phone,
-		"code":  code,
-		"host":  urlPrefix.Host,
+		"appname": p.AppName,
+		"email":   email,
+		"phone":   phone,
+		"code":    code,
+		"host":    urlPrefix.Host,
 	}
 
 	switch channel {

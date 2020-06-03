@@ -21,6 +21,7 @@ func ProvideProvider(
 	tq async.Queue,
 ) *Provider {
 	return &Provider{
+		AppName:                   c.AppConfig.DisplayAppName,
 		Config:                    c.AppConfig.Authenticator.OOB,
 		SMSMessageConfiguration:   c.AppConfig.Messages.SMS,
 		EmailMessageConfiguration: c.AppConfig.Messages.Email,
