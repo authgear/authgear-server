@@ -570,6 +570,7 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 			// It is assumed that LoginIdentityProvider and LinkIdentityProvider always
 			// generate a state.
 			p.StateProvider.UpdateError(sid, err)
+			// FIXME: temporary fix, see SkygearIO/skygear-server#1478
 			callbackURL := v.Get("error_uri")
 			if callbackURL == "" {
 				callbackURL = "/login"
