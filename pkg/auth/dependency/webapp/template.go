@@ -93,7 +93,7 @@ const defineError = `
 	{{ if eq .x_error.reason "ValidationFailed" }}
 		{{ range .x_error.info.causes }}
 		{{ if and (eq .kind "Required") (eq .pointer "/x_login_id" ) }}
-		<li class="error-txt">{{ localize "error-email-or-username-required" }}</li>
+		<li class="error-txt">{{ localize "error-login-id-required" $.x_login_page_text_login_id_variant }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_password" ) }}
 		<li class="error-txt">{{ localize "error-password-or-code-required" }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_calling_code" ) }}

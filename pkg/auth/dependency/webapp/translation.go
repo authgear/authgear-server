@@ -12,7 +12,7 @@ const (
 var TemplateAuthUITranslationJSON = template.Spec{
 	Type: TemplateItemTypeAuthUITranslationJSON,
 	Default: `{
-	"error-email-or-username-required": "Email or Username is required",
+	"error-login-id-required": "{0, select, email {email} username {username} other {email or username}} is required",
 	"error-password-or-code-required": "Password or Code is required",
 	"error-calling-code-required": "Calling code is required",
 	"error-phone-number-required": "Phone number is required",
