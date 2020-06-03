@@ -60,6 +60,51 @@ func (z *IdentityConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					return
 				}
 			}
+		case "on_conflict":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "OnConflict")
+					return
+				}
+				z.OnConflict = nil
+			} else {
+				if z.OnConflict == nil {
+					z.OnConflict = new(IdentityConflictConfiguration)
+				}
+				var zb0002 uint32
+				zb0002, err = dc.ReadMapHeader()
+				if err != nil {
+					err = msgp.WrapError(err, "OnConflict")
+					return
+				}
+				for zb0002 > 0 {
+					zb0002--
+					field, err = dc.ReadMapKeyPtr()
+					if err != nil {
+						err = msgp.WrapError(err, "OnConflict")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "Promotion":
+						{
+							var zb0003 string
+							zb0003, err = dc.ReadString()
+							if err != nil {
+								err = msgp.WrapError(err, "OnConflict", "Promotion")
+								return
+							}
+							z.OnConflict.Promotion = PromotionConflictBehavior(zb0003)
+						}
+					default:
+						err = dc.Skip()
+						if err != nil {
+							err = msgp.WrapError(err, "OnConflict")
+							return
+						}
+					}
+				}
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -73,9 +118,9 @@ func (z *IdentityConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *IdentityConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 2
+	// map header, size 3
 	// write "login_id"
-	err = en.Append(0x82, 0xa8, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64)
+	err = en.Append(0x83, 0xa8, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64)
 	if err != nil {
 		return
 	}
@@ -108,15 +153,38 @@ func (z *IdentityConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	}
+	// write "on_conflict"
+	err = en.Append(0xab, 0x6f, 0x6e, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x6c, 0x69, 0x63, 0x74)
+	if err != nil {
+		return
+	}
+	if z.OnConflict == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		// map header, size 1
+		// write "Promotion"
+		err = en.Append(0x81, 0xa9, 0x50, 0x72, 0x6f, 0x6d, 0x6f, 0x74, 0x69, 0x6f, 0x6e)
+		if err != nil {
+			return
+		}
+		err = en.WriteString(string(z.OnConflict.Promotion))
+		if err != nil {
+			err = msgp.WrapError(err, "OnConflict", "Promotion")
+			return
+		}
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *IdentityConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 2
+	// map header, size 3
 	// string "login_id"
-	o = append(o, 0x82, 0xa8, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64)
+	o = append(o, 0x83, 0xa8, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x69, 0x64)
 	if z.LoginID == nil {
 		o = msgp.AppendNil(o)
 	} else {
@@ -136,6 +204,16 @@ func (z *IdentityConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 			err = msgp.WrapError(err, "OAuth")
 			return
 		}
+	}
+	// string "on_conflict"
+	o = append(o, 0xab, 0x6f, 0x6e, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x6c, 0x69, 0x63, 0x74)
+	if z.OnConflict == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		// map header, size 1
+		// string "Promotion"
+		o = append(o, 0x81, 0xa9, 0x50, 0x72, 0x6f, 0x6d, 0x6f, 0x74, 0x69, 0x6f, 0x6e)
+		o = msgp.AppendString(o, string(z.OnConflict.Promotion))
 	}
 	return
 }
@@ -192,6 +270,50 @@ func (z *IdentityConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					return
 				}
 			}
+		case "on_conflict":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.OnConflict = nil
+			} else {
+				if z.OnConflict == nil {
+					z.OnConflict = new(IdentityConflictConfiguration)
+				}
+				var zb0002 uint32
+				zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "OnConflict")
+					return
+				}
+				for zb0002 > 0 {
+					zb0002--
+					field, bts, err = msgp.ReadMapKeyZC(bts)
+					if err != nil {
+						err = msgp.WrapError(err, "OnConflict")
+						return
+					}
+					switch msgp.UnsafeString(field) {
+					case "Promotion":
+						{
+							var zb0003 string
+							zb0003, bts, err = msgp.ReadStringBytes(bts)
+							if err != nil {
+								err = msgp.WrapError(err, "OnConflict", "Promotion")
+								return
+							}
+							z.OnConflict.Promotion = PromotionConflictBehavior(zb0003)
+						}
+					default:
+						bts, err = msgp.Skip(bts)
+						if err != nil {
+							err = msgp.WrapError(err, "OnConflict")
+							return
+						}
+					}
+				}
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -218,6 +340,123 @@ func (z *IdentityConfiguration) Msgsize() (s int) {
 	} else {
 		s += z.OAuth.Msgsize()
 	}
+	s += 12
+	if z.OnConflict == nil {
+		s += msgp.NilSize
+	} else {
+		s += 1 + 10 + msgp.StringPrefixSize + len(string(z.OnConflict.Promotion))
+	}
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
+func (z *IdentityConflictConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "Promotion":
+			{
+				var zb0002 string
+				zb0002, err = dc.ReadString()
+				if err != nil {
+					err = msgp.WrapError(err, "Promotion")
+					return
+				}
+				z.Promotion = PromotionConflictBehavior(zb0002)
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z IdentityConflictConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 1
+	// write "Promotion"
+	err = en.Append(0x81, 0xa9, 0x50, 0x72, 0x6f, 0x6d, 0x6f, 0x74, 0x69, 0x6f, 0x6e)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(string(z.Promotion))
+	if err != nil {
+		err = msgp.WrapError(err, "Promotion")
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z IdentityConflictConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 1
+	// string "Promotion"
+	o = append(o, 0x81, 0xa9, 0x50, 0x72, 0x6f, 0x6d, 0x6f, 0x74, 0x69, 0x6f, 0x6e)
+	o = msgp.AppendString(o, string(z.Promotion))
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *IdentityConflictConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "Promotion":
+			{
+				var zb0002 string
+				zb0002, bts, err = msgp.ReadStringBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Promotion")
+					return
+				}
+				z.Promotion = PromotionConflictBehavior(zb0002)
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z IdentityConflictConfiguration) Msgsize() (s int) {
+	s = 1 + 10 + msgp.StringPrefixSize + len(string(z.Promotion))
 	return
 }
 
@@ -2042,6 +2281,58 @@ func (z *OAuthProviderType) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z OAuthProviderType) Msgsize() (s int) {
+	s = msgp.StringPrefixSize + len(string(z))
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
+func (z *PromotionConflictBehavior) DecodeMsg(dc *msgp.Reader) (err error) {
+	{
+		var zb0001 string
+		zb0001, err = dc.ReadString()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		(*z) = PromotionConflictBehavior(zb0001)
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z PromotionConflictBehavior) EncodeMsg(en *msgp.Writer) (err error) {
+	err = en.WriteString(string(z))
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z PromotionConflictBehavior) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	o = msgp.AppendString(o, string(z))
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *PromotionConflictBehavior) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	{
+		var zb0001 string
+		zb0001, bts, err = msgp.ReadStringBytes(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		(*z) = PromotionConflictBehavior(zb0001)
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z PromotionConflictBehavior) Msgsize() (s int) {
 	s = msgp.StringPrefixSize + len(string(z))
 	return
 }

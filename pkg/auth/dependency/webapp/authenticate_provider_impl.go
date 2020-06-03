@@ -311,7 +311,10 @@ func (p *AuthenticateProviderImpl) LoginIdentityProvider(w http.ResponseWriter, 
 	}
 	hashedNonce := crypto.SHA256String(cookie.Value)
 	webappSSOState := SSOState{}
-	webappSSOState.SetRequestQuery(r.URL.Query().Encode())
+	// Redirect back to the current page on error.
+	q := r.URL.Query()
+	q.Set("error_uri", r.URL.Path)
+	webappSSOState.SetRequestQuery(q.Encode())
 	state := sso.State{
 		Action:      "login",
 		HashedNonce: hashedNonce,
@@ -361,6 +364,7 @@ func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r
 	// Redirect back to the current page.
 	q := r.URL.Query()
 	q.Set("redirect_uri", r.URL.Path)
+	q.Set("error_uri", r.URL.Path)
 	webappSSOState.SetRequestQuery(q.Encode())
 	state := sso.State{
 		Action:      "link",
@@ -406,7 +410,10 @@ func (p *AuthenticateProviderImpl) PromoteIdentityProvider(w http.ResponseWriter
 	}
 	hashedNonce := crypto.SHA256String(cookie.Value)
 	webappSSOState := SSOState{}
-	webappSSOState.SetRequestQuery(r.URL.Query().Encode())
+	// Redirect back to the current page on error.
+	q := r.URL.Query()
+	q.Set("error_uri", r.URL.Path)
+	webappSSOState.SetRequestQuery(q.Encode())
 	state := sso.State{
 		Action:      "promote",
 		UserID:      webappState.AnonymousUserID,
@@ -557,18 +564,23 @@ func (p *AuthenticateProviderImpl) RemoveLoginID(w http.ResponseWriter, r *http.
 func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(error), err error) {
 	v := url.Values{}
 	writeResponse = func(err error) {
-		callbackURL := v.Get("redirect_uri")
-		if callbackURL == "" {
-			callbackURL = "/login"
-		}
 		sid := v.Get("x_sid")
 
 		if err != nil {
 			// It is assumed that LoginIdentityProvider and LinkIdentityProvider always
 			// generate a state.
 			p.StateProvider.UpdateError(sid, err)
+			// FIXME: temporary fix, see SkygearIO/skygear-server#1478
+			callbackURL := v.Get("error_uri")
+			if callbackURL == "" {
+				callbackURL = "/login"
+			}
 			RedirectToPathWithQuery(w, r, callbackURL, v)
 		} else {
+			callbackURL := v.Get("redirect_uri")
+			if callbackURL == "" {
+				callbackURL = "/login"
+			}
 			redirectURI, err := parseRedirectURI(r, callbackURL, false)
 			if err != nil {
 				redirectURI = DefaultRedirectURI

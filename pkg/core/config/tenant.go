@@ -366,6 +366,11 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.AppConfig.Identity.LoginID.Keys[i] = config
 	}
 
+	// Set default identity conflict behavior
+	if c.AppConfig.Identity.OnConflict.Promotion == "" {
+		c.AppConfig.Identity.OnConflict.Promotion = PromotionConflictBehaviorError
+	}
+
 	// Set default AuthenticationConfiguration
 	if len(c.AppConfig.Authentication.Identities) == 0 {
 		c.AppConfig.Authentication.Identities = []string{

@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
@@ -237,6 +238,7 @@ func (h *TokenHandler) handleRefreshToken(
 }
 
 var errInvalidAnonymousRequest = protocol.NewError("invalid_grant", "invalid anonymous request")
+var errAnonymousDisabled = protocol.NewError("unauthorized_client", "anonymous user is disabled")
 
 func (h *TokenHandler) handleAnonymousRequest(
 	client config.OAuthClientConfiguration,
@@ -245,6 +247,8 @@ func (h *TokenHandler) handleAnonymousRequest(
 	attrs, err := h.Anonymous.Authenticate(r.JWT(), client.ClientID())
 	if errors.Is(err, interaction.ErrInvalidCredentials) {
 		return nil, errInvalidAnonymousRequest
+	} else if errors.Is(err, interactionflows.ErrAnonymousDisabled) {
+		return nil, errAnonymousDisabled
 	} else if err != nil {
 		return nil, err
 	}

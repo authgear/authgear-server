@@ -206,7 +206,7 @@ var (
 				"type": "array",
 				"items": {
 					"type": "string",
-					"enum": ["oauth", "login_id"]
+					"enum": ["oauth", "login_id", "anonymous"]
 				}
 			},
 			"primary_authenticators": {
@@ -364,7 +364,8 @@ var (
 		"additionalProperties": false,
 		"properties": {
 			"login_id": { "$ref": "#LoginIDConfiguration" },
-			"oauth": { "$ref": "#OAuthConfiguration" }
+			"oauth": { "$ref": "#OAuthConfiguration" },
+			"on_conflict": { "$ref": "#IdentityConflictConfiguration" }
 		}
 	},
 	"LoginIDConfiguration": {
@@ -486,6 +487,17 @@ var (
 				}
 			}
 		]
+	},
+	"IdentityConflictConfiguration": {
+		"$id": "IdentityConflictConfiguration",
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"promotion": {
+				"type": "string",
+				"enum": ["error", "login"]
+			}
+		}
 	},
 	"UserVerificationConfiguration": {
 		"$id": "#UserVerificationConfiguration",

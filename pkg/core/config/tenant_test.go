@@ -287,6 +287,9 @@ func makeFullTenantConfig() TenantConfiguration {
 						},
 					},
 				},
+				OnConflict: &IdentityConflictConfiguration{
+					Promotion: PromotionConflictBehaviorLogin,
+				},
 			},
 			UserVerification: &UserVerificationConfiguration{
 				AutoSendOnSignup: true,
