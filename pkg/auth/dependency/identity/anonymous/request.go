@@ -1,8 +1,8 @@
 package anonymous
 
 import (
-	"github.com/dgrijalva/jwt-go"
 	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/skygeario/skygear-server/pkg/core/jwt"
 )
 
 // nolint:gosec
