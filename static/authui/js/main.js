@@ -1,4 +1,19 @@
 window.addEventListener("load", function() {
+  // global variables
+  // They must be reset to their initial values when back-forward cache kicks in.
+  var FORM_SUBMITTED;
+
+  function initializeGlobals() {
+    FORM_SUBMITTED = false;
+  }
+  initializeGlobals();
+
+  window.addEventListener("pageshow", function(e) {
+    if (e.persisted) {
+      initializeGlobals();
+    }
+  });
+
   function togglePasswordVisibility() {
     var pwd = document.querySelector("#password");
     if (pwd == null) {
@@ -151,13 +166,12 @@ window.addEventListener("load", function() {
 
   // Disable all form submission if any form has been submitted once.
   function attachFormSubmit() {
-    var submitted = false;
     var els = document.querySelectorAll("form");
     for (var i = 0; i < els.length; ++i) {
       var form = els[i];
       form.addEventListener("submit", function(e) {
-        if (!submitted) {
-          submitted = true;
+        if (!FORM_SUBMITTED) {
+          FORM_SUBMITTED = true;
         } else {
           e.preventDefault();
           e.stopPropagation();
