@@ -1,9 +1,0 @@
-Skygear.io
-Copyright 2015 Oursky Ltd.
-
-Skygear.io is developed by Oursky (http://www.oursky.com) which is a
-web and mobile studio based in Hong Kong.
-
-For latest update, contribution, usage of Skygear, please refer to:
-https://skygear.io
-https://oursky.com
