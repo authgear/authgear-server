@@ -300,12 +300,12 @@ var TemplateAuthUILoginHTML = template.Spec{
 						</option>
 						{{ end }}
 					</select>
-					<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ .x_national_number }}">
+					<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 				</div>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if .x_login_id_input_type }}{{ if not (eq .x_login_id_input_type "phone") }}{{ if (not (eq .x_login_page_text_login_id_variant "none")) }}
-				<input class="input text-input primary-txt" type="{{ .x_login_page_text_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .x_login_page_text_login_id_variant }}" value="{{ .x_login_id }}">
+				<input class="input text-input primary-txt" type="{{ .x_login_page_text_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .x_login_page_text_login_id_variant }}">
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}{{ if (not (eq .x_login_page_text_login_id_variant "none")) }}
@@ -371,7 +371,7 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
-<input id="password" class="input text-input primary-txt" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}" value="{{ .x_password }}">
+<input id="password" class="input text-input primary-txt" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}">
 
 <button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
 <button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
@@ -430,7 +430,7 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
-<input class="input text-input primary-txt" type="text" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}" value="{{ .x_password }}">
+<input class="input text-input primary-txt" type="text" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 
@@ -499,10 +499,10 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 		</option>
 		{{ end }}
 	</select>
-	<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ .x_national_number }}">
+	<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 </div>
 {{ else }}
-<input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .x_login_id_type }}" value="{{ .x_login_id }}">
+<input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .x_login_id_type }}">
 {{ end }}
 
 <div class="buttons">
@@ -561,13 +561,13 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 		</option>
 		{{ end }}
 	</select>
-	<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ .x_national_number }}">
+	<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 </div>
 {{ end }}{{ end }}{{ end }}
 
 {{ if .x_login_id_input_type }}{{ if (not (eq .x_login_id_input_type "phone")) }}{{ if or (eq .x_login_page_text_login_id_variant "email") (eq .x_login_page_text_login_id_variant "email_or_username") }}
 <div class="description primary-txt">{{ localize "forgot-password-email-description" }}</div>
-<input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "email-placeholder" }}" value="{{ .x_login_id }}">
+<input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "email-placeholder" }}">
 {{ end }}{{ end }}{{ end }}
 
 {{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}{{ if or (eq .x_login_page_text_login_id_variant "email") (eq .x_login_page_text_login_id_variant "email_or_username") }}
@@ -647,7 +647,7 @@ var TemplateAuthUIResetPasswordHTML = template.Spec{
 
 <div class="description primary-txt">{{ localize "reset-password-description" }}</div>
 
-<input id="password" data-password-policy-password="" class="input text-input primary-txt" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}" value="{{ .x_password }}">
+<input id="password" data-password-policy-password="" class="input text-input primary-txt" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}">
 
 <button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
 <button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
@@ -771,10 +771,10 @@ var TemplateAuthUISignupHTML = template.Spec{
 							</option>
 							{{ end }}
 						</select>
-						<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ $.x_national_number }}">
+						<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 					</div>
 				{{ else }}
-					<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ .login_id_type }}" value="{{ $.x_login_id }}">
+					<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ .login_id_type }}">
 				{{ end }}
 				{{ end }}{{ end }}
 				{{ end }}
@@ -883,10 +883,10 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 							</option>
 							{{ end }}
 						</select>
-						<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}" value="{{ $.x_national_number }}">
+						<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 					</div>
 				{{ else }}
-					<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ .login_id_type }}" value="{{ $.x_login_id }}">
+					<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ .login_id_type }}">
 				{{ end }}
 				{{ end }}{{ end }}
 				{{ end }}
@@ -945,7 +945,7 @@ var TemplateAuthUICreatePasswordHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
-<input id="password" data-password-policy-password="" class="input text-input primary-txt" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}" value="{{ .x_password }}">
+<input id="password" data-password-policy-password="" class="input text-input primary-txt" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}">
 
 <button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
 <button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
