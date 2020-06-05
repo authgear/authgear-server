@@ -47,7 +47,6 @@ import (
 	authinfopq "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
@@ -257,7 +256,6 @@ var CommonDependencySet = wire.NewSet(
 	userprofile.DependencySet,
 	session.DependencySet,
 	sessionredis.DependencySet,
-	handler.DependencySet,
 	coreauth.DependencySet,
 	async.DependencySet,
 	// TODO(deps): Remove sms and mail from CommonDependencySet

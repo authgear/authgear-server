@@ -3,19 +3,16 @@ module github.com/skygeario/skygear-server
 go 1.13
 
 require (
-	cloud.google.com/go/storage v1.6.0
-	github.com/Azure/azure-storage-blob-go v0.8.0
-	github.com/Azure/go-autorest/autorest/adal v0.6.0 // indirect
 	github.com/FZambia/sentinel v1.1.0
 	github.com/Masterminds/squirrel v1.1.0
-	github.com/aws/aws-sdk-go v1.25.6
-	github.com/davidbyttow/govips v0.0.0-20190304175058-d272f04c0fea
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/getsentry/sentry-go v0.3.0
 	github.com/go-gomail/gomail v0.0.0-20150902115704-41f357289737
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/golang/mock v1.4.0
+	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
+	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/google/wire v0.4.0
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
@@ -48,11 +45,14 @@ require (
 	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
+	golang.org/x/mod v0.2.0 // indirect
 	golang.org/x/net v0.0.0-20200222125558-5a598a2470a0
+	golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae // indirect
 	golang.org/x/text v0.3.2
 	golang.org/x/tools v0.0.0-20200224181240-023911ca70b2
-	google.golang.org/api v0.18.0
+	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/yaml.v2 v2.2.7
 )

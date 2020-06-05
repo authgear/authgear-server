@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"io"
 	"mime"
 	"net/http"
@@ -21,15 +20,6 @@ func (p EmptyRequestPayload) Validate() error {
 }
 
 const BodyMaxSize = 1024 * 1024 * 10
-
-func DecodeJSONBody(r *http.Request, w http.ResponseWriter, payload interface{}) error {
-	return ParseJSONBody(r, w, func(r io.Reader, p interface{}) error {
-		if err := json.NewDecoder(r).Decode(payload); err != nil {
-			return skyerr.NewBadRequest("failed to decode the request payload")
-		}
-		return nil
-	}, payload)
-}
 
 func IsJSONContentType(contentType string) bool {
 	mediaType, params, err := mime.ParseMediaType(contentType)

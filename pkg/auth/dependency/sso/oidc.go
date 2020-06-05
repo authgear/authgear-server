@@ -13,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	corejwt "github.com/skygeario/skygear-server/pkg/core/jwt"
-	coreUrl "github.com/skygeario/skygear-server/pkg/core/url"
 )
 
 type OIDCAuthParams struct {
@@ -50,7 +49,7 @@ func FetchOIDCDiscoveryDocument(client *http.Client, endpoint string) (*OIDCDisc
 }
 
 func (d *OIDCDiscoveryDocument) MakeOAuthURL(params OIDCAuthParams) string {
-	v := coreUrl.Query{}
+	v := url.Values{}
 	v.Add("response_type", "code")
 	v.Add("client_id", params.ProviderConfig.ClientID)
 	v.Add("redirect_uri", params.RedirectURI)

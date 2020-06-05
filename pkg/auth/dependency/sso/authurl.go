@@ -4,7 +4,6 @@ import (
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	coreUrl "github.com/skygeario/skygear-server/pkg/core/url"
 )
 
 type RedirectURLFunc func(urlPrefix *url.URL, providerConfig config.OAuthProviderConfiguration) string
@@ -23,7 +22,7 @@ type authURLParams struct {
 }
 
 func authURL(params authURLParams) (string, error) {
-	v := coreUrl.Query{}
+	v := url.Values{}
 	v.Add("response_type", "code")
 	v.Add("client_id", params.providerConfig.ClientID)
 	v.Add("redirect_uri", params.redirectURI)
@@ -43,10 +42,6 @@ func authURL(params authURLParams) (string, error) {
 	if params.prompt != "" {
 		v.Add("prompt", params.prompt)
 	}
-	// Instagram quirk
-	// state must be the last parameter otherwise
-	// it will be converted to lowercase when
-	// redirecting user to login page if user has not logged in before
 	v.Add("state", params.encodedState)
 
 	return params.baseURL + "?" + v.Encode(), nil
