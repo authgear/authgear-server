@@ -144,6 +144,8 @@ window.addEventListener("load", function() {
 
     var scheduledAt = new Date();
     var cooldown = parseInt(el.getAttribute("data-cooldown"), 10) * 1000;
+    var label = el.getAttribute("data-label");
+    var labelUnit = el.getAttribute("data-label-unit");
     var token;
     var tick = function() {
       var now = new Date();
@@ -158,7 +160,11 @@ window.addEventListener("load", function() {
         displaySeconds = Math.round((cooldown - timeElapsed) / 1000);
       }
 
-      el.textContent = (el.textContent || "").replace(/\d+/, String(displaySeconds));
+      if (displaySeconds === 0) {
+        el.textContent = label;
+      } else {
+        el.textContent = labelUnit.replace("%d", String(displaySeconds));
+      }
     }
     token = setInterval(tick, 500);
     tick();

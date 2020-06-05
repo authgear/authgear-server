@@ -63,7 +63,8 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"oob-otp-description--sms": "We have sent a {0} digit code to +{1}{2}. Please enter the code below to continue",
 	"oob-otp-description--email": "We have sent a {0} digit code to {1}. Please enter the code below to continue",
 	"oob-otp-resend-button-hint": "Didn''t receive the code? ",
-	"oob-otp-resend-button-label": "Resend (0s)",
+	"oob-otp-resend-button-label": "Resend",
+	"oob-otp-resend-button-label--unit": "Resend (%ds)",
 	
 	"use-login-id-key": "Use {0} instead",
 	"login-button-hint": "Have an account already? ",
