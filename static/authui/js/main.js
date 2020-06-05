@@ -146,15 +146,14 @@ window.addEventListener("load", function() {
     var cooldown = parseInt(el.getAttribute("data-cooldown"), 10) * 1000;
     var label = el.getAttribute("data-label");
     var labelUnit = el.getAttribute("data-label-unit");
-    var token;
-    var tick = function() {
+
+    function tick() {
       var now = new Date();
       var timeElapsed = now - scheduledAt;
 
       var displaySeconds = 0;
       if (timeElapsed > cooldown) {
         el.disabled = false;
-        clearInterval(token);
       } else {
         el.disabled = true;
         displaySeconds = Math.round((cooldown - timeElapsed) / 1000);
@@ -164,10 +163,11 @@ window.addEventListener("load", function() {
         el.textContent = label;
       } else {
         el.textContent = labelUnit.replace("%d", String(displaySeconds));
+        requestAnimationFrame(tick);
       }
     }
-    token = setInterval(tick, 500);
-    tick();
+
+    requestAnimationFrame(tick);
   }
 
   // Disable all form submission if any form has been submitted once.
