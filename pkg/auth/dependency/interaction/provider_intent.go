@@ -80,7 +80,10 @@ func (p *Provider) NewInteractionSignup(intent *IntentSignup, clientID string) (
 	i := newInteraction(clientID, intent)
 	i.UserID = uuid.New()
 
-	identity := p.Identity.New(i.UserID, intent.Identity.Type, intent.Identity.Claims)
+	identity, err := p.Identity.New(i.UserID, intent.Identity.Type, intent.Identity.Claims)
+	if err != nil {
+		return nil, err
+	}
 	ir := identity.ToRef()
 	i.Identity = &ir
 	i.NewIdentities = append(i.NewIdentities, identity)
@@ -95,7 +98,10 @@ func (p *Provider) NewInteractionAddIdentity(intent *IntentAddIdentity, clientID
 	i := newInteraction(clientID, intent)
 	i.UserID = userID
 
-	id := p.Identity.New(i.UserID, intent.Identity.Type, intent.Identity.Claims)
+	id, err := p.Identity.New(i.UserID, intent.Identity.Type, intent.Identity.Claims)
+	if err != nil {
+		return nil, err
+	}
 	ir := id.ToRef()
 	i.Identity = &ir
 	i.NewIdentities = append(i.NewIdentities, id)
@@ -136,7 +142,10 @@ func (p *Provider) NewInteractionUpdateIdentity(intent *IntentUpdateIdentity, cl
 		return nil, err
 	}
 
-	updateIden := p.Identity.WithClaims(userID, oldIden, intent.NewIdentity.Claims)
+	updateIden, err := p.Identity.WithClaims(userID, oldIden, intent.NewIdentity.Claims)
+	if err != nil {
+		return nil, err
+	}
 	ir := oldIden.ToRef()
 	i.Identity = &ir
 	i.UpdateIdentities = append(i.UpdateIdentities, updateIden)

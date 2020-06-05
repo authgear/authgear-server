@@ -66,7 +66,7 @@ func TestProviderFlow(t *testing.T) {
 					Props:  map[string]interface{}{},
 					Secret: "password",
 				}
-				identityProvider.EXPECT().New(gomock.Any(), gomock.Any(), gomock.Eq(loginIDClaims)).Return(ii)
+				identityProvider.EXPECT().New(gomock.Any(), gomock.Any(), gomock.Eq(loginIDClaims)).Return(ii, nil)
 				identityProvider.EXPECT().Validate(gomock.Any()).Return(nil)
 				identityProvider.EXPECT().RelateIdentityToAuthenticator(gomock.Eq(is), gomock.Eq(as)).Return(as).AnyTimes()
 				store.EXPECT().Create(gomock.Any()).Return(nil)
@@ -332,7 +332,7 @@ func TestProviderFlow(t *testing.T) {
 			identityProvider.EXPECT().Get(gomock.Eq(userID), ii.Type, ii.ID).Return(ii, nil)
 			identityProvider.EXPECT().WithClaims(
 				gomock.Eq(userID), gomock.Eq(ii), gomock.Eq(oauthClaims),
-			).Return(ii)
+			).Return(ii, nil)
 
 			// update oauth claims when login
 			identityProvider.EXPECT().UpdateAll(gomock.Any(), []*identity.Info{ii}).Return(nil)
@@ -468,7 +468,7 @@ func TestProviderFlow(t *testing.T) {
 				}
 				identityProvider.EXPECT().New(
 					gomock.Eq(userID), gomock.Eq(authn.IdentityTypeLoginID), gomock.Eq(loginIDClaims),
-				).Return(ii)
+				).Return(ii, nil)
 				// return user's existing identities
 				identityProvider.EXPECT().ListByUser(
 					gomock.Eq(userID),
@@ -542,7 +542,7 @@ func TestProviderFlow(t *testing.T) {
 				}
 				identityProvider.EXPECT().New(
 					gomock.Eq(userID), gomock.Eq(ii.Type), gomock.Eq(ii.Claims),
-				).Return(ii)
+				).Return(ii, nil)
 				// return user's existing identities
 				identityProvider.EXPECT().ListByUser(
 					gomock.Eq(userID),
@@ -668,7 +668,7 @@ func TestProviderFlow(t *testing.T) {
 			).Return(userID, oii, nil)
 			identityProvider.EXPECT().WithClaims(
 				gomock.Eq(userID), gomock.Eq(oii), gomock.Eq(newClaims),
-			).Return(nii)
+			).Return(nii, nil)
 			identityProvider.EXPECT().ListByUser(
 				gomock.Eq(userID),
 			).Return([]*identity.Info{oii}, nil).AnyTimes()

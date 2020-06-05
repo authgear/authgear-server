@@ -103,7 +103,10 @@ func (p *Provider) onCommitLogin(i *Interaction, intent *IntentLogin) error {
 			p.Logger.WithError(err).Warn("failed to new identity for update")
 			return err
 		}
-		ui := p.Identity.WithClaims(i.UserID, ii, intent.Identity.Claims)
+		ui, err := p.Identity.WithClaims(i.UserID, ii, intent.Identity.Claims)
+		if err != nil {
+			return err
+		}
 		i.UpdateIdentities = append(i.UpdateIdentities, ui)
 	}
 

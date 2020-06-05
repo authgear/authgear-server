@@ -243,7 +243,7 @@ func (p *AuthenticateProviderImpl) PromoteLoginID(w http.ResponseWriter, r *http
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	err = p.ValidateProvider.Validate("#WebAppPromoteLoginIDRequest", r.Form)
+	err = p.ValidateProvider.Validate("#WebAppCreateLoginIDRequest", r.Form)
 	if err != nil {
 		return
 	}
@@ -274,6 +274,7 @@ func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 				validation.ErrorCause{
 					Kind:    validation.ErrorStringFormat,
 					Pointer: "/x_national_number",
+					Details: map[string]interface{}{"format": "phone"},
 				},
 			})
 			return

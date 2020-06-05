@@ -195,11 +195,12 @@ func (mr *MockIdentityProviderMockRecorder) ListByUser(userID interface{}) *gomo
 }
 
 // New mocks base method
-func (m *MockIdentityProvider) New(userID string, typ authn.IdentityType, claims map[string]interface{}) *identity.Info {
+func (m *MockIdentityProvider) New(userID string, typ authn.IdentityType, claims map[string]interface{}) (*identity.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New", userID, typ, claims)
 	ret0, _ := ret[0].(*identity.Info)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // New indicates an expected call of New
@@ -209,11 +210,12 @@ func (mr *MockIdentityProviderMockRecorder) New(userID, typ, claims interface{})
 }
 
 // WithClaims mocks base method
-func (m *MockIdentityProvider) WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) *identity.Info {
+func (m *MockIdentityProvider) WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) (*identity.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithClaims", userID, ii, claims)
 	ret0, _ := ret[0].(*identity.Info)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // WithClaims indicates an expected call of WithClaims

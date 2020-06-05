@@ -100,19 +100,12 @@ const defineError = `
 		<li class="error-txt">{{ localize "error-calling-code-required" }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_national_number" ) }}
 		<li class="error-txt">{{ localize "error-phone-number-required" }}</li>
-		{{ else if and (eq .kind "StringFormat") (eq .pointer "/x_national_number" ) }}
+		{{ else if and (eq .kind "StringFormat") (eq .details.format "phone" ) }}
 		<li class="error-txt">{{ localize "error-phone-number-format" }}</li>
-		{{ else if and (eq .kind "StringFormat") (eq .pointer "/login_ids/0/value") }}
-			{{ range $.x_identity_candidates }}
-				{{ if eq .type "login_id" }}{{ if eq .login_id_key $.x_login_id_key }}
-					{{ if eq .login_id_type "email" }}
-					<li class="error-txt">{{ localize "error-invalid-email" }}</li>
-					{{ else }}
-					<li class="error-txt">{{ localize "error-invalid-username" }}</li>
-					{{ end }}
-
-				{{ end }}{{ end }}
-			{{ end }}
+		{{ else if and (eq .kind "StringFormat") (eq .details.format "email") }}
+		<li class="error-txt">{{ localize "error-invalid-email" }}</li>
+		{{ else if and (eq .kind "StringFormat") (eq .details.format "username") }}
+		<li class="error-txt">{{ localize "error-invalid-username" }}</li>
 		{{ else }}
 		<li class="error-txt">{{ .message }}</li>
 		{{ end }}
@@ -242,7 +235,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 	<div class="content">
 		{{ template "auth_ui_header.html" . }}
 		<div class="authorize-form">
-			<form class="authorize-idp-form" method="post">
+			<form class="authorize-idp-form" method="post" novalidate>
 				{{ $.csrfField }}
 				{{ range .x_identity_candidates }}
 				{{ if eq .type "oauth" }}
@@ -283,7 +276,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 
 			{{ template "ERROR" . }}
 
-			<form class="authorize-loginid-form" method="post">
+			<form class="authorize-loginid-form" method="post" novalidate>
 				{{ $.csrfField }}
 
 				{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}{{ if .x_login_page_login_id_has_phone }}
@@ -300,7 +293,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 						</option>
 						{{ end }}
 					</select>
-					<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+					<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 				</div>
 				{{ end }}{{ end }}{{ end }}
 
@@ -351,7 +344,7 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="simple-form enter-password-form" method="post">
+<form class="simple-form enter-password-form" method="post" novalidate>
 {{ $.csrfField }}
 
 <div class="nav-bar">
@@ -405,7 +398,7 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="simple-form oob-otp-form" method="post">
+<form class="simple-form oob-otp-form" method="post" novalidate>
 {{ $.csrfField }}
 
 <div class="nav-bar">
@@ -430,7 +423,7 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
-<input class="input text-input primary-txt" type="text" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
+<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 
@@ -462,7 +455,7 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="simple-form enter-login-id-form" method="post">
+<form class="simple-form enter-login-id-form" method="post" novalidate>
 {{ $.csrfField }}
 
 <div class="nav-bar">
@@ -499,7 +492,7 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 		</option>
 		{{ end }}
 	</select>
-	<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+	<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 </div>
 {{ else }}
 <input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .x_login_id_type }}">
@@ -535,7 +528,7 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="simple-form forgot-password-form" method="post">
+<form class="simple-form forgot-password-form" method="post" novalidate>
 {{ $.csrfField }}
 
 <div class="nav-bar">
@@ -561,7 +554,7 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 		</option>
 		{{ end }}
 	</select>
-	<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+	<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 </div>
 {{ end }}{{ end }}{{ end }}
 
@@ -638,7 +631,7 @@ var TemplateAuthUIResetPasswordHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="simple-form reset-password-form" method="post">
+<form class="simple-form reset-password-form" method="post" novalidate>
 {{ $.csrfField }}
 
 <div class="title primary-txt">{{ localize "reset-password-page-title" }}</div>
@@ -710,7 +703,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 	<div class="content">
 		{{ template "auth_ui_header.html" . }}
 		<div class="authorize-form">
-			<form class="authorize-idp-form" method="post">
+			<form class="authorize-idp-form" method="post" novalidate>
 				{{ $.csrfField }}
 				{{ range .x_identity_candidates }}
 				{{ if eq .type "oauth" }}
@@ -751,7 +744,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 
 			{{ template "ERROR" . }}
 
-			<form class="authorize-loginid-form" method="post">
+			<form class="authorize-loginid-form" method="post" novalidate>
 				{{ $.csrfField }}
 				<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
 
@@ -771,7 +764,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 							</option>
 							{{ end }}
 						</select>
-						<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+						<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 					</div>
 				{{ else }}
 					<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ .login_id_type }}">
@@ -822,7 +815,7 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 	<div class="content">
 		{{ template "auth_ui_header.html" . }}
 		<div class="authorize-form">
-			<form class="authorize-idp-form" method="post">
+			<form class="authorize-idp-form" method="post" novalidate>
 				{{ $.csrfField }}
 				{{ range .x_identity_candidates }}
 				{{ if eq .type "oauth" }}
@@ -863,7 +856,7 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 
 			{{ template "ERROR" . }}
 
-			<form class="authorize-loginid-form" method="post">
+			<form class="authorize-loginid-form" method="post" novalidate>
 				{{ $.csrfField }}
 				<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
 
@@ -883,7 +876,7 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 							</option>
 							{{ end }}
 						</select>
-						<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+						<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 					</div>
 				{{ else }}
 					<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ .login_id_type }}">
@@ -926,7 +919,7 @@ var TemplateAuthUICreatePasswordHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="simple-form enter-password-form" method="post">
+<form class="simple-form enter-password-form" method="post" novalidate>
 {{ $.csrfField }}
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
@@ -1066,7 +1059,7 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
     </div>
 
     {{ if eq .type "oauth" }}
-      <form method="post">
+      <form method="post" novalidate>
       {{ $.csrfField }}
       <input type="hidden" name="x_idp_id" value="{{ .provider_alias }}">
       {{ if .provider_subject_id }}
@@ -1078,7 +1071,7 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
     {{ end }}
 
     {{ if eq .type "login_id" }}
-      <form method="post">
+      <form method="post" novalidate>
       {{ $.csrfField }}
       <input type="hidden" name="x_login_id_key" value="{{ .login_id_key }}">
       <input type="hidden" name="x_login_id_type" value="{{ .login_id_type }}">
@@ -1123,7 +1116,7 @@ var TemplateAuthUILogoutHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="logout-form" method="post">
+<form class="logout-form" method="post" novalidate>
   {{ $.csrfField }}
   <p class="primary-txt">{{ localize "logout-button-hint" }}</p>
   <button class="btn primary-btn align-self-center" type="submit" name="x_action" value="logout">{{ localize "logout-button-label" }}</button>
