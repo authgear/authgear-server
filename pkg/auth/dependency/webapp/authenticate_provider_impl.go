@@ -274,6 +274,7 @@ func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 				validation.ErrorCause{
 					Kind:    validation.ErrorStringFormat,
 					Pointer: "/x_national_number",
+					Details: map[string]interface{}{"format": "phone"},
 				},
 			})
 			return

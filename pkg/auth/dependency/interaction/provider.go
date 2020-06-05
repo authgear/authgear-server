@@ -37,8 +37,8 @@ type IdentityProvider interface {
 	// ListByClaims return list of identities the matches the provided OIDC standard claims.
 	ListByClaims(claims map[string]string) ([]*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
-	New(userID string, typ authn.IdentityType, claims map[string]interface{}) *identity.Info
-	WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) *identity.Info
+	New(userID string, typ authn.IdentityType, claims map[string]interface{}) (*identity.Info, error)
+	WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) (*identity.Info, error)
 	CreateAll(userID string, is []*identity.Info) error
 	UpdateAll(userID string, is []*identity.Info) error
 	DeleteAll(userID string, is []*identity.Info) error

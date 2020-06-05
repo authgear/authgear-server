@@ -100,19 +100,12 @@ const defineError = `
 		<li class="error-txt">{{ localize "error-calling-code-required" }}</li>
 		{{ else if and (eq .kind "Required") (eq .pointer "/x_national_number" ) }}
 		<li class="error-txt">{{ localize "error-phone-number-required" }}</li>
-		{{ else if and (eq .kind "StringFormat") (eq .pointer "/x_national_number" ) }}
+		{{ else if and (eq .kind "StringFormat") (eq .details.format "phone" ) }}
 		<li class="error-txt">{{ localize "error-phone-number-format" }}</li>
-		{{ else if and (eq .kind "StringFormat") (eq .pointer "/login_ids/0/value") }}
-			{{ range $.x_identity_candidates }}
-				{{ if eq .type "login_id" }}{{ if eq .login_id_key $.x_login_id_key }}
-					{{ if eq .login_id_type "email" }}
-					<li class="error-txt">{{ localize "error-invalid-email" }}</li>
-					{{ else }}
-					<li class="error-txt">{{ localize "error-invalid-username" }}</li>
-					{{ end }}
-
-				{{ end }}{{ end }}
-			{{ end }}
+		{{ else if and (eq .kind "StringFormat") (eq .details.format "email") }}
+		<li class="error-txt">{{ localize "error-invalid-email" }}</li>
+		{{ else if and (eq .kind "StringFormat") (eq .details.format "username") }}
+		<li class="error-txt">{{ localize "error-invalid-username" }}</li>
 		{{ else }}
 		<li class="error-txt">{{ .message }}</li>
 		{{ end }}

@@ -21,13 +21,13 @@ type LoginIDIdentityProvider interface {
 	List(userID string) ([]*loginid.Identity, error)
 	GetByLoginID(loginID loginid.LoginID) ([]*loginid.Identity, error)
 	ListByClaim(name string, value string) ([]*loginid.Identity, error)
-	New(userID string, loginID loginid.LoginID) *loginid.Identity
-	WithLoginID(iden *loginid.Identity, loginID loginid.LoginID) *loginid.Identity
+	New(userID string, loginID loginid.LoginID) (*loginid.Identity, error)
+	WithLoginID(iden *loginid.Identity, loginID loginid.LoginID) (*loginid.Identity, error)
 	Create(i *loginid.Identity) error
 	Update(i *loginid.Identity) error
 	Delete(i *loginid.Identity) error
 	Validate(loginIDs []loginid.LoginID) error
-	Normalize(loginID loginid.LoginID) (normalized *loginid.LoginID, typ string, err error)
+	Normalize(loginID loginid.LoginID) (*loginid.LoginID, *config.LoginIDKeyConfiguration, string, error)
 	CheckDuplicated(uniqueKey string, standardClaims map[string]string, userID string) error
 }
 
@@ -222,13 +222,15 @@ func (a *Provider) ListByUser(userID string) ([]*identity.Info, error) {
 	return iis, nil
 }
 
-func (a *Provider) New(userID string, typ authn.IdentityType, claims map[string]interface{}) *identity.Info {
+func (a *Provider) New(userID string, typ authn.IdentityType, claims map[string]interface{}) (*identity.Info, error) {
 	switch typ {
 	case authn.IdentityTypeLoginID:
 		loginID := extractLoginIDClaims(claims)
-		l := a.LoginID.New(userID, loginID)
-		return loginIDToIdentityInfo(l)
-
+		l, err := a.LoginID.New(userID, loginID)
+		if err != nil {
+			return nil, err
+		}
+		return loginIDToIdentityInfo(l), nil
 	case authn.IdentityTypeOAuth:
 		providerID, subjectID := extractOAuthClaims(claims)
 		var profile, oidcClaims map[string]interface{}
@@ -241,25 +243,26 @@ func (a *Provider) New(userID string, typ authn.IdentityType, claims map[string]
 		}
 
 		o := a.OAuth.New(userID, providerID, subjectID, profile, oidcClaims)
-		return a.toIdentityInfo(o)
-
+		return a.toIdentityInfo(o), nil
 	case authn.IdentityTypeAnonymous:
 		keyID, key := extractAnonymousClaims(claims)
 		a := a.Anonymous.New(userID, keyID, []byte(key))
-		return anonymousToIdentityInfo(a)
+		return anonymousToIdentityInfo(a), nil
 	}
 
 	panic("interaction_adaptors: unknown identity type " + typ)
 }
 
-func (a *Provider) WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) *identity.Info {
+func (a *Provider) WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) (*identity.Info, error) {
 	switch ii.Type {
 	case authn.IdentityTypeLoginID:
 		oldIden := loginIDFromIdentityInfo(userID, ii)
 		newLoginID := extractLoginIDClaims(claims)
-		newIden := a.LoginID.WithLoginID(oldIden, newLoginID)
-		return loginIDToIdentityInfo(newIden)
-
+		newIden, err := a.LoginID.WithLoginID(oldIden, newLoginID)
+		if err != nil {
+			return nil, err
+		}
+		return loginIDToIdentityInfo(newIden), nil
 	case authn.IdentityTypeOAuth:
 		var profile map[string]interface{}
 		var ok bool
@@ -268,7 +271,7 @@ func (a *Provider) WithClaims(userID string, ii *identity.Info, claims map[strin
 		}
 		i := oauthFromIdentityInfo(userID, ii)
 		i.UserProfile = profile
-		return a.toIdentityInfo(i)
+		return a.toIdentityInfo(i), nil
 	case authn.IdentityTypeAnonymous:
 		panic("interaction_adaptors: update no support for identity type " + ii.Type)
 	}
@@ -392,12 +395,12 @@ func (a *Provider) RelateIdentityToAuthenticator(is identity.Spec, as *authentic
 			return as
 		}
 
-		loginID, loginIDType, err := a.LoginID.Normalize(extractLoginIDClaims(is.Claims))
+		loginID, loginIDConfig, _, err := a.LoginID.Normalize(extractLoginIDClaims(is.Claims))
 		if err != nil {
 			return nil
 		}
 
-		switch loginIDType {
+		switch string(loginIDConfig.Type) {
 		case string(metadata.Email):
 			as.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelEmail)
 			as.Props[authenticator.AuthenticatorPropOOBOTPEmail] = loginID.Value

@@ -9,6 +9,7 @@ import (
 	anonymous "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	loginid "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	oauth "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
+	config "github.com/skygeario/skygear-server/pkg/core/config"
 	reflect "reflect"
 )
 
@@ -96,11 +97,12 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) ListByClaim(name, value inter
 }
 
 // New mocks base method
-func (m *MockLoginIDIdentityProvider) New(userID string, loginID loginid.LoginID) *loginid.Identity {
+func (m *MockLoginIDIdentityProvider) New(userID string, loginID loginid.LoginID) (*loginid.Identity, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New", userID, loginID)
 	ret0, _ := ret[0].(*loginid.Identity)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // New indicates an expected call of New
@@ -110,11 +112,12 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) New(userID, loginID interface
 }
 
 // WithLoginID mocks base method
-func (m *MockLoginIDIdentityProvider) WithLoginID(iden *loginid.Identity, loginID loginid.LoginID) *loginid.Identity {
+func (m *MockLoginIDIdentityProvider) WithLoginID(iden *loginid.Identity, loginID loginid.LoginID) (*loginid.Identity, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithLoginID", iden, loginID)
 	ret0, _ := ret[0].(*loginid.Identity)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // WithLoginID indicates an expected call of WithLoginID
@@ -180,13 +183,14 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) Validate(loginIDs interface{}
 }
 
 // Normalize mocks base method
-func (m *MockLoginIDIdentityProvider) Normalize(loginID loginid.LoginID) (*loginid.LoginID, string, error) {
+func (m *MockLoginIDIdentityProvider) Normalize(loginID loginid.LoginID) (*loginid.LoginID, *config.LoginIDKeyConfiguration, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Normalize", loginID)
 	ret0, _ := ret[0].(*loginid.LoginID)
-	ret1, _ := ret[1].(string)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(*config.LoginIDKeyConfiguration)
+	ret2, _ := ret[2].(string)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // Normalize indicates an expected call of Normalize
