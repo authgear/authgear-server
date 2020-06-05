@@ -239,7 +239,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 				{{ $.csrfField }}
 				{{ range .x_identity_candidates }}
 				{{ if eq .type "oauth" }}
-				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}">
+				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
 					{{ localize "sign-in-apple" }}
 					{{- end -}}
@@ -710,7 +710,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 				{{ $.csrfField }}
 				{{ range .x_identity_candidates }}
 				{{ if eq .type "oauth" }}
-				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}">
+				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
 					{{ localize "sign-up-apple" }}
 					{{- end -}}
@@ -822,7 +822,7 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 				{{ $.csrfField }}
 				{{ range .x_identity_candidates }}
 				{{ if eq .type "oauth" }}
-				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}">
+				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
 					{{ localize "sign-up-apple" }}
 					{{- end -}}
@@ -1068,7 +1068,7 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
       {{ if .provider_subject_id }}
       <button class="btn destructive-btn" type="submit" name="x_action" value="unlink">{{ localize "disconnect-button-label" }}</button>
       {{ else }}
-      <button class="btn primary-btn" type="submit" name="x_action" value="link">{{ localize "connect-button-label" }}</button>
+      <button class="btn primary-btn" type="submit" name="x_action" value="link" data-form-xhr="false">{{ localize "connect-button-label" }}</button>
       {{ end }}
       </form>
     {{ end }}
