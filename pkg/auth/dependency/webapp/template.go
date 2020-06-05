@@ -429,7 +429,10 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 
 <div class="link">
 	<span class="primary-txt">{{ localize "oob-otp-resend-button-hint" }}</span>
-	<button id="resend-button" class="anchor" type="submit" name="trigger" value="true" data-cooldown="{{ .x_oob_otp_code_send_cooldown }}">{{ localize "oob-otp-resend-button-label" }}</button>
+	<button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
+		data-cooldown="{{ .x_oob_otp_code_send_cooldown }}"
+		data-label="{{ localize "oob-otp-resend-button-label" }}"
+		data-label-unit="{{ localize "oob-otp-resend-button-label--unit" }}">{{ localize "oob-otp-resend-button-label" }}</button>
 </div>
 
 </form>
