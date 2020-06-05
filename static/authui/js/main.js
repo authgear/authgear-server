@@ -171,7 +171,7 @@ window.addEventListener("load", function() {
   }
 
   // Disable all form submission if any form has been submitted once.
-  function attachFormSubmit() {
+  function attachFormSubmitOnceOnly() {
     var els = document.querySelectorAll("form");
     for (var i = 0; i < els.length; ++i) {
       var form = els[i];
@@ -181,7 +181,64 @@ window.addEventListener("load", function() {
         } else {
           e.preventDefault();
           e.stopPropagation();
+          e.stopImmediatePropagation();
         }
+      });
+    }
+  }
+
+  // Use XHR to submit form.
+  // If we rely on the browser to submit the form for us,
+  // error submission will add an entry to the history stack,
+  // causing back button fail to work intuitively.
+  //
+  // Therefore, when JavaScript is available,
+  // we use XHR to submit the form.
+  // XHR follows redirect automatically
+  // and .responseURL is GET URL we need to visit to retrieve the submission result.
+  // If window.location.href is assigned the same value, no extra entry is added to the history stack.
+  function attachFormSubmitXHR() {
+    var els = document.querySelectorAll("form");
+    for (var i = 0; i < els.length; ++i) {
+      els[i].addEventListener("submit", function(e) {
+
+        var shouldIgnored = false;
+
+        var form = e.currentTarget;
+        var submitter = e.submitter;
+
+        // Although FormData constructor supports passing a HTMLFormElement into it,
+        // <button type="submit"> are ignored.
+        // Therefore we have to manually construct FormData.
+        var formData = new FormData();
+        for (var j = 0; j < form.elements.length; ++j) {
+          var field = form.elements[j];
+          formData.set(field.name, field.value);
+
+          if (field.getAttribute("data-form-xhr") === "false") {
+            shouldIgnored = true;
+          }
+        }
+        // submitter should override other fields.
+        formData.set(submitter.name, submitter.value);
+
+        // Ignore any form containing elements with "data-form-xhr"
+        // Such forms will redirect to external location
+        // so CORS will kick in and XHR does not work.
+        if (shouldIgnored) {
+          return;
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        var xhr = new XMLHttpRequest();
+        xhr.withCredentials = true;
+        xhr.onload = function(e) {
+          window.location.href = xhr.responseURL;
+        };
+        xhr.open(form.method, form.action, true);
+        xhr.send(formData);
       });
     }
   }
@@ -190,5 +247,6 @@ window.addEventListener("load", function() {
   attachBackButtonClick();
   attachPasswordPolicyCheck();
   attachResendButtonBehavior();
-  attachFormSubmit();
+  attachFormSubmitOnceOnly();
+  attachFormSubmitXHR();
 });
