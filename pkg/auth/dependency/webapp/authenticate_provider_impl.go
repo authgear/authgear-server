@@ -243,7 +243,7 @@ func (p *AuthenticateProviderImpl) PromoteLoginID(w http.ResponseWriter, r *http
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	err = p.ValidateProvider.Validate("#WebAppPromoteLoginIDRequest", r.Form)
+	err = p.ValidateProvider.Validate("#WebAppCreateLoginIDRequest", r.Form)
 	if err != nil {
 		return
 	}
