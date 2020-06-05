@@ -300,7 +300,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 						</option>
 						{{ end }}
 					</select>
-					<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+					<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 				</div>
 				{{ end }}{{ end }}{{ end }}
 
@@ -430,7 +430,7 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
-<input class="input text-input primary-txt" type="text" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
+<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 
@@ -499,7 +499,7 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 		</option>
 		{{ end }}
 	</select>
-	<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+	<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 </div>
 {{ else }}
 <input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .x_login_id_type }}">
@@ -561,7 +561,7 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 		</option>
 		{{ end }}
 	</select>
-	<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+	<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 </div>
 {{ end }}{{ end }}{{ end }}
 
@@ -771,7 +771,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 							</option>
 							{{ end }}
 						</select>
-						<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+						<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 					</div>
 				{{ else }}
 					<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ .login_id_type }}">
@@ -883,7 +883,7 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 							</option>
 							{{ end }}
 						</select>
-						<input class="input text-input primary-txt" type="tel" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+						<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 					</div>
 				{{ else }}
 					<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ .login_id_type }}">
