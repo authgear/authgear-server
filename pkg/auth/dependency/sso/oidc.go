@@ -12,6 +12,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
+	corejwt "github.com/skygeario/skygear-server/pkg/core/jwt"
 	coreUrl "github.com/skygeario/skygear-server/pkg/core/url"
 )
 
@@ -89,7 +90,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 	nonce string,
 	nowUTC func() time.Time,
 	tokenResp *AccessTokenResp,
-) (jwt.MapClaims, error) {
+) (corejwt.MapClaims, error) {
 	body := url.Values{}
 	body.Set("grant_type", "authorization_code")
 	body.Set("client_id", clientID)
@@ -130,7 +131,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 		return nil, NewSSOFailed(SSOUnauthorized, "failed to find signing key")
 	}
 
-	mapClaims := jwt.MapClaims{}
+	mapClaims := corejwt.MapClaims{}
 	_, err = jwt.ParseWithClaims(idToken, mapClaims, keyFunc)
 	if err != nil {
 		return nil, NewSSOFailed(SSOUnauthorized, "invalid JWT signature")
@@ -138,9 +139,6 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 
 	if !mapClaims.VerifyAudience(clientID, true) {
 		return nil, NewSSOFailed(SSOUnauthorized, "invalid aud")
-	}
-	if !mapClaims.VerifyExpiresAt(nowUTC().Unix(), true) {
-		return nil, NewSSOFailed(SSOUnauthorized, "invalid exp")
 	}
 
 	hashedNonce, ok := mapClaims["nonce"].(string)
