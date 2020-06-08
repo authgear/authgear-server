@@ -132,7 +132,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 	}
 
 	mapClaims := corejwt.MapClaims{}
-	_, err = jwt.ParseWithClaims(idToken, mapClaims, keyFunc)
+	_, err = jwt.ParseWithClaims(idToken, &mapClaims, keyFunc)
 	if err != nil {
 		return nil, NewSSOFailed(SSOUnauthorized, "invalid JWT signature")
 	}
