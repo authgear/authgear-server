@@ -207,20 +207,81 @@ window.addEventListener("load", function() {
         var form = e.currentTarget;
         var submitter = e.submitter;
 
-        // Although FormData constructor supports passing a HTMLFormElement into it,
-        // <button type="submit"> are ignored.
-        // Therefore we have to manually construct FormData.
-        var formData = new FormData();
+        // https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#constructing-form-data-set
+        var entryList = [];
         for (var j = 0; j < form.elements.length; ++j) {
           var field = form.elements[j];
-          formData.set(field.name, field.value);
+
+          // Step 5.1 Point 1 is ignored because we do not use datalist.
+
+          // Step 5.1 Point 2
+          if (field.disabled) {
+            continue;
+          }
+
+          // Step 5.1 Point 3
+          if (field instanceof HTMLButtonElement && field !== submitter) {
+            continue;
+          }
+          // Step 5.1 Point 3
+          if (field instanceof HTMLInputElement && field.type === "submit" && field !== submitter) {
+            continue;
+          }
+
+          // Step 5.1 Point 4
+          if (field instanceof HTMLInputElement && field.type === "checkbox" && !field.checked) {
+            continue;
+          }
+
+          // Step 5.1 Point 5
+          if (field instanceof HTMLInputElement && field.type === "radio" && !field.checked) {
+            continue;
+          }
+
+          // Step 5.1 Point 6; It deviates from the spec because we do not use <object>.
+          if (field instanceof HTMLObjectElement) {
+            continue;
+          }
+
+          // Step 5.2; It deviates from the spec becaues we do not use <input type="image">.
+          if (field instanceof HTMLInputElement && field.type === "image") {
+            continue;
+          }
+
+          // Step 5.3 is ignored because we do not use form-associated custom element.
+
+          // Step 5.4
+          if (field.name === "" || field.name == null) {
+            continue;
+          }
+
+          // Step 5.5
+          var name = field.name;
+          var value = field.value;
+
+          // TODO(form-submission): Step 5.6 <select>
+
+          // Step 5.7
+          if (field instanceof HTMLInputElement && (field.type === "checkbox" || field.type === "radio")) {
+            if (field.value == null || field.value === "") {
+              value = "on";
+            }
+          }
+
+          // Step 5.8 is ignored because we do not use file upload.
+          // Step 5.9 is ignored because we do not use <object>.
+          // Step 5.10 is ignored because we do ot use <input type="hidden" name="_charset_">.
+          // TODO(form-submission): Step 5.11 <textarea>
+
+          // Step 5.12
+          entryList.push([name, value]);
+
+          // Step 5.13 is ignored because we do nto use dirname.
 
           if (field.getAttribute("data-form-xhr") === "false") {
             shouldIgnored = true;
           }
         }
-        // submitter should override other fields.
-        formData.set(submitter.name, submitter.value);
 
         // Ignore any form containing elements with "data-form-xhr"
         // Such forms will redirect to external location
@@ -232,13 +293,19 @@ window.addEventListener("load", function() {
         e.preventDefault();
         e.stopPropagation();
 
+        var body = new URLSearchParams();
+        for (var i = 0; i < entryList.length; ++i) {
+          var entry = entryList[i];
+          body.append(entry[0], entry[1]);
+        }
+
         var xhr = new XMLHttpRequest();
         xhr.withCredentials = true;
         xhr.onload = function(e) {
           window.location.href = xhr.responseURL;
         };
         xhr.open(form.method, form.action, true);
-        xhr.send(formData);
+        xhr.send(body);
       });
     }
   }
