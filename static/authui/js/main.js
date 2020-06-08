@@ -305,7 +305,11 @@ window.addEventListener("load", function() {
           window.location.href = xhr.responseURL;
         };
         xhr.open(form.method, form.action, true);
-        xhr.send(body);
+        // Safari does not support xhr.send(URLSearchParams)
+        // so we have to manually set content-type
+        // and serialize URLSearchParams to string.
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+        xhr.send(body.toString());
       });
     }
   }
