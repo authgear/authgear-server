@@ -47,18 +47,25 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) Authoriza
 	client := resolveClient(h.Clients, r)
 	if client == nil {
 		return authorizationResultError{
-			Response: protocol.NewErrorResponse("unauthorized_client", "invalid client ID"),
+			ResponseMode: r.ResponseMode(),
+			Response:     protocol.NewErrorResponse("unauthorized_client", "invalid client ID"),
 		}
 	}
 	redirectURI, errResp := parseRedirectURI(client, r)
 	if errResp != nil {
-		return authorizationResultError{Response: errResp}
+		return authorizationResultError{
+			ResponseMode: r.ResponseMode(),
+			Response:     errResp,
+		}
 	}
 
 	result, err := h.doHandle(redirectURI, client, r)
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
-		resultErr := authorizationResultError{RedirectURI: redirectURI}
+		resultErr := authorizationResultError{
+			RedirectURI:  redirectURI,
+			ResponseMode: r.ResponseMode(),
+		}
 		if errors.As(err, &oauthError) {
 			resultErr.Response = oauthError.Response
 		} else {
@@ -160,9 +167,10 @@ func (h *AuthorizationHandler) doHandle(
 		resp.State(r.State())
 	}
 
-	return authorizationResultRedirect{
-		RedirectURI: redirectURI,
-		Response:    resp,
+	return authorizationResultCode{
+		RedirectURI:  redirectURI,
+		ResponseMode: r.ResponseMode(),
+		Response:     resp,
 	}, nil
 }
 

@@ -44,9 +44,6 @@ func TestAuthorizationHandler(t *testing.T) {
 			result.WriteResponse(resp, req)
 			return resp
 		}
-		redirection := func(resp *httptest.ResponseRecorder) string {
-			return resp.Header().Get("Location")
-		}
 
 		Convey("general request validation", func() {
 			h.Clients = []config.OAuthClientConfiguration{{
@@ -86,9 +83,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				"client_id":     "client-id",
 				"response_type": "code",
 			})
-			So(resp.Result().StatusCode, ShouldEqual, 302)
-			So(redirection(resp), ShouldEqual,
-				"https://example.com/cb?error=invalid_request&error_description=scope+is+required&from=sso")
+			So(resp.Result().StatusCode, ShouldEqual, 200)
 		})
 
 		Convey("authorization code flow", func() {
@@ -102,9 +97,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						"client_id":     "client-id",
 						"response_type": "code",
 					})
-					So(resp.Result().StatusCode, ShouldEqual, 302)
-					So(redirection(resp), ShouldEqual,
-						"https://example.com/?error=invalid_request&error_description=scope+is+required")
+					So(resp.Result().StatusCode, ShouldEqual, 200)
 				})
 				Convey("missing PKCE code challenge", func() {
 					resp := handle(protocol.AuthorizationRequest{
@@ -112,9 +105,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						"response_type": "code",
 						"scope":         "openid",
 					})
-					So(resp.Result().StatusCode, ShouldEqual, 302)
-					So(redirection(resp), ShouldEqual,
-						"https://example.com/?error=invalid_request&error_description=PKCE+code+challenge+is+required")
+					So(resp.Result().StatusCode, ShouldEqual, 200)
 				})
 				Convey("unsupported PKCE transform", func() {
 					resp := handle(protocol.AuthorizationRequest{
@@ -124,9 +115,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						"code_challenge_method": "plain",
 						"code_challenge":        "code-verifier",
 					})
-					So(resp.Result().StatusCode, ShouldEqual, 302)
-					So(redirection(resp), ShouldEqual,
-						"https://example.com/?error=invalid_request&error_description=only+%27S256%27+PKCE+transform+is+supported")
+					So(resp.Result().StatusCode, ShouldEqual, 200)
 				})
 			})
 			Convey("scope validation", func() {
@@ -147,9 +136,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					"code_challenge":        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
 				})
 				So(validated, ShouldBeTrue)
-				So(resp.Result().StatusCode, ShouldEqual, 302)
-				So(redirection(resp), ShouldEqual,
-					"https://example.com/?error=invalid_scope&error_description=must+request+%27openid%27+scope")
+				So(resp.Result().StatusCode, ShouldEqual, 200)
 			})
 			Convey("request authentication", func() {
 				resp := handle(protocol.AuthorizationRequest{
@@ -161,7 +148,6 @@ func TestAuthorizationHandler(t *testing.T) {
 					"ui_locales":            "ja",
 				})
 				So(resp.Result().StatusCode, ShouldEqual, 302)
-				So(redirection(resp), ShouldEqual, "https://auth/authenticate")
 			})
 			Convey("return authorization code", func() {
 				h.Context = authtesting.WithAuthn().
@@ -179,9 +165,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						"nonce":                 "my-nonce",
 						"state":                 "my-state",
 					})
-					So(resp.Result().StatusCode, ShouldEqual, 302)
-					So(redirection(resp), ShouldEqual,
-						"https://example.com/?code=authz-code&state=my-state")
+					So(resp.Result().StatusCode, ShouldEqual, 200)
 
 					So(authzStore.authzs, ShouldHaveLength, 1)
 					So(authzStore.authzs[0], ShouldResemble, oauth.Authorization{
@@ -226,9 +210,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						"code_challenge_method": "S256",
 						"code_challenge":        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
 					})
-					So(resp.Result().StatusCode, ShouldEqual, 302)
-					So(redirection(resp), ShouldEqual,
-						"https://example.com/?code=authz-code")
+					So(resp.Result().StatusCode, ShouldEqual, 200)
 
 					So(authzStore.authzs, ShouldHaveLength, 1)
 					So(authzStore.authzs[0], ShouldResemble, oauth.Authorization{
@@ -269,9 +251,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						"client_id":     "client-id",
 						"response_type": "none",
 					})
-					So(resp.Result().StatusCode, ShouldEqual, 302)
-					So(redirection(resp), ShouldEqual,
-						"https://example.com/?error=unauthorized_client&error_description=response+type+is+not+allowed+for+this+client")
+					So(resp.Result().StatusCode, ShouldEqual, 200)
 				})
 			})
 			Convey("scope validation", func() {
@@ -290,9 +270,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					"scope":         "email",
 				})
 				So(validated, ShouldBeTrue)
-				So(resp.Result().StatusCode, ShouldEqual, 302)
-				So(redirection(resp), ShouldEqual,
-					"https://example.com/?error=invalid_scope&error_description=must+request+%27openid%27+scope")
+				So(resp.Result().StatusCode, ShouldEqual, 200)
 			})
 			Convey("request authentication", func() {
 				resp := handle(protocol.AuthorizationRequest{
@@ -301,7 +279,6 @@ func TestAuthorizationHandler(t *testing.T) {
 					"scope":         "openid",
 				})
 				So(resp.Result().StatusCode, ShouldEqual, 302)
-				So(redirection(resp), ShouldEqual, "https://auth/authenticate")
 			})
 			Convey("redirect to URI", func() {
 				h.Context = authtesting.WithAuthn().
@@ -316,9 +293,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						"scope":         "openid",
 						"state":         "my-state",
 					})
-					So(resp.Result().StatusCode, ShouldEqual, 302)
-					So(redirection(resp), ShouldEqual,
-						"https://example.com/?state=my-state")
+					So(resp.Result().StatusCode, ShouldEqual, 200)
 
 					So(authzStore.authzs, ShouldHaveLength, 1)
 					So(authzStore.authzs[0], ShouldResemble, oauth.Authorization{

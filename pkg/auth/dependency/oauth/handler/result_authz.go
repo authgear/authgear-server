@@ -2,32 +2,12 @@ package handler
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 	"net/url"
 	"sort"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
-	coreurl "github.com/skygeario/skygear-server/pkg/core/url"
 )
-
-const authorizationResultHTML = `<!DOCTYPE html>
-<head>
-<meta http-equiv="refresh" content="0;url={{ .redirect_uri }}" />
-</head>
-<script>
-window.location.href = "{{ .redirect_uri }}"
-</script>`
-
-var htmlRedirectTemplate *template.Template
-
-func init() {
-	var err error
-	htmlRedirectTemplate, err = template.New("authorization_result").Parse(authorizationResultHTML)
-	if err != nil {
-		panic("oauth: invalid authorization result page template")
-	}
-}
 
 type AuthorizationResult interface {
 	WriteResponse(rw http.ResponseWriter, r *http.Request)
@@ -35,12 +15,14 @@ type AuthorizationResult interface {
 }
 
 type (
-	authorizationResultRedirect struct {
-		RedirectURI *url.URL
-		Response    protocol.AuthorizationResponse
+	authorizationResultCode struct {
+		RedirectURI  *url.URL
+		ResponseMode string
+		Response     protocol.AuthorizationResponse
 	}
 	authorizationResultError struct {
 		RedirectURI   *url.URL
+		ResponseMode  string
 		InternalError bool
 		Response      protocol.ErrorResponse
 	}
@@ -49,19 +31,17 @@ type (
 	}
 )
 
-func (a authorizationResultRedirect) WriteResponse(rw http.ResponseWriter, r *http.Request) {
-	redirectURI := coreurl.WithQueryParamsAdded(a.RedirectURI, a.Response)
-	redirect(rw, redirectURI.String())
+func (a authorizationResultCode) WriteResponse(rw http.ResponseWriter, r *http.Request) {
+	writeResponse(rw, r, a.RedirectURI, a.ResponseMode, a.Response)
 }
 
-func (a authorizationResultRedirect) IsInternalError() bool {
+func (a authorizationResultCode) IsInternalError() bool {
 	return false
 }
 
 func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.Request) {
 	if a.RedirectURI != nil {
-		redirectURI := coreurl.WithQueryParamsAdded(a.RedirectURI, a.Response)
-		redirect(rw, redirectURI.String())
+		writeResponse(rw, r, a.RedirectURI, a.ResponseMode, a.Response)
 	} else {
 		err := "Invalid OAuth authorization request:\n"
 		keys := make([]string, 0, len(a.Response))
@@ -89,21 +69,4 @@ func (a authorizationResultRequireAuthn) WriteResponse(rw http.ResponseWriter, r
 
 func (a authorizationResultRequireAuthn) IsInternalError() bool {
 	return false
-}
-
-func redirect(rw http.ResponseWriter, redirectURI string) {
-	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
-	// NOTE(authui): XHR and redirect
-	// Normally we should use HTTP 302 to redirect.
-	// However, when XHR is used, redirect is followed automatically.
-	// The final redirect URI may be custom URI which is considered unsecure by user agent.
-	// Therefore, we write HTML and use <meta http-equiv="refresh"> to redirect.
-	// rw.Header().Set("Location", redirectURI)
-	// rw.WriteHeader(http.StatusFound)
-	err := htmlRedirectTemplate.Execute(rw, map[string]string{
-		"redirect_uri": redirectURI,
-	})
-	if err != nil {
-		panic("oauth: failed to load authorization result page")
-	}
 }
