@@ -1,6 +1,7 @@
 package forgotpassword
 
 import (
+	"context"
 	"net/url"
 	"path"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/intl"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
@@ -34,8 +36,10 @@ type UserProvider interface {
 }
 
 type Provider struct {
+	Context                     context.Context
+	LocalizationConfiguration   *config.LocalizationConfiguration
+	MetadataConfiguration       config.AuthUIMetadataConfiguration
 	StaticAssetURLPrefix        string
-	AppName                     string
 	EmailMessageConfiguration   config.EmailMessageConfiguration
 	SMSMessageConfiguration     config.SMSMessageConfiguration
 	ForgotPasswordConfiguration *config.ForgotPasswordConfiguration
@@ -119,11 +123,13 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 
 	data := map[string]interface{}{
 		"static_asset_url_prefix": p.StaticAssetURLPrefix,
-		"appname":                 p.AppName,
 		"email":                   email,
 		"code":                    code,
 		"link":                    u.String(),
 	}
+
+	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
+	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.MetadataConfiguration, "app_name")
 
 	textBody, err := p.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordEmailTXT,
@@ -167,10 +173,12 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 	u := p.makeURL(code)
 
 	data := map[string]interface{}{
-		"appname": p.AppName,
-		"code":    code,
-		"link":    u.String(),
+		"code": code,
+		"link": u.String(),
 	}
+
+	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
+	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.MetadataConfiguration, "app_name")
 
 	body, err := p.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordSMSTXT,

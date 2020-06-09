@@ -1,17 +1,22 @@
 package welcomemessage
 
 import (
+	"context"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	taskspec "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/intl"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
 type Provider struct {
-	AppName                     string
+	Context                     context.Context
+	LocalizationConfiguration   *config.LocalizationConfiguration
+	MetadataConfiguration       config.AuthUIMetadataConfiguration
 	EmailConfig                 config.EmailMessageConfiguration
 	WelcomeMessageConfiguration *config.WelcomeMessageConfiguration
 	TemplateEngine              *template.Engine
@@ -36,9 +41,11 @@ func (p *Provider) send(emails []string) (err error) {
 	var emailMessages []mail.SendOptions
 	for _, email := range emails {
 		data := map[string]interface{}{
-			"appname": p.AppName,
-			"email":   email,
+			"email": email,
 		}
+
+		preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
+		data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.MetadataConfiguration, "app_name")
 
 		var textBody string
 		textBody, err = p.TemplateEngine.RenderTemplate(

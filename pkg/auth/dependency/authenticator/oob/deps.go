@@ -1,6 +1,8 @@
 package oob
 
 import (
+	"context"
+
 	"github.com/google/wire"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
@@ -12,6 +14,7 @@ import (
 )
 
 func ProvideProvider(
+	ctx context.Context,
 	c *config.TenantConfiguration,
 	sqlb db.SQLBuilder,
 	sqle db.SQLExecutor,
@@ -21,7 +24,9 @@ func ProvideProvider(
 	tq async.Queue,
 ) *Provider {
 	return &Provider{
-		AppName:                   c.AppConfig.DisplayAppName,
+		Context:                   ctx,
+		LocalizationConfiguration: c.AppConfig.Localization,
+		MetadataConfiguration:     c.AppConfig.AuthUI.Metadata,
 		Config:                    c.AppConfig.Authenticator.OOB,
 		SMSMessageConfiguration:   c.AppConfig.Messages.SMS,
 		EmailMessageConfiguration: c.AppConfig.Messages.Email,

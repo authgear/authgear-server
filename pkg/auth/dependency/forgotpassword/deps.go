@@ -1,6 +1,8 @@
 package forgotpassword
 
 import (
+	"context"
+
 	"github.com/google/wire"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -19,6 +21,7 @@ var DependencySet = wire.NewSet(
 )
 
 func ProvideProvider(
+	ctx context.Context,
 	saup deps.StaticAssetURLPrefix,
 	tConfig *config.TenantConfiguration,
 	store Store,
@@ -32,8 +35,10 @@ func ProvideProvider(
 	ip LoginIDProvider,
 ) *Provider {
 	return &Provider{
+		Context:                     ctx,
+		LocalizationConfiguration:   tConfig.AppConfig.Localization,
+		MetadataConfiguration:       tConfig.AppConfig.AuthUI.Metadata,
 		StaticAssetURLPrefix:        string(saup),
-		AppName:                     tConfig.AppConfig.DisplayAppName,
 		EmailMessageConfiguration:   tConfig.AppConfig.Messages.Email,
 		SMSMessageConfiguration:     tConfig.AppConfig.Messages.SMS,
 		ForgotPasswordConfiguration: tConfig.AppConfig.ForgotPassword,

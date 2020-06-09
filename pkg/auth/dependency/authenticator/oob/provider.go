@@ -1,6 +1,7 @@
 package oob
 
 import (
+	"context"
 	"errors"
 	"sort"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/intl"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
@@ -18,7 +20,9 @@ import (
 )
 
 type Provider struct {
-	AppName                   string
+	Context                   context.Context
+	LocalizationConfiguration *config.LocalizationConfiguration
+	MetadataConfiguration     config.AuthUIMetadataConfiguration
 	SMSMessageConfiguration   config.SMSMessageConfiguration
 	EmailMessageConfiguration config.EmailMessageConfiguration
 	Config                    *config.AuthenticatorOOBConfiguration
@@ -103,12 +107,14 @@ func (p *Provider) SendCode(opts SendCodeOptions) (err error) {
 	code := opts.Code
 
 	data := map[string]interface{}{
-		"appname": p.AppName,
-		"email":   email,
-		"phone":   phone,
-		"code":    code,
-		"host":    urlPrefix.Host,
+		"email": email,
+		"phone": phone,
+		"code":  code,
+		"host":  urlPrefix.Host,
 	}
+
+	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
+	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.MetadataConfiguration, "app_name")
 
 	switch channel {
 	case string(authn.AuthenticatorOOBChannelEmail):

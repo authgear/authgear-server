@@ -295,9 +295,9 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 
 	marshal.UpdateNilFieldsWithZeroValue(c)
 
-	// Set default dislay app name
-	if c.AppConfig.DisplayAppName == "" {
-		c.AppConfig.DisplayAppName = c.AppName
+	// Set default app_name
+	if _, ok := c.AppConfig.AuthUI.Metadata["app_name"]; !ok {
+		c.AppConfig.AuthUI.Metadata["app_name"] = c.AppName
 	}
 
 	// Set default SessionConfiguration values
@@ -548,7 +548,6 @@ func WriteTenantConfig(r *http.Request, config *TenantConfiguration) {
 // AppConfiguration represents user-editable configuration
 type AppConfiguration struct {
 	APIVersion       string                         `json:"api_version,omitempty" yaml:"api_version" msg:"api_version"`
-	DisplayAppName   string                         `json:"display_app_name,omitempty" yaml:"display_app_name" msg:"display_app_name"`
 	Clients          []OAuthClientConfiguration     `json:"clients,omitempty" yaml:"clients" msg:"clients"`
 	MasterKey        string                         `json:"master_key,omitempty" yaml:"master_key" msg:"master_key"`
 	Session          *SessionConfiguration          `json:"session,omitempty" yaml:"session" msg:"session" default_zero_value:"true"`

@@ -90,6 +90,36 @@ func (z *AuthUIConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					}
 				}
 			}
+		case "metadata":
+			var zb0004 uint32
+			zb0004, err = dc.ReadMapHeader()
+			if err != nil {
+				err = msgp.WrapError(err, "Metadata")
+				return
+			}
+			if z.Metadata == nil {
+				z.Metadata = make(AuthUIMetadataConfiguration, zb0004)
+			} else if len(z.Metadata) > 0 {
+				for key := range z.Metadata {
+					delete(z.Metadata, key)
+				}
+			}
+			for zb0004 > 0 {
+				zb0004--
+				var za0002 string
+				var za0003 interface{}
+				za0002, err = dc.ReadString()
+				if err != nil {
+					err = msgp.WrapError(err, "Metadata")
+					return
+				}
+				za0003, err = dc.ReadIntf()
+				if err != nil {
+					err = msgp.WrapError(err, "Metadata", za0002)
+					return
+				}
+				z.Metadata[za0002] = za0003
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -103,9 +133,9 @@ func (z *AuthUIConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AuthUIConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 2
+	// map header, size 3
 	// write "css"
-	err = en.Append(0x82, 0xa3, 0x63, 0x73, 0x73)
+	err = en.Append(0x83, 0xa3, 0x63, 0x73, 0x73)
 	if err != nil {
 		return
 	}
@@ -154,15 +184,37 @@ func (z *AuthUIConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 			return
 		}
 	}
+	// write "metadata"
+	err = en.Append(0xa8, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61)
+	if err != nil {
+		return
+	}
+	err = en.WriteMapHeader(uint32(len(z.Metadata)))
+	if err != nil {
+		err = msgp.WrapError(err, "Metadata")
+		return
+	}
+	for za0002, za0003 := range z.Metadata {
+		err = en.WriteString(za0002)
+		if err != nil {
+			err = msgp.WrapError(err, "Metadata")
+			return
+		}
+		err = en.WriteIntf(za0003)
+		if err != nil {
+			err = msgp.WrapError(err, "Metadata", za0002)
+			return
+		}
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *AuthUIConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 2
+	// map header, size 3
 	// string "css"
-	o = append(o, 0x82, 0xa3, 0x63, 0x73, 0x73)
+	o = append(o, 0x83, 0xa3, 0x63, 0x73, 0x73)
 	o = msgp.AppendString(o, z.CSS)
 	// string "country_calling_code"
 	o = append(o, 0xb4, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x72, 0x79, 0x5f, 0x63, 0x61, 0x6c, 0x6c, 0x69, 0x6e, 0x67, 0x5f, 0x63, 0x6f, 0x64, 0x65)
@@ -179,6 +231,17 @@ func (z *AuthUIConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 		// string "default"
 		o = append(o, 0xa7, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74)
 		o = msgp.AppendString(o, z.CountryCallingCode.Default)
+	}
+	// string "metadata"
+	o = append(o, 0xa8, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61)
+	o = msgp.AppendMapHeader(o, uint32(len(z.Metadata)))
+	for za0002, za0003 := range z.Metadata {
+		o = msgp.AppendString(o, za0002)
+		o, err = msgp.AppendIntf(o, za0003)
+		if err != nil {
+			err = msgp.WrapError(err, "Metadata", za0002)
+			return
+		}
 	}
 	return
 }
@@ -266,6 +329,36 @@ func (z *AuthUIConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					}
 				}
 			}
+		case "metadata":
+			var zb0004 uint32
+			zb0004, bts, err = msgp.ReadMapHeaderBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Metadata")
+				return
+			}
+			if z.Metadata == nil {
+				z.Metadata = make(AuthUIMetadataConfiguration, zb0004)
+			} else if len(z.Metadata) > 0 {
+				for key := range z.Metadata {
+					delete(z.Metadata, key)
+				}
+			}
+			for zb0004 > 0 {
+				var za0002 string
+				var za0003 interface{}
+				zb0004--
+				za0002, bts, err = msgp.ReadStringBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Metadata")
+					return
+				}
+				za0003, bts, err = msgp.ReadIntfBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Metadata", za0002)
+					return
+				}
+				z.Metadata[za0002] = za0003
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -289,6 +382,13 @@ func (z *AuthUIConfiguration) Msgsize() (s int) {
 			s += msgp.StringPrefixSize + len(z.CountryCallingCode.Values[za0001])
 		}
 		s += 8 + msgp.StringPrefixSize + len(z.CountryCallingCode.Default)
+	}
+	s += 9 + msgp.MapHeaderSize
+	if z.Metadata != nil {
+		for za0002, za0003 := range z.Metadata {
+			_ = za0003
+			s += msgp.StringPrefixSize + len(za0002) + msgp.GuessSize(za0003)
+		}
 	}
 	return
 }
@@ -458,5 +558,123 @@ func (z *AuthUICountryCallingCodeConfiguration) Msgsize() (s int) {
 		s += msgp.StringPrefixSize + len(z.Values[za0001])
 	}
 	s += 8 + msgp.StringPrefixSize + len(z.Default)
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
+func (z *AuthUIMetadataConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
+	var zb0003 uint32
+	zb0003, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	if (*z) == nil {
+		(*z) = make(AuthUIMetadataConfiguration, zb0003)
+	} else if len((*z)) > 0 {
+		for key := range *z {
+			delete((*z), key)
+		}
+	}
+	for zb0003 > 0 {
+		zb0003--
+		var zb0001 string
+		var zb0002 interface{}
+		zb0001, err = dc.ReadString()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		zb0002, err = dc.ReadIntf()
+		if err != nil {
+			err = msgp.WrapError(err, zb0001)
+			return
+		}
+		(*z)[zb0001] = zb0002
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z AuthUIMetadataConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
+	err = en.WriteMapHeader(uint32(len(z)))
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0004, zb0005 := range z {
+		err = en.WriteString(zb0004)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		err = en.WriteIntf(zb0005)
+		if err != nil {
+			err = msgp.WrapError(err, zb0004)
+			return
+		}
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z AuthUIMetadataConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	o = msgp.AppendMapHeader(o, uint32(len(z)))
+	for zb0004, zb0005 := range z {
+		o = msgp.AppendString(o, zb0004)
+		o, err = msgp.AppendIntf(o, zb0005)
+		if err != nil {
+			err = msgp.WrapError(err, zb0004)
+			return
+		}
+	}
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *AuthUIMetadataConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var zb0003 uint32
+	zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	if (*z) == nil {
+		(*z) = make(AuthUIMetadataConfiguration, zb0003)
+	} else if len((*z)) > 0 {
+		for key := range *z {
+			delete((*z), key)
+		}
+	}
+	for zb0003 > 0 {
+		var zb0001 string
+		var zb0002 interface{}
+		zb0003--
+		zb0001, bts, err = msgp.ReadStringBytes(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		zb0002, bts, err = msgp.ReadIntfBytes(bts)
+		if err != nil {
+			err = msgp.WrapError(err, zb0001)
+			return
+		}
+		(*z)[zb0001] = zb0002
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z AuthUIMetadataConfiguration) Msgsize() (s int) {
+	s = msgp.MapHeaderSize
+	if z != nil {
+		for zb0004, zb0005 := range z {
+			_ = zb0005
+			s += msgp.StringPrefixSize + len(zb0004) + msgp.GuessSize(zb0005)
+		}
+	}
 	return
 }

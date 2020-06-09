@@ -48,7 +48,7 @@ var TemplateAuthUIHTMLHeadHTML = template.Spec{
 	Default: `
 {{ define "auth_ui_html_head.html" }}
 <head>
-<title>{{ .client_name }}</title>
+<title>{{ .app_name }}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="{{ .x_static_asset_url_prefix }}/css/main.css">
 <script src="{{ .x_static_asset_url_prefix}}/js/main.js"></script>

@@ -1,6 +1,8 @@
 package welcomemessage
 
 import (
+	"context"
+
 	"github.com/google/wire"
 
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -9,12 +11,15 @@ import (
 )
 
 func ProvideProvider(
+	ctx context.Context,
 	c *config.TenantConfiguration,
 	templateEngine *template.Engine,
 	taskQueue async.Queue,
 ) *Provider {
 	return &Provider{
-		AppName: c.AppConfig.DisplayAppName,
+		Context:                   ctx,
+		LocalizationConfiguration: c.AppConfig.Localization,
+		MetadataConfiguration:     c.AppConfig.AuthUI.Metadata,
 		EmailConfig: config.NewEmailMessageConfiguration(
 			c.AppConfig.Messages.Email,
 			c.AppConfig.WelcomeMessage.EmailMessage,

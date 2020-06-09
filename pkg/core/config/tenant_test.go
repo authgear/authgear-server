@@ -121,8 +121,7 @@ func makeFullTenantConfig() TenantConfiguration {
 			SyncHookTotalTimeout: 60,
 		},
 		AppConfig: &AppConfiguration{
-			APIVersion:     apiversion.APIVersion,
-			DisplayAppName: "MyApp",
+			APIVersion: apiversion.APIVersion,
 			Session: &SessionConfiguration{
 				Lifetime:            86400,
 				IdleTimeoutEnabled:  true,
@@ -132,8 +131,7 @@ func makeFullTenantConfig() TenantConfiguration {
 			},
 			Clients: []OAuthClientConfiguration{
 				OAuthClientConfiguration{
-					"client_name": "Web App",
-					"client_id":   "web_app",
+					"client_id": "web_app",
 					"redirect_uris": []interface{}{
 						"http://localhost:8081/oauth2/continue",
 					},
@@ -162,6 +160,9 @@ func makeFullTenantConfig() TenantConfiguration {
 				CountryCallingCode: &AuthUICountryCallingCodeConfiguration{
 					Values:  []string{"852"},
 					Default: "852",
+				},
+				Metadata: AuthUIMetadataConfiguration{
+					"app_name": "MyApp",
 				},
 			},
 			Authentication: &AuthenticationConfiguration{

@@ -13,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/intl"
@@ -30,6 +29,7 @@ type RenderProviderImpl struct {
 	AuthenticationConfiguration *config.AuthenticationConfiguration
 	AuthUIConfiguration         *config.AuthUIConfiguration
 	LocalizationConfiguration   *config.LocalizationConfiguration
+	MetadataConfiguration       config.AuthUIMetadataConfiguration
 	TemplateEngine              *template.Engine
 	PasswordChecker             *password.Checker
 	Identity                    IdentityProvider
@@ -58,11 +58,9 @@ func (p *RenderProviderImpl) PrepareRequestData(r *http.Request, data map[string
 		return MakeURLWithPathWithoutX(r.URL, path)
 	}
 
-	accessKey := coreAuth.GetAccessKey(r.Context())
-	clientMetadata := accessKey.Client
 	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
-	data["client_name"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), clientMetadata, "client_name")
-	data["logo_uri"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), clientMetadata, "logo_uri")
+	data["app_name"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.AuthUIConfiguration.Metadata, "app_name")
+	data["logo_uri"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.AuthUIConfiguration.Metadata, "logo_uri")
 
 	data[csrf.TemplateTag] = csrf.TemplateField(r)
 

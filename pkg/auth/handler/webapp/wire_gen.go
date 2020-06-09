@@ -94,7 +94,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -104,7 +104,7 @@ func newLoginHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -206,7 +206,7 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -216,7 +216,7 @@ func newEnterPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -316,7 +316,7 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	redisStore := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -326,7 +326,7 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -336,7 +336,7 @@ func newForgotPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,
 	}
-	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, queries, hookProvider, timeProvider, urlprefixProvider, engine, queue, passwordFlow, loginidProvider)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(context, staticAssetURLPrefix, tenantConfiguration, storeImpl, queries, hookProvider, timeProvider, urlprefixProvider, engine, queue, passwordFlow, loginidProvider)
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
@@ -397,7 +397,7 @@ func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http
 	redisStore := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -407,7 +407,7 @@ func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -417,7 +417,7 @@ func newForgotPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,
 	}
-	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, queries, hookProvider, timeProvider, urlprefixProvider, engine, queue, passwordFlow, loginidProvider)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(context, staticAssetURLPrefix, tenantConfiguration, storeImpl, queries, hookProvider, timeProvider, urlprefixProvider, engine, queue, passwordFlow, loginidProvider)
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
@@ -478,7 +478,7 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	redisStore := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -488,7 +488,7 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -498,7 +498,7 @@ func newResetPasswordHandler(r *http.Request, m auth.DependencyMap) http.Handler
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,
 	}
-	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, queries, hookProvider, timeProvider, urlprefixProvider, engine, queue, passwordFlow, loginidProvider)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(context, staticAssetURLPrefix, tenantConfiguration, storeImpl, queries, hookProvider, timeProvider, urlprefixProvider, engine, queue, passwordFlow, loginidProvider)
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
@@ -559,7 +559,7 @@ func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.
 	redisStore := redis.ProvideStore(context, tenantConfiguration, timeProvider)
 	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, checker, tenantConfiguration)
 	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -569,7 +569,7 @@ func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -579,7 +579,7 @@ func newResetPasswordSuccessHandler(r *http.Request, m auth.DependencyMap) http.
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,
 	}
-	forgotpasswordProvider := forgotpassword.ProvideProvider(staticAssetURLPrefix, tenantConfiguration, storeImpl, queries, hookProvider, timeProvider, urlprefixProvider, engine, queue, passwordFlow, loginidProvider)
+	forgotpasswordProvider := forgotpassword.ProvideProvider(context, staticAssetURLPrefix, tenantConfiguration, storeImpl, queries, hookProvider, timeProvider, urlprefixProvider, engine, queue, passwordFlow, loginidProvider)
 	webappForgotPasswordProvider := &webapp.ForgotPasswordProvider{
 		ValidateProvider: validateProvider,
 		RenderProvider:   renderProvider,
@@ -638,7 +638,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -648,7 +648,7 @@ func newSignupHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -746,7 +746,7 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -756,7 +756,7 @@ func newPromoteHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -854,7 +854,7 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -864,7 +864,7 @@ func newCreatePasswordHandler(r *http.Request, m auth.DependencyMap) http.Handle
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -988,7 +988,7 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -998,7 +998,7 @@ func newSettingsIdentityHandler(r *http.Request, m auth.DependencyMap) http.Hand
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -1097,7 +1097,7 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -1107,7 +1107,7 @@ func newOOBOTPHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -1205,7 +1205,7 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -1215,7 +1215,7 @@ func newEnterLoginIDHandler(r *http.Request, m auth.DependencyMap) http.Handler 
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -1367,7 +1367,7 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
-	oobProvider := oob.ProvideProvider(tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
 	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
 	provider3 := &provider2.Provider{
@@ -1377,7 +1377,7 @@ func newSSOCallbackHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	welcomemessageProvider := welcomemessage.ProvideProvider(tenantConfiguration, engine, queue)
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	commands := user.ProvideCommands(store, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,

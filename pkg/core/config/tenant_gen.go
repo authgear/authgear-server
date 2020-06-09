@@ -30,12 +30,6 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "APIVersion")
 				return
 			}
-		case "display_app_name":
-			z.DisplayAppName, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "DisplayAppName")
-				return
-			}
 		case "clients":
 			var zb0002 uint32
 			zb0002, err = dc.ReadArrayHeader()
@@ -566,25 +560,15 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 21
+	// map header, size 20
 	// write "api_version"
-	err = en.Append(0xde, 0x0, 0x15, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	err = en.Append(0xde, 0x0, 0x14, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	if err != nil {
 		return
 	}
 	err = en.WriteString(z.APIVersion)
 	if err != nil {
 		err = msgp.WrapError(err, "APIVersion")
-		return
-	}
-	// write "display_app_name"
-	err = en.Append(0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.DisplayAppName)
-	if err != nil {
-		err = msgp.WrapError(err, "DisplayAppName")
 		return
 	}
 	// write "clients"
@@ -997,13 +981,10 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 21
+	// map header, size 20
 	// string "api_version"
-	o = append(o, 0xde, 0x0, 0x15, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
+	o = append(o, 0xde, 0x0, 0x14, 0xab, 0x61, 0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	o = msgp.AppendString(o, z.APIVersion)
-	// string "display_app_name"
-	o = append(o, 0xb0, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
-	o = msgp.AppendString(o, z.DisplayAppName)
 	// string "clients"
 	o = append(o, 0xa7, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.Clients)))
@@ -1247,12 +1228,6 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			z.APIVersion, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "APIVersion")
-				return
-			}
-		case "display_app_name":
-			z.DisplayAppName, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "DisplayAppName")
 				return
 			}
 		case "clients":
@@ -1769,7 +1744,7 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *AppConfiguration) Msgsize() (s int) {
-	s = 3 + 12 + msgp.StringPrefixSize + len(z.APIVersion) + 17 + msgp.StringPrefixSize + len(z.DisplayAppName) + 8 + msgp.ArrayHeaderSize
+	s = 3 + 12 + msgp.StringPrefixSize + len(z.APIVersion) + 8 + msgp.ArrayHeaderSize
 	for za0001 := range z.Clients {
 		s += msgp.MapHeaderSize
 		if z.Clients[za0001] != nil {

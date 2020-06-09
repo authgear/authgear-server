@@ -57,7 +57,6 @@ var (
 		"additionalProperties": false,
 		"properties": {
 			"api_version": { "enum": %s },
-			"display_app_name": { "type": "string" },
 			"clients": {
 				"type": "array",
 				"items": { "$ref": "#APIClientConfiguration" }
@@ -118,7 +117,6 @@ var (
 		"$id": "#APIClientConfiguration",
 		"type": "object",
 		"properties": {
-			"client_name": { "$ref": "#NonEmptyString" },
 			"client_id": { "$ref": "#NonEmptyString" },
 			"client_uri": { "type": "string" },
 			"redirect_uris": {
@@ -140,7 +138,7 @@ var (
 				"items": { "type": "string" }
 			}
 		},
-		"required": ["client_name", "client_id"]
+		"required": ["client_id"]
 	},
 	"CORSConfiguration": {
 		"$id": "#CORSConfiguration",
@@ -176,7 +174,8 @@ var (
 		"additionalProperties": false,
 		"properties": {
 			"css": { "type": "string" },
-			"country_calling_code": { "$ref": "#AuthUICountryCallingCodeConfiguration" }
+			"country_calling_code": { "$ref": "#AuthUICountryCallingCodeConfiguration" },
+			"metadata": { "type": "object" }
 		}
 	},
 	"CountryCallingCode": {
