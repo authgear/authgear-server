@@ -82,9 +82,14 @@ func (a authorizationResultRequireAuthn) IsInternalError() bool {
 }
 
 func redirect(rw http.ResponseWriter, redirectURI string) {
-	rw.Header().Set("Location", redirectURI)
 	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
-	rw.WriteHeader(http.StatusFound)
+	// NOTE(authui): XHR and redirect
+	// Normally we should use HTTP 302 to redirect.
+	// However, when XHR is used, redirect is followed automatically.
+	// The final redirect URI may be custom URI which is considered unsecure by user agent.
+	// Therefore, we write HTML and use <meta http-equiv="refresh"> to redirect.
+	// rw.Header().Set("Location", redirectURI)
+	// rw.WriteHeader(http.StatusFound)
 
 	tmpl, err := template.New("authorization_result").Parse(AuthorizationResultHTML)
 	if err != nil {
