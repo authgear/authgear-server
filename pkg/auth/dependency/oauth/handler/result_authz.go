@@ -11,13 +11,23 @@ import (
 	coreurl "github.com/skygeario/skygear-server/pkg/core/url"
 )
 
-const AuthorizationResultHTML = `<!DOCTYPE html>
+const authorizationResultHTML = `<!DOCTYPE html>
 <head>
 <meta http-equiv="refresh" content="0;url={{ .redirect_uri }}" />
 </head>
 <script>
 window.location.href = "{{ .redirect_uri }}"
 </script>`
+
+var htmlRedirectTemplate *template.Template
+
+func init() {
+	var err error
+	htmlRedirectTemplate, err = template.New("authorization_result").Parse(authorizationResultHTML)
+	if err != nil {
+		panic("oauth: invalid authorization result page template")
+	}
+}
 
 type AuthorizationResult interface {
 	WriteResponse(rw http.ResponseWriter, r *http.Request)
@@ -90,12 +100,7 @@ func redirect(rw http.ResponseWriter, redirectURI string) {
 	// Therefore, we write HTML and use <meta http-equiv="refresh"> to redirect.
 	// rw.Header().Set("Location", redirectURI)
 	// rw.WriteHeader(http.StatusFound)
-
-	tmpl, err := template.New("authorization_result").Parse(AuthorizationResultHTML)
-	if err != nil {
-		panic("oauth: invalid authorization result page template")
-	}
-	err = tmpl.Execute(rw, map[string]string{
+	err := htmlRedirectTemplate.Execute(rw, map[string]string{
 		"redirect_uri": redirectURI,
 	})
 	if err != nil {
