@@ -76,7 +76,6 @@ func (info *AuthInfo) RefreshDisabledStatus(now time.Time) {
 
 func (info *AuthInfo) ToUserInfo(now time.Time) *authn.UserInfo {
 	return &authn.UserInfo{
-		ID:         info.ID,
-		IsDisabled: info.IsDisabled(now),
+		ID: info.ID,
 	}
 }

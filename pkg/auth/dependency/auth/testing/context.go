@@ -50,8 +50,3 @@ func (b Builder) SessionID(id string) Builder {
 	b.session.ID = id
 	return b
 }
-
-func (b Builder) Disabled(disabled bool) Builder {
-	b.user.IsDisabled = disabled
-	return b
-}

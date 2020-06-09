@@ -6,9 +6,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	task "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 )
@@ -50,34 +48,7 @@ func (c *RawCommands) AfterCreate(userModel *model.User, identities []*identity.
 		return err
 	}
 
-	if c.UserVerificationConfiguration.AutoSendOnSignup {
-		c.enqueueSendVerificationCodeTasks(*userModel, identities)
-	}
-
 	return nil
-}
-
-func (c *RawCommands) enqueueSendVerificationCodeTasks(user model.User, identities []*identity.Info) {
-	for _, i := range identities {
-		if i.Type != authn.IdentityTypeLoginID {
-			continue
-		}
-		loginIDKey := i.Claims[identity.IdentityClaimLoginIDKey].(string)
-		loginID := i.Claims[identity.IdentityClaimLoginIDValue].(string)
-
-		for _, keyConfig := range c.UserVerificationConfiguration.LoginIDKeys {
-			if keyConfig.Key == loginIDKey {
-				c.TaskQueue.Enqueue(async.TaskSpec{
-					Name: task.VerifyCodeSendTaskName,
-					Param: task.VerifyCodeSendTaskParam{
-						URLPrefix: c.URLPrefix.Value(),
-						LoginID:   loginID,
-						UserID:    user.ID,
-					},
-				})
-			}
-		}
-	}
 }
 
 func (c *RawCommands) UpdateMetadata(user *model.User, metadata map[string]interface{}) error {

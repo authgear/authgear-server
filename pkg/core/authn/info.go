@@ -9,7 +9,6 @@ import (
 type Info struct {
 	IsValid       bool
 	UserID        string
-	UserDisabled  bool
 	UserAnonymous bool
 
 	SessionACR string
@@ -22,7 +21,6 @@ func NewAuthnInfo(attrs *Attrs, user *UserInfo, isAnonymous bool) *Info {
 	return &Info{
 		IsValid:       true,
 		UserID:        user.ID,
-		UserDisabled:  user.IsDisabled,
 		UserAnonymous: isAnonymous,
 		SessionACR:    attrs.ACR,
 		SessionAMR:    attrs.AMR,
@@ -32,7 +30,6 @@ func NewAuthnInfo(attrs *Attrs, user *UserInfo, isAnonymous bool) *Info {
 const (
 	headerSessionValid  = "X-Skygear-Session-Valid"
 	headerUserID        = "X-Skygear-User-Id"
-	headerUserDisabled  = "X-Skygear-User-Disabled"
 	headerUserAnonymous = "X-Skygear-User-Anonymous"
 	headerSessionAcr    = "X-Skygear-Session-Acr"
 	headerSessionAmr    = "X-Skygear-Session-Amr"
@@ -49,7 +46,6 @@ func (i *Info) PopulateHeaders(rw http.ResponseWriter) {
 	}
 
 	rw.Header().Set(headerUserID, i.UserID)
-	rw.Header().Set(headerUserDisabled, strconv.FormatBool(i.UserDisabled))
 	rw.Header().Set(headerUserAnonymous, strconv.FormatBool(i.UserAnonymous))
 
 	rw.Header().Set(headerSessionAcr, i.SessionACR)
@@ -70,8 +66,7 @@ func (i *Info) AuthnAttrs() *Attrs {
 
 func (i *Info) User() *UserInfo {
 	return &UserInfo{
-		ID:         i.UserID,
-		IsDisabled: i.UserDisabled,
+		ID: i.UserID,
 	}
 }
 
@@ -87,9 +82,6 @@ func ParseHeaders(r *http.Request) (*Info, error) {
 	}
 
 	i.UserID = r.Header.Get(headerUserID)
-	if i.UserDisabled, err = strconv.ParseBool(r.Header.Get(headerUserDisabled)); err != nil {
-		return nil, err
-	}
 	if i.UserAnonymous, err = strconv.ParseBool(r.Header.Get(headerUserAnonymous)); err != nil {
 		return nil, err
 	}
