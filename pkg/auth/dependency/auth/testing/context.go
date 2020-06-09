@@ -55,8 +55,3 @@ func (b Builder) Disabled(disabled bool) Builder {
 	b.user.IsDisabled = disabled
 	return b
 }
-
-func (b Builder) Verified(verified bool) Builder {
-	b.user.IsVerified = verified
-	return b
-}

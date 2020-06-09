@@ -14,7 +14,6 @@ type UserUpdateReason string
 const (
 	UserUpdateReasonUpdateMetadata = "update_metadata"
 	UserUpdateReasonUpdateIdentity = "update_identity"
-	UserUpdateReasonVerification   = "verification"
 	UserUpdateReasonAdministrative = "administrative"
 )
 

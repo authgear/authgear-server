@@ -70,8 +70,6 @@ type TemplateConfiguration struct {
 
 	@Tag User
 		User information
-	@Tag User Verification
-		Login IDs verification
 	@Tag Forgot Password
 		Password recovery process
 	@Tag Administration
@@ -135,7 +133,6 @@ func main() {
 		ReservedNameChecker:      reservedNameChecker,
 	}
 
-	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
 	task.AttachPwHousekeeperTask(asyncTaskExecutor, authDependency)
 	task.AttachSendMessagesTask(asyncTaskExecutor, authDependency)
 

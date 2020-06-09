@@ -78,6 +78,5 @@ func (info *AuthInfo) ToUserInfo(now time.Time) *authn.UserInfo {
 	return &authn.UserInfo{
 		ID:         info.ID,
 		IsDisabled: info.IsDisabled(now),
-		IsVerified: info.IsVerified(),
 	}
 }

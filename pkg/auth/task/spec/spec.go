@@ -2,8 +2,6 @@ package spec
 
 import (
 	"errors"
-	"net/url"
-
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 )
@@ -23,18 +21,6 @@ func (p PwHousekeeperTaskParam) Validate() error {
 	}
 
 	return nil
-}
-
-const (
-	// TODO(verify): Remove VerifyCodeSendTask and use SendMessagesTask
-	// VerifyCodeSendTaskName provides the name for submiting VerifyCodeSendTask
-	VerifyCodeSendTaskName = "VerifyCodeSendTask"
-)
-
-type VerifyCodeSendTaskParam struct {
-	URLPrefix *url.URL
-	LoginID   string
-	UserID    string
 }
 
 const (
