@@ -47,3 +47,17 @@ func (mr *MockUserProviderMockRecorder) Get(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserProvider)(nil).Get), id)
 }
+
+// UpdateMetadata mocks base method
+func (m *MockUserProvider) UpdateMetadata(user *model.User, metadata map[string]interface{}) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMetadata", user, metadata)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateMetadata indicates an expected call of UpdateMetadata
+func (mr *MockUserProviderMockRecorder) UpdateMetadata(user, metadata interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockUserProvider)(nil).UpdateMetadata), user, metadata)
+}

@@ -22,6 +22,7 @@ import (
 
 type UserProvider interface {
 	Get(id string) (*model.User, error)
+	UpdateMetadata(user *model.User, metadata map[string]interface{}) error
 }
 
 type providerImpl struct {

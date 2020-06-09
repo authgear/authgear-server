@@ -2,7 +2,6 @@ package user
 
 import (
 	"github.com/google/wire"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -14,19 +13,17 @@ type Provider struct {
 	*Queries
 }
 
-func ProvideCommands(
+func ProvideRawCommands(
 	us store,
 	tp time.Provider,
-	hp hook.Provider,
 	up urlprefix.Provider,
 	q async.Queue,
 	config *config.TenantConfiguration,
 	wmp WelcomeMessageProvider,
-) *Commands {
-	return &Commands{
+) *RawCommands {
+	return &RawCommands{
 		Store:                         us,
 		Time:                          tp,
-		Hooks:                         hp,
 		URLPrefix:                     up,
 		TaskQueue:                     q,
 		UserVerificationConfiguration: config.AppConfig.UserVerification,
@@ -37,7 +34,8 @@ func ProvideCommands(
 var DependencySet = wire.NewSet(
 	wire.Struct(new(Store), "*"),
 	wire.Bind(new(store), new(*Store)),
-	ProvideCommands,
+	wire.Struct(new(Commands), "*"),
+	ProvideRawCommands,
 	wire.Struct(new(Queries), "*"),
 	wire.Struct(new(Provider), "*"),
 )

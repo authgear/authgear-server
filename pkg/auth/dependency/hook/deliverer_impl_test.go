@@ -8,7 +8,6 @@ import (
 
 	"github.com/h2non/gock"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -159,8 +158,7 @@ func TestDeliverer(t *testing.T) {
 				}
 
 				user := model.User{
-					ID:       "user-id",
-					Disabled: false,
+					ID: "user-id",
 					Metadata: map[string]interface{}{
 						"test": 123,
 					},
@@ -171,8 +169,7 @@ func TestDeliverer(t *testing.T) {
 					Type: event.BeforeSessionCreate,
 					Payload: event.SessionCreateEvent{
 						User: model.User{
-							ID:       "user-id",
-							Disabled: false,
+							ID: "user-id",
 							Metadata: map[string]interface{}{
 								"test": 123,
 							},
@@ -199,7 +196,9 @@ func TestDeliverer(t *testing.T) {
 					JSON(map[string]interface{}{
 						"is_allowed": true,
 						"mutations": map[string]interface{}{
-							"is_disabled": true,
+							"metadata": map[string]interface{}{
+								"test2": true,
+							},
 						},
 					})
 				defer func() { gock.Flush() }()
@@ -207,18 +206,19 @@ func TestDeliverer(t *testing.T) {
 				Convey("successful", func() {
 					err := deliverer.DeliverBeforeEvent(&e, &user)
 
-					t := true
 					So(err, ShouldBeNil)
 					So(mutator.Event, ShouldEqual, &e)
 					So(mutator.User, ShouldEqual, &user)
 					So(mutator.MutationsList, ShouldResemble, []event.Mutations{
-						event.Mutations{
-							Metadata: &userprofile.Data{
+						{
+							Metadata: &map[string]interface{}{
 								"test1": float64(123),
 							},
 						},
-						event.Mutations{
-							IsDisabled: &t,
+						{
+							Metadata: &map[string]interface{}{
+								"test2": true,
+							},
 						},
 					})
 					So(mutator.IsApplied, ShouldEqual, true)

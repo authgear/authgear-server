@@ -34,11 +34,9 @@ import (
 	redis4 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	pq2 "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -100,16 +98,23 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
+	rawCommands := user.ProvideRawCommands(userStore, timeProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 		Time:       timeProvider,
 	}
-	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
-	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
-	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
-	commands := user.ProvideCommands(userStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	hookUserProvider := &auth.HookUserProvider{
+		Queries:     queries,
+		RawCommands: rawCommands,
+	}
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, hookUserProvider, loginidProvider, factory)
+	commands := &user.Commands{
+		Raw:   rawCommands,
+		Time:  timeProvider,
+		Hooks: hookProvider,
+	}
 	userProvider := &user.Provider{
 		Commands: commands,
 		Queries:  queries,
@@ -197,16 +202,23 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
+	rawCommands := user.ProvideRawCommands(userStore, timeProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 		Time:       timeProvider,
 	}
-	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
-	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
-	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
-	commands := user.ProvideCommands(userStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	hookUserProvider := &auth.HookUserProvider{
+		Queries:     queries,
+		RawCommands: rawCommands,
+	}
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, hookUserProvider, loginidProvider, factory)
+	commands := &user.Commands{
+		Raw:   rawCommands,
+		Time:  timeProvider,
+		Hooks: hookProvider,
+	}
 	userProvider := &user.Provider{
 		Commands: commands,
 		Queries:  queries,
@@ -347,16 +359,23 @@ func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
+	rawCommands := user.ProvideRawCommands(userStore, timeProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 		Time:       timeProvider,
 	}
-	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
-	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
-	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
-	commands := user.ProvideCommands(userStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	hookUserProvider := &auth.HookUserProvider{
+		Queries:     queries,
+		RawCommands: rawCommands,
+	}
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, hookUserProvider, loginidProvider, factory)
+	commands := &user.Commands{
+		Raw:   rawCommands,
+		Time:  timeProvider,
+		Hooks: hookProvider,
+	}
 	userProvider := &user.Provider{
 		Commands: commands,
 		Queries:  queries,

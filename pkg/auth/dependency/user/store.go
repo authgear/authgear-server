@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"time"
 )
 
 type store interface {
 	Create(u *User) error
 	Get(userID string) (*User, error)
-	UpdateMetadata(u *User) error
-	UpdateLoginTime(u *User) error
+	UpdateMetadata(userID string, metadata map[string]interface{}, updateAt time.Time) error
+	UpdateLoginTime(userID string, lastLoginAt time.Time) error
 }
 
 type Store struct {
@@ -91,18 +92,18 @@ func (s *Store) Get(userID string) (*User, error) {
 	return u, nil
 }
 
-func (s *Store) UpdateMetadata(u *User) error {
+func (s *Store) UpdateMetadata(userID string, metadata map[string]interface{}, updateAt time.Time) error {
 	var metadataBytes []byte
-	metadataBytes, err := json.Marshal(u.Metadata)
+	metadataBytes, err := json.Marshal(metadata)
 	if err != nil {
 		return err
 	}
 
 	builder := s.SQLBuilder.Tenant().
 		Update(s.SQLBuilder.FullTableName("user")).
-		Set("updated_at", u.UpdatedAt).
+		Set("updated_at", updateAt).
 		Set("data", metadataBytes).
-		Where("user_id = ?", u.ID)
+		Where("id = ?", userID)
 
 	_, err = s.SQLExecutor.ExecWith(builder)
 	if err != nil {
@@ -112,11 +113,11 @@ func (s *Store) UpdateMetadata(u *User) error {
 	return nil
 }
 
-func (s *Store) UpdateLoginTime(u *User) error {
+func (s *Store) UpdateLoginTime(userID string, lastLoginAt time.Time) error {
 	builder := s.SQLBuilder.Tenant().
 		Update(s.SQLBuilder.FullTableName("user")).
-		Set("last_login_at", u.LastLoginAt).
-		Where("user_id = ?", u.ID)
+		Set("last_login_at", lastLoginAt).
+		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)
 	if err != nil {

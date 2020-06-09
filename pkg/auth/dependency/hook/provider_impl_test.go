@@ -212,8 +212,7 @@ func TestDispatchEvent(t *testing.T) {
 					},
 				}
 				users.EXPECT().Get("user-id").Return(&model.User{
-					ID:         "user-id",
-					VerifyInfo: map[string]bool{"user@example.com": true},
+					ID: "user-id",
 					Metadata: map[string]interface{}{
 						"user": true,
 					},
@@ -244,9 +243,8 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:  2,
 						Payload: event.UserSyncEvent{
 							User: model.User{
-								ID:         "user-id",
-								VerifyInfo: map[string]bool{"user@example.com": true},
-								Metadata:   map[string]interface{}{"user": true},
+								ID:       "user-id",
+								Metadata: map[string]interface{}{"user": true},
 							},
 						},
 						Context: event.Context{
@@ -269,8 +267,7 @@ func TestDispatchEvent(t *testing.T) {
 					},
 				}
 				users.EXPECT().Get("user-id").Return(&model.User{
-					ID:         "user-id",
-					VerifyInfo: map[string]bool{"user@example.com": true},
+					ID: "user-id",
 					Metadata: map[string]interface{}{
 						"user": true,
 					},
@@ -288,9 +285,8 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:  1,
 						Payload: event.UserSyncEvent{
 							User: model.User{
-								ID:         "user-id",
-								VerifyInfo: map[string]bool{"user@example.com": true},
-								Metadata:   map[string]interface{}{"user": true},
+								ID:       "user-id",
+								Metadata: map[string]interface{}{"user": true},
 							},
 						},
 						Context: event.Context{

@@ -226,12 +226,18 @@ var welcomemessageDependencySet = wire.NewSet(
 	wire.Bind(new(user.WelcomeMessageProvider), new(*welcomemessage.Provider)),
 )
 
+type HookUserProvider struct {
+	*user.Queries
+	*user.RawCommands
+}
+
 var userDependencySet = wire.NewSet(
 	user.DependencySet,
 
 	wire.Bind(new(auth.UserProvider), new(*user.Queries)),
 	wire.Bind(new(forgotpassword.UserProvider), new(*user.Queries)),
-	wire.Bind(new(hook.UserProvider), new(*user.Queries)),
+	wire.Struct(new(HookUserProvider), "*"),
+	wire.Bind(new(hook.UserProvider), new(*HookUserProvider)),
 	wire.Bind(new(interaction.UserProvider), new(*user.Provider)),
 	wire.Bind(new(interactionflows.UserProvider), new(*user.Queries)),
 	wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
