@@ -4,16 +4,20 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
-func newUser(
-	now time.Time,
-	authInfo *authinfo.AuthInfo,
-	userProfile *userprofile.UserProfile,
+type User struct {
+	ID          string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	LastLoginAt *time.Time
+	Metadata    map[string]interface{}
+}
+
+func newUserModel(
+	user *User,
 	identities []*identity.Info,
 ) *model.User {
 	isAnonymous := false
@@ -25,14 +29,10 @@ func newUser(
 	}
 
 	return &model.User{
-		ID:               authInfo.ID,
-		CreatedAt:        userProfile.CreatedAt,
-		LastLoginAt:      authInfo.LastLoginAt,
-		Verified:         authInfo.IsVerified(),
-		ManuallyVerified: authInfo.ManuallyVerified,
-		Disabled:         authInfo.IsDisabled(now),
-		IsAnonymous:      isAnonymous,
-		VerifyInfo:       authInfo.VerifyInfo,
-		Metadata:         userProfile.Data,
+		ID:          user.ID,
+		CreatedAt:   user.CreatedAt,
+		LastLoginAt: user.LastLoginAt,
+		IsAnonymous: isAnonymous,
+		Metadata:    user.Metadata,
 	}
 }

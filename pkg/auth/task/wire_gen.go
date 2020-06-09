@@ -14,10 +14,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/provider"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -34,11 +32,13 @@ func newVerifyCodeSendTask(ctx context.Context, m auth.DependencyMap) async.Task
 	client := sms.ProvideSMSClient(ctx, tenantConfiguration)
 	codeSenderFactory := userverify.NewDefaultUserVerifyCodeSenderFactory(tenantConfiguration, engine, sender, client)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
-	sqlExecutor := db.ProvideSQLExecutor(ctx, tenantConfiguration)
-	store := pq.ProvideStore(sqlBuilderFactory, sqlExecutor)
-	timeProvider := time.NewProvider()
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
-	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
+	sqlExecutor := db.ProvideSQLExecutor(ctx, tenantConfiguration)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	timeProvider := time.NewProvider()
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
@@ -48,10 +48,9 @@ func newVerifyCodeSendTask(ctx context.Context, m auth.DependencyMap) async.Task
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	queries := &user.Queries{
-		AuthInfos:    store,
-		UserProfiles: userprofileStore,
-		Identities:   providerProvider,
-		Time:         timeProvider,
+		Store:      store,
+		Identities: providerProvider,
+		Time:       timeProvider,
 	}
 	userverifyProvider := userverify.ProvideProvider(tenantConfiguration, timeProvider, sqlBuilder, sqlExecutor)
 	txContext := db.ProvideTxContext(ctx, tenantConfiguration)

@@ -96,17 +96,20 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	queries := &user.Queries{
+		Store:      userStore,
+		Identities: providerProvider,
+		Time:       timeProvider,
+	}
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	queries := &user.Queries{
-		AuthInfos:    authinfoStore,
-		UserProfiles: userprofileStore,
-		Identities:   providerProvider,
-		Time:         timeProvider,
-	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
-	commands := user.ProvideCommands(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	commands := user.ProvideCommands(userStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
 		Queries:  queries,
@@ -190,17 +193,20 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	queries := &user.Queries{
+		Store:      userStore,
+		Identities: providerProvider,
+		Time:       timeProvider,
+	}
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	queries := &user.Queries{
-		AuthInfos:    authinfoStore,
-		UserProfiles: userprofileStore,
-		Identities:   providerProvider,
-		Time:         timeProvider,
-	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
-	commands := user.ProvideCommands(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	commands := user.ProvideCommands(userStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
 		Queries:  queries,
@@ -272,11 +278,13 @@ func newUserInfoHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
-	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
-	store := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
-	timeProvider := time.NewProvider()
 	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
-	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
+	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	timeProvider := time.NewProvider()
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
@@ -286,10 +294,9 @@ func newUserInfoHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	queries := &user.Queries{
-		AuthInfos:    store,
-		UserProfiles: userprofileStore,
-		Identities:   providerProvider,
-		Time:         timeProvider,
+		Store:      store,
+		Identities: providerProvider,
+		Time:       timeProvider,
 	}
 	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, queries, timeProvider)
 	httpHandler := provideUserInfoHandler(factory, txContext, idTokenIssuer)
@@ -336,17 +343,20 @@ func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	queries := &user.Queries{
+		Store:      userStore,
+		Identities: providerProvider,
+		Time:       timeProvider,
+	}
 	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
 	userprofileStore := userprofile.ProvideStore(timeProvider, sqlBuilder, sqlExecutor)
-	queries := &user.Queries{
-		AuthInfos:    authinfoStore,
-		UserProfiles: userprofileStore,
-		Identities:   providerProvider,
-		Time:         timeProvider,
-	}
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, queries, authinfoStore, userprofileStore, loginidProvider, factory)
 	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
-	commands := user.ProvideCommands(authinfoStore, userprofileStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	commands := user.ProvideCommands(userStore, timeProvider, hookProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	userProvider := &user.Provider{
 		Commands: commands,
 		Queries:  queries,

@@ -1,15 +1,15 @@
 package user
 
 import (
+	gotime "time"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	task "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -20,8 +20,7 @@ type WelcomeMessageProvider interface {
 }
 
 type Commands struct {
-	AuthInfos                     authinfo.Store
-	UserProfiles                  userprofile.Store
+	Store                         store
 	Time                          time.Provider
 	Hooks                         hook.Provider
 	URLPrefix                     urlprefix.Provider
@@ -32,33 +31,29 @@ type Commands struct {
 
 func (c *Commands) Create(userID string, metadata map[string]interface{}, identities []*identity.Info) error {
 	now := c.Time.NowUTC()
-	authInfo := &authinfo.AuthInfo{
+	user := &User{
 		ID:          userID,
-		VerifyInfo:  map[string]bool{},
-		LastLoginAt: &now,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+		LastLoginAt: nil,
 	}
 
-	err := c.AuthInfos.CreateAuth(authInfo)
+	err := c.Store.Create(user)
 	if err != nil {
 		return err
 	}
 
-	userProfile, err := c.UserProfiles.CreateUserProfile(authInfo.ID, metadata)
-	if err != nil {
-		return err
-	}
-
-	user := newUser(now, authInfo, &userProfile, identities)
+	userModel := newUserModel(user, identities)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())
 	}
 	err = c.Hooks.DispatchEvent(
 		event.UserCreateEvent{
-			User:       *user,
+			User:       *userModel,
 			Identities: identityModels,
 		},
-		user,
+		userModel,
 	)
 	if err != nil {
 		return err
@@ -70,7 +65,7 @@ func (c *Commands) Create(userID string, metadata map[string]interface{}, identi
 	}
 
 	if c.UserVerificationConfiguration.AutoSendOnSignup {
-		c.enqueueSendVerificationCodeTasks(*user, identities)
+		c.enqueueSendVerificationCodeTasks(*userModel, identities)
 	}
 
 	return nil
@@ -97,4 +92,15 @@ func (c *Commands) enqueueSendVerificationCodeTasks(user model.User, identities 
 			}
 		}
 	}
+}
+
+func (c *Commands) UpdateMetadata(user *User, metadata map[string]interface{}) error {
+	user.UpdatedAt = c.Time.NowUTC()
+	user.Metadata = metadata
+	return c.Store.UpdateMetadata(user)
+}
+
+func (c *Commands) UpdateLoginTime(user *User, lastLoginAt gotime.Time) error {
+	user.LastLoginAt = &lastLoginAt
+	return c.Store.UpdateLoginTime(user)
 }
