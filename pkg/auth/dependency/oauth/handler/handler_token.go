@@ -54,7 +54,7 @@ type TokenHandler struct {
 func (h *TokenHandler) Handle(r protocol.TokenRequest) TokenResult {
 	client := resolveClient(h.Clients, r)
 	if client == nil {
-		return authorizationResultError{
+		return tokenResultError{
 			Response: protocol.NewErrorResponse("invalid_client", "invalid client ID"),
 		}
 	}

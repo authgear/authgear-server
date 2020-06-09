@@ -319,12 +319,5 @@ window.addEventListener("load", function() {
   attachPasswordPolicyCheck();
   attachResendButtonBehavior();
   attachFormSubmitOnceOnly();
-  // TODO(authui): backstack
-  // The final redirect may be customurischeme://host
-  // which is blocked when the request is submitted as XHR.
-  // However, if we do not use XHR to submit form,
-  // we still suffer from back stack problem.
-  // A better solution is to introduce an extra endpoint
-  // in /oauth2 to support redirect response mode and form post response mode.
-  // attachFormSubmitXHR();
+  attachFormSubmitXHR();
 });
