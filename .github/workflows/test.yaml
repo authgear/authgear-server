@@ -15,16 +15,14 @@ jobs:
     name: Test
     runs-on: ubuntu-18.04
     steps:
-      - name: Setup Go
-        uses: actions/setup-go@v2
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
         with:
           go-version: 1.13.3
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Get dependencies
-        run: make vendor
-      - name: Test
-        run: |
-          make check-tidy
-          make lint
-          make test
+      - run: make vendor
+      - run: make lint
+        if: ${{ !cancelled() }}
+      - run: make test
+        if: ${{ !cancelled() }}
+      - run: make check-tidy
+        if: ${{ !cancelled() }}
