@@ -19,14 +19,16 @@ require (
 	github.com/gorilla/csrf v1.6.2
 	github.com/gorilla/mux v1.7.4
 	github.com/h2non/gock v1.0.12
+	github.com/hashicorp/go-version v1.2.0 // indirect
 	github.com/iawaknahc/gomessageformat v0.0.0-20200406084228-8abc010113fa
 	github.com/iawaknahc/originmatcher v0.0.0-20191203065535-c77f92cc0a75
 	github.com/jmoiron/sqlx v0.0.0-20170430194603-d9bd385d68c0
-	github.com/joho/godotenv v0.0.0-20150907010228-4ed13390c0ac
+	github.com/joho/godotenv v1.3.0
 	github.com/kelseyhightower/envconfig v1.3.0
+	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lestrrat-go/jwx v0.9.0
 	github.com/lib/pq v1.2.0
-	github.com/mattn/go-sqlite3 v1.11.0 // indirect
+	github.com/mattn/go-sqlite3 v1.12.0 // indirect
 	github.com/mitchellh/gox v1.0.1
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
 	github.com/nbutton23/zxcvbn-go v0.0.0-20171102151520-eafdab6b0663
@@ -39,7 +41,7 @@ require (
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
 	github.com/skygeario/openapi3-gen v0.0.0-20190808034633-90418c3d9171
 	github.com/smartystreets/assertions v1.0.0 // indirect
-	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337
+	github.com/smartystreets/goconvey v1.6.4
 	github.com/tinylib/msgp v1.1.0
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329

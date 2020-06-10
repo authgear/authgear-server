@@ -7,6 +7,7 @@ vendor:
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
 	go install github.com/skygeario/openapi3-gen/cmd/openapi3-gen
+	$(MAKE) -C migrate build
 
 .PHONY: generate
 generate:
