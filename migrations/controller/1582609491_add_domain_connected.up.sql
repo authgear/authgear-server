@@ -1,1 +1,0 @@
-ALTER TABLE custom_domain ADD COLUMN "connected" BOOLEAN DEFAULT FALSE;

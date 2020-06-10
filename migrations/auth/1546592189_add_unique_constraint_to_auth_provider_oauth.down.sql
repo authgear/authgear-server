@@ -1,1 +1,0 @@
-ALTER TABLE _auth_provider_oauth DROP CONSTRAINT "_auth_provider_oauth_provider_user_id";

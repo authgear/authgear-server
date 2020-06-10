@@ -1,3 +1,0 @@
-ALTER TABLE _auth_provider_password DROP CONSTRAINT _auth_provider_password_unique_key_realm;
-ALTER TABLE _auth_provider_password DROP COLUMN unique_key;
-ALTER TABLE _auth_provider_password DROP COLUMN original_login_id;

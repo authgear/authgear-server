@@ -9,5 +9,5 @@ type History struct {
 	ID             string
 	UserID         string
 	HashedPassword []byte
-	LoggedAt       time.Time
+	CreatedAt      time.Time
 }

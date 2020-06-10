@@ -97,7 +97,7 @@ func (p *HistoryStoreImpl) RemovePasswordHistory(userID string, historySize, his
 		return nil
 	}
 
-	oldestTime := history[len(history)-1].LoggedAt
+	oldestTime := history[len(history)-1].CreatedAt
 	ids := []interface{}{}
 	for _, h := range history {
 		ids = append(ids, h.ID)
@@ -107,7 +107,7 @@ func (p *HistoryStoreImpl) RemovePasswordHistory(userID string, historySize, his
 		Delete(p.sqlBuilder.FullTableName("password_history")).
 		Where("user_id = ?", userID).
 		Where("id NOT IN ("+sq.Placeholders(len(ids))+")", ids...).
-		Where("logged_at < ?", oldestTime)
+		Where("created_at < ?", oldestTime)
 
 	_, err = p.sqlExecutor.ExecWith(builder)
 	return err
@@ -115,26 +115,26 @@ func (p *HistoryStoreImpl) RemovePasswordHistory(userID string, historySize, his
 
 func (p *HistoryStoreImpl) basePasswordHistoryBuilder(userID string) db.SelectBuilder {
 	return p.sqlBuilder.Tenant().
-		Select("id", "user_id", "password", "logged_at").
+		Select("id", "user_id", "password", "created_at").
 		From(p.sqlBuilder.FullTableName("password_history")).
 		Where("user_id = ?", userID).
 		OrderBy("logged_at DESC")
 }
 
-func (p *HistoryStoreImpl) insertPasswordHistoryBuilder(userID string, hashedPassword []byte, loggedAt time.Time) db.InsertBuilder {
+func (p *HistoryStoreImpl) insertPasswordHistoryBuilder(userID string, hashedPassword []byte, createdAt time.Time) db.InsertBuilder {
 	return p.sqlBuilder.Tenant().
 		Insert(p.sqlBuilder.FullTableName("password_history")).
 		Columns(
 			"id",
 			"user_id",
 			"password",
-			"logged_at",
+			"created_at",
 		).
 		Values(
 			uuid.New(),
 			userID,
 			hashedPassword,
-			loggedAt,
+			createdAt,
 		)
 }
 
@@ -159,7 +159,7 @@ func (p *HistoryStoreImpl) doQueryPasswordHistory(builder db.SelectBuilder) ([]H
 			ID:             id,
 			UserID:         userID,
 			HashedPassword: []byte(hashedPasswordStr),
-			LoggedAt:       loggedAt,
+			CreatedAt:      loggedAt,
 		}
 		out = append(out, passwordHistory)
 	}

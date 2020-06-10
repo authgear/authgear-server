@@ -140,19 +140,19 @@ func TestValidatePassword(t *testing.T) {
 				ID:             "1",
 				UserID:         authID,
 				HashedPassword: []byte("$2a$10$EazYxG5cUdf99wGXDU1fguNxvCe7xQLEgr/Ay6VS9fkkVjHZtpJfm"), // "chima"
-				LoggedAt:       time.Date(2017, 11, 3, 0, 0, 0, 0, time.UTC),
+				CreatedAt:      time.Date(2017, 11, 3, 0, 0, 0, 0, time.UTC),
 			},
 			{
 				ID:             "2",
 				UserID:         authID,
 				HashedPassword: []byte("$2a$10$8Z0zqmCZ3pZUlvLD8lN.B.ecN7MX8uVcZooPUFnCcB8tWR6diVc1a"), // "faseng"
-				LoggedAt:       time.Date(2017, 11, 2, 0, 0, 0, 0, time.UTC),
+				CreatedAt:      time.Date(2017, 11, 2, 0, 0, 0, 0, time.UTC),
 			},
 			{
 				ID:             "3",
 				UserID:         authID,
 				HashedPassword: []byte("$2a$10$qzmi8TkYosj66xHvc9EfEulKjGoZswJSyNVEmmbLDxNGP/lMm6UXC"), // "coffee"
-				LoggedAt:       time.Date(2017, 11, 1, 0, 0, 0, 0, time.UTC),
+				CreatedAt:      time.Date(2017, 11, 1, 0, 0, 0, 0, time.UTC),
 			},
 		},
 	}

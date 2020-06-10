@@ -1,1 +1,0 @@
-ALTER TABLE _auth_identity_login_id DROP CONSTRAINT _auth_identity_login_id_unique_key;

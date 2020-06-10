@@ -1,1 +1,0 @@
-ALTER TABLE _auth_provider_password RENAME CONSTRAINT _auth_provider_password_auth_data_key TO _auth_provider_password_login_id_key;

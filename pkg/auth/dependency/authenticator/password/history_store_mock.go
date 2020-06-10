@@ -20,10 +20,10 @@ func (m *mockPasswordHistoryStoreImpl) CreatePasswordHistory(userID string, hash
 		ID:             uuid.New(),
 		UserID:         userID,
 		HashedPassword: hashedPassword,
-		LoggedAt:       loggedAt,
+		CreatedAt:      loggedAt,
 	}
 	uph := append(m.Data[userID], ph)
-	sort.Slice(uph, func(i, j int) bool { return uph[i].LoggedAt.After(uph[j].LoggedAt) })
+	sort.Slice(uph, func(i, j int) bool { return uph[i].CreatedAt.After(uph[j].CreatedAt) })
 	m.Data[userID] = uph
 	return nil
 }
@@ -40,7 +40,7 @@ func (m *mockPasswordHistoryStoreImpl) GetPasswordHistory(userID string, history
 
 	index := 0
 	for i, ph := range uph {
-		if i >= historySize && ph.LoggedAt.Before(since) {
+		if i >= historySize && ph.CreatedAt.Before(since) {
 			break
 		}
 		index = i

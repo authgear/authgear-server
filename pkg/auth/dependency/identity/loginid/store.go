@@ -29,7 +29,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"l.claims",
 		).
 		From(s.SQLBuilder.FullTableName("identity"), "p").
-		Join(s.SQLBuilder.FullTableName("identity_login_id"), "l", "p.id = l.identity_id")
+		Join(s.SQLBuilder.FullTableName("identity_login_id"), "l", "p.id = l.id")
 }
 
 func (s *Store) scan(scn db.Scanner) (*Identity, error) {
@@ -158,7 +158,7 @@ func (s *Store) Create(i *Identity) error {
 	q := s.SQLBuilder.Tenant().
 		Insert(s.SQLBuilder.FullTableName("identity_login_id")).
 		Columns(
-			"identity_id",
+			"id",
 			"login_id_key",
 			"login_id",
 			"original_login_id",
@@ -195,7 +195,7 @@ func (s *Store) Update(i *Identity) error {
 		Set("original_login_id", i.OriginalLoginID).
 		Set("unique_key", i.UniqueKey).
 		Set("claims", claims).
-		Where("identity_id = ?", i.ID)
+		Where("id = ?", i.ID)
 
 	result, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {
@@ -219,7 +219,7 @@ func (s *Store) Update(i *Identity) error {
 func (s *Store) Delete(i *Identity) error {
 	q := s.SQLBuilder.Tenant().
 		Delete(s.SQLBuilder.FullTableName("identity_login_id")).
-		Where("identity_id = ?", i.ID)
+		Where("id = ?", i.ID)
 
 	_, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {

@@ -27,11 +27,11 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"o.provider_user_id",
 			"o.profile",
 			"o.claims",
-			"o._created_at",
-			"o._updated_at",
+			"o.created_at",
+			"o.updated_at",
 		).
 		From(s.SQLBuilder.FullTableName("identity"), "p").
-		Join(s.SQLBuilder.FullTableName("identity_oauth"), "o", "p.id = o.identity_id")
+		Join(s.SQLBuilder.FullTableName("identity_oauth"), "o", "p.id = o.id")
 }
 
 func (s *Store) scan(scn db.Scanner) (*Identity, error) {
@@ -192,15 +192,14 @@ func (s *Store) Create(i *Identity) error {
 	q := s.SQLBuilder.Tenant().
 		Insert(s.SQLBuilder.FullTableName("identity_oauth")).
 		Columns(
-			"identity_id",
+			"id",
 			"provider_type",
 			"provider_keys",
 			"provider_user_id",
 			"profile",
 			"claims",
-			"token_response",
-			"_created_at",
-			"_updated_at",
+			"created_at",
+			"updated_at",
 		).
 		Values(
 			i.ID,
@@ -209,7 +208,6 @@ func (s *Store) Create(i *Identity) error {
 			i.ProviderSubjectID,
 			profile,
 			claims,
-			[]byte("{}"),
 			i.CreatedAt,
 			i.UpdatedAt,
 		)
@@ -230,8 +228,8 @@ func (s *Store) Update(i *Identity) error {
 	q := s.SQLBuilder.Tenant().
 		Update(s.SQLBuilder.FullTableName("identity_oauth")).
 		Set("profile", profile).
-		Set("_updated_at", i.UpdatedAt).
-		Where("identity_id = ?", i.ID)
+		Set("updated_at", i.UpdatedAt).
+		Where("id = ?", i.ID)
 
 	result, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {
@@ -255,7 +253,7 @@ func (s *Store) Update(i *Identity) error {
 func (s *Store) Delete(i *Identity) error {
 	q := s.SQLBuilder.Tenant().
 		Delete(s.SQLBuilder.FullTableName("identity_oauth")).
-		Where("identity_id = ?", i.ID)
+		Where("id = ?", i.ID)
 
 	_, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {
