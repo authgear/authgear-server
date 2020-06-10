@@ -26,8 +26,12 @@ fmt:
 
 .PHONY: build
 build:
-	go build ./cmd/auth
+	go build -o authgear ./cmd/auth
 
 .PHONY: check-tidy
 check-tidy:
 	$(MAKE) generate; go mod tidy; git status --porcelain | grep '.*'; test $$? -eq 1
+
+.PHONY: build-image
+build-image:
+	docker build -f Dockerfile . -t authgear
