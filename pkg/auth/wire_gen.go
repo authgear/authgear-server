@@ -25,7 +25,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	pq2 "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/time"
@@ -47,9 +46,9 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	context := ProvideContext(r)
 	tenantConfiguration := ProvideTenantConfig(context, m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
-	provider := time.NewProvider()
+	timeProvider := time.NewProvider()
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
-	store := redis.ProvideStore(context, tenantConfiguration, provider, factory)
+	store := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
 	accessEventProvider := &auth2.AccessEventProvider{
 		Store: eventStore,
@@ -58,7 +57,7 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	resolver := &session.Resolver{
 		CookieConfiguration: cookieConfiguration,
 		Provider:            sessionProvider,
-		Time:                provider,
+		Time:                timeProvider,
 	}
 	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
 	sqlBuilder := ProvideAuthSQLBuilder(sqlBuilderFactory)
@@ -67,26 +66,41 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, provider)
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
 	resolverSessionProvider := oauth.ProvideResolverProvider(sessionProvider)
 	oauthResolver := &oauth.Resolver{
 		Authorizations: authorizationStore,
 		AccessGrants:   grantStore,
 		OfflineGrants:  grantStore,
 		Sessions:       resolverSessionProvider,
-		Time:           provider,
+		Time:           timeProvider,
 	}
 	authAccessEventProvider := auth2.AccessEventProvider{
 		Store: eventStore,
 	}
-	authinfoStore := pq2.ProvideStore(sqlBuilderFactory, sqlExecutor)
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	reservedNameChecker := ProvideReservedNameChecker(m)
+	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
+	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
+	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
+	oauthProvider := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
+	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
+	queries := &user.Queries{
+		Store:      userStore,
+		Identities: providerProvider,
+		Time:       timeProvider,
+	}
 	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	middleware := &auth2.Middleware{
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               authAccessEventProvider,
-		AuthInfoStore:              authinfoStore,
-		Time:                       provider,
+		Users:                      queries,
 		TxContext:                  txContext,
 	}
 	middlewareFunc := provideMiddleware(middleware)

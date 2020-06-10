@@ -15,6 +15,7 @@
 package model
 
 import (
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"time"
 )
 
@@ -25,6 +26,12 @@ type User struct {
 	LastLoginAt *time.Time             `json:"last_login_at,omitempty"`
 	IsAnonymous bool                   `json:"is_anonymous"`
 	Metadata    map[string]interface{} `json:"metadata"`
+}
+
+func (u *User) ToUserInfo() *authn.UserInfo {
+	return &authn.UserInfo{
+		ID: u.ID,
+	}
 }
 
 // @JSONSchema

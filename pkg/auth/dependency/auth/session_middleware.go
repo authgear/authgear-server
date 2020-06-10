@@ -2,12 +2,11 @@ package auth
 
 import (
 	"errors"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 var ErrInvalidSession = errors.New("provided session is invalid")
@@ -23,8 +22,7 @@ type Middleware struct {
 	IDPSessionResolver         IDPSessionResolver
 	AccessTokenSessionResolver AccessTokenSessionResolver
 	AccessEvents               AccessEventProvider
-	AuthInfoStore              authinfo.Store
-	Time                       time.Provider
+	Users                      UserProvider
 	TxContext                  db.TxContext
 }
 
@@ -37,7 +35,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 		} else if err != nil {
 			panic(err)
 		} else if s != nil {
-			r = r.WithContext(authn.WithAuthn(r.Context(), s, u.ToUserInfo(m.Time.NowUTC())))
+			r = r.WithContext(authn.WithAuthn(r.Context(), s, u.ToUserInfo()))
 		}
 		// s is nil: no session credentials provided
 
@@ -45,7 +43,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (session AuthSession, user *authinfo.AuthInfo, err error) {
+func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (session AuthSession, user *model.User, err error) {
 	err = db.ReadOnly(m.TxContext, func() (err error) {
 		session, err = m.resolveSession(rw, r)
 		if err != nil {
@@ -55,8 +53,8 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (session A
 		if session == nil {
 			return
 		}
-		user = &authinfo.AuthInfo{}
-		if err = m.AuthInfoStore.GetAuth(session.AuthnAttrs().UserID, user); err != nil {
+		user, err = m.Users.Get(session.AuthnAttrs().UserID)
+		if err != nil {
 			return
 		}
 		event := session.GetAccessInfo().LastAccess

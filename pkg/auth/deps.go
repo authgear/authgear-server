@@ -43,7 +43,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
-	authinfopq "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -238,7 +237,7 @@ var userDependencySet = wire.NewSet(
 	wire.Struct(new(HookUserProvider), "*"),
 	wire.Bind(new(hook.UserProvider), new(*HookUserProvider)),
 	wire.Bind(new(interaction.UserProvider), new(*user.Provider)),
-	wire.Bind(new(interactionflows.UserProvider), new(*user.Queries)),
+	wire.Bind(new(interactionflows.UserProvider), new(*user.Provider)),
 	wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 )
 
@@ -257,7 +256,6 @@ var CommonDependencySet = wire.NewSet(
 	logging.DependencySet,
 	time.DependencySet,
 	db.DependencySet,
-	authinfopq.DependencySet,
 	userprofile.DependencySet,
 	session.DependencySet,
 	sessionredis.DependencySet,
