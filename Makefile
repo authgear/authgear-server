@@ -27,3 +27,7 @@ fmt:
 .PHONY: build
 build:
 	go build ./cmd/auth
+
+.PHONY: check-tidy
+check-tidy:
+	$(MAKE) generate; go mod tidy; git status --porcelain | grep '.*'; test $$? -eq 1

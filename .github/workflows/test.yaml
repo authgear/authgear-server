@@ -25,8 +25,6 @@ jobs:
         run: make vendor
       - name: Test
         run: |
-          make generate
-          go mod tidy
-          (set +e; git status --porcelain | grep '.*'; test $? -eq 1)
+          make check-tidy
           make lint
           make test
