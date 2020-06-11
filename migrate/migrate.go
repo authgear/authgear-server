@@ -15,6 +15,11 @@ import (
 )
 
 const migrationsDir = "migrate/migrations"
+const migrationsTable = "_auth_migration"
+
+func init() {
+	migrate.SetTable(migrationsTable)
+}
 
 func cmdNew(args []string) {
 	if len(args) == 0 {
@@ -47,7 +52,6 @@ func cmdUp(args []string) {
 		Dir: migrationsDir,
 	}
 
-	migrate.SetTable("_auth_migration")
 	n, err := migrate.Exec(db, "postgres", migrations, migrate.Up)
 	log.Printf("applied %d migrations.", n)
 	if err != nil {
@@ -58,7 +62,6 @@ func cmdUp(args []string) {
 func cmdStatus(args []string) {
 	db := openDB()
 
-	migrate.SetTable("migrations")
 	records, err := migrate.GetMigrationRecords(db, "postgres")
 	if err != nil {
 		log.Fatalf("cannot get migration records: %s", err)
