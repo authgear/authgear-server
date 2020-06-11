@@ -59,6 +59,19 @@ func cmdUp(args []string) {
 	}
 }
 
+func cmdDown(args []string) {
+	db := openDB()
+	migrations := &migrate.FileMigrationSource{
+		Dir: migrationsDir,
+	}
+
+	n, err := migrate.Exec(db, "postgres", migrations, migrate.Down)
+	log.Printf("reverted %d migrations.", n)
+	if err != nil {
+		log.Fatalf("cannot revert all migrations: %s", err)
+	}
+}
+
 func cmdStatus(args []string) {
 	db := openDB()
 
@@ -97,6 +110,7 @@ func openDB() *sql.DB {
 var commands = map[string]func(args []string){
 	"new":    cmdNew,
 	"up":     cmdUp,
+	"down":   cmdDown,
 	"status": cmdStatus,
 }
 
@@ -104,6 +118,7 @@ func usage() {
 	log.Print("usage:")
 	log.Print("  migrate new <name>")
 	log.Print("  migrate up")
+	log.Print("  migrate down")
 	log.Print("  migrate status")
 }
 
