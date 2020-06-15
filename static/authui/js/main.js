@@ -152,16 +152,15 @@ window.addEventListener("load", function() {
       var timeElapsed = now - scheduledAt;
 
       var displaySeconds = 0;
-      if (timeElapsed > cooldown) {
-        el.disabled = false;
-      } else {
-        el.disabled = true;
+      if (timeElapsed <= cooldown) {
         displaySeconds = Math.round((cooldown - timeElapsed) / 1000);
       }
 
       if (displaySeconds === 0) {
+        el.disabled = false;
         el.textContent = label;
       } else {
+        el.disabled = true;
         el.textContent = labelUnit.replace("%d", String(displaySeconds));
         requestAnimationFrame(tick);
       }
@@ -205,12 +204,17 @@ window.addEventListener("load", function() {
         var shouldIgnored = false;
 
         var form = e.currentTarget;
-        var submitter = e.submitter;
+        // e.submitter is not supported by Safari
+        // therefore we must not have multiple submit buttons per form.
 
         // https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#constructing-form-data-set
         var entryList = [];
         for (var j = 0; j < form.elements.length; ++j) {
           var field = form.elements[j];
+
+          if (field.getAttribute("data-form-xhr") === "false") {
+            shouldIgnored = true;
+          }
 
           // Step 5.1 Point 1 is ignored because we do not use datalist.
 
@@ -220,13 +224,13 @@ window.addEventListener("load", function() {
           }
 
           // Step 5.1 Point 3
-          if (field instanceof HTMLButtonElement && field !== submitter) {
-            continue;
-          }
+          // if (field instanceof HTMLButtonElement && field !== submitter) {
+          //   continue;
+          // }
           // Step 5.1 Point 3
-          if (field instanceof HTMLInputElement && field.type === "submit" && field !== submitter) {
-            continue;
-          }
+          // if (field instanceof HTMLInputElement && field.type === "submit" && field !== submitter) {
+          //   continue;
+          // }
 
           // Step 5.1 Point 4
           if (field instanceof HTMLInputElement && field.type === "checkbox" && !field.checked) {
@@ -277,10 +281,6 @@ window.addEventListener("load", function() {
           entryList.push([name, value]);
 
           // Step 5.13 is ignored because we do nto use dirname.
-
-          if (field.getAttribute("data-form-xhr") === "false") {
-            shouldIgnored = true;
-          }
         }
 
         // Ignore any form containing elements with "data-form-xhr"

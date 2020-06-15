@@ -255,10 +255,15 @@ a.btn {
   padding: 10px;
 }
 
-.authorize-idp-form {
+.authorize-idp-section {
   display: flex;
   flex-direction: column;
   margin: 10px;
+}
+
+.authorize-idp-form {
+  display: flex;
+  flex-direction: column;
 }
 
 .authorize-loginid-form {
@@ -356,8 +361,6 @@ a.btn {
 }
 
 .simple-form {
-  display: flex;
-  flex-direction: column;
   padding: 10px;
 }
 
@@ -380,11 +383,25 @@ a.btn {
   margin: 10px;
 }
 
-.simple-form > input,
-.simple-form > button,
-.simple-form > a,
-.simple-form > div {
+.vertical-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-fields-container > * {
   margin: 10px;
+}
+
+.form-fields-container > form.form-fields-container {
+  margin: 0;
+}
+
+.oob-otp-trigger-form {
+  margin: 0 10px;
+}
+
+.enter-login-id-remove-form {
+  margin: -35px 0 0 10px;
 }
 
 .settings-identity {
@@ -448,10 +465,4 @@ a.btn {
 
 .login_id.phone {
   background-image: url("../image/ic_login_id_phone.png");
-}
-
-.enter-login-id-form .buttons {
-  display: flex;
-  flex-direction: row-reverse;
-  justify-content: space-between;
 }

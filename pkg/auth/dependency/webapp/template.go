@@ -235,10 +235,11 @@ var TemplateAuthUILoginHTML = template.Spec{
 	<div class="content">
 		{{ template "auth_ui_header.html" . }}
 		<div class="authorize-form">
-			<form class="authorize-idp-form" method="post" novalidate>
-				{{ $.csrfField }}
+			<div class="authorize-idp-section">
 				{{ range .x_identity_candidates }}
 				{{ if eq .type "oauth" }}
+				<form class="authorize-idp-form" method="post" novalidate>
+				{{ $.csrfField }}
 				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
 					{{ localize "sign-in-apple" }}
@@ -256,9 +257,10 @@ var TemplateAuthUILoginHTML = template.Spec{
 					{{ localize "sign-in-azureadv2" }}
 					{{- end -}}
 				</button>
+				</form>
 				{{ end }}
 				{{ end }}
-			</form>
+			</div>
 
 			{{ $has_oauth := false }}
 			{{ $has_login_id := false }}
@@ -344,7 +346,7 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="simple-form enter-password-form" method="post" novalidate>
+<form class="simple-form vertical-form form-fields-container" method="post" novalidate>
 {{ $.csrfField }}
 
 <div class="nav-bar">
@@ -398,8 +400,7 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="simple-form oob-otp-form" method="post" novalidate>
-{{ $.csrfField }}
+<div class="simple-form vertical-form form-fields-container">
 
 <div class="nav-bar">
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
@@ -421,21 +422,26 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 <div class="description primary-txt">{{ localize "oob-otp-description--email" .x_oob_otp_code_length .x_login_id }}</div>
 {{ end }}
 
+<form class="vertical-form form-fields-container" method="post" novalidate>
+{{ $.csrfField }}
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
 <input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
-
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
-
-<div class="link">
-	<span class="primary-txt">{{ localize "oob-otp-resend-button-hint" }}</span>
-	<button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
-		data-cooldown="{{ .x_oob_otp_code_send_cooldown }}"
-		data-label="{{ localize "oob-otp-resend-button-label" }}"
-		data-label-unit="{{ localize "oob-otp-resend-button-label--unit" }}">{{ localize "oob-otp-resend-button-label" }}</button>
-</div>
-
 </form>
+
+<form class="link oob-otp-trigger-form" method="post" novalidate>
+{{ $.csrfField }}
+<input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
+
+<span class="primary-txt">{{ localize "oob-otp-resend-button-hint" }}</span>
+<button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
+	data-cooldown="{{ .x_oob_otp_code_send_cooldown }}"
+	data-label="{{ localize "oob-otp-resend-button-label" }}"
+	data-label-unit="{{ localize "oob-otp-resend-button-label--unit" }}">{{ localize "oob-otp-resend-button-label" }}</button>
+</form>
+
+</div>
 {{ template "auth_ui_footer.html" . }}
 
 </div>
@@ -458,8 +464,7 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="simple-form enter-login-id-form" method="post" novalidate>
-{{ $.csrfField }}
+<div class="simple-form vertical-form form-fields-container">
 
 <div class="nav-bar">
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
@@ -475,6 +480,9 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
+<form class="vertical-form form-fields-container" method="post" novalidate>
+
+{{ $.csrfField }}
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 <input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
 <input type="hidden" name="x_login_id_type" value="{{ .x_login_id_type }}">
@@ -501,14 +509,23 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 <input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .x_login_id_type }}">
 {{ end }}
 
-<div class="buttons">
-  <button class="btn primary-btn" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
-  {{ if .x_old_login_id_value }}
-  <button class="anchor" type="submit" name="x_action" value="remove">{{ localize "disconnect-button-label" }}</button>
-  {{ end }}
-</div>
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 
 </form>
+
+{{ if .x_old_login_id_value }}
+<form class="enter-login-id-remove-form" method="post" novalidate>
+{{ $.csrfField }}
+<input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
+<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
+<input type="hidden" name="x_login_id_type" value="{{ .x_login_id_type }}">
+<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
+<input type="hidden" name="x_old_login_id_value" value="{{ .x_old_login_id_value }}">
+<button class="anchor" type="submit" name="x_action" value="remove">{{ localize "disconnect-button-label" }}</button>
+{{ end }}
+</form>
+
+</div>
 {{ template "auth_ui_footer.html" . }}
 
 </div>
@@ -531,7 +548,7 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="simple-form forgot-password-form" method="post" novalidate>
+<form class="simple-form vertical-form form-fields-container" method="post" novalidate>
 {{ $.csrfField }}
 
 <div class="nav-bar">
@@ -601,7 +618,7 @@ var TemplateAuthUIForgotPasswordSuccessHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<div class="simple-form forgot-password-success">
+<div class="simple-form vertical-form form-fields-container">
 
 <div class="title primary-txt">{{ localize "forgot-password-success-page-title" }}</div>
 
@@ -634,7 +651,7 @@ var TemplateAuthUIResetPasswordHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="simple-form reset-password-form" method="post" novalidate>
+<form class="simple-form vertical-form form-fields-container" method="post" novalidate>
 {{ $.csrfField }}
 
 <div class="title primary-txt">{{ localize "reset-password-page-title" }}</div>
@@ -676,7 +693,7 @@ var TemplateAuthUIResetPasswordSuccessHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<div class="simple-form reset-password-success">
+<div class="simple-form vertical-form form-fields-container">
 
 <div class="title primary-txt">{{ localize "reset-password-success-page-title" }}</div>
 
@@ -706,10 +723,11 @@ var TemplateAuthUISignupHTML = template.Spec{
 	<div class="content">
 		{{ template "auth_ui_header.html" . }}
 		<div class="authorize-form">
-			<form class="authorize-idp-form" method="post" novalidate>
-				{{ $.csrfField }}
+			<div class="authorize-idp-section">
 				{{ range .x_identity_candidates }}
 				{{ if eq .type "oauth" }}
+				<form class="authorize-idp-form" method="post" novalidate>
+				{{ $.csrfField }}
 				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
 					{{ localize "sign-up-apple" }}
@@ -727,9 +745,10 @@ var TemplateAuthUISignupHTML = template.Spec{
 					{{ localize "sign-up-azureadv2" }}
 					{{- end -}}
 				</button>
+				</form>
 				{{ end }}
 				{{ end }}
-			</form>
+			</div>
 
 			{{ $has_oauth := false }}
 			{{ $has_login_id := false }}
@@ -818,10 +837,11 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 	<div class="content">
 		{{ template "auth_ui_header.html" . }}
 		<div class="authorize-form">
-			<form class="authorize-idp-form" method="post" novalidate>
-				{{ $.csrfField }}
+			<div class="authorize-idp-section">
 				{{ range .x_identity_candidates }}
 				{{ if eq .type "oauth" }}
+				<form class="authorize-idp-form" method="post" novalidate>
+				{{ $.csrfField }}
 				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
 					{{ localize "sign-up-apple" }}
@@ -839,9 +859,10 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 					{{ localize "sign-up-azureadv2" }}
 					{{- end -}}
 				</button>
+				</form>
 				{{ end }}
 				{{ end }}
-			</form>
+			</div>
 
 			{{ $has_oauth := false }}
 			{{ $has_login_id := false }}
@@ -922,7 +943,7 @@ var TemplateAuthUICreatePasswordHTML = template.Spec{
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="simple-form enter-password-form" method="post" novalidate>
+<form class="simple-form vertical-form form-fields-container" method="post" novalidate>
 {{ $.csrfField }}
 <input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
