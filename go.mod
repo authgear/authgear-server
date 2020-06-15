@@ -21,13 +21,14 @@ require (
 	github.com/h2non/gock v1.0.12
 	github.com/hashicorp/go-version v1.2.0 // indirect
 	github.com/iawaknahc/gomessageformat v0.0.0-20200406084228-8abc010113fa
+	github.com/iawaknahc/jsonschema v0.0.0-20200321082404-507b9d186df7
 	github.com/iawaknahc/originmatcher v0.0.0-20191203065535-c77f92cc0a75
 	github.com/jmoiron/sqlx v0.0.0-20170430194603-d9bd385d68c0
 	github.com/joho/godotenv v1.3.0
 	github.com/kelseyhightower/envconfig v1.3.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lestrrat-go/jwx v0.9.0
-	github.com/lib/pq v1.2.0
+	github.com/lib/pq v1.3.0
 	github.com/mattn/go-sqlite3 v1.12.0 // indirect
 	github.com/mitchellh/gox v1.0.1
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
@@ -56,7 +57,8 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
-	gopkg.in/yaml.v2 v2.2.7
+	gopkg.in/yaml.v2 v2.2.8
+	sigs.k8s.io/yaml v1.2.0
 )
 
 // The reason why we have to use a fork is to support background color in the embed() operation.
