@@ -152,16 +152,15 @@ window.addEventListener("load", function() {
       var timeElapsed = now - scheduledAt;
 
       var displaySeconds = 0;
-      if (timeElapsed > cooldown) {
-        el.disabled = false;
-      } else {
-        el.disabled = true;
+      if (timeElapsed <= cooldown) {
         displaySeconds = Math.round((cooldown - timeElapsed) / 1000);
       }
 
       if (displaySeconds === 0) {
+        el.disabled = false;
         el.textContent = label;
       } else {
+        el.disabled = true;
         el.textContent = labelUnit.replace("%d", String(displaySeconds));
         requestAnimationFrame(tick);
       }
