@@ -1,6 +1,6 @@
-.git
-data
-tmp
-app
-vendor
-dist
+**/.git
+**/tmp
+**/vendor
+**/dist
+**/node_modules
+migrate/migrate
