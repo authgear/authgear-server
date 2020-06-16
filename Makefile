@@ -39,3 +39,11 @@ check-tidy:
 .PHONY: build-image
 build-image:
 	docker build -f Dockerfile . -t authgear
+
+# Compile mjml and print to stdout.
+# You should capture the output and update the default template in Go code.
+# For example,
+# make html-email NAME=./templates/forgot_password_email.mjml | pbcopy
+.PHONY: html-email
+html-email:
+	./scripts/npm/node_modules/.bin/mjml -l strict $(NAME)
