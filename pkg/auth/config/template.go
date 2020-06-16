@@ -10,7 +10,7 @@ var _ = Schema.Add("TemplateConfig", `
 `)
 
 type TemplateConfig struct {
-	Items []TemplateItem `json:"items"`
+	Items []TemplateItem `json:"items,omitempty"`
 }
 
 var _ = Schema.Add("TemplateItemType", `{ "type": "string" }`)

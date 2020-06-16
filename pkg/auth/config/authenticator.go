@@ -146,7 +146,7 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 	}
 }
 
-var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
+var _ = Schema.Add("AuthenticatorBearerTokenConfig", `
 {
 	"type": "object",
 	"properties": {

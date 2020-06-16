@@ -21,8 +21,7 @@ var _ = Schema.Add("WelcomeMessageConfig", `
 		"enabled": { "type": "boolean" },
 		"email_message": { "$ref": "#/$defs/EmailMessageConfig" },
 		"destination": { "$ref": "#/$defs/WelcomeMessageDestination" }
-	},
-	"required": ["enabled"]
+	}
 }
 `)
 
