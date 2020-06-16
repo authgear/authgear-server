@@ -16,6 +16,7 @@ var _ = Schema.Add("AppConfig", `
 		"hook": { "$ref": "#/$defs/HookConfig" },
 		"template": { "$ref": "#/$defs/TemplateConfig" },
 		"ui": { "$ref": "#/$defs/UIConfig" },
+		"localization": { "$ref": "#/$defs/LocalizationConfig" },
 		"authentication": { "$ref": "#/$defs/AuthenticationConfig" },
 		"session": { "$ref": "#/$defs/SessionConfig" },
 		"oauth": { "$ref": "#/$defs/OAuthConfig" },
@@ -35,8 +36,9 @@ type AppConfig struct {
 	HTTP *HTTPConfig `json:"http,omitempty"`
 	Hook *HookConfig `json:"hook,omitempty"`
 
-	Template *TemplateConfig `json:"template,omitempty"`
-	UI       *UIConfig       `json:"ui,omitempty"`
+	Template     *TemplateConfig     `json:"template,omitempty"`
+	UI           *UIConfig           `json:"ui,omitempty"`
+	Localization *LocalizationConfig `json:"localization,omitempty"`
 
 	Authentication *AuthenticationConfig `json:"authentication,omitempty"`
 	Session        *SessionConfig        `json:"session,omitempty"`

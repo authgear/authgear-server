@@ -173,7 +173,7 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 {
 	"type": "object",
 	"properties": {
-		"id": { "type": "string" },
+		"alias": { "type": "string" },
 		"type": { "$ref": "#/$defs/OAuthSSOProviderType" },
 		"client_id": { "type": "string" },
 		"tenant": { "type": "string" },
@@ -185,7 +185,7 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 `)
 
 type OAuthSSOProviderConfig struct {
-	ID       string               `json:"id,omitempty"`
+	Alias    string               `json:"alias,omitempty"`
 	Type     OAuthSSOProviderType `json:"type,omitempty"`
 	ClientID string               `json:"client_id,omitempty"`
 
