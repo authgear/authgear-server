@@ -1,3 +1,7 @@
+# GIT_NAME could be empty.
+GIT_NAME ?= $(shell git describe --exact-match 2>/dev/null)
+GIT_HASH ?= git-$(shell git rev-parse --short=12 HEAD)
+
 .PHONY: vendor
 vendor:
 	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
@@ -38,7 +42,7 @@ check-tidy:
 
 .PHONY: build-image
 build-image:
-	docker build -f Dockerfile . -t authgear
+	docker build --tag authgear --build-arg GIT_HASH=$(GIT_HASH) .
 
 # Compile mjml and print to stdout.
 # You should capture the output and update the default template in Go code.
@@ -47,3 +51,12 @@ build-image:
 .PHONY: html-email
 html-email:
 	./scripts/npm/node_modules/.bin/mjml -l strict $(NAME)
+
+.PHONY: static
+static:
+	rm -rf ./dist
+	mkdir -p "./dist/${GIT_HASH}"
+	# Start by copying src
+	cp -R ./static/. "./dist/${GIT_HASH}"
+	# Process CSS
+	./scripts/npm/node_modules/.bin/postcss './static/**/*.css' --base './static/' --dir "./dist/${GIT_HASH}" --config ./scripts/npm/postcss.config.js
