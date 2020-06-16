@@ -467,8 +467,9 @@ func (a *Provider) ListCandidates(userID string) (out []identity.Candidate, err 
 		switch i {
 		case string(authn.IdentityTypeOAuth):
 			for _, providerConfig := range a.Identity.OAuth.Providers {
-				configProviderID := oauth.NewProviderID(providerConfig)
-				candidate := identity.NewOAuthCandidate(&providerConfig)
+				pc := providerConfig
+				configProviderID := oauth.NewProviderID(pc)
+				candidate := identity.NewOAuthCandidate(&pc)
 				for _, iden := range oauths {
 					if iden.ProviderID.Equal(&configProviderID) {
 						candidate[identity.CandidateKeyProviderSubjectID] = string(iden.ProviderSubjectID)
@@ -481,7 +482,8 @@ func (a *Provider) ListCandidates(userID string) (out []identity.Candidate, err 
 			}
 		case string(authn.IdentityTypeLoginID):
 			for _, loginIDKeyConfig := range a.Identity.LoginID.Keys {
-				candidate := identity.NewLoginIDCandidate(&loginIDKeyConfig)
+				lkc := loginIDKeyConfig
+				candidate := identity.NewLoginIDCandidate(&lkc)
 				for _, iden := range loginIDs {
 					if loginIDKeyConfig.Key == iden.LoginIDKey {
 						candidate[identity.CandidateKeyLoginIDValue] = iden.LoginID

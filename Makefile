@@ -1,6 +1,6 @@
 .PHONY: vendor
 vendor:
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.22.2
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
 	go mod download
 	go install golang.org/x/tools/cmd/stringer
 	go install github.com/tinylib/msgp

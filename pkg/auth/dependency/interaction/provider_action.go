@@ -20,8 +20,9 @@ func (p *Provider) PerformAction(i *Interaction, step Step, action Action) error
 
 	var stepState *StepState
 	for _, s := range state.Steps {
-		if s.Step == step {
-			stepState = &s
+		ss := s
+		if ss.Step == step {
+			stepState = &ss
 			break
 		}
 	}
