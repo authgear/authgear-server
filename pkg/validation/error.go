@@ -12,6 +12,10 @@ type Error struct {
 }
 
 func (e *Error) String() string {
+	if e.Keyword == "general" {
+		msg, _ := e.Info["msg"].(string)
+		return fmt.Sprintf("%s: %s", e.Location, msg)
+	}
 	if e.Info == nil {
 		return fmt.Sprintf("%s: %s", e.Location, e.Keyword)
 	}

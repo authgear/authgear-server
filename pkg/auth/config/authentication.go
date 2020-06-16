@@ -6,9 +6,21 @@ var _ = Schema.Add("AuthenticationConfig", `
 {
 	"type": "object",
 	"properties": {
-		"identities": { "type": "array", "items": { "$ref": "#/$defs/IdentityType" } },
-		"primary_authenticators": { "type": "array", "items": { "$ref": "#/$defs/AuthenticatorType" } },
-		"secondary_authenticators": { "type": "array", "items": { "$ref": "#/$defs/AuthenticatorType" } },
+		"identities": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/IdentityType" },
+			"uniqueItems": true
+		},
+		"primary_authenticators": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/AuthenticatorType" },
+			"uniqueItems": true
+		},
+		"secondary_authenticators": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/AuthenticatorType" },
+			"uniqueItems": true
+		},
 		"secondary_authentication_mode": { "$ref": "#/$defs/SecondaryAuthenticationMode" }
 	}
 }

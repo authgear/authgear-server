@@ -243,6 +243,83 @@ func (c *OAuthSSOProviderConfig) SetDefaults() {
 	}
 }
 
+func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {
+	keys := map[string]string{}
+	switch c.Type {
+	case OAuthSSOProviderTypeGoogle:
+		// Google supports OIDC.
+		// sub is public, not scoped to anything so changing client_id does not affect sub.
+		// Therefore, ProviderID is simply Type.
+		//
+		// Rotating the OAuth application is OK.
+		break
+	case OAuthSSOProviderTypeFacebook:
+		// Facebook does NOT support OIDC.
+		// Facebook user ID is scoped to client_id.
+		// Therefore, ProviderID is Type + client_id.
+		//
+		// Rotating the OAuth application is problematic.
+		// But if email remains unchanged, the user can associate their account.
+		keys["client_id"] = c.ClientID
+	case OAuthSSOProviderTypeLinkedIn:
+		// LinkedIn is the same as Facebook.
+		keys["client_id"] = c.ClientID
+	case OAuthSSOProviderTypeAzureADv2:
+		// Azure AD v2 supports OIDC.
+		// sub is pairwise and is scoped to client_id.
+		// However, oid is powerful alternative to sub.
+		// oid is also pairwise and is scoped to tenant.
+		// We use oid as ProviderSubjectID so ProviderID is Type + tenant.
+		//
+		// Rotating the OAuth application is OK.
+		// But rotating the tenant is problematic.
+		// But if email remains unchanged, the user can associate their account.
+		keys["tenant"] = c.Tenant
+	case OAuthSSOProviderTypeApple:
+		// Apple supports OIDC.
+		// sub is pairwise and is scoped to team_id.
+		// Therefore, ProviderID is Type + team_id.
+		//
+		// Rotating the OAuth application is OK.
+		// But rotating the Apple Developer account is problematic.
+		// Since Apple has private relay to hide the real email,
+		// the user may not be associate their account.
+		keys["team_id"] = c.TeamID
+	}
+
+	return ProviderID{
+		Type: string(c.Type),
+		Keys: keys,
+	}
+}
+
+// ProviderID combining with a subject ID identifies an user from an external system.
+type ProviderID struct {
+	Type string
+	Keys map[string]string
+}
+
+func (p ProviderID) Claims() map[string]interface{} {
+	claim := map[string]interface{}{}
+	claim["type"] = p.Type
+	for k, v := range p.Keys {
+		claim[k] = v
+	}
+	return claim
+}
+
+func (p ProviderID) Equal(that *ProviderID) bool {
+	if p.Type != that.Type || len(p.Keys) != len(that.Keys) {
+		return false
+	}
+	for k, v := range p.Keys {
+		if tv, ok := that.Keys[k]; !ok || tv != v {
+			return false
+		}
+	}
+	return true
+}
+
 var _ = Schema.Add("PromotionConflictBehavior", `
 {
 	"type": "string",

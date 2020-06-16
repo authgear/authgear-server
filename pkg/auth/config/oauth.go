@@ -22,10 +22,11 @@ func (c *OAuthConfig) SetDefaults() {
 		c.AccessTokenLifetime = 1800
 	}
 	if c.RefreshTokenLifetime == 0 {
-		c.RefreshTokenLifetime = 86400
-	}
-	if c.AccessTokenLifetime > c.RefreshTokenLifetime {
-		c.RefreshTokenLifetime = c.AccessTokenLifetime
+		if c.AccessTokenLifetime > 86400 {
+			c.RefreshTokenLifetime = c.AccessTokenLifetime
+		} else {
+			c.RefreshTokenLifetime = 86400
+		}
 	}
 }
 

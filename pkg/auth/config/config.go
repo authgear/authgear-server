@@ -3,7 +3,11 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"strconv"
+
 	"sigs.k8s.io/yaml"
+
+	"github.com/skygeario/skygear-server/pkg/validation"
 )
 
 var _ = Schema.Add("AppConfig", `
@@ -50,6 +54,65 @@ type AppConfig struct {
 	WelcomeMessage *WelcomeMessageConfig `json:"welcome_message,omitempty"`
 }
 
+func (c *AppConfig) Validate(ctx *validation.Context) {
+	if c.OAuth.RefreshTokenLifetime < c.OAuth.AccessTokenLifetime {
+		ctx.Child("oauth", "refresh_token_lifetime_seconds").EmitErrorMessage(
+			"refresh token lifetime must be greater than or equal to access token lifetime",
+		)
+	}
+
+	oAuthProviderIDs := map[string]struct{}{}
+	oauthProviderAliases := map[string]struct{}{}
+	for i, provider := range c.Identity.SSO.OAuthProviders {
+		// Ensure provider ID is not duplicated
+		id, err := json.Marshal(provider.ProviderID().Claims())
+		if err != nil {
+			panic("config: cannot marshal provider ID claims: " + err.Error())
+		}
+		if _, ok := oAuthProviderIDs[string(id)]; ok {
+			ctx.Child("identity", "sso", "oauth_providers", strconv.Itoa(i)).
+				EmitErrorMessage("duplicated OAuth provider")
+			continue
+		}
+		oAuthProviderIDs[string(id)] = struct{}{}
+
+		// Ensure alias is not duplicated.
+		if _, ok := oauthProviderAliases[provider.Alias]; ok {
+			ctx.Child("identity", "sso", "oauth_providers", strconv.Itoa(i)).
+				EmitErrorMessage("duplicated OAuth provider alias")
+			continue
+		}
+		oauthProviderAliases[provider.Alias] = struct{}{}
+	}
+
+	authenticatorTypes := map[string]struct{}{}
+	for i, a := range c.Authentication.PrimaryAuthenticators {
+		if _, ok := authenticatorTypes[string(a)]; ok {
+			ctx.Child("authentication", "primary_authenticators", strconv.Itoa(i)).
+				EmitErrorMessage("duplicated authenticator type")
+		}
+		authenticatorTypes[string(a)] = struct{}{}
+	}
+	for i, a := range c.Authentication.SecondaryAuthenticators {
+		if _, ok := authenticatorTypes[string(a)]; ok {
+			ctx.Child("authentication", "secondary_authenticators", strconv.Itoa(i)).
+				EmitErrorMessage("duplicated authenticator type")
+		}
+		authenticatorTypes[string(a)] = struct{}{}
+	}
+
+	countryCallingCodeDefaultOK := false
+	for _, code := range c.UI.CountryCallingCode.Values {
+		if code == c.UI.CountryCallingCode.Default {
+			countryCallingCodeDefaultOK = true
+		}
+	}
+	if !countryCallingCodeDefaultOK {
+		ctx.Child("ui", "country_calling_code", "default").
+			EmitErrorMessage("default country calling code is unlisted")
+	}
+}
+
 func Parse(inputYAML []byte) (*AppConfig, error) {
 	jsonData, err := yaml.YAMLToJSON(inputYAML)
 	if err != nil {
@@ -69,6 +132,11 @@ func Parse(inputYAML []byte) (*AppConfig, error) {
 	}
 
 	setFieldDefaults(&config)
+
+	err = validation.ValidateValue(&config)
+	if err != nil {
+		return nil, err
+	}
 
 	return &config, nil
 }
