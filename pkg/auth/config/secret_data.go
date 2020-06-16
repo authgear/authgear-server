@@ -161,10 +161,9 @@ var _ = SecretConfigSchema.Add("JWK", `
 	"type": "object",
 	"properties": {
 		"kid": { "type": "string" },
-		"kty": { "type": "string" },
-		"alg": { "type": "string" }
+		"kty": { "type": "string" }
 	},
-	"required": ["kid", "kty", "alg"]
+	"required": ["kid", "kty"]
 }
 `)
 
@@ -191,5 +190,17 @@ type JWTKeyMaterials struct {
 var _ = SecretConfigSchema.Add("OIDCKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type OIDCKeyMaterials struct {
+	Keys []interface{} `json:"keys"`
+}
+
+var _ = SecretConfigSchema.Add("CSRFKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
+
+type CSRFKeyMaterials struct {
+	Keys []interface{} `json:"keys"`
+}
+
+var _ = SecretConfigSchema.Add("WebhookKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
+
+type WebhookKeyMaterials struct {
 	Keys []interface{} `json:"keys"`
 }

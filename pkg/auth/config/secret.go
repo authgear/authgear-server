@@ -66,8 +66,10 @@ const (
 	SMTPServerCredentialsKey SecretKey = "mail.smtp"
 	TwilioCredentialsKey     SecretKey = "sms.twilio"
 	NexmoCredentialsKey      SecretKey = "sms.nexmo"
-	JWTKeyMaterialsKey       SecretKey = "jwt.keys"
-	OIDCKeyMaterialsKey      SecretKey = "oidc.keys"
+	JWTKeyMaterialsKey       SecretKey = "jwt"
+	OIDCKeyMaterialsKey      SecretKey = "oidc"
+	CSRFKeyMaterialsKey      SecretKey = "csrf"
+	WebhookKeyMaterialsKey   SecretKey = "webhook"
 )
 
 var _ = SecretConfigSchema.Add("SecretItem", `
@@ -114,6 +116,12 @@ func (i *SecretItem) parse(ctx *validation.Context) {
 	case OIDCKeyMaterialsKey:
 		err = SecretConfigSchema.ValidateReaderByPart(r, "OIDCKeyMaterials")
 		data = &OIDCKeyMaterials{}
+	case CSRFKeyMaterialsKey:
+		err = SecretConfigSchema.ValidateReaderByPart(r, "CSRFKeyMaterials")
+		data = &CSRFKeyMaterials{}
+	case WebhookKeyMaterialsKey:
+		err = SecretConfigSchema.ValidateReaderByPart(r, "WebhookKeyMaterials")
+		data = &WebhookKeyMaterials{}
 	default:
 		ctx.Child("key").EmitErrorMessage("unknown secret key")
 		return
