@@ -21,6 +21,21 @@ config:
   id: 123
 
 ---
+name: oauth-client-refresh-token-lifetime
+error: |-
+  invalid JSON:
+  /oauth/clients/0/refresh_token_lifetime_seconds: refresh token lifetime must be greater than or equal to access token lifetime
+config:
+  id: test
+  oauth:
+    clients:
+      - client_id: test-client
+        redirect_uris:
+          - "https://example.com"
+        refresh_token_lifetime_seconds: 10
+        access_token_lifetime_seconds: 10000
+
+---
 name: dupe-oauth-provider
 error: |-
   invalid JSON:

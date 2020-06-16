@@ -4,30 +4,13 @@ var _ = Schema.Add("OAuthConfig", `
 {
 	"type": "object",
 	"properties": {
-		"access_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
-		"refresh_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"clients": { "type": "array", "items": { "$ref": "#/$defs/OAuthClientConfig" } }
 	}
 }
 `)
 
 type OAuthConfig struct {
-	AccessTokenLifetime  DurationSeconds     `json:"access_token_lifetime_seconds,omitempty"`
-	RefreshTokenLifetime DurationSeconds     `json:"refresh_token_lifetime_seconds,omitempty"`
-	Clients              []OAuthClientConfig `json:"clients,omitempty"`
-}
-
-func (c *OAuthConfig) SetDefaults() {
-	if c.AccessTokenLifetime == 0 {
-		c.AccessTokenLifetime = 1800
-	}
-	if c.RefreshTokenLifetime == 0 {
-		if c.AccessTokenLifetime > 86400 {
-			c.RefreshTokenLifetime = c.AccessTokenLifetime
-		} else {
-			c.RefreshTokenLifetime = 86400
-		}
-	}
+	Clients []OAuthClientConfig `json:"clients,omitempty"`
 }
 
 var _ = Schema.Add("OAuthClientConfig", `
@@ -43,13 +26,28 @@ var _ = Schema.Add("OAuthClientConfig", `
 		},
 		"grant_types": { "type": "array", "items": { "type": "string" } },
 		"response_types": { "type": "array", "items": { "type": "string" } },
-		"post_logout_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } }
+		"post_logout_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } },
+		"access_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
+		"refresh_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" }
 	},
 	"required": ["client_id", "redirect_uris"]
 }
 `)
 
 type OAuthClientConfig map[string]interface{}
+
+func (c OAuthClientConfig) SetDefaults() {
+	if c.AccessTokenLifetime() == 0 {
+		c.SetAccessTokenLifetime(1800)
+	}
+	if c.RefreshTokenLifetime() == 0 {
+		if c.AccessTokenLifetime() > 86400 {
+			c.SetRefreshTokenLifetime(c.AccessTokenLifetime())
+		} else {
+			c.SetRefreshTokenLifetime(86400)
+		}
+	}
+}
 
 func (c OAuthClientConfig) ClientID() string {
 	if s, ok := c["client_id"].(string); ok {
@@ -107,4 +105,25 @@ func (c OAuthClientConfig) PostLogoutRedirectURIs() (out []string) {
 		}
 	}
 	return out
+}
+func (c OAuthClientConfig) AccessTokenLifetime() DurationSeconds {
+	if f64, ok := c["access_token_lifetime_seconds"].(float64); ok {
+		return DurationSeconds(f64)
+	}
+	return 0
+}
+
+func (c OAuthClientConfig) SetAccessTokenLifetime(t DurationSeconds) {
+	c["access_token_lifetime_seconds"] = float64(t)
+}
+
+func (c OAuthClientConfig) RefreshTokenLifetime() DurationSeconds {
+	if f64, ok := c["refresh_token_lifetime_seconds"].(float64); ok {
+		return DurationSeconds(f64)
+	}
+	return 0
+}
+
+func (c OAuthClientConfig) SetRefreshTokenLifetime(t DurationSeconds) {
+	c["refresh_token_lifetime_seconds"] = float64(t)
 }
