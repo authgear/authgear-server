@@ -8,8 +8,8 @@ import (
 	"sort"
 )
 
-func validateSchema(col *jsonschema.Collection, r io.Reader) ([]Error, error) {
-	node, err := col.Apply("", r)
+func validateSchema(col *jsonschema.Collection, r io.Reader, ref string) ([]Error, error) {
+	node, err := col.Apply(ref, r)
 	if err != nil {
 		return nil, fmt.Errorf("invalid JSON value: %w", err)
 	}

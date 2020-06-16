@@ -22,7 +22,7 @@ func NewSimpleSchema(schema string) *SimpleSchema {
 }
 
 func (s *SimpleSchema) ValidateReader(r io.Reader) error {
-	return convertErrors(validateSchema(s.col, r))
+	return convertErrors(validateSchema(s.col, r, ""))
 }
 
 type MultipartSchema struct {
@@ -75,7 +75,14 @@ func (s *MultipartSchema) ValidateReader(r io.Reader) error {
 	if s.col == nil {
 		panic("validation: JSON schema is not instantiated")
 	}
-	return convertErrors(validateSchema(s.col, r))
+	return convertErrors(validateSchema(s.col, r, ""))
+}
+
+func (s *MultipartSchema) ValidateReaderByPart(r io.Reader, partID string) error {
+	if s.col == nil {
+		panic("validation: JSON schema is not instantiated")
+	}
+	return convertErrors(validateSchema(s.col, r, jsonpointer.T([]string{"$defs", partID}).Fragment()))
 }
 
 func convertErrors(errs []Error, err error) error {
