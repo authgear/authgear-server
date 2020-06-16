@@ -33,6 +33,13 @@ func validateSchema(col *jsonschema.Collection, r io.Reader, ref string) ([]Erro
 			if err != nil {
 				panic(fmt.Sprintf("validation: failed to marshal error info at %s: %s", n.KeywordLocation, err.Error()))
 			}
+
+			if len(info) == 0 && n.Keyword == "format" {
+				if err, ok := n.Info.(error); ok {
+					info = map[string]interface{}{"error": err.Error()}
+				}
+			}
+
 			errors = append(errors, Error{
 				Location: n.InstanceLocation.String(),
 				Keyword:  n.Keyword,

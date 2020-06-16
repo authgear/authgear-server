@@ -1,0 +1,27 @@
+part: HookHandlerConfig
+name: valid
+error: null
+value:
+  event: before_user_create
+  url: "https://example.com/callback/before_user_create"
+
+---
+part: HookHandlerConfig
+name: missing-url
+error: |-
+  invalid JSON:
+  <root>: required
+    map[actual:[event] expected:[event url] missing:[url]]
+value:
+ event: before_user_create
+
+---
+part: HookHandlerConfig
+name: invalid-rel-path
+error: |-
+  invalid JSON:
+  /url: format
+    map[error:input URL must be absolute]
+value:
+  event: before_user_create
+  url: "/before_user_create"

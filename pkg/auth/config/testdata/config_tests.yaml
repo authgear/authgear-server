@@ -7,7 +7,7 @@ config:
 name: missing-id
 error: |-
   invalid JSON:
-  : required
+  <root>: required
     map[actual:<nil> expected:[id] missing:[id]]
 config: {}
 

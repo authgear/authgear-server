@@ -60,8 +60,8 @@ func TestAppConfig(t *testing.T) {
 			}
 
 			decoder := goyaml.NewDecoder(f)
-			var testCase TestCase
 			for {
+				var testCase TestCase
 				err := decoder.Decode(&testCase)
 				if errors.Is(err, io.EOF) {
 					break

@@ -12,14 +12,19 @@ type Error struct {
 }
 
 func (e *Error) String() string {
+	loc := e.Location
+	if loc == "" {
+		loc = "<root>"
+	}
+
 	if e.Keyword == "general" {
 		msg, _ := e.Info["msg"].(string)
-		return fmt.Sprintf("%s: %s", e.Location, msg)
+		return fmt.Sprintf("%s: %s", loc, msg)
 	}
 	if e.Info == nil {
-		return fmt.Sprintf("%s: %s", e.Location, e.Keyword)
+		return fmt.Sprintf("%s: %s", loc, e.Keyword)
 	}
-	return fmt.Sprintf("%s: %s\n  %v", e.Location, e.Keyword, e.Info)
+	return fmt.Sprintf("%s: %s\n  %v", loc, e.Keyword, e.Info)
 }
 
 type AggregatedError struct {

@@ -40,10 +40,10 @@ const (
 var _ = Schema.Add("EmailMessageConfig", `
 {
 	"type": "object",
-	"properties": {
-		"^sender(#.+)?$": { "type": "string", "format": "idn-email" },
+	"patternProperties": {
+		"^sender(#.+)?$": { "type": "string", "format": "email-name-addr" },
 		"^subject(#.+)?$": { "type": "string" },
-		"^reply_to(#.+)?$": { "type": "string", "format": "idn-email" }
+		"^reply_to(#.+)?$": { "type": "string", "format": "email-name-addr" }
 	}
 }
 `)

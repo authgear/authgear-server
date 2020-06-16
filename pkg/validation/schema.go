@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
+	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
 	"io"
 	"strings"
 )
@@ -19,6 +20,10 @@ func NewSimpleSchema(schema string) *SimpleSchema {
 	return &SimpleSchema{
 		col: col,
 	}
+}
+
+func (s *SimpleSchema) RegisterFormat(format string, checker jsonschemaformat.FormatChecker) {
+	s.col.FormatChecker[format] = checker
 }
 
 func (s *SimpleSchema) ValidateReader(r io.Reader) error {
@@ -69,6 +74,13 @@ func (s *MultipartSchema) Instantiate() *MultipartSchema {
 	s.col.AddSchema(strings.NewReader(string(schemaJSON)), "")
 
 	return s
+}
+
+func (s *MultipartSchema) RegisterFormat(format string, checker jsonschemaformat.FormatChecker) {
+	if s.col == nil {
+		panic("validation: JSON schema is not instantiated")
+	}
+	s.col.FormatChecker[format] = checker
 }
 
 func (s *MultipartSchema) ValidateReader(r io.Reader) error {

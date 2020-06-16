@@ -32,7 +32,8 @@ var _ = Schema.Add("HookHandlerConfig", `
 	"properties": {
 		"event": { "type": "string" },
 		"url": { "type": "string", "format": "uri" }
-	}
+	},
+	"required": ["event", "url"]
 }
 `)
 
