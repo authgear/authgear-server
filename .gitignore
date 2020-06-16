@@ -24,3 +24,6 @@ result-bin
 
 # vs code
 .vscode
+
+# node
+node_modules/
