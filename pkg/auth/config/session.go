@@ -1,5 +1,18 @@
 package config
 
+var _ = Schema.Add("SessionConfig", `
+{
+	"type": "object",
+	"properties": {
+		"lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
+		"idle_timeout_enabled": { "type": "boolean" },
+		"idle_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
+		"cookie_domain": { "type": "string" },
+		"cookie_non_persistent": { "type": "boolean" }
+	}
+}
+`)
+
 type SessionConfig struct {
 	Lifetime            DurationSeconds `json:"lifetime_seconds,omitempty"`
 	IdleTimeoutEnabled  bool            `json:"idle_timeout_enabled,omitempty"`

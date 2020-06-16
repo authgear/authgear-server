@@ -1,10 +1,40 @@
 package config
 
+var _ = Schema.Add("OAuthConfig", `
+{
+	"type": "object",
+	"properties": {
+		"access_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
+		"refresh_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
+		"clients": { "type": "array", "items": { "$ref": "#/$defs/OAuthClientConfig" } }
+	}
+}
+`)
+
 type OAuthConfig struct {
 	AccessTokenLifetime  DurationSeconds     `json:"access_token_lifetime_seconds,omitempty"`
 	RefreshTokenLifetime DurationSeconds     `json:"refresh_token_lifetime_seconds,omitempty"`
 	Clients              []OAuthClientConfig `json:"clients,omitempty"`
 }
+
+var _ = Schema.Add("OAuthClientConfig", `
+{
+	"type": "object",
+	"properties": {
+		"client_id": { "type": "string" },
+		"client_uri": { "type": "string", "format": "uri" },
+		"redirect_uris": {
+			"type": "array",
+			"items": { "type": "string", "format": "uri" },
+			"minItems": 1
+		},
+		"grant_types": { "type": "array", "items": { "type": "string" } },
+		"response_types": { "type": "array", "items": { "type": "string" } },
+		"post_logout_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } }
+	},
+	"required": ["client_id", "redirect_uris"]
+}
+`)
 
 type OAuthClientConfig map[string]interface{}
 
