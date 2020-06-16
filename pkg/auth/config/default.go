@@ -50,7 +50,7 @@ func setFieldDefaults(value interface{}) {
 		}
 	}
 
-	t := reflect.TypeOf(value).Elem()
-	v := reflect.ValueOf(value).Elem()
+	t := reflect.TypeOf(value)
+	v := reflect.ValueOf(value)
 	set(t, v)
 }

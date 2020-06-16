@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"errors"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
@@ -29,6 +30,22 @@ func (c *Context) EmitError(keyword string, info map[string]interface{}) {
 
 func (c *Context) EmitErrorMessage(msg string) {
 	c.EmitError("general", map[string]interface{}{"msg": msg})
+}
+
+func (c *Context) AddError(err error) {
+	if err == nil {
+		return
+	}
+
+	var aErr *AggregatedError
+	if errors.As(err, &aErr) {
+		for _, err := range aErr.Errors {
+			err.Location = c.pointer.String() + err.Location
+			*c.errors = append(*c.errors, err)
+		}
+	} else {
+		c.EmitErrorMessage(err.Error())
+	}
 }
 
 func (c *Context) Validate(value interface{}) {
