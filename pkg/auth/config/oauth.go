@@ -17,6 +17,18 @@ type OAuthConfig struct {
 	Clients              []OAuthClientConfig `json:"clients,omitempty"`
 }
 
+func (c *OAuthConfig) SetDefaults() {
+	if c.AccessTokenLifetime == 0 {
+		c.AccessTokenLifetime = 1800
+	}
+	if c.RefreshTokenLifetime == 0 {
+		c.RefreshTokenLifetime = 86400
+	}
+	if c.AccessTokenLifetime > c.RefreshTokenLifetime {
+		c.RefreshTokenLifetime = c.AccessTokenLifetime
+	}
+}
+
 var _ = Schema.Add("OAuthClientConfig", `
 {
 	"type": "object",

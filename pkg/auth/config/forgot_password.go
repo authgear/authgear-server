@@ -16,3 +16,15 @@ type ForgotPasswordConfig struct {
 	SMSMessage      SMSMessageConfig   `json:"sms_message,omitempty"`
 	ResetCodeExpiry DurationSeconds    `json:"reset_code_expiry_seconds,omitempty"`
 }
+
+func (c *ForgotPasswordConfig) SetDefaults() {
+	if c.EmailMessage["subject"] == "" {
+		c.EmailMessage["subject"] = "Reset password instruction"
+	}
+	if c.ResetCodeExpiry == 0 {
+		// https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html#step-3-send-a-token-over-a-side-channel
+		// OWASP suggests the lifetime is no more than 20 minutes
+		c.ResetCodeExpiry = DurationSeconds(1200)
+	}
+
+}

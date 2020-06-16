@@ -17,6 +17,12 @@ type MessagingConfig struct {
 	SMSProvider         SMSProvider        `json:"sms_provider,omitempty"`
 }
 
+func (c *MessagingConfig) SetDefaults() {
+	if c.DefaultEmailMessage["sender"] == "" {
+		c.DefaultEmailMessage["sender"] = "no-reply@skygear.io"
+	}
+}
+
 var _ = Schema.Add("SMSProvider", `
 {
 	"type": "string",

@@ -80,6 +80,12 @@ type AuthenticatorTOTPConfig struct {
 	Maximum *int `json:"maximum,omitempty"`
 }
 
+func (c *AuthenticatorTOTPConfig) SetDefaults() {
+	if c.Maximum == nil {
+		c.Maximum = newInt(99)
+	}
+}
+
 var _ = Schema.Add("AuthenticatorOOBConfig", `
 {
 	"type": "object",
@@ -110,6 +116,12 @@ type AuthenticatorOOBSMSConfig struct {
 	Message SMSMessageConfig `json:"message,omitempty"`
 }
 
+func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
+	if c.Maximum == nil {
+		c.Maximum = newInt(99)
+	}
+}
+
 var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 {
 	"type": "object",
@@ -125,6 +137,15 @@ type AuthenticatorOOBEmailConfig struct {
 	Message EmailMessageConfig `json:"message,omitempty"`
 }
 
+func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
+	if c.Maximum == nil {
+		c.Maximum = newInt(99)
+	}
+	if c.Message["subject"] == "" {
+		c.Message["subject"] = "Email Verification Instruction"
+	}
+}
+
 var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 {
 	"type": "object",
@@ -136,6 +157,12 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 
 type AuthenticatorBearerTokenConfig struct {
 	ExpireIn DurationDays `json:"expire_in_days,omitempty"`
+}
+
+func (c *AuthenticatorBearerTokenConfig) SetDefaults() {
+	if c.ExpireIn == 0 {
+		c.ExpireIn = DurationDays(30)
+	}
 }
 
 var _ = Schema.Add("AuthenticatorRecoveryCodeConfig", `
@@ -151,4 +178,10 @@ var _ = Schema.Add("AuthenticatorRecoveryCodeConfig", `
 type AuthenticatorRecoveryCodeConfig struct {
 	Count       int  `json:"count,omitempty"`
 	ListEnabled bool `json:"list_enabled,omitempty"`
+}
+
+func (c *AuthenticatorRecoveryCodeConfig) SetDefaults() {
+	if c.Count == 0 {
+		c.Count = 16
+	}
 }

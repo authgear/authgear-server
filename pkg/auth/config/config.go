@@ -68,5 +68,7 @@ func Parse(inputYAML []byte) (*AppConfig, error) {
 		return nil, err
 	}
 
+	setFieldDefaults(&config)
+
 	return &config, nil
 }

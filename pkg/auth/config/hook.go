@@ -17,6 +17,15 @@ type HookConfig struct {
 	Handlers         []HookHandlerConfig `json:"handlers,omitempty"`
 }
 
+func (c *HookConfig) SetDefaults() {
+	if c.SyncTimeout == 0 {
+		c.SyncTimeout = DurationSeconds(5)
+	}
+	if c.SyncTotalTimeout == 0 {
+		c.SyncTotalTimeout = DurationSeconds(10)
+	}
+}
+
 var _ = Schema.Add("HookHandlerConfig", `
 {
 	"type": "object",

@@ -24,7 +24,7 @@ var _ = Schema.Add("IdentityType", `
 var _ = Schema.Add("AuthenticatorType", `
 {
 	"type": "string",
-	"enum": ["password", "totp", "oob_otp", "recovery_code", "bearer_token"]
+	"enum": ["password", "totp", "oob_otp", "bearer_token"]
 }
 `)
 
@@ -33,6 +33,30 @@ type AuthenticationConfig struct {
 	PrimaryAuthenticators       []authn.AuthenticatorType   `json:"primary_authenticators,omitempty"`
 	SecondaryAuthenticators     []authn.AuthenticatorType   `json:"secondary_authenticators,omitempty"`
 	SecondaryAuthenticationMode SecondaryAuthenticationMode `json:"secondary_authentication_mode,omitempty"`
+}
+
+func (c *AuthenticationConfig) SetDefaults() {
+	if len(c.Identities) == 0 {
+		c.Identities = []authn.IdentityType{
+			authn.IdentityTypeOAuth,
+			authn.IdentityTypeLoginID,
+		}
+	}
+	if len(c.PrimaryAuthenticators) == 0 {
+		c.PrimaryAuthenticators = []authn.AuthenticatorType{
+			authn.AuthenticatorTypePassword,
+		}
+	}
+	if c.SecondaryAuthenticators == nil {
+		c.SecondaryAuthenticators = []authn.AuthenticatorType{
+			authn.AuthenticatorTypeTOTP,
+			authn.AuthenticatorTypeOOB,
+			authn.AuthenticatorTypeBearerToken,
+		}
+	}
+	if c.SecondaryAuthenticationMode == "" {
+		c.SecondaryAuthenticationMode = SecondaryAuthenticationModeIfExists
+	}
 }
 
 var _ = Schema.Add("SecondaryAuthenticationMode", `

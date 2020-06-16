@@ -1,5 +1,7 @@
 package config
 
+import "github.com/skygeario/skygear-server/pkg/core/phone"
+
 var _ = Schema.Add("UIConfig", `
 {
 	"type": "object",
@@ -28,4 +30,13 @@ var _ = Schema.Add("UICountryCallingCodeConfig", `
 type UICountryCallingCodeConfig struct {
 	Values  []string `json:"values,omitempty"`
 	Default string   `json:"default,omitempty"`
+}
+
+func (c *UICountryCallingCodeConfig) SetDefaults() {
+	if c.Values == nil {
+		c.Values = phone.CountryCallingCodes
+	}
+	if c.Default == "" {
+		c.Default = c.Values[0]
+	}
 }

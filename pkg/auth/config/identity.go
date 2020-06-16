@@ -34,6 +34,16 @@ type LoginIDConfig struct {
 	Keys  []LoginIDKeyConfig  `json:"keys,omitempty"`
 }
 
+func (c *LoginIDConfig) SetDefaults() {
+	if len(c.Keys) == 0 {
+		c.Keys = []LoginIDKeyConfig{
+			{Key: "email", Type: LoginIDKeyType(metadata.Email), Maximum: newInt(1)},
+			{Key: "phone", Type: LoginIDKeyType(metadata.Phone), Maximum: newInt(1)},
+			{Key: "username", Type: LoginIDKeyType(metadata.Username), Maximum: newInt(1)},
+		}
+	}
+}
+
 func (c *LoginIDConfig) GetKeyConfig(key string) (*LoginIDKeyConfig, bool) {
 	for _, config := range c.Keys {
 		if config.Key == key {
@@ -76,6 +86,18 @@ type LoginIDEmailConfig struct {
 	IgnoreDotSign *bool `json:"ignore_dot_sign,omitempty"`
 }
 
+func (c *LoginIDEmailConfig) SetDefaults() {
+	if c.CaseSensitive == nil {
+		c.CaseSensitive = newBool(false)
+	}
+	if c.BlockPlusSign == nil {
+		c.BlockPlusSign = newBool(false)
+	}
+	if c.IgnoreDotSign == nil {
+		c.IgnoreDotSign = newBool(false)
+	}
+}
+
 var _ = Schema.Add("LoginIDUsernameConfig", `
 {
 	"type": "object",
@@ -95,6 +117,18 @@ type LoginIDUsernameConfig struct {
 	CaseSensitive          *bool    `json:"case_sensitive,omitempty"`
 }
 
+func (c *LoginIDUsernameConfig) SetDefaults() {
+	if c.BlockReservedUsernames == nil {
+		c.BlockReservedUsernames = newBool(true)
+	}
+	if c.ASCIIOnly == nil {
+		c.ASCIIOnly = newBool(true)
+	}
+	if c.CaseSensitive == nil {
+		c.CaseSensitive = newBool(false)
+	}
+}
+
 var _ = Schema.Add("LoginIDKeyConfig", `
 {
 	"type": "object",
@@ -111,6 +145,12 @@ type LoginIDKeyConfig struct {
 	Key     string         `json:"key,omitempty"`
 	Type    LoginIDKeyType `json:"type,omitempty"`
 	Maximum *int           `json:"maximum,omitempty"`
+}
+
+func (c *LoginIDKeyConfig) SetDefaults() {
+	if c.Maximum == nil {
+		c.Maximum = newInt(1)
+	}
 }
 
 var _ = Schema.Add("LoginIDKeyType", `
@@ -197,6 +237,12 @@ type OAuthSSOProviderConfig struct {
 	TeamID string `json:"team_id,omitempty"`
 }
 
+func (c *OAuthSSOProviderConfig) SetDefaults() {
+	if c.Alias == "" {
+		c.Alias = string(c.Type)
+	}
+}
+
 var _ = Schema.Add("PromotionConflictBehavior", `
 {
 	"type": "string",
@@ -222,4 +268,10 @@ var _ = Schema.Add("IdentityConflictConfig", `
 
 type IdentityConflictConfig struct {
 	Promotion PromotionConflictBehavior `json:"promotion,omitempty"`
+}
+
+func (c *IdentityConflictConfig) SetDefaults() {
+	if c.Promotion == "" {
+		c.Promotion = PromotionConflictBehaviorError
+	}
 }

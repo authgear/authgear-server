@@ -31,3 +31,12 @@ type WelcomeMessageConfig struct {
 	EmailMessage EmailMessageConfig        `json:"email_message,omitempty"`
 	Destination  WelcomeMessageDestination `json:"destination,omitempty"`
 }
+
+func (c *WelcomeMessageConfig) SetDefaults() {
+	if c.Destination == "" {
+		c.Destination = WelcomeMessageDestinationFirst
+	}
+	if c.EmailMessage["subject"] == "" {
+		c.EmailMessage["subject"] = "Welcome!"
+	}
+}

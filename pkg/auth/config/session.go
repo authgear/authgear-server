@@ -20,3 +20,12 @@ type SessionConfig struct {
 	CookieDomain        *string         `json:"cookie_domain,omitempty"`
 	CookieNonPersistent bool            `json:"cookie_non_persistent,omitempty"`
 }
+
+func (c *SessionConfig) SetDefaults() {
+	if c.Lifetime == 0 {
+		c.Lifetime = 86400
+	}
+	if c.IdleTimeout == 0 {
+		c.IdleTimeout = 300
+	}
+}
