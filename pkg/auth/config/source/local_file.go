@@ -66,5 +66,6 @@ func (s *LocalFile) ProvideConfig(ctx context.Context, r *http.Request) (*config
 			return s.config, nil
 		}
 	}
-	return nil, ErrAppNotFound
+	// TODO(logging): log actual/expected host values at DEBUG level
+	return nil, fmt.Errorf("request host is not valid: %w", ErrAppNotFound)
 }
