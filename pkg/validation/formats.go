@@ -56,7 +56,7 @@ func (f FormatEmail) CheckFormat(value interface{}) error {
 	return nil
 }
 
-// FormatURI checks if input is an absolute URI, without query/fragment.
+// FormatURI checks if input is an absolute URI.
 type FormatURI struct {
 }
 
@@ -69,9 +69,6 @@ func (f FormatURI) CheckFormat(value interface{}) error {
 	u, err := url.Parse(str)
 	if err != nil {
 		return err
-	}
-	if u.RawQuery != "" || u.Fragment != "" {
-		return errors.New("input URL must not have query/fragment")
 	}
 
 	if u.Scheme == "" || u.Host == "" {
