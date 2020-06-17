@@ -32,7 +32,7 @@ type AggregatedError struct {
 }
 
 func (e *AggregatedError) Error() string {
-	lines := []string{"invalid JSON:"}
+	lines := []string{"invalid value:"}
 	for _, err := range e.Errors {
 		lines = append(lines, err.String())
 	}

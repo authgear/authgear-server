@@ -9,7 +9,7 @@ value:
 part: HookHandlerConfig
 name: missing-url
 error: |-
-  invalid JSON:
+  invalid value:
   <root>: required
     map[actual:[event] expected:[event url] missing:[url]]
 value:
@@ -19,7 +19,7 @@ value:
 part: HookHandlerConfig
 name: invalid-rel-path
 error: |-
-  invalid JSON:
+  invalid value:
   /url: format
     map[error:input URL must be absolute]
 value:

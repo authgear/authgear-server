@@ -29,7 +29,7 @@ value:
 part: EmailMessageConfig
 name: invalid-email
 error: |-
-  invalid JSON:
+  invalid value:
   /sender: format
     map[error:mail: missing '@' or angle-addr]
   /sender#zh-HK: format
