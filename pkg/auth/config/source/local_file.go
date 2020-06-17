@@ -20,7 +20,7 @@ func NewLocalFile(cfg *config.ServerConfig) *LocalFile {
 	}
 }
 
-func (s *LocalFile) Start() error {
+func (s *LocalFile) Open() error {
 	appConfigYAML, err := ioutil.ReadFile(s.serverConfig.ConfigSource.AppConfigPath)
 	if err != nil {
 		return fmt.Errorf("cannot read app config file: %w", err)
@@ -50,7 +50,7 @@ func (s *LocalFile) Start() error {
 	return nil
 }
 
-func (s *LocalFile) Shutdown() error {
+func (s *LocalFile) Close() error {
 	return nil
 }
 

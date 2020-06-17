@@ -7,8 +7,8 @@ import (
 )
 
 type Source interface {
-	Start() error
-	Shutdown() error
+	Open() error
+	Close() error
 	ProvideConfig(ctx context.Context, r *http.Request) (*config.Config, error)
 }
 
