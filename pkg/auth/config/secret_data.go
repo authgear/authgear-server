@@ -1,7 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"github.com/skygeario/skygear-server/pkg/validation"
+	"strings"
 )
 
 var _ = SecretConfigSchema.Add("DatabaseCredentials", `
@@ -63,6 +65,21 @@ func (c *RedisCredentials) Validate(ctx *validation.Context) {
 			ctx.Child("host").EmitErrorMessage("redis host is not provided")
 		}
 	}
+}
+
+func (c *RedisCredentials) ConnKey() string {
+	if c.Sentinel.Enabled {
+		return fmt.Sprintf("sentinel/%s;%s/%d",
+			c.Sentinel.MasterName,
+			strings.Join(c.Sentinel.Addrs, ";"),
+			c.DB,
+		)
+	}
+	return fmt.Sprintf("redis/%s:%s/%d",
+		c.Host,
+		c.Password,
+		c.DB,
+	)
 }
 
 var _ = SecretConfigSchema.Add("RedisSentinelConfig", `
