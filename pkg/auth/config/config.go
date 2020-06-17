@@ -10,6 +10,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/validation"
 )
 
+type Config struct {
+	AppConfig    *AppConfig
+	SecretConfig *SecretConfig
+}
+
 var _ = Schema.Add("AppConfig", `
 {
 	"type": "object",
