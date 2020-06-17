@@ -1,29 +1,17 @@
 package log
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"testing"
 
 	"github.com/sirupsen/logrus"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestDefaultFormatter(t *testing.T) {
-	Convey("DefaultMaskedTextFormatter", t, func() {
-		h := NewDefaultLogHook([]string{"SECRET"})
+func TestLogHooks(t *testing.T) {
+	Convey("default log hook", t, func() {
+		h := NewDefaultLogHook()
 
-		Convey("should mask sensitive strings", func() {
-			e := &logrus.Entry{
-				Message: "Test SECRET",
-				Level:   logrus.ErrorLevel,
-			}
-			err := h.Fire(e)
-
-			So(err, ShouldBeNil)
-			So(e, ShouldResemble, &logrus.Entry{
-				Message: "Test ********",
-				Level:   logrus.ErrorLevel,
-			})
-		})
 		Convey("should mask JWTs", func() {
 			e := &logrus.Entry{
 				Message: "logged in",
@@ -68,6 +56,52 @@ func TestDefaultFormatter(t *testing.T) {
 						"Access":  "********",
 						"Refresh": "********",
 					},
+				},
+			})
+		})
+	})
+
+	Convey("secret log hook", t, func() {
+		h := NewSecretLogHook(&config.SecretConfig{
+			Secrets: []config.SecretItem{
+				{
+					Key: config.DatabaseCredentialsKey,
+					Data: &config.DatabaseCredentials{
+						DatabaseURL:    "postgres://postgres://user:password@localhost:5432",
+						DatabaseSchema: "public",
+					},
+				},
+				{
+					Key: config.JWTKeyMaterialsKey,
+					Data: &config.JWTKeyMaterials{
+						Keys: []interface{}{
+							map[string]interface{}{
+								"kty": "oct",
+								"k":   "1ujPpaY7OlzEvLVFPlpG-A",
+							},
+						},
+					},
+				},
+			},
+		})
+		Convey("should mask secret values", func() {
+			e := &logrus.Entry{
+				Message: "logged in",
+				Level:   logrus.ErrorLevel,
+				Data: logrus.Fields{
+					"err": "cannot connect to postgres://postgres://user:password@localhost:5432",
+					"key": `{"kty": "oct", "l": "1ujPpaY7OlzEvLVFPlpG-A"}`,
+				},
+			}
+			err := h.Fire(e)
+
+			So(err, ShouldBeNil)
+			So(e, ShouldResemble, &logrus.Entry{
+				Message: "logged in",
+				Level:   logrus.ErrorLevel,
+				Data: logrus.Fields{
+					"err": "cannot connect to ********",
+					"key": `{"kty": "oct", "l": "********"}`,
 				},
 			})
 		})

@@ -1,6 +1,10 @@
 package log
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/auth/config"
+)
 
 var defaultPatterns = []MaskPattern{
 	// JWT
@@ -9,19 +13,21 @@ var defaultPatterns = []MaskPattern{
 	NewRegexMaskPattern(`[A-Fa-f0-9-]{36}\.[A-Za-z0-9]+`),
 }
 
-func NewDefaultLogHook(sensitiveStrings []string) logrus.Hook {
+func NewDefaultLogHook() logrus.Hook {
 	patterns := defaultPatterns[:]
-	if len(sensitiveStrings) != 0 {
-		plainPatterns := make([]MaskPattern, len(sensitiveStrings))
-		n := 0
-		for _, s := range sensitiveStrings {
-			if len(s) == 0 {
-				continue
-			}
-			plainPatterns[n] = NewPlainMaskPattern(s)
-			n++
+
+	return &FormatHook{
+		MaskPatterns: patterns,
+		Mask:         "********",
+	}
+}
+
+func NewSecretLogHook(cfg *config.SecretConfig) logrus.Hook {
+	var patterns []MaskPattern
+	for _, item := range cfg.Secrets {
+		for _, s := range item.Data.SensitiveStrings() {
+			patterns = append(patterns, NewPlainMaskPattern(s))
 		}
-		patterns = append(patterns, plainPatterns[:n]...)
 	}
 
 	return &FormatHook{

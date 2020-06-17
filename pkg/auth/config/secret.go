@@ -102,6 +102,10 @@ const (
 	WebhookKeyMaterialsKey   SecretKey = "webhook"
 )
 
+type SecretItemData interface {
+	SensitiveStrings() []string
+}
+
 var _ = SecretConfigSchema.Add("SecretItem", `
 {
 	"type": "object",
@@ -116,13 +120,13 @@ var _ = SecretConfigSchema.Add("SecretItem", `
 type SecretItem struct {
 	Key     SecretKey       `json:"key,omitempty"`
 	RawData json.RawMessage `json:"data,omitempty"`
-	Data    interface{}     `json:"-"`
+	Data    SecretItemData  `json:"-"`
 }
 
 func (i *SecretItem) parse(ctx *validation.Context) {
 	var err error
 	r := bytes.NewReader(i.RawData)
-	var data interface{}
+	var data SecretItemData
 
 	switch i.Key {
 	case DatabaseCredentialsKey:

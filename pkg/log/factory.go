@@ -4,22 +4,30 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Factory interface {
-	NewLogger(name string) *logrus.Entry
+type Logger = logrus.Entry
+
+type Factory struct {
+	DefaultFields logrus.Fields
+	Hooks         []logrus.Hook
+	Logger        *logrus.Logger
 }
 
-func NewFactory(hooks ...logrus.Hook) Factory {
-	return factoryImpl{hooks: hooks}
-}
-
-type factoryImpl struct {
-	hooks []logrus.Hook
-}
-
-func (f factoryImpl) NewLogger(name string) *logrus.Entry {
-	entry := LoggerEntry(name)
-	for _, hook := range f.hooks {
-		entry.Logger.Hooks.Add(hook)
+func NewFactory(hooks ...logrus.Hook) *Factory {
+	logger := logrus.New()
+	for _, hook := range hooks {
+		logger.Hooks.Add(hook)
 	}
-	return entry
+	return &Factory{Logger: logger, Hooks: hooks}
+}
+
+func (f *Factory) WithHooks(hooks ...logrus.Hook) *Factory {
+	return NewFactory(append(f.Hooks, hooks...)...)
+}
+
+func (f *Factory) New(name string) *Logger {
+	fields := logrus.Fields{"logger": name}
+	for k, v := range f.DefaultFields {
+		fields[k] = v
+	}
+	return logrus.New().WithFields(fields)
 }

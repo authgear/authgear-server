@@ -22,6 +22,13 @@ type DatabaseCredentials struct {
 	DatabaseSchema string `json:"database_schema,omitempty"`
 }
 
+func (c *DatabaseCredentials) SensitiveStrings() []string {
+	return []string{
+		c.DatabaseURL,
+		c.DatabaseSchema,
+	}
+}
+
 func (c *DatabaseCredentials) SetDefaults() {
 	if c.DatabaseSchema == "" {
 		c.DatabaseSchema = "public"
@@ -47,6 +54,14 @@ type RedisCredentials struct {
 	Password string               `json:"password,omitempty"`
 	DB       int                  `json:"db,omitempty"`
 	Sentinel *RedisSentinelConfig `json:"sentinel,omitempty"`
+}
+
+func (c *RedisCredentials) SensitiveStrings() []string {
+	return append([]string{
+		c.Host,
+		c.Password,
+		c.Sentinel.MasterName,
+	}, c.Sentinel.Addrs...)
 }
 
 func (c *RedisCredentials) SetDefaults() {
@@ -135,6 +150,14 @@ type SMTPServerCredentials struct {
 	Password string   `json:"password,omitempty"`
 }
 
+func (c *SMTPServerCredentials) SensitiveStrings() []string {
+	return []string{
+		c.Host,
+		c.Username,
+		c.Password,
+	}
+}
+
 func (c *SMTPServerCredentials) SetDefaults() {
 	if c.Mode == "" {
 		c.Mode = SMTPModeNormal
@@ -157,6 +180,13 @@ type TwilioCredentials struct {
 	AuthToken  string `json:"auth_token,omitempty"`
 }
 
+func (c *TwilioCredentials) SensitiveStrings() []string {
+	return []string{
+		c.AccountSID,
+		c.AuthToken,
+	}
+}
+
 var _ = SecretConfigSchema.Add("NexmoCredentials", `
 {
 	"type": "object",
@@ -171,6 +201,13 @@ var _ = SecretConfigSchema.Add("NexmoCredentials", `
 type NexmoCredentials struct {
 	APIKey    string `json:"api_key,omitempty"`
 	APISecret string `json:"api_secret,omitempty"`
+}
+
+func (c *NexmoCredentials) SensitiveStrings() []string {
+	return []string{
+		c.APIKey,
+		c.APISecret,
+	}
 }
 
 var _ = SecretConfigSchema.Add("JWK", `
@@ -204,10 +241,18 @@ type JWTKeyMaterials struct {
 	Keys []interface{} `json:"keys"`
 }
 
+func (c *JWTKeyMaterials) SensitiveStrings() []string {
+	return extractJWKSecrets(c.Keys)
+}
+
 var _ = SecretConfigSchema.Add("OIDCKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type OIDCKeyMaterials struct {
 	Keys []interface{} `json:"keys"`
+}
+
+func (c *OIDCKeyMaterials) SensitiveStrings() []string {
+	return extractJWKSecrets(c.Keys)
 }
 
 var _ = SecretConfigSchema.Add("CSRFKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
@@ -216,8 +261,16 @@ type CSRFKeyMaterials struct {
 	Keys []interface{} `json:"keys"`
 }
 
+func (c *CSRFKeyMaterials) SensitiveStrings() []string {
+	return extractJWKSecrets(c.Keys)
+}
+
 var _ = SecretConfigSchema.Add("WebhookKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type WebhookKeyMaterials struct {
 	Keys []interface{} `json:"keys"`
+}
+
+func (c *WebhookKeyMaterials) SensitiveStrings() []string {
+	return extractJWKSecrets(c.Keys)
 }
