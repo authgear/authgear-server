@@ -1,0 +1,88 @@
+name: empty-config
+error: null
+config:
+  id: test
+
+---
+name: missing-id
+error: |-
+  invalid JSON:
+  <root>: required
+    map[actual:<nil> expected:[id] missing:[id]]
+config: {}
+
+---
+name: invalid-id
+error: |-
+  invalid JSON:
+  /id: type
+    map[actual:[number integer] expected:[string]]
+config:
+  id: 123
+
+---
+name: oauth-client-refresh-token-lifetime
+error: |-
+  invalid JSON:
+  /oauth/clients/0/refresh_token_lifetime_seconds: refresh token lifetime must be greater than or equal to access token lifetime
+config:
+  id: test
+  oauth:
+    clients:
+      - client_id: test-client
+        redirect_uris:
+          - "https://example.com"
+        refresh_token_lifetime_seconds: 10
+        access_token_lifetime_seconds: 10000
+
+---
+name: dupe-oauth-provider
+error: |-
+  invalid JSON:
+  /identity/sso/oauth_providers/1: duplicated OAuth provider
+config:
+  id: test
+  identity:
+    sso:
+      oauth_providers:
+        - type: google
+          client_id: client_a
+        - type: google
+          client_id: client_b
+
+---
+name: dupe-oauth-provider-alias
+error: |-
+  invalid JSON:
+  /identity/sso/oauth_providers/1: duplicated OAuth provider alias
+config:
+  id: test
+  identity:
+    sso:
+      oauth_providers:
+        - type: facebook
+          client_id: client_a
+        - type: facebook
+          client_id: client_b
+
+---
+name: dupe-authenticator-type
+error: |-
+  invalid JSON:
+  /authentication/secondary_authenticators/1: duplicated authenticator type
+config:
+  id: test
+  authentication:
+    primary_authenticators: [oob_otp]
+    secondary_authenticators: [totp, oob_otp]
+
+---
+name: unlisted-ccc
+error: |-
+  invalid JSON:
+  /ui/country_calling_code/default: default country calling code is unlisted
+config:
+  id: test
+  ui:
+    country_calling_code:
+      default: xxx
