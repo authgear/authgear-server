@@ -30,7 +30,7 @@ import (
 type configuration struct {
 	Standalone                        bool
 	StandaloneTenantConfigurationFile string                      `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
-	Host                              string                      `envconfig:"SERVER_HOST" default:"localhost:3000"`
+	Host                              string                      `envconfig:"SERVER_HOST" default:"0.0.0.0:3000"`
 	ValidHosts                        string                      `envconfig:"VALID_HOSTS"`
 	Redis                             redis.Configuration         `envconfig:"REDIS"`
 	UseInsecureCookie                 bool                        `envconfig:"INSECURE_COOKIE"`

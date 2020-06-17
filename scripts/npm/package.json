@@ -1,8 +1,10 @@
 {
-  "name": "deploy-asset",
-  "version": "1.0.0",
+  "name": "node",
+  "description": "Install binaries from the node/npm ecosystem",
+  "version": "0.1.0",
   "devDependencies": {
     "cssnano": "4.1.10",
+    "mjml": "4.6.2",
     "postcss": "7.0.27",
     "postcss-cli": "7.1.0",
     "postcss-normalize": "8.0.1",

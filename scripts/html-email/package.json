@@ -1,7 +1,0 @@
-{
-  "name": "html-email",
-  "version": "1.0.0",
-  "dependencies": {
-    "mjml": "4.6.2"
-  }
-}
