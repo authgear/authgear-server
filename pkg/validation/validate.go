@@ -23,7 +23,8 @@ func validateSchema(col *jsonschema.Collection, r io.Reader, ref string) ([]Erro
 
 		hasInvalidChild := false
 		for _, child := range n.Children {
-			if !traverseNode(&child) {
+			c := child
+			if !traverseNode(&c) {
 				hasInvalidChild = true
 			}
 		}
