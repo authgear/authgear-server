@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/skygeario/skygear-server/pkg/httputil"
 	"io/ioutil"
 	"net/http"
 )
@@ -54,5 +55,16 @@ func (s *LocalFile) Shutdown() error {
 }
 
 func (s *LocalFile) ProvideConfig(ctx context.Context, r *http.Request) (*config.Config, error) {
-	return s.config, nil
+	if s.serverConfig.DevMode {
+		// Accept all hosts under development mode
+		return s.config, nil
+	}
+
+	host := httputil.GetHost(r, s.serverConfig.TrustProxy)
+	for _, h := range s.config.AppConfig.HTTP.Hosts {
+		if h == host {
+			return s.config, nil
+		}
+	}
+	return nil, ErrAppNotFound
 }

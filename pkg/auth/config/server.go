@@ -12,6 +12,8 @@ type ServerConfig struct {
 	ListenAddr string `envconfig:"LISTEN_ADDR"`
 	// TrustProxy sets whether HTTP headers from proxy are to be trusted
 	TrustProxy bool `envconfig:"TRUST_PROXY" default:"false"`
+	// DevMode sets whether the server would be run under development mode
+	DevMode bool `envconfig:"DEV_MODE" default:"false"`
 	// ConfigSource configures the source of app configurations
 	ConfigSource ConfigurationSourceConfig `envconfig:"CONFIG_SOURCE"`
 
