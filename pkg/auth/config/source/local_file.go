@@ -9,21 +9,18 @@ import (
 )
 
 type LocalFile struct {
-	appConfigPath    string
-	secretConfigPath string
-
-	config *config.Config
+	serverConfig *config.ServerConfig
+	config       *config.Config
 }
 
-func NewLocalFile(appConfigPath string, secretConfigPath string) *LocalFile {
+func NewLocalFile(cfg *config.ServerConfig) *LocalFile {
 	return &LocalFile{
-		appConfigPath:    appConfigPath,
-		secretConfigPath: secretConfigPath,
+		serverConfig: cfg,
 	}
 }
 
 func (s *LocalFile) Start() error {
-	appConfigYAML, err := ioutil.ReadFile(s.appConfigPath)
+	appConfigYAML, err := ioutil.ReadFile(s.serverConfig.ConfigSource.AppConfigPath)
 	if err != nil {
 		return fmt.Errorf("cannot read app config file: %w", err)
 	}
@@ -32,7 +29,7 @@ func (s *LocalFile) Start() error {
 		return fmt.Errorf("cannot parse app config: %w", err)
 	}
 
-	secretConfigYAML, err := ioutil.ReadFile(s.secretConfigPath)
+	secretConfigYAML, err := ioutil.ReadFile(s.serverConfig.ConfigSource.SecretConfigPath)
 	if err != nil {
 		return fmt.Errorf("cannot read secret config file: %w", err)
 	}
