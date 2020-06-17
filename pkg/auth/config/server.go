@@ -9,7 +9,7 @@ import (
 
 type ServerConfig struct {
 	// ListenAddr sets listening address of the server
-	ListenAddr string `envconfig:"LISTEN_ADDR"`
+	ListenAddr string `envconfig:"LISTEN_ADDR" default:"0.0.0.0:3000"`
 	// TrustProxy sets whether HTTP headers from proxy are to be trusted
 	TrustProxy bool `envconfig:"TRUST_PROXY" default:"false"`
 	// DevMode sets whether the server would be run under development mode
