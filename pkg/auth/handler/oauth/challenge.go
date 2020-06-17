@@ -37,6 +37,14 @@ func (p *ChallengeRequest) Validate() []validation.ErrorCause {
 	return nil
 }
 
+var challengeValidator = validation.NewValidator("http://v2.skgyear.io")
+
+func init() {
+	challengeValidator.AddSchemaFragments(
+		ChallengeRequestSchema,
+	)
+}
+
 // @JSONSchema
 const ChallengeRequestSchema = `
 {
@@ -102,7 +110,7 @@ func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request
 
 func (h *ChallengeHandler) Handle(resp http.ResponseWriter, req *http.Request) (*ChallengeResponse, error) {
 	var payload ChallengeRequest
-	if err := handler.BindJSONBody(req, resp, h.Validator, "#OAuthChallengeRequest", &payload); err != nil {
+	if err := handler.BindJSONBody(req, resp, challengeValidator, "#OAuthChallengeRequest", &payload); err != nil {
 		return nil, err
 	}
 
