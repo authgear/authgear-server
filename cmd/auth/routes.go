@@ -44,6 +44,7 @@ type TemplateConfiguration struct {
 	AssetGearMasterKey string `envconfig:"ASSET_GEAR_MASTER_KEY"`
 }
 
+// nolint: deadcode
 func setupRoutes(cfg configuration, dbPool db.Pool, redisPool *redigo.Pool, deps auth.DependencyMap) *mux.Router {
 	var router *mux.Router
 	var rootRouter *mux.Router

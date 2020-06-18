@@ -32,7 +32,7 @@ func LoadServerConfigFromEnv() (*ServerConfig, error) {
 	}
 
 	err = config.Validate()
-	if err == nil {
+	if err != nil {
 		return nil, fmt.Errorf("invalid server config: %w", err)
 	}
 
