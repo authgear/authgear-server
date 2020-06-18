@@ -17,11 +17,15 @@ func NewFactory(hooks ...logrus.Hook) *Factory {
 	for _, hook := range hooks {
 		logger.Hooks.Add(hook)
 	}
-	return &Factory{Logger: logger, Hooks: hooks}
+	return &Factory{DefaultFields: logrus.Fields{}, Logger: logger, Hooks: hooks}
 }
 
 func (f *Factory) WithHooks(hooks ...logrus.Hook) *Factory {
-	return NewFactory(append(f.Hooks, hooks...)...)
+	factory := NewFactory(append(f.Hooks, hooks...)...)
+	for k, v := range f.DefaultFields {
+		factory.DefaultFields[k] = v
+	}
+	return factory
 }
 
 func (f *Factory) New(name string) *Logger {
