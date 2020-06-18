@@ -10,7 +10,7 @@ import (
 
 func TestLogHooks(t *testing.T) {
 	Convey("default log hook", t, func() {
-		h := NewDefaultLogHook()
+		h := NewDefaultMaskLogHook()
 
 		Convey("should mask JWTs", func() {
 			e := &logrus.Entry{
@@ -62,7 +62,7 @@ func TestLogHooks(t *testing.T) {
 	})
 
 	Convey("secret log hook", t, func() {
-		h := NewSecretLogHook(&config.SecretConfig{
+		h := NewSecretMaskLogHook(&config.SecretConfig{
 			Secrets: []config.SecretItem{
 				{
 					Key: config.DatabaseCredentialsKey,

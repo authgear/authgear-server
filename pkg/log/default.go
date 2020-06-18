@@ -13,7 +13,7 @@ var defaultPatterns = []MaskPattern{
 	NewRegexMaskPattern(`[A-Fa-f0-9-]{36}\.[A-Za-z0-9]+`),
 }
 
-func NewDefaultLogHook() logrus.Hook {
+func NewDefaultMaskLogHook() logrus.Hook {
 	patterns := defaultPatterns[:]
 
 	return &FormatHook{
@@ -22,7 +22,7 @@ func NewDefaultLogHook() logrus.Hook {
 	}
 }
 
-func NewSecretLogHook(cfg *config.SecretConfig) logrus.Hook {
+func NewSecretMaskLogHook(cfg *config.SecretConfig) logrus.Hook {
 	var patterns []MaskPattern
 	for _, item := range cfg.Secrets {
 		for _, s := range item.Data.SensitiveStrings() {

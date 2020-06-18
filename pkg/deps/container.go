@@ -26,7 +26,7 @@ func NewRootContainer(cfg *config.ServerConfig) (*RootContainer, error) {
 	var container RootContainer
 
 	loggerFactory := log.NewFactory(
-		log.NewDefaultLogHook(),
+		log.NewDefaultMaskLogHook(),
 		&sentry.LogHook{Hub: sentry.DefaultClient.Hub},
 	)
 	dbPool := db.NewPool()
@@ -49,7 +49,7 @@ func NewRootContainer(cfg *config.ServerConfig) (*RootContainer, error) {
 }
 
 func (c *RootContainer) NewRequestContainer(ctx context.Context, r *http.Request, cfg *config.Config) *RequestContainer {
-	loggerFactory := c.LoggerFactory.WithHooks(log.NewSecretLogHook(cfg.SecretConfig))
+	loggerFactory := c.LoggerFactory.WithHooks(log.NewSecretMaskLogHook(cfg.SecretConfig))
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
 	dbContext := db.NewContext(
 		ctx,
