@@ -67,7 +67,7 @@ func TestLogHooks(t *testing.T) {
 				{
 					Key: config.DatabaseCredentialsKey,
 					Data: &config.DatabaseCredentials{
-						DatabaseURL:    "postgres://postgres://user:password@localhost:5432",
+						DatabaseURL:    "postgres://user:password@localhost:5432",
 						DatabaseSchema: "public",
 					},
 				},
@@ -89,7 +89,7 @@ func TestLogHooks(t *testing.T) {
 				Message: "logged in",
 				Level:   logrus.ErrorLevel,
 				Data: logrus.Fields{
-					"err": "cannot connect to postgres://postgres://user:password@localhost:5432",
+					"err": "cannot connect to postgres://user:password@localhost:5432",
 					"key": `{"kty": "oct", "l": "1ujPpaY7OlzEvLVFPlpG-A"}`,
 				},
 			}
