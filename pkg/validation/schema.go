@@ -56,23 +56,40 @@ func (s *MultipartSchema) Add(partID string, schema string) *MultipartSchema {
 	return s
 }
 
-func (s *MultipartSchema) Instantiate() *MultipartSchema {
-	if _, ok := s.parts[s.mainPartID]; !ok {
-		panic(fmt.Sprintf("validaiton: main part '%s' is not added", s.mainPartID))
-	}
+func (s *MultipartSchema) DumpSchemaString(pretty bool) (schemaString string, err error) {
 	schema := map[string]interface{}{
 		"$defs": s.parts,
 		"$ref":  jsonpointer.T([]string{"$defs", s.mainPartID}),
 	}
-	schemaJSON, err := json.Marshal(schema)
+
+	var schemaJSON []byte
+	if pretty {
+		schemaJSON, err = json.MarshalIndent(schema, "", "  ")
+	} else {
+		schemaJSON, err = json.Marshal(schema)
+	}
+	if err != nil {
+		return
+	}
+
+	schemaString = string(schemaJSON)
+	return
+}
+
+func (s *MultipartSchema) Instantiate() *MultipartSchema {
+	if _, ok := s.parts[s.mainPartID]; !ok {
+		panic(fmt.Sprintf("validaiton: main part '%s' is not added", s.mainPartID))
+	}
+
+	schemaString, err := s.DumpSchemaString(false)
 	if err != nil {
 		panic("validation: invalid JSON schema: " + err.Error())
 	}
-	s.parts = nil
 
+	// Do not forget the parts so that we can dump the schema later.
+	// s.parts = nil
 	s.col = jsonschema.NewCollection()
-	s.col.AddSchema(strings.NewReader(string(schemaJSON)), "")
-
+	s.col.AddSchema(strings.NewReader(schemaString), "")
 	return s
 }
 

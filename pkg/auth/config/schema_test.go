@@ -15,6 +15,22 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
+func TestDumpSchema(t *testing.T) {
+	Convey("DumpSchema", t, func() {
+		s, err := config.DumpSchema()
+		So(err, ShouldBeNil)
+		t.Logf("Dumping the schema of authgear.yaml\n%s", s)
+	})
+}
+
+func TestDumpSecretConfigSchema(t *testing.T) {
+	Convey("DumpSecretConfigSchema", t, func() {
+		s, err := config.DumpSecretConfigSchema()
+		So(err, ShouldBeNil)
+		t.Logf("Dumping the schema of authgear.secret.yaml\n%s", s)
+	})
+}
+
 func TestAppConfigSchema(t *testing.T) {
 	testFiles := []string{
 		"testdata/messaging_tests.yaml",

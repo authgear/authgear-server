@@ -12,3 +12,11 @@ func init() {
 	Schema.Instantiate()
 	SecretConfigSchema.Instantiate()
 }
+
+func DumpSchema() (string, error) {
+	return Schema.DumpSchemaString(true)
+}
+
+func DumpSecretConfigSchema() (string, error) {
+	return SecretConfigSchema.DumpSchemaString(true)
+}
