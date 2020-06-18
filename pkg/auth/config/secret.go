@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"sigs.k8s.io/yaml"
@@ -54,6 +55,35 @@ func ParseSecret(inputYAML []byte) (*SecretConfig, error) {
 	}
 
 	return &config, nil
+}
+
+func (c *SecretConfig) Lookup(key SecretKey) (*SecretItem, bool) {
+	for _, item := range c.Secrets {
+		if item.Key == key {
+			return &item, true
+		}
+	}
+	return nil, false
+}
+
+func (c *SecretConfig) Validate(appConfig *AppConfig) error {
+	ctx := &validation.Context{}
+	require := func(key SecretKey, item string) {
+		if _, ok := c.Lookup(key); !ok {
+			ctx.EmitErrorMessage(fmt.Sprintf("%s (secret '%s') is required", item, key))
+		}
+	}
+
+	require(DatabaseCredentialsKey, "database credentials")
+	require(RedisCredentialsKey, "redis credentials")
+	require(JWTKeyMaterialsKey, "JWT key materials")
+	require(OIDCKeyMaterialsKey, "OIDC key materials")
+	require(CSRFKeyMaterialsKey, "CSRF key materials")
+	if len(appConfig.Hook.Handlers) > 0 {
+		require(WebhookKeyMaterialsKey, "web-hook signing key materials")
+	}
+
+	return ctx.Error()
 }
 
 var _ = SecretConfigSchema.Add("SecretKey", `{ "type": "string" }`)

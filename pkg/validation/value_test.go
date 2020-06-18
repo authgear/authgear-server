@@ -32,7 +32,7 @@ func (s structB) Validate(ctx *validation.Context) {
 func TestValueValidate(t *testing.T) {
 	Convey("validate value", t, func() {
 		err := validation.ValidateValue(&structA{})
-		So(err, ShouldBeError, `invalid JSON:
+		So(err, ShouldBeError, `invalid value:
 /x/z: minimum
   map[minimum:12]
 /y: y is required`)
@@ -41,7 +41,7 @@ func TestValueValidate(t *testing.T) {
 			X: structB{Z: 10},
 			Y: "test",
 		})
-		So(err, ShouldBeError, `invalid JSON:
+		So(err, ShouldBeError, `invalid value:
 /x/z: minimum
   map[minimum:12]`)
 
