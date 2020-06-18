@@ -1,41 +1,32 @@
 package redis
 
 import (
-	"context"
+	redigo "github.com/gomodule/redigo/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/config"
-
-	"github.com/gomodule/redigo/redis"
 )
 
-type contextKeyType struct{}
-
-var contextKey = contextKeyType{}
-
-type redisContext struct {
+type Context struct {
 	pool        *Pool
 	credentials *config.RedisCredentials
-	conn        redis.Conn
+	conn        redigo.Conn
 }
 
-func WithRedis(ctx context.Context, pool *Pool, c *config.RedisCredentials) context.Context {
-	redisCtx := &redisContext{pool: pool, credentials: c, conn: nil}
-	return context.WithValue(ctx, contextKey, redisCtx)
+func NewContext(pool *Pool, c *config.RedisCredentials) *Context {
+	return &Context{pool: pool, credentials: c, conn: nil}
 }
 
-func GetConn(ctx context.Context) redis.Conn {
-	redisCtx := ctx.Value(contextKey).(*redisContext)
-	if redisCtx.conn == nil {
-		redisCtx.conn = redisCtx.pool.Open(redisCtx.credentials).Get()
+func (ctx *Context) Conn() redigo.Conn {
+	if ctx.conn == nil {
+		ctx.conn = ctx.pool.Open(ctx.credentials).Get()
 	}
-	return redisCtx.conn
+	return ctx.conn
 }
 
-func CloseConn(ctx context.Context) error {
-	redisCtx := ctx.Value(contextKey).(*redisContext)
-	if redisCtx.conn == nil {
+func (ctx *Context) Close() error {
+	if ctx.conn == nil {
 		return nil
 	}
-	conn := redisCtx.conn
-	redisCtx.conn = nil
+	conn := ctx.conn
+	ctx.conn = nil
 	return conn.Close()
 }

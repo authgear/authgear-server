@@ -66,6 +66,13 @@ func (c *SecretConfig) Lookup(key SecretKey) (*SecretItem, bool) {
 	return nil, false
 }
 
+func (c *SecretConfig) LookupData(key SecretKey) SecretItemData {
+	if item, ok := c.Lookup(key); ok {
+		return item.Data
+	}
+	return nil
+}
+
 func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	ctx := &validation.Context{}
 	require := func(key SecretKey, item string) {

@@ -1,6 +1,9 @@
 package deps
 
 import (
+	"context"
+	"net/http"
+
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -45,20 +48,37 @@ func NewRootContainer(cfg *config.ServerConfig) (*RootContainer, error) {
 	return &container, nil
 }
 
-func (c *RootContainer) NewRequestContainer(cfg *config.Config) *RequestContainer {
+func (c *RootContainer) NewRequestContainer(ctx context.Context, r *http.Request, cfg *config.Config) *RequestContainer {
 	loggerFactory := c.LoggerFactory.WithHooks(log.NewSecretLogHook(cfg.SecretConfig))
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
+	dbContext := db.NewContext(
+		ctx,
+		c.DatabasePool,
+		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
+	)
+	redisContext := redis.NewContext(
+		c.RedisPool,
+		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
+	)
 
 	return &RequestContainer{
 		RootContainer: c,
+		Request:       r,
+		Context:       ctx,
 		LoggerFactory: loggerFactory,
 		Config:        cfg,
+		DbContext:     dbContext,
+		RedisContext:  redisContext,
 	}
 }
 
 type RequestContainer struct {
 	*RootContainer
 
+	Request       *http.Request
+	Context       context.Context
 	LoggerFactory *log.Factory
 	Config        *config.Config
+	DbContext     db.Context
+	RedisContext  *redis.Context
 }

@@ -7,6 +7,8 @@ import (
 
 	redigo "github.com/gomodule/redigo/redis"
 	"github.com/gorilla/mux"
+	configsource "github.com/skygeario/skygear-server/pkg/auth/config/source"
+	"github.com/skygeario/skygear-server/pkg/deps"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
@@ -41,6 +43,19 @@ type TemplateConfiguration struct {
 	EnableFileLoader   bool   `envconfig:"ENABLE_FILE_LOADER"`
 	AssetGearEndpoint  string `envconfig:"ASSET_GEAR_ENDPOINT"`
 	AssetGearMasterKey string `envconfig:"ASSET_GEAR_MASTER_KEY"`
+}
+
+func setupNewRoutes(container *deps.RootContainer, configSource configsource.Source) *mux.Router {
+	router := server.NewRouter()
+	router.HandleFunc("/healthz", server.HealthCheckHandler)
+
+	rootRouter := router.PathPrefix("/").Subrouter()
+	rootRouter.Use((&deps.RequestMiddleware{
+		RootContainer: container,
+		ConfigSource:  configSource,
+	}).Handle)
+
+	return router
 }
 
 // nolint: deadcode

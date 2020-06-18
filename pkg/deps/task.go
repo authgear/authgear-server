@@ -21,8 +21,8 @@ func ProvideCaptureTaskContext(ctx context.Context, config *config.Config) queue
 
 func ProvideRestoreTaskContext(deps *RootContainer) executors.RestoreTaskContext {
 	return func(taskCtx *task.Context) context.Context {
-		requestContainer := deps.NewRequestContainer(taskCtx.Config)
 		ctx := context.Background()
+		requestContainer := deps.NewRequestContainer(ctx, nil, taskCtx.Config)
 		ctx = WithRequestContainer(ctx, requestContainer)
 		ctx = intl.WithPreferredLanguageTags(ctx, taskCtx.PreferredLanguageTags)
 		return ctx

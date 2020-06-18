@@ -27,7 +27,7 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		requestContainer := m.RootContainer.NewRequestContainer(config)
+		requestContainer := m.RootContainer.NewRequestContainer(r.Context(), r, config)
 		r = r.WithContext(WithRequestContainer(r.Context(), requestContainer))
 		next.ServeHTTP(w, r)
 	})

@@ -42,7 +42,7 @@ func main() {
 
 	server := httputil.NewServer(rootDeps.LoggerFactory, &http.Server{
 		Addr:    serverCfg.ListenAddr,
-		Handler: nil,
+		Handler: setupNewRoutes(rootDeps, configSource),
 	})
 	server.ListenAndServe("starting auth gear")
 }
