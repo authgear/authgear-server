@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	webapphandler "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -45,7 +44,7 @@ type TemplateConfiguration struct {
 }
 
 // nolint: deadcode
-func setupRoutes(cfg configuration, dbPool db.Pool, redisPool *redigo.Pool, deps auth.DependencyMap) *mux.Router {
+func setupRoutes(cfg configuration, redisPool *redigo.Pool, deps auth.DependencyMap) *mux.Router {
 	var router *mux.Router
 	var rootRouter *mux.Router
 	var webappRouter *mux.Router
@@ -78,7 +77,6 @@ func setupRoutes(cfg configuration, dbPool db.Pool, redisPool *redigo.Pool, deps
 		rootRouter.Use(middleware.ReadTenantConfigMiddleware{}.Handle)
 	}
 
-	rootRouter.Use(middleware.DBMiddleware{Pool: dbPool}.Handle)
 	rootRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
 	rootRouter.Use(auth.MakeMiddleware(deps, auth.NewSessionMiddleware))
 	// The resolve endpoint is now mounted at root router.

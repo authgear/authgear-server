@@ -20,22 +20,26 @@ import (
 // Injectors from wire.go:
 
 func newPwHouseKeeperTask(ctx context.Context, m auth.DependencyMap) async.Task {
+	pool := _wirePoolValue
 	tenantConfiguration := auth.ProvideTenantConfig(ctx, m)
-	txContext := db.ProvideTxContext(ctx, tenantConfiguration)
+	dbContext := db.ProvideContextOLD(ctx, pool, tenantConfiguration)
 	factory := logging.ProvideLoggerFactory(ctx, tenantConfiguration)
 	provider := time.NewProvider()
-	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
-	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
-	sqlExecutor := db.ProvideSQLExecutor(ctx, tenantConfiguration)
+	sqlBuilder := db.ProvideSQLBuilderOLD(tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(dbContext)
 	historyStoreImpl := password.ProvideHistoryStore(provider, sqlBuilder, sqlExecutor)
 	housekeeper := password.ProvideHousekeeper(historyStoreImpl, factory, tenantConfiguration)
 	pwHousekeeperTask := &PwHousekeeperTask{
-		TxContext:     txContext,
+		TxContext:     dbContext,
 		LoggerFactory: factory,
 		PwHousekeeper: housekeeper,
 	}
 	return pwHousekeeperTask
 }
+
+var (
+	_wirePoolValue = (*db.Pool)(nil)
+)
 
 func newSendMessagesTask(ctx context.Context, m auth.DependencyMap) async.Task {
 	tenantConfiguration := auth.ProvideTenantConfig(ctx, m)

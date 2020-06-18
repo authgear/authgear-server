@@ -15,6 +15,8 @@ type Config struct {
 	SecretConfig *SecretConfig
 }
 
+type AppID string
+
 var _ = Schema.Add("AppConfig", `
 {
 	"type": "object",
@@ -39,7 +41,7 @@ var _ = Schema.Add("AppConfig", `
 `)
 
 type AppConfig struct {
-	ID       string      `json:"id"`
+	ID       AppID       `json:"id"`
 	Metadata AppMetadata `json:"metadata,omitempty"`
 
 	HTTP *HTTPConfig `json:"http,omitempty"`

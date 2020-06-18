@@ -3,6 +3,7 @@ package async
 import (
 	"context"
 
+	newconfig "github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -11,10 +12,10 @@ import (
 
 type Executor struct {
 	tasks map[string]Task
-	pool  db.Pool
+	pool  *db.Pool
 }
 
-func NewExecutor(dbPool db.Pool) *Executor {
+func NewExecutor(dbPool *db.Pool) *Executor {
 	return &Executor{
 		tasks: map[string]Task{},
 		pool:  dbPool,
@@ -26,10 +27,12 @@ func (e *Executor) Register(name string, task Task) {
 }
 
 func (e *Executor) Execute(ctx context.Context, spec TaskSpec) {
-	ctx = db.InitDBContext(ctx, e.pool)
-	task := e.tasks[spec.Name]
-
 	tConfig := config.GetTenantConfig(ctx)
+	ctx = db.NewContext(ctx, e.pool, &newconfig.DatabaseCredentials{
+		DatabaseURL:    tConfig.DatabaseConfig.DatabaseURL,
+		DatabaseSchema: tConfig.DatabaseConfig.DatabaseSchema,
+	})
+	task := e.tasks[spec.Name]
 
 	logHook := logging.NewDefaultLogHook(tConfig.DefaultSensitiveLoggerValues())
 	sentryHook := &sentry.LogHook{Hub: sentry.DefaultClient.Hub}

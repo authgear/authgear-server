@@ -5,17 +5,10 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
-type Pool interface {
-	Open(tConfig config.TenantConfiguration) (*sqlx.DB, error)
-	OpenURL(url string) (*sqlx.DB, error)
-	Close() error
-}
-
-type poolImpl struct {
+type Pool struct {
 	closed     bool
 	closeMutex sync.RWMutex
 
@@ -23,12 +16,11 @@ type poolImpl struct {
 	cacheMutex sync.RWMutex
 }
 
-func NewPool() Pool {
-	p := &poolImpl{cache: map[string]*sqlx.DB{}}
-	return p
+func NewPool() *Pool {
+	return &Pool{cache: map[string]*sqlx.DB{}}
 }
 
-func (p *poolImpl) OpenURL(source string) (db *sqlx.DB, err error) {
+func (p *Pool) Open(source string) (db *sqlx.DB, err error) {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
@@ -54,11 +46,7 @@ func (p *poolImpl) OpenURL(source string) (db *sqlx.DB, err error) {
 	return
 }
 
-func (p *poolImpl) Open(tConfig config.TenantConfiguration) (*sqlx.DB, error) {
-	return p.OpenURL(tConfig.DatabaseConfig.DatabaseURL)
-}
-
-func (p *poolImpl) Close() (err error) {
+func (p *Pool) Close() (err error) {
 	p.closeMutex.Lock()
 	defer func() { p.closeMutex.Unlock() }()
 

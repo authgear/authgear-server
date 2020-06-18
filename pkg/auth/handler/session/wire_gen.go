@@ -45,9 +45,10 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Provider:            sessionProvider,
 		Time:                timeProvider,
 	}
-	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
-	sqlBuilder := auth.ProvideAuthSQLBuilder(sqlBuilderFactory)
-	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	sqlBuilder := db.ProvideSQLBuilderOLD(tenantConfiguration)
+	pool := _wirePoolValue
+	dbContext := db.ProvideContextOLD(context, pool, tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(dbContext)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -81,17 +82,20 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Identities: providerProvider,
 		Time:       timeProvider,
 	}
-	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	middleware := &auth2.Middleware{
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               authAccessEventProvider,
 		Users:                      queries,
-		TxContext:                  txContext,
+		TxContext:                  dbContext,
 	}
 	handler := provideResolveHandler(middleware, factory, timeProvider, anonymousProvider)
 	return handler
 }
+
+var (
+	_wirePoolValue = (*db.Pool)(nil)
+)
 
 // wire.go:
 

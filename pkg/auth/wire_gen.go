@@ -59,9 +59,10 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 		Provider:            sessionProvider,
 		Time:                timeProvider,
 	}
-	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
-	sqlBuilder := ProvideAuthSQLBuilder(sqlBuilderFactory)
-	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	sqlBuilder := db.ProvideSQLBuilderOLD(tenantConfiguration)
+	pool := _wirePoolValue
+	dbContext := db.ProvideContextOLD(context, pool, tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(dbContext)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -95,17 +96,20 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 		Identities: providerProvider,
 		Time:       timeProvider,
 	}
-	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	middleware := &auth2.Middleware{
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               authAccessEventProvider,
 		Users:                      queries,
-		TxContext:                  txContext,
+		TxContext:                  dbContext,
 	}
 	middlewareFunc := provideMiddleware(middleware)
 	return middlewareFunc
 }
+
+var (
+	_wirePoolValue = (*db.Pool)(nil)
+)
 
 func NewCSPMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	context := ProvideContext(r)
@@ -140,9 +144,10 @@ func NewClientIDMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc 
 func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 	context := ProvideContext(r)
 	tenantConfiguration := ProvideTenantConfig(context, m)
-	sqlBuilderFactory := db.ProvideSQLBuilderFactory(tenantConfiguration)
-	sqlBuilder := ProvideAuthSQLBuilder(sqlBuilderFactory)
-	sqlExecutor := db.ProvideSQLExecutor(context, tenantConfiguration)
+	sqlBuilder := db.ProvideSQLBuilderOLD(tenantConfiguration)
+	pool := _wirePoolValue
+	dbContext := db.ProvideContextOLD(context, pool, tenantConfiguration)
+	sqlExecutor := db.ProvideSQLExecutor(dbContext)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -161,10 +166,9 @@ func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 		Identities: providerProvider,
 		Time:       timeProvider,
 	}
-	txContext := db.ProvideTxContext(context, tenantConfiguration)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := ProvideTaskExecutor(m)
-	queue := async.ProvideTaskQueue(context, txContext, tenantConfiguration, executor)
+	queue := async.ProvideTaskQueue(context, dbContext, tenantConfiguration, executor)
 	engine := ProvideTemplateEngine(tenantConfiguration, m)
 	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
 	rawCommands := user.ProvideRawCommands(store, timeProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
@@ -173,7 +177,7 @@ func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 		RawCommands: rawCommands,
 	}
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, txContext, timeProvider, hookUserProvider, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, dbContext, timeProvider, hookUserProvider, loginidProvider, factory)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
 	insecureCookieConfig := ProvideSessionInsecureCookieConfig(m)
 	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)

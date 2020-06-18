@@ -117,10 +117,6 @@ func ProvideTemplateEngine(config *config.TenantConfiguration, m DependencyMap) 
 	)
 }
 
-func ProvideAuthSQLBuilder(f db.SQLBuilderFactory) db.SQLBuilder {
-	return f("auth")
-}
-
 func ProvideStaticAssetURLPrefix(m DependencyMap) deps.StaticAssetURLPrefix {
 	return deps.StaticAssetURLPrefix(m.StaticAssetURLPrefix)
 }
@@ -248,13 +244,12 @@ var CommonDependencySet = wire.NewSet(
 	ProvideTaskExecutor,
 	ProvideTemplateEngine,
 	ProvideStaticAssetURLPrefix,
+	wire.Value((*db.Pool)(nil)), // FIXME: remove this
 	endpointsDependencySet,
-
-	ProvideAuthSQLBuilder,
 
 	logging.DependencySet,
 	time.DependencySet,
-	db.DependencySet,
+	db.OldDependencySet,
 	session.DependencySet,
 	sessionredis.DependencySet,
 	coreauth.DependencySet,

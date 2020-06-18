@@ -9,7 +9,7 @@ import (
 
 func TestWithTx(t *testing.T) {
 	Convey("WithTx", t, func() {
-		c := &MockTxContext{}
+		c := &MockContext{}
 
 		Convey("commit", func() {
 			f := func() error { return nil }
@@ -45,7 +45,7 @@ func TestWithTx(t *testing.T) {
 
 func TestReadOnly(t *testing.T) {
 	Convey("ReadOnly", t, func() {
-		c := &MockTxContext{}
+		c := &MockContext{}
 
 		Convey("rollback when no error", func() {
 			f := func() error { return nil }
