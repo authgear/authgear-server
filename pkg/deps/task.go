@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/core/intl"
 	"github.com/skygeario/skygear-server/pkg/task"
 	"github.com/skygeario/skygear-server/pkg/task/executors"
 	"github.com/skygeario/skygear-server/pkg/task/queue"
@@ -13,8 +12,7 @@ import (
 func ProvideCaptureTaskContext(ctx context.Context, config *config.Config) queue.CaptureTaskContext {
 	return func() *task.Context {
 		return &task.Context{
-			Config:                config,
-			PreferredLanguageTags: intl.GetPreferredLanguageTags(ctx),
+			Config: config,
 		}
 	}
 }
@@ -24,7 +22,6 @@ func ProvideRestoreTaskContext(deps *RootContainer) executors.RestoreTaskContext
 		ctx := context.Background()
 		requestContainer := deps.NewRequestContainer(ctx, nil, taskCtx.Config)
 		ctx = WithRequestContainer(ctx, requestContainer)
-		ctx = intl.WithPreferredLanguageTags(ctx, taskCtx.PreferredLanguageTags)
 		return ctx
 	}
 }

@@ -5,6 +5,5 @@ import (
 )
 
 type Context struct {
-	Config                *config.Config
-	PreferredLanguageTags []string
+	Config *config.Config
 }
