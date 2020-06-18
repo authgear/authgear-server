@@ -8,12 +8,12 @@ import (
 )
 
 type RequestMiddleware struct {
-	RootContainer *RootContainer
-	ConfigSource  configsource.Source
+	RootProvider *RootProvider
+	ConfigSource configsource.Source
 }
 
 func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
-	logger := m.RootContainer.LoggerFactory.New("request")
+	logger := m.RootProvider.LoggerFactory.New("request")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		config, err := m.ConfigSource.ProvideConfig(r.Context(), r)
@@ -27,8 +27,8 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		requestContainer := m.RootContainer.NewRequestContainer(r.Context(), r, config)
-		r = r.WithContext(WithRequestContainer(r.Context(), requestContainer))
+		rp := m.RootProvider.NewRequestProvider(r.Context(), r, config)
+		r = r.WithContext(WithRequestProvider(r.Context(), rp))
 		next.ServeHTTP(w, r)
 	})
 }

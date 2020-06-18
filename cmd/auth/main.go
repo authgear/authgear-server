@@ -23,12 +23,12 @@ func main() {
 		log.Fatalf("failed to load server config: %s", err)
 	}
 
-	rootDeps, err := deps.NewRootContainer(serverCfg)
+	p, err := deps.NewRootProvider(serverCfg)
 	if err != nil {
 		log.Fatalf("failed to setup server: %s", err)
 	}
 
-	logger := rootDeps.LoggerFactory.New("main")
+	logger := p.LoggerFactory.New("main")
 
 	if serverCfg.DevMode {
 		logger.Warn("Development mode is ON - do not use in production")
@@ -40,9 +40,9 @@ func main() {
 		logger.WithError(err).Fatal("cannot open configuration")
 	}
 
-	server := httputil.NewServer(rootDeps.LoggerFactory, &http.Server{
+	server := httputil.NewServer(p.LoggerFactory, &http.Server{
 		Addr:    serverCfg.ListenAddr,
-		Handler: setupNewRoutes(rootDeps, configSource),
+		Handler: setupNewRoutes(p, configSource),
 	})
 	server.ListenAndServe("starting auth gear")
 }

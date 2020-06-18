@@ -13,7 +13,7 @@ import (
 	taskexecutors "github.com/skygeario/skygear-server/pkg/task/executors"
 )
 
-type RootContainer struct {
+type RootProvider struct {
 	ServerConfig        *config.ServerConfig
 	LoggerFactory       *log.Factory
 	DatabasePool        *db.Pool
@@ -22,8 +22,8 @@ type RootContainer struct {
 	ReservedNameChecker *loginid.ReservedNameChecker
 }
 
-func NewRootContainer(cfg *config.ServerConfig) (*RootContainer, error) {
-	var container RootContainer
+func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
+	var p RootProvider
 
 	loggerFactory := log.NewFactory(
 		log.NewDefaultMaskLogHook(),
@@ -31,13 +31,13 @@ func NewRootContainer(cfg *config.ServerConfig) (*RootContainer, error) {
 	)
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool()
-	taskExecutor := taskexecutors.NewInMemoryExecutor(loggerFactory, ProvideRestoreTaskContext(&container))
+	taskExecutor := taskexecutors.NewInMemoryExecutor(loggerFactory, ProvideRestoreTaskContext(&p))
 	reservedNameChecker, err := loginid.NewReservedNameChecker(cfg.ReservedNameFilePath)
 	if err != nil {
 		return nil, err
 	}
 
-	container = RootContainer{
+	p = RootProvider{
 		ServerConfig:        cfg,
 		LoggerFactory:       loggerFactory,
 		DatabasePool:        dbPool,
@@ -45,24 +45,24 @@ func NewRootContainer(cfg *config.ServerConfig) (*RootContainer, error) {
 		TaskExecutor:        taskExecutor,
 		ReservedNameChecker: reservedNameChecker,
 	}
-	return &container, nil
+	return &p, nil
 }
 
-func (c *RootContainer) NewRequestContainer(ctx context.Context, r *http.Request, cfg *config.Config) *RequestContainer {
-	loggerFactory := c.LoggerFactory.WithHooks(log.NewSecretMaskLogHook(cfg.SecretConfig))
+func (p *RootProvider) NewRequestProvider(ctx context.Context, r *http.Request, cfg *config.Config) *RequestProvider {
+	loggerFactory := p.LoggerFactory.WithHooks(log.NewSecretMaskLogHook(cfg.SecretConfig))
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
 	dbContext := db.NewContext(
 		ctx,
-		c.DatabasePool,
+		p.DatabasePool,
 		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
 	)
 	redisContext := redis.NewContext(
-		c.RedisPool,
+		p.RedisPool,
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 	)
 
-	return &RequestContainer{
-		RootContainer: c,
+	return &RequestProvider{
+		RootProvider:  p,
 		Request:       r,
 		Context:       ctx,
 		LoggerFactory: loggerFactory,
@@ -72,8 +72,8 @@ func (c *RootContainer) NewRequestContainer(ctx context.Context, r *http.Request
 	}
 }
 
-type RequestContainer struct {
-	*RootContainer
+type RequestProvider struct {
+	*RootProvider
 
 	Request       *http.Request
 	Context       context.Context

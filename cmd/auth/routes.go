@@ -45,14 +45,14 @@ type TemplateConfiguration struct {
 	AssetGearMasterKey string `envconfig:"ASSET_GEAR_MASTER_KEY"`
 }
 
-func setupNewRoutes(container *deps.RootContainer, configSource configsource.Source) *mux.Router {
+func setupNewRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Router {
 	router := server.NewRouter()
 	router.HandleFunc("/healthz", server.HealthCheckHandler)
 
 	rootRouter := router.PathPrefix("/").Subrouter()
 	rootRouter.Use((&deps.RequestMiddleware{
-		RootContainer: container,
-		ConfigSource:  configSource,
+		RootProvider: p,
+		ConfigSource: configSource,
 	}).Handle)
 
 	return router

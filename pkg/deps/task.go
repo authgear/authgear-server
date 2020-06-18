@@ -17,11 +17,11 @@ func ProvideCaptureTaskContext(ctx context.Context, config *config.Config) queue
 	}
 }
 
-func ProvideRestoreTaskContext(deps *RootContainer) executors.RestoreTaskContext {
+func ProvideRestoreTaskContext(p *RootProvider) executors.RestoreTaskContext {
 	return func(taskCtx *task.Context) context.Context {
 		ctx := context.Background()
-		requestContainer := deps.NewRequestContainer(ctx, nil, taskCtx.Config)
-		ctx = WithRequestContainer(ctx, requestContainer)
+		rp := p.NewRequestProvider(ctx, nil, taskCtx.Config)
+		ctx = WithRequestProvider(ctx, rp)
 		return ctx
 	}
 }

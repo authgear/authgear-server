@@ -3,7 +3,7 @@ package deps
 import "github.com/google/wire"
 
 var commonDependencySet = wire.NewSet(
-	wire.FieldsOf(new(RootContainer),
+	wire.FieldsOf(new(RootProvider),
 		"ServerConfig",
 		"DatabasePool",
 		"RedisPool",
@@ -14,15 +14,15 @@ var commonDependencySet = wire.NewSet(
 
 var RootDependencySet = wire.NewSet(
 	commonDependencySet,
-	wire.FieldsOf(new(RootContainer),
+	wire.FieldsOf(new(RootProvider),
 		"LoggerFactory",
 	),
 )
 
 var RequestDependencySet = wire.NewSet(
 	commonDependencySet,
-	wire.FieldsOf(new(RequestContainer),
-		"RootContainer",
+	wire.FieldsOf(new(RequestProvider),
+		"RootProvider",
 		"LoggerFactory",
 	),
 )

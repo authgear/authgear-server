@@ -2,15 +2,15 @@ package deps
 
 import "context"
 
-type requestContainerContextKeyType struct{}
+type requestProviderContextKeyType struct{}
 
-var requestContainerContextKey = requestContainerContextKeyType{}
+var requestProviderContextKey = requestProviderContextKeyType{}
 
-func WithRequestContainer(ctx context.Context, container *RequestContainer) context.Context {
-	return context.WithValue(ctx, requestContainerContextKey, container)
+func WithRequestProvider(ctx context.Context, p *RequestProvider) context.Context {
+	return context.WithValue(ctx, requestProviderContextKey, p)
 }
 
-func GetRequestContainer(ctx context.Context) *RequestContainer {
-	container := ctx.Value(requestContainerContextKey).(*RequestContainer)
-	return container
+func GetRequestProvider(ctx context.Context) *RequestProvider {
+	p := ctx.Value(requestProviderContextKey).(*RequestProvider)
+	return p
 }
