@@ -1,13 +1,15 @@
 package main
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/deps"
-	"github.com/skygeario/skygear-server/pkg/httputil"
 	"log"
 	"net/http"
 
 	"github.com/joho/godotenv"
+
+	"github.com/skygeario/skygear-server/pkg/auth/config"
+	configsource "github.com/skygeario/skygear-server/pkg/auth/config/source"
+	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 func main() {
@@ -30,6 +32,12 @@ func main() {
 
 	if serverCfg.DevMode {
 		logger.Warn("Development mode is ON - do not use in production")
+	}
+
+	configSource := configsource.NewSource(serverCfg)
+	err = configSource.Open()
+	if err != nil {
+		logger.WithError(err).Fatal("cannot open configuration")
 	}
 
 	server := httputil.NewServer(rootDeps.LoggerFactory, &http.Server{
