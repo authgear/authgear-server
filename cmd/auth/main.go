@@ -26,6 +26,12 @@ func main() {
 		log.Fatalf("failed to setup server: %s", err)
 	}
 
+	logger := rootDeps.LoggerFactory.New("main")
+
+	if serverCfg.DevMode {
+		logger.Warn("Development mode is ON - do not use in production")
+	}
+
 	server := httputil.NewServer(rootDeps.LoggerFactory, &http.Server{
 		Addr:    serverCfg.ListenAddr,
 		Handler: nil,
