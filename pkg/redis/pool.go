@@ -36,15 +36,17 @@ func (p *Pool) Open(c *config.RedisCredentials) *redis.Pool {
 	p.cacheMutex.RLock()
 	pool, exists := p.cache[connKey]
 	p.cacheMutex.RUnlock()
-
-	if !exists {
-		p.cacheMutex.Lock()
-		pool, exists = p.cache[connKey]
-		if !exists {
-			p.cache[connKey] = openRedis(c)
-		}
-		p.cacheMutex.Unlock()
+	if exists {
+		return pool
 	}
+
+	p.cacheMutex.Lock()
+	pool, exists = p.cache[connKey]
+	if !exists {
+		pool = openRedis(c)
+		p.cache[connKey] = pool
+	}
+	p.cacheMutex.Unlock()
 
 	return pool
 }
