@@ -11,7 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/time"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -89,7 +88,7 @@ func TestDeliverer(t *testing.T) {
 				gock.New("https://example.com").
 					Post("/a").
 					JSON(e).
-					HeaderPresent(http.HeaderRequestBodySignature).
+					HeaderPresent(HeaderRequestBodySignature).
 					Reply(200).
 					JSON(map[string]interface{}{
 						"is_allowed": true,

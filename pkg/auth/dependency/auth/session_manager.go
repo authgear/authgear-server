@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"sort"
 
+	"github.com/skygeario/skygear-server/pkg/httputil"
+
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
 type HookProvider interface {
@@ -21,7 +22,7 @@ type UserProvider interface {
 }
 
 type SessionManagementProvider interface {
-	CookieConfig() *corehttp.CookieConfiguration
+	Cookie() *httputil.CookieDef
 	Get(id string) (AuthSession, error)
 	Update(AuthSession) error
 	Delete(AuthSession) error
@@ -83,7 +84,7 @@ func (m *SessionManager) Logout(session AuthSession, rw http.ResponseWriter) err
 		return err
 	}
 
-	if cookie := provider.CookieConfig(); cookie != nil {
+	if cookie := provider.Cookie(); cookie != nil {
 		cookie.Clear(rw)
 	}
 

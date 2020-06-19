@@ -3,8 +3,8 @@ package oauth
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 type SessionManager struct {
@@ -12,7 +12,7 @@ type SessionManager struct {
 	Time  time.Provider
 }
 
-func (m *SessionManager) CookieConfig() *corehttp.CookieConfiguration {
+func (m *SessionManager) Cookie() *httputil.CookieDef {
 	return nil
 }
 

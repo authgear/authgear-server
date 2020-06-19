@@ -31,7 +31,7 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	insecureCookieConfig := auth.ProvideSessionInsecureCookieConfig(m)
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
-	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	cookieDef := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	timeProvider := time.NewProvider()
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
@@ -41,9 +41,9 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	sessionProvider := session.ProvideSessionProvider(r, store, accessEventProvider, tenantConfiguration)
 	resolver := &session.Resolver{
-		CookieConfiguration: cookieConfiguration,
-		Provider:            sessionProvider,
-		Time:                timeProvider,
+		Cookie:   cookieDef,
+		Provider: sessionProvider,
+		Time:     timeProvider,
 	}
 	sqlBuilder := db.ProvideSQLBuilderOLD(tenantConfiguration)
 	pool := _wirePoolValue

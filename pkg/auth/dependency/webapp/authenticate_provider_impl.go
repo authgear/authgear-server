@@ -12,9 +12,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
+	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 type InteractionFlow interface {
@@ -82,7 +82,7 @@ func (p *AuthenticateProviderImpl) handleResult(w http.ResponseWriter, r *http.R
 	}
 
 	for _, cookie := range result.Cookies {
-		corehttp.UpdateCookie(w, cookie)
+		httputil.UpdateCookie(w, cookie)
 	}
 
 	switch result.Step {
@@ -670,7 +670,7 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 	}
 
 	for _, cookie := range result.Cookies {
-		corehttp.UpdateCookie(w, cookie)
+		httputil.UpdateCookie(w, cookie)
 	}
 
 	return

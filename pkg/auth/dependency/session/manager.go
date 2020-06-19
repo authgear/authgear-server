@@ -4,19 +4,19 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 type Manager struct {
-	Store  Store
-	Time   time.Provider
-	Config config.SessionConfiguration
-	Cookie CookieConfiguration
+	Store     Store
+	Time      time.Provider
+	Config    config.SessionConfiguration
+	CookieDef CookieDef
 }
 
-func (m *Manager) CookieConfig() *corehttp.CookieConfiguration {
-	return (*corehttp.CookieConfiguration)(&m.Cookie)
+func (m *Manager) Cookie() *httputil.CookieDef {
+	return m.CookieDef.CookieDef
 }
 
 func (m *Manager) Get(id string) (auth.AuthSession, error) {

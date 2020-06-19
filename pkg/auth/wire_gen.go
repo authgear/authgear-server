@@ -45,7 +45,7 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	insecureCookieConfig := ProvideSessionInsecureCookieConfig(m)
 	context := ProvideContext(r)
 	tenantConfiguration := ProvideTenantConfig(context, m)
-	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	cookieDef := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
 	timeProvider := time.NewProvider()
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
 	store := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
@@ -55,9 +55,9 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	}
 	sessionProvider := session.ProvideSessionProvider(r, store, accessEventProvider, tenantConfiguration)
 	resolver := &session.Resolver{
-		CookieConfiguration: cookieConfiguration,
-		Provider:            sessionProvider,
-		Time:                timeProvider,
+		Cookie:   cookieDef,
+		Provider: sessionProvider,
+		Time:     timeProvider,
 	}
 	sqlBuilder := db.ProvideSQLBuilderOLD(tenantConfiguration)
 	pool := _wirePoolValue
@@ -180,8 +180,8 @@ func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, dbContext, timeProvider, hookUserProvider, loginidProvider, factory)
 	sessionStore := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
 	insecureCookieConfig := ProvideSessionInsecureCookieConfig(m)
-	cookieConfiguration := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
-	manager := session.ProvideSessionManager(sessionStore, timeProvider, tenantConfiguration, cookieConfiguration)
+	cookieDef := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
+	manager := session.ProvideSessionManager(sessionStore, timeProvider, tenantConfiguration, cookieDef)
 	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
 	sessionManager := &oauth.SessionManager{
 		Store: grantStore,

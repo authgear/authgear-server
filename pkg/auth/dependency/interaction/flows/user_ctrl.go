@@ -29,13 +29,13 @@ type UserProvider interface {
 }
 
 type UserController struct {
-	Users               UserProvider
-	TokenIssuer         TokenIssuer
-	SessionCookieConfig session.CookieConfiguration
-	Sessions            session.Provider
-	Hooks               hook.Provider
-	Time                time.Provider
-	Clients             []config.OAuthClientConfiguration
+	Users         UserProvider
+	TokenIssuer   TokenIssuer
+	SessionCookie session.CookieDef
+	Sessions      session.Provider
+	Hooks         hook.Provider
+	Time          time.Provider
+	Clients       []config.OAuthClientConfiguration
 }
 
 func (c *UserController) makeResponse(attrs *authn.Attrs) (*model.AuthResponse, error) {
@@ -65,7 +65,7 @@ func (c *UserController) CreateSession(
 		return nil, err
 	}
 
-	result.Cookies = []*http.Cookie{c.SessionCookieConfig.NewCookie(token)}
+	result.Cookies = []*http.Cookie{c.SessionCookie.New(token)}
 
 	result.Response.SessionID = session.SessionID()
 

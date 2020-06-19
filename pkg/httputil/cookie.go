@@ -1,4 +1,4 @@
-package http
+package httputil
 
 import (
 	"net"
@@ -9,7 +9,7 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-type CookieConfiguration struct {
+type CookieDef struct {
 	Name   string
 	Path   string
 	Domain string
@@ -17,7 +17,7 @@ type CookieConfiguration struct {
 	MaxAge *int
 }
 
-func (c *CookieConfiguration) NewCookie(value string) *http.Cookie {
+func (c *CookieDef) New(value string) *http.Cookie {
 	cookie := &http.Cookie{
 		Name:     c.Name,
 		Path:     c.Path,
@@ -35,11 +35,11 @@ func (c *CookieConfiguration) NewCookie(value string) *http.Cookie {
 	return cookie
 }
 
-func (c *CookieConfiguration) WriteTo(rw http.ResponseWriter, value string) {
-	UpdateCookie(rw, c.NewCookie(value))
+func (c *CookieDef) WriteTo(rw http.ResponseWriter, value string) {
+	UpdateCookie(rw, c.New(value))
 }
 
-func (c *CookieConfiguration) Clear(rw http.ResponseWriter) {
+func (c *CookieDef) Clear(rw http.ResponseWriter) {
 	cookie := &http.Cookie{
 		Name:     c.Name,
 		Path:     c.Path,
@@ -52,11 +52,6 @@ func (c *CookieConfiguration) Clear(rw http.ResponseWriter) {
 
 	UpdateCookie(rw, cookie)
 }
-
-// Cookie names
-const (
-	CookieNameSession = "session"
-)
 
 func UpdateCookie(w http.ResponseWriter, cookie *http.Cookie) {
 	header := w.Header()

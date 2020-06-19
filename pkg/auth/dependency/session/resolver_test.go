@@ -5,10 +5,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/time"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 type mockResolverProvider struct {
@@ -36,12 +38,14 @@ func (r *mockResolverProvider) Update(session *IDPSession) error {
 
 func TestResolver(t *testing.T) {
 	Convey("Resolver", t, func() {
-		config := CookieConfiguration{
-			Name:   CookieName,
-			Path:   "/",
-			Domain: "app.test",
-			Secure: true,
-			MaxAge: nil,
+		cookie := CookieDef{
+			&httputil.CookieDef{
+				Name:   CookieName,
+				Path:   "/",
+				Domain: "app.test",
+				Secure: true,
+				MaxAge: nil,
+			},
 		}
 		provider := &mockResolverProvider{}
 		provider.Sessions = []IDPSession{
@@ -55,9 +59,9 @@ func TestResolver(t *testing.T) {
 		}
 
 		resolver := Resolver{
-			CookieConfiguration: config,
-			Provider:            provider,
-			Time:                &time.MockProvider{},
+			Cookie:   cookie,
+			Provider: provider,
+			Time:     &time.MockProvider{},
 		}
 
 		Convey("resolve without session cookie", func() {

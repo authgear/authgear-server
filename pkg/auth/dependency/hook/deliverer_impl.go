@@ -10,13 +10,13 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/time"
 
-	"github.com/skygeario/skygear-server/pkg/core/crypto"
-	"github.com/skygeario/skygear-server/pkg/core/http"
-
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/crypto"
 )
+
+const HeaderRequestBodySignature = "x-authgear-body-signature"
 
 type delivererImpl struct {
 	Hooks            *[]config.Hook
@@ -145,7 +145,7 @@ func (deliverer *delivererImpl) prepareRequest(hook config.Hook, event *event.Ev
 		return nil, newErrorDeliveryFailed(err)
 	}
 	request.Header.Add("Content-Type", "application/json")
-	request.Header.Add(http.HeaderRequestBodySignature, signature)
+	request.Header.Add(HeaderRequestBodySignature, signature)
 
 	return request, nil
 }

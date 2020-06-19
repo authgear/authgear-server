@@ -14,9 +14,9 @@ type ResolverProvider interface {
 }
 
 type Resolver struct {
-	CookieConfiguration CookieConfiguration
-	Provider            ResolverProvider
-	Time                time.Provider
+	Cookie   CookieDef
+	Provider ResolverProvider
+	Time     time.Provider
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthSession, error) {
@@ -30,7 +30,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthS
 	if err != nil {
 		if errors.Is(err, ErrSessionNotFound) {
 			err = auth.ErrInvalidSession
-			re.CookieConfiguration.Clear(rw)
+			re.Cookie.Clear(rw)
 		}
 		return nil, err
 	}

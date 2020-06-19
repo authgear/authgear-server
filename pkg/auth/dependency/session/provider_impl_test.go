@@ -31,7 +31,7 @@ func TestProvider(t *testing.T) {
 
 		req, _ := http.NewRequest("POST", "", nil)
 		req.Header.Set("User-Agent", "SDK")
-		req.Header.Set("X-Skygear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
+		req.Header.Set("X-Authgear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
 		accessEvent := auth.AccessEvent{
 			Timestamp: initialTime,
 			UserAgent: "SDK",
