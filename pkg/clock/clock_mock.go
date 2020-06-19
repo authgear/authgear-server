@@ -22,7 +22,7 @@ func (c *MockClock) NowUTC() time.Time {
 	return c.Time.UTC()
 }
 
-func (c *MockClock) Now() time.Time {
+func (c *MockClock) NowMonotonic() time.Time {
 	return c.Time
 }
 

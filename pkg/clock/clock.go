@@ -4,7 +4,7 @@ import "time"
 
 type Clock interface {
 	NowUTC() time.Time
-	Now() time.Time
+	NowMonotonic() time.Time
 }
 
 type SystemClock struct{}
@@ -17,6 +17,6 @@ func (*SystemClock) NowUTC() time.Time {
 	return time.Now().UTC()
 }
 
-func (*SystemClock) Now() time.Time {
+func (*SystemClock) NowMonotonic() time.Time {
 	return time.Now()
 }

@@ -47,7 +47,7 @@ func (deliverer *delivererImpl) WillDeliver(eventType event.Type) bool {
 }
 
 func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.User) error {
-	startTime := deliverer.Clock.Now()
+	startTime := deliverer.Clock.NowMonotonic()
 	requestTimeout := time.Duration(deliverer.HookTenantConfig.SyncHookTimeout) * time.Second
 	totalTimeout := time.Duration(deliverer.HookTenantConfig.SyncHookTotalTimeout) * time.Second
 
@@ -61,7 +61,7 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.U
 			continue
 		}
 
-		if deliverer.Clock.Now().Sub(startTime) > totalTimeout {
+		if deliverer.Clock.NowMonotonic().Sub(startTime) > totalTimeout {
 			return errDeliveryTimeout
 		}
 
