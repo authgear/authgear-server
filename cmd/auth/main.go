@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/spf13/cobra"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
@@ -77,7 +79,7 @@ type TemplateConfiguration struct {
 	@Tag SSO
 		Single sign-on
 */
-func main() {
+func start() {
 	// logging initialization
 	logging.SetModule("auth")
 	loggerFactory := logging.NewFactory(
@@ -249,4 +251,34 @@ func main() {
 		Handler: router,
 	}
 	server.ListenAndServe(srv, logger, "Starting auth gear")
+}
+
+func main() {
+	rootCmd := &cobra.Command{}
+
+	startCmd := &cobra.Command{
+		Use:   "start",
+		Short: "Start the HTTP server",
+		Long:  "Start the HTTP server",
+		Run: func(cmd *cobra.Command, args []string) {
+			start()
+		},
+	}
+
+	secretCmd := &cobra.Command{
+		Use:   "secret",
+		Short: "Generate secret.yaml and print to stdout",
+		Long:  "Generate secret.yaml and print to stdout",
+		Run: func(cmd *cobra.Command, args []string) {
+			PrintSecretYAML()
+		},
+	}
+
+	rootCmd.AddCommand(startCmd)
+	rootCmd.AddCommand(secretCmd)
+
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
 }
