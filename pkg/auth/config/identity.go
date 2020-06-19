@@ -7,15 +7,15 @@ var _ = Schema.Add("IdentityConfig", `
 	"type": "object",
 	"properties": {
 		"login_id": { "$ref": "#/$defs/LoginIDConfig" },
-		"sso": { "$ref": "#/$defs/SSOConfig" },
-		"sso": { "$ref": "#/$defs/IdentityConflictConfig" }
+		"oauth": { "$ref": "#/$defs/OAuthSSOConfig" },
+		"on_conflict": { "$ref": "#/$defs/IdentityConflictConfig" }
 	}
 }
 `)
 
 type IdentityConfig struct {
 	LoginID    *LoginIDConfig          `json:"login_id,omitempty"`
-	SSO        *SSOConfig              `json:"sso,omitempty"`
+	OAuth      *OAuthSSOConfig         `json:"oauth,omitempty"`
 	OnConflict *IdentityConflictConfig `json:"on_conflict,omitempty"`
 }
 
@@ -173,17 +173,17 @@ func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
 	return "", false
 }
 
-var _ = Schema.Add("SSOConfig", `
+var _ = Schema.Add("OAuthSSOConfig", `
 {
 	"type": "object",
 	"properties": {
-		"oauth_providers": { "type": "array", "items": { "$ref": "#/$defs/OAuthSSOProviderConfig" } }
+		"providers": { "type": "array", "items": { "$ref": "#/$defs/OAuthSSOProviderConfig" } }
 	}
 }
 `)
 
-type SSOConfig struct {
-	OAuthProviders []OAuthSSOProviderConfig `json:"oauth_providers,omitempty"`
+type OAuthSSOConfig struct {
+	Providers []OAuthSSOProviderConfig `json:"providers,omitempty"`
 }
 
 var _ = Schema.Add("OAuthSSOProviderType", `

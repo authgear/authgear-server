@@ -70,14 +70,14 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 	oAuthProviderIDs := map[string]struct{}{}
 	oauthProviderAliases := map[string]struct{}{}
-	for i, provider := range c.Identity.SSO.OAuthProviders {
+	for i, provider := range c.Identity.OAuth.Providers {
 		// Ensure provider ID is not duplicated
 		id, err := json.Marshal(provider.ProviderID().Claims())
 		if err != nil {
 			panic("config: cannot marshal provider ID claims: " + err.Error())
 		}
 		if _, ok := oAuthProviderIDs[string(id)]; ok {
-			ctx.Child("identity", "sso", "oauth_providers", strconv.Itoa(i)).
+			ctx.Child("identity", "oauth", "providers", strconv.Itoa(i)).
 				EmitErrorMessage("duplicated OAuth provider")
 			continue
 		}
@@ -85,7 +85,7 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 		// Ensure alias is not duplicated.
 		if _, ok := oauthProviderAliases[provider.Alias]; ok {
-			ctx.Child("identity", "sso", "oauth_providers", strconv.Itoa(i)).
+			ctx.Child("identity", "oauth", "providers", strconv.Itoa(i)).
 				EmitErrorMessage("duplicated OAuth provider alias")
 			continue
 		}

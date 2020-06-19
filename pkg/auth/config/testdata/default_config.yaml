@@ -258,7 +258,7 @@ identity:
       - key: username
         type: username
         maximum: 1
-  sso: {}
+  oauth: {}
   on_conflict:
     promotion: error
 authenticator:

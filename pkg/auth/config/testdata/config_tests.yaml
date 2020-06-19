@@ -39,12 +39,12 @@ config:
 name: dupe-oauth-provider
 error: |-
   invalid value:
-  /identity/sso/oauth_providers/1: duplicated OAuth provider
+  /identity/oauth/providers/1: duplicated OAuth provider
 config:
   id: test
   identity:
-    sso:
-      oauth_providers:
+    oauth:
+      providers:
         - type: google
           client_id: client_a
         - type: google
@@ -54,12 +54,12 @@ config:
 name: dupe-oauth-provider-alias
 error: |-
   invalid value:
-  /identity/sso/oauth_providers/1: duplicated OAuth provider alias
+  /identity/oauth/providers/1: duplicated OAuth provider alias
 config:
   id: test
   identity:
-    sso:
-      oauth_providers:
+    oauth:
+      providers:
         - type: facebook
           client_id: client_a
         - type: facebook
@@ -75,6 +75,18 @@ config:
   authentication:
     primary_authenticators: [oob_otp]
     secondary_authenticators: [totp, oob_otp]
+
+---
+name: invalid-conflict
+error: |-
+  invalid value:
+  /identity/on_conflict/promotion: enum
+    map[actual:foobar expected:[error login]]
+config:
+  id: test
+  identity:
+    on_conflict:
+      promotion: foobar
 
 ---
 name: unlisted-ccc
