@@ -5,10 +5,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/task"
 )
 
-func newPwHouseKeeperTask(r *deps.RequestProvider) task.Task {
+func newPwHouseKeeperTask(r *deps.TaskProvider) task.Task {
 	return (*PwHousekeeperTask)(nil)
 }
 
-func newSendMessagesTask(r *deps.RequestProvider) task.Task {
+func newSendMessagesTask(r *deps.TaskProvider) task.Task {
 	return (*SendMessagesTask)(nil)
 }

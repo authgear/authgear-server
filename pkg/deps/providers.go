@@ -51,7 +51,7 @@ func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 	return &p, nil
 }
 
-func (p *RootProvider) NewRequestProvider(ctx context.Context, r *http.Request, cfg *config.Config) *RequestProvider {
+func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *AppProvider {
 	loggerFactory := p.LoggerFactory.WithHooks(log.NewSecretMaskLogHook(cfg.SecretConfig))
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
 	dbContext := db.NewContext(
@@ -64,20 +64,36 @@ func (p *RootProvider) NewRequestProvider(ctx context.Context, r *http.Request, 
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 	)
 
-	return &RequestProvider{
+	return &AppProvider{
 		RootProvider:  p,
-		Request:       r,
 		Context:       ctx,
-		LoggerFactory: loggerFactory,
 		Config:        cfg,
+		LoggerFactory: loggerFactory,
 		DbContext:     dbContext,
 		RedisContext:  redisContext,
 	}
 }
 
+func (p *RootProvider) NewRequestProvider(r *http.Request, cfg *config.Config) *RequestProvider {
+	ap := p.NewAppProvider(r.Context(), cfg)
+
+	return &RequestProvider{
+		AppProvider: ap,
+		Request:     r,
+	}
+}
+
+func (p *RootProvider) NewTaskProvider(ctx context.Context, cfg *config.Config) *TaskProvider {
+	ap := p.NewAppProvider(ctx, cfg)
+
+	return &TaskProvider{
+		AppProvider: ap,
+	}
+}
+
 func (p *RootProvider) Handler(factory func(*RequestProvider) http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		p := GetRequestProvider(r.Context())
+		p := getRequestProvider(r.Context())
 		h := factory(p)
 		h.ServeHTTP(w, r)
 	})
@@ -86,7 +102,7 @@ func (p *RootProvider) Handler(factory func(*RequestProvider) http.Handler) http
 func (p *RootProvider) Middleware(factory func(*RequestProvider) mux.MiddlewareFunc) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			p := GetRequestProvider(r.Context())
+			p := getRequestProvider(r.Context())
 			m := factory(p)
 			h := m(next)
 			h.ServeHTTP(w, r)
@@ -94,21 +110,30 @@ func (p *RootProvider) Middleware(factory func(*RequestProvider) mux.MiddlewareF
 	}
 }
 
-func (p *RootProvider) Task(factory func(*RequestProvider) task.Task) task.Task {
+func (p *RootProvider) Task(factory func(provider *TaskProvider) task.Task) task.Task {
 	return TaskFunc(func(ctx context.Context, param interface{}) error {
-		p := GetRequestProvider(ctx)
+		p := getTaskProvider(ctx)
 		task := factory(p)
 		return task.Run(ctx, param)
 	})
 }
 
-type RequestProvider struct {
+type AppProvider struct {
 	*RootProvider
 
-	Request       *http.Request
 	Context       context.Context
-	LoggerFactory *log.Factory
 	Config        *config.Config
+	LoggerFactory *log.Factory
 	DbContext     db.Context
 	RedisContext  *redis.Context
+}
+
+type RequestProvider struct {
+	*AppProvider
+
+	Request *http.Request
+}
+
+type TaskProvider struct {
+	*AppProvider
 }

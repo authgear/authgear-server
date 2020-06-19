@@ -27,8 +27,8 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		rp := m.RootProvider.NewRequestProvider(r.Context(), r, config)
-		r = r.WithContext(WithRequestProvider(r.Context(), rp))
+		rp := m.RootProvider.NewRequestProvider(r, config)
+		r = r.WithContext(withProvider(r.Context(), rp))
 		next.ServeHTTP(w, r)
 	})
 }

@@ -15,7 +15,7 @@ func (f TaskFunc) Run(ctx context.Context, param interface{}) error {
 	return f(ctx, param)
 }
 
-func ProvideCaptureTaskContext(ctx context.Context, config *config.Config) queue.CaptureTaskContext {
+func ProvideCaptureTaskContext(config *config.Config) queue.CaptureTaskContext {
 	return func() *task.Context {
 		return &task.Context{
 			Config: config,
@@ -24,10 +24,9 @@ func ProvideCaptureTaskContext(ctx context.Context, config *config.Config) queue
 }
 
 func ProvideRestoreTaskContext(p *RootProvider) executors.RestoreTaskContext {
-	return func(taskCtx *task.Context) context.Context {
-		ctx := context.Background()
-		rp := p.NewRequestProvider(ctx, nil, taskCtx.Config)
-		ctx = WithRequestProvider(ctx, rp)
+	return func(ctx context.Context, taskCtx *task.Context) context.Context {
+		rp := p.NewTaskProvider(ctx, taskCtx.Config)
+		ctx = withProvider(ctx, rp)
 		return ctx
 	}
 }

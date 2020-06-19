@@ -2,15 +2,20 @@ package deps
 
 import "context"
 
-type requestProviderContextKeyType struct{}
+type providerContextKeyType struct{}
 
-var requestProviderContextKey = requestProviderContextKeyType{}
+var providerContextKey = providerContextKeyType{}
 
-func WithRequestProvider(ctx context.Context, p *RequestProvider) context.Context {
-	return context.WithValue(ctx, requestProviderContextKey, p)
+func withProvider(ctx context.Context, p interface{}) context.Context {
+	return context.WithValue(ctx, providerContextKey, p)
 }
 
-func GetRequestProvider(ctx context.Context) *RequestProvider {
-	p := ctx.Value(requestProviderContextKey).(*RequestProvider)
+func getRequestProvider(ctx context.Context) *RequestProvider {
+	p := ctx.Value(providerContextKey).(*RequestProvider)
+	return p
+}
+
+func getTaskProvider(ctx context.Context) *TaskProvider {
+	p := ctx.Value(providerContextKey).(*TaskProvider)
 	return p
 }

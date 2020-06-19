@@ -7,7 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/task"
 )
 
-type RestoreTaskContext func(*task.Context) context.Context
+type RestoreTaskContext func(context.Context, *task.Context) context.Context
 
 type InMemoryExecutor struct {
 	Logger         *log.Logger
@@ -29,7 +29,7 @@ func (e *InMemoryExecutor) Register(name string, task task.Task) {
 }
 
 func (e *InMemoryExecutor) Submit(taskCtx *task.Context, spec task.Spec) {
-	ctx := e.RestoreContext(taskCtx)
+	ctx := e.RestoreContext(context.Background(), taskCtx)
 	task := e.tasks[spec.Name]
 
 	go func() {
