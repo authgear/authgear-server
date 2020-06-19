@@ -7,7 +7,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/clock"
 )
 
 type ResolverSessionProvider interface {
@@ -20,7 +20,7 @@ type Resolver struct {
 	AccessGrants   AccessGrantStore
 	OfflineGrants  OfflineGrantStore
 	Sessions       ResolverSessionProvider
-	Time           time.Provider
+	Clock          clock.Clock
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthSession, error) {
@@ -52,7 +52,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthS
 	}
 
 	var authSession auth.AuthSession
-	event := auth.NewAccessEvent(re.Time.NowUTC(), r)
+	event := auth.NewAccessEvent(re.Clock.NowUTC(), r)
 
 	switch grant.SessionKind {
 	case GrantSessionKindSession:

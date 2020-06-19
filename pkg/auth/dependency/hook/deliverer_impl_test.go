@@ -10,8 +10,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -26,10 +26,7 @@ func TestDeliverer(t *testing.T) {
 			SyncHookTotalTimeout: 10,
 		}
 
-		timeProvider := time.MockProvider{}
-		initialTime := gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)
-		timeProvider.TimeNow = initialTime
-		timeProvider.TimeNowUTC = initialTime
+		clock := clock.NewMockClockAt("2006-01-02T15:04:05Z")
 		mutator := newMockMutator()
 
 		httpClient := gohttp.Client{}
@@ -37,7 +34,7 @@ func TestDeliverer(t *testing.T) {
 		deliverer := delivererImpl{
 			HookAppConfig:    hookAppConfig,
 			HookTenantConfig: hookTenantConfig,
-			TimeProvider:     &timeProvider,
+			Clock:            clock,
 			Mutator:          mutator,
 			HTTPClient:       httpClient,
 		}
@@ -297,7 +294,7 @@ func TestDeliverer(t *testing.T) {
 					JSON(e).
 					Reply(200).
 					Map(func(resp *gohttp.Response) *gohttp.Response {
-						timeProvider.AdvanceSeconds(5)
+						clock.AdvanceSeconds(5)
 						return resp
 					}).
 					JSON(map[string]interface{}{

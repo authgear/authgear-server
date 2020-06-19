@@ -6,8 +6,8 @@ import (
 	"github.com/google/wire"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type InsecureCookieConfig bool
@@ -24,10 +24,10 @@ func ProvideSessionProvider(req *http.Request, s Store, aep *auth.AccessEventPro
 	return NewProvider(req, s, aep, *c.AppConfig.Session)
 }
 
-func ProvideSessionManager(s Store, tp time.Provider, c *config.TenantConfiguration, cc CookieDef) *Manager {
+func ProvideSessionManager(s Store, tp clock.Clock, c *config.TenantConfiguration, cc CookieDef) *Manager {
 	return &Manager{
 		Store:     s,
-		Time:      tp,
+		Clock:     tp,
 		Config:    *c.AppConfig.Session,
 		CookieDef: cc,
 	}

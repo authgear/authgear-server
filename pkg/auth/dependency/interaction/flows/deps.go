@@ -5,9 +5,9 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func ProvideUserController(
@@ -16,7 +16,7 @@ func ProvideUserController(
 	scc session.CookieDef,
 	sp session.Provider,
 	hp hook.Provider,
-	tp time.Provider,
+	tp clock.Clock,
 	c *config.TenantConfiguration,
 ) *UserController {
 	return &UserController{
@@ -25,7 +25,7 @@ func ProvideUserController(
 		SessionCookie: scc,
 		Sessions:      sp,
 		Hooks:         hp,
-		Time:          tp,
+		Clock:         tp,
 		Clients:       c.AppConfig.Clients,
 	}
 }

@@ -40,7 +40,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"net/http"
 )
 
@@ -58,8 +58,8 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	timeProvider := time.NewProvider()
-	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
+	clock := _wireSystemClockValue
+	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, clock)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	endpointsProvider := &auth.EndpointsProvider{
 		PrefixProvider: urlprefixProvider,
@@ -68,25 +68,25 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Endpoints: endpointsProvider,
 	}
 	isAnonymousIdentityEnabled := flows.ProvideIsAnonymousIdentityEnabled(tenantConfiguration)
-	store := redis2.ProvideStore(context, tenantConfiguration, timeProvider)
+	store := redis2.ProvideStore(context, tenantConfiguration, clock)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
-	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration, checker, normalizerFactory)
+	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, clock)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
-	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
+	historyStoreImpl := password.ProvideHistoryStore(clock, sqlBuilder, sqlExecutor)
 	passwordChecker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
-	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, passwordChecker, tenantConfiguration)
-	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, clock, factory, historyStoreImpl, passwordChecker, tenantConfiguration)
+	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, dbContext, tenantConfiguration, executor)
-	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
-	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, clock, engine, urlprefixProvider, queue)
+	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration)
+	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration)
 	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
@@ -99,28 +99,26 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
-	rawCommands := user.ProvideRawCommands(userStore, timeProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	rawCommands := user.ProvideRawCommands(userStore, clock, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
-		Time:       timeProvider,
 	}
 	hookUserProvider := &auth.HookUserProvider{
 		Queries:     queries,
 		RawCommands: rawCommands,
 	}
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, dbContext, timeProvider, hookUserProvider, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, dbContext, clock, hookUserProvider, loginidProvider, factory)
 	commands := &user.Commands{
 		Raw:   rawCommands,
-		Time:  timeProvider,
 		Hooks: hookProvider,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
 		Queries:  queries,
 	}
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
-	provider4 := challenge.ProvideProvider(context, timeProvider, tenantConfiguration)
+	interactionProvider := interaction.ProvideProvider(store, clock, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	provider4 := challenge.ProvideProvider(context, clock, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Enabled:      isAnonymousIdentityEnabled,
 		Interactions: interactionProvider,
@@ -137,13 +135,14 @@ func newAuthorizeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
-	authorizationHandler := handler.ProvideAuthorizationHandler(context, tenantConfiguration, factory, authorizationStore, grantStore, urlProvider, webappURLProvider, scopesValidator, tokenGenerator, timeProvider)
+	authorizationHandler := handler.ProvideAuthorizationHandler(context, tenantConfiguration, factory, authorizationStore, grantStore, urlProvider, webappURLProvider, scopesValidator, tokenGenerator, clock)
 	httpHandler := provideAuthorizeHandler(factory, dbContext, authorizationHandler)
 	return httpHandler
 }
 
 var (
 	_wirePoolValue            = (*db.Pool)(nil)
+	_wireSystemClockValue     = clock.NewSystemClock()
 	_wireScopesValidatorValue = handler.ScopesValidator(oidc.ValidateScopes)
 	_wireTokenGeneratorValue  = handler.TokenGenerator(oauth2.GenerateToken)
 )
@@ -160,38 +159,38 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	timeProvider := time.NewProvider()
-	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
+	clock := _wireSystemClockValue
+	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, clock)
 	eventStore := redis3.ProvideEventStore(context, tenantConfiguration)
 	accessEventProvider := auth2.AccessEventProvider{
 		Store: eventStore,
 	}
-	store := redis4.ProvideStore(context, tenantConfiguration, timeProvider, factory)
+	store := redis4.ProvideStore(context, tenantConfiguration, clock, factory)
 	authAccessEventProvider := &auth2.AccessEventProvider{
 		Store: eventStore,
 	}
 	sessionProvider := session.ProvideSessionProvider(r, store, authAccessEventProvider, tenantConfiguration)
 	isAnonymousIdentityEnabled := flows.ProvideIsAnonymousIdentityEnabled(tenantConfiguration)
-	redisStore := redis2.ProvideStore(context, tenantConfiguration, timeProvider)
+	redisStore := redis2.ProvideStore(context, tenantConfiguration, clock)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
-	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration, checker, normalizerFactory)
+	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, clock)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
-	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
+	historyStoreImpl := password.ProvideHistoryStore(clock, sqlBuilder, sqlExecutor)
 	passwordChecker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
-	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, passwordChecker, tenantConfiguration)
-	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, clock, factory, historyStoreImpl, passwordChecker, tenantConfiguration)
+	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, dbContext, tenantConfiguration, executor)
-	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
-	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, clock, engine, urlprefixProvider, queue)
+	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration)
+	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration)
 	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
@@ -204,37 +203,35 @@ func newTokenHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
-	rawCommands := user.ProvideRawCommands(userStore, timeProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	rawCommands := user.ProvideRawCommands(userStore, clock, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
-		Time:       timeProvider,
 	}
 	hookUserProvider := &auth.HookUserProvider{
 		Queries:     queries,
 		RawCommands: rawCommands,
 	}
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, dbContext, timeProvider, hookUserProvider, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, dbContext, clock, hookUserProvider, loginidProvider, factory)
 	commands := &user.Commands{
 		Raw:   rawCommands,
-		Time:  timeProvider,
 		Hooks: hookProvider,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
 		Queries:  queries,
 	}
-	interactionProvider := interaction.ProvideProvider(redisStore, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
-	provider4 := challenge.ProvideProvider(context, timeProvider, tenantConfiguration)
+	interactionProvider := interaction.ProvideProvider(redisStore, clock, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	provider4 := challenge.ProvideProvider(context, clock, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Enabled:      isAnonymousIdentityEnabled,
 		Interactions: interactionProvider,
 		Anonymous:    anonymousProvider,
 		Challenges:   provider4,
 	}
-	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, queries, timeProvider)
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, queries, clock)
 	tokenGenerator := _wireTokenGeneratorValue
-	tokenHandler := handler.ProvideTokenHandler(r, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, accessEventProvider, sessionProvider, anonymousFlow, idTokenIssuer, tokenGenerator, timeProvider)
+	tokenHandler := handler.ProvideTokenHandler(r, tenantConfiguration, factory, authorizationStore, grantStore, grantStore, grantStore, accessEventProvider, sessionProvider, anonymousFlow, idTokenIssuer, tokenGenerator, clock)
 	httpHandler := provideTokenHandler(factory, dbContext, tokenHandler)
 	return httpHandler
 }
@@ -247,8 +244,8 @@ func newRevokeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	dbContext := db.ProvideContextOLD(context, pool, tenantConfiguration)
 	sqlBuilder := db.ProvideSQLBuilderOLD(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(dbContext)
-	timeProvider := time.NewProvider()
-	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
+	clock := _wireSystemClockValue
+	grantStore := redis.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, clock)
 	revokeHandler := &handler.RevokeHandler{
 		OfflineGrants: grantStore,
 		AccessGrants:  grantStore,
@@ -297,21 +294,20 @@ func newUserInfoHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	timeProvider := time.NewProvider()
+	clock := _wireSystemClockValue
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
-	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration, checker, normalizerFactory)
+	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, clock)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	queries := &user.Queries{
 		Store:      store,
 		Identities: providerProvider,
-		Time:       timeProvider,
 	}
-	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, queries, timeProvider)
+	idTokenIssuer := oidc.ProvideIDTokenIssuer(tenantConfiguration, urlprefixProvider, queries, clock)
 	httpHandler := provideUserInfoHandler(factory, dbContext, idTokenIssuer)
 	return httpHandler
 }
@@ -327,28 +323,28 @@ func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		PrefixProvider: urlprefixProvider,
 	}
 	isAnonymousIdentityEnabled := flows.ProvideIsAnonymousIdentityEnabled(tenantConfiguration)
-	timeProvider := time.NewProvider()
-	store := redis2.ProvideStore(context, tenantConfiguration, timeProvider)
+	clock := _wireSystemClockValue
+	store := redis2.ProvideStore(context, tenantConfiguration, clock)
 	sqlBuilder := db.ProvideSQLBuilderOLD(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(dbContext)
 	reservedNameChecker := auth.ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
-	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration, checker, normalizerFactory)
+	oauthProvider := oauth.ProvideProvider(sqlBuilder, sqlExecutor, clock)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
-	historyStoreImpl := password.ProvideHistoryStore(timeProvider, sqlBuilder, sqlExecutor)
+	historyStoreImpl := password.ProvideHistoryStore(clock, sqlBuilder, sqlExecutor)
 	passwordChecker := password.ProvideChecker(tenantConfiguration, historyStoreImpl)
-	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, factory, historyStoreImpl, passwordChecker, tenantConfiguration)
-	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	passwordProvider := password.ProvideProvider(sqlBuilder, sqlExecutor, clock, factory, historyStoreImpl, passwordChecker, tenantConfiguration)
+	totpProvider := totp.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration)
 	engine := auth.ProvideTemplateEngine(tenantConfiguration, m)
 	executor := auth.ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, dbContext, tenantConfiguration, executor)
-	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider, engine, urlprefixProvider, queue)
-	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
-	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration)
+	oobProvider := oob.ProvideProvider(context, tenantConfiguration, sqlBuilder, sqlExecutor, clock, engine, urlprefixProvider, queue)
+	bearertokenProvider := bearertoken.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration)
+	recoverycodeProvider := recoverycode.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration)
 	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
@@ -361,28 +357,26 @@ func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
-	rawCommands := user.ProvideRawCommands(userStore, timeProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	rawCommands := user.ProvideRawCommands(userStore, clock, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
-		Time:       timeProvider,
 	}
 	hookUserProvider := &auth.HookUserProvider{
 		Queries:     queries,
 		RawCommands: rawCommands,
 	}
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, dbContext, timeProvider, hookUserProvider, loginidProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, dbContext, clock, hookUserProvider, loginidProvider, factory)
 	commands := &user.Commands{
 		Raw:   rawCommands,
-		Time:  timeProvider,
 		Hooks: hookProvider,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
 		Queries:  queries,
 	}
-	interactionProvider := interaction.ProvideProvider(store, timeProvider, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
-	provider4 := challenge.ProvideProvider(context, timeProvider, tenantConfiguration)
+	interactionProvider := interaction.ProvideProvider(store, clock, factory, providerProvider, provider3, userProvider, oobProvider, tenantConfiguration, hookProvider)
+	provider4 := challenge.ProvideProvider(context, clock, tenantConfiguration)
 	anonymousFlow := &flows.AnonymousFlow{
 		Enabled:      isAnonymousIdentityEnabled,
 		Interactions: interactionProvider,
@@ -405,9 +399,9 @@ func newEndSessionHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 func newChallengeHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	validator := auth.ProvideValidator(m)
 	context := auth.ProvideContext(r)
-	timeProvider := time.NewProvider()
+	clock := _wireSystemClockValue
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
-	provider3 := challenge.ProvideProvider(context, timeProvider, tenantConfiguration)
+	provider3 := challenge.ProvideProvider(context, clock, tenantConfiguration)
 	challengeHandler := &ChallengeHandler{
 		Validator:  validator,
 		Challenges: provider3,

@@ -2,9 +2,10 @@ package loginid
 
 import (
 	"github.com/google/wire"
+
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func ProvideTypeCheckerFactory(
@@ -41,7 +42,7 @@ func ProvideNormalizerFactory(
 func ProvideProvider(
 	sqlb db.SQLBuilder,
 	sqle db.SQLExecutor,
-	t time.Provider,
+	t clock.Clock,
 	c *config.TenantConfiguration,
 	checker *Checker,
 	normalizerFactory *NormalizerFactory,
@@ -49,7 +50,6 @@ func ProvideProvider(
 	config := *c.AppConfig.Identity.LoginID
 	return &Provider{
 		Store:             &Store{SQLBuilder: sqlb, SQLExecutor: sqle},
-		Time:              t,
 		Config:            config,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,

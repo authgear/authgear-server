@@ -3,8 +3,8 @@ package sso
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 // OAuthProvider is OAuth 2.0 based provider.
@@ -39,16 +39,16 @@ type OAuthProviderFactory struct {
 	urlPrefixProvider        urlprefix.Provider
 	redirectURIFunc          RedirectURLFunc
 	tenantConfig             config.TenantConfiguration
-	timeProvider             coreTime.Provider
+	clock                    clock.Clock
 	userInfoDecoder          UserInfoDecoder
 	loginIDNormalizerFactory *loginid.NormalizerFactory
 }
 
-func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider, timeProvider coreTime.Provider, userInfoDecoder UserInfoDecoder, loginIDNormalizerFactory *loginid.NormalizerFactory, redirectURIFunc RedirectURLFunc) *OAuthProviderFactory {
+func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider, timeProvider clock.Clock, userInfoDecoder UserInfoDecoder, loginIDNormalizerFactory *loginid.NormalizerFactory, redirectURIFunc RedirectURLFunc) *OAuthProviderFactory {
 	return &OAuthProviderFactory{
 		tenantConfig:             tenantConfig,
 		urlPrefixProvider:        urlPrefixProvider,
-		timeProvider:             timeProvider,
+		clock:                    timeProvider,
 		userInfoDecoder:          userInfoDecoder,
 		loginIDNormalizerFactory: loginIDNormalizerFactory,
 		redirectURIFunc:          redirectURIFunc,
@@ -67,7 +67,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 			RedirectURLFunc:          p.redirectURIFunc,
 			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:           providerConfig,
-			TimeProvider:             p.timeProvider,
+			Clock:                    p.clock,
 			UserInfoDecoder:          p.userInfoDecoder,
 			LoginIDNormalizerFactory: p.loginIDNormalizerFactory,
 		}
@@ -93,7 +93,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 			RedirectURLFunc:          p.redirectURIFunc,
 			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:           providerConfig,
-			TimeProvider:             p.timeProvider,
+			Clock:                    p.clock,
 			LoginIDNormalizerFactory: p.loginIDNormalizerFactory,
 		}
 	case config.OAuthProviderTypeApple:
@@ -102,7 +102,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 			RedirectURLFunc:          p.redirectURIFunc,
 			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:           providerConfig,
-			TimeProvider:             p.timeProvider,
+			Clock:                    p.clock,
 			LoginIDNormalizerFactory: p.loginIDNormalizerFactory,
 		}
 	}

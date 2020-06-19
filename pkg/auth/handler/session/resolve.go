@@ -11,7 +11,6 @@ import (
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func AttachResolveHandler(
@@ -30,7 +29,6 @@ type AnonymousIdentityProvider interface {
 }
 
 type ResolveHandler struct {
-	TimeProvider  time.Provider
 	Anonymous     AnonymousIdentityProvider
 	LoggerFactory logging.Factory
 }

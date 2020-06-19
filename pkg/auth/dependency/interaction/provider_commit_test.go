@@ -13,8 +13,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	coretime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func TestProviderCommit(t *testing.T) {
@@ -29,7 +29,7 @@ func TestProviderCommit(t *testing.T) {
 		hooks := hook.NewMockProvider()
 
 		p := &interaction.Provider{
-			Time:          &coretime.MockProvider{},
+			Clock:         clock.NewMockClock(),
 			Identity:      identityProvider,
 			Authenticator: authenticatorProvider,
 			User:          userProvider,

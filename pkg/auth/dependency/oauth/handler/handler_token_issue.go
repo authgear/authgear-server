@@ -16,7 +16,7 @@ func (h *TokenHandler) IssueTokens(
 
 	authz, err := checkAuthorization(
 		h.Authorizations,
-		h.Time.NowUTC(),
+		h.Clock.NowUTC(),
 		h.AppID,
 		client.ClientID(),
 		attrs.UserID,

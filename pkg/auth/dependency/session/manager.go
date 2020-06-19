@@ -2,15 +2,15 @@ package session
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 type Manager struct {
 	Store     Store
-	Time      time.Provider
+	Clock     clock.Clock
 	Config    config.SessionConfiguration
 	CookieDef CookieDef
 }
@@ -53,7 +53,7 @@ func (m *Manager) List(userID string) ([]auth.AuthSession, error) {
 		return nil, errors.HandledWithMessage(err, "failed to list sessions")
 	}
 
-	now := m.Time.NowUTC()
+	now := m.Clock.NowUTC()
 	var sessions []auth.AuthSession
 	for _, session := range storedSessions {
 		maxExpiry := computeSessionStorageExpiry(session, m.Config)

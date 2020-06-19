@@ -21,7 +21,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"net/http"
 )
 
@@ -32,9 +32,9 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	context := auth.ProvideContext(r)
 	tenantConfiguration := auth.ProvideTenantConfig(context, m)
 	cookieDef := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
-	timeProvider := time.NewProvider()
+	clock := _wireSystemClockValue
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
-	store := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
+	store := redis.ProvideStore(context, tenantConfiguration, clock, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
 	accessEventProvider := &auth2.AccessEventProvider{
 		Store: eventStore,
@@ -43,7 +43,7 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	resolver := &session.Resolver{
 		Cookie:   cookieDef,
 		Provider: sessionProvider,
-		Time:     timeProvider,
+		Clock:    clock,
 	}
 	sqlBuilder := db.ProvideSQLBuilderOLD(tenantConfiguration)
 	pool := _wirePoolValue
@@ -53,14 +53,14 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, clock)
 	resolverSessionProvider := oauth.ProvideResolverProvider(sessionProvider)
 	oauthResolver := &oauth.Resolver{
 		Authorizations: authorizationStore,
 		AccessGrants:   grantStore,
 		OfflineGrants:  grantStore,
 		Sessions:       resolverSessionProvider,
-		Time:           timeProvider,
+		Clock:          clock,
 	}
 	authAccessEventProvider := auth2.AccessEventProvider{
 		Store: eventStore,
@@ -73,14 +73,13 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
-	oauthProvider := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration, checker, normalizerFactory)
+	oauthProvider := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, clock)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
-		Time:       timeProvider,
 	}
 	middleware := &auth2.Middleware{
 		IDPSessionResolver:         resolver,
@@ -89,12 +88,13 @@ func newResolveHandler(r *http.Request, m auth.DependencyMap) http.Handler {
 		Users:                      queries,
 		TxContext:                  dbContext,
 	}
-	handler := provideResolveHandler(middleware, factory, timeProvider, anonymousProvider)
+	handler := provideResolveHandler(middleware, factory, clock, anonymousProvider)
 	return handler
 }
 
 var (
-	_wirePoolValue = (*db.Pool)(nil)
+	_wireSystemClockValue = clock.NewSystemClock()
+	_wirePoolValue        = (*db.Pool)(nil)
 )
 
 // wire.go:
@@ -102,11 +102,10 @@ var (
 func provideResolveHandler(
 	m *auth2.Middleware,
 	lf logging.Factory,
-	t time.Provider,
+	t clock.Clock,
 	ap *anonymous.Provider,
 ) http.Handler {
 	return m.Handle(&ResolveHandler{
-		TimeProvider:  t,
 		LoggerFactory: lf,
 		Anonymous:     ap,
 	})

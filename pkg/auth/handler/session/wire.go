@@ -10,18 +10,17 @@ import (
 	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func provideResolveHandler(
 	m *auth.Middleware,
 	lf logging.Factory,
-	t time.Provider,
+	t clock.Clock,
 	ap *anonymous.Provider,
 ) http.Handler {
 	return m.Handle(&ResolveHandler{
-		TimeProvider:  t,
 		LoggerFactory: lf,
 		Anonymous:     ap,
 	})

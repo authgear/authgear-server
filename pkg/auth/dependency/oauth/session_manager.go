@@ -2,14 +2,14 @@ package oauth
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 type SessionManager struct {
 	Store OfflineGrantStore
-	Time  time.Provider
+	Clock clock.Clock
 }
 
 func (m *SessionManager) Cookie() *httputil.CookieDef {
@@ -48,7 +48,7 @@ func (m *SessionManager) List(userID string) ([]auth.AuthSession, error) {
 		return nil, errors.HandledWithMessage(err, "failed to list sessions")
 	}
 
-	now := m.Time.NowUTC()
+	now := m.Clock.NowUTC()
 	var sessions []auth.AuthSession
 	for _, session := range grants {
 		// ignore expired sessions

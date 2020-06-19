@@ -7,13 +7,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type Provider struct {
 	Store             *Store
-	Time              time.Provider
 	Config            config.LoginIDConfiguration
 	Checker           *Checker
 	NormalizerFactory *NormalizerFactory

@@ -1,15 +1,16 @@
 package oidc
 
 import (
-	gotime "time"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type UserProvider interface {
@@ -31,12 +32,12 @@ type IDTokenIssuer struct {
 	OIDCConfig config.OIDCConfiguration
 	URLPrefix  urlprefix.Provider
 	Users      UserProvider
-	Time       time.Provider
+	Clock      clock.Clock
 }
 
 // IDTokenValidDuration is the valid period of ID token.
 // It can be short, since id_token_hint should accept expired ID tokens.
-const IDTokenValidDuration = 5 * gotime.Minute
+const IDTokenValidDuration = 5 * time.Minute
 
 func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfiguration, session auth.AuthSession, nonce string) (string, error) {
 	userClaims, err := ti.LoadUserClaims(session)
@@ -44,7 +45,7 @@ func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfiguration, se
 		return "", err
 	}
 
-	now := ti.Time.NowUTC()
+	now := ti.Clock.NowUTC()
 	userClaims.StandardClaims.Audience = client.ClientID()
 	userClaims.StandardClaims.IssuedAt = now.Unix()
 	userClaims.StandardClaims.ExpiresAt = now.Add(IDTokenValidDuration).Unix()

@@ -2,17 +2,17 @@ package bearertoken
 
 import (
 	"errors"
-	gotime "time"
+	"time"
 
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type Provider struct {
 	Store  *Store
 	Config *config.AuthenticatorBearerTokenConfiguration
-	Time   time.Provider
+	Clock  clock.Clock
 }
 
 func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
@@ -36,7 +36,7 @@ func (p *Provider) DeleteByParentID(parentID string) error {
 }
 
 func (p *Provider) CleanupExpiredAuthenticators(userID string) error {
-	return p.Store.DeleteAllExpired(userID, p.Time.NowUTC())
+	return p.Store.DeleteAllExpired(userID, p.Clock.NowUTC())
 }
 
 func (p *Provider) New(userID string, parentID string) *Authenticator {
@@ -50,8 +50,8 @@ func (p *Provider) New(userID string, parentID string) *Authenticator {
 }
 
 func (p *Provider) Create(a *Authenticator) error {
-	now := p.Time.NowUTC()
-	expireAt := now.Add(gotime.Duration(p.Config.ExpireInDays) * gotime.Hour * 24)
+	now := p.Clock.NowUTC()
+	expireAt := now.Add(time.Duration(p.Config.ExpireInDays) * time.Hour * 24)
 	a.CreatedAt = now
 	a.ExpireAt = expireAt
 

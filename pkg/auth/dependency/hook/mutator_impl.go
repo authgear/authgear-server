@@ -5,7 +5,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type LoginIDProvider interface {
@@ -17,7 +16,6 @@ type mutatorImpl struct {
 	User              *model.User
 	LoginIDIdentities *[]*loginid.Identity
 	Mutations         event.Mutations
-	Time              time.Provider
 
 	UserVerificationConfig *config.UserVerificationConfiguration
 	LoginIDs               LoginIDProvider

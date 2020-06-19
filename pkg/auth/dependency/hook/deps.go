@@ -4,11 +4,12 @@ import (
 	"context"
 
 	"github.com/google/wire"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func ProvideHookProvider(
@@ -17,7 +18,7 @@ func ProvideHookProvider(
 	sqle db.SQLExecutor,
 	tConfig *config.TenantConfiguration,
 	txContext db.TxContext,
-	timeProvider time.Provider,
+	timeProvider clock.Clock,
 	users UserProvider,
 	loginIDProvider LoginIDProvider,
 	loggerFactory logging.Factory,

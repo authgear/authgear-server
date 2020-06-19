@@ -4,17 +4,18 @@ import (
 	"sort"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	pwd "github.com/skygeario/skygear-server/pkg/core/password"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type Provider struct {
 	Store           *Store
 	Config          *config.AuthenticatorPasswordConfiguration
-	Time            time.Provider
+	Clock           clock.Clock
 	Logger          *logrus.Entry
 	PasswordHistory HistoryStore
 	PasswordChecker *Checker
@@ -127,7 +128,7 @@ func (p *Provider) UpdatePassword(a *Authenticator) error {
 		return err
 	}
 
-	err = p.PasswordHistory.CreatePasswordHistory(a.UserID, a.PasswordHash, p.Time.NowUTC())
+	err = p.PasswordHistory.CreatePasswordHistory(a.UserID, a.PasswordHash, p.Clock.NowUTC())
 	if err != nil {
 		return err
 	}

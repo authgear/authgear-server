@@ -27,7 +27,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"net/http"
 )
 
@@ -46,9 +46,9 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	context := ProvideContext(r)
 	tenantConfiguration := ProvideTenantConfig(context, m)
 	cookieDef := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
-	timeProvider := time.NewProvider()
+	clock := _wireSystemClockValue
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
-	store := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
+	store := redis.ProvideStore(context, tenantConfiguration, clock, factory)
 	eventStore := redis2.ProvideEventStore(context, tenantConfiguration)
 	accessEventProvider := &auth2.AccessEventProvider{
 		Store: eventStore,
@@ -57,7 +57,7 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	resolver := &session.Resolver{
 		Cookie:   cookieDef,
 		Provider: sessionProvider,
-		Time:     timeProvider,
+		Clock:    clock,
 	}
 	sqlBuilder := db.ProvideSQLBuilderOLD(tenantConfiguration)
 	pool := _wirePoolValue
@@ -67,14 +67,14 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, clock)
 	resolverSessionProvider := oauth.ProvideResolverProvider(sessionProvider)
 	oauthResolver := &oauth.Resolver{
 		Authorizations: authorizationStore,
 		AccessGrants:   grantStore,
 		OfflineGrants:  grantStore,
 		Sessions:       resolverSessionProvider,
-		Time:           timeProvider,
+		Clock:          clock,
 	}
 	authAccessEventProvider := auth2.AccessEventProvider{
 		Store: eventStore,
@@ -87,14 +87,13 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
-	oauthProvider := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration, checker, normalizerFactory)
+	oauthProvider := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, clock)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
-		Time:       timeProvider,
 	}
 	middleware := &auth2.Middleware{
 		IDPSessionResolver:         resolver,
@@ -108,7 +107,8 @@ func NewSessionMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
 }
 
 var (
-	_wirePoolValue = (*db.Pool)(nil)
+	_wireSystemClockValue = clock.NewSystemClock()
+	_wirePoolValue        = (*db.Pool)(nil)
 )
 
 func NewCSPMiddleware(r *http.Request, m DependencyMap) mux.MiddlewareFunc {
@@ -152,40 +152,39 @@ func newSessionManager(r *http.Request, m DependencyMap) *auth2.SessionManager {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	timeProvider := time.NewProvider()
+	clock := _wireSystemClockValue
 	reservedNameChecker := ProvideReservedNameChecker(m)
 	typeCheckerFactory := loginid.ProvideTypeCheckerFactory(tenantConfiguration, reservedNameChecker)
 	checker := loginid.ProvideChecker(tenantConfiguration, typeCheckerFactory)
 	normalizerFactory := loginid.ProvideNormalizerFactory(tenantConfiguration)
-	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider, tenantConfiguration, checker, normalizerFactory)
-	oauthProvider := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, timeProvider)
+	loginidProvider := loginid.ProvideProvider(sqlBuilder, sqlExecutor, clock, tenantConfiguration, checker, normalizerFactory)
+	oauthProvider := oauth2.ProvideProvider(sqlBuilder, sqlExecutor, clock)
 	anonymousProvider := anonymous.ProvideProvider(sqlBuilder, sqlExecutor)
 	providerProvider := provider.ProvideProvider(tenantConfiguration, loginidProvider, oauthProvider, anonymousProvider)
 	queries := &user.Queries{
 		Store:      store,
 		Identities: providerProvider,
-		Time:       timeProvider,
 	}
 	urlprefixProvider := urlprefix.NewProvider(r)
 	executor := ProvideTaskExecutor(m)
 	queue := async.ProvideTaskQueue(context, dbContext, tenantConfiguration, executor)
 	engine := ProvideTemplateEngine(tenantConfiguration, m)
 	welcomemessageProvider := welcomemessage.ProvideProvider(context, tenantConfiguration, engine, queue)
-	rawCommands := user.ProvideRawCommands(store, timeProvider, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
+	rawCommands := user.ProvideRawCommands(store, clock, urlprefixProvider, queue, tenantConfiguration, welcomemessageProvider)
 	hookUserProvider := &HookUserProvider{
 		Queries:     queries,
 		RawCommands: rawCommands,
 	}
 	factory := logging.ProvideLoggerFactory(context, tenantConfiguration)
-	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, dbContext, timeProvider, hookUserProvider, loginidProvider, factory)
-	sessionStore := redis.ProvideStore(context, tenantConfiguration, timeProvider, factory)
+	hookProvider := hook.ProvideHookProvider(context, sqlBuilder, sqlExecutor, tenantConfiguration, dbContext, clock, hookUserProvider, loginidProvider, factory)
+	sessionStore := redis.ProvideStore(context, tenantConfiguration, clock, factory)
 	insecureCookieConfig := ProvideSessionInsecureCookieConfig(m)
 	cookieDef := session.ProvideSessionCookieConfiguration(r, insecureCookieConfig, tenantConfiguration)
-	manager := session.ProvideSessionManager(sessionStore, timeProvider, tenantConfiguration, cookieDef)
-	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, timeProvider)
+	manager := session.ProvideSessionManager(sessionStore, clock, tenantConfiguration, cookieDef)
+	grantStore := redis3.ProvideGrantStore(context, factory, tenantConfiguration, sqlBuilder, sqlExecutor, clock)
 	sessionManager := &oauth.SessionManager{
 		Store: grantStore,
-		Time:  timeProvider,
+		Clock: clock,
 	}
 	authSessionManager := &auth2.SessionManager{
 		Users:               queries,

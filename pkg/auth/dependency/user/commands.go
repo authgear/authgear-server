@@ -7,12 +7,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type Commands struct {
 	Raw   *RawCommands
-	Time  time.Provider
 	Hooks hook.Provider
 }
 

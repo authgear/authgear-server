@@ -1,7 +1,7 @@
-package time
+package clock
 
 import "github.com/google/wire"
 
 var DependencySet = wire.NewSet(
-	NewProvider,
+	wire.InterfaceValue(new(Clock), NewSystemClock()),
 )

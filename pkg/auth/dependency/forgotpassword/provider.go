@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	taskspec "github.com/skygeario/skygear-server/pkg/auth/task/spec"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -19,7 +20,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
-	coretime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type ResetPasswordFlow interface {
@@ -48,7 +48,7 @@ type Provider struct {
 
 	Users             UserProvider
 	HookProvider      hook.Provider
-	TimeProvider      coretime.Provider
+	Clock             clock.Clock
 	URLPrefixProvider urlprefix.Provider
 	TemplateEngine    *template.Engine
 	TaskQueue         async.Queue
@@ -105,7 +105,7 @@ func (p *Provider) SendCode(loginID string) (err error) {
 }
 
 func (p *Provider) newCode(userID string) (code *Code, codeStr string) {
-	createdAt := p.TimeProvider.NowUTC()
+	createdAt := p.Clock.NowUTC()
 	codeStr = GenerateCode()
 	expireAt := createdAt.Add(time.Duration(p.ForgotPasswordConfiguration.ResetCodeLifetime) * time.Second)
 	code = &Code{
@@ -232,7 +232,7 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error)
 		return
 	}
 
-	now := p.TimeProvider.NowUTC()
+	now := p.Clock.NowUTC()
 	if now.After(code.ExpireAt) {
 		err = ErrExpiredCode
 		return

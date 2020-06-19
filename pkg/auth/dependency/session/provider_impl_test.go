@@ -4,14 +4,14 @@ import (
 	"math/rand"
 	"net/http"
 	"testing"
-	gotime "time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/skygeario/skygear-server/pkg/clock"
 )
 
 type mockAccessEventProvider struct{}
@@ -24,10 +24,8 @@ func TestProvider(t *testing.T) {
 	Convey("Provider", t, func() {
 		store := NewMockStore()
 
-		timeProvider := &time.MockProvider{}
-		initialTime := gotime.Date(2020, 1, 1, 0, 0, 0, 0, gotime.UTC)
-		timeProvider.TimeNow = initialTime
-		timeProvider.TimeNowUTC = initialTime
+		clock := clock.NewMockClockAt("2020-01-01T00:00:00Z")
+		initialTime := clock.Time
 
 		req, _ := http.NewRequest("POST", "", nil)
 		req.Header.Set("User-Agent", "SDK")
@@ -45,7 +43,7 @@ func TestProvider(t *testing.T) {
 			store:        store,
 			accessEvents: &mockAccessEventProvider{},
 			config:       config.SessionConfiguration{},
-			time:         timeProvider,
+			clock:        clock,
 			rand:         rand.New(rand.NewSource(0)),
 		}
 
@@ -106,7 +104,7 @@ func TestProvider(t *testing.T) {
 				So(session, ShouldBeNil)
 			})
 			Convey("should reject if session is expired", func() {
-				timeProvider.AdvanceSeconds(1000000)
+				clock.AdvanceSeconds(1000000)
 				session, err := provider.GetByToken("session-id.token")
 				So(err, ShouldBeError, ErrSessionNotFound)
 				So(session, ShouldBeNil)

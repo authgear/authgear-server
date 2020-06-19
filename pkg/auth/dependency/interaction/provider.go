@@ -1,7 +1,7 @@
 package interaction
 
 import (
-	gotime "time"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -10,9 +10,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 //go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package interaction_test
@@ -86,7 +86,7 @@ type OOBProvider interface {
 }
 
 // TODO(interaction): configurable lifetime
-const interactionIdleTimeout = 5 * gotime.Minute
+const interactionIdleTimeout = 5 * time.Minute
 
 // NOTE(interaction): save-commit
 // SaveInteraction and Commit are mutually exclusively within a request.
@@ -105,7 +105,7 @@ const interactionIdleTimeout = 5 * gotime.Minute
 
 type Provider struct {
 	Store         Store
-	Time          time.Provider
+	Clock         clock.Clock
 	Logger        *logrus.Entry
 	Identity      IdentityProvider
 	Authenticator AuthenticatorProvider
@@ -131,13 +131,13 @@ func (p *Provider) SaveInteraction(i *Interaction) (string, error) {
 
 	if i.Token == "" {
 		i.Token = generateToken()
-		i.CreatedAt = p.Time.NowUTC()
+		i.CreatedAt = p.Clock.NowUTC()
 		i.ExpireAt = i.CreatedAt.Add(interactionIdleTimeout)
 		if err := p.Store.Create(i); err != nil {
 			return "", err
 		}
 	} else {
-		i.ExpireAt = p.Time.NowUTC().Add(interactionIdleTimeout)
+		i.ExpireAt = p.Clock.NowUTC().Add(interactionIdleTimeout)
 		if err := p.Store.Update(i); err != nil {
 			return "", err
 		}

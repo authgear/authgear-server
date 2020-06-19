@@ -14,7 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
-	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/clock"
 )
 
 // Injectors from wire.go:
@@ -24,10 +24,10 @@ func newPwHouseKeeperTask(ctx context.Context, m auth.DependencyMap) async.Task 
 	tenantConfiguration := auth.ProvideTenantConfig(ctx, m)
 	dbContext := db.ProvideContextOLD(ctx, pool, tenantConfiguration)
 	factory := logging.ProvideLoggerFactory(ctx, tenantConfiguration)
-	provider := time.NewProvider()
+	clock := _wireSystemClockValue
 	sqlBuilder := db.ProvideSQLBuilderOLD(tenantConfiguration)
 	sqlExecutor := db.ProvideSQLExecutor(dbContext)
-	historyStoreImpl := password.ProvideHistoryStore(provider, sqlBuilder, sqlExecutor)
+	historyStoreImpl := password.ProvideHistoryStore(clock, sqlBuilder, sqlExecutor)
 	housekeeper := password.ProvideHousekeeper(historyStoreImpl, factory, tenantConfiguration)
 	pwHousekeeperTask := &PwHousekeeperTask{
 		TxContext:     dbContext,
@@ -38,7 +38,8 @@ func newPwHouseKeeperTask(ctx context.Context, m auth.DependencyMap) async.Task 
 }
 
 var (
-	_wirePoolValue = (*db.Pool)(nil)
+	_wirePoolValue        = (*db.Pool)(nil)
+	_wireSystemClockValue = clock.NewSystemClock()
 )
 
 func newSendMessagesTask(ctx context.Context, m auth.DependencyMap) async.Task {

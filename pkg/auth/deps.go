@@ -40,6 +40,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/skygeario/skygear-server/pkg/auth/deps"
 	"github.com/skygeario/skygear-server/pkg/auth/template"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -48,7 +49,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 	coretemplate "github.com/skygeario/skygear-server/pkg/core/template"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -248,7 +248,7 @@ var CommonDependencySet = wire.NewSet(
 	endpointsDependencySet,
 
 	logging.DependencySet,
-	time.DependencySet,
+	clock.DependencySet,
 	db.OldDependencySet,
 	session.DependencySet,
 	sessionredis.DependencySet,

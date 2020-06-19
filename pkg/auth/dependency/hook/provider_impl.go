@@ -3,19 +3,19 @@ package hook
 import (
 	"context"
 	"fmt"
-	gotime "time"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 //go:generate mockgen -source=provider_impl.go -destination=provider_impl_mock_test.go -package hook
@@ -29,7 +29,7 @@ type providerImpl struct {
 	Store                   Store
 	Context                 context.Context
 	TxContext               db.TxContext
-	TimeProvider            time.Provider
+	Clock                   clock.Clock
 	Users                   UserProvider
 	Deliverer               Deliverer
 	PersistentEventPayloads []event.Payload
@@ -42,19 +42,19 @@ func NewProvider(
 	ctx context.Context,
 	store Store,
 	txContext db.TxContext,
-	timeProvider time.Provider,
+	clock clock.Clock,
 	users UserProvider,
 	deliverer Deliverer,
 	loggerFactory logging.Factory,
 ) Provider {
 	return &providerImpl{
-		Context:      ctx,
-		Store:        store,
-		TxContext:    txContext,
-		TimeProvider: timeProvider,
-		Users:        users,
-		Deliverer:    deliverer,
-		Logger:       loggerFactory.NewLogger("hook"),
+		Context:   ctx,
+		Store:     store,
+		TxContext: txContext,
+		Clock:     clock,
+		Users:     users,
+		Deliverer: deliverer,
+		Logger:    loggerFactory.NewLogger("hook"),
 	}
 }
 
@@ -153,7 +153,7 @@ func (provider *providerImpl) DidCommitTx() {
 	// TODO(webhook): deliver persisted events
 	events, _ := provider.Store.GetEventsForDelivery()
 	for _, event := range events {
-		err := provider.Deliverer.DeliverNonBeforeEvent(event, 60*gotime.Second)
+		err := provider.Deliverer.DeliverNonBeforeEvent(event, 60*time.Second)
 		if err != nil {
 			provider.Logger.WithError(err).Debug("Failed to dispatch event")
 		}
@@ -203,7 +203,7 @@ func (provider *providerImpl) makeContext() event.Context {
 	}
 
 	return event.Context{
-		Timestamp: provider.TimeProvider.NowUTC().Unix(),
+		Timestamp: provider.Clock.NowUTC().Unix(),
 		UserID:    userID,
 		Session:   session,
 	}

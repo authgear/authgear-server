@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 var appleOIDCConfig = OIDCDiscoveryDocument{
@@ -26,7 +26,7 @@ type AppleImpl struct {
 	RedirectURLFunc          RedirectURLFunc
 	OAuthConfig              *config.OAuthConfiguration
 	ProviderConfig           config.OAuthProviderConfiguration
-	TimeProvider             coreTime.Provider
+	Clock                    clock.Clock
 	LoginIDNormalizerFactory *loginid.NormalizerFactory
 }
 
@@ -37,7 +37,7 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 		return
 	}
 
-	now := f.TimeProvider.NowUTC()
+	now := f.Clock.NowUTC()
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.StandardClaims{
 		Issuer:    f.ProviderConfig.TeamID,
 		IssuedAt:  now.Unix(),
@@ -95,7 +95,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 		clientSecret,
 		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		state.HashedNonce,
-		f.TimeProvider.NowUTC,
+		f.Clock.NowUTC,
 		&tokenResp,
 	)
 	if err != nil {

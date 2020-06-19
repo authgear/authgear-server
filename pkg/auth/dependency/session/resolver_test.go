@@ -8,8 +8,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
@@ -61,7 +61,7 @@ func TestResolver(t *testing.T) {
 		resolver := Resolver{
 			Cookie:   cookie,
 			Provider: provider,
-			Time:     &time.MockProvider{},
+			Clock:    clock.NewMockClock(),
 		}
 
 		Convey("resolve without session cookie", func() {

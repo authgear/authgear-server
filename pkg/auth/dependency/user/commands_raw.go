@@ -1,14 +1,14 @@
 package user
 
 import (
-	gotime "time"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type WelcomeMessageProvider interface {
@@ -17,7 +17,7 @@ type WelcomeMessageProvider interface {
 
 type RawCommands struct {
 	Store                         store
-	Time                          time.Provider
+	Clock                         clock.Clock
 	URLPrefix                     urlprefix.Provider
 	TaskQueue                     async.Queue
 	UserVerificationConfiguration *config.UserVerificationConfiguration
@@ -25,7 +25,7 @@ type RawCommands struct {
 }
 
 func (c *RawCommands) Create(userID string, metadata map[string]interface{}) (*User, error) {
-	now := c.Time.NowUTC()
+	now := c.Clock.NowUTC()
 	user := &User{
 		ID:          userID,
 		CreatedAt:   now,
@@ -52,7 +52,7 @@ func (c *RawCommands) AfterCreate(userModel *model.User, identities []*identity.
 }
 
 func (c *RawCommands) UpdateMetadata(user *model.User, metadata map[string]interface{}) error {
-	now := c.Time.NowUTC()
+	now := c.Clock.NowUTC()
 	if err := c.Store.UpdateMetadata(user.ID, metadata, now); err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (c *RawCommands) UpdateMetadata(user *model.User, metadata map[string]inter
 	return nil
 }
 
-func (c *RawCommands) UpdateLoginTime(user *model.User, lastLoginAt gotime.Time) error {
+func (c *RawCommands) UpdateLoginTime(user *model.User, lastLoginAt time.Time) error {
 	if err := c.Store.UpdateLoginTime(user.ID, lastLoginAt); err != nil {
 		return err
 	}

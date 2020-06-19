@@ -8,7 +8,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	coretime "github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/clock"
 )
 
 func TestInteractionProviderProgrammingError(t *testing.T) {
@@ -21,7 +21,7 @@ func TestInteractionProviderProgrammingError(t *testing.T) {
 		store := NewMockStore(ctrl)
 
 		p := &interaction.Provider{
-			Time:          &coretime.MockProvider{},
+			Clock:         clock.NewMockClock(),
 			Identity:      identityProvider,
 			Authenticator: authenticatorProvider,
 			Store:         store,

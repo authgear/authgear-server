@@ -4,32 +4,32 @@ import (
 	"context"
 	"encoding/json"
 	"sort"
-	gotime "time"
+	"time"
 
 	goredis "github.com/gomodule/redigo/redis"
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type Store struct {
 	ctx    context.Context
 	appID  string
-	time   time.Provider
+	clock  clock.Clock
 	logger *logrus.Entry
 }
 
 var _ session.Store = &Store{}
 
-func NewStore(ctx context.Context, appID string, time time.Provider, loggerFactory logging.Factory) session.Store {
-	return &Store{ctx: ctx, appID: appID, time: time, logger: loggerFactory.NewLogger("redis-session-store")}
+func NewStore(ctx context.Context, appID string, time clock.Clock, loggerFactory logging.Factory) session.Store {
+	return &Store{ctx: ctx, appID: appID, clock: time, logger: loggerFactory.NewLogger("redis-session-store")}
 }
 
-func (s *Store) Create(sess *session.IDPSession, expireAt gotime.Time) (err error) {
+func (s *Store) Create(sess *session.IDPSession, expireAt time.Time) (err error) {
 	json, err := json.Marshal(sess)
 	if err != nil {
 		return
@@ -40,7 +40,7 @@ func (s *Store) Create(sess *session.IDPSession, expireAt gotime.Time) (err erro
 	}
 
 	conn := redis.GetConn(s.ctx)
-	ttl := expireAt.Sub(s.time.NowUTC())
+	ttl := expireAt.Sub(s.clock.NowUTC())
 	listKey := sessionListKey(s.appID, sess.Attrs.UserID)
 	key := sessionKey(s.appID, sess.ID)
 
@@ -59,7 +59,7 @@ func (s *Store) Create(sess *session.IDPSession, expireAt gotime.Time) (err erro
 	return
 }
 
-func (s *Store) Update(sess *session.IDPSession, expireAt gotime.Time) (err error) {
+func (s *Store) Update(sess *session.IDPSession, expireAt time.Time) (err error) {
 	data, err := json.Marshal(sess)
 	if err != nil {
 		return
@@ -70,7 +70,7 @@ func (s *Store) Update(sess *session.IDPSession, expireAt gotime.Time) (err erro
 	}
 
 	conn := redis.GetConn(s.ctx)
-	ttl := expireAt.Sub(s.time.NowUTC())
+	ttl := expireAt.Sub(s.clock.NowUTC())
 	listKey := sessionListKey(s.appID, sess.Attrs.UserID)
 	key := sessionKey(s.appID, sess.ID)
 
@@ -122,7 +122,7 @@ func (s *Store) Delete(session *session.IDPSession) (err error) {
 }
 
 func (s *Store) List(userID string) (sessions []*session.IDPSession, err error) {
-	now := s.time.NowUTC()
+	now := s.clock.NowUTC()
 	conn := redis.GetConn(s.ctx)
 	listKey := sessionListKey(s.appID, userID)
 
@@ -132,7 +132,7 @@ func (s *Store) List(userID string) (sessions []*session.IDPSession, err error) 
 	}
 
 	for key, expiry := range sessionList {
-		expireAt := gotime.Time{}
+		expireAt := time.Time{}
 		err = expireAt.UnmarshalText([]byte(expiry))
 		var expired bool
 		if err != nil {
@@ -192,8 +192,8 @@ func (s *Store) List(userID string) (sessions []*session.IDPSession, err error) 
 	return
 }
 
-func toMilliseconds(d gotime.Duration) int64 {
-	return int64(d / gotime.Millisecond)
+func toMilliseconds(d time.Duration) int64 {
+	return int64(d / time.Millisecond)
 }
 
 type sessionSlice []*session.IDPSession

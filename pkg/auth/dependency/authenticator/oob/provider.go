@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	taskspec "github.com/skygeario/skygear-server/pkg/auth/task/spec"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -15,7 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
@@ -30,7 +30,7 @@ type Provider struct {
 	TemplateEngine            *template.Engine
 	URLPrefixProvider         urlprefix.Provider
 	TaskQueue                 async.Queue
-	Time                      time.Provider
+	Clock                     clock.Clock
 }
 
 func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
@@ -74,7 +74,7 @@ func (p *Provider) Create(a *Authenticator) error {
 		return err
 	}
 
-	now := p.Time.NowUTC()
+	now := p.Clock.NowUTC()
 	a.CreatedAt = now
 
 	return p.Store.Create(a)

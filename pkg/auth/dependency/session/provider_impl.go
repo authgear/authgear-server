@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
@@ -32,8 +32,8 @@ type ProviderImpl struct {
 	accessEvents AccessEventProvider
 	config       config.SessionConfiguration
 
-	time time.Provider
-	rand *rand.Rand
+	clock clock.Clock
+	rand  *rand.Rand
 }
 
 func NewProvider(
@@ -47,7 +47,7 @@ func NewProvider(
 		store:        store,
 		accessEvents: accessEvents,
 		config:       sessionConfig,
-		time:         time.NewProvider(),
+		clock:        clock.NewSystemClock(),
 		rand:         corerand.SecureRand,
 	}
 }
@@ -55,7 +55,7 @@ func NewProvider(
 var _ Provider = &ProviderImpl{}
 
 func (p *ProviderImpl) MakeSession(attrs *authn.Attrs) (*IDPSession, string) {
-	now := p.time.NowUTC()
+	now := p.clock.NowUTC()
 	accessEvent := auth.NewAccessEvent(now, p.req)
 	// NOTE(louis): remember to update the mock provider
 	// if session has new fields.
@@ -110,7 +110,7 @@ func (p *ProviderImpl) GetByToken(token string) (*IDPSession, error) {
 		return nil, ErrSessionNotFound
 	}
 
-	if checkSessionExpired(s, p.time.NowUTC(), p.config) {
+	if checkSessionExpired(s, p.clock.NowUTC(), p.config) {
 		return nil, ErrSessionNotFound
 	}
 

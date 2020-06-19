@@ -2,23 +2,24 @@ package oidc
 
 import (
 	"github.com/google/wire"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func ProvideIDTokenIssuer(
 	cfg *config.TenantConfiguration,
 	up urlprefix.Provider,
 	u UserProvider,
-	t time.Provider,
+	t clock.Clock,
 ) *IDTokenIssuer {
 	return &IDTokenIssuer{
 		OIDCConfig: *cfg.AppConfig.OIDC,
 		URLPrefix:  up,
 		Users:      u,
-		Time:       t,
+		Clock:      t,
 	}
 }
 
