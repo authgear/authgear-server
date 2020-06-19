@@ -1,28 +1,41 @@
 package deps
 
-import "github.com/google/wire"
+import (
+	"github.com/google/wire"
+)
 
-var commonDependencySet = wire.NewSet(
-	wire.FieldsOf(new(RootProvider),
+var appRootDeps = wire.NewSet(
+	wire.FieldsOf(new(*AppProvider),
+		"RootProvider",
+		"Context",
+		"Config",
+		"LoggerFactory",
+		"DbContext",
+		"RedisContext",
+	),
+	wire.FieldsOf(new(*RootProvider),
 		"ServerConfig",
-		"DatabasePool",
-		"RedisPool",
-		"AsyncTaskExecutor",
+		"TaskExecutor",
 		"ReservedNameChecker",
 	),
 )
 
-var RootDependencySet = wire.NewSet(
-	commonDependencySet,
-	wire.FieldsOf(new(RootProvider),
-		"LoggerFactory",
-	),
+var commonDeps = wire.NewSet(
+	configDeps,
 )
 
 var RequestDependencySet = wire.NewSet(
-	commonDependencySet,
-	wire.FieldsOf(new(RequestProvider),
-		"RootProvider",
-		"LoggerFactory",
+	appRootDeps,
+	wire.FieldsOf(new(*RequestProvider),
+		"AppProvider",
+		"Request",
 	),
+	commonDeps,
+)
+
+var TaskDependencySet = wire.NewSet(
+	wire.FieldsOf(new(*TaskProvider),
+		"AppProvider",
+	),
+	commonDeps,
 )

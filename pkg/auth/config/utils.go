@@ -1,5 +1,12 @@
 package config
 
+import (
+	"errors"
+
+	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jwk"
+)
+
 func newBool(v bool) *bool { return &v }
 
 func newInt(v int) *int { return &v }
@@ -43,4 +50,33 @@ func extractJWKSecrets(keys []interface{}) []string {
 		}
 	}
 	return secrets
+}
+
+func ToJWS(keys []interface{}) (*jwk.Set, error) {
+	set := &jwk.Set{}
+	err := set.ExtractMap(map[string]interface{}{"keys": keys})
+	if err != nil {
+		return nil, err
+	}
+	return set, nil
+}
+
+func ExtractOctetKey(set *jwk.Set, id string) ([]byte, error) {
+	for _, key := range set.Keys {
+		if key.KeyID() != id {
+			continue
+		}
+		switch key.KeyType() {
+		case jwa.OctetSeq:
+			data, err := key.Materialize()
+			if err != nil {
+				return nil, err
+			}
+			return data.([]byte), nil
+		default:
+			return nil, errors.New("unexpected key type (key type should be octet)")
+		}
+	}
+
+	return nil, errors.New("octet key not found")
 }
