@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 
@@ -14,8 +16,8 @@ import (
 
 func main() {
 	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("failed to load .env file: %s", err)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		log.Printf("failed to load .env file: %s", err)
 	}
 
 	serverCfg, err := config.LoadServerConfigFromEnv()
@@ -44,7 +46,7 @@ func main() {
 
 	server := httputil.NewServer(p.LoggerFactory, &http.Server{
 		Addr:    serverCfg.ListenAddr,
-		Handler: setupNewRoutes(p, configSource),
+		Handler: setupRoutes(p, configSource),
 	})
 	server.ListenAndServe("starting auth gear")
 }
