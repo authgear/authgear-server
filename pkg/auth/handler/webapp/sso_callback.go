@@ -5,19 +5,19 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
 func AttachSSOCallbackHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	p *deps.RootProvider,
 ) {
 	router.
 		NewRoute().
 		Path("/sso/oauth2/callback/{provider}").
 		Methods("OPTIONS", "GET", "POST").
-		Handler(auth.MakeHandler(authDependency, newSSOCallbackHandler))
+		Handler(p.Handler(newSSOCallbackHandler))
 }
 
 type ssoProvider interface {

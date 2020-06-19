@@ -7,10 +7,8 @@ import (
 
 	redigo "github.com/gomodule/redigo/redis"
 	"github.com/gorilla/mux"
-	configsource "github.com/skygeario/skygear-server/pkg/auth/config/source"
-	"github.com/skygeario/skygear-server/pkg/deps"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
+	configsource "github.com/skygeario/skygear-server/pkg/auth/config/source"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
@@ -19,6 +17,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/middlewares"
 )
 
 type configuration struct {
@@ -59,7 +59,7 @@ func setupNewRoutes(p *deps.RootProvider, configSource configsource.Source) *mux
 }
 
 // nolint: deadcode
-func setupRoutes(cfg configuration, redisPool *redigo.Pool, deps auth.DependencyMap) *mux.Router {
+func setupRoutes(cfg configuration, redisPool *redigo.Pool, p *deps.RootProvider) *mux.Router {
 	var router *mux.Router
 	var rootRouter *mux.Router
 	var webappRouter *mux.Router
@@ -93,21 +93,18 @@ func setupRoutes(cfg configuration, redisPool *redigo.Pool, deps auth.Dependency
 	}
 
 	rootRouter.Use(middleware.RedisMiddleware{Pool: redisPool}.Handle)
-	rootRouter.Use(auth.MakeMiddleware(deps, auth.NewSessionMiddleware))
-	// The resolve endpoint is now mounted at root router.
-	// Therefore the access key middleware needs to be mounted at root router as well.
-	rootRouter.Use(auth.MakeMiddleware(deps, auth.NewAccessKeyMiddleware))
+	rootRouter.Use(p.Middleware(middlewares.NewSessionMiddleware))
 
 	if cfg.Standalone {
 		// Attach resolve endpoint in the router that does not validate host.
-		session.AttachResolveHandler(rootRouter, deps)
+		session.AttachResolveHandler(rootRouter, p)
 		rootRouter = rootRouter.NewRoute().Subrouter()
 		rootRouter.Use(middleware.ValidateHostMiddleware{ValidHosts: cfg.ValidHosts}.Handle)
 
 		oauthRouter = rootRouter.NewRoute().Subrouter()
 		oauthRouter.Use(middleware.CORSMiddleware{}.Handle)
 	} else {
-		session.AttachResolveHandler(rootRouter, deps)
+		session.AttachResolveHandler(rootRouter, p)
 
 		oauthRouter = rootRouter.NewRoute().Subrouter()
 	}
@@ -121,51 +118,51 @@ func setupRoutes(cfg configuration, redisPool *redigo.Pool, deps auth.Dependency
 	// the effect is that trailing slash is corrected with HTTP 301 by mux.
 	webappRouter.StrictSlash(true)
 	webappRouter.Use(webapp.IntlMiddleware)
-	webappRouter.Use(auth.MakeMiddleware(deps, auth.NewClientIDMiddleware))
-	webappRouter.Use(auth.MakeMiddleware(deps, auth.NewCSPMiddleware))
-	webappRouter.Use(auth.MakeMiddleware(deps, auth.NewCSRFMiddleware))
+	webappRouter.Use(p.Middleware(middlewares.NewClientIDMiddleware))
+	webappRouter.Use(p.Middleware(middlewares.NewCSPMiddleware))
+	webappRouter.Use(p.Middleware(middlewares.NewCSRFMiddleware))
 	webappRouter.Use(webapp.PostNoCacheMiddleware)
-	webappRouter.Use(auth.MakeMiddleware(deps, auth.NewStateMiddleware))
+	webappRouter.Use(p.Middleware(middlewares.NewStateMiddleware))
 
 	webappAuthRouter := webappRouter.NewRoute().Subrouter()
 	webappAuthEntryPointRouter := webappAuthRouter.NewRoute().Subrouter()
 	webappAuthEntryPointRouter.Use(webapp.AuthEntryPointMiddleware{}.Handle)
-	webapphandler.AttachRootHandler(webappAuthEntryPointRouter, deps)
-	webapphandler.AttachLoginHandler(webappAuthEntryPointRouter, deps)
-	webapphandler.AttachSignupHandler(webappAuthEntryPointRouter, deps)
-	webapphandler.AttachPromoteHandler(webappAuthEntryPointRouter, deps)
+	webapphandler.AttachRootHandler(webappAuthEntryPointRouter, p)
+	webapphandler.AttachLoginHandler(webappAuthEntryPointRouter, p)
+	webapphandler.AttachSignupHandler(webappAuthEntryPointRouter, p)
+	webapphandler.AttachPromoteHandler(webappAuthEntryPointRouter, p)
 
-	webapphandler.AttachEnterPasswordHandler(webappAuthRouter, deps)
-	webapphandler.AttachEnterLoginIDHandler(webappAuthRouter, deps)
-	webapphandler.AttachOOBOTPHandler(webappAuthRouter, deps)
-	webapphandler.AttachCreatePasswordHandler(webappAuthRouter, deps)
-	webapphandler.AttachForgotPasswordHandler(webappAuthRouter, deps)
-	webapphandler.AttachForgotPasswordSuccessHandler(webappAuthRouter, deps)
-	webapphandler.AttachResetPasswordHandler(webappAuthRouter, deps)
-	webapphandler.AttachResetPasswordSuccessHandler(webappAuthRouter, deps)
+	webapphandler.AttachEnterPasswordHandler(webappAuthRouter, p)
+	webapphandler.AttachEnterLoginIDHandler(webappAuthRouter, p)
+	webapphandler.AttachOOBOTPHandler(webappAuthRouter, p)
+	webapphandler.AttachCreatePasswordHandler(webappAuthRouter, p)
+	webapphandler.AttachForgotPasswordHandler(webappAuthRouter, p)
+	webapphandler.AttachForgotPasswordSuccessHandler(webappAuthRouter, p)
+	webapphandler.AttachResetPasswordHandler(webappAuthRouter, p)
+	webapphandler.AttachResetPasswordSuccessHandler(webappAuthRouter, p)
 
 	webappAuthenticatedRouter := webappRouter.NewRoute().Subrouter()
 	webappAuthenticatedRouter.Use(webapp.RequireAuthenticatedMiddleware{}.Handle)
-	webapphandler.AttachSettingsHandler(webappAuthenticatedRouter, deps)
-	webapphandler.AttachSettingsIdentityHandler(webappAuthenticatedRouter, deps)
-	webapphandler.AttachLogoutHandler(webappAuthenticatedRouter, deps)
+	webapphandler.AttachSettingsHandler(webappAuthenticatedRouter, p)
+	webapphandler.AttachSettingsIdentityHandler(webappAuthenticatedRouter, p)
+	webapphandler.AttachLogoutHandler(webappAuthenticatedRouter, p)
 
 	webappSSOCallbackRouter := rootRouter.NewRoute().Subrouter()
 	webappSSOCallbackRouter.Use(webapp.PostNoCacheMiddleware)
-	webapphandler.AttachSSOCallbackHandler(webappSSOCallbackRouter, deps)
+	webapphandler.AttachSSOCallbackHandler(webappSSOCallbackRouter, p)
 
 	if cfg.StaticAssetDir != "" {
 		rootRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(cfg.StaticAssetDir))))
 	}
 
-	oauthhandler.AttachMetadataHandler(oauthRouter, deps)
-	oauthhandler.AttachJWKSHandler(oauthRouter, deps)
-	oauthhandler.AttachAuthorizeHandler(oauthRouter, deps)
-	oauthhandler.AttachTokenHandler(oauthRouter, deps)
-	oauthhandler.AttachRevokeHandler(oauthRouter, deps)
-	oauthhandler.AttachUserInfoHandler(oauthRouter, deps)
-	oauthhandler.AttachEndSessionHandler(oauthRouter, deps)
-	oauthhandler.AttachChallengeHandler(oauthRouter, deps)
+	oauthhandler.AttachMetadataHandler(oauthRouter, p)
+	oauthhandler.AttachJWKSHandler(oauthRouter, p)
+	oauthhandler.AttachAuthorizeHandler(oauthRouter, p)
+	oauthhandler.AttachTokenHandler(oauthRouter, p)
+	oauthhandler.AttachRevokeHandler(oauthRouter, p)
+	oauthhandler.AttachUserInfoHandler(oauthRouter, p)
+	oauthhandler.AttachEndSessionHandler(oauthRouter, p)
+	oauthhandler.AttachChallengeHandler(oauthRouter, p)
 
 	return router
 }

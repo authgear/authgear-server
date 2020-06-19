@@ -6,14 +6,14 @@ import (
 
 	"github.com/gorilla/mux"
 
-	pkg "github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
 func AttachMetadataHandler(
 	router *mux.Router,
-	authDependency pkg.DependencyMap,
+	p *deps.RootProvider,
 ) {
-	handler := pkg.MakeHandler(authDependency, newMetadataHandler)
+	handler := p.Handler(newMetadataHandler)
 	router.NewRoute().
 		Path("/.well-known/openid-configuration").
 		Handler(handler).

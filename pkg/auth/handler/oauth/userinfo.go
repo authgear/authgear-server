@@ -7,18 +7,18 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
-	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
 func AttachUserInfoHandler(
 	router *mux.Router,
-	authDependency pkg.DependencyMap,
+	p *deps.RootProvider,
 ) {
-	handler := pkg.MakeHandler(authDependency, newUserInfoHandler)
+	handler := p.Handler(newUserInfoHandler)
 	handler = oauth.RequireScope(handler)
 	router.NewRoute().
 		Path("/oauth2/userinfo").

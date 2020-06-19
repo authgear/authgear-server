@@ -7,19 +7,19 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
-	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
 func AttachAuthorizeHandler(
 	router *mux.Router,
-	authDependency pkg.DependencyMap,
+	p *deps.RootProvider,
 ) {
 	router.NewRoute().
 		Path("/oauth2/authorize").
-		Handler(pkg.MakeHandler(authDependency, newAuthorizeHandler)).
+		Handler(p.Handler(newAuthorizeHandler)).
 		Methods("GET", "POST")
 }
 

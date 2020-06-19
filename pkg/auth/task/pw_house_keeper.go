@@ -5,19 +5,19 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
-	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/task"
 )
 
 func AttachPwHousekeeperTask(
-	executor *async.Executor,
-	authDependency auth.DependencyMap,
+	registry task.Registry,
+	p *deps.RootProvider,
 ) {
-	executor.Register(spec.PwHousekeeperTaskName, MakeTask(authDependency, newPwHouseKeeperTask))
+	registry.Register(spec.PwHousekeeperTaskName, p.Task(newPwHouseKeeperTask))
 }
 
 type PwHousekeeperTask struct {

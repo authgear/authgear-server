@@ -4,12 +4,15 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/log"
 	"github.com/skygeario/skygear-server/pkg/redis"
+	"github.com/skygeario/skygear-server/pkg/task"
 	taskexecutors "github.com/skygeario/skygear-server/pkg/task/executors"
 )
 
@@ -70,6 +73,33 @@ func (p *RootProvider) NewRequestProvider(ctx context.Context, r *http.Request, 
 		DbContext:     dbContext,
 		RedisContext:  redisContext,
 	}
+}
+
+func (p *RootProvider) Handler(factory func(*RequestProvider) http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := GetRequestProvider(r.Context())
+		h := factory(p)
+		h.ServeHTTP(w, r)
+	})
+}
+
+func (p *RootProvider) Middleware(factory func(*RequestProvider) mux.MiddlewareFunc) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			p := GetRequestProvider(r.Context())
+			m := factory(p)
+			h := m(next)
+			h.ServeHTTP(w, r)
+		})
+	}
+}
+
+func (p *RootProvider) Task(factory func(*RequestProvider) task.Task) task.Task {
+	return TaskFunc(func(ctx context.Context, param interface{}) error {
+		p := GetRequestProvider(ctx)
+		task := factory(p)
+		return task.Run(ctx, param)
+	})
 }
 
 type RequestProvider struct {

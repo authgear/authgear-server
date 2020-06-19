@@ -6,19 +6,19 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
+	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
 func AttachChallengeHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	p *deps.RootProvider,
 ) {
 	router.NewRoute().
 		Path("/oauth2/challenge").
-		Handler(auth.MakeHandler(authDependency, newChallengeHandler)).
+		Handler(p.Handler(newChallengeHandler)).
 		Methods("OPTIONS", "POST")
 }
 

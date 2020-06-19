@@ -6,18 +6,18 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
-	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
 func AttachRevokeHandler(
 	router *mux.Router,
-	authDependency pkg.DependencyMap,
+	p *deps.RootProvider,
 ) {
 	router.NewRoute().
 		Path("/oauth2/revoke").
-		Handler(pkg.MakeHandler(authDependency, newRevokeHandler)).
+		Handler(p.Handler(newRevokeHandler)).
 		Methods("POST", "OPTIONS")
 }
 

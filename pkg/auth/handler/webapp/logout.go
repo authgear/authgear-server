@@ -5,20 +5,20 @@ import (
 
 	"github.com/gorilla/mux"
 
-	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
 func AttachLogoutHandler(
 	router *mux.Router,
-	authDependency pkg.DependencyMap,
+	p *deps.RootProvider,
 ) {
 	router.
 		NewRoute().
 		Path("/logout").
-		Handler(pkg.MakeHandler(authDependency, newLogoutHandler))
+		Handler(p.Handler(newLogoutHandler))
 }
 
 type logoutSessionManager interface {

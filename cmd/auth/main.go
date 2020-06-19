@@ -40,6 +40,8 @@ func main() {
 		logger.WithError(err).Fatal("cannot open configuration")
 	}
 
+	setupTasks(p.TaskExecutor, p)
+
 	server := httputil.NewServer(p.LoggerFactory, &http.Server{
 		Addr:    serverCfg.ListenAddr,
 		Handler: setupNewRoutes(p, configSource),

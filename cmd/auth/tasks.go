@@ -1,13 +1,12 @@
 package main
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/task"
-	"github.com/skygeario/skygear-server/pkg/core/async"
+	authtask "github.com/skygeario/skygear-server/pkg/auth/task"
+	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/task"
 )
 
-// nolint: deadcode
-func setupTasks(executor *async.Executor, deps auth.DependencyMap) {
-	task.AttachPwHousekeeperTask(executor, deps)
-	task.AttachSendMessagesTask(executor, deps)
+func setupTasks(registry task.Registry, p *deps.RootProvider) {
+	authtask.AttachPwHousekeeperTask(registry, p)
+	authtask.AttachSendMessagesTask(registry, p)
 }
