@@ -3,7 +3,7 @@ package spec
 import (
 	"errors"
 
-	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/mail"
 	"github.com/skygeario/skygear-server/pkg/sms"
 )
 

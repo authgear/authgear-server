@@ -1,9 +1,10 @@
-package welcomemessage
+package mail
 
 import (
 	"github.com/google/wire"
 )
 
 var DependencySet = wire.NewSet(
-	wire.Struct(new(Provider), "*"),
+	NewGomailDialer,
+	wire.Struct(new(SenderImpl), "*"),
 )

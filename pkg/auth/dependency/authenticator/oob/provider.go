@@ -5,32 +5,31 @@ import (
 	"errors"
 	"sort"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	taskspec "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/intl"
-	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
+	"github.com/skygeario/skygear-server/pkg/mail"
 	"github.com/skygeario/skygear-server/pkg/sms"
 	"github.com/skygeario/skygear-server/pkg/template"
 )
 
 type Provider struct {
-	Context                   context.Context
-	LocalizationConfiguration *config.LocalizationConfiguration
-	MetadataConfiguration     config.AuthUIMetadataConfiguration
-	SMSMessageConfiguration   config.SMSMessageConfiguration
-	EmailMessageConfiguration config.EmailMessageConfiguration
-	Config                    *config.AuthenticatorOOBConfiguration
-	Store                     *Store
-	TemplateEngine            *template.Engine
-	URLPrefixProvider         urlprefix.Provider
-	TaskQueue                 async.Queue
-	Clock                     clock.Clock
+	Context               context.Context
+	LocalizationConfig    *config.LocalizationConfig
+	MetadataConfiguration config.AppMetadata
+	MessagingConfig       config.MessagingConfig
+	Config                *config.AuthenticatorOOBConfig
+	Store                 *Store
+	TemplateEngine        *template.Engine
+	URLPrefixProvider     urlprefix.Provider
+	TaskQueue             async.Queue
+	Clock                 clock.Clock
 }
 
 func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
@@ -114,7 +113,7 @@ func (p *Provider) SendCode(opts SendCodeOptions) (err error) {
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
-	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.MetadataConfiguration, "app_name")
+	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfig.FallbackLanguage), p.MetadataConfiguration, "app_name")
 
 	switch channel {
 	case string(authn.AuthenticatorOOBChannelEmail):
@@ -150,8 +149,8 @@ func (p *Provider) SendEmail(email string, data map[string]interface{}) (err err
 		Param: taskspec.SendMessagesTaskParam{
 			EmailMessages: []mail.SendOptions{
 				{
-					MessageConfig: config.NewEmailMessageConfiguration(
-						p.EmailMessageConfiguration,
+					MessageConfig: config.NewEmailMessageConfig(
+						p.MessagingConfig.DefaultEmailMessage,
 						p.Config.Email.Message,
 					),
 					Recipient: email,
@@ -180,8 +179,8 @@ func (p *Provider) SendSMS(phone string, data map[string]interface{}) (err error
 		Param: taskspec.SendMessagesTaskParam{
 			SMSMessages: []sms.SendOptions{
 				{
-					MessageConfig: config.NewSMSMessageConfiguration(
-						p.SMSMessageConfiguration,
+					MessageConfig: config.NewSMSMessageConfig(
+						p.MessagingConfig.DefaultSMSMessage,
 						p.Config.SMS.Message,
 					),
 					To:   phone,

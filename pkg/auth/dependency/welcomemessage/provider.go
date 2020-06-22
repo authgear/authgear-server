@@ -3,32 +3,32 @@ package welcomemessage
 import (
 	"context"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	taskspec "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/intl"
-	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/mail"
 	"github.com/skygeario/skygear-server/pkg/template"
 )
 
 type Provider struct {
-	Context                     context.Context
-	LocalizationConfiguration   *config.LocalizationConfiguration
-	MetadataConfiguration       config.AuthUIMetadataConfiguration
-	EmailConfig                 config.EmailMessageConfiguration
-	WelcomeMessageConfiguration *config.WelcomeMessageConfiguration
-	TemplateEngine              *template.Engine
-	TaskQueue                   async.Queue
+	Context               context.Context
+	LocalizationConfig    *config.LocalizationConfig
+	MetadataConfiguration config.AppMetadata
+	MessagingConfig       *config.MessagingConfig
+	WelcomeMessageConfig  *config.WelcomeMessageConfig
+	TemplateEngine        *template.Engine
+	TaskQueue             async.Queue
 }
 
 func (p *Provider) send(emails []string) (err error) {
-	if !p.WelcomeMessageConfiguration.Enabled {
+	if !p.WelcomeMessageConfig.Enabled {
 		return
 	}
 
-	if p.WelcomeMessageConfiguration.Destination == config.WelcomeMessageDestinationFirst {
+	if p.WelcomeMessageConfig.Destination == config.WelcomeMessageDestinationFirst {
 		if len(emails) > 1 {
 			emails = emails[0:1]
 		}
@@ -45,7 +45,7 @@ func (p *Provider) send(emails []string) (err error) {
 		}
 
 		preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
-		data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.MetadataConfiguration, "app_name")
+		data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfig.FallbackLanguage), p.MetadataConfiguration, "app_name")
 
 		var textBody string
 		textBody, err = p.TemplateEngine.RenderTemplate(
@@ -68,10 +68,13 @@ func (p *Provider) send(emails []string) (err error) {
 		}
 
 		emailMessages = append(emailMessages, mail.SendOptions{
-			MessageConfig: p.EmailConfig,
-			Recipient:     email,
-			TextBody:      textBody,
-			HTMLBody:      htmlBody,
+			MessageConfig: config.NewEmailMessageConfig(
+				p.MessagingConfig.DefaultEmailMessage,
+				p.WelcomeMessageConfig.EmailMessage,
+			),
+			Recipient: email,
+			TextBody:  textBody,
+			HTMLBody:  htmlBody,
 		})
 	}
 

@@ -6,6 +6,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
@@ -15,9 +16,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/intl"
-	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/mail"
 	"github.com/skygeario/skygear-server/pkg/sms"
 	"github.com/skygeario/skygear-server/pkg/template"
 )
@@ -36,13 +36,12 @@ type UserProvider interface {
 }
 
 type Provider struct {
-	Context                     context.Context
-	LocalizationConfiguration   *config.LocalizationConfiguration
-	MetadataConfiguration       config.AuthUIMetadataConfiguration
-	StaticAssetURLPrefix        string
-	EmailMessageConfiguration   config.EmailMessageConfiguration
-	SMSMessageConfiguration     config.SMSMessageConfiguration
-	ForgotPasswordConfiguration *config.ForgotPasswordConfiguration
+	Context               context.Context
+	StaticAssetURLPrefix  string
+	LocalizationConfig    *config.LocalizationConfig
+	MetadataConfiguration config.AppMetadata
+	MessagingConfig       config.MessagingConfig
+	ForgotPasswordConfig  *config.ForgotPasswordConfig
 
 	Store Store
 
@@ -107,7 +106,7 @@ func (p *Provider) SendCode(loginID string) (err error) {
 func (p *Provider) newCode(userID string) (code *Code, codeStr string) {
 	createdAt := p.Clock.NowUTC()
 	codeStr = GenerateCode()
-	expireAt := createdAt.Add(time.Duration(p.ForgotPasswordConfiguration.ResetCodeLifetime) * time.Second)
+	expireAt := createdAt.Add(time.Duration(p.ForgotPasswordConfig.ResetCodeExpiry) * time.Second)
 	code = &Code{
 		CodeHash:  HashCode(codeStr),
 		UserID:    userID,
@@ -129,7 +128,7 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
-	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.MetadataConfiguration, "app_name")
+	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfig.FallbackLanguage), p.MetadataConfiguration, "app_name")
 
 	textBody, err := p.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordEmailTXT,
@@ -154,9 +153,9 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 		Param: taskspec.SendMessagesTaskParam{
 			EmailMessages: []mail.SendOptions{
 				mail.SendOptions{
-					MessageConfig: config.NewEmailMessageConfiguration(
-						p.EmailMessageConfiguration,
-						p.ForgotPasswordConfiguration.EmailMessage,
+					MessageConfig: config.NewEmailMessageConfig(
+						p.MessagingConfig.DefaultEmailMessage,
+						p.ForgotPasswordConfig.EmailMessage,
 					),
 					Recipient: email,
 					TextBody:  textBody,
@@ -178,7 +177,7 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
-	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.MetadataConfiguration, "app_name")
+	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfig.FallbackLanguage), p.MetadataConfiguration, "app_name")
 
 	body, err := p.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordSMSTXT,
@@ -194,9 +193,9 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 		Param: taskspec.SendMessagesTaskParam{
 			SMSMessages: []sms.SendOptions{
 				sms.SendOptions{
-					MessageConfig: config.NewSMSMessageConfiguration(
-						p.SMSMessageConfiguration,
-						p.ForgotPasswordConfiguration.SMSMessage,
+					MessageConfig: config.NewSMSMessageConfig(
+						p.MessagingConfig.DefaultSMSMessage,
+						p.ForgotPasswordConfig.SMSMessage,
 					),
 					To:   phone,
 					Body: body,
