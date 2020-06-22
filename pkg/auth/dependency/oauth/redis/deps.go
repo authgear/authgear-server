@@ -1,37 +1,21 @@
 package redis
 
 import (
-	"context"
-
 	"github.com/google/wire"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func ProvideGrantStore(
-	ctx context.Context,
-	lf logging.Factory,
-	cfg *config.TenantConfiguration,
-	sqlb db.SQLBuilder,
-	sqle db.SQLExecutor,
-	t clock.Clock,
-) *GrantStore {
-	return &GrantStore{
-		Context:     ctx,
-		Logger:      lf.NewLogger("oauth-grant-store"),
-		AppID:       cfg.AppID,
-		SQLBuilder:  sqlb,
-		SQLExecutor: sqle,
-		Clock:       t,
-	}
+type Logger struct{ *log.Logger }
+
+func NewLogger(lf *log.Factory) Logger {
+	return Logger{lf.New("oauth-grant-store")}
 }
 
 var DependencySet = wire.NewSet(
-	ProvideGrantStore,
+	NewLogger,
+	wire.Struct(new(GrantStore), "*"),
 	wire.Bind(new(oauth.CodeGrantStore), new(*GrantStore)),
 	wire.Bind(new(oauth.AccessGrantStore), new(*GrantStore)),
 	wire.Bind(new(oauth.OfflineGrantStore), new(*GrantStore)),

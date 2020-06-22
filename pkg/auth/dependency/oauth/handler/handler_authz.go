@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
@@ -17,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/utils"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
 const CodeGrantValidDuration = 5 * time.Minute
@@ -33,7 +32,7 @@ type AuthorizationHandler struct {
 	Context context.Context
 	AppID   string
 	Clients []config.OAuthClientConfiguration
-	Logger  *logrus.Entry
+	Logger  *log.Logger
 
 	Authorizations  oauth.AuthorizationStore
 	CodeGrants      oauth.CodeGrantStore

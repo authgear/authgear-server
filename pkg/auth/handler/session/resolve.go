@@ -8,8 +8,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
 func AttachResolveHandler(
@@ -27,16 +27,21 @@ type AnonymousIdentityProvider interface {
 	List(userID string) ([]*anonymous.Identity, error)
 }
 
+type ResolveHandlerLogger struct{ *log.Logger }
+
+func NewResolveHandlerLogger(lf *log.Factory) ResolveHandlerLogger {
+	return ResolveHandlerLogger{lf.New("resolve-handler")}
+}
+
 type ResolveHandler struct {
-	Anonymous     AnonymousIdentityProvider
-	LoggerFactory logging.Factory
+	Anonymous AnonymousIdentityProvider
+	Logger    ResolveHandlerLogger
 }
 
 func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	info, err := h.resolve(r)
 	if err != nil {
-		logger := h.LoggerFactory.NewLogger("resolve-handler")
-		logger.WithError(err).Error("failed to resolve user")
+		h.Logger.WithError(err).Error("failed to resolve user")
 
 		http.Error(rw, "internal error", http.StatusInternalServerError)
 		return

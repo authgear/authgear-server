@@ -7,9 +7,9 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/log"
 	"github.com/skygeario/skygear-server/pkg/task"
 )
 
@@ -20,9 +20,15 @@ func AttachPwHousekeeperTask(
 	registry.Register(spec.PwHousekeeperTaskName, p.Task(newPwHouseKeeperTask))
 }
 
+type PwHousekeeperLogger struct{ *log.Logger }
+
+func NewPwHousekeeperLogger(lf *log.Factory) PwHousekeeperLogger {
+	return PwHousekeeperLogger{lf.New("password_housekeeper")}
+}
+
 type PwHousekeeperTask struct {
 	DBContext     db.Context
-	LoggerFactory logging.Factory
+	Logger        PwHousekeeperLogger
 	PwHousekeeper *password.Housekeeper
 }
 
@@ -31,10 +37,9 @@ func (t *PwHousekeeperTask) Run(ctx context.Context, param interface{}) (err err
 }
 
 func (t *PwHousekeeperTask) run(param interface{}) (err error) {
-	logger := t.LoggerFactory.NewLogger("passwordhousekeeper")
 	taskParam := param.(spec.PwHousekeeperTaskParam)
 
-	logger.WithFields(logrus.Fields{"user_id": taskParam.AuthID}).Debug("Housekeeping password")
+	t.Logger.WithFields(logrus.Fields{"user_id": taskParam.AuthID}).Debug("Housekeeping password")
 
 	if err = taskParam.Validate(); err != nil {
 		return

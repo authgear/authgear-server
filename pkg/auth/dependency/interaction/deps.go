@@ -3,35 +3,16 @@ package interaction
 import (
 	"github.com/google/wire"
 
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func ProvideProvider(
-	s Store,
-	t clock.Clock,
-	lf logging.Factory,
-	ip IdentityProvider,
-	ap AuthenticatorProvider,
-	up UserProvider,
-	oob OOBProvider,
-	c *config.TenantConfiguration,
-	hp HookProvider,
-) *Provider {
-	return &Provider{
-		Store:         s,
-		Clock:         t,
-		Logger:        lf.NewLogger("interaction"),
-		Identity:      ip,
-		Authenticator: ap,
-		User:          up,
-		OOB:           oob,
-		Hooks:         hp,
-		Config:        c.AppConfig.Authentication,
-	}
+type Logger struct{ *log.Logger }
+
+func NewLogger(lf *log.Factory) Logger {
+	return Logger{lf.New("interaction")}
 }
 
 var DependencySet = wire.NewSet(
-	ProvideProvider,
+	NewLogger,
+	wire.Struct(new(Provider), "*"),
 )

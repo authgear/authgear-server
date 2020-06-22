@@ -3,8 +3,6 @@ package interaction
 import (
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
@@ -13,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
 //go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package interaction_test
@@ -110,7 +109,7 @@ const interactionIdleTimeout = 5 * time.Minute
 type Provider struct {
 	Store         Store
 	Clock         clock.Clock
-	Logger        *logrus.Entry
+	Logger        *log.Logger
 	Identity      IdentityProvider
 	Authenticator AuthenticatorProvider
 	User          UserProvider

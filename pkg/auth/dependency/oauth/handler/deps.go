@@ -1,85 +1,30 @@
 package handler
 
 import (
-	"context"
-	"net/http"
-
 	"github.com/google/wire"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func ProvideAuthorizationHandler(
-	ctx context.Context,
-	cfg *config.TenantConfiguration,
-	lf logging.Factory,
-	as oauth.AuthorizationStore,
-	cs oauth.CodeGrantStore,
-	authze AuthorizeURLProvider,
-	authne AuthenticateURLProvider,
-	vs ScopesValidator,
-	cg TokenGenerator,
-	tp clock.Clock,
-) *AuthorizationHandler {
-	return &AuthorizationHandler{
-		Context: ctx,
-		AppID:   cfg.AppID,
-		Clients: cfg.AppConfig.Clients,
-		Logger:  lf.NewLogger("oauth-authz"),
+type AuthorizationHandlerLogger struct{ *log.Logger }
 
-		Authorizations:  as,
-		CodeGrants:      cs,
-		AuthorizeURL:    authze,
-		AuthenticateURL: authne,
-		ValidateScopes:  vs,
-		CodeGenerator:   cg,
-		Clock:           tp,
-	}
+func NewAuthorizationHandlerLogger(lf *log.Factory) AuthorizationHandlerLogger {
+	return AuthorizationHandlerLogger{lf.New("oauth-authz")}
 }
 
-func ProvideTokenHandler(
-	r *http.Request,
-	cfg *config.TenantConfiguration,
-	lf logging.Factory,
-	as oauth.AuthorizationStore,
-	cs oauth.CodeGrantStore,
-	os oauth.OfflineGrantStore,
-	ags oauth.AccessGrantStore,
-	aep auth.AccessEventProvider,
-	sp session.Provider,
-	aif AnonymousInteractionFlow,
-	ti IDTokenIssuer,
-	cg TokenGenerator,
-	tp clock.Clock,
-) *TokenHandler {
-	return &TokenHandler{
-		Request: r,
-		AppID:   cfg.AppID,
-		Clients: cfg.AppConfig.Clients,
-		Logger:  lf.NewLogger("oauth-token"),
+type TokenHandlerLogger struct{ *log.Logger }
 
-		Authorizations: as,
-		CodeGrants:     cs,
-		OfflineGrants:  os,
-		AccessGrants:   ags,
-		AccessEvents:   aep,
-		Sessions:       sp,
-		Anonymous:      aif,
-		IDTokenIssuer:  ti,
-		GenerateToken:  cg,
-		Clock:          tp,
-	}
+func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
+	return TokenHandlerLogger{lf.New("oauth-token")}
 }
 
 var DependencySet = wire.NewSet(
-	ProvideAuthorizationHandler,
-	ProvideTokenHandler,
+	NewAuthorizationHandlerLogger,
+	wire.Struct(new(AuthorizationHandler), "*"),
+	NewTokenHandlerLogger,
+	wire.Struct(new(TokenHandler), "*"),
 	wire.Struct(new(RevokeHandler), "*"),
 	wire.Value(TokenGenerator(oauth.GenerateToken)),
 	wire.Bind(new(interactionflows.TokenIssuer), new(*TokenHandler)),
