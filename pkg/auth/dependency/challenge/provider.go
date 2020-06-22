@@ -1,7 +1,6 @@
 package challenge
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,14 +8,15 @@ import (
 
 	redigo "github.com/gomodule/redigo/redis"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/redis"
+	"github.com/skygeario/skygear-server/pkg/redis"
 )
 
 type Provider struct {
-	Context context.Context
-	AppID   string
-	Clock   clock.Clock
+	Redis *redis.Context
+	AppID config.AppID
+	Clock clock.Clock
 }
 
 func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
@@ -29,7 +29,7 @@ func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
 		ExpireAt:  now.Add(ttl),
 	}
 
-	conn := redis.GetConn(p.Context)
+	conn := p.Redis.Conn()
 	key := challengeKey(p.AppID, c.Token)
 	data, err := json.Marshal(c)
 	if err != nil {
@@ -47,7 +47,7 @@ func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
 }
 
 func (p *Provider) Consume(token string) (*Purpose, error) {
-	conn := redis.GetConn(p.Context)
+	conn := p.Redis.Conn()
 	key := challengeKey(p.AppID, token)
 	data, err := redigo.Bytes(conn.Do("GET", key))
 	if errors.Is(err, redigo.ErrNil) {
@@ -70,7 +70,7 @@ func (p *Provider) Consume(token string) (*Purpose, error) {
 	return &c.Purpose, nil
 }
 
-func challengeKey(appID, token string) string {
+func challengeKey(appID config.AppID, token string) string {
 	return fmt.Sprintf("%s:challenge:%s", appID, token)
 }
 
