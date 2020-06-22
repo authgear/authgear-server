@@ -7,12 +7,12 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
 var forwardedForRegex = regexp.MustCompile(`for=([^;]*)(?:[; ]|$)`)
 var ipRegex = regexp.MustCompile(`^(?:(\d+\.\d+\.\d+\.\d+)|\[(.*)\])(?::\d+)?$`)
+
+const HeaderSessionExtraInfo = "x-authgear-extra-info"
 
 type AccessInfo struct {
 	InitialAccess AccessEvent `json:"initial_access"`
@@ -35,7 +35,7 @@ func NewAccessEvent(timestamp time.Time, req *http.Request) AccessEvent {
 	}
 
 	extra := AccessEventExtraInfo{}
-	extraData, err := base64.StdEncoding.DecodeString(req.Header.Get(corehttp.HeaderSessionExtraInfo))
+	extraData, err := base64.StdEncoding.DecodeString(req.Header.Get(HeaderSessionExtraInfo))
 	const extraDataSizeLimit = 1024
 	if err == nil && len(extraData) <= extraDataSizeLimit {
 		_ = json.Unmarshal(extraData, &extra)

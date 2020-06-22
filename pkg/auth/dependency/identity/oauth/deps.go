@@ -2,18 +2,19 @@ package oauth
 
 import (
 	"github.com/google/wire"
+
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func ProvideProvider(
 	sqlb db.SQLBuilder,
 	sqle db.SQLExecutor,
-	t time.Provider,
+	t clock.Clock,
 ) *Provider {
 	return &Provider{
 		Store: &Store{SQLBuilder: sqlb, SQLExecutor: sqle},
-		Time:  t,
+		Clock: t,
 	}
 }
 

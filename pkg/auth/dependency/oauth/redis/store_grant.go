@@ -12,9 +12,9 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/redis"
-	coretime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func toMilliseconds(d time.Duration) int64 {
@@ -27,7 +27,7 @@ type GrantStore struct {
 	Logger      *logrus.Entry
 	SQLBuilder  db.SQLBuilder
 	SQLExecutor db.SQLExecutor
-	Time        coretime.Provider
+	Clock       clock.Clock
 }
 
 func (s *GrantStore) load(conn redigo.Conn, key string, ptr interface{}) error {
@@ -45,7 +45,7 @@ func (s *GrantStore) save(conn redigo.Conn, key string, value interface{}, expir
 	if err != nil {
 		return err
 	}
-	ttl := expireAt.Sub(s.Time.NowUTC())
+	ttl := expireAt.Sub(s.Clock.NowUTC())
 
 	var ctrl string
 	if ifNotExists {

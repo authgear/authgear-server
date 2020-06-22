@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/clock"
 )
 
 type ResolverProvider interface {
@@ -14,9 +14,9 @@ type ResolverProvider interface {
 }
 
 type Resolver struct {
-	CookieConfiguration CookieConfiguration
-	Provider            ResolverProvider
-	Time                time.Provider
+	Cookie   CookieDef
+	Provider ResolverProvider
+	Clock    clock.Clock
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthSession, error) {
@@ -30,12 +30,12 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthS
 	if err != nil {
 		if errors.Is(err, ErrSessionNotFound) {
 			err = auth.ErrInvalidSession
-			re.CookieConfiguration.Clear(rw)
+			re.Cookie.Clear(rw)
 		}
 		return nil, err
 	}
 
-	session.AccessInfo.LastAccess = auth.NewAccessEvent(re.Time.NowUTC(), r)
+	session.AccessInfo.LastAccess = auth.NewAccessEvent(re.Clock.NowUTC(), r)
 	if err = re.Provider.Update(session); err != nil {
 		return nil, err
 	}

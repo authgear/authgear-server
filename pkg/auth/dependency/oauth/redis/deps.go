@@ -4,11 +4,12 @@ import (
 	"context"
 
 	"github.com/google/wire"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	coretime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func ProvideGrantStore(
@@ -17,7 +18,7 @@ func ProvideGrantStore(
 	cfg *config.TenantConfiguration,
 	sqlb db.SQLBuilder,
 	sqle db.SQLExecutor,
-	t coretime.Provider,
+	t clock.Clock,
 ) *GrantStore {
 	return &GrantStore{
 		Context:     ctx,
@@ -25,7 +26,7 @@ func ProvideGrantStore(
 		AppID:       cfg.AppID,
 		SQLBuilder:  sqlb,
 		SQLExecutor: sqle,
-		Time:        t,
+		Clock:       t,
 	}
 }
 

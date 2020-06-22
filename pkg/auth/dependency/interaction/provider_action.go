@@ -235,7 +235,7 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 		panic("interaction: unexpected ActionTriggerOOBAuthenticator.Authenticator.Type: " + spec.Type)
 	}
 
-	now := p.Time.NowUTC()
+	now := p.Clock.NowUTC()
 	nowBytes, err := now.MarshalText()
 	if err != nil {
 		return

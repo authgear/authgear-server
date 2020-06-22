@@ -3,7 +3,6 @@ package user
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type IdentityProvider interface {
@@ -13,7 +12,6 @@ type IdentityProvider interface {
 type Queries struct {
 	Store      store
 	Identities IdentityProvider
-	Time       time.Provider
 }
 
 func (p *Queries) Get(id string) (*model.User, error) {

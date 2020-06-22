@@ -2,15 +2,16 @@ package interaction
 
 import (
 	"github.com/google/wire"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func ProvideProvider(
 	s Store,
-	t time.Provider,
+	t clock.Clock,
 	lf logging.Factory,
 	ip IdentityProvider,
 	ap AuthenticatorProvider,
@@ -21,7 +22,7 @@ func ProvideProvider(
 ) *Provider {
 	return &Provider{
 		Store:         s,
-		Time:          t,
+		Clock:         t,
 		Logger:        lf.NewLogger("interaction"),
 		Identity:      ip,
 		Authenticator: ap,

@@ -5,20 +5,20 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
-	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
+	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/task"
 )
 
 func AttachSendMessagesTask(
-	executor *async.Executor,
-	authDependency auth.DependencyMap,
+	registry task.Registry,
+	p *deps.RootProvider,
 ) {
-	executor.Register(spec.SendMessagesTaskName, MakeTask(authDependency, newSendMessagesTask))
+	registry.Register(spec.SendMessagesTaskName, p.Task(newSendMessagesTask))
 }
 
 type SendMessagesTask struct {

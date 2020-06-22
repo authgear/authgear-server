@@ -4,7 +4,6 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/google/wire"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 )
 
@@ -28,7 +27,3 @@ func (p *EndpointsProvider) AuthenticateEndpointURI() *url.URL { return p.urlOf(
 func (p *EndpointsProvider) PromoteUserEndpointURI() *url.URL  { return p.urlOf("./promote_user") }
 func (p *EndpointsProvider) LogoutEndpointURI() *url.URL       { return p.urlOf("./logout") }
 func (p *EndpointsProvider) SettingsEndpointURI() *url.URL     { return p.urlOf("./settings") }
-
-var endpointsProviderSet = wire.NewSet(
-	wire.Struct(new(EndpointsProvider), "*"),
-)

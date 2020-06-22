@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
+	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 const DefaultRedirectURI = "/settings"
@@ -69,7 +69,9 @@ func parseRedirectURI(r *http.Request, redirectURL string, allowRecursive bool) 
 	}
 
 	recursive := u.Path == r.URL.Path || (u.RawPath != "" && u.RawPath == r.URL.RawPath)
-	sameOrigin := (u.Scheme == "" && u.Host == "") || u.Scheme == corehttp.GetProto(r) && u.Host == corehttp.GetHost(r)
+	// FIXME: use ServerConfig
+	sameOrigin := (u.Scheme == "" && u.Host == "") ||
+		(u.Scheme == httputil.GetProto(r, true) && u.Host == httputil.GetHost(r, true))
 
 	if !sameOrigin {
 		err = errors.New("not the same origin")

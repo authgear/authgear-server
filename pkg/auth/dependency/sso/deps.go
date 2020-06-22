@@ -2,10 +2,11 @@ package sso
 
 import (
 	"github.com/google/wire"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func ProvideStateCodec(config *config.TenantConfiguration) *StateCodec {
@@ -18,7 +19,7 @@ func ProvideStateCodec(config *config.TenantConfiguration) *StateCodec {
 func ProvideOAuthProviderFactory(
 	cfg *config.TenantConfiguration,
 	up urlprefix.Provider,
-	tp time.Provider,
+	tp clock.Clock,
 	nf *loginid.NormalizerFactory,
 	rf RedirectURLFunc,
 ) *OAuthProviderFactory {

@@ -2,10 +2,11 @@ package user
 
 import (
 	"github.com/google/wire"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type Provider struct {
@@ -15,7 +16,7 @@ type Provider struct {
 
 func ProvideRawCommands(
 	us store,
-	tp time.Provider,
+	tp clock.Clock,
 	up urlprefix.Provider,
 	q async.Queue,
 	config *config.TenantConfiguration,
@@ -23,7 +24,7 @@ func ProvideRawCommands(
 ) *RawCommands {
 	return &RawCommands{
 		Store:                         us,
-		Time:                          tp,
+		Clock:                         tp,
 		URLPrefix:                     up,
 		TaskQueue:                     q,
 		UserVerificationConfiguration: config.AppConfig.UserVerification,

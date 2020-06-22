@@ -5,14 +5,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	gomock "github.com/golang/mock/gomock"
+	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func TestResolveHandler(t *testing.T) {
@@ -22,8 +21,7 @@ func TestResolveHandler(t *testing.T) {
 
 		anonymousProvider := NewMockAnonymousIdentityProvider(ctrl)
 		h := &ResolveHandler{
-			TimeProvider: &time.MockProvider{},
-			Anonymous:    anonymousProvider,
+			Anonymous: anonymousProvider,
 		}
 
 		Convey("should attach headers for valid sessions", func() {

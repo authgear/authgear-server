@@ -5,13 +5,14 @@ import (
 	"net/http"
 
 	"github.com/google/wire"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func ProvideAuthorizationHandler(
@@ -24,7 +25,7 @@ func ProvideAuthorizationHandler(
 	authne AuthenticateURLProvider,
 	vs ScopesValidator,
 	cg TokenGenerator,
-	tp time.Provider,
+	tp clock.Clock,
 ) *AuthorizationHandler {
 	return &AuthorizationHandler{
 		Context: ctx,
@@ -38,7 +39,7 @@ func ProvideAuthorizationHandler(
 		AuthenticateURL: authne,
 		ValidateScopes:  vs,
 		CodeGenerator:   cg,
-		Time:            tp,
+		Clock:           tp,
 	}
 }
 
@@ -55,7 +56,7 @@ func ProvideTokenHandler(
 	aif AnonymousInteractionFlow,
 	ti IDTokenIssuer,
 	cg TokenGenerator,
-	tp time.Provider,
+	tp clock.Clock,
 ) *TokenHandler {
 	return &TokenHandler{
 		Request: r,
@@ -72,7 +73,7 @@ func ProvideTokenHandler(
 		Anonymous:      aif,
 		IDTokenIssuer:  ti,
 		GenerateToken:  cg,
-		Time:           tp,
+		Clock:          tp,
 	}
 }
 

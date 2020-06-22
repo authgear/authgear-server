@@ -4,23 +4,27 @@ import (
 	"net/http"
 
 	"github.com/gorilla/csrf"
+
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/samesite"
+	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 type CSRFMiddleware struct {
-	Key               string
-	UseInsecureCookie bool
+	Secret *config.CSRFKeyMaterials
+	Config *config.ServerConfig
 }
 
 func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		useragent := r.UserAgent()
+		secure := httputil.GetProto(r, m.Config.TrustProxy) == "https"
 		options := []csrf.Option{
 			csrf.Path("/"),
-			csrf.Secure(!m.UseInsecureCookie),
+			csrf.Secure(secure),
 			csrf.CookieName(csrfCookieName),
 		}
+
+		useragent := r.UserAgent()
 		if samesite.ShouldSendSameSiteNone(useragent) {
 			options = append(options, csrf.SameSite(csrf.SameSiteNoneMode))
 		} else {
@@ -34,9 +38,15 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 			options = append(options, csrf.SameSite(0))
 		}
 
-		gorillaCSRF := csrf.Protect(
-			[]byte(m.Key), options...,
-		)
+		keys, err := config.ToJWS(m.Secret.Keys)
+		if err != nil {
+			panic("webapp: invalid CSRF key materials")
+		}
+		key, err := config.ExtractOctetKey(keys, "")
+		if err != nil {
+			panic("webapp: CSRF key not found")
+		}
+		gorillaCSRF := csrf.Protect(key, options...)
 		h := gorillaCSRF(next)
 		h.ServeHTTP(w, r)
 	})

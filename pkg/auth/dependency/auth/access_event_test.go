@@ -44,7 +44,7 @@ func TestNewAccessEvent(t *testing.T) {
 		})
 		Convey("should populate extra info", func() {
 			req, _ := http.NewRequest("POST", "", nil)
-			req.Header.Set("X-Skygear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
+			req.Header.Set("X-Authgear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
 
 			event := NewAccessEvent(now, req)
 			So(event.Extra, ShouldResemble, AccessEventExtraInfo{

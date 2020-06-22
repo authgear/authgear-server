@@ -8,18 +8,17 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/lestrrat-go/jwx/jwk"
 
-	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
 func AttachJWKSHandler(
 	router *mux.Router,
-	authDependency pkg.DependencyMap,
+	p *deps.RootProvider,
 ) {
-	handler := pkg.MakeHandler(authDependency, newJWKSHandler)
 	router.NewRoute().
 		Path("/oauth2/jwks").
-		Handler(handler).
+		Handler(p.Handler(newJWKSHandler)).
 		Methods("GET", "OPTIONS")
 }
 

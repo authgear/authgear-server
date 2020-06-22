@@ -8,10 +8,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/deps"
+	coretime "github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/template"
-	coretime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 var DependencySet = wire.NewSet(
@@ -27,7 +27,7 @@ func ProvideProvider(
 	store Store,
 	u UserProvider,
 	hp hook.Provider,
-	tp coretime.Provider,
+	tp coretime.Clock,
 	upp urlprefix.Provider,
 	te *template.Engine,
 	tq async.Queue,
@@ -45,7 +45,7 @@ func ProvideProvider(
 		Store:                       store,
 		Users:                       u,
 		HookProvider:                hp,
-		TimeProvider:                tp,
+		Clock:                       tp,
 		URLPrefixProvider:           upp,
 		TemplateEngine:              te,
 		TaskQueue:                   tq,

@@ -14,7 +14,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/marshal"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
@@ -524,8 +523,10 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	}
 }
 
+const HeaderTenantConfig = "x-skygear-app-config"
+
 func ReadTenantConfig(r *http.Request) TenantConfiguration {
-	s := r.Header.Get(coreHttp.HeaderTenantConfig)
+	s := r.Header.Get(HeaderTenantConfig)
 	config, err := NewTenantConfigurationFromStdBase64Msgpack(s)
 	if err != nil {
 		panic(err)
@@ -535,13 +536,13 @@ func ReadTenantConfig(r *http.Request) TenantConfiguration {
 
 func WriteTenantConfig(r *http.Request, config *TenantConfiguration) {
 	if config == nil {
-		r.Header.Del(coreHttp.HeaderTenantConfig)
+		r.Header.Del(HeaderTenantConfig)
 	} else {
 		value, err := config.StdBase64Msgpack()
 		if err != nil {
 			panic(err)
 		}
-		r.Header.Set(coreHttp.HeaderTenantConfig, value)
+		r.Header.Set(HeaderTenantConfig, value)
 	}
 }
 

@@ -6,33 +6,32 @@ import (
 	"net"
 	gohttp "net/http"
 	"net/url"
-	gotime "time"
-
-	"github.com/skygeario/skygear-server/pkg/core/time"
-
-	"github.com/skygeario/skygear-server/pkg/core/crypto"
-	"github.com/skygeario/skygear-server/pkg/core/http"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/crypto"
 )
+
+const HeaderRequestBodySignature = "x-authgear-body-signature"
 
 type delivererImpl struct {
 	Hooks            *[]config.Hook
 	HookAppConfig    *config.HookAppConfiguration
 	HookTenantConfig *config.HookTenantConfiguration
-	TimeProvider     time.Provider
+	Clock            clock.Clock
 	Mutator          Mutator
 	HTTPClient       gohttp.Client
 }
 
-func NewDeliverer(config *config.TenantConfiguration, timeProvider time.Provider, mutator Mutator) Deliverer {
+func NewDeliverer(config *config.TenantConfiguration, clock clock.Clock, mutator Mutator) Deliverer {
 	return &delivererImpl{
 		Hooks:            &config.Hooks,
 		HookAppConfig:    config.AppConfig.Hook,
 		HookTenantConfig: config.Hook,
-		TimeProvider:     timeProvider,
+		Clock:            clock,
 		Mutator:          mutator,
 		HTTPClient:       gohttp.Client{},
 	}
@@ -48,9 +47,9 @@ func (deliverer *delivererImpl) WillDeliver(eventType event.Type) bool {
 }
 
 func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.User) error {
-	startTime := deliverer.TimeProvider.Now()
-	requestTimeout := gotime.Duration(deliverer.HookTenantConfig.SyncHookTimeout) * gotime.Second
-	totalTimeout := gotime.Duration(deliverer.HookTenantConfig.SyncHookTotalTimeout) * gotime.Second
+	startTime := deliverer.Clock.NowMonotonic()
+	requestTimeout := time.Duration(deliverer.HookTenantConfig.SyncHookTimeout) * time.Second
+	totalTimeout := time.Duration(deliverer.HookTenantConfig.SyncHookTotalTimeout) * time.Second
 
 	mutator := deliverer.Mutator.New(e, user)
 	client := deliverer.HTTPClient
@@ -62,7 +61,7 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.U
 			continue
 		}
 
-		if deliverer.TimeProvider.Now().Sub(startTime) > totalTimeout {
+		if deliverer.Clock.NowMonotonic().Sub(startTime) > totalTimeout {
 			return errDeliveryTimeout
 		}
 
@@ -103,7 +102,7 @@ func (deliverer *delivererImpl) DeliverBeforeEvent(e *event.Event, user *model.U
 	return nil
 }
 
-func (deliverer *delivererImpl) DeliverNonBeforeEvent(e *event.Event, timeout gotime.Duration) error {
+func (deliverer *delivererImpl) DeliverNonBeforeEvent(e *event.Event, timeout time.Duration) error {
 	client := deliverer.HTTPClient
 	client.CheckRedirect = noFollowRedirectPolicy
 	client.Timeout = timeout
@@ -145,7 +144,7 @@ func (deliverer *delivererImpl) prepareRequest(hook config.Hook, event *event.Ev
 		return nil, newErrorDeliveryFailed(err)
 	}
 	request.Header.Add("Content-Type", "application/json")
-	request.Header.Add(http.HeaderRequestBodySignature, signature)
+	request.Header.Add(HeaderRequestBodySignature, signature)
 
 	return request, nil
 }

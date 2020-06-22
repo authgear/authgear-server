@@ -1,6 +1,7 @@
-package http
+package httputil_test
 
 import (
+	"github.com/skygeario/skygear-server/pkg/httputil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,7 +19,7 @@ func TestUpdateCookie(t *testing.T) {
 				Value: "b",
 			}
 
-			UpdateCookie(w, cookie)
+			httputil.UpdateCookie(w, cookie)
 			So(w.Header(), ShouldResemble, http.Header{
 				"Set-Cookie": []string{"a=b"},
 			})
@@ -34,7 +35,7 @@ func TestUpdateCookie(t *testing.T) {
 				Value: "c",
 			}
 
-			UpdateCookie(w, cookie)
+			httputil.UpdateCookie(w, cookie)
 			So(w.Header(), ShouldResemble, http.Header{
 				"Set-Cookie": []string{"a=c"},
 			})
@@ -51,7 +52,7 @@ func TestUpdateCookie(t *testing.T) {
 				Domain: "example.com",
 			}
 
-			UpdateCookie(w, cookie)
+			httputil.UpdateCookie(w, cookie)
 			So(w.Header(), ShouldResemble, http.Header{
 				"Set-Cookie": []string{"a=b", "a=c; Domain=example.com"},
 			})
@@ -68,7 +69,7 @@ func TestUpdateCookie(t *testing.T) {
 				Path:  "/",
 			}
 
-			UpdateCookie(w, cookie)
+			httputil.UpdateCookie(w, cookie)
 			So(w.Header(), ShouldResemble, http.Header{
 				"Set-Cookie": []string{"a=b", "a=c; Path=/"},
 			})
@@ -91,7 +92,7 @@ func TestUpdateCookie(t *testing.T) {
 				Path:   "/",
 			}
 
-			UpdateCookie(w, cookie)
+			httputil.UpdateCookie(w, cookie)
 			So(w.Header(), ShouldResemble, http.Header{
 				"Set-Cookie": []string{
 					"a=b",
@@ -107,7 +108,7 @@ func TestUpdateCookie(t *testing.T) {
 func TestCookieDomainFromETLDPlusOneWithoutPort(t *testing.T) {
 	Convey("CookieDomainFromETLDPlusOneWithoutPort", t, func() {
 		check := func(in string, out string) {
-			actual := CookieDomainFromETLDPlusOneWithoutPort(in)
+			actual := httputil.CookieDomainFromETLDPlusOneWithoutPort(in)
 			So(out, ShouldEqual, actual)
 		}
 		check("localhost", "")

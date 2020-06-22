@@ -2,7 +2,7 @@ package flows
 
 import (
 	"net/http"
-	gotime "time"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
@@ -11,9 +11,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type TokenIssuer interface {
@@ -25,17 +25,17 @@ type TokenIssuer interface {
 
 type UserProvider interface {
 	Get(id string) (*model.User, error)
-	UpdateLoginTime(user *model.User, lastLoginAt gotime.Time) error
+	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error
 }
 
 type UserController struct {
-	Users               UserProvider
-	TokenIssuer         TokenIssuer
-	SessionCookieConfig session.CookieConfiguration
-	Sessions            session.Provider
-	Hooks               hook.Provider
-	Time                time.Provider
-	Clients             []config.OAuthClientConfiguration
+	Users         UserProvider
+	TokenIssuer   TokenIssuer
+	SessionCookie session.CookieDef
+	Sessions      session.Provider
+	Hooks         hook.Provider
+	Clock         clock.Clock
+	Clients       []config.OAuthClientConfiguration
 }
 
 func (c *UserController) makeResponse(attrs *authn.Attrs) (*model.AuthResponse, error) {
@@ -65,7 +65,7 @@ func (c *UserController) CreateSession(
 		return nil, err
 	}
 
-	result.Cookies = []*http.Cookie{c.SessionCookieConfig.NewCookie(token)}
+	result.Cookies = []*http.Cookie{c.SessionCookie.New(token)}
 
 	result.Response.SessionID = session.SessionID()
 
@@ -90,7 +90,7 @@ func (c *UserController) CreateSession(
 		return nil, err
 	}
 
-	now := c.Time.NowUTC()
+	now := c.Clock.NowUTC()
 	err = c.Users.UpdateLoginTime(&result.Response.User, now)
 	if err != nil {
 		return nil, err

@@ -4,19 +4,20 @@ import (
 	"context"
 
 	"github.com/google/wire"
+
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func ProvideProvider(
 	ctx context.Context,
-	t time.Provider,
+	t clock.Clock,
 	c *config.TenantConfiguration,
 ) *Provider {
 	return &Provider{
 		Context: ctx,
 		AppID:   c.AppID,
-		Time:    t,
+		Clock:   t,
 	}
 }
 

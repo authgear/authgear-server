@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
-	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
+	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 type Provider struct {
@@ -16,8 +16,9 @@ func NewProvider(req *http.Request) Provider {
 		return Provider{}
 	}
 	return Provider{url.URL{
-		Host:   corehttp.GetHost(req),
-		Scheme: corehttp.GetProto(req),
+		// FIXME: use ServerConfig
+		Host:   httputil.GetHost(req, true),
+		Scheme: httputil.GetProto(req, true),
 	}}
 }
 

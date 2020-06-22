@@ -16,11 +16,10 @@ package middleware
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/iawaknahc/originmatcher"
+
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
 type CORSMiddleware struct {
@@ -41,7 +40,6 @@ func (cors CORSMiddleware) Handle(next http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
 			w.Header().Set("Access-Control-Max-Age", "900") // 15 mins
-			w.Header().Set("Access-Control-Expose-Headers", strings.Join([]string{coreHttp.HeaderTryRefreshToken}, ", "))
 
 			if corsMethod != "" {
 				w.Header().Set("Access-Control-Allow-Methods", corsMethod)

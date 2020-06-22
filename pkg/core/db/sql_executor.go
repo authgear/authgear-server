@@ -15,7 +15,6 @@
 package db
 
 import (
-	"context"
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
@@ -26,19 +25,15 @@ import (
 )
 
 type SQLExecutor struct {
-	context   context.Context
-	dbContext Context
+	ctx Context
 }
 
-func NewSQLExecutor(ctx context.Context, dbContext Context) SQLExecutor {
-	return SQLExecutor{
-		context:   ctx,
-		dbContext: dbContext,
-	}
+func NewSQLExecutor(ctx Context) SQLExecutor {
+	return SQLExecutor{ctx: ctx}
 }
 
 func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
-	db, err := e.dbContext.DB()
+	db, err := e.ctx.DB()
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +41,7 @@ func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, err := db.ExecContext(e.context, sql, args...)
+	result, err := db.ExecContext(e.ctx, sql, args...)
 	if err != nil {
 		if isWriteConflict(err) {
 			panic(ErrWriteConflict)
@@ -57,7 +52,7 @@ func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 }
 
 func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
-	db, err := e.dbContext.DB()
+	db, err := e.ctx.DB()
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +60,7 @@ func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, err := db.QueryxContext(e.context, sql, args...)
+	result, err := db.QueryxContext(e.ctx, sql, args...)
 	if err != nil {
 		if isWriteConflict(err) {
 			panic(ErrWriteConflict)
@@ -76,7 +71,7 @@ func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 }
 
 func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) (*sqlx.Row, error) {
-	db, err := e.dbContext.DB()
+	db, err := e.ctx.DB()
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +82,7 @@ func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) (*sqlx.Row, error) {
 		}
 		return nil, errors.WithDetails(err, errors.Details{"sql": errors.SafeDetail.Value(sql)})
 	}
-	return db.QueryRowxContext(e.context, sql, args...), nil
+	return db.QueryRowxContext(e.ctx, sql, args...), nil
 }
 
 func isWriteConflict(err error) bool {

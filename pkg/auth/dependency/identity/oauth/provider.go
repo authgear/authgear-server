@@ -3,15 +3,14 @@ package oauth
 import (
 	"sort"
 
-	"github.com/skygeario/skygear-server/pkg/core/time"
-	"github.com/skygeario/skygear-server/pkg/core/uuid"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
+	"github.com/skygeario/skygear-server/pkg/clock"
+	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type Provider struct {
 	Store *Store
-	Time  time.Provider
+	Clock clock.Clock
 }
 
 func (p *Provider) List(userID string) ([]*Identity, error) {
@@ -84,14 +83,14 @@ func (p *Provider) CheckDuplicated(standardClaims map[string]string, userID stri
 }
 
 func (p *Provider) Create(i *Identity) error {
-	now := p.Time.NowUTC()
+	now := p.Clock.NowUTC()
 	i.CreatedAt = now
 	i.UpdatedAt = now
 	return p.Store.Create(i)
 }
 
 func (p *Provider) Update(i *Identity) error {
-	now := p.Time.NowUTC()
+	now := p.Clock.NowUTC()
 	i.UpdatedAt = now
 	return p.Store.Update(i)
 }

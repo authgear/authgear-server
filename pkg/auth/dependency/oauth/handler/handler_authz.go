@@ -5,20 +5,21 @@ import (
 	"errors"
 	"net/url"
 	"strings"
-	gotime "time"
+	"time"
 
 	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/utils"
 )
 
-const CodeGrantValidDuration = 5 * gotime.Minute
+const CodeGrantValidDuration = 5 * time.Minute
 
 type AuthorizeURLProvider interface {
 	AuthorizeURI(r protocol.AuthorizationRequest) *url.URL
@@ -40,7 +41,7 @@ type AuthorizationHandler struct {
 	AuthenticateURL AuthenticateURLProvider
 	ValidateScopes  ScopesValidator
 	CodeGenerator   TokenGenerator
-	Time            time.Provider
+	Clock           clock.Clock
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) AuthorizationResult {
@@ -137,7 +138,7 @@ func (h *AuthorizationHandler) doHandle(
 
 	authz, err := checkAuthorization(
 		h.Authorizations,
-		h.Time.NowUTC(),
+		h.Clock.NowUTC(),
 		h.AppID,
 		r.ClientID(),
 		session.AuthnAttrs().UserID,
@@ -235,8 +236,8 @@ func (h *AuthorizationHandler) generateCodeResponse(
 		AuthorizationID: authz.ID,
 		SessionID:       session.SessionID(),
 
-		CreatedAt: h.Time.NowUTC(),
-		ExpireAt:  h.Time.NowUTC().Add(CodeGrantValidDuration),
+		CreatedAt: h.Clock.NowUTC(),
+		ExpireAt:  h.Clock.NowUTC().Add(CodeGrantValidDuration),
 		Scopes:    scopes,
 		CodeHash:  codeHash,
 

@@ -6,8 +6,8 @@ import (
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 type Azureadv2Impl struct {
@@ -15,7 +15,7 @@ type Azureadv2Impl struct {
 	RedirectURLFunc          RedirectURLFunc
 	OAuthConfig              *config.OAuthConfiguration
 	ProviderConfig           config.OAuthProviderConfiguration
-	TimeProvider             coreTime.Provider
+	Clock                    clock.Clock
 	LoginIDNormalizerFactory *loginid.NormalizerFactory
 }
 
@@ -109,7 +109,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 		f.ProviderConfig.ClientSecret,
 		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		state.HashedNonce,
-		f.TimeProvider.NowUTC,
+		f.Clock.NowUTC,
 		&tokenResp,
 	)
 	if err != nil {

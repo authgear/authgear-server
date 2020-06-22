@@ -11,9 +11,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	coretime "github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func TestProviderFlow(t *testing.T) {
@@ -28,7 +28,7 @@ func TestProviderFlow(t *testing.T) {
 		hooks := hook.NewMockProvider()
 
 		p := &interaction.Provider{
-			Time:          &coretime.MockProvider{},
+			Clock:         clock.NewMockClock(),
 			Identity:      identityProvider,
 			Authenticator: authenticatorProvider,
 			User:          userProvider,

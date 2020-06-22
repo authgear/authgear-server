@@ -6,11 +6,10 @@ import (
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/utils"
-
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
+	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
-// ValidateHostMiddleware validate incoming request has correct Host header
+// FIXME: remove this
 type ValidateHostMiddleware struct {
 	ValidHosts string
 }
@@ -27,7 +26,7 @@ func (m ValidateHostMiddleware) Handle(next http.Handler) http.Handler {
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		host := coreHttp.GetHost(r)
+		host := httputil.GetHost(r, true)
 		if !utils.StringSliceContains(validateHosts, host) {
 			http.Error(w, fmt.Sprintf("invalid host: %s", host), http.StatusBadRequest)
 			return

@@ -5,8 +5,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	coreTime "github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
@@ -31,16 +31,16 @@ type HistoryStore interface {
 }
 
 type HistoryStoreImpl struct {
-	timeProvider coreTime.Provider
-	sqlBuilder   db.SQLBuilder
-	sqlExecutor  db.SQLExecutor
+	Clock       clock.Clock
+	sqlBuilder  db.SQLBuilder
+	sqlExecutor db.SQLExecutor
 }
 
-func NewHistoryStore(timeProvider coreTime.Provider, builder db.SQLBuilder, executor db.SQLExecutor) *HistoryStoreImpl {
+func NewHistoryStore(clock clock.Clock, builder db.SQLBuilder, executor db.SQLExecutor) *HistoryStoreImpl {
 	return &HistoryStoreImpl{
-		timeProvider: timeProvider,
-		sqlBuilder:   builder,
-		sqlExecutor:  executor,
+		Clock:       clock,
+		sqlBuilder:  builder,
+		sqlExecutor: executor,
 	}
 }
 
@@ -59,7 +59,7 @@ func (p *HistoryStoreImpl) CreatePasswordHistory(userID string, hashedPassword [
 func (p *HistoryStoreImpl) GetPasswordHistory(userID string, historySize, historyDays int) ([]History, error) {
 	var err error
 	var sizeHistory, daysHistory []History
-	t := p.timeProvider.NowUTC()
+	t := p.Clock.NowUTC()
 
 	if historySize > 0 {
 		sizeBuilder := p.basePasswordHistoryBuilder(userID).Limit(uint64(historySize))

@@ -5,29 +5,43 @@ import (
 
 	"github.com/google/wire"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
+	oldconfig "github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-type Namespace string
-
-type SQLBuilderFactory func(ns Namespace) SQLBuilder
-
-func ProvideSQLBuilderFactory(c *config.TenantConfiguration) SQLBuilderFactory {
-	return func(ns Namespace) SQLBuilder {
-		return NewSQLBuilder(string(ns), c.DatabaseConfig.DatabaseSchema, c.AppID)
-	}
+func ProvideContext(ctx context.Context, pool *Pool, c *config.DatabaseCredentials) Context {
+	return NewContext(ctx, pool, c)
 }
 
-func ProvideSQLExecutor(ctx context.Context, c *config.TenantConfiguration) SQLExecutor {
-	return NewSQLExecutor(ctx, NewContextWithContext(ctx, *c))
+// FIXME: delete this
+func ProvideContextOLD(ctx context.Context, pool *Pool, c *oldconfig.TenantConfiguration) Context {
+	return NewContext(ctx, pool, &config.DatabaseCredentials{
+		DatabaseURL:    c.DatabaseConfig.DatabaseURL,
+		DatabaseSchema: c.DatabaseConfig.DatabaseSchema,
+	})
 }
 
-func ProvideTxContext(ctx context.Context, c *config.TenantConfiguration) TxContext {
-	return NewTxContextWithContext(ctx, *c)
+func ProvideSQLBuilder(c *config.DatabaseCredentials, id config.AppID) SQLBuilder {
+	return NewSQLBuilder("auth", c.DatabaseSchema, string(id))
+}
+
+// FIXME: delete this
+func ProvideSQLBuilderOLD(c *oldconfig.TenantConfiguration) SQLBuilder {
+	return NewSQLBuilder("auth", c.DatabaseConfig.DatabaseSchema, c.AppID)
+}
+
+func ProvideSQLExecutor(ctx Context) SQLExecutor {
+	return NewSQLExecutor(ctx)
 }
 
 var DependencySet = wire.NewSet(
-	ProvideSQLBuilderFactory,
+	ProvideContext,
+	ProvideSQLBuilder,
 	ProvideSQLExecutor,
-	ProvideTxContext,
+)
+
+var OldDependencySet = wire.NewSet(
+	ProvideContextOLD,
+	ProvideSQLBuilderOLD,
+	ProvideSQLExecutor,
 )

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type Provider struct {
 	Store  *Store
 	Config *config.AuthenticatorTOTPConfiguration
-	Time   time.Provider
+	Clock  clock.Clock
 }
 
 func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
@@ -49,14 +49,14 @@ func (p *Provider) New(userID string, displayName string) *Authenticator {
 }
 
 func (p *Provider) Create(a *Authenticator) error {
-	now := p.Time.NowUTC()
+	now := p.Clock.NowUTC()
 	a.CreatedAt = now
 
 	return p.Store.Create(a)
 }
 
 func (p *Provider) Authenticate(candidates []*Authenticator, code string) *Authenticator {
-	now := p.Time.NowUTC()
+	now := p.Clock.NowUTC()
 	for _, a := range candidates {
 		if ValidateCode(a.Secret, code, now) {
 			return a

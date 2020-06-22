@@ -6,19 +6,19 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
+	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
 func AttachChallengeHandler(
 	router *mux.Router,
-	authDependency auth.DependencyMap,
+	p *deps.RootProvider,
 ) {
 	router.NewRoute().
 		Path("/oauth2/challenge").
-		Handler(auth.MakeHandler(authDependency, newChallengeHandler)).
+		Handler(p.Handler(newChallengeHandler)).
 		Methods("OPTIONS", "POST")
 }
 
@@ -35,6 +35,14 @@ func (p *ChallengeRequest) Validate() []validation.ErrorCause {
 		}}
 	}
 	return nil
+}
+
+var challengeValidator = validation.NewValidator("http://v2.skgyear.io")
+
+func init() {
+	challengeValidator.AddSchemaFragments(
+		ChallengeRequestSchema,
+	)
 }
 
 // @JSONSchema
@@ -102,7 +110,7 @@ func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request
 
 func (h *ChallengeHandler) Handle(resp http.ResponseWriter, req *http.Request) (*ChallengeResponse, error) {
 	var payload ChallengeRequest
-	if err := handler.BindJSONBody(req, resp, h.Validator, "#OAuthChallengeRequest", &payload); err != nil {
+	if err := handler.BindJSONBody(req, resp, challengeValidator, "#OAuthChallengeRequest", &payload); err != nil {
 		return nil, err
 	}
 

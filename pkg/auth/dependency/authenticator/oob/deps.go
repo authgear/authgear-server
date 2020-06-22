@@ -6,11 +6,11 @@ import (
 	"github.com/google/wire"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/template"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func ProvideProvider(
@@ -18,7 +18,7 @@ func ProvideProvider(
 	c *config.TenantConfiguration,
 	sqlb db.SQLBuilder,
 	sqle db.SQLExecutor,
-	t time.Provider,
+	t clock.Clock,
 	te *template.Engine,
 	upp urlprefix.Provider,
 	tq async.Queue,
@@ -31,7 +31,7 @@ func ProvideProvider(
 		SMSMessageConfiguration:   c.AppConfig.Messages.SMS,
 		EmailMessageConfiguration: c.AppConfig.Messages.Email,
 		Store:                     &Store{SQLBuilder: sqlb, SQLExecutor: sqle},
-		Time:                      t,
+		Clock:                     t,
 		TemplateEngine:            te,
 		URLPrefixProvider:         upp,
 		TaskQueue:                 tq,

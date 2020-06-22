@@ -6,18 +6,19 @@ import (
 	"encoding/base64"
 	"errors"
 	"net/http"
-	gotime "time"
+	"time"
 
 	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
@@ -48,7 +49,7 @@ type TokenHandler struct {
 	Anonymous      AnonymousInteractionFlow
 	IDTokenIssuer  IDTokenIssuer
 	GenerateToken  TokenGenerator
-	Time           time.Provider
+	Clock          clock.Clock
 }
 
 func (h *TokenHandler) Handle(r protocol.TokenRequest) TokenResult {
@@ -156,7 +157,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 		return nil, err
 	}
 
-	if h.Time.NowUTC().After(codeGrant.ExpireAt) {
+	if h.Clock.NowUTC().After(codeGrant.ExpireAt) {
 		return nil, errInvalidAuthzCode
 	}
 
@@ -213,7 +214,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
-	if h.Time.NowUTC().After(offlineGrant.ExpireAt) {
+	if h.Clock.NowUTC().After(offlineGrant.ExpireAt) {
 		return nil, errInvalidRefreshToken
 	}
 
@@ -258,7 +259,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 
 	authz, err := checkAuthorization(
 		h.Authorizations,
-		h.Time.NowUTC(),
+		h.Clock.NowUTC(),
 		h.AppID,
 		client.ClientID(),
 		attrs.UserID,
@@ -397,7 +398,7 @@ func (h *TokenHandler) issueOfflineGrant(
 	resp protocol.TokenResponse,
 ) (*oauth.OfflineGrant, error) {
 	token := h.GenerateToken()
-	now := h.Time.NowUTC()
+	now := h.Clock.NowUTC()
 	accessEvent := auth.NewAccessEvent(now, h.Request)
 	offlineGrant := &oauth.OfflineGrant{
 		AppID:           h.AppID,
@@ -406,7 +407,7 @@ func (h *TokenHandler) issueOfflineGrant(
 		ClientID:        client.ClientID(),
 
 		CreatedAt: now,
-		ExpireAt:  now.Add(gotime.Duration(client.RefreshTokenLifetime()) * gotime.Second),
+		ExpireAt:  now.Add(time.Duration(client.RefreshTokenLifetime()) * time.Second),
 		Scopes:    scopes,
 		TokenHash: oauth.HashToken(token),
 
@@ -439,7 +440,7 @@ func (h *TokenHandler) issueAccessGrant(
 	resp protocol.TokenResponse,
 ) error {
 	token := h.GenerateToken()
-	now := h.Time.NowUTC()
+	now := h.Clock.NowUTC()
 
 	accessGrant := &oauth.AccessGrant{
 		AppID:           h.AppID,
@@ -447,7 +448,7 @@ func (h *TokenHandler) issueAccessGrant(
 		SessionID:       sessionID,
 		SessionKind:     sessionKind,
 		CreatedAt:       now,
-		ExpireAt:        now.Add(gotime.Duration(client.AccessTokenLifetime()) * gotime.Second),
+		ExpireAt:        now.Add(time.Duration(client.AccessTokenLifetime()) * time.Second),
 		Scopes:          scopes,
 		TokenHash:       oauth.HashToken(token),
 	}

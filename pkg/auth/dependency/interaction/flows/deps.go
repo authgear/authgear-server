@@ -2,30 +2,31 @@ package flows
 
 import (
 	"github.com/google/wire"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 )
 
 func ProvideUserController(
 	u UserProvider,
 	ti TokenIssuer,
-	scc session.CookieConfiguration,
+	scc session.CookieDef,
 	sp session.Provider,
 	hp hook.Provider,
-	tp time.Provider,
+	tp clock.Clock,
 	c *config.TenantConfiguration,
 ) *UserController {
 	return &UserController{
-		Users:               u,
-		TokenIssuer:         ti,
-		SessionCookieConfig: scc,
-		Sessions:            sp,
-		Hooks:               hp,
-		Time:                tp,
-		Clients:             c.AppConfig.Clients,
+		Users:         u,
+		TokenIssuer:   ti,
+		SessionCookie: scc,
+		Sessions:      sp,
+		Hooks:         hp,
+		Clock:         tp,
+		Clients:       c.AppConfig.Clients,
 	}
 }
 

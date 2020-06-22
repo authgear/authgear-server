@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	gotime "time"
 
-	gomock "github.com/golang/mock/gomock"
+	"github.com/golang/mock/gomock"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -23,7 +23,7 @@ func TestDispatchEvent(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		timeProvider := time.MockProvider{TimeNowUTC: gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)}
+		clock := clock.NewMockClockAt("2006-01-02T15:04:05Z")
 		store := newMockStore()
 		deliverer := newMockDeliverer()
 		users := NewMockUserProvider(ctrl)
@@ -33,7 +33,7 @@ func TestDispatchEvent(t *testing.T) {
 			ctx,
 			store,
 			db.NewMockTxContext(),
-			&timeProvider,
+			clock,
 			users,
 			deliverer,
 			logging.NewNullFactory(),

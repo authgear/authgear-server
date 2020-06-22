@@ -6,7 +6,8 @@ import (
 	"net/url"
 
 	"github.com/getsentry/sentry-go"
-	corehttp "github.com/skygeario/skygear-server/pkg/core/http"
+
+	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 func Middleware(hub *sentry.Hub) func(next http.Handler) http.Handler {
@@ -32,8 +33,9 @@ func MakeMinimalSentryRequest(r *http.Request) (req sentry.Request) {
 	req.Method = r.Method
 
 	url := url.URL{}
-	url.Scheme = corehttp.GetProto(r)
-	url.Host = corehttp.GetHost(r)
+	// TODO: use ServerConfig
+	url.Scheme = httputil.GetProto(r, true)
+	url.Host = httputil.GetHost(r, true)
 	url.Path = r.URL.Path
 	req.URL = url.String()
 

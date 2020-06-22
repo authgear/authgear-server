@@ -8,19 +8,19 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	coretime "github.com/skygeario/skygear-server/pkg/core/time"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestAuthorizationHandler(t *testing.T) {
 	Convey("Authorization handler", t, func() {
-		mockTime := &coretime.MockProvider{}
-		mockTime.TimeNowUTC = time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC)
+		clock := clock.NewMockClockAt("2020-02-01T00:00:00Z")
 		authzStore := &mockAuthzStore{}
 		codeGrantStore := &mockCodeGrantStore{}
 
@@ -35,7 +35,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			AuthenticateURL: mockEndpointsProvider{},
 			ValidateScopes:  func(config.OAuthClientConfiguration, []string) error { return nil },
 			CodeGenerator:   func() string { return "authz-code" },
-			Time:            mockTime,
+			Clock:           clock,
 		}
 		handle := func(r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
 			result := h.Handle(r)

@@ -5,19 +5,20 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	pkg "github.com/skygeario/skygear-server/pkg/auth"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/protocol"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
 func AttachEndSessionHandler(
 	router *mux.Router,
-	authDependency pkg.DependencyMap,
+	p *deps.RootProvider,
 ) {
 	router.NewRoute().
 		Path("/oauth2/end_session").
-		Handler(pkg.MakeHandler(authDependency, newEndSessionHandler)).
+		Handler(p.Handler(newEndSessionHandler)).
 		Methods("GET", "POST")
 }
 

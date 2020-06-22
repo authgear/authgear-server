@@ -5,22 +5,21 @@ import (
 
 	"github.com/gorilla/mux"
 
-	pkg "github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/core/time"
+	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
 func AttachResolveHandler(
 	router *mux.Router,
-	authDependency pkg.DependencyMap,
+	p *deps.RootProvider,
 ) {
 	router.NewRoute().
 		Path("/_auth/session/resolve").
-		Handler(pkg.MakeHandler(authDependency, newResolveHandler))
+		Handler(p.Handler(newResolveHandler))
 }
 
 //go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package session
@@ -30,7 +29,6 @@ type AnonymousIdentityProvider interface {
 }
 
 type ResolveHandler struct {
-	TimeProvider  time.Provider
 	Anonymous     AnonymousIdentityProvider
 	LoggerFactory logging.Factory
 }
