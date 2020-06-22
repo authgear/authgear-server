@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/protocol"
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
 func AttachEndSessionHandler(
@@ -27,9 +27,9 @@ type oidcEndSessionHandler interface {
 }
 
 type EndSessionHandler struct {
-	logger            *logrus.Entry
-	txContext         db.TxContext
-	endSessionHandler oidcEndSessionHandler
+	Logger            *log.Logger
+	DBContext         db.Context
+	EndSessionHandler oidcEndSessionHandler
 }
 
 func (h *EndSessionHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -44,13 +44,13 @@ func (h *EndSessionHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		req[name] = values[0]
 	}
 
-	err = db.WithTx(h.txContext, func() error {
+	err = db.WithTx(h.DBContext, func() error {
 		sess := auth.GetSession(r.Context())
-		return h.endSessionHandler.Handle(sess, req, r, rw)
+		return h.EndSessionHandler.Handle(sess, req, r, rw)
 	})
 
 	if err != nil {
-		h.logger.WithError(err).Error("oauth revoke handler failed")
+		h.Logger.WithError(err).Error("oauth revoke handler failed")
 		http.Error(rw, "Internal Server Error", 500)
 	}
 }

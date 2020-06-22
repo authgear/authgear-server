@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/db"
 )
 
 var ErrInvalidSession = errors.New("provided session is invalid")
@@ -23,7 +23,7 @@ type Middleware struct {
 	AccessTokenSessionResolver AccessTokenSessionResolver
 	AccessEvents               AccessEventProvider
 	Users                      UserProvider
-	TxContext                  db.TxContext
+	DBContext                  db.Context
 }
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
@@ -44,7 +44,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 }
 
 func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (session AuthSession, user *model.User, err error) {
-	err = db.ReadOnly(m.TxContext, func() (err error) {
+	err = db.ReadOnly(m.DBContext, func() (err error) {
 		session, err = m.resolveSession(rw, r)
 		if err != nil {
 			return

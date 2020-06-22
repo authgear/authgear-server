@@ -10,8 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
-// FIXME: remove this
-type TxContext = Context
+type ExtContext = sqlx.ExtContext
 
 type Context interface {
 	context.Context

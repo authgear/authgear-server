@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/task"
 )
 

@@ -8,8 +8,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/log"
 	"github.com/skygeario/skygear-server/pkg/redis"
 	"github.com/skygeario/skygear-server/pkg/task"

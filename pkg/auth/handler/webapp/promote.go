@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
@@ -28,7 +28,7 @@ type promoteProvider interface {
 
 type PromoteHandler struct {
 	Provider  promoteProvider
-	TxContext db.TxContext
+	DBContext db.Context
 }
 
 func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.WithTx(h.TxContext, func() error {
+	db.WithTx(h.DBContext, func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetPromoteLoginIDForm(w, r)
 			writeResponse(err)

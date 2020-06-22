@@ -12,10 +12,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/db"
 )
 
 //go:generate mockgen -source=provider_impl.go -destination=provider_impl_mock_test.go -package hook
@@ -28,7 +28,7 @@ type UserProvider interface {
 type providerImpl struct {
 	Store                   Store
 	Context                 context.Context
-	TxContext               db.TxContext
+	DBContext               db.Context
 	Clock                   clock.Clock
 	Users                   UserProvider
 	Deliverer               Deliverer
@@ -41,7 +41,7 @@ type providerImpl struct {
 func NewProvider(
 	ctx context.Context,
 	store Store,
-	txContext db.TxContext,
+	dbContext db.Context,
 	clock clock.Clock,
 	users UserProvider,
 	deliverer Deliverer,
@@ -50,7 +50,7 @@ func NewProvider(
 	return &providerImpl{
 		Context:   ctx,
 		Store:     store,
-		TxContext: txContext,
+		DBContext: dbContext,
 		Clock:     clock,
 		Users:     users,
 		Deliverer: deliverer,
@@ -92,7 +92,7 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 	}
 
 	if !provider.txHooked {
-		provider.TxContext.UseHook(provider)
+		provider.DBContext.UseHook(provider)
 		provider.txHooked = true
 	}
 	return

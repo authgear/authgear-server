@@ -8,8 +8,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/db"
 )
 
 func ProvideHookProvider(
@@ -17,7 +17,7 @@ func ProvideHookProvider(
 	sqlb db.SQLBuilder,
 	sqle db.SQLExecutor,
 	tConfig *config.TenantConfiguration,
-	txContext db.TxContext,
+	dbContext db.Context,
 	timeProvider clock.Clock,
 	users UserProvider,
 	loginIDProvider LoginIDProvider,
@@ -26,7 +26,7 @@ func ProvideHookProvider(
 	return NewProvider(
 		ctx,
 		NewStore(sqlb, sqle),
-		txContext,
+		dbContext,
 		timeProvider,
 		users,
 		NewDeliverer(

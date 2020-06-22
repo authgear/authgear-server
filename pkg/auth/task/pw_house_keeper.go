@@ -7,8 +7,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
-	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/task"
 )
@@ -21,13 +21,13 @@ func AttachPwHousekeeperTask(
 }
 
 type PwHousekeeperTask struct {
-	TxContext     db.TxContext
+	DBContext     db.Context
 	LoggerFactory logging.Factory
 	PwHousekeeper *password.Housekeeper
 }
 
 func (t *PwHousekeeperTask) Run(ctx context.Context, param interface{}) (err error) {
-	return db.WithTx(t.TxContext, func() error { return t.run(param) })
+	return db.WithTx(t.DBContext, func() error { return t.run(param) })
 }
 
 func (t *PwHousekeeperTask) run(param interface{}) (err error) {

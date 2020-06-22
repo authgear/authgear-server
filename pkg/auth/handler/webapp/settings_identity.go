@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
@@ -30,7 +30,7 @@ type settingsIdentityProvider interface {
 type SettingsIdentityHandler struct {
 	RenderProvider webapp.RenderProvider
 	Provider       settingsIdentityProvider
-	TxContext      db.TxContext
+	DBContext      db.Context
 }
 
 func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +39,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	db.WithTx(h.TxContext, func() error {
+	db.WithTx(h.DBContext, func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetSettingsIdentity(w, r)
 			writeResponse(err)

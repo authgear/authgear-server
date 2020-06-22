@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -44,15 +43,4 @@ func WriteResponse(rw http.ResponseWriter, response APIResponse) {
 		// delegate logging to panic recovery
 		panic(HandledError{response.Error})
 	}
-}
-
-// Transactional runs f within a transaction.
-// If err is non-nil, the transaction is rolled back.
-// Otherwise the transaction is committed.
-func Transactional(txContext db.TxContext, f func() (interface{}, error)) (result interface{}, err error) {
-	err = db.WithTx(txContext, func() error {
-		result, err = f()
-		return err
-	})
-	return
 }

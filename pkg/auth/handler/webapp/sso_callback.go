@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
@@ -26,7 +26,7 @@ type ssoProvider interface {
 
 type SSOCallbackHandler struct {
 	Provider  ssoProvider
-	TxContext db.TxContext
+	DBContext db.Context
 }
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +38,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	providerAlias := vars["provider"]
 
-	db.WithTx(h.TxContext, func() error {
+	db.WithTx(h.DBContext, func() error {
 		writeResponse, err := h.Provider.HandleSSOCallback(w, r, providerAlias)
 		writeResponse(err)
 		return err

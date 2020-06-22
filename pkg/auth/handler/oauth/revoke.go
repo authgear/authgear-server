@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
 func AttachRevokeHandler(
@@ -26,9 +26,9 @@ type oauthRevokeHandler interface {
 }
 
 type RevokeHandler struct {
-	logger        *logrus.Entry
-	txContext     db.TxContext
-	revokeHandler oauthRevokeHandler
+	Logger        *log.Logger
+	DBContext     db.Context
+	RevokeHandler oauthRevokeHandler
 }
 
 func (h *RevokeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -43,12 +43,12 @@ func (h *RevokeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		req[name] = values[0]
 	}
 
-	err = db.WithTx(h.txContext, func() error {
-		return h.revokeHandler.Handle(req)
+	err = db.WithTx(h.DBContext, func() error {
+		return h.RevokeHandler.Handle(req)
 	})
 
 	if err != nil {
-		h.logger.WithError(err).Error("oauth revoke handler failed")
+		h.Logger.WithError(err).Error("oauth revoke handler failed")
 		http.Error(rw, "Internal Server Error", 500)
 	}
 }

@@ -5,13 +5,13 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
 func AttachUserInfoHandler(
@@ -31,21 +31,21 @@ type oauthUserInfoProvider interface {
 }
 
 type UserInfoHandler struct {
-	logger           *logrus.Entry
-	txContext        db.TxContext
-	userInfoProvider oauthUserInfoProvider
+	Logger           *log.Logger
+	DBContext        db.Context
+	UserInfoProvider oauthUserInfoProvider
 }
 
 func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	session := auth.GetSession(r.Context())
 	var claims *oidc.UserClaims
-	err := db.WithTx(h.txContext, func() (err error) {
-		claims, err = h.userInfoProvider.LoadUserClaims(session)
+	err := db.WithTx(h.DBContext, func() (err error) {
+		claims, err = h.UserInfoProvider.LoadUserClaims(session)
 		return
 	})
 
 	if err != nil {
-		h.logger.WithError(err).Error("oidc userinfo handler failed")
+		h.Logger.WithError(err).Error("oidc userinfo handler failed")
 		http.Error(rw, "Internal Server Error", 500)
 		return
 	}

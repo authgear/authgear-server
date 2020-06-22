@@ -7,7 +7,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
@@ -28,11 +28,11 @@ type logoutSessionManager interface {
 type LogoutHandler struct {
 	RenderProvider webapp.RenderProvider
 	SessionManager logoutSessionManager
-	TxContext      db.TxContext
+	DBContext      db.Context
 }
 
 func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	db.WithTx(h.TxContext, func() error {
+	db.WithTx(h.DBContext, func() error {
 		if r.Method == "POST" && r.Form.Get("x_action") == "logout" {
 			sess := auth.GetSession(r.Context())
 			h.SessionManager.Logout(sess, w)

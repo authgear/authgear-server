@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
@@ -27,7 +27,7 @@ type createPasswordProvider interface {
 
 type CreatePasswordHandler struct {
 	Provider  createPasswordProvider
-	TxContext db.TxContext
+	DBContext db.Context
 }
 
 func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +36,7 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	db.WithTx(h.TxContext, func() error {
+	db.WithTx(h.DBContext, func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetCreatePasswordForm(w, r)
 			writeResponse(err)

@@ -4,7 +4,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/db"
 )
 
 func ProvideProvider(

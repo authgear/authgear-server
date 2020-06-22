@@ -5,12 +5,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
 func AttachAuthorizeHandler(
@@ -30,9 +30,9 @@ type oauthAuthorizeHandler interface {
 var errAuthzInternalError = errors.New("internal error")
 
 type AuthorizeHandler struct {
-	logger       *logrus.Entry
-	txContext    db.TxContext
-	authzHandler oauthAuthorizeHandler
+	Logger       *log.Logger
+	DBContext    db.Context
+	AuthzHandler oauthAuthorizeHandler
 }
 
 func (h *AuthorizeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -48,8 +48,8 @@ func (h *AuthorizeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	var result handler.AuthorizationResult
-	err = db.WithTx(h.txContext, func() error {
-		result = h.authzHandler.Handle(req)
+	err = db.WithTx(h.DBContext, func() error {
+		result = h.AuthzHandler.Handle(req)
 		if result.IsInternalError() {
 			return errAuthzInternalError
 		}
@@ -59,7 +59,7 @@ func (h *AuthorizeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if err == nil || errors.Is(err, errAuthzInternalError) {
 		result.WriteResponse(rw, r)
 	} else {
-		h.logger.WithError(err).Error("oauth authz handler failed")
+		h.Logger.WithError(err).Error("oauth authz handler failed")
 		http.Error(rw, "Internal Server Error", 500)
 	}
 }
