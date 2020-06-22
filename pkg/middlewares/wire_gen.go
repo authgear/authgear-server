@@ -53,10 +53,6 @@ func NewStateMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 	return (*webapp.StateMiddleware)(nil).Handle
 }
 
-func NewClientIDMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
-	return (*webapp.ClientIDMiddleware)(nil).Handle
-}
-
 func NewCORSMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 	return (*CORSMiddleware)(nil).Handle
 }

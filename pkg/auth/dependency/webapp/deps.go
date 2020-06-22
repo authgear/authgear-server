@@ -26,8 +26,3 @@ func ProvideStateMiddleware(stateStore StateStore) mux.MiddlewareFunc {
 	m := &StateMiddleware{StateStore: stateStore}
 	return m.Handle
 }
-
-func ProvideClientIDMiddleware(c *config.OAuthConfig) mux.MiddlewareFunc {
-	m := &ClientIDMiddleware{Clients: c.Clients}
-	return m.Handle
-}

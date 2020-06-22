@@ -55,7 +55,6 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 	// the effect is that trailing slash is corrected with HTTP 301 by mux.
 	webappRouter.StrictSlash(true)
 	webappRouter.Use(webapp.IntlMiddleware)
-	webappRouter.Use(p.Middleware(middlewares.NewClientIDMiddleware))
 	webappRouter.Use(p.Middleware(middlewares.NewCSPMiddleware))
 	webappRouter.Use(p.Middleware(middlewares.NewCSRFMiddleware))
 	webappRouter.Use(webapp.PostNoCacheMiddleware)

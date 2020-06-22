@@ -7,7 +7,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
-	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/deps"
@@ -43,9 +42,6 @@ func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	info.PopulateHeaders(rw)
-
-	accessKey := coreauth.GetAccessKey(r.Context())
-	accessKey.WriteTo(rw)
 }
 
 func (h *ResolveHandler) resolve(r *http.Request) (*authn.Info, error) {

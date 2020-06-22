@@ -10,7 +10,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	coreauth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -48,7 +47,6 @@ func TestResolveHandler(t *testing.T) {
 					"X-Skygear-User-Anonymous": []string{"false"},
 					"X-Skygear-Session-Acr":    []string{""},
 					"X-Skygear-Session-Amr":    []string{""},
-					"X-Skygear-Is-Master-Key":  []string{"false"},
 				})
 			})
 
@@ -67,7 +65,6 @@ func TestResolveHandler(t *testing.T) {
 					"X-Skygear-User-Anonymous": []string{"true"},
 					"X-Skygear-Session-Acr":    []string{""},
 					"X-Skygear-Session-Amr":    []string{""},
-					"X-Skygear-Is-Master-Key":  []string{"false"},
 				})
 			})
 		})
@@ -82,7 +79,6 @@ func TestResolveHandler(t *testing.T) {
 			So(resp.StatusCode, ShouldEqual, 200)
 			So(resp.Header, ShouldResemble, http.Header{
 				"X-Skygear-Session-Valid": []string{"false"},
-				"X-Skygear-Is-Master-Key": []string{"false"},
 			})
 		})
 
@@ -93,24 +89,7 @@ func TestResolveHandler(t *testing.T) {
 
 			resp := rw.Result()
 			So(resp.StatusCode, ShouldEqual, 200)
-			So(resp.Header, ShouldResemble, http.Header{
-				"X-Skygear-Is-Master-Key": []string{"false"},
-			})
-		})
-
-		Convey("should add master key header", func() {
-			r, _ := http.NewRequest("POST", "/", nil)
-			r = r.WithContext(coreauth.WithAccessKey(r.Context(), coreauth.AccessKey{
-				IsMasterKey: true,
-			}))
-			rw := httptest.NewRecorder()
-			h.ServeHTTP(rw, r)
-
-			resp := rw.Result()
-			So(resp.StatusCode, ShouldEqual, 200)
-			So(resp.Header, ShouldResemble, http.Header{
-				"X-Skygear-Is-Master-Key": []string{"true"},
-			})
+			So(resp.Header, ShouldResemble, http.Header{})
 		})
 	})
 }
