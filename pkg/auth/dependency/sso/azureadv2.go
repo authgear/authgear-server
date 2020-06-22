@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -16,7 +15,7 @@ type Azureadv2Impl struct {
 	OAuthConfig              *config.OAuthConfiguration
 	ProviderConfig           config.OAuthProviderConfiguration
 	Clock                    clock.Clock
-	LoginIDNormalizerFactory *loginid.NormalizerFactory
+	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
 func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
