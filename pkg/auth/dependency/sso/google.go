@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -20,7 +19,7 @@ type GoogleImpl struct {
 	ProviderConfig           config.OAuthProviderConfiguration
 	Clock                    clock.Clock
 	UserInfoDecoder          UserInfoDecoder
-	LoginIDNormalizerFactory *loginid.NormalizerFactory
+	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
 func (f *GoogleImpl) GetAuthURL(state State, encodedState string) (string, error) {

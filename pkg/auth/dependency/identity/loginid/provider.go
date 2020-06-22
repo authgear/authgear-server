@@ -3,16 +3,16 @@ package loginid
 import (
 	"sort"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type Provider struct {
 	Store             *Store
-	Config            config.LoginIDConfiguration
+	Config            *config.LoginIDConfig
 	Checker           *Checker
 	NormalizerFactory *NormalizerFactory
 }
@@ -84,7 +84,7 @@ func (p *Provider) IsLoginIDKeyType(loginIDKey string, loginIDKeyType metadata.S
 	return p.Checker.CheckType(loginIDKey, loginIDKeyType)
 }
 
-func (p *Provider) Normalize(loginID LoginID) (normalized *LoginID, c *config.LoginIDKeyConfiguration, uniqueKey string, err error) {
+func (p *Provider) Normalize(loginID LoginID) (normalized *LoginID, c *config.LoginIDKeyConfig, uniqueKey string, err error) {
 	err = p.Validate([]LoginID{loginID})
 	if err != nil {
 		return
@@ -180,7 +180,7 @@ func (p *Provider) Delete(i *Identity) error {
 	return p.Store.Delete(i)
 }
 
-func (p *Provider) lookupLoginIDConfig(loginID LoginID) *config.LoginIDKeyConfiguration {
+func (p *Provider) lookupLoginIDConfig(loginID LoginID) *config.LoginIDKeyConfig {
 	for _, c := range p.Config.Keys {
 		if c.Key == loginID.Key {
 			return &c

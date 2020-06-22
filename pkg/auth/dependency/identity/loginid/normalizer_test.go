@@ -5,7 +5,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
 func TestNormalizers(t *testing.T) {
@@ -49,7 +49,7 @@ func TestNormalizers(t *testing.T) {
 			}
 
 			n := &EmailNormalizer{
-				Config: &config.LoginIDTypeEmailConfiguration{
+				Config: &config.LoginIDEmailConfig{
 					CaseSensitive: newFalse(),
 					BlockPlusSign: newFalse(),
 					IgnoreDotSign: newFalse(),
@@ -69,7 +69,7 @@ func TestNormalizers(t *testing.T) {
 			}
 
 			n := &EmailNormalizer{
-				Config: &config.LoginIDTypeEmailConfiguration{
+				Config: &config.LoginIDEmailConfig{
 					CaseSensitive: newTrue(),
 					BlockPlusSign: newFalse(),
 					IgnoreDotSign: newFalse(),
@@ -88,7 +88,7 @@ func TestNormalizers(t *testing.T) {
 			}
 
 			n := &EmailNormalizer{
-				Config: &config.LoginIDTypeEmailConfiguration{
+				Config: &config.LoginIDEmailConfig{
 					CaseSensitive: newFalse(),
 					BlockPlusSign: newTrue(),
 					IgnoreDotSign: newTrue(),
@@ -129,7 +129,7 @@ func TestNormalizers(t *testing.T) {
 			}
 
 			n := &UsernameNormalizer{
-				Config: &config.LoginIDTypeUsernameConfiguration{
+				Config: &config.LoginIDUsernameConfig{
 					CaseSensitive: newFalse(),
 				},
 			}
@@ -154,7 +154,7 @@ func TestNormalizers(t *testing.T) {
 			}
 
 			n := &UsernameNormalizer{
-				Config: &config.LoginIDTypeUsernameConfiguration{
+				Config: &config.LoginIDUsernameConfig{
 					CaseSensitive: newTrue(),
 				},
 			}

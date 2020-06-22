@@ -7,30 +7,30 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, max int) config.LoginIDKeyConfiguration {
-	return config.LoginIDKeyConfiguration{
+func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, max int) config.LoginIDKeyConfig {
+	return config.LoginIDKeyConfig{
 		Key:     key,
 		Type:    t,
 		Maximum: &max,
 	}
 }
 
-func newLoginIDTypesConfig() *config.LoginIDTypesConfiguration {
+func newLoginIDTypesConfig() *config.LoginIDTypesConfig {
 	newFalse := func() *bool {
 		t := false
 		return &t
 	}
-	return &config.LoginIDTypesConfiguration{
-		Email: &config.LoginIDTypeEmailConfiguration{
+	return &config.LoginIDTypesConfig{
+		Email: &config.LoginIDEmailConfig{
 			CaseSensitive: newFalse(),
 			BlockPlusSign: newFalse(),
 			IgnoreDotSign: newFalse(),
 		},
-		Username: &config.LoginIDTypeUsernameConfiguration{
+		Username: &config.LoginIDUsernameConfig{
 			BlockReservedUsernames: newFalse(),
 			ExcludedKeywords:       []string{},
 			ASCIIOnly:              newFalse(),
@@ -44,18 +44,20 @@ func TestLoginIDChecker(t *testing.T) {
 	Convey("LoginIDChecker.Validate", t, func() {
 		Convey("Validate by config: username (0-1), email (0-1)", func() {
 			reservedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
-			keysConfig := []config.LoginIDKeyConfiguration{
+			keysConfig := []config.LoginIDKeyConfig{
 				newLoginIDKeyConfig("username", config.LoginIDKeyTypeRaw, 1),
 				newLoginIDKeyConfig("email", config.LoginIDKeyType(metadata.Email), 1),
 				newLoginIDKeyConfig("phone", config.LoginIDKeyType(metadata.Phone), 1),
 			}
 			typesConfig := newLoginIDTypesConfig()
-			checker := &Checker{
-				Keys:  keysConfig,
+			cfg := &config.LoginIDConfig{
 				Types: typesConfig,
+				Keys:  keysConfig,
+			}
+			checker := &Checker{
+				Config: cfg,
 				TypeCheckerFactory: &TypeCheckerFactory{
-					Keys:                keysConfig,
-					Types:               typesConfig,
+					Config:              cfg,
 					ReservedNameChecker: reservedNameChecker,
 				},
 			}

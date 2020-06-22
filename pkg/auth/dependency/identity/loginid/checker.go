@@ -3,14 +3,13 @@ package loginid
 import (
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 type Checker struct {
-	Keys               []config.LoginIDKeyConfiguration
-	Types              *config.LoginIDTypesConfiguration
+	Config             *config.LoginIDConfig
 	TypeCheckerFactory *TypeCheckerFactory
 }
 
@@ -30,7 +29,7 @@ func (c *Checker) Validate(loginIDs []LoginID) error {
 		}
 	}
 
-	for _, keyConfig := range c.Keys {
+	for _, keyConfig := range c.Config.Keys {
 		amount := amounts[keyConfig.Key]
 		if amount > *keyConfig.Maximum {
 			return validation.NewValidationFailed("invalid login IDs", []validation.ErrorCause{{
@@ -56,7 +55,7 @@ func (c *Checker) Validate(loginIDs []LoginID) error {
 func (c *Checker) ValidateOne(loginID LoginID) error {
 	allowed := false
 	var loginIDType config.LoginIDKeyType
-	for _, keyConfig := range c.Keys {
+	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginID.Key {
 			loginIDType = keyConfig.Type
 			allowed = true
@@ -86,8 +85,8 @@ func (c *Checker) ValidateOne(loginID LoginID) error {
 }
 
 func (c *Checker) StandardKey(loginIDKey string) (key metadata.StandardKey, ok bool) {
-	var config config.LoginIDKeyConfiguration
-	for _, keyConfig := range c.Keys {
+	var config config.LoginIDKeyConfig
+	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginIDKey {
 			config = keyConfig
 			ok = true

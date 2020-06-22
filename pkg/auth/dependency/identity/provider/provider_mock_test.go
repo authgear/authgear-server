@@ -6,10 +6,10 @@ package provider
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	config "github.com/skygeario/skygear-server/pkg/auth/config"
 	anonymous "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	loginid "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	oauth "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
-	config "github.com/skygeario/skygear-server/pkg/core/config"
 	reflect "reflect"
 )
 
@@ -183,11 +183,11 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) Validate(loginIDs interface{}
 }
 
 // Normalize mocks base method
-func (m *MockLoginIDIdentityProvider) Normalize(loginID loginid.LoginID) (*loginid.LoginID, *config.LoginIDKeyConfiguration, string, error) {
+func (m *MockLoginIDIdentityProvider) Normalize(loginID loginid.LoginID) (*loginid.LoginID, *config.LoginIDKeyConfig, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Normalize", loginID)
 	ret0, _ := ret[0].(*loginid.LoginID)
-	ret1, _ := ret[1].(*config.LoginIDKeyConfiguration)
+	ret1, _ := ret[1].(*config.LoginIDKeyConfig)
 	ret2, _ := ret[2].(string)
 	ret3, _ := ret[3].(error)
 	return ret0, ret1, ret2, ret3
@@ -267,7 +267,7 @@ func (mr *MockOAuthIdentityProviderMockRecorder) List(userID interface{}) *gomoc
 }
 
 // GetByProviderSubject mocks base method
-func (m *MockOAuthIdentityProvider) GetByProviderSubject(provider oauth.ProviderID, subjectID string) (*oauth.Identity, error) {
+func (m *MockOAuthIdentityProvider) GetByProviderSubject(provider config.ProviderID, subjectID string) (*oauth.Identity, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByProviderSubject", provider, subjectID)
 	ret0, _ := ret[0].(*oauth.Identity)
@@ -282,7 +282,7 @@ func (mr *MockOAuthIdentityProviderMockRecorder) GetByProviderSubject(provider, 
 }
 
 // GetByUserProvider mocks base method
-func (m *MockOAuthIdentityProvider) GetByUserProvider(userID string, provider oauth.ProviderID) (*oauth.Identity, error) {
+func (m *MockOAuthIdentityProvider) GetByUserProvider(userID string, provider config.ProviderID) (*oauth.Identity, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByUserProvider", userID, provider)
 	ret0, _ := ret[0].(*oauth.Identity)
@@ -312,7 +312,7 @@ func (mr *MockOAuthIdentityProviderMockRecorder) ListByClaim(name, value interfa
 }
 
 // New mocks base method
-func (m *MockOAuthIdentityProvider) New(userID string, provider oauth.ProviderID, subjectID string, profile, claims map[string]interface{}) *oauth.Identity {
+func (m *MockOAuthIdentityProvider) New(userID string, provider config.ProviderID, subjectID string, profile, claims map[string]interface{}) *oauth.Identity {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New", userID, provider, subjectID, profile, claims)
 	ret0, _ := ret[0].(*oauth.Identity)

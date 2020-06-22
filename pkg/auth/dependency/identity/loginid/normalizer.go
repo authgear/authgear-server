@@ -7,8 +7,8 @@ import (
 	"golang.org/x/text/secure/precis"
 	"golang.org/x/text/unicode/norm"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
@@ -18,12 +18,11 @@ type Normalizer interface {
 }
 
 type NormalizerFactory struct {
-	Keys  []config.LoginIDKeyConfiguration
-	Types *config.LoginIDTypesConfiguration
+	Config *config.LoginIDConfig
 }
 
 func (f *NormalizerFactory) NormalizerWithLoginIDKey(loginIDKey string) Normalizer {
-	for _, c := range f.Keys {
+	for _, c := range f.Config.Keys {
 		if c.Key == loginIDKey {
 			return f.NormalizerWithLoginIDType(c.Type)
 		}
@@ -37,11 +36,11 @@ func (f *NormalizerFactory) NormalizerWithLoginIDType(loginIDKeyType config.Logi
 	switch metadataKey {
 	case metadata.Email:
 		return &EmailNormalizer{
-			Config: f.Types.Email,
+			Config: f.Config.Types.Email,
 		}
 	case metadata.Username:
 		return &UsernameNormalizer{
-			Config: f.Types.Username,
+			Config: f.Config.Types.Username,
 		}
 	}
 
@@ -49,7 +48,7 @@ func (f *NormalizerFactory) NormalizerWithLoginIDType(loginIDKeyType config.Logi
 }
 
 type EmailNormalizer struct {
-	Config *config.LoginIDTypeEmailConfiguration
+	Config *config.LoginIDEmailConfig
 }
 
 func (n *EmailNormalizer) Normalize(loginID string) (string, error) {
@@ -101,7 +100,7 @@ func (n *EmailNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, err
 }
 
 type UsernameNormalizer struct {
-	Config *config.LoginIDTypeUsernameConfiguration
+	Config *config.LoginIDUsernameConfig
 }
 
 func (n *UsernameNormalizer) Normalize(loginID string) (string, error) {
