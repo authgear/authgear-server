@@ -3,12 +3,12 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type ClientIDMiddleware struct {
-	TenantConfig *config.TenantConfiguration
+	Clients []config.OAuthClientConfig
 }
 
 func (m *ClientIDMiddleware) Handle(next http.Handler) http.Handler {
@@ -21,9 +21,10 @@ func (m *ClientIDMiddleware) Handle(next http.Handler) http.Handler {
 
 func (m *ClientIDMiddleware) resolve(r *http.Request) auth.AccessKey {
 	clientID := r.URL.Query().Get("client_id")
-	for _, client := range m.TenantConfig.AppConfig.Clients {
+	for _, client := range m.Clients {
 		if clientID == client.ClientID() {
-			return auth.AccessKey{Client: client}
+			// FIXME(config): Remove auth.AccessKey
+			//return auth.AccessKey{Client: client}
 		}
 	}
 	return auth.AccessKey{}

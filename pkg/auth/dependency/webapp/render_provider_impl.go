@@ -9,15 +9,15 @@ import (
 
 	"github.com/gorilla/csrf"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/intl"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	"github.com/skygeario/skygear-server/pkg/core/template"
+	"github.com/skygeario/skygear-server/pkg/template"
 )
 
 type IdentityProvider interface {
@@ -26,10 +26,10 @@ type IdentityProvider interface {
 
 type RenderProviderImpl struct {
 	StaticAssetURLPrefix        string
-	AuthenticationConfiguration *config.AuthenticationConfiguration
-	AuthUIConfiguration         *config.AuthUIConfiguration
-	LocalizationConfiguration   *config.LocalizationConfiguration
-	MetadataConfiguration       config.AuthUIMetadataConfiguration
+	AuthenticationConfiguration *config.AuthenticationConfig
+	AuthUIConfiguration         *config.UIConfig
+	LocalizationConfiguration   *config.LocalizationConfig
+	MetadataConfiguration       config.AppMetadata
 	TemplateEngine              *template.Engine
 	PasswordChecker             *password.Checker
 	Identity                    IdentityProvider
@@ -59,8 +59,8 @@ func (p *RenderProviderImpl) PrepareRequestData(r *http.Request, data map[string
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
-	data["app_name"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.AuthUIConfiguration.Metadata, "app_name")
-	data["logo_uri"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.AuthUIConfiguration.Metadata, "logo_uri")
+	data["app_name"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.MetadataConfiguration, "app_name")
+	data["logo_uri"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfiguration.FallbackLanguage), p.MetadataConfiguration, "logo_uri")
 
 	data[csrf.TemplateTag] = csrf.TemplateField(r)
 
@@ -73,7 +73,7 @@ func (p *RenderProviderImpl) PrepareStaticData(data map[string]interface{}) {
 	data["x_calling_codes"] = p.AuthUIConfiguration.CountryCallingCode.Values
 
 	// NOTE(authui): We assume the CSS provided by the developer is trusted.
-	data["x_css"] = htmlTemplate.CSS(p.AuthUIConfiguration.CSS)
+	data["x_css"] = htmlTemplate.CSS(p.AuthUIConfiguration.CustomCSS)
 }
 
 func (p *RenderProviderImpl) PrepareIdentityData(r *http.Request, data map[string]interface{}) (err error) {
@@ -165,7 +165,7 @@ func (p *RenderProviderImpl) PreparePasswordPolicyData(anyError interface{}, dat
 func (p *RenderProviderImpl) PrepareAuthenticationData(data map[string]interface{}) {
 	passwordAuthenticatorEnabled := false
 	for _, s := range p.AuthenticationConfiguration.PrimaryAuthenticators {
-		if s == string(authn.AuthenticatorTypePassword) {
+		if s == authn.AuthenticatorTypePassword {
 			passwordAuthenticatorEnabled = true
 		}
 	}

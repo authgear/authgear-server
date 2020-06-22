@@ -9,18 +9,14 @@ import (
 var ErrUnknownURIScheme = errors.New("unknown URI scheme")
 
 type URILoader struct {
-	EnableFileLoader bool
-	FileLoader       *FileLoader
-	EnableDataLoader bool
-	DataLoader       *DataLoader
-	AssetGearLoader  *AssetGearLoader
+	FileLoader *FileLoader
+	DataLoader *DataLoader
 }
 
-func NewURILoader(assetGearLoader *AssetGearLoader) *URILoader {
+func NewURILoader() *URILoader {
 	return &URILoader{
-		FileLoader:      &FileLoader{},
-		DataLoader:      &DataLoader{},
-		AssetGearLoader: assetGearLoader,
+		FileLoader: &FileLoader{},
+		DataLoader: &DataLoader{},
 	}
 }
 
@@ -33,25 +29,10 @@ func (l *URILoader) Load(uri string) (templateContent string, err error) {
 
 	switch u.Scheme {
 	case "file":
-		if !l.EnableFileLoader {
-			err = &errNotFound{name: u.Path}
-			return
-		}
 		templateContent, err = l.FileLoader.Load(u.Path)
 		return
 	case "data":
-		if !l.EnableDataLoader {
-			err = &errNotFound{name: uri}
-			return
-		}
 		templateContent, err = l.DataLoader.Load(uri)
-		return
-	case "asset-gear":
-		if l.AssetGearLoader == nil {
-			err = &errNotFound{name: uri}
-			return
-		}
-		templateContent, err = l.AssetGearLoader.Load(u)
 		return
 	default:
 		err = ErrUnknownURIScheme

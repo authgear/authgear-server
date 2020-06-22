@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
@@ -25,7 +25,7 @@ type InteractionFlow interface {
 	TriggerOOBOTP(token string) (*interactionflows.WebAppResult, error)
 	LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	LinkWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
-	UnlinkWithOAuthProvider(userID string, providerConfig config.OAuthProviderConfiguration) (*interactionflows.WebAppResult, error)
+	UnlinkWithOAuthProvider(userID string, providerConfig config.OAuthSSOProviderConfig) (*interactionflows.WebAppResult, error)
 	PromoteWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	AddLoginID(userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
 	UpdateLoginID(userID string, oldLoginID loginid.LoginID, newLoginID loginid.LoginID) (*interactionflows.WebAppResult, error)
@@ -48,7 +48,7 @@ type AuthenticateProviderImpl struct {
 
 type OAuthProviderFactory interface {
 	NewOAuthProvider(alias string) sso.OAuthProvider
-	GetOAuthProviderConfig(alias string) (config.OAuthProviderConfiguration, bool)
+	GetOAuthProviderConfig(alias string) (config.OAuthSSOProviderConfig, bool)
 }
 
 func (p *AuthenticateProviderImpl) get(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType) (writeResponse func(err error), err error) {

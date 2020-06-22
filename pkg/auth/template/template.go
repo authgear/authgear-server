@@ -1,12 +1,12 @@
 package template
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
-	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/template"
+	"github.com/skygeario/skygear-server/pkg/template"
 )
 
 const DefaultErrorHTML = `<!DOCTYPE html>
@@ -16,15 +16,11 @@ const DefaultErrorHTML = `<!DOCTYPE html>
 <p>{{ .error.Message }}</p>`
 
 func NewEngineWithConfig(
-	tConfig config.TenantConfiguration,
-	enableFileSystemTemplate bool,
-	assetGearLoader *template.AssetGearLoader,
+	c *config.Config,
 ) *template.Engine {
 	e := template.NewEngine(template.NewEngineOptions{
-		EnableFileLoader: enableFileSystemTemplate,
-		TemplateItems:    tConfig.TemplateItems,
-		AssetGearLoader:  assetGearLoader,
-		FallbackLanguage: tConfig.AppConfig.Localization.FallbackLanguage,
+		TemplateItems:    c.AppConfig.Template.Items,
+		FallbackLanguage: c.AppConfig.Localization.FallbackLanguage,
 	})
 
 	e.Register(welcomemessage.TemplateWelcomeEmailTXT)

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/iawaknahc/gomessageformat"
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/intl"
 )
 
@@ -30,9 +30,6 @@ type resolveResult struct {
 }
 
 type NewEngineOptions struct {
-	EnableFileLoader bool
-	EnableDataLoader bool
-	AssetGearLoader  *AssetGearLoader
 	TemplateItems    []config.TemplateItem
 	FallbackLanguage string
 }
@@ -52,9 +49,7 @@ type Engine struct {
 }
 
 func NewEngine(opts NewEngineOptions) *Engine {
-	uriLoader := NewURILoader(opts.AssetGearLoader)
-	uriLoader.EnableFileLoader = opts.EnableFileLoader
-	uriLoader.EnableDataLoader = opts.EnableDataLoader
+	uriLoader := NewURILoader()
 	return &Engine{
 		loader:              uriLoader,
 		templateItems:       opts.TemplateItems,

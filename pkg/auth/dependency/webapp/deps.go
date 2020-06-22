@@ -4,41 +4,12 @@ import (
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
-	"github.com/skygeario/skygear-server/pkg/auth/deps"
-	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/template"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
-func ProvideValidateProvider(tConfig *config.TenantConfiguration) ValidateProvider {
-	return &ValidateProviderImpl{
-		Validator:                       validator,
-		LoginIDConfiguration:            tConfig.AppConfig.Identity.LoginID,
-		CountryCallingCodeConfiguration: tConfig.AppConfig.AuthUI.CountryCallingCode,
-	}
-}
-
-func ProvideRenderProvider(
-	saup deps.StaticAssetURLPrefix,
-	config *config.TenantConfiguration,
-	templateEngine *template.Engine,
-	passwordChecker *password.Checker,
-	identityProvider IdentityProvider,
-) RenderProvider {
-	return &RenderProviderImpl{
-		StaticAssetURLPrefix:        string(saup),
-		AuthenticationConfiguration: config.AppConfig.Authentication,
-		AuthUIConfiguration:         config.AppConfig.AuthUI,
-		LocalizationConfiguration:   config.AppConfig.Localization,
-		PasswordChecker:             passwordChecker,
-		TemplateEngine:              templateEngine,
-		Identity:                    identityProvider,
-	}
-}
-
 var DependencySet = wire.NewSet(
-	ProvideValidateProvider,
-	ProvideRenderProvider,
+	wire.Struct(new(ValidateProviderImpl), "*"),
+	wire.Struct(new(RenderProviderImpl), "*"),
 	wire.Struct(new(StateStoreImpl), "*"),
 	wire.Bind(new(StateStore), new(*StateStoreImpl)),
 	wire.Struct(new(StateProviderImpl), "*"),
@@ -46,8 +17,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(URLProvider), "*"),
 )
 
-func ProvideCSPMiddleware(tConfig *config.TenantConfiguration) mux.MiddlewareFunc {
-	m := &CSPMiddleware{Clients: tConfig.AppConfig.Clients}
+func ProvideCSPMiddleware(c *config.OAuthConfig) mux.MiddlewareFunc {
+	m := &CSPMiddleware{Clients: c.Clients}
 	return m.Handle
 }
 
@@ -56,7 +27,7 @@ func ProvideStateMiddleware(stateStore StateStore) mux.MiddlewareFunc {
 	return m.Handle
 }
 
-func ProvideClientIDMiddleware(tConfig *config.TenantConfiguration) mux.MiddlewareFunc {
-	m := &ClientIDMiddleware{TenantConfig: tConfig}
+func ProvideClientIDMiddleware(c *config.OAuthConfig) mux.MiddlewareFunc {
+	m := &ClientIDMiddleware{Clients: c.Clients}
 	return m.Handle
 }

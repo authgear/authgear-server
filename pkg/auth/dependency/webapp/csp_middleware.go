@@ -7,10 +7,10 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
-func deriveFrameAncestors(clients []config.OAuthClientConfiguration) (out []string) {
+func deriveFrameAncestors(clients []config.OAuthClientConfig) (out []string) {
 	for _, client := range clients {
 		if redirectURIs, ok := client["redirect_uris"].([]interface{}); ok {
 			for _, redirectURI := range redirectURIs {
@@ -63,7 +63,7 @@ func isLocalhost(host string) bool {
 // CSPMiddleware derives frame-ancestors from clients and
 // writes Content-Security-Policy.
 type CSPMiddleware struct {
-	Clients []config.OAuthClientConfiguration
+	Clients []config.OAuthClientConfig
 }
 
 func (m *CSPMiddleware) Handle(next http.Handler) http.Handler {
