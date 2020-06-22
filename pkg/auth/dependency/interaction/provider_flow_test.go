@@ -7,7 +7,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -25,7 +24,7 @@ func TestProviderFlow(t *testing.T) {
 		authenticatorProvider := NewMockAuthenticatorProvider(ctrl)
 		store := NewMockStore(ctrl)
 		userProvider := NewMockUserProvider(ctrl)
-		hooks := hook.NewMockProvider()
+		hooks := NewMockHookProvider(ctrl)
 
 		p := &interaction.Provider{
 			Clock:         clock.NewMockClock(),
@@ -35,6 +34,8 @@ func TestProviderFlow(t *testing.T) {
 			Hooks:         hooks,
 			Store:         store,
 		}
+
+		hooks.EXPECT().DispatchEvent(gomock.Any(), gomock.Any()).AnyTimes()
 
 		Convey("Common password flow", func() {
 			authnConfig := &config.AuthenticationConfiguration{

@@ -8,7 +8,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -26,7 +25,7 @@ func TestProviderCommit(t *testing.T) {
 		authenticatorProvider := NewMockAuthenticatorProvider(ctrl)
 		store := NewMockStore(ctrl)
 		userProvider := NewMockUserProvider(ctrl)
-		hooks := hook.NewMockProvider()
+		hooks := NewMockHookProvider(ctrl)
 
 		p := &interaction.Provider{
 			Clock:         clock.NewMockClock(),
@@ -95,6 +94,14 @@ func TestProviderCommit(t *testing.T) {
 			// user has 1 login id and 1 oauth identity
 			identityProvider.EXPECT().ListByUser(gomock.Any()).Return([]*identity.Info{loginID1, oauthID}, nil).AnyTimes()
 
+			hooks.EXPECT().DispatchEvent(event.IdentityDeleteEvent{
+				User: model.User{ID: userID},
+				Identity: model.Identity{
+					Type:   string(loginID1.Type),
+					Claims: loginID1.Claims,
+				},
+			}, gomock.Any())
+
 			_, err := p.Commit(i)
 			So(err, ShouldBeNil)
 
@@ -105,16 +112,6 @@ func TestProviderCommit(t *testing.T) {
 			sort.Sort(authenticatorInfoSlice(expected))
 			sort.Sort(authenticatorInfoSlice(actual))
 			So(expected, ShouldResemble, actual)
-
-			So(hooks.DispatchedEvents, ShouldResemble, []event.Payload{
-				event.IdentityDeleteEvent{
-					User: model.User{ID: userID},
-					Identity: model.Identity{
-						Type:   string(loginID1.Type),
-						Claims: loginID1.Claims,
-					},
-				},
-			})
 		})
 
 		Convey("should not remove authenticators when removing identity has no related authenticator", func() {
@@ -128,20 +125,19 @@ func TestProviderCommit(t *testing.T) {
 			// user has 1 login id and 1 oauth identity
 			identityProvider.EXPECT().ListByUser(gomock.Any()).Return([]*identity.Info{loginID1, oauthID}, nil).AnyTimes()
 
+			hooks.EXPECT().DispatchEvent(event.IdentityDeleteEvent{
+				User: model.User{ID: userID},
+				Identity: model.Identity{
+					Type:   string(oauthID.Type),
+					Claims: oauthID.Claims,
+				},
+			}, gomock.Any())
+
 			_, err := p.Commit(i)
 			So(err, ShouldBeNil)
 
 			So(len(i.RemoveAuthenticators), ShouldEqual, 0)
 
-			So(hooks.DispatchedEvents, ShouldResemble, []event.Payload{
-				event.IdentityDeleteEvent{
-					User: model.User{ID: userID},
-					Identity: model.Identity{
-						Type:   string(oauthID.Type),
-						Claims: oauthID.Claims,
-					},
-				},
-			})
 		})
 
 		Convey("should keep authenticators which related to existing identities", func() {
@@ -155,6 +151,14 @@ func TestProviderCommit(t *testing.T) {
 			// user has 2 login id and 1 oauth identity
 			identityProvider.EXPECT().ListByUser(gomock.Any()).Return([]*identity.Info{loginID1, loginID2, oauthID}, nil).AnyTimes()
 
+			hooks.EXPECT().DispatchEvent(event.IdentityDeleteEvent{
+				User: model.User{ID: userID},
+				Identity: model.Identity{
+					Type:   string(loginID2.Type),
+					Claims: loginID2.Claims,
+				},
+			}, gomock.Any())
+
 			_, err := p.Commit(i)
 			So(err, ShouldBeNil)
 
@@ -167,16 +171,6 @@ func TestProviderCommit(t *testing.T) {
 			sort.Sort(authenticatorInfoSlice(expected))
 			sort.Sort(authenticatorInfoSlice(actual))
 			So(expected, ShouldResemble, actual)
-
-			So(hooks.DispatchedEvents, ShouldResemble, []event.Payload{
-				event.IdentityDeleteEvent{
-					User: model.User{ID: userID},
-					Identity: model.Identity{
-						Type:   string(loginID2.Type),
-						Claims: loginID2.Claims,
-					},
-				},
-			})
 		})
 	})
 }

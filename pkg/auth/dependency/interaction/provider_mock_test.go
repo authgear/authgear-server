@@ -10,6 +10,7 @@ import (
 	oob "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	identity "github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	interaction "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
+	event "github.com/skygeario/skygear-server/pkg/auth/event"
 	model "github.com/skygeario/skygear-server/pkg/auth/model"
 	authn "github.com/skygeario/skygear-server/pkg/core/authn"
 	reflect "reflect"
@@ -579,4 +580,41 @@ func (m *MockOOBProvider) SendCode(opts oob.SendCodeOptions) error {
 func (mr *MockOOBProviderMockRecorder) SendCode(opts interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCode", reflect.TypeOf((*MockOOBProvider)(nil).SendCode), opts)
+}
+
+// MockHookProvider is a mock of HookProvider interface
+type MockHookProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockHookProviderMockRecorder
+}
+
+// MockHookProviderMockRecorder is the mock recorder for MockHookProvider
+type MockHookProviderMockRecorder struct {
+	mock *MockHookProvider
+}
+
+// NewMockHookProvider creates a new mock instance
+func NewMockHookProvider(ctrl *gomock.Controller) *MockHookProvider {
+	mock := &MockHookProvider{ctrl: ctrl}
+	mock.recorder = &MockHookProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockHookProvider) EXPECT() *MockHookProviderMockRecorder {
+	return m.recorder
+}
+
+// DispatchEvent mocks base method
+func (m *MockHookProvider) DispatchEvent(payload event.Payload, user *model.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DispatchEvent", payload, user)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DispatchEvent indicates an expected call of DispatchEvent
+func (mr *MockHookProviderMockRecorder) DispatchEvent(payload, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DispatchEvent", reflect.TypeOf((*MockHookProvider)(nil).DispatchEvent), payload, user)
 }

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	oauthprotocol "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
@@ -28,12 +27,16 @@ type UserProvider interface {
 	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error
 }
 
+type HookProvider interface {
+	DispatchEvent(payload event.Payload, user *model.User) error
+}
+
 type UserController struct {
 	Users         UserProvider
 	TokenIssuer   TokenIssuer
 	SessionCookie session.CookieDef
 	Sessions      session.Provider
-	Hooks         hook.Provider
+	Hooks         HookProvider
 	Clock         clock.Clock
 	Clients       []config.OAuthClientConfiguration
 }

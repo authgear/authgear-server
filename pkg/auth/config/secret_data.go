@@ -2,8 +2,11 @@ package config
 
 import (
 	"fmt"
-	"github.com/skygeario/skygear-server/pkg/validation"
 	"strings"
+
+	"github.com/lestrrat-go/jwx/jwk"
+
+	"github.com/skygeario/skygear-server/pkg/validation"
 )
 
 var _ = SecretConfigSchema.Add("DatabaseCredentials", `
@@ -235,10 +238,29 @@ var _ = SecretConfigSchema.Add("JWS", `
 }
 `)
 
+type JWS struct {
+	Keys       []interface{} `json:"keys"`
+	DecodedSet *jwk.Set      `json:"-"`
+}
+
+func (s *JWS) Decode() (*jwk.Set, error) {
+	if s.DecodedSet != nil {
+		return s.DecodedSet, nil
+	}
+
+	set := &jwk.Set{}
+	err := set.ExtractMap(map[string]interface{}{"keys": s.Keys})
+	if err != nil {
+		return nil, err
+	}
+	s.DecodedSet = set
+	return set, nil
+}
+
 var _ = SecretConfigSchema.Add("JWTKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type JWTKeyMaterials struct {
-	Keys []interface{} `json:"keys"`
+	JWS `json:",inline"`
 }
 
 func (c *JWTKeyMaterials) SensitiveStrings() []string {
@@ -248,7 +270,7 @@ func (c *JWTKeyMaterials) SensitiveStrings() []string {
 var _ = SecretConfigSchema.Add("OIDCKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type OIDCKeyMaterials struct {
-	Keys []interface{} `json:"keys"`
+	JWS `json:",inline"`
 }
 
 func (c *OIDCKeyMaterials) SensitiveStrings() []string {
@@ -258,7 +280,7 @@ func (c *OIDCKeyMaterials) SensitiveStrings() []string {
 var _ = SecretConfigSchema.Add("CSRFKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type CSRFKeyMaterials struct {
-	Keys []interface{} `json:"keys"`
+	JWS `json:",inline"`
 }
 
 func (c *CSRFKeyMaterials) SensitiveStrings() []string {
@@ -268,7 +290,7 @@ func (c *CSRFKeyMaterials) SensitiveStrings() []string {
 var _ = SecretConfigSchema.Add("WebhookKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type WebhookKeyMaterials struct {
-	Keys []interface{} `json:"keys"`
+	JWS `json:",inline"`
 }
 
 func (c *WebhookKeyMaterials) SensitiveStrings() []string {

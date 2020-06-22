@@ -3,15 +3,18 @@ package user
 import (
 	gotime "time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 )
 
+type HookProvider interface {
+	DispatchEvent(payload event.Payload, user *model.User) error
+}
+
 type Commands struct {
 	Raw   *RawCommands
-	Hooks hook.Provider
+	Hooks HookProvider
 }
 
 func (c *Commands) Create(userID string, metadata map[string]interface{}, identities []*identity.Info) error {

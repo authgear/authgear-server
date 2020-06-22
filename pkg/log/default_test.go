@@ -1,8 +1,9 @@
 package log
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"testing"
+
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 
 	"github.com/sirupsen/logrus"
 	. "github.com/smartystreets/goconvey/convey"
@@ -74,12 +75,12 @@ func TestLogHooks(t *testing.T) {
 				{
 					Key: config.JWTKeyMaterialsKey,
 					Data: &config.JWTKeyMaterials{
-						Keys: []interface{}{
+						JWS: config.JWS{Keys: []interface{}{
 							map[string]interface{}{
 								"kty": "oct",
 								"k":   "1ujPpaY7OlzEvLVFPlpG-A",
 							},
-						},
+						}},
 					},
 				},
 			},
