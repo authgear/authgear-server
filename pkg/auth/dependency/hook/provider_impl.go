@@ -25,7 +25,7 @@ type UserProvider interface {
 	UpdateMetadata(user *model.User, metadata map[string]interface{}) error
 }
 
-type providerImpl struct {
+type Provider struct {
 	Store                   Store
 	Context                 context.Context
 	DBContext               db.Context
@@ -46,8 +46,8 @@ func NewProvider(
 	users UserProvider,
 	deliverer Deliverer,
 	loggerFactory logging.Factory,
-) Provider {
-	return &providerImpl{
+) *Provider {
+	return &Provider{
 		Context:   ctx,
 		Store:     store,
 		DBContext: dbContext,
@@ -58,7 +58,7 @@ func NewProvider(
 	}
 }
 
-func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.User) (err error) {
+func (provider *Provider) DispatchEvent(payload event.Payload, user *model.User) (err error) {
 	var seq int64
 	switch typedPayload := payload.(type) {
 	case event.OperationPayload:
@@ -98,7 +98,7 @@ func (provider *providerImpl) DispatchEvent(payload event.Payload, user *model.U
 	return
 }
 
-func (provider *providerImpl) WillCommitTx() error {
+func (provider *Provider) WillCommitTx() error {
 	err := provider.dispatchSyncUserEventIfNeeded()
 	if err != nil {
 		return err
@@ -149,7 +149,7 @@ func (provider *providerImpl) WillCommitTx() error {
 	return nil
 }
 
-func (provider *providerImpl) DidCommitTx() {
+func (provider *Provider) DidCommitTx() {
 	// TODO(webhook): deliver persisted events
 	events, _ := provider.Store.GetEventsForDelivery()
 	for _, event := range events {
@@ -160,7 +160,7 @@ func (provider *providerImpl) DidCommitTx() {
 	}
 }
 
-func (provider *providerImpl) dispatchSyncUserEventIfNeeded() error {
+func (provider *Provider) dispatchSyncUserEventIfNeeded() error {
 	userIDToSync := []string{}
 
 	for _, payload := range provider.PersistentEventPayloads {
@@ -188,7 +188,7 @@ func (provider *providerImpl) dispatchSyncUserEventIfNeeded() error {
 	return nil
 }
 
-func (provider *providerImpl) makeContext() event.Context {
+func (provider *Provider) makeContext() event.Context {
 	var userID *string
 	var session *model.Session
 

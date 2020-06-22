@@ -7,8 +7,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
@@ -85,6 +85,10 @@ type OOBProvider interface {
 	SendCode(opts oob.SendCodeOptions) error
 }
 
+type HookProvider interface {
+	DispatchEvent(payload event.Payload, user *model.User) error
+}
+
 // TODO(interaction): configurable lifetime
 const interactionIdleTimeout = 5 * time.Minute
 
@@ -111,7 +115,7 @@ type Provider struct {
 	Authenticator AuthenticatorProvider
 	User          UserProvider
 	OOB           OOBProvider
-	Hooks         hook.Provider
+	Hooks         HookProvider
 	Config        *config.AuthenticationConfiguration
 }
 

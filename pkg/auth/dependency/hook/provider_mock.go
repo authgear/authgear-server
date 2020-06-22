@@ -25,5 +25,3 @@ func (MockProvider) WillCommitTx() error {
 func (MockProvider) DidCommitTx() {
 
 }
-
-var _ Provider = &MockProvider{}

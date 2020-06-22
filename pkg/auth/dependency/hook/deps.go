@@ -22,7 +22,7 @@ func ProvideHookProvider(
 	users UserProvider,
 	loginIDProvider LoginIDProvider,
 	loggerFactory logging.Factory,
-) Provider {
+) *Provider {
 	return NewProvider(
 		ctx,
 		NewStore(sqlb, sqle),

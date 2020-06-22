@@ -3,7 +3,6 @@ package flows
 import (
 	"github.com/google/wire"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
@@ -15,7 +14,7 @@ func ProvideUserController(
 	ti TokenIssuer,
 	scc session.CookieDef,
 	sp session.Provider,
-	hp hook.Provider,
+	hp HookProvider,
 	tp clock.Clock,
 	c *config.TenantConfiguration,
 ) *UserController {
@@ -45,7 +44,7 @@ func ProvideWebAppFlow(
 	c *config.TenantConfiguration,
 	idp IdentityProvider,
 	up UserProvider,
-	hp hook.Provider,
+	hp HookProvider,
 	ip InteractionProvider,
 	uc *UserController,
 ) *WebAppFlow {

@@ -37,7 +37,7 @@ func TestDispatchEvent(t *testing.T) {
 			users,
 			deliverer,
 			logging.NewNullFactory(),
-		).(*providerImpl)
+		)
 
 		provider.PersistentEventPayloads = nil
 
