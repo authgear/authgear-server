@@ -6,10 +6,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	taskspec "github.com/skygeario/skygear-server/pkg/auth/task/spec"
-	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/intl"
 	"github.com/skygeario/skygear-server/pkg/mail"
+	"github.com/skygeario/skygear-server/pkg/task"
 	"github.com/skygeario/skygear-server/pkg/template"
 )
 
@@ -20,7 +20,7 @@ type Provider struct {
 	MessagingConfig       *config.MessagingConfig
 	WelcomeMessageConfig  *config.WelcomeMessageConfig
 	TemplateEngine        *template.Engine
-	TaskQueue             async.Queue
+	TaskQueue             task.Queue
 }
 
 func (p *Provider) send(emails []string) (err error) {
@@ -78,7 +78,7 @@ func (p *Provider) send(emails []string) (err error) {
 		})
 	}
 
-	p.TaskQueue.Enqueue(async.TaskSpec{
+	p.TaskQueue.Enqueue(task.Spec{
 		Name: taskspec.SendMessagesTaskName,
 		Param: taskspec.SendMessagesTaskParam{
 			EmailMessages: emailMessages,

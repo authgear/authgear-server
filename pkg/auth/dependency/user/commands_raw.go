@@ -7,8 +7,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type WelcomeMessageProvider interface {
@@ -16,12 +14,10 @@ type WelcomeMessageProvider interface {
 }
 
 type RawCommands struct {
-	Store                         store
-	Clock                         clock.Clock
-	URLPrefix                     urlprefix.Provider
-	TaskQueue                     async.Queue
-	UserVerificationConfiguration *config.UserVerificationConfiguration
-	WelcomeMessageProvider        WelcomeMessageProvider
+	Store                  store
+	Clock                  clock.Clock
+	URLPrefix              urlprefix.Provider
+	WelcomeMessageProvider WelcomeMessageProvider
 }
 
 func (c *RawCommands) Create(userID string, metadata map[string]interface{}) (*User, error) {

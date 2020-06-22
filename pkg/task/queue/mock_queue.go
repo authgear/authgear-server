@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"github.com/skygeario/skygear-server/pkg/core/async"
+	"github.com/skygeario/skygear-server/pkg/task"
 )
 
 type MockQueue struct {
@@ -16,7 +16,7 @@ func NewMockQueue() *MockQueue {
 	}
 }
 
-func (m *MockQueue) Enqueue(spec async.TaskSpec) {
+func (m *MockQueue) Enqueue(spec task.Spec) {
 	m.TasksName = append(m.TasksName, spec.Name)
 	m.TasksParam = append(m.TasksParam, spec.Param)
 }
