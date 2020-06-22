@@ -9,8 +9,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
-	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/sms"
 	"github.com/skygeario/skygear-server/pkg/task"
 )
 
