@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	"github.com/lib/pq"
+
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/db"
@@ -123,7 +125,7 @@ func (s *Store) Get(userID string, id string) (*Identity, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) GetByProviderSubject(provider ProviderID, subjectID string) (*Identity, error) {
+func (s *Store) GetByProviderSubject(provider config.ProviderID, subjectID string) (*Identity, error) {
 	providerKeys, err := json.Marshal(provider.Keys)
 	if err != nil {
 		return nil, err
@@ -140,7 +142,7 @@ func (s *Store) GetByProviderSubject(provider ProviderID, subjectID string) (*Id
 	return s.scan(rows)
 }
 
-func (s *Store) GetByUserProvider(userID string, provider ProviderID) (*Identity, error) {
+func (s *Store) GetByUserProvider(userID string, provider config.ProviderID) (*Identity, error) {
 	providerKeys, err := json.Marshal(provider.Keys)
 	if err != nil {
 		return nil, err

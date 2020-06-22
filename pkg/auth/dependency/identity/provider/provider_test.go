@@ -6,10 +6,11 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
 func TestProviderListCandidates(t *testing.T) {
@@ -21,10 +22,10 @@ func TestProviderListCandidates(t *testing.T) {
 		oauthProvider := NewMockOAuthIdentityProvider(ctrl)
 
 		p := &Provider{
-			Authentication: &config.AuthenticationConfiguration{},
-			Identity: &config.IdentityConfiguration{
-				OAuth:   &config.OAuthConfiguration{},
-				LoginID: &config.LoginIDConfiguration{},
+			Authentication: &config.AuthenticationConfig{},
+			Identity: &config.IdentityConfig{
+				LoginID: &config.LoginIDConfig{},
+				OAuth:   &config.OAuthSSOConfig{},
 			},
 			LoginID: loginIDProvider,
 			OAuth:   oauthProvider,
@@ -37,11 +38,11 @@ func TestProviderListCandidates(t *testing.T) {
 		})
 
 		Convey("oauth", func() {
-			p.Authentication.Identities = []string{"oauth"}
-			p.Identity.OAuth.Providers = []config.OAuthProviderConfiguration{
+			p.Authentication.Identities = []authn.IdentityType{authn.IdentityTypeOAuth}
+			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
 				{
-					ID:   "google",
-					Type: "google",
+					Alias: "google",
+					Type:  "google",
 				},
 			}
 
@@ -59,8 +60,8 @@ func TestProviderListCandidates(t *testing.T) {
 		})
 
 		Convey("loginid", func() {
-			p.Authentication.Identities = []string{"login_id"}
-			p.Identity.LoginID.Keys = []config.LoginIDKeyConfiguration{
+			p.Authentication.Identities = []authn.IdentityType{authn.IdentityTypeLoginID}
+			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
 				{
 					Type: "email",
 					Key:  "email",
@@ -81,13 +82,13 @@ func TestProviderListCandidates(t *testing.T) {
 		})
 
 		Convey("respect authentication", func() {
-			p.Identity.OAuth.Providers = []config.OAuthProviderConfiguration{
+			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
 				{
-					ID:   "google",
-					Type: "google",
+					Alias: "google",
+					Type:  "google",
 				},
 			}
-			p.Identity.LoginID.Keys = []config.LoginIDKeyConfiguration{
+			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
 				{
 					Type: "email",
 					Key:  "email",
@@ -102,8 +103,8 @@ func TestProviderListCandidates(t *testing.T) {
 		Convey("associate login ID identity", func() {
 			userID := "a"
 
-			p.Authentication.Identities = []string{"login_id"}
-			p.Identity.LoginID.Keys = []config.LoginIDKeyConfiguration{
+			p.Authentication.Identities = []authn.IdentityType{authn.IdentityTypeLoginID}
+			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
 				{
 					Type: "email",
 					Key:  "email",
@@ -137,20 +138,20 @@ func TestProviderListCandidates(t *testing.T) {
 		Convey("associate oauth identity", func() {
 			userID := "a"
 
-			p.Authentication.Identities = []string{"oauth"}
-			p.Identity.OAuth.Providers = []config.OAuthProviderConfiguration{
+			p.Authentication.Identities = []authn.IdentityType{authn.IdentityTypeOAuth}
+			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
 				{
-					ID:   "google",
-					Type: "google",
+					Alias: "google",
+					Type:  "google",
 				},
 			}
 
 			loginIDProvider.EXPECT().List(userID).Return(nil, nil)
 			oauthProvider.EXPECT().List(userID).Return([]*oauth.Identity{
 				{
-					ProviderID: oauth.ProviderID{
+					ProviderID: config.ProviderID{
 						Type: "google",
-						Keys: map[string]interface{}{},
+						Keys: map[string]string{},
 					},
 					ProviderSubjectID: "john.doe@gmail.com",
 					Claims: map[string]interface{}{

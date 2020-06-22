@@ -5,7 +5,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
 func TestLoginIDTypeCheckers(t *testing.T) {
@@ -46,7 +46,7 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			}
 
 			check := &EmailChecker{
-				Config: &config.LoginIDTypeEmailConfiguration{
+				Config: &config.LoginIDEmailConfig{
 					BlockPlusSign: newFalse(),
 				},
 			}
@@ -64,7 +64,7 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			}
 
 			checker := &EmailChecker{
-				Config: &config.LoginIDTypeEmailConfiguration{
+				Config: &config.LoginIDEmailConfig{
 					BlockPlusSign: newTrue(),
 				},
 			}
@@ -96,7 +96,7 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			}
 
 			n := &UsernameChecker{
-				Config: &config.LoginIDTypeUsernameConfiguration{
+				Config: &config.LoginIDUsernameConfig{
 					BlockReservedUsernames: newFalse(),
 					ExcludedKeywords:       []string{},
 					ASCIIOnly:              newFalse(),
@@ -122,7 +122,7 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 
 			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
 			n := &UsernameChecker{
-				Config: &config.LoginIDTypeUsernameConfiguration{
+				Config: &config.LoginIDUsernameConfig{
 					BlockReservedUsernames: newTrue(),
 					ExcludedKeywords:       []string{"skygear"},
 					ASCIIOnly:              newTrue(),

@@ -4,13 +4,14 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
+	oldconfig "github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type Identity struct {
 	ID                string
 	UserID            string
-	ProviderID        ProviderID
+	ProviderID        config.ProviderID
 	ProviderSubjectID string
 	UserProfile       map[string]interface{}
 	Claims            map[string]interface{}
@@ -18,23 +19,23 @@ type Identity struct {
 	UpdatedAt         time.Time
 }
 
-// ProviderID combining with ProviderSubjectID identifies an user from an external system.
+// FIXME: remove this
 type ProviderID struct {
 	Type string
 	Keys map[string]interface{}
 }
 
-func NewProviderID(c config.OAuthProviderConfiguration) ProviderID {
+func NewProviderID(c oldconfig.OAuthProviderConfiguration) ProviderID {
 	keys := map[string]interface{}{}
 	switch c.Type {
-	case config.OAuthProviderTypeGoogle:
+	case oldconfig.OAuthProviderTypeGoogle:
 		// Google supports OIDC.
 		// sub is public, not scoped to anything so changing client_id does not affect sub.
 		// Therefore, ProviderID is simply Type.
 		//
 		// Rotating the OAuth application is OK.
 		break
-	case config.OAuthProviderTypeFacebook:
+	case oldconfig.OAuthProviderTypeFacebook:
 		// Facebook does NOT support OIDC.
 		// Facebook user ID is scoped to client_id.
 		// Therefore, ProviderID is Type + client_id.
@@ -42,10 +43,10 @@ func NewProviderID(c config.OAuthProviderConfiguration) ProviderID {
 		// Rotating the OAuth application is problematic.
 		// But if email remains unchanged, the user can associate their account.
 		keys["client_id"] = c.ClientID
-	case config.OAuthProviderTypeLinkedIn:
+	case oldconfig.OAuthProviderTypeLinkedIn:
 		// LinkedIn is the same as Facebook.
 		keys["client_id"] = c.ClientID
-	case config.OAuthProviderTypeAzureADv2:
+	case oldconfig.OAuthProviderTypeAzureADv2:
 		// Azure AD v2 supports OIDC.
 		// sub is pairwise and is scoped to client_id.
 		// However, oid is powerful alternative to sub.
@@ -56,7 +57,7 @@ func NewProviderID(c config.OAuthProviderConfiguration) ProviderID {
 		// But rotating the tenant is problematic.
 		// But if email remains unchanged, the user can associate their account.
 		keys["tenant"] = c.Tenant
-	case config.OAuthProviderTypeApple:
+	case oldconfig.OAuthProviderTypeApple:
 		// Apple supports OIDC.
 		// sub is pairwise and is scoped to team_id.
 		// Therefore, ProviderID is Type + team_id.

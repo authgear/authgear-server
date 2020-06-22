@@ -3,6 +3,7 @@ package oauth
 import (
 	"sort"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
@@ -37,17 +38,17 @@ func (p *Provider) Get(userID, id string) (*Identity, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetByProviderSubject(provider ProviderID, subjectID string) (*Identity, error) {
+func (p *Provider) GetByProviderSubject(provider config.ProviderID, subjectID string) (*Identity, error) {
 	return p.Store.GetByProviderSubject(provider, subjectID)
 }
 
-func (p *Provider) GetByUserProvider(userID string, provider ProviderID) (*Identity, error) {
+func (p *Provider) GetByUserProvider(userID string, provider config.ProviderID) (*Identity, error) {
 	return p.Store.GetByUserProvider(userID, provider)
 }
 
 func (p *Provider) New(
 	userID string,
-	provider ProviderID,
+	provider config.ProviderID,
 	subjectID string,
 	profile map[string]interface{},
 	claims map[string]interface{},

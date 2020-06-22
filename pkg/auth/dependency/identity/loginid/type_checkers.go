@@ -7,8 +7,8 @@ import (
 	confusable "github.com/skygeario/go-confusable-homoglyphs"
 	"golang.org/x/text/secure/precis"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
@@ -22,8 +22,7 @@ type TypeChecker interface {
 }
 
 type TypeCheckerFactory struct {
-	Keys                []config.LoginIDKeyConfiguration
-	Types               *config.LoginIDTypesConfiguration
+	Config              *config.LoginIDConfig
 	ReservedNameChecker *ReservedNameChecker
 }
 
@@ -32,11 +31,11 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) Ty
 	switch metadataKey {
 	case metadata.Email:
 		return &EmailChecker{
-			Config: f.Types.Email,
+			Config: f.Config.Types.Email,
 		}
 	case metadata.Username:
 		return &UsernameChecker{
-			Config:              f.Types.Username,
+			Config:              f.Config.Types.Username,
 			ReservedNameChecker: f.ReservedNameChecker,
 		}
 	case metadata.Phone:
@@ -47,7 +46,7 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) Ty
 }
 
 type EmailChecker struct {
-	Config *config.LoginIDTypeEmailConfiguration
+	Config *config.LoginIDEmailConfig
 }
 
 func (c *EmailChecker) Validate(loginID string) error {
@@ -80,7 +79,7 @@ func (c *EmailChecker) Validate(loginID string) error {
 }
 
 type UsernameChecker struct {
-	Config              *config.LoginIDTypeUsernameConfiguration
+	Config              *config.LoginIDUsernameConfig
 	ReservedNameChecker *ReservedNameChecker
 }
 

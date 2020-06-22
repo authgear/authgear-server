@@ -1,8 +1,8 @@
 package identity
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type Candidate map[string]interface{}
@@ -21,22 +21,22 @@ const (
 	CandidateKeyLoginIDValue = "login_id_value"
 )
 
-func NewOAuthCandidate(c *config.OAuthProviderConfiguration) Candidate {
+func NewOAuthCandidate(c *config.OAuthSSOProviderConfig) Candidate {
 	return Candidate{
 		CandidateKeyType:              string(authn.IdentityTypeOAuth),
 		CandidateKeyEmail:             "",
 		CandidateKeyProviderType:      string(c.Type),
-		CandidateKeyProviderAlias:     string(c.ID),
+		CandidateKeyProviderAlias:     c.Alias,
 		CandidateKeyProviderSubjectID: "",
 	}
 }
 
-func NewLoginIDCandidate(c *config.LoginIDKeyConfiguration) Candidate {
+func NewLoginIDCandidate(c *config.LoginIDKeyConfig) Candidate {
 	return Candidate{
 		CandidateKeyType:         string(authn.IdentityTypeLoginID),
 		CandidateKeyEmail:        "",
 		CandidateKeyLoginIDType:  string(c.Type),
-		CandidateKeyLoginIDKey:   string(c.Key),
+		CandidateKeyLoginIDKey:   c.Key,
 		CandidateKeyLoginIDValue: "",
 	}
 }

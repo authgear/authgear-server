@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
@@ -11,7 +12,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 //go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package provider
@@ -27,19 +27,19 @@ type LoginIDIdentityProvider interface {
 	Update(i *loginid.Identity) error
 	Delete(i *loginid.Identity) error
 	Validate(loginIDs []loginid.LoginID) error
-	Normalize(loginID loginid.LoginID) (*loginid.LoginID, *config.LoginIDKeyConfiguration, string, error)
+	Normalize(loginID loginid.LoginID) (*loginid.LoginID, *config.LoginIDKeyConfig, string, error)
 	CheckDuplicated(uniqueKey string, standardClaims map[string]string, userID string) error
 }
 
 type OAuthIdentityProvider interface {
 	Get(userID, id string) (*oauth.Identity, error)
 	List(userID string) ([]*oauth.Identity, error)
-	GetByProviderSubject(provider oauth.ProviderID, subjectID string) (*oauth.Identity, error)
-	GetByUserProvider(userID string, provider oauth.ProviderID) (*oauth.Identity, error)
+	GetByProviderSubject(provider config.ProviderID, subjectID string) (*oauth.Identity, error)
+	GetByUserProvider(userID string, provider config.ProviderID) (*oauth.Identity, error)
 	ListByClaim(name string, value string) ([]*oauth.Identity, error)
 	New(
 		userID string,
-		provider oauth.ProviderID,
+		provider config.ProviderID,
 		subjectID string,
 		profile map[string]interface{},
 		claims map[string]interface{},
@@ -61,8 +61,8 @@ type AnonymousIdentityProvider interface {
 }
 
 type Provider struct {
-	Authentication *config.AuthenticationConfiguration
-	Identity       *config.IdentityConfiguration
+	Authentication *config.AuthenticationConfig
+	Identity       *config.IdentityConfig
 	LoginID        LoginIDIdentityProvider
 	OAuth          OAuthIdentityProvider
 	Anonymous      AnonymousIdentityProvider
@@ -355,7 +355,7 @@ func (a *Provider) DeleteAll(userID string, is []*identity.Info) error {
 
 func (a *Provider) Validate(is []*identity.Info) error {
 	var loginIDs []loginid.LoginID
-	var oauthProviderIDs []oauth.ProviderID
+	var oauthProviderIDs []config.ProviderID
 	for _, i := range is {
 		if i.Type == authn.IdentityTypeLoginID {
 			loginID := extractLoginIDClaims(i.Claims)
@@ -465,10 +465,10 @@ func (a *Provider) ListCandidates(userID string) (out []identity.Candidate, err 
 
 	for _, i := range a.Authentication.Identities {
 		switch i {
-		case string(authn.IdentityTypeOAuth):
+		case authn.IdentityTypeOAuth:
 			for _, providerConfig := range a.Identity.OAuth.Providers {
 				pc := providerConfig
-				configProviderID := oauth.NewProviderID(pc)
+				configProviderID := pc.ProviderID()
 				candidate := identity.NewOAuthCandidate(&pc)
 				for _, iden := range oauths {
 					if iden.ProviderID.Equal(&configProviderID) {
@@ -480,7 +480,7 @@ func (a *Provider) ListCandidates(userID string) (out []identity.Candidate, err 
 				}
 				out = append(out, candidate)
 			}
-		case string(authn.IdentityTypeLoginID):
+		case authn.IdentityTypeLoginID:
 			for _, loginIDKeyConfig := range a.Identity.LoginID.Keys {
 				lkc := loginIDKeyConfig
 				candidate := identity.NewLoginIDCandidate(&lkc)
@@ -517,9 +517,9 @@ func (a *Provider) toIdentityInfo(o *oauth.Identity) *identity.Info {
 
 	alias := ""
 	for _, providerConfig := range a.Identity.OAuth.Providers {
-		providerID := oauth.NewProviderID(providerConfig)
+		providerID := providerConfig.ProviderID()
 		if providerID.Equal(&o.ProviderID) {
-			alias = providerConfig.ID
+			alias = providerConfig.Alias
 		}
 	}
 	if alias != "" {
@@ -553,7 +553,7 @@ func extractLoginIDClaims(claims map[string]interface{}) loginid.LoginID {
 	return loginid.LoginID{Key: loginIDKey, Value: loginID}
 }
 
-func extractOAuthClaims(claims map[string]interface{}) (providerID oauth.ProviderID, subjectID string) {
+func extractOAuthClaims(claims map[string]interface{}) (providerID config.ProviderID, subjectID string) {
 	providerID = extractOAuthProviderClaims(claims)
 
 	subjectID, ok := claims[identity.IdentityClaimOAuthSubjectID].(string)
@@ -564,13 +564,13 @@ func extractOAuthClaims(claims map[string]interface{}) (providerID oauth.Provide
 	return
 }
 
-func extractOAuthProviderClaims(claims map[string]interface{}) oauth.ProviderID {
+func extractOAuthProviderClaims(claims map[string]interface{}) config.ProviderID {
 	provider, ok := claims[identity.IdentityClaimOAuthProviderKeys].(map[string]interface{})
 	if !ok {
 		panic(fmt.Sprintf("interaction_adaptors: expect map provider claim, got %T", claims[identity.IdentityClaimOAuthProviderKeys]))
 	}
 
-	providerID := oauth.ProviderID{Keys: map[string]interface{}{}}
+	providerID := config.ProviderID{Keys: map[string]string{}}
 	for k, v := range provider {
 		if k == "type" {
 			providerID.Type, ok = v.(string)
@@ -578,7 +578,7 @@ func extractOAuthProviderClaims(claims map[string]interface{}) oauth.ProviderID 
 				panic(fmt.Sprintf("interaction_adaptors: expect string provider type, got %T", v))
 			}
 		} else {
-			providerID.Keys[k] = v
+			providerID.Keys[k] = v.(string)
 		}
 	}
 
