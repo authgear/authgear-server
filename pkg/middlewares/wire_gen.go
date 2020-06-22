@@ -60,3 +60,7 @@ func NewClientIDMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 func NewCORSMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 	return (*CORSMiddleware)(nil).Handle
 }
+
+func NewRecoverMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
+	return (*RecoverMiddleware)(nil).Handle
+}
