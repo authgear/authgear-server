@@ -6,6 +6,7 @@ import (
 	"testing"
 	gotime "time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/h2non/gock"
 
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -18,6 +19,9 @@ import (
 
 func TestDeliverer(t *testing.T) {
 	Convey("Event Deliverer", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
 		hookAppConfig := &config.HookAppConfiguration{
 			Secret: "hook-secret",
 		}
@@ -27,15 +31,17 @@ func TestDeliverer(t *testing.T) {
 		}
 
 		clock := clock.NewMockClockAt("2006-01-02T15:04:05Z")
-		mutator := newMockMutator()
+
+		m := NewMockMutator(ctrl)
+		mf := NewMockMutatorFactory(ctrl)
 
 		httpClient := gohttp.Client{}
 		gock.InterceptClient(&httpClient)
-		deliverer := delivererImpl{
+		deliverer := Deliverer{
 			HookAppConfig:    hookAppConfig,
 			HookTenantConfig: hookTenantConfig,
 			Clock:            clock,
-			Mutator:          mutator,
+			MutatorFactory:   mf,
 			HTTPClient:       httpClient,
 		}
 
@@ -66,6 +72,9 @@ func TestDeliverer(t *testing.T) {
 				Type: event.BeforeSessionCreate,
 			}
 
+			var user model.User
+			mf.EXPECT().New(&e, &user).Return(m)
+
 			Convey("should be successful", func() {
 				deliverer.Hooks = &[]config.Hook{
 					config.Hook{
@@ -78,7 +87,7 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				user := model.User{
+				user = model.User{
 					ID: "user-id",
 				}
 
@@ -91,6 +100,8 @@ func TestDeliverer(t *testing.T) {
 						"is_allowed": true,
 					})
 				defer func() { gock.Flush() }()
+
+				m.EXPECT().Apply().Return(nil)
 
 				err := deliverer.DeliverBeforeEvent(&e, &user)
 
@@ -110,7 +121,7 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				user := model.User{
+				user = model.User{
 					ID: "user-id",
 				}
 
@@ -153,14 +164,14 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				user := model.User{
+				user = model.User{
 					ID: "user-id",
 					Metadata: map[string]interface{}{
 						"test": 123,
 					},
 				}
 
-				e := event.Event{
+				e = event.Event{
 					ID:   "event-id",
 					Type: event.BeforeSessionCreate,
 					Payload: event.SessionCreateEvent{
@@ -200,42 +211,52 @@ func TestDeliverer(t *testing.T) {
 				defer func() { gock.Flush() }()
 
 				Convey("successful", func() {
+					m.EXPECT().Add(gomock.Eq(event.Mutations{
+						Metadata: &map[string]interface{}{
+							"test1": float64(123),
+						},
+					})).Return(nil)
+					m.EXPECT().Add(gomock.Eq(event.Mutations{
+						Metadata: &map[string]interface{}{
+							"test2": true,
+						},
+					})).Return(nil)
+					m.EXPECT().Apply().Return(nil)
+
 					err := deliverer.DeliverBeforeEvent(&e, &user)
 
 					So(err, ShouldBeNil)
-					So(mutator.Event, ShouldEqual, &e)
-					So(mutator.User, ShouldEqual, &user)
-					So(mutator.MutationsList, ShouldResemble, []event.Mutations{
-						{
-							Metadata: &map[string]interface{}{
-								"test1": float64(123),
-							},
-						},
-						{
-							Metadata: &map[string]interface{}{
-								"test2": true,
-							},
-						},
-					})
-					So(mutator.IsApplied, ShouldEqual, true)
 					So(gock.IsDone(), ShouldBeTrue)
 				})
 
 				Convey("failed apply", func() {
-					mutator.ApplyError = fmt.Errorf("cannot apply mutations")
+					m.EXPECT().Add(event.Mutations{
+						Metadata: &map[string]interface{}{
+							"test1": float64(123),
+						},
+					}).Return(nil)
+					m.EXPECT().Add(event.Mutations{
+						Metadata: &map[string]interface{}{
+							"test2": true,
+						},
+					}).Return(nil)
+					m.EXPECT().Apply().Return(fmt.Errorf("cannot apply mutations"))
+
 					err := deliverer.DeliverBeforeEvent(&e, &user)
 
 					So(err, ShouldBeError, "web-hook mutation failed: cannot apply mutations")
-					So(mutator.IsApplied, ShouldEqual, true)
 					So(gock.IsDone(), ShouldBeTrue)
 				})
 
 				Convey("failed add", func() {
-					mutator.AddError = fmt.Errorf("cannot add mutations")
+					m.EXPECT().Add(event.Mutations{
+						Metadata: &map[string]interface{}{
+							"test1": float64(123),
+						},
+					}).Return(fmt.Errorf("cannot add mutations"))
 					err := deliverer.DeliverBeforeEvent(&e, &user)
 
 					So(err, ShouldBeError, "web-hook mutation failed: cannot add mutations")
-					So(mutator.IsApplied, ShouldEqual, false)
 					So(gock.IsDone(), ShouldBeFalse)
 				})
 			})
@@ -248,7 +269,7 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				user := model.User{
+				user = model.User{
 					ID: "user-id",
 				}
 
@@ -284,7 +305,7 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				user := model.User{
+				user = model.User{
 					ID: "user-id",
 				}
 

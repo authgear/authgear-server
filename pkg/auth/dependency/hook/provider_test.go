@@ -25,7 +25,7 @@ func TestDispatchEvent(t *testing.T) {
 
 		clock := clock.NewMockClockAt("2006-01-02T15:04:05Z")
 		store := newMockStore()
-		deliverer := newMockDeliverer()
+		deliverer := NewMockDeliverer(ctrl)
 		users := NewMockUserProvider(ctrl)
 		ctx := context.Background()
 
@@ -55,36 +55,34 @@ func TestDispatchEvent(t *testing.T) {
 			}
 
 			Convey("should be successful", func() {
+				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
+				deliverer.EXPECT().DeliverBeforeEvent(
+					&event.Event{
+						ID:      "0000000000000001",
+						Type:    event.BeforeSessionCreate,
+						Seq:     1,
+						Payload: payload,
+						Context: event.Context{
+							Timestamp: 1136214245,
+							UserID:    nil,
+						},
+					},
+					&user,
+				).Return(nil)
+
 				err := provider.DispatchEvent(
 					payload,
 					&user,
 				)
 
 				So(err, ShouldBeNil)
-				So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{
-					mockDelivererBeforeEvent{
-						Event: &event.Event{
-							ID:      "0000000000000001",
-							Type:    event.BeforeSessionCreate,
-							Seq:     1,
-							Payload: payload,
-							Context: event.Context{
-								Timestamp: 1136214245,
-								UserID:    nil,
-							},
-						},
-						User: &user,
-					},
-				})
 				So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
 					payload,
 				})
 			})
 
 			Convey("should not generate before events that would not be delivered", func() {
-				deliverer.WillDeliverFunc = func(eventType event.Type) bool {
-					return false
-				}
+				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(false)
 
 				err := provider.DispatchEvent(
 					payload,
@@ -92,7 +90,6 @@ func TestDispatchEvent(t *testing.T) {
 				)
 
 				So(err, ShouldBeNil)
-				So(deliverer.BeforeEvents, ShouldBeEmpty)
 				So(store.nextSequenceNumber, ShouldEqual, 1)
 				So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
 					payload,
@@ -100,11 +97,25 @@ func TestDispatchEvent(t *testing.T) {
 			})
 
 			Convey("should use mutated payload", func() {
-				deliverer.OnDeliverBeforeEvents = func(ev *event.Event, user *model.User) {
+				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
+				deliverer.EXPECT().DeliverBeforeEvent(
+					&event.Event{
+						ID:      "0000000000000001",
+						Type:    event.BeforeSessionCreate,
+						Seq:     1,
+						Payload: payload,
+						Context: event.Context{
+							Timestamp: 1136214245,
+							UserID:    nil,
+						},
+					},
+					&user,
+				).DoAndReturn(func(ev *event.Event, user *model.User) error {
 					payload := ev.Payload.(event.SessionCreateEvent)
 					payload.Reason = "signup"
 					ev.Payload = payload
-				}
+					return nil
+				})
 
 				err := provider.DispatchEvent(
 					payload,
@@ -112,22 +123,6 @@ func TestDispatchEvent(t *testing.T) {
 				)
 
 				So(err, ShouldBeNil)
-				So(deliverer.NonBeforeEvents, ShouldBeEmpty)
-				So(deliverer.BeforeEvents, ShouldResemble, []mockDelivererBeforeEvent{
-					mockDelivererBeforeEvent{
-						Event: &event.Event{
-							ID:      "0000000000000001",
-							Type:    event.BeforeSessionCreate,
-							Seq:     1,
-							Payload: payload,
-							Context: event.Context{
-								Timestamp: 1136214245,
-								UserID:    nil,
-							},
-						},
-						User: &user,
-					},
-				})
 				So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
 					event.SessionCreateEvent{
 						Reason:   "signup",
@@ -152,23 +147,36 @@ func TestDispatchEvent(t *testing.T) {
 					},
 				)
 
+				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
+				deliverer.EXPECT().DeliverBeforeEvent(
+					&event.Event{
+						ID:      "0000000000000001",
+						Type:    event.BeforeSessionCreate,
+						Seq:     1,
+						Payload: payload,
+						Context: event.Context{
+							Timestamp: 1136214245,
+							UserID:    &userID,
+							Session: &model.Session{
+								ID: "user-id-principal-id",
+							},
+						},
+					},
+					&user,
+				).Return(nil)
+
 				err := provider.DispatchEvent(
 					payload,
 					&user,
 				)
 
 				So(err, ShouldBeNil)
-				So(deliverer.BeforeEvents[0].Event.Context, ShouldResemble, event.Context{
-					Timestamp: 1136214245,
-					UserID:    &userID,
-					Session: &model.Session{
-						ID: "user-id-principal-id",
-					},
-				})
 			})
 
 			Convey("should return delivery error", func() {
-				deliverer.DeliveryError = fmt.Errorf("failed to deliver")
+				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
+				deliverer.EXPECT().DeliverBeforeEvent(gomock.Any(), gomock.Any()).
+					Return(fmt.Errorf("failed to deliver"))
 
 				err := provider.DispatchEvent(
 					payload,
@@ -194,8 +202,6 @@ func TestDispatchEvent(t *testing.T) {
 				)
 
 				So(err, ShouldBeNil)
-				So(deliverer.NonBeforeEvents, ShouldBeEmpty)
-				So(deliverer.BeforeEvents, ShouldBeEmpty)
 				So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
 					payload,
 				})
@@ -217,6 +223,8 @@ func TestDispatchEvent(t *testing.T) {
 						"user": true,
 					},
 				}, nil)
+				deliverer.EXPECT().WillDeliver(event.UserSync).Return(true)
+				deliverer.EXPECT().WillDeliver(event.AfterSessionCreate).Return(true)
 
 				err := provider.WillCommitTx()
 
@@ -256,9 +264,6 @@ func TestDispatchEvent(t *testing.T) {
 			})
 
 			Convey("should not generate events that would not be delivered", func() {
-				deliverer.WillDeliverFunc = func(eventType event.Type) bool {
-					return eventType == event.UserSync
-				}
 				provider.PersistentEventPayloads = []event.Payload{
 					event.SessionCreateEvent{
 						User: model.User{
@@ -272,6 +277,8 @@ func TestDispatchEvent(t *testing.T) {
 						"user": true,
 					},
 				}, nil)
+				deliverer.EXPECT().WillDeliver(event.UserSync).Return(true)
+				deliverer.EXPECT().WillDeliver(event.AfterSessionCreate).Return(false)
 
 				err := provider.WillCommitTx()
 

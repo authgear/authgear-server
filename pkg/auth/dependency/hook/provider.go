@@ -18,11 +18,17 @@ import (
 	"github.com/skygeario/skygear-server/pkg/db"
 )
 
-//go:generate mockgen -source=provider_impl.go -destination=provider_impl_mock_test.go -package hook
+//go:generate mockgen -source=provider.go -destination=provider_mock_test.go -mock_names=deliverer=MockDeliverer -package hook
 
 type UserProvider interface {
 	Get(id string) (*model.User, error)
 	UpdateMetadata(user *model.User, metadata map[string]interface{}) error
+}
+
+type deliverer interface {
+	WillDeliver(eventType event.Type) bool
+	DeliverBeforeEvent(event *event.Event, user *model.User) error
+	DeliverNonBeforeEvent(event *event.Event, timeout time.Duration) error
 }
 
 type Provider struct {
@@ -31,7 +37,7 @@ type Provider struct {
 	DBContext               db.Context
 	Clock                   clock.Clock
 	Users                   UserProvider
-	Deliverer               Deliverer
+	Deliverer               deliverer
 	PersistentEventPayloads []event.Payload
 	Logger                  *logrus.Entry
 
@@ -44,7 +50,7 @@ func NewProvider(
 	dbContext db.Context,
 	clock clock.Clock,
 	users UserProvider,
-	deliverer Deliverer,
+	deliverer deliverer,
 	loggerFactory logging.Factory,
 ) *Provider {
 	return &Provider{
