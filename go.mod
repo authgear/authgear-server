@@ -22,7 +22,7 @@ require (
 	github.com/hashicorp/go-version v1.2.0 // indirect
 	github.com/iawaknahc/gomessageformat v0.0.0-20200406084228-8abc010113fa
 	github.com/iawaknahc/jsonschema v0.0.0-20200321082404-507b9d186df7
-	github.com/iawaknahc/originmatcher v0.0.0-20191203065535-c77f92cc0a75
+	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192
 	github.com/jmoiron/sqlx v0.0.0-20170430194603-d9bd385d68c0
 	github.com/joho/godotenv v1.3.0
 	github.com/kelseyhightower/envconfig v1.3.0

@@ -37,7 +37,7 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 	session.AttachResolveHandler(rootRouter, p)
 
 	oauthRouter = rootRouter.NewRoute().Subrouter()
-	oauthRouter.Use(middleware.CORSMiddleware{}.Handle)
+	oauthRouter.Use(p.Middleware(middlewares.NewCORSMiddleware))
 
 	webappRouter = rootRouter.NewRoute().Subrouter()
 	// When StrictSlash is true, the path in the browser URL always matches

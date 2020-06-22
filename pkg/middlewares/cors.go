@@ -12,23 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package middleware
+package middlewares
 
 import (
 	"net/http"
 
 	"github.com/iawaknahc/originmatcher"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
 type CORSMiddleware struct {
+	Config *config.HTTPConfig
 }
 
-func (cors CORSMiddleware) Handle(next http.Handler) http.Handler {
+func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tConfig := config.GetTenantConfig(r.Context())
-		matcher, err := originmatcher.Parse(tConfig.AppConfig.CORS.Origin)
+		matcher, err := originmatcher.New(m.Config.AllowedOrigins)
+		// nolint: staticcheck
+		if err != nil {
+			// TODO(logging): Log invalid AllowedOrigins error here.
+		}
 
 		w.Header().Add("Vary", "Origin")
 

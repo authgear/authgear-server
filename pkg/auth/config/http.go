@@ -11,6 +11,6 @@ var _ = Schema.Add("HTTPConfig", `
 `)
 
 type HTTPConfig struct {
-	Hosts         []string `json:"hosts,omitempty"`
-	AllowsOrigins []string `json:"allowed_origins,omitempty"`
+	Hosts          []string `json:"hosts,omitempty"`
+	AllowedOrigins []string `json:"allowed_origins,omitempty"`
 }
