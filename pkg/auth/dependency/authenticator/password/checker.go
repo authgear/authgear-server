@@ -15,6 +15,7 @@
 package password
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"regexp"
 	"strings"
 
@@ -177,6 +178,10 @@ type ValidatePayload struct {
 	UserData      map[string]interface{}
 }
 
+type CheckerHistoryStore interface {
+	GetPasswordHistory(userID string, historySize int, historyDays config.DurationDays) ([]History, error)
+}
+
 type Checker struct {
 	PwMinLength            int
 	PwUppercaseRequired    bool
@@ -187,9 +192,9 @@ type Checker struct {
 	PwExcludedKeywords     []string
 	PwExcludedFields       []string
 	PwHistorySize          int
-	PwHistoryDays          int
+	PwHistoryDays          config.DurationDays
 	PasswordHistoryEnabled bool
-	PasswordHistoryStore   HistoryStore
+	PasswordHistoryStore   CheckerHistoryStore
 }
 
 func (pc *Checker) policyPasswordLength() Policy {
@@ -288,7 +293,7 @@ func (pc *Checker) policyPasswordHistory() Policy {
 		Name: PasswordReused,
 		Info: map[string]interface{}{
 			"history_size": pc.PwHistorySize,
-			"history_days": pc.PwHistoryDays,
+			"history_days": int(pc.PwHistoryDays),
 		},
 	}
 }

@@ -3,33 +3,37 @@ package oob
 import (
 	"context"
 	"errors"
+	"net/url"
 	"sort"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	taskspec "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/intl"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 	"github.com/skygeario/skygear-server/pkg/mail"
 	"github.com/skygeario/skygear-server/pkg/sms"
+	"github.com/skygeario/skygear-server/pkg/task"
 	"github.com/skygeario/skygear-server/pkg/template"
 )
 
+type EndpointsProvider interface {
+	BaseURL() *url.URL
+}
+
 type Provider struct {
-	Context               context.Context
-	LocalizationConfig    *config.LocalizationConfig
-	MetadataConfiguration config.AppMetadata
-	MessagingConfig       config.MessagingConfig
-	Config                *config.AuthenticatorOOBConfig
-	Store                 *Store
-	TemplateEngine        *template.Engine
-	URLPrefixProvider     urlprefix.Provider
-	TaskQueue             async.Queue
-	Clock                 clock.Clock
+	Context        context.Context
+	Localization   *config.LocalizationConfig
+	AppMetadata    config.AppMetadata
+	Messaging      *config.MessagingConfig
+	Config         *config.AuthenticatorOOBConfig
+	Store          *Store
+	TemplateEngine *template.Engine
+	Endpoints      EndpointsProvider
+	TaskQueue      task.Queue
+	Clock          clock.Clock
 }
 
 func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
@@ -99,7 +103,6 @@ type SendCodeOptions struct {
 }
 
 func (p *Provider) SendCode(opts SendCodeOptions) (err error) {
-	urlPrefix := p.URLPrefixProvider.Value()
 	email := opts.Email
 	phone := opts.Phone
 	channel := opts.Channel
@@ -109,11 +112,11 @@ func (p *Provider) SendCode(opts SendCodeOptions) (err error) {
 		"email": email,
 		"phone": phone,
 		"code":  code,
-		"host":  urlPrefix.Host,
+		"host":  p.Endpoints.BaseURL().Host,
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
-	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfig.FallbackLanguage), p.MetadataConfiguration, "app_name")
+	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.Localization.FallbackLanguage), p.AppMetadata, "app_name")
 
 	switch channel {
 	case string(authn.AuthenticatorOOBChannelEmail):
@@ -144,13 +147,13 @@ func (p *Provider) SendEmail(email string, data map[string]interface{}) (err err
 		return
 	}
 
-	p.TaskQueue.Enqueue(async.TaskSpec{
+	p.TaskQueue.Enqueue(task.Spec{
 		Name: taskspec.SendMessagesTaskName,
 		Param: taskspec.SendMessagesTaskParam{
 			EmailMessages: []mail.SendOptions{
 				{
 					MessageConfig: config.NewEmailMessageConfig(
-						p.MessagingConfig.DefaultEmailMessage,
+						p.Messaging.DefaultEmailMessage,
 						p.Config.Email.Message,
 					),
 					Recipient: email,
@@ -174,13 +177,13 @@ func (p *Provider) SendSMS(phone string, data map[string]interface{}) (err error
 		return
 	}
 
-	p.TaskQueue.Enqueue(async.TaskSpec{
+	p.TaskQueue.Enqueue(task.Spec{
 		Name: taskspec.SendMessagesTaskName,
 		Param: taskspec.SendMessagesTaskParam{
 			SMSMessages: []sms.SendOptions{
 				{
 					MessageConfig: config.NewSMSMessageConfig(
-						p.MessagingConfig.DefaultSMSMessage,
+						p.Messaging.DefaultSMSMessage,
 						p.Config.SMS.Message,
 					),
 					To:   phone,

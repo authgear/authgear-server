@@ -1,6 +1,7 @@
 package password
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"sort"
 	"time"
 
@@ -28,7 +29,7 @@ func (m *mockPasswordHistoryStoreImpl) CreatePasswordHistory(userID string, hash
 	return nil
 }
 
-func (m *mockPasswordHistoryStoreImpl) GetPasswordHistory(userID string, historySize, historyDays int) ([]History, error) {
+func (m *mockPasswordHistoryStoreImpl) GetPasswordHistory(userID string, historySize int, historyDays config.DurationDays) ([]History, error) {
 	uph, ok := m.Data[userID]
 	if !ok || len(uph) <= 0 {
 		return []History{}, nil
@@ -36,7 +37,7 @@ func (m *mockPasswordHistoryStoreImpl) GetPasswordHistory(userID string, history
 
 	t := m.TimeNow()
 	startOfDay := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-	since := startOfDay.AddDate(0, 0, -historyDays)
+	since := startOfDay.Add(-historyDays.Duration())
 
 	index := 0
 	for i, ph := range uph {
@@ -49,8 +50,8 @@ func (m *mockPasswordHistoryStoreImpl) GetPasswordHistory(userID string, history
 	return uph[:index+1], nil
 }
 
-func (m *mockPasswordHistoryStoreImpl) RemovePasswordHistory(userID string, historySize, historyDays int) error {
-	uph, err := m.GetPasswordHistory(userID, historySize, historySize)
+func (m *mockPasswordHistoryStoreImpl) RemovePasswordHistory(userID string, historySize int, historyDays config.DurationDays) error {
+	uph, err := m.GetPasswordHistory(userID, historySize, historyDays)
 	if err != nil {
 		return err
 	}

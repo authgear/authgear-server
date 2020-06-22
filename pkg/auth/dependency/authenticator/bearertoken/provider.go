@@ -2,16 +2,15 @@ package bearertoken
 
 import (
 	"errors"
-	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type Provider struct {
 	Store  *Store
-	Config *config.AuthenticatorBearerTokenConfiguration
+	Config *config.AuthenticatorBearerTokenConfig
 	Clock  clock.Clock
 }
 
@@ -51,7 +50,7 @@ func (p *Provider) New(userID string, parentID string) *Authenticator {
 
 func (p *Provider) Create(a *Authenticator) error {
 	now := p.Clock.NowUTC()
-	expireAt := now.Add(time.Duration(p.Config.ExpireInDays) * time.Hour * 24)
+	expireAt := now.Add(p.Config.ExpireIn.Duration())
 	a.CreatedAt = now
 	a.ExpireAt = expireAt
 

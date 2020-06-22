@@ -15,49 +15,34 @@
 package password
 
 import (
-	"github.com/sirupsen/logrus"
-
-	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func NewHousekeeper(
-	passwordHistoryStore HistoryStore,
-	loggerFactory logging.Factory,
-	pwHistorySize int,
-	pwHistoryDays int,
-	passwordHistoryEnabled bool,
-) *Housekeeper {
-	return &Housekeeper{
-		passwordHistoryStore:   passwordHistoryStore,
-		logger:                 loggerFactory.NewLogger("password-housekeeper"),
-		pwHistorySize:          pwHistorySize,
-		pwHistoryDays:          pwHistoryDays,
-		passwordHistoryEnabled: passwordHistoryEnabled,
-	}
+type HousekeeperLogger struct {
+	*log.Logger
+}
+
+func NewHousekeeperLogger(lf *log.Factory) HousekeeperLogger {
+	return HousekeeperLogger{lf.New("password-housekeeper")}
 }
 
 type Housekeeper struct {
-	passwordHistoryStore   HistoryStore
-	logger                 *logrus.Entry
-	pwHistorySize          int
-	pwHistoryDays          int
-	passwordHistoryEnabled bool
+	Store  *HistoryStore
+	Logger HousekeeperLogger
+	Config *config.PasswordPolicyConfig
 }
 
 func (p *Housekeeper) Housekeep(authID string) (err error) {
-	if !p.enabled() {
+	if !p.Config.IsEnabled() {
 		return
 	}
 
-	p.logger.Debug("Remove password history")
-	err = p.passwordHistoryStore.RemovePasswordHistory(authID, p.pwHistorySize, p.pwHistoryDays)
+	p.Logger.Debug("remove password history")
+	err = p.Store.RemovePasswordHistory(authID, p.Config.HistorySize, p.Config.HistoryDays)
 	if err != nil {
-		p.logger.WithError(err).Error("Unable to housekeep password history")
+		p.Logger.WithError(err).Error("unable to housekeep password history")
 	}
 
 	return
-}
-
-func (p *Housekeeper) enabled() bool {
-	return p.passwordHistoryEnabled
 }

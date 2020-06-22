@@ -11,10 +11,11 @@ import (
 )
 
 type EndpointsProvider interface {
-	AuthenticateEndpointURI() *url.URL
-	PromoteUserEndpointURI() *url.URL
-	LogoutEndpointURI() *url.URL
-	SettingsEndpointURI() *url.URL
+	AuthenticateEndpointURL() *url.URL
+	PromoteUserEndpointURL() *url.URL
+	LogoutEndpointURL() *url.URL
+	SettingsEndpointURL() *url.URL
+	ResetPasswordEndpointURL() *url.URL
 }
 
 type AnonymousFlow interface {
@@ -35,8 +36,8 @@ type URLProvider struct {
 	States    StateStore
 }
 
-func (p *URLProvider) AuthenticateURI(options AuthenticateURLOptions) (*url.URL, error) {
-	authnURI := p.Endpoints.AuthenticateEndpointURI()
+func (p *URLProvider) AuthenticateURL(options AuthenticateURLOptions) (*url.URL, error) {
+	authnURI := p.Endpoints.AuthenticateEndpointURL()
 	q := map[string]string{
 		"redirect_uri": options.RedirectURI,
 		"client_id":    options.ClientID,
@@ -56,12 +57,19 @@ func (p *URLProvider) AuthenticateURI(options AuthenticateURLOptions) (*url.URL,
 	return coreurl.WithQueryParamsAdded(authnURI, q), nil
 }
 
-func (p *URLProvider) LogoutURI() *url.URL {
-	return p.Endpoints.LogoutEndpointURI()
+func (p *URLProvider) LogoutURL() *url.URL {
+	return p.Endpoints.LogoutEndpointURL()
 }
 
-func (p *URLProvider) SettingsURI() *url.URL {
-	return p.Endpoints.SettingsEndpointURI()
+func (p *URLProvider) SettingsURL() *url.URL {
+	return p.Endpoints.SettingsEndpointURL()
+}
+
+func (p *URLProvider) ResetPasswordURL(code string) *url.URL {
+	return coreurl.WithQueryParamsAdded(
+		p.Endpoints.ResetPasswordEndpointURL(),
+		map[string]string{"code": code},
+	)
 }
 
 func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, loginHint string) error {
@@ -88,7 +96,7 @@ func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, login
 			state.AnonymousUserID = userID
 			p.States.Set(state)
 			q["x_sid"] = state.ID
-			*uri = p.Endpoints.PromoteUserEndpointURI()
+			*uri = p.Endpoints.PromoteUserEndpointURL()
 			return nil
 
 		case anonymous.RequestActionAuth:
