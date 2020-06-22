@@ -38,7 +38,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 			options = append(options, csrf.SameSite(0))
 		}
 
-		keys, err := config.ToJWS(m.Secret.Keys)
+		keys, err := m.Secret.Decode()
 		if err != nil {
 			panic("webapp: invalid CSRF key materials")
 		}

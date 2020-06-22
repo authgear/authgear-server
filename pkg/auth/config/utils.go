@@ -52,15 +52,6 @@ func extractJWKSecrets(keys []interface{}) []string {
 	return secrets
 }
 
-func ToJWS(keys []interface{}) (*jwk.Set, error) {
-	set := &jwk.Set{}
-	err := set.ExtractMap(map[string]interface{}{"keys": keys})
-	if err != nil {
-		return nil, err
-	}
-	return set, nil
-}
-
 func ExtractOctetKey(set *jwk.Set, id string) ([]byte, error) {
 	for _, key := range set.Keys {
 		if key.KeyID() != id {
