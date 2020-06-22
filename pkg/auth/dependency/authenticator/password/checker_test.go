@@ -18,9 +18,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
+
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestPasswordCheckingFuncs(t *testing.T) {
@@ -313,7 +316,7 @@ func TestValidatePassword(t *testing.T) {
 
 	Convey("validate password history", t, func(c C) {
 		historySize := 12
-		historyDays := 365
+		historyDays := config.DurationDays(365)
 
 		pc := &Checker{
 			PwHistorySize:          historySize,
@@ -331,7 +334,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": int(historyDays)}},
 				},
 			},
 		)
@@ -345,7 +348,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": int(historyDays)}},
 				},
 			},
 		)
@@ -361,7 +364,7 @@ func TestValidatePassword(t *testing.T) {
 
 	Convey("validate password history by size", t, func(c C) {
 		historySize := 2
-		historyDays := 0
+		historyDays := config.DurationDays(0)
 
 		pc := &Checker{
 			PwHistorySize:          historySize,
@@ -379,7 +382,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": int(historyDays)}},
 				},
 			},
 		)
@@ -395,7 +398,7 @@ func TestValidatePassword(t *testing.T) {
 
 	Convey("validate password history by days", t, func(c C) {
 		historySize := 0
-		historyDays := 2
+		historyDays := config.DurationDays(2)
 
 		pc := &Checker{
 			PwHistorySize:          historySize,
@@ -413,7 +416,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []skyerr.Cause{
-					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": historyDays}},
+					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": int(historyDays)}},
 				},
 			},
 		)

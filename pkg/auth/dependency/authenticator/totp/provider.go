@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type Provider struct {
 	Store  *Store
-	Config *config.AuthenticatorTOTPConfiguration
+	Config *config.AuthenticatorTOTPConfig
 	Clock  clock.Clock
 }
 

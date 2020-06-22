@@ -3,21 +3,24 @@ package password
 import (
 	"sort"
 
-	"github.com/sirupsen/logrus"
-
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	pwd "github.com/skygeario/skygear-server/pkg/core/password"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
+
+type Logger struct{ *log.Logger }
+
+func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("password")} }
 
 type Provider struct {
 	Store           *Store
-	Config          *config.AuthenticatorPasswordConfiguration
+	Config          *config.AuthenticatorPasswordConfig
 	Clock           clock.Clock
-	Logger          *logrus.Entry
-	PasswordHistory HistoryStore
+	Logger          Logger
+	PasswordHistory *HistoryStore
 	PasswordChecker *Checker
 }
 
