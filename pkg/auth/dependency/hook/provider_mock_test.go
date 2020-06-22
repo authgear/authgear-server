@@ -8,6 +8,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	event "github.com/skygeario/skygear-server/pkg/auth/event"
 	model "github.com/skygeario/skygear-server/pkg/auth/model"
+	db "github.com/skygeario/skygear-server/pkg/db"
 	reflect "reflect"
 	time "time"
 )
@@ -62,6 +63,41 @@ func (m *MockUserProvider) UpdateMetadata(user *model.User, metadata map[string]
 func (mr *MockUserProviderMockRecorder) UpdateMetadata(user, metadata interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockUserProvider)(nil).UpdateMetadata), user, metadata)
+}
+
+// MockDBHookContext is a mock of DBHookContext interface
+type MockDBHookContext struct {
+	ctrl     *gomock.Controller
+	recorder *MockDBHookContextMockRecorder
+}
+
+// MockDBHookContextMockRecorder is the mock recorder for MockDBHookContext
+type MockDBHookContextMockRecorder struct {
+	mock *MockDBHookContext
+}
+
+// NewMockDBHookContext creates a new mock instance
+func NewMockDBHookContext(ctrl *gomock.Controller) *MockDBHookContext {
+	mock := &MockDBHookContext{ctrl: ctrl}
+	mock.recorder = &MockDBHookContextMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockDBHookContext) EXPECT() *MockDBHookContextMockRecorder {
+	return m.recorder
+}
+
+// UseHook mocks base method
+func (m *MockDBHookContext) UseHook(arg0 db.TransactionHook) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "UseHook", arg0)
+}
+
+// UseHook indicates an expected call of UseHook
+func (mr *MockDBHookContextMockRecorder) UseHook(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UseHook", reflect.TypeOf((*MockDBHookContext)(nil).UseHook), arg0)
 }
 
 // MockDeliverer is a mock of deliverer interface
@@ -127,4 +163,71 @@ func (m *MockDeliverer) DeliverNonBeforeEvent(event *event.Event, timeout time.D
 func (mr *MockDelivererMockRecorder) DeliverNonBeforeEvent(event, timeout interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverNonBeforeEvent", reflect.TypeOf((*MockDeliverer)(nil).DeliverNonBeforeEvent), event, timeout)
+}
+
+// MockStore is a mock of store interface
+type MockStore struct {
+	ctrl     *gomock.Controller
+	recorder *MockStoreMockRecorder
+}
+
+// MockStoreMockRecorder is the mock recorder for MockStore
+type MockStoreMockRecorder struct {
+	mock *MockStore
+}
+
+// NewMockStore creates a new mock instance
+func NewMockStore(ctrl *gomock.Controller) *MockStore {
+	mock := &MockStore{ctrl: ctrl}
+	mock.recorder = &MockStoreMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockStore) EXPECT() *MockStoreMockRecorder {
+	return m.recorder
+}
+
+// NextSequenceNumber mocks base method
+func (m *MockStore) NextSequenceNumber() (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NextSequenceNumber")
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NextSequenceNumber indicates an expected call of NextSequenceNumber
+func (mr *MockStoreMockRecorder) NextSequenceNumber() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NextSequenceNumber", reflect.TypeOf((*MockStore)(nil).NextSequenceNumber))
+}
+
+// AddEvents mocks base method
+func (m *MockStore) AddEvents(events []*event.Event) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddEvents", events)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddEvents indicates an expected call of AddEvents
+func (mr *MockStoreMockRecorder) AddEvents(events interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEvents", reflect.TypeOf((*MockStore)(nil).AddEvents), events)
+}
+
+// GetEventsForDelivery mocks base method
+func (m *MockStore) GetEventsForDelivery() ([]*event.Event, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetEventsForDelivery")
+	ret0, _ := ret[0].([]*event.Event)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetEventsForDelivery indicates an expected call of GetEventsForDelivery
+func (mr *MockStoreMockRecorder) GetEventsForDelivery() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEventsForDelivery", reflect.TypeOf((*MockStore)(nil).GetEventsForDelivery))
 }

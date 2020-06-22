@@ -12,8 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
-	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/log"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -24,22 +23,29 @@ func TestDispatchEvent(t *testing.T) {
 		defer ctrl.Finish()
 
 		clock := clock.NewMockClockAt("2006-01-02T15:04:05Z")
-		store := newMockStore()
+		store := NewMockStore(ctrl)
 		deliverer := NewMockDeliverer(ctrl)
 		users := NewMockUserProvider(ctrl)
+		db := NewMockDBHookContext(ctrl)
 		ctx := context.Background()
 
-		provider := NewProvider(
-			ctx,
-			store,
-			db.NewMockTxContext(),
-			clock,
-			users,
-			deliverer,
-			logging.NewNullFactory(),
-		)
+		provider := &Provider{
+			Context:   ctx,
+			Logger:    Logger{log.Null},
+			DBContext: db,
+			Clock:     clock,
+			Users:     users,
+			Store:     store,
+			Deliverer: deliverer,
+		}
 
-		provider.PersistentEventPayloads = nil
+		db.EXPECT().UseHook(provider).AnyTimes()
+		var seq int64 = 0
+		store.EXPECT().NextSequenceNumber().AnyTimes().
+			DoAndReturn(func() (int64, error) {
+				seq++
+				return seq, nil
+			})
 
 		Convey("dispatching operation events", func() {
 			user := model.User{
@@ -76,7 +82,7 @@ func TestDispatchEvent(t *testing.T) {
 				)
 
 				So(err, ShouldBeNil)
-				So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
+				So(provider.persistentEventPayloads, ShouldResemble, []event.Payload{
 					payload,
 				})
 			})
@@ -90,8 +96,7 @@ func TestDispatchEvent(t *testing.T) {
 				)
 
 				So(err, ShouldBeNil)
-				So(store.nextSequenceNumber, ShouldEqual, 1)
-				So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
+				So(provider.persistentEventPayloads, ShouldResemble, []event.Payload{
 					payload,
 				})
 			})
@@ -123,7 +128,7 @@ func TestDispatchEvent(t *testing.T) {
 				)
 
 				So(err, ShouldBeNil)
-				So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
+				So(provider.persistentEventPayloads, ShouldResemble, []event.Payload{
 					event.SessionCreateEvent{
 						Reason:   "signup",
 						User:     user,
@@ -202,7 +207,7 @@ func TestDispatchEvent(t *testing.T) {
 				)
 
 				So(err, ShouldBeNil)
-				So(provider.PersistentEventPayloads, ShouldResemble, []event.Payload{
+				So(provider.persistentEventPayloads, ShouldResemble, []event.Payload{
 					payload,
 				})
 			})
@@ -210,7 +215,7 @@ func TestDispatchEvent(t *testing.T) {
 
 		Convey("when transaction is about to commit", func() {
 			Convey("should generate & persist events", func() {
-				provider.PersistentEventPayloads = []event.Payload{
+				provider.persistentEventPayloads = []event.Payload{
 					event.SessionCreateEvent{
 						User: model.User{
 							ID: "user-id",
@@ -225,13 +230,8 @@ func TestDispatchEvent(t *testing.T) {
 				}, nil)
 				deliverer.EXPECT().WillDeliver(event.UserSync).Return(true)
 				deliverer.EXPECT().WillDeliver(event.AfterSessionCreate).Return(true)
-
-				err := provider.WillCommitTx()
-
-				So(err, ShouldBeNil)
-				So(provider.PersistentEventPayloads, ShouldBeNil)
-				So(store.persistedEvents, ShouldResemble, []*event.Event{
-					&event.Event{
+				store.EXPECT().AddEvents([]*event.Event{
+					{
 						ID:   "0000000000000001",
 						Type: event.AfterSessionCreate,
 						Seq:  1,
@@ -245,7 +245,7 @@ func TestDispatchEvent(t *testing.T) {
 							UserID:    nil,
 						},
 					},
-					&event.Event{
+					{
 						ID:   "0000000000000002",
 						Type: event.UserSync,
 						Seq:  2,
@@ -261,10 +261,15 @@ func TestDispatchEvent(t *testing.T) {
 						},
 					},
 				})
+
+				err := provider.WillCommitTx()
+
+				So(err, ShouldBeNil)
+				So(provider.persistentEventPayloads, ShouldBeNil)
 			})
 
 			Convey("should not generate events that would not be delivered", func() {
-				provider.PersistentEventPayloads = []event.Payload{
+				provider.persistentEventPayloads = []event.Payload{
 					event.SessionCreateEvent{
 						User: model.User{
 							ID: "user-id",
@@ -279,14 +284,8 @@ func TestDispatchEvent(t *testing.T) {
 				}, nil)
 				deliverer.EXPECT().WillDeliver(event.UserSync).Return(true)
 				deliverer.EXPECT().WillDeliver(event.AfterSessionCreate).Return(false)
-
-				err := provider.WillCommitTx()
-
-				So(err, ShouldBeNil)
-				So(provider.PersistentEventPayloads, ShouldBeNil)
-				So(store.nextSequenceNumber, ShouldEqual, 2)
-				So(store.persistedEvents, ShouldResemble, []*event.Event{
-					&event.Event{
+				store.EXPECT().AddEvents([]*event.Event{
+					{
 						ID:   "0000000000000001",
 						Type: event.UserSync,
 						Seq:  1,
@@ -302,6 +301,11 @@ func TestDispatchEvent(t *testing.T) {
 						},
 					},
 				})
+
+				err := provider.WillCommitTx()
+
+				So(err, ShouldBeNil)
+				So(provider.persistentEventPayloads, ShouldBeNil)
 			})
 		})
 	})

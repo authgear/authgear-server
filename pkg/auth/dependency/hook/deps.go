@@ -5,8 +5,14 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	wire.Struct(new(Provider), "*"),
+	NewSyncHTTPClient,
+	NewAsyncHTTPClient,
+	NewLogger,
+	wire.Struct(new(MutatorFactory), "*"),
+	wire.Bind(new(mutatorFactory), new(*MutatorFactory)),
 	wire.Struct(new(Deliverer), "*"),
-	wire.Struct(new(Mutator), "*"),
+	wire.Bind(new(deliverer), new(*Deliverer)),
 	wire.Struct(new(Store), "*"),
+	wire.Bind(new(store), new(*Store)),
+	wire.Struct(new(Provider), "*"),
 )

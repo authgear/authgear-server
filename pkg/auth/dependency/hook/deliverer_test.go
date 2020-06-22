@@ -2,17 +2,17 @@ package hook
 
 import (
 	"fmt"
-	gohttp "net/http"
+	"net/http"
 	"testing"
 	gotime "time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/h2non/gock"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -22,12 +22,17 @@ func TestDeliverer(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		hookAppConfig := &config.HookAppConfiguration{
-			Secret: "hook-secret",
+		cfg := &config.HookConfig{
+			SyncTimeout:      5,
+			SyncTotalTimeout: 10,
 		}
-		hookTenantConfig := &config.HookTenantConfiguration{
-			SyncHookTimeout:      5,
-			SyncHookTotalTimeout: 10,
+		secret := &config.WebhookKeyMaterials{
+			JWS: config.JWS{Keys: []interface{}{
+				map[string]interface{}{
+					"kty": "oct",
+					"k":   "aG9vay1zZWNyZXQ",
+				},
+			}},
 		}
 
 		clock := clock.NewMockClockAt("2006-01-02T15:04:05Z")
@@ -35,26 +40,27 @@ func TestDeliverer(t *testing.T) {
 		m := NewMockMutator(ctrl)
 		mf := NewMockMutatorFactory(ctrl)
 
-		httpClient := gohttp.Client{}
-		gock.InterceptClient(&httpClient)
+		httpClient := &http.Client{}
+		gock.InterceptClient(httpClient)
 		deliverer := Deliverer{
-			HookAppConfig:    hookAppConfig,
-			HookTenantConfig: hookTenantConfig,
-			Clock:            clock,
-			MutatorFactory:   mf,
-			HTTPClient:       httpClient,
+			Config:         cfg,
+			Secret:         secret,
+			Clock:          clock,
+			MutatorFactory: mf,
+			SyncHTTP:       SyncHTTPClient{httpClient},
+			AsyncHTTP:      AsyncHTTPClient{httpClient},
 		}
 
 		defer gock.Off()
 
 		Convey("determining whether the event will be delivered", func() {
 			Convey("should return correct value", func() {
-				deliverer.Hooks = &[]config.Hook{
-					config.Hook{
+				cfg.Handlers = []config.HookHandlerConfig{
+					{
 						Event: string(event.BeforeSessionCreate),
 						URL:   "https://example.com/a",
 					},
-					config.Hook{
+					{
 						Event: string(event.UserSync),
 						URL:   "https://example.com/b",
 					},
@@ -76,12 +82,12 @@ func TestDeliverer(t *testing.T) {
 			mf.EXPECT().New(&e, &user).Return(m)
 
 			Convey("should be successful", func() {
-				deliverer.Hooks = &[]config.Hook{
-					config.Hook{
+				cfg.Handlers = []config.HookHandlerConfig{
+					{
 						Event: string(event.BeforeSessionCreate),
 						URL:   "https://example.com/a",
 					},
-					config.Hook{
+					{
 						Event: string(event.BeforeSessionDelete),
 						URL:   "https://example.com/b",
 					},
@@ -110,12 +116,12 @@ func TestDeliverer(t *testing.T) {
 			})
 
 			Convey("should disallow operation", func() {
-				deliverer.Hooks = &[]config.Hook{
-					config.Hook{
+				cfg.Handlers = []config.HookHandlerConfig{
+					{
 						Event: string(event.BeforeSessionCreate),
 						URL:   "https://example.com/a",
 					},
-					config.Hook{
+					{
 						Event: string(event.BeforeSessionCreate),
 						URL:   "https://example.com/b",
 					},
@@ -153,12 +159,12 @@ func TestDeliverer(t *testing.T) {
 			})
 
 			Convey("should apply mutations", func() {
-				deliverer.Hooks = &[]config.Hook{
-					config.Hook{
+				cfg.Handlers = []config.HookHandlerConfig{
+					{
 						Event: string(event.BeforeSessionCreate),
 						URL:   "https://example.com/a",
 					},
-					config.Hook{
+					{
 						Event: string(event.BeforeSessionCreate),
 						URL:   "https://example.com/b",
 					},
@@ -262,8 +268,8 @@ func TestDeliverer(t *testing.T) {
 			})
 
 			Convey("should reject invalid status code", func() {
-				deliverer.Hooks = &[]config.Hook{
-					config.Hook{
+				cfg.Handlers = []config.HookHandlerConfig{
+					{
 						Event: string(event.BeforeSessionCreate),
 						URL:   "https://example.com/a",
 					},
@@ -286,20 +292,20 @@ func TestDeliverer(t *testing.T) {
 			})
 
 			Convey("should time out long requests", func() {
-				deliverer.Hooks = &[]config.Hook{
-					config.Hook{
+				cfg.Handlers = []config.HookHandlerConfig{
+					{
 						Event: string(event.BeforeSessionCreate),
 						URL:   "https://example.com/a",
 					},
-					config.Hook{
+					{
 						Event: string(event.BeforeSessionCreate),
 						URL:   "https://example.com/a",
 					},
-					config.Hook{
+					{
 						Event: string(event.BeforeSessionCreate),
 						URL:   "https://example.com/a",
 					},
-					config.Hook{
+					{
 						Event: string(event.BeforeSessionCreate),
 						URL:   "https://example.com/a",
 					},
@@ -314,7 +320,7 @@ func TestDeliverer(t *testing.T) {
 					Times(3).
 					JSON(e).
 					Reply(200).
-					Map(func(resp *gohttp.Response) *gohttp.Response {
+					Map(func(resp *http.Response) *http.Response {
 						clock.AdvanceSeconds(5)
 						return resp
 					}).
@@ -337,12 +343,12 @@ func TestDeliverer(t *testing.T) {
 			}
 
 			Convey("should be successful", func() {
-				deliverer.Hooks = &[]config.Hook{
-					config.Hook{
+				cfg.Handlers = []config.HookHandlerConfig{
+					{
 						Event: string(event.UserSync),
 						URL:   "https://example.com/a",
 					},
-					config.Hook{
+					{
 						Event: string(event.AfterIdentityCreate),
 						URL:   "https://example.com/b",
 					},
@@ -362,8 +368,8 @@ func TestDeliverer(t *testing.T) {
 			})
 
 			Convey("should reject invalid status code", func() {
-				deliverer.Hooks = &[]config.Hook{
-					config.Hook{
+				cfg.Handlers = []config.HookHandlerConfig{
+					{
 						Event: string(event.UserSync),
 						URL:   "https://example.com/a",
 					},

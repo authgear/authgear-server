@@ -5,24 +5,26 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-//go:generate mockgen -source=provider.go -destination=provider_mock_test.go -mock_names=deliverer=MockDeliverer -package hook
+//go:generate mockgen -source=provider.go -destination=provider_mock_test.go -mock_names=deliverer=MockDeliverer,store=MockStore -package hook
 
 type UserProvider interface {
 	Get(id string) (*model.User, error)
 	UpdateMetadata(user *model.User, metadata map[string]interface{}) error
+}
+
+type DBHookContext interface {
+	UseHook(db.TransactionHook)
 }
 
 type deliverer interface {
@@ -31,37 +33,27 @@ type deliverer interface {
 	DeliverNonBeforeEvent(event *event.Event, timeout time.Duration) error
 }
 
-type Provider struct {
-	Store                   Store
-	Context                 context.Context
-	DBContext               db.Context
-	Clock                   clock.Clock
-	Users                   UserProvider
-	Deliverer               deliverer
-	PersistentEventPayloads []event.Payload
-	Logger                  *logrus.Entry
-
-	txHooked bool
+type store interface {
+	NextSequenceNumber() (int64, error)
+	AddEvents(events []*event.Event) error
+	GetEventsForDelivery() ([]*event.Event, error)
 }
 
-func NewProvider(
-	ctx context.Context,
-	store Store,
-	dbContext db.Context,
-	clock clock.Clock,
-	users UserProvider,
-	deliverer deliverer,
-	loggerFactory logging.Factory,
-) *Provider {
-	return &Provider{
-		Context:   ctx,
-		Store:     store,
-		DBContext: dbContext,
-		Clock:     clock,
-		Users:     users,
-		Deliverer: deliverer,
-		Logger:    loggerFactory.NewLogger("hook"),
-	}
+type Logger struct{ *log.Logger }
+
+func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("hook")} }
+
+type Provider struct {
+	Context   context.Context
+	Logger    Logger
+	DBContext DBHookContext
+	Clock     clock.Clock
+	Users     UserProvider
+	Store     store
+	Deliverer deliverer
+
+	persistentEventPayloads []event.Payload
+	dbHooked                bool
 }
 
 func (provider *Provider) DispatchEvent(payload event.Payload, user *model.User) (err error) {
@@ -87,19 +79,19 @@ func (provider *Provider) DispatchEvent(payload event.Payload, user *model.User)
 			payload = event.Payload
 		}
 
-		provider.PersistentEventPayloads = append(provider.PersistentEventPayloads, payload)
+		provider.persistentEventPayloads = append(provider.persistentEventPayloads, payload)
 
 	case event.NotificationPayload:
-		provider.PersistentEventPayloads = append(provider.PersistentEventPayloads, payload)
+		provider.persistentEventPayloads = append(provider.persistentEventPayloads, payload)
 		err = nil
 
 	default:
 		panic(fmt.Sprintf("hook: invalid event payload: %T", payload))
 	}
 
-	if !provider.txHooked {
+	if !provider.dbHooked {
 		provider.DBContext.UseHook(provider)
-		provider.txHooked = true
+		provider.dbHooked = true
 	}
 	return
 }
@@ -111,7 +103,7 @@ func (provider *Provider) WillCommitTx() error {
 	}
 
 	events := []*event.Event{}
-	for _, payload := range provider.PersistentEventPayloads {
+	for _, payload := range provider.persistentEventPayloads {
 		var ev *event.Event
 
 		switch typedPayload := payload.(type) {
@@ -150,7 +142,7 @@ func (provider *Provider) WillCommitTx() error {
 		err = errors.HandledWithMessage(err, "failed to persist event")
 		return err
 	}
-	provider.PersistentEventPayloads = nil
+	provider.persistentEventPayloads = nil
 
 	return nil
 }
@@ -169,7 +161,7 @@ func (provider *Provider) DidCommitTx() {
 func (provider *Provider) dispatchSyncUserEventIfNeeded() error {
 	userIDToSync := []string{}
 
-	for _, payload := range provider.PersistentEventPayloads {
+	for _, payload := range provider.persistentEventPayloads {
 		if _, isOperation := payload.(event.OperationPayload); !isOperation {
 			continue
 		}

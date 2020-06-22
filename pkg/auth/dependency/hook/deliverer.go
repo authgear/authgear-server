@@ -4,18 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"net"
-	gohttp "net/http"
+	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 )
-
-const HeaderRequestBodySignature = "x-authgear-body-signature"
 
 //go:generate mockgen -source=deliverer.go -destination=deliverer_mock_test.go -mock_names mutatorFactory=MockMutatorFactory -package hook
 
@@ -24,16 +22,16 @@ type mutatorFactory interface {
 }
 
 type Deliverer struct {
-	Hooks            *[]config.Hook
-	HookAppConfig    *config.HookAppConfiguration
-	HookTenantConfig *config.HookTenantConfiguration
-	Clock            clock.Clock
-	MutatorFactory   mutatorFactory
-	HTTPClient       gohttp.Client
+	Config         *config.HookConfig
+	Secret         *config.WebhookKeyMaterials
+	Clock          clock.Clock
+	MutatorFactory mutatorFactory
+	SyncHTTP       SyncHTTPClient
+	AsyncHTTP      AsyncHTTPClient
 }
 
 func (deliverer *Deliverer) WillDeliver(eventType event.Type) bool {
-	for _, hook := range *deliverer.Hooks {
+	for _, hook := range deliverer.Config.Handlers {
 		if hook.Event == string(eventType) {
 			return true
 		}
@@ -43,15 +41,11 @@ func (deliverer *Deliverer) WillDeliver(eventType event.Type) bool {
 
 func (deliverer *Deliverer) DeliverBeforeEvent(e *event.Event, user *model.User) error {
 	startTime := deliverer.Clock.NowMonotonic()
-	requestTimeout := time.Duration(deliverer.HookTenantConfig.SyncHookTimeout) * time.Second
-	totalTimeout := time.Duration(deliverer.HookTenantConfig.SyncHookTotalTimeout) * time.Second
+	totalTimeout := deliverer.Config.SyncTotalTimeout.Duration()
 
 	mutator := deliverer.MutatorFactory.New(e, user)
-	client := deliverer.HTTPClient
-	client.CheckRedirect = noFollowRedirectPolicy
-	client.Timeout = requestTimeout
 
-	for _, hook := range *deliverer.Hooks {
+	for _, hook := range deliverer.Config.Handlers {
 		if hook.Event != string(e.Type) {
 			continue
 		}
@@ -65,7 +59,7 @@ func (deliverer *Deliverer) DeliverBeforeEvent(e *event.Event, user *model.User)
 			return err
 		}
 
-		resp, err := performRequest(client, request, true)
+		resp, err := performRequest(deliverer.SyncHTTP.Client, request, true)
 		if err != nil {
 			return err
 		}
@@ -98,11 +92,7 @@ func (deliverer *Deliverer) DeliverBeforeEvent(e *event.Event, user *model.User)
 }
 
 func (deliverer *Deliverer) DeliverNonBeforeEvent(e *event.Event, timeout time.Duration) error {
-	client := deliverer.HTTPClient
-	client.CheckRedirect = noFollowRedirectPolicy
-	client.Timeout = timeout
-
-	for _, hook := range *deliverer.Hooks {
+	for _, hook := range deliverer.Config.Handlers {
 		if hook.Event != string(e.Type) {
 			continue
 		}
@@ -112,7 +102,7 @@ func (deliverer *Deliverer) DeliverNonBeforeEvent(e *event.Event, timeout time.D
 			return err
 		}
 
-		_, err = performRequest(client, request, false)
+		_, err = performRequest(deliverer.AsyncHTTP.Client, request, false)
 		if err != nil {
 			return err
 		}
@@ -121,7 +111,7 @@ func (deliverer *Deliverer) DeliverNonBeforeEvent(e *event.Event, timeout time.D
 	return nil
 }
 
-func (deliverer *Deliverer) prepareRequest(hook config.Hook, event *event.Event) (*gohttp.Request, error) {
+func (deliverer *Deliverer) prepareRequest(hook config.HookHandlerConfig, event *event.Event) (*http.Request, error) {
 	hookURL, err := url.Parse(hook.URL)
 	if err != nil {
 		return nil, newErrorDeliveryFailed(err)
@@ -132,9 +122,17 @@ func (deliverer *Deliverer) prepareRequest(hook config.Hook, event *event.Event)
 		return nil, newErrorDeliveryFailed(err)
 	}
 
-	signature := crypto.HMACSHA256String([]byte(deliverer.HookAppConfig.Secret), body)
+	keys, err := deliverer.Secret.Decode()
+	if err != nil {
+		panic("hook: invalid web-hook key materials")
+	}
+	key, err := config.ExtractOctetKey(keys, "")
+	if err != nil {
+		panic("hook: web-hook key not found")
+	}
+	signature := crypto.HMACSHA256String(key, body)
 
-	request, err := gohttp.NewRequest("POST", hookURL.String(), bytes.NewReader(body))
+	request, err := http.NewRequest("POST", hookURL.String(), bytes.NewReader(body))
 	if err != nil {
 		return nil, newErrorDeliveryFailed(err)
 	}
@@ -144,12 +142,8 @@ func (deliverer *Deliverer) prepareRequest(hook config.Hook, event *event.Event)
 	return request, nil
 }
 
-func noFollowRedirectPolicy(*gohttp.Request, []*gohttp.Request) error {
-	return gohttp.ErrUseLastResponse
-}
-
-func performRequest(client gohttp.Client, request *gohttp.Request, withResponse bool) (hookResp *event.HookResponse, err error) {
-	var resp *gohttp.Response
+func performRequest(client *http.Client, request *http.Request, withResponse bool) (hookResp *event.HookResponse, err error) {
+	var resp *http.Response
 	resp, err = client.Do(request)
 	if reqError, ok := err.(net.Error); ok && reqError.Timeout() {
 		err = errDeliveryTimeout
