@@ -3,22 +3,18 @@ package forgotpassword
 import (
 	"context"
 	"net/url"
-	"path"
-	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	taskspec "github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/intl"
 	"github.com/skygeario/skygear-server/pkg/mail"
 	"github.com/skygeario/skygear-server/pkg/sms"
+	"github.com/skygeario/skygear-server/pkg/task"
 	"github.com/skygeario/skygear-server/pkg/template"
 )
 
@@ -35,22 +31,29 @@ type UserProvider interface {
 	Get(id string) (*model.User, error)
 }
 
+type HookProvider interface {
+	DispatchEvent(payload event.Payload, user *model.User) error
+}
+
+type URLProvider interface {
+	ResetPasswordURL(code string) *url.URL
+}
+
 type Provider struct {
-	Context               context.Context
-	StaticAssetURLPrefix  string
-	LocalizationConfig    *config.LocalizationConfig
-	MetadataConfiguration config.AppMetadata
-	MessagingConfig       config.MessagingConfig
-	ForgotPasswordConfig  *config.ForgotPasswordConfig
+	Context      context.Context
+	ServerConfig *config.ServerConfig
+	Localization *config.LocalizationConfig
+	AppMetadata  config.AppMetadata
+	Messaging    *config.MessagingConfig
+	Config       *config.ForgotPasswordConfig
 
-	Store Store
-
-	Users             UserProvider
-	HookProvider      hook.Provider
-	Clock             clock.Clock
-	URLPrefixProvider urlprefix.Provider
-	TemplateEngine    *template.Engine
-	TaskQueue         async.Queue
+	Store          *Store
+	Users          UserProvider
+	Hooks          HookProvider
+	Clock          clock.Clock
+	URLs           URLProvider
+	TemplateEngine *template.Engine
+	TaskQueue      task.Queue
 
 	Interactions    ResetPasswordFlow
 	LoginIDProvider LoginIDProvider
@@ -106,7 +109,7 @@ func (p *Provider) SendCode(loginID string) (err error) {
 func (p *Provider) newCode(userID string) (code *Code, codeStr string) {
 	createdAt := p.Clock.NowUTC()
 	codeStr = GenerateCode()
-	expireAt := createdAt.Add(time.Duration(p.ForgotPasswordConfig.ResetCodeExpiry) * time.Second)
+	expireAt := createdAt.Add(p.Config.ResetCodeExpiry.Duration())
 	code = &Code{
 		CodeHash:  HashCode(codeStr),
 		UserID:    userID,
@@ -118,17 +121,17 @@ func (p *Provider) newCode(userID string) (code *Code, codeStr string) {
 }
 
 func (p *Provider) sendEmail(email string, code string) (err error) {
-	u := p.makeURL(code)
+	u := p.URLs.ResetPasswordURL(code)
 
 	data := map[string]interface{}{
-		"static_asset_url_prefix": p.StaticAssetURLPrefix,
+		"static_asset_url_prefix": p.ServerConfig.StaticAsset.URLPrefix,
 		"email":                   email,
 		"code":                    code,
 		"link":                    u.String(),
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
-	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfig.FallbackLanguage), p.MetadataConfiguration, "app_name")
+	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.Localization.FallbackLanguage), p.AppMetadata, "app_name")
 
 	textBody, err := p.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordEmailTXT,
@@ -148,14 +151,14 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 		return
 	}
 
-	p.TaskQueue.Enqueue(async.TaskSpec{
+	p.TaskQueue.Enqueue(task.Spec{
 		Name: taskspec.SendMessagesTaskName,
 		Param: taskspec.SendMessagesTaskParam{
 			EmailMessages: []mail.SendOptions{
-				mail.SendOptions{
+				{
 					MessageConfig: config.NewEmailMessageConfig(
-						p.MessagingConfig.DefaultEmailMessage,
-						p.ForgotPasswordConfig.EmailMessage,
+						p.Messaging.DefaultEmailMessage,
+						p.Config.EmailMessage,
 					),
 					Recipient: email,
 					TextBody:  textBody,
@@ -169,7 +172,7 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 }
 
 func (p *Provider) sendSMS(phone string, code string) (err error) {
-	u := p.makeURL(code)
+	u := p.URLs.ResetPasswordURL(code)
 
 	data := map[string]interface{}{
 		"code": code,
@@ -177,7 +180,7 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
-	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfig.FallbackLanguage), p.MetadataConfiguration, "app_name")
+	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.Localization.FallbackLanguage), p.AppMetadata, "app_name")
 
 	body, err := p.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordSMSTXT,
@@ -188,14 +191,14 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 		return
 	}
 
-	p.TaskQueue.Enqueue(async.TaskSpec{
+	p.TaskQueue.Enqueue(task.Spec{
 		Name: taskspec.SendMessagesTaskName,
 		Param: taskspec.SendMessagesTaskParam{
 			SMSMessages: []sms.SendOptions{
-				sms.SendOptions{
+				{
 					MessageConfig: config.NewSMSMessageConfig(
-						p.MessagingConfig.DefaultSMSMessage,
-						p.ForgotPasswordConfig.SMSMessage,
+						p.Messaging.DefaultSMSMessage,
+						p.Config.SMSMessage,
 					),
 					To:   phone,
 					Body: body,
@@ -205,16 +208,6 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 	})
 
 	return
-}
-
-func (p *Provider) makeURL(code string) *url.URL {
-	u := *p.URLPrefixProvider.Value()
-	// /reset_password is an endpoint of Auth UI.
-	u.Path = path.Join(u.Path, "reset_password")
-	u.RawQuery = url.Values{
-		"code": []string{code},
-	}.Encode()
-	return &u
 }
 
 // ResetPassword consumes code and reset password to newPassword.
@@ -252,7 +245,7 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error)
 		return
 	}
 
-	err = p.HookProvider.DispatchEvent(
+	err = p.Hooks.DispatchEvent(
 		event.PasswordUpdateEvent{
 			Reason: event.PasswordUpdateReasonResetPassword,
 			User:   *user,
@@ -273,7 +266,7 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error)
 		return
 	}
 
-	p.TaskQueue.Enqueue(async.TaskSpec{
+	p.TaskQueue.Enqueue(task.Spec{
 		Name: taskspec.PwHousekeeperTaskName,
 		Param: taskspec.PwHousekeeperTaskParam{
 			AuthID: user.ID,
