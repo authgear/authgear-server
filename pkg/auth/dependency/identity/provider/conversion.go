@@ -59,7 +59,7 @@ func oauthFromIdentityInfo(userID string, i *identity.Info) *oauth.Identity {
 	for k, v := range i.Claims {
 		switch k {
 		case identity.IdentityClaimOAuthProviderKeys:
-			o.ProviderID.Keys = map[string]string{}
+			o.ProviderID.Keys = map[string]interface{}{}
 			for k, v := range v.(map[string]interface{}) {
 				if k == "type" {
 					o.ProviderID.Type = v.(string)

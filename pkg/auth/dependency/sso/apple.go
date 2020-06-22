@@ -8,8 +8,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
@@ -23,15 +23,15 @@ var appleOIDCConfig = OIDCDiscoveryDocument{
 type AppleImpl struct {
 	URLPrefix                *url.URL
 	RedirectURLFunc          RedirectURLFunc
-	OAuthConfig              *config.OAuthConfiguration
-	ProviderConfig           config.OAuthProviderConfiguration
+	ProviderConfig           config.OAuthSSOProviderConfig
 	Clock                    clock.Clock
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
 func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	// https://developer.apple.com/documentation/signinwithapplerestapi/generate_and_validate_tokens
-	key, err := crypto.ParseAppleP8PrivateKey([]byte(f.ProviderConfig.ClientSecret))
+	// FIXME: retrieve client secret
+	key, err := crypto.ParseAppleP8PrivateKey([]byte(""))
 	if err != nil {
 		return
 	}
@@ -54,8 +54,8 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	return
 }
 
-func (f *AppleImpl) Type() config.OAuthProviderType {
-	return config.OAuthProviderTypeApple
+func (f *AppleImpl) Type() config.OAuthSSOProviderType {
+	return config.OAuthSSOProviderTypeApple
 }
 
 func (f *AppleImpl) GetAuthURL(state State, encodedState string) (string, error) {

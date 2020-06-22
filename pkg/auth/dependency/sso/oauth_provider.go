@@ -3,13 +3,13 @@ package sso
 import (
 	"net/url"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
-	Type() config.OAuthProviderType
+	Type() config.OAuthSSOProviderType
 	GetAuthURL(state State, encodedState string) (url string, err error)
 	GetAuthInfo(r OAuthAuthorizationResponse, state State) (AuthInfo, error)
 }
@@ -41,78 +41,57 @@ type EndpointsProvider interface {
 
 type OAuthProviderFactory struct {
 	Endpoints                EndpointsProvider
-	redirectURIFunc          RedirectURLFunc
-	tenantConfig             config.TenantConfiguration
-	clock                    clock.Clock
-	userInfoDecoder          UserInfoDecoder
-	loginIDNormalizerFactory LoginIDNormalizerFactory
-}
-
-func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, endpoints EndpointsProvider, timeProvider clock.Clock, userInfoDecoder UserInfoDecoder, loginIDNormalizerFactory LoginIDNormalizerFactory, redirectURIFunc RedirectURLFunc) *OAuthProviderFactory {
-	return &OAuthProviderFactory{
-		tenantConfig:             tenantConfig,
-		Endpoints:                endpoints,
-		clock:                    timeProvider,
-		userInfoDecoder:          userInfoDecoder,
-		loginIDNormalizerFactory: loginIDNormalizerFactory,
-		redirectURIFunc:          redirectURIFunc,
-	}
+	IdentityConfig           *config.IdentityConfig
+	RedirectURIFunc          RedirectURLFunc
+	Clock                    clock.Clock
+	UserInfoDecoder          UserInfoDecoder
+	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
 func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
-	providerConfig, ok := p.tenantConfig.GetOAuthProviderByID(id)
+	providerConfig, ok := p.IdentityConfig.OAuth.GetProviderConfig(id)
 	if !ok {
 		return nil
 	}
 	switch providerConfig.Type {
-	case config.OAuthProviderTypeGoogle:
+	case config.OAuthSSOProviderTypeGoogle:
 		return &GoogleImpl{
 			URLPrefix:                p.Endpoints.BaseURL(),
-			RedirectURLFunc:          p.redirectURIFunc,
-			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
-			ProviderConfig:           providerConfig,
-			Clock:                    p.clock,
-			UserInfoDecoder:          p.userInfoDecoder,
-			LoginIDNormalizerFactory: p.loginIDNormalizerFactory,
+			RedirectURLFunc:          p.RedirectURIFunc,
+			ProviderConfig:           *providerConfig,
+			Clock:                    p.Clock,
+			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
-	case config.OAuthProviderTypeFacebook:
+	case config.OAuthSSOProviderTypeFacebook:
 		return &FacebookImpl{
 			URLPrefix:       p.Endpoints.BaseURL(),
-			RedirectURLFunc: p.redirectURIFunc,
-			OAuthConfig:     p.tenantConfig.AppConfig.Identity.OAuth,
-			ProviderConfig:  providerConfig,
-			UserInfoDecoder: p.userInfoDecoder,
+			RedirectURLFunc: p.RedirectURIFunc,
+			ProviderConfig:  *providerConfig,
+			UserInfoDecoder: p.UserInfoDecoder,
 		}
-	case config.OAuthProviderTypeLinkedIn:
+	case config.OAuthSSOProviderTypeLinkedIn:
 		return &LinkedInImpl{
 			URLPrefix:       p.Endpoints.BaseURL(),
-			RedirectURLFunc: p.redirectURIFunc,
-			OAuthConfig:     p.tenantConfig.AppConfig.Identity.OAuth,
-			ProviderConfig:  providerConfig,
-			UserInfoDecoder: p.userInfoDecoder,
+			RedirectURLFunc: p.RedirectURIFunc,
+			ProviderConfig:  *providerConfig,
+			UserInfoDecoder: p.UserInfoDecoder,
 		}
-	case config.OAuthProviderTypeAzureADv2:
+	case config.OAuthSSOProviderTypeAzureADv2:
 		return &Azureadv2Impl{
 			URLPrefix:                p.Endpoints.BaseURL(),
-			RedirectURLFunc:          p.redirectURIFunc,
-			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
-			ProviderConfig:           providerConfig,
-			Clock:                    p.clock,
-			LoginIDNormalizerFactory: p.loginIDNormalizerFactory,
+			RedirectURLFunc:          p.RedirectURIFunc,
+			ProviderConfig:           *providerConfig,
+			Clock:                    p.Clock,
+			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
-	case config.OAuthProviderTypeApple:
+	case config.OAuthSSOProviderTypeApple:
 		return &AppleImpl{
 			URLPrefix:                p.Endpoints.BaseURL(),
-			RedirectURLFunc:          p.redirectURIFunc,
-			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
-			ProviderConfig:           providerConfig,
-			Clock:                    p.clock,
-			LoginIDNormalizerFactory: p.loginIDNormalizerFactory,
+			RedirectURLFunc:          p.RedirectURIFunc,
+			ProviderConfig:           *providerConfig,
+			Clock:                    p.Clock,
+			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
 	}
 	return nil
-}
-
-func (p *OAuthProviderFactory) GetOAuthProviderConfig(id string) (config.OAuthProviderConfiguration, bool) {
-	return p.tenantConfig.GetOAuthProviderByID(id)
 }

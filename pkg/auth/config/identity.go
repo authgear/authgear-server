@@ -186,6 +186,16 @@ type OAuthSSOConfig struct {
 	Providers []OAuthSSOProviderConfig `json:"providers,omitempty"`
 }
 
+func (c *OAuthSSOConfig) GetProviderConfig(alias string) (*OAuthSSOProviderConfig, bool) {
+	for _, conf := range c.Providers {
+		if conf.Alias == alias {
+			cc := conf
+			return &cc, true
+		}
+	}
+	return nil, false
+}
+
 var _ = Schema.Add("OAuthSSOProviderType", `
 {
 	"type": "string",
@@ -235,16 +245,36 @@ type OAuthSSOProviderConfig struct {
 	// KeyID and TeamID are specific to apple
 	KeyID  string `json:"key_id,omitempty"`
 	TeamID string `json:"team_id,omitempty"`
+
+	Scope string `json:"-"`
 }
 
 func (c *OAuthSSOProviderConfig) SetDefaults() {
 	if c.Alias == "" {
 		c.Alias = string(c.Type)
 	}
+	switch c.Type {
+	case OAuthSSOProviderTypeGoogle:
+		// https://developers.google.com/identity/protocols/googlescopes#google_sign-in
+		c.Scope = "openid profile email"
+	case OAuthSSOProviderTypeFacebook:
+		// https://developers.facebook.com/docs/facebook-login/permissions/#reference-default
+		// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
+		c.Scope = "email"
+	case OAuthSSOProviderTypeLinkedIn:
+		// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api?context=linkedin/compliance/context
+		// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
+		c.Scope = "r_liteprofile r_emailaddress"
+	case OAuthSSOProviderTypeAzureADv2:
+		// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
+		c.Scope = "openid profile email"
+	case OAuthSSOProviderTypeApple:
+		c.Scope = "email"
+	}
 }
 
 func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {
-	keys := map[string]string{}
+	keys := map[string]interface{}{}
 	switch c.Type {
 	case OAuthSSOProviderTypeGoogle:
 		// Google supports OIDC.
@@ -296,7 +326,7 @@ func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {
 // ProviderID combining with a subject ID identifies an user from an external system.
 type ProviderID struct {
 	Type string
-	Keys map[string]string
+	Keys map[string]interface{}
 }
 
 func (p ProviderID) Claims() map[string]interface{} {

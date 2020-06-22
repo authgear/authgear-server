@@ -2,7 +2,6 @@ package flows
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -76,11 +75,11 @@ func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID strin
 }
 
 func (f *WebAppFlow) PromoteWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
-	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
+	providerID := oauthAuthInfo.ProviderConfig.ProviderID()
 	iden := identity.Spec{
 		Type: authn.IdentityTypeOAuth,
 		Claims: map[string]interface{}{
-			identity.IdentityClaimOAuthProviderKeys: providerID.ClaimsValue(),
+			identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
 			identity.IdentityClaimOAuthSubjectID:    oauthAuthInfo.ProviderUserInfo.ID,
 			identity.IdentityClaimOAuthProfile:      oauthAuthInfo.ProviderRawProfile,
 			identity.IdentityClaimOAuthClaims:       oauthAuthInfo.ProviderUserInfo.ClaimsValue(),

@@ -151,7 +151,7 @@ func TestProviderListCandidates(t *testing.T) {
 				{
 					ProviderID: config.ProviderID{
 						Type: "google",
-						Keys: map[string]string{},
+						Keys: map[string]interface{}{},
 					},
 					ProviderSubjectID: "john.doe@gmail.com",
 					Claims: map[string]interface{}{

@@ -3,18 +3,17 @@ package flows
 import (
 	"errors"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
-	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
+	providerID := oauthAuthInfo.ProviderConfig.ProviderID()
 	claims := map[string]interface{}{
-		identity.IdentityClaimOAuthProviderKeys: providerID.ClaimsValue(),
+		identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
 		identity.IdentityClaimOAuthSubjectID:    oauthAuthInfo.ProviderUserInfo.ID,
 		identity.IdentityClaimOAuthProfile:      oauthAuthInfo.ProviderRawProfile,
 		identity.IdentityClaimOAuthClaims:       oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
@@ -75,9 +74,9 @@ func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebApp
 }
 
 func (f *WebAppFlow) LinkWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (result *WebAppResult, err error) {
-	providerID := oauth.NewProviderID(oauthAuthInfo.ProviderConfig)
+	providerID := oauthAuthInfo.ProviderConfig.ProviderID()
 	claims := map[string]interface{}{
-		identity.IdentityClaimOAuthProviderKeys: providerID.ClaimsValue(),
+		identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
 		identity.IdentityClaimOAuthSubjectID:    oauthAuthInfo.ProviderUserInfo.ID,
 		identity.IdentityClaimOAuthProfile:      oauthAuthInfo.ProviderRawProfile,
 		identity.IdentityClaimOAuthClaims:       oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
@@ -117,14 +116,14 @@ func (f *WebAppFlow) LinkWithOAuthProvider(userID string, oauthAuthInfo sso.Auth
 	return
 }
 
-func (f *WebAppFlow) UnlinkWithOAuthProvider(userID string, providerConfig config.OAuthProviderConfiguration) (result *WebAppResult, err error) {
-	providerID := oauth.NewProviderID(providerConfig)
+func (f *WebAppFlow) UnlinkWithOAuthProvider(userID string, providerConfig config.OAuthSSOProviderConfig) (result *WebAppResult, err error) {
+	providerID := providerConfig.ProviderID()
 	clientID := ""
 	i, err := f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
 		Identity: identity.Spec{
 			Type: authn.IdentityTypeOAuth,
 			Claims: map[string]interface{}{
-				identity.IdentityClaimOAuthProviderKeys: providerID.ClaimsValue(),
+				identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
 			},
 		},
 	}, clientID, userID)

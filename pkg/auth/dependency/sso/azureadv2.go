@@ -5,15 +5,14 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type Azureadv2Impl struct {
 	URLPrefix                *url.URL
 	RedirectURLFunc          RedirectURLFunc
-	OAuthConfig              *config.OAuthConfiguration
-	ProviderConfig           config.OAuthProviderConfiguration
+	ProviderConfig           config.OAuthSSOProviderConfig
 	Clock                    clock.Clock
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
@@ -64,8 +63,8 @@ func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error)
 	return FetchOIDCDiscoveryDocument(http.DefaultClient, endpoint)
 }
 
-func (f *Azureadv2Impl) Type() config.OAuthProviderType {
-	return config.OAuthProviderTypeAzureADv2
+func (f *Azureadv2Impl) Type() config.OAuthSSOProviderType {
+	return config.OAuthSSOProviderTypeAzureADv2
 }
 
 func (f *Azureadv2Impl) GetAuthURL(state State, encodedState string) (string, error) {
@@ -105,7 +104,8 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 		keySet,
 		f.URLPrefix,
 		f.ProviderConfig.ClientID,
-		f.ProviderConfig.ClientSecret,
+		// FIXME: retrieve client secret
+		"",
 		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		state.HashedNonce,
 		f.Clock.NowUTC,

@@ -10,13 +10,13 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/lestrrat-go/jwx/jwk"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	corejwt "github.com/skygeario/skygear-server/pkg/core/jwt"
 )
 
 type OIDCAuthParams struct {
-	ProviderConfig config.OAuthProviderConfiguration
+	ProviderConfig config.OAuthSSOProviderConfig
 	RedirectURI    string
 	Nonce          string
 	EncodedState   string

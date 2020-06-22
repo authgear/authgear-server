@@ -4,7 +4,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
@@ -14,20 +14,13 @@ type stateClaims struct {
 }
 
 type StateCodec struct {
-	AppID       string
-	OAuthConfig *config.OAuthConfiguration
-}
-
-func NewStateCodec(appID string, c *config.OAuthConfiguration) *StateCodec {
-	return &StateCodec{
-		AppID:       appID,
-		OAuthConfig: c,
-	}
+	AppID       config.AppID
+	Credentials *config.JWTKeyMaterials
 }
 
 func (s *StateCodec) makeStandardClaims() jwt.StandardClaims {
 	return jwt.StandardClaims{
-		Audience:  s.AppID,
+		Audience:  string(s.AppID),
 		ExpiresAt: time.Now().UTC().Add(5 * time.Minute).Unix(),
 	}
 }
@@ -37,20 +30,35 @@ func (s *StateCodec) isValidStandardClaims(claims jwt.StandardClaims) bool {
 	if err != nil {
 		return false
 	}
-	ok := claims.VerifyAudience(s.AppID, true)
+	ok := claims.VerifyAudience(string(s.AppID), true)
 	if !ok {
 		return false
 	}
 	return true
 }
 
-func (s *StateCodec) EncodeState(state State) (string, error) {
+func (s *StateCodec) EncodeState(state State) (out string, err error) {
 	claims := stateClaims{
 		state,
 		s.makeStandardClaims(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(s.OAuthConfig.StateJWTSecret))
+
+	keys, err := s.Credentials.Decode()
+	if err != nil {
+		return
+	}
+	key, err := config.ExtractOctetKey(keys, "")
+	if err != nil {
+		return
+	}
+
+	out, err = token.SignedString(key)
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (s *StateCodec) DecodeState(encodedState string) (*State, error) {
@@ -59,7 +67,17 @@ func (s *StateCodec) DecodeState(encodedState string) (*State, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected JWT alg")
 		}
-		return []byte(s.OAuthConfig.StateJWTSecret), nil
+
+		keys, err := s.Credentials.Decode()
+		if err != nil {
+			return nil, err
+		}
+		key, err := config.ExtractOctetKey(keys, "")
+		if err != nil {
+			return nil, err
+		}
+
+		return key, nil
 	})
 	if err != nil {
 		return nil, NewSSOFailed(InvalidParams, "invalid sso state")
