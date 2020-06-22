@@ -1,7 +1,8 @@
 package sso
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
+	"net/url"
+
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -34,8 +35,12 @@ type OpenIDConnectProvider interface {
 	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error)
 }
 
+type EndpointsProvider interface {
+	BaseURL() *url.URL
+}
+
 type OAuthProviderFactory struct {
-	urlPrefixProvider        urlprefix.Provider
+	Endpoints                EndpointsProvider
 	redirectURIFunc          RedirectURLFunc
 	tenantConfig             config.TenantConfiguration
 	clock                    clock.Clock
@@ -43,10 +48,10 @@ type OAuthProviderFactory struct {
 	loginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
-func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, urlPrefixProvider urlprefix.Provider, timeProvider clock.Clock, userInfoDecoder UserInfoDecoder, loginIDNormalizerFactory LoginIDNormalizerFactory, redirectURIFunc RedirectURLFunc) *OAuthProviderFactory {
+func NewOAuthProviderFactory(tenantConfig config.TenantConfiguration, endpoints EndpointsProvider, timeProvider clock.Clock, userInfoDecoder UserInfoDecoder, loginIDNormalizerFactory LoginIDNormalizerFactory, redirectURIFunc RedirectURLFunc) *OAuthProviderFactory {
 	return &OAuthProviderFactory{
 		tenantConfig:             tenantConfig,
-		urlPrefixProvider:        urlPrefixProvider,
+		Endpoints:                endpoints,
 		clock:                    timeProvider,
 		userInfoDecoder:          userInfoDecoder,
 		loginIDNormalizerFactory: loginIDNormalizerFactory,
@@ -62,7 +67,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	switch providerConfig.Type {
 	case config.OAuthProviderTypeGoogle:
 		return &GoogleImpl{
-			URLPrefix:                p.urlPrefixProvider.Value(),
+			URLPrefix:                p.Endpoints.BaseURL(),
 			RedirectURLFunc:          p.redirectURIFunc,
 			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:           providerConfig,
@@ -72,7 +77,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 		}
 	case config.OAuthProviderTypeFacebook:
 		return &FacebookImpl{
-			URLPrefix:       p.urlPrefixProvider.Value(),
+			URLPrefix:       p.Endpoints.BaseURL(),
 			RedirectURLFunc: p.redirectURIFunc,
 			OAuthConfig:     p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:  providerConfig,
@@ -80,7 +85,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 		}
 	case config.OAuthProviderTypeLinkedIn:
 		return &LinkedInImpl{
-			URLPrefix:       p.urlPrefixProvider.Value(),
+			URLPrefix:       p.Endpoints.BaseURL(),
 			RedirectURLFunc: p.redirectURIFunc,
 			OAuthConfig:     p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:  providerConfig,
@@ -88,7 +93,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 		}
 	case config.OAuthProviderTypeAzureADv2:
 		return &Azureadv2Impl{
-			URLPrefix:                p.urlPrefixProvider.Value(),
+			URLPrefix:                p.Endpoints.BaseURL(),
 			RedirectURLFunc:          p.redirectURIFunc,
 			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:           providerConfig,
@@ -97,7 +102,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 		}
 	case config.OAuthProviderTypeApple:
 		return &AppleImpl{
-			URLPrefix:                p.urlPrefixProvider.Value(),
+			URLPrefix:                p.Endpoints.BaseURL(),
 			RedirectURLFunc:          p.redirectURIFunc,
 			OAuthConfig:              p.tenantConfig.AppConfig.Identity.OAuth,
 			ProviderConfig:           providerConfig,

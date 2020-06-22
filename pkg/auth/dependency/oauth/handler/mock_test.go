@@ -8,14 +8,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 )
 
-type mockEndpointsProvider struct{}
+type mockURLsProvider struct{}
 
-func (mockEndpointsProvider) AuthorizeURI(r protocol.AuthorizationRequest) *url.URL {
+func (mockURLsProvider) AuthorizeURL(r protocol.AuthorizationRequest) *url.URL {
 	u, _ := url.Parse("https://auth/authorize")
 	return u
 }
 
-func (mockEndpointsProvider) AuthenticateURI(opts webapp.AuthenticateURLOptions) (*url.URL, error) {
+func (mockURLsProvider) AuthenticateURL(opts webapp.AuthenticateURLOptions) (*url.URL, error) {
 	u, _ := url.Parse("https://auth/authenticate")
 	return u, nil
 }

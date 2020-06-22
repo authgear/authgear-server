@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
 )
@@ -16,7 +15,6 @@ type WelcomeMessageProvider interface {
 type RawCommands struct {
 	Store                  store
 	Clock                  clock.Clock
-	URLPrefix              urlprefix.Provider
 	WelcomeMessageProvider WelcomeMessageProvider
 }
 

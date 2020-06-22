@@ -20,12 +20,12 @@ import (
 
 const CodeGrantValidDuration = 5 * time.Minute
 
-type AuthorizeURLProvider interface {
-	AuthorizeURI(r protocol.AuthorizationRequest) *url.URL
+type OAuthURLProvider interface {
+	AuthorizeURL(r protocol.AuthorizationRequest) *url.URL
 }
 
-type AuthenticateURLProvider interface {
-	AuthenticateURI(options webapp.AuthenticateURLOptions) (*url.URL, error)
+type WebAppURLProvider interface {
+	AuthenticateURL(options webapp.AuthenticateURLOptions) (*url.URL, error)
 }
 
 type AuthorizationHandler struct {
@@ -34,13 +34,13 @@ type AuthorizationHandler struct {
 	Clients []config.OAuthClientConfiguration
 	Logger  *log.Logger
 
-	Authorizations  oauth.AuthorizationStore
-	CodeGrants      oauth.CodeGrantStore
-	AuthorizeURL    AuthorizeURLProvider
-	AuthenticateURL AuthenticateURLProvider
-	ValidateScopes  ScopesValidator
-	CodeGenerator   TokenGenerator
-	Clock           clock.Clock
+	Authorizations oauth.AuthorizationStore
+	CodeGrants     oauth.CodeGrantStore
+	OAuthURLs      OAuthURLProvider
+	WebAppURLs     WebAppURLProvider
+	ValidateScopes ScopesValidator
+	CodeGenerator  TokenGenerator
+	Clock          clock.Clock
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) AuthorizationResult {
@@ -120,10 +120,10 @@ func (h *AuthorizationHandler) doHandle(
 		authnOptions.UILocales = strings.Join(r.UILocales(), " ")
 		authnOptions.LoginHint = r.LoginHint()
 		r.SetLoginHint("")
-		authorizeURI := h.AuthorizeURL.AuthorizeURI(r)
+		authorizeURI := h.OAuthURLs.AuthorizeURL(r)
 		authnOptions.RedirectURI = authorizeURI.String()
 
-		authenticateURI, err := h.AuthenticateURL.AuthenticateURI(authnOptions)
+		authenticateURI, err := h.WebAppURLs.AuthenticateURL(authnOptions)
 		if errors.Is(err, interaction.ErrInvalidCredentials) {
 			return nil, protocol.NewError("invalid_request", "invalid credentials")
 		} else if err != nil {
