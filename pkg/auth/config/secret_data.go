@@ -123,6 +123,50 @@ var _ = SecretConfigSchema.Add("SMTPMode", `
 	"enum": ["normal", "ssl"]
 }
 `)
+var _ = SecretConfigSchema.Add("OAuthClientCredentials", `
+{
+	"type": "object",
+	"properties": {
+		"items": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"alias": {
+						"type": "string"
+					},
+					"client_secret": {
+						"type": "string"
+					}
+				},
+				"required": ["alias", "client_secret"]
+			}
+		}
+	},
+	"required": ["items"]
+}
+`)
+
+type OAuthClientCredentials struct {
+	Items []OAuthClientCredentialsItem `json:"items,omitempty"`
+}
+
+func (c *OAuthClientCredentials) SensitiveStrings() []string {
+	var out []string
+	for _, item := range c.Items {
+		out = append(out, item.SensitiveStrings()...)
+	}
+	return out
+}
+
+type OAuthClientCredentialsItem struct {
+	Alias        string `json:"alias,omitempty"`
+	ClientSecret string `json:"client_secret,omitempty"`
+}
+
+func (c *OAuthClientCredentialsItem) SensitiveStrings() []string {
+	return []string{c.ClientSecret}
+}
 
 type SMTPMode string
 

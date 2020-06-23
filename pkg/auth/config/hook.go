@@ -6,7 +6,7 @@ var _ = Schema.Add("HookConfig", `
 	"properties": {
 		"sync_hook_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"sync_hook_total_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
-		"handlers": { "type": "array", "items": { "$ref": "HookHandlerConfig" } }
+		"handlers": { "type": "array", "items": { "$ref": "#/$defs/HookHandlerConfig" } }
 	}
 }
 `)
