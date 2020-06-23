@@ -6,13 +6,13 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 func TestProviderFlow(t *testing.T) {
@@ -38,8 +38,8 @@ func TestProviderFlow(t *testing.T) {
 		hooks.EXPECT().DispatchEvent(gomock.Any(), gomock.Any()).AnyTimes()
 
 		Convey("Common password flow", func() {
-			authnConfig := &config.AuthenticationConfiguration{
-				PrimaryAuthenticators: []string{"password"},
+			authnConfig := &config.AuthenticationConfig{
+				PrimaryAuthenticators: []authn.AuthenticatorType{authn.AuthenticatorTypePassword},
 			}
 
 			p.Config = authnConfig
@@ -255,8 +255,8 @@ func TestProviderFlow(t *testing.T) {
 		})
 
 		Convey("SSO flow with MFA", func() {
-			authnConfig := &config.AuthenticationConfiguration{
-				SecondaryAuthenticators:     []string{"totp"},
+			authnConfig := &config.AuthenticationConfig{
+				SecondaryAuthenticators:     []authn.AuthenticatorType{authn.AuthenticatorTypeTOTP},
 				SecondaryAuthenticationMode: config.SecondaryAuthenticationModeIfExists,
 			}
 			p.Config = authnConfig
@@ -434,8 +434,8 @@ func TestProviderFlow(t *testing.T) {
 
 		Convey("Add identity", func() {
 			userID := "user_id_1"
-			p.Config = &config.AuthenticationConfiguration{
-				PrimaryAuthenticators: []string{"password"},
+			p.Config = &config.AuthenticationConfig{
+				PrimaryAuthenticators: []authn.AuthenticatorType{authn.AuthenticatorTypePassword},
 			}
 
 			Convey("should not need to setup authenticator", func() {
@@ -626,8 +626,8 @@ func TestProviderFlow(t *testing.T) {
 
 		Convey("Update identity", func() {
 			// setup
-			p.Config = &config.AuthenticationConfiguration{
-				PrimaryAuthenticators: []string{"password"},
+			p.Config = &config.AuthenticationConfig{
+				PrimaryAuthenticators: []authn.AuthenticatorType{authn.AuthenticatorTypePassword},
 			}
 
 			userID := "user_id_1"
@@ -736,8 +736,8 @@ func TestProviderFlow(t *testing.T) {
 
 		Convey("Remove identity", func() {
 			// setup
-			p.Config = &config.AuthenticationConfiguration{
-				PrimaryAuthenticators: []string{"password"},
+			p.Config = &config.AuthenticationConfig{
+				PrimaryAuthenticators: []authn.AuthenticatorType{authn.AuthenticatorTypePassword},
 			}
 			userID := "user_id_1"
 			loginIDClaims := map[string]interface{}{
@@ -843,8 +843,8 @@ func TestProviderFlow(t *testing.T) {
 
 		Convey("Update authenticator", func() {
 			// setup
-			p.Config = &config.AuthenticationConfiguration{
-				PrimaryAuthenticators: []string{"password"},
+			p.Config = &config.AuthenticationConfig{
+				PrimaryAuthenticators: []authn.AuthenticatorType{authn.AuthenticatorTypePassword},
 			}
 			userID := "user_id_1"
 

@@ -3,7 +3,6 @@ package handler
 import (
 	"github.com/google/wire"
 
-	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
@@ -27,6 +26,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(TokenHandler), "*"),
 	wire.Struct(new(RevokeHandler), "*"),
 	wire.Value(TokenGenerator(oauth.GenerateToken)),
-	wire.Bind(new(interactionflows.TokenIssuer), new(*TokenHandler)),
 	wire.Struct(new(oauth.URLProvider), "*"),
 )

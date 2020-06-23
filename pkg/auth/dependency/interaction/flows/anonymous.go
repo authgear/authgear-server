@@ -3,6 +3,7 @@ package flows
 import (
 	"encoding/json"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
@@ -19,14 +20,23 @@ type ChallengeProvider interface {
 }
 
 type AnonymousFlow struct {
-	Enabled      IsAnonymousIdentityEnabled
+	Config       *config.AuthenticationConfig
 	Interactions InteractionProvider
 	Anonymous    AnonymousIdentityProvider
 	Challenges   ChallengeProvider
 }
 
+func (f *AnonymousFlow) IsEnabled() bool {
+	for _, i := range f.Config.Identities {
+		if i == authn.IdentityTypeAnonymous {
+			return true
+		}
+	}
+	return false
+}
+
 func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn.Attrs, error) {
-	if !f.Enabled {
+	if !f.IsEnabled() {
 		return nil, ErrAnonymousDisabled
 	}
 
@@ -106,7 +116,7 @@ func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn
 }
 
 func (f *AnonymousFlow) DecodeUserID(requestJWT string) (string, anonymous.RequestAction, error) {
-	if !f.Enabled {
+	if !f.IsEnabled() {
 		return "", "", ErrAnonymousDisabled
 	}
 

@@ -6,21 +6,12 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	oauthprotocol "github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
-
-type TokenIssuer interface {
-	IssueTokens(
-		client config.OAuthClientConfiguration,
-		attrs *authn.Attrs,
-	) (auth.AuthSession, oauthprotocol.TokenResponse, error)
-}
 
 type UserProvider interface {
 	Get(id string) (*model.User, error)
@@ -38,12 +29,10 @@ type SessionProvider interface {
 
 type UserController struct {
 	Users         UserProvider
-	TokenIssuer   TokenIssuer
 	SessionCookie session.CookieDef
 	Sessions      SessionProvider
 	Hooks         HookProvider
 	Clock         clock.Clock
-	Clients       []config.OAuthClientConfiguration
 }
 
 func (c *UserController) makeResponse(attrs *authn.Attrs) (*model.AuthResponse, error) {

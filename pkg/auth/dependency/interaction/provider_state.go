@@ -3,10 +3,10 @@ package interaction
 import (
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
@@ -253,7 +253,7 @@ func (p *Provider) listPrimaryAuthenticators(is identity.Spec) (specs []authenti
 
 	for _, ai := range ais {
 		for _, t := range p.Config.PrimaryAuthenticators {
-			if string(ai.Type) == t {
+			if ai.Type == t {
 				specs = append(specs, ai.ToSpec())
 			}
 		}
