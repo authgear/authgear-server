@@ -1,6 +1,10 @@
 package config
 
-import "github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+import (
+	"fmt"
+
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+)
 
 var _ = Schema.Add("IdentityConfig", `
 {
@@ -211,6 +215,29 @@ var _ = Schema.Add("OAuthSSOProviderType", `
 
 type OAuthSSOProviderType string
 
+func (t OAuthSSOProviderType) Scope() string {
+	switch t {
+	case OAuthSSOProviderTypeGoogle:
+		// https://developers.google.com/identity/protocols/googlescopes#google_sign-in
+		return "openid profile email"
+	case OAuthSSOProviderTypeFacebook:
+		// https://developers.facebook.com/docs/facebook-login/permissions/#reference-default
+		// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
+		return "email"
+	case OAuthSSOProviderTypeLinkedIn:
+		// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api?context=linkedin/compliance/context
+		// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
+		return "r_liteprofile r_emailaddress"
+	case OAuthSSOProviderTypeAzureADv2:
+		// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
+		return "openid profile email"
+	case OAuthSSOProviderTypeApple:
+		return "email"
+	}
+
+	panic(fmt.Sprintf("oauth: unknown provider type %s", string(t)))
+}
+
 const (
 	OAuthSSOProviderTypeGoogle    OAuthSSOProviderType = "google"
 	OAuthSSOProviderTypeFacebook  OAuthSSOProviderType = "facebook"
@@ -245,31 +272,11 @@ type OAuthSSOProviderConfig struct {
 	// KeyID and TeamID are specific to apple
 	KeyID  string `json:"key_id,omitempty"`
 	TeamID string `json:"team_id,omitempty"`
-
-	Scope string `json:"-"`
 }
 
 func (c *OAuthSSOProviderConfig) SetDefaults() {
 	if c.Alias == "" {
 		c.Alias = string(c.Type)
-	}
-	switch c.Type {
-	case OAuthSSOProviderTypeGoogle:
-		// https://developers.google.com/identity/protocols/googlescopes#google_sign-in
-		c.Scope = "openid profile email"
-	case OAuthSSOProviderTypeFacebook:
-		// https://developers.facebook.com/docs/facebook-login/permissions/#reference-default
-		// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
-		c.Scope = "email"
-	case OAuthSSOProviderTypeLinkedIn:
-		// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api?context=linkedin/compliance/context
-		// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
-		c.Scope = "r_liteprofile r_emailaddress"
-	case OAuthSSOProviderTypeAzureADv2:
-		// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
-		c.Scope = "openid profile email"
-	case OAuthSSOProviderTypeApple:
-		c.Scope = "email"
 	}
 }
 

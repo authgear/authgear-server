@@ -53,7 +53,7 @@ func (d *OIDCDiscoveryDocument) MakeOAuthURL(params OIDCAuthParams) string {
 	v.Add("response_type", "code")
 	v.Add("client_id", params.ProviderConfig.ClientID)
 	v.Add("redirect_uri", params.RedirectURI)
-	v.Add("scope", params.ProviderConfig.Scope)
+	v.Add("scope", params.ProviderConfig.Type.Scope())
 	v.Add("nonce", params.Nonce)
 	v.Add("response_mode", "form_post")
 	for key, value := range params.ExtraParams {
