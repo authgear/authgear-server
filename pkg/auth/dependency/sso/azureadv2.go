@@ -3,18 +3,14 @@ package sso
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/clock"
 )
 
 type Azureadv2Impl struct {
-	URLPrefix                *url.URL
-	RedirectURLFunc          RedirectURLFunc
+	RedirectURL              RedirectURLProvider
 	ProviderConfig           config.OAuthSSOProviderConfig
 	Credentials              config.OAuthClientCredentialsItem
-	Clock                    clock.Clock
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
@@ -75,7 +71,7 @@ func (f *Azureadv2Impl) GetAuthURL(state State, encodedState string) (string, er
 	}
 	return c.MakeOAuthURL(OIDCAuthParams{
 		ProviderConfig: f.ProviderConfig,
-		RedirectURI:    f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
+		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		Nonce:          state.HashedNonce,
 		EncodedState:   encodedState,
 	}), nil
@@ -103,12 +99,10 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 		http.DefaultClient,
 		r.Code,
 		keySet,
-		f.URLPrefix,
 		f.ProviderConfig.ClientID,
 		f.Credentials.ClientSecret,
-		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
+		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		state.HashedNonce,
-		f.Clock.NowUTC,
 		&tokenResp,
 	)
 	if err != nil {

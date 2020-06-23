@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/lestrrat-go/jwx/jwk"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
@@ -37,6 +38,32 @@ type IDTokenIssuer struct {
 // IDTokenValidDuration is the valid period of ID token.
 // It can be short, since id_token_hint should accept expired ID tokens.
 const IDTokenValidDuration = 5 * time.Minute
+
+func (ti *IDTokenIssuer) GetPublicKeySet() (*jwk.Set, error) {
+	keys, err := ti.Secrets.Decode()
+	if err != nil {
+		return nil, err
+	}
+
+	jwks := &jwk.Set{}
+	for _, key := range keys.Keys {
+		k, err := key.Materialize()
+		if err != nil {
+			return nil, err
+		}
+		k, err = jwk.GetPublicKey(k)
+		if err != nil {
+			return nil, err
+		}
+		key, err = jwk.New(k)
+		if err != nil {
+			return nil, err
+		}
+
+		jwks.Keys = append(jwks.Keys, key)
+	}
+	return jwks, nil
+}
 
 func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, session auth.AuthSession, nonce string) (string, error) {
 	userClaims, err := ti.LoadUserClaims(session)

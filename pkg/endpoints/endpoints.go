@@ -38,3 +38,4 @@ func (p *Provider) PromoteUserEndpointURL() *url.URL   { return p.urlOf("./promo
 func (p *Provider) LogoutEndpointURL() *url.URL        { return p.urlOf("./logout") }
 func (p *Provider) SettingsEndpointURL() *url.URL      { return p.urlOf("./settings") }
 func (p *Provider) ResetPasswordEndpointURL() *url.URL { return p.urlOf("./reset_password") }
+func (p *Provider) SSOCallbackEndpointURL() *url.URL   { return p.urlOf("sso/oauth2/callback") }

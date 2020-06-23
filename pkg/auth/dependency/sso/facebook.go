@@ -1,8 +1,6 @@
 package sso
 
 import (
-	"net/url"
-
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
@@ -14,8 +12,7 @@ const (
 )
 
 type FacebookImpl struct {
-	URLPrefix       *url.URL
-	RedirectURLFunc RedirectURLFunc
+	RedirectURL     RedirectURLProvider
 	ProviderConfig  config.OAuthSSOProviderConfig
 	Credentials     config.OAuthClientCredentialsItem
 	UserInfoDecoder UserInfoDecoder
@@ -27,7 +24,7 @@ func (f *FacebookImpl) Type() config.OAuthSSOProviderType {
 
 func (f *FacebookImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	p := authURLParams{
-		redirectURI:  f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
+		redirectURI:  f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		clientID:     f.ProviderConfig.ClientID,
 		scope:        f.ProviderConfig.Type.Scope(),
 		encodedState: encodedState,
@@ -42,7 +39,7 @@ func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (a
 
 func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		redirectURL:     f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
+		redirectURL:     f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		providerConfig:  f.ProviderConfig,
 		accessTokenURL:  facebookTokenURL,
 		userProfileURL:  facebookUserInfoURL,
@@ -53,7 +50,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 
 func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		redirectURL:     f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
+		redirectURL:     f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		providerConfig:  f.ProviderConfig,
 		clientSecret:    f.Credentials.ClientSecret,
 		accessTokenURL:  facebookTokenURL,

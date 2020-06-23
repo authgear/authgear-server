@@ -6,6 +6,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
+type RedirectURLProvider interface {
+	SSOCallbackURL(providerConfig config.OAuthSSOProviderConfig) *url.URL
+}
+
 type RedirectURLFunc func(urlPrefix *url.URL, providerConfig config.OAuthSSOProviderConfig) string
 
 type authURLParams struct {

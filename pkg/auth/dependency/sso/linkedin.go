@@ -1,8 +1,6 @@
 package sso
 
 import (
-	"net/url"
-
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
@@ -15,8 +13,7 @@ const (
 )
 
 type LinkedInImpl struct {
-	URLPrefix       *url.URL
-	RedirectURLFunc RedirectURLFunc
+	RedirectURL     RedirectURLProvider
 	ProviderConfig  config.OAuthSSOProviderConfig
 	Credentials     config.OAuthClientCredentialsItem
 	UserInfoDecoder UserInfoDecoder
@@ -28,7 +25,7 @@ func (f *LinkedInImpl) Type() config.OAuthSSOProviderType {
 
 func (f *LinkedInImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	p := authURLParams{
-		redirectURI:  f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
+		redirectURI:  f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		clientID:     f.ProviderConfig.ClientID,
 		scope:        f.ProviderConfig.Type.Scope(),
 		encodedState: encodedState,
@@ -45,7 +42,7 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	accessTokenResp, err := fetchAccessTokenResp(
 		r.Code,
 		linkedinTokenURL,
-		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
+		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		f.ProviderConfig.ClientID,
 		f.Credentials.ClientSecret,
 	)
