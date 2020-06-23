@@ -119,7 +119,7 @@ type SecretKey string
 const (
 	DatabaseCredentialsKey    SecretKey = "db"
 	RedisCredentialsKey       SecretKey = "redis"
-	OAuthClientCredentialsKey SecretKey = "oauth.client.external"
+	OAuthClientCredentialsKey SecretKey = "sso.oauth.client"
 	SMTPServerCredentialsKey  SecretKey = "mail.smtp"
 	TwilioCredentialsKey      SecretKey = "sms.twilio"
 	NexmoCredentialsKey       SecretKey = "sms.nexmo"
