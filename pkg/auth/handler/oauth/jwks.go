@@ -7,18 +7,14 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/lestrrat-go/jwx/jwk"
 
-	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func AttachJWKSHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
+func ConfigureJWKSHandler(router *mux.Router, h http.Handler) {
 	router.NewRoute().
 		Path("/oauth2/jwks").
-		Handler(p.Handler(newJWKSHandler)).
-		Methods("GET", "OPTIONS")
+		Methods("GET", "OPTIONS").
+		Handler(h)
 }
 
 type JWSSource interface {

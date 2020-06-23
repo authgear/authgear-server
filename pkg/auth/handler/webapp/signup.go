@@ -6,18 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachSignupHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureSignupHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/signup").
 		Methods("OPTIONS", "POST", "GET").
-		Handler(p.Handler(newSignupHandler))
+		Handler(h)
 }
 
 type signupProvider interface {

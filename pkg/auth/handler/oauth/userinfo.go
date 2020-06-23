@@ -10,20 +10,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func AttachUserInfoHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	handler := p.Handler(newUserInfoHandler)
-	handler = oauth.RequireScope(handler)
+func ConfigureUserInfoHandler(router *mux.Router, h http.Handler) {
 	router.NewRoute().
 		Path("/oauth2/userinfo").
-		Handler(handler).
-		Methods("GET", "POST", "OPTIONS")
+		Methods("GET", "POST", "OPTIONS").
+		Handler(oauth.RequireScope(h))
 }
 
 type oauthUserInfoProvider interface {

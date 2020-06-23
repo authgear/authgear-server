@@ -6,18 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachCreatePasswordHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureCreatePasswordHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/create_password").
 		Methods("OPTIONS", "POST", "GET").
-		Handler(p.Handler(newCreatePasswordHandler))
+		Handler(h)
 }
 
 type createPasswordProvider interface {

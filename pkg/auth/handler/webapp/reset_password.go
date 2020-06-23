@@ -6,18 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachResetPasswordHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureResetPasswordHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/reset_password").
 		Methods("OPTIONS", "POST", "GET").
-		Handler(p.Handler(newResetPasswordHandler))
+		Handler(h)
 }
 
 type resetPasswordProvider interface {

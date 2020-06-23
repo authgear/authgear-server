@@ -6,18 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachForgotPasswordSuccessHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureForgotPasswordSuccessHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/forgot_password/success").
 		Methods("OPTIONS", "GET").
-		Handler(p.Handler(newForgotPasswordSuccessHandler))
+		Handler(h)
 }
 
 type forgotPasswordSuccessProvider interface {

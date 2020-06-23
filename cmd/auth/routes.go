@@ -10,16 +10,14 @@ import (
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	webapphandler "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
-	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/deps"
-	"github.com/skygeario/skygear-server/pkg/middlewares"
 )
 
 func NewRouter(p *deps.RootProvider) *mux.Router {
 	rootRouter := mux.NewRouter()
-	rootRouter.Use(sentry.Middleware(sentry.DefaultClient.Hub))
-	rootRouter.Use(p.Middleware(middlewares.NewRecoverMiddleware))
+	rootRouter.Use(p.Middleware(nil)) // sentry.Middleware
+	rootRouter.Use(p.Middleware(nil)) // middlewares.RecoverMiddleware
 	return rootRouter
 }
 
@@ -38,13 +36,13 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 		ConfigSource: configSource,
 	}).Handle)
 
-	rootRouter.Use(p.Middleware(middlewares.NewSessionMiddleware))
+	rootRouter.Use(p.Middleware(nil)) // auth.Middleware
 
 	// TODO: move to another port
-	session.AttachResolveHandler(rootRouter, p)
+	session.ConfigureResolveHandler(rootRouter, nil)
 
 	oauthRouter = rootRouter.NewRoute().Subrouter()
-	oauthRouter.Use(p.Middleware(middlewares.NewCORSMiddleware))
+	oauthRouter.Use(p.Middleware(nil)) // middlewares.CORSMiddleware
 
 	webappRouter = rootRouter.NewRoute().Subrouter()
 	// When StrictSlash is true, the path in the browser URL always matches
@@ -55,37 +53,37 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 	// the effect is that trailing slash is corrected with HTTP 301 by mux.
 	webappRouter.StrictSlash(true)
 	webappRouter.Use(webapp.IntlMiddleware)
-	webappRouter.Use(p.Middleware(middlewares.NewCSPMiddleware))
-	webappRouter.Use(p.Middleware(middlewares.NewCSRFMiddleware))
+	webappRouter.Use(p.Middleware(nil)) // webapp.CSPMiddleware
+	webappRouter.Use(p.Middleware(nil)) // webapp.CSRFMiddleware
 	webappRouter.Use(webapp.PostNoCacheMiddleware)
-	webappRouter.Use(p.Middleware(middlewares.NewStateMiddleware))
+	webappRouter.Use(p.Middleware(nil)) // webapp.StateMiddleware
 
 	webappAuthRouter := webappRouter.NewRoute().Subrouter()
 	webappAuthEntryPointRouter := webappAuthRouter.NewRoute().Subrouter()
-	webappAuthEntryPointRouter.Use(p.Middleware(middlewares.NewAuthEntryPointMiddleware))
-	webapphandler.AttachRootHandler(webappAuthEntryPointRouter, p)
-	webapphandler.AttachLoginHandler(webappAuthEntryPointRouter, p)
-	webapphandler.AttachSignupHandler(webappAuthEntryPointRouter, p)
-	webapphandler.AttachPromoteHandler(webappAuthEntryPointRouter, p)
+	webappAuthEntryPointRouter.Use(p.Middleware(nil)) // webapp.AuthEntryPointMiddleware
+	webapphandler.ConfigureRootHandler(webappAuthEntryPointRouter, nil)
+	webapphandler.ConfigureLoginHandler(webappAuthEntryPointRouter, nil)
+	webapphandler.ConfigureSignupHandler(webappAuthEntryPointRouter, nil)
+	webapphandler.ConfigurePromoteHandler(webappAuthEntryPointRouter, nil)
 
-	webapphandler.AttachEnterPasswordHandler(webappAuthRouter, p)
-	webapphandler.AttachEnterLoginIDHandler(webappAuthRouter, p)
-	webapphandler.AttachOOBOTPHandler(webappAuthRouter, p)
-	webapphandler.AttachCreatePasswordHandler(webappAuthRouter, p)
-	webapphandler.AttachForgotPasswordHandler(webappAuthRouter, p)
-	webapphandler.AttachForgotPasswordSuccessHandler(webappAuthRouter, p)
-	webapphandler.AttachResetPasswordHandler(webappAuthRouter, p)
-	webapphandler.AttachResetPasswordSuccessHandler(webappAuthRouter, p)
+	webapphandler.ConfigureEnterPasswordHandler(webappAuthRouter, nil)
+	webapphandler.ConfigureEnterLoginIDHandler(webappAuthRouter, nil)
+	webapphandler.ConfigureOOBOTPHandler(webappAuthRouter, nil)
+	webapphandler.ConfigureCreatePasswordHandler(webappAuthRouter, nil)
+	webapphandler.ConfigureForgotPasswordHandler(webappAuthRouter, nil)
+	webapphandler.ConfigureForgotPasswordSuccessHandler(webappAuthRouter, nil)
+	webapphandler.ConfigureResetPasswordHandler(webappAuthRouter, nil)
+	webapphandler.ConfigureResetPasswordSuccessHandler(webappAuthRouter, nil)
 
 	webappAuthenticatedRouter := webappRouter.NewRoute().Subrouter()
 	webappAuthenticatedRouter.Use(webapp.RequireAuthenticatedMiddleware{}.Handle)
-	webapphandler.AttachSettingsHandler(webappAuthenticatedRouter, p)
-	webapphandler.AttachSettingsIdentityHandler(webappAuthenticatedRouter, p)
-	webapphandler.AttachLogoutHandler(webappAuthenticatedRouter, p)
+	webapphandler.ConfigureSettingsHandler(webappAuthenticatedRouter, nil)
+	webapphandler.ConfigureSettingsIdentityHandler(webappAuthenticatedRouter, nil)
+	webapphandler.ConfigureLogoutHandler(webappAuthenticatedRouter, nil)
 
 	webappSSOCallbackRouter := rootRouter.NewRoute().Subrouter()
 	webappSSOCallbackRouter.Use(webapp.PostNoCacheMiddleware)
-	webapphandler.AttachSSOCallbackHandler(webappSSOCallbackRouter, p)
+	webapphandler.ConfigureSSOCallbackHandler(webappSSOCallbackRouter, nil)
 
 	if p.ServerConfig.StaticAsset.ServingEnabled {
 		fileServer := http.FileServer(http.Dir(p.ServerConfig.StaticAsset.Dir))
@@ -93,14 +91,14 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 			Handler(http.StripPrefix("/static/", fileServer))
 	}
 
-	oauthhandler.AttachMetadataHandler(oauthRouter, p)
-	oauthhandler.AttachJWKSHandler(oauthRouter, p)
-	oauthhandler.AttachAuthorizeHandler(oauthRouter, p)
-	oauthhandler.AttachTokenHandler(oauthRouter, p)
-	oauthhandler.AttachRevokeHandler(oauthRouter, p)
-	oauthhandler.AttachUserInfoHandler(oauthRouter, p)
-	oauthhandler.AttachEndSessionHandler(oauthRouter, p)
-	oauthhandler.AttachChallengeHandler(oauthRouter, p)
+	oauthhandler.ConfigureMetadataHandler(oauthRouter, nil)
+	oauthhandler.ConfigureJWKSHandler(oauthRouter, nil)
+	oauthhandler.ConfigureAuthorizeHandler(oauthRouter, nil)
+	oauthhandler.ConfigureTokenHandler(oauthRouter, nil)
+	oauthhandler.ConfigureRevokeHandler(oauthRouter, nil)
+	oauthhandler.ConfigureUserInfoHandler(oauthRouter, nil)
+	oauthhandler.ConfigureEndSessionHandler(oauthRouter, nil)
+	oauthhandler.ConfigureChallengeHandler(oauthRouter, nil)
 
 	return router
 }

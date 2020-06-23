@@ -9,26 +9,28 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func AttachTokenHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
+func ConfigureTokenHandler(router *mux.Router, h http.Handler) {
 	router.NewRoute().
 		Path("/oauth2/token").
-		Handler(p.Handler(newTokenHandler)).
-		Methods("POST", "OPTIONS")
+		Methods("POST", "OPTIONS").
+		Handler(h)
 }
 
 type oauthTokenHandler interface {
 	Handle(r protocol.TokenRequest) handler.TokenResult
 }
 
+type TokenHandlerLogger struct{ *log.Logger }
+
+func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
+	return TokenHandlerLogger{lf.New("handler-token")}
+}
+
 type TokenHandler struct {
-	Logger       *log.Logger
+	Logger       TokenHandlerLogger
 	DBContext    db.Context
 	TokenHandler oauthTokenHandler
 }

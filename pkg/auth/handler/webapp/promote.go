@@ -6,18 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachPromoteHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigurePromoteHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/promote_user").
 		Methods("OPTIONS", "POST", "GET").
-		Handler(p.Handler(newPromoteHandler))
+		Handler(h)
 }
 
 type promoteProvider interface {

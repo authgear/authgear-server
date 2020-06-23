@@ -9,17 +9,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachChallengeHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
+func ConfigureChallengeHandler(router *mux.Router, h http.Handler) {
 	router.NewRoute().
 		Path("/oauth2/challenge").
-		Handler(p.Handler(newChallengeHandler)).
-		Methods("OPTIONS", "POST")
+		Methods("OPTIONS", "POST").
+		Handler(h)
 }
 
 type ChallengeRequest struct {

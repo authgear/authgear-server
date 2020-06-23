@@ -8,17 +8,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func AttachResolveHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
+func ConfigureResolveHandler(router *mux.Router, h http.Handler) {
 	router.NewRoute().
 		Path("/_auth/session/resolve").
-		Handler(p.Handler(newResolveHandler))
+		Handler(h)
 }
 
 //go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package session

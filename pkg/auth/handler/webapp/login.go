@@ -6,18 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachLoginHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureLoginHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/login").
 		Methods("OPTIONS", "POST", "GET").
-		Handler(p.Handler(newLoginHandler))
+		Handler(h)
 }
 
 type loginProvider interface {
