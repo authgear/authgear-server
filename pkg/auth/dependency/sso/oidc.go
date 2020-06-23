@@ -10,13 +10,13 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/lestrrat-go/jwx/jwk"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	corejwt "github.com/skygeario/skygear-server/pkg/core/jwt"
 )
 
 type OIDCAuthParams struct {
-	ProviderConfig config.OAuthProviderConfiguration
+	ProviderConfig config.OAuthSSOProviderConfig
 	RedirectURI    string
 	Nonce          string
 	EncodedState   string
@@ -53,7 +53,7 @@ func (d *OIDCDiscoveryDocument) MakeOAuthURL(params OIDCAuthParams) string {
 	v.Add("response_type", "code")
 	v.Add("client_id", params.ProviderConfig.ClientID)
 	v.Add("redirect_uri", params.RedirectURI)
-	v.Add("scope", params.ProviderConfig.Scope)
+	v.Add("scope", params.ProviderConfig.Type.Scope())
 	v.Add("nonce", params.Nonce)
 	v.Add("response_mode", "form_post")
 	for key, value := range params.ExtraParams {

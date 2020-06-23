@@ -570,7 +570,7 @@ func extractOAuthProviderClaims(claims map[string]interface{}) config.ProviderID
 		panic(fmt.Sprintf("interaction_adaptors: expect map provider claim, got %T", claims[identity.IdentityClaimOAuthProviderKeys]))
 	}
 
-	providerID := config.ProviderID{Keys: map[string]string{}}
+	providerID := config.ProviderID{Keys: map[string]interface{}{}}
 	for k, v := range provider {
 		if k == "type" {
 			providerID.Type, ok = v.(string)

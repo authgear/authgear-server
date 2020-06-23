@@ -83,6 +83,25 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 
 	require(DatabaseCredentialsKey, "database credentials")
 	require(RedisCredentialsKey, "redis credentials")
+
+	if len(appConfig.Identity.OAuth.Providers) > 0 {
+		require(OAuthClientCredentialsKey, "OAuth client credentials")
+		oauth, ok := c.LookupData(OAuthClientCredentialsKey).(*OAuthClientCredentials)
+		if ok {
+			for _, p := range appConfig.Identity.OAuth.Providers {
+				found := false
+				for _, item := range oauth.Items {
+					if p.Alias == item.Alias {
+						found = true
+					}
+				}
+				if !found {
+					ctx.EmitErrorMessage(fmt.Sprintf("OAuth client credentials for '%s' is required", p.Alias))
+				}
+			}
+		}
+	}
+
 	require(JWTKeyMaterialsKey, "JWT key materials")
 	require(OIDCKeyMaterialsKey, "OIDC key materials")
 	require(CSRFKeyMaterialsKey, "CSRF key materials")
@@ -98,15 +117,16 @@ var _ = SecretConfigSchema.Add("SecretKey", `{ "type": "string" }`)
 type SecretKey string
 
 const (
-	DatabaseCredentialsKey   SecretKey = "db"
-	RedisCredentialsKey      SecretKey = "redis"
-	SMTPServerCredentialsKey SecretKey = "mail.smtp"
-	TwilioCredentialsKey     SecretKey = "sms.twilio"
-	NexmoCredentialsKey      SecretKey = "sms.nexmo"
-	JWTKeyMaterialsKey       SecretKey = "jwt"
-	OIDCKeyMaterialsKey      SecretKey = "oidc"
-	CSRFKeyMaterialsKey      SecretKey = "csrf"
-	WebhookKeyMaterialsKey   SecretKey = "webhook"
+	DatabaseCredentialsKey    SecretKey = "db"
+	RedisCredentialsKey       SecretKey = "redis"
+	OAuthClientCredentialsKey SecretKey = "sso.oauth.client"
+	SMTPServerCredentialsKey  SecretKey = "mail.smtp"
+	TwilioCredentialsKey      SecretKey = "sms.twilio"
+	NexmoCredentialsKey       SecretKey = "sms.nexmo"
+	JWTKeyMaterialsKey        SecretKey = "jwt"
+	OIDCKeyMaterialsKey       SecretKey = "oidc"
+	CSRFKeyMaterialsKey       SecretKey = "csrf"
+	WebhookKeyMaterialsKey    SecretKey = "webhook"
 )
 
 type SecretItemData interface {
@@ -142,6 +162,9 @@ func (i *SecretItem) parse(ctx *validation.Context) {
 	case RedisCredentialsKey:
 		err = SecretConfigSchema.ValidateReaderByPart(r, "RedisCredentials")
 		data = &RedisCredentials{}
+	case OAuthClientCredentialsKey:
+		err = SecretConfigSchema.ValidateReaderByPart(r, "OAuthClientCredentials")
+		data = &OAuthClientCredentials{}
 	case SMTPServerCredentialsKey:
 		err = SecretConfigSchema.ValidateReaderByPart(r, "SMTPServerCredentials")
 		data = &SMTPServerCredentials{}

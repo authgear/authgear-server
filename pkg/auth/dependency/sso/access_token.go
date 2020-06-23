@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
@@ -84,15 +83,15 @@ func fetchAccessTokenResp(
 	code string,
 	accessTokenURL string,
 	redirectURL string,
-	oauthConfig *config.OAuthConfiguration,
-	providerConfig config.OAuthProviderConfiguration,
+	clientID string,
+	clientSecret string,
 ) (r AccessTokenResp, err error) {
 	v := url.Values{}
 	v.Set("grant_type", "authorization_code")
 	v.Add("code", code)
 	v.Add("redirect_uri", redirectURL)
-	v.Add("client_id", providerConfig.ClientID)
-	v.Add("client_secret", providerConfig.ClientSecret)
+	v.Add("client_id", clientID)
+	v.Add("client_secret", clientSecret)
 
 	// nolint: gosec
 	resp, err := http.PostForm(accessTokenURL, v)

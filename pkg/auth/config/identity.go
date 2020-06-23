@@ -1,6 +1,10 @@
 package config
 
-import "github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+import (
+	"fmt"
+
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+)
 
 var _ = Schema.Add("IdentityConfig", `
 {
@@ -186,6 +190,16 @@ type OAuthSSOConfig struct {
 	Providers []OAuthSSOProviderConfig `json:"providers,omitempty"`
 }
 
+func (c *OAuthSSOConfig) GetProviderConfig(alias string) (*OAuthSSOProviderConfig, bool) {
+	for _, conf := range c.Providers {
+		if conf.Alias == alias {
+			cc := conf
+			return &cc, true
+		}
+	}
+	return nil, false
+}
+
 var _ = Schema.Add("OAuthSSOProviderType", `
 {
 	"type": "string",
@@ -200,6 +214,29 @@ var _ = Schema.Add("OAuthSSOProviderType", `
 `)
 
 type OAuthSSOProviderType string
+
+func (t OAuthSSOProviderType) Scope() string {
+	switch t {
+	case OAuthSSOProviderTypeGoogle:
+		// https://developers.google.com/identity/protocols/googlescopes#google_sign-in
+		return "openid profile email"
+	case OAuthSSOProviderTypeFacebook:
+		// https://developers.facebook.com/docs/facebook-login/permissions/#reference-default
+		// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
+		return "email"
+	case OAuthSSOProviderTypeLinkedIn:
+		// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api?context=linkedin/compliance/context
+		// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
+		return "r_liteprofile r_emailaddress"
+	case OAuthSSOProviderTypeAzureADv2:
+		// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
+		return "openid profile email"
+	case OAuthSSOProviderTypeApple:
+		return "email"
+	}
+
+	panic(fmt.Sprintf("oauth: unknown provider type %s", string(t)))
+}
 
 const (
 	OAuthSSOProviderTypeGoogle    OAuthSSOProviderType = "google"
@@ -244,7 +281,7 @@ func (c *OAuthSSOProviderConfig) SetDefaults() {
 }
 
 func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {
-	keys := map[string]string{}
+	keys := map[string]interface{}{}
 	switch c.Type {
 	case OAuthSSOProviderTypeGoogle:
 		// Google supports OIDC.
@@ -296,7 +333,7 @@ func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {
 // ProviderID combining with a subject ID identifies an user from an external system.
 type ProviderID struct {
 	Type string
-	Keys map[string]string
+	Keys map[string]interface{}
 }
 
 func (p ProviderID) Claims() map[string]interface{} {

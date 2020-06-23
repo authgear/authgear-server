@@ -3,36 +3,25 @@ package sso
 import (
 	"fmt"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
-// UserInfoDecoder decodes user info.
-type UserInfoDecoder interface {
-	DecodeUserInfo(providerType config.OAuthProviderType, userInfo map[string]interface{}) (*ProviderUserInfo, error)
-}
-
-type UserInfoDecoderImpl struct {
+type UserInfoDecoder struct {
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
-func NewUserInfoDecoder(loginIDNormalizerFactory LoginIDNormalizerFactory) *UserInfoDecoderImpl {
-	return &UserInfoDecoderImpl{
-		LoginIDNormalizerFactory: loginIDNormalizerFactory,
-	}
-}
-
-func (d *UserInfoDecoderImpl) DecodeUserInfo(providerType config.OAuthProviderType, userInfo map[string]interface{}) (providerUserInfo *ProviderUserInfo, err error) {
+func (d *UserInfoDecoder) DecodeUserInfo(providerType config.OAuthSSOProviderType, userInfo map[string]interface{}) (providerUserInfo *ProviderUserInfo, err error) {
 	switch providerType {
-	case config.OAuthProviderTypeGoogle:
-		providerUserInfo = d.decodeDefault(userInfo)
-	case config.OAuthProviderTypeFacebook:
-		providerUserInfo = d.decodeDefault(userInfo)
-	case config.OAuthProviderTypeLinkedIn:
-		providerUserInfo = d.decodeLinkedIn(userInfo)
-	case config.OAuthProviderTypeAzureADv2:
-		providerUserInfo = d.decodeAzureADv2(userInfo)
-	case config.OAuthProviderTypeApple:
-		providerUserInfo = d.decodeApple(userInfo)
+	case config.OAuthSSOProviderTypeGoogle:
+		providerUserInfo = DecodeDefault(userInfo)
+	case config.OAuthSSOProviderTypeFacebook:
+		providerUserInfo = DecodeDefault(userInfo)
+	case config.OAuthSSOProviderTypeLinkedIn:
+		providerUserInfo = DecodeLinkedIn(userInfo)
+	case config.OAuthSSOProviderTypeAzureADv2:
+		providerUserInfo = DecodeAzureADv2(userInfo)
+	case config.OAuthSSOProviderTypeApple:
+		providerUserInfo = DecodeApple(userInfo)
 	default:
 		panic(fmt.Sprintf("sso: unknown provider type: %v", providerType))
 	}
@@ -50,7 +39,7 @@ func (d *UserInfoDecoderImpl) DecodeUserInfo(providerType config.OAuthProviderTy
 	return
 }
 
-func (d *UserInfoDecoderImpl) decodeDefault(userInfo map[string]interface{}) *ProviderUserInfo {
+func DecodeDefault(userInfo map[string]interface{}) *ProviderUserInfo {
 	id, _ := userInfo["id"].(string)
 	email, _ := userInfo["email"].(string)
 
@@ -60,7 +49,7 @@ func (d *UserInfoDecoderImpl) decodeDefault(userInfo map[string]interface{}) *Pr
 	}
 }
 
-func (d *UserInfoDecoderImpl) decodeAzureADv2(userInfo map[string]interface{}) *ProviderUserInfo {
+func DecodeAzureADv2(userInfo map[string]interface{}) *ProviderUserInfo {
 	id, _ := userInfo["oid"].(string)
 	email, _ := userInfo["email"].(string)
 
@@ -70,7 +59,7 @@ func (d *UserInfoDecoderImpl) decodeAzureADv2(userInfo map[string]interface{}) *
 	}
 }
 
-func (d *UserInfoDecoderImpl) decodeApple(userInfo map[string]interface{}) *ProviderUserInfo {
+func DecodeApple(userInfo map[string]interface{}) *ProviderUserInfo {
 	id, _ := userInfo["sub"].(string)
 	email, _ := userInfo["email"].(string)
 
@@ -80,7 +69,7 @@ func (d *UserInfoDecoderImpl) decodeApple(userInfo map[string]interface{}) *Prov
 	}
 }
 
-func (d *UserInfoDecoderImpl) decodeLinkedIn(userInfo map[string]interface{}) *ProviderUserInfo {
+func DecodeLinkedIn(userInfo map[string]interface{}) *ProviderUserInfo {
 	profile := userInfo["profile"].(map[string]interface{})
 	id := profile["id"].(string)
 

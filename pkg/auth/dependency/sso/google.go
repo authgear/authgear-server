@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 const (
@@ -15,10 +15,9 @@ const (
 type GoogleImpl struct {
 	URLPrefix                *url.URL
 	RedirectURLFunc          RedirectURLFunc
-	OAuthConfig              *config.OAuthConfiguration
-	ProviderConfig           config.OAuthProviderConfiguration
+	ProviderConfig           config.OAuthSSOProviderConfig
+	Credentials              config.OAuthClientCredentialsItem
 	Clock                    clock.Clock
-	UserInfoDecoder          UserInfoDecoder
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
@@ -38,8 +37,8 @@ func (f *GoogleImpl) GetAuthURL(state State, encodedState string) (string, error
 	}), nil
 }
 
-func (f *GoogleImpl) Type() config.OAuthProviderType {
-	return config.OAuthProviderTypeGoogle
+func (f *GoogleImpl) Type() config.OAuthSSOProviderType {
+	return config.OAuthSSOProviderTypeGoogle
 }
 
 func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
@@ -66,7 +65,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 		keySet,
 		f.URLPrefix,
 		f.ProviderConfig.ClientID,
-		f.ProviderConfig.ClientSecret,
+		f.Credentials.ClientSecret,
 		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		state.HashedNonce,
 		f.Clock.NowUTC,

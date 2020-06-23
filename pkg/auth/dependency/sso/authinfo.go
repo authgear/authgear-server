@@ -1,12 +1,12 @@
 package sso
 
 import (
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
 // AuthInfo contains auth info from HandleAuthzResp
 type AuthInfo struct {
-	ProviderConfig          config.OAuthProviderConfiguration
+	ProviderConfig          config.OAuthSSOProviderConfig
 	ProviderRawProfile      map[string]interface{}
 	ProviderAccessTokenResp interface{}
 	ProviderUserInfo        ProviderUserInfo
@@ -34,8 +34,8 @@ type OAuthAuthorizationResponse struct {
 
 type getAuthInfoRequest struct {
 	redirectURL     string
-	oauthConfig     *config.OAuthConfiguration
-	providerConfig  config.OAuthProviderConfiguration
+	providerConfig  config.OAuthSSOProviderConfig
+	clientSecret    string
 	accessTokenURL  string
 	userProfileURL  string
 	userInfoDecoder UserInfoDecoder
@@ -51,8 +51,8 @@ func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse, state Stat
 		r.Code,
 		h.accessTokenURL,
 		h.redirectURL,
-		h.oauthConfig,
-		h.providerConfig,
+		h.providerConfig.ClientID,
+		h.clientSecret,
 	)
 	if err != nil {
 		return
