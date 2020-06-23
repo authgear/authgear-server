@@ -2,7 +2,6 @@ package config_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -11,6 +10,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	goyaml "gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
@@ -72,7 +72,11 @@ func TestAppConfigSchema(t *testing.T) {
 		for _, testCase := range testCases {
 			name := fmt.Sprintf("%s/%s", testCase.Part, testCase.Name)
 			Convey(name, func() {
-				data, err := json.Marshal(testCase.Value)
+				data, err := goyaml.Marshal(testCase.Value)
+				if err != nil {
+					panic(err)
+				}
+				data, err = yaml.YAMLToJSON(data)
 				if err != nil {
 					panic(err)
 				}

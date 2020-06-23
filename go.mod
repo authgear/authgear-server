@@ -19,7 +19,6 @@ require (
 	github.com/gorilla/csrf v1.6.2
 	github.com/gorilla/mux v1.7.4
 	github.com/h2non/gock v1.0.12
-	github.com/hashicorp/go-version v1.2.0 // indirect
 	github.com/iawaknahc/gomessageformat v0.0.0-20200406084228-8abc010113fa
 	github.com/iawaknahc/jsonschema v0.0.0-20200321082404-507b9d186df7
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192
@@ -30,12 +29,10 @@ require (
 	github.com/lestrrat-go/jwx v1.0.2
 	github.com/lib/pq v1.3.0
 	github.com/mattn/go-sqlite3 v1.12.0 // indirect
-	github.com/mitchellh/gox v1.0.1
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
 	github.com/nbutton23/zxcvbn-go v0.0.0-20171102151520-eafdab6b0663
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/nyaruka/phonenumbers v1.0.45
-	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/pquerna/otp v1.2.0
 	github.com/sfreiberg/gotwilio v0.0.0-20181012193634-a13e5b0d458a
 	github.com/sirupsen/logrus v1.4.2
@@ -43,8 +40,6 @@ require (
 	github.com/skygeario/openapi3-gen v0.0.0-20190808034633-90418c3d9171
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/tinylib/msgp v1.1.0
-	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
@@ -60,10 +55,4 @@ require (
 	sigs.k8s.io/yaml v1.2.0
 )
 
-// The reason why we have to use a fork is to support background color in the embed() operation.
-// See https://github.com/SkygearIO/govips/commit/b7b5b9596467e8b6b5f11f2178c754df83e9a35c
-replace github.com/davidbyttow/govips => github.com/skygeario/govips v0.0.0-20191017114550-b7b5b9596467
-
 replace github.com/xeipuuv/gojsonschema => github.com/skygeario/gojsonschema v1.2.1-0.20200107025531-9fad5cb886b4
-
-replace gopkg.in/yaml.v2 => github.com/skygeario/go-yaml v0.0.0-20191213113752-45105225b50d
