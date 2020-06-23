@@ -232,6 +232,19 @@ var (
 	_wireRandValue        = session.Rand(rand.SecureRand)
 )
 
+func newWebAppStateMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
+	appProvider := p.AppProvider
+	context := appProvider.RedisContext
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Redis: context,
+	}
+	stateMiddleware := &webapp.StateMiddleware{
+		StateStore: stateStoreImpl,
+	}
+	middlewareFunc := provideMiddlewareFunc(stateMiddleware)
+	return middlewareFunc
+}
+
 // Injectors from wire_task.go:
 
 func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {

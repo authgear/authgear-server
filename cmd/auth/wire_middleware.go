@@ -81,3 +81,10 @@ func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 		wire.Bind(new(middleware), new(*auth.Middleware)),
 	))
 }
+
+func newWebAppStateMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
+	panic(wire.Build(
+		middlewareDependencySet,
+		wire.Bind(new(middleware), new(*webapp.StateMiddleware)),
+	))
+}

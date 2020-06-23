@@ -16,4 +16,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(CSPMiddleware), "*"),
 	wire.Struct(new(CSRFMiddleware), "*"),
 	wire.Struct(new(AuthEntryPointMiddleware), "*"),
+	wire.Struct(new(StateMiddleware), "*"),
 )

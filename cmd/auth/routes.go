@@ -57,7 +57,7 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 	webappRouter.Use(p.Middleware(newCSPMiddleware))
 	webappRouter.Use(p.Middleware(newCSRFMiddleware))
 	webappRouter.Use(webapp.PostNoCacheMiddleware)
-	webappRouter.Use(p.Middleware(nil)) // webapp.StateMiddleware
+	webappRouter.Use(p.Middleware(newWebAppStateMiddleware))
 
 	webappAuthRouter := webappRouter.NewRoute().Subrouter()
 	webappAuthEntryPointRouter := webappAuthRouter.NewRoute().Subrouter()
