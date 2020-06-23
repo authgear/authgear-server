@@ -17,8 +17,8 @@ const DefaultRedirectURI = "/settings"
 // redirect_uri is then resolved against r.URL
 // redirect_uri must have the same origin.
 // Finally a 302 response is written.
-func RedirectToRedirectURI(w http.ResponseWriter, r *http.Request) {
-	redirectURI, err := getRedirectURI(r)
+func RedirectToRedirectURI(w http.ResponseWriter, r *http.Request, trustProxy bool) {
+	redirectURI, err := getRedirectURI(r, trustProxy)
 	if err != nil {
 		http.Redirect(w, r, DefaultRedirectURI, http.StatusFound)
 	} else {
@@ -42,19 +42,19 @@ func RedirectToPathWithQuery(w http.ResponseWriter, r *http.Request, path string
 	http.Redirect(w, r, NewURLWithPathAndQuery(path, query), http.StatusFound)
 }
 
-func getRedirectURI(r *http.Request) (out string, err error) {
+func getRedirectURI(r *http.Request, trustProxy bool) (out string, err error) {
 	formRedirectURI := r.Form.Get("redirect_uri")
 	queryRedirectURI := r.URL.Query().Get("redirect_uri")
 
 	// Look at form body first
 	if queryRedirectURI == "" && formRedirectURI != "" {
-		out, err = parseRedirectURI(r, formRedirectURI, true)
+		out, err = parseRedirectURI(r, formRedirectURI, true, trustProxy)
 		return
 	}
 
 	// Look at query then
 	if queryRedirectURI != "" {
-		out, err = parseRedirectURI(r, queryRedirectURI, false)
+		out, err = parseRedirectURI(r, queryRedirectURI, false, trustProxy)
 		return
 	}
 
@@ -62,16 +62,15 @@ func getRedirectURI(r *http.Request) (out string, err error) {
 	return
 }
 
-func parseRedirectURI(r *http.Request, redirectURL string, allowRecursive bool) (out string, err error) {
+func parseRedirectURI(r *http.Request, redirectURL string, allowRecursive bool, trustProxy bool) (out string, err error) {
 	u, err := r.URL.Parse(redirectURL)
 	if err != nil {
 		return
 	}
 
 	recursive := u.Path == r.URL.Path || (u.RawPath != "" && u.RawPath == r.URL.RawPath)
-	// FIXME: use ServerConfig
 	sameOrigin := (u.Scheme == "" && u.Host == "") ||
-		(u.Scheme == httputil.GetProto(r, true) && u.Host == httputil.GetHost(r, true))
+		(u.Scheme == httputil.GetProto(r, trustProxy) && u.Host == httputil.GetHost(r, trustProxy))
 
 	if !sameOrigin {
 		err = errors.New("not the same origin")

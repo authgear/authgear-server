@@ -62,7 +62,7 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 
 	webappAuthRouter := webappRouter.NewRoute().Subrouter()
 	webappAuthEntryPointRouter := webappAuthRouter.NewRoute().Subrouter()
-	webappAuthEntryPointRouter.Use(webapp.AuthEntryPointMiddleware{}.Handle)
+	webappAuthEntryPointRouter.Use(p.Middleware(middlewares.NewAuthEntryPointMiddleware))
 	webapphandler.AttachRootHandler(webappAuthEntryPointRouter, p)
 	webapphandler.AttachLoginHandler(webappAuthEntryPointRouter, p)
 	webapphandler.AttachSignupHandler(webappAuthEntryPointRouter, p)

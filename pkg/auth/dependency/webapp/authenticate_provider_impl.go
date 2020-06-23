@@ -38,6 +38,7 @@ type SSOStateCodec interface {
 }
 
 type AuthenticateProviderImpl struct {
+	ServerConfig         *config.ServerConfig
 	ValidateProvider     ValidateProvider
 	RenderProvider       RenderProvider
 	StateProvider        StateProvider
@@ -95,7 +96,7 @@ func (p *AuthenticateProviderImpl) handleResult(w http.ResponseWriter, r *http.R
 	case interactionflows.WebAppStepSetupOOBOTP:
 		RedirectToPathWithX(w, r, "/oob_otp")
 	case interactionflows.WebAppStepCompleted:
-		RedirectToRedirectURI(w, r)
+		RedirectToRedirectURI(w, r, p.ServerConfig.TrustProxy)
 	}
 }
 
@@ -582,7 +583,7 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 			if callbackURL == "" {
 				callbackURL = "/login"
 			}
-			redirectURI, err := parseRedirectURI(r, callbackURL, false)
+			redirectURI, err := parseRedirectURI(r, callbackURL, false, p.ServerConfig.TrustProxy)
 			if err != nil {
 				redirectURI = DefaultRedirectURI
 			}
