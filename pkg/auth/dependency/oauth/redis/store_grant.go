@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,22 +8,29 @@ import (
 	"time"
 
 	redigo "github.com/gomodule/redigo/redis"
-	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/log"
+	"github.com/skygeario/skygear-server/pkg/redis"
 )
 
 func toMilliseconds(d time.Duration) int64 {
 	return int64(d / time.Millisecond)
 }
 
+type Logger struct{ *log.Logger }
+
+func NewLogger(lf *log.Factory) Logger {
+	return Logger{lf.New("oauth-grant-store")}
+}
+
 type GrantStore struct {
-	Context     context.Context
-	AppID       string
-	Logger      *logrus.Entry
+	Redis       *redis.Context
+	AppID       config.AppID
+	Logger      Logger
 	SQLBuilder  db.SQLBuilder
 	SQLExecutor db.SQLExecutor
 	Clock       clock.Clock
@@ -72,7 +78,7 @@ func (s *GrantStore) del(conn redigo.Conn, key string) error {
 
 func (s *GrantStore) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
 	g := &oauth.CodeGrant{}
-	err := s.load(redis.GetConn(s.Context), codeGrantKey(s.AppID, codeHash), g)
+	err := s.load(s.Redis.Conn(), codeGrantKey(string(s.AppID), codeHash), g)
 	if err != nil {
 		return nil, err
 	}
@@ -80,16 +86,16 @@ func (s *GrantStore) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
 }
 
 func (s *GrantStore) CreateCodeGrant(grant *oauth.CodeGrant) error {
-	return s.save(redis.GetConn(s.Context), codeGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
+	return s.save(s.Redis.Conn(), codeGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
 }
 
 func (s *GrantStore) DeleteCodeGrant(grant *oauth.CodeGrant) error {
-	return s.del(redis.GetConn(s.Context), codeGrantKey(grant.AppID, grant.CodeHash))
+	return s.del(s.Redis.Conn(), codeGrantKey(grant.AppID, grant.CodeHash))
 }
 
 func (s *GrantStore) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error) {
 	g := &oauth.AccessGrant{}
-	err := s.load(redis.GetConn(s.Context), accessGrantKey(s.AppID, tokenHash), g)
+	err := s.load(s.Redis.Conn(), accessGrantKey(string(s.AppID), tokenHash), g)
 	if err != nil {
 		return nil, err
 	}
@@ -97,16 +103,16 @@ func (s *GrantStore) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error
 }
 
 func (s *GrantStore) CreateAccessGrant(grant *oauth.AccessGrant) error {
-	return s.save(redis.GetConn(s.Context), accessGrantKey(grant.AppID, grant.TokenHash), grant, grant.ExpireAt, true)
+	return s.save(s.Redis.Conn(), accessGrantKey(grant.AppID, grant.TokenHash), grant, grant.ExpireAt, true)
 }
 
 func (s *GrantStore) DeleteAccessGrant(grant *oauth.AccessGrant) error {
-	return s.del(redis.GetConn(s.Context), accessGrantKey(grant.AppID, grant.TokenHash))
+	return s.del(s.Redis.Conn(), accessGrantKey(grant.AppID, grant.TokenHash))
 }
 
 func (s *GrantStore) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
 	g := &oauth.OfflineGrant{}
-	err := s.load(redis.GetConn(s.Context), offlineGrantKey(s.AppID, id), g)
+	err := s.load(s.Redis.Conn(), offlineGrantKey(string(s.AppID), id), g)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +125,7 @@ func (s *GrantStore) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
 		return err
 	}
 
-	conn := redis.GetConn(s.Context)
+	conn := s.Redis.Conn()
 
 	_, err = conn.Do("HSET", offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry)
 	if err != nil {
@@ -140,7 +146,7 @@ func (s *GrantStore) UpdateOfflineGrant(grant *oauth.OfflineGrant) error {
 		return err
 	}
 
-	conn := redis.GetConn(s.Context)
+	conn := s.Redis.Conn()
 
 	_, err = conn.Do("HSET", offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry)
 	if err != nil {
@@ -156,7 +162,7 @@ func (s *GrantStore) UpdateOfflineGrant(grant *oauth.OfflineGrant) error {
 }
 
 func (s *GrantStore) DeleteOfflineGrant(grant *oauth.OfflineGrant) error {
-	conn := redis.GetConn(s.Context)
+	conn := s.Redis.Conn()
 
 	err := s.del(conn, offlineGrantKey(grant.AppID, grant.ID))
 	if err != nil {
@@ -172,8 +178,8 @@ func (s *GrantStore) DeleteOfflineGrant(grant *oauth.OfflineGrant) error {
 }
 
 func (s *GrantStore) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) {
-	conn := redis.GetConn(s.Context)
-	listKey := offlineGrantListKey(s.AppID, userID)
+	conn := s.Redis.Conn()
+	listKey := offlineGrantListKey(string(s.AppID), userID)
 
 	sessionList, err := redigo.StringMap(conn.Do("HGETALL", listKey))
 	if err != nil {

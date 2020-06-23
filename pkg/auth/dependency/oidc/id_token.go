@@ -4,12 +4,13 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/lestrrat-go/jwx/jwk"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type UserProvider interface {
@@ -28,17 +29,43 @@ type IDTokenClaims struct {
 }
 
 type IDTokenIssuer struct {
-	OIDCConfig config.OIDCConfiguration
-	Endpoints  EndpointsProvider
-	Users      UserProvider
-	Clock      clock.Clock
+	Secrets   *config.OIDCKeyMaterials
+	Endpoints EndpointsProvider
+	Users     UserProvider
+	Clock     clock.Clock
 }
 
 // IDTokenValidDuration is the valid period of ID token.
 // It can be short, since id_token_hint should accept expired ID tokens.
 const IDTokenValidDuration = 5 * time.Minute
 
-func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfiguration, session auth.AuthSession, nonce string) (string, error) {
+func (ti *IDTokenIssuer) GetPublicKeySet() (*jwk.Set, error) {
+	keys, err := ti.Secrets.Decode()
+	if err != nil {
+		return nil, err
+	}
+
+	jwks := &jwk.Set{}
+	for _, key := range keys.Keys {
+		k, err := key.Materialize()
+		if err != nil {
+			return nil, err
+		}
+		k, err = jwk.GetPublicKey(k)
+		if err != nil {
+			return nil, err
+		}
+		key, err = jwk.New(k)
+		if err != nil {
+			return nil, err
+		}
+
+		jwks.Keys = append(jwks.Keys, key)
+	}
+	return jwks, nil
+}
+
+func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, session auth.AuthSession, nonce string) (string, error) {
 	userClaims, err := ti.LoadUserClaims(session)
 	if err != nil {
 		return "", err
@@ -54,15 +81,20 @@ func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfiguration, se
 		Nonce:      nonce,
 	}
 
-	key := ti.OIDCConfig.Keys[0]
-	privKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(key.PrivateKey))
+	keys, err := ti.Secrets.Decode()
+	if err != nil {
+		panic("oidc: invalid key materials: " + err.Error())
+	}
+
+	jwk := keys.Keys[0]
+	key, err := jwk.Materialize()
 	if err != nil {
 		return "", err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	token.Header["kid"] = key.KID
-	return token.SignedString(privKey)
+	token.Header["kid"] = jwk.KeyID()
+	return token.SignedString(key)
 }
 
 func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (*UserClaims, error) {

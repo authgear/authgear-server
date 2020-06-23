@@ -8,8 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
@@ -18,8 +17,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
 // TODO(oauth): write tests
@@ -31,18 +30,25 @@ var whitelistedGrantTypes = []string{
 }
 
 type IDTokenIssuer interface {
-	IssueIDToken(client config.OAuthClientConfiguration, session auth.AuthSession, nonce string) (token string, err error)
+	IssueIDToken(client config.OAuthClientConfig, session auth.AuthSession, nonce string) (token string, err error)
 }
 
 type SessionProvider interface {
 	Get(id string) (*session.IDPSession, error)
 }
 
+type TokenHandlerLogger struct{ *log.Logger }
+
+func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
+	return TokenHandlerLogger{lf.New("oauth-token")}
+}
+
 type TokenHandler struct {
-	Request *http.Request
-	AppID   string
-	Clients []config.OAuthClientConfiguration
-	Logger  *logrus.Entry
+	Request      *http.Request
+	AppID        config.AppID
+	Config       *config.OAuthConfig
+	ServerConfig *config.ServerConfig
+	Logger       TokenHandlerLogger
 
 	Authorizations oauth.AuthorizationStore
 	CodeGrants     oauth.CodeGrantStore
@@ -57,7 +63,7 @@ type TokenHandler struct {
 }
 
 func (h *TokenHandler) Handle(r protocol.TokenRequest) TokenResult {
-	client := resolveClient(h.Clients, r)
+	client := resolveClient(h.Config, r)
 	if client == nil {
 		return tokenResultError{
 			Response: protocol.NewErrorResponse("invalid_client", "invalid client ID"),
@@ -82,7 +88,7 @@ func (h *TokenHandler) Handle(r protocol.TokenRequest) TokenResult {
 }
 
 func (h *TokenHandler) doHandle(
-	client config.OAuthClientConfiguration,
+	client config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (TokenResult, error) {
 	if err := h.validateRequest(r); err != nil {
@@ -149,7 +155,7 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest) error {
 var errInvalidAuthzCode = protocol.NewError("invalid_grant", "invalid authorization code")
 
 func (h *TokenHandler) handleAuthorizationCode(
-	client config.OAuthClientConfiguration,
+	client config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (TokenResult, error) {
 
@@ -203,7 +209,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 var errInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh token")
 
 func (h *TokenHandler) handleRefreshToken(
-	client config.OAuthClientConfiguration,
+	client config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
 	token, grantID, err := oauth.DecodeRefreshToken(r.RefreshToken())
@@ -246,7 +252,7 @@ var errInvalidAnonymousRequest = protocol.NewError("invalid_grant", "invalid ano
 var errAnonymousDisabled = protocol.NewError("unauthorized_client", "anonymous user is disabled")
 
 func (h *TokenHandler) handleAnonymousRequest(
-	client config.OAuthClientConfiguration,
+	client config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (TokenResult, error) {
 	attrs, err := h.Anonymous.Authenticate(r.JWT(), client.ClientID())
@@ -290,7 +296,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 }
 
 func (h *TokenHandler) issueTokensForAuthorizationCode(
-	client config.OAuthClientConfiguration,
+	client config.OAuthClientConfig,
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,
 	session *session.IDPSession,
@@ -360,7 +366,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 }
 
 func (h *TokenHandler) issueTokensForRefreshToken(
-	client config.OAuthClientConfiguration,
+	client config.OAuthClientConfig,
 	offlineGrant *oauth.OfflineGrant,
 	authz *oauth.Authorization,
 ) (protocol.TokenResponse, error) {
@@ -395,7 +401,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 }
 
 func (h *TokenHandler) issueOfflineGrant(
-	client config.OAuthClientConfiguration,
+	client config.OAuthClientConfig,
 	scopes []string,
 	authzID string,
 	attrs *authn.Attrs,
@@ -403,10 +409,9 @@ func (h *TokenHandler) issueOfflineGrant(
 ) (*oauth.OfflineGrant, error) {
 	token := h.GenerateToken()
 	now := h.Clock.NowUTC()
-	// FIXME: use server config
-	accessEvent := auth.NewAccessEvent(now, h.Request, true)
+	accessEvent := auth.NewAccessEvent(now, h.Request, h.ServerConfig.TrustProxy)
 	offlineGrant := &oauth.OfflineGrant{
-		AppID:           h.AppID,
+		AppID:           string(h.AppID),
 		ID:              uuid.New(),
 		AuthorizationID: authzID,
 		ClientID:        client.ClientID(),
@@ -437,7 +442,7 @@ func (h *TokenHandler) issueOfflineGrant(
 }
 
 func (h *TokenHandler) issueAccessGrant(
-	client config.OAuthClientConfiguration,
+	client config.OAuthClientConfig,
 	scopes []string,
 	authzID string,
 	sessionID string,
@@ -448,12 +453,12 @@ func (h *TokenHandler) issueAccessGrant(
 	now := h.Clock.NowUTC()
 
 	accessGrant := &oauth.AccessGrant{
-		AppID:           h.AppID,
+		AppID:           string(h.AppID),
 		AuthorizationID: authzID,
 		SessionID:       sessionID,
 		SessionKind:     sessionKind,
 		CreatedAt:       now,
-		ExpireAt:        now.Add(time.Duration(client.AccessTokenLifetime()) * time.Second),
+		ExpireAt:        now.Add(client.AccessTokenLifetime().Duration()),
 		Scopes:          scopes,
 		TokenHash:       oauth.HashToken(token),
 	}
@@ -464,7 +469,7 @@ func (h *TokenHandler) issueAccessGrant(
 
 	resp.TokenType("Bearer")
 	resp.AccessToken(oauth.EncodeAccessToken(token))
-	resp.ExpiresIn(client.AccessTokenLifetime())
+	resp.ExpiresIn(int(client.AccessTokenLifetime()))
 	return nil
 }
 

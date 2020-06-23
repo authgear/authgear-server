@@ -1,15 +1,15 @@
 package handler
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 func (h *TokenHandler) IssueTokens(
-	client config.OAuthClientConfiguration,
+	client config.OAuthClientConfig,
 	attrs *authn.Attrs,
 ) (auth.AuthSession, protocol.TokenResponse, error) {
 	scopes := []string{"openid", oauth.FullAccessScope}
@@ -43,7 +43,7 @@ func (h *TokenHandler) IssueTokens(
 }
 
 func (h *TokenHandler) RefreshAPIToken(
-	client config.OAuthClientConfiguration,
+	client config.OAuthClientConfig,
 	refreshToken string,
 ) (accessToken string, err error) {
 	resp, err := h.handleRefreshToken(client, protocol.TokenRequest{

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/clock"
@@ -16,6 +17,7 @@ type ResolverSessionProvider interface {
 }
 
 type Resolver struct {
+	ServerConfig   *config.ServerConfig
 	Authorizations AuthorizationStore
 	AccessGrants   AccessGrantStore
 	OfflineGrants  OfflineGrantStore
@@ -52,8 +54,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthS
 	}
 
 	var authSession auth.AuthSession
-	// FIXME: use server config
-	event := auth.NewAccessEvent(re.Clock.NowUTC(), r, true)
+	event := auth.NewAccessEvent(re.Clock.NowUTC(), r, re.ServerConfig.TrustProxy)
 
 	switch grant.SessionKind {
 	case GrantSessionKindSession:

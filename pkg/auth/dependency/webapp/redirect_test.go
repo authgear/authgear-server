@@ -19,7 +19,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 		Convey("redirect to default if redirect_uri is absent", func() {
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest("GET", "http://example.com", nil)
-			RedirectToRedirectURI(w, r)
+			RedirectToRedirectURI(w, r, true)
 			check(w, DefaultRedirectURI)
 		})
 
@@ -35,7 +35,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r)
+			RedirectToRedirectURI(w, r, true)
 			check(w, "http://example.com/oauth/authorize?client_id=client_id")
 		})
 
@@ -49,7 +49,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r)
+			RedirectToRedirectURI(w, r, true)
 			check(w, "/oauth/authorize?client_id=client_id")
 		})
 
@@ -65,7 +65,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r)
+			RedirectToRedirectURI(w, r, true)
 			check(w, "http://example.com/oauth/authorize?client_id=client_id&scope=openid+offline_access&ui_locales=en%20zh")
 		})
 
@@ -81,7 +81,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r)
+			RedirectToRedirectURI(w, r, true)
 			check(w, "http://example.com/relative")
 		})
 
@@ -97,7 +97,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r)
+			RedirectToRedirectURI(w, r, true)
 			check(w, "http://example.com/relative")
 		})
 
@@ -113,7 +113,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r)
+			RedirectToRedirectURI(w, r, true)
 			check(w, "http://example.com/a")
 		})
 
@@ -129,7 +129,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r)
+			RedirectToRedirectURI(w, r, true)
 			check(w, DefaultRedirectURI)
 		})
 
@@ -145,7 +145,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r)
+			RedirectToRedirectURI(w, r, true)
 			check(w, DefaultRedirectURI)
 		})
 
@@ -161,7 +161,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				"redirect_uri": []string{"/"},
 			}
 
-			RedirectToRedirectURI(w, r)
+			RedirectToRedirectURI(w, r, true)
 			check(w, "http://example.com/")
 		})
 	})

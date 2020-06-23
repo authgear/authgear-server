@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
-	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/lestrrat-go/jwx/jwk"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
@@ -82,12 +81,10 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 	client *http.Client,
 	code string,
 	jwks *jwk.Set,
-	urlPrefix *url.URL,
 	clientID string,
 	clientSecret string,
 	redirectURI string,
 	nonce string,
-	nowUTC func() time.Time,
 	tokenResp *AccessTokenResp,
 ) (corejwt.MapClaims, error) {
 	body := url.Values{}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
@@ -11,7 +12,7 @@ import (
 func checkAuthorization(
 	authzs oauth.AuthorizationStore,
 	timestamp time.Time,
-	appID string,
+	appID config.AppID,
 	clientID string,
 	userID string,
 	scopes []string,
@@ -28,7 +29,7 @@ func checkAuthorization(
 	if authz == nil {
 		authz = &oauth.Authorization{
 			ID:        uuid.New(),
-			AppID:     appID,
+			AppID:     string(appID),
 			ClientID:  clientID,
 			UserID:    userID,
 			CreatedAt: timestamp,

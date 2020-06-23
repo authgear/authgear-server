@@ -13,6 +13,15 @@ type OAuthConfig struct {
 	Clients []OAuthClientConfig `json:"clients,omitempty"`
 }
 
+func (c *OAuthConfig) GetClient(clientID string) (OAuthClientConfig, bool) {
+	for _, c := range c.Clients {
+		if c.ClientID() == clientID {
+			return c, true
+		}
+	}
+	return nil, false
+}
+
 var _ = Schema.Add("OAuthClientConfig", `
 {
 	"type": "object",

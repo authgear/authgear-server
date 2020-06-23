@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"path"
 	"strings"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	coreurl "github.com/skygeario/skygear-server/pkg/core/url"
 )
@@ -16,6 +18,7 @@ type EndpointsProvider interface {
 	LogoutEndpointURL() *url.URL
 	SettingsEndpointURL() *url.URL
 	ResetPasswordEndpointURL() *url.URL
+	SSOCallbackEndpointURL() *url.URL
 }
 
 type AnonymousFlow interface {
@@ -110,4 +113,9 @@ func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, login
 	default:
 		return fmt.Errorf("unsupported login hint type: %s", query.Get("type"))
 	}
+}
+func (p *URLProvider) SSOCallbackURL(c config.OAuthSSOProviderConfig) *url.URL {
+	u := p.Endpoints.SSOCallbackEndpointURL()
+	u.Path = path.Join(u.Path, url.PathEscape(c.Alias))
+	return u
 }

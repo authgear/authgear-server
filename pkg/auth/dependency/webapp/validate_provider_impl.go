@@ -3,7 +3,7 @@ package webapp
 import (
 	"net/url"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
@@ -174,9 +174,9 @@ const RemoveLoginIDRequestSchema = `
 `
 
 type ValidateProviderImpl struct {
-	Validator                       *validation.Validator
-	LoginIDConfiguration            *config.LoginIDConfiguration
-	CountryCallingCodeConfiguration *config.AuthUICountryCallingCodeConfiguration
+	Validator *validation.Validator
+	LoginID   *config.LoginIDConfig
+	UI        *config.UIConfig
 }
 
 var _ ValidateProvider = &ValidateProviderImpl{}
@@ -200,10 +200,10 @@ func (p *ValidateProviderImpl) PrepareValues(form url.Values) {
 
 	// Set x_login_id_input_type to the type of the first login ID.
 	if _, ok := form["x_login_id_input_type"]; !ok {
-		if len(p.LoginIDConfiguration.Keys) > 0 {
-			if string(p.LoginIDConfiguration.Keys[0].Type) == "phone" {
+		if len(p.LoginID.Keys) > 0 {
+			if string(p.LoginID.Keys[0].Type) == "phone" {
 				form.Set("x_login_id_input_type", "phone")
-			} else if string(p.LoginIDConfiguration.Keys[0].Type) == "email" {
+			} else if string(p.LoginID.Keys[0].Type) == "email" {
 				form.Set("x_login_id_input_type", "email")
 			} else {
 				form.Set("x_login_id_input_type", "text")
@@ -213,13 +213,13 @@ func (p *ValidateProviderImpl) PrepareValues(form url.Values) {
 
 	// Set x_login_id_key to the key of the first login ID.
 	if _, ok := form["x_login_id_key"]; !ok {
-		if len(p.LoginIDConfiguration.Keys) > 0 {
-			form.Set("x_login_id_key", p.LoginIDConfiguration.Keys[0].Key)
+		if len(p.LoginID.Keys) > 0 {
+			form.Set("x_login_id_key", p.LoginID.Keys[0].Key)
 		}
 	}
 
 	if _, ok := form["x_calling_code"]; !ok {
-		form.Set("x_calling_code", p.CountryCallingCodeConfiguration.Default)
+		form.Set("x_calling_code", p.UI.CountryCallingCode.Default)
 	}
 }
 

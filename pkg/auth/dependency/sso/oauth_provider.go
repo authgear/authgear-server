@@ -43,7 +43,7 @@ type OAuthProviderFactory struct {
 	Endpoints                EndpointsProvider
 	IdentityConfig           *config.IdentityConfig
 	Credentials              *config.OAuthClientCredentials
-	RedirectURIFunc          RedirectURLFunc
+	RedirectURL              RedirectURLProvider
 	Clock                    clock.Clock
 	UserInfoDecoder          UserInfoDecoder
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
@@ -62,42 +62,35 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	switch providerConfig.Type {
 	case config.OAuthSSOProviderTypeGoogle:
 		return &GoogleImpl{
-			URLPrefix:                p.Endpoints.BaseURL(),
-			RedirectURLFunc:          p.RedirectURIFunc,
+			RedirectURL:              p.RedirectURL,
 			ProviderConfig:           *providerConfig,
 			Credentials:              *credentials,
-			Clock:                    p.Clock,
 			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
 	case config.OAuthSSOProviderTypeFacebook:
 		return &FacebookImpl{
-			URLPrefix:       p.Endpoints.BaseURL(),
-			RedirectURLFunc: p.RedirectURIFunc,
+			RedirectURL:     p.RedirectURL,
 			ProviderConfig:  *providerConfig,
 			Credentials:     *credentials,
 			UserInfoDecoder: p.UserInfoDecoder,
 		}
 	case config.OAuthSSOProviderTypeLinkedIn:
 		return &LinkedInImpl{
-			URLPrefix:       p.Endpoints.BaseURL(),
-			RedirectURLFunc: p.RedirectURIFunc,
+			RedirectURL:     p.RedirectURL,
 			ProviderConfig:  *providerConfig,
 			Credentials:     *credentials,
 			UserInfoDecoder: p.UserInfoDecoder,
 		}
 	case config.OAuthSSOProviderTypeAzureADv2:
 		return &Azureadv2Impl{
-			URLPrefix:                p.Endpoints.BaseURL(),
-			RedirectURLFunc:          p.RedirectURIFunc,
+			RedirectURL:              p.RedirectURL,
 			ProviderConfig:           *providerConfig,
 			Credentials:              *credentials,
-			Clock:                    p.Clock,
 			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
 	case config.OAuthSSOProviderTypeApple:
 		return &AppleImpl{
-			URLPrefix:                p.Endpoints.BaseURL(),
-			RedirectURLFunc:          p.RedirectURIFunc,
+			RedirectURL:              p.RedirectURL,
 			ProviderConfig:           *providerConfig,
 			Credentials:              *credentials,
 			Clock:                    p.Clock,

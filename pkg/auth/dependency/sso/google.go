@@ -2,10 +2,8 @@ package sso
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/clock"
 )
 
 const (
@@ -13,11 +11,9 @@ const (
 )
 
 type GoogleImpl struct {
-	URLPrefix                *url.URL
-	RedirectURLFunc          RedirectURLFunc
+	RedirectURL              RedirectURLProvider
 	ProviderConfig           config.OAuthSSOProviderConfig
 	Credentials              config.OAuthClientCredentialsItem
-	Clock                    clock.Clock
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
@@ -28,7 +24,7 @@ func (f *GoogleImpl) GetAuthURL(state State, encodedState string) (string, error
 	}
 	return d.MakeOAuthURL(OIDCAuthParams{
 		ProviderConfig: f.ProviderConfig,
-		RedirectURI:    f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
+		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		Nonce:          state.HashedNonce,
 		EncodedState:   encodedState,
 		ExtraParams: map[string]string{
@@ -63,12 +59,10 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 		http.DefaultClient,
 		r.Code,
 		keySet,
-		f.URLPrefix,
 		f.ProviderConfig.ClientID,
 		f.Credentials.ClientSecret,
-		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
+		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		state.HashedNonce,
-		f.Clock.NowUTC,
 		&tokenResp,
 	)
 	if err != nil {

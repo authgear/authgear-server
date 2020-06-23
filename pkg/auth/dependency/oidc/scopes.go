@@ -1,12 +1,12 @@
 package oidc
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-func ValidateScopes(client config.OAuthClientConfiguration, scopes []string) error {
+func ValidateScopes(client config.OAuthClientConfig, scopes []string) error {
 	allowOfflineAccess := false
 	for _, grantType := range client.GrantTypes() {
 		if grantType == "refresh_token" {

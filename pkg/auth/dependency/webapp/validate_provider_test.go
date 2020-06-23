@@ -6,19 +6,21 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
 )
 
 func TestValidateProvider(t *testing.T) {
 	Convey("ValidateProvider", t, func() {
 		Convey("PrepareValues", func() {
-			c := &config.LoginIDConfiguration{}
+			c := &config.LoginIDConfig{}
 			impl := ValidateProviderImpl{
-				LoginIDConfiguration: c,
-				CountryCallingCodeConfiguration: &config.AuthUICountryCallingCodeConfiguration{
-					Values:  []string{"852"},
-					Default: "852",
+				LoginID: c,
+				UI: &config.UIConfig{
+					CountryCallingCode: &config.UICountryCallingCodeConfig{
+						Values:  []string{"852"},
+						Default: "852",
+					},
 				},
 			}
 			var form url.Values
@@ -35,7 +37,7 @@ func TestValidateProvider(t *testing.T) {
 
 			Convey("prefill email if first login id type is email", func() {
 				form = url.Values{}
-				c.Keys = []config.LoginIDKeyConfiguration{
+				c.Keys = []config.LoginIDKeyConfig{
 					{Key: "email", Type: "email"},
 				}
 				impl.PrepareValues(form)
@@ -44,7 +46,7 @@ func TestValidateProvider(t *testing.T) {
 
 			Convey("prefill phone if first login id type is phone", func() {
 				form = url.Values{}
-				c.Keys = []config.LoginIDKeyConfiguration{
+				c.Keys = []config.LoginIDKeyConfig{
 					{Key: "phone", Type: "phone"},
 				}
 				impl.PrepareValues(form)
@@ -53,7 +55,7 @@ func TestValidateProvider(t *testing.T) {
 
 			Convey("prefill text if first login id type is other", func() {
 				form = url.Values{}
-				c.Keys = []config.LoginIDKeyConfiguration{
+				c.Keys = []config.LoginIDKeyConfig{
 					{Key: "username", Type: "username"},
 				}
 				impl.PrepareValues(form)
@@ -64,7 +66,7 @@ func TestValidateProvider(t *testing.T) {
 				form = url.Values{
 					"x_login_id_input_type": []string{"text"},
 				}
-				c.Keys = []config.LoginIDKeyConfiguration{
+				c.Keys = []config.LoginIDKeyConfig{
 					{Key: "phone", Type: "phone"},
 				}
 				impl.PrepareValues(form)

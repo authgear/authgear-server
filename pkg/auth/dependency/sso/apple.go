@@ -2,7 +2,6 @@ package sso
 
 import (
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -21,8 +20,7 @@ var appleOIDCConfig = OIDCDiscoveryDocument{
 }
 
 type AppleImpl struct {
-	URLPrefix                *url.URL
-	RedirectURLFunc          RedirectURLFunc
+	RedirectURL              RedirectURLProvider
 	ProviderConfig           config.OAuthSSOProviderConfig
 	Credentials              config.OAuthClientCredentialsItem
 	Clock                    clock.Clock
@@ -61,7 +59,7 @@ func (f *AppleImpl) Type() config.OAuthSSOProviderType {
 func (f *AppleImpl) GetAuthURL(state State, encodedState string) (string, error) {
 	return appleOIDCConfig.MakeOAuthURL(OIDCAuthParams{
 		ProviderConfig: f.ProviderConfig,
-		RedirectURI:    f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
+		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		Nonce:          state.HashedNonce,
 		EncodedState:   encodedState,
 	}), nil
@@ -89,12 +87,10 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 		http.DefaultClient,
 		r.Code,
 		keySet,
-		f.URLPrefix,
 		f.ProviderConfig.ClientID,
 		clientSecret,
-		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
+		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		state.HashedNonce,
-		f.Clock.NowUTC,
 		&tokenResp,
 	)
 	if err != nil {

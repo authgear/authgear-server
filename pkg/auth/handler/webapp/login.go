@@ -1,14 +1,10 @@
 package webapp
 
 import (
-	"fmt"
 	"net/http"
-	"net/url"
-	"path"
 
 	"github.com/gorilla/mux"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
 )
@@ -22,12 +18,6 @@ func AttachLoginHandler(
 		Path("/login").
 		Methods("OPTIONS", "POST", "GET").
 		Handler(p.Handler(newLoginHandler))
-}
-
-func RedirectURIForWebApp(urlPrefix *url.URL, providerConfig config.OAuthProviderConfiguration) string {
-	u := *urlPrefix
-	u.Path = path.Join(u.Path, fmt.Sprintf("sso/oauth2/callback/%s", url.PathEscape(providerConfig.ID)))
-	return u.String()
 }
 
 type loginProvider interface {

@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/lestrrat-go/jwx/jwk"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
 func AttachJWKSHandler(
@@ -22,36 +21,36 @@ func AttachJWKSHandler(
 		Methods("GET", "OPTIONS")
 }
 
+type JWSSource interface {
+	GetPublicKeySet() (*jwk.Set, error)
+}
+
+type JWKSHandlerLogger struct{ *log.Logger }
+
+func NewJWKSHandlerLogger(lf *log.Factory) JWKSHandlerLogger {
+	return JWKSHandlerLogger{lf.New("handler-jwks")}
+}
+
 type JWKSHandler struct {
-	config config.OIDCConfiguration
+	Logger JWKSHandlerLogger
+	JWKS   JWSSource
 }
 
 func (h *JWKSHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	jwks := jwk.Set{}
-	for _, key := range h.config.Keys {
-		pubKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(key.PublicKey))
-		if err != nil {
-			http.Error(rw, err.Error(), 500)
-			return
-		}
-
-		k, err := jwk.New(pubKey)
-		if err != nil {
-			http.Error(rw, err.Error(), 500)
-			return
-		}
-
-		k.Set(jwk.KeyUsageKey, jwk.ForSignature)
-		k.Set(jwk.AlgorithmKey, "RS256")
-		k.Set(jwk.KeyIDKey, key.KID)
-		jwks.Keys = append(jwks.Keys, k)
+	jwks, err := h.JWKS.GetPublicKeySet()
+	if err != nil {
+		h.Logger.WithError(err).Error("failed to extract public keys")
+		http.Error(rw, "internal server error", 500)
+		return
 	}
 
 	rw.Header().Set("Content-Type", "application/json")
 
 	encoder := json.NewEncoder(rw)
-	err := encoder.Encode(jwks)
+	err = encoder.Encode(jwks)
 	if err != nil {
-		http.Error(rw, err.Error(), 500)
+		h.Logger.WithError(err).Error("failed to encode public keys")
+		http.Error(rw, "internal server error", 500)
+		return
 	}
 }
