@@ -37,7 +37,7 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 		ConfigSource: configSource,
 	}).Handle)
 
-	rootRouter.Use(p.Middleware(nil)) // auth.Middleware
+	rootRouter.Use(p.Middleware(newSessionMiddleware))
 
 	// TODO: move to another port
 	session.ConfigureResolveHandler(rootRouter, nil)

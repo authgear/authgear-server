@@ -9,6 +9,7 @@ import (
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/deps"
@@ -71,5 +72,12 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 	panic(wire.Build(
 		middlewareDependencySet,
 		wire.Bind(new(middleware), new(*webapp.AuthEntryPointMiddleware)),
+	))
+}
+
+func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
+	panic(wire.Build(
+		middlewareDependencySet,
+		wire.Bind(new(middleware), new(*auth.Middleware)),
 	))
 }

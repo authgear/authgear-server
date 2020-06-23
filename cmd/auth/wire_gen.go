@@ -9,10 +9,20 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	redis2 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/provider"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	task2 "github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/clock"
+	"github.com/skygeario/skygear-server/pkg/core/rand"
 	sentry2 "github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
@@ -98,6 +108,130 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 	return middlewareFunc
 }
 
+func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
+	request := p.Request
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	sessionConfig := appConfig.Session
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	context := appProvider.RedisContext
+	appID := appConfig.ID
+	clock := _wireSystemClockValue
+	factory := appProvider.LoggerFactory
+	logger := redis.NewLogger(factory)
+	store := &redis.Store{
+		Redis:  context,
+		AppID:  appID,
+		Clock:  clock,
+		Logger: logger,
+	}
+	eventStore := &redis2.EventStore{
+		Redis: context,
+		AppID: appID,
+	}
+	accessEventProvider := &auth.AccessEventProvider{
+		Store: eventStore,
+	}
+	rand := _wireRandValue
+	sessionProvider := &session.Provider{
+		Request:      request,
+		Store:        store,
+		AccessEvents: accessEventProvider,
+		ServerConfig: serverConfig,
+		Config:       sessionConfig,
+		Clock:        clock,
+		Random:       rand,
+	}
+	resolver := &session.Resolver{
+		Cookie:   cookieDef,
+		Provider: sessionProvider,
+		Config:   serverConfig,
+		Clock:    clock,
+	}
+	authAccessEventProvider := auth.AccessEventProvider{
+		Store: eventStore,
+	}
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	dbContext := appProvider.DbContext
+	sqlExecutor := db.SQLExecutor{
+		Context: dbContext,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	reservedNameChecker := rootProvider.ReservedNameChecker
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:              loginIDConfig,
+		ReservedNameChecker: reservedNameChecker,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	loginidProvider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+	}
+	oauthStore := &oauth.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oauthProvider := &oauth.Provider{
+		Store: oauthStore,
+		Clock: clock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+	}
+	providerProvider := &provider.Provider{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		LoginID:        loginidProvider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+	}
+	queries := &user.Queries{
+		Store:      userStore,
+		Identities: providerProvider,
+	}
+	authMiddleware := &auth.Middleware{
+		IDPSessionResolver:         resolver,
+		AccessTokenSessionResolver: resolver,
+		AccessEvents:               authAccessEventProvider,
+		Users:                      queries,
+		DBContext:                  dbContext,
+	}
+	middlewareFunc := provideMiddlewareFunc(authMiddleware)
+	return middlewareFunc
+}
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+	_wireRandValue        = session.Rand(rand.SecureRand)
+)
+
 // Injectors from wire_task.go:
 
 func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
@@ -105,7 +239,7 @@ func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
 	context := appProvider.DbContext
 	factory := appProvider.LoggerFactory
 	pwHousekeeperLogger := task2.NewPwHousekeeperLogger(factory)
-	clock := _wireSystemClockValue
+	clockClock := _wireSystemClockValue
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -116,7 +250,7 @@ func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
 		Context: context,
 	}
 	historyStore := &password.HistoryStore{
-		Clock:       clock,
+		Clock:       clockClock,
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -135,10 +269,6 @@ func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
 	}
 	return pwHousekeeperTask
 }
-
-var (
-	_wireSystemClockValue = clock.NewSystemClock()
-)
 
 func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	appProvider := p.AppProvider
