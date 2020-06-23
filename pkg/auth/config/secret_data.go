@@ -292,61 +292,42 @@ var _ = SecretConfigSchema.Add("JWS", `
 }
 `)
 
-type JWS struct {
-	Keys       []interface{} `json:"keys"`
-	DecodedSet *jwk.Set      `json:"-"`
-}
-
-func (s *JWS) Decode() (*jwk.Set, error) {
-	if s.DecodedSet != nil {
-		return s.DecodedSet, nil
-	}
-
-	set := &jwk.Set{}
-	err := set.ExtractMap(map[string]interface{}{"keys": s.Keys})
-	if err != nil {
-		return nil, err
-	}
-	s.DecodedSet = set
-	return set, nil
-}
-
 var _ = SecretConfigSchema.Add("JWTKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type JWTKeyMaterials struct {
-	JWS `json:",inline"`
+	jwk.Set `json:",inline"`
 }
 
 func (c *JWTKeyMaterials) SensitiveStrings() []string {
-	return extractJWKSecrets(c.Keys)
+	return nil
 }
 
 var _ = SecretConfigSchema.Add("OIDCKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type OIDCKeyMaterials struct {
-	JWS `json:",inline"`
+	jwk.Set `json:",inline"`
 }
 
 func (c *OIDCKeyMaterials) SensitiveStrings() []string {
-	return extractJWKSecrets(c.Keys)
+	return nil
 }
 
 var _ = SecretConfigSchema.Add("CSRFKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type CSRFKeyMaterials struct {
-	JWS `json:",inline"`
+	jwk.Set `json:",inline"`
 }
 
 func (c *CSRFKeyMaterials) SensitiveStrings() []string {
-	return extractJWKSecrets(c.Keys)
+	return nil
 }
 
 var _ = SecretConfigSchema.Add("WebhookKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type WebhookKeyMaterials struct {
-	JWS `json:",inline"`
+	jwk.Set `json:",inline"`
 }
 
 func (c *WebhookKeyMaterials) SensitiveStrings() []string {
-	return extractJWKSecrets(c.Keys)
+	return nil
 }

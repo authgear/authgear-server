@@ -1,6 +1,7 @@
 package anonymous
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -71,15 +72,19 @@ func (p *Provider) ParseRequest(requestJWT string) (*Identity, *Request, error) 
 	keyFunc := func(token *jwt.Token) (interface{}, error) {
 		// Provided key material has higher priority than key ID
 		if jwkMap, ok := token.Header["jwk"].(map[string]interface{}); ok {
-			keySet := &jwk.Set{}
-			if err := keySet.ExtractMap(map[string]interface{}{
-				"keys": []interface{}{jwkMap},
-			}); err != nil {
+			var err error
+
+			jwkBytes, err := json.Marshal(jwkMap)
+			if err != nil {
 				return nil, fmt.Errorf("invalid JWK: %w", err)
 			}
+			keySet, err := jwk.ParseBytes(jwkBytes)
+			if err != nil {
+				return nil, fmt.Errorf("invalid JWK: %w", err)
+			}
+
 			key = keySet.Keys[0]
 
-			var err error
 			iden, err = p.Store.GetByKeyID(key.KeyID())
 			if err != nil && !errors.Is(err, identity.ErrIdentityNotFound) {
 				return nil, err
@@ -89,7 +94,13 @@ func (p *Provider) ParseRequest(requestJWT string) (*Identity, *Request, error) 
 				}
 			}
 
-			return key.Materialize()
+			var ptrKey interface{}
+			err = key.Raw(&ptrKey)
+			if err != nil {
+				return nil, fmt.Errorf("failed to extract key: %w", err)
+			}
+
+			return ptrKey, nil
 		}
 		if kid, ok := token.Header["kid"].(string); ok {
 			var err error
@@ -101,7 +112,14 @@ func (p *Provider) ParseRequest(requestJWT string) (*Identity, *Request, error) 
 			if key, err = iden.toJWK(); err != nil {
 				return nil, fmt.Errorf("invalid JWK: %w", err)
 			}
-			return key.Materialize()
+
+			var ptrKey interface{}
+			err = key.Raw(&ptrKey)
+			if err != nil {
+				return nil, fmt.Errorf("failed to extract key: %w", err)
+			}
+
+			return ptrKey, nil
 		}
 
 		return nil, errors.New("no key provided")

@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/h2non/gock"
+	"github.com/lestrrat-go/jwx/jwk"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
@@ -26,13 +27,12 @@ func TestDeliverer(t *testing.T) {
 			SyncTimeout:      5,
 			SyncTotalTimeout: 10,
 		}
+		key, err := jwk.New([]byte("aG9vay1zZWNyZXQ"))
+		So(err, ShouldBeNil)
 		secret := &config.WebhookKeyMaterials{
-			JWS: config.JWS{Keys: []interface{}{
-				map[string]interface{}{
-					"kty": "oct",
-					"k":   "aG9vay1zZWNyZXQ",
-				},
-			}},
+			Set: jwk.Set{
+				Keys: []jwk.Key{key},
+			},
 		}
 
 		clock := clock.NewMockClockAt("2006-01-02T15:04:05Z")

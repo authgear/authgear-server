@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/samesite"
 	"github.com/skygeario/skygear-server/pkg/httputil"
+	"github.com/skygeario/skygear-server/pkg/jwkutil"
 )
 
 type CSRFMiddleware struct {
@@ -38,11 +39,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 			options = append(options, csrf.SameSite(0))
 		}
 
-		keys, err := m.Secret.Decode()
-		if err != nil {
-			panic("webapp: invalid CSRF key materials")
-		}
-		key, err := config.ExtractOctetKey(keys, "")
+		key, err := jwkutil.ExtractOctetKey(&m.Secret.Set, "")
 		if err != nil {
 			panic("webapp: CSRF key not found")
 		}

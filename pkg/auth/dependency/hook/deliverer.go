@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
+	"github.com/skygeario/skygear-server/pkg/jwkutil"
 )
 
 //go:generate mockgen -source=deliverer.go -destination=deliverer_mock_test.go -mock_names mutatorFactory=MockMutatorFactory -package hook
@@ -122,11 +123,7 @@ func (deliverer *Deliverer) prepareRequest(hook config.HookHandlerConfig, event 
 		return nil, newErrorDeliveryFailed(err)
 	}
 
-	keys, err := deliverer.Secret.Decode()
-	if err != nil {
-		panic("hook: invalid web-hook key materials")
-	}
-	key, err := config.ExtractOctetKey(keys, "")
+	key, err := jwkutil.ExtractOctetKey(&deliverer.Secret.Set, "")
 	if err != nil {
 		panic("hook: web-hook key not found")
 	}

@@ -27,7 +27,7 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/kelseyhightower/envconfig v1.3.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/lestrrat-go/jwx v0.9.0
+	github.com/lestrrat-go/jwx v1.0.2
 	github.com/lib/pq v1.3.0
 	github.com/mattn/go-sqlite3 v1.12.0 // indirect
 	github.com/mitchellh/gox v1.0.1
@@ -48,11 +48,10 @@ require (
 	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
-	golang.org/x/mod v0.2.0 // indirect
-	golang.org/x/net v0.0.0-20200222125558-5a598a2470a0
+	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
 	golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae // indirect
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20200224181240-023911ca70b2
+	golang.org/x/tools v0.0.0-20200417140056-c07e33ef3290
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect

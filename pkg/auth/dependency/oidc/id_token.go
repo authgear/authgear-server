@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
+	"github.com/skygeario/skygear-server/pkg/jwkutil"
 )
 
 type UserProvider interface {
@@ -38,29 +39,7 @@ type IDTokenIssuer struct {
 const IDTokenValidDuration = 5 * time.Minute
 
 func (ti *IDTokenIssuer) GetPublicKeySet() (*jwk.Set, error) {
-	keys, err := ti.Secrets.Decode()
-	if err != nil {
-		return nil, err
-	}
-
-	jwks := &jwk.Set{}
-	for _, key := range keys.Keys {
-		k, err := key.Materialize()
-		if err != nil {
-			return nil, err
-		}
-		k, err = jwk.GetPublicKey(k)
-		if err != nil {
-			return nil, err
-		}
-		key, err = jwk.New(k)
-		if err != nil {
-			return nil, err
-		}
-
-		jwks.Keys = append(jwks.Keys, key)
-	}
-	return jwks, nil
+	return jwkutil.PublicKeySet(&ti.Secrets.Set)
 }
 
 func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, session auth.AuthSession, nonce string) (string, error) {
@@ -79,13 +58,9 @@ func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, session a
 		Nonce:      nonce,
 	}
 
-	keys, err := ti.Secrets.Decode()
-	if err != nil {
-		panic("oidc: invalid key materials: " + err.Error())
-	}
-
-	jwk := keys.Keys[0]
-	key, err := jwk.Materialize()
+	jwk := ti.Secrets.Set.Keys[0]
+	var key interface{}
+	err = jwk.Raw(&key)
 	if err != nil {
 		return "", err
 	}

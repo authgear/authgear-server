@@ -72,17 +72,6 @@ func TestLogHooks(t *testing.T) {
 						DatabaseSchema: "public",
 					},
 				},
-				{
-					Key: config.JWTKeyMaterialsKey,
-					Data: &config.JWTKeyMaterials{
-						JWS: config.JWS{Keys: []interface{}{
-							map[string]interface{}{
-								"kty": "oct",
-								"k":   "1ujPpaY7OlzEvLVFPlpG-A",
-							},
-						}},
-					},
-				},
 			},
 		})
 		Convey("should mask secret values", func() {
@@ -91,7 +80,6 @@ func TestLogHooks(t *testing.T) {
 				Level:   logrus.ErrorLevel,
 				Data: logrus.Fields{
 					"err": "cannot connect to postgres://user:password@localhost:5432",
-					"key": `{"kty": "oct", "l": "1ujPpaY7OlzEvLVFPlpG-A"}`,
 				},
 			}
 			err := h.Fire(e)
@@ -102,7 +90,6 @@ func TestLogHooks(t *testing.T) {
 				Level:   logrus.ErrorLevel,
 				Data: logrus.Fields{
 					"err": "cannot connect to ********",
-					"key": `{"kty": "oct", "l": "********"}`,
 				},
 			})
 		})

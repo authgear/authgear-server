@@ -6,6 +6,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/skygeario/skygear-server/pkg/jwkutil"
 )
 
 type stateClaims struct {
@@ -44,11 +45,7 @@ func (s *StateCodec) EncodeState(state State) (out string, err error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	keys, err := s.Credentials.Decode()
-	if err != nil {
-		return
-	}
-	key, err := config.ExtractOctetKey(keys, "")
+	key, err := jwkutil.ExtractOctetKey(&s.Credentials.Set, "")
 	if err != nil {
 		return
 	}
@@ -68,11 +65,7 @@ func (s *StateCodec) DecodeState(encodedState string) (*State, error) {
 			return nil, errors.New("unexpected JWT alg")
 		}
 
-		keys, err := s.Credentials.Decode()
-		if err != nil {
-			return nil, err
-		}
-		key, err := config.ExtractOctetKey(keys, "")
+		key, err := jwkutil.ExtractOctetKey(&s.Credentials.Set, "")
 		if err != nil {
 			return nil, err
 		}

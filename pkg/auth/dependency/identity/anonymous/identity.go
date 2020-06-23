@@ -1,8 +1,6 @@
 package anonymous
 
 import (
-	"encoding/json"
-	"fmt"
 	"regexp"
 
 	"github.com/lestrrat-go/jwx/jwk"
@@ -18,13 +16,5 @@ type Identity struct {
 }
 
 func (i *Identity) toJWK() (jwk.Key, error) {
-	key := &jwk.RSAPublicKey{}
-	var jwkMap map[string]interface{}
-	if err := json.Unmarshal(i.Key, &jwkMap); err != nil {
-		return nil, fmt.Errorf("invalid JWK: %w", err)
-	}
-	if err := key.ExtractMap(jwkMap); err != nil {
-		return nil, fmt.Errorf("invalid JWK: %w", err)
-	}
-	return key, nil
+	return jwk.ParseKey(i.Key)
 }

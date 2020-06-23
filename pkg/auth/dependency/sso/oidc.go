@@ -122,7 +122,13 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 			return nil, NewSSOFailed(SSOUnauthorized, "no kid")
 		}
 		if key := jwks.LookupKeyID(keyID); len(key) == 1 {
-			return key[0].Materialize()
+			var ptrKey interface{}
+			err = key[0].Raw(&ptrKey)
+			if err != nil {
+				return nil, NewSSOFailed(SSOUnauthorized, "failed to extract key")
+			}
+
+			return ptrKey, nil
 		}
 		return nil, NewSSOFailed(SSOUnauthorized, "failed to find signing key")
 	}
