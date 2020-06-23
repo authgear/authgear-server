@@ -30,6 +30,7 @@ func (f *LinkedInImpl) GetAuthURL(state State, encodedState string) (string, err
 	p := authURLParams{
 		redirectURI:  f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		clientID:     f.ProviderConfig.ClientID,
+		scope:        f.ProviderConfig.Type.Scope(),
 		encodedState: encodedState,
 		baseURL:      linkedinAuthorizationURL,
 	}
