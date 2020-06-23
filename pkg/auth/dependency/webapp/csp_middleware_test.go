@@ -17,6 +17,7 @@ func TestCSPMiddleware(t *testing.T) {
 		h := middleware.Handle(dummy)
 
 		Convey("no clients", func() {
+			middleware.Config = &config.OAuthConfig{}
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest("GET", "/", nil)
 			h.ServeHTTP(w, r)
@@ -25,12 +26,12 @@ func TestCSPMiddleware(t *testing.T) {
 		})
 
 		Convey("one client", func() {
-			middleware.Clients = []config.OAuthClientConfig{
-				config.OAuthClientConfig{
+			middleware.Config = &config.OAuthConfig{
+				Clients: []config.OAuthClientConfig{{
 					"redirect_uris": []interface{}{
 						"https://example.com/path?q=1",
 					},
-				},
+				}},
 			}
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest("GET", "/", nil)
@@ -40,15 +41,17 @@ func TestCSPMiddleware(t *testing.T) {
 		})
 
 		Convey("more than one clients", func() {
-			middleware.Clients = []config.OAuthClientConfig{
-				config.OAuthClientConfig{
-					"redirect_uris": []interface{}{
-						"https://example.com/path?q=1",
+			middleware.Config = &config.OAuthConfig{
+				Clients: []config.OAuthClientConfig{
+					{
+						"redirect_uris": []interface{}{
+							"https://example.com/path?q=1",
+						},
 					},
-				},
-				config.OAuthClientConfig{
-					"redirect_uris": []interface{}{
-						"https://app.com/path?q=1",
+					{
+						"redirect_uris": []interface{}{
+							"https://app.com/path?q=1",
+						},
 					},
 				},
 			}
@@ -60,14 +63,14 @@ func TestCSPMiddleware(t *testing.T) {
 		})
 
 		Convey("include https redirect URIs", func() {
-			middleware.Clients = []config.OAuthClientConfig{
-				config.OAuthClientConfig{
+			middleware.Config = &config.OAuthConfig{
+				Clients: []config.OAuthClientConfig{{
 					"redirect_uris": []interface{}{
 						"https://example.com/path?q=1",
 						"http://example.com/path?q=1",
 						"com.example://host/path",
 					},
-				},
+				}},
 			}
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest("GET", "/", nil)
@@ -77,8 +80,8 @@ func TestCSPMiddleware(t *testing.T) {
 		})
 
 		Convey("include http redirect URIs if host is localhost", func() {
-			middleware.Clients = []config.OAuthClientConfig{
-				config.OAuthClientConfig{
+			middleware.Config = &config.OAuthConfig{
+				Clients: []config.OAuthClientConfig{{
 					"redirect_uris": []interface{}{
 						"http://127.0.0.1/path?q=1",
 						"http://127.0.0.1:8080/path?q=1",
@@ -93,7 +96,7 @@ func TestCSPMiddleware(t *testing.T) {
 						"http://192.168.1.1/path?q=1",
 						"http://skygearlocalhost/path?q=1",
 					},
-				},
+				}},
 			}
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest("GET", "/", nil)

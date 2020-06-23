@@ -10,14 +10,15 @@ import (
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	webapphandler "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
+	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
 func NewRouter(p *deps.RootProvider) *mux.Router {
 	rootRouter := mux.NewRouter()
-	rootRouter.Use(p.Middleware(nil)) // sentry.Middleware
-	rootRouter.Use(p.Middleware(nil)) // middlewares.RecoverMiddleware
+	rootRouter.Use(p.Middleware(newSentryMiddlewareFactory(sentry.DefaultClient.Hub)))
+	rootRouter.Use(p.Middleware(newRecoverMiddleware))
 	return rootRouter
 }
 
@@ -42,7 +43,7 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 	session.ConfigureResolveHandler(rootRouter, nil)
 
 	oauthRouter = rootRouter.NewRoute().Subrouter()
-	oauthRouter.Use(p.Middleware(nil)) // middlewares.CORSMiddleware
+	oauthRouter.Use(p.Middleware(newCORSMiddleware))
 
 	webappRouter = rootRouter.NewRoute().Subrouter()
 	// When StrictSlash is true, the path in the browser URL always matches
@@ -53,14 +54,14 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 	// the effect is that trailing slash is corrected with HTTP 301 by mux.
 	webappRouter.StrictSlash(true)
 	webappRouter.Use(webapp.IntlMiddleware)
-	webappRouter.Use(p.Middleware(nil)) // webapp.CSPMiddleware
-	webappRouter.Use(p.Middleware(nil)) // webapp.CSRFMiddleware
+	webappRouter.Use(p.Middleware(newCSPMiddleware))
+	webappRouter.Use(p.Middleware(newCSRFMiddleware))
 	webappRouter.Use(webapp.PostNoCacheMiddleware)
 	webappRouter.Use(p.Middleware(nil)) // webapp.StateMiddleware
 
 	webappAuthRouter := webappRouter.NewRoute().Subrouter()
 	webappAuthEntryPointRouter := webappAuthRouter.NewRoute().Subrouter()
-	webappAuthEntryPointRouter.Use(p.Middleware(nil)) // webapp.AuthEntryPointMiddleware
+	webappAuthEntryPointRouter.Use(p.Middleware(newAuthEntryPointMiddleware))
 	webapphandler.ConfigureRootHandler(webappAuthEntryPointRouter, nil)
 	webapphandler.ConfigureLoginHandler(webappAuthEntryPointRouter, nil)
 	webapphandler.ConfigureSignupHandler(webappAuthEntryPointRouter, nil)

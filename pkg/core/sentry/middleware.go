@@ -7,18 +7,22 @@ import (
 
 	"github.com/getsentry/sentry-go"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
-func Middleware(hub *sentry.Hub) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			hub := hub.Clone()
-			hub.Scope().SetRequest(MakeMinimalSentryRequest(r))
-			r = r.WithContext(sentry.SetHubOnContext(r.Context(), hub))
-			next.ServeHTTP(w, r)
-		})
-	}
+type Middleware struct {
+	Hub          *sentry.Hub
+	ServerConfig *config.ServerConfig
+}
+
+func (m *Middleware) Handle(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hub := m.Hub.Clone()
+		hub.Scope().SetRequest(MakeMinimalSentryRequest(r, m.ServerConfig))
+		r = r.WithContext(sentry.SetHubOnContext(r.Context(), hub))
+		next.ServeHTTP(w, r)
+	})
 }
 
 var HeaderWhiteList = []string{
@@ -29,13 +33,12 @@ var HeaderWhiteList = []string{
 	"Forwarded",
 }
 
-func MakeMinimalSentryRequest(r *http.Request) (req sentry.Request) {
+func MakeMinimalSentryRequest(r *http.Request, serverCfg *config.ServerConfig) (req sentry.Request) {
 	req.Method = r.Method
 
 	url := url.URL{}
-	// TODO: use ServerConfig
-	url.Scheme = httputil.GetProto(r, true)
-	url.Host = httputil.GetHost(r, true)
+	url.Scheme = httputil.GetProto(r, serverCfg.TrustProxy)
+	url.Host = httputil.GetHost(r, serverCfg.TrustProxy)
 	url.Path = r.URL.Path
 	req.URL = url.String()
 

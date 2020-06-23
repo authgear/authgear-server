@@ -20,22 +20,19 @@ var appRootDeps = wire.NewSet(
 	),
 )
 
-var commonDeps = wire.NewSet(
-	configDeps,
-)
-
 var RequestDependencySet = wire.NewSet(
 	appRootDeps,
 	wire.FieldsOf(new(*RequestProvider),
 		"AppProvider",
 		"Request",
 	),
-	commonDeps,
+	requestDeps,
 )
 
 var TaskDependencySet = wire.NewSet(
+	appRootDeps,
 	wire.FieldsOf(new(*TaskProvider),
 		"AppProvider",
 	),
-	commonDeps,
+	taskDeps,
 )
