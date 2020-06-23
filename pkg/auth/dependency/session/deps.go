@@ -1,44 +1,18 @@
 package session
 
 import (
-	"net/http"
-
 	"github.com/google/wire"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
 )
 
-type InsecureCookieConfig bool
-
-func ProvideSessionCookieConfiguration(
-	r *http.Request,
-	icc InsecureCookieConfig,
-	c *config.TenantConfiguration,
-) CookieDef {
-	return NewSessionCookieDef(r, bool(icc), *c.AppConfig.Session)
-}
-
-func ProvideSessionProvider(req *http.Request, s Store, aep *auth.AccessEventProvider, c *config.TenantConfiguration) Provider {
-	return NewProvider(req, s, aep, *c.AppConfig.Session)
-}
-
-func ProvideSessionManager(s Store, tp clock.Clock, c *config.TenantConfiguration, cc CookieDef) *Manager {
-	return &Manager{
-		Store:     s,
-		Clock:     tp,
-		Config:    *c.AppConfig.Session,
-		CookieDef: cc,
-	}
-}
-
 var DependencySet = wire.NewSet(
-	ProvideSessionCookieConfiguration,
-	ProvideSessionProvider,
-	wire.Bind(new(ResolverProvider), new(Provider)),
+	NewSessionCookieDef,
+	wire.Value(Rand(corerand.SecureRand)),
+	wire.Struct(new(Provider), "*"),
 	wire.Struct(new(Resolver), "*"),
 	wire.Bind(new(auth.IDPSessionResolver), new(*Resolver)),
-	ProvideSessionManager,
+	wire.Struct(new(Manager), "*"),
 	wire.Bind(new(auth.IDPSessionManager), new(*Manager)),
 )

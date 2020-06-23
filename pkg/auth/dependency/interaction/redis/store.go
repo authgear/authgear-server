@@ -1,20 +1,20 @@
 package redis
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	redigo "github.com/gomodule/redigo/redis"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/redis"
+	"github.com/skygeario/skygear-server/pkg/redis"
 )
 
-func interactionKey(appID, token string) string {
+func interactionKey(appID config.AppID, token string) string {
 	return fmt.Sprintf("%s:interaction:%s", appID, token)
 }
 
@@ -23,9 +23,9 @@ func toMilliseconds(d time.Duration) int64 {
 }
 
 type Store struct {
-	Context context.Context
-	AppID   string
-	Clock   clock.Clock
+	Redis *redis.Context
+	AppID config.AppID
+	Clock clock.Clock
 }
 
 func (s *Store) Create(i *interaction.Interaction) error {
@@ -34,7 +34,7 @@ func (s *Store) Create(i *interaction.Interaction) error {
 		return err
 	}
 
-	conn := redis.GetConn(s.Context)
+	conn := s.Redis.Conn()
 	ttl := i.ExpireAt.Sub(s.Clock.NowUTC())
 	key := interactionKey(s.AppID, i.Token)
 
@@ -49,7 +49,7 @@ func (s *Store) Create(i *interaction.Interaction) error {
 }
 
 func (s *Store) Get(token string) (*interaction.Interaction, error) {
-	conn := redis.GetConn(s.Context)
+	conn := s.Redis.Conn()
 	key := interactionKey(s.AppID, token)
 	data, err := redigo.Bytes(conn.Do("GET", key))
 	if errors.Is(err, redigo.ErrNil) {
@@ -73,7 +73,7 @@ func (s *Store) Update(i *interaction.Interaction) error {
 		return err
 	}
 
-	conn := redis.GetConn(s.Context)
+	conn := s.Redis.Conn()
 	ttl := i.ExpireAt.Sub(s.Clock.NowUTC())
 	key := interactionKey(s.AppID, i.Token)
 
@@ -88,7 +88,7 @@ func (s *Store) Update(i *interaction.Interaction) error {
 }
 
 func (s *Store) Delete(i *interaction.Interaction) error {
-	conn := redis.GetConn(s.Context)
+	conn := s.Redis.Conn()
 	key := interactionKey(s.AppID, i.Token)
 
 	_, err := conn.Do("DEL", key)

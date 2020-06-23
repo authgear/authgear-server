@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/golang/mock/gomock"
+
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -22,7 +24,10 @@ func (*mockAccessEventProvider) InitStream(s auth.AuthSession) error {
 
 func TestProvider(t *testing.T) {
 	Convey("Provider", t, func() {
-		store := NewMockStore()
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		store := NewMockStore(ctrl)
 
 		clock := clock.NewMockClockAt("2020-01-01T00:00:00Z")
 		initialTime := clock.Time
@@ -38,17 +43,20 @@ func TestProvider(t *testing.T) {
 			},
 		}
 
-		provider := &ProviderImpl{
-			req:          req,
-			store:        store,
-			accessEvents: &mockAccessEventProvider{},
-			config:       config.SessionConfiguration{},
-			clock:        clock,
-			rand:         rand.New(rand.NewSource(0)),
+		provider := &Provider{
+			Request:      req,
+			Store:        store,
+			AccessEvents: &mockAccessEventProvider{},
+			ServerConfig: &config.ServerConfig{},
+			Config:       &config.SessionConfig{},
+			Clock:        clock,
+			Random:       rand.New(rand.NewSource(0)),
 		}
 
 		Convey("creating session", func() {
 			Convey("should be successful", func() {
+				store.EXPECT().Create(gomock.Any(), initialTime).Return(nil)
+
 				session, token := provider.MakeSession(&authn.Attrs{
 					UserID: "user-id",
 				})
@@ -80,7 +88,12 @@ func TestProvider(t *testing.T) {
 				CreatedAt: initialTime,
 				TokenHash: "15be5b9c05673532b445d3295a86afd6b2615775e0233e9798cbe3c846a08d05",
 			}
-			store.Sessions[fixtureSession.ID] = fixtureSession
+			store.EXPECT().Get(gomock.Any()).DoAndReturn(func(id string) (*IDPSession, error) {
+				if id == fixtureSession.ID {
+					return &fixtureSession, nil
+				}
+				return nil, ErrSessionNotFound
+			})
 
 			Convey("should be successful using session token", func() {
 				session, err := provider.GetByToken("session-id.token")

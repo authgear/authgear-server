@@ -7,6 +7,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
@@ -61,6 +62,7 @@ func TestResolver(t *testing.T) {
 		resolver := Resolver{
 			Cookie:   cookie,
 			Provider: provider,
+			Config:   &config.ServerConfig{TrustProxy: true},
 			Clock:    clock.NewMockClock(),
 		}
 

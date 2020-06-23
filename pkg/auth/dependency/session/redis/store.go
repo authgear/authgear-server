@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"context"
 	"encoding/json"
 	"sort"
 	"time"
@@ -9,18 +8,23 @@ import (
 	goredis "github.com/gomodule/redigo/redis"
 	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/redis"
 	"github.com/skygeario/skygear-server/pkg/log"
+	"github.com/skygeario/skygear-server/pkg/redis"
 )
 
+type Logger struct{ *log.Logger }
+
+func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("redis-session-store")} }
+
 type Store struct {
-	Ctx    context.Context
-	AppID  string
+	Redis  *redis.Context
+	AppID  config.AppID
 	Clock  clock.Clock
-	Logger *log.Logger
+	Logger Logger
 }
 
 var _ session.Store = &Store{}
@@ -35,7 +39,7 @@ func (s *Store) Create(sess *session.IDPSession, expireAt time.Time) (err error)
 		return
 	}
 
-	conn := redis.GetConn(s.Ctx)
+	conn := s.Redis.Conn()
 	ttl := expireAt.Sub(s.Clock.NowUTC())
 	listKey := sessionListKey(s.AppID, sess.Attrs.UserID)
 	key := sessionKey(s.AppID, sess.ID)
@@ -65,7 +69,7 @@ func (s *Store) Update(sess *session.IDPSession, expireAt time.Time) (err error)
 		return
 	}
 
-	conn := redis.GetConn(s.Ctx)
+	conn := s.Redis.Conn()
 	ttl := expireAt.Sub(s.Clock.NowUTC())
 	listKey := sessionListKey(s.AppID, sess.Attrs.UserID)
 	key := sessionKey(s.AppID, sess.ID)
@@ -84,7 +88,7 @@ func (s *Store) Update(sess *session.IDPSession, expireAt time.Time) (err error)
 }
 
 func (s *Store) Get(id string) (sess *session.IDPSession, err error) {
-	conn := redis.GetConn(s.Ctx)
+	conn := s.Redis.Conn()
 	key := sessionKey(s.AppID, id)
 	data, err := goredis.Bytes(conn.Do("GET", key))
 	if errors.Is(err, goredis.ErrNil) {
@@ -98,7 +102,7 @@ func (s *Store) Get(id string) (sess *session.IDPSession, err error) {
 }
 
 func (s *Store) Delete(session *session.IDPSession) (err error) {
-	conn := redis.GetConn(s.Ctx)
+	conn := s.Redis.Conn()
 	key := sessionKey(s.AppID, session.ID)
 	listKey := sessionListKey(s.AppID, session.Attrs.UserID)
 
@@ -119,7 +123,7 @@ func (s *Store) Delete(session *session.IDPSession) (err error) {
 
 func (s *Store) List(userID string) (sessions []*session.IDPSession, err error) {
 	now := s.Clock.NowUTC()
-	conn := redis.GetConn(s.Ctx)
+	conn := s.Redis.Conn()
 	listKey := sessionListKey(s.AppID, userID)
 
 	sessionList, err := goredis.StringMap(conn.Do("HGETALL", listKey))

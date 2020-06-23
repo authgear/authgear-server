@@ -1,9 +1,9 @@
 package session
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/httputil"
 )
@@ -11,7 +11,7 @@ import (
 type Manager struct {
 	Store     Store
 	Clock     clock.Clock
-	Config    config.SessionConfiguration
+	Config    *config.SessionConfig
 	CookieDef CookieDef
 }
 

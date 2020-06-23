@@ -52,8 +52,8 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 
 		CreatedAt:        g.CreatedAt,
 		LastAccessedAt:   g.AccessInfo.LastAccess.Timestamp,
-		CreatedByIP:      g.AccessInfo.InitialAccess.Remote.IP(),
-		LastAccessedByIP: g.AccessInfo.LastAccess.Remote.IP(),
+		CreatedByIP:      g.AccessInfo.InitialAccess.RemoteIP,
+		LastAccessedByIP: g.AccessInfo.LastAccess.RemoteIP,
 		UserAgent:        ua,
 	}
 }

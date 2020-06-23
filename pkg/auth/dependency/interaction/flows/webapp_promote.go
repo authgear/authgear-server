@@ -1,13 +1,13 @@
 package flows
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
@@ -29,7 +29,7 @@ func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID strin
 		},
 	}
 
-	if f.ConflictConfig.Promotion == config.PromotionConflictBehaviorLogin {
+	if f.Config.OnConflict.Promotion == config.PromotionConflictBehaviorLogin {
 		_, _, err = f.Identities.GetByClaims(authn.IdentityTypeLoginID, iden.Claims)
 		if errors.Is(err, identity.ErrIdentityNotFound) {
 			i, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
@@ -88,7 +88,7 @@ func (f *WebAppFlow) PromoteWithOAuthProvider(userID string, oauthAuthInfo sso.A
 	var err error
 
 	var i *interaction.Interaction
-	if f.ConflictConfig.Promotion == config.PromotionConflictBehaviorLogin {
+	if f.Config.OnConflict.Promotion == config.PromotionConflictBehaviorLogin {
 		_, _, err = f.Identities.GetByClaims(authn.IdentityTypeOAuth, iden.Claims)
 		if errors.Is(err, identity.ErrIdentityNotFound) {
 			i, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{

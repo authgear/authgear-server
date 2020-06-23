@@ -3,6 +3,7 @@ package interaction
 import (
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
@@ -10,7 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
@@ -88,6 +88,12 @@ type HookProvider interface {
 	DispatchEvent(payload event.Payload, user *model.User) error
 }
 
+type Logger struct{ *log.Logger }
+
+func NewLogger(lf *log.Factory) Logger {
+	return Logger{lf.New("interaction")}
+}
+
 // TODO(interaction): configurable lifetime
 const interactionIdleTimeout = 5 * time.Minute
 
@@ -109,13 +115,13 @@ const interactionIdleTimeout = 5 * time.Minute
 type Provider struct {
 	Store         Store
 	Clock         clock.Clock
-	Logger        *log.Logger
+	Logger        Logger
 	Identity      IdentityProvider
 	Authenticator AuthenticatorProvider
 	User          UserProvider
 	OOB           OOBProvider
 	Hooks         HookProvider
-	Config        *config.AuthenticationConfiguration
+	Config        *config.AuthenticationConfig
 }
 
 func (p *Provider) GetInteraction(token string) (*Interaction, error) {
