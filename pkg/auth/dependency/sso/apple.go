@@ -24,14 +24,14 @@ type AppleImpl struct {
 	URLPrefix                *url.URL
 	RedirectURLFunc          RedirectURLFunc
 	ProviderConfig           config.OAuthSSOProviderConfig
+	Credentials              config.OAuthClientCredentialsItem
 	Clock                    clock.Clock
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
 func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	// https://developer.apple.com/documentation/signinwithapplerestapi/generate_and_validate_tokens
-	// FIXME: retrieve client secret
-	key, err := crypto.ParseAppleP8PrivateKey([]byte(""))
+	key, err := crypto.ParseAppleP8PrivateKey([]byte(f.Credentials.ClientSecret))
 	if err != nil {
 		return
 	}

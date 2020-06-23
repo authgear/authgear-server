@@ -17,6 +17,7 @@ type FacebookImpl struct {
 	URLPrefix       *url.URL
 	RedirectURLFunc RedirectURLFunc
 	ProviderConfig  config.OAuthSSOProviderConfig
+	Credentials     config.OAuthClientCredentialsItem
 	UserInfoDecoder UserInfoDecoder
 }
 
@@ -51,10 +52,9 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 
 func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		redirectURL:    f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
-		providerConfig: f.ProviderConfig,
-		// FIXME: retrieve client secret
-		clientSecret:    "",
+		redirectURL:     f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
+		providerConfig:  f.ProviderConfig,
+		clientSecret:    f.Credentials.ClientSecret,
 		accessTokenURL:  facebookTokenURL,
 		userProfileURL:  facebookUserInfoURL,
 		userInfoDecoder: f.UserInfoDecoder,

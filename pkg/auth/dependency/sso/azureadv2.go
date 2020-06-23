@@ -13,6 +13,7 @@ type Azureadv2Impl struct {
 	URLPrefix                *url.URL
 	RedirectURLFunc          RedirectURLFunc
 	ProviderConfig           config.OAuthSSOProviderConfig
+	Credentials              config.OAuthClientCredentialsItem
 	Clock                    clock.Clock
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
@@ -104,8 +105,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 		keySet,
 		f.URLPrefix,
 		f.ProviderConfig.ClientID,
-		// FIXME: retrieve client secret
-		"",
+		f.Credentials.ClientSecret,
 		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		state.HashedNonce,
 		f.Clock.NowUTC,

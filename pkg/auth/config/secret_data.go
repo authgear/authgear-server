@@ -151,6 +151,16 @@ type OAuthClientCredentials struct {
 	Items []OAuthClientCredentialsItem `json:"items,omitempty"`
 }
 
+func (c *OAuthClientCredentials) Lookup(alias string) (*OAuthClientCredentialsItem, bool) {
+	for _, item := range c.Items {
+		if item.Alias == alias {
+			ii := item
+			return &ii, true
+		}
+	}
+	return nil, false
+}
+
 func (c *OAuthClientCredentials) SensitiveStrings() []string {
 	var out []string
 	for _, item := range c.Items {

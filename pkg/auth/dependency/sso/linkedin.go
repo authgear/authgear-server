@@ -18,6 +18,7 @@ type LinkedInImpl struct {
 	URLPrefix       *url.URL
 	RedirectURLFunc RedirectURLFunc
 	ProviderConfig  config.OAuthSSOProviderConfig
+	Credentials     config.OAuthClientCredentialsItem
 	UserInfoDecoder UserInfoDecoder
 }
 
@@ -45,8 +46,7 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		linkedinTokenURL,
 		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		f.ProviderConfig.ClientID,
-		// FIXME: retrieve client_secret
-		"",
+		f.Credentials.ClientSecret,
 	)
 	if err != nil {
 		return

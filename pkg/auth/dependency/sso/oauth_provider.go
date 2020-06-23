@@ -42,6 +42,7 @@ type EndpointsProvider interface {
 type OAuthProviderFactory struct {
 	Endpoints                EndpointsProvider
 	IdentityConfig           *config.IdentityConfig
+	Credentials              *config.OAuthClientCredentials
 	RedirectURIFunc          RedirectURLFunc
 	Clock                    clock.Clock
 	UserInfoDecoder          UserInfoDecoder
@@ -53,12 +54,18 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 	if !ok {
 		return nil
 	}
+	credentials, ok := p.Credentials.Lookup(id)
+	if !ok {
+		return nil
+	}
+
 	switch providerConfig.Type {
 	case config.OAuthSSOProviderTypeGoogle:
 		return &GoogleImpl{
 			URLPrefix:                p.Endpoints.BaseURL(),
 			RedirectURLFunc:          p.RedirectURIFunc,
 			ProviderConfig:           *providerConfig,
+			Credentials:              *credentials,
 			Clock:                    p.Clock,
 			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
@@ -67,6 +74,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 			URLPrefix:       p.Endpoints.BaseURL(),
 			RedirectURLFunc: p.RedirectURIFunc,
 			ProviderConfig:  *providerConfig,
+			Credentials:     *credentials,
 			UserInfoDecoder: p.UserInfoDecoder,
 		}
 	case config.OAuthSSOProviderTypeLinkedIn:
@@ -74,6 +82,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 			URLPrefix:       p.Endpoints.BaseURL(),
 			RedirectURLFunc: p.RedirectURIFunc,
 			ProviderConfig:  *providerConfig,
+			Credentials:     *credentials,
 			UserInfoDecoder: p.UserInfoDecoder,
 		}
 	case config.OAuthSSOProviderTypeAzureADv2:
@@ -81,6 +90,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 			URLPrefix:                p.Endpoints.BaseURL(),
 			RedirectURLFunc:          p.RedirectURIFunc,
 			ProviderConfig:           *providerConfig,
+			Credentials:              *credentials,
 			Clock:                    p.Clock,
 			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
@@ -89,6 +99,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
 			URLPrefix:                p.Endpoints.BaseURL(),
 			RedirectURLFunc:          p.RedirectURIFunc,
 			ProviderConfig:           *providerConfig,
+			Credentials:              *credentials,
 			Clock:                    p.Clock,
 			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}

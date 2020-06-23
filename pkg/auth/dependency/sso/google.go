@@ -16,6 +16,7 @@ type GoogleImpl struct {
 	URLPrefix                *url.URL
 	RedirectURLFunc          RedirectURLFunc
 	ProviderConfig           config.OAuthSSOProviderConfig
+	Credentials              config.OAuthClientCredentialsItem
 	Clock                    clock.Clock
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
@@ -64,8 +65,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 		keySet,
 		f.URLPrefix,
 		f.ProviderConfig.ClientID,
-		// FIXME: retrieve client secret from secret
-		"",
+		f.Credentials.ClientSecret,
 		f.RedirectURLFunc(f.URLPrefix, f.ProviderConfig),
 		state.HashedNonce,
 		f.Clock.NowUTC,
