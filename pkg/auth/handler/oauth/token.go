@@ -19,7 +19,7 @@ func ConfigureTokenHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type oauthTokenHandler interface {
+type ProtocolTokenHandler interface {
 	Handle(r protocol.TokenRequest) handler.TokenResult
 }
 
@@ -32,7 +32,7 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 type TokenHandler struct {
 	Logger       TokenHandlerLogger
 	DBContext    db.Context
-	TokenHandler oauthTokenHandler
+	TokenHandler ProtocolTokenHandler
 }
 
 func (h *TokenHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {

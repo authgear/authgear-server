@@ -18,17 +18,17 @@ func ConfigureMetadataHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type oauthMetadataProvider interface {
+type MetadataProvider interface {
 	PopulateMetadata(meta map[string]interface{})
 }
 
 type MetadataHandler struct {
-	metaProviders []oauthMetadataProvider
+	Providers []MetadataProvider
 }
 
 func (h *MetadataHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	meta := map[string]interface{}{}
-	for _, provider := range h.metaProviders {
+	for _, provider := range h.Providers {
 		provider.PopulateMetadata(meta)
 	}
 

@@ -2,6 +2,9 @@ package deps
 
 import (
 	"github.com/google/wire"
+
+	"github.com/skygeario/skygear-server/pkg/task/executors"
+	taskqueue "github.com/skygeario/skygear-server/pkg/task/queue"
 )
 
 var appRootDeps = wire.NewSet(
@@ -12,12 +15,16 @@ var appRootDeps = wire.NewSet(
 		"LoggerFactory",
 		"DbContext",
 		"RedisContext",
+		"TemplateEngine",
 	),
 	wire.FieldsOf(new(*RootProvider),
 		"ServerConfig",
 		"TaskExecutor",
 		"ReservedNameChecker",
 	),
+
+	ProvideCaptureTaskContext,
+	wire.Bind(new(taskqueue.Executor), new(*executors.InMemoryExecutor)),
 )
 
 var RequestDependencySet = wire.NewSet(

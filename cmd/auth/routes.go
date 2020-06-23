@@ -92,14 +92,14 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 			Handler(http.StripPrefix("/static/", fileServer))
 	}
 
-	oauthhandler.ConfigureMetadataHandler(oauthRouter, nil)
-	oauthhandler.ConfigureJWKSHandler(oauthRouter, nil)
-	oauthhandler.ConfigureAuthorizeHandler(oauthRouter, nil)
-	oauthhandler.ConfigureTokenHandler(oauthRouter, nil)
-	oauthhandler.ConfigureRevokeHandler(oauthRouter, nil)
-	oauthhandler.ConfigureUserInfoHandler(oauthRouter, nil)
-	oauthhandler.ConfigureEndSessionHandler(oauthRouter, nil)
-	oauthhandler.ConfigureChallengeHandler(oauthRouter, nil)
+	oauthhandler.ConfigureMetadataHandler(oauthRouter, p.Handler(newOAuthMetadataHandler))
+	oauthhandler.ConfigureJWKSHandler(oauthRouter, p.Handler(newOAuthJWKSHandler))
+	oauthhandler.ConfigureAuthorizeHandler(oauthRouter, p.Handler(newOAuthAuthorizeHandler))
+	oauthhandler.ConfigureTokenHandler(oauthRouter, p.Handler(newOAuthTokenHandler))
+	oauthhandler.ConfigureRevokeHandler(oauthRouter, p.Handler(newOAuthRevokeHandler))
+	oauthhandler.ConfigureUserInfoHandler(oauthRouter, p.Handler(newOAuthUserInfoHandler))
+	oauthhandler.ConfigureEndSessionHandler(oauthRouter, p.Handler(newOAuthEndSessionHandler))
+	oauthhandler.ConfigureChallengeHandler(oauthRouter, p.Handler(newOAuthChallengeHandler))
 
 	return router
 }

@@ -71,7 +71,7 @@ const ChallengeResponseSchema = `
 }
 `
 
-type challengeProvider interface {
+type ChallengeProvider interface {
 	Create(purpose challenge.Purpose) (*challenge.Challenge, error)
 }
 
@@ -91,8 +91,7 @@ type challengeProvider interface {
 			@JSONSchema {OAuthChallengeResponse}
 */
 type ChallengeHandler struct {
-	Validator  *validation.Validator
-	Challenges challengeProvider
+	Challenges ChallengeProvider
 }
 
 func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {

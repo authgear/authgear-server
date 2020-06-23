@@ -8,12 +8,14 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
+	authtemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/log"
 	"github.com/skygeario/skygear-server/pkg/redis"
 	"github.com/skygeario/skygear-server/pkg/task"
 	taskexecutors "github.com/skygeario/skygear-server/pkg/task/executors"
+	"github.com/skygeario/skygear-server/pkg/template"
 )
 
 type RootProvider struct {
@@ -63,14 +65,16 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 		p.RedisPool,
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 	)
+	templateEngine := authtemplate.NewEngineWithConfig(cfg)
 
 	return &AppProvider{
-		RootProvider:  p,
-		Context:       ctx,
-		Config:        cfg,
-		LoggerFactory: loggerFactory,
-		DbContext:     dbContext,
-		RedisContext:  redisContext,
+		RootProvider:   p,
+		Context:        ctx,
+		Config:         cfg,
+		LoggerFactory:  loggerFactory,
+		DbContext:      dbContext,
+		RedisContext:   redisContext,
+		TemplateEngine: templateEngine,
 	}
 }
 
@@ -121,11 +125,12 @@ func (p *RootProvider) Task(factory func(provider *TaskProvider) task.Task) task
 type AppProvider struct {
 	*RootProvider
 
-	Context       context.Context
-	Config        *config.Config
-	LoggerFactory *log.Factory
-	DbContext     db.Context
-	RedisContext  *redis.Context
+	Context        context.Context
+	Config         *config.Config
+	LoggerFactory  *log.Factory
+	DbContext      db.Context
+	RedisContext   *redis.Context
+	TemplateEngine *template.Engine
 }
 
 type RequestProvider struct {

@@ -20,14 +20,20 @@ func ConfigureUserInfoHandler(router *mux.Router, h http.Handler) {
 		Handler(oauth.RequireScope(h))
 }
 
-type oauthUserInfoProvider interface {
+type ProtocolUserInfoProvider interface {
 	LoadUserClaims(auth.AuthSession) (*oidc.UserClaims, error)
 }
 
+type UserInfoHandlerLogger struct{ *log.Logger }
+
+func NewUserInfoHandlerLogger(lf *log.Factory) UserInfoHandlerLogger {
+	return UserInfoHandlerLogger{lf.New("handler-user-info")}
+}
+
 type UserInfoHandler struct {
-	Logger           *log.Logger
+	Logger           UserInfoHandlerLogger
 	DBContext        db.Context
-	UserInfoProvider oauthUserInfoProvider
+	UserInfoProvider ProtocolUserInfoProvider
 }
 
 func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {

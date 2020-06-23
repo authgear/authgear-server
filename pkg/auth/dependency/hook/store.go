@@ -10,7 +10,8 @@ import (
 type Store struct {
 	SQLBuilder  db.SQLBuilder
 	SQLExecutor db.SQLExecutor
-	events      []*event.Event
+
+	events []*event.Event `wire:"-"`
 }
 
 func (store *Store) NextSequenceNumber() (seq int64, err error) {

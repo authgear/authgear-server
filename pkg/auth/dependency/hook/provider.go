@@ -23,10 +23,6 @@ type UserProvider interface {
 	UpdateMetadata(user *model.User, metadata map[string]interface{}) error
 }
 
-type DBHookContext interface {
-	UseHook(db.TransactionHook)
-}
-
 type deliverer interface {
 	WillDeliver(eventType event.Type) bool
 	DeliverBeforeEvent(event *event.Event, user *model.User) error
@@ -46,14 +42,14 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("hook")} }
 type Provider struct {
 	Context   context.Context
 	Logger    Logger
-	DBContext DBHookContext
+	DBContext db.Context
 	Clock     clock.Clock
 	Users     UserProvider
 	Store     store
 	Deliverer deliverer
 
-	persistentEventPayloads []event.Payload
-	dbHooked                bool
+	persistentEventPayloads []event.Payload `wire:"-"`
+	dbHooked                bool            `wire:"-"`
 }
 
 func (provider *Provider) DispatchEvent(payload event.Payload, user *model.User) (err error) {

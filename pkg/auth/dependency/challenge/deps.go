@@ -5,5 +5,5 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	wire.NewSet(new(Provider), "*"),
+	wire.Struct(new(Provider), "*"),
 )

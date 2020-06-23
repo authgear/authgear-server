@@ -18,14 +18,20 @@ func ConfigureEndSessionHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type oidcEndSessionHandler interface {
+type EndSessionHandlerLogger struct{ *log.Logger }
+
+func NewEndSessionHandlerLogger(lf *log.Factory) EndSessionHandlerLogger {
+	return EndSessionHandlerLogger{lf.New("handler-end-session")}
+}
+
+type ProtocolEndSessionHandler interface {
 	Handle(auth.AuthSession, protocol.EndSessionRequest, *http.Request, http.ResponseWriter) error
 }
 
 type EndSessionHandler struct {
-	Logger            *log.Logger
+	Logger            EndSessionHandlerLogger
 	DBContext         db.Context
-	EndSessionHandler oidcEndSessionHandler
+	EndSessionHandler ProtocolEndSessionHandler
 }
 
 func (h *EndSessionHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {

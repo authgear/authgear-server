@@ -17,14 +17,20 @@ func ConfigureRevokeHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type oauthRevokeHandler interface {
+type RevokeHandlerLogger struct{ *log.Logger }
+
+func NewRevokeHandlerLogger(lf *log.Factory) RevokeHandlerLogger {
+	return RevokeHandlerLogger{lf.New("handler-revoke")}
+}
+
+type ProtocolRevokeHandler interface {
 	Handle(r protocol.RevokeRequest) error
 }
 
 type RevokeHandler struct {
-	Logger        *log.Logger
+	Logger        RevokeHandlerLogger
 	DBContext     db.Context
-	RevokeHandler oauthRevokeHandler
+	RevokeHandler ProtocolRevokeHandler
 }
 
 func (h *RevokeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
