@@ -28,6 +28,7 @@ var _ = Schema.Add("AppConfig", `
 		"template": { "$ref": "#/$defs/TemplateConfig" },
 		"ui": { "$ref": "#/$defs/UIConfig" },
 		"localization": { "$ref": "#/$defs/LocalizationConfig" },
+		"messaging": { "$ref": "#/$defs/MessagingConfig" },
 		"authentication": { "$ref": "#/$defs/AuthenticationConfig" },
 		"session": { "$ref": "#/$defs/SessionConfig" },
 		"oauth": { "$ref": "#/$defs/OAuthConfig" },
@@ -50,6 +51,7 @@ type AppConfig struct {
 	Template     *TemplateConfig     `json:"template,omitempty"`
 	UI           *UIConfig           `json:"ui,omitempty"`
 	Localization *LocalizationConfig `json:"localization,omitempty"`
+	Messaging    *MessagingConfig    `json:"messaging,omitempty"`
 
 	Authentication *AuthenticationConfig `json:"authentication,omitempty"`
 	Session        *SessionConfig        `json:"session,omitempty"`

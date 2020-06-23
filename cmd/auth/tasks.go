@@ -7,6 +7,6 @@ import (
 )
 
 func setupTasks(registry task.Registry, p *deps.RootProvider) {
-	authtask.ConfigurePwHousekeeperTask(registry, nil)
-	authtask.ConfigureSendMessagesTask(registry, nil)
+	authtask.ConfigurePwHousekeeperTask(registry, p.Task(newPwHousekeeperTask))
+	authtask.ConfigureSendMessagesTask(registry, p.Task(newSendMessagesTask))
 }

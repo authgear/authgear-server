@@ -17,6 +17,14 @@ func ConfigureSendMessagesTask(registry task.Registry, t task.Task) {
 	registry.Register(spec.SendMessagesTaskName, t)
 }
 
+type MailSender interface {
+	Send(opts mail.SendOptions) error
+}
+
+type SMSClient interface {
+	Send(opts sms.SendOptions) error
+}
+
 type SendMessagesLogger struct{ *log.Logger }
 
 func NewSendMessagesLogger(lf *log.Factory) SendMessagesLogger {
@@ -24,8 +32,8 @@ func NewSendMessagesLogger(lf *log.Factory) SendMessagesLogger {
 }
 
 type SendMessagesTask struct {
-	EmailSender mail.Sender
-	SMSClient   sms.Client
+	EmailSender MailSender
+	SMSClient   SMSClient
 	Logger      SendMessagesLogger
 }
 

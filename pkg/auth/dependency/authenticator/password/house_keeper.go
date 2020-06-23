@@ -30,16 +30,16 @@ func NewHousekeeperLogger(lf *log.Factory) HousekeeperLogger {
 type Housekeeper struct {
 	Store  *HistoryStore
 	Logger HousekeeperLogger
-	Config *config.PasswordPolicyConfig
+	Config *config.AuthenticatorPasswordConfig
 }
 
 func (p *Housekeeper) Housekeep(authID string) (err error) {
-	if !p.Config.IsEnabled() {
+	if !p.Config.Policy.IsEnabled() {
 		return
 	}
 
 	p.Logger.Debug("remove password history")
-	err = p.Store.RemovePasswordHistory(authID, p.Config.HistorySize, p.Config.HistoryDays)
+	err = p.Store.RemovePasswordHistory(authID, p.Config.Policy.HistorySize, p.Config.Policy.HistoryDays)
 	if err != nil {
 		p.Logger.WithError(err).Error("unable to housekeep password history")
 	}

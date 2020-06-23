@@ -16,6 +16,7 @@ var configDeps = wire.NewSet(
 		"Template",
 		"UI",
 		"Localization",
+		"Messaging",
 		"Authentication",
 		"Session",
 		"OAuth",

@@ -7,5 +7,5 @@ import (
 var DependencySet = wire.NewSet(
 	NewNexmoClient,
 	NewTwilioClient,
-	wire.Struct(new(ClientImpl), "*"),
+	wire.Struct(new(Client), "*"),
 )

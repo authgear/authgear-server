@@ -9,14 +9,21 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
+	task2 "github.com/skygeario/skygear-server/pkg/auth/task"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	sentry2 "github.com/skygeario/skygear-server/pkg/core/sentry"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/mail"
 	"github.com/skygeario/skygear-server/pkg/middlewares"
+	"github.com/skygeario/skygear-server/pkg/sms"
+	"github.com/skygeario/skygear-server/pkg/task"
 	"net/http"
 )
 
-// Injectors from wire.go:
+// Injectors from wire_middleware.go:
 
 func newSentryMiddleware(hub *sentry.Hub, p *deps.RequestProvider) mux.MiddlewareFunc {
 	appProvider := p.AppProvider
@@ -91,7 +98,85 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 	return middlewareFunc
 }
 
-// wire.go:
+// Injectors from wire_task.go:
+
+func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
+	appProvider := p.AppProvider
+	context := appProvider.DbContext
+	factory := appProvider.LoggerFactory
+	pwHousekeeperLogger := task2.NewPwHousekeeperLogger(factory)
+	clock := _wireSystemClockValue
+	config := appProvider.Config
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	sqlExecutor := db.SQLExecutor{
+		Context: context,
+	}
+	historyStore := &password.HistoryStore{
+		Clock:       clock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	pwHousekeeperTask := &task2.PwHousekeeperTask{
+		DBContext:     context,
+		Logger:        pwHousekeeperLogger,
+		PwHousekeeper: housekeeper,
+	}
+	return pwHousekeeperTask
+}
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
+
+func newSendMessagesTask(p *deps.TaskProvider) task.Task {
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	localizationConfig := appConfig.Localization
+	secretConfig := config.SecretConfig
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	context := appProvider.Context
+	sender := &mail.Sender{
+		LocalizationConfiguration: localizationConfig,
+		GomailDialer:              dialer,
+		Context:                   context,
+	}
+	messagingConfig := appConfig.Messaging
+	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)
+	twilioClient := sms.NewTwilioClient(twilioCredentials)
+	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
+	nexmoClient := sms.NewNexmoClient(nexmoCredentials)
+	client := &sms.Client{
+		Context:            context,
+		MessagingConfig:    messagingConfig,
+		LocalizationConfig: localizationConfig,
+		TwilioClient:       twilioClient,
+		NexmoClient:        nexmoClient,
+	}
+	factory := appProvider.LoggerFactory
+	sendMessagesLogger := task2.NewSendMessagesLogger(factory)
+	sendMessagesTask := &task2.SendMessagesTask{
+		EmailSender: sender,
+		SMSClient:   client,
+		Logger:      sendMessagesLogger,
+	}
+	return sendMessagesTask
+}
+
+// wire_middleware.go:
 
 type middleware interface {
 	Handle(next http.Handler) http.Handler

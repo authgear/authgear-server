@@ -6,5 +6,5 @@ import (
 
 var DependencySet = wire.NewSet(
 	NewGomailDialer,
-	wire.Struct(new(SenderImpl), "*"),
+	wire.Struct(new(Sender), "*"),
 )
