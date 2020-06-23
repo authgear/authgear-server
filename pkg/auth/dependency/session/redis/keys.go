@@ -1,11 +1,15 @@
 package redis
 
-import "fmt"
+import (
+	"fmt"
 
-func sessionKey(appID string, sessionID string) string {
+	"github.com/skygeario/skygear-server/pkg/auth/config"
+)
+
+func sessionKey(appID config.AppID, sessionID string) string {
 	return fmt.Sprintf("%s:session:%s", appID, sessionID)
 }
 
-func sessionListKey(appID string, userID string) string {
+func sessionListKey(appID config.AppID, userID string) string {
 	return fmt.Sprintf("%s:session-list:%s", appID, userID)
 }

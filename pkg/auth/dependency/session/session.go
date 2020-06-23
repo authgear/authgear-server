@@ -43,15 +43,8 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 		AMR:              s.Attrs.AMR,
 		CreatedAt:        s.CreatedAt,
 		LastAccessedAt:   s.AccessInfo.LastAccess.Timestamp,
-		CreatedByIP:      s.AccessInfo.InitialAccess.Remote.IP(),
-		LastAccessedByIP: s.AccessInfo.LastAccess.Remote.IP(),
+		CreatedByIP:      s.AccessInfo.InitialAccess.RemoteIP,
+		LastAccessedByIP: s.AccessInfo.LastAccess.RemoteIP,
 		UserAgent:        ua,
 	}
 }
-
-type CreateReason string
-
-const (
-	CreateReasonSignup = "signup"
-	CreateReasonLogin  = "login"
-)

@@ -4,18 +4,20 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/clock"
 )
 
-type ResolverProvider interface {
+type resolverProvider interface {
 	GetByToken(token string) (*IDPSession, error)
 	Update(session *IDPSession) error
 }
 
 type Resolver struct {
 	Cookie   CookieDef
-	Provider ResolverProvider
+	Provider resolverProvider
+	Config   *config.ServerConfig
 	Clock    clock.Clock
 }
 
@@ -35,7 +37,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthS
 		return nil, err
 	}
 
-	session.AccessInfo.LastAccess = auth.NewAccessEvent(re.Clock.NowUTC(), r)
+	session.AccessInfo.LastAccess = auth.NewAccessEvent(re.Clock.NowUTC(), r, re.Config.TrustProxy)
 	if err = re.Provider.Update(session); err != nil {
 		return nil, err
 	}

@@ -1,16 +1,147 @@
 package session
 
-import "github.com/skygeario/skygear-server/pkg/core/authn"
+import (
+	"crypto/subtle"
+	"fmt"
+	"math/rand"
+	"net/http"
+	"strings"
 
-type Provider interface {
-	// Make makes a session from authn attributes
-	MakeSession(attrs *authn.Attrs) (session *IDPSession, token string)
-	// Create creates a session
-	Create(session *IDPSession) error
-	// GetByToken gets the session identified by the token
-	GetByToken(token string) (*IDPSession, error)
-	// Get gets the session identified by the ID
-	Get(id string) (*IDPSession, error)
-	// Update updates the session attributes.
-	Update(session *IDPSession) error
+	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/skygeario/skygear-server/pkg/clock"
+	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/skygeario/skygear-server/pkg/core/crypto"
+	"github.com/skygeario/skygear-server/pkg/core/errors"
+	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
+	"github.com/skygeario/skygear-server/pkg/core/uuid"
+)
+
+const (
+	tokenAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	tokenLength   = 32
+)
+
+type AccessEventProvider interface {
+	InitStream(s auth.AuthSession) error
+}
+
+type Rand *rand.Rand
+
+type Provider struct {
+	Request      *http.Request
+	Store        Store
+	AccessEvents AccessEventProvider
+	ServerConfig *config.ServerConfig
+	Config       *config.SessionConfig
+	Clock        clock.Clock
+	Random       Rand
+}
+
+func (p *Provider) MakeSession(attrs *authn.Attrs) (*IDPSession, string) {
+	now := p.Clock.NowUTC()
+	accessEvent := auth.NewAccessEvent(now, p.Request, p.ServerConfig.TrustProxy)
+	// NOTE(louis): remember to update the mock provider
+	// if session has new fields.
+	session := &IDPSession{
+		ID:        uuid.New(),
+		CreatedAt: now,
+		Attrs:     *attrs,
+		AccessInfo: auth.AccessInfo{
+			InitialAccess: accessEvent,
+			LastAccess:    accessEvent,
+		},
+	}
+	token := p.generateToken(session)
+
+	return session, token
+}
+
+func (p *Provider) Create(session *IDPSession) error {
+	expiry := computeSessionStorageExpiry(session, p.Config)
+	err := p.Store.Create(session, expiry)
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to create session")
+	}
+
+	err = p.AccessEvents.InitStream(session)
+	if err != nil {
+		return errors.HandledWithMessage(err, "failed to access session")
+	}
+
+	return nil
+}
+
+func (p *Provider) GetByToken(token string) (*IDPSession, error) {
+	id, ok := decodeTokenSessionID(token)
+	if !ok {
+		return nil, ErrSessionNotFound
+	}
+
+	s, err := p.Store.Get(id)
+	if err != nil {
+		if !errors.Is(err, ErrSessionNotFound) {
+			err = errors.HandledWithMessage(err, "failed to get session")
+		}
+		return nil, err
+	}
+
+	if s.TokenHash == "" {
+		return nil, ErrSessionNotFound
+	}
+
+	if !matchTokenHash(s.TokenHash, token) {
+		return nil, ErrSessionNotFound
+	}
+
+	if checkSessionExpired(s, p.Clock.NowUTC(), p.Config) {
+		return nil, ErrSessionNotFound
+	}
+
+	return s, nil
+}
+
+func (p *Provider) Get(id string) (*IDPSession, error) {
+	session, err := p.Store.Get(id)
+	if err != nil {
+		if !errors.Is(err, ErrSessionNotFound) {
+			err = errors.HandledWithMessage(err, "failed to get session")
+		}
+		return nil, err
+	}
+
+	return session, nil
+}
+
+func (p *Provider) Update(sess *IDPSession) error {
+	expiry := computeSessionStorageExpiry(sess, p.Config)
+	err := p.Store.Update(sess, expiry)
+	if err != nil {
+		err = errors.HandledWithMessage(err, "failed to update session")
+	}
+	return err
+}
+
+func (p *Provider) generateToken(s *IDPSession) string {
+	token := encodeToken(s.ID, corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.Random))
+	s.TokenHash = crypto.SHA256String(token)
+	return token
+}
+
+func matchTokenHash(expectedHash, inputToken string) bool {
+	inputHash := crypto.SHA256String(inputToken)
+	return subtle.ConstantTimeCompare([]byte(expectedHash), []byte(inputHash)) == 1
+}
+
+func encodeToken(id string, token string) string {
+	return fmt.Sprintf("%s.%s", id, token)
+}
+
+func decodeTokenSessionID(token string) (id string, ok bool) {
+	parts := strings.Split(token, ".")
+	if len(parts) != 2 {
+		return
+	}
+	id, ok = parts[0], true
+	return
 }

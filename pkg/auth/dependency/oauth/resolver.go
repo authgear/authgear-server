@@ -52,7 +52,8 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthS
 	}
 
 	var authSession auth.AuthSession
-	event := auth.NewAccessEvent(re.Clock.NowUTC(), r)
+	// FIXME: use server config
+	event := auth.NewAccessEvent(re.Clock.NowUTC(), r, true)
 
 	switch grant.SessionKind {
 	case GrantSessionKindSession:

@@ -34,6 +34,10 @@ type IDTokenIssuer interface {
 	IssueIDToken(client config.OAuthClientConfiguration, session auth.AuthSession, nonce string) (token string, err error)
 }
 
+type SessionProvider interface {
+	Get(id string) (*session.IDPSession, error)
+}
+
 type TokenHandler struct {
 	Request *http.Request
 	AppID   string
@@ -45,7 +49,7 @@ type TokenHandler struct {
 	OfflineGrants  oauth.OfflineGrantStore
 	AccessGrants   oauth.AccessGrantStore
 	AccessEvents   auth.AccessEventProvider
-	Sessions       session.Provider
+	Sessions       SessionProvider
 	Anonymous      AnonymousInteractionFlow
 	IDTokenIssuer  IDTokenIssuer
 	GenerateToken  TokenGenerator
@@ -399,7 +403,8 @@ func (h *TokenHandler) issueOfflineGrant(
 ) (*oauth.OfflineGrant, error) {
 	token := h.GenerateToken()
 	now := h.Clock.NowUTC()
-	accessEvent := auth.NewAccessEvent(now, h.Request)
+	// FIXME: use server config
+	accessEvent := auth.NewAccessEvent(now, h.Request, true)
 	offlineGrant := &oauth.OfflineGrant{
 		AppID:           h.AppID,
 		ID:              uuid.New(),

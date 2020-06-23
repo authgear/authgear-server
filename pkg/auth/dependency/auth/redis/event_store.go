@@ -1,11 +1,11 @@
 package redis
 
 import (
-	"context"
 	"encoding/json"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/core/redis"
+	"github.com/skygeario/skygear-server/pkg/redis"
 )
 
 // TODO(session): tune event persistence, maybe use other datastore
@@ -14,15 +14,11 @@ const maxEventStreamLength = 10
 const eventTypeAccessEvent = "access"
 
 type EventStore struct {
-	ctx   context.Context
-	appID string
+	Redis *redis.Context
+	AppID config.AppID
 }
 
 var _ auth.AccessEventStore = &EventStore{}
-
-func NewEventStore(ctx context.Context, appID string) *EventStore {
-	return &EventStore{ctx: ctx, appID: appID}
-}
 
 func (s *EventStore) AppendAccessEvent(session auth.AuthSession, event *auth.AccessEvent) error {
 	data, err := json.Marshal(event)
@@ -30,8 +26,8 @@ func (s *EventStore) AppendAccessEvent(session auth.AuthSession, event *auth.Acc
 		return err
 	}
 
-	conn := redis.GetConn(s.ctx)
-	streamKey := accessEventStreamKey(s.appID, session.SessionID())
+	conn := s.Redis.Conn()
+	streamKey := accessEventStreamKey(s.AppID, session.SessionID())
 
 	args := []interface{}{streamKey}
 	if maxEventStreamLength >= 0 {
@@ -48,8 +44,8 @@ func (s *EventStore) AppendAccessEvent(session auth.AuthSession, event *auth.Acc
 }
 
 func (s *EventStore) ResetEventStream(session auth.AuthSession) error {
-	conn := redis.GetConn(s.ctx)
-	streamKey := accessEventStreamKey(s.appID, session.SessionID())
+	conn := s.Redis.Conn()
+	streamKey := accessEventStreamKey(s.AppID, session.SessionID())
 
 	_, err := conn.Do("DEL", streamKey)
 	if err != nil {

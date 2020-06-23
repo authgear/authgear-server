@@ -3,7 +3,7 @@ package session
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
@@ -13,23 +13,23 @@ type CookieDef struct {
 	*httputil.CookieDef
 }
 
-func NewSessionCookieDef(r *http.Request, useInsecureCookie bool, sConfig config.SessionConfiguration) CookieDef {
-	def := &httputil.CookieDef{Name: CookieName, Path: "/", Secure: !useInsecureCookie}
+func NewSessionCookieDef(r *http.Request, sessionCfg *config.SessionConfig, serverCfg *config.ServerConfig) CookieDef {
+	secure := httputil.GetProto(r, serverCfg.TrustProxy) == "https"
+	def := &httputil.CookieDef{Name: CookieName, Path: "/", Secure: secure}
 
-	if sConfig.CookieNonPersistent {
+	if sessionCfg.CookieNonPersistent {
 		// HTTP session cookie: no MaxAge
 		def.MaxAge = nil
 	} else {
 		// HTTP permanent cookie: MaxAge = session lifetime
-		maxAge := sConfig.Lifetime
+		maxAge := int(sessionCfg.Lifetime)
 		def.MaxAge = &maxAge
 	}
 
-	if sConfig.CookieDomain != nil {
-		def.Domain = *sConfig.CookieDomain
+	if sessionCfg.CookieDomain != nil {
+		def.Domain = *sessionCfg.CookieDomain
 	} else {
-		// FIXME: use ServerConfig
-		def.Domain = httputil.CookieDomainFromETLDPlusOneWithoutPort(httputil.GetHost(r, true))
+		def.Domain = httputil.CookieDomainFromETLDPlusOneWithoutPort(httputil.GetHost(r, serverCfg.TrustProxy))
 	}
 
 	return CookieDef{def}

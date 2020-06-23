@@ -3,11 +3,11 @@ package session
 import (
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
-func computeSessionStorageExpiry(session *IDPSession, cfg config.SessionConfiguration) (expiry time.Time) {
-	expiry = session.CreatedAt.Add(time.Second * time.Duration(cfg.Lifetime))
+func computeSessionStorageExpiry(session *IDPSession, cfg *config.SessionConfig) (expiry time.Time) {
+	expiry = session.CreatedAt.Add(cfg.Lifetime.Duration())
 	if cfg.IdleTimeoutEnabled {
 		sessionIdleExpiry := session.AccessInfo.LastAccess.Timestamp.Add(time.Second * time.Duration(cfg.IdleTimeout))
 		if sessionIdleExpiry.Before(expiry) {
@@ -17,15 +17,15 @@ func computeSessionStorageExpiry(session *IDPSession, cfg config.SessionConfigur
 	return
 }
 
-func checkSessionExpired(session *IDPSession, now time.Time, cfg config.SessionConfiguration) (expired bool) {
-	sessionExpiry := session.CreatedAt.Add(time.Second * time.Duration(cfg.Lifetime))
+func checkSessionExpired(session *IDPSession, now time.Time, cfg *config.SessionConfig) (expired bool) {
+	sessionExpiry := session.CreatedAt.Add(cfg.Lifetime.Duration())
 	if now.After(sessionExpiry) {
 		expired = true
 		return
 	}
 
 	if cfg.IdleTimeoutEnabled {
-		sessionIdleExpiry := session.AccessInfo.LastAccess.Timestamp.Add(time.Second * time.Duration(cfg.IdleTimeout))
+		sessionIdleExpiry := session.AccessInfo.LastAccess.Timestamp.Add(cfg.IdleTimeout.Duration())
 		if now.After(sessionIdleExpiry) {
 			expired = true
 			return

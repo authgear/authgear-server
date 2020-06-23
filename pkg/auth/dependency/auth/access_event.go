@@ -21,12 +21,12 @@ type AccessInfo struct {
 
 type AccessEvent struct {
 	Timestamp time.Time            `json:"time"`
-	Remote    AccessEventConnInfo  `json:"remote,omitempty"`
+	RemoteIP  string               `json:"ip,omitempty"`
 	UserAgent string               `json:"user_agent,omitempty"`
 	Extra     AccessEventExtraInfo `json:"extra,omitempty"`
 }
 
-func NewAccessEvent(timestamp time.Time, req *http.Request) AccessEvent {
+func NewAccessEvent(timestamp time.Time, req *http.Request, trustProxy bool) AccessEvent {
 	remote := AccessEventConnInfo{
 		RemoteAddr:    req.RemoteAddr,
 		XForwardedFor: req.Header.Get("X-Forwarded-For"),
@@ -43,7 +43,7 @@ func NewAccessEvent(timestamp time.Time, req *http.Request) AccessEvent {
 
 	return AccessEvent{
 		Timestamp: timestamp,
-		Remote:    remote,
+		RemoteIP:  remote.IP(trustProxy),
 		UserAgent: req.UserAgent(),
 		Extra:     extra,
 	}
@@ -56,7 +56,7 @@ type AccessEventConnInfo struct {
 	Forwarded     string `json:"forwarded,omitempty"`
 }
 
-func (conn AccessEventConnInfo) IP() (ip string) {
+func (conn AccessEventConnInfo) IP(trustProxy bool) (ip string) {
 	defer func() {
 		ip = strings.TrimSpace(ip)
 		// remove ports from IP
@@ -68,18 +68,18 @@ func (conn AccessEventConnInfo) IP() (ip string) {
 		}
 	}()
 
-	if conn.Forwarded != "" {
+	if trustProxy && conn.Forwarded != "" {
 		if matches := forwardedForRegex.FindStringSubmatch(conn.Forwarded); len(matches) > 0 {
 			ip = matches[1]
 			return
 		}
 	}
-	if conn.XForwardedFor != "" {
+	if trustProxy && conn.XForwardedFor != "" {
 		parts := strings.SplitN(conn.XForwardedFor, ",", 2)
 		ip = parts[0]
 		return
 	}
-	if conn.XRealIP != "" {
+	if trustProxy && conn.XRealIP != "" {
 		ip = conn.XRealIP
 		return
 	}

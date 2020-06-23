@@ -31,11 +31,16 @@ type HookProvider interface {
 	DispatchEvent(payload event.Payload, user *model.User) error
 }
 
+type SessionProvider interface {
+	MakeSession(*authn.Attrs) (*session.IDPSession, string)
+	Create(*session.IDPSession) error
+}
+
 type UserController struct {
 	Users         UserProvider
 	TokenIssuer   TokenIssuer
 	SessionCookie session.CookieDef
-	Sessions      session.Provider
+	Sessions      SessionProvider
 	Hooks         HookProvider
 	Clock         clock.Clock
 	Clients       []config.OAuthClientConfiguration

@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 )
 
 func TestComputeSessionExpiry(t *testing.T) {
@@ -22,7 +23,7 @@ func TestComputeSessionExpiry(t *testing.T) {
 		}
 
 		Convey("idle timeout is disabled", func() {
-			expiry := computeSessionStorageExpiry(session, config.SessionConfiguration{
+			expiry := computeSessionStorageExpiry(session, &config.SessionConfig{
 				Lifetime:           120,
 				IdleTimeoutEnabled: false,
 				IdleTimeout:        30,
@@ -31,7 +32,7 @@ func TestComputeSessionExpiry(t *testing.T) {
 		})
 
 		Convey("idle timeout is enabled", func() {
-			expiry := computeSessionStorageExpiry(session, config.SessionConfiguration{
+			expiry := computeSessionStorageExpiry(session, &config.SessionConfig{
 				Lifetime:           120,
 				IdleTimeoutEnabled: true,
 				IdleTimeout:        30,
@@ -51,13 +52,13 @@ func TestCheckSessionExpired(t *testing.T) {
 				},
 			},
 		}
-		var cfg config.SessionConfiguration
+		var cfg *config.SessionConfig
 		check := func(mins, secs int) bool {
 			return !checkSessionExpired(session, time.Date(2020, 1, 1, 0, mins, secs, 0, time.UTC), cfg)
 		}
 
 		Convey("check session lifetime", func() {
-			cfg = config.SessionConfiguration{
+			cfg = &config.SessionConfig{
 				Lifetime:           120,
 				IdleTimeoutEnabled: false,
 				IdleTimeout:        30,
@@ -70,7 +71,7 @@ func TestCheckSessionExpired(t *testing.T) {
 		})
 
 		Convey("check idle timeout", func() {
-			cfg = config.SessionConfiguration{
+			cfg = &config.SessionConfig{
 				Lifetime:           120,
 				IdleTimeoutEnabled: true,
 				IdleTimeout:        30,

@@ -13,7 +13,7 @@ func ProvideUserController(
 	u UserProvider,
 	ti TokenIssuer,
 	scc session.CookieDef,
-	sp session.Provider,
+	sp SessionProvider,
 	hp HookProvider,
 	tp clock.Clock,
 	c *config.TenantConfiguration,
