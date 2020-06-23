@@ -19,8 +19,6 @@ type UserProvider interface {
 
 type UserClaims struct {
 	jwt.StandardClaims
-	User      *model.User `json:"skygear_user,omitempty"`
-	SessionID string      `json:"skygear_session_id,omitempty"`
 }
 
 type IDTokenClaims struct {
@@ -107,6 +105,13 @@ func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (*UserClaims, 
 
 	claims := &UserClaims{
 		StandardClaims: jwt.StandardClaims{
+			// TODO(id-token): https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+			// Set `aud` to `client_id`.
+			// Set `exp` to the expiration time.
+			// Set `iat` to NowUTC().
+			// Set `acr` to session.ACR.
+			// Set `amr` to session.AMR.
+			// Define a custom claim to indicate anonymous.
 			Issuer:  ti.Endpoints.BaseURL().String(),
 			Subject: session.AuthnAttrs().UserID,
 		},
@@ -115,14 +120,6 @@ func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (*UserClaims, 
 	if !allowProfile {
 		return claims, nil
 	}
-
-	user, err := ti.Users.Get(session.AuthnAttrs().UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	claims.User = user
-	claims.SessionID = session.SessionID()
 
 	return claims, nil
 }
