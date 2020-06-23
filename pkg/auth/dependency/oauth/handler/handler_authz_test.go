@@ -10,12 +10,12 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 func TestAuthorizationHandler(t *testing.T) {
@@ -27,13 +27,13 @@ func TestAuthorizationHandler(t *testing.T) {
 		h := &handler.AuthorizationHandler{
 			Context: context.Background(),
 			AppID:   "app-id",
-			Clients: []config.OAuthClientConfiguration{},
+			Config:  &config.OAuthConfig{},
 
 			Authorizations: authzStore,
 			CodeGrants:     codeGrantStore,
 			OAuthURLs:      mockURLsProvider{},
 			WebAppURLs:     mockURLsProvider{},
-			ValidateScopes: func(config.OAuthClientConfiguration, []string) error { return nil },
+			ValidateScopes: func(config.OAuthClientConfig, []string) error { return nil },
 			CodeGenerator:  func() string { return "authz-code" },
 			Clock:          clock,
 		}
@@ -46,7 +46,7 @@ func TestAuthorizationHandler(t *testing.T) {
 		}
 
 		Convey("general request validation", func() {
-			h.Clients = []config.OAuthClientConfiguration{{
+			h.Config.Clients = []config.OAuthClientConfig{{
 				"client_id": "client-id",
 				"redirect_uris": []interface{}{
 					"https://example.com/",
@@ -75,7 +75,7 @@ func TestAuthorizationHandler(t *testing.T) {
 		})
 
 		Convey("should preserve query parameters in redirect URI", func() {
-			h.Clients = []config.OAuthClientConfiguration{{
+			h.Config.Clients = []config.OAuthClientConfig{{
 				"client_id":     "client-id",
 				"redirect_uris": []interface{}{"https://example.com/cb?from=sso"},
 			}}
@@ -87,7 +87,7 @@ func TestAuthorizationHandler(t *testing.T) {
 		})
 
 		Convey("authorization code flow", func() {
-			h.Clients = []config.OAuthClientConfiguration{{
+			h.Config.Clients = []config.OAuthClientConfig{{
 				"client_id":     "client-id",
 				"redirect_uris": []interface{}{"https://example.com/"},
 			}}
@@ -120,7 +120,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			})
 			Convey("scope validation", func() {
 				validated := false
-				h.ValidateScopes = func(client config.OAuthClientConfiguration, scopes []string) error {
+				h.ValidateScopes = func(client config.OAuthClientConfig, scopes []string) error {
 					validated = true
 					if strings.Join(scopes, " ") != "openid" {
 						return protocol.NewError("invalid_scope", "must request 'openid' scope")
@@ -239,14 +239,14 @@ func TestAuthorizationHandler(t *testing.T) {
 			})
 		})
 		Convey("none response type", func() {
-			h.Clients = []config.OAuthClientConfiguration{{
+			h.Config.Clients = []config.OAuthClientConfig{{
 				"client_id":      "client-id",
 				"redirect_uris":  []interface{}{"https://example.com/"},
 				"response_types": []interface{}{"none"},
 			}}
 			Convey("request validation", func() {
 				Convey("not allowed response types", func() {
-					h.Clients[0]["response_types"] = nil
+					h.Config.Clients[0]["response_types"] = nil
 					resp := handle(protocol.AuthorizationRequest{
 						"client_id":     "client-id",
 						"response_type": "none",
@@ -256,7 +256,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			})
 			Convey("scope validation", func() {
 				validated := false
-				h.ValidateScopes = func(client config.OAuthClientConfiguration, scopes []string) error {
+				h.ValidateScopes = func(client config.OAuthClientConfig, scopes []string) error {
 					validated = true
 					if strings.Join(scopes, " ") != "openid" {
 						return protocol.NewError("invalid_scope", "must request 'openid' scope")

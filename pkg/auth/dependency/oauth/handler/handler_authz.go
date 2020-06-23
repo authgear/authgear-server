@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/utils"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
@@ -28,11 +28,17 @@ type WebAppURLProvider interface {
 	AuthenticateURL(options webapp.AuthenticateURLOptions) (*url.URL, error)
 }
 
+type AuthorizationHandlerLogger struct{ *log.Logger }
+
+func NewAuthorizationHandlerLogger(lf *log.Factory) AuthorizationHandlerLogger {
+	return AuthorizationHandlerLogger{lf.New("oauth-authz")}
+}
+
 type AuthorizationHandler struct {
 	Context context.Context
-	AppID   string
-	Clients []config.OAuthClientConfiguration
-	Logger  *log.Logger
+	AppID   config.AppID
+	Config  *config.OAuthConfig
+	Logger  AuthorizationHandlerLogger
 
 	Authorizations oauth.AuthorizationStore
 	CodeGrants     oauth.CodeGrantStore
@@ -44,7 +50,7 @@ type AuthorizationHandler struct {
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) AuthorizationResult {
-	client := resolveClient(h.Clients, r)
+	client := resolveClient(h.Config, r)
 	if client == nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
@@ -85,7 +91,7 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) Authoriza
 
 func (h *AuthorizationHandler) doHandle(
 	redirectURI *url.URL,
-	client config.OAuthClientConfiguration,
+	client config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) (AuthorizationResult, error) {
 	if err := h.validateRequest(client, r); err != nil {
@@ -175,7 +181,7 @@ func (h *AuthorizationHandler) doHandle(
 }
 
 func (h *AuthorizationHandler) validateRequest(
-	client config.OAuthClientConfiguration,
+	client config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) error {
 	allowedResponseTypes := client.ResponseTypes()
@@ -231,7 +237,7 @@ func (h *AuthorizationHandler) generateCodeResponse(
 	codeHash := oauth.HashToken(code)
 
 	codeGrant := &oauth.CodeGrant{
-		AppID:           h.AppID,
+		AppID:           string(h.AppID),
 		AuthorizationID: authz.ID,
 		SessionID:       session.SessionID(),
 

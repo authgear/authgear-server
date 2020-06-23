@@ -3,8 +3,8 @@ package handler
 import (
 	"net/url"
 
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type oauthRequest interface {
@@ -12,16 +12,14 @@ type oauthRequest interface {
 	RedirectURI() string
 }
 
-func resolveClient(clients []config.OAuthClientConfiguration, r oauthRequest) config.OAuthClientConfiguration {
-	for _, c := range clients {
-		if c.ClientID() == r.ClientID() {
-			return c
-		}
+func resolveClient(config *config.OAuthConfig, r oauthRequest) config.OAuthClientConfig {
+	if client, ok := config.GetClient(r.ClientID()); ok {
+		return client
 	}
 	return nil
 }
 
-func parseRedirectURI(client config.OAuthClientConfiguration, r oauthRequest) (*url.URL, protocol.ErrorResponse) {
+func parseRedirectURI(client config.OAuthClientConfig, r oauthRequest) (*url.URL, protocol.ErrorResponse) {
 	allowedURIs := client.RedirectURIs()
 	redirectURIString := r.RedirectURI()
 	if len(allowedURIs) == 1 && redirectURIString == "" {
