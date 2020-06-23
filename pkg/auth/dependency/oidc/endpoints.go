@@ -2,14 +2,9 @@ package oidc
 
 import "net/url"
 
-type JWKSEndpointProvider interface {
-	JWKSEndpointURI() *url.URL
-}
-
-type UserInfoEndpointProvider interface {
-	UserInfoEndpointURI() *url.URL
-}
-
-type EndSessionEndpointProvider interface {
-	EndSessionEndpointURI() *url.URL
+type EndpointsProvider interface {
+	BaseURL() *url.URL
+	JWKSEndpointURL() *url.URL
+	UserInfoEndpointURL() *url.URL
+	EndSessionEndpointURL() *url.URL
 }

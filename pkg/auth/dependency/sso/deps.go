@@ -3,7 +3,6 @@ package sso
 import (
 	"github.com/google/wire"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -17,12 +16,12 @@ func ProvideStateCodec(config *config.TenantConfiguration) *StateCodec {
 
 func ProvideOAuthProviderFactory(
 	cfg *config.TenantConfiguration,
-	up urlprefix.Provider,
+	ep EndpointsProvider,
 	tp clock.Clock,
 	nf LoginIDNormalizerFactory,
 	rf RedirectURLFunc,
 ) *OAuthProviderFactory {
-	return NewOAuthProviderFactory(*cfg, up, tp, NewUserInfoDecoder(nf), nf, rf)
+	return NewOAuthProviderFactory(*cfg, ep, tp, NewUserInfoDecoder(nf), nf, rf)
 }
 
 var DependencySet = wire.NewSet(

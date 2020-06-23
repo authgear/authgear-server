@@ -7,7 +7,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/urlprefix"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -30,7 +29,7 @@ type IDTokenClaims struct {
 
 type IDTokenIssuer struct {
 	OIDCConfig config.OIDCConfiguration
-	URLPrefix  urlprefix.Provider
+	Endpoints  EndpointsProvider
 	Users      UserProvider
 	Clock      clock.Clock
 }
@@ -76,7 +75,7 @@ func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (*UserClaims, 
 
 	claims := &UserClaims{
 		StandardClaims: jwt.StandardClaims{
-			Issuer:  ti.URLPrefix.Value().String(),
+			Issuer:  ti.Endpoints.BaseURL().String(),
 			Subject: session.AuthnAttrs().UserID,
 		},
 	}
