@@ -16,10 +16,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/provider"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	session2 "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
+	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	task2 "github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/rand"
@@ -32,6 +33,36 @@ import (
 	"github.com/skygeario/skygear-server/pkg/task"
 	"net/http"
 )
+
+// Injectors from wire_handler.go:
+
+func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	context := appProvider.DbContext
+	sqlExecutor := db.SQLExecutor{
+		Context: context,
+	}
+	store := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	provider := &anonymous.Provider{
+		Store: store,
+	}
+	factory := appProvider.LoggerFactory
+	resolveHandlerLogger := session.NewResolveHandlerLogger(factory)
+	resolveHandler := &session.ResolveHandler{
+		Anonymous: provider,
+		Logger:    resolveHandlerLogger,
+	}
+	return resolveHandler
+}
 
 // Injectors from wire_middleware.go:
 
@@ -116,7 +147,7 @@ func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 	sessionConfig := appConfig.Session
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	cookieDef := session2.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	context := appProvider.RedisContext
 	appID := appConfig.ID
 	clock := _wireSystemClockValue
@@ -136,7 +167,7 @@ func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 		Store: eventStore,
 	}
 	rand := _wireRandValue
-	sessionProvider := &session.Provider{
+	sessionProvider := &session2.Provider{
 		Request:      request,
 		Store:        store,
 		AccessEvents: accessEventProvider,
@@ -145,7 +176,7 @@ func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 		Clock:        clock,
 		Random:       rand,
 	}
-	resolver := &session.Resolver{
+	resolver := &session2.Resolver{
 		Cookie:   cookieDef,
 		Provider: sessionProvider,
 		Config:   serverConfig,
@@ -229,7 +260,7 @@ func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 
 var (
 	_wireSystemClockValue = clock.NewSystemClock()
-	_wireRandValue        = session.Rand(rand.SecureRand)
+	_wireRandValue        = session2.Rand(rand.SecureRand)
 )
 
 func newWebAppStateMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {

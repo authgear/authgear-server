@@ -9,15 +9,13 @@ import (
 )
 
 var taskDeps = wire.NewSet(
-	commonDeps,
+	wire.NewSet(
+		commonDeps,
+		mail.DependencySet,
+		sms.DependencySet,
+	),
 
 	task.DependencySet,
-	wire.NewSet(
-		mail.DependencySet,
-		wire.Bind(new(task.MailSender), new(*mail.Sender)),
-	),
-	wire.NewSet(
-		sms.DependencySet,
-		wire.Bind(new(task.SMSClient), new(*sms.Client)),
-	),
+	wire.Bind(new(task.MailSender), new(*mail.Sender)),
+	wire.Bind(new(task.SMSClient), new(*sms.Client)),
 )
