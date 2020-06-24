@@ -59,7 +59,9 @@ func (s *MultipartSchema) Add(partID string, schema string) *MultipartSchema {
 func (s *MultipartSchema) DumpSchemaString(pretty bool) (schemaString string, err error) {
 	schema := map[string]interface{}{
 		"$defs": s.parts,
-		"$ref":  jsonpointer.T([]string{"$defs", s.mainPartID}),
+	}
+	if s.mainPartID != "" {
+		schema["$ref"] = jsonpointer.T([]string{"$defs", s.mainPartID})
 	}
 
 	var schemaJSON []byte
@@ -77,7 +79,7 @@ func (s *MultipartSchema) DumpSchemaString(pretty bool) (schemaString string, er
 }
 
 func (s *MultipartSchema) Instantiate() *MultipartSchema {
-	if _, ok := s.parts[s.mainPartID]; !ok {
+	if _, ok := s.parts[s.mainPartID]; s.mainPartID != "" && !ok {
 		panic(fmt.Sprintf("validaiton: main part '%s' is not added", s.mainPartID))
 	}
 
@@ -103,6 +105,9 @@ func (s *MultipartSchema) RegisterFormat(format string, checker jsonschemaformat
 func (s *MultipartSchema) Validator() *SchemaValidator {
 	if s.col == nil {
 		panic("validation: JSON schema is not instantiated")
+	}
+	if s.mainPartID == "" {
+		panic("validation: PartValidator must be used instead if main part ID is not specified")
 	}
 	return &SchemaValidator{Schema: s.col}
 }
