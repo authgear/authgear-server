@@ -2,6 +2,9 @@ package webapp
 
 import (
 	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
 //go:generate mockgen -source=state_provider.go -destination=state_provider_mock_test.go -package webapp
@@ -18,8 +21,15 @@ type StateProvider interface {
 	RestoreState(r *http.Request, optional bool) (state *State, err error)
 }
 
+type StateProviderLogger struct{ *log.Logger }
+
+func NewStateProviderLogger(lf *log.Factory) StateProviderLogger {
+	return StateProviderLogger{lf.New("webapp-state")}
+}
+
 type StateProviderImpl struct {
 	StateStore StateStore
+	Logger     StateProviderLogger
 }
 
 func (p *StateProviderImpl) UpdateError(id string, inputError error) {
@@ -28,6 +38,9 @@ func (p *StateProviderImpl) UpdateError(id string, inputError error) {
 		panic(err)
 	}
 	s.SetError(inputError)
+	if inputError != nil && !skyerr.IsAPIError(inputError) {
+		p.Logger.WithError(inputError).Error("unexpected error occurred")
+	}
 
 	err = p.StateStore.Set(s)
 	if err != nil {
@@ -41,6 +54,9 @@ func (p *StateProviderImpl) CreateState(r *http.Request, inputError error) {
 	r.Form.Set("x_sid", s.ID)
 	s.SetForm(r.Form)
 	s.SetError(inputError)
+	if inputError != nil && !skyerr.IsAPIError(inputError) {
+		p.Logger.WithError(inputError).Error("unexpected error occurred")
+	}
 
 	err := p.StateStore.Set(s)
 	if err != nil {
@@ -62,6 +78,9 @@ func (p *StateProviderImpl) UpdateState(r *http.Request, inputError error) {
 
 	s.SetForm(r.Form)
 	s.SetError(inputError)
+	if inputError != nil && !skyerr.IsAPIError(inputError) {
+		p.Logger.WithError(inputError).Error("unexpected error occurred")
+	}
 
 	err = p.StateStore.Set(s)
 	if err != nil {

@@ -1349,8 +1349,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
@@ -1385,7 +1388,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
@@ -1700,8 +1702,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
@@ -1736,7 +1741,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
@@ -2051,8 +2055,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
@@ -2087,7 +2094,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
@@ -2402,8 +2408,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
@@ -2438,7 +2447,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
@@ -2753,8 +2761,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
@@ -2789,7 +2800,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
@@ -3104,8 +3114,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
@@ -3140,7 +3153,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
@@ -3455,8 +3467,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
@@ -3491,7 +3506,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
@@ -3806,8 +3820,11 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
@@ -3842,7 +3859,6 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
@@ -4156,8 +4172,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
@@ -4173,7 +4192,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:      userStore,
 		Identities: providerProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
@@ -4467,8 +4485,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
@@ -4484,7 +4505,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Store:      userStore,
 		Identities: providerProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
@@ -4778,8 +4798,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
@@ -4795,7 +4818,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:      userStore,
 		Identities: providerProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
@@ -5089,8 +5111,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
@@ -5106,7 +5131,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Store:      userStore,
 		Identities: providerProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
@@ -5491,8 +5515,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreImpl := &webapp.StateStoreImpl{
 		Redis: redisContext,
 	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
 	stateProviderImpl := &webapp.StateProviderImpl{
 		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
 	}
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
@@ -5527,7 +5554,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,

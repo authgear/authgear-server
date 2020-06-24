@@ -9,6 +9,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
 func TestStateProvider(t *testing.T) {
@@ -19,6 +20,7 @@ func TestStateProvider(t *testing.T) {
 		store := NewMockStateStore(ctrl)
 		p := StateProviderImpl{
 			StateStore: store,
+			Logger:     StateProviderLogger{log.Null},
 		}
 
 		Convey("UpdateError panics if id is invalid", func() {
