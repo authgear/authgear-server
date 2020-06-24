@@ -54,32 +54,51 @@ var secretDeps = wire.NewSet(
 )
 
 func ProvideDatabaseCredentials(c *config.SecretConfig) *config.DatabaseCredentials {
-	return c.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials)
+	s, _ := c.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials)
+	return s
 }
+
 func ProvideRedisCredentials(c *config.SecretConfig) *config.RedisCredentials {
-	return c.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials)
+	s, _ := c.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials)
+	return s
 }
+
 func ProvideOAuthClientCredentials(c *config.SecretConfig) *config.OAuthClientCredentials {
-	return c.LookupData(config.OAuthClientCredentialsKey).(*config.OAuthClientCredentials)
+	s, _ := c.LookupData(config.OAuthClientCredentialsKey).(*config.OAuthClientCredentials)
+	return s
 }
+
 func ProvideSMTPServerCredentials(c *config.SecretConfig) *config.SMTPServerCredentials {
-	return c.LookupData(config.SMTPServerCredentialsKey).(*config.SMTPServerCredentials)
+	s, _ := c.LookupData(config.SMTPServerCredentialsKey).(*config.SMTPServerCredentials)
+	return s
 }
+
 func ProvideTwilioCredentials(c *config.SecretConfig) *config.TwilioCredentials {
-	return c.LookupData(config.TwilioCredentialsKey).(*config.TwilioCredentials)
+	s, _ := c.LookupData(config.TwilioCredentialsKey).(*config.TwilioCredentials)
+	return s
 }
+
 func ProvideNexmoCredentials(c *config.SecretConfig) *config.NexmoCredentials {
-	return c.LookupData(config.NexmoCredentialsKey).(*config.NexmoCredentials)
+	s, _ := c.LookupData(config.NexmoCredentialsKey).(*config.NexmoCredentials)
+	return s
 }
+
 func ProvideJWTKeyMaterials(c *config.SecretConfig) *config.JWTKeyMaterials {
-	return c.LookupData(config.JWTKeyMaterialsKey).(*config.JWTKeyMaterials)
+	s, _ := c.LookupData(config.JWTKeyMaterialsKey).(*config.JWTKeyMaterials)
+	return s
 }
+
 func ProvideOIDCKeyMaterials(c *config.SecretConfig) *config.OIDCKeyMaterials {
-	return c.LookupData(config.OIDCKeyMaterialsKey).(*config.OIDCKeyMaterials)
+	s, _ := c.LookupData(config.OIDCKeyMaterialsKey).(*config.OIDCKeyMaterials)
+	return s
 }
+
 func ProvideCSRFKeyMaterials(c *config.SecretConfig) *config.CSRFKeyMaterials {
-	return c.LookupData(config.CSRFKeyMaterialsKey).(*config.CSRFKeyMaterials)
+	s, _ := c.LookupData(config.CSRFKeyMaterialsKey).(*config.CSRFKeyMaterials)
+	return s
 }
+
 func ProvideWebhookKeyMaterials(c *config.SecretConfig) *config.WebhookKeyMaterials {
-	return c.LookupData(config.WebhookKeyMaterialsKey).(*config.WebhookKeyMaterials)
+	s, _ := c.LookupData(config.WebhookKeyMaterialsKey).(*config.WebhookKeyMaterials)
+	return s
 }
