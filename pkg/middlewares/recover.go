@@ -9,17 +9,19 @@ import (
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
+type RecoveryLogger struct{ *log.Logger }
+
+func NewRecoveryLogger(lf *log.Factory) RecoveryLogger { return RecoveryLogger{lf.New("recovery")} }
+
 // RecoverMiddleware recover from panic
 type RecoverMiddleware struct {
-	LoggerFactory *log.Factory
+	Logger RecoveryLogger
 }
 
 func (m *RecoverMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				logger := m.LoggerFactory.New("recovery")
-
 				const errorTypeUnexpected = 0
 				const errorTypeHandled = 1
 				const errorTypeConflict = 2
@@ -39,10 +41,12 @@ func (m *RecoverMiddleware) Handle(next http.Handler) http.Handler {
 				}
 
 				if errorType == errorTypeUnexpected {
-					logger.WithError(e).WithField("stack", errors.Callers(8)).Error("panic occurred")
+					m.Logger.WithError(e).
+						WithField("stack", errors.Callers(8)).
+						Error("panic occurred")
 					w.WriteHeader(http.StatusInternalServerError)
 				} else if errorType == errorTypeHandled {
-					logger.WithError(e).Error("unexpected error occurred")
+					m.Logger.WithError(e).Error("unexpected error occurred")
 				} else if errorType == errorTypeConflict {
 					w.WriteHeader(http.StatusConflict)
 				}

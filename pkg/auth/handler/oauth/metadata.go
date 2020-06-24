@@ -5,36 +5,30 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachMetadataHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	handler := p.Handler(newMetadataHandler)
+func ConfigureMetadataHandler(router *mux.Router, h http.Handler) {
 	router.NewRoute().
 		Path("/.well-known/openid-configuration").
-		Handler(handler).
-		Methods("GET", "OPTIONS")
+		Methods("GET", "OPTIONS").
+		Handler(h)
 	router.NewRoute().
 		Path("/.well-known/oauth-authorization-server").
-		Handler(handler).
-		Methods("GET", "OPTIONS")
+		Methods("GET", "OPTIONS").
+		Handler(h)
 }
 
-type oauthMetadataProvider interface {
+type MetadataProvider interface {
 	PopulateMetadata(meta map[string]interface{})
 }
 
 type MetadataHandler struct {
-	metaProviders []oauthMetadataProvider
+	Providers []MetadataProvider
 }
 
 func (h *MetadataHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	meta := map[string]interface{}{}
-	for _, provider := range h.metaProviders {
+	for _, provider := range h.Providers {
 		provider.PopulateMetadata(meta)
 	}
 

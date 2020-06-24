@@ -3,25 +3,29 @@ package source
 import (
 	"context"
 	"fmt"
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/httputil"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/skygeario/skygear-server/pkg/httputil"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-type LocalFile struct {
-	serverConfig *config.ServerConfig
-	config       *config.Config
+type LocalFileLogger struct{ *log.Logger }
+
+func NewLocalFileLogger(lf *log.Factory) LocalFileLogger {
+	return LocalFileLogger{lf.New("local-file-config")}
 }
 
-func NewLocalFile(cfg *config.ServerConfig) *LocalFile {
-	return &LocalFile{
-		serverConfig: cfg,
-	}
+type LocalFile struct {
+	Logger       LocalFileLogger
+	ServerConfig *config.ServerConfig
+
+	config *config.Config `wire:"-"`
 }
 
 func (s *LocalFile) Open() error {
-	appConfigYAML, err := ioutil.ReadFile(s.serverConfig.ConfigSource.AppConfigPath)
+	appConfigYAML, err := ioutil.ReadFile(s.ServerConfig.ConfigSource.AppConfigPath)
 	if err != nil {
 		return fmt.Errorf("cannot read app config file: %w", err)
 	}
@@ -30,7 +34,7 @@ func (s *LocalFile) Open() error {
 		return fmt.Errorf("cannot parse app config: %w", err)
 	}
 
-	secretConfigYAML, err := ioutil.ReadFile(s.serverConfig.ConfigSource.SecretConfigPath)
+	secretConfigYAML, err := ioutil.ReadFile(s.ServerConfig.ConfigSource.SecretConfigPath)
 	if err != nil {
 		return fmt.Errorf("cannot read secret config file: %w", err)
 	}
@@ -55,17 +59,17 @@ func (s *LocalFile) Close() error {
 }
 
 func (s *LocalFile) ProvideConfig(ctx context.Context, r *http.Request) (*config.Config, error) {
-	if s.serverConfig.DevMode {
+	if s.ServerConfig.DevMode {
 		// Accept all hosts under development mode
 		return s.config, nil
 	}
 
-	host := httputil.GetHost(r, s.serverConfig.TrustProxy)
+	host := httputil.GetHost(r, s.ServerConfig.TrustProxy)
 	for _, h := range s.config.AppConfig.HTTP.Hosts {
 		if h == host {
 			return s.config, nil
 		}
 	}
-	// TODO(logging): log actual/expected host values at DEBUG level
+	s.Logger.Debugf("expected host %v, got %s", s.config.AppConfig.HTTP.Hosts, host)
 	return nil, fmt.Errorf("request host is not valid: %w", ErrAppNotFound)
 }

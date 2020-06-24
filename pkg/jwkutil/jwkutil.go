@@ -33,7 +33,7 @@ func PublicKeySet(set *jwk.Set) (*jwk.Set, error) {
 
 func ExtractOctetKey(set *jwk.Set, id string) ([]byte, error) {
 	for _, key := range set.Keys {
-		if key.KeyID() != id {
+		if id != "" && key.KeyID() != id {
 			continue
 		}
 		switch key.KeyType() {

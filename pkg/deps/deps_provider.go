@@ -2,9 +2,27 @@ package deps
 
 import (
 	"github.com/google/wire"
+
+	configsource "github.com/skygeario/skygear-server/pkg/auth/config/source"
+	"github.com/skygeario/skygear-server/pkg/task/executors"
+	taskqueue "github.com/skygeario/skygear-server/pkg/task/queue"
+)
+
+var rootDeps = wire.NewSet(
+	wire.FieldsOf(new(*RootProvider),
+		"ServerConfig",
+		"TaskExecutor",
+		"ReservedNameChecker",
+	),
+
+	ProvideCaptureTaskContext,
+	wire.Bind(new(taskqueue.Executor), new(*executors.InMemoryExecutor)),
+
+	configsource.DependencySet,
 )
 
 var appRootDeps = wire.NewSet(
+	rootDeps,
 	wire.FieldsOf(new(*AppProvider),
 		"RootProvider",
 		"Context",
@@ -12,16 +30,15 @@ var appRootDeps = wire.NewSet(
 		"LoggerFactory",
 		"DbContext",
 		"RedisContext",
-	),
-	wire.FieldsOf(new(*RootProvider),
-		"ServerConfig",
-		"TaskExecutor",
-		"ReservedNameChecker",
+		"TemplateEngine",
 	),
 )
 
-var commonDeps = wire.NewSet(
-	configDeps,
+var RootDependencySet = wire.NewSet(
+	rootDeps,
+	wire.FieldsOf(new(*RootProvider),
+		"LoggerFactory",
+	),
 )
 
 var RequestDependencySet = wire.NewSet(
@@ -30,12 +47,13 @@ var RequestDependencySet = wire.NewSet(
 		"AppProvider",
 		"Request",
 	),
-	commonDeps,
+	requestDeps,
 )
 
 var TaskDependencySet = wire.NewSet(
+	appRootDeps,
 	wire.FieldsOf(new(*TaskProvider),
 		"AppProvider",
 	),
-	commonDeps,
+	taskDeps,
 )

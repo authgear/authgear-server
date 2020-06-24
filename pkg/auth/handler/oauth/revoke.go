@@ -7,28 +7,30 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func AttachRevokeHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
+func ConfigureRevokeHandler(router *mux.Router, h http.Handler) {
 	router.NewRoute().
 		Path("/oauth2/revoke").
-		Handler(p.Handler(newRevokeHandler)).
-		Methods("POST", "OPTIONS")
+		Methods("POST", "OPTIONS").
+		Handler(h)
 }
 
-type oauthRevokeHandler interface {
+type RevokeHandlerLogger struct{ *log.Logger }
+
+func NewRevokeHandlerLogger(lf *log.Factory) RevokeHandlerLogger {
+	return RevokeHandlerLogger{lf.New("handler-revoke")}
+}
+
+type ProtocolRevokeHandler interface {
 	Handle(r protocol.RevokeRequest) error
 }
 
 type RevokeHandler struct {
-	Logger        *log.Logger
+	Logger        RevokeHandlerLogger
 	DBContext     db.Context
-	RevokeHandler oauthRevokeHandler
+	RevokeHandler ProtocolRevokeHandler
 }
 
 func (h *RevokeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {

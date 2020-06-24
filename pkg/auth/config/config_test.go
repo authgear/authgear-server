@@ -70,7 +70,7 @@ func TestAppConfig(t *testing.T) {
 				}
 
 				Convey(testCase.Name, func() {
-					data, err := yaml.Marshal(testCase.Config)
+					data, err := goyaml.Marshal(testCase.Config)
 					if err != nil {
 						panic(err)
 					}

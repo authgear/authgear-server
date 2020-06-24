@@ -63,12 +63,12 @@ func isLocalhost(host string) bool {
 // CSPMiddleware derives frame-ancestors from clients and
 // writes Content-Security-Policy.
 type CSPMiddleware struct {
-	Clients []config.OAuthClientConfig
+	Config *config.OAuthConfig
 }
 
 func (m *CSPMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		frameAncestors := deriveFrameAncestors(m.Clients)
+		frameAncestors := deriveFrameAncestors(m.Config.Clients)
 		frameAncestors = append(frameAncestors, "'self'")
 		csp := fmt.Sprintf("frame-ancestors %s;", strings.Join(frameAncestors, " "))
 		w.Header().Set("Content-Security-Policy", csp)

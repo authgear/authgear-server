@@ -6,18 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachOOBOTPHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureOOBOTPHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/oob_otp").
 		Methods("OPTIONS", "POST", "GET").
-		Handler(p.Handler(newOOBOTPHandler))
+		Handler(h)
 }
 
 type OOBOTPProvider interface {

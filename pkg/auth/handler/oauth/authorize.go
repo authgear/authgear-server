@@ -9,30 +9,32 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func AttachAuthorizeHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
+func ConfigureAuthorizeHandler(router *mux.Router, h http.Handler) {
 	router.NewRoute().
 		Path("/oauth2/authorize").
-		Handler(p.Handler(newAuthorizeHandler)).
-		Methods("GET", "POST")
+		Methods("GET", "POST").
+		Handler(h)
 }
 
-type oauthAuthorizeHandler interface {
+type AuthorizeHandlerLogger struct{ *log.Logger }
+
+func NewAuthorizeHandlerLogger(lf *log.Factory) AuthorizeHandlerLogger {
+	return AuthorizeHandlerLogger{lf.New("handler-authz")}
+}
+
+type ProtocolAuthorizeHandler interface {
 	Handle(r protocol.AuthorizationRequest) handler.AuthorizationResult
 }
 
 var errAuthzInternalError = errors.New("internal error")
 
 type AuthorizeHandler struct {
-	Logger       *log.Logger
+	Logger       AuthorizeHandlerLogger
 	DBContext    db.Context
-	AuthzHandler oauthAuthorizeHandler
+	AuthzHandler ProtocolAuthorizeHandler
 }
 
 func (h *AuthorizeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {

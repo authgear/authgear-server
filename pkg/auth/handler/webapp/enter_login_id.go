@@ -6,18 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachEnterLoginIDHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureEnterLoginIDHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/enter_login_id").
 		Methods("OPTIONS", "POST", "GET").
-		Handler(p.Handler(newEnterLoginIDHandler))
+		Handler(h)
 }
 
 type EnterLoginIDProvider interface {

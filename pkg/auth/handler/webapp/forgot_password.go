@@ -6,27 +6,22 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachForgotPasswordHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureForgotPasswordHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/forgot_password").
 		Methods("OPTIONS", "POST", "GET").
-		Handler(p.Handler(newForgotPasswordHandler))
+		Handler(h)
 }
 
-type forgotPasswordProvider interface {
+type ForgotPasswordProvider interface {
 	GetForgotPasswordForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 	PostForgotPasswordForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 }
 
 type ForgotPasswordHandler struct {
-	Provider  forgotPasswordProvider
+	Provider  ForgotPasswordProvider
 	DBContext db.Context
 }
 

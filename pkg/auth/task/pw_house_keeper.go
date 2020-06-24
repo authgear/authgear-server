@@ -8,16 +8,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/log"
 	"github.com/skygeario/skygear-server/pkg/task"
 )
 
-func AttachPwHousekeeperTask(
-	registry task.Registry,
-	p *deps.RootProvider,
-) {
-	registry.Register(spec.PwHousekeeperTaskName, p.Task(newPwHouseKeeperTask))
+func ConfigurePwHousekeeperTask(registry task.Registry, t task.Task) {
+	registry.Register(spec.PwHousekeeperTaskName, t)
 }
 
 type PwHousekeeperLogger struct{ *log.Logger }

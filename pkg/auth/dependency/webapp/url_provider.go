@@ -60,8 +60,11 @@ func (p *URLProvider) AuthenticateURL(options AuthenticateURLOptions) (*url.URL,
 	return coreurl.WithQueryParamsAdded(authnURI, q), nil
 }
 
-func (p *URLProvider) LogoutURL() *url.URL {
-	return p.Endpoints.LogoutEndpointURL()
+func (p *URLProvider) LogoutURL(redirectURI *url.URL) *url.URL {
+	return coreurl.WithQueryParamsAdded(
+		p.Endpoints.LogoutEndpointURL(),
+		map[string]string{"redirect_uri": redirectURI.String()},
+	)
 }
 
 func (p *URLProvider) SettingsURL() *url.URL {

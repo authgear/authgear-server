@@ -9,27 +9,23 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachLogoutHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureLogoutHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/logout").
-		Handler(p.Handler(newLogoutHandler))
+		Methods("OPTIONS", "POST", "GET").
+		Handler(h)
 }
 
-type logoutSessionManager interface {
+type LogoutSessionManager interface {
 	Logout(auth.AuthSession, http.ResponseWriter) error
 }
 
 type LogoutHandler struct {
 	ServerConfig   *config.ServerConfig
 	RenderProvider webapp.RenderProvider
-	SessionManager logoutSessionManager
+	SessionManager LogoutSessionManager
 	DBContext      db.Context
 }
 

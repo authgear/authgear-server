@@ -6,17 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachSettingsHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureSettingsHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/settings").
-		Handler(p.Handler(newSettingsHandler))
+		Methods("OPTIONS", "GET").
+		Handler(h)
 }
 
 type SettingsHandler struct {

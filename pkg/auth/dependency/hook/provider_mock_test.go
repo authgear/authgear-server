@@ -8,7 +8,6 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	event "github.com/skygeario/skygear-server/pkg/auth/event"
 	model "github.com/skygeario/skygear-server/pkg/auth/model"
-	db "github.com/skygeario/skygear-server/pkg/db"
 	reflect "reflect"
 	time "time"
 )
@@ -63,41 +62,6 @@ func (m *MockUserProvider) UpdateMetadata(user *model.User, metadata map[string]
 func (mr *MockUserProviderMockRecorder) UpdateMetadata(user, metadata interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockUserProvider)(nil).UpdateMetadata), user, metadata)
-}
-
-// MockDBHookContext is a mock of DBHookContext interface
-type MockDBHookContext struct {
-	ctrl     *gomock.Controller
-	recorder *MockDBHookContextMockRecorder
-}
-
-// MockDBHookContextMockRecorder is the mock recorder for MockDBHookContext
-type MockDBHookContextMockRecorder struct {
-	mock *MockDBHookContext
-}
-
-// NewMockDBHookContext creates a new mock instance
-func NewMockDBHookContext(ctrl *gomock.Controller) *MockDBHookContext {
-	mock := &MockDBHookContext{ctrl: ctrl}
-	mock.recorder = &MockDBHookContextMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockDBHookContext) EXPECT() *MockDBHookContextMockRecorder {
-	return m.recorder
-}
-
-// UseHook mocks base method
-func (m *MockDBHookContext) UseHook(arg0 db.TransactionHook) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "UseHook", arg0)
-}
-
-// UseHook indicates an expected call of UseHook
-func (mr *MockDBHookContextMockRecorder) UseHook(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UseHook", reflect.TypeOf((*MockDBHookContext)(nil).UseHook), arg0)
 }
 
 // MockDeliverer is a mock of deliverer interface

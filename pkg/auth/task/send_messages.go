@@ -7,18 +7,22 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
-	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/log"
 	"github.com/skygeario/skygear-server/pkg/mail"
 	"github.com/skygeario/skygear-server/pkg/sms"
 	"github.com/skygeario/skygear-server/pkg/task"
 )
 
-func AttachSendMessagesTask(
-	registry task.Registry,
-	p *deps.RootProvider,
-) {
-	registry.Register(spec.SendMessagesTaskName, p.Task(newSendMessagesTask))
+func ConfigureSendMessagesTask(registry task.Registry, t task.Task) {
+	registry.Register(spec.SendMessagesTaskName, t)
+}
+
+type MailSender interface {
+	Send(opts mail.SendOptions) error
+}
+
+type SMSClient interface {
+	Send(opts sms.SendOptions) error
 }
 
 type SendMessagesLogger struct{ *log.Logger }
@@ -28,8 +32,8 @@ func NewSendMessagesLogger(lf *log.Factory) SendMessagesLogger {
 }
 
 type SendMessagesTask struct {
-	EmailSender mail.Sender
-	SMSClient   sms.Client
+	EmailSender MailSender
+	SMSClient   SMSClient
 	Logger      SendMessagesLogger
 }
 

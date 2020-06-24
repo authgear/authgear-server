@@ -6,28 +6,23 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachPromoteHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigurePromoteHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/promote_user").
 		Methods("OPTIONS", "POST", "GET").
-		Handler(p.Handler(newPromoteHandler))
+		Handler(h)
 }
 
-type promoteProvider interface {
+type PromoteProvider interface {
 	GetPromoteLoginIDForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 	PromoteLoginID(w http.ResponseWriter, r *http.Request) (func(error), error)
 	PromoteIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
 }
 
 type PromoteHandler struct {
-	Provider  promoteProvider
+	Provider  PromoteProvider
 	DBContext db.Context
 }
 

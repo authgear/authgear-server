@@ -2,8 +2,9 @@ package source
 
 import (
 	"context"
-	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
 type Source interface {
@@ -12,10 +13,13 @@ type Source interface {
 	ProvideConfig(ctx context.Context, r *http.Request) (*config.Config, error)
 }
 
-func NewSource(cfg *config.ServerConfig) Source {
+func NewSource(
+	cfg *config.ServerConfig,
+	lf *LocalFile,
+) Source {
 	switch cfg.ConfigSource.Type {
 	case config.SourceTypeLocalFile:
-		return NewLocalFile(cfg)
+		return lf
 	default:
 		panic("config_source: invalid config source type")
 	}

@@ -220,6 +220,10 @@ ui:
       - '998'
     default: '1'
 localization: {}
+messaging:
+  default_email_message:
+    sender: "no-reply@skygear.io"
+  default_sms_message: {}
 authentication:
   identities:
     - oauth

@@ -7,20 +7,16 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachSettingsIdentityHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureSettingsIdentityHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/settings/identity").
-		Handler(p.Handler(newSettingsIdentityHandler))
+		Methods("OPTIONS", "POST", "GET").
+		Handler(h)
 }
 
-type settingsIdentityProvider interface {
+type SettingsIdentityProvider interface {
 	GetSettingsIdentity(w http.ResponseWriter, r *http.Request) (func(error), error)
 	LinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
 	UnlinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
@@ -29,7 +25,7 @@ type settingsIdentityProvider interface {
 
 type SettingsIdentityHandler struct {
 	RenderProvider webapp.RenderProvider
-	Provider       settingsIdentityProvider
+	Provider       SettingsIdentityProvider
 	DBContext      db.Context
 }
 

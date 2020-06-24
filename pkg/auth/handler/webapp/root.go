@@ -6,17 +6,13 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachRootHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureRootHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/").
-		Handler(&RootHandler{})
+		Methods("OPTIONS", "GET").
+		Handler(h)
 }
 
 type RootHandler struct{}

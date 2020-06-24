@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/log"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -26,20 +27,18 @@ func TestDispatchEvent(t *testing.T) {
 		store := NewMockStore(ctrl)
 		deliverer := NewMockDeliverer(ctrl)
 		users := NewMockUserProvider(ctrl)
-		db := NewMockDBHookContext(ctrl)
 		ctx := context.Background()
 
 		provider := &Provider{
 			Context:   ctx,
 			Logger:    Logger{log.Null},
-			DBContext: db,
+			DBContext: db.NewMockTxContext(),
 			Clock:     clock,
 			Users:     users,
 			Store:     store,
 			Deliverer: deliverer,
 		}
 
-		db.EXPECT().UseHook(provider).AnyTimes()
 		var seq int64 = 0
 		store.EXPECT().NextSequenceNumber().AnyTimes().
 			DoAndReturn(func() (int64, error) {

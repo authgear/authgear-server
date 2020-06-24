@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/lib/pq"
@@ -126,8 +127,8 @@ func main() {
 	log.SetFlags(0)
 
 	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("failed to load .env: %s", err)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		log.Printf("failed to load .env file: %s", err)
 	}
 
 	if len(os.Args) < 2 {

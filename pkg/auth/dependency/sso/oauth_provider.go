@@ -49,12 +49,12 @@ type OAuthProviderFactory struct {
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
-func (p *OAuthProviderFactory) NewOAuthProvider(id string) OAuthProvider {
-	providerConfig, ok := p.IdentityConfig.OAuth.GetProviderConfig(id)
+func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
+	providerConfig, ok := p.IdentityConfig.OAuth.GetProviderConfig(alias)
 	if !ok {
 		return nil
 	}
-	credentials, ok := p.Credentials.Lookup(id)
+	credentials, ok := p.Credentials.Lookup(alias)
 	if !ok {
 		return nil
 	}

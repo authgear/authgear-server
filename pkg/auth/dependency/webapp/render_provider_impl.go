@@ -25,7 +25,7 @@ type IdentityProvider interface {
 }
 
 type RenderProviderImpl struct {
-	StaticAssetURLPrefix        string
+	ServerConfig                *config.ServerConfig
 	AuthenticationConfiguration *config.AuthenticationConfig
 	AuthUIConfiguration         *config.UIConfig
 	LocalizationConfiguration   *config.LocalizationConfig
@@ -69,7 +69,7 @@ func (p *RenderProviderImpl) PrepareRequestData(r *http.Request, data map[string
 func (p *RenderProviderImpl) PrepareStaticData(data map[string]interface{}) {
 	data["x_oob_otp_code_length"] = oob.OOBCodeLength
 	data["x_oob_otp_code_send_cooldown"] = oob.OOBCodeSendCooldownSeconds
-	data["x_static_asset_url_prefix"] = p.StaticAssetURLPrefix
+	data["x_static_asset_url_prefix"] = p.ServerConfig.StaticAsset.URLPrefix
 	data["x_calling_codes"] = p.AuthUIConfiguration.CountryCallingCode.Values
 
 	// NOTE(authui): We assume the CSS provided by the developer is trusted.

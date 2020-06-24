@@ -6,11 +6,10 @@ GIT_HASH ?= git-$(shell git rev-parse --short=12 HEAD)
 vendor:
 	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
 	go mod download
-	go install golang.org/x/tools/cmd/stringer
-	go install github.com/tinylib/msgp
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
 	go install github.com/skygeario/openapi3-gen/cmd/openapi3-gen
+	go install golang.org/x/tools/cmd/stringer
 	$(MAKE) -C migrate build
 	(cd scripts/npm && npm ci)
 

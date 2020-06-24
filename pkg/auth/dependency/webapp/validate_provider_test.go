@@ -12,6 +12,9 @@ import (
 
 func TestValidateProvider(t *testing.T) {
 	Convey("ValidateProvider", t, func() {
+		v := validator
+		defer func() { validator = v }()
+
 		Convey("PrepareValues", func() {
 			c := &config.LoginIDConfig{}
 			impl := ValidateProviderImpl{
@@ -81,7 +84,7 @@ func TestValidateProvider(t *testing.T) {
 		})
 
 		Convey("Validate", func() {
-			validator := validation.NewValidator("http://example.com")
+			validator = validation.NewValidator("http://example.com")
 			validator.AddSchemaFragments(`
 			{
 				"$id": "#A",
@@ -93,7 +96,7 @@ func TestValidateProvider(t *testing.T) {
 			`)
 
 			var err error
-			impl := ValidateProviderImpl{Validator: validator}
+			impl := ValidateProviderImpl{}
 
 			err = impl.Validate("#A", url.Values{
 				"a": []string{"24"},
@@ -108,7 +111,7 @@ func TestValidateProvider(t *testing.T) {
 
 		Convey("#WebAppEnterLoginIDRequest", func() {
 			var err error
-			impl := ValidateProviderImpl{Validator: validator}
+			impl := ValidateProviderImpl{}
 
 			err = impl.Validate("#WebAppEnterLoginIDRequest", url.Values{
 				"x_login_id_input_type": []string{"phone"},
@@ -136,7 +139,7 @@ func TestValidateProvider(t *testing.T) {
 
 		Convey("#WebAppEnterPasswordRequest", func() {
 			var err error
-			impl := ValidateProviderImpl{Validator: validator}
+			impl := ValidateProviderImpl{}
 
 			err = impl.Validate("#WebAppEnterPasswordRequest", url.Values{
 				"x_password":          []string{"123456"},

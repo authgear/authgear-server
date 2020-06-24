@@ -6,18 +6,18 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
 
-func ProvideChecker(cfg *config.PasswordPolicyConfig, s CheckerHistoryStore) *Checker {
+func ProvideChecker(cfg *config.AuthenticatorPasswordConfig, s CheckerHistoryStore) *Checker {
 	return &Checker{
-		PwMinLength:            cfg.MinLength,
-		PwUppercaseRequired:    cfg.UppercaseRequired,
-		PwLowercaseRequired:    cfg.LowercaseRequired,
-		PwDigitRequired:        cfg.DigitRequired,
-		PwSymbolRequired:       cfg.SymbolRequired,
-		PwMinGuessableLevel:    cfg.MinimumGuessableLevel,
-		PwExcludedKeywords:     cfg.ExcludedKeywords,
-		PwHistorySize:          cfg.HistorySize,
-		PwHistoryDays:          cfg.HistoryDays,
-		PasswordHistoryEnabled: cfg.IsEnabled(),
+		PwMinLength:            cfg.Policy.MinLength,
+		PwUppercaseRequired:    cfg.Policy.UppercaseRequired,
+		PwLowercaseRequired:    cfg.Policy.LowercaseRequired,
+		PwDigitRequired:        cfg.Policy.DigitRequired,
+		PwSymbolRequired:       cfg.Policy.SymbolRequired,
+		PwMinGuessableLevel:    cfg.Policy.MinimumGuessableLevel,
+		PwExcludedKeywords:     cfg.Policy.ExcludedKeywords,
+		PwHistorySize:          cfg.Policy.HistorySize,
+		PwHistoryDays:          cfg.Policy.HistoryDays,
+		PasswordHistoryEnabled: cfg.Policy.IsEnabled(),
 		PasswordHistoryStore:   s,
 	}
 }

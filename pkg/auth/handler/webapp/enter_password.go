@@ -6,27 +6,22 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 )
 
-func AttachEnterPasswordHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
-	router.
-		NewRoute().
+func ConfigureEnterPasswordHandler(router *mux.Router, h http.Handler) {
+	router.NewRoute().
 		Path("/enter_password").
 		Methods("OPTIONS", "POST", "GET").
-		Handler(p.Handler(newEnterPasswordHandler))
+		Handler(h)
 }
 
-type enterPasswordProvider interface {
+type EnterPasswordProvider interface {
 	GetEnterPasswordForm(w http.ResponseWriter, r *http.Request) (func(err error), error)
 	EnterSecret(w http.ResponseWriter, r *http.Request) (func(err error), error)
 }
 
 type EnterPasswordHandler struct {
-	Provider  enterPasswordProvider
+	Provider  EnterPasswordProvider
 	DBContext db.Context
 }
 

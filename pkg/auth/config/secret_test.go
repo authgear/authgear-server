@@ -8,7 +8,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	goyaml "gopkg.in/yaml.v2"
-	"sigs.k8s.io/yaml"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 )
@@ -38,7 +37,7 @@ func TestParseSecret(t *testing.T) {
 			}
 
 			Convey(testCase.Name, func() {
-				data, err := yaml.Marshal(testCase.Config)
+				data, err := goyaml.Marshal(testCase.Config)
 				if err != nil {
 					panic(err)
 				}
@@ -80,12 +79,12 @@ func TestSecretConfigValidate(t *testing.T) {
 			}
 
 			Convey(testCase.Name, func() {
-				appConfigBytes, err := yaml.Marshal(testCase.AppConfig)
+				appConfigBytes, err := goyaml.Marshal(testCase.AppConfig)
 				if err != nil {
 					panic(err)
 				}
 
-				secretConfigBytes, err := yaml.Marshal(testCase.SecretConfig)
+				secretConfigBytes, err := goyaml.Marshal(testCase.SecretConfig)
 				if err != nil {
 					panic(err)
 				}

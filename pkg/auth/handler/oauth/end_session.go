@@ -8,28 +8,30 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/protocol"
 	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func AttachEndSessionHandler(
-	router *mux.Router,
-	p *deps.RootProvider,
-) {
+func ConfigureEndSessionHandler(router *mux.Router, h http.Handler) {
 	router.NewRoute().
 		Path("/oauth2/end_session").
-		Handler(p.Handler(newEndSessionHandler)).
-		Methods("GET", "POST")
+		Methods("GET", "POST").
+		Handler(h)
 }
 
-type oidcEndSessionHandler interface {
+type EndSessionHandlerLogger struct{ *log.Logger }
+
+func NewEndSessionHandlerLogger(lf *log.Factory) EndSessionHandlerLogger {
+	return EndSessionHandlerLogger{lf.New("handler-end-session")}
+}
+
+type ProtocolEndSessionHandler interface {
 	Handle(auth.AuthSession, protocol.EndSessionRequest, *http.Request, http.ResponseWriter) error
 }
 
 type EndSessionHandler struct {
-	Logger            *log.Logger
+	Logger            EndSessionHandlerLogger
 	DBContext         db.Context
-	EndSessionHandler oidcEndSessionHandler
+	EndSessionHandler ProtocolEndSessionHandler
 }
 
 func (h *EndSessionHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
