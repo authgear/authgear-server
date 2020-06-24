@@ -34,6 +34,7 @@ func NewGomailDialer(smtp *config.SMTPServerCredentials) *gomail.Dialer {
 		case config.SMTPModeSSL:
 			dialer.SSL = true
 		}
+		return dialer
 	}
 	return nil
 }
