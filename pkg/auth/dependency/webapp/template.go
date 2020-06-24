@@ -51,7 +51,7 @@ var TemplateAuthUIHTMLHeadHTML = template.Spec{
 <title>{{ .app_name }}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="{{ .x_static_asset_url_prefix }}/authui/css/main.css">
-<script src="{{ .x_static_asset_url_prefix}}/authui/js/main.js"></script>
+<script src="{{ .x_static_asset_url_prefix }}/authui/js/main.js"></script>
 {{ if .x_css }}
 <style>
 {{ .x_css }}

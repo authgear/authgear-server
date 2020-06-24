@@ -70,7 +70,7 @@ type ServerStaticAssetConfig struct {
 	// Dir sets the local directory of static assets
 	Dir string `envconfig:"DIR" default:"./static"`
 	// URLPrefix sets the URL prefix for static assets
-	URLPrefix string `envconfig:"URL_PREFIX" default:"/static/authui"`
+	URLPrefix string `envconfig:"URL_PREFIX" default:"/static"`
 }
 
 type SourceType string
