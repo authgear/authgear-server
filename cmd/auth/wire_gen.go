@@ -5947,10 +5947,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 
 // Injectors from wire_middleware.go:
 
-func newSentryMiddleware(hub *sentry.Hub, p *deps.RequestProvider) mux.MiddlewareFunc {
-	appProvider := p.AppProvider
-	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
+func newSentryMiddleware(hub *sentry.Hub, p *deps.RootProvider) mux.MiddlewareFunc {
+	serverConfig := p.ServerConfig
 	sentryMiddleware := &sentry2.Middleware{
 		Hub:          hub,
 		ServerConfig: serverConfig,
@@ -5959,9 +5957,8 @@ func newSentryMiddleware(hub *sentry.Hub, p *deps.RequestProvider) mux.Middlewar
 	return middlewareFunc
 }
 
-func newRecoverMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
-	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
+func newRecoverMiddleware(p *deps.RootProvider) mux.MiddlewareFunc {
+	factory := p.LoggerFactory
 	recoveryLogger := middlewares.NewRecoveryLogger(factory)
 	recoverMiddleware := &middlewares.RecoverMiddleware{
 		Logger: recoveryLogger,
@@ -6255,10 +6252,12 @@ type middleware interface {
 
 func provideMiddlewareFunc(m middleware) mux.MiddlewareFunc { return m.Handle }
 
+var rootMiddlewareDependencySet = wire.NewSet(deps.RootDependencySet, provideMiddlewareFunc)
+
 var middlewareDependencySet = wire.NewSet(deps.RequestDependencySet, provideMiddlewareFunc)
 
-func newSentryMiddlewareFactory(hub *sentry.Hub) func(*deps.RequestProvider) mux.MiddlewareFunc {
-	return func(p *deps.RequestProvider) mux.MiddlewareFunc {
+func newSentryMiddlewareFactory(hub *sentry.Hub) func(*deps.RootProvider) mux.MiddlewareFunc {
+	return func(p *deps.RootProvider) mux.MiddlewareFunc {
 		return newSentryMiddleware(hub, p)
 	}
 }

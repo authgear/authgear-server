@@ -7,7 +7,19 @@ import (
 	taskqueue "github.com/skygeario/skygear-server/pkg/task/queue"
 )
 
+var rootDeps = wire.NewSet(
+	wire.FieldsOf(new(*RootProvider),
+		"ServerConfig",
+		"TaskExecutor",
+		"ReservedNameChecker",
+	),
+
+	ProvideCaptureTaskContext,
+	wire.Bind(new(taskqueue.Executor), new(*executors.InMemoryExecutor)),
+)
+
 var appRootDeps = wire.NewSet(
+	rootDeps,
 	wire.FieldsOf(new(*AppProvider),
 		"RootProvider",
 		"Context",
@@ -17,14 +29,13 @@ var appRootDeps = wire.NewSet(
 		"RedisContext",
 		"TemplateEngine",
 	),
-	wire.FieldsOf(new(*RootProvider),
-		"ServerConfig",
-		"TaskExecutor",
-		"ReservedNameChecker",
-	),
+)
 
-	ProvideCaptureTaskContext,
-	wire.Bind(new(taskqueue.Executor), new(*executors.InMemoryExecutor)),
+var RootDependencySet = wire.NewSet(
+	rootDeps,
+	wire.FieldsOf(new(*RootProvider),
+		"LoggerFactory",
+	),
 )
 
 var RequestDependencySet = wire.NewSet(

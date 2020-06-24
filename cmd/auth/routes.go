@@ -17,8 +17,8 @@ import (
 
 func NewRouter(p *deps.RootProvider) *mux.Router {
 	rootRouter := mux.NewRouter()
-	rootRouter.Use(p.Middleware(newSentryMiddlewareFactory(sentry.DefaultClient.Hub)))
-	rootRouter.Use(p.Middleware(newRecoverMiddleware))
+	rootRouter.Use(p.RootMiddleware(newSentryMiddlewareFactory(sentry.DefaultClient.Hub)))
+	rootRouter.Use(p.RootMiddleware(newRecoverMiddleware))
 	return rootRouter
 }
 

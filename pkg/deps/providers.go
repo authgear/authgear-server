@@ -103,6 +103,10 @@ func (p *RootProvider) Handler(factory func(*RequestProvider) http.Handler) http
 	})
 }
 
+func (p *RootProvider) RootMiddleware(factory func(*RootProvider) mux.MiddlewareFunc) mux.MiddlewareFunc {
+	return factory(p)
+}
+
 func (p *RootProvider) Middleware(factory func(*RequestProvider) mux.MiddlewareFunc) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

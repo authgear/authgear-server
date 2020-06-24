@@ -22,27 +22,34 @@ type middleware interface {
 
 func provideMiddlewareFunc(m middleware) mux.MiddlewareFunc { return m.Handle }
 
+var rootMiddlewareDependencySet = wire.NewSet(
+	deps.RootDependencySet,
+	provideMiddlewareFunc,
+)
+
 var middlewareDependencySet = wire.NewSet(
 	deps.RequestDependencySet,
 	provideMiddlewareFunc,
 )
 
-func newSentryMiddlewareFactory(hub *getsentry.Hub) func(*deps.RequestProvider) mux.MiddlewareFunc {
-	return func(p *deps.RequestProvider) mux.MiddlewareFunc {
+func newSentryMiddlewareFactory(hub *getsentry.Hub) func(*deps.RootProvider) mux.MiddlewareFunc {
+	return func(p *deps.RootProvider) mux.MiddlewareFunc {
 		return newSentryMiddleware(hub, p)
 	}
 }
 
-func newSentryMiddleware(hub *getsentry.Hub, p *deps.RequestProvider) mux.MiddlewareFunc {
+func newSentryMiddleware(hub *getsentry.Hub, p *deps.RootProvider) mux.MiddlewareFunc {
 	panic(wire.Build(
-		middlewareDependencySet,
+		rootMiddlewareDependencySet,
+		sentry.DependencySet,
 		wire.Bind(new(middleware), new(*sentry.Middleware)),
 	))
 }
 
-func newRecoverMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
+func newRecoverMiddleware(p *deps.RootProvider) mux.MiddlewareFunc {
 	panic(wire.Build(
-		middlewareDependencySet,
+		rootMiddlewareDependencySet,
+		middlewares.DependencySet,
 		wire.Bind(new(middleware), new(*middlewares.RecoverMiddleware)),
 	))
 }
