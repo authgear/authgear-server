@@ -49,20 +49,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	return h.getAuthInfo(r, state)
 }
 
-func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
-	h := getAuthInfoRequest{
-		redirectURL:     f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		providerConfig:  f.ProviderConfig,
-		clientSecret:    f.Credentials.ClientSecret,
-		accessTokenURL:  facebookTokenURL,
-		userProfileURL:  facebookUserInfoURL,
-		userInfoDecoder: f.UserInfoDecoder,
-	}
-	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
-}
-
 var (
-	_ OAuthProvider                   = &FacebookImpl{}
-	_ NonOpenIDConnectProvider        = &FacebookImpl{}
-	_ ExternalAccessTokenFlowProvider = &FacebookImpl{}
+	_ OAuthProvider            = &FacebookImpl{}
+	_ NonOpenIDConnectProvider = &FacebookImpl{}
 )
