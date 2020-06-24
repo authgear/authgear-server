@@ -56,14 +56,38 @@ func TestPublicKeySet(t *testing.T) {
 
 func TestExtractOctetKey(t *testing.T) {
 	Convey("ExtractOctetKey", t, func() {
-		secret := []byte("secret")
-		key, err := jwk.New(secret)
-		So(err, ShouldBeNil)
-		set := &jwk.Set{
-			Keys: []jwk.Key{key},
+		key1, err := jwk.New([]byte("secret1"))
+		if err != nil {
+			panic(err)
 		}
-		octetKey, err := ExtractOctetKey(set, "")
-		So(err, ShouldBeNil)
-		So(octetKey, ShouldResemble, secret)
+		key1.Set("kid", "key-1")
+
+		key2, err := jwk.New([]byte("secret2"))
+		if err != nil {
+			panic(err)
+		}
+		key2.Set("kid", "key-2")
+
+		set := &jwk.Set{
+			Keys: []jwk.Key{key1, key2},
+		}
+
+		Convey("should match on key ID", func() {
+			octetKey, err := ExtractOctetKey(set, "key-1")
+			So(err, ShouldBeNil)
+			So(octetKey, ShouldResemble, []byte("secret1"))
+
+			octetKey, err = ExtractOctetKey(set, "key-2")
+			So(err, ShouldBeNil)
+			So(octetKey, ShouldResemble, []byte("secret2"))
+
+			_, err = ExtractOctetKey(set, "key-3")
+			So(err, ShouldBeError)
+		})
+		Convey("should match first key if key ID is not provided", func() {
+			octetKey, err := ExtractOctetKey(set, "")
+			So(err, ShouldBeNil)
+			So(octetKey, ShouldResemble, []byte("secret1"))
+		})
 	})
 }
