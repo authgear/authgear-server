@@ -9,7 +9,6 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
-	configsource "github.com/skygeario/skygear-server/pkg/auth/config/source"
 	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/httputil"
 )
@@ -36,7 +35,7 @@ func main() {
 		logger.Warn("Development mode is ON - do not use in production")
 	}
 
-	configSource := configsource.NewSource(serverCfg)
+	configSource := newConfigSource(p)
 	err = configSource.Open()
 	if err != nil {
 		logger.WithError(err).Fatal("cannot open configuration")

@@ -9,6 +9,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/google/wire"
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/auth/config/source"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/bearertoken"
@@ -56,6 +57,20 @@ import (
 	"github.com/skygeario/skygear-server/pkg/task/queue"
 	"net/http"
 )
+
+// Injectors from wire_config.go:
+
+func newConfigSource(p *deps.RootProvider) source.Source {
+	serverConfig := p.ServerConfig
+	factory := p.LoggerFactory
+	localFileLogger := source.NewLocalFileLogger(factory)
+	localFile := &source.LocalFile{
+		Logger:       localFileLogger,
+		ServerConfig: serverConfig,
+	}
+	sourceSource := source.NewSource(serverConfig, localFile)
+	return sourceSource
+}
 
 // Injectors from wire_handler.go:
 

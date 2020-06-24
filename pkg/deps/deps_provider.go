@@ -3,6 +3,7 @@ package deps
 import (
 	"github.com/google/wire"
 
+	configsource "github.com/skygeario/skygear-server/pkg/auth/config/source"
 	"github.com/skygeario/skygear-server/pkg/task/executors"
 	taskqueue "github.com/skygeario/skygear-server/pkg/task/queue"
 )
@@ -16,6 +17,8 @@ var rootDeps = wire.NewSet(
 
 	ProvideCaptureTaskContext,
 	wire.Bind(new(taskqueue.Executor), new(*executors.InMemoryExecutor)),
+
+	configsource.DependencySet,
 )
 
 var appRootDeps = wire.NewSet(
