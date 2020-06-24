@@ -62,6 +62,10 @@ func (k Kind) Errorf(format string, args ...interface{}) error {
 	return k.Wrap(err, err.Error())
 }
 
+type APIErrorConvertible interface {
+	AsAPIError() *APIError
+}
+
 type skyerr struct {
 	inner   error
 	msg     string
@@ -87,6 +91,11 @@ func IsAPIError(err error) bool {
 		return true
 	}
 
+	var c APIErrorConvertible
+	if errors.As(err, &c) {
+		return true
+	}
+
 	return false
 }
 
@@ -98,20 +107,25 @@ func AsAPIError(err error) *APIError {
 	}
 
 	var e *skyerr
-	if !errors.As(err, &e) {
+	if errors.As(err, &e) {
+		details := errors.CollectDetails(err, nil)
 		return &APIError{
-			Kind:    Kind{InternalError, "UnexpectedError"},
-			Message: "unexpected error occurred",
-			Code:    InternalError.HTTPStatus(),
+			Kind:    e.kind,
+			Message: e.Error(),
+			Code:    e.kind.Name.HTTPStatus(),
+			Info:    errors.FilterDetails(details, APIErrorDetail),
 		}
 	}
 
-	details := errors.CollectDetails(err, nil)
+	var c APIErrorConvertible
+	if errors.As(err, &c) {
+		return c.AsAPIError()
+	}
+
 	return &APIError{
-		Kind:    e.kind,
-		Message: e.Error(),
-		Code:    e.kind.Name.HTTPStatus(),
-		Info:    errors.FilterDetails(details, APIErrorDetail),
+		Kind:    Kind{InternalError, "UnexpectedError"},
+		Message: "unexpected error occurred",
+		Code:    InternalError.HTTPStatus(),
 	}
 }
 

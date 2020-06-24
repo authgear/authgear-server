@@ -3,11 +3,12 @@ package validation
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"strings"
+
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
 	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
-	"io"
-	"strings"
 )
 
 type SimpleSchema struct {
@@ -119,7 +120,7 @@ func convertErrors(errs []Error, err error) error {
 		return fmt.Errorf("failed to validate JSON: %w", err)
 	}
 	if len(errs) != 0 {
-		return &AggregatedError{Errors: errs}
+		return &AggregatedError{Message: "invalid value", Errors: errs}
 	}
 	return nil
 }

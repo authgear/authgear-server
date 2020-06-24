@@ -1,11 +1,13 @@
 package validation_test
 
 import (
-	"github.com/skygeario/skygear-server/pkg/validation"
 	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/validation"
 )
 
 func TestSchemaValidate(t *testing.T) {
@@ -53,6 +55,7 @@ func TestSchemaValidate(t *testing.T) {
 		}
 `))
 		So(err, ShouldResemble, &validation.AggregatedError{
+			Message: "invalid value",
 			Errors: []validation.Error{
 				{
 					Location: "/b",
@@ -68,6 +71,33 @@ func TestSchemaValidate(t *testing.T) {
 					Info: map[string]interface{}{
 						"actual":  4.0,
 						"minimum": 5.0,
+					},
+				},
+			},
+		})
+
+		apiErr := skyerr.AsAPIError(err)
+		So(apiErr, ShouldResemble, &skyerr.APIError{
+			Kind:    validation.ValidationFailed,
+			Message: "invalid value",
+			Code:    400,
+			Info: map[string]interface{}{
+				"causes": []validation.Error{
+					{
+						Location: "/b",
+						Keyword:  "minLength",
+						Info: map[string]interface{}{
+							"actual":   1.0,
+							"expected": 4.0,
+						},
+					},
+					{
+						Location: "/c/0",
+						Keyword:  "minimum",
+						Info: map[string]interface{}{
+							"actual":  4.0,
+							"minimum": 5.0,
+						},
 					},
 				},
 			},
