@@ -25,7 +25,7 @@ type InteractionFlow interface {
 	TriggerOOBOTP(token string) (*interactionflows.WebAppResult, error)
 	LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	LinkWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
-	UnlinkWithOAuthProvider(userID string, providerConfig config.OAuthSSOProviderConfig) (*interactionflows.WebAppResult, error)
+	UnlinkWithOAuthProvider(userID string, providerConfig *config.OAuthSSOProviderConfig) (*interactionflows.WebAppResult, error)
 	PromoteWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	AddLoginID(userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
 	UpdateLoginID(userID string, oldLoginID loginid.LoginID, newLoginID loginid.LoginID) (*interactionflows.WebAppResult, error)
@@ -39,6 +39,7 @@ type SSOStateCodec interface {
 
 type AuthenticateProviderImpl struct {
 	ServerConfig         *config.ServerConfig
+	SSOOAuthConfig       *config.OAuthSSOConfig
 	ValidateProvider     ValidateProvider
 	RenderProvider       RenderProvider
 	StateProvider        StateProvider
@@ -49,7 +50,6 @@ type AuthenticateProviderImpl struct {
 
 type OAuthProviderFactory interface {
 	NewOAuthProvider(alias string) sso.OAuthProvider
-	GetOAuthProviderConfig(alias string) (config.OAuthSSOProviderConfig, bool)
 }
 
 func (p *AuthenticateProviderImpl) get(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType) (writeResponse func(err error), err error) {
@@ -437,7 +437,7 @@ func (p *AuthenticateProviderImpl) UnlinkIdentityProvider(w http.ResponseWriter,
 		p.handleResult(w, r, result, err)
 	}
 
-	providerConfig, ok := p.OAuthProviderFactory.GetOAuthProviderConfig(providerAlias)
+	providerConfig, ok := p.SSOOAuthConfig.GetProviderConfig(providerAlias)
 	if !ok {
 		err = ErrOAuthProviderNotFound
 		return

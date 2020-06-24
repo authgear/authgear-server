@@ -15,13 +15,13 @@ func ConfigureEnterPasswordHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type enterPasswordProvider interface {
+type EnterPasswordProvider interface {
 	GetEnterPasswordForm(w http.ResponseWriter, r *http.Request) (func(err error), error)
 	EnterSecret(w http.ResponseWriter, r *http.Request) (func(err error), error)
 }
 
 type EnterPasswordHandler struct {
-	Provider  enterPasswordProvider
+	Provider  EnterPasswordProvider
 	DBContext db.Context
 }
 

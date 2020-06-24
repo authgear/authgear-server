@@ -16,7 +16,7 @@ func ConfigureSettingsIdentityHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type settingsIdentityProvider interface {
+type SettingsIdentityProvider interface {
 	GetSettingsIdentity(w http.ResponseWriter, r *http.Request) (func(error), error)
 	LinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
 	UnlinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
@@ -25,7 +25,7 @@ type settingsIdentityProvider interface {
 
 type SettingsIdentityHandler struct {
 	RenderProvider webapp.RenderProvider
-	Provider       settingsIdentityProvider
+	Provider       SettingsIdentityProvider
 	DBContext      db.Context
 }
 

@@ -15,14 +15,14 @@ func ConfigurePromoteHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type promoteProvider interface {
+type PromoteProvider interface {
 	GetPromoteLoginIDForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 	PromoteLoginID(w http.ResponseWriter, r *http.Request) (func(error), error)
 	PromoteIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
 }
 
 type PromoteHandler struct {
-	Provider  promoteProvider
+	Provider  PromoteProvider
 	DBContext db.Context
 }
 

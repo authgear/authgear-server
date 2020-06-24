@@ -15,14 +15,14 @@ func ConfigureSignupHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type signupProvider interface {
+type SignupProvider interface {
 	GetCreateLoginIDForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 	CreateLoginID(w http.ResponseWriter, r *http.Request) (func(error), error)
 	LoginIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
 }
 
 type SignupHandler struct {
-	Provider  signupProvider
+	Provider  SignupProvider
 	DBContext db.Context
 }
 

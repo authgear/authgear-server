@@ -15,13 +15,13 @@ func ConfigureResetPasswordHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type resetPasswordProvider interface {
+type ResetPasswordProvider interface {
 	GetResetPasswordForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 	PostResetPasswordForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 }
 
 type ResetPasswordHandler struct {
-	Provider  resetPasswordProvider
+	Provider  ResetPasswordProvider
 	DBContext db.Context
 }
 

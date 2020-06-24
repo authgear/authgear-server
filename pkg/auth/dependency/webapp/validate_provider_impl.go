@@ -174,9 +174,8 @@ const RemoveLoginIDRequestSchema = `
 `
 
 type ValidateProviderImpl struct {
-	Validator *validation.Validator
-	LoginID   *config.LoginIDConfig
-	UI        *config.UIConfig
+	LoginID *config.LoginIDConfig
+	UI      *config.UIConfig
 }
 
 var _ ValidateProvider = &ValidateProviderImpl{}
@@ -224,6 +223,6 @@ func (p *ValidateProviderImpl) PrepareValues(form url.Values) {
 }
 
 func (p *ValidateProviderImpl) Validate(schemaID string, form url.Values) (err error) {
-	err = p.Validator.ValidateGoValue(schemaID, FormToJSON(form))
+	err = validator.ValidateGoValue(schemaID, FormToJSON(form))
 	return
 }

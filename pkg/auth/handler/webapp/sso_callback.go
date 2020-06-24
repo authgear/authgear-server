@@ -15,12 +15,12 @@ func ConfigureSSOCallbackHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type ssoProvider interface {
+type SSOProvider interface {
 	HandleSSOCallback(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
 }
 
 type SSOCallbackHandler struct {
-	Provider  ssoProvider
+	Provider  SSOProvider
 	DBContext db.Context
 }
 

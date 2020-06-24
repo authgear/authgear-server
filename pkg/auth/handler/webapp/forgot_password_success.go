@@ -15,12 +15,12 @@ func ConfigureForgotPasswordSuccessHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type forgotPasswordSuccessProvider interface {
+type ForgotPasswordSuccessProvider interface {
 	GetForgotPasswordSuccess(w http.ResponseWriter, r *http.Request) (func(error), error)
 }
 
 type ForgotPasswordSuccessHandler struct {
-	Provider  forgotPasswordSuccessProvider
+	Provider  ForgotPasswordSuccessProvider
 	DBContext db.Context
 }
 

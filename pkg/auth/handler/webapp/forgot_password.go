@@ -15,13 +15,13 @@ func ConfigureForgotPasswordHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type forgotPasswordProvider interface {
+type ForgotPasswordProvider interface {
 	GetForgotPasswordForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 	PostForgotPasswordForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 }
 
 type ForgotPasswordHandler struct {
-	Provider  forgotPasswordProvider
+	Provider  ForgotPasswordProvider
 	DBContext db.Context
 }
 

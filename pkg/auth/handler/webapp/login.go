@@ -15,14 +15,14 @@ func ConfigureLoginHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type loginProvider interface {
+type LoginProvider interface {
 	GetLoginForm(w http.ResponseWriter, r *http.Request) (func(error), error)
 	LoginWithLoginID(w http.ResponseWriter, r *http.Request) (func(error), error)
 	LoginIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (func(error), error)
 }
 
 type LoginHandler struct {
-	Provider  loginProvider
+	Provider  LoginProvider
 	DBContext db.Context
 }
 

@@ -116,7 +116,7 @@ func (f *WebAppFlow) LinkWithOAuthProvider(userID string, oauthAuthInfo sso.Auth
 	return
 }
 
-func (f *WebAppFlow) UnlinkWithOAuthProvider(userID string, providerConfig config.OAuthSSOProviderConfig) (result *WebAppResult, err error) {
+func (f *WebAppFlow) UnlinkWithOAuthProvider(userID string, providerConfig *config.OAuthSSOProviderConfig) (result *WebAppResult, err error) {
 	providerID := providerConfig.ProviderID()
 	clientID := ""
 	i, err := f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{

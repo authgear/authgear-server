@@ -18,14 +18,14 @@ func ConfigureLogoutHandler(router *mux.Router, h http.Handler) {
 		Handler(h)
 }
 
-type logoutSessionManager interface {
+type LogoutSessionManager interface {
 	Logout(auth.AuthSession, http.ResponseWriter) error
 }
 
 type LogoutHandler struct {
 	ServerConfig   *config.ServerConfig
 	RenderProvider webapp.RenderProvider
-	SessionManager logoutSessionManager
+	SessionManager LogoutSessionManager
 	DBContext      db.Context
 }
 

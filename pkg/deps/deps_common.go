@@ -12,6 +12,7 @@ import (
 	authenticatorrecoverycode "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
 	authenticatortotp "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	identityanonymous "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	identityloginid "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
@@ -27,6 +28,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	sessionredis "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
@@ -59,6 +61,9 @@ var commonDeps = wire.NewSet(
 		hook.DependencySet,
 		wire.Bind(new(interaction.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(user.HookProvider), new(*hook.Provider)),
+		wire.Bind(new(auth.HookProvider), new(*hook.Provider)),
+		wire.Bind(new(forgotpassword.HookProvider), new(*hook.Provider)),
+		wire.Bind(new(interactionflows.HookProvider), new(*hook.Provider)),
 	),
 
 	wire.NewSet(
@@ -67,8 +72,10 @@ var commonDeps = wire.NewSet(
 
 		session.DependencySet,
 		wire.Bind(new(auth.IDPSessionResolver), new(*session.Resolver)),
+		wire.Bind(new(auth.IDPSessionManager), new(*session.Manager)),
 		wire.Bind(new(oauth.ResolverSessionProvider), new(*session.Provider)),
 		wire.Bind(new(oauthhandler.SessionProvider), new(*session.Provider)),
+		wire.Bind(new(interactionflows.SessionProvider), new(*session.Provider)),
 	),
 
 	wire.NewSet(
@@ -99,6 +106,8 @@ var commonDeps = wire.NewSet(
 
 	wire.NewSet(
 		identityloginid.DependencySet,
+		wire.Bind(new(sso.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
+		wire.Bind(new(forgotpassword.LoginIDProvider), new(*identityloginid.Provider)),
 		identityoauth.DependencySet,
 		identityanonymous.DependencySet,
 		wire.Bind(new(interactionflows.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
@@ -109,12 +118,16 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(identityprovider.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 		wire.Bind(new(user.IdentityProvider), new(*identityprovider.Provider)),
 		wire.Bind(new(interaction.IdentityProvider), new(*identityprovider.Provider)),
+		wire.Bind(new(interactionflows.IdentityProvider), new(*identityprovider.Provider)),
+		wire.Bind(new(webapp.IdentityProvider), new(*identityprovider.Provider)),
 	),
 
 	wire.NewSet(
 		user.DependencySet,
 		wire.Bind(new(auth.UserProvider), new(*user.Queries)),
 		wire.Bind(new(interaction.UserProvider), new(*user.Provider)),
+		wire.Bind(new(interactionflows.UserProvider), new(*user.Provider)),
+		wire.Bind(new(forgotpassword.UserProvider), new(*user.Queries)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(hook.UserProvider), new(*user.RawProvider)),
 	),
@@ -122,6 +135,11 @@ var commonDeps = wire.NewSet(
 	wire.NewSet(
 		welcomemessage.DependencySet,
 		wire.Bind(new(user.WelcomeMessageProvider), new(*welcomemessage.Provider)),
+	),
+
+	wire.NewSet(
+		forgotpassword.DependencySet,
+		wire.Bind(new(webapp.ForgotPassword), new(*forgotpassword.Provider)),
 	),
 
 	wire.NewSet(
@@ -155,7 +173,9 @@ var commonDeps = wire.NewSet(
 
 		interactionflows.DependencySet,
 		wire.Bind(new(webapp.AnonymousFlow), new(*interactionflows.AnonymousFlow)),
+		wire.Bind(new(webapp.InteractionFlow), new(*interactionflows.WebAppFlow)),
 		wire.Bind(new(oauthhandler.AnonymousInteractionFlow), new(*interactionflows.AnonymousFlow)),
+		wire.Bind(new(forgotpassword.ResetPasswordFlow), new(*interactionflows.PasswordFlow)),
 	),
 
 	wire.NewSet(
@@ -164,5 +184,6 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(webapp.EndpointsProvider), new(*endpoints.Provider)),
 		wire.Bind(new(authenticatoroob.EndpointsProvider), new(*endpoints.Provider)),
 		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Provider)),
+		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Provider)),
 	),
 )
