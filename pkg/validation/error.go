@@ -7,6 +7,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
+var defaultErrorMessage = "invalid value"
+
 var ValidationFailed = skyerr.Invalid.WithReason("ValidationFailed")
 
 type Error struct {

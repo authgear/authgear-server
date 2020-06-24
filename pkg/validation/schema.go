@@ -3,7 +3,6 @@ package validation
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"strings"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -27,8 +26,8 @@ func (s *SimpleSchema) RegisterFormat(format string, checker jsonschemaformat.Fo
 	s.col.FormatChecker[format] = checker
 }
 
-func (s *SimpleSchema) ValidateReader(r io.Reader) error {
-	return convertErrors(validateSchema(s.col, r, ""))
+func (s *SimpleSchema) Validator() *SchemaValidator {
+	return &SchemaValidator{Schema: s.col}
 }
 
 type MultipartSchema struct {
@@ -101,26 +100,19 @@ func (s *MultipartSchema) RegisterFormat(format string, checker jsonschemaformat
 	s.col.FormatChecker[format] = checker
 }
 
-func (s *MultipartSchema) ValidateReader(r io.Reader) error {
+func (s *MultipartSchema) Validator() *SchemaValidator {
 	if s.col == nil {
 		panic("validation: JSON schema is not instantiated")
 	}
-	return convertErrors(validateSchema(s.col, r, ""))
+	return &SchemaValidator{Schema: s.col}
 }
 
-func (s *MultipartSchema) ValidateReaderByPart(r io.Reader, partID string) error {
+func (s *MultipartSchema) PartValidator(partID string) *SchemaValidator {
 	if s.col == nil {
 		panic("validation: JSON schema is not instantiated")
 	}
-	return convertErrors(validateSchema(s.col, r, jsonpointer.T([]string{"$defs", partID}).Fragment()))
-}
-
-func convertErrors(errs []Error, err error) error {
-	if err != nil {
-		return fmt.Errorf("failed to validate JSON: %w", err)
+	return &SchemaValidator{
+		Schema:    s.col,
+		Reference: jsonpointer.T([]string{"$defs", partID}).Fragment(),
 	}
-	if len(errs) != 0 {
-		return &AggregatedError{Message: "invalid value", Errors: errs}
-	}
-	return nil
 }

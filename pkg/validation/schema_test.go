@@ -39,13 +39,13 @@ func TestSchemaValidate(t *testing.T) {
 `)
 		schema.Instantiate()
 
-		err := schema.ValidateReader(strings.NewReader(`
+		err := schema.Validator().Validate(strings.NewReader(`
 		{
 		}
 `))
 		So(err, ShouldBeNil)
 
-		err = schema.ValidateReader(strings.NewReader(`
+		err = schema.Validator().Validate(strings.NewReader(`
 		{
 			"b": "t",
 			"c": [

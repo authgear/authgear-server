@@ -2,6 +2,7 @@ package validation
 
 import (
 	"errors"
+
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
@@ -54,15 +55,19 @@ func (c *Context) Validate(value interface{}) {
 	}
 }
 
-func (c *Context) Error() error {
-	if c.errors == nil {
+func (c *Context) Error(msg string) error {
+	if c.errors == nil || len(*c.errors) == 0 {
 		return nil
 	}
-	return convertErrors(*c.errors, nil)
+	return &AggregatedError{Message: msg, Errors: *c.errors}
 }
 
 func ValidateValue(value interface{}) error {
+	return ValidateValueWithMessage(value, defaultErrorMessage)
+}
+
+func ValidateValueWithMessage(value interface{}, msg string) error {
 	ctx := &Context{}
 	ctx.Validate(value)
-	return ctx.Error()
+	return ctx.Error(msg)
 }

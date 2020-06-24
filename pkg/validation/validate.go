@@ -3,15 +3,25 @@ package validation
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
 	"io"
 	"sort"
+
+	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
 )
 
-func validateSchema(col *jsonschema.Collection, r io.Reader, ref string) ([]Error, error) {
-	node, err := col.Apply(ref, r)
+type SchemaValidator struct {
+	Schema    *jsonschema.Collection
+	Reference string
+}
+
+func (v *SchemaValidator) Validate(r io.Reader) error {
+	return v.ValidateWithMessage(r, defaultErrorMessage)
+}
+
+func (v *SchemaValidator) ValidateWithMessage(r io.Reader, msg string) error {
+	node, err := v.Schema.Apply(v.Reference, r)
 	if err != nil {
-		return nil, fmt.Errorf("invalid JSON value: %w", err)
+		return fmt.Errorf("invalid JSON value: %w", err)
 	}
 
 	var errors []Error
@@ -52,10 +62,13 @@ func validateSchema(col *jsonschema.Collection, r io.Reader, ref string) ([]Erro
 	}
 	traverseNode(node)
 
-	sort.Slice(errors, func(i, j int) bool {
-		return errors[i].Location < errors[j].Location
-	})
-	return errors, nil
+	if len(errors) != 0 {
+		sort.Slice(errors, func(i, j int) bool {
+			return errors[i].Location < errors[j].Location
+		})
+		return &AggregatedError{Message: msg, Errors: errors}
+	}
+	return nil
 }
 
 func toJSONObject(data interface{}) (map[string]interface{}, error) {

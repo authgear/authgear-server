@@ -81,7 +81,7 @@ func TestAppConfigSchema(t *testing.T) {
 					panic(err)
 				}
 
-				err = config.Schema.ValidateReaderByPart(bytes.NewReader(data), testCase.Part)
+				err = config.Schema.PartValidator(testCase.Part).Validate(bytes.NewReader(data))
 				if testCase.Error != nil {
 					So(err, ShouldBeError, *testCase.Error)
 				} else {

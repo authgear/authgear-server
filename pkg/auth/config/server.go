@@ -63,7 +63,7 @@ func (c *ServerConfig) Validate() error {
 		)
 	}
 
-	return ctx.Error()
+	return ctx.Error("invalid server configuration")
 }
 
 type ServerStaticAssetConfig struct {
