@@ -41,6 +41,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	h := getAuthInfoRequest{
 		redirectURL:     f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		providerConfig:  f.ProviderConfig,
+		clientSecret:    f.Credentials.ClientSecret,
 		accessTokenURL:  facebookTokenURL,
 		userProfileURL:  facebookUserInfoURL,
 		userInfoDecoder: f.UserInfoDecoder,
