@@ -62,6 +62,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 	switch providerConfig.Type {
 	case config.OAuthSSOProviderTypeGoogle:
 		return &GoogleImpl{
+			Clock:                    p.Clock,
 			RedirectURL:              p.RedirectURL,
 			ProviderConfig:           *providerConfig,
 			Credentials:              *credentials,
@@ -83,6 +84,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 		}
 	case config.OAuthSSOProviderTypeAzureADv2:
 		return &Azureadv2Impl{
+			Clock:                    p.Clock,
 			RedirectURL:              p.RedirectURL,
 			ProviderConfig:           *providerConfig,
 			Credentials:              *credentials,
@@ -90,10 +92,10 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 		}
 	case config.OAuthSSOProviderTypeApple:
 		return &AppleImpl{
+			Clock:                    p.Clock,
 			RedirectURL:              p.RedirectURL,
 			ProviderConfig:           *providerConfig,
 			Credentials:              *credentials,
-			Clock:                    p.Clock,
 			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
 	}

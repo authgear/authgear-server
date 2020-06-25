@@ -1,13 +1,16 @@
 package sso
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/skygeario/skygear-server/pkg/clock"
 )
 
 type Azureadv2Impl struct {
+	Clock                    clock.Clock
 	RedirectURL              RedirectURLProvider
 	ProviderConfig           config.OAuthSSOProviderConfig
 	Credentials              config.OAuthClientCredentialsItem
@@ -95,8 +98,9 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 	}
 
 	var tokenResp AccessTokenResp
-	claims, err := c.ExchangeCode(
+	jwtToken, err := c.ExchangeCode(
 		http.DefaultClient,
+		f.Clock,
 		r.Code,
 		keySet,
 		f.ProviderConfig.ClientID,
@@ -105,6 +109,11 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 		state.HashedNonce,
 		&tokenResp,
 	)
+	if err != nil {
+		return
+	}
+
+	claims, err := jwtToken.AsMap(context.TODO())
 	if err != nil {
 		return
 	}

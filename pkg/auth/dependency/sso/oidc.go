@@ -6,12 +6,14 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/jws"
+	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	corejwt "github.com/skygeario/skygear-server/pkg/core/jwt"
+	"github.com/skygeario/skygear-server/pkg/jwtutil"
 )
 
 type OIDCAuthParams struct {
@@ -79,6 +81,7 @@ func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (*jwk.Set, error)
 
 func (d *OIDCDiscoveryDocument) ExchangeCode(
 	client *http.Client,
+	clock clock.Clock,
 	code string,
 	jwks *jwk.Set,
 	clientID string,
@@ -86,7 +89,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 	redirectURI string,
 	nonce string,
 	tokenResp *AccessTokenResp,
-) (corejwt.MapClaims, error) {
+) (jwt.Token, error) {
 	body := url.Values{}
 	body.Set("grant_type", "authorization_code")
 	body.Set("client_id", clientID)
@@ -115,41 +118,50 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 		return nil, err
 	}
 
-	idToken := tokenResp.IDToken()
-	keyFunc := func(token *jwt.Token) (interface{}, error) {
-		keyID, ok := token.Header["kid"].(string)
-		if !ok {
-			return nil, NewSSOFailed(SSOUnauthorized, "no kid")
-		}
-		if key := jwks.LookupKeyID(keyID); len(key) == 1 {
-			var ptrKey interface{}
-			err = key[0].Raw(&ptrKey)
-			if err != nil {
-				return nil, NewSSOFailed(SSOUnauthorized, "failed to extract key")
-			}
-
-			return ptrKey, nil
-		}
-		return nil, NewSSOFailed(SSOUnauthorized, "failed to find signing key")
+	idToken := []byte(tokenResp.IDToken())
+	hdr, payload, err := jwtutil.SplitWithoutVerify(idToken)
+	if err != nil {
+		return nil, NewSSOFailed(SSOUnauthorized, "invalid ID token")
 	}
 
-	mapClaims := corejwt.MapClaims{}
-	_, err = jwt.ParseWithClaims(idToken, &mapClaims, keyFunc)
+	keyID := hdr.KeyID()
+	if keyID == "" {
+		return nil, NewSSOFailed(SSOUnauthorized, "no kid")
+	}
+
+	keys := jwks.LookupKeyID(keyID)
+	if len(keys) != 1 {
+		return nil, NewSSOFailed(SSOUnauthorized, "failed to find signing key")
+	}
+	key := keys[0]
+
+	_, err = jws.VerifyWithJWK(idToken, key)
 	if err != nil {
 		return nil, NewSSOFailed(SSOUnauthorized, "invalid JWT signature")
 	}
 
-	if !mapClaims.VerifyAudience(clientID, true) {
+	err = jwt.Verify(
+		payload,
+		jwt.WithClock(jwtClock{clock}),
+		jwt.WithAudience(clientID),
+	)
+	if err != nil {
 		return nil, NewSSOFailed(SSOUnauthorized, "invalid aud")
 	}
 
-	hashedNonce, ok := mapClaims["nonce"].(string)
+	hashedNonceIface, ok := payload.Get("nonce")
 	if !ok {
 		return nil, NewSSOFailed(InvalidParams, "no nonce")
 	}
+
+	hashedNonce, ok := hashedNonceIface.(string)
+	if !ok {
+		return nil, NewSSOFailed(SSOUnauthorized, "invalid nonce")
+	}
+
 	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(nonce)) != 1 {
 		return nil, NewSSOFailed(SSOUnauthorized, "invalid nonce")
 	}
 
-	return mapClaims, nil
+	return payload, nil
 }

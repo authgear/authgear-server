@@ -3,8 +3,9 @@ package oidc
 import (
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
@@ -12,19 +13,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/jwkutil"
+	"github.com/skygeario/skygear-server/pkg/jwtutil"
 )
 
 type UserProvider interface {
 	Get(id string) (*model.User, error)
-}
-
-type UserClaims struct {
-	jwt.StandardClaims
-}
-
-type IDTokenClaims struct {
-	UserClaims
-	Nonce string `json:"nonce,omitempty"`
 }
 
 type IDTokenIssuer struct {
@@ -43,34 +36,33 @@ func (ti *IDTokenIssuer) GetPublicKeySet() (*jwk.Set, error) {
 }
 
 func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, session auth.AuthSession, nonce string) (string, error) {
-	userClaims, err := ti.LoadUserClaims(session)
+	claims, err := ti.LoadUserClaims(session)
 	if err != nil {
 		return "", err
 	}
 
 	now := ti.Clock.NowUTC()
-	userClaims.StandardClaims.Audience = client.ClientID()
-	userClaims.StandardClaims.IssuedAt = now.Unix()
-	userClaims.StandardClaims.ExpiresAt = now.Add(IDTokenValidDuration).Unix()
 
-	claims := &IDTokenClaims{
-		UserClaims: *userClaims,
-		Nonce:      nonce,
-	}
+	// TODO(id-token): https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+	// Set `aud` to `client_id`.
+	// Set `acr` to session.ACR.
+	// Set `amr` to session.AMR.
+	claims.Set(jwt.AudienceKey, client.ClientID())
+	claims.Set(jwt.IssuedAtKey, now.Unix())
+	claims.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
+	claims.Set("nonce", nonce)
 
 	jwk := ti.Secrets.Set.Keys[0]
-	var key interface{}
-	err = jwk.Raw(&key)
+
+	signed, err := jwtutil.Sign(claims, jwa.RS256, jwk)
 	if err != nil {
 		return "", err
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	token.Header["kid"] = jwk.KeyID()
-	return token.SignedString(key)
+	return string(signed), nil
 }
 
-func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (*UserClaims, error) {
+func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (jwt.Token, error) {
 	allowProfile := false
 	for _, scope := range oauth.SessionScopes(session) {
 		if scope == oauth.FullAccessScope {
@@ -78,19 +70,13 @@ func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (*UserClaims, 
 		}
 	}
 
-	claims := &UserClaims{
-		StandardClaims: jwt.StandardClaims{
-			// TODO(id-token): https://openid.net/specs/openid-connect-core-1_0.html#IDToken
-			// Set `aud` to `client_id`.
-			// Set `exp` to the expiration time.
-			// Set `iat` to NowUTC().
-			// Set `acr` to session.ACR.
-			// Set `amr` to session.AMR.
-			// Define a custom claim to indicate anonymous.
-			Issuer:  ti.Endpoints.BaseURL().String(),
-			Subject: session.AuthnAttrs().UserID,
-		},
-	}
+	// TODO(user-info): https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+	// Set `exp` to the expiration time.
+	// Set `iat` to NowUTC().
+	// Define a custom claim to indicate anonymous.
+	claims := jwt.New()
+	claims.Set(jwt.IssuerKey, ti.Endpoints.BaseURL().String())
+	claims.Set(jwt.SubjectKey, session.AuthnAttrs().UserID)
 
 	if !allowProfile {
 		return claims, nil
