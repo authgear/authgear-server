@@ -16,21 +16,18 @@ type OAuthProvider interface {
 
 // NonOpenIDConnectProvider are OAuth 2.0 provider that does not
 // implement OpenID Connect or we do not implement yet.
-// They are Google, Facebook and LinkedIn.
+// They are
+// "facebook"
+// "linkedin"
 type NonOpenIDConnectProvider interface {
 	NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error)
 }
 
-// ExternalAccessTokenFlowProvider is provider that the developer
-// can somehow acquire an access token and that access token
-// can be used to fetch user info.
-// They are Facebook.
-type ExternalAccessTokenFlowProvider interface {
-	ExternalAccessTokenGetAuthInfo(AccessTokenResp) (AuthInfo, error)
-}
-
 // OpenIDConnectProvider are OpenID Connect provider.
-// They are Azure AD v2.
+// They are
+// "google"
+// "apple"
+// "azureadv2"
 type OpenIDConnectProvider interface {
 	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error)
 }
