@@ -161,9 +161,6 @@ func TestDispatchEvent(t *testing.T) {
 						Context: event.Context{
 							Timestamp: 1136214245,
 							UserID:    &userID,
-							Session: &model.Session{
-								ID: "user-id-principal-id",
-							},
 						},
 					},
 					&user,

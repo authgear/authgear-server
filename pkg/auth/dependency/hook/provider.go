@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/clock"
@@ -184,21 +183,16 @@ func (provider *Provider) dispatchSyncUserEventIfNeeded() error {
 
 func (provider *Provider) makeContext() event.Context {
 	var userID *string
-	var session *model.Session
 
 	user := authn.GetUser(provider.Context)
-	sess := authn.GetSession(provider.Context)
 	if user == nil {
 		userID = nil
-		session = nil
 	} else {
 		userID = &user.ID
-		session = sess.(auth.AuthSession).ToAPIModel()
 	}
 
 	return event.Context{
 		Timestamp: provider.Clock.NowUTC().Unix(),
 		UserID:    userID,
-		Session:   session,
 	}
 }
