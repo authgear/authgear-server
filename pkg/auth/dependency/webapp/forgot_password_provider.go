@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/phone"
-	"github.com/skygeario/skygear-server/pkg/core/validation"
+	"github.com/skygeario/skygear-server/pkg/validation"
 )
 
 type ForgotPassword interface {
@@ -52,7 +52,7 @@ func (p *ForgotPasswordProvider) PostForgotPasswordForm(w http.ResponseWriter, r
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	err = p.ValidateProvider.Validate("#WebAppForgotPasswordRequest", r.Form)
+	err = p.ValidateProvider.Validate(WebAppSchemaIDForgotPasswordRequest, r.Form)
 	if err != nil {
 		return
 	}
@@ -131,7 +131,7 @@ func (p *ForgotPasswordProvider) PostResetPasswordForm(w http.ResponseWriter, r 
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	err = p.ValidateProvider.Validate("#WebAppResetPasswordRequest", r.Form)
+	err = p.ValidateProvider.Validate(WebAppSchemaIDResetPasswordRequest, r.Form)
 	if err != nil {
 		return
 	}
@@ -173,12 +173,13 @@ func (p *ForgotPasswordProvider) SetLoginID(r *http.Request) (err error) {
 	if r.Form.Get("x_login_id_input_type") == "phone" {
 		e164, e := phone.Parse(r.Form.Get("x_national_number"), r.Form.Get("x_calling_code"))
 		if e != nil {
-			err = validation.NewValidationFailed("", []validation.ErrorCause{
-				validation.ErrorCause{
-					Kind:    validation.ErrorStringFormat,
-					Pointer: "/x_national_number",
-				},
-			})
+			err = &validation.AggregatedError{
+				Errors: []validation.Error{{
+					Keyword:  "format",
+					Location: "/x_national_number",
+					Info:     map[string]interface{}{},
+				}},
+			}
 			return
 		}
 		r.Form.Set("x_login_id", e164)

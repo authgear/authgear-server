@@ -14,6 +14,7 @@ import (
 var _ = SecretConfigSchema.Add("SecretConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"secrets": {
 			"type": "array",
@@ -29,12 +30,17 @@ type SecretConfig struct {
 }
 
 func ParseSecret(inputYAML []byte) (*SecretConfig, error) {
+	const validationErrorMessage = "invalid secrets"
+
 	jsonData, err := yaml.YAMLToJSON(inputYAML)
 	if err != nil {
 		return nil, err
 	}
 
-	err = SecretConfigSchema.ValidateReader(bytes.NewReader(jsonData))
+	err = SecretConfigSchema.Validator().ValidateWithMessage(
+		bytes.NewReader(jsonData),
+		validationErrorMessage,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +56,7 @@ func ParseSecret(inputYAML []byte) (*SecretConfig, error) {
 	for i := range config.Secrets {
 		config.Secrets[i].parse(ctx.Child("secrets", strconv.Itoa(i)))
 	}
-	if err := ctx.Error(); err != nil {
+	if err := ctx.Error(validationErrorMessage); err != nil {
 		return nil, err
 	}
 
@@ -109,7 +115,7 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 		require(WebhookKeyMaterialsKey, "web-hook signing key materials")
 	}
 
-	return ctx.Error()
+	return ctx.Error("invalid secrets")
 }
 
 var _ = SecretConfigSchema.Add("SecretKey", `{ "type": "string" }`)
@@ -136,6 +142,7 @@ type SecretItemData interface {
 var _ = SecretConfigSchema.Add("SecretItem", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"key": { "$ref": "#/$defs/SecretKey" },
 		"data": { "type": "object" }
@@ -151,52 +158,52 @@ type SecretItem struct {
 }
 
 func (i *SecretItem) parse(ctx *validation.Context) {
-	var err error
 	r := bytes.NewReader(i.RawData)
 	var data SecretItemData
 
+	var validator *validation.SchemaValidator
 	switch i.Key {
 	case DatabaseCredentialsKey:
-		err = SecretConfigSchema.ValidateReaderByPart(r, "DatabaseCredentials")
+		validator = SecretConfigSchema.PartValidator("DatabaseCredentials")
 		data = &DatabaseCredentials{}
 	case RedisCredentialsKey:
-		err = SecretConfigSchema.ValidateReaderByPart(r, "RedisCredentials")
+		validator = SecretConfigSchema.PartValidator("RedisCredentials")
 		data = &RedisCredentials{}
 	case OAuthClientCredentialsKey:
-		err = SecretConfigSchema.ValidateReaderByPart(r, "OAuthClientCredentials")
+		validator = SecretConfigSchema.PartValidator("OAuthClientCredentials")
 		data = &OAuthClientCredentials{}
 	case SMTPServerCredentialsKey:
-		err = SecretConfigSchema.ValidateReaderByPart(r, "SMTPServerCredentials")
+		validator = SecretConfigSchema.PartValidator("SMTPServerCredentials")
 		data = &SMTPServerCredentials{}
 	case TwilioCredentialsKey:
-		err = SecretConfigSchema.ValidateReaderByPart(r, "TwilioCredentials")
+		validator = SecretConfigSchema.PartValidator("TwilioCredentials")
 		data = &TwilioCredentials{}
 	case NexmoCredentialsKey:
-		err = SecretConfigSchema.ValidateReaderByPart(r, "NexmoCredentials")
+		validator = SecretConfigSchema.PartValidator("NexmoCredentials")
 		data = &NexmoCredentials{}
 	case JWTKeyMaterialsKey:
-		err = SecretConfigSchema.ValidateReaderByPart(r, "JWTKeyMaterials")
+		validator = SecretConfigSchema.PartValidator("JWTKeyMaterials")
 		data = &JWTKeyMaterials{}
 	case OIDCKeyMaterialsKey:
-		err = SecretConfigSchema.ValidateReaderByPart(r, "OIDCKeyMaterials")
+		validator = SecretConfigSchema.PartValidator("OIDCKeyMaterials")
 		data = &OIDCKeyMaterials{}
 	case CSRFKeyMaterialsKey:
-		err = SecretConfigSchema.ValidateReaderByPart(r, "CSRFKeyMaterials")
+		validator = SecretConfigSchema.PartValidator("CSRFKeyMaterials")
 		data = &CSRFKeyMaterials{}
 	case WebhookKeyMaterialsKey:
-		err = SecretConfigSchema.ValidateReaderByPart(r, "WebhookKeyMaterials")
+		validator = SecretConfigSchema.PartValidator("WebhookKeyMaterials")
 		data = &WebhookKeyMaterials{}
 	default:
 		ctx.Child("key").EmitErrorMessage("unknown secret key")
 		return
 	}
-	if err != nil {
+	if err := validator.Validate(r); err != nil {
 		ctx.Child("data").AddError(err)
 		return
 	}
 
 	decoder := json.NewDecoder(bytes.NewReader(i.RawData))
-	err = decoder.Decode(data)
+	err := decoder.Decode(data)
 	if err != nil {
 		ctx.Child("data").AddError(err)
 		return

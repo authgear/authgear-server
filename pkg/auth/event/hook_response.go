@@ -3,7 +3,7 @@ package event
 import (
 	"io"
 
-	"github.com/skygeario/skygear-server/pkg/core/validation"
+	"github.com/skygeario/skygear-server/pkg/validation"
 )
 
 /*
@@ -23,44 +23,47 @@ import (
 				"data": { "fields": ["user_name"] }
 			}
 */
-const HookResponseSchema = `
+
+var HookResponseSchema = validation.NewSimpleSchema(`
 {
-	"$id": "#HookResponse",
-	"oneOf": [
+	"allOf": [
 		{
-			"additionalProperties": false,
-			"properties": {
-				"is_allowed": { "type": "boolean", "enum": [true] },
-				"mutations": {
-					"type": "object",
-					"properties": {
-						"metadata": { "type": "object" }
-					}
+			"if": {
+				"properties": {
+					"is_allowed": { "type": "boolean", "enum": [true] }
 				}
 			},
-			"required": ["is_allowed"]
+			"then": {
+				"properties": {
+					"is_allowed": { "type": "boolean" },
+					"mutations": {
+						"type": "object",
+						"properties": {
+							"metadata": { "type": "object" }
+						}
+					}
+				},
+				"required": ["is_allowed"]
+			}
 		},
 		{
-			"additionalProperties": false,
-			"properties": {
-				"is_allowed": { "type": "boolean", "enum": [false] },
-				"reason": { "type": "string" },
-				"data": { "type": "object" }
+			"if": {
+				"properties": {
+					"is_allowed": { "type": "boolean", "enum": [false] }
+				}
 			},
-			"required": ["is_allowed", "reason"]
+			"then": {
+				"properties": {
+					"is_allowed": { "type": "boolean" },
+					"reason": { "type": "string" },
+					"data": { "type": "object" }
+				},
+				"required": ["is_allowed", "reason"]
+			}
 		}
 	]
 }
-`
-
-var (
-	hookRespValidator *validation.Validator
-)
-
-func init() {
-	hookRespValidator = validation.NewValidator("http://v2.skygear.io")
-	hookRespValidator.AddSchemaFragments(HookResponseSchema)
-}
+`)
 
 type HookResponse struct {
 	IsAllowed bool        `json:"is_allowed"`
@@ -71,7 +74,7 @@ type HookResponse struct {
 
 func ParseHookResponse(r io.Reader) (*HookResponse, error) {
 	var resp HookResponse
-	if err := hookRespValidator.ParseReader("#HookResponse", r, &resp); err != nil {
+	if err := HookResponseSchema.Validator().Parse(r, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil

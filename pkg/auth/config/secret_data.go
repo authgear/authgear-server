@@ -12,6 +12,7 @@ import (
 var _ = SecretConfigSchema.Add("DatabaseCredentials", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"database_url": { "type": "string" },
 		"database_schema": { "type": "string" }
@@ -41,6 +42,7 @@ func (c *DatabaseCredentials) SetDefaults() {
 var _ = SecretConfigSchema.Add("RedisCredentials", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"host": { "type": "string" },
 		"port": { "type": "integer" },
@@ -103,6 +105,7 @@ func (c *RedisCredentials) ConnKey() string {
 var _ = SecretConfigSchema.Add("RedisSentinelConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"enabled": { "type": "boolean" },
 		"addrs": { "type": "array", "items": { "type": "string" } },
@@ -126,11 +129,13 @@ var _ = SecretConfigSchema.Add("SMTPMode", `
 var _ = SecretConfigSchema.Add("OAuthClientCredentials", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"items": {
 			"type": "array",
 			"items": {
 				"type": "object",
+				"additionalProperties": false,
 				"properties": {
 					"alias": {
 						"type": "string"
@@ -188,6 +193,7 @@ const (
 var _ = SecretConfigSchema.Add("SMTPServerCredentials", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"host": { "type": "string" },
 		"port": { "type": "integer", "minimum": 1, "maximum": 65535 },
@@ -224,6 +230,7 @@ func (c *SMTPServerCredentials) SetDefaults() {
 var _ = SecretConfigSchema.Add("TwilioCredentials", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"account_sid": { "type": "string" },
 		"auth_token": { "type": "string" }
@@ -247,6 +254,7 @@ func (c *TwilioCredentials) SensitiveStrings() []string {
 var _ = SecretConfigSchema.Add("NexmoCredentials", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"api_key": { "type": "string" },
 		"api_secret": { "type": "string" }
@@ -281,6 +289,7 @@ var _ = SecretConfigSchema.Add("JWK", `
 var _ = SecretConfigSchema.Add("JWS", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"keys": {
 			"type": "array",

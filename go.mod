@@ -18,7 +18,7 @@ require (
 	github.com/gorilla/csrf v1.6.2
 	github.com/h2non/gock v1.0.12
 	github.com/iawaknahc/gomessageformat v0.0.0-20200406084228-8abc010113fa
-	github.com/iawaknahc/jsonschema v0.0.0-20200321082404-507b9d186df7
+	github.com/iawaknahc/jsonschema v0.0.0-20200626071738-c1e8a657d1a9
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192
 	github.com/jmoiron/sqlx v0.0.0-20170430194603-d9bd385d68c0
 	github.com/joho/godotenv v1.3.0
@@ -40,7 +40,6 @@ require (
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329
-	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
 	golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae // indirect
@@ -53,5 +52,3 @@ require (
 	gopkg.in/yaml.v2 v2.2.8
 	sigs.k8s.io/yaml v1.2.0
 )
-
-replace github.com/xeipuuv/gojsonschema => github.com/skygeario/gojsonschema v1.2.1-0.20200107025531-9fad5cb886b4

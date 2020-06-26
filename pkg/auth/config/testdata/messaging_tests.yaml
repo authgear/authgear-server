@@ -31,9 +31,19 @@ name: invalid-email
 error: |-
   invalid value:
   /sender: format
-    map[error:mail: missing '@' or angle-addr]
+    map[error:mail: missing '@' or angle-addr format:email-name-addr]
   /sender#zh-HK: format
-    map[error:mail: missing '@' or angle-addr]
+    map[error:mail: missing '@' or angle-addr format:email-name-addr]
 value:
   sender: "example.com"
   sender#zh-HK: "測試.com"
+
+---
+part: EmailMessageConfig
+name: additional-properties
+error: |-
+  invalid value:
+  /body: additionalProperties
+value:
+  sender: "no-reply@example.com"
+  body: "hello!"

@@ -10,7 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/core/validation"
+	"github.com/skygeario/skygear-server/pkg/validation"
 )
 
 const usernameFormat = `^[a-zA-Z0-9_\-.]*$`
@@ -18,7 +18,7 @@ const usernameFormat = `^[a-zA-Z0-9_\-.]*$`
 var usernameRegex = regexp.MustCompile(usernameFormat)
 
 type TypeChecker interface {
-	Validate(loginID string) error
+	Validate(ctx *validation.Context, loginID string)
 }
 
 type TypeCheckerFactory struct {
@@ -49,16 +49,11 @@ type EmailChecker struct {
 	Config *config.LoginIDEmailConfig
 }
 
-func (c *EmailChecker) Validate(loginID string) error {
-	invalidFormatError := validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
-		Kind:    validation.ErrorStringFormat,
-		Pointer: "/value",
-		Message: "invalid login ID format",
-		Details: map[string]interface{}{"format": "email"},
-	}})
-	ok := validation.Email{}.IsFormat(loginID)
-	if !ok {
-		return invalidFormatError
+func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
+	err := validation.FormatEmail{}.CheckFormat(loginID)
+	if err != nil {
+		ctx.EmitError("format", map[string]interface{}{"format": "email"})
+		return
 	}
 
 	if *c.Config.BlockPlusSign {
@@ -71,11 +66,10 @@ func (c *EmailChecker) Validate(loginID string) error {
 
 		local := loginID[:at]
 		if strings.Contains(local, "+") {
-			return invalidFormatError
+			ctx.EmitError("format", map[string]interface{}{"format": "email"})
+			return
 		}
 	}
-
-	return nil
 }
 
 type UsernameChecker struct {
@@ -83,34 +77,26 @@ type UsernameChecker struct {
 	ReservedNameChecker *ReservedNameChecker
 }
 
-func (c *UsernameChecker) Validate(loginID string) error {
-	invalidFormatError := validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
-		Kind:    validation.ErrorStringFormat,
-		Pointer: "/value",
-		Message: "invalid login ID format",
-		Details: map[string]interface{}{"format": "username"},
-	}})
-
+func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 	// Ensure the login id is valid for Identifier profile
 	// and use the casefolded value for checking blacklist
 	// https://godoc.org/golang.org/x/text/secure/precis#NewIdentifier
 	p := precis.NewIdentifier(precis.FoldCase())
 	cfLoginID, err := p.String(loginID)
 	if err != nil {
-		return invalidFormatError
+		ctx.EmitError("format", map[string]interface{}{"format": "username"})
+		return
 	}
 
 	if *c.Config.BlockReservedUsernames {
 		reserved, err := c.ReservedNameChecker.IsReserved(cfLoginID)
 		if err != nil {
-			return err
+			ctx.AddError(err)
+			return
 		}
 		if reserved {
-			return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
-				Kind:    validation.ErrorGeneral,
-				Pointer: "/value",
-				Message: "username is not allowed",
-			}})
+			ctx.EmitErrorMessage("username is not allowed")
+			return
 		}
 	}
 
@@ -121,49 +107,34 @@ func (c *UsernameChecker) Validate(loginID string) error {
 		}
 
 		if strings.Contains(cfLoginID, cfItem) {
-			return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
-				Kind:    validation.ErrorGeneral,
-				Pointer: "/value",
-				Message: "username is not allowed",
-			}})
+			ctx.EmitErrorMessage("username is not allowed")
+			return
 		}
 	}
 
 	if *c.Config.ASCIIOnly {
 		if !usernameRegex.MatchString(loginID) {
-			return invalidFormatError
+			ctx.EmitError("format", map[string]interface{}{"format": "username"})
+			return
 		}
 	}
 
 	confusables := confusable.IsConfusable(loginID, false, []string{"LATIN", "COMMON"})
 	if len(confusables) > 0 {
-		return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
-			Kind:    validation.ErrorGeneral,
-			Pointer: "/value",
-			Message: "username contains confusable characters",
-		}})
+		ctx.EmitErrorMessage("username contains confusable characters")
 	}
-
-	return nil
 }
 
 type PhoneChecker struct{}
 
-func (c *PhoneChecker) Validate(loginID string) error {
-	ok := validation.E164Phone{}.IsFormat(loginID)
-	if ok {
-		return nil
+func (c *PhoneChecker) Validate(ctx *validation.Context, loginID string) {
+	err := validation.FormatPhone{}.CheckFormat(loginID)
+	if err != nil {
+		ctx.EmitError("format", map[string]interface{}{"format": "phone"})
 	}
-	return validation.NewValidationFailed("invalid login ID", []validation.ErrorCause{{
-		Kind:    validation.ErrorStringFormat,
-		Pointer: "/value",
-		Message: "invalid login ID format",
-		Details: map[string]interface{}{"format": "phone"},
-	}})
 }
 
 type NullChecker struct{}
 
-func (c *NullChecker) Validate(loginID string) error {
-	return nil
+func (c *NullChecker) Validate(ctx *validation.Context, loginID string) {
 }

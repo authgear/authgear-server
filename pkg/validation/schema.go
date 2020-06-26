@@ -3,11 +3,11 @@ package validation
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
 	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
-	"io"
-	"strings"
 )
 
 type SimpleSchema struct {
@@ -26,8 +26,8 @@ func (s *SimpleSchema) RegisterFormat(format string, checker jsonschemaformat.Fo
 	s.col.FormatChecker[format] = checker
 }
 
-func (s *SimpleSchema) ValidateReader(r io.Reader) error {
-	return convertErrors(validateSchema(s.col, r, ""))
+func (s *SimpleSchema) Validator() *SchemaValidator {
+	return &SchemaValidator{Schema: s.col}
 }
 
 type MultipartSchema struct {
@@ -59,7 +59,9 @@ func (s *MultipartSchema) Add(partID string, schema string) *MultipartSchema {
 func (s *MultipartSchema) DumpSchemaString(pretty bool) (schemaString string, err error) {
 	schema := map[string]interface{}{
 		"$defs": s.parts,
-		"$ref":  jsonpointer.T([]string{"$defs", s.mainPartID}),
+	}
+	if s.mainPartID != "" {
+		schema["$ref"] = jsonpointer.T([]string{"$defs", s.mainPartID})
 	}
 
 	var schemaJSON []byte
@@ -77,7 +79,7 @@ func (s *MultipartSchema) DumpSchemaString(pretty bool) (schemaString string, er
 }
 
 func (s *MultipartSchema) Instantiate() *MultipartSchema {
-	if _, ok := s.parts[s.mainPartID]; !ok {
+	if _, ok := s.parts[s.mainPartID]; s.mainPartID != "" && !ok {
 		panic(fmt.Sprintf("validaiton: main part '%s' is not added", s.mainPartID))
 	}
 
@@ -100,26 +102,22 @@ func (s *MultipartSchema) RegisterFormat(format string, checker jsonschemaformat
 	s.col.FormatChecker[format] = checker
 }
 
-func (s *MultipartSchema) ValidateReader(r io.Reader) error {
+func (s *MultipartSchema) Validator() *SchemaValidator {
 	if s.col == nil {
 		panic("validation: JSON schema is not instantiated")
 	}
-	return convertErrors(validateSchema(s.col, r, ""))
+	if s.mainPartID == "" {
+		panic("validation: PartValidator must be used instead if main part ID is not specified")
+	}
+	return &SchemaValidator{Schema: s.col}
 }
 
-func (s *MultipartSchema) ValidateReaderByPart(r io.Reader, partID string) error {
+func (s *MultipartSchema) PartValidator(partID string) *SchemaValidator {
 	if s.col == nil {
 		panic("validation: JSON schema is not instantiated")
 	}
-	return convertErrors(validateSchema(s.col, r, jsonpointer.T([]string{"$defs", partID}).Fragment()))
-}
-
-func convertErrors(errs []Error, err error) error {
-	if err != nil {
-		return fmt.Errorf("failed to validate JSON: %w", err)
+	return &SchemaValidator{
+		Schema:    s.col,
+		Reference: jsonpointer.T([]string{"$defs", partID}).Fragment(),
 	}
-	if len(errs) != 0 {
-		return &AggregatedError{Errors: errs}
-	}
-	return nil
 }

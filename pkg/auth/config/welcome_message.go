@@ -17,6 +17,7 @@ const (
 var _ = Schema.Add("WelcomeMessageConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"enabled": { "type": "boolean" },
 		"email_message": { "$ref": "#/$defs/EmailMessageConfig" },

@@ -5,6 +5,7 @@ import "github.com/skygeario/skygear-server/pkg/core/authn"
 var _ = Schema.Add("AuthenticationConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"identities": {
 			"type": "array",

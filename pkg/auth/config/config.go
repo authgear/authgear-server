@@ -20,6 +20,7 @@ type AppID string
 var _ = Schema.Add("AppConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"id": { "type": "string" },
 		"metadata": { "$ref": "#/$defs/AppMetadata" },
@@ -125,12 +126,14 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 }
 
 func Parse(inputYAML []byte) (*AppConfig, error) {
+	const validationErrorMessage = "invalid configuration"
+
 	jsonData, err := yaml.YAMLToJSON(inputYAML)
 	if err != nil {
 		return nil, err
 	}
 
-	err = Schema.ValidateReader(bytes.NewReader(jsonData))
+	err = Schema.Validator().ValidateWithMessage(bytes.NewReader(jsonData), validationErrorMessage)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +147,7 @@ func Parse(inputYAML []byte) (*AppConfig, error) {
 
 	setFieldDefaults(&config)
 
-	err = validation.ValidateValue(&config)
+	err = validation.ValidateValueWithMessage(&config, validationErrorMessage)
 	if err != nil {
 		return nil, err
 	}

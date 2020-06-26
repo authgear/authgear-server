@@ -1,17 +1,64 @@
 package validation
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
 	"io"
+	"io/ioutil"
 	"sort"
+
+	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
 )
 
-func validateSchema(col *jsonschema.Collection, r io.Reader, ref string) ([]Error, error) {
-	node, err := col.Apply(ref, r)
+type SchemaValidator struct {
+	Schema    *jsonschema.Collection
+	Reference string
+}
+
+func (v *SchemaValidator) Parse(r io.Reader, value interface{}) error {
+	return v.ParseWithMessage(r, defaultErrorMessage, value)
+}
+
+func (v *SchemaValidator) ParseWithMessage(r io.Reader, msg string, value interface{}) error {
+	data, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nil, fmt.Errorf("invalid JSON value: %w", err)
+		return fmt.Errorf("%s: %w", msg, err)
+	}
+
+	err = v.ValidateWithMessage(bytes.NewReader(data), msg)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, value)
+	if err != nil {
+		return fmt.Errorf("%s: %w", msg, err)
+	}
+
+	return nil
+}
+
+func (v *SchemaValidator) ValidateValue(value interface{}) error {
+	return v.ValidateValueWithMessage(value, defaultErrorMessage)
+}
+
+func (v *SchemaValidator) ValidateValueWithMessage(value interface{}, msg string) error {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Errorf("%s: %w", msg, err)
+	}
+	return v.ValidateWithMessage(bytes.NewReader(data), msg)
+}
+
+func (v *SchemaValidator) Validate(r io.Reader) error {
+	return v.ValidateWithMessage(r, defaultErrorMessage)
+}
+
+func (v *SchemaValidator) ValidateWithMessage(r io.Reader, msg string) error {
+	node, err := v.Schema.Apply(v.Reference, r)
+	if err != nil {
+		return fmt.Errorf("%s: %w", msg, err)
 	}
 
 	var errors []Error
@@ -35,15 +82,21 @@ func validateSchema(col *jsonschema.Collection, r io.Reader, ref string) ([]Erro
 				panic(fmt.Sprintf("validation: failed to marshal error info at %s: %s", n.KeywordLocation, err.Error()))
 			}
 
-			if len(info) == 0 && n.Keyword == "format" {
+			keyword := n.KeywordLocation.Last()
+			if len(info) == 0 && keyword == "format" {
 				if err, ok := n.Info.(error); ok {
-					info = map[string]interface{}{"error": err.Error()}
+					info = map[string]interface{}{
+						"error": err.Error(),
+					}
+				} else if info == nil {
+					info = map[string]interface{}{}
 				}
+				info["format"] = n.Annotation.(string)
 			}
 
 			errors = append(errors, Error{
 				Location: n.InstanceLocation.String(),
-				Keyword:  n.Keyword,
+				Keyword:  keyword,
 				Info:     info,
 			})
 		}
@@ -52,10 +105,13 @@ func validateSchema(col *jsonschema.Collection, r io.Reader, ref string) ([]Erro
 	}
 	traverseNode(node)
 
-	sort.Slice(errors, func(i, j int) bool {
-		return errors[i].Location < errors[j].Location
-	})
-	return errors, nil
+	if len(errors) != 0 {
+		sort.Slice(errors, func(i, j int) bool {
+			return errors[i].Location < errors[j].Location
+		})
+		return &AggregatedError{Message: msg, Errors: errors}
+	}
+	return nil
 }
 
 func toJSONObject(data interface{}) (map[string]interface{}, error) {

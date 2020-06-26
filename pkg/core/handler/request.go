@@ -9,16 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
-type RequestPayload interface {
-	Validate() error
-}
-
-type EmptyRequestPayload struct{}
-
-func (p EmptyRequestPayload) Validate() error {
-	return nil
-}
-
 const BodyMaxSize = 1024 * 1024 * 10
 
 func IsJSONContentType(contentType string) bool {
@@ -43,7 +33,6 @@ func IsJSONContentType(contentType string) bool {
 }
 
 func ParseJSONBody(r *http.Request, w http.ResponseWriter, parse func(io.Reader, interface{}) error, payload interface{}) error {
-
 	if !IsJSONContentType(r.Header.Get("Content-Type")) {
 		return skyerr.NewBadRequest("request content type is invalid")
 	}

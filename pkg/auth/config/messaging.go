@@ -3,6 +3,7 @@ package config
 var _ = Schema.Add("MessagingConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"default_email_message": { "$ref": "#/$defs/EmailMessageConfig" },
 		"default_sms_message": { "$ref": "#/$defs/SMSMessageConfig" },
@@ -40,6 +41,7 @@ const (
 var _ = Schema.Add("EmailMessageConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"patternProperties": {
 		"^sender(#.+)?$": { "type": "string", "format": "email-name-addr" },
 		"^subject(#.+)?$": { "type": "string" },
@@ -63,6 +65,7 @@ func NewEmailMessageConfig(configs ...EmailMessageConfig) EmailMessageConfig {
 var _ = Schema.Add("SMSMessageConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"^sender(#.+)?$": { "type": "string", "format": "phone" }
 	}

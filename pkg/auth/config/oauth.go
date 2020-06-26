@@ -3,6 +3,7 @@ package config
 var _ = Schema.Add("OAuthConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"clients": { "type": "array", "items": { "$ref": "#/$defs/OAuthClientConfig" } }
 	}
@@ -25,6 +26,7 @@ func (c *OAuthConfig) GetClient(clientID string) (OAuthClientConfig, bool) {
 var _ = Schema.Add("OAuthClientConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"client_id": { "type": "string" },
 		"client_uri": { "type": "string", "format": "uri" },

@@ -3,13 +3,21 @@ package validation
 import (
 	"fmt"
 	"strings"
+
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
+var defaultErrorMessage = "invalid value"
+
+var ValidationFailed = skyerr.Invalid.WithReason("ValidationFailed")
+
 type Error struct {
-	Location string
-	Keyword  string
-	Info     map[string]interface{}
+	Location string                 `json:"location"`
+	Keyword  string                 `json:"kind"`
+	Info     map[string]interface{} `json:"details,omitempty"`
 }
+
+func (e *Error) Kind() string { return e.Keyword }
 
 func (e *Error) String() string {
 	loc := e.Location
@@ -28,13 +36,25 @@ func (e *Error) String() string {
 }
 
 type AggregatedError struct {
-	Errors []Error
+	Message string
+	Errors  []Error
 }
 
 func (e *AggregatedError) Error() string {
-	lines := []string{"invalid value:"}
+	lines := []string{e.Message + ":"}
 	for _, err := range e.Errors {
 		lines = append(lines, err.String())
 	}
 	return strings.Join(lines, "\n")
+}
+
+func (e *AggregatedError) AsAPIError() *skyerr.APIError {
+	return &skyerr.APIError{
+		Kind:    ValidationFailed,
+		Message: e.Message,
+		Code:    ValidationFailed.Name.HTTPStatus(),
+		Info: map[string]interface{}{
+			"causes": e.Errors,
+		},
+	}
 }

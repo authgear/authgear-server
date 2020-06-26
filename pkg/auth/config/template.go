@@ -3,6 +3,7 @@ package config
 var _ = Schema.Add("TemplateConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"items": { "type": "array", "items": { "$ref": "#/$defs/TemplateItem" } }
 	}
@@ -20,6 +21,7 @@ type TemplateItemType string
 var _ = Schema.Add("TemplateItem", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"type": { "$ref": "#/$defs/TemplateItemType" },
 		"language_tag": { "type": "string" },

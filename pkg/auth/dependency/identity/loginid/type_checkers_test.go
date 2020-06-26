@@ -6,6 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/skygeario/skygear-server/pkg/validation"
 )
 
 func TestLoginIDTypeCheckers(t *testing.T) {
@@ -14,7 +15,9 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 		Err     string
 	}
 	f := func(c Case, check TypeChecker) {
-		err := check.Validate(c.LoginID)
+		ctx := &validation.Context{}
+		check.Validate(ctx, c.LoginID)
+		err := ctx.Error("invalid login ID")
 
 		if c.Err == "" {
 			So(err, ShouldBeNil)
@@ -35,11 +38,11 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			cases := []Case{
 				{"Faseng@Example.com", ""},
 				{"Faseng+Chima@example.com", ""},
-				{"faseng.the.cat", "invalid login ID"},
-				{"fasengthecat", "invalid login ID"},
-				{"fasengthecat@", "invalid login ID"},
-				{"@fasengthecat", "invalid login ID"},
-				{"Faseng <faseng@example>", "invalid login ID"},
+				{"faseng.the.cat", "invalid login ID:\n<root>: format\n  map[format:email]"},
+				{"fasengthecat", "invalid login ID:\n<root>: format\n  map[format:email]"},
+				{"fasengthecat@", "invalid login ID:\n<root>: format\n  map[format:email]"},
+				{"@fasengthecat", "invalid login ID:\n<root>: format\n  map[format:email]"},
+				{"Faseng <faseng@example>", "invalid login ID:\n<root>: format\n  map[format:email]"},
 				{"faseng.ℌ𝒌@測試.香港", ""},
 				{`"fase ng@cat"@example.com`, ""},
 				{`"faseng@"@example.com`, ""},
@@ -59,8 +62,8 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 		Convey("block plus sign", func() {
 			cases := []Case{
 				{"Faseng@Example.com", ""},
-				{"Faseng+Chima@example.com", "invalid login ID"},
-				{`"faseng@cat+123"@example.com`, "invalid login ID"},
+				{"Faseng+Chima@example.com", "invalid login ID:\n<root>: format\n  map[format:email]"},
+				{`"faseng@cat+123"@example.com`, "invalid login ID:\n<root>: format\n  map[format:email]"},
 			}
 
 			checker := &EmailChecker{
@@ -85,14 +88,14 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 				{"faseng", ""},
 
 				// space is not allowed in Identifier class
-				{"Test ID", "invalid login ID"},
+				{"Test ID", "invalid login ID:\n<root>: format\n  map[format:username]"},
 
 				// confusable homoglyphs
 				{"microsoft", ""},
-				{"microsоft", "invalid login ID"},
+				{"microsоft", "invalid login ID:\n<root>: username contains confusable characters"},
 				// byte array versions
 				{string([]byte{109, 105, 99, 114, 111, 115, 111, 102, 116}), ""},
-				{string([]byte{109, 105, 99, 114, 111, 115, 208, 190, 102, 116}), "invalid login ID"},
+				{string([]byte{109, 105, 99, 114, 111, 115, 208, 190, 102, 116}), "invalid login ID:\n<root>: username contains confusable characters"},
 			}
 
 			n := &UsernameChecker{
@@ -110,12 +113,12 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 
 		Convey("block keywords and non ascii", func() {
 			cases := []Case{
-				{"admin", "invalid login ID"},
-				{"settings", "invalid login ID"},
-				{"skygear", "invalid login ID"},
-				{"skygearcloud", "invalid login ID"},
-				{"myskygearapp", "invalid login ID"},
-				{"花生thecat", "invalid login ID"},
+				{"admin", "invalid login ID:\n<root>: username is not allowed"},
+				{"settings", "invalid login ID:\n<root>: username is not allowed"},
+				{"skygear", "invalid login ID:\n<root>: username is not allowed"},
+				{"skygearcloud", "invalid login ID:\n<root>: username is not allowed"},
+				{"myskygearapp", "invalid login ID:\n<root>: username is not allowed"},
+				{"花生thecat", "invalid login ID:\n<root>: format\n  map[format:username]"},
 				{"faseng", ""},
 				{"faseng_chima-the.cat", ""},
 			}

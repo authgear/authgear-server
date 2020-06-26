@@ -3,6 +3,7 @@ package config
 var _ = Schema.Add("AuthenticatorConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"password": { "$ref": "#/$defs/AuthenticatorPasswordConfig" },
 		"totp": { "$ref": "#/$defs/AuthenticatorTOTPConfig" },
@@ -24,6 +25,7 @@ type AuthenticatorConfig struct {
 var _ = Schema.Add("AuthenticatorPasswordConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"policy": { "$ref": "#/$defs/PasswordPolicyConfig" }
 	}
@@ -37,6 +39,7 @@ type AuthenticatorPasswordConfig struct {
 var _ = Schema.Add("PasswordPolicyConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"min_length": { "type": "integer" },
 		"uppercase_required": { "type": "boolean" },
@@ -70,6 +73,7 @@ func (c *PasswordPolicyConfig) IsEnabled() bool {
 var _ = Schema.Add("AuthenticatorTOTPConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" }
 	}
@@ -89,6 +93,7 @@ func (c *AuthenticatorTOTPConfig) SetDefaults() {
 var _ = Schema.Add("AuthenticatorOOBConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"sms": { "$ref": "#/$defs/AuthenticatorOOBSMSConfig" },
 		"email": { "$ref": "#/$defs/AuthenticatorOOBEmailConfig" }
@@ -104,6 +109,7 @@ type AuthenticatorOOBConfig struct {
 var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" },
 		"message": { "$ref": "#/$defs/SMSMessageConfig" }
@@ -125,6 +131,7 @@ func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
 var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" },
 		"message": { "$ref": "#/$defs/EmailMessageConfig" }
@@ -149,6 +156,7 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 var _ = Schema.Add("AuthenticatorBearerTokenConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"expire_in_days": { "$ref": "#/$defs/DurationDays" }
 	}
@@ -168,6 +176,7 @@ func (c *AuthenticatorBearerTokenConfig) SetDefaults() {
 var _ = Schema.Add("AuthenticatorRecoveryCodeConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"count": { "type": "integer" },
 		"list_enabled": { "type": "integer" }

@@ -6,8 +6,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/validation"
 	"github.com/skygeario/skygear-server/pkg/httproute"
+	"github.com/skygeario/skygear-server/pkg/validation"
 )
 
 func ConfigureChallengeRoute(route httproute.Route) httproute.Route {
@@ -16,58 +16,48 @@ func ConfigureChallengeRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/oauth2/challenge")
 }
 
+const (
+	ChallengeAPISchemaIDRequest  = "OAuthChallengeRequest"
+	ChallengeAPISchemaIDResponse = "OAuthChallengeResponse"
+)
+
+var ChallengeAPISchema = validation.NewMultipartSchema("").
+	Add(ChallengeAPISchemaIDRequest, `
+		{
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"purpose": { "type": "string" }
+			},
+			"required": ["purpose"]
+		}
+	`).
+	Add(ChallengeAPISchemaIDResponse, `
+		{
+			"type": "object",
+			"properties": {
+				"token": { "type": "string" },
+				"expire_at": { "type": "string" }
+			},
+			"required": ["token", "expire_at"]
+		}
+	`).
+	Instantiate()
+
 type ChallengeRequest struct {
 	Purpose challenge.Purpose `json:"purpose"`
 }
 
-func (p *ChallengeRequest) Validate() []validation.ErrorCause {
+func (p *ChallengeRequest) Validate(ctx *validation.Context) {
 	if !p.Purpose.IsValid() {
-		return []validation.ErrorCause{{
-			Kind:    validation.ErrorGeneral,
-			Pointer: "/purpose",
-			Message: "unknown challenge purpose",
-		}}
+		ctx.Child("purpose").EmitErrorMessage("unknown challenge purpose")
 	}
-	return nil
 }
-
-var challengeValidator = validation.NewValidator("http://v2.skgyear.io")
-
-func init() {
-	challengeValidator.AddSchemaFragments(
-		ChallengeRequestSchema,
-	)
-}
-
-// @JSONSchema
-const ChallengeRequestSchema = `
-{
-	"$id": "#OAuthChallengeRequest",
-	"type": "object",
-	"properties": {
-		"purpose": { "type": "string" }
-	},
-	"required": ["purpose"]
-}
-`
 
 type ChallengeResponse struct {
 	Token    string    `json:"token"`
 	ExpireAt time.Time `json:"expire_at"`
 }
-
-// @JSONSchema
-const ChallengeResponseSchema = `
-{
-	"$id": "#OAuthChallengeResponse",
-	"type": "object",
-	"properties": {
-		"token": { "type": "string" },
-		"expire_at": { "type": "string" }
-	},
-	"required": ["token", "expire_at"]
-}
-`
 
 type ChallengeProvider interface {
 	Create(purpose challenge.Purpose) (*challenge.Challenge, error)
@@ -103,7 +93,7 @@ func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request
 
 func (h *ChallengeHandler) Handle(resp http.ResponseWriter, req *http.Request) (*ChallengeResponse, error) {
 	var payload ChallengeRequest
-	if err := handler.BindJSONBody(req, resp, challengeValidator, "#OAuthChallengeRequest", &payload); err != nil {
+	if err := handler.BindJSONBody(req, resp, ChallengeAPISchema.PartValidator(ChallengeAPISchemaIDRequest), &payload); err != nil {
 		return nil, err
 	}
 

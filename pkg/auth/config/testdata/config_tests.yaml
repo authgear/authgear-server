@@ -6,7 +6,7 @@ config:
 ---
 name: missing-id
 error: |-
-  invalid value:
+  invalid configuration:
   <root>: required
     map[actual:<nil> expected:[id] missing:[id]]
 config: {}
@@ -14,7 +14,7 @@ config: {}
 ---
 name: invalid-id
 error: |-
-  invalid value:
+  invalid configuration:
   /id: type
     map[actual:[number integer] expected:[string]]
 config:
@@ -23,7 +23,7 @@ config:
 ---
 name: oauth-client-refresh-token-lifetime
 error: |-
-  invalid value:
+  invalid configuration:
   /oauth/clients/0/refresh_token_lifetime_seconds: refresh token lifetime must be greater than or equal to access token lifetime
 config:
   id: test
@@ -38,7 +38,7 @@ config:
 ---
 name: dupe-oauth-provider
 error: |-
-  invalid value:
+  invalid configuration:
   /identity/oauth/providers/1: duplicated OAuth provider
 config:
   id: test
@@ -53,7 +53,7 @@ config:
 ---
 name: dupe-oauth-provider-alias
 error: |-
-  invalid value:
+  invalid configuration:
   /identity/oauth/providers/1: duplicated OAuth provider alias
 config:
   id: test
@@ -68,7 +68,7 @@ config:
 ---
 name: dupe-authenticator-type
 error: |-
-  invalid value:
+  invalid configuration:
   /authentication/secondary_authenticators/1: duplicated authenticator type
 config:
   id: test
@@ -79,7 +79,7 @@ config:
 ---
 name: invalid-conflict
 error: |-
-  invalid value:
+  invalid configuration:
   /identity/on_conflict/promotion: enum
     map[actual:foobar expected:[error login]]
 config:
@@ -91,7 +91,7 @@ config:
 ---
 name: unlisted-ccc
 error: |-
-  invalid value:
+  invalid configuration:
   /ui/country_calling_code/default: default country calling code is unlisted
 config:
   id: test
