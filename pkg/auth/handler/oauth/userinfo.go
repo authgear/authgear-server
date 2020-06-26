@@ -7,16 +7,15 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/httproute"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func ConfigureUserInfoHandler(route httproute.Route, h http.Handler) (httproute.Route, http.Handler) {
+func ConfigureUserInfoRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("GET", "POST", "OPTIONS").
-		WithPathPattern("/oauth2/userinfo"), oauth.RequireScope(h)
+		WithPathPattern("/oauth2/userinfo")
 }
 
 type ProtocolUserInfoProvider interface {

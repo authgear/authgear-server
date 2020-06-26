@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	configsource "github.com/skygeario/skygear-server/pkg/auth/config/source"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/internalserver"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
@@ -61,6 +62,11 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httpro
 		rootChain,
 		httproute.MiddlewareFunc(webapp.PostNoCacheMiddleware),
 	)
+	scopedChain := httproute.Chain(
+		rootChain,
+		// Current we only require valid session and do not require any scope.
+		httproute.MiddlewareFunc(oauth.RequireScope()),
+	)
 
 	webappChain := httproute.Chain(
 		rootChain,
@@ -80,6 +86,7 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httpro
 	)
 
 	rootRoute := httproute.Route{Middleware: rootChain}
+	scopedRoute := httproute.Route{Middleware: scopedChain}
 	webappRoute := httproute.Route{Middleware: webappChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
@@ -111,12 +118,10 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httpro
 	router.Add(oauthhandler.ConfigureAuthorizeRoute(rootRoute), p.Handler(newOAuthAuthorizeHandler))
 	router.Add(oauthhandler.ConfigureTokenRoute(rootRoute), p.Handler(newOAuthTokenHandler))
 	router.Add(oauthhandler.ConfigureRevokeRoute(rootRoute), p.Handler(newOAuthRevokeHandler))
-
-	userInfoRoute, userInfoHandler := oauthhandler.ConfigureUserInfoHandler(rootRoute, p.Handler(newOAuthUserInfoHandler))
-	router.Add(userInfoRoute, userInfoHandler)
-
 	router.Add(oauthhandler.ConfigureEndSessionRoute(rootRoute), p.Handler(newOAuthEndSessionHandler))
 	router.Add(oauthhandler.ConfigureChallengeRoute(rootRoute), p.Handler(newOAuthChallengeHandler))
+
+	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
 
 	if p.ServerConfig.StaticAsset.ServingEnabled {
 		fileServer := http.FileServer(http.Dir(p.ServerConfig.StaticAsset.Dir))
