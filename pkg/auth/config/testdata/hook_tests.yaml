@@ -21,7 +21,7 @@ name: invalid-rel-path
 error: |-
   invalid value:
   /url: format
-    map[error:input URL must be absolute]
+    map[error:input URL must be absolute format:uri]
 value:
   event: before_user_create
   url: "/before_user_create"

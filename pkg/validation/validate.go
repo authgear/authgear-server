@@ -47,8 +47,13 @@ func (v *SchemaValidator) ValidateWithMessage(r io.Reader, msg string) error {
 
 			if len(info) == 0 && n.Keyword == "format" {
 				if err, ok := n.Info.(error); ok {
-					info = map[string]interface{}{"error": err.Error()}
+					info = map[string]interface{}{
+						"error": err.Error(),
+					}
+				} else if info == nil {
+					info = map[string]interface{}{}
 				}
+				info["format"] = n.Annotation.(string)
 			}
 
 			errors = append(errors, Error{
