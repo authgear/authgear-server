@@ -34,14 +34,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	handler2 "github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/handler"
-	session2 "github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	redis4 "github.com/skygeario/skygear-server/pkg/auth/dependency/session/redis"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/user"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcomemessage"
+	"github.com/skygeario/skygear-server/pkg/auth/handler/internalserver"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	webapp2 "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
 	task2 "github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/clock"
@@ -96,8 +96,8 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clock,
 	}
 	factory := appProvider.LoggerFactory
-	resolveHandlerLogger := session.NewResolveHandlerLogger(factory)
-	resolveHandler := &session.ResolveHandler{
+	resolveHandlerLogger := internalserver.NewResolveHandlerLogger(factory)
+	resolveHandler := &internalserver.ResolveHandler{
 		Anonymous: provider,
 		Logger:    resolveHandlerLogger,
 	}
@@ -465,7 +465,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sessionConfig := appConfig.Session
 	rand := _wireRandValue
-	sessionProvider := &session2.Provider{
+	sessionProvider := &session.Provider{
 		Request:      request,
 		Store:        store,
 		AccessEvents: authAccessEventProvider,
@@ -739,7 +739,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 }
 
 var (
-	_wireRandValue = session2.Rand(rand.SecureRand)
+	_wireRandValue = session.Rand(rand.SecureRand)
 )
 
 func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
@@ -1550,7 +1550,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef := session2.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	redisLogger := redis4.NewLogger(factory)
 	store2 := &redis4.Store{
 		Redis:  redisContext,
@@ -1566,7 +1566,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Store: eventStore,
 	}
 	sessionRand := _wireRandValue
-	sessionProvider := &session2.Provider{
+	sessionProvider := &session.Provider{
 		Request:      request,
 		Store:        store2,
 		AccessEvents: accessEventProvider,
@@ -1905,7 +1905,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef := session2.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	redisLogger := redis4.NewLogger(factory)
 	store2 := &redis4.Store{
 		Redis:  redisContext,
@@ -1921,7 +1921,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store: eventStore,
 	}
 	sessionRand := _wireRandValue
-	sessionProvider := &session2.Provider{
+	sessionProvider := &session.Provider{
 		Request:      request,
 		Store:        store2,
 		AccessEvents: accessEventProvider,
@@ -2260,7 +2260,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef := session2.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	redisLogger := redis4.NewLogger(factory)
 	store2 := &redis4.Store{
 		Redis:  redisContext,
@@ -2276,7 +2276,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Store: eventStore,
 	}
 	sessionRand := _wireRandValue
-	sessionProvider := &session2.Provider{
+	sessionProvider := &session.Provider{
 		Request:      request,
 		Store:        store2,
 		AccessEvents: accessEventProvider,
@@ -2615,7 +2615,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef := session2.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	redisLogger := redis4.NewLogger(factory)
 	store2 := &redis4.Store{
 		Redis:  redisContext,
@@ -2631,7 +2631,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store: eventStore,
 	}
 	sessionRand := _wireRandValue
-	sessionProvider := &session2.Provider{
+	sessionProvider := &session.Provider{
 		Request:      request,
 		Store:        store2,
 		AccessEvents: accessEventProvider,
@@ -2970,7 +2970,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef := session2.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	redisLogger := redis4.NewLogger(factory)
 	store2 := &redis4.Store{
 		Redis:  redisContext,
@@ -2986,7 +2986,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Store: eventStore,
 	}
 	sessionRand := _wireRandValue
-	sessionProvider := &session2.Provider{
+	sessionProvider := &session.Provider{
 		Request:      request,
 		Store:        store2,
 		AccessEvents: accessEventProvider,
@@ -3325,7 +3325,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef := session2.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	redisLogger := redis4.NewLogger(factory)
 	store2 := &redis4.Store{
 		Redis:  redisContext,
@@ -3341,7 +3341,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: eventStore,
 	}
 	sessionRand := _wireRandValue
-	sessionProvider := &session2.Provider{
+	sessionProvider := &session.Provider{
 		Request:      request,
 		Store:        store2,
 		AccessEvents: accessEventProvider,
@@ -3680,7 +3680,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef := session2.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	redisLogger := redis4.NewLogger(factory)
 	store2 := &redis4.Store{
 		Redis:  redisContext,
@@ -3696,7 +3696,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: eventStore,
 	}
 	sessionRand := _wireRandValue
-	sessionProvider := &session2.Provider{
+	sessionProvider := &session.Provider{
 		Request:      request,
 		Store:        store2,
 		AccessEvents: accessEventProvider,
@@ -4035,7 +4035,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef := session2.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	redisLogger := redis4.NewLogger(factory)
 	store2 := &redis4.Store{
 		Redis:  redisContext,
@@ -4051,7 +4051,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: eventStore,
 	}
 	sessionRand := _wireRandValue
-	sessionProvider := &session2.Provider{
+	sessionProvider := &session.Provider{
 		Request:      request,
 		Store:        store2,
 		AccessEvents: accessEventProvider,
@@ -5737,7 +5737,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef := session2.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	redisLogger := redis4.NewLogger(factory)
 	store2 := &redis4.Store{
 		Redis:  redisContext,
@@ -5753,7 +5753,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store: eventStore,
 	}
 	sessionRand := _wireRandValue
-	sessionProvider := &session2.Provider{
+	sessionProvider := &session.Provider{
 		Request:      request,
 		Store:        store2,
 		AccessEvents: accessEventProvider,
@@ -5985,8 +5985,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sessionConfig := appConfig.Session
 	request := p.Request
-	cookieDef := session2.NewSessionCookieDef(request, sessionConfig, serverConfig)
-	manager := &session2.Manager{
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	manager := &session.Manager{
 		Store:     redisStore,
 		Clock:     clockClock,
 		Config:    sessionConfig,
@@ -6100,7 +6100,7 @@ func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 	sessionConfig := appConfig.Session
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	cookieDef := session2.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	context := appProvider.RedisContext
 	appID := appConfig.ID
 	clockClock := _wireSystemClockValue
@@ -6120,7 +6120,7 @@ func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 		Store: eventStore,
 	}
 	sessionRand := _wireRandValue
-	sessionProvider := &session2.Provider{
+	sessionProvider := &session.Provider{
 		Request:      request,
 		Store:        store,
 		AccessEvents: accessEventProvider,
@@ -6129,7 +6129,7 @@ func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 		Clock:        clockClock,
 		Random:       sessionRand,
 	}
-	resolver := &session2.Resolver{
+	resolver := &session.Resolver{
 		Cookie:   cookieDef,
 		Provider: sessionProvider,
 		Config:   serverConfig,

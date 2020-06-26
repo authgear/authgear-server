@@ -1,4 +1,4 @@
-package session
+package internalserver
 
 import (
 	"github.com/google/wire"

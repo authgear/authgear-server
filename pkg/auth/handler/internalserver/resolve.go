@@ -1,4 +1,4 @@
-package session
+package internalserver
 
 import (
 	"net/http"
@@ -13,11 +13,11 @@ import (
 
 func ConfigureResolveHandler(router *mux.Router, h http.Handler) {
 	router.NewRoute().
-		Path("/_auth/session/resolve").
+		Path("/resolve").
 		Handler(h)
 }
 
-//go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package session
+//go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package internalserver
 
 type AnonymousIdentityProvider interface {
 	List(userID string) ([]*anonymous.Identity, error)

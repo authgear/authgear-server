@@ -7,19 +7,35 @@ import (
 
 	configsource "github.com/skygeario/skygear-server/pkg/auth/config/source"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
+	"github.com/skygeario/skygear-server/pkg/auth/handler/internalserver"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	webapphandler "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 func NewRouter(p *deps.RootProvider) *mux.Router {
-	rootRouter := mux.NewRouter()
-	rootRouter.Use(p.RootMiddleware(newSentryMiddlewareFactory(sentry.DefaultClient.Hub)))
-	rootRouter.Use(p.RootMiddleware(newRecoverMiddleware))
-	return rootRouter
+	r := mux.NewRouter()
+	r.Use(p.RootMiddleware(newSentryMiddlewareFactory(sentry.DefaultClient.Hub)))
+	r.Use(p.RootMiddleware(newRecoverMiddleware))
+	r.HandleFunc("/healthz", httputil.HealthCheckHandler)
+	return r
+}
+
+func setupInternalRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Router {
+	router := NewRouter(p)
+
+	rootRouter := router.PathPrefix("/").Subrouter()
+	rootRouter.Use((&deps.RequestMiddleware{
+		RootProvider: p,
+		ConfigSource: configSource,
+	}).Handle)
+	rootRouter.Use(p.Middleware(newSessionMiddleware))
+
+	internalserver.ConfigureResolveHandler(rootRouter, p.Handler(newSessionResolveHandler))
+
+	return router
 }
 
 func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Router {
@@ -29,7 +45,6 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 	var oauthRouter *mux.Router
 
 	router = NewRouter(p)
-	router.HandleFunc("/healthz", server.HealthCheckHandler)
 
 	rootRouter = router.PathPrefix("/").Subrouter()
 	rootRouter.Use((&deps.RequestMiddleware{
@@ -38,9 +53,6 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 	}).Handle)
 
 	rootRouter.Use(p.Middleware(newSessionMiddleware))
-
-	// TODO: move to another port
-	session.ConfigureResolveHandler(rootRouter, p.Handler(newSessionResolveHandler))
 
 	oauthRouter = rootRouter.NewRoute().Subrouter()
 	oauthRouter.Use(p.Middleware(newCORSMiddleware))

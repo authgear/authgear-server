@@ -13,8 +13,8 @@ import (
 	oidchandler "github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
+	handlerinternal "github.com/skygeario/skygear-server/pkg/auth/handler/internalserver"
 	handleroauth "github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
-	handlersession "github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	handlerwebapp "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
 	"github.com/skygeario/skygear-server/pkg/middlewares"
 )
@@ -47,8 +47,8 @@ var requestDeps = wire.NewSet(
 
 	middlewares.DependencySet,
 
-	handlersession.DependencySet,
-	wire.Bind(new(handlersession.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+	handlerinternal.DependencySet,
+	wire.Bind(new(handlerinternal.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
 	handleroauth.DependencySet,
 	wire.Bind(new(handleroauth.ProtocolAuthorizeHandler), new(*oauthhandler.AuthorizationHandler)),

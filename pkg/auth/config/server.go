@@ -8,8 +8,10 @@ import (
 )
 
 type ServerConfig struct {
-	// ListenAddr sets listening address of the server
-	ListenAddr string `envconfig:"LISTEN_ADDR" default:"0.0.0.0:3000"`
+	// PublicListenAddr sets the listen address of the public server
+	PublicListenAddr string `envconfig:"PUBLIC_LISTEN_ADDR" default:"0.0.0.0:3000"`
+	// InternalListenAddr sets the listen address of the internal server
+	InternalListenAddr string `envconfig:"INTERNAL_LISTEN_ADDR" default:"0.0.0.0:3001"`
 	// TrustProxy sets whether HTTP headers from proxy are to be trusted
 	TrustProxy bool `envconfig:"TRUST_PROXY" default:"false"`
 	// DevMode sets whether the server would be run under development mode
