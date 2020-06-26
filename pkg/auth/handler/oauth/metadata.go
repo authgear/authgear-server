@@ -4,18 +4,19 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureMetadataHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/.well-known/openid-configuration").
-		Methods("GET", "OPTIONS").
-		Handler(h)
-	router.NewRoute().
-		Path("/.well-known/oauth-authorization-server").
-		Methods("GET", "OPTIONS").
-		Handler(h)
+func ConfigureOIDCMetadataRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("GET", "OPTIONS").
+		WithPathPattern("/.well-known/openid-configuration")
+}
+
+func ConfigureOAuthMetadataRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("GET", "OPTIONS").
+		WithPathPattern("/.well-known/oauth-authorization-server")
 }
 
 type MetadataProvider interface {

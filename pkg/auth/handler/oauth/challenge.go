@@ -4,18 +4,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/validation"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureChallengeHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/oauth2/challenge").
-		Methods("OPTIONS", "POST").
-		Handler(h)
+func ConfigureChallengeRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST").
+		WithPathPattern("/oauth2/challenge")
 }
 
 type ChallengeRequest struct {

@@ -3,16 +3,14 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureRootHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/").
-		Methods("OPTIONS", "GET").
-		Handler(h)
+func ConfigureRootRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "GET").
+		WithPathPattern("/")
 }
 
 type RootHandler struct{}

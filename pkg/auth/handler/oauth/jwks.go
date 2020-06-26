@@ -4,17 +4,16 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/lestrrat-go/jwx/jwk"
 
+	"github.com/skygeario/skygear-server/pkg/httproute"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func ConfigureJWKSHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/oauth2/jwks").
-		Methods("GET", "OPTIONS").
-		Handler(h)
+func ConfigureJWKSRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("GET", "OPTIONS").
+		WithPathPattern("/oauth2/jwks")
 }
 
 type JWSSource interface {

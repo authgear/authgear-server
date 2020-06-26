@@ -3,19 +3,17 @@ package oauth
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc/protocol"
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func ConfigureEndSessionHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/oauth2/end_session").
-		Methods("GET", "POST").
-		Handler(h)
+func ConfigureEndSessionRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("GET", "POST").
+		WithPathPattern("/oauth2/end_session")
 }
 
 type EndSessionHandlerLogger struct{ *log.Logger }

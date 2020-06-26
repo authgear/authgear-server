@@ -3,19 +3,17 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureLogoutHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/logout").
-		Methods("OPTIONS", "POST", "GET").
-		Handler(h)
+func ConfigureLogoutRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/logout")
 }
 
 type LogoutSessionManager interface {

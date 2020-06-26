@@ -16,13 +16,13 @@ require (
 	github.com/google/wire v0.4.0
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/gorilla/csrf v1.6.2
-	github.com/gorilla/mux v1.7.4
 	github.com/h2non/gock v1.0.12
 	github.com/iawaknahc/gomessageformat v0.0.0-20200406084228-8abc010113fa
 	github.com/iawaknahc/jsonschema v0.0.0-20200321082404-507b9d186df7
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192
 	github.com/jmoiron/sqlx v0.0.0-20170430194603-d9bd385d68c0
 	github.com/joho/godotenv v1.3.0
+	github.com/julienschmidt/httprouter v1.3.0
 	github.com/kelseyhightower/envconfig v1.3.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lestrrat-go/jwx v1.0.2

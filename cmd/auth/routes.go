@@ -3,115 +3,134 @@ package main
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	configsource "github.com/skygeario/skygear-server/pkg/auth/config/source"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/internalserver"
 	oauthhandler "github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
 	webapphandler "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
-func NewRouter(p *deps.RootProvider) *mux.Router {
-	r := mux.NewRouter()
-	r.Use(p.RootMiddleware(newSentryMiddlewareFactory(sentry.DefaultClient.Hub)))
-	r.Use(p.RootMiddleware(newRecoverMiddleware))
-	r.HandleFunc("/healthz", httputil.HealthCheckHandler)
-	return r
-}
+func setupInternalRoutes(p *deps.RootProvider, configSource configsource.Source) *httproute.Router {
+	router := httproute.NewRouter()
 
-func setupInternalRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Router {
-	router := NewRouter(p)
+	router.Add(httproute.Route{
+		Methods:     []string{"GET"},
+		PathPattern: "/healthz",
+	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
-	rootRouter := router.PathPrefix("/").Subrouter()
-	rootRouter.Use((&deps.RequestMiddleware{
-		RootProvider: p,
-		ConfigSource: configSource,
-	}).Handle)
-	rootRouter.Use(p.Middleware(newSessionMiddleware))
+	chain := httproute.Chain(
+		p.RootMiddleware(newSentryMiddlewareFactory(sentry.DefaultClient.Hub)),
+		p.RootMiddleware(newRecoverMiddleware),
+		&deps.RequestMiddleware{
+			RootProvider: p,
+			ConfigSource: configSource,
+		},
+		p.Middleware(newSessionMiddleware),
+	)
 
-	internalserver.ConfigureResolveHandler(rootRouter, p.Handler(newSessionResolveHandler))
+	route := httproute.Route{Middleware: chain}
+
+	router.Add(internalserver.ConfigureResolveRoute(route), p.Handler(newSessionResolveHandler))
 
 	return router
 }
 
-func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Router {
-	var router *mux.Router
-	var rootRouter *mux.Router
-	var webappRouter *mux.Router
-	var oauthRouter *mux.Router
+func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httproute.Router {
+	router := httproute.NewRouter()
 
-	router = NewRouter(p)
+	router.Add(httproute.Route{
+		Methods:     []string{"GET"},
+		PathPattern: "/healthz",
+	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
-	rootRouter = router.PathPrefix("/").Subrouter()
-	rootRouter.Use((&deps.RequestMiddleware{
-		RootProvider: p,
-		ConfigSource: configSource,
-	}).Handle)
+	rootChain := httproute.Chain(
+		p.RootMiddleware(newSentryMiddlewareFactory(sentry.DefaultClient.Hub)),
+		p.RootMiddleware(newRecoverMiddleware),
+		&deps.RequestMiddleware{
+			RootProvider: p,
+			ConfigSource: configSource,
+		},
+		p.Middleware(newSessionMiddleware),
+		p.Middleware(newCORSMiddleware),
+	)
+	webappSSOCallbackChain := httproute.Chain(
+		rootChain,
+		httproute.MiddlewareFunc(webapp.PostNoCacheMiddleware),
+	)
+	scopedChain := httproute.Chain(
+		rootChain,
+		// Current we only require valid session and do not require any scope.
+		httproute.MiddlewareFunc(oauth.RequireScope()),
+	)
 
-	rootRouter.Use(p.Middleware(newSessionMiddleware))
+	webappChain := httproute.Chain(
+		rootChain,
+		httproute.MiddlewareFunc(webapp.IntlMiddleware),
+		p.Middleware(newCSPMiddleware),
+		p.Middleware(newCSRFMiddleware),
+		httproute.MiddlewareFunc(webapp.PostNoCacheMiddleware),
+		p.Middleware(newWebAppStateMiddleware),
+	)
+	webappAuthEntrypointChain := httproute.Chain(
+		webappChain,
+		p.Middleware(newAuthEntryPointMiddleware),
+	)
+	webappAuthenticatedChain := httproute.Chain(
+		webappChain,
+		webapp.RequireAuthenticatedMiddleware{},
+	)
 
-	oauthRouter = rootRouter.NewRoute().Subrouter()
-	oauthRouter.Use(p.Middleware(newCORSMiddleware))
+	rootRoute := httproute.Route{Middleware: rootChain}
+	scopedRoute := httproute.Route{Middleware: scopedChain}
+	webappRoute := httproute.Route{Middleware: webappChain}
+	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
+	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
+	webappSSOCallbackRoute := httproute.Route{Middleware: webappSSOCallbackChain}
 
-	webappRouter = rootRouter.NewRoute().Subrouter()
-	// When StrictSlash is true, the path in the browser URL always matches
-	// the path specified in the route.
-	// Trailing slash or missing slash will be corrected.
-	// See http://www.gorillatoolkit.org/pkg/mux#Router.StrictSlash
-	// Since our routes are specified without trailing slash,
-	// the effect is that trailing slash is corrected with HTTP 301 by mux.
-	webappRouter.StrictSlash(true)
-	webappRouter.Use(webapp.IntlMiddleware)
-	webappRouter.Use(p.Middleware(newCSPMiddleware))
-	webappRouter.Use(p.Middleware(newCSRFMiddleware))
-	webappRouter.Use(webapp.PostNoCacheMiddleware)
-	webappRouter.Use(p.Middleware(newWebAppStateMiddleware))
+	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
+	router.Add(webapphandler.ConfigureLoginRoute(webappAuthEntrypointRoute), p.Handler(newWebAppLoginHandler))
+	router.Add(webapphandler.ConfigureSignupRoute(webappAuthEntrypointRoute), p.Handler(newWebAppSignupHandler))
+	router.Add(webapphandler.ConfigurePromoteRoute(webappAuthEntrypointRoute), p.Handler(newWebAppPromoteHandler))
 
-	webappAuthRouter := webappRouter.NewRoute().Subrouter()
-	webappAuthEntryPointRouter := webappAuthRouter.NewRoute().Subrouter()
-	webappAuthEntryPointRouter.Use(p.Middleware(newAuthEntryPointMiddleware))
-	webapphandler.ConfigureRootHandler(webappAuthEntryPointRouter, p.Handler(newWebAppRootHandler))
-	webapphandler.ConfigureLoginHandler(webappAuthEntryPointRouter, p.Handler(newWebAppLoginHandler))
-	webapphandler.ConfigureSignupHandler(webappAuthEntryPointRouter, p.Handler(newWebAppSignupHandler))
-	webapphandler.ConfigurePromoteHandler(webappAuthEntryPointRouter, p.Handler(newWebAppPromoteHandler))
+	router.Add(webapphandler.ConfigureEnterPasswordRoute(webappRoute), p.Handler(newWebAppEnterPasswordHandler))
+	router.Add(webapphandler.ConfigureEnterLoginIDRoute(webappRoute), p.Handler(newWebAppEnterLoginIDHandler))
+	router.Add(webapphandler.ConfigureOOBOTPRoute(webappRoute), p.Handler(newWebAppOOBOTPHandler))
+	router.Add(webapphandler.ConfigureCreatePasswordRoute(webappRoute), p.Handler(newWebAppCreatePasswordHandler))
+	router.Add(webapphandler.ConfigureForgotPasswordRoute(webappRoute), p.Handler(newWebAppForgotPasswordHandler))
+	router.Add(webapphandler.ConfigureForgotPasswordSuccessRoute(webappRoute), p.Handler(newWebAppForgotPasswordSuccessHandler))
+	router.Add(webapphandler.ConfigureResetPasswordRoute(webappRoute), p.Handler(newWebAppResetPasswordHandler))
+	router.Add(webapphandler.ConfigureResetPasswordSuccessRoute(webappRoute), p.Handler(newWebAppResetPasswordSuccessHandler))
 
-	webapphandler.ConfigureEnterPasswordHandler(webappAuthRouter, p.Handler(newWebAppEnterPasswordHandler))
-	webapphandler.ConfigureEnterLoginIDHandler(webappAuthRouter, p.Handler(newWebAppEnterLoginIDHandler))
-	webapphandler.ConfigureOOBOTPHandler(webappAuthRouter, p.Handler(newWebAppOOBOTPHandler))
-	webapphandler.ConfigureCreatePasswordHandler(webappAuthRouter, p.Handler(newWebAppCreatePasswordHandler))
-	webapphandler.ConfigureForgotPasswordHandler(webappAuthRouter, p.Handler(newWebAppForgotPasswordHandler))
-	webapphandler.ConfigureForgotPasswordSuccessHandler(webappAuthRouter, p.Handler(newWebAppForgotPasswordSuccessHandler))
-	webapphandler.ConfigureResetPasswordHandler(webappAuthRouter, p.Handler(newWebAppResetPasswordHandler))
-	webapphandler.ConfigureResetPasswordSuccessHandler(webappAuthRouter, p.Handler(newWebAppResetPasswordSuccessHandler))
+	router.Add(webapphandler.ConfigureLogoutRoute(webappAuthenticatedRoute), p.Handler(newWebAppLogoutHandler))
+	router.Add(webapphandler.ConfigureSettingsIdentityRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsIdentityHandler))
+	router.Add(webapphandler.ConfigureSettingsRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsHandler))
 
-	webappAuthenticatedRouter := webappRouter.NewRoute().Subrouter()
-	webappAuthenticatedRouter.Use(webapp.RequireAuthenticatedMiddleware{}.Handle)
-	webapphandler.ConfigureSettingsHandler(webappAuthenticatedRouter, p.Handler(newWebAppSettingsHandler))
-	webapphandler.ConfigureSettingsIdentityHandler(webappAuthenticatedRouter, p.Handler(newWebAppSettingsIdentityHandler))
-	webapphandler.ConfigureLogoutHandler(webappAuthenticatedRouter, p.Handler(newWebAppLogoutHandler))
+	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
 
-	webappSSOCallbackRouter := rootRouter.NewRoute().Subrouter()
-	webappSSOCallbackRouter.Use(webapp.PostNoCacheMiddleware)
-	webapphandler.ConfigureSSOCallbackHandler(webappSSOCallbackRouter, p.Handler(newWebAppSSOCallbackHandler))
+	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(rootRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(rootRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(oauthhandler.ConfigureJWKSRoute(rootRoute), p.Handler(newOAuthJWKSHandler))
+	router.Add(oauthhandler.ConfigureAuthorizeRoute(rootRoute), p.Handler(newOAuthAuthorizeHandler))
+	router.Add(oauthhandler.ConfigureTokenRoute(rootRoute), p.Handler(newOAuthTokenHandler))
+	router.Add(oauthhandler.ConfigureRevokeRoute(rootRoute), p.Handler(newOAuthRevokeHandler))
+	router.Add(oauthhandler.ConfigureEndSessionRoute(rootRoute), p.Handler(newOAuthEndSessionHandler))
+	router.Add(oauthhandler.ConfigureChallengeRoute(rootRoute), p.Handler(newOAuthChallengeHandler))
+
+	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
 
 	if p.ServerConfig.StaticAsset.ServingEnabled {
 		fileServer := http.FileServer(http.Dir(p.ServerConfig.StaticAsset.Dir))
-		rootRouter.PathPrefix("/static/").
-			Handler(http.StripPrefix("/static/", fileServer))
+		staticRoute := httproute.Route{
+			Methods:     []string{"HEAD", "GET"},
+			PathPattern: "/static/*all",
+		}
+		router.Add(staticRoute, http.StripPrefix("/static/", fileServer))
 	}
-
-	oauthhandler.ConfigureMetadataHandler(oauthRouter, p.Handler(newOAuthMetadataHandler))
-	oauthhandler.ConfigureJWKSHandler(oauthRouter, p.Handler(newOAuthJWKSHandler))
-	oauthhandler.ConfigureAuthorizeHandler(oauthRouter, p.Handler(newOAuthAuthorizeHandler))
-	oauthhandler.ConfigureTokenHandler(oauthRouter, p.Handler(newOAuthTokenHandler))
-	oauthhandler.ConfigureRevokeHandler(oauthRouter, p.Handler(newOAuthRevokeHandler))
-	oauthhandler.ConfigureUserInfoHandler(oauthRouter, p.Handler(newOAuthUserInfoHandler))
-	oauthhandler.ConfigureEndSessionHandler(oauthRouter, p.Handler(newOAuthEndSessionHandler))
-	oauthhandler.ConfigureChallengeHandler(oauthRouter, p.Handler(newOAuthChallengeHandler))
 
 	return router
 }

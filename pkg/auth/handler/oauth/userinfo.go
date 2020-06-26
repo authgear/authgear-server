@@ -4,20 +4,18 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func ConfigureUserInfoHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/oauth2/userinfo").
-		Methods("GET", "POST", "OPTIONS").
-		Handler(oauth.RequireScope(h))
+func ConfigureUserInfoRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("GET", "POST", "OPTIONS").
+		WithPathPattern("/oauth2/userinfo")
 }
 
 type ProtocolUserInfoProvider interface {

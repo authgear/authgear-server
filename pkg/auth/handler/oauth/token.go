@@ -4,19 +4,17 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func ConfigureTokenHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/oauth2/token").
-		Methods("POST", "OPTIONS").
-		Handler(h)
+func ConfigureTokenRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("POST", "OPTIONS").
+		WithPathPattern("/oauth2/token")
 }
 
 type ProtocolTokenHandler interface {

@@ -3,18 +3,16 @@ package oauth
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func ConfigureRevokeHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/oauth2/revoke").
-		Methods("POST", "OPTIONS").
-		Handler(h)
+func ConfigureRevokeRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("POST", "OPTIONS").
+		WithPathPattern("/oauth2/revoke")
 }
 
 type RevokeHandlerLogger struct{ *log.Logger }

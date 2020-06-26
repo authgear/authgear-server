@@ -3,16 +3,14 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureResetPasswordSuccessHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/reset_password/success").
-		Methods("OPTIONS", "GET").
-		Handler(h)
+func ConfigureResetPasswordSuccessRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "GET").
+		WithPathPattern("/reset_password/success")
 }
 
 type ResetPasswordSuccessProvider interface {

@@ -3,16 +3,14 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureCreatePasswordHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/create_password").
-		Methods("OPTIONS", "POST", "GET").
-		Handler(h)
+func ConfigureCreatePasswordRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/create_password")
 }
 
 type CreatePasswordProvider interface {
