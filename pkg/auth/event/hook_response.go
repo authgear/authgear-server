@@ -34,7 +34,6 @@ var HookResponseSchema = validation.NewSimpleSchema(`
 				}
 			},
 			"then": {
-				"additionalProperties": false,
 				"properties": {
 					"is_allowed": { "type": "boolean" },
 					"mutations": {
@@ -54,7 +53,6 @@ var HookResponseSchema = validation.NewSimpleSchema(`
 				}
 			},
 			"then": {
-				"additionalProperties": false,
 				"properties": {
 					"is_allowed": { "type": "boolean" },
 					"reason": { "type": "string" },

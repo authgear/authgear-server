@@ -3,6 +3,7 @@ package config
 var _ = Schema.Add("SessionConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"idle_timeout_enabled": { "type": "boolean" },

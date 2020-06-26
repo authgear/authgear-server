@@ -5,6 +5,7 @@ import "github.com/skygeario/skygear-server/pkg/core/phone"
 var _ = Schema.Add("UIConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"custom_css": { "type": "string" },
 		"country_calling_code": { "$ref": "#/$defs/UICountryCallingCodeConfig" }
@@ -20,6 +21,7 @@ type UIConfig struct {
 var _ = Schema.Add("UICountryCallingCodeConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"values": { "type": "array", "items": { "type": "string" } },
 		"default": { "type": "string" }

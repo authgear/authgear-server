@@ -20,6 +20,7 @@ type AppID string
 var _ = Schema.Add("AppConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"id": { "type": "string" },
 		"metadata": { "$ref": "#/$defs/AppMetadata" },

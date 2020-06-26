@@ -14,6 +14,7 @@ import (
 var _ = SecretConfigSchema.Add("SecretConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"secrets": {
 			"type": "array",
@@ -141,6 +142,7 @@ type SecretItemData interface {
 var _ = SecretConfigSchema.Add("SecretItem", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"key": { "$ref": "#/$defs/SecretKey" },
 		"data": { "type": "object" }

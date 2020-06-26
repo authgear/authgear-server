@@ -3,6 +3,7 @@ package config
 var _ = Schema.Add("LocalizationConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"fallback_language": { "type": "string" }
 	}

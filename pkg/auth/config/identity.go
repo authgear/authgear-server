@@ -9,6 +9,7 @@ import (
 var _ = Schema.Add("IdentityConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"login_id": { "$ref": "#/$defs/LoginIDConfig" },
 		"oauth": { "$ref": "#/$defs/OAuthSSOConfig" },
@@ -26,6 +27,7 @@ type IdentityConfig struct {
 var _ = Schema.Add("LoginIDConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"types": { "$ref": "#/$defs/LoginIDTypesConfig" },
 		"keys": { "type": "array", "items": { "$ref": "#/$defs/LoginIDKeyConfig" } }
@@ -61,6 +63,7 @@ func (c *LoginIDConfig) GetKeyConfig(key string) (*LoginIDKeyConfig, bool) {
 var _ = Schema.Add("LoginIDTypesConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"email": { "$ref": "#/$defs/LoginIDEmailConfig" },
 		"username": { "$ref": "#/$defs/LoginIDUsernameConfig" }
@@ -76,6 +79,7 @@ type LoginIDTypesConfig struct {
 var _ = Schema.Add("LoginIDEmailConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"case_sensitive": { "type": "boolean" },
 		"block_plus_sign": { "type": "boolean" },
@@ -105,6 +109,7 @@ func (c *LoginIDEmailConfig) SetDefaults() {
 var _ = Schema.Add("LoginIDUsernameConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"block_reserved_usernames": { "type": "boolean" },
 		"excluded_keywords": { "type": "array", "items": { "type": "string" } },
@@ -136,6 +141,7 @@ func (c *LoginIDUsernameConfig) SetDefaults() {
 var _ = Schema.Add("LoginIDKeyConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"key": { "type": "string" },
 		"type": { "$ref": "#/$defs/LoginIDKeyType" },
@@ -180,6 +186,7 @@ func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
 var _ = Schema.Add("OAuthSSOConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"providers": { "type": "array", "items": { "$ref": "#/$defs/OAuthSSOProviderConfig" } }
 	}
@@ -249,6 +256,7 @@ const (
 var _ = Schema.Add("OAuthSSOProviderConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"alias": { "type": "string" },
 		"type": { "$ref": "#/$defs/OAuthSSOProviderType" },
@@ -374,6 +382,7 @@ const (
 var _ = Schema.Add("IdentityConflictConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"promotion": { "$ref": "#/$defs/PromotionConflictBehavior" }
 	}

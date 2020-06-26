@@ -25,6 +25,7 @@ var ChallengeAPISchema = validation.NewMultipartSchema("").
 	Add(ChallengeAPISchemaIDRequest, `
 		{
 			"type": "object",
+			"additionalProperties": false,
 			"properties": {
 				"purpose": { "type": "string" }
 			},

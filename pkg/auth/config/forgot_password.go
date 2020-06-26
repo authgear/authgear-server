@@ -3,6 +3,7 @@ package config
 var _ = Schema.Add("ForgotPasswordConfig", `
 {
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"email_message": { "$ref": "#/$defs/EmailMessageConfig" },
 		"sms_message": { "$ref": "#/$defs/SMSMessageConfig" },
