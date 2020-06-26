@@ -3,18 +3,17 @@ package internalserver
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func ConfigureResolveHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/resolve").
-		Handler(h)
+func ConfigureResolveRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("HEAD", "GET").
+		WithPathPattern("/resolve")
 }
 
 //go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package internalserver

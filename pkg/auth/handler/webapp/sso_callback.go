@@ -3,16 +3,14 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureSSOCallbackHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/sso/oauth2/callback/{provider}").
-		Methods("OPTIONS", "POST", "GET").
-		Handler(h)
+func ConfigureSSOCallbackRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/sso/oauth2/callback/:alias")
 }
 
 type SSOProvider interface {
@@ -30,8 +28,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	providerAlias := vars["provider"]
+	providerAlias := httproute.GetParam(r, "alias")
 
 	db.WithTx(h.DBContext, func() error {
 		writeResponse, err := h.Provider.HandleSSOCallback(w, r, providerAlias)

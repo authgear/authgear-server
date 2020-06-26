@@ -3,16 +3,14 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureSettingsHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/settings").
-		Methods("OPTIONS", "GET").
-		Handler(h)
+func ConfigureSettingsRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "GET").
+		WithPathPattern("/settings")
 }
 
 type SettingsHandler struct {

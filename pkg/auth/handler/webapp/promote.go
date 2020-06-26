@@ -3,16 +3,14 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigurePromoteHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/promote_user").
-		Methods("OPTIONS", "POST", "GET").
-		Handler(h)
+func ConfigurePromoteRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/promote_user")
 }
 
 type PromoteProvider interface {

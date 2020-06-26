@@ -4,13 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
 	authtemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 	"github.com/skygeario/skygear-server/pkg/log"
 	"github.com/skygeario/skygear-server/pkg/redis"
 	"github.com/skygeario/skygear-server/pkg/task"
@@ -103,19 +102,19 @@ func (p *RootProvider) Handler(factory func(*RequestProvider) http.Handler) http
 	})
 }
 
-func (p *RootProvider) RootMiddleware(factory func(*RootProvider) mux.MiddlewareFunc) mux.MiddlewareFunc {
+func (p *RootProvider) RootMiddleware(factory func(*RootProvider) httproute.Middleware) httproute.Middleware {
 	return factory(p)
 }
 
-func (p *RootProvider) Middleware(factory func(*RequestProvider) mux.MiddlewareFunc) mux.MiddlewareFunc {
-	return func(next http.Handler) http.Handler {
+func (p *RootProvider) Middleware(factory func(*RequestProvider) httproute.Middleware) httproute.Middleware {
+	return httproute.MiddlewareFunc(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			p := getRequestProvider(r.Context())
 			m := factory(p)
-			h := m(next)
+			h := m.Handle(next)
 			h.ServeHTTP(w, r)
 		})
-	}
+	})
 }
 
 func (p *RootProvider) Task(factory func(provider *TaskProvider) task.Task) task.Task {

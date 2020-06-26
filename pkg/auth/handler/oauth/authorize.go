@@ -4,19 +4,17 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
 
-func ConfigureAuthorizeHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/oauth2/authorize").
-		Methods("GET", "POST").
-		Handler(h)
+func ConfigureAuthorizeRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("GET", "POST").
+		WithPathPattern("/oauth2/authorize")
 }
 
 type AuthorizeHandlerLogger struct{ *log.Logger }

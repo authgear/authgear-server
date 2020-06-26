@@ -3,16 +3,14 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureEnterLoginIDHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/enter_login_id").
-		Methods("OPTIONS", "POST", "GET").
-		Handler(h)
+func ConfigureEnterLoginIDRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/enter_login_id")
 }
 
 type EnterLoginIDProvider interface {

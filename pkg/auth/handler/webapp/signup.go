@@ -3,16 +3,14 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureSignupHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/signup").
-		Methods("OPTIONS", "POST", "GET").
-		Handler(h)
+func ConfigureSignupRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/signup")
 }
 
 type SignupProvider interface {

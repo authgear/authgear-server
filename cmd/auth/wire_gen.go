@@ -8,7 +8,6 @@ package main
 import (
 	"github.com/getsentry/sentry-go"
 	"github.com/google/wire"
-	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/config/source"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	redis3 "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/redis"
@@ -50,6 +49,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/endpoints"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 	"github.com/skygeario/skygear-server/pkg/mail"
 	"github.com/skygeario/skygear-server/pkg/middlewares"
 	"github.com/skygeario/skygear-server/pkg/sms"
@@ -6022,27 +6022,25 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 
 // Injectors from wire_middleware.go:
 
-func newSentryMiddleware(hub *sentry.Hub, p *deps.RootProvider) mux.MiddlewareFunc {
+func newSentryMiddleware(hub *sentry.Hub, p *deps.RootProvider) httproute.Middleware {
 	serverConfig := p.ServerConfig
-	sentryMiddleware := &sentry2.Middleware{
+	middleware := &sentry2.Middleware{
 		Hub:          hub,
 		ServerConfig: serverConfig,
 	}
-	middlewareFunc := provideMiddlewareFunc(sentryMiddleware)
-	return middlewareFunc
+	return middleware
 }
 
-func newRecoverMiddleware(p *deps.RootProvider) mux.MiddlewareFunc {
+func newRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 	factory := p.LoggerFactory
 	recoveryLogger := middlewares.NewRecoveryLogger(factory)
 	recoverMiddleware := &middlewares.RecoverMiddleware{
 		Logger: recoveryLogger,
 	}
-	middlewareFunc := provideMiddlewareFunc(recoverMiddleware)
-	return middlewareFunc
+	return recoverMiddleware
 }
 
-func newCORSMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
+func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -6050,11 +6048,10 @@ func newCORSMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 	corsMiddleware := &middlewares.CORSMiddleware{
 		Config: httpConfig,
 	}
-	middlewareFunc := provideMiddlewareFunc(corsMiddleware)
-	return middlewareFunc
+	return corsMiddleware
 }
 
-func newCSPMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
+func newCSPMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -6062,11 +6059,10 @@ func newCSPMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 	cspMiddleware := &webapp.CSPMiddleware{
 		Config: oAuthConfig,
 	}
-	middlewareFunc := provideMiddlewareFunc(cspMiddleware)
-	return middlewareFunc
+	return cspMiddleware
 }
 
-func newCSRFMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
+func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
@@ -6077,22 +6073,20 @@ func newCSRFMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 		Secret: csrfKeyMaterials,
 		Config: serverConfig,
 	}
-	middlewareFunc := provideMiddlewareFunc(csrfMiddleware)
-	return middlewareFunc
+	return csrfMiddleware
 }
 
-func newAuthEntryPointMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
+func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
 	authEntryPointMiddleware := &webapp.AuthEntryPointMiddleware{
 		ServerConfig: serverConfig,
 	}
-	middlewareFunc := provideMiddlewareFunc(authEntryPointMiddleware)
-	return middlewareFunc
+	return authEntryPointMiddleware
 }
 
-func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
+func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	request := p.Request
 	appProvider := p.AppProvider
 	config := appProvider.Config
@@ -6222,18 +6216,17 @@ func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 		Store:      userStore,
 		Identities: providerProvider,
 	}
-	authMiddleware := &auth.Middleware{
+	middleware := &auth.Middleware{
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               authAccessEventProvider,
 		Users:                      queries,
 		DBContext:                  dbContext,
 	}
-	middlewareFunc := provideMiddlewareFunc(authMiddleware)
-	return middlewareFunc
+	return middleware
 }
 
-func newWebAppStateMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
+func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	context := appProvider.RedisContext
 	stateStoreImpl := &webapp.StateStoreImpl{
@@ -6242,8 +6235,7 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 	stateMiddleware := &webapp.StateMiddleware{
 		StateStore: stateStoreImpl,
 	}
-	middlewareFunc := provideMiddlewareFunc(stateMiddleware)
-	return middlewareFunc
+	return stateMiddleware
 }
 
 // Injectors from wire_task.go:
@@ -6322,18 +6314,12 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 
 // wire_middleware.go:
 
-type middleware interface {
-	Handle(next http.Handler) http.Handler
-}
+var rootMiddlewareDependencySet = wire.NewSet(deps.RootDependencySet)
 
-func provideMiddlewareFunc(m middleware) mux.MiddlewareFunc { return m.Handle }
+var middlewareDependencySet = wire.NewSet(deps.RequestDependencySet)
 
-var rootMiddlewareDependencySet = wire.NewSet(deps.RootDependencySet, provideMiddlewareFunc)
-
-var middlewareDependencySet = wire.NewSet(deps.RequestDependencySet, provideMiddlewareFunc)
-
-func newSentryMiddlewareFactory(hub *sentry.Hub) func(*deps.RootProvider) mux.MiddlewareFunc {
-	return func(p *deps.RootProvider) mux.MiddlewareFunc {
+func newSentryMiddlewareFactory(hub *sentry.Hub) func(*deps.RootProvider) httproute.Middleware {
+	return func(p *deps.RootProvider) httproute.Middleware {
 		return newSentryMiddleware(hub, p)
 	}
 }

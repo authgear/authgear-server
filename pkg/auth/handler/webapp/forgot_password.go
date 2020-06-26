@@ -3,16 +3,14 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureForgotPasswordHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/forgot_password").
-		Methods("OPTIONS", "POST", "GET").
-		Handler(h)
+func ConfigureForgotPasswordRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/forgot_password")
 }
 
 type ForgotPasswordProvider interface {

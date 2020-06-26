@@ -3,17 +3,15 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureSettingsIdentityHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/settings/identity").
-		Methods("OPTIONS", "POST", "GET").
-		Handler(h)
+func ConfigureSettingsIdentityRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/settings/identity")
 }
 
 type SettingsIdentityProvider interface {

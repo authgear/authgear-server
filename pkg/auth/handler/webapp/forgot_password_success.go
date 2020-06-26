@@ -3,16 +3,14 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/skygeario/skygear-server/pkg/httproute"
 )
 
-func ConfigureForgotPasswordSuccessHandler(router *mux.Router, h http.Handler) {
-	router.NewRoute().
-		Path("/forgot_password/success").
-		Methods("OPTIONS", "GET").
-		Handler(h)
+func ConfigureForgotPasswordSuccessRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("OPTIONS", "GET").
+		WithPathPattern("/forgot_password/success")
 }
 
 type ForgotPasswordSuccessProvider interface {
