@@ -11,8 +11,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	webapphandler "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
 	"github.com/skygeario/skygear-server/pkg/core/sentry"
-	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/deps"
+	"github.com/skygeario/skygear-server/pkg/httputil"
 )
 
 func NewRouter(p *deps.RootProvider) *mux.Router {
@@ -29,7 +29,7 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *mux.Ro
 	var oauthRouter *mux.Router
 
 	router = NewRouter(p)
-	router.HandleFunc("/healthz", server.HealthCheckHandler)
+	router.HandleFunc("/healthz", httputil.HealthCheckHandler)
 
 	rootRouter = router.PathPrefix("/").Subrouter()
 	rootRouter.Use((&deps.RequestMiddleware{
