@@ -82,7 +82,8 @@ func (v *SchemaValidator) ValidateWithMessage(r io.Reader, msg string) error {
 				panic(fmt.Sprintf("validation: failed to marshal error info at %s: %s", n.KeywordLocation, err.Error()))
 			}
 
-			if len(info) == 0 && n.Keyword == "format" {
+			keyword := n.KeywordLocation.Last()
+			if len(info) == 0 && keyword == "format" {
 				if err, ok := n.Info.(error); ok {
 					info = map[string]interface{}{
 						"error": err.Error(),
@@ -95,7 +96,7 @@ func (v *SchemaValidator) ValidateWithMessage(r io.Reader, msg string) error {
 
 			errors = append(errors, Error{
 				Location: n.InstanceLocation.String(),
-				Keyword:  n.Keyword,
+				Keyword:  keyword,
 				Info:     info,
 			})
 		}

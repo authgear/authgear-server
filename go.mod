@@ -18,7 +18,7 @@ require (
 	github.com/gorilla/csrf v1.6.2
 	github.com/h2non/gock v1.0.12
 	github.com/iawaknahc/gomessageformat v0.0.0-20200406084228-8abc010113fa
-	github.com/iawaknahc/jsonschema v0.0.0-20200321082404-507b9d186df7
+	github.com/iawaknahc/jsonschema v0.0.0-20200626071738-c1e8a657d1a9
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192
 	github.com/jmoiron/sqlx v0.0.0-20170430194603-d9bd385d68c0
 	github.com/joho/godotenv v1.3.0
