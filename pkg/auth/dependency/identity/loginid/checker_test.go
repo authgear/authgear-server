@@ -3,12 +3,10 @@ package loginid
 import (
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/core/validation"
-
-	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 )
 
 func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, max int) config.LoginIDKeyConfig {
@@ -83,47 +81,25 @@ func TestLoginIDChecker(t *testing.T) {
 				LoginID{Key: "email", Value: "johndoe+1@example.com"},
 				LoginID{Key: "email", Value: "johndoe+2@example.com"},
 			}
-			So(validation.ErrorCauses(checker.Validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
-				Kind:    validation.ErrorEntryAmount,
-				Pointer: "",
-				Message: "too many login IDs",
-				Details: map[string]interface{}{"key": "email", "lte": 1},
-			}})
+			So(checker.Validate(loginIDs), ShouldBeError, "invalid login IDs:\n<root>: too many login IDs")
 
 			loginIDs = []LoginID{
 				LoginID{Key: "nickname", Value: "johndoe"},
 			}
-			So(validation.ErrorCauses(checker.Validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
-				Kind:    validation.ErrorGeneral,
-				Pointer: "/0/key",
-				Message: "login ID key is not allowed",
-			}})
+			So(checker.Validate(loginIDs), ShouldBeError, "invalid login IDs:\n/0: login ID key is not allowed")
 
 			loginIDs = []LoginID{
 				LoginID{Key: "email", Value: ""},
 			}
-			So(validation.ErrorCauses(checker.Validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
-				Kind:    validation.ErrorRequired,
-				Pointer: "/0/value",
-				Message: "login ID is required",
-			}})
+			So(checker.Validate(loginIDs), ShouldBeError, "invalid login IDs:\n/0: required")
 
 			loginIDs = []LoginID{
 				LoginID{Key: "phone", Value: "51234567"},
 			}
-			So(validation.ErrorCauses(checker.Validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
-				Kind:    validation.ErrorStringFormat,
-				Pointer: "/0/value",
-				Message: "invalid login ID format",
-				Details: map[string]interface{}{"format": "phone"},
-			}})
+			So(checker.Validate(loginIDs), ShouldBeError, "invalid login IDs:\n/0: format\n  map[format:phone]")
 
 			loginIDs = []LoginID{}
-			So(validation.ErrorCauses(checker.Validate(loginIDs)), ShouldResemble, []validation.ErrorCause{{
-				Kind:    validation.ErrorRequired,
-				Pointer: "",
-				Message: "login ID is required",
-			}})
+			So(checker.Validate(loginIDs), ShouldBeError, "invalid login IDs:\n<root>: required")
 		})
 	})
 }

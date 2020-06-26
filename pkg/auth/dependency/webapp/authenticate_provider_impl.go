@@ -13,8 +13,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
 	"github.com/skygeario/skygear-server/pkg/core/phone"
-	"github.com/skygeario/skygear-server/pkg/core/validation"
 	"github.com/skygeario/skygear-server/pkg/httputil"
+	"github.com/skygeario/skygear-server/pkg/validation"
 )
 
 type InteractionFlow interface {
@@ -113,7 +113,7 @@ func (p *AuthenticateProviderImpl) LoginWithLoginID(w http.ResponseWriter, r *ht
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	err = p.ValidateProvider.Validate("#WebAppEnterLoginIDRequest", r.Form)
+	err = p.ValidateProvider.Validate(WebAppSchemaIDEnterLoginIDRequest, r.Form)
 	if err != nil {
 		return
 	}
@@ -155,7 +155,7 @@ func (p *AuthenticateProviderImpl) EnterSecret(w http.ResponseWriter, r *http.Re
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	err = p.ValidateProvider.Validate("#WebAppEnterPasswordRequest", r.Form)
+	err = p.ValidateProvider.Validate(WebAppSchemaIDEnterPasswordRequest, r.Form)
 	if err != nil {
 		return
 	}
@@ -204,7 +204,7 @@ func (p *AuthenticateProviderImpl) CreateLoginID(w http.ResponseWriter, r *http.
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	err = p.ValidateProvider.Validate("#WebAppCreateLoginIDRequest", r.Form)
+	err = p.ValidateProvider.Validate(WebAppSchemaIDCreateLoginIDRequest, r.Form)
 	if err != nil {
 		return
 	}
@@ -244,7 +244,7 @@ func (p *AuthenticateProviderImpl) PromoteLoginID(w http.ResponseWriter, r *http
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	err = p.ValidateProvider.Validate("#WebAppCreateLoginIDRequest", r.Form)
+	err = p.ValidateProvider.Validate(WebAppSchemaIDCreateLoginIDRequest, r.Form)
 	if err != nil {
 		return
 	}
@@ -271,13 +271,13 @@ func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 	if r.Form.Get("x_login_id_input_type") == "phone" {
 		e164, e := phone.Parse(r.Form.Get("x_national_number"), r.Form.Get("x_calling_code"))
 		if e != nil {
-			err = validation.NewValidationFailed("", []validation.ErrorCause{
-				validation.ErrorCause{
-					Kind:    validation.ErrorStringFormat,
-					Pointer: "/x_national_number",
-					Details: map[string]interface{}{"format": "phone"},
-				},
-			})
+			err = &validation.AggregatedError{
+				Errors: []validation.Error{{
+					Keyword:  "format",
+					Location: "/x_national_number",
+					Info:     map[string]interface{}{},
+				}},
+			}
 			return
 		}
 		r.Form.Set("x_login_id", e164)
@@ -463,7 +463,7 @@ func (p *AuthenticateProviderImpl) AddOrChangeLoginID(w http.ResponseWriter, r *
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	err = p.ValidateProvider.Validate("#WebAppAddOrChangeLoginIDRequest", r.Form)
+	err = p.ValidateProvider.Validate(WebAppSchemaIDAddOrChangeLoginIDRequest, r.Form)
 	if err != nil {
 		return
 	}
@@ -491,7 +491,7 @@ func (p *AuthenticateProviderImpl) EnterLoginID(w http.ResponseWriter, r *http.R
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	err = p.ValidateProvider.Validate("#WebAppEnterLoginIDRequest", r.Form)
+	err = p.ValidateProvider.Validate(WebAppSchemaIDEnterLoginIDRequest, r.Form)
 	if err != nil {
 		return
 	}
@@ -544,7 +544,7 @@ func (p *AuthenticateProviderImpl) RemoveLoginID(w http.ResponseWriter, r *http.
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	err = p.ValidateProvider.Validate("#WebAppRemoveLoginIDRequest", r.Form)
+	err = p.ValidateProvider.Validate(WebAppSchemaIDRemoveLoginIDRequest, r.Form)
 	if err != nil {
 		return
 	}
@@ -597,7 +597,7 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 		return
 	}
 
-	err = p.ValidateProvider.Validate("#SSOCallbackRequest", r.Form)
+	err = p.ValidateProvider.Validate(WebAppSchemaIDSSOCallbackRequest, r.Form)
 	if err != nil {
 		return
 	}
@@ -611,12 +611,13 @@ func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *h
 	requestQuery := webappSSOState.RequestQuery()
 	v, err = url.ParseQuery(requestQuery)
 	if err != nil {
-		return writeResponse, validation.NewValidationFailed("", []validation.ErrorCause{
-			validation.ErrorCause{
-				Kind:    validation.ErrorGeneral,
-				Pointer: "/state",
-			},
-		})
+		return writeResponse, &validation.AggregatedError{
+			Errors: []validation.Error{{
+				Keyword:  "general",
+				Location: "/state",
+				Info:     map[string]interface{}{},
+			}},
+		}
 	}
 
 	oauthError := r.Form.Get("error")

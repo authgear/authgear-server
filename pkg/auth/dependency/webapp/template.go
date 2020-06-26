@@ -92,22 +92,30 @@ const defineError = `
 <ul class="errors">
 	{{ if eq .x_error.reason "ValidationFailed" }}
 		{{ range .x_error.info.causes }}
-		{{ if and (eq .kind "Required") (eq .pointer "/x_login_id" ) }}
-		<li class="error-txt">{{ localize "error-login-id-required" $.x_login_page_text_login_id_variant }}</li>
-		{{ else if and (eq .kind "Required") (eq .pointer "/x_password" ) }}
-		<li class="error-txt">{{ localize "error-password-or-code-required" }}</li>
-		{{ else if and (eq .kind "Required") (eq .pointer "/x_calling_code" ) }}
-		<li class="error-txt">{{ localize "error-calling-code-required" }}</li>
-		{{ else if and (eq .kind "Required") (eq .pointer "/x_national_number" ) }}
-		<li class="error-txt">{{ localize "error-phone-number-required" }}</li>
-		{{ else if and (eq .kind "StringFormat") (eq .details.format "phone" ) }}
-		<li class="error-txt">{{ localize "error-phone-number-format" }}</li>
-		{{ else if and (eq .kind "StringFormat") (eq .details.format "email") }}
-		<li class="error-txt">{{ localize "error-invalid-email" }}</li>
-		{{ else if and (eq .kind "StringFormat") (eq .details.format "username") }}
-		<li class="error-txt">{{ localize "error-invalid-username" }}</li>
+		{{ if (eq .kind "required") }}
+			{{ if (call $.SliceContains .details.missing "x_login_id" ) }}
+			<li class="error-txt">{{ localize "error-login-id-required" $.x_login_page_text_login_id_variant }}</li>
+			{{ else if (call $.SliceContains .details.missing "x_password" ) }}
+			<li class="error-txt">{{ localize "error-password-or-code-required" }}</li>
+			{{ else if (call $.SliceContains .details.missing "x_calling_code" ) }}
+			<li class="error-txt">{{ localize "error-calling-code-required" }}</li>
+			{{ else if (call $.SliceContains .details.missing "x_national_number" ) }}
+			<li class="error-txt">{{ localize "error-phone-number-required" }}</li>
+			{{ else }}
+			<li class="error-txt">{{ . }}</li>
+			{{ end }}
+		{{ else if (eq .kind "format") }}
+			{{ if (eq .details.format "phone") }}
+			<li class="error-txt">{{ localize "error-phone-number-format" }}</li>
+			{{ else if (eq .details.format "email") }}
+			<li class="error-txt">{{ localize "error-invalid-email" }}</li>
+			{{ else if (eq .details.format "username") }}
+			<li class="error-txt">{{ localize "error-invalid-username" }}</li>
+			{{ else }}
+			<li class="error-txt">{{ . }}</li>
+			{{ end }}
 		{{ else }}
-		<li class="error-txt">{{ .message }}</li>
+		<li class="error-txt">{{ . }}</li>
 		{{ end }}
 		{{ end }}
 	{{ else if eq .x_error.reason "InvalidCredentials" }}

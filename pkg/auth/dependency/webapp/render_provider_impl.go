@@ -5,6 +5,7 @@ import (
 	htmlTemplate "html/template"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strconv"
 
 	"github.com/gorilla/csrf"
@@ -189,6 +190,17 @@ func (p *RenderProviderImpl) PrepareErrorData(anyError interface{}, data map[str
 	}
 }
 
+func (p *RenderProviderImpl) PrepareUtilFns(data map[string]interface{}) {
+	data["SliceContains"] = func(slice []interface{}, value interface{}) bool {
+		for _, v := range slice {
+			if reflect.DeepEqual(v, value) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
 func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, anyError interface{}) {
 	data := FormToJSON(r.Form)
 
@@ -201,6 +213,7 @@ func (p *RenderProviderImpl) WritePage(w http.ResponseWriter, r *http.Request, t
 	p.PreparePasswordPolicyData(anyError, data)
 	p.PrepareAuthenticationData(data)
 	p.PrepareErrorData(anyError, data)
+	p.PrepareUtilFns(data)
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
 	out, err := p.TemplateEngine.WithValidatorOptions(

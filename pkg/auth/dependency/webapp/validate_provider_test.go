@@ -7,13 +7,13 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/core/validation"
+	"github.com/skygeario/skygear-server/pkg/validation"
 )
 
 func TestValidateProvider(t *testing.T) {
 	Convey("ValidateProvider", t, func() {
-		v := validator
-		defer func() { validator = v }()
+		s := WebAppSchema
+		defer func() { WebAppSchema = s }()
 
 		Convey("PrepareValues", func() {
 			c := &config.LoginIDConfig{}
@@ -84,64 +84,64 @@ func TestValidateProvider(t *testing.T) {
 		})
 
 		Convey("Validate", func() {
-			validator = validation.NewValidator("http://example.com")
-			validator.AddSchemaFragments(`
-			{
-				"$id": "#A",
-				"type": "object",
-				"properties": {
-					"a": { "type": "string", "const": "42" }
-				}
-			}
-			`)
+			WebAppSchema = validation.NewMultipartSchema("").
+				Add("A", `
+					{
+						"type": "object",
+						"properties": {
+							"a": { "type": "string", "const": "42" }
+						}
+					}
+				`).
+				Instantiate()
 
 			var err error
 			impl := ValidateProviderImpl{}
 
-			err = impl.Validate("#A", url.Values{
+			err = impl.Validate("A", url.Values{
 				"a": []string{"24"},
 			})
 			So(err, ShouldNotBeNil)
 
-			err = impl.Validate("#A", url.Values{
+			err = impl.Validate("A", url.Values{
 				"a": []string{"42"},
 			})
 			So(err, ShouldBeNil)
 		})
 
-		Convey("#WebAppEnterLoginIDRequest", func() {
+		Convey("WebAppEnterLoginIDRequest", func() {
 			var err error
 			impl := ValidateProviderImpl{}
 
-			err = impl.Validate("#WebAppEnterLoginIDRequest", url.Values{
+			err = impl.Validate(WebAppSchemaIDEnterLoginIDRequest, url.Values{
 				"x_login_id_input_type": []string{"phone"},
 			})
 			So(err, ShouldNotBeNil)
 
-			err = impl.Validate("#WebAppEnterLoginIDRequest", url.Values{
+			err = impl.Validate(WebAppSchemaIDEnterLoginIDRequest, url.Values{
 				"x_login_id_input_type": []string{"phone"},
 				"x_calling_code":        []string{"852"},
 				"x_national_number":     []string{"99887766"},
 			})
 			So(err, ShouldBeNil)
 
-			err = impl.Validate("#WebAppEnterLoginIDRequest", url.Values{
+			err = impl.Validate(WebAppSchemaIDEnterLoginIDRequest, url.Values{
 				"x_login_id_input_type": []string{"text"},
 			})
 			So(err, ShouldNotBeNil)
 
-			err = impl.Validate("#WebAppEnterLoginIDRequest", url.Values{
+			err = impl.Validate(WebAppSchemaIDEnterLoginIDRequest, url.Values{
 				"x_login_id_input_type": []string{"text"},
 				"x_login_id":            []string{"john.doe"},
 			})
 			So(err, ShouldBeNil)
 		})
 
-		Convey("#WebAppEnterPasswordRequest", func() {
+		Convey("WebAppEnterPasswordRequest", func() {
 			var err error
 			impl := ValidateProviderImpl{}
 
-			err = impl.Validate("#WebAppEnterPasswordRequest", url.Values{
+			err = impl.Validate(WebAppSchemaIDEnterPasswordRequest, url.Values{
 				"x_password":          []string{"123456"},
 				"x_interaction_token": []string{"Zu3Zaw4Uav54GOMd2hneCoangX0gvuVi"},
 			})
