@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/wire"
 
+	handlerinternal "github.com/skygeario/skygear-server/pkg/auth/handler/internalserver"
 	handleroauth "github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
-	handlersession "github.com/skygeario/skygear-server/pkg/auth/handler/session"
 	handlerwebapp "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
 	"github.com/skygeario/skygear-server/pkg/deps"
 )
@@ -16,7 +16,7 @@ import (
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		deps.RequestDependencySet,
-		wire.Bind(new(http.Handler), new(*handlersession.ResolveHandler)),
+		wire.Bind(new(http.Handler), new(*handlerinternal.ResolveHandler)),
 	))
 }
 
