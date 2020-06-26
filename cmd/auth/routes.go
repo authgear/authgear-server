@@ -55,9 +55,6 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httpro
 			ConfigSource: configSource,
 		},
 		p.Middleware(newSessionMiddleware),
-	)
-	oauthChain := httproute.Chain(
-		rootChain,
 		p.Middleware(newCORSMiddleware),
 	)
 	webappSSOCallbackChain := httproute.Chain(
@@ -82,7 +79,7 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httpro
 		webapp.RequireAuthenticatedMiddleware{},
 	)
 
-	oauthRoute := httproute.Route{Middleware: oauthChain}
+	rootRoute := httproute.Route{Middleware: rootChain}
 	webappRoute := httproute.Route{Middleware: webappChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
@@ -108,18 +105,18 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httpro
 
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
 
-	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(oauthRoute), p.Handler(newOAuthMetadataHandler))
-	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(oauthRoute), p.Handler(newOAuthMetadataHandler))
-	router.Add(oauthhandler.ConfigureJWKSRoute(oauthRoute), p.Handler(newOAuthJWKSHandler))
-	router.Add(oauthhandler.ConfigureAuthorizeRoute(oauthRoute), p.Handler(newOAuthAuthorizeHandler))
-	router.Add(oauthhandler.ConfigureTokenRoute(oauthRoute), p.Handler(newOAuthTokenHandler))
-	router.Add(oauthhandler.ConfigureRevokeRoute(oauthRoute), p.Handler(newOAuthRevokeHandler))
+	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(rootRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(rootRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(oauthhandler.ConfigureJWKSRoute(rootRoute), p.Handler(newOAuthJWKSHandler))
+	router.Add(oauthhandler.ConfigureAuthorizeRoute(rootRoute), p.Handler(newOAuthAuthorizeHandler))
+	router.Add(oauthhandler.ConfigureTokenRoute(rootRoute), p.Handler(newOAuthTokenHandler))
+	router.Add(oauthhandler.ConfigureRevokeRoute(rootRoute), p.Handler(newOAuthRevokeHandler))
 
-	userInfoRoute, userInfoHandler := oauthhandler.ConfigureUserInfoHandler(oauthRoute, p.Handler(newOAuthUserInfoHandler))
+	userInfoRoute, userInfoHandler := oauthhandler.ConfigureUserInfoHandler(rootRoute, p.Handler(newOAuthUserInfoHandler))
 	router.Add(userInfoRoute, userInfoHandler)
 
-	router.Add(oauthhandler.ConfigureEndSessionRoute(oauthRoute), p.Handler(newOAuthEndSessionHandler))
-	router.Add(oauthhandler.ConfigureChallengeRoute(oauthRoute), p.Handler(newOAuthChallengeHandler))
+	router.Add(oauthhandler.ConfigureEndSessionRoute(rootRoute), p.Handler(newOAuthEndSessionHandler))
+	router.Add(oauthhandler.ConfigureChallengeRoute(rootRoute), p.Handler(newOAuthChallengeHandler))
 
 	if p.ServerConfig.StaticAsset.ServingEnabled {
 		fileServer := http.FileServer(http.Dir(p.ServerConfig.StaticAsset.Dir))
