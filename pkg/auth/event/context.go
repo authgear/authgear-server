@@ -1,9 +1,5 @@
 package event
 
-import (
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-)
-
 // @JSONSchema
 const ContextSchema = `
 {
@@ -11,15 +7,12 @@ const ContextSchema = `
 	"type": "object",
 	"properties": {
 		"timestamp": { "type": "integer" },
-		"user_id": { "type": "string" },
-		"identity_id": { "type": "string" },
-		"session": { "$ref": "#Session" }
+		"user_id": { "type": "string" }
 	}
 }
 `
 
 type Context struct {
-	Timestamp int64          `json:"timestamp"`
-	UserID    *string        `json:"user_id"`
-	Session   *model.Session `json:"session"`
+	Timestamp int64   `json:"timestamp"`
+	UserID    *string `json:"user_id"`
 }
