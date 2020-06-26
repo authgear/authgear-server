@@ -1,9 +1,11 @@
 package validation
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"sort"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
@@ -14,6 +16,41 @@ type SchemaValidator struct {
 	Reference string
 }
 
+func (v *SchemaValidator) Parse(r io.Reader, value interface{}) error {
+	return v.ParseWithMessage(r, defaultErrorMessage, value)
+}
+
+func (v *SchemaValidator) ParseWithMessage(r io.Reader, msg string, value interface{}) error {
+	data, err := ioutil.ReadAll(r)
+	if err != nil {
+		return fmt.Errorf("%s: %w", msg, err)
+	}
+
+	err = v.ValidateWithMessage(bytes.NewReader(data), msg)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, value)
+	if err != nil {
+		return fmt.Errorf("%s: %w", msg, err)
+	}
+
+	return nil
+}
+
+func (v *SchemaValidator) ValidateValue(value interface{}) error {
+	return v.ValidateValueWithMessage(value, defaultErrorMessage)
+}
+
+func (v *SchemaValidator) ValidateValueWithMessage(value interface{}, msg string) error {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Errorf("%s: %w", msg, err)
+	}
+	return v.ValidateWithMessage(bytes.NewReader(data), msg)
+}
+
 func (v *SchemaValidator) Validate(r io.Reader) error {
 	return v.ValidateWithMessage(r, defaultErrorMessage)
 }
@@ -21,7 +58,7 @@ func (v *SchemaValidator) Validate(r io.Reader) error {
 func (v *SchemaValidator) ValidateWithMessage(r io.Reader, msg string) error {
 	node, err := v.Schema.Apply(v.Reference, r)
 	if err != nil {
-		return fmt.Errorf("invalid JSON value: %w", err)
+		return fmt.Errorf("%s: %w", msg, err)
 	}
 
 	var errors []Error

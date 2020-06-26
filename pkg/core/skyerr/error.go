@@ -130,11 +130,8 @@ func AsAPIError(err error) *APIError {
 }
 
 func IsKind(err error, kind Kind) bool {
-	var e *skyerr
-	if !errors.As(err, &e) {
-		return false
-	}
-	return e.kind == kind
+	e := AsAPIError(err)
+	return e.Kind == kind
 }
 
 func NewBadRequest(msg string) error {
