@@ -15,7 +15,7 @@ vendor:
 
 .PHONY: generate
 generate:
-	go generate ./pkg/...
+	go generate ./pkg/... ./cmd/...
 
 .PHONY: test
 test:
