@@ -1,9 +1,11 @@
 package sso
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/skygeario/skygear-server/pkg/clock"
 )
 
 const (
@@ -11,6 +13,7 @@ const (
 )
 
 type GoogleImpl struct {
+	Clock                    clock.Clock
 	RedirectURL              RedirectURLProvider
 	ProviderConfig           config.OAuthSSOProviderConfig
 	Credentials              config.OAuthClientCredentialsItem
@@ -55,8 +58,9 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 	}
 
 	var tokenResp AccessTokenResp
-	claims, err := d.ExchangeCode(
+	jwtToken, err := d.ExchangeCode(
 		http.DefaultClient,
+		f.Clock,
 		r.Code,
 		keySet,
 		f.ProviderConfig.ClientID,
@@ -65,6 +69,11 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 		state.HashedNonce,
 		&tokenResp,
 	)
+	if err != nil {
+		return
+	}
+
+	claims, err := jwtToken.AsMap(context.TODO())
 	if err != nil {
 		return
 	}

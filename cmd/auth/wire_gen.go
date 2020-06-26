@@ -90,8 +90,10 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	clock := _wireSystemClockValue
 	provider := &anonymous.Provider{
 		Store: store,
+		Clock: clock,
 	}
 	factory := appProvider.LoggerFactory
 	resolveHandlerLogger := session.NewResolveHandlerLogger(factory)
@@ -101,6 +103,10 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return resolveHandler
 }
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
 
 func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
@@ -125,14 +131,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisContext := appProvider.RedisContext
 	logger := redis.NewLogger(factory)
-	clock := _wireSystemClockValue
+	clockClock := _wireSystemClockValue
 	grantStore := &redis.GrantStore{
 		Redis:       redisContext,
 		AppID:       appID,
 		Logger:      logger,
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
-		Clock:       clock,
+		Clock:       clockClock,
 	}
 	request := p.Request
 	rootProvider := appProvider.RootProvider
@@ -148,7 +154,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	store := &redis2.Store{
 		Redis: redisContext,
 		AppID: appID,
-		Clock: clock,
+		Clock: clockClock,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	identityConfig := appConfig.Identity
@@ -181,7 +187,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oauthProvider := &oauth3.Provider{
 		Store: oauthStore,
-		Clock: clock,
+		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilder,
@@ -189,6 +195,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -205,7 +212,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorPasswordConfig := authenticatorConfig.Password
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
-		Clock:       clock,
+		Clock:       clockClock,
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -213,7 +220,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
-		Clock:           clock,
+		Clock:           clockClock,
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
@@ -226,7 +233,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	totpProvider := &totp.Provider{
 		Store:  totpStore,
 		Config: authenticatorTOTPConfig,
-		Clock:  clock,
+		Clock:  clockClock,
 	}
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
@@ -254,7 +261,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clock,
+		Clock:          clockClock,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -264,7 +271,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	bearertokenProvider := &bearertoken.Provider{
 		Store:  bearertokenStore,
 		Config: authenticatorBearerTokenConfig,
-		Clock:  clock,
+		Clock:  clockClock,
 	}
 	recoverycodeStore := &recoverycode.Store{
 		SQLBuilder:  sqlBuilder,
@@ -274,7 +281,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	recoverycodeProvider := &recoverycode.Provider{
 		Store:  recoverycodeStore,
 		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clock,
+		Clock:  clockClock,
 	}
 	provider3 := &provider2.Provider{
 		Password:     passwordProvider,
@@ -299,7 +306,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
-		Clock:                  clock,
+		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -325,7 +332,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	deliverer := &hook.Deliverer{
 		Config:         hookConfig,
 		Secret:         webhookKeyMaterials,
-		Clock:          clock,
+		Clock:          clockClock,
 		MutatorFactory: mutatorFactory,
 		SyncHTTP:       syncHTTPClient,
 		AsyncHTTP:      asyncHTTPClient,
@@ -334,7 +341,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Context:   contextContext,
 		Logger:    hookLogger,
 		DBContext: context,
-		Clock:     clock,
+		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
 		Deliverer: deliverer,
@@ -349,7 +356,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	interactionProvider := &interaction.Provider{
 		Store:         store,
-		Clock:         clock,
+		Clock:         clockClock,
 		Logger:        interactionLogger,
 		Identity:      providerProvider,
 		Authenticator: provider3,
@@ -361,7 +368,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	challengeProvider := &challenge.Provider{
 		Redis: redisContext,
 		AppID: appID,
-		Clock: clock,
+		Clock: clockClock,
 	}
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
@@ -390,7 +397,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		WebAppURLs:     webappURLProvider,
 		ValidateScopes: scopesValidator,
 		CodeGenerator:  tokenGenerator,
-		Clock:          clock,
+		Clock:          clockClock,
 	}
 	authorizeHandler := &oauth.AuthorizeHandler{
 		Logger:       authorizeHandlerLogger,
@@ -401,7 +408,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 }
 
 var (
-	_wireSystemClockValue     = clock.NewSystemClock()
 	_wireScopesValidatorValue = handler.ScopesValidator(oidc.ValidateScopes)
 	_wireTokenGeneratorValue  = handler.TokenGenerator(oauth2.GenerateToken)
 )
@@ -513,6 +519,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -860,6 +867,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -951,6 +959,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -1046,6 +1055,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -1342,6 +1352,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -1373,6 +1384,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
 		AppID:       appID,
+		Clock:       clockClock,
 		Credentials: jwtKeyMaterials,
 	}
 	userStore := &user.Store{
@@ -1695,6 +1707,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -1726,6 +1739,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
 		AppID:       appID,
+		Clock:       clockClock,
 		Credentials: jwtKeyMaterials,
 	}
 	userStore := &user.Store{
@@ -2048,6 +2062,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -2079,6 +2094,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
 		AppID:       appID,
+		Clock:       clockClock,
 		Credentials: jwtKeyMaterials,
 	}
 	userStore := &user.Store{
@@ -2401,6 +2417,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -2432,6 +2449,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
 		AppID:       appID,
+		Clock:       clockClock,
 		Credentials: jwtKeyMaterials,
 	}
 	userStore := &user.Store{
@@ -2754,6 +2772,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -2785,6 +2804,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
 		AppID:       appID,
+		Clock:       clockClock,
 		Credentials: jwtKeyMaterials,
 	}
 	userStore := &user.Store{
@@ -3107,6 +3127,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -3138,6 +3159,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
 		AppID:       appID,
+		Clock:       clockClock,
 		Credentials: jwtKeyMaterials,
 	}
 	userStore := &user.Store{
@@ -3460,6 +3482,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -3491,6 +3514,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
 		AppID:       appID,
+		Clock:       clockClock,
 		Credentials: jwtKeyMaterials,
 	}
 	userStore := &user.Store{
@@ -3813,6 +3837,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -3844,6 +3869,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
 		AppID:       appID,
+		Clock:       clockClock,
 		Credentials: jwtKeyMaterials,
 	}
 	userStore := &user.Store{
@@ -4165,6 +4191,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -4478,6 +4505,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -4791,6 +4819,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -5104,6 +5133,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -5413,6 +5443,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -5503,6 +5534,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -5539,6 +5571,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
 		AppID:       appID,
+		Clock:       clockClock,
 		Credentials: jwtKeyMaterials,
 	}
 	userStore := &user.Store{
@@ -5857,6 +5890,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,
@@ -6175,6 +6209,7 @@ func newSessionMiddleware(p *deps.RequestProvider) mux.MiddlewareFunc {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
+		Clock: clockClock,
 	}
 	providerProvider := &provider.Provider{
 		Authentication: authenticationConfig,

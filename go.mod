@@ -5,7 +5,6 @@ go 1.13
 require (
 	github.com/FZambia/sentinel v1.1.0
 	github.com/Masterminds/squirrel v1.1.0
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/getsentry/sentry-go v0.3.0
 	github.com/go-gomail/gomail v0.0.0-20150902115704-41f357289737
 	github.com/go-sql-driver/mysql v1.4.1 // indirect

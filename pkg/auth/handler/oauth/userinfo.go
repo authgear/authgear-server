@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oidc"
 	"github.com/skygeario/skygear-server/pkg/db"
 	"github.com/skygeario/skygear-server/pkg/log"
 )
@@ -21,7 +21,7 @@ func ConfigureUserInfoHandler(router *mux.Router, h http.Handler) {
 }
 
 type ProtocolUserInfoProvider interface {
-	LoadUserClaims(auth.AuthSession) (*oidc.UserClaims, error)
+	LoadUserClaims(auth.AuthSession) (jwt.Token, error)
 }
 
 type UserInfoHandlerLogger struct{ *log.Logger }
@@ -38,7 +38,7 @@ type UserInfoHandler struct {
 
 func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	session := auth.GetSession(r.Context())
-	var claims *oidc.UserClaims
+	var claims jwt.Token
 	err := db.WithTx(h.DBContext, func() (err error) {
 		claims, err = h.UserInfoProvider.LoadUserClaims(session)
 		return

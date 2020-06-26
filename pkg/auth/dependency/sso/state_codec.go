@@ -1,83 +1,105 @@
 package sso
 
 import (
+	"encoding/json"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jws"
+	"github.com/lestrrat-go/jwx/jwt"
+
 	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/jwkutil"
+	"github.com/skygeario/skygear-server/pkg/jwtutil"
 )
 
-type stateClaims struct {
-	State
-	jwt.StandardClaims
+type jwtClock struct {
+	Clock clock.Clock
+}
+
+func (c jwtClock) Now() time.Time {
+	return c.Clock.NowUTC()
 }
 
 type StateCodec struct {
 	AppID       config.AppID
+	Clock       clock.Clock
 	Credentials *config.JWTKeyMaterials
 }
 
-func (s *StateCodec) makeStandardClaims() jwt.StandardClaims {
-	return jwt.StandardClaims{
-		Audience:  string(s.AppID),
-		ExpiresAt: time.Now().UTC().Add(5 * time.Minute).Unix(),
-	}
+func (s *StateCodec) makeStandardClaims() jwt.Token {
+	claims := jwt.New()
+	claims.Set(jwt.AudienceKey, string(s.AppID))
+	claims.Set(jwt.ExpirationKey, s.Clock.NowUTC().Add(5*time.Minute).Unix())
+	return claims
 }
 
-func (s *StateCodec) isValidStandardClaims(claims jwt.StandardClaims) bool {
-	err := claims.Valid()
+func (s *StateCodec) isValidStandardClaims(claims jwt.Token) bool {
+	err := jwt.Verify(claims,
+		jwt.WithAudience(string(s.AppID)),
+		jwt.WithClock(jwtClock{s.Clock}),
+	)
 	if err != nil {
-		return false
-	}
-	ok := claims.VerifyAudience(string(s.AppID), true)
-	if !ok {
 		return false
 	}
 	return true
 }
 
 func (s *StateCodec) EncodeState(state State) (out string, err error) {
-	claims := stateClaims{
-		state,
-		s.makeStandardClaims(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	claims := s.makeStandardClaims()
+	claims.Set("state", state)
 
 	key, err := jwkutil.ExtractOctetKey(&s.Credentials.Set, "")
 	if err != nil {
 		return
 	}
 
-	out, err = token.SignedString(key)
+	compact, err := jwtutil.Sign(claims, jwa.HS256, key)
 	if err != nil {
 		return
 	}
 
+	out = string(compact)
 	return
 }
 
 func (s *StateCodec) DecodeState(encodedState string) (*State, error) {
-	claims := stateClaims{}
-	_, err := jwt.ParseWithClaims(encodedState, &claims, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected JWT alg")
-		}
-
-		key, err := jwkutil.ExtractOctetKey(&s.Credentials.Set, "")
-		if err != nil {
-			return nil, err
-		}
-
-		return key, nil
-	})
+	compact := []byte(encodedState)
+	_, payload, err := jwtutil.SplitWithoutVerify(compact)
 	if err != nil {
 		return nil, NewSSOFailed(InvalidParams, "invalid sso state")
 	}
-	ok := s.isValidStandardClaims(claims.StandardClaims)
+
+	key, err := jwkutil.ExtractOctetKey(&s.Credentials.Set, "")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = jws.Verify(compact, jwa.HS256, key)
+	if err != nil {
+		return nil, NewSSOFailed(InvalidParams, "invalid sso state")
+	}
+
+	ok := s.isValidStandardClaims(payload)
 	if !ok {
 		return nil, NewSSOFailed(InvalidParams, "invalid sso state")
 	}
-	return &claims.State, nil
+
+	type stateWrapper struct {
+		State State `json:"state"`
+	}
+
+	bytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	var wrapper stateWrapper
+	err = json.Unmarshal(bytes, &wrapper)
+	if err != nil {
+		return nil, err
+	}
+
+	return &wrapper.State, nil
 }

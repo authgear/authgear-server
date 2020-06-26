@@ -1,16 +1,20 @@
 package sso
 
 import (
+	"context"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/crypto"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/skygeario/skygear-server/pkg/jwtutil"
 )
 
 var appleOIDCConfig = OIDCDiscoveryDocument{
@@ -20,10 +24,10 @@ var appleOIDCConfig = OIDCDiscoveryDocument{
 }
 
 type AppleImpl struct {
+	Clock                    clock.Clock
 	RedirectURL              RedirectURLProvider
 	ProviderConfig           config.OAuthSSOProviderConfig
 	Credentials              config.OAuthClientCredentialsItem
-	Clock                    clock.Clock
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
@@ -35,20 +39,26 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	}
 
 	now := f.Clock.NowUTC()
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.StandardClaims{
-		Issuer:    f.ProviderConfig.TeamID,
-		IssuedAt:  now.Unix(),
-		ExpiresAt: now.Add(5 * time.Minute).Unix(),
-		Audience:  "https://appleid.apple.com",
-		Subject:   f.ProviderConfig.ClientID,
-	})
-	token.Header["kid"] = f.ProviderConfig.KeyID
 
-	clientSecret, err = token.SignedString(key)
+	payload := jwt.New()
+	payload.Set(jwt.IssuerKey, f.ProviderConfig.TeamID)
+	payload.Set(jwt.IssuedAtKey, now.Unix())
+	payload.Set(jwt.ExpirationKey, now.Add(5*time.Minute).Unix())
+	payload.Set(jwt.AudienceKey, "https://appleid.apple.com")
+	payload.Set(jwt.SubjectKey, f.ProviderConfig.ClientID)
+
+	jwkKey, err := jwk.New(key)
+	if err != nil {
+		return
+	}
+	jwkKey.Set("kid", f.ProviderConfig.KeyID)
+
+	token, err := jwtutil.Sign(payload, jwa.ES256, jwkKey)
 	if err != nil {
 		return
 	}
 
+	clientSecret = string(token)
 	return
 }
 
@@ -83,8 +93,9 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 	}
 
 	var tokenResp AccessTokenResp
-	claims, err := appleOIDCConfig.ExchangeCode(
+	jwtToken, err := appleOIDCConfig.ExchangeCode(
 		http.DefaultClient,
+		f.Clock,
 		r.Code,
 		keySet,
 		f.ProviderConfig.ClientID,
@@ -93,6 +104,11 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 		state.HashedNonce,
 		&tokenResp,
 	)
+	if err != nil {
+		return
+	}
+
+	claims, err := jwtToken.AsMap(context.TODO())
 	if err != nil {
 		return
 	}
