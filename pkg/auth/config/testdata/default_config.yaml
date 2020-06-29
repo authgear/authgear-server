@@ -5,6 +5,11 @@ database:
   max_open_connection: 2
   max_idle_connection: 2
   max_connection_lifetime_seconds: 1800
+redis:
+  max_open_connection: 2
+  max_idle_connection: 2
+  idle_connection_timeout_seconds: 300
+  max_connection_lifetime_seconds: 900
 hook:
   sync_hook_timeout_seconds: 5
   sync_hook_total_timeout_seconds: 10
