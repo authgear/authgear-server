@@ -212,38 +212,32 @@ func (s *GrantStore) DeleteOfflineGrant(grant *oauth.OfflineGrant) error {
 func (s *GrantStore) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) {
 	listKey := offlineGrantListKey(string(s.AppID), userID)
 
-	var sessionList map[string]string
+	var grants []*oauth.OfflineGrant
 	err := s.Redis.WithConn(func(conn redis.Conn) error {
-		var err error
-		sessionList, err = redigo.StringMap(conn.Do("HGETALL", listKey))
+		sessionList, err := redigo.StringMap(conn.Do("HGETALL", listKey))
 		if err != nil {
 			return err
+		}
+
+		for id := range sessionList {
+			grant := &oauth.OfflineGrant{}
+			err = s.load(conn, offlineGrantKey(string(s.AppID), id), grant)
+			if errors.Is(err, oauth.ErrGrantNotFound) {
+				_, err = conn.Do("HDEL", listKey, id)
+				if err != nil {
+					s.Logger.WithError(err).Error("failed to update session list")
+				}
+			} else if err != nil {
+				return err
+			} else {
+				grants = append(grants, grant)
+			}
 		}
 
 		return nil
 	})
 	if err != nil {
 		return nil, err
-	}
-
-	var grants []*oauth.OfflineGrant
-	for id := range sessionList {
-		grant, err := s.GetOfflineGrant(id)
-
-		if errors.Is(err, oauth.ErrGrantNotFound) {
-			err = nil
-			_ = s.Redis.WithConn(func(conn redis.Conn) error {
-				_, err = conn.Do("HDEL", listKey, id)
-				if err != nil {
-					s.Logger.WithError(err).Error("failed to update session list")
-				}
-				return nil
-			})
-		} else if err != nil {
-			return nil, err
-		} else {
-			grants = append(grants, grant)
-		}
 	}
 
 	sort.Slice(grants, func(i, j int) bool {

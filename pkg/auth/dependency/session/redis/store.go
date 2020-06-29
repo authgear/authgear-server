@@ -149,81 +149,76 @@ func (s *Store) List(userID string) (sessions []*session.IDPSession, err error) 
 	now := s.Clock.NowUTC()
 	listKey := sessionListKey(s.AppID, userID)
 
-	var sessionList map[string]string
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
-		var err error
-		sessionList, err = goredis.StringMap(conn.Do("HGETALL", listKey))
+		sessionList, err := goredis.StringMap(conn.Do("HGETALL", listKey))
 		if err != nil {
 			return err
 		}
+
+		for key, expiry := range sessionList {
+			expireAt := time.Time{}
+			err = expireAt.UnmarshalText([]byte(expiry))
+			var expired bool
+			if err != nil {
+				err = nil
+				s.Logger.
+					WithError(err).
+					WithFields(logrus.Fields{"key": key, "expiry": expiry}).
+					Error("invalid expiry value")
+				// treat invalid value as expired
+				expired = true
+			} else {
+				expired = now.After(expireAt)
+			}
+
+			session := &session.IDPSession{}
+			var sessionJSON []byte
+			sessionJSON, err = goredis.Bytes(conn.Do("GET", key))
+			// key not found / invalid session JSON -> session not found
+			if err == goredis.ErrNil {
+				err = nil
+				session = nil
+			} else if err != nil {
+				// unexpected error
+				return err
+			} else {
+				err = json.Unmarshal(sessionJSON, session)
+				if err != nil {
+					s.Logger.
+						WithError(err).
+						WithFields(logrus.Fields{"key": key}).
+						Error("invalid JSON value")
+					err = nil
+					session = nil
+				}
+			}
+
+			if session == nil {
+				// only cleanup expired sessions from the list
+				if expired {
+					// ignore non-critical error
+					_, err = conn.Do("HDEL", listKey, key)
+					if err != nil {
+						// ignore non-critical error
+						s.Logger.
+							WithError(err).
+							WithFields(logrus.Fields{"key": listKey}).
+							Error("failed to update session list")
+						err = nil
+					}
+				}
+			} else {
+				sessions = append(sessions, session)
+			}
+		}
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 	if err != nil {
 		return
-	}
-
-	for key, expiry := range sessionList {
-		expireAt := time.Time{}
-		err = expireAt.UnmarshalText([]byte(expiry))
-		var expired bool
-		if err != nil {
-			s.Logger.
-				WithError(err).
-				WithFields(logrus.Fields{"key": key, "expiry": expiry}).
-				Error("invalid expiry value")
-			err = nil
-			// treat invalid value as expired
-			expired = true
-		} else {
-			expired = now.After(expireAt)
-		}
-
-		session := &session.IDPSession{}
-		var sessionJSON []byte
-		err = s.Redis.WithConn(func(conn redis.Conn) error {
-			var err error
-			sessionJSON, err = goredis.Bytes(conn.Do("GET", key))
-			return err
-		})
-		// key not found / invalid session JSON -> session not found
-		if err == goredis.ErrNil {
-			err = nil
-			session = nil
-		} else if err != nil {
-			// unexpected error
-			return
-		} else {
-			err = json.Unmarshal(sessionJSON, session)
-			if err != nil {
-				s.Logger.
-					WithError(err).
-					WithFields(logrus.Fields{"key": key}).
-					Error("invalid JSON value")
-				err = nil
-				session = nil
-			}
-		}
-
-		if session == nil {
-			// only cleanup expired sessions from the list
-			if expired {
-				// ignore non-critical error
-				err = s.Redis.WithConn(func(conn redis.Conn) error {
-					_, err := conn.Do("HDEL", listKey, key)
-					return err
-				})
-				if err != nil {
-					// ignore non-critical error
-					s.Logger.
-						WithError(err).
-						WithFields(logrus.Fields{"key": listKey}).
-						Error("failed to update session list")
-					err = nil
-				}
-			}
-		} else {
-			sessions = append(sessions, session)
-		}
 	}
 
 	sort.Sort(sessionSlice(sessions))
