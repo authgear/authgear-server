@@ -33,6 +33,7 @@ func main() {
 		log.Fatalf("failed to setup server: %s", err)
 	}
 
+	// From now, we should use logger to log.
 	logger := p.LoggerFactory.New("main")
 
 	if serverCfg.DevMode {

@@ -29,10 +29,17 @@ type RootProvider struct {
 func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 	var p RootProvider
 
+	logLevel, err := log.ParseLevel(cfg.LogLevel)
+	if err != nil {
+		return nil, err
+	}
+
 	loggerFactory := log.NewFactory(
+		logLevel,
 		log.NewDefaultMaskLogHook(),
 		&sentry.LogHook{Hub: sentry.DefaultClient.Hub},
 	)
+
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool()
 	taskExecutor := taskexecutors.NewInMemoryExecutor(loggerFactory, ProvideRestoreTaskContext(&p))
