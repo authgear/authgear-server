@@ -13,7 +13,7 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 )
 
-const migrationsDir = "migrate/migrations"
+const migrationsDir = "migrations"
 const migrationsTable = "_auth_migration"
 
 func init() {

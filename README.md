@@ -19,11 +19,11 @@ Work in progress
    ```
 4. Apply database schema migrations:
    ```sh
-   ./migrate/migrate up
+   go run ./cmd/authgear migrate up
    ```
    
 To create new migration:
 ```sh
-# ./migrate/migrate new <migration name>
-./migrate/migrate new add user table
+# go run ./cmd/authgear migrate new <migration name>
+go run ./cmd/authgear migrate new add user table
 ```

@@ -14,8 +14,6 @@ vendor:
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
 	go install github.com/skygeario/openapi3-gen/cmd/openapi3-gen
-	go install golang.org/x/tools/cmd/stringer
-	$(MAKE) -C migrate build
 	(cd scripts/npm && npm ci)
 
 .PHONY: generate
