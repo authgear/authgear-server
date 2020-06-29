@@ -7,21 +7,30 @@ import (
 type Logger = logrus.Entry
 
 type Factory struct {
+	Level         Level
 	DefaultFields logrus.Fields
 	Hooks         []logrus.Hook
-	Logger        *logrus.Logger
+	Logger        *Logger
 }
 
-func NewFactory(hooks ...logrus.Hook) *Factory {
+func NewFactory(level Level, hooks ...logrus.Hook) *Factory {
 	logger := logrus.New()
+	logger.Level = level.Logrus()
+
 	for _, hook := range hooks {
 		logger.Hooks.Add(hook)
 	}
-	return &Factory{DefaultFields: logrus.Fields{}, Logger: logger, Hooks: hooks}
+
+	return &Factory{
+		Level:         level,
+		DefaultFields: logrus.Fields{},
+		Logger:        logger.WithFields(logrus.Fields{}),
+		Hooks:         hooks,
+	}
 }
 
 func (f *Factory) WithHooks(hooks ...logrus.Hook) *Factory {
-	factory := NewFactory(append(f.Hooks, hooks...)...)
+	factory := NewFactory(f.Level, append(f.Hooks, hooks...)...)
 	for k, v := range f.DefaultFields {
 		factory.DefaultFields[k] = v
 	}
@@ -33,5 +42,5 @@ func (f *Factory) New(name string) *Logger {
 	for k, v := range f.DefaultFields {
 		fields[k] = v
 	}
-	return logrus.New().WithFields(fields)
+	return f.Logger.WithFields(fields)
 }

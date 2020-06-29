@@ -3,6 +3,8 @@ package log
 import (
 	"fmt"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Level string
@@ -31,4 +33,19 @@ func ParseLevel(s string) (Level, error) {
 		return LevelError, nil
 	}
 	return DefaultLevel, fmt.Errorf("log: unknown level: %v", s)
+}
+
+func (l Level) Logrus() logrus.Level {
+	switch l {
+	case LevelDebug:
+		return logrus.DebugLevel
+	case LevelInfo:
+		return logrus.InfoLevel
+	case LevelWarn:
+		return logrus.WarnLevel
+	case LevelError:
+		return logrus.ErrorLevel
+	default:
+		return logrus.WarnLevel
+	}
 }

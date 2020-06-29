@@ -16,6 +16,8 @@ type ServerConfig struct {
 	TrustProxy bool `envconfig:"TRUST_PROXY" default:"false"`
 	// DevMode sets whether the server would be run under development mode
 	DevMode bool `envconfig:"DEV_MODE" default:"false"`
+	// LogLevel sets the global log level
+	LogLevel string `envconfig:"LOG_LEVEL" default:"warn"`
 	// ConfigSource configures the source of app configurations
 	ConfigSource ConfigurationSourceConfig `envconfig:"CONFIG_SOURCE"`
 
