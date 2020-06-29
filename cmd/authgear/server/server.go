@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/deps"
 	"github.com/skygeario/skygear-server/pkg/log"
+	"github.com/skygeario/skygear-server/pkg/version"
 )
 
 type Controller struct {
@@ -40,6 +41,7 @@ func (c *Controller) Start() {
 	// From now, we should use c.logger to log.
 	c.logger = p.LoggerFactory.New("server")
 
+	c.logger.Infof("authgear (version %s)", version.Version)
 	if cfg.DevMode {
 		c.logger.Warn("development mode is ON - do not use in production")
 	}

@@ -7,6 +7,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
+
+	"github.com/skygeario/skygear-server/pkg/version"
 )
 
 func main() {
@@ -19,7 +21,8 @@ func main() {
 }
 
 var cmdRoot = &cobra.Command{
-	Use: "authgear",
+	Use:     "authgear",
+	Version: version.Version,
 }
 
 func init() {
