@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"strconv"
 )
 
@@ -16,7 +17,7 @@ type prompt struct {
 
 func (p prompt) Prompt() interface{} {
 	for {
-		fmt.Printf("%s (default '%v'): ", p.Title, p.DefaultValue)
+		fmt.Fprintf(os.Stderr, "%s (default '%v'): ", p.Title, p.DefaultValue)
 
 		var value string
 		fmt.Scanln(&value)
@@ -26,12 +27,12 @@ func (p prompt) Prompt() interface{} {
 
 		cValue, err := p.Coerce(value)
 		if err != nil {
-			fmt.Printf("invalid value: %s\n", err.Error())
+			fmt.Fprintf(os.Stderr, "invalid value: %s\n", err.Error())
 			continue
 		}
 		if p.Validate != nil {
 			if err := p.Validate(cValue); err != nil {
-				fmt.Printf("invalid value: %s\n", err.Error())
+				fmt.Fprintf(os.Stderr, "invalid value: %s\n", err.Error())
 				continue
 			}
 		}
