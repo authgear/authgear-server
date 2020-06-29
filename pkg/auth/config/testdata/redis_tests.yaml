@@ -5,7 +5,7 @@ value: {}
 
 ---
 part: RedisConfig
-name: sensible-values-is-invalid
+name: sensible-values-are-valid
 error: null
 value:
   max_open_connection: 5
