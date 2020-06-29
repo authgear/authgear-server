@@ -70,6 +70,29 @@ func Down(opts Options) {
 	}
 }
 
+func Status(opts Options) bool {
+	db := openDB(opts)
+	migrations := &migrate.FileMigrationSource{
+		Dir: migrationsDir,
+	}
+
+	plan, _, err := migrate.PlanMigration(db, "postgres", migrations, migrate.Up, 0)
+	if err != nil {
+		log.Fatalf("cannot plan migration: %s", err)
+	}
+
+	if len(plan) == 0 {
+		log.Print("database schema is up-to-date")
+	} else {
+		log.Print("pending migrations:")
+		for _, record := range plan {
+			log.Printf("%s\n", record.Id)
+		}
+	}
+
+	return len(plan) == 0
+}
+
 func openDB(opts Options) *sql.DB {
 	db, err := sql.Open("postgres", opts.DatabaseURL)
 	if err != nil {

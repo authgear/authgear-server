@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -18,6 +19,7 @@ func init() {
 	cmdMigrate.AddCommand(cmdMigrateNew)
 	cmdMigrate.AddCommand(cmdMigrateUp)
 	cmdMigrate.AddCommand(cmdMigrateDown)
+	cmdMigrate.AddCommand(cmdMigrateStatus)
 
 	for _, cmd := range []*cobra.Command{cmdMigrateUp, cmdMigrateDown} {
 		cmd.Flags().StringVarP(&SecretConfigPath, "secret-config", "f", "authgear.secrets.yaml", "App secrets YAML path")
@@ -67,6 +69,25 @@ var cmdMigrateDown = &cobra.Command{
 			DatabaseURL:    credentials.DatabaseURL,
 			DatabaseSchema: credentials.DatabaseSchema,
 		})
+	},
+}
+
+var cmdMigrateStatus = &cobra.Command{
+	Use:   "status",
+	Short: "Get database schema migration status",
+	Run: func(cmd *cobra.Command, args []string) {
+		credentials, err := loadDBCredentials()
+		if err != nil {
+			log.Fatalf("cannot load secret config: %s", err)
+		}
+
+		latest := migrate.Status(migrate.Options{
+			DatabaseURL:    credentials.DatabaseURL,
+			DatabaseSchema: credentials.DatabaseSchema,
+		})
+		if !latest {
+			os.Exit(1)
+		}
 	},
 }
 
