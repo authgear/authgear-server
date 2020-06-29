@@ -1,26 +1,11 @@
 /tmp
-/.vagrant
-/dist
-data
 .env
-skygear-server
-standalone-tenant-config.yaml
-
-# golang
-vendor
-.virtualgo
-
-# Fabric
-fabfile.pyc
-
-# python
-__pycache__
+/authgear
+/authgear.yaml
+/authgear.secrets.yaml
 
 # docker
 docker-compose.override.yml
-
-# nix
-result-bin
 
 # vs code
 .vscode
