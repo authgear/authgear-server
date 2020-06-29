@@ -7,11 +7,9 @@ require (
 	github.com/Masterminds/squirrel v1.1.0
 	github.com/getsentry/sentry-go v0.3.0
 	github.com/go-gomail/gomail v0.0.0-20150902115704-41f357289737
-	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/golang/mock v1.4.0
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
-	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/google/wire v0.4.0
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
@@ -24,15 +22,14 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/kelseyhightower/envconfig v1.3.0
-	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lestrrat-go/jwx v1.0.2
 	github.com/lib/pq v1.3.0
-	github.com/mattn/go-sqlite3 v1.12.0 // indirect
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
 	github.com/nbutton23/zxcvbn-go v0.0.0-20171102151520-eafdab6b0663
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/nyaruka/phonenumbers v1.0.45
 	github.com/pquerna/otp v1.2.0
+	github.com/rubenv/sql-migrate v0.0.0-20200616145509-8d140a17f351
 	github.com/sfreiberg/gotwilio v0.0.0-20181012193634-a13e5b0d458a
 	github.com/sirupsen/logrus v1.4.2
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
@@ -46,7 +43,6 @@ require (
 	golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae // indirect
 	golang.org/x/text v0.3.2
 	golang.org/x/tools v0.0.0-20200417140056-c07e33ef3290
-	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/yaml.v2 v2.2.8

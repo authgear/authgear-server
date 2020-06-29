@@ -11,7 +11,6 @@ import (
 var cmdStart = &cobra.Command{
 	Use:   "start [public|internal]...",
 	Short: "Start public / internal server",
-	Long:  `Start public / internal server`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctrl := &server.Controller{}
 
