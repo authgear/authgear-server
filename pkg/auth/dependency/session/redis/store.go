@@ -39,20 +39,29 @@ func (s *Store) Create(sess *session.IDPSession, expireAt time.Time) (err error)
 		return
 	}
 
-	conn := s.Redis.Conn()
 	ttl := expireAt.Sub(s.Clock.NowUTC())
 	listKey := sessionListKey(s.AppID, sess.Attrs.UserID)
 	key := sessionKey(s.AppID, sess.ID)
 
-	_, err = conn.Do("HSET", listKey, key, expiry)
-	if err != nil {
-		err = errors.Newf("failed to update session list: %w", err)
-		return
-	}
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		_, err = conn.Do("HSET", listKey, key, expiry)
+		if err != nil {
+			return errors.Newf("failed to update session list: %w", err)
+		}
 
-	_, err = goredis.String(conn.Do("SET", key, json, "PX", toMilliseconds(ttl), "NX"))
-	if errors.Is(err, goredis.ErrNil) {
-		err = errors.Newf("duplicated session ID: %w", err)
+		_, err = goredis.String(conn.Do("SET", key, json, "PX", toMilliseconds(ttl), "NX"))
+		if errors.Is(err, goredis.ErrNil) {
+			err = errors.Newf("duplicated session ID: %w", err)
+			return err
+		}
+
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
 		return
 	}
 
@@ -69,64 +78,86 @@ func (s *Store) Update(sess *session.IDPSession, expireAt time.Time) (err error)
 		return
 	}
 
-	conn := s.Redis.Conn()
 	ttl := expireAt.Sub(s.Clock.NowUTC())
 	listKey := sessionListKey(s.AppID, sess.Attrs.UserID)
 	key := sessionKey(s.AppID, sess.ID)
 
-	_, err = conn.Do("HSET", listKey, key, expiry)
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		_, err = conn.Do("HSET", listKey, key, expiry)
+		if err != nil {
+			return errors.Newf("failed to update session list: %w", err)
+		}
+
+		_, err = goredis.String(conn.Do("SET", key, data, "PX", toMilliseconds(ttl), "XX"))
+		if errors.Is(err, goredis.ErrNil) {
+			return session.ErrSessionNotFound
+		}
+
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
-		err = errors.Newf("failed to update session list: %w", err)
 		return
 	}
 
-	_, err = goredis.String(conn.Do("SET", key, data, "PX", toMilliseconds(ttl), "XX"))
-	if errors.Is(err, goredis.ErrNil) {
-		err = session.ErrSessionNotFound
-	}
 	return
 }
 
 func (s *Store) Get(id string) (sess *session.IDPSession, err error) {
-	conn := s.Redis.Conn()
 	key := sessionKey(s.AppID, id)
-	data, err := goredis.Bytes(conn.Do("GET", key))
-	if errors.Is(err, goredis.ErrNil) {
-		err = session.ErrSessionNotFound
-		return
-	} else if err != nil {
-		return
-	}
-	err = json.Unmarshal(data, &sess)
+
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		data, err := goredis.Bytes(conn.Do("GET", key))
+		if errors.Is(err, goredis.ErrNil) {
+			return session.ErrSessionNotFound
+		} else if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(data, &sess)
+		return err
+	})
 	return
 }
 
 func (s *Store) Delete(session *session.IDPSession) (err error) {
-	conn := s.Redis.Conn()
 	key := sessionKey(s.AppID, session.ID)
 	listKey := sessionListKey(s.AppID, session.Attrs.UserID)
 
-	_, err = conn.Do("DEL", key)
-	if err == nil {
-		_, err = conn.Do("HDEL", listKey, key)
-		if err != nil {
-			s.Logger.
-				WithError(err).
-				WithField("redis_key", listKey).
-				Error("failed to update session list")
-			// ignore non-critical errors
-			err = nil
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		_, err := conn.Do("DEL", key)
+		if err == nil {
+			_, err = conn.Do("HDEL", listKey, key)
+			if err != nil {
+				s.Logger.
+					WithError(err).
+					WithField("redis_key", listKey).
+					Error("failed to update session list")
+				// ignore non-critical errors
+				err = nil
+			}
 		}
-	}
+		return err
+	})
 	return
 }
 
 func (s *Store) List(userID string) (sessions []*session.IDPSession, err error) {
 	now := s.Clock.NowUTC()
-	conn := s.Redis.Conn()
 	listKey := sessionListKey(s.AppID, userID)
 
-	sessionList, err := goredis.StringMap(conn.Do("HGETALL", listKey))
+	var sessionList map[string]string
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		var err error
+		sessionList, err = goredis.StringMap(conn.Do("HGETALL", listKey))
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return
 	}
@@ -149,7 +180,11 @@ func (s *Store) List(userID string) (sessions []*session.IDPSession, err error) 
 
 		session := &session.IDPSession{}
 		var sessionJSON []byte
-		sessionJSON, err = goredis.Bytes(conn.Do("GET", key))
+		err = s.Redis.WithConn(func(conn redis.Conn) error {
+			var err error
+			sessionJSON, err = goredis.Bytes(conn.Do("GET", key))
+			return err
+		})
 		// key not found / invalid session JSON -> session not found
 		if err == goredis.ErrNil {
 			err = nil
@@ -173,7 +208,10 @@ func (s *Store) List(userID string) (sessions []*session.IDPSession, err error) 
 			// only cleanup expired sessions from the list
 			if expired {
 				// ignore non-critical error
-				_, err = conn.Do("HDEL", listKey, key)
+				err = s.Redis.WithConn(func(conn redis.Conn) error {
+					_, err := conn.Do("HDEL", listKey, key)
+					return err
+				})
 				if err != nil {
 					// ignore non-critical error
 					s.Logger.

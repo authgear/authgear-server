@@ -26,31 +26,31 @@ func (s *EventStore) AppendAccessEvent(session auth.AuthSession, event *auth.Acc
 		return err
 	}
 
-	conn := s.Redis.Conn()
 	streamKey := accessEventStreamKey(s.AppID, session.SessionID())
-
 	args := []interface{}{streamKey}
 	if maxEventStreamLength >= 0 {
 		args = append(args, "MAXLEN", "~", maxEventStreamLength)
 	}
 	args = append(args, "*", eventTypeAccessEvent, data)
 
-	_, err = conn.Do("XADD", args...)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.Redis.WithConn(func(conn redis.Conn) error {
+		_, err = conn.Do("XADD", args...)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (s *EventStore) ResetEventStream(session auth.AuthSession) error {
-	conn := s.Redis.Conn()
 	streamKey := accessEventStreamKey(s.AppID, session.SessionID())
 
-	_, err := conn.Do("DEL", streamKey)
-	if err != nil {
-		return err
-	}
+	return s.Redis.WithConn(func(conn redis.Conn) error {
+		_, err := conn.Do("DEL", streamKey)
+		if err != nil {
+			return err
+		}
 
-	return nil
+		return nil
+	})
 }
