@@ -6,8 +6,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-
-	"github.com/skygeario/skygear-server/cmd/auth/server"
+	"github.com/spf13/cobra"
 )
 
 func main() {
@@ -16,6 +15,13 @@ func main() {
 		log.Printf("failed to load .env file: %s", err)
 	}
 
-	ctrl := &server.Controller{}
-	ctrl.Start()
+	cmdRoot.Execute()
+}
+
+var cmdRoot = &cobra.Command{
+	Use: "authgear",
+}
+
+func init() {
+	cmdRoot.AddCommand(cmdStart)
 }

@@ -34,7 +34,7 @@ fmt:
 # https://github.com/golang/go/issues/26492#issuecomment-635563222
 .PHONY: build
 build:
-	go build -o authgear -tags 'osusergo netgo static_build' ./cmd/auth
+	go build -o authgear -tags 'osusergo netgo static_build' ./cmd/authgear
 
 .PHONY: check-tidy
 check-tidy:

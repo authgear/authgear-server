@@ -17,6 +17,9 @@ import (
 )
 
 type Controller struct {
+	ServePublic   bool
+	ServeInternal bool
+
 	logger   *log.Logger
 	ctx      context.Context
 	shutdown <-chan struct{}
@@ -52,8 +55,12 @@ func (c *Controller) Start() {
 	c.shutdown = shutdown
 
 	setupTasks(p.TaskExecutor, p)
-	c.startServer("public server", cfg.PublicListenAddr, setupRoutes(p, configSource))
-	c.startServer("internal server", cfg.InternalListenAddr, setupInternalRoutes(p, configSource))
+	if c.ServePublic {
+		c.startServer("public server", cfg.PublicListenAddr, setupRoutes(p, configSource))
+	}
+	if c.ServeInternal {
+		c.startServer("internal server", cfg.InternalListenAddr, setupInternalRoutes(p, configSource))
+	}
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)

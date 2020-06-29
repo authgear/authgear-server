@@ -39,6 +39,7 @@ require (
 	github.com/skygeario/openapi3-gen v0.0.0-20190808034633-90418c3d9171
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4
+	github.com/spf13/cobra v1.0.0
 	github.com/ua-parser/uap-go v0.0.0-20190826212731-daf92ba38329
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
@@ -47,7 +48,6 @@ require (
 	golang.org/x/tools v0.0.0-20200417140056-c07e33ef3290
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/yaml.v2 v2.2.8
 	sigs.k8s.io/yaml v1.2.0
