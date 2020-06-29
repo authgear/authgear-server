@@ -1,6 +1,10 @@
 id: test
 metadata: {}
 http: {}
+database:
+  max_open_connection: 2
+  max_idle_connection: 2
+  max_connection_lifetime_seconds: 1800
 hook:
   sync_hook_timeout_seconds: 5
   sync_hook_total_timeout_seconds: 10

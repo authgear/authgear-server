@@ -25,6 +25,7 @@ var _ = Schema.Add("AppConfig", `
 		"id": { "type": "string" },
 		"metadata": { "$ref": "#/$defs/AppMetadata" },
 		"http": { "$ref": "#/$defs/HTTPConfig" },
+		"database": { "$ref": "#/$defs/DatabaseConfig" },
 		"hook": { "$ref": "#/$defs/HookConfig" },
 		"template": { "$ref": "#/$defs/TemplateConfig" },
 		"ui": { "$ref": "#/$defs/UIConfig" },
@@ -46,8 +47,9 @@ type AppConfig struct {
 	ID       AppID       `json:"id"`
 	Metadata AppMetadata `json:"metadata,omitempty"`
 
-	HTTP *HTTPConfig `json:"http,omitempty"`
-	Hook *HookConfig `json:"hook,omitempty"`
+	HTTP     *HTTPConfig     `json:"http,omitempty"`
+	Database *DatabaseConfig `json:"database,omitempty"`
+	Hook     *HookConfig     `json:"hook,omitempty"`
 
 	Template     *TemplateConfig     `json:"template,omitempty"`
 	UI           *UIConfig           `json:"ui,omitempty"`

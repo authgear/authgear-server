@@ -35,6 +35,7 @@ func TestAppConfigSchema(t *testing.T) {
 	testFiles := []string{
 		"testdata/messaging_tests.yaml",
 		"testdata/hook_tests.yaml",
+		"testdata/database_tests.yaml",
 	}
 
 	type TestCase struct {

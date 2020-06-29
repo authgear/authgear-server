@@ -12,6 +12,7 @@ var configDeps = wire.NewSet(
 		"ID",
 		"Metadata",
 		"HTTP",
+		"Database",
 		"Hook",
 		"Template",
 		"UI",
