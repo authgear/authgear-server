@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	authtask "github.com/skygeario/skygear-server/pkg/auth/task"

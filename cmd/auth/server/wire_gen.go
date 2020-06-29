@@ -3,7 +3,7 @@
 //go:generate wire
 //+build !wireinject
 
-package main
+package server
 
 import (
 	"github.com/getsentry/sentry-go"
