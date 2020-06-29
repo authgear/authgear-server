@@ -8,6 +8,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/config"
 	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/skygeario/skygear-server/pkg/log"
 )
 
 type ExtContext = sqlx.ExtContext
@@ -72,18 +73,22 @@ func ReadOnly(ctx Context, do func() error) (err error) {
 type dbContext struct {
 	context.Context
 	pool        *Pool
+	cfg         *config.DatabaseConfig
 	credentials *config.DatabaseCredentials
+	logger      *log.Logger
 
 	db    *sqlx.DB
 	tx    *sqlx.Tx
 	hooks []TransactionHook
 }
 
-func NewContext(ctx context.Context, pool *Pool, credentials *config.DatabaseCredentials) Context {
+func NewContext(ctx context.Context, pool *Pool, cfg *config.DatabaseConfig, credentials *config.DatabaseCredentials, lf *log.Factory) Context {
 	return &dbContext{
 		Context:     ctx,
 		pool:        pool,
+		cfg:         cfg,
 		credentials: credentials,
+		logger:      lf.New("dbcontext"),
 	}
 }
 
@@ -168,7 +173,19 @@ func (ctx *dbContext) rollbackTx() error {
 
 func (ctx *dbContext) openDB() (*sqlx.DB, error) {
 	if ctx.db == nil {
-		db, err := ctx.pool.Open(ctx.credentials.DatabaseURL)
+		opts := OpenOptions{
+			URL:             ctx.credentials.DatabaseURL,
+			MaxOpenConns:    *ctx.cfg.MaxOpenConnection,
+			MaxIdleConns:    *ctx.cfg.MaxIdleConnection,
+			ConnMaxLifetime: ctx.cfg.MaxConnectionLifetime.Duration(),
+		}
+		ctx.logger.WithFields(map[string]interface{}{
+			"max_open_conns":            opts.MaxOpenConns,
+			"max_idle_conns":            opts.MaxIdleConns,
+			"conn_max_lifetime_seconds": opts.ConnMaxLifetime.Seconds(),
+		}).Debug("open database")
+
+		db, err := ctx.pool.Open(opts)
 		if err != nil {
 			return nil, errors.HandledWithMessage(err, "failed to connect to database")
 		}
