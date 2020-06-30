@@ -1,6 +1,6 @@
 package event
 
-import "github.com/skygeario/skygear-server/pkg/auth/model"
+import "github.com/authgear/authgear-server/pkg/auth/model"
 
 const (
 	BeforeIdentityUpdate Type = "before_identity_update"

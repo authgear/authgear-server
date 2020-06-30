@@ -1,6 +1,6 @@
 package identity
 
-import "github.com/skygeario/skygear-server/pkg/core/authn"
+import "github.com/authgear/authgear-server/pkg/core/authn"
 
 type Spec struct {
 	Type   authn.IdentityType     `json:"type"`

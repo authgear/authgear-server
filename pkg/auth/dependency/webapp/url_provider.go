@@ -7,9 +7,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
-	coreurl "github.com/skygeario/skygear-server/pkg/core/url"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	coreurl "github.com/authgear/authgear-server/pkg/core/url"
 )
 
 type EndpointsProvider interface {

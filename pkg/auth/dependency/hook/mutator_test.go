@@ -5,8 +5,8 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/auth/event"
+	"github.com/authgear/authgear-server/pkg/auth/model"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

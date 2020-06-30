@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
 func fetchUserProfile(

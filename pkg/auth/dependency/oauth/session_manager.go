@@ -1,10 +1,10 @@
 package oauth
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/httputil"
 )
 
 type SessionManager struct {

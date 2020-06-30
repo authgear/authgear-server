@@ -3,8 +3,8 @@ package hook
 import (
 	"fmt"
 
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/auth/event"
+	"github.com/authgear/authgear-server/pkg/db"
 )
 
 type Store struct {

@@ -2,8 +2,8 @@ package validation
 
 import (
 	"errors"
+	"github.com/authgear/authgear-server/pkg/core/phone"
 	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
-	"github.com/skygeario/skygear-server/pkg/core/phone"
 	"net/mail"
 	"net/url"
 	"path/filepath"

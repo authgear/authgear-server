@@ -1,11 +1,11 @@
 package password
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"sort"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/uuid"
+	"github.com/authgear/authgear-server/pkg/core/uuid"
 )
 
 type mockPasswordHistoryStoreImpl struct {

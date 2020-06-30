@@ -1,11 +1,11 @@
 package flows
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 type WebAppFlow struct {

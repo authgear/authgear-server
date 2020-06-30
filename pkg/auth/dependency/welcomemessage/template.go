@@ -1,8 +1,8 @@
 package welcomemessage
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/template"
 )
 
 const (

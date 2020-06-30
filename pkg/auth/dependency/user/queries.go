@@ -1,8 +1,8 @@
 package user
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/model"
 )
 
 type IdentityProvider interface {

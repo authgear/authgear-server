@@ -8,7 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 
-	"github.com/skygeario/skygear-server/pkg/version"
+	"github.com/authgear/authgear-server/pkg/version"
 )
 
 func main() {

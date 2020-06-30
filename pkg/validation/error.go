@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
 var defaultErrorMessage = "invalid value"

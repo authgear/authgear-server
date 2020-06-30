@@ -10,10 +10,10 @@ import (
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/jwtutil"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/jwtutil"
 )
 
 type OIDCAuthParams struct {

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 //go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package provider

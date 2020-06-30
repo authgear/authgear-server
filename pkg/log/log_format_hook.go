@@ -5,7 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
 type FormatHook struct {

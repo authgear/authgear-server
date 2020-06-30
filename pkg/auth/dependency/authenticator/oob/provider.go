@@ -6,17 +6,17 @@ import (
 	"net/url"
 	"sort"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
-	taskspec "github.com/skygeario/skygear-server/pkg/auth/task/spec"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/intl"
-	"github.com/skygeario/skygear-server/pkg/core/uuid"
-	"github.com/skygeario/skygear-server/pkg/mail"
-	"github.com/skygeario/skygear-server/pkg/sms"
-	"github.com/skygeario/skygear-server/pkg/task"
-	"github.com/skygeario/skygear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/intl"
+	"github.com/authgear/authgear-server/pkg/core/uuid"
+	"github.com/authgear/authgear-server/pkg/mail"
+	"github.com/authgear/authgear-server/pkg/sms"
+	"github.com/authgear/authgear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/template"
 )
 
 type EndpointsProvider interface {

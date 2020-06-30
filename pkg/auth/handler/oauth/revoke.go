@@ -3,10 +3,10 @@ package oauth
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/httproute"
-	"github.com/skygeario/skygear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/log"
 )
 
 func ConfigureRevokeRoute(route httproute.Route) httproute.Route {

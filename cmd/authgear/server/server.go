@@ -11,10 +11,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/deps"
-	"github.com/skygeario/skygear-server/pkg/log"
-	"github.com/skygeario/skygear-server/pkg/version"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/deps"
+	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/version"
 )
 
 type Controller struct {

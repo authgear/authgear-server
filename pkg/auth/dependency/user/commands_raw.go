@@ -3,9 +3,9 @@ package user
 import (
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/clock"
 )
 
 type WelcomeMessageProvider interface {

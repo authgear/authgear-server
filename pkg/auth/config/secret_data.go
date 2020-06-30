@@ -6,7 +6,7 @@ import (
 
 	"github.com/lestrrat-go/jwx/jwk"
 
-	"github.com/skygeario/skygear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/validation"
 )
 
 var _ = SecretConfigSchema.Add("DatabaseCredentials", `

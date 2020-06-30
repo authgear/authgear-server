@@ -9,7 +9,7 @@ import (
 	"net/url"
 	textTemplate "text/template"
 
-	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
 const MaxTemplateSize = 1024 * 1024 * 1

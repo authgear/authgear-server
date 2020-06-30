@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/url"
 
-	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	corerand "github.com/authgear/authgear-server/pkg/core/rand"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
 var ErrStateNotFound = errors.New("state not found")

@@ -8,9 +8,9 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 func TestResolveHandler(t *testing.T) {

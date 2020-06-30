@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	coreurl "github.com/skygeario/skygear-server/pkg/core/url"
+	coreurl "github.com/authgear/authgear-server/pkg/core/url"
 )
 
 const htmlRedirectTemplateString = `<!DOCTYPE html>

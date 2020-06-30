@@ -10,15 +10,15 @@ import (
 
 	"github.com/gorilla/csrf"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/intl"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	"github.com/skygeario/skygear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/intl"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/template"
 )
 
 type IdentityProvider interface {

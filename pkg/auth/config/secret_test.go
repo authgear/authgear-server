@@ -9,7 +9,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	goyaml "gopkg.in/yaml.v2"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/config"
 )
 
 func TestParseSecret(t *testing.T) {

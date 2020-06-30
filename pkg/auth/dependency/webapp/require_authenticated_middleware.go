@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 )
 
 type RequireAuthenticatedMiddleware struct{}

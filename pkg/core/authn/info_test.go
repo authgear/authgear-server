@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

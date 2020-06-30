@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
 // Interaction represents an interaction with authenticators/identities, and authentication process.

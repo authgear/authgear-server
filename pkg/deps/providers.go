@@ -4,17 +4,17 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	authtemplate "github.com/skygeario/skygear-server/pkg/auth/template"
-	"github.com/skygeario/skygear-server/pkg/core/sentry"
-	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/httproute"
-	"github.com/skygeario/skygear-server/pkg/log"
-	"github.com/skygeario/skygear-server/pkg/redis"
-	"github.com/skygeario/skygear-server/pkg/task"
-	taskexecutors "github.com/skygeario/skygear-server/pkg/task/executors"
-	"github.com/skygeario/skygear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+	authtemplate "github.com/authgear/authgear-server/pkg/auth/template"
+	"github.com/authgear/authgear-server/pkg/core/sentry"
+	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/redis"
+	"github.com/authgear/authgear-server/pkg/task"
+	taskexecutors "github.com/authgear/authgear-server/pkg/task/executors"
+	"github.com/authgear/authgear-server/pkg/template"
 )
 
 type RootProvider struct {

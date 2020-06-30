@@ -5,9 +5,9 @@
 package hook
 
 import (
+	event "github.com/authgear/authgear-server/pkg/auth/event"
+	model "github.com/authgear/authgear-server/pkg/auth/model"
 	gomock "github.com/golang/mock/gomock"
-	event "github.com/skygeario/skygear-server/pkg/auth/event"
-	model "github.com/skygeario/skygear-server/pkg/auth/model"
 	reflect "reflect"
 )
 

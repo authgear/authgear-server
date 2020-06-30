@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/skygeario/skygear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/httputil"
 
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/auth/event"
+	"github.com/authgear/authgear-server/pkg/auth/model"
 )
 
 type HookProvider interface {

@@ -5,11 +5,11 @@
 package provider
 
 import (
+	config "github.com/authgear/authgear-server/pkg/auth/config"
+	anonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	loginid "github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+	oauth "github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
 	gomock "github.com/golang/mock/gomock"
-	config "github.com/skygeario/skygear-server/pkg/auth/config"
-	anonymous "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
-	loginid "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	oauth "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
 	reflect "reflect"
 )
 

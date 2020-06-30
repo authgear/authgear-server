@@ -3,8 +3,8 @@ package bearertoken
 import (
 	"crypto/subtle"
 
-	"github.com/skygeario/skygear-server/pkg/core/base32"
-	"github.com/skygeario/skygear-server/pkg/core/rand"
+	"github.com/authgear/authgear-server/pkg/core/base32"
+	"github.com/authgear/authgear-server/pkg/core/rand"
 )
 
 const (

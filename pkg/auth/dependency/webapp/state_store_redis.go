@@ -6,8 +6,8 @@ import (
 
 	goredis "github.com/gomodule/redigo/redis"
 
-	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/redis"
+	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/redis"
 )
 
 type StateStoreImpl struct {

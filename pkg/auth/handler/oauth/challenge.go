@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/challenge"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/httproute"
-	"github.com/skygeario/skygear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
+	"github.com/authgear/authgear-server/pkg/core/handler"
+	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/validation"
 )
 
 func ConfigureChallengeRoute(route httproute.Route) httproute.Route {

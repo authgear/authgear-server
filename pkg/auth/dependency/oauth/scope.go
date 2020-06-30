@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
 )
 
 const FullAccessScope = "https://auth.skygear.io/scopes/full-access"

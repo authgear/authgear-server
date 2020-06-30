@@ -6,9 +6,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/log"
 )
 
 type ExtContext = sqlx.ExtContext

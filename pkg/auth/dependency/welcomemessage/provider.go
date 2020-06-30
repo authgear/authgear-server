@@ -3,14 +3,14 @@ package welcomemessage
 import (
 	"context"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	taskspec "github.com/skygeario/skygear-server/pkg/auth/task/spec"
-	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/intl"
-	"github.com/skygeario/skygear-server/pkg/mail"
-	"github.com/skygeario/skygear-server/pkg/task"
-	"github.com/skygeario/skygear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
+	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
+	"github.com/authgear/authgear-server/pkg/core/intl"
+	"github.com/authgear/authgear-server/pkg/mail"
+	"github.com/authgear/authgear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/template"
 )
 
 type Provider struct {

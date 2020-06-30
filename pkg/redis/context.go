@@ -3,8 +3,8 @@ package redis
 import (
 	redigo "github.com/gomodule/redigo/redis"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/log"
 )
 
 type Conn = redigo.Conn

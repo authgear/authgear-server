@@ -6,10 +6,10 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 type mockOOBProvider struct {

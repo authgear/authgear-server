@@ -3,7 +3,7 @@ package session
 import (
 	"github.com/google/wire"
 
-	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
+	corerand "github.com/authgear/authgear-server/pkg/core/rand"
 )
 
 var DependencySet = wire.NewSet(

@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"github.com/skygeario/skygear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/task"
 )
 
 type MockQueue struct {

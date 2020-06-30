@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 )
 
 type TokenResult interface {

@@ -1,6 +1,6 @@
 package config
 
-import "github.com/skygeario/skygear-server/pkg/core/phone"
+import "github.com/authgear/authgear-server/pkg/core/phone"
 
 var _ = Schema.Add("UIConfig", `
 {

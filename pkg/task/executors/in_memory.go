@@ -3,8 +3,8 @@ package executors
 import (
 	"context"
 
-	"github.com/skygeario/skygear-server/pkg/log"
-	"github.com/skygeario/skygear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/task"
 )
 
 type RestoreTaskContext func(context.Context, *task.Context) context.Context

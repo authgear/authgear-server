@@ -1,4 +1,4 @@
-module github.com/skygeario/skygear-server
+module github.com/authgear/authgear-server
 
 go 1.13
 

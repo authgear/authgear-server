@@ -6,7 +6,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
 func TestStateRestore(t *testing.T) {

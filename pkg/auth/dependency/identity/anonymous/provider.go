@@ -11,10 +11,10 @@ import (
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/uuid"
-	"github.com/skygeario/skygear-server/pkg/jwtutil"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/uuid"
+	"github.com/authgear/authgear-server/pkg/jwtutil"
 )
 
 type jwtClock struct {

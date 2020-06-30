@@ -7,13 +7,13 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/jwkutil"
-	"github.com/skygeario/skygear-server/pkg/jwtutil"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
+	"github.com/authgear/authgear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/jwkutil"
+	"github.com/authgear/authgear-server/pkg/jwtutil"
 )
 
 type UserProvider interface {

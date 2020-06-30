@@ -3,7 +3,7 @@ package session
 import (
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/config"
 )
 
 func computeSessionStorageExpiry(session *IDPSession, cfg *config.SessionConfig) (expiry time.Time) {

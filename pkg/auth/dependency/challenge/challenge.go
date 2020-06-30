@@ -3,8 +3,8 @@ package challenge
 import (
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/base32"
-	"github.com/skygeario/skygear-server/pkg/core/rand"
+	"github.com/authgear/authgear-server/pkg/core/base32"
+	"github.com/authgear/authgear-server/pkg/core/rand"
 )
 
 type Purpose string

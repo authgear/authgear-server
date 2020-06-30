@@ -1,7 +1,7 @@
 package httputil_test
 
 import (
-	"github.com/skygeario/skygear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/httputil"
 	"net/http"
 	"net/http/httptest"
 	"testing"

@@ -5,10 +5,10 @@ import (
 
 	"github.com/gorilla/csrf"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/core/samesite"
-	"github.com/skygeario/skygear-server/pkg/httputil"
-	"github.com/skygeario/skygear-server/pkg/jwkutil"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/core/samesite"
+	"github.com/authgear/authgear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/jwkutil"
 )
 
 type CSRFMiddleware struct {

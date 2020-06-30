@@ -3,8 +3,8 @@ package sso
 import (
 	"net/url"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/clock"
 )
 
 // OAuthProvider is OAuth 2.0 based provider.

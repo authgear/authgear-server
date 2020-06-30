@@ -2,11 +2,11 @@ package auth
 
 import (
 	"errors"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/auth/model"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/db"
 )
 
 var ErrInvalidSession = errors.New("provided session is invalid")

@@ -4,7 +4,7 @@ import (
 	"crypto/subtle"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/rand"
+	"github.com/authgear/authgear-server/pkg/core/rand"
 )
 
 const (

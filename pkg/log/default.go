@@ -3,7 +3,7 @@ package log
 import (
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/config"
 )
 
 var defaultPatterns = []MaskPattern{

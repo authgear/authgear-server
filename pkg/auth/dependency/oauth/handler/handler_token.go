@@ -8,17 +8,17 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	interactionflows "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/uuid"
-	"github.com/skygeario/skygear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/uuid"
+	"github.com/authgear/authgear-server/pkg/log"
 )
 
 // TODO(oauth): write tests

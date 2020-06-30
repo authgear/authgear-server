@@ -3,7 +3,7 @@ package interaction
 import (
 	"errors"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
 var ErrInteractionNotFound = errors.New("interaction not found")

@@ -3,7 +3,7 @@ package redis
 import (
 	"fmt"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/config"
 )
 
 func accessEventStreamKey(appID config.AppID, sessionID string) string {

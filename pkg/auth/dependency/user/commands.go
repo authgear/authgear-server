@@ -3,9 +3,9 @@ package user
 import (
 	gotime "time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/event"
+	"github.com/authgear/authgear-server/pkg/auth/model"
 )
 
 type HookProvider interface {

@@ -1,9 +1,9 @@
 package sms
 
 import (
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 	"github.com/sfreiberg/gotwilio"
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 var ErrMissingTwilioConfiguration = errors.New("twilio: configuration is missing")

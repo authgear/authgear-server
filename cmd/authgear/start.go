@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/skygeario/skygear-server/cmd/authgear/server"
+	"github.com/authgear/authgear-server/cmd/authgear/server"
 )
 
 var cmdStart = &cobra.Command{

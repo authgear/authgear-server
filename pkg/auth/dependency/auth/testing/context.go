@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 type Builder struct {

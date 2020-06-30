@@ -3,8 +3,8 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/phone"
-	"github.com/skygeario/skygear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/core/phone"
+	"github.com/authgear/authgear-server/pkg/validation"
 )
 
 type ForgotPassword interface {

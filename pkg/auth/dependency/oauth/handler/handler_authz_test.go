@@ -10,12 +10,12 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	authtesting "github.com/skygeario/skygear-server/pkg/auth/dependency/auth/testing"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/handler"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/skygeario/skygear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	authtesting "github.com/authgear/authgear-server/pkg/auth/dependency/auth/testing"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/clock"
 )
 
 func TestAuthorizationHandler(t *testing.T) {

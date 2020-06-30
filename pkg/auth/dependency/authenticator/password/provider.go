@@ -3,12 +3,12 @@ package password
 import (
 	"sort"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
-	pwd "github.com/skygeario/skygear-server/pkg/core/password"
-	"github.com/skygeario/skygear-server/pkg/core/uuid"
-	"github.com/skygeario/skygear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/errors"
+	pwd "github.com/authgear/authgear-server/pkg/core/password"
+	"github.com/authgear/authgear-server/pkg/core/uuid"
+	"github.com/authgear/authgear-server/pkg/log"
 )
 
 type Logger struct{ *log.Logger }

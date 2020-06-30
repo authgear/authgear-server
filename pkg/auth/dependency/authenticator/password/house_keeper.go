@@ -15,8 +15,8 @@
 package password
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/log"
 )
 
 type HousekeeperLogger struct {

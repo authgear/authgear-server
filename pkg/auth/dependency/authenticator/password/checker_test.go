@@ -18,12 +18,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/config"
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	. "github.com/authgear/authgear-server/pkg/core/skytest"
 )
 
 func TestPasswordCheckingFuncs(t *testing.T) {

@@ -7,11 +7,11 @@ import (
 
 	redigo "github.com/gomodule/redigo/redis"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/redis"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/redis"
 )
 
 func interactionKey(appID config.AppID, token string) string {

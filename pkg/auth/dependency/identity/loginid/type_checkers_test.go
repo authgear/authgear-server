@@ -5,8 +5,8 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/validation"
 )
 
 func TestLoginIDTypeCheckers(t *testing.T) {

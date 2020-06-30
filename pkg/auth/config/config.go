@@ -7,7 +7,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/skygeario/skygear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/validation"
 )
 
 type Config struct {

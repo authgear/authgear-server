@@ -1,8 +1,8 @@
 package queue
 
 import (
-	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/task"
 )
 
 type CaptureTaskContext func() *task.Context

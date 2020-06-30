@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 )
 
 var _ = Schema.Add("IdentityConfig", `

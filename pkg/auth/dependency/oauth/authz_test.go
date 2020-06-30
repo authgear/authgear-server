@@ -3,7 +3,7 @@ package oauth_test
 import (
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
