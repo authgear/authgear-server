@@ -15,9 +15,6 @@ func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
 		"iat",
 		"exp",
 		"sub",
-		"skygear_user",
-		"skygear_identity",
-		"skygear_session_id",
 	}
 	meta["jwks_uri"] = p.Endpoints.JWKSEndpointURL().String()
 	meta["userinfo_endpoint"] = p.Endpoints.UserInfoEndpointURL().String()

@@ -14,7 +14,7 @@ import (
 const (
 	// WebAppExtraStatePromotion is a extra state indicating the interaction
 	// is for anonymous user promotion. It contains the anonymous user ID
-	WebAppExtraStateAnonymousUserPromotion string = "https://auth.skygear.io/claims/web_app/anonymous_user_promotion"
+	WebAppExtraStateAnonymousUserPromotion string = "https://authgear.com/claims/web_app/anonymous_user_promotion"
 )
 
 func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID string) (*WebAppResult, error) {

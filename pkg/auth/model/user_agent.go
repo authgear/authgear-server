@@ -8,7 +8,7 @@ import (
 )
 
 var uaParser = uaparser.NewFromSaved()
-var skygearUARegex = regexp.MustCompile(`^(.*)/(\d+)(?:\.(\d+)|)(?:\.(\d+)|)(?:\.(\d+)|) \(Skygear;`)
+var authgearUARegex = regexp.MustCompile(`^(.*)/(\d+)(?:\.(\d+)|)(?:\.(\d+)|)(?:\.(\d+)|) \(Authgear;`)
 
 type UserAgent struct {
 	Raw         string `json:"raw"`
@@ -41,7 +41,7 @@ func ParseUserAgent(ua string) (mUA UserAgent) {
 	mUA.Raw = ua
 
 	client := uaParser.Parse(ua)
-	if matches := skygearUARegex.FindStringSubmatch(ua); len(matches) > 0 {
+	if matches := authgearUARegex.FindStringSubmatch(ua); len(matches) > 0 {
 		client.UserAgent.Family = matches[1]
 		client.UserAgent.Major = matches[2]
 		client.UserAgent.Minor = matches[3]

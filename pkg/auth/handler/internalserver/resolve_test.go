@@ -42,11 +42,11 @@ func TestResolveHandler(t *testing.T) {
 				resp := rw.Result()
 				So(resp.StatusCode, ShouldEqual, 200)
 				So(resp.Header, ShouldResemble, http.Header{
-					"X-Skygear-Session-Valid":  []string{"true"},
-					"X-Skygear-User-Id":        []string{"user-id"},
-					"X-Skygear-User-Anonymous": []string{"false"},
-					"X-Skygear-Session-Acr":    []string{""},
-					"X-Skygear-Session-Amr":    []string{""},
+					"X-Authgear-Session-Valid":  []string{"true"},
+					"X-Authgear-User-Id":        []string{"user-id"},
+					"X-Authgear-User-Anonymous": []string{"false"},
+					"X-Authgear-Session-Acr":    []string{""},
+					"X-Authgear-Session-Amr":    []string{""},
 				})
 			})
 
@@ -60,11 +60,11 @@ func TestResolveHandler(t *testing.T) {
 				resp := rw.Result()
 				So(resp.StatusCode, ShouldEqual, 200)
 				So(resp.Header, ShouldResemble, http.Header{
-					"X-Skygear-Session-Valid":  []string{"true"},
-					"X-Skygear-User-Id":        []string{"user-id"},
-					"X-Skygear-User-Anonymous": []string{"true"},
-					"X-Skygear-Session-Acr":    []string{""},
-					"X-Skygear-Session-Amr":    []string{""},
+					"X-Authgear-Session-Valid":  []string{"true"},
+					"X-Authgear-User-Id":        []string{"user-id"},
+					"X-Authgear-User-Anonymous": []string{"true"},
+					"X-Authgear-Session-Acr":    []string{""},
+					"X-Authgear-Session-Amr":    []string{""},
 				})
 			})
 		})
@@ -78,7 +78,7 @@ func TestResolveHandler(t *testing.T) {
 			resp := rw.Result()
 			So(resp.StatusCode, ShouldEqual, 200)
 			So(resp.Header, ShouldResemble, http.Header{
-				"X-Skygear-Session-Valid": []string{"false"},
+				"X-Authgear-Session-Valid": []string{"false"},
 			})
 		})
 

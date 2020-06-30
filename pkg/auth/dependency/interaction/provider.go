@@ -25,9 +25,9 @@ type Store interface {
 
 type IdentityProvider interface {
 	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
-	// GetByClaims return user ID and information about the identity the matches the provided skygear claims.
+	// GetByClaims return user ID and information about the identity the matches the provided authgear claims.
 	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error)
-	// GetByUserAndClaims return user's identity that matches the provide skygear claims.
+	// GetByUserAndClaims return user's identity that matches the provided authgear claims.
 	//
 	// Given that user id is provided, the matching rule of this function is less strict than GetByClaims.
 	// For example, login id identity needs match both key and value and oauth identity only needs to match provider id.

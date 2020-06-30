@@ -279,7 +279,7 @@ func TestProviderFlow(t *testing.T) {
 				ID:   "authenticator_id_1",
 				Type: authn.AuthenticatorTypeTOTP,
 				Props: map[string]interface{}{
-					"https://auth.skygear.io/claims/totp/display_name": "My Authenticator",
+					"https://authgear.com/claims/totp/display_name": "My Authenticator",
 				},
 			}
 

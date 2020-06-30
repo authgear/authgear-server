@@ -83,7 +83,7 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			cases := []Case{
 				{"admin", ""},
 				{"settings", ""},
-				{"skygear", ""},
+				{"authgear", ""},
 				{"花生thecat", ""},
 				{"faseng", ""},
 
@@ -115,9 +115,8 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			cases := []Case{
 				{"admin", "invalid login ID:\n<root>: username is not allowed"},
 				{"settings", "invalid login ID:\n<root>: username is not allowed"},
-				{"skygear", "invalid login ID:\n<root>: username is not allowed"},
-				{"skygearcloud", "invalid login ID:\n<root>: username is not allowed"},
-				{"myskygearapp", "invalid login ID:\n<root>: username is not allowed"},
+				{"authgear", "invalid login ID:\n<root>: username is not allowed"},
+				{"myauthgearapp", "invalid login ID:\n<root>: username is not allowed"},
 				{"花生thecat", "invalid login ID:\n<root>: format\n  map[format:username]"},
 				{"faseng", ""},
 				{"faseng_chima-the.cat", ""},
@@ -127,7 +126,7 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			n := &UsernameChecker{
 				Config: &config.LoginIDUsernameConfig{
 					BlockReservedUsernames: newTrue(),
-					ExcludedKeywords:       []string{"skygear"},
+					ExcludedKeywords:       []string{"authgear"},
 					ASCIIOnly:              newTrue(),
 				},
 				ReservedNameChecker: reversedNameChecker,

@@ -89,12 +89,12 @@ func TestCSPMiddleware(t *testing.T) {
 						"http://[::1]:8080/path?q=1",
 						"http://localhost/path?q=1",
 						"http://localhost:8080/path?q=1",
-						"http://skygear.localhost/path?q=1",
-						"http://skygear.localhost:8080/path?q=1",
+						"http://foo.localhost/path?q=1",
+						"http://foo.localhost:8080/path?q=1",
 
 						"http://example.com/path?q=1",
 						"http://192.168.1.1/path?q=1",
-						"http://skygearlocalhost/path?q=1",
+						"http://foolocalhost/path?q=1",
 					},
 				}},
 			}
@@ -102,7 +102,7 @@ func TestCSPMiddleware(t *testing.T) {
 			r, _ := http.NewRequest("GET", "/", nil)
 			h.ServeHTTP(w, r)
 
-			So(w.Result().Header.Get("Content-Security-Policy"), ShouldEqual, "frame-ancestors http://127.0.0.1 http://127.0.0.1:8080 http://[::1] http://[::1]:8080 http://localhost http://localhost:8080 http://skygear.localhost http://skygear.localhost:8080 'self';")
+			So(w.Result().Header.Get("Content-Security-Policy"), ShouldEqual, "frame-ancestors http://127.0.0.1 http://127.0.0.1:8080 http://[::1] http://[::1]:8080 http://localhost http://localhost:8080 http://foo.localhost http://foo.localhost:8080 'self';")
 		})
 	})
 }

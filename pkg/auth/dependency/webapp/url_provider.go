@@ -79,7 +79,7 @@ func (p *URLProvider) ResetPasswordURL(code string) *url.URL {
 }
 
 func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, loginHint string) error {
-	if !strings.HasPrefix(loginHint, "https://auth.skygear.io/login_hint?") {
+	if !strings.HasPrefix(loginHint, "https://auth.authgear.com/login_hint?") {
 		return nil
 	}
 

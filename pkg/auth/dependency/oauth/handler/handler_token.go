@@ -23,10 +23,12 @@ import (
 
 // TODO(oauth): write tests
 
+const AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
+
 // whitelistedGrantTypes is a list of grant types that would be always allowed
 // to all clients.
 var whitelistedGrantTypes = []string{
-	"urn:skygear-auth:params:oauth:grant-type:anonymous-request",
+	AnonymousRequestGrantType,
 }
 
 type IDTokenIssuer interface {
@@ -121,7 +123,7 @@ func (h *TokenHandler) doHandle(
 			return nil, err
 		}
 		return tokenResultOK{Response: resp}, nil
-	case "urn:skygear-auth:params:oauth:grant-type:anonymous-request":
+	case AnonymousRequestGrantType:
 		return h.handleAnonymousRequest(client, r)
 	default:
 		panic("oauth: unexpected grant type")
@@ -141,7 +143,7 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest) error {
 		if r.RefreshToken() == "" {
 			return protocol.NewError("invalid_request", "refresh token is required")
 		}
-	case "urn:skygear-auth:params:oauth:grant-type:anonymous-request":
+	case AnonymousRequestGrantType:
 		if r.JWT() == "" {
 			return protocol.NewError("invalid_request", "jwt is required")
 		}

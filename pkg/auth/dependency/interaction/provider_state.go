@@ -234,7 +234,7 @@ func (p *Provider) getAvailableSecondaryAuthenticators() []authenticator.Spec {
 }
 
 func (p *Provider) listPrimaryAuthenticators(is identity.Spec) (specs []authenticator.Spec, err error) {
-	// Now we use skygear claims to find exactly one identity.
+	// Now we use authgear claims to find exactly one identity.
 	// In the future we may use OIDC claims to list all identities and
 	// resolve which user the actor want to authenticate as.
 	userID, ii, err := p.Identity.GetByClaims(is.Type, is.Claims)

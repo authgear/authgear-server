@@ -28,11 +28,11 @@ func NewAuthnInfo(attrs *Attrs, user *UserInfo, isAnonymous bool) *Info {
 }
 
 const (
-	headerSessionValid  = "X-Skygear-Session-Valid"
-	headerUserID        = "X-Skygear-User-Id"
-	headerUserAnonymous = "X-Skygear-User-Anonymous"
-	headerSessionAcr    = "X-Skygear-Session-Acr"
-	headerSessionAmr    = "X-Skygear-Session-Amr"
+	headerSessionValid  = "X-Authgear-Session-Valid"
+	headerUserID        = "X-Authgear-User-Id"
+	headerUserAnonymous = "X-Authgear-User-Anonymous"
+	headerSessionAcr    = "X-Authgear-Session-Acr"
+	headerSessionAmr    = "X-Authgear-Session-Amr"
 )
 
 func (i *Info) PopulateHeaders(rw http.ResponseWriter) {

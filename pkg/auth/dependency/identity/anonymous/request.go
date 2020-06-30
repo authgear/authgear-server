@@ -5,7 +5,7 @@ import (
 )
 
 // nolint:gosec
-const RequestTokenType = "vnd.skygear.auth.anonymous-request"
+const RequestTokenType = "vnd.authgear.anonymous-request"
 
 type RequestAction string
 
