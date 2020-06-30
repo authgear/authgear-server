@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
 COPY ./reserved_name.txt .
+COPY ./migrations .
 COPY --from=stage1 /src/authgear .
 COPY --from=stage2 /src/dist/ ./dist/
 USER nobody

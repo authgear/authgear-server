@@ -1,6 +1,6 @@
 //+build wireinject
 
-package main
+package server
 
 import (
 	getsentry "github.com/getsentry/sentry-go"
