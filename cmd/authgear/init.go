@@ -1,12 +1,9 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
-	"os"
 
 	"github.com/spf13/cobra"
-	"sigs.k8s.io/yaml"
 
 	"github.com/skygeario/skygear-server/cmd/authgear/config"
 )
@@ -25,7 +22,10 @@ var cmdInitConfig = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		opts := config.ReadOptionsFromConsole()
 		cfg := config.NewAppConfigFromOptions(opts)
-		marshalYAML(cfg, InitConfigOutputPath)
+		err := config.MarshalConfigYAML(cfg, InitConfigOutputPath)
+		if err != nil {
+			log.Fatalf("cannot write file: %s", err.Error())
+		}
 	},
 }
 
@@ -35,24 +35,11 @@ var cmdInitSecrets = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		opts := config.ReadSecretOptionsFromConsole()
 		cfg := config.NewSecretConfigFromOptions(opts)
-		marshalYAML(cfg, InitSecretsOutputPath)
+		err := config.MarshalConfigYAML(cfg, InitSecretsOutputPath)
+		if err != nil {
+			log.Fatalf("cannot write file: %s", err.Error())
+		}
 	},
-}
-
-func marshalYAML(cfg interface{}, output string) {
-	yaml, err := yaml.Marshal(cfg)
-	if err != nil {
-		panic(err)
-	}
-
-	if output == "-" {
-		_, err = os.Stdout.Write(yaml)
-	} else {
-		err = ioutil.WriteFile(output, yaml, os.ModePerm)
-	}
-	if err != nil {
-		log.Fatalf("cannot write config: %s", err.Error())
-	}
 }
 
 func init() {
