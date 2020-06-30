@@ -19,12 +19,13 @@ services:
 
   authgear:
     build: .
-    environment:
-      DEV_MODE: "true"
-      LOG_LEVEL: "debug"
+    env_file:
+      - ".env"
     volumes:
-      - ./authgear.yaml:/authgear.yaml
-      - ./authgear.secrets.yaml:/authgear.secrets.yaml
+      - ./authgear.yaml:/app/authgear.yaml
+      - ./authgear.secrets.yaml:/app/authgear.secrets.yaml
+    ports:
+      - "3000:3000"
 
 volumes:
   redis_data:
