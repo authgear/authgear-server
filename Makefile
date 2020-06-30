@@ -15,7 +15,6 @@ vendor:
 	go mod download
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
-	go install github.com/skygeario/openapi3-gen/cmd/openapi3-gen
 	(cd scripts/npm && npm ci)
 
 .PHONY: generate
