@@ -9,7 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
 	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/clock"
 	"github.com/skygeario/skygear-server/pkg/core/authn"
 )
 
@@ -32,7 +31,6 @@ type UserController struct {
 	SessionCookie session.CookieDef
 	Sessions      SessionProvider
 	Hooks         HookProvider
-	Clock         clock.Clock
 }
 
 func (c *UserController) makeResponse(attrs *authn.Attrs) (*model.AuthResponse, error) {
@@ -62,6 +60,11 @@ func (c *UserController) CreateSession(
 		return nil, err
 	}
 
+	err = c.Users.UpdateLoginTime(&result.Response.User, session.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
 	result.Cookies = []*http.Cookie{c.SessionCookie.New(token)}
 
 	result.Response.SessionID = session.SessionID()
@@ -83,12 +86,6 @@ func (c *UserController) CreateSession(
 		},
 		&result.Response.User,
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	now := c.Clock.NowUTC()
-	err = c.Users.UpdateLoginTime(&result.Response.User, now)
 	if err != nil {
 		return nil, err
 	}

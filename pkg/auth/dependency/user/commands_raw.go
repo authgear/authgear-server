@@ -55,11 +55,12 @@ func (c *RawCommands) UpdateMetadata(user *model.User, metadata map[string]inter
 	return nil
 }
 
-func (c *RawCommands) UpdateLoginTime(user *model.User, lastLoginAt time.Time) error {
-	if err := c.Store.UpdateLoginTime(user.ID, lastLoginAt); err != nil {
+func (c *RawCommands) UpdateLoginTime(user *model.User, loginAt time.Time) error {
+	lastLoginAt, err := c.Store.UpdateLoginTime(user.ID, loginAt)
+	if err != nil {
 		return err
 	}
 
-	user.LastLoginAt = &lastLoginAt
+	user.LastLoginAt = lastLoginAt
 	return nil
 }

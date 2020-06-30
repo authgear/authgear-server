@@ -1580,7 +1580,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -1935,7 +1934,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -2290,7 +2288,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -2645,7 +2642,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -3000,7 +2996,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -3355,7 +3350,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -3710,7 +3704,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -4065,7 +4058,6 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -5767,7 +5759,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
