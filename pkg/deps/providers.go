@@ -65,11 +65,15 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 	dbContext := db.NewContext(
 		ctx,
 		p.DatabasePool,
+		cfg.AppConfig.Database,
 		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
+		loggerFactory,
 	)
 	redisContext := redis.NewContext(
 		p.RedisPool,
+		cfg.AppConfig.Redis,
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
+		loggerFactory,
 	)
 	templateEngine := authtemplate.NewEngineWithConfig(cfg)
 

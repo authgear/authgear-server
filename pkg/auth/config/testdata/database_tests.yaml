@@ -1,0 +1,38 @@
+part: DatabaseConfig
+name: empty-is-invalid
+error: null
+value: {}
+
+---
+part: DatabaseConfig
+name: sensible-values-are-valid
+error: null
+value:
+  max_open_connection: 5
+  max_idle_connection: 5
+  max_connection_lifetime_seconds: 1200
+
+---
+part: DatabaseConfig
+name: zero-values-are-valid
+error: null
+value:
+  max_open_connection: 0
+  max_idle_connection: 0
+  max_connection_lifetime_seconds: 0
+
+---
+part: DatabaseConfig
+name: negative-values-are-invalid
+error: |-
+  invalid value:
+  /max_connection_lifetime_seconds: minimum
+    map[actual:-1 minimum:0]
+  /max_idle_connection: minimum
+    map[actual:-1 minimum:0]
+  /max_open_connection: minimum
+    map[actual:-1 minimum:0]
+value:
+  max_open_connection: -1
+  max_idle_connection: -1
+  max_connection_lifetime_seconds: -1

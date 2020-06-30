@@ -17,15 +17,17 @@ type StateStoreImpl struct {
 var _ StateStore = &StateStoreImpl{}
 
 func (s *StateStoreImpl) Get(id string) (state *State, err error) {
-	conn := s.Redis.Conn()
-	data, err := goredis.Bytes(conn.Do("GET", id))
-	if errors.Is(err, goredis.ErrNil) {
-		err = ErrStateNotFound
-		return
-	} else if err != nil {
-		return
-	}
-	err = json.Unmarshal(data, &state)
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		data, err := goredis.Bytes(conn.Do("GET", id))
+		if errors.Is(err, goredis.ErrNil) {
+			err = ErrStateNotFound
+			return err
+		} else if err != nil {
+			return err
+		}
+		err = json.Unmarshal(data, &state)
+		return err
+	})
 	return
 }
 
@@ -35,8 +37,11 @@ func (s *StateStoreImpl) Set(state *State) (err error) {
 		return
 	}
 
-	conn := s.Redis.Conn()
-	_, err = goredis.String(conn.Do("SET", state.ID, bytes, "PX", toMilliseconds(5*time.Minute)))
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		_, err = goredis.String(conn.Do("SET", state.ID, bytes, "PX", toMilliseconds(5*time.Minute)))
+		return err
+	})
+
 	return
 }
 

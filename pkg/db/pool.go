@@ -16,11 +16,20 @@ type Pool struct {
 	cacheMutex sync.RWMutex
 }
 
+type OpenOptions struct {
+	URL             string
+	MaxOpenConns    int
+	MaxIdleConns    int
+	ConnMaxLifetime time.Duration
+}
+
 func NewPool() *Pool {
 	return &Pool{cache: map[string]*sqlx.DB{}}
 }
 
-func (p *Pool) Open(source string) (db *sqlx.DB, err error) {
+func (p *Pool) Open(opts OpenOptions) (db *sqlx.DB, err error) {
+	source := opts.URL
+
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
@@ -35,7 +44,7 @@ func (p *Pool) Open(source string) (db *sqlx.DB, err error) {
 		p.cacheMutex.Lock()
 		db, exists = p.cache[source]
 		if !exists {
-			db, err = openPostgresDB(source)
+			db, err = p.openPostgresDB(opts)
 			if err == nil {
 				p.cache[source] = db
 			}
@@ -60,15 +69,14 @@ func (p *Pool) Close() (err error) {
 	return
 }
 
-func openPostgresDB(url string) (db *sqlx.DB, err error) {
-	db, err = sqlx.Open("postgres", url)
+func (p *Pool) openPostgresDB(opts OpenOptions) (db *sqlx.DB, err error) {
+	db, err = sqlx.Open("postgres", opts.URL)
 	if err != nil {
 		return
 	}
 
-	// TODO(pool): configurable / profile for good value?
-	db.SetMaxOpenConns(30)
-	db.SetMaxIdleConns(5)
-	db.SetConnMaxLifetime(30 * time.Minute)
+	db.SetMaxOpenConns(opts.MaxOpenConns)
+	db.SetMaxIdleConns(opts.MaxIdleConns)
+	db.SetConnMaxLifetime(opts.ConnMaxLifetime)
 	return
 }

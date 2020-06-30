@@ -21,13 +21,15 @@ func (s *Store) Create(code *Code) (err error) {
 		return
 	}
 
-	conn := s.Redis.Conn()
 	key := codeKey(code.CodeHash)
-	_, err = redigo.String(conn.Do("SET", key, bytes, "PX", codeExpire(code), "NX"))
-	if errors.Is(err, redigo.ErrNil) {
-		err = errors.Newf("duplicated forgot password code: %w", err)
-		return
-	}
+
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		_, err := redigo.String(conn.Do("SET", key, bytes, "PX", codeExpire(code), "NX"))
+		if errors.Is(err, redigo.ErrNil) {
+			err = errors.Newf("duplicated forgot password code: %w", err)
+		}
+		return err
+	})
 
 	return
 }
@@ -38,30 +40,34 @@ func (s *Store) Update(code *Code) (err error) {
 		return
 	}
 
-	conn := s.Redis.Conn()
 	key := codeKey(code.CodeHash)
-	_, err = redigo.String(conn.Do("SET", key, bytes, "PX", codeExpire(code), "XX"))
-	if errors.Is(err, redigo.ErrNil) {
-		err = errors.Newf("non-existent forgot password code: %w", err)
-		return
-	}
+
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		_, err := redigo.String(conn.Do("SET", key, bytes, "PX", codeExpire(code), "XX"))
+		if errors.Is(err, redigo.ErrNil) {
+			err = errors.Newf("non-existent forgot password code: %w", err)
+		}
+		return err
+	})
 
 	return
 }
 
 func (s *Store) Get(codeHash string) (code *Code, err error) {
-	conn := s.Redis.Conn()
 	key := codeKey(codeHash)
 
-	data, err := redigo.Bytes(conn.Do("GET", key))
-	if errors.Is(err, redigo.ErrNil) {
-		err = ErrInvalidCode
-		return
-	} else if err != nil {
-		return
-	}
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		data, err := redigo.Bytes(conn.Do("GET", key))
+		if errors.Is(err, redigo.ErrNil) {
+			err = ErrInvalidCode
+			return err
+		} else if err != nil {
+			return err
+		}
 
-	err = json.Unmarshal(data, &code)
+		return json.Unmarshal(data, &code)
+	})
+
 	return
 }
 

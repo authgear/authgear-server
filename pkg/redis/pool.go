@@ -25,13 +25,13 @@ func NewPool() *Pool {
 	return p
 }
 
-func (p *Pool) Open(c *config.RedisCredentials) *redis.Pool {
+func (p *Pool) Open(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Pool {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
 		panic("redis: pool is closed")
 	}
-	connKey := c.ConnKey()
+	connKey := credentials.ConnKey()
 
 	p.cacheMutex.RLock()
 	pool, exists := p.cache[connKey]
@@ -43,7 +43,7 @@ func (p *Pool) Open(c *config.RedisCredentials) *redis.Pool {
 	p.cacheMutex.Lock()
 	pool, exists = p.cache[connKey]
 	if !exists {
-		pool = openRedis(c)
+		pool = p.openRedis(cfg, credentials)
 		p.cache[connKey] = pool
 	}
 	p.cacheMutex.Unlock()
@@ -65,29 +65,34 @@ func (p *Pool) Close() (err error) {
 	return
 }
 
-func openRedis(c *config.RedisCredentials) *redis.Pool {
-	if c.Sentinel.Enabled {
-		return newSentinelPool(c)
+func (p *Pool) openRedis(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Pool {
+	if credentials.Sentinel.Enabled {
+		return p.newSentinelPool(cfg, credentials)
 	}
-	hostPort := fmt.Sprintf("%s:%d", c.Host, c.Port)
-	return newPool(
-		func() (conn redis.Conn, err error) {
-			conn, err = redis.Dial(
-				"tcp",
-				hostPort,
-				redis.DialDatabase(c.DB),
-				redis.DialPassword(c.Password),
-			)
-			return
-		},
-		func(conn redis.Conn, t time.Time) (err error) {
-			_, err = conn.Do("PING")
-			return
-		},
+
+	hostPort := fmt.Sprintf("%s:%d", credentials.Host, credentials.Port)
+	dialFunc := func() (conn redis.Conn, err error) {
+		conn, err = redis.Dial(
+			"tcp",
+			hostPort,
+			redis.DialDatabase(credentials.DB),
+			redis.DialPassword(credentials.Password),
+		)
+		return
+	}
+	testOnBorrowFunc := func(conn redis.Conn, t time.Time) (err error) {
+		_, err = conn.Do("PING")
+		return
+	}
+
+	return p.newPool(
+		cfg,
+		dialFunc,
+		testOnBorrowFunc,
 	)
 }
 
-func newSentinelPool(c *config.RedisCredentials) *redis.Pool {
+func (p *Pool) newSentinelPool(cfg *config.RedisConfig, c *config.RedisCredentials) *redis.Pool {
 	s := &sentinel.Sentinel{
 		Addrs:      c.Sentinel.Addrs,
 		MasterName: c.Sentinel.MasterName,
@@ -107,7 +112,9 @@ func newSentinelPool(c *config.RedisCredentials) *redis.Pool {
 			return c, nil
 		},
 	}
-	return newPool(
+
+	return p.newPool(
+		cfg,
 		func() (redis.Conn, error) {
 			masterAddr, err := s.MasterAddr()
 			if err != nil {
@@ -133,15 +140,18 @@ func newSentinelPool(c *config.RedisCredentials) *redis.Pool {
 	)
 }
 
-func newPool(
+func (p *Pool) newPool(
+	cfg *config.RedisConfig,
 	dialFunc func() (conn redis.Conn, err error),
 	testOnBorrowFunc func(conn redis.Conn, t time.Time) error,
 ) *redis.Pool {
-	// TODO(pool): configurable / profile for good value?
 	return &redis.Pool{
-		MaxIdle:      30,
-		IdleTimeout:  5 * time.Minute,
-		Dial:         dialFunc,
-		TestOnBorrow: testOnBorrowFunc,
+		MaxActive:       *cfg.MaxOpenConnection,
+		MaxIdle:         *cfg.MaxIdleConnection,
+		IdleTimeout:     cfg.IdleConnectionTimeout.Duration(),
+		MaxConnLifetime: cfg.MaxConnectionLifetime.Duration(),
+		Wait:            true,
+		Dial:            dialFunc,
+		TestOnBorrow:    testOnBorrowFunc,
 	}
 }

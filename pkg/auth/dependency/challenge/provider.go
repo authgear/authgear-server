@@ -29,17 +29,23 @@ func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
 		ExpireAt:  now.Add(ttl),
 	}
 
-	conn := p.Redis.Conn()
 	key := challengeKey(p.AppID, c.Token)
 	data, err := json.Marshal(c)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = redigo.String(conn.Do("SET", key, data, "PX", toMilliseconds(ttl), "NX"))
-	if errors.Is(err, redigo.ErrNil) {
-		return nil, errors.New("fail to create new challenge")
-	} else if err != nil {
+	err = p.Redis.WithConn(func(conn redis.Conn) error {
+		_, err = redigo.String(conn.Do("SET", key, data, "PX", toMilliseconds(ttl), "NX"))
+		if errors.Is(err, redigo.ErrNil) {
+			return errors.New("fail to create new challenge")
+		} else if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
 
@@ -47,22 +53,30 @@ func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
 }
 
 func (p *Provider) Consume(token string) (*Purpose, error) {
-	conn := p.Redis.Conn()
 	key := challengeKey(p.AppID, token)
-	data, err := redigo.Bytes(conn.Do("GET", key))
-	if errors.Is(err, redigo.ErrNil) {
-		return nil, ErrInvalidChallenge
-	} else if err != nil {
-		return nil, err
-	}
 
 	c := &Challenge{}
-	err = json.Unmarshal(data, c)
-	if err != nil {
-		return nil, err
-	}
 
-	_, err = conn.Do("DEL", key)
+	err := p.Redis.WithConn(func(conn redis.Conn) error {
+		data, err := redigo.Bytes(conn.Do("GET", key))
+		if errors.Is(err, redigo.ErrNil) {
+			return ErrInvalidChallenge
+		} else if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(data, c)
+		if err != nil {
+			return err
+		}
+
+		_, err = conn.Do("DEL", key)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}

@@ -78,41 +78,58 @@ func (s *GrantStore) del(conn redigo.Conn, key string) error {
 
 func (s *GrantStore) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
 	g := &oauth.CodeGrant{}
-	err := s.load(s.Redis.Conn(), codeGrantKey(string(s.AppID), codeHash), g)
+
+	err := s.Redis.WithConn(func(conn redis.Conn) error {
+		return s.load(conn, codeGrantKey(string(s.AppID), codeHash), g)
+	})
 	if err != nil {
 		return nil, err
 	}
+
 	return g, nil
 }
 
 func (s *GrantStore) CreateCodeGrant(grant *oauth.CodeGrant) error {
-	return s.save(s.Redis.Conn(), codeGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
+	return s.Redis.WithConn(func(conn redis.Conn) error {
+		return s.save(conn, codeGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
+	})
 }
 
 func (s *GrantStore) DeleteCodeGrant(grant *oauth.CodeGrant) error {
-	return s.del(s.Redis.Conn(), codeGrantKey(grant.AppID, grant.CodeHash))
+	return s.Redis.WithConn(func(conn redis.Conn) error {
+		return s.del(conn, codeGrantKey(grant.AppID, grant.CodeHash))
+	})
 }
 
 func (s *GrantStore) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error) {
 	g := &oauth.AccessGrant{}
-	err := s.load(s.Redis.Conn(), accessGrantKey(string(s.AppID), tokenHash), g)
+	err := s.Redis.WithConn(func(conn redis.Conn) error {
+		return s.load(conn, accessGrantKey(string(s.AppID), tokenHash), g)
+	})
 	if err != nil {
 		return nil, err
 	}
+
 	return g, nil
 }
 
 func (s *GrantStore) CreateAccessGrant(grant *oauth.AccessGrant) error {
-	return s.save(s.Redis.Conn(), accessGrantKey(grant.AppID, grant.TokenHash), grant, grant.ExpireAt, true)
+	return s.Redis.WithConn(func(conn redis.Conn) error {
+		return s.save(conn, accessGrantKey(grant.AppID, grant.TokenHash), grant, grant.ExpireAt, true)
+	})
 }
 
 func (s *GrantStore) DeleteAccessGrant(grant *oauth.AccessGrant) error {
-	return s.del(s.Redis.Conn(), accessGrantKey(grant.AppID, grant.TokenHash))
+	return s.Redis.WithConn(func(conn redis.Conn) error {
+		return s.del(conn, accessGrantKey(grant.AppID, grant.TokenHash))
+	})
 }
 
 func (s *GrantStore) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
 	g := &oauth.OfflineGrant{}
-	err := s.load(s.Redis.Conn(), offlineGrantKey(string(s.AppID), id), g)
+	err := s.Redis.WithConn(func(conn redis.Conn) error {
+		return s.load(conn, offlineGrantKey(string(s.AppID), id), g)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -125,14 +142,19 @@ func (s *GrantStore) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
 		return err
 	}
 
-	conn := s.Redis.Conn()
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		_, err = conn.Do("HSET", offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry)
+		if err != nil {
+			return fmt.Errorf("failed to update session list: %w", err)
+		}
 
-	_, err = conn.Do("HSET", offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry)
-	if err != nil {
-		return fmt.Errorf("failed to update session list: %w", err)
-	}
+		err = s.save(conn, offlineGrantKey(grant.AppID, grant.ID), grant, grant.ExpireAt, true)
+		if err != nil {
+			return err
+		}
 
-	err = s.save(conn, offlineGrantKey(grant.AppID, grant.ID), grant, grant.ExpireAt, true)
+		return nil
+	})
 	if err != nil {
 		return err
 	}
@@ -146,14 +168,19 @@ func (s *GrantStore) UpdateOfflineGrant(grant *oauth.OfflineGrant) error {
 		return err
 	}
 
-	conn := s.Redis.Conn()
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		_, err = conn.Do("HSET", offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry)
+		if err != nil {
+			return fmt.Errorf("failed to update session list: %w", err)
+		}
 
-	_, err = conn.Do("HSET", offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry)
-	if err != nil {
-		return fmt.Errorf("failed to update session list: %w", err)
-	}
+		err = s.save(conn, offlineGrantKey(grant.AppID, grant.ID), grant, grant.ExpireAt, false)
+		if err != nil {
+			return err
+		}
 
-	err = s.save(conn, offlineGrantKey(grant.AppID, grant.ID), grant, grant.ExpireAt, false)
+		return nil
+	})
 	if err != nil {
 		return err
 	}
@@ -162,44 +189,55 @@ func (s *GrantStore) UpdateOfflineGrant(grant *oauth.OfflineGrant) error {
 }
 
 func (s *GrantStore) DeleteOfflineGrant(grant *oauth.OfflineGrant) error {
-	conn := s.Redis.Conn()
+	err := s.Redis.WithConn(func(conn redis.Conn) error {
+		err := s.del(conn, offlineGrantKey(grant.AppID, grant.ID))
+		if err != nil {
+			return err
+		}
+		_, err = conn.Do("HDEL", offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID)
+		if err != nil {
+			// Ignore err
+			s.Logger.WithError(err).Error("failed to update session list")
+		}
 
-	err := s.del(conn, offlineGrantKey(grant.AppID, grant.ID))
+		return nil
+	})
 	if err != nil {
 		return err
-	}
-
-	_, err = conn.Do("HDEL", offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID)
-	if err != nil {
-		s.Logger.WithError(err).Error("failed to update session list")
 	}
 
 	return nil
 }
 
 func (s *GrantStore) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) {
-	conn := s.Redis.Conn()
 	listKey := offlineGrantListKey(string(s.AppID), userID)
 
-	sessionList, err := redigo.StringMap(conn.Do("HGETALL", listKey))
+	var grants []*oauth.OfflineGrant
+	err := s.Redis.WithConn(func(conn redis.Conn) error {
+		sessionList, err := redigo.StringMap(conn.Do("HGETALL", listKey))
+		if err != nil {
+			return err
+		}
+
+		for id := range sessionList {
+			grant := &oauth.OfflineGrant{}
+			err = s.load(conn, offlineGrantKey(string(s.AppID), id), grant)
+			if errors.Is(err, oauth.ErrGrantNotFound) {
+				_, err = conn.Do("HDEL", listKey, id)
+				if err != nil {
+					s.Logger.WithError(err).Error("failed to update session list")
+				}
+			} else if err != nil {
+				return err
+			} else {
+				grants = append(grants, grant)
+			}
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
-	}
-
-	var grants []*oauth.OfflineGrant
-	for id := range sessionList {
-		grant, err := s.GetOfflineGrant(id)
-
-		if errors.Is(err, oauth.ErrGrantNotFound) {
-			_, err = conn.Do("HDEL", listKey, id)
-			if err != nil {
-				s.Logger.WithError(err).Error("failed to update session list")
-			}
-		} else if err != nil {
-			return nil, err
-		} else {
-			grants = append(grants, grant)
-		}
 	}
 
 	sort.Slice(grants, func(i, j int) bool {
