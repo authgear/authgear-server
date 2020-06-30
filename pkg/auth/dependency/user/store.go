@@ -15,7 +15,7 @@ type store interface {
 	Create(u *User) error
 	Get(userID string) (*User, error)
 	UpdateMetadata(userID string, metadata map[string]interface{}, updateAt time.Time) error
-	UpdateLoginTime(userID string, loginAt time.Time) (*time.Time, error)
+	UpdateLoginTime(userID string, loginAt time.Time) error
 }
 
 type Store struct {
@@ -116,24 +116,17 @@ func (s *Store) UpdateMetadata(userID string, metadata map[string]interface{}, u
 	return nil
 }
 
-func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) (*time.Time, error) {
+func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 	builder := s.SQLBuilder.Tenant().
 		Update(s.SQLBuilder.FullTableName("user")).
 		Set("last_login_at", squirrel.Expr("login_at")).
 		Set("login_at", loginAt).
-		Where("id = ?", userID).
-		Suffix("RETURNING last_login_at")
+		Where("id = ?", userID)
 
-	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	_, err := s.SQLExecutor.ExecWith(builder)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var lastLoginAt *time.Time
-	err = scanner.Scan(&lastLoginAt)
-	if err != nil {
-		return nil, err
-	}
-
-	return lastLoginAt, nil
+	return nil
 }
