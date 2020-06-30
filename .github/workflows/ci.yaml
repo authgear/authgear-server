@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - '*'
+    - '!gh-pages'
+  pull_request:
+    branches:
+    - '*'
+    - '!gh-pages'
+
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: "1.14.4"
+    - uses: actions/setup-node@v1
+      with:
+        node-version: "12.18.0"
+    - run: make vendor
+    - run: make lint
+      if: ${{ !cancelled() }}
+    - run: make test
+      if: ${{ !cancelled() }}
+    - run: make check-tidy
+      if: ${{ !cancelled() }}
+  image:
+    runs-on: ubuntu-18.04
+    needs: test
+    if: ${{ github.event_name == 'push' }}
+    steps:
+    - uses: actions/checkout@v2
+    - run: make build-image
+    - run: make tag-image
+    - name: docker login
+      env:
+        QUAY_IO_USERNAME: ${{ secrets.QUAY_IO_USERNAME }}
+        QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+      run: docker login -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD" quay.io
+    - run: make push-image

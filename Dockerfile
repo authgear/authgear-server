@@ -30,10 +30,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN update-ca-certificates
 COPY ./reserved_name.txt .
 COPY ./migrations .
-COPY --from=stage1 /src/authgear .
+COPY --from=stage1 /src/authgear /usr/local/bin/
 COPY --from=stage2 /src/dist/ ./dist/
 USER nobody
 EXPOSE 3000
 ENV STATIC_ASSET_DIR ./dist
 ENV STATIC_ASSET_URL_PREFIX /static/$GIT_HASH
-CMD ["/app/authgear"]
+CMD ["authgear", "start"]

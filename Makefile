@@ -2,6 +2,8 @@
 GIT_NAME ?= $(shell git describe --exact-match 2>/dev/null)
 GIT_HASH ?= git-$(shell git rev-parse --short=12 HEAD)
 LDFLAGS ?= "-X github.com/skygeario/skygear-server/pkg/version.Version=${GIT_HASH}"
+DOCKER_TEMP_TAG ?= authgear-server
+DOCKER_IMAGE ?= quay.io/theauthgear/authgear-server
 
 .PHONY: start
 start:
@@ -45,7 +47,19 @@ check-tidy:
 
 .PHONY: build-image
 build-image:
-	docker build --tag authgear --build-arg GIT_HASH=$(GIT_HASH) .
+	docker build --tag $(DOCKER_TEMP_TAG) --build-arg GIT_HASH=$(GIT_HASH) .
+
+.PHONY: tag-image
+tag-image:
+	docker tag $(DOCKER_TEMP_TAG) $(DOCKER_IMAGE):latest
+	docker tag $(DOCKER_TEMP_TAG) $(DOCKER_IMAGE):$(GIT_HASH)
+	if [ ! -z $(GIT_NAME) ]; then docker tag $(DOCKER_TEMP_TAG) $(DOCKER_IMAGE):$(GIT_NAME); fi
+
+.PHONY: push-image
+push-image:
+	docker push $(DOCKER_IMAGE):latest
+	docker push $(DOCKER_IMAGE):$(GIT_HASH)
+	if [ ! -z $(GIT_NAME) ]; then docker push $(DOCKER_IMAGE):$(GIT_NAME); fi
 
 # Compile mjml and print to stdout.
 # You should capture the output and update the default template in Go code.
