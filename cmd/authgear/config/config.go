@@ -39,7 +39,7 @@ func NewSecretConfigFromOptions(opts *SecretOptions) *config.SecretConfig {
 
 	items = append(items, config.SecretItem{
 		Key:  config.JWTKeyMaterialsKey,
-		Data: &config.JWTKeyMaterials{Set: generateRSAKey()},
+		Data: &config.JWTKeyMaterials{Set: generateOctetKey()},
 	})
 
 	items = append(items, config.SecretItem{
@@ -49,7 +49,12 @@ func NewSecretConfigFromOptions(opts *SecretOptions) *config.SecretConfig {
 
 	items = append(items, config.SecretItem{
 		Key:  config.CSRFKeyMaterialsKey,
-		Data: &config.CSRFKeyMaterials{Set: generateSymmetricKey()},
+		Data: &config.CSRFKeyMaterials{Set: generateOctetKey()},
+	})
+
+	items = append(items, config.SecretItem{
+		Key:  config.WebhookKeyMaterialsKey,
+		Data: &config.WebhookKeyMaterials{Set: generateOctetKey()},
 	})
 
 	marshalSecretData(items)
@@ -68,7 +73,7 @@ func marshalSecretData(items []config.SecretItem) {
 	}
 }
 
-func generateSymmetricKey() jwk.Set {
+func generateOctetKey() jwk.Set {
 	key := make([]byte, 32)
 
 	_, err := rand.Read(key)
@@ -82,8 +87,6 @@ func generateSymmetricKey() jwk.Set {
 	}
 
 	jwkKey.Set(jwk.KeyIDKey, uuid.New())
-	jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
-	jwkKey.Set(jwk.AlgorithmKey, "HS256")
 
 	keySet := jwk.Set{
 		Keys: []jwk.Key{jwkKey},
