@@ -2,58 +2,14 @@ package template
 
 import (
 	"bytes"
-	"encoding/base64"
-	"encoding/json"
 	htmlTemplate "html/template"
 	"io"
-	"net/url"
 	textTemplate "text/template"
 
 	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
 const MaxTemplateSize = 1024 * 1024 * 1
-
-// EncodeContextToURLQueryParamValue encodes context into URL query param value.
-// Specifially, the context is first encoded into JSON and then base64url encoded.
-func EncodeContextToURLQueryParamValue(context map[string]interface{}) (val string, err error) {
-	if context == nil {
-		return
-	}
-	bytes, err := json.Marshal(context)
-	if err != nil {
-		return
-	}
-	val = base64.RawURLEncoding.EncodeToString(bytes)
-	return
-}
-
-// DecodeURLQueryParamValueToContext is the inverse of EncodeContextToURLQueryParamValue.
-func DecodeURLQueryParamValueToContext(val string) (context map[string]interface{}, err error) {
-	if val == "" {
-		return
-	}
-	bytes, err := base64.RawURLEncoding.DecodeString(val)
-	if err != nil {
-		return
-	}
-	err = json.Unmarshal(bytes, &context)
-	if err != nil {
-		return
-	}
-	return
-}
-
-func SetContextToURLQuery(u *url.URL, context map[string]interface{}) error {
-	encoded, err := EncodeContextToURLQueryParamValue(context)
-	if err != nil {
-		return err
-	}
-	query := u.Query()
-	query.Set("x-authgear-redirect-data", encoded)
-	u.RawQuery = query.Encode()
-	return nil
-}
 
 type RenderOptions struct {
 	// The name of the main template
