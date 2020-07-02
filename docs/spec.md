@@ -104,11 +104,11 @@ Table of Contents
          * [Translation file](#translation-file)
             * [Translation Resolution](#translation-resolution)
       * [The resolve endpoint](#the-resolve-endpoint)
-         * [x-skygear-session-valid](#x-skygear-session-valid)
-         * [x-skygear-user-id](#x-skygear-user-id)
-         * [x-skygear-user-anonymous](#x-skygear-user-anonymous)
-         * [x-skygear-session-acr](#x-skygear-session-acr)
-         * [x-skygear-session-amr](#x-skygear-session-amr)
+         * [x-authgear-session-valid](#x-authgear-session-valid)
+         * [x-authgear-user-id](#x-authgear-user-id)
+         * [x-authgear-user-anonymous](#x-authgear-user-anonymous)
+         * [x-authgear-session-acr](#x-authgear-session-acr)
+         * [x-authgear-session-amr](#x-authgear-session-amr)
       * [UI](#ui)
          * [Theming](#theming)
          * [The phone input widget](#the-phone-input-widget)
@@ -237,7 +237,7 @@ The server verifies the validity of the key-pair by verify a JWT. A challenge is
 
 #### Anonymous Identity JWT headers
 
-- `typ`: Must be the string `vnd.skygear.auth.anonymous-request`.
+- `typ`: Must be the string `vnd.authgear.anonymous-request`.
 
 #### Anonymous Identity JWT payload
 
@@ -561,7 +561,7 @@ No difference from the spec, for `prompt=none` case.
 
 #### login_hint
 
-Developer can optionally pre-select the identity to use using `login_hint` parameter. `login_hint` should be a URL of form `https://auth.skygear.io/login_hint?<query params>`.
+Developer can optionally pre-select the identity to use using `login_hint` parameter. `login_hint` should be a URL of form `https://authgear.com/login_hint?<query params>`.
 
 The following are recognized query parameters:
 - `type`: Identity type
@@ -573,11 +573,11 @@ The following are recognized query parameters:
 
 For examples:
 - To login with email `user@example.com`:
-    `https://auth.skygear.io/login_hint?type=login_id&email=user%40example.com`
+    `https://authgear.com/login_hint?type=login_id&email=user%40example.com`
 - To login with Google OAuth provider:
-    `https://auth.skygear.io/login_hint?oauth_provider=google`
+    `https://authgear.com/login_hint?oauth_provider=google`
 - To signup/login as anonymous user:
-    `https://auth.skygear.io/login_hint?type=anonymous&jwt=...`
+    `https://authgear.com/login_hint?type=anonymous&jwt=...`
 
 The UI tries to match an appropriate identity according to the provided parameters. If exactly one identity is matched, the identity is selected. Otherwise `login_hint` is ignored.
 
@@ -597,13 +597,13 @@ Only `S256` is supported. `plain` is not supported.
 
 - `authentication_code`
 - `refresh_token`
-- `urn:skygear-auth:params:oauth:grant-type:anonymous-request`
+- `urn:authgear:params:oauth:grant-type:anonymous-request`
 
 The custom grant type is for authenticating and issuing tokens directly for anonymous user.
 
 #### jwt
 
-Required when the grant type is `urn:skygear-auth:params:oauth:grant-type:anonymous-request`. The value is specified [here](#anonymous-identity-jwt)
+Required when the grant type is `urn:authgear:params:oauth:grant-type:anonymous-request`. The value is specified [here](#anonymous-identity-jwt)
 
 ### Token Response
 
@@ -832,7 +832,7 @@ The templates are first resolved by matching the type and the key. And then sele
 
 ### Component Templates
 
-Some template may depend on other templates which are included during rendering. This enables customizing a particular component of a template. The dependency is expressed by a whitelist that is hard-coded by the Skygear developer. It can be assumed there is no dependency cycle.
+Some template may depend on other templates which are included during rendering. This enables customizing a particular component of a template. The dependency is expressed by a whitelist that is hard-coded by the Authgear developer. It can be assumed there is no dependency cycle.
 
 For example, `auth_ui_login.html` depend on `auth_ui_header.html` and `auth_ui_footer.html` to provide the header and footer. If the developer just wants to customize the header, they do not need to provide customized templates for ALL pages. They just need to provide `auth_ui_header.html`.
 
@@ -905,7 +905,7 @@ The resolve endpoint `/resolve` looks at `Cookie:` and `Authentication:` to auth
 
 The resolve endpoint does not write body. Instead it adds the following headers in the response.
 
-### x-skygear-session-valid
+### x-authgear-session-valid
 
 Tell whether the session of the original request is valid.
 
@@ -915,19 +915,19 @@ If the value is `true`, it indicates the original request has valid session. Mor
 
 If the value is `false`, it indicates the original request has invalid session.
 
-### x-skygear-user-id
+### x-authgear-user-id
 
 The user id.
 
-### x-skygear-user-anonymous
+### x-authgear-user-anonymous
 
 The value `true` means the user is anonymous. Otherwise it is a normal user.
 
-### x-skygear-session-acr
+### x-authgear-session-acr
 
 See [the acr claim](#acr).
 
-### x-skygear-session-amr
+### x-authgear-session-amr
 
 See [the amr claim](#amr). It is comma-separated.
 
@@ -1444,7 +1444,7 @@ Each webhook event request is signed with a secret key shared between Authgear a
 
 The signature is calculated as the hex encoded value of HMAC-SHA256 of the request body.
 
-The signature is included in the header `x-skygear-body-signature:`.
+The signature is included in the header `x-authgear-body-signature:`.
 
 > For advanced end-to-end security scenario, some network admin may wish to
 > use mTLS for authentication. It is not supported at the moment.

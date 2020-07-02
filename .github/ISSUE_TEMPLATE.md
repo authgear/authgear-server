@@ -1,6 +1,6 @@
 (Describe the issue here)
 
-- Skygear Server Date/Version:
+- Authgear Server Date/Version:
 - Application Platform:
 - [ ] Is this a regression?
 - [ ] Attached logs, screenshots

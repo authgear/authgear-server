@@ -84,7 +84,7 @@ resolver endpoint of Auth Gear (`/_auth/session/resolve`). The endpoint would
 read the session context (populated by middleware), convert it to
 `core/authn.Info`, and serialize the info bundle into response headers.
 
-Then, gateway would replace the Skygear headers of the incoming requests with
+Then, gateway would replace the Authgear headers of the incoming requests with
 the resolver endpoint response header, and forward it to other gear/services.
 Note that requests to Auth Gear is not using this flow, and is passed directly
 to Auth Gear.
