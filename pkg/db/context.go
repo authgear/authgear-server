@@ -12,7 +12,7 @@ import (
 )
 
 type Handle struct {
-	context.Context
+	ctx         context.Context
 	pool        *Pool
 	cfg         *config.DatabaseConfig
 	credentials *config.DatabaseCredentials
@@ -25,7 +25,7 @@ type Handle struct {
 
 func NewHandle(ctx context.Context, pool *Pool, cfg *config.DatabaseConfig, credentials *config.DatabaseCredentials, lf *log.Factory) *Handle {
 	return &Handle{
-		Context:     ctx,
+		ctx:         ctx,
 		pool:        pool,
 		cfg:         cfg,
 		credentials: credentials,
@@ -104,7 +104,7 @@ func (h *Handle) beginTx() error {
 	if err != nil {
 		return err
 	}
-	tx, err := db.BeginTxx(h.Context, &sql.TxOptions{
+	tx, err := db.BeginTxx(h.ctx, &sql.TxOptions{
 		Isolation: sql.LevelRepeatableRead,
 	})
 	if err != nil {
