@@ -34,6 +34,10 @@ type store interface {
 	GetEventsForDelivery() ([]*event.Event, error)
 }
 
+type DatabaseHandle interface {
+	UseHook(hook db.TransactionHook)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("hook")} }
@@ -41,7 +45,7 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("hook")} }
 type Provider struct {
 	Context   context.Context
 	Logger    Logger
-	DBContext db.Context
+	Database  DatabaseHandle
 	Clock     clock.Clock
 	Users     UserProvider
 	Store     store
@@ -85,7 +89,7 @@ func (provider *Provider) DispatchEvent(payload event.Payload, user *model.User)
 	}
 
 	if !provider.dbHooked {
-		provider.DBContext.UseHook(provider)
+		provider.Database.UseHook(provider)
 		provider.dbHooked = true
 	}
 	return

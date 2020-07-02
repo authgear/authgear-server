@@ -28,7 +28,7 @@ func NewLogger(lf *log.Factory) Logger {
 }
 
 type GrantStore struct {
-	Redis       *redis.Context
+	Redis       *redis.Handle
 	AppID       config.AppID
 	Logger      Logger
 	SQLBuilder  db.SQLBuilder

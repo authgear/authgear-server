@@ -23,7 +23,7 @@ func toMilliseconds(d time.Duration) int64 {
 }
 
 type Store struct {
-	Redis *redis.Context
+	Redis *redis.Handle
 	AppID config.AppID
 	Clock clock.Clock
 }

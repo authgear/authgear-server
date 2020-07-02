@@ -19,8 +19,8 @@ type ResetPasswordProvider interface {
 }
 
 type ResetPasswordHandler struct {
-	Provider  ResetPasswordProvider
-	DBContext db.Context
+	Provider ResetPasswordProvider
+	Database *db.Handle
 }
 
 func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +29,7 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	db.WithTx(h.DBContext, func() error {
+	h.Database.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetResetPasswordForm(w, r)
 			writeResponse(err)

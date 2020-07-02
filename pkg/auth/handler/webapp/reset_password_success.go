@@ -18,8 +18,8 @@ type ResetPasswordSuccessProvider interface {
 }
 
 type ResetPasswordSuccessHandler struct {
-	Provider  ResetPasswordSuccessProvider
-	DBContext db.Context
+	Provider ResetPasswordSuccessProvider
+	Database *db.Handle
 }
 
 func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +28,7 @@ func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	db.WithTx(h.DBContext, func() error {
+	h.Database.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetResetPasswordSuccess(w, r)
 			writeResponse(err)

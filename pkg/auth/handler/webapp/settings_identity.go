@@ -24,7 +24,7 @@ type SettingsIdentityProvider interface {
 type SettingsIdentityHandler struct {
 	RenderProvider webapp.RenderProvider
 	Provider       SettingsIdentityProvider
-	DBContext      db.Context
+	Database       *db.Handle
 }
 
 func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +33,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	db.WithTx(h.DBContext, func() error {
+	h.Database.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetSettingsIdentity(w, r)
 			writeResponse(err)

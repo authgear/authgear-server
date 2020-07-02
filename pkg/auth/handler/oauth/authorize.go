@@ -31,7 +31,7 @@ var errAuthzInternalError = errors.New("internal error")
 
 type AuthorizeHandler struct {
 	Logger       AuthorizeHandlerLogger
-	DBContext    db.Context
+	Database     *db.Handle
 	AuthzHandler ProtocolAuthorizeHandler
 }
 
@@ -48,7 +48,7 @@ func (h *AuthorizeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	var result handler.AuthorizationResult
-	err = db.WithTx(h.DBContext, func() error {
+	err = h.Database.WithTx(func() error {
 		result = h.AuthzHandler.Handle(req)
 		if result.IsInternalError() {
 			return errAuthzInternalError

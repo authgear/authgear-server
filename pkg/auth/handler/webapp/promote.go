@@ -20,8 +20,8 @@ type PromoteProvider interface {
 }
 
 type PromoteHandler struct {
-	Provider  PromoteProvider
-	DBContext db.Context
+	Provider PromoteProvider
+	Database *db.Handle
 }
 
 func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +30,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.WithTx(h.DBContext, func() error {
+	h.Database.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetPromoteLoginIDForm(w, r)
 			writeResponse(err)

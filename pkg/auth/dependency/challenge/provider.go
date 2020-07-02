@@ -14,7 +14,7 @@ import (
 )
 
 type Provider struct {
-	Redis *redis.Context
+	Redis *redis.Handle
 	AppID config.AppID
 	Clock clock.Clock
 }

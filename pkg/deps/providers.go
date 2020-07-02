@@ -62,14 +62,14 @@ func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *AppProvider {
 	loggerFactory := p.LoggerFactory.WithHooks(log.NewSecretMaskLogHook(cfg.SecretConfig))
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
-	dbContext := db.NewContext(
+	database := db.NewHandle(
 		ctx,
 		p.DatabasePool,
 		cfg.AppConfig.Database,
 		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
 		loggerFactory,
 	)
-	redisContext := redis.NewContext(
+	redis := redis.NewHandle(
 		p.RedisPool,
 		cfg.AppConfig.Redis,
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
@@ -82,8 +82,8 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 		Context:        ctx,
 		Config:         cfg,
 		LoggerFactory:  loggerFactory,
-		DbContext:      dbContext,
-		RedisContext:   redisContext,
+		Database:       database,
+		Redis:          redis,
 		TemplateEngine: templateEngine,
 	}
 }
@@ -142,8 +142,8 @@ type AppProvider struct {
 	Context        context.Context
 	Config         *config.Config
 	LoggerFactory  *log.Factory
-	DbContext      db.Context
-	RedisContext   *redis.Context
+	Database       *db.Handle
+	Redis          *redis.Handle
 	TemplateEngine *template.Engine
 }
 

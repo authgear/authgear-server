@@ -21,7 +21,7 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("redis-session-store")} }
 
 type Store struct {
-	Redis  *redis.Context
+	Redis  *redis.Handle
 	AppID  config.AppID
 	Clock  clock.Clock
 	Logger Logger

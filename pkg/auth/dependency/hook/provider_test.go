@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/log"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -27,12 +26,13 @@ func TestDispatchEvent(t *testing.T) {
 		store := NewMockStore(ctrl)
 		deliverer := NewMockDeliverer(ctrl)
 		users := NewMockUserProvider(ctrl)
+		db := NewMockDatabaseHandle(ctrl)
 		ctx := context.Background()
 
 		provider := &Provider{
 			Context:   ctx,
 			Logger:    Logger{log.Null},
-			DBContext: db.NewMockTxContext(),
+			Database:  db,
 			Clock:     clock,
 			Users:     users,
 			Store:     store,
@@ -45,6 +45,8 @@ func TestDispatchEvent(t *testing.T) {
 				seq++
 				return seq, nil
 			})
+
+		db.EXPECT().UseHook(provider).AnyTimes()
 
 		Convey("dispatching operation events", func() {
 			user := model.User{

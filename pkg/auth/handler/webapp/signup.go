@@ -20,8 +20,8 @@ type SignupProvider interface {
 }
 
 type SignupHandler struct {
-	Provider  SignupProvider
-	DBContext db.Context
+	Provider SignupProvider
+	Database *db.Handle
 }
 
 func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +30,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.WithTx(h.DBContext, func() error {
+	h.Database.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetCreateLoginIDForm(w, r)
 			writeResponse(err)

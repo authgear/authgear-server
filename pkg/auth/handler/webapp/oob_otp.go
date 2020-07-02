@@ -20,8 +20,8 @@ type OOBOTPProvider interface {
 }
 
 type OOBOTPHandler struct {
-	Provider  OOBOTPProvider
-	DBContext db.Context
+	Provider OOBOTPProvider
+	Database *db.Handle
 }
 
 func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +30,7 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.WithTx(h.DBContext, func() error {
+	h.Database.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetOOBOTPForm(w, r)
 			writeResponse(err)
