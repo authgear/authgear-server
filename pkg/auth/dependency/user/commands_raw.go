@@ -16,6 +16,7 @@ type RawCommands struct {
 	Store                  store
 	Clock                  clock.Clock
 	WelcomeMessageProvider WelcomeMessageProvider
+	Queries                *Queries
 }
 
 func (c *RawCommands) Create(userID string, metadata map[string]interface{}) (*User, error) {
@@ -55,11 +56,17 @@ func (c *RawCommands) UpdateMetadata(user *model.User, metadata map[string]inter
 	return nil
 }
 
-func (c *RawCommands) UpdateLoginTime(user *model.User, lastLoginAt time.Time) error {
-	if err := c.Store.UpdateLoginTime(user.ID, lastLoginAt); err != nil {
+func (c *RawCommands) UpdateLoginTime(user *model.User, loginAt time.Time) error {
+	err := c.Store.UpdateLoginTime(user.ID, loginAt)
+	if err != nil {
 		return err
 	}
 
-	user.LastLoginAt = &lastLoginAt
+	u, err := c.Queries.Get(user.ID)
+	if err != nil {
+		return err
+	}
+
+	*user = *u
 	return nil
 }

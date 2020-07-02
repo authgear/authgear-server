@@ -26,6 +26,9 @@ func NewSecretMaskLogHook(cfg *config.SecretConfig) logrus.Hook {
 	var patterns []MaskPattern
 	for _, item := range cfg.Secrets {
 		for _, s := range item.Data.SensitiveStrings() {
+			if len(s) == 0 {
+				continue
+			}
 			patterns = append(patterns, NewPlainMaskPattern(s))
 		}
 	}

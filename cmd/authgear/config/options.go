@@ -36,7 +36,7 @@ func ReadSecretOptionsFromConsole() *SecretOptions {
 
 	opts.DatabaseURL = promptURL{
 		Title:        "Database URL",
-		DefaultValue: "postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable",
+		DefaultValue: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
 	}.Prompt()
 
 	opts.DatabaseSchema = promptString{

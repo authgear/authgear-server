@@ -304,16 +304,17 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	hookLogger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -633,16 +634,17 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	hookLogger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -1165,16 +1167,17 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	hookLogger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -1410,16 +1413,17 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	logger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -1580,7 +1584,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -1765,16 +1768,17 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	logger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -1935,7 +1939,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -2120,16 +2123,17 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	logger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -2290,7 +2294,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -2475,16 +2478,17 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	logger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -2645,7 +2649,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -2830,16 +2833,17 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	logger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -3000,7 +3004,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -3185,16 +3188,17 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	logger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -3355,7 +3359,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -3540,16 +3543,17 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	logger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -3710,7 +3714,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -3895,16 +3898,17 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	logger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -4065,7 +4069,6 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -4256,6 +4259,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -4570,6 +4574,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -4884,6 +4889,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -5198,6 +5204,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -5597,16 +5604,17 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	logger := hook.NewLogger(factory)
 	queries := &user.Queries{
 		Store:      userStore,
 		Identities: providerProvider,
 	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	logger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -5767,7 +5775,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie: cookieDef,
 		Sessions:      sessionProvider,
 		Hooks:         hookProvider,
-		Clock:         clockClock,
 	}
 	webAppFlow := &flows.WebAppFlow{
 		Config:         identityConfig,
@@ -5942,6 +5949,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,

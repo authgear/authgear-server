@@ -52,6 +52,6 @@ func (c *Commands) UpdateMetadata(user *model.User, metadata map[string]interfac
 	return c.Raw.UpdateMetadata(user, metadata)
 }
 
-func (c *Commands) UpdateLoginTime(user *model.User, lastLoginAt gotime.Time) error {
-	return c.Raw.UpdateLoginTime(user, lastLoginAt)
+func (c *Commands) UpdateLoginTime(user *model.User, loginAt gotime.Time) error {
+	return c.Raw.UpdateLoginTime(user, loginAt)
 }

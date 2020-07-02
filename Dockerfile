@@ -5,7 +5,7 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN make build
+RUN make build GIT_HASH=$GIT_HASH
 # Check if the binary is really static
 RUN readelf -d ./authgear | grep 'There is no dynamic section in this file'
 
