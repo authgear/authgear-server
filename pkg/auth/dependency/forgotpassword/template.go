@@ -169,7 +169,7 @@ var TemplateForgotPasswordEmailHTML = template.Spec{
                         <tbody>
                           <tr>
                             <td style="width:65px;">
-                              <img height="15" src="{{ .static_asset_url_prefix }}/authui/image/ic_footer_skygear.png" style="border:0;display:block;outline:none;text-decoration:none;height:15px;width:100%;font-size:13px;" width="65" />
+                              <img height="15" src="{{ .static_asset_url_prefix }}/authui/image/ic_footer_authgear.png" style="border:0;display:block;outline:none;text-decoration:none;height:15px;width:100%;font-size:13px;" width="65" />
                             </td>
                           </tr>
                         </tbody>

@@ -50,7 +50,7 @@ func SetContextToURLQuery(u *url.URL, context map[string]interface{}) error {
 		return err
 	}
 	query := u.Query()
-	query.Set("x-skygear-redirect-data", encoded)
+	query.Set("x-authgear-redirect-data", encoded)
 	u.RawQuery = query.Encode()
 	return nil
 }

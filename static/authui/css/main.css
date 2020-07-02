@@ -194,12 +194,12 @@ a.btn {
   background-color: #eaf1fc;
 }
 
-.skygear-logo {
+.authgear-logo {
   height: 80px;
   background-position: center;
-  background-size: 65px auto;
+  background-size: 100px auto;
   background-repeat: no-repeat;
-  background-image: url("../image/ic_footer_skygear.png");
+  background-image: url("../image/ic_footer_authgear.png");
 }
 
 .back-btn {

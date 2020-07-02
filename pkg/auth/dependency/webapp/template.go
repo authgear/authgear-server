@@ -81,7 +81,7 @@ var TemplateAuthUIFooterHTML = template.Spec{
 	IsHTML: true,
 	Default: `
 {{ define "auth_ui_footer.html" }}
-<div class="skygear-logo"></div>
+<div class="authgear-logo"></div>
 {{ end }}
 `,
 }

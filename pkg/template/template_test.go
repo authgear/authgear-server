@@ -198,19 +198,19 @@ func TestSetContextToURLQuery(t *testing.T) {
 			{
 				"http://example.com",
 				nil,
-				"http://example.com?x-skygear-redirect-data=",
+				"http://example.com?x-authgear-redirect-data=",
 			},
 			{
 				"http://example.com",
 				map[string]interface{}{},
-				"http://example.com?x-skygear-redirect-data=e30",
+				"http://example.com?x-authgear-redirect-data=e30",
 			},
 			{
 				"http://example.com",
 				map[string]interface{}{
 					"a": "b",
 				},
-				"http://example.com?x-skygear-redirect-data=eyJhIjoiYiJ9",
+				"http://example.com?x-authgear-redirect-data=eyJhIjoiYiJ9",
 			},
 			{
 				"http://example.com",
@@ -220,7 +220,7 @@ func TestSetContextToURLQuery(t *testing.T) {
 						"a": "b",
 					},
 				},
-				"http://example.com?x-skygear-redirect-data=eyJhIjoiYiIsIm5lc3RlZCI6eyJhIjoiYiJ9fQ",
+				"http://example.com?x-authgear-redirect-data=eyJhIjoiYiIsIm5lc3RlZCI6eyJhIjoiYiJ9fQ",
 			},
 		}
 		for _, c := range cases {
