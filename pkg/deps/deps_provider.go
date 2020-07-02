@@ -28,7 +28,7 @@ var appRootDeps = wire.NewSet(
 		"Context",
 		"Config",
 		"LoggerFactory",
-		"DbContext",
+		"Database",
 		"Redis",
 		"TemplateEngine",
 	),

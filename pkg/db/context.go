@@ -21,7 +21,7 @@ type Context interface {
 	ReadOnly(do func() error) error
 }
 
-type dbContext struct {
+type Handle struct {
 	context.Context
 	pool        *Pool
 	cfg         *config.DatabaseConfig
@@ -33,48 +33,48 @@ type dbContext struct {
 	hooks []TransactionHook
 }
 
-func NewContext(ctx context.Context, pool *Pool, cfg *config.DatabaseConfig, credentials *config.DatabaseCredentials, lf *log.Factory) Context {
-	return &dbContext{
+func NewHandle(ctx context.Context, pool *Pool, cfg *config.DatabaseConfig, credentials *config.DatabaseCredentials, lf *log.Factory) Context {
+	return &Handle{
 		Context:     ctx,
 		pool:        pool,
 		cfg:         cfg,
 		credentials: credentials,
-		logger:      lf.New("dbcontext"),
+		logger:      lf.New("db-handle"),
 	}
 }
 
-func (ctx *dbContext) DB() (ExtContext, error) {
-	tx := ctx.tx
+func (h *Handle) DB() (ExtContext, error) {
+	tx := h.tx
 	if tx == nil {
-		return ctx.openDB()
+		return h.openDB()
 	}
 	return tx, nil
 }
 
-func (ctx *dbContext) HasTx() bool {
-	return ctx.tx != nil
+func (h *Handle) HasTx() bool {
+	return h.tx != nil
 }
 
-func (ctx *dbContext) UseHook(h TransactionHook) {
-	ctx.hooks = append(ctx.hooks, h)
+func (h *Handle) UseHook(hook TransactionHook) {
+	h.hooks = append(h.hooks, hook)
 }
 
 // WithTx commits if do finishes without error and rolls back otherwise.
-func (ctx *dbContext) WithTx(do func() error) (err error) {
-	if err = ctx.beginTx(); err != nil {
+func (h *Handle) WithTx(do func() error) (err error) {
+	if err = h.beginTx(); err != nil {
 		return
 	}
 
 	defer func() {
 		if r := recover(); r != nil {
-			_ = ctx.rollbackTx()
+			_ = h.rollbackTx()
 			panic(r)
 		} else if err != nil {
-			if rbErr := ctx.rollbackTx(); rbErr != nil {
-				ctx.logger.WithError(rbErr).Error("failed to rollback tx")
+			if rbErr := h.rollbackTx(); rbErr != nil {
+				h.logger.WithError(rbErr).Error("failed to rollback tx")
 			}
 		} else {
-			err = ctx.commitTx()
+			err = h.commitTx()
 		}
 	}()
 
@@ -83,21 +83,21 @@ func (ctx *dbContext) WithTx(do func() error) (err error) {
 }
 
 // ReadOnly runs do in a transaction and rolls back always.
-func (ctx *dbContext) ReadOnly(do func() error) (err error) {
-	if err = ctx.beginTx(); err != nil {
+func (h *Handle) ReadOnly(do func() error) (err error) {
+	if err = h.beginTx(); err != nil {
 		return
 	}
 
 	defer func() {
 		if r := recover(); r != nil {
-			_ = ctx.rollbackTx()
+			_ = h.rollbackTx()
 			panic(r)
 		} else if err != nil {
-			if rbErr := ctx.rollbackTx(); rbErr != nil {
-				ctx.logger.WithError(rbErr).Error("failed to rollback tx")
+			if rbErr := h.rollbackTx(); rbErr != nil {
+				h.logger.WithError(rbErr).Error("failed to rollback tx")
 			}
 		} else {
-			err = ctx.rollbackTx()
+			err = h.rollbackTx()
 		}
 	}()
 
@@ -105,90 +105,90 @@ func (ctx *dbContext) ReadOnly(do func() error) (err error) {
 	return
 }
 
-func (ctx *dbContext) beginTx() error {
-	if ctx.tx != nil {
+func (h *Handle) beginTx() error {
+	if h.tx != nil {
 		panic("db: a transaction has already begun")
 	}
 
-	db, err := ctx.openDB()
+	db, err := h.openDB()
 	if err != nil {
 		return err
 	}
-	tx, err := db.BeginTxx(ctx.Context, &sql.TxOptions{
+	tx, err := db.BeginTxx(h.Context, &sql.TxOptions{
 		Isolation: sql.LevelRepeatableRead,
 	})
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to begin transaction")
 	}
 
-	ctx.tx = tx
+	h.tx = tx
 
 	return nil
 }
 
-func (ctx *dbContext) commitTx() error {
-	if ctx.tx == nil {
+func (h *Handle) commitTx() error {
+	if h.tx == nil {
 		panic("db: a transaction has not begun")
 	}
 
-	for _, hook := range ctx.hooks {
+	for _, hook := range h.hooks {
 		err := hook.WillCommitTx()
 		if err != nil {
-			if rbErr := ctx.tx.Rollback(); rbErr != nil {
+			if rbErr := h.tx.Rollback(); rbErr != nil {
 				err = errors.WithSecondaryError(err, rbErr)
 			}
 			return err
 		}
 	}
 
-	err := ctx.tx.Commit()
+	err := h.tx.Commit()
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to commit transaction")
 	}
-	ctx.tx = nil
+	h.tx = nil
 
-	for _, hook := range ctx.hooks {
+	for _, hook := range h.hooks {
 		hook.DidCommitTx()
 	}
 
 	return nil
 }
 
-func (ctx *dbContext) rollbackTx() error {
-	if ctx.tx == nil {
+func (h *Handle) rollbackTx() error {
+	if h.tx == nil {
 		panic("db: a transaction has not begun")
 	}
 
-	err := ctx.tx.Rollback()
+	err := h.tx.Rollback()
 	if err != nil {
 		return errors.HandledWithMessage(err, "failed to rollback transaction")
 	}
 
-	ctx.tx = nil
+	h.tx = nil
 	return nil
 }
 
-func (ctx *dbContext) openDB() (*sqlx.DB, error) {
-	if ctx.db == nil {
+func (h *Handle) openDB() (*sqlx.DB, error) {
+	if h.db == nil {
 		opts := OpenOptions{
-			URL:             ctx.credentials.DatabaseURL,
-			MaxOpenConns:    *ctx.cfg.MaxOpenConnection,
-			MaxIdleConns:    *ctx.cfg.MaxIdleConnection,
-			ConnMaxLifetime: ctx.cfg.MaxConnectionLifetime.Duration(),
+			URL:             h.credentials.DatabaseURL,
+			MaxOpenConns:    *h.cfg.MaxOpenConnection,
+			MaxIdleConns:    *h.cfg.MaxIdleConnection,
+			ConnMaxLifetime: h.cfg.MaxConnectionLifetime.Duration(),
 		}
-		ctx.logger.WithFields(map[string]interface{}{
+		h.logger.WithFields(map[string]interface{}{
 			"max_open_conns":            opts.MaxOpenConns,
 			"max_idle_conns":            opts.MaxIdleConns,
 			"conn_max_lifetime_seconds": opts.ConnMaxLifetime.Seconds(),
 		}).Debug("open database")
 
-		db, err := ctx.pool.Open(opts)
+		db, err := h.pool.Open(opts)
 		if err != nil {
 			return nil, errors.HandledWithMessage(err, "failed to connect to database")
 		}
 
-		ctx.db = db
+		h.db = db
 	}
 
-	return ctx.db, nil
+	return h.db, nil
 }

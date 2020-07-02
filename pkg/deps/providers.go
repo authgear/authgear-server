@@ -62,7 +62,7 @@ func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *AppProvider {
 	loggerFactory := p.LoggerFactory.WithHooks(log.NewSecretMaskLogHook(cfg.SecretConfig))
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
-	dbContext := db.NewContext(
+	database := db.NewHandle(
 		ctx,
 		p.DatabasePool,
 		cfg.AppConfig.Database,
@@ -82,7 +82,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 		Context:        ctx,
 		Config:         cfg,
 		LoggerFactory:  loggerFactory,
-		DbContext:      dbContext,
+		Database:       database,
 		Redis:          redis,
 		TemplateEngine: templateEngine,
 	}
@@ -142,7 +142,7 @@ type AppProvider struct {
 	Context        context.Context
 	Config         *config.Config
 	LoggerFactory  *log.Factory
-	DbContext      db.Context
+	Database       db.Context
 	Redis          *redis.Handle
 	TemplateEngine *template.Engine
 }

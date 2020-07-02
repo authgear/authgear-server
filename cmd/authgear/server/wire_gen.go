@@ -83,7 +83,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -114,7 +114,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	authorizeHandlerLogger := oauth.NewAuthorizeHandlerLogger(factory)
-	context := appProvider.DbContext
+	context := appProvider.Database
 	contextContext := appProvider.Context
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -420,7 +420,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	tokenHandlerLogger := oauth.NewTokenHandlerLogger(factory)
-	context := appProvider.DbContext
+	context := appProvider.Database
 	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -752,7 +752,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	revokeHandlerLogger := oauth.NewRevokeHandlerLogger(factory)
-	context := appProvider.DbContext
+	context := appProvider.Database
 	handle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -828,7 +828,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -907,7 +907,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	userInfoHandlerLogger := oauth.NewUserInfoHandlerLogger(factory)
-	context := appProvider.DbContext
+	context := appProvider.Database
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
 	oidcKeyMaterials := deps.ProvideOIDCKeyMaterials(secretConfig)
@@ -1002,7 +1002,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	endSessionHandlerLogger := oauth.NewEndSessionHandlerLogger(factory)
-	context := appProvider.DbContext
+	context := appProvider.Database
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	oAuthConfig := appConfig.OAuth
@@ -1321,7 +1321,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -1677,7 +1677,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -2033,7 +2033,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -2389,7 +2389,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -2745,7 +2745,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -3101,7 +3101,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -3457,7 +3457,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -3813,7 +3813,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -4168,7 +4168,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -4484,7 +4484,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -4800,7 +4800,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -5116,7 +5116,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -5426,7 +5426,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -5519,7 +5519,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -5876,7 +5876,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -6168,7 +6168,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := appProvider.Context
-	dbContext := appProvider.DbContext
+	dbContext := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:   context,
 		DBContext: dbContext,
@@ -6279,7 +6279,7 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
 	appProvider := p.AppProvider
-	context := appProvider.DbContext
+	context := appProvider.Database
 	factory := appProvider.LoggerFactory
 	pwHousekeeperLogger := task2.NewPwHousekeeperLogger(factory)
 	clockClock := _wireSystemClockValue
