@@ -12,7 +12,7 @@ import (
 )
 
 type Store struct {
-	Redis *redis.Context
+	Redis *redis.Handle
 }
 
 func (s *Store) Create(code *Code) (err error) {

@@ -14,7 +14,7 @@ const maxEventStreamLength = 10
 const eventTypeAccessEvent = "access"
 
 type EventStore struct {
-	Redis *redis.Context
+	Redis *redis.Handle
 	AppID config.AppID
 }
 

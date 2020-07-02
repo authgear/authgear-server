@@ -69,7 +69,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
 		loggerFactory,
 	)
-	redisContext := redis.NewContext(
+	redis := redis.NewHandle(
 		p.RedisPool,
 		cfg.AppConfig.Redis,
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
@@ -83,7 +83,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 		Config:         cfg,
 		LoggerFactory:  loggerFactory,
 		DbContext:      dbContext,
-		RedisContext:   redisContext,
+		Redis:          redis,
 		TemplateEngine: templateEngine,
 	}
 }
@@ -143,7 +143,7 @@ type AppProvider struct {
 	Config         *config.Config
 	LoggerFactory  *log.Factory
 	DbContext      db.Context
-	RedisContext   *redis.Context
+	Redis          *redis.Handle
 	TemplateEngine *template.Engine
 }
 

@@ -11,7 +11,7 @@ import (
 )
 
 type StateStoreImpl struct {
-	Redis *redis.Context
+	Redis *redis.Handle
 }
 
 var _ StateStore = &StateStoreImpl{}
