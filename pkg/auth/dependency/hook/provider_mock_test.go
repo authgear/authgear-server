@@ -7,6 +7,7 @@ package hook
 import (
 	event "github.com/authgear/authgear-server/pkg/auth/event"
 	model "github.com/authgear/authgear-server/pkg/auth/model"
+	db "github.com/authgear/authgear-server/pkg/db"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"
@@ -194,4 +195,39 @@ func (m *MockStore) GetEventsForDelivery() ([]*event.Event, error) {
 func (mr *MockStoreMockRecorder) GetEventsForDelivery() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEventsForDelivery", reflect.TypeOf((*MockStore)(nil).GetEventsForDelivery))
+}
+
+// MockDatabaseHandle is a mock of DatabaseHandle interface
+type MockDatabaseHandle struct {
+	ctrl     *gomock.Controller
+	recorder *MockDatabaseHandleMockRecorder
+}
+
+// MockDatabaseHandleMockRecorder is the mock recorder for MockDatabaseHandle
+type MockDatabaseHandleMockRecorder struct {
+	mock *MockDatabaseHandle
+}
+
+// NewMockDatabaseHandle creates a new mock instance
+func NewMockDatabaseHandle(ctrl *gomock.Controller) *MockDatabaseHandle {
+	mock := &MockDatabaseHandle{ctrl: ctrl}
+	mock.recorder = &MockDatabaseHandleMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockDatabaseHandle) EXPECT() *MockDatabaseHandleMockRecorder {
+	return m.recorder
+}
+
+// UseHook mocks base method
+func (m *MockDatabaseHandle) UseHook(hook db.TransactionHook) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "UseHook", hook)
+}
+
+// UseHook indicates an expected call of UseHook
+func (mr *MockDatabaseHandleMockRecorder) UseHook(hook interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UseHook", reflect.TypeOf((*MockDatabaseHandle)(nil).UseHook), hook)
 }

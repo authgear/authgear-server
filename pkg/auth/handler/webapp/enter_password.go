@@ -19,8 +19,8 @@ type EnterPasswordProvider interface {
 }
 
 type EnterPasswordHandler struct {
-	Provider  EnterPasswordProvider
-	DBContext db.Context
+	Provider EnterPasswordProvider
+	Database *db.Handle
 }
 
 func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +29,7 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	h.DBContext.WithTx(func() error {
+	h.Database.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetEnterPasswordForm(w, r)
 			writeResponse(err)

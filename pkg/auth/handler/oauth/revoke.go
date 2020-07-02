@@ -27,7 +27,7 @@ type ProtocolRevokeHandler interface {
 
 type RevokeHandler struct {
 	Logger        RevokeHandlerLogger
-	DBContext     db.Context
+	Database      *db.Handle
 	RevokeHandler ProtocolRevokeHandler
 }
 
@@ -43,7 +43,7 @@ func (h *RevokeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		req[name] = values[0]
 	}
 
-	err = h.DBContext.WithTx(func() error {
+	err = h.Database.WithTx(func() error {
 		return h.RevokeHandler.Handle(req)
 	})
 

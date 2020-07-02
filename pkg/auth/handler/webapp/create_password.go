@@ -19,8 +19,8 @@ type CreatePasswordProvider interface {
 }
 
 type CreatePasswordHandler struct {
-	Provider  CreatePasswordProvider
-	DBContext db.Context
+	Provider CreatePasswordProvider
+	Database *db.Handle
 }
 
 func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +29,7 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	h.DBContext.WithTx(func() error {
+	h.Database.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetCreatePasswordForm(w, r)
 			writeResponse(err)

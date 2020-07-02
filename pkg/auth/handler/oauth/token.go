@@ -29,7 +29,7 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 
 type TokenHandler struct {
 	Logger       TokenHandlerLogger
-	DBContext    db.Context
+	Database     *db.Handle
 	TokenHandler ProtocolTokenHandler
 }
 
@@ -46,7 +46,7 @@ func (h *TokenHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	var result handler.TokenResult
-	err = h.DBContext.WithTx(func() error {
+	err = h.Database.WithTx(func() error {
 		result = h.TokenHandler.Handle(req)
 		if result.IsInternalError() {
 			return errAuthzInternalError

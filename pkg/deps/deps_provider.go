@@ -4,6 +4,8 @@ import (
 	"github.com/google/wire"
 
 	configsource "github.com/authgear/authgear-server/pkg/auth/config/source"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/hook"
+	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/task/executors"
 	taskqueue "github.com/authgear/authgear-server/pkg/task/queue"
 )
@@ -32,6 +34,8 @@ var appRootDeps = wire.NewSet(
 		"Redis",
 		"TemplateEngine",
 	),
+
+	wire.Bind(new(hook.DatabaseHandle), new(*db.Handle)),
 )
 
 var RootDependencySet = wire.NewSet(

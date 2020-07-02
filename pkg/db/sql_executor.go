@@ -26,12 +26,12 @@ import (
 )
 
 type SQLExecutor struct {
-	Context   context.Context
-	DBContext Context
+	Context  context.Context
+	Database *Handle
 }
 
 func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
-	db, err := e.DBContext.DB()
+	db, err := e.Database.Conn()
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 }
 
 func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
-	db, err := e.DBContext.DB()
+	db, err := e.Database.Conn()
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 }
 
 func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) (*sqlx.Row, error) {
-	db, err := e.DBContext.DB()
+	db, err := e.Database.Conn()
 	if err != nil {
 		return nil, err
 	}

@@ -11,16 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/log"
 )
 
-type ExtContext = sqlx.ExtContext
-
-type Context interface {
-	DB() (ExtContext, error)
-	HasTx() bool
-	UseHook(TransactionHook)
-	WithTx(do func() error) error
-	ReadOnly(do func() error) error
-}
-
 type Handle struct {
 	context.Context
 	pool        *Pool
@@ -33,7 +23,7 @@ type Handle struct {
 	hooks []TransactionHook
 }
 
-func NewHandle(ctx context.Context, pool *Pool, cfg *config.DatabaseConfig, credentials *config.DatabaseCredentials, lf *log.Factory) Context {
+func NewHandle(ctx context.Context, pool *Pool, cfg *config.DatabaseConfig, credentials *config.DatabaseCredentials, lf *log.Factory) *Handle {
 	return &Handle{
 		Context:     ctx,
 		pool:        pool,
@@ -43,7 +33,7 @@ func NewHandle(ctx context.Context, pool *Pool, cfg *config.DatabaseConfig, cred
 	}
 }
 
-func (h *Handle) DB() (ExtContext, error) {
+func (h *Handle) Conn() (sqlx.ExtContext, error) {
 	tx := h.tx
 	if tx == nil {
 		return h.openDB()

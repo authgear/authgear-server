@@ -142,7 +142,7 @@ type AppProvider struct {
 	Context        context.Context
 	Config         *config.Config
 	LoggerFactory  *log.Factory
-	Database       db.Context
+	Database       *db.Handle
 	Redis          *redis.Handle
 	TemplateEngine *template.Engine
 }

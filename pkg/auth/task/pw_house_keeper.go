@@ -23,13 +23,13 @@ func NewPwHousekeeperLogger(lf *log.Factory) PwHousekeeperLogger {
 }
 
 type PwHousekeeperTask struct {
-	DBContext     db.Context
+	Database      *db.Handle
 	Logger        PwHousekeeperLogger
 	PwHousekeeper *password.Housekeeper
 }
 
 func (t *PwHousekeeperTask) Run(ctx context.Context, param interface{}) (err error) {
-	return t.DBContext.WithTx(func() error { return t.run(param) })
+	return t.Database.WithTx(func() error { return t.run(param) })
 }
 
 func (t *PwHousekeeperTask) run(param interface{}) (err error) {

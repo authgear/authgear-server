@@ -20,8 +20,8 @@ type EnterLoginIDProvider interface {
 }
 
 type EnterLoginIDHandler struct {
-	Provider  EnterLoginIDProvider
-	DBContext db.Context
+	Provider EnterLoginIDProvider
+	Database *db.Handle
 }
 
 func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +30,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	h.DBContext.WithTx(func() error {
+	h.Database.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetEnterLoginIDForm(w, r)
 			writeResponse(err)

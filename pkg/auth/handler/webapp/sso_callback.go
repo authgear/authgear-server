@@ -18,8 +18,8 @@ type SSOProvider interface {
 }
 
 type SSOCallbackHandler struct {
-	Provider  SSOProvider
-	DBContext db.Context
+	Provider SSOProvider
+	Database *db.Handle
 }
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +30,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	providerAlias := httproute.GetParam(r, "alias")
 
-	h.DBContext.WithTx(func() error {
+	h.Database.WithTx(func() error {
 		writeResponse, err := h.Provider.HandleSSOCallback(w, r, providerAlias)
 		writeResponse(err)
 		return err

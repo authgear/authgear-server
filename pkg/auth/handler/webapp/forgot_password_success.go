@@ -18,8 +18,8 @@ type ForgotPasswordSuccessProvider interface {
 }
 
 type ForgotPasswordSuccessHandler struct {
-	Provider  ForgotPasswordSuccessProvider
-	DBContext db.Context
+	Provider ForgotPasswordSuccessProvider
+	Database *db.Handle
 }
 
 func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +28,7 @@ func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return
 	}
 
-	h.DBContext.WithTx(func() error {
+	h.Database.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetForgotPasswordSuccess(w, r)
 			writeResponse(err)

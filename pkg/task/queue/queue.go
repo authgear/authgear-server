@@ -12,7 +12,7 @@ type Executor interface {
 }
 
 type Queue struct {
-	DBContext      db.Context
+	Database       *db.Handle
 	CaptureContext CaptureTaskContext
 	Executor       Executor
 
@@ -21,10 +21,10 @@ type Queue struct {
 }
 
 func (s *Queue) Enqueue(spec task.Spec) {
-	if s.DBContext != nil && s.DBContext.HasTx() {
+	if s.Database != nil && s.Database.HasTx() {
 		s.pendingTasks = append(s.pendingTasks, spec)
 		if !s.hooked {
-			s.DBContext.UseHook(s)
+			s.Database.UseHook(s)
 			s.hooked = true
 		}
 	} else {

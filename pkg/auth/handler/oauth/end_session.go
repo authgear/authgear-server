@@ -28,7 +28,7 @@ type ProtocolEndSessionHandler interface {
 
 type EndSessionHandler struct {
 	Logger            EndSessionHandlerLogger
-	DBContext         db.Context
+	Database          *db.Handle
 	EndSessionHandler ProtocolEndSessionHandler
 }
 
@@ -44,7 +44,7 @@ func (h *EndSessionHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		req[name] = values[0]
 	}
 
-	err = h.DBContext.WithTx(func() error {
+	err = h.Database.WithTx(func() error {
 		sess := auth.GetSession(r.Context())
 		return h.EndSessionHandler.Handle(sess, req, r, rw)
 	})

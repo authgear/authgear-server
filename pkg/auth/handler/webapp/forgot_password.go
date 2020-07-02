@@ -19,8 +19,8 @@ type ForgotPasswordProvider interface {
 }
 
 type ForgotPasswordHandler struct {
-	Provider  ForgotPasswordProvider
-	DBContext db.Context
+	Provider ForgotPasswordProvider
+	Database *db.Handle
 }
 
 func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +29,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	h.DBContext.WithTx(func() error {
+	h.Database.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetForgotPasswordForm(w, r)
 			writeResponse(err)
