@@ -46,7 +46,7 @@ func (h *TokenHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	var result handler.TokenResult
-	err = db.WithTx(h.DBContext, func() error {
+	err = h.DBContext.WithTx(func() error {
 		result = h.TokenHandler.Handle(req)
 		if result.IsInternalError() {
 			return errAuthzInternalError

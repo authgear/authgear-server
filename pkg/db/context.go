@@ -15,59 +15,12 @@ type ExtContext = sqlx.ExtContext
 
 type Context interface {
 	context.Context
-	beginTx() error
-	commitTx() error
-	rollbackTx() error
 
 	DB() (ExtContext, error)
 	HasTx() bool
 	UseHook(TransactionHook)
-}
-
-// WithTx commits if do finishes without error and rolls back otherwise.
-func WithTx(ctx Context, do func() error) (err error) {
-	if err = ctx.beginTx(); err != nil {
-		return
-	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			_ = ctx.rollbackTx()
-			panic(r)
-		} else if err != nil {
-			if rbErr := ctx.rollbackTx(); rbErr != nil {
-				err = errors.WithSecondaryError(err, rbErr)
-			}
-		} else {
-			err = ctx.commitTx()
-		}
-	}()
-
-	err = do()
-	return
-}
-
-// ReadOnly runs do in a transaction and rolls back always.
-func ReadOnly(ctx Context, do func() error) (err error) {
-	if err = ctx.beginTx(); err != nil {
-		return
-	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			_ = ctx.rollbackTx()
-			panic(r)
-		} else if err != nil {
-			if rbErr := ctx.rollbackTx(); rbErr != nil {
-				err = errors.WithSecondaryError(err, rbErr)
-			}
-		} else {
-			err = ctx.rollbackTx()
-		}
-	}()
-
-	err = do()
-	return
+	WithTx(do func() error) error
+	ReadOnly(do func() error) error
 }
 
 type dbContext struct {
@@ -106,6 +59,52 @@ func (ctx *dbContext) HasTx() bool {
 
 func (ctx *dbContext) UseHook(h TransactionHook) {
 	ctx.hooks = append(ctx.hooks, h)
+}
+
+// WithTx commits if do finishes without error and rolls back otherwise.
+func (ctx *dbContext) WithTx(do func() error) (err error) {
+	if err = ctx.beginTx(); err != nil {
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			_ = ctx.rollbackTx()
+			panic(r)
+		} else if err != nil {
+			if rbErr := ctx.rollbackTx(); rbErr != nil {
+				ctx.logger.WithError(rbErr).Error("failed to rollback tx")
+			}
+		} else {
+			err = ctx.commitTx()
+		}
+	}()
+
+	err = do()
+	return
+}
+
+// ReadOnly runs do in a transaction and rolls back always.
+func (ctx *dbContext) ReadOnly(do func() error) (err error) {
+	if err = ctx.beginTx(); err != nil {
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			_ = ctx.rollbackTx()
+			panic(r)
+		} else if err != nil {
+			if rbErr := ctx.rollbackTx(); rbErr != nil {
+				ctx.logger.WithError(rbErr).Error("failed to rollback tx")
+			}
+		} else {
+			err = ctx.rollbackTx()
+		}
+	}()
+
+	err = do()
+	return
 }
 
 func (ctx *dbContext) beginTx() error {

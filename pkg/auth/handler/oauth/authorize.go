@@ -48,7 +48,7 @@ func (h *AuthorizeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	var result handler.AuthorizationResult
-	err = db.WithTx(h.DBContext, func() error {
+	err = h.DBContext.WithTx(func() error {
 		result = h.AuthzHandler.Handle(req)
 		if result.IsInternalError() {
 			return errAuthzInternalError

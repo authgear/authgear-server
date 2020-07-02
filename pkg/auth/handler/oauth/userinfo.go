@@ -37,7 +37,7 @@ type UserInfoHandler struct {
 func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	session := auth.GetSession(r.Context())
 	var claims jwt.Token
-	err := db.WithTx(h.DBContext, func() (err error) {
+	err := h.DBContext.WithTx(func() (err error) {
 		claims, err = h.UserInfoProvider.LoadUserClaims(session)
 		return
 	})

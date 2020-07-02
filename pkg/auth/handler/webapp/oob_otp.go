@@ -30,7 +30,7 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.WithTx(h.DBContext, func() error {
+	h.DBContext.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetOOBOTPForm(w, r)
 			writeResponse(err)

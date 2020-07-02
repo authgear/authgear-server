@@ -30,7 +30,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	providerAlias := httproute.GetParam(r, "alias")
 
-	db.WithTx(h.DBContext, func() error {
+	h.DBContext.WithTx(func() error {
 		writeResponse, err := h.Provider.HandleSSOCallback(w, r, providerAlias)
 		writeResponse(err)
 		return err

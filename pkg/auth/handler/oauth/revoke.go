@@ -43,7 +43,7 @@ func (h *RevokeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		req[name] = values[0]
 	}
 
-	err = db.WithTx(h.DBContext, func() error {
+	err = h.DBContext.WithTx(func() error {
 		return h.RevokeHandler.Handle(req)
 	})
 

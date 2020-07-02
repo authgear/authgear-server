@@ -2,8 +2,9 @@ package auth
 
 import (
 	"errors"
-	"github.com/authgear/authgear-server/pkg/auth/model"
 	"net/http"
+
+	"github.com/authgear/authgear-server/pkg/auth/model"
 
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -44,7 +45,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 }
 
 func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (session AuthSession, user *model.User, err error) {
-	err = db.ReadOnly(m.DBContext, func() (err error) {
+	err = m.DBContext.ReadOnly(func() (err error) {
 		session, err = m.resolveSession(rw, r)
 		if err != nil {
 			return

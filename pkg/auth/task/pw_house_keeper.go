@@ -29,7 +29,7 @@ type PwHousekeeperTask struct {
 }
 
 func (t *PwHousekeeperTask) Run(ctx context.Context, param interface{}) (err error) {
-	return db.WithTx(t.DBContext, func() error { return t.run(param) })
+	return t.DBContext.WithTx(func() error { return t.run(param) })
 }
 
 func (t *PwHousekeeperTask) run(param interface{}) (err error) {

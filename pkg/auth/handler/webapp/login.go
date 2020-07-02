@@ -30,7 +30,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.WithTx(h.DBContext, func() error {
+	h.DBContext.WithTx(func() error {
 		if r.Method == "GET" {
 			writeResponse, err := h.Provider.GetLoginForm(w, r)
 			writeResponse(err)

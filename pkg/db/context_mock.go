@@ -24,17 +24,10 @@ func (c *MockContext) HasTx() bool {
 	return c.DidBegin == true && c.DidCommit == false && c.DidRollback == false
 }
 
-func (c *MockContext) beginTx() error {
-	c.DidBegin = true
-	return nil
+func (c *MockContext) WithTx(do func() error) error {
+	return do()
 }
 
-func (c *MockContext) commitTx() error {
-	c.DidCommit = true
-	return nil
-}
-
-func (c *MockContext) rollbackTx() error {
-	c.DidRollback = true
-	return nil
+func (c *MockContext) ReadOnly(do func() error) error {
+	return do()
 }

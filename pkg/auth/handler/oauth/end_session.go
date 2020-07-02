@@ -44,7 +44,7 @@ func (h *EndSessionHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		req[name] = values[0]
 	}
 
-	err = db.WithTx(h.DBContext, func() error {
+	err = h.DBContext.WithTx(func() error {
 		sess := auth.GetSession(r.Context())
 		return h.EndSessionHandler.Handle(sess, req, r, rw)
 	})

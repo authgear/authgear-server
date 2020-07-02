@@ -28,7 +28,7 @@ type LogoutHandler struct {
 }
 
 func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	db.WithTx(h.DBContext, func() error {
+	h.DBContext.WithTx(func() error {
 		if r.Method == "POST" && r.Form.Get("x_action") == "logout" {
 			sess := auth.GetSession(r.Context())
 			h.SessionManager.Logout(sess, w)
