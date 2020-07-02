@@ -1,11 +1,11 @@
 package provider
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 func loginIDToIdentityInfo(l *loginid.Identity) *identity.Info {

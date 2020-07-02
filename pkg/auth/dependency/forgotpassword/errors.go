@@ -1,7 +1,7 @@
 package forgotpassword
 
 import (
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
 var PasswordResetFailed = skyerr.Invalid.WithReason("PasswordResetFailed")

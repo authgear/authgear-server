@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

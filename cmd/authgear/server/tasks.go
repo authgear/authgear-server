@@ -1,9 +1,9 @@
 package server
 
 import (
-	authtask "github.com/skygeario/skygear-server/pkg/auth/task"
-	"github.com/skygeario/skygear-server/pkg/deps"
-	"github.com/skygeario/skygear-server/pkg/task"
+	authtask "github.com/authgear/authgear-server/pkg/auth/task"
+	"github.com/authgear/authgear-server/pkg/deps"
+	"github.com/authgear/authgear-server/pkg/task"
 )
 
 func setupTasks(registry task.Registry, p *deps.RootProvider) {

@@ -1,6 +1,6 @@
 package config
 
-import "github.com/skygeario/skygear-server/pkg/core/authn"
+import "github.com/authgear/authgear-server/pkg/core/authn"
 
 var _ = Schema.Add("AuthenticationConfig", `
 {

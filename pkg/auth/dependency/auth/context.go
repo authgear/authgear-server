@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 func IsValidAuthn(ctx context.Context) bool {

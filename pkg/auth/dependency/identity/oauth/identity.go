@@ -3,7 +3,7 @@ package oauth
 import (
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/config"
 )
 
 type Identity struct {

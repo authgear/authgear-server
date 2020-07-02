@@ -3,7 +3,7 @@ package password
 import (
 	"encoding/json"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
 var PasswordPolicyViolated skyerr.Kind = skyerr.Invalid.WithReason("PasswordPolicyViolated")

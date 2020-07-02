@@ -5,7 +5,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
 func TestNew(t *testing.T) {

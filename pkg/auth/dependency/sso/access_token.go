@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
 type AccessTokenResp map[string]interface{}

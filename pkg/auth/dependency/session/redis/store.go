@@ -8,12 +8,12 @@ import (
 	goredis "github.com/gomodule/redigo/redis"
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/session"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/log"
-	"github.com/skygeario/skygear-server/pkg/redis"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/redis"
 )
 
 type Logger struct{ *log.Logger }

@@ -1,10 +1,10 @@
 package deps
 
 import (
-	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 	"net/http"
 
-	configsource "github.com/skygeario/skygear-server/pkg/auth/config/source"
+	configsource "github.com/authgear/authgear-server/pkg/auth/config/source"
 )
 
 type RequestMiddleware struct {

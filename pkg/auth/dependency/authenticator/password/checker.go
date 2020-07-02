@@ -15,14 +15,14 @@
 package password
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"regexp"
 	"strings"
 
 	"github.com/nbutton23/zxcvbn-go"
 
-	corepassword "github.com/skygeario/skygear-server/pkg/core/password"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	corepassword "github.com/authgear/authgear-server/pkg/core/password"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
 func isUpperRune(r rune) bool {

@@ -60,7 +60,7 @@ func TestNewAccessEvent(t *testing.T) {
 			extra = base64.StdEncoding.EncodeToString([]byte(extra))
 
 			req, _ := http.NewRequest("POST", "", nil)
-			req.Header.Set("X-Skygear-Extra-Info", extra)
+			req.Header.Set("X-Authgear-Extra-Info", extra)
 
 			event := NewAccessEvent(now, req, true)
 			So(event.Extra, ShouldResemble, AccessEventExtraInfo{})

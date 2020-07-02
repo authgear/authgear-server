@@ -3,15 +3,15 @@ package interaction
 import (
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/event"
+	"github.com/authgear/authgear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/log"
 )
 
 //go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package interaction_test
@@ -25,9 +25,9 @@ type Store interface {
 
 type IdentityProvider interface {
 	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
-	// GetByClaims return user ID and information about the identity the matches the provided skygear claims.
+	// GetByClaims return user ID and information about the identity the matches the provided authgear claims.
 	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error)
-	// GetByUserAndClaims return user's identity that matches the provide skygear claims.
+	// GetByUserAndClaims return user's identity that matches the provided authgear claims.
 	//
 	// Given that user id is provided, the matching rule of this function is less strict than GetByClaims.
 	// For example, login id identity needs match both key and value and oauth identity only needs to match provider id.

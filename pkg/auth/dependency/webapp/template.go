@@ -1,8 +1,8 @@
 package webapp
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/template"
 )
 
 const (
@@ -81,7 +81,7 @@ var TemplateAuthUIFooterHTML = template.Spec{
 	IsHTML: true,
 	Default: `
 {{ define "auth_ui_footer.html" }}
-<div class="skygear-logo"></div>
+<div class="authgear-logo"></div>
 {{ end }}
 `,
 }

@@ -3,8 +3,8 @@ package oauth
 import (
 	"net/url"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth/protocol"
-	coreurl "github.com/skygeario/skygear-server/pkg/core/url"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
+	coreurl "github.com/authgear/authgear-server/pkg/core/url"
 )
 
 type URLProvider struct {

@@ -3,8 +3,8 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 )
 
 type AuthEntryPointMiddleware struct {

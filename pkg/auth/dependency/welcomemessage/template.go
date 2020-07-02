@@ -1,8 +1,8 @@
 package welcomemessage
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/template"
 )
 
 const (
@@ -14,7 +14,7 @@ var TemplateWelcomeEmailTXT = template.Spec{
 	Type: TemplateItemTypeWelcomeEmailTXT,
 	Default: `Hello {{ .email }},
 
-Welcome to Skygear.
+Welcome to {{ .appname }}.
 
 Thanks.`,
 }
@@ -26,7 +26,7 @@ var TemplateWelcomeEmailHTML = template.Spec{
 <html>
 <body>
 <p>Hello {{ .email }},</p>
-<p>Welcome to Skygear.</p>
+<p>Welcome to {{ .appname }}.</p>
 <p>Thanks.</p>
 </body>
 </html>

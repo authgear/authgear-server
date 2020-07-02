@@ -7,14 +7,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/crypto"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
-	corerand "github.com/skygeario/skygear-server/pkg/core/rand"
-	"github.com/skygeario/skygear-server/pkg/core/uuid"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/crypto"
+	"github.com/authgear/authgear-server/pkg/core/errors"
+	corerand "github.com/authgear/authgear-server/pkg/core/rand"
+	"github.com/authgear/authgear-server/pkg/core/uuid"
 )
 
 const (

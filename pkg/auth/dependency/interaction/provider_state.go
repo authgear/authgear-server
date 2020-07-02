@@ -3,11 +3,11 @@ package interaction
 import (
 	"fmt"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
 func (p *Provider) GetInteractionState(i *Interaction) (*State, error) {
@@ -234,7 +234,7 @@ func (p *Provider) getAvailableSecondaryAuthenticators() []authenticator.Spec {
 }
 
 func (p *Provider) listPrimaryAuthenticators(is identity.Spec) (specs []authenticator.Spec, err error) {
-	// Now we use skygear claims to find exactly one identity.
+	// Now we use authgear claims to find exactly one identity.
 	// In the future we may use OIDC claims to list all identities and
 	// resolve which user the actor want to authenticate as.
 	userID, ii, err := p.Identity.GetByClaims(is.Type, is.Claims)

@@ -3,8 +3,8 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/httproute"
 )
 
 func ConfigureEnterLoginIDRoute(route httproute.Route) httproute.Route {

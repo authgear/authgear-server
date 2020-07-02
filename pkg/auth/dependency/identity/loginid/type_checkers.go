@@ -7,10 +7,10 @@ import (
 	confusable "github.com/skygeario/go-confusable-homoglyphs"
 	"golang.org/x/text/secure/precis"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
-	"github.com/skygeario/skygear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
+	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/validation"
 )
 
 const usernameFormat = `^[a-zA-Z0-9_\-.]*$`

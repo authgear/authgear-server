@@ -7,10 +7,10 @@ import (
 
 	"github.com/google/wire"
 
-	handlerinternal "github.com/skygeario/skygear-server/pkg/auth/handler/internalserver"
-	handleroauth "github.com/skygeario/skygear-server/pkg/auth/handler/oauth"
-	handlerwebapp "github.com/skygeario/skygear-server/pkg/auth/handler/webapp"
-	"github.com/skygeario/skygear-server/pkg/deps"
+	handlerinternal "github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
+	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
+	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	"github.com/authgear/authgear-server/pkg/deps"
 )
 
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {

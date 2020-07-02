@@ -9,8 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/skygeario/skygear-server/cmd/authgear/migrate"
-	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/cmd/authgear/migrate"
+	"github.com/authgear/authgear-server/pkg/auth/config"
 )
 
 var SecretConfigPath string

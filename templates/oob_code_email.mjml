@@ -19,7 +19,7 @@
   <mj-section>
     <mj-column>
       <mj-text font-weight="light" font-size="12px" padding="20px">If you didn't sign in or sign up please ignore this email.</mj-text>
-      <mj-image width="65px" height="15px" padding="60px" src="{{ .static_asset_url_prefix }}/authui/image/ic_footer_skygear.png" />
+      <mj-image width="65px" height="15px" padding="60px" src="{{ .static_asset_url_prefix }}/authui/image/ic_footer_authgear.png" />
     </mj-column>
   </mj-section>
 </mj-body>

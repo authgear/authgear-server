@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -33,7 +33,7 @@ func TestAuthnInfo(t *testing.T) {
 
 				i.PopulateHeaders(rw)
 				So(rw.Header(), ShouldResemble, http.Header{
-					"X-Skygear-Session-Valid": []string{"false"},
+					"X-Authgear-Session-Valid": []string{"false"},
 				})
 
 				r := &http.Request{Header: rw.Header()}
@@ -53,11 +53,11 @@ func TestAuthnInfo(t *testing.T) {
 
 				i.PopulateHeaders(rw)
 				So(rw.Header(), ShouldResemble, http.Header{
-					"X-Skygear-Session-Valid":  []string{"true"},
-					"X-Skygear-User-Id":        []string{"user-id"},
-					"X-Skygear-User-Anonymous": []string{"true"},
-					"X-Skygear-Session-Acr":    []string{"http://schemas.openid.net/pape/policies/2007/06/multi-factor"},
-					"X-Skygear-Session-Amr":    []string{"pwd mfa otp"},
+					"X-Authgear-Session-Valid":  []string{"true"},
+					"X-Authgear-User-Id":        []string{"user-id"},
+					"X-Authgear-User-Anonymous": []string{"true"},
+					"X-Authgear-Session-Acr":    []string{"http://schemas.openid.net/pape/policies/2007/06/multi-factor"},
+					"X-Authgear-Session-Amr":    []string{"pwd mfa otp"},
 				})
 
 				r := &http.Request{Header: rw.Header()}

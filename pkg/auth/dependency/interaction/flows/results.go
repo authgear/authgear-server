@@ -3,9 +3,9 @@ package flows
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/model"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/core/handler"
+	"github.com/authgear/authgear-server/pkg/httputil"
 )
 
 type WebAppStep string

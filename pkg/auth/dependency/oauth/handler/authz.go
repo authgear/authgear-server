@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
-	"github.com/skygeario/skygear-server/pkg/core/uuid"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
+	"github.com/authgear/authgear-server/pkg/core/uuid"
 )
 
 func checkAuthorization(

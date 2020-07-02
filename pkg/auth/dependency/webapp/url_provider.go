@@ -7,9 +7,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
-	coreurl "github.com/skygeario/skygear-server/pkg/core/url"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	coreurl "github.com/authgear/authgear-server/pkg/core/url"
 )
 
 type EndpointsProvider interface {
@@ -79,7 +79,7 @@ func (p *URLProvider) ResetPasswordURL(code string) *url.URL {
 }
 
 func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, loginHint string) error {
-	if !strings.HasPrefix(loginHint, "https://auth.skygear.io/login_hint?") {
+	if !strings.HasPrefix(loginHint, "https://authgear.com/login_hint?") {
 		return nil
 	}
 

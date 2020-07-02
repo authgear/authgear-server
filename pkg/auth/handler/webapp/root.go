@@ -3,8 +3,8 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
-	"github.com/skygeario/skygear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/httproute"
 )
 
 func ConfigureRootRoute(route httproute.Route) httproute.Route {

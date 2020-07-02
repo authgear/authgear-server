@@ -3,15 +3,15 @@ package provider
 import (
 	"errors"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/bearertoken"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/recoverycode"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/totp"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/bearertoken"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/recoverycode"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 type PasswordAuthenticatorProvider interface {

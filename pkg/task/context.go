@@ -1,7 +1,7 @@
 package task
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/config"
 )
 
 type Context struct {

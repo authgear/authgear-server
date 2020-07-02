@@ -5,8 +5,8 @@
 package internalserver
 
 import (
+	anonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	gomock "github.com/golang/mock/gomock"
-	anonymous "github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
 	reflect "reflect"
 )
 

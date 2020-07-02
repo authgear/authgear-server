@@ -20,7 +20,7 @@ type MessagingConfig struct {
 
 func (c *MessagingConfig) SetDefaults() {
 	if c.DefaultEmailMessage["sender"] == "" {
-		c.DefaultEmailMessage["sender"] = "no-reply@skygear.io"
+		c.DefaultEmailMessage["sender"] = "no-reply@authgear.com"
 	}
 }
 

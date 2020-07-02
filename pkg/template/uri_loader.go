@@ -3,7 +3,7 @@ package template
 import (
 	"net/url"
 
-	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
 var ErrUnknownURIScheme = errors.New("unknown URI scheme")

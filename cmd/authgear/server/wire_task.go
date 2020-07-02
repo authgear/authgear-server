@@ -5,9 +5,9 @@ package server
 import (
 	"github.com/google/wire"
 
-	authtask "github.com/skygeario/skygear-server/pkg/auth/task"
-	"github.com/skygeario/skygear-server/pkg/deps"
-	"github.com/skygeario/skygear-server/pkg/task"
+	authtask "github.com/authgear/authgear-server/pkg/auth/task"
+	"github.com/authgear/authgear-server/pkg/deps"
+	"github.com/authgear/authgear-server/pkg/task"
 )
 
 func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {

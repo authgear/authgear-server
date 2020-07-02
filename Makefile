@@ -1,7 +1,7 @@
 # GIT_NAME could be empty.
 GIT_NAME ?= $(shell git describe --exact-match 2>/dev/null)
 GIT_HASH ?= git-$(shell git rev-parse --short=12 HEAD)
-LDFLAGS ?= "-X github.com/skygeario/skygear-server/pkg/version.Version=${GIT_HASH}"
+LDFLAGS ?= "-X github.com/authgear/authgear-server/pkg/version.Version=${GIT_HASH}"
 DOCKER_TEMP_TAG ?= authgear-server
 DOCKER_IMAGE ?= quay.io/theauthgear/authgear-server
 
@@ -15,7 +15,6 @@ vendor:
 	go mod download
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
-	go install github.com/skygeario/openapi3-gen/cmd/openapi3-gen
 	(cd scripts/npm && npm ci)
 
 .PHONY: generate

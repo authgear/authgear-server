@@ -3,9 +3,9 @@ package deps
 import (
 	"github.com/google/wire"
 
-	"github.com/skygeario/skygear-server/pkg/auth/task"
-	"github.com/skygeario/skygear-server/pkg/mail"
-	"github.com/skygeario/skygear-server/pkg/sms"
+	"github.com/authgear/authgear-server/pkg/auth/task"
+	"github.com/authgear/authgear-server/pkg/mail"
+	"github.com/authgear/authgear-server/pkg/sms"
 )
 
 var taskDeps = wire.NewSet(

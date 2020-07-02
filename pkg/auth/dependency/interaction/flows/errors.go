@@ -1,6 +1,6 @@
 package flows
 
-import "github.com/skygeario/skygear-server/pkg/core/skyerr"
+import "github.com/authgear/authgear-server/pkg/core/skyerr"
 
 var UnsupportedConfiguration = skyerr.Forbidden.WithReason("UnsupportedConfiguration")
 

@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/skygeario/skygear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/validation"
 )
 
 var Schema = validation.NewMultipartSchema("AppConfig")

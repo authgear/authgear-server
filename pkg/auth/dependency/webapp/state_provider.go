@@ -3,8 +3,8 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	"github.com/skygeario/skygear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/log"
 )
 
 //go:generate mockgen -source=state_provider.go -destination=state_provider_mock_test.go -package webapp

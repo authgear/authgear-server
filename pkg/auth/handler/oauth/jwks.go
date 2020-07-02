@@ -6,8 +6,8 @@ import (
 
 	"github.com/lestrrat-go/jwx/jwk"
 
-	"github.com/skygeario/skygear-server/pkg/httproute"
-	"github.com/skygeario/skygear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/log"
 )
 
 func ConfigureJWKSRoute(route httproute.Route) httproute.Route {

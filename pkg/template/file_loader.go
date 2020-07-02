@@ -5,7 +5,7 @@ import (
 	"os"
 	"unicode/utf8"
 
-	"github.com/skygeario/skygear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
 type FileLoader struct{}

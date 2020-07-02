@@ -3,10 +3,10 @@ package deps
 import (
 	"context"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/task"
-	"github.com/skygeario/skygear-server/pkg/task/executors"
-	"github.com/skygeario/skygear-server/pkg/task/queue"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/task/executors"
+	"github.com/authgear/authgear-server/pkg/task/queue"
 )
 
 type TaskFunc func(ctx context.Context, param interface{}) error

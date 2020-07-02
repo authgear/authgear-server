@@ -4,8 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/core/errors"
 	"github.com/jmoiron/sqlx"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 type Pool struct {

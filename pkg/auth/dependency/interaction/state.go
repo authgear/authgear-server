@@ -1,7 +1,7 @@
 package interaction
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 )
 
 // State represent the derived current state of interaction.

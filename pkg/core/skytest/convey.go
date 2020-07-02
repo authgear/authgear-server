@@ -21,8 +21,8 @@ import (
 	"reflect"
 	"sort"
 
-	coreReflect "github.com/skygeario/skygear-server/pkg/core/reflect"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	coreReflect "github.com/authgear/authgear-server/pkg/core/reflect"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 	"github.com/smartystreets/goconvey/convey"
 )
 

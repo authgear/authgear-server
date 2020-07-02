@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/anonymous"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/identity/oauth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
-	"github.com/skygeario/skygear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 //go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package provider
@@ -95,7 +95,7 @@ func (a *Provider) Get(userID string, typ authn.IdentityType, id string) (*ident
 	panic("interaction_adaptors: unknown identity type " + typ)
 }
 
-// GetByClaims return user ID and information about the identity the matches the provided skygear claims.
+// GetByClaims return user ID and information about the identity the matches the provided authgear claims.
 func (a *Provider) GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error) {
 	switch typ {
 	case authn.IdentityTypeLoginID:
@@ -128,7 +128,7 @@ func (a *Provider) GetByClaims(typ authn.IdentityType, claims map[string]interfa
 	panic("interaction_adaptors: unknown identity type " + typ)
 }
 
-// GetByUserAndClaims return user's identity that matches the provide skygear claims.
+// GetByUserAndClaims return user's identity that matches the provide authgear claims.
 //
 // Given that user id is provided, the matching rule of this function is less strict than GetByClaims.
 // For example, login id identity needs match both key and value and oauth identity only needs to match provider id.

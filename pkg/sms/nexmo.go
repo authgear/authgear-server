@@ -1,9 +1,9 @@
 package sms
 
 import (
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 	nexmo "github.com/njern/gonexmo"
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/core/errors"
 )
 
 var ErrMissingNexmoConfiguration = errors.New("nexmo: configuration is missing")

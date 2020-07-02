@@ -3,8 +3,8 @@ package spec
 import (
 	"errors"
 
-	"github.com/skygeario/skygear-server/pkg/mail"
-	"github.com/skygeario/skygear-server/pkg/sms"
+	"github.com/authgear/authgear-server/pkg/mail"
+	"github.com/authgear/authgear-server/pkg/sms"
 )
 
 const (

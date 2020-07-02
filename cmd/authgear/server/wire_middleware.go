@@ -6,12 +6,12 @@ import (
 	getsentry "github.com/getsentry/sentry-go"
 	"github.com/google/wire"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/webapp"
-	"github.com/skygeario/skygear-server/pkg/core/sentry"
-	"github.com/skygeario/skygear-server/pkg/deps"
-	"github.com/skygeario/skygear-server/pkg/httproute"
-	"github.com/skygeario/skygear-server/pkg/middlewares"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/core/sentry"
+	"github.com/authgear/authgear-server/pkg/deps"
+	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/middlewares"
 )
 
 var rootMiddlewareDependencySet = wire.NewSet(

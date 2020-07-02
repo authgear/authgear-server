@@ -1,8 +1,8 @@
 package hook
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/event"
-	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/auth/event"
+	"github.com/authgear/authgear-server/pkg/auth/model"
 )
 
 //go:generate mockgen -source=mutator.go -destination=mutator_mock_test.go -package hook

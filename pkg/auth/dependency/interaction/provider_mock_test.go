@@ -5,14 +5,14 @@
 package interaction_test
 
 import (
+	authenticator "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	oob "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
+	identity "github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	interaction "github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
+	event "github.com/authgear/authgear-server/pkg/auth/event"
+	model "github.com/authgear/authgear-server/pkg/auth/model"
+	authn "github.com/authgear/authgear-server/pkg/core/authn"
 	gomock "github.com/golang/mock/gomock"
-	authenticator "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator"
-	oob "github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/oob"
-	identity "github.com/skygeario/skygear-server/pkg/auth/dependency/identity"
-	interaction "github.com/skygeario/skygear-server/pkg/auth/dependency/interaction"
-	event "github.com/skygeario/skygear-server/pkg/auth/event"
-	model "github.com/skygeario/skygear-server/pkg/auth/model"
-	authn "github.com/skygeario/skygear-server/pkg/core/authn"
 	reflect "reflect"
 )
 

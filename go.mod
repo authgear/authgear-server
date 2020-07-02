@@ -1,4 +1,4 @@
-module github.com/skygeario/skygear-server
+module github.com/authgear/authgear-server
 
 go 1.13
 
@@ -33,7 +33,6 @@ require (
 	github.com/sfreiberg/gotwilio v0.0.0-20181012193634-a13e5b0d458a
 	github.com/sirupsen/logrus v1.4.2
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
-	github.com/skygeario/openapi3-gen v0.0.0-20190808034633-90418c3d9171
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/cobra v1.0.0

@@ -1,7 +1,7 @@
 package validation_test
 
 import (
-	"github.com/skygeario/skygear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/validation"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"

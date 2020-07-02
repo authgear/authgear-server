@@ -2,8 +2,8 @@ package config
 
 import (
 	"fmt"
+	"github.com/authgear/authgear-server/pkg/validation"
 	"github.com/kelseyhightower/envconfig"
-	"github.com/skygeario/skygear-server/pkg/validation"
 	"strings"
 )
 

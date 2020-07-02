@@ -9,12 +9,12 @@ import (
 
 	redigo "github.com/gomodule/redigo/redis"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/oauth"
-	"github.com/skygeario/skygear-server/pkg/clock"
-	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/log"
-	"github.com/skygeario/skygear-server/pkg/redis"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
+	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/redis"
 )
 
 func toMilliseconds(d time.Duration) int64 {

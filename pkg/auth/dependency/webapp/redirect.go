@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/httputil"
 )
 
 const DefaultRedirectURI = "/settings"

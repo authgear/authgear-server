@@ -2,7 +2,6 @@ package template
 
 import (
 	"fmt"
-	"net/url"
 	"strings"
 	"testing"
 
@@ -161,74 +160,5 @@ func TestTemplateRender(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(out, ShouldEqual, expectation)
 		})
-	})
-}
-
-func TestEncodeContextToURLQueryParamValue(t *testing.T) {
-	Convey("EncodeContextToURLQueryParamValue", t, func() {
-		cases := []struct {
-			Input map[string]interface{}
-		}{
-			{nil},
-			{map[string]interface{}{}},
-			{map[string]interface{}{
-				"a": "b",
-				"nested": map[string]interface{}{
-					"a": "b",
-				},
-			}},
-		}
-		for _, c := range cases {
-			encoded, err := EncodeContextToURLQueryParamValue(c.Input)
-			So(err, ShouldBeNil)
-			decoded, err := DecodeURLQueryParamValueToContext(encoded)
-			So(err, ShouldBeNil)
-			So(decoded, ShouldResemble, c.Input)
-		}
-	})
-}
-
-func TestSetContextToURLQuery(t *testing.T) {
-	Convey("SetContextToURLQuery", t, func() {
-		cases := []struct {
-			URL      string
-			Context  map[string]interface{}
-			Expected string
-		}{
-			{
-				"http://example.com",
-				nil,
-				"http://example.com?x-skygear-redirect-data=",
-			},
-			{
-				"http://example.com",
-				map[string]interface{}{},
-				"http://example.com?x-skygear-redirect-data=e30",
-			},
-			{
-				"http://example.com",
-				map[string]interface{}{
-					"a": "b",
-				},
-				"http://example.com?x-skygear-redirect-data=eyJhIjoiYiJ9",
-			},
-			{
-				"http://example.com",
-				map[string]interface{}{
-					"a": "b",
-					"nested": map[string]interface{}{
-						"a": "b",
-					},
-				},
-				"http://example.com?x-skygear-redirect-data=eyJhIjoiYiIsIm5lc3RlZCI6eyJhIjoiYiJ9fQ",
-			},
-		}
-		for _, c := range cases {
-			u, err := url.Parse(c.URL)
-			So(err, ShouldBeNil)
-			err = SetContextToURLQuery(u, c.Context)
-			So(err, ShouldBeNil)
-			So(u.String(), ShouldEqual, c.Expected)
-		}
 	})
 }

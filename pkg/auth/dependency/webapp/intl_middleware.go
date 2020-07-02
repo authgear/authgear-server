@@ -6,7 +6,7 @@ import (
 
 	"golang.org/x/text/language"
 
-	"github.com/skygeario/skygear-server/pkg/core/intl"
+	"github.com/authgear/authgear-server/pkg/core/intl"
 )
 
 func IntlMiddleware(next http.Handler) http.Handler {

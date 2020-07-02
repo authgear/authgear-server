@@ -5,11 +5,11 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/authenticator/password"
-	"github.com/skygeario/skygear-server/pkg/auth/task/spec"
-	"github.com/skygeario/skygear-server/pkg/db"
-	"github.com/skygeario/skygear-server/pkg/log"
-	"github.com/skygeario/skygear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
+	"github.com/authgear/authgear-server/pkg/auth/task/spec"
+	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/task"
 )
 
 func ConfigurePwHousekeeperTask(registry task.Registry, t task.Task) {

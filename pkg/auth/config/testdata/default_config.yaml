@@ -231,7 +231,7 @@ ui:
 localization: {}
 messaging:
   default_email_message:
-    sender: "no-reply@skygear.io"
+    sender: "no-reply@authgear.com"
   default_sms_message: {}
 authentication:
   identities:

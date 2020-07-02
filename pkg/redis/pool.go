@@ -9,7 +9,7 @@ import (
 	"github.com/FZambia/sentinel"
 	"github.com/gomodule/redigo/redis"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/config"
 )
 
 type Pool struct {

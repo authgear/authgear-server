@@ -4,8 +4,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	"github.com/skygeario/skygear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/validation"
 )
 
 type BodyDefaulter interface {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-gomail/gomail"
 
-	"github.com/skygeario/skygear-server/pkg/auth/config"
-	"github.com/skygeario/skygear-server/pkg/core/intl"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/core/intl"
 )
 
 var ErrMissingSMTPConfiguration = errors.New("mail: configuration is missing")
