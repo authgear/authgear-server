@@ -15,6 +15,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
@@ -25,11 +26,12 @@ import (
 )
 
 type SQLExecutor struct {
-	Context Context
+	Context   context.Context
+	DBContext Context
 }
 
 func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
-	db, err := e.Context.DB()
+	db, err := e.DBContext.DB()
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +50,7 @@ func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 }
 
 func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
-	db, err := e.Context.DB()
+	db, err := e.DBContext.DB()
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +69,7 @@ func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 }
 
 func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) (*sqlx.Row, error) {
-	db, err := e.Context.DB()
+	db, err := e.DBContext.DB()
 	if err != nil {
 		return nil, err
 	}

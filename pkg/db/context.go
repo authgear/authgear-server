@@ -14,8 +14,6 @@ import (
 type ExtContext = sqlx.ExtContext
 
 type Context interface {
-	context.Context
-
 	DB() (ExtContext, error)
 	HasTx() bool
 	UseHook(TransactionHook)

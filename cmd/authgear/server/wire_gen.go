@@ -82,9 +82,11 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	store := &anonymous.Store{
 		SQLBuilder:  sqlBuilder,
@@ -123,7 +125,8 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   contextContext,
+		DBContext: context,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -429,8 +432,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	contextContext := appProvider.Context
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   contextContext,
+		DBContext: context,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -560,7 +565,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	contextContext := appProvider.Context
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
@@ -757,8 +761,10 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	contextContext := appProvider.Context
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   contextContext,
+		DBContext: context,
 	}
 	clockClock := _wireSystemClockValue
 	grantStore := &redis.GrantStore{
@@ -821,9 +827,11 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
@@ -914,8 +922,10 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	contextContext := appProvider.Context
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   contextContext,
+		DBContext: context,
 	}
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1017,8 +1027,10 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	contextContext := appProvider.Context
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   contextContext,
+		DBContext: context,
 	}
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1097,7 +1109,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	contextContext := appProvider.Context
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
@@ -1309,9 +1320,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -1394,18 +1407,17 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -1448,9 +1460,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -1504,7 +1516,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config:  serverConfig,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -1634,7 +1646,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	loginHandler := &webapp2.LoginHandler{
 		Provider:  authenticateProviderImpl,
-		DBContext: context,
+		DBContext: dbContext,
 	}
 	return loginHandler
 }
@@ -1664,9 +1676,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -1749,18 +1763,17 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -1803,9 +1816,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -1859,7 +1872,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:  serverConfig,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -1989,7 +2002,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	signupHandler := &webapp2.SignupHandler{
 		Provider:  authenticateProviderImpl,
-		DBContext: context,
+		DBContext: dbContext,
 	}
 	return signupHandler
 }
@@ -2019,9 +2032,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -2104,18 +2119,17 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -2158,9 +2172,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -2214,7 +2228,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config:  serverConfig,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -2344,7 +2358,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	promoteHandler := &webapp2.PromoteHandler{
 		Provider:  authenticateProviderImpl,
-		DBContext: context,
+		DBContext: dbContext,
 	}
 	return promoteHandler
 }
@@ -2374,9 +2388,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -2459,18 +2475,17 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -2513,9 +2528,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -2569,7 +2584,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config:  serverConfig,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -2699,7 +2714,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ssoCallbackHandler := &webapp2.SSOCallbackHandler{
 		Provider:  authenticateProviderImpl,
-		DBContext: context,
+		DBContext: dbContext,
 	}
 	return ssoCallbackHandler
 }
@@ -2729,9 +2744,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -2814,18 +2831,17 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -2868,9 +2884,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -2924,7 +2940,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config:  serverConfig,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -3054,7 +3070,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	enterLoginIDHandler := &webapp2.EnterLoginIDHandler{
 		Provider:  authenticateProviderImpl,
-		DBContext: context,
+		DBContext: dbContext,
 	}
 	return enterLoginIDHandler
 }
@@ -3084,9 +3100,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -3169,18 +3187,17 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -3223,9 +3240,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -3279,7 +3296,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:  serverConfig,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -3409,7 +3426,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	enterPasswordHandler := &webapp2.EnterPasswordHandler{
 		Provider:  authenticateProviderImpl,
-		DBContext: context,
+		DBContext: dbContext,
 	}
 	return enterPasswordHandler
 }
@@ -3439,9 +3456,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -3524,18 +3543,17 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -3578,9 +3596,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -3634,7 +3652,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:  serverConfig,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -3764,7 +3782,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	createPasswordHandler := &webapp2.CreatePasswordHandler{
 		Provider:  authenticateProviderImpl,
-		DBContext: context,
+		DBContext: dbContext,
 	}
 	return createPasswordHandler
 }
@@ -3794,9 +3812,11 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -3879,18 +3899,17 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -3933,9 +3952,9 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -3989,7 +4008,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:  serverConfig,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -4119,7 +4138,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oobotpHandler := &webapp2.OOBOTPHandler{
 		Provider:  authenticateProviderImpl,
-		DBContext: context,
+		DBContext: dbContext,
 	}
 	return oobotpHandler
 }
@@ -4148,9 +4167,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -4223,7 +4244,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StateStore: stateStoreImpl,
 		Logger:     stateProviderLogger,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
@@ -4242,12 +4262,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -4285,9 +4305,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -4333,7 +4353,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -4410,7 +4430,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Interactions: interactionProvider,
 	}
 	forgotpasswordProvider := &forgotpassword.Provider{
-		Context:         contextContext,
+		Context:         context,
 		ServerConfig:    serverConfig,
 		Localization:    localizationConfig,
 		AppMetadata:     appMetadata,
@@ -4434,7 +4454,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordHandler := &webapp2.ForgotPasswordHandler{
 		Provider:  forgotPasswordProvider,
-		DBContext: context,
+		DBContext: dbContext,
 	}
 	return forgotPasswordHandler
 }
@@ -4463,9 +4483,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -4538,7 +4560,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		StateStore: stateStoreImpl,
 		Logger:     stateProviderLogger,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
@@ -4557,12 +4578,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -4600,9 +4621,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -4648,7 +4669,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -4725,7 +4746,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Interactions: interactionProvider,
 	}
 	forgotpasswordProvider := &forgotpassword.Provider{
-		Context:         contextContext,
+		Context:         context,
 		ServerConfig:    serverConfig,
 		Localization:    localizationConfig,
 		AppMetadata:     appMetadata,
@@ -4749,7 +4770,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	forgotPasswordSuccessHandler := &webapp2.ForgotPasswordSuccessHandler{
 		Provider:  forgotPasswordProvider,
-		DBContext: context,
+		DBContext: dbContext,
 	}
 	return forgotPasswordSuccessHandler
 }
@@ -4778,9 +4799,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -4853,7 +4876,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StateStore: stateStoreImpl,
 		Logger:     stateProviderLogger,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
@@ -4872,12 +4894,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -4915,9 +4937,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -4963,7 +4985,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -5040,7 +5062,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Interactions: interactionProvider,
 	}
 	forgotpasswordProvider := &forgotpassword.Provider{
-		Context:         contextContext,
+		Context:         context,
 		ServerConfig:    serverConfig,
 		Localization:    localizationConfig,
 		AppMetadata:     appMetadata,
@@ -5064,7 +5086,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	resetPasswordHandler := &webapp2.ResetPasswordHandler{
 		Provider:  forgotPasswordProvider,
-		DBContext: context,
+		DBContext: dbContext,
 	}
 	return resetPasswordHandler
 }
@@ -5093,9 +5115,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -5168,7 +5192,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		StateStore: stateStoreImpl,
 		Logger:     stateProviderLogger,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
@@ -5187,12 +5210,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -5230,9 +5253,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -5278,7 +5301,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -5355,7 +5378,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Interactions: interactionProvider,
 	}
 	forgotpasswordProvider := &forgotpassword.Provider{
-		Context:         contextContext,
+		Context:         context,
 		ServerConfig:    serverConfig,
 		Localization:    localizationConfig,
 		AppMetadata:     appMetadata,
@@ -5379,7 +5402,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	resetPasswordSuccessHandler := &webapp2.ResetPasswordSuccessHandler{
 		Provider:  forgotPasswordProvider,
-		DBContext: context,
+		DBContext: dbContext,
 	}
 	return resetPasswordSuccessHandler
 }
@@ -5402,9 +5425,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -5493,9 +5518,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -5585,18 +5612,17 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	contextContext := appProvider.Context
 	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -5639,9 +5665,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -5695,7 +5721,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config:  serverConfig,
 	}
 	oobProvider := &oob.Provider{
-		Context:        contextContext,
+		Context:        context,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
@@ -5826,7 +5852,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	settingsIdentityHandler := &webapp2.SettingsIdentityHandler{
 		RenderProvider: renderProviderImpl,
 		Provider:       authenticateProviderImpl,
-		DBContext:      context,
+		DBContext:      dbContext,
 	}
 	return settingsIdentityHandler
 }
@@ -5849,9 +5875,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
@@ -5924,7 +5952,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Store:      userStore,
 		Identities: providerProvider,
 	}
-	contextContext := appProvider.Context
 	factory := appProvider.LoggerFactory
 	logger := hook.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
@@ -5932,12 +5959,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		DBContext:      context,
+		DBContext:      dbContext,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
 	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               contextContext,
+		Context:               context,
 		LocalizationConfig:    localizationConfig,
 		MetadataConfiguration: appMetadata,
 		MessagingConfig:       messagingConfig,
@@ -5975,9 +6002,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:      asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   contextContext,
+		Context:   context,
 		Logger:    logger,
-		DBContext: context,
+		DBContext: dbContext,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -6023,7 +6050,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		ServerConfig:   serverConfig,
 		RenderProvider: renderProviderImpl,
 		SessionManager: authSessionManager,
-		DBContext:      context,
+		DBContext:      dbContext,
 	}
 	return logoutHandler
 }
@@ -6140,9 +6167,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := appProvider.DbContext
+	context := appProvider.Context
+	dbContext := appProvider.DbContext
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   context,
+		DBContext: dbContext,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -6229,7 +6258,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               authAccessEventProvider,
 		Users:                      queries,
-		DBContext:                  context,
+		DBContext:                  dbContext,
 	}
 	return middleware
 }
@@ -6260,8 +6289,10 @@ func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	contextContext := appProvider.Context
 	sqlExecutor := db.SQLExecutor{
-		Context: context,
+		Context:   contextContext,
+		DBContext: context,
 	}
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
