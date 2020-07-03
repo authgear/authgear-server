@@ -76,3 +76,8 @@ static:
 	cp -R ./static/. "./dist/${GIT_HASH}"
 	# Process CSS
 	./scripts/npm/node_modules/.bin/postcss './static/**/*.css' --base './static/' --dir "./dist/${GIT_HASH}" --config ./scripts/npm/postcss.config.js
+
+.PHONY: export-schemas
+export-schemas:
+	go run ./scripts/exportschemas -s app-config -o tmp/app-config.schema.json
+	go run ./scripts/exportschemas -s secrets-config -o tmp/secrets-config.schema.json
