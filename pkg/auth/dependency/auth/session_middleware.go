@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
 	"github.com/authgear/authgear-server/pkg/auth/model"
 
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -44,22 +45,25 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (session AuthSession, user *model.User, err error) {
+func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s AuthSession, u *model.User, err error) {
 	err = m.Database.ReadOnly(func() (err error) {
-		session, err = m.resolveSession(rw, r)
+		s, err = m.resolveSession(rw, r)
 		if err != nil {
 			return
 		}
 		// No session credentials provided, return no error and no resolved session
-		if session == nil {
+		if s == nil {
 			return
 		}
-		user, err = m.Users.Get(session.AuthnAttrs().UserID)
+		u, err = m.Users.Get(s.AuthnAttrs().UserID)
 		if err != nil {
+			if errors.Is(err, user.ErrUserNotFound) {
+				err = ErrInvalidSession
+			}
 			return
 		}
-		event := session.GetAccessInfo().LastAccess
-		err = m.AccessEvents.RecordAccess(session, event)
+		event := s.GetAccessInfo().LastAccess
+		err = m.AccessEvents.RecordAccess(s, event)
 		if err != nil {
 			return
 		}
