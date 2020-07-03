@@ -25,7 +25,7 @@ func ProvideCaptureTaskContext(config *config.Config) queue.CaptureTaskContext {
 
 func ProvideRestoreTaskContext(p *RootProvider) executors.RestoreTaskContext {
 	return func(ctx context.Context, taskCtx *task.Context) context.Context {
-		rp := p.NewTaskProvider(ctx, taskCtx.Config)
+		rp := p.NewAppProvider(ctx, taskCtx.Config)
 		ctx = withProvider(ctx, rp)
 		return ctx
 	}

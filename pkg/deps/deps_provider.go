@@ -1,6 +1,9 @@
 package deps
 
 import (
+	"context"
+	"net/http"
+
 	"github.com/google/wire"
 
 	configsource "github.com/authgear/authgear-server/pkg/auth/config/source"
@@ -27,7 +30,6 @@ var appRootDeps = wire.NewSet(
 	rootDeps,
 	wire.FieldsOf(new(*AppProvider),
 		"RootProvider",
-		"Context",
 		"Config",
 		"LoggerFactory",
 		"Database",
@@ -45,12 +47,15 @@ var RootDependencySet = wire.NewSet(
 	),
 )
 
+func ProvideRequestContext(r *http.Request) context.Context { return r.Context() }
+
 var RequestDependencySet = wire.NewSet(
 	appRootDeps,
 	wire.FieldsOf(new(*RequestProvider),
 		"AppProvider",
 		"Request",
 	),
+	ProvideRequestContext,
 	requestDeps,
 )
 
@@ -58,6 +63,7 @@ var TaskDependencySet = wire.NewSet(
 	appRootDeps,
 	wire.FieldsOf(new(*TaskProvider),
 		"AppProvider",
+		"Context",
 	),
 	taskDeps,
 )

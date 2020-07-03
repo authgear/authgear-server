@@ -88,26 +88,9 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 	}
 }
 
-func (p *RootProvider) NewRequestProvider(r *http.Request, cfg *config.Config) *RequestProvider {
-	ap := p.NewAppProvider(r.Context(), cfg)
-
-	return &RequestProvider{
-		AppProvider: ap,
-		Request:     r,
-	}
-}
-
-func (p *RootProvider) NewTaskProvider(ctx context.Context, cfg *config.Config) *TaskProvider {
-	ap := p.NewAppProvider(ctx, cfg)
-
-	return &TaskProvider{
-		AppProvider: ap,
-	}
-}
-
 func (p *RootProvider) Handler(factory func(*RequestProvider) http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		p := getRequestProvider(r.Context())
+		p := getRequestProvider(r)
 		h := factory(p)
 		h.ServeHTTP(w, r)
 	})
@@ -120,7 +103,7 @@ func (p *RootProvider) RootMiddleware(factory func(*RootProvider) httproute.Midd
 func (p *RootProvider) Middleware(factory func(*RequestProvider) httproute.Middleware) httproute.Middleware {
 	return httproute.MiddlewareFunc(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			p := getRequestProvider(r.Context())
+			p := getRequestProvider(r)
 			m := factory(p)
 			h := m.Handle(next)
 			h.ServeHTTP(w, r)
@@ -147,6 +130,20 @@ type AppProvider struct {
 	TemplateEngine *template.Engine
 }
 
+func (p *AppProvider) NewRequestProvider(r *http.Request) *RequestProvider {
+	return &RequestProvider{
+		AppProvider: p,
+		Request:     r,
+	}
+}
+
+func (p *AppProvider) NewTaskProvider(ctx context.Context) *TaskProvider {
+	return &TaskProvider{
+		AppProvider: p,
+		Context:     ctx,
+	}
+}
+
 type RequestProvider struct {
 	*AppProvider
 
@@ -155,4 +152,6 @@ type RequestProvider struct {
 
 type TaskProvider struct {
 	*AppProvider
+
+	Context context.Context
 }
