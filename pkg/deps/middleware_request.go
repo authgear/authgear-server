@@ -1,8 +1,9 @@
 package deps
 
 import (
-	"github.com/authgear/authgear-server/pkg/core/errors"
 	"net/http"
+
+	"github.com/authgear/authgear-server/pkg/core/errors"
 
 	configsource "github.com/authgear/authgear-server/pkg/auth/config/source"
 )
@@ -27,8 +28,8 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		rp := m.RootProvider.NewRequestProvider(r, config)
-		r = r.WithContext(withProvider(r.Context(), rp))
+		ap := m.RootProvider.NewAppProvider(r.Context(), config)
+		r = r.WithContext(withProvider(r.Context(), ap))
 		next.ServeHTTP(w, r)
 	})
 }

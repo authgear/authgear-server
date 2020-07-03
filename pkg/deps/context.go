@@ -1,21 +1,32 @@
 package deps
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 type providerContextKeyType struct{}
 
 var providerContextKey = providerContextKeyType{}
 
-func withProvider(ctx context.Context, p interface{}) context.Context {
-	return context.WithValue(ctx, providerContextKey, p)
+type providerContext struct {
+	p *AppProvider
 }
 
-func getRequestProvider(ctx context.Context) *RequestProvider {
-	p := ctx.Value(providerContextKey).(*RequestProvider)
+func withProvider(ctx context.Context, p *AppProvider) context.Context {
+	return context.WithValue(ctx, providerContextKey, &providerContext{
+		p: p,
+	})
+}
+
+func getRequestProvider(r *http.Request) *RequestProvider {
+	pCtx := r.Context().Value(providerContextKey).(*providerContext)
+	p := pCtx.p.NewRequestProvider(r)
 	return p
 }
 
 func getTaskProvider(ctx context.Context) *TaskProvider {
-	p := ctx.Value(providerContextKey).(*TaskProvider)
+	pCtx := ctx.Value(providerContextKey).(*providerContext)
+	p := pCtx.p.NewTaskProvider(ctx)
 	return p
 }
