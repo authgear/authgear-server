@@ -51,11 +51,10 @@ func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID strin
 		return nil, err
 	}
 
-	var step WebAppStep
 	if i.Intent.Type() == interaction.IntentTypeLogin {
-		step, err = f.handleLogin(i)
+		err = f.handleLogin(i)
 	} else {
-		step, err = f.handleSignup(i)
+		err = f.handleSignup(i)
 	}
 	if err != nil {
 		return nil, err
@@ -69,8 +68,8 @@ func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID strin
 	}
 
 	return &WebAppResult{
-		Step:  step,
-		Token: token,
+		Interaction: i,
+		Token:       token,
 	}, nil
 }
 
@@ -193,7 +192,7 @@ func (f *WebAppFlow) afterAnonymousUserPromotion(i *interaction.Interaction, ir 
 	// failure may cause lost users.
 
 	return &WebAppResult{
-		Step:    WebAppStepCompleted,
-		Cookies: result.Cookies,
+		Interaction: i,
+		Cookies:     result.Cookies,
 	}, nil
 }
