@@ -3,24 +3,15 @@ package flows
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/core/handler"
 	"github.com/authgear/authgear-server/pkg/httputil"
 )
 
-type WebAppStep string
-
-const (
-	WebAppStepAuthenticatePassword WebAppStep = "authenticate.password"
-	WebAppStepAuthenticateOOBOTP   WebAppStep = "authenticate.oob_otp"
-	WebAppStepSetupPassword        WebAppStep = "setup.password"
-	WebAppStepSetupOOBOTP          WebAppStep = "setup.oob_otp"
-	WebAppStepCompleted            WebAppStep = "completed"
-)
-
 type WebAppResult struct {
-	Step  WebAppStep
-	Token string
+	Interaction *interaction.Interaction
+	Token       string
 
 	Cookies []*http.Cookie
 }

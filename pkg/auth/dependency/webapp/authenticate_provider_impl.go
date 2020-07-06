@@ -8,8 +8,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/core/crypto"
 	"github.com/authgear/authgear-server/pkg/core/errors"
 	"github.com/authgear/authgear-server/pkg/core/phone"
@@ -30,6 +32,8 @@ type InteractionFlow interface {
 	AddLoginID(userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
 	UpdateLoginID(userID string, oldLoginID loginid.LoginID, newLoginID loginid.LoginID) (*interactionflows.WebAppResult, error)
 	RemoveLoginID(userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
+
+	GetInteractionState(i *interaction.Interaction) (*interaction.State, error)
 }
 
 type SSOStateCodec interface {
@@ -77,8 +81,13 @@ func (p *AuthenticateProviderImpl) get(w http.ResponseWriter, r *http.Request, t
 }
 
 func (p *AuthenticateProviderImpl) handleResult(w http.ResponseWriter, r *http.Request, result *interactionflows.WebAppResult, err error) {
-	if err != nil {
+	onError := func() {
 		RedirectToCurrentPath(w, r)
+		return
+	}
+
+	if err != nil {
+		onError()
 		return
 	}
 
@@ -86,17 +95,40 @@ func (p *AuthenticateProviderImpl) handleResult(w http.ResponseWriter, r *http.R
 		httputil.UpdateCookie(w, cookie)
 	}
 
-	switch result.Step {
-	case interactionflows.WebAppStepAuthenticatePassword:
-		RedirectToPathWithX(w, r, "/enter_password")
-	case interactionflows.WebAppStepSetupPassword:
-		RedirectToPathWithX(w, r, "/create_password")
-	case interactionflows.WebAppStepAuthenticateOOBOTP:
-		RedirectToPathWithX(w, r, "/oob_otp")
-	case interactionflows.WebAppStepSetupOOBOTP:
-		RedirectToPathWithX(w, r, "/oob_otp")
-	case interactionflows.WebAppStepCompleted:
+	state, err := p.Interactions.GetInteractionState(result.Interaction)
+	if err != nil {
+		onError()
+		return
+	}
+
+	currentStep := state.CurrentStep()
+	switch currentStep.Step {
+	case interaction.StepSetupPrimaryAuthenticator:
+		switch currentStep.AvailableAuthenticators[0].Type {
+		case authn.AuthenticatorTypeOOB:
+			RedirectToPathWithX(w, r, "/oob_otp")
+		case authn.AuthenticatorTypePassword:
+			RedirectToPathWithX(w, r, "/create_password")
+		default:
+			panic("webapp: unexpected authenticator type")
+		}
+	case interaction.StepSetupSecondaryAuthenticator:
+		panic("TODO: support StepSetupSecondaryAuthenticator")
+	case interaction.StepAuthenticatePrimary:
+		switch currentStep.AvailableAuthenticators[0].Type {
+		case authn.AuthenticatorTypeOOB:
+			RedirectToPathWithX(w, r, "/oob_otp")
+		case authn.AuthenticatorTypePassword:
+			RedirectToPathWithX(w, r, "/enter_password")
+		default:
+			panic("webapp: unexpected authenticator type")
+		}
+	case interaction.StepAuthenticateSecondary:
+		panic("TODO: support StepAuthenticateSecondary")
+	case interaction.StepCommit:
 		RedirectToRedirectURI(w, r, p.ServerConfig.TrustProxy)
+	default:
+		panic("webapp: unexpected step")
 	}
 }
 

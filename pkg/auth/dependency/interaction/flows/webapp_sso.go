@@ -110,7 +110,7 @@ func (f *WebAppFlow) LinkWithOAuthProvider(userID string, oauthAuthInfo sso.Auth
 	}
 
 	result = &WebAppResult{
-		Step: WebAppStepCompleted,
+		Interaction: i,
 	}
 
 	return
@@ -146,7 +146,7 @@ func (f *WebAppFlow) UnlinkWithOAuthProvider(userID string, providerConfig *conf
 	}
 
 	result = &WebAppResult{
-		Step: WebAppStepCompleted,
+		Interaction: i,
 	}
 
 	return
