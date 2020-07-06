@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 
 	"sigs.k8s.io/yaml"
@@ -118,8 +119,6 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	return ctx.Error("invalid secrets")
 }
 
-var _ = SecretConfigSchema.Add("SecretKey", `{ "type": "string" }`)
-
 type SecretKey string
 
 const (
@@ -139,17 +138,69 @@ type SecretItemData interface {
 	SensitiveStrings() []string
 }
 
-var _ = SecretConfigSchema.Add("SecretItem", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"key": { "$ref": "#/$defs/SecretKey" },
-		"data": { "type": "object" }
-	},
-	"required": ["key", "data"]
+type secretKeyDef struct {
+	schemaID    string
+	dataFactory func() SecretItemData
 }
-`)
+
+var secretItemKeys = map[SecretKey]secretKeyDef{
+	DatabaseCredentialsKey:    {"DatabaseCredentials", func() SecretItemData { return &DatabaseCredentials{} }},
+	RedisCredentialsKey:       {"RedisCredentials", func() SecretItemData { return &RedisCredentials{} }},
+	OAuthClientCredentialsKey: {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
+	SMTPServerCredentialsKey:  {"SMTPServerCredentials", func() SecretItemData { return &SMTPServerCredentials{} }},
+	TwilioCredentialsKey:      {"TwilioCredentials", func() SecretItemData { return &TwilioCredentials{} }},
+	NexmoCredentialsKey:       {"NexmoCredentials", func() SecretItemData { return &NexmoCredentials{} }},
+	JWTKeyMaterialsKey:        {"JWTKeyMaterials", func() SecretItemData { return &JWTKeyMaterials{} }},
+	OIDCKeyMaterialsKey:       {"OIDCKeyMaterials", func() SecretItemData { return &OIDCKeyMaterials{} }},
+	CSRFKeyMaterialsKey:       {"CSRFKeyMaterials", func() SecretItemData { return &CSRFKeyMaterials{} }},
+	WebhookKeyMaterialsKey:    {"WebhookKeyMaterials", func() SecretItemData { return &WebhookKeyMaterials{} }},
+}
+
+var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
+	"type": "string",
+	"enum": func() []string {
+		var keys []string
+		for key := range secretItemKeys {
+			keys = append(keys, string(key))
+		}
+		sort.Strings(keys)
+		return keys
+	}(),
+})
+
+var _ = SecretConfigSchema.AddJSON("SecretItem", map[string]interface{}{
+	"type":                 "object",
+	"additionalProperties": false,
+	"properties": map[string]interface{}{
+		"key":  map[string]interface{}{"$ref": "#/$defs/SecretKey"},
+		"data": map[string]interface{}{},
+	},
+	"allOf": func() []interface{} {
+		var keys []string
+		for key := range secretItemKeys {
+			keys = append(keys, string(key))
+		}
+		sort.Strings(keys)
+
+		var schemas []interface{}
+		for _, key := range keys {
+			schemas = append(schemas, map[string]interface{}{
+				"if": map[string]interface{}{
+					"properties": map[string]interface{}{
+						"key": map[string]interface{}{"const": string(key)},
+					},
+				},
+				"then": map[string]interface{}{
+					"properties": map[string]interface{}{
+						"data": map[string]interface{}{"$ref": "#/$defs/" + secretItemKeys[SecretKey(key)].schemaID},
+					},
+				},
+			})
+		}
+		return schemas
+	}(),
+	"required": []string{"key", "data"},
+})
 
 type SecretItem struct {
 	Key     SecretKey       `json:"key,omitempty"`
@@ -158,51 +209,14 @@ type SecretItem struct {
 }
 
 func (i *SecretItem) parse(ctx *validation.Context) {
-	r := bytes.NewReader(i.RawData)
-	var data SecretItemData
-
-	var validator *validation.SchemaValidator
-	switch i.Key {
-	case DatabaseCredentialsKey:
-		validator = SecretConfigSchema.PartValidator("DatabaseCredentials")
-		data = &DatabaseCredentials{}
-	case RedisCredentialsKey:
-		validator = SecretConfigSchema.PartValidator("RedisCredentials")
-		data = &RedisCredentials{}
-	case OAuthClientCredentialsKey:
-		validator = SecretConfigSchema.PartValidator("OAuthClientCredentials")
-		data = &OAuthClientCredentials{}
-	case SMTPServerCredentialsKey:
-		validator = SecretConfigSchema.PartValidator("SMTPServerCredentials")
-		data = &SMTPServerCredentials{}
-	case TwilioCredentialsKey:
-		validator = SecretConfigSchema.PartValidator("TwilioCredentials")
-		data = &TwilioCredentials{}
-	case NexmoCredentialsKey:
-		validator = SecretConfigSchema.PartValidator("NexmoCredentials")
-		data = &NexmoCredentials{}
-	case JWTKeyMaterialsKey:
-		validator = SecretConfigSchema.PartValidator("JWTKeyMaterials")
-		data = &JWTKeyMaterials{}
-	case OIDCKeyMaterialsKey:
-		validator = SecretConfigSchema.PartValidator("OIDCKeyMaterials")
-		data = &OIDCKeyMaterials{}
-	case CSRFKeyMaterialsKey:
-		validator = SecretConfigSchema.PartValidator("CSRFKeyMaterials")
-		data = &CSRFKeyMaterials{}
-	case WebhookKeyMaterialsKey:
-		validator = SecretConfigSchema.PartValidator("WebhookKeyMaterials")
-		data = &WebhookKeyMaterials{}
-	default:
+	def, ok := secretItemKeys[i.Key]
+	if !ok {
 		ctx.Child("key").EmitErrorMessage("unknown secret key")
-		return
-	}
-	if err := validator.Validate(r); err != nil {
-		ctx.Child("data").AddError(err)
 		return
 	}
 
 	decoder := json.NewDecoder(bytes.NewReader(i.RawData))
+	data := def.dataFactory()
 	err := decoder.Decode(data)
 	if err != nil {
 		ctx.Child("data").AddError(err)

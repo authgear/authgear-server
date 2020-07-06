@@ -45,14 +45,18 @@ func NewMultipartSchema(mainPartID string) *MultipartSchema {
 }
 
 func (s *MultipartSchema) Add(partID string, schema string) *MultipartSchema {
-	if s.col != nil {
-		panic("validation: cannot add part when schema is already instantiated")
-	}
 	var schemaObj interface{}
 	if err := json.Unmarshal([]byte(schema), &schemaObj); err != nil {
 		panic(fmt.Sprintf("validation: invalid schema part '%s': %s", partID, err))
 	}
-	s.parts[partID] = schemaObj
+	return s.AddJSON(partID, schemaObj)
+}
+
+func (s *MultipartSchema) AddJSON(partID string, schema interface{}) *MultipartSchema {
+	if s.col != nil {
+		panic("validation: cannot add part when schema is already instantiated")
+	}
+	s.parts[partID] = schema
 	return s
 }
 
