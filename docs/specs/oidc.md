@@ -45,6 +45,7 @@ Authgear acts as OpenID Provider (OP).
     * [acr](#acr)
     * [https://authgear.com/user/is_anonymous](#httpsauthgearcomuseris_anonymous)
     * [https://authgear.com/user/metadata](#httpsauthgearcomusermetadata)
+    * [https://authgear.com/user/is_verified](#httpsauthgearcomuseris_verified)
   * [External application acting as RP while Authgear acting as OP](#external-application-acting-as-rp-while-authgear-acting-as-op)
   * [Authgear acting as authentication server with native application](#authgear-acting-as-authentication-server-with-native-application)
   * [Authgear acting as authentication server with web application](#authgear-acting-as-authentication-server-with-web-application)
@@ -310,6 +311,10 @@ The value `true` means the user is anonymous. Otherwise, it is a normal user.
 ### `https://authgear.com/user/metadata`
 
 Custom metadata of the user.
+
+### `https://authgear.com/user/is_verified`
+
+The value `true` means the user is verified.
 
 ## External application acting as RP while Authgear acting as OP
 

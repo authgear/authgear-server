@@ -1,0 +1,66 @@
+# User Verification
+
+## Definitions
+
+A user is verified if the user fulfill the condition specified by criteria.
+
+An identity is verifiable if:
+- it is an SSO identity; or
+- it is a login ID identity with a configured verifiable login ID key.
+
+An identity is verified if:
+- it is an SSO identity; or
+- it is a login ID identity, and the user has a matching OOB-OTP authenticator.
+
+## Criteria
+
+Developer can configure the criteria used to determine verification status
+of a user. There are two possible criteria:
+
+- `any`: User has a verifiable identity and one of user's verifiable identities is verified.
+- `all`: User has a verifiable identity and all of user's verifiable identities are verified.
+
+By default, criteria `any` is used.
+
+```yaml
+# Use 'all' criteria to determine user verification status
+verification:
+    criteria: all
+```
+
+## Requirement
+
+Developer can configure verification requirement for specific login ID keys.
+The specified login ID keys must have type `email` or `phone`.
+
+When a login ID identity with specified login ID key is created (e.g. during
+sign up), the user is required to verify the login ID using a one-time-
+password sent to the login ID before proceeding. A matching OOB-OTP
+authenticator would be created in the verification process.
+
+By default, user must verify login ID key 'email' and 'phone'.
+
+```yaml
+# Require verification for login ID key 'email' and 'phone'
+verification:
+    login_id_keys: [email, phone]
+```
+
+## Code & Message
+
+The verification code & message can be configured using OOB-OTP authenticator
+configuration.
+
+## Status Flag
+
+The verification status flag of an identity would be shown in the UI of
+account settings page.
+
+The verification status flag of a user would be available in:
+- the user info model (e.g. in webhook); and
+- [OIDC ID token](./oidc.md#httpsauthgearcomuseris_verified); and
+- [resolved session headers](./api-resolver.md#x-authgear-user-verified).
+
+## Future enhancement
+
+- Manual verification
