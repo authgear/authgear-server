@@ -300,3 +300,6 @@ welcome_message:
   email_message:
     subject: Welcome!
   destination: first
+verification:
+  criteria: any
+  login_id_keys: [email, phone]

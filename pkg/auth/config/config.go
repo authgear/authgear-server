@@ -7,6 +7,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
+	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/validation"
 )
 
@@ -38,7 +39,8 @@ var _ = Schema.Add("AppConfig", `
 		"identity": { "$ref": "#/$defs/IdentityConfig" },
 		"authenticator": { "$ref": "#/$defs/AuthenticatorConfig" },
 		"forgot_password": { "$ref": "#/$defs/ForgotPasswordConfig" },
-		"welcome_message": { "$ref": "#/$defs/WelcomeMessageConfig" }
+		"welcome_message": { "$ref": "#/$defs/WelcomeMessageConfig" },
+		"verification": { "$ref": "#/$defs/VerificationConfig" }
 	},
 	"required": ["id"]
 }
@@ -66,6 +68,7 @@ type AppConfig struct {
 
 	ForgotPassword *ForgotPasswordConfig `json:"forgot_password,omitempty"`
 	WelcomeMessage *WelcomeMessageConfig `json:"welcome_message,omitempty"`
+	Verification   *VerificationConfig   `json:"verification,omitempty"`
 }
 
 func (c *AppConfig) Validate(ctx *validation.Context) {
@@ -126,6 +129,31 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 	if !countryCallingCodeDefaultOK {
 		ctx.Child("ui", "country_calling_code", "default").
 			EmitErrorMessage("default country calling code is unlisted")
+	}
+
+	for i, loginIDKey := range c.Verification.LoginIDKeys {
+		var config *LoginIDKeyConfig
+		for _, c := range c.Identity.LoginID.Keys {
+			if c.Key == loginIDKey {
+				cc := c
+				config = &cc
+				break
+			}
+		}
+
+		if config == nil {
+			ctx.Child("verification", "login_id_keys", strconv.Itoa(i)).
+				EmitErrorMessage("login ID key is not allowed")
+		} else {
+			loginIDType, _ := config.Type.MetadataKey()
+			switch loginIDType {
+			case metadata.Email, metadata.Phone:
+				break
+			default:
+				ctx.Child("verification", "login_id_keys", strconv.Itoa(i)).
+					EmitErrorMessage("login ID type is not supported")
+			}
+		}
 	}
 }
 
