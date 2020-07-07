@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/core/intl"
+	"github.com/authgear/authgear-server/pkg/log"
 )
 
 var ErrNoAvailableClient = errors.New("no available SMS client")
@@ -20,8 +21,14 @@ type RawClient interface {
 	Send(from string, to string, body string) error
 }
 
+type Logger struct{ *log.Logger }
+
+func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("sms-client")} }
+
 type Client struct {
 	Context            context.Context
+	Logger             Logger
+	ServerConfig       *config.ServerConfig
 	MessagingConfig    *config.MessagingConfig
 	LocalizationConfig *config.LocalizationConfig
 	TwilioClient       *TwilioClient
@@ -29,6 +36,13 @@ type Client struct {
 }
 
 func (c *Client) Send(opts SendOptions) error {
+	if c.ServerConfig.DevMode {
+		c.Logger.
+			WithField("recipient", opts.To).
+			WithField("body", opts.Body).
+			Debug("sending SMS")
+	}
+
 	var client RawClient
 	switch c.MessagingConfig.SMSProvider {
 	case config.SMSProviderNexmo:

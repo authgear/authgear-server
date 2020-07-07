@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/core/intl"
+	"github.com/authgear/authgear-server/pkg/log"
 )
 
 var ErrMissingSMTPConfiguration = errors.New("mail: configuration is missing")
@@ -19,7 +20,13 @@ type SendOptions struct {
 	HTMLBody      string
 }
 
+type Logger struct{ *log.Logger }
+
+func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("mail-sender")} }
+
 type Sender struct {
+	Logger                    Logger
+	ServerConfig              *config.ServerConfig
 	LocalizationConfiguration *config.LocalizationConfig
 	GomailDialer              *gomail.Dialer
 	Context                   context.Context
@@ -42,6 +49,13 @@ func NewGomailDialer(smtp *config.SMTPServerCredentials) *gomail.Dialer {
 type updateGomailMessageFunc func(opts *SendOptions, msg *gomail.Message) error
 
 func (s *Sender) Send(opts SendOptions) (err error) {
+	if s.ServerConfig.DevMode {
+		s.Logger.
+			WithField("recipient", opts.Recipient).
+			WithField("body", opts.TextBody).
+			Debug("sending email")
+	}
+
 	if s.GomailDialer == nil {
 		err = ErrMissingSMTPConfiguration
 		return

@@ -5596,6 +5596,10 @@ func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
 
 func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	logger := mail.NewLogger(factory)
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	localizationConfig := appConfig.Localization
@@ -5604,10 +5608,13 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	context := p.Context
 	sender := &mail.Sender{
+		Logger:                    logger,
+		ServerConfig:              serverConfig,
 		LocalizationConfiguration: localizationConfig,
 		GomailDialer:              dialer,
 		Context:                   context,
 	}
+	smsLogger := sms.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)
 	twilioClient := sms.NewTwilioClient(twilioCredentials)
@@ -5615,12 +5622,13 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	nexmoClient := sms.NewNexmoClient(nexmoCredentials)
 	client := &sms.Client{
 		Context:            context,
+		Logger:             smsLogger,
+		ServerConfig:       serverConfig,
 		MessagingConfig:    messagingConfig,
 		LocalizationConfig: localizationConfig,
 		TwilioClient:       twilioClient,
 		NexmoClient:        nexmoClient,
 	}
-	factory := appProvider.LoggerFactory
 	sendMessagesLogger := task2.NewSendMessagesLogger(factory)
 	sendMessagesTask := &task2.SendMessagesTask{
 		EmailSender: sender,
