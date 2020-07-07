@@ -20,6 +20,7 @@ func loginIDToIdentityInfo(l *loginid.Identity) *identity.Info {
 	}
 
 	return &identity.Info{
+		UserID:   l.UserID,
 		Type:     authn.IdentityTypeLoginID,
 		ID:       l.ID,
 		Claims:   claims,
@@ -27,10 +28,10 @@ func loginIDToIdentityInfo(l *loginid.Identity) *identity.Info {
 	}
 }
 
-func loginIDFromIdentityInfo(userID string, i *identity.Info) *loginid.Identity {
+func loginIDFromIdentityInfo(i *identity.Info) *loginid.Identity {
 	l := &loginid.Identity{
 		ID:     i.ID,
-		UserID: userID,
+		UserID: i.UserID,
 		Claims: map[string]string{},
 	}
 	for k, v := range i.Claims {
@@ -50,10 +51,10 @@ func loginIDFromIdentityInfo(userID string, i *identity.Info) *loginid.Identity 
 	return l
 }
 
-func oauthFromIdentityInfo(userID string, i *identity.Info) *oauth.Identity {
+func oauthFromIdentityInfo(i *identity.Info) *oauth.Identity {
 	o := &oauth.Identity{
 		ID:     i.ID,
-		UserID: userID,
+		UserID: i.UserID,
 		Claims: map[string]interface{}{},
 	}
 	for k, v := range i.Claims {
@@ -85,6 +86,7 @@ func anonymousToIdentityInfo(a *anonymous.Identity) *identity.Info {
 	}
 
 	return &identity.Info{
+		UserID:   a.UserID,
 		Type:     authn.IdentityTypeAnonymous,
 		ID:       a.ID,
 		Claims:   claims,
@@ -92,10 +94,10 @@ func anonymousToIdentityInfo(a *anonymous.Identity) *identity.Info {
 	}
 }
 
-func anonymousFromIdentityInfo(userID string, i *identity.Info) *anonymous.Identity {
+func anonymousFromIdentityInfo(i *identity.Info) *anonymous.Identity {
 	a := &anonymous.Identity{
 		ID:     i.ID,
-		UserID: userID,
+		UserID: i.UserID,
 	}
 	for k, v := range i.Claims {
 		switch k {

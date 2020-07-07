@@ -28,10 +28,10 @@ type IdentityProvider interface {
 	ListByClaims(claims map[string]string) ([]*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	New(userID string, typ authn.IdentityType, claims map[string]interface{}) (*identity.Info, error)
-	WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) (*identity.Info, error)
-	CreateAll(userID string, is []*identity.Info) error
-	UpdateAll(userID string, is []*identity.Info) error
-	DeleteAll(userID string, is []*identity.Info) error
+	WithClaims(ii *identity.Info, claims map[string]interface{}) (*identity.Info, error)
+	CreateAll(is []*identity.Info) error
+	UpdateAll(is []*identity.Info) error
+	DeleteAll(is []*identity.Info) error
 	Validate(is []*identity.Info) error
 	// RelateIdentityToAuthenticator tells if authenticatorSpec is compatible with and related to identitySpec.
 	//
@@ -48,7 +48,7 @@ type IdentityProvider interface {
 	//
 	//   - login ID identity of login ID type email or phone and OOB OTP authenticator.
 	RelateIdentityToAuthenticator(identitySpec identity.Spec, authenticatorSpec *authenticator.Spec) *authenticator.Spec
-	CheckIdentityDuplicated(is *identity.Info, userID string) error
+	CheckIdentityDuplicated(is *identity.Info) error
 }
 
 type AuthenticatorProvider interface {

@@ -253,10 +253,10 @@ func (a *Provider) New(userID string, typ authn.IdentityType, claims map[string]
 	panic("interaction_adaptors: unknown identity type " + typ)
 }
 
-func (a *Provider) WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) (*identity.Info, error) {
+func (a *Provider) WithClaims(ii *identity.Info, claims map[string]interface{}) (*identity.Info, error) {
 	switch ii.Type {
 	case authn.IdentityTypeLoginID:
-		oldIden := loginIDFromIdentityInfo(userID, ii)
+		oldIden := loginIDFromIdentityInfo(ii)
 		newLoginID := extractLoginIDClaims(claims)
 		newIden, err := a.LoginID.WithLoginID(oldIden, newLoginID)
 		if err != nil {
@@ -269,7 +269,7 @@ func (a *Provider) WithClaims(userID string, ii *identity.Info, claims map[strin
 		if profile, ok = claims[identity.IdentityClaimOAuthProfile].(map[string]interface{}); !ok {
 			profile = map[string]interface{}{}
 		}
-		i := oauthFromIdentityInfo(userID, ii)
+		i := oauthFromIdentityInfo(ii)
 		i.UserProfile = profile
 		return a.toIdentityInfo(i), nil
 	case authn.IdentityTypeAnonymous:
@@ -278,23 +278,23 @@ func (a *Provider) WithClaims(userID string, ii *identity.Info, claims map[strin
 	panic("interaction_adaptors: unknown identity type " + ii.Type)
 }
 
-func (a *Provider) CreateAll(userID string, is []*identity.Info) error {
+func (a *Provider) CreateAll(is []*identity.Info) error {
 	for _, i := range is {
 		switch i.Type {
 		case authn.IdentityTypeLoginID:
-			identity := loginIDFromIdentityInfo(userID, i)
+			identity := loginIDFromIdentityInfo(i)
 			if err := a.LoginID.Create(identity); err != nil {
 				return err
 			}
 
 		case authn.IdentityTypeOAuth:
-			identity := oauthFromIdentityInfo(userID, i)
+			identity := oauthFromIdentityInfo(i)
 			if err := a.OAuth.Create(identity); err != nil {
 				return err
 			}
 
 		case authn.IdentityTypeAnonymous:
-			identity := anonymousFromIdentityInfo(userID, i)
+			identity := anonymousFromIdentityInfo(i)
 			if err := a.Anonymous.Create(identity); err != nil {
 				return err
 			}
@@ -306,16 +306,16 @@ func (a *Provider) CreateAll(userID string, is []*identity.Info) error {
 	return nil
 }
 
-func (a *Provider) UpdateAll(userID string, is []*identity.Info) error {
+func (a *Provider) UpdateAll(is []*identity.Info) error {
 	for _, i := range is {
 		switch i.Type {
 		case authn.IdentityTypeLoginID:
-			identity := loginIDFromIdentityInfo(userID, i)
+			identity := loginIDFromIdentityInfo(i)
 			if err := a.LoginID.Update(identity); err != nil {
 				return err
 			}
 		case authn.IdentityTypeOAuth:
-			identity := oauthFromIdentityInfo(userID, i)
+			identity := oauthFromIdentityInfo(i)
 			if err := a.OAuth.Update(identity); err != nil {
 				return err
 			}
@@ -328,21 +328,21 @@ func (a *Provider) UpdateAll(userID string, is []*identity.Info) error {
 	return nil
 }
 
-func (a *Provider) DeleteAll(userID string, is []*identity.Info) error {
+func (a *Provider) DeleteAll(is []*identity.Info) error {
 	for _, i := range is {
 		switch i.Type {
 		case authn.IdentityTypeLoginID:
-			identity := loginIDFromIdentityInfo(userID, i)
+			identity := loginIDFromIdentityInfo(i)
 			if err := a.LoginID.Delete(identity); err != nil {
 				return err
 			}
 		case authn.IdentityTypeOAuth:
-			identity := oauthFromIdentityInfo(userID, i)
+			identity := oauthFromIdentityInfo(i)
 			if err := a.OAuth.Delete(identity); err != nil {
 				return err
 			}
 		case authn.IdentityTypeAnonymous:
-			identity := anonymousFromIdentityInfo(userID, i)
+			identity := anonymousFromIdentityInfo(i)
 			if err := a.Anonymous.Delete(identity); err != nil {
 				return err
 			}
@@ -421,23 +421,23 @@ func (a *Provider) RelateIdentityToAuthenticator(is identity.Spec, as *authentic
 	panic("interaction_adaptors: unknown identity type " + is.Type)
 }
 
-func (a *Provider) CheckIdentityDuplicated(is *identity.Info, userID string) (err error) {
+func (a *Provider) CheckIdentityDuplicated(is *identity.Info) (err error) {
 	// extract login id unique key
 	loginIDUniqueKey := ""
 	if is.Type == authn.IdentityTypeLoginID {
-		li := loginIDFromIdentityInfo(userID, is)
+		li := loginIDFromIdentityInfo(is)
 		loginIDUniqueKey = li.UniqueKey
 	}
 
 	// extract standard claims
 	claims := extractStandardClaims(is.Claims)
 
-	err = a.LoginID.CheckDuplicated(loginIDUniqueKey, claims, userID)
+	err = a.LoginID.CheckDuplicated(loginIDUniqueKey, claims, is.UserID)
 	if err != nil {
 		return err
 	}
 
-	err = a.OAuth.CheckDuplicated(claims, userID)
+	err = a.OAuth.CheckDuplicated(claims, is.UserID)
 	if err != nil {
 		return err
 	}
@@ -531,6 +531,7 @@ func (a *Provider) toIdentityInfo(o *oauth.Identity) *identity.Info {
 	}
 
 	return &identity.Info{
+		UserID:   o.UserID,
 		Type:     authn.IdentityTypeOAuth,
 		ID:       o.ID,
 		Claims:   claims,

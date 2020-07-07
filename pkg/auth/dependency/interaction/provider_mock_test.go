@@ -130,60 +130,60 @@ func (mr *MockIdentityProviderMockRecorder) New(userID, typ, claims interface{})
 }
 
 // WithClaims mocks base method
-func (m *MockIdentityProvider) WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) (*identity.Info, error) {
+func (m *MockIdentityProvider) WithClaims(ii *identity.Info, claims map[string]interface{}) (*identity.Info, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithClaims", userID, ii, claims)
+	ret := m.ctrl.Call(m, "WithClaims", ii, claims)
 	ret0, _ := ret[0].(*identity.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // WithClaims indicates an expected call of WithClaims
-func (mr *MockIdentityProviderMockRecorder) WithClaims(userID, ii, claims interface{}) *gomock.Call {
+func (mr *MockIdentityProviderMockRecorder) WithClaims(ii, claims interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithClaims", reflect.TypeOf((*MockIdentityProvider)(nil).WithClaims), userID, ii, claims)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithClaims", reflect.TypeOf((*MockIdentityProvider)(nil).WithClaims), ii, claims)
 }
 
 // CreateAll mocks base method
-func (m *MockIdentityProvider) CreateAll(userID string, is []*identity.Info) error {
+func (m *MockIdentityProvider) CreateAll(is []*identity.Info) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAll", userID, is)
+	ret := m.ctrl.Call(m, "CreateAll", is)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateAll indicates an expected call of CreateAll
-func (mr *MockIdentityProviderMockRecorder) CreateAll(userID, is interface{}) *gomock.Call {
+func (mr *MockIdentityProviderMockRecorder) CreateAll(is interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAll", reflect.TypeOf((*MockIdentityProvider)(nil).CreateAll), userID, is)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAll", reflect.TypeOf((*MockIdentityProvider)(nil).CreateAll), is)
 }
 
 // UpdateAll mocks base method
-func (m *MockIdentityProvider) UpdateAll(userID string, is []*identity.Info) error {
+func (m *MockIdentityProvider) UpdateAll(is []*identity.Info) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateAll", userID, is)
+	ret := m.ctrl.Call(m, "UpdateAll", is)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateAll indicates an expected call of UpdateAll
-func (mr *MockIdentityProviderMockRecorder) UpdateAll(userID, is interface{}) *gomock.Call {
+func (mr *MockIdentityProviderMockRecorder) UpdateAll(is interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAll", reflect.TypeOf((*MockIdentityProvider)(nil).UpdateAll), userID, is)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAll", reflect.TypeOf((*MockIdentityProvider)(nil).UpdateAll), is)
 }
 
 // DeleteAll mocks base method
-func (m *MockIdentityProvider) DeleteAll(userID string, is []*identity.Info) error {
+func (m *MockIdentityProvider) DeleteAll(is []*identity.Info) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteAll", userID, is)
+	ret := m.ctrl.Call(m, "DeleteAll", is)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteAll indicates an expected call of DeleteAll
-func (mr *MockIdentityProviderMockRecorder) DeleteAll(userID, is interface{}) *gomock.Call {
+func (mr *MockIdentityProviderMockRecorder) DeleteAll(is interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockIdentityProvider)(nil).DeleteAll), userID, is)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockIdentityProvider)(nil).DeleteAll), is)
 }
 
 // Validate mocks base method
@@ -215,17 +215,17 @@ func (mr *MockIdentityProviderMockRecorder) RelateIdentityToAuthenticator(identi
 }
 
 // CheckIdentityDuplicated mocks base method
-func (m *MockIdentityProvider) CheckIdentityDuplicated(is *identity.Info, userID string) error {
+func (m *MockIdentityProvider) CheckIdentityDuplicated(is *identity.Info) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckIdentityDuplicated", is, userID)
+	ret := m.ctrl.Call(m, "CheckIdentityDuplicated", is)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CheckIdentityDuplicated indicates an expected call of CheckIdentityDuplicated
-func (mr *MockIdentityProviderMockRecorder) CheckIdentityDuplicated(is, userID interface{}) *gomock.Call {
+func (mr *MockIdentityProviderMockRecorder) CheckIdentityDuplicated(is interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIdentityDuplicated", reflect.TypeOf((*MockIdentityProvider)(nil).CheckIdentityDuplicated), is, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIdentityDuplicated", reflect.TypeOf((*MockIdentityProvider)(nil).CheckIdentityDuplicated), is)
 }
 
 // MockAuthenticatorProvider is a mock of AuthenticatorProvider interface
