@@ -1,9 +1,10 @@
 package sms
 
 import (
+	nexmo "github.com/njern/gonexmo"
+
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/core/errors"
-	nexmo "github.com/njern/gonexmo"
 )
 
 var ErrMissingNexmoConfiguration = errors.New("nexmo: configuration is missing")
@@ -13,10 +14,11 @@ type NexmoClient struct {
 }
 
 func NewNexmoClient(c *config.NexmoCredentials) *NexmoClient {
-	var nexmoClient *nexmo.Client
-	if c != nil {
-		nexmoClient, _ = nexmo.NewClient(c.APIKey, c.APISecret)
+	if c == nil {
+		return nil
 	}
+
+	nexmoClient, _ := nexmo.NewClient(c.APIKey, c.APISecret)
 	return &NexmoClient{
 		NexmoClient: nexmoClient,
 	}

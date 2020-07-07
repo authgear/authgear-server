@@ -41,6 +41,8 @@ func (c *Client) Send(opts SendOptions) error {
 			return ErrNoAvailableClient
 		}
 		client = c.TwilioClient
+	default:
+		return ErrNoAvailableClient
 	}
 
 	tags := intl.GetPreferredLanguageTags(c.Context)

@@ -1,9 +1,10 @@
 package sms
 
 import (
+	"github.com/sfreiberg/gotwilio"
+
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/core/errors"
-	"github.com/sfreiberg/gotwilio"
 )
 
 var ErrMissingTwilioConfiguration = errors.New("twilio: configuration is missing")
@@ -13,13 +14,12 @@ type TwilioClient struct {
 }
 
 func NewTwilioClient(c *config.TwilioCredentials) *TwilioClient {
-	var twilioClient *gotwilio.Twilio
-	if c != nil {
-		twilioClient = gotwilio.NewTwilioClient(c.AccountSID, c.AuthToken)
+	if c == nil {
+		return nil
 	}
 
 	return &TwilioClient{
-		TwilioClient: twilioClient,
+		TwilioClient: gotwilio.NewTwilioClient(c.AccountSID, c.AuthToken),
 	}
 }
 
