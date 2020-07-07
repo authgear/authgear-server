@@ -2,7 +2,7 @@
 
   * [Configuration Conventions](#configuration-conventions)
     * [Prefer list over map](#prefer-list-over-map)
-    * [Introduce flag only if necessary](#introduce-flag-only-if-necessary)
+    * [Introduce flag only if necessary](#introduce-flags-only-if-necessary)
   * [References](#references)
 
 ## Configuration Conventions
@@ -35,7 +35,7 @@ login_id_keys:
   type: username
 ```
 
-### Introduce flag only if necessary
+### Introduce flags only if necessary
 
 Add `enabled` or `disabled` flag only if necessary, such as toggling on/off of a feature.
 

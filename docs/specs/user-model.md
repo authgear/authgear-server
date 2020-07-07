@@ -96,7 +96,7 @@ From the user point of view, they do not perform any explicit authentication. Th
 
 #### Anonymous Identity JWT
 
-The server verifies the validity of the key-pair by verify a JWT. A challenge is requested by client on demand, it is one-time use and short-lived. The JWT is provided in the [login_hint](#login-hint)
+The server verifies the validity of the key-pair by verify a JWT. A challenge is requested by the client on demand, it is one-time use and short-lived. The JWT is provided in the [login_hint](./oidc.md#login_hint).
 
 #### Anonymous Identity JWT headers
 
@@ -127,11 +127,11 @@ A login ID has the following attributes:
 - Original value
 - Unique key
 
-A user can have many login IDs. For example, a user can have both an email and a phone number as their login IDs.
+A user can have many login IDs. For example, a user can have both an email and phone number as their login IDs.
 
 #### Login ID Key
 
-Login ID key is symbolic name assigned by the developer.
+Login ID key is a symbolic name assigned by the developer.
 
 #### Login ID Type
 
@@ -194,21 +194,21 @@ Raw login ID does not any validation or normalization. The unique key is the sam
 
 #### Optional Login ID Key during authentication
 
-The login ID provided by the user is normalized against the configured set of login ID keys. If exact one identity is found, the user is identified. Otherwise the login ID is ambiguous. Under default configuration, Email, Phone and Username login ID are disjoined sets so no ambiguity will occur. (Email must contain `@`; Username does not contain `@` or `+`; Phone must contain `+` and does not contain `@`)
+The login ID provided by the user is normalized against the configured set of login ID keys. If exact one identity is found, the user is identified. Otherwise, the login ID is ambiguous. Under default configuration, Email, Phone and Username login ID are disjoint sets so no ambiguity will occur. (Email must contain `@`; Username does not contain `@` or `+`; Phone must contain `+` and does not contain `@`)
 
 #### The purpose of unique key
 
-If the domain part of a Email login ID is internationalized, there is 2 ways to represent the login ID, either in Unicode or punycode-encoded. To ensure the same logical Email login ID always refer to the same user, unique key is generated.
+If the domain part of an Email login ID is internationalized, there are 2 ways to represent the login ID, either in Unicode or punycode-encoded. To ensure the same logical Email login ID always refer to the same user, unique key is generated.
 
 ## Authenticator
 
 Authgear supports various types of authenticator. Authenticator can be primary, secondary or both.
 
-Authenticators has priorities. The first authenticator is the default authenticator in the UI.
+Authenticators have priorities. The first authenticator is the default authenticator in the UI.
 
 ### Primary Authenticator
 
-Primary authenticator authenticates the identity. Each identity has specific applicable primary authenticators. For example, OAuth Identity does not have any applicable primary authenticators.
+Primary authenticators authenticate the identity. Each identity has specific applicable primary authenticators. For example, OAuth Identity does not have any applicable primary authenticators.
 
 ### Secondary Authenticator
 
@@ -236,7 +236,7 @@ To deal with clock skew, the code generated before or after the current time are
 
 Out-of-band One-time-password authenticator is either primary or secondary.
 
-OOB-OTP authenticator is bound to a verified recipient. The recipient can be a verified email address or a verified phone number that can receive SMS messages.
+OOB-OTP authenticator is bound to a verified recipient. The recipient can be a verified email address or verified phone number that can receive SMS messages.
 
 The OTP is 4-digit long.
 
@@ -254,4 +254,4 @@ Recovery code authenticator is secondary.
 
 Recovery codes are generated when the user adds a secondary authenticator first time.
 
-The codes is cryptographically secure random 10-letter string in Crockford's Base32 alphabet.
+The codes are cryptographically secure random 10-letter string in Crockford's Base32 alphabet.

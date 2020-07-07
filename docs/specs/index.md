@@ -13,11 +13,11 @@
   * APIs
     * [Session Resolver](./api-resolver.md)
     * [Admin](./api-admin.md)
-  * [Glossory](#glossory)
+  * [Glossary](#glossary)
 
-## Glossory
+## Glossary
 
-The sections defines the terms used in documentation, specification and technical discussion.
+The section defines the terms used in documentations, specifications and technical discussions.
 
 - User: The person who owns an account in Authgear.
 - Developer: The developer who uses Authgear.

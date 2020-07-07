@@ -176,7 +176,7 @@ For examples:
 
 The UI tries to match an appropriate identity according to the provided parameters. If exactly one identity is matched, the identity is selected. Otherwise `login_hint` is ignored.
 
-Unknown parameters are ignored, and invalid parameters are rejected. However, if user is already logged in and the provided hint is not valid for the current user, it will be ignored instead.
+Unknown parameters are ignored, and invalid parameters are rejected. However, if user is already logged in, and the provided hint is not valid for the current user, it will be ignored instead.
 
 ### acr_values
 
@@ -198,7 +198,7 @@ The custom grant type is for authenticating and issuing tokens directly for anon
 
 ### jwt
 
-Required when the grant type is `urn:authgear:params:oauth:grant-type:anonymous-request`. The value is specified [here](#anonymous-identity-jwt)
+Required when the grant type is `urn:authgear:params:oauth:grant-type:anonymous-request`. The value is specified [here](./user-model.md#anonymous-identity-jwt)
 
 ## Token Response
 
@@ -282,7 +282,7 @@ The value is `["S256"]`
 
 ### amr
 
-To indicate authenticator used in authentication, `amr` claim is used in OIDC ID token.
+To indicate the authenticator used in authentication, `amr` claim is used in OIDC ID token.
 
 `amr` claim is an array of string. It includes authentication method used:
 - If secondary authentication is performed: `mfa` is included.
@@ -346,7 +346,7 @@ To perform step-up authentication, developer can pass a `acr_values` of  `http:/
 
 ## Silent Authentication
 
-Silent authentication is alternative way to refresh access token without a refresh token. It is achieved with `prompt=none&id_token_hint=...`. In web environment, local storage is not a secure place to store refresh token.
+Silent authentication is an alternative way to refresh access token without a refresh token. It is achieved with `prompt=none&id_token_hint=...`. In web environment, local storage is not a secure place to store refresh token.
 
 Since [Cookie sharing approach](#authgear-acting-as-authentication-server-with-web-application) covers all basic use cases, this is not yet implemented.
 
@@ -358,7 +358,7 @@ Since [Cookie sharing approach](#authgear-acting-as-authentication-server-with-w
   - Cookie is used so Server Side Rendering (SSR) app and Single Page App (SPA) are both supported.
 - Cons:
   - Not fully OIDC compliant. The IdP session is used directly.
-  - App must be first party app. That is they are sharing the eTLD+1 domain.
+  - App must be first party app. That is, they are sharing the eTLD+1 domain.
 
 Silent Authentication
 
@@ -379,7 +379,7 @@ Silent Authentication
 1. Authgear creates Idp session and redirects the result (authorization code) back to client SDK
 1. SDK send token request with authorization code + code verifier
 1. Authgear validates authorization code + code verifier
-1. Authgear retursn token response to SDK with id token + access token
+1. Authgear returns token response to SDK with id token + access token
 1. SDK inject authorization header for subsequent requests to AppBackend, the reverse proxy delegate to Authgear to resolve the session.
 1. Trigger silent authentication to obtain new access token when app launches or access token expiry, generate code verifier + code challenge for new authorization flow
 1. Inject iframe with Authgear authorization endpoint, the authorization request includes code request + code challenge + id_token_hint + prompt=none

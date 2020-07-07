@@ -16,18 +16,18 @@ Return a list of past events.
 
 Query parameters:
 
-- `cursor`: the `seq`. If omitted, oldest events are returned.
-- `limit`: Optional integer within the range [1,20].
+- `cursor`: the `seq`. If omitted, the oldest events are returned.
+- `limit`: optional integer within the range [1,20].
 - `status`: optional comma-separated string of event statues to filter.
 
 Response:
 
-```json
+```json5
 {
   "events": [
     {
       "status": "success",
-      "event": { ... }
+      "event": { /* ... */ }
     }
   ]
 }

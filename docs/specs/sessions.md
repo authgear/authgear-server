@@ -41,7 +41,7 @@ Session token must be treated as opaque string.
 
 When the user authenticates successfully, an IdP session is created.
 
-Idp session has configurable lifetime. IdP session may optionally have idle timeout. The session must be accessed before the timeout or the session is expired.
+Idp session has a configurable lifetime. IdP session may optionally have idle timeout. The session must be accessed before the timeout, or the session is expired.
 
 IdP session token is stored in the user agent cookie storage. The cookie domain attribute is configurable. The default value is eTLD + 1. As long as the web application is under the same domain with Authgear, the IdP session is shared across between the two. The cookie is a persistent cookie by default. The cookie is http-only and is not configurable. The cookie is SameSite=lax and is not configurable. The cookie is secure by default.
 
@@ -51,10 +51,10 @@ The IdP session configuration is global.
 
 Each OAuth client has its own configuration of offline grant.
 
-Offline grant consists of a refresh token and an access token. As long as the refresh token remains valid, access tokens can be refreshed with the refresh token independent of the IdP session. Offline grant is intended for use in native application.
+Offline grant consists of a refresh token and access token. As long as the refresh token remains valid, access tokens can be refreshed with the refresh token independent of the IdP session. Offline grant is intended for use in native application.
 
-Access token has configurable lifetime.
+Access token has a configurable lifetime.
 
-Refresh token has configurable lifetime. It cannot be refreshed. The old access token is invalidated during refresh. At any time there is at most one valid access token.
+Refresh token has a configurable lifetime. It cannot be refreshed. The old access token is invalidated during refresh. At any time there is at most one valid access token.
 
 The lifetime of offline grant is the lifetime of its refresh token.

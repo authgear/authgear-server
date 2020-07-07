@@ -54,13 +54,13 @@ BEFORE and AFTER events have the same payload.
 
 All webhook events have the following shape:
 
-```json
+```json5
 {
   "id": "0E1E9537-DF4F-4AF6-8B48-3DB4574D4F24",
   "seq": 435,
   "type": "after_user_create",
-  "payload": { ... },
-  "context": { ... }
+  "payload": { /* ... */ },
+  "context": { /* ... */ }
 }
 ```
 
@@ -157,7 +157,7 @@ BEFORE events webhook handlers can request mutations, see [Webhook Mutations](#w
 
 The time spent in a BEFORE event delivery must not exceed 5 seconds, otherwise it would be considered as a failed delivery. Also, the total time spent in all deliveries of the event must not exceed 10 seconds, otherwise it would also be considered as a failed delivery. Both timeouts are configurable.
 
-BEFORE events are not persisted and their failed deliveries are not retried.
+BEFORE events are not persisted, and their failed deliveries are not retried.
 
 A failed operation does not trigger AFTER events.
 
@@ -216,11 +216,11 @@ The developer is responsible for correctly ordering the webhook handlers. For ex
 
 When a new user is being created.
 
-```json
+```json5
 {
   "payload": {
-    "user": { ... },
-    "identities": [ { ... } ]
+    "user": { /* ... */ },
+    "identities": [ { /* ... */ } ]
   }
 }
 ```
@@ -229,11 +229,11 @@ When a new user is being created.
 
 When a new identity is being created for an existing user. So it does not trigger together with `before_user_create` and `after_user_create`.
 
-```json
+```json5
 {
   "payload": {
-    "user": { ... },
-    "identity": { ... }
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
   }
 }
 ```
@@ -242,12 +242,12 @@ When a new identity is being created for an existing user. So it does not trigge
 
 When an identity is being updated.
 
-```json
+```json5
 {
   "payload": {
-    "user": { ... },
-    "old_identity": { ... },
-    "new_identity": { ... }
+    "user": { /* ... */ },
+    "old_identity": { /* ... */ },
+    "new_identity": { /* ... */ }
   }
 }
 ```
@@ -256,11 +256,11 @@ When an identity is being updated.
 
 When an identity is being deleted from an existing user.
 
-```json
+```json5
 {
   "payload": {
-    "user": { ... },
-    "identity": { ... }
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
   }
 }
 ```
@@ -269,13 +269,13 @@ When an identity is being deleted from an existing user.
 
 When a session is being created for a new user or an existing user.
 
-```json
+```json5
 {
   "payload": {
     "reason": "signup",
-    "user": { ... },
-    "identity": { ... },
-    "session": { ... }
+    "user": { /* ... */ },
+    "identity": { /* ... */ },
+    "session": { /* ... */ }
   }
 }
 ```
@@ -286,12 +286,12 @@ When a session is being created for a new user or an existing user.
 
 When a session is being deleted from an existing user, e.g. logging out.
 
-```json
+```json5
 {
   "payload": {
     "reason": "logout",
-    "user": { ... },
-    "session": { ... }
+    "user": { /* ... */ },
+    "session": { /* ... */ }
   }
 }
 ```
@@ -302,12 +302,12 @@ When a session is being deleted from an existing user, e.g. logging out.
 
 When any user attributes are being updated for an existing user.
 
-```json
+```json5
 {
   "payload": {
     "reason": "administrative",
-    "metadata": { ... },
-    "user": { ... }
+    "metadata": { /* ... */ },
+    "user": { /* ... */ }
   }
 }
 ```
@@ -320,11 +320,11 @@ When any user attributes are being updated for an existing user.
 
 When the password is being updated for an existing user.
 
-```json
+```json5
 {
   "payload": {
     "reason": "reset_password",
-    "user": { ... }
+    "user": { /* ... */ }
   }
 }
 ```
@@ -340,10 +340,10 @@ When an operation could potentially mutate some data (including user, identities
 
 This event can be used to synchronize data to user-managed database.
 
-```json
+```json5
 {
   "payload": {
-    "user": { ... }
+    "user": { /* ... */ }
   }
 }
 ```
@@ -409,11 +409,11 @@ The main purpose of webhook is to allow external services to observe state chang
 
 Therefore, AFTER events are persistent, immutable, and delivered reliably. Otherwise, external services may observe inconsistent changes.
 
-It is not recommended to perform side-effect in BEFORE event handlers. Otherwise, the developer should consider how to compensate for the side-effect of potential failed operation.
+It is not recommended to perform side effects in BEFORE event handlers. Otherwise, the developer should consider how to compensate for the side effects of potential failed operation.
 
 ### Webhook Eventual Consistency
 
-Fundamentally, webhook is a distributed system. When webhook handlers have side-effects, we need to choose between guaranteeing consistency or availability of the system (See [CAP Theorem](#cap-theorem)).
+Fundamentally, webhook is a distributed system. When webhook handlers have side effects, we need to choose between guaranteeing consistency or availability of the system (See [CAP Theorem](#cap-theorem)).
 
 We decided to ensure the availability of the system. To maintain consistency, the developer should take eventual consistency into account when designing their system.
 
@@ -423,27 +423,27 @@ The developer should regularly check the past events for unprocessed events to e
 
 There are four theoretically delivery timing of events: sync BEFORE, async BEFORE, sync AFTER and async AFTER.
 
-Async BEFORE is mostly useless. The oepration may not be successful and the handler cannot affect the operation. So async BEFORE events do not exist.
+Async BEFORE is mostly useless. The operation may not be successful, and the handler cannot affect the operation. So async BEFORE events do not exist.
 
 Sync AFTER cannot be used safely due to the following reasoning:
 
 - If it is not within the operation transaction, async AFTER can be used instead.
-- If it is within the operation transaction and has no side-effects, sync BEFORE can be used instead.
-- If it is within the operation transaction and has side-effects, async AFTER should be used instead.
+- If it is within the operation transaction and has no side effects, sync BEFORE can be used instead.
+- If it is within the operation transaction and has side effects, async AFTER should be used instead.
 
-So sync AFTER events do not exists.
+So sync AFTER events do not exist.
 
 ### CAP Theorem
 
-To simplify, the CAP theorem state that, a distributed data store can satify
+To simplify, the CAP theorem states that a distributed data store can satisfy
 only two of the three properties simultaneously:
 - Consistency
 - Availability
 - Network Partition Tolerance
 
 Since network partition cannot be avoided practically, distributed system would
-need to choose between consistency and availabilty. Most microservice
-architecture prefer availabilty over strong consistency, and instead application
+need to choose between consistency and availability. Most microservice
+architecture prefer availability over strong consistency, and instead application
 state is eventually consistent.
 
 ## Webhook Use Cases

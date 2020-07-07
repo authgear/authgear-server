@@ -15,11 +15,11 @@ Authgear serves web pages and send email and SMS messages. Templates allow the d
 
 ## Template
 
-Each template must have a type, optionally a key and a language tag.
+Each template must have a type, optionally a key and language tag.
 
 ### Template Type
 
-Each template must have a type. The list of types are predefined. Here are some examples
+Each template must have a type. The list of types is predefined. Here are some examples:
 
 ```
 forgot_password_email.html
@@ -43,7 +43,7 @@ To resolve a template, the input is the template type, optionally the template k
 
 All templates have default value so template resolution always succeed.
 
-The templates are first resolved by matching the type and the key. And then select the best language according to the user preferred languages.
+The templates are first resolved by matching the type and the key, and then select the best language according to the user preferred languages.
 
 ## Component Templates
 
@@ -79,7 +79,7 @@ The translation file is a template itself. It is simply a flat JSON object with 
 
 Here is an example of the translation file.
 
-```json
+```json5
 {
   "email.sent": "Hi {1}, an email has been sent to {0}"
 }
@@ -91,7 +91,7 @@ Translation resolution is different from template resolution. Template resolutio
 
 For example,
 
-```json
+```json5
 // The zh variant of auth_ui_translation.json
 {
   "enter.password": "輸入密碼",
@@ -99,7 +99,7 @@ For example,
 }
 ```
 
-```json
+```json5
 // The zh-Hant-HK variant of auth_ui_translation.json
 {
   "enter.password": "入你嘅密碼"

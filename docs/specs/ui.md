@@ -20,15 +20,15 @@ The developer can provide a CSS stylesheet to customize the theme of the UI. Or 
 
 ## The phone input widget
 
-The developer can customize the list of country calling code and the default country calling code of the phone input widget via configuration. By default the list includes all country calling codes globally. The default value is the first one in the list.
+The developer can customize the list of country calling codes and default country calling code of the phone input widget via configuration. By default, the list includes all country calling codes globally. The default value is the first one in the list.
 
 ## frame-ancestors
 
-The `frame-ancestors` directive of the HTTP header `Content-Security-Policy:` is derived from the `redirect_uris` of all clients. If the `redirect_uri` is of scheme `https`, the host is added to to frame-ancestors. If the `redirect_uri` is `http` and the host is loopback address or the domain ends with `.localhost`, the host is also added to frame-ancestors.
+The `frame-ancestors` directive of the HTTP header `Content-Security-Policy:` is derived from the `redirect_uris` of all clients. If the `redirect_uri` is of scheme `https`, the host is added to frame-ancestors. If the `redirect_uri` is `http` and the host is loopback address, or the domain ends with `.localhost`, the host is also added to frame-ancestors.
 
 ## The login page
 
-The login page authenticates the user. It lists out the configured IdPs. It shows a text field for login ID. The login ID field is either a plain text input or a phone number input, depending on the type of the first login ID key. Link to the forgot password page is shown if Password Authenticator is enabled.
+The login page authenticates the user. It lists out the configured IdPs. It shows a text field for login ID. The login ID field is either a plain text input or phone number input, depending on the type of the first login ID key. Link to the forgot password page is shown if Password Authenticator is enabled.
 
 ```
 |---------------------------|
@@ -89,7 +89,7 @@ The create password page displays a visibility toggleable password field with pa
 
 ## The forgot password page
 
-The forgot password page displays an email text field. When the user enter a valid Email Login ID, a reset password link to sent to that email address.
+The forgot password page displays an email text field. When the user entered a valid Email Login ID, a reset password link to sent to that email address.
 
 ## The reset password page
 
@@ -97,7 +97,7 @@ The reset password page looks like the create password page.
 
 ## The OOB OTP page
 
-The OOB OTP page lets the user to input OOB OTP. A resend button with cooldown is shown as well.
+The OOB OTP page lets the user to input OOB OTP. A resend button with cool-down is shown as well.
 
 ## The identity page
 
