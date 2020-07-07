@@ -45,6 +45,14 @@ func (s *StateStoreImpl) Set(state *State) (err error) {
 	return
 }
 
+func (s *StateStoreImpl) Delete(id string) (err error) {
+	err = s.Redis.WithConn(func(conn redis.Conn) error {
+		_, err := conn.Do("DEL", id)
+		return err
+	})
+	return
+}
+
 func toMilliseconds(d time.Duration) int64 {
 	return int64(d / time.Millisecond)
 }

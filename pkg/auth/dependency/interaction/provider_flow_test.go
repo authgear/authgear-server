@@ -22,7 +22,6 @@ func TestProviderFlow(t *testing.T) {
 
 		identityProvider := NewMockIdentityProvider(ctrl)
 		authenticatorProvider := NewMockAuthenticatorProvider(ctrl)
-		store := NewMockStore(ctrl)
 		userProvider := NewMockUserProvider(ctrl)
 		hooks := NewMockHookProvider(ctrl)
 
@@ -32,7 +31,6 @@ func TestProviderFlow(t *testing.T) {
 			Authenticator: authenticatorProvider,
 			User:          userProvider,
 			Hooks:         hooks,
-			Store:         store,
 		}
 
 		hooks.EXPECT().DispatchEvent(gomock.Any(), gomock.Any()).AnyTimes()
@@ -70,7 +68,6 @@ func TestProviderFlow(t *testing.T) {
 				identityProvider.EXPECT().New(gomock.Any(), gomock.Any(), gomock.Eq(loginIDClaims)).Return(ii, nil)
 				identityProvider.EXPECT().Validate(gomock.Any()).Return(nil)
 				identityProvider.EXPECT().RelateIdentityToAuthenticator(gomock.Eq(is), gomock.Eq(as)).Return(as).AnyTimes()
-				store.EXPECT().Create(gomock.Any()).Return(nil)
 
 				// step 1
 				i, err := p.NewInteractionSignup(
@@ -95,14 +92,7 @@ func TestProviderFlow(t *testing.T) {
 					Props: map[string]interface{}{},
 				})
 
-				iCopy := *i
-				token, err := p.SaveInteraction(i)
-				So(err, ShouldBeNil)
-				So(token, ShouldNotBeEmpty)
-
 				// step 2 setup
-				store.EXPECT().Get(gomock.Eq(token)).Return(&iCopy, nil)
-				store.EXPECT().Delete(gomock.Any()).Return(nil)
 
 				userProvider.EXPECT().Create(
 					gomock.Any(), gomock.Any(), gomock.Eq([]*identity.Info{ii}),
@@ -125,10 +115,7 @@ func TestProviderFlow(t *testing.T) {
 				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 
 				// step 2
-				i2, err := p.GetInteraction(token)
-				So(err, ShouldBeNil)
-
-				state, err = p.GetInteractionState(i2)
+				state, err = p.GetInteractionState(i)
 				So(err, ShouldBeNil)
 				So(state.Steps, ShouldHaveLength, 1)
 				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
@@ -138,19 +125,19 @@ func TestProviderFlow(t *testing.T) {
 					Props: map[string]interface{}{},
 				})
 
-				err = p.PerformAction(i2, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionSetupAuthenticator{
+				err = p.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionSetupAuthenticator{
 					Authenticator: state.Steps[0].AvailableAuthenticators[0],
 					Secret:        "password",
 				})
 				So(err, ShouldBeNil)
 
-				state, err = p.GetInteractionState(i2)
+				state, err = p.GetInteractionState(i)
 				So(err, ShouldBeNil)
 				So(state.Steps, ShouldHaveLength, 2)
 				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
 				So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
 
-				_, err = p.Commit(i2)
+				_, err = p.Commit(i)
 				So(err, ShouldBeNil)
 			})
 
@@ -169,7 +156,6 @@ func TestProviderFlow(t *testing.T) {
 					Props:  map[string]interface{}{},
 					Secret: "password",
 				}
-				store.EXPECT().Create(gomock.Any()).Return(nil)
 
 				identityProvider.EXPECT().GetByClaims(
 					gomock.Eq(authn.IdentityTypeLoginID), gomock.Eq(loginIDClaims),
@@ -198,14 +184,7 @@ func TestProviderFlow(t *testing.T) {
 					Props: map[string]interface{}{},
 				})
 
-				iCopy := *i
-				token, err := p.SaveInteraction(i)
-				So(err, ShouldBeNil)
-				So(token, ShouldNotBeEmpty)
-
 				// step 2 setup
-				store.EXPECT().Get(gomock.Eq(token)).Return(&iCopy, nil)
-				store.EXPECT().Delete(gomock.Any()).Return(nil)
 
 				authenticatorProvider.EXPECT().Authenticate(
 					gomock.Eq(userID), gomock.Eq(ai.ToSpec()), gomock.Any(), gomock.Any(),
@@ -223,10 +202,7 @@ func TestProviderFlow(t *testing.T) {
 				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 
 				// step 2
-				i2, err := p.GetInteraction(token)
-				So(err, ShouldBeNil)
-
-				state, err = p.GetInteractionState(i2)
+				state, err = p.GetInteractionState(i)
 				So(err, ShouldBeNil)
 				So(state.Steps, ShouldHaveLength, 1)
 				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
@@ -236,19 +212,19 @@ func TestProviderFlow(t *testing.T) {
 					Props: map[string]interface{}{},
 				})
 
-				err = p.PerformAction(i2, interaction.StepAuthenticatePrimary, &interaction.ActionAuthenticate{
+				err = p.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionAuthenticate{
 					Authenticator: state.Steps[0].AvailableAuthenticators[0],
 					Secret:        "password",
 				})
 				So(err, ShouldBeNil)
 
-				state, err = p.GetInteractionState(i2)
+				state, err = p.GetInteractionState(i)
 				So(err, ShouldBeNil)
 				So(state.Steps, ShouldHaveLength, 2)
 				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
 				So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
 
-				_, err = p.Commit(i2)
+				_, err = p.Commit(i)
 				So(err, ShouldBeNil)
 
 			})
@@ -295,7 +271,6 @@ func TestProviderFlow(t *testing.T) {
 			authenticatorProvider.EXPECT().List(
 				gomock.Eq(userID), gomock.Eq(authn.AuthenticatorTypeTOTP),
 			).Return([]*authenticator.Info{ai}, nil).AnyTimes()
-			store.EXPECT().Create(gomock.Any()).Return(nil)
 
 			// step 1
 			i, err := p.NewInteractionLogin(
@@ -321,14 +296,7 @@ func TestProviderFlow(t *testing.T) {
 				},
 			})
 
-			iCopy := *i
-			token, err := p.SaveInteraction(i)
-			So(err, ShouldBeNil)
-			So(token, ShouldNotBeEmpty)
-
 			// step 2 setup
-			store.EXPECT().Get(gomock.Eq(token)).Return(&iCopy, nil)
-			store.EXPECT().Delete(gomock.Any()).Return(nil)
 
 			identityProvider.EXPECT().Get(gomock.Eq(userID), ii.Type, ii.ID).Return(ii, nil)
 			identityProvider.EXPECT().WithClaims(
@@ -349,14 +317,12 @@ func TestProviderFlow(t *testing.T) {
 			authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 
 			// step 2 authenticate secondary authenticator
-			i2, err := p.GetInteraction(token)
-			So(err, ShouldBeNil)
 
 			authenticatorProvider.EXPECT().Authenticate(
 				gomock.Eq(userID), gomock.Eq(ai.ToSpec()), gomock.Any(), gomock.Any(),
 			).Return(ai, nil)
 
-			state, err = p.GetInteractionState(i2)
+			state, err = p.GetInteractionState(i)
 			So(err, ShouldBeNil)
 			So(state.Steps, ShouldHaveLength, 1)
 			So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
@@ -368,19 +334,19 @@ func TestProviderFlow(t *testing.T) {
 				},
 			})
 
-			err = p.PerformAction(i2, interaction.StepAuthenticateSecondary, &interaction.ActionAuthenticate{
+			err = p.PerformAction(i, interaction.StepAuthenticateSecondary, &interaction.ActionAuthenticate{
 				Authenticator: state.Steps[0].AvailableAuthenticators[0],
 				Secret:        "123456",
 			})
 			So(err, ShouldBeNil)
 
-			state, err = p.GetInteractionState(i2)
+			state, err = p.GetInteractionState(i)
 			So(err, ShouldBeNil)
 			So(state.Steps, ShouldHaveLength, 2)
 			So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
 			So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
 
-			_, err = p.Commit(i2)
+			_, err = p.Commit(i)
 			So(err, ShouldBeNil)
 		})
 
@@ -583,8 +549,6 @@ func TestProviderFlow(t *testing.T) {
 				// get user for hook
 				userProvider.EXPECT().Get(gomock.Eq(userID)).Return(&model.User{}, nil)
 
-				store.EXPECT().Delete(gomock.Any()).Return(nil)
-
 				// start flow
 				i, err := p.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
 					Identity: identity.Spec{
@@ -709,8 +673,6 @@ func TestProviderFlow(t *testing.T) {
 			// get user for hook
 			userProvider.EXPECT().Get(gomock.Eq(userID)).Return(&model.User{}, nil)
 
-			store.EXPECT().Delete(gomock.Any()).Return(nil)
-
 			// start flow
 			i, err := p.NewInteractionUpdateIdentity(&interaction.IntentUpdateIdentity{
 				OldIdentity: identity.Spec{
@@ -819,8 +781,6 @@ func TestProviderFlow(t *testing.T) {
 				// get user for hook
 				userProvider.EXPECT().Get(gomock.Eq(userID)).Return(&model.User{}, nil)
 
-				store.EXPECT().Delete(gomock.Any()).Return(nil)
-
 				// start flow
 				i, err := p.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
 					Identity: identity.Spec{
@@ -868,8 +828,6 @@ func TestProviderFlow(t *testing.T) {
 			var emptyAuthenticatorInfoList []*authenticator.Info
 			authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 			authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
-
-			store.EXPECT().Delete(gomock.Any()).Return(nil)
 
 			Convey("should update authenticator", func() {
 				// setup

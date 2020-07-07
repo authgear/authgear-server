@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
 func (p *Provider) PerformAction(i *Interaction, step Step, action Action) error {
@@ -51,10 +50,7 @@ func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step 
 		switch action := action.(type) {
 		case *ActionAuthenticate:
 			authen, err := p.doAuthenticate(i, step, &i.State, intent.Identity, action.Authenticator, action.Secret)
-			if skyerr.IsAPIError(err) {
-				i.Error = skyerr.AsAPIError(err)
-				return nil
-			} else if err != nil {
+			if err != nil {
 				return err
 			}
 
@@ -65,7 +61,6 @@ func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step 
 			} else {
 				i.SecondaryAuthenticator = &ar
 			}
-			i.Error = nil
 			return nil
 
 		case *ActionTriggerOOBAuthenticator:
@@ -125,10 +120,7 @@ func (p *Provider) performActionUpdateAuthenticator(i *Interaction, intent *Inte
 
 	ai := i.PendingAuthenticator
 	changed, newAuthen, err := p.Authenticator.WithSecret(i.UserID, ai, act.Secret)
-	if skyerr.IsAPIError(err) {
-		i.Error = skyerr.AsAPIError(err)
-		return nil
-	} else if err != nil {
+	if err != nil {
 		return err
 	}
 
@@ -140,7 +132,6 @@ func (p *Provider) performActionUpdateAuthenticator(i *Interaction, intent *Inte
 	ar := newAuthen.ToRef()
 	i.PrimaryAuthenticator = &ar
 	i.PendingAuthenticator = nil
-	i.Error = nil
 	return nil
 
 }
@@ -149,16 +140,12 @@ func (p *Provider) setupPrimaryAuthenticator(i *Interaction, step *StepState, s 
 	switch action := action.(type) {
 	case *ActionSetupAuthenticator:
 		authen, err := p.setupAuthenticator(i, step, &i.State, action.Authenticator, action.Secret)
-		if skyerr.IsAPIError(err) {
-			i.Error = skyerr.AsAPIError(err)
-			return nil
-		} else if err != nil {
+		if err != nil {
 			return err
 		}
 
 		ar := authen.ToRef()
 		i.PrimaryAuthenticator = &ar
-		i.Error = nil
 		return nil
 
 	case *ActionTriggerOOBAuthenticator:

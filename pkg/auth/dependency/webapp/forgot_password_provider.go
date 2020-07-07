@@ -42,7 +42,7 @@ func (p *ForgotPasswordProvider) GetForgotPasswordForm(w http.ResponseWriter, r 
 
 func (p *ForgotPasswordProvider) PostForgotPasswordForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
-		p.StateProvider.CreateState(r, err)
+		p.StateProvider.CreateState(r, nil, err)
 		if err != nil {
 			RedirectToCurrentPath(w, r)
 		} else {
@@ -114,7 +114,7 @@ func (p *ForgotPasswordProvider) GetResetPasswordForm(w http.ResponseWriter, r *
 
 func (p *ForgotPasswordProvider) PostResetPasswordForm(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	writeResponse = func(err error) {
-		p.StateProvider.CreateState(r, err)
+		p.StateProvider.CreateState(r, nil, err)
 		if err != nil {
 			RedirectToCurrentPath(w, r)
 		} else {

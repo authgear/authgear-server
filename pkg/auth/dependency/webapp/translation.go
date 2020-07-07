@@ -82,7 +82,6 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"password-policy-guessable-level-3": "NOT somewhat guessable",
 	"password-policy-guessable-level-4": "Safely unguessable",
 	"password-policy-guessable-level-5": "Very unguessable",
-	"sms-charge-warning": "By providing your phone number, you agree to receive service notifications to your mobile phone. Text messaging rates may apply.",
 
 	"forgot-password-page-title": "Forgot Password",
 	"email-placeholder": "email",

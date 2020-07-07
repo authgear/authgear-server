@@ -62,14 +62,8 @@ func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID strin
 
 	i.Extra[WebAppExtraStateAnonymousUserPromotion] = userID
 
-	token, err := f.Interactions.SaveInteraction(i)
-	if err != nil {
-		return nil, err
-	}
-
 	return &WebAppResult{
 		Interaction: i,
-		Token:       token,
 	}, nil
 }
 

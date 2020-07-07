@@ -11,9 +11,7 @@ import (
 
 type WebAppResult struct {
 	Interaction *interaction.Interaction
-	Token       string
-
-	Cookies []*http.Cookie
+	Cookies     []*http.Cookie
 }
 
 type AuthResult struct {

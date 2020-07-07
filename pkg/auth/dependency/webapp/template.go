@@ -372,8 +372,6 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
-<input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
-
 <input id="password" class="input text-input primary-txt" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}">
 
 <button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
@@ -414,6 +412,8 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
 </div>
 
+<!-- FIXME: x_login_id_input_type, x_calling_code, x_national_number, x_login_id -->
+
 {{ if eq .x_login_id_input_type "phone" }}
 <div class="title primary-txt">{{ localize "oob-otp-page-title--sms" }}</div>
 {{ end }}
@@ -424,15 +424,16 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 {{ template "ERROR" . }}
 
 {{ if eq .x_login_id_input_type "phone" }}
-<div class="description primary-txt">{{ localize "oob-otp-description--sms" .x_oob_otp_code_length .x_calling_code .x_national_number }}</div>
+<!-- FIXME: x_calling_code x_national_number -->
+<div class="description primary-txt">{{ localize "oob-otp-description--sms" .x_oob_otp_code_length "FIXME" "FIXME" }}</div>
 {{ end }}
 {{ if not (eq .x_login_id_input_type "phone") }}
-<div class="description primary-txt">{{ localize "oob-otp-description--email" .x_oob_otp_code_length .x_login_id }}</div>
+<!-- FIXME: x_login_id -->
+<div class="description primary-txt">{{ localize "oob-otp-description--email" .x_oob_otp_code_length "FIXME" }}</div>
 {{ end }}
 
 <form class="vertical-form form-fields-container" method="post" novalidate>
 {{ $.csrfField }}
-<input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
 <input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
@@ -440,7 +441,6 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 
 <form class="link oob-otp-trigger-form" method="post" novalidate>
 {{ $.csrfField }}
-<input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
 <span class="primary-txt">{{ localize "oob-otp-resend-button-hint" }}</span>
 <button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
@@ -478,6 +478,8 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
 </div>
 
+<!-- FIXME: x_old_login_id_value, x_login_id_key, x_login_id_type, x_login_id_input_type -->
+
 <div class="title primary-txt">
 	{{ if .x_old_login_id_value }}
 	{{ localize "enter-login-id-page-title--change" .x_login_id_key }}
@@ -491,7 +493,6 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 <form class="vertical-form form-fields-container" method="post" novalidate>
 
 {{ $.csrfField }}
-<input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 <input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
 <input type="hidden" name="x_login_id_type" value="{{ .x_login_id_type }}">
 <input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
@@ -524,7 +525,6 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 {{ if .x_old_login_id_value }}
 <form class="enter-login-id-remove-form" method="post" novalidate>
 {{ $.csrfField }}
-<input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 <input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
 <input type="hidden" name="x_login_id_type" value="{{ .x_login_id_type }}">
 <input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
@@ -632,6 +632,8 @@ var TemplateAuthUIForgotPasswordSuccessHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
+<!-- FIXME: x_login_id -->
+
 <div class="description primary-txt">{{ localize "forgot-password-success-description" .x_login_id }}</div>
 
 <a class="btn primary-btn align-self-flex-end" href="{{ call .MakeURLWithPathWithoutX "/login" }}">{{ localize "login-button-label--forgot-password-success-page" }}</a>
@@ -706,6 +708,8 @@ var TemplateAuthUIResetPasswordSuccessHTML = template.Spec{
 <div class="title primary-txt">{{ localize "reset-password-success-page-title" }}</div>
 
 {{ template "ERROR" . }}
+
+<!-- FIXME: x_login_id -->
 
 <div class="description primary-txt">{{ localize "reset-password-success-description" .x_login_id }}</div>
 
@@ -953,7 +957,6 @@ var TemplateAuthUICreatePasswordHTML = template.Spec{
 
 <form class="simple-form vertical-form form-fields-container" method="post" novalidate>
 {{ $.csrfField }}
-<input type="hidden" name="x_interaction_token" value="{{ .x_interaction_token }}">
 
 <div class="nav-bar">
 	<button class="btn back-btn" type="button" title="{{ "back-button-title" }}"></button>
@@ -978,12 +981,6 @@ var TemplateAuthUICreatePasswordHTML = template.Spec{
 {{ template "PASSWORD_POLICY" . }}
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
-
-{{ if eq .x_login_id_input_type "phone" }}
-<p class="secondary-txt description">
-{{ localize "sms-charge-warning" }}
-</p>
-{{ end }}
 
 </form>
 {{ template "auth_ui_footer.html" . }}
