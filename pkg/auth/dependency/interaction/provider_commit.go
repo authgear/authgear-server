@@ -11,10 +11,6 @@ import (
 )
 
 func (p *Provider) Commit(i *Interaction) (*Result, error) {
-	if i.saved {
-		panic("interaction: see NOTE(interaction): save-commit")
-	}
-
 	var err error
 	switch intent := i.Intent.(type) {
 	case *IntentLogin:
@@ -73,17 +69,10 @@ func (p *Provider) Commit(i *Interaction) (*Result, error) {
 		return nil, err
 	}
 
-	err = p.Store.Delete(i)
-	if err != nil {
-		p.Logger.WithError(err).Warn("failed to cleanup interaction")
-	}
-
 	attrs := &authn.Attrs{
 		UserID: i.UserID,
 		// TODO(interaction): populate acr & amr
 	}
-
-	i.committed = true
 
 	return &Result{
 		Attrs:    attrs,

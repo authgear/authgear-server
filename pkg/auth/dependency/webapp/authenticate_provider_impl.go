@@ -23,8 +23,8 @@ type InteractionFlow interface {
 	LoginWithLoginID(loginID string) (*interactionflows.WebAppResult, error)
 	SignupWithLoginID(loginIDKey, loginID string) (*interactionflows.WebAppResult, error)
 	PromoteWithLoginID(loginIDKey, loginID string, userID string) (*interactionflows.WebAppResult, error)
-	EnterSecret(token string, secret string) (*interactionflows.WebAppResult, error)
-	TriggerOOBOTP(token string) (*interactionflows.WebAppResult, error)
+	EnterSecret(i *interaction.Interaction, secret string) (*interactionflows.WebAppResult, error)
+	TriggerOOBOTP(i *interaction.Interaction) (*interactionflows.WebAppResult, error)
 	LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	LinkWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 	UnlinkWithOAuthProvider(userID string, providerConfig *config.OAuthSSOProviderConfig) (*interactionflows.WebAppResult, error)
@@ -80,7 +80,13 @@ func (p *AuthenticateProviderImpl) get(w http.ResponseWriter, r *http.Request, t
 	return
 }
 
-func (p *AuthenticateProviderImpl) handleResult(w http.ResponseWriter, r *http.Request, result *interactionflows.WebAppResult, err error) {
+func (p *AuthenticateProviderImpl) handleResult(
+	w http.ResponseWriter,
+	r *http.Request,
+	state *State,
+	result *interactionflows.WebAppResult,
+	err error,
+) {
 	onError := func() {
 		RedirectToCurrentPath(w, r)
 		return
@@ -95,13 +101,13 @@ func (p *AuthenticateProviderImpl) handleResult(w http.ResponseWriter, r *http.R
 		httputil.UpdateCookie(w, cookie)
 	}
 
-	state, err := p.Interactions.GetInteractionState(result.Interaction)
+	iState, err := p.Interactions.GetInteractionState(result.Interaction)
 	if err != nil {
 		onError()
 		return
 	}
 
-	currentStep := state.CurrentStep()
+	currentStep := iState.CurrentStep()
 	switch currentStep.Step {
 	case interaction.StepSetupPrimaryAuthenticator:
 		switch currentStep.AvailableAuthenticators[0].Type {
@@ -126,6 +132,7 @@ func (p *AuthenticateProviderImpl) handleResult(w http.ResponseWriter, r *http.R
 	case interaction.StepAuthenticateSecondary:
 		panic("TODO: support StepAuthenticateSecondary")
 	case interaction.StepCommit:
+		p.StateProvider.DeleteState(state)
 		RedirectToRedirectURI(w, r, p.ServerConfig.TrustProxy)
 	default:
 		panic("webapp: unexpected step")
@@ -139,8 +146,8 @@ func (p *AuthenticateProviderImpl) GetLoginForm(w http.ResponseWriter, r *http.R
 func (p *AuthenticateProviderImpl) LoginWithLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	var result *interactionflows.WebAppResult
 	writeResponse = func(err error) {
-		p.StateProvider.CreateState(r, err)
-		p.handleResult(w, r, result, err)
+		s := p.StateProvider.CreateState(r, result, err)
+		p.handleResult(w, r, s, result, err)
 	}
 
 	p.ValidateProvider.PrepareValues(r.Form)
@@ -160,7 +167,6 @@ func (p *AuthenticateProviderImpl) LoginWithLoginID(w http.ResponseWriter, r *ht
 		return
 	}
 
-	r.Form["x_interaction_token"] = []string{result.Token}
 	return
 }
 
@@ -173,14 +179,15 @@ func (p *AuthenticateProviderImpl) GetOOBOTPForm(w http.ResponseWriter, r *http.
 }
 
 func (p *AuthenticateProviderImpl) EnterSecret(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
+	var state *State
 	var result *interactionflows.WebAppResult
+
 	writeResponse = func(err error) {
-		r.Form.Del("x_password")
-		p.StateProvider.UpdateState(r, err)
-		p.handleResult(w, r, result, err)
+		p.StateProvider.UpdateState(state, result, err)
+		p.handleResult(w, r, state, result, err)
 	}
 
-	_, err = p.StateProvider.RestoreState(r, false)
+	state, err = p.StateProvider.RestoreState(r, false)
 	if err != nil {
 		return
 	}
@@ -193,9 +200,10 @@ func (p *AuthenticateProviderImpl) EnterSecret(w http.ResponseWriter, r *http.Re
 	}
 
 	result, err = p.Interactions.EnterSecret(
-		r.Form.Get("x_interaction_token"),
+		state.Interaction,
 		r.Form.Get("x_password"),
 	)
+
 	if err != nil {
 		return
 	}
@@ -205,13 +213,19 @@ func (p *AuthenticateProviderImpl) EnterSecret(w http.ResponseWriter, r *http.Re
 
 func (p *AuthenticateProviderImpl) TriggerOOBOTP(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	var result *interactionflows.WebAppResult
+	var state *State
 	writeResponse = func(err error) {
-		p.handleResult(w, r, result, err)
+		p.handleResult(w, r, state, result, err)
+	}
+
+	state, err = p.StateProvider.RestoreState(r, false)
+	if err != nil {
+		return
 	}
 
 	p.ValidateProvider.PrepareValues(r.Form)
 
-	result, err = p.Interactions.TriggerOOBOTP(r.Form.Get("x_interaction_token"))
+	result, err = p.Interactions.TriggerOOBOTP(state.Interaction)
 	if err != nil {
 		return
 	}
@@ -230,8 +244,8 @@ func (p *AuthenticateProviderImpl) GetCreatePasswordForm(w http.ResponseWriter, 
 func (p *AuthenticateProviderImpl) CreateLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	var result *interactionflows.WebAppResult
 	writeResponse = func(err error) {
-		p.StateProvider.CreateState(r, err)
-		p.handleResult(w, r, result, err)
+		s := p.StateProvider.CreateState(r, result, err)
+		p.handleResult(w, r, s, result, err)
 	}
 
 	p.ValidateProvider.PrepareValues(r.Form)
@@ -254,7 +268,6 @@ func (p *AuthenticateProviderImpl) CreateLoginID(w http.ResponseWriter, r *http.
 		return
 	}
 
-	r.Form["x_interaction_token"] = []string{result.Token}
 	return
 }
 
@@ -264,12 +277,14 @@ func (p *AuthenticateProviderImpl) GetPromoteLoginIDForm(w http.ResponseWriter, 
 
 func (p *AuthenticateProviderImpl) PromoteLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
 	var result *interactionflows.WebAppResult
+	var state *State
+
 	writeResponse = func(err error) {
-		p.StateProvider.UpdateState(r, err)
-		p.handleResult(w, r, result, err)
+		p.StateProvider.UpdateState(state, result, err)
+		p.handleResult(w, r, state, result, err)
 	}
 
-	state, err := p.StateProvider.RestoreState(r, false)
+	state, err = p.StateProvider.RestoreState(r, false)
 	if err != nil {
 		return
 	}
@@ -295,7 +310,6 @@ func (p *AuthenticateProviderImpl) PromoteLoginID(w http.ResponseWriter, r *http
 		return
 	}
 
-	r.Form["x_interaction_token"] = []string{result.Token}
 	return
 }
 
@@ -320,8 +334,10 @@ func (p *AuthenticateProviderImpl) SetLoginID(r *http.Request) (err error) {
 
 func (p *AuthenticateProviderImpl) LoginIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
 	var authURI string
+	var state *State
+
 	writeResponse = func(err error) {
-		p.StateProvider.UpdateState(r, err)
+		p.StateProvider.UpdateState(state, nil, err)
 		if err != nil {
 			RedirectToCurrentPath(w, r)
 		} else {
@@ -335,7 +351,7 @@ func (p *AuthenticateProviderImpl) LoginIdentityProvider(w http.ResponseWriter, 
 		return
 	}
 
-	p.StateProvider.CreateState(r, nil)
+	state = p.StateProvider.CreateState(r, nil, nil)
 
 	// set hashed csrf cookies to sso state
 	// callback will verify if the request has the same cookie
@@ -349,16 +365,16 @@ func (p *AuthenticateProviderImpl) LoginIdentityProvider(w http.ResponseWriter, 
 	q := r.URL.Query()
 	q.Set("error_uri", r.URL.Path)
 	webappSSOState.SetRequestQuery(q.Encode())
-	state := sso.State{
+	ssoState := sso.State{
 		Action:      "login",
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}
-	encodedState, err := p.SSOStateCodec.EncodeState(state)
+	encodedState, err := p.SSOStateCodec.EncodeState(ssoState)
 	if err != nil {
 		return
 	}
-	authURI, err = oauthProvider.GetAuthURL(state, encodedState)
+	authURI, err = oauthProvider.GetAuthURL(ssoState, encodedState)
 	return
 }
 
@@ -368,8 +384,9 @@ func (p *AuthenticateProviderImpl) GetSettingsIdentity(w http.ResponseWriter, r 
 
 func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
 	var authURI string
+	var state *State
 	writeResponse = func(err error) {
-		p.StateProvider.UpdateState(r, err)
+		p.StateProvider.UpdateState(state, nil, err)
 		if err != nil {
 			RedirectToCurrentPath(w, r)
 		} else {
@@ -385,7 +402,7 @@ func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r
 
 	userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 
-	p.StateProvider.CreateState(r, nil)
+	state = p.StateProvider.CreateState(r, nil, nil)
 
 	// set hashed csrf cookies to sso state
 	// callback will verify if the request has the same cookie
@@ -400,24 +417,25 @@ func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r
 	q.Set("redirect_uri", r.URL.Path)
 	q.Set("error_uri", r.URL.Path)
 	webappSSOState.SetRequestQuery(q.Encode())
-	state := sso.State{
+	ssoState := sso.State{
 		Action:      "link",
 		UserID:      userID,
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}
-	encodedState, err := p.SSOStateCodec.EncodeState(state)
+	encodedState, err := p.SSOStateCodec.EncodeState(ssoState)
 	if err != nil {
 		return
 	}
-	authURI, err = oauthProvider.GetAuthURL(state, encodedState)
+	authURI, err = oauthProvider.GetAuthURL(ssoState, encodedState)
 	return
 }
 
 func (p *AuthenticateProviderImpl) PromoteIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
 	var authURI string
+	var state *State
 	writeResponse = func(err error) {
-		p.StateProvider.UpdateState(r, err)
+		p.StateProvider.UpdateState(state, nil, err)
 		if err != nil {
 			RedirectToCurrentPath(w, r)
 		} else {
@@ -431,7 +449,7 @@ func (p *AuthenticateProviderImpl) PromoteIdentityProvider(w http.ResponseWriter
 		return
 	}
 
-	webappState, err := p.StateProvider.RestoreState(r, false)
+	state, err = p.StateProvider.RestoreState(r, false)
 	if err != nil {
 		return
 	}
@@ -448,25 +466,25 @@ func (p *AuthenticateProviderImpl) PromoteIdentityProvider(w http.ResponseWriter
 	q := r.URL.Query()
 	q.Set("error_uri", r.URL.Path)
 	webappSSOState.SetRequestQuery(q.Encode())
-	state := sso.State{
+	ssoState := sso.State{
 		Action:      "promote",
-		UserID:      webappState.AnonymousUserID,
+		UserID:      state.AnonymousUserID,
 		HashedNonce: hashedNonce,
 		Extra:       webappSSOState,
 	}
-	encodedState, err := p.SSOStateCodec.EncodeState(state)
+	encodedState, err := p.SSOStateCodec.EncodeState(ssoState)
 	if err != nil {
 		return
 	}
-	authURI, err = oauthProvider.GetAuthURL(state, encodedState)
+	authURI, err = oauthProvider.GetAuthURL(ssoState, encodedState)
 	return
 }
 
 func (p *AuthenticateProviderImpl) UnlinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
 	var result *interactionflows.WebAppResult
 	writeResponse = func(err error) {
-		p.StateProvider.CreateState(r, err)
-		p.handleResult(w, r, result, err)
+		s := p.StateProvider.CreateState(r, result, err)
+		p.handleResult(w, r, s, result, err)
 	}
 
 	providerConfig, ok := p.SSOOAuthConfig.GetProviderConfig(providerAlias)
@@ -489,7 +507,7 @@ func (p *AuthenticateProviderImpl) UnlinkIdentityProvider(w http.ResponseWriter,
 
 func (p *AuthenticateProviderImpl) AddOrChangeLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(error), err error) {
 	writeResponse = func(err error) {
-		p.StateProvider.CreateState(r, err)
+		p.StateProvider.CreateState(r, nil, err)
 		RedirectToPathWithX(w, r, "/enter_login_id")
 	}
 
@@ -511,12 +529,13 @@ func (p *AuthenticateProviderImpl) GetEnterLoginIDForm(w http.ResponseWriter, r 
 
 func (p *AuthenticateProviderImpl) EnterLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(error), err error) {
 	var result *interactionflows.WebAppResult
+	var state *State
 	writeResponse = func(err error) {
-		p.StateProvider.UpdateState(r, err)
-		p.handleResult(w, r, result, err)
+		p.StateProvider.UpdateState(state, result, err)
+		p.handleResult(w, r, state, result, err)
 	}
 
-	_, err = p.StateProvider.RestoreState(r, false)
+	state, err = p.StateProvider.RestoreState(r, false)
 	if err != nil {
 		return
 	}
@@ -558,18 +577,18 @@ func (p *AuthenticateProviderImpl) EnterLoginID(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	r.Form["x_interaction_token"] = []string{result.Token}
 	return
 }
 
 func (p *AuthenticateProviderImpl) RemoveLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(error), err error) {
 	var result *interactionflows.WebAppResult
+	var state *State
 	writeResponse = func(err error) {
-		p.StateProvider.UpdateState(r, err)
-		p.handleResult(w, r, result, err)
+		p.StateProvider.UpdateState(state, result, err)
+		p.handleResult(w, r, state, result, err)
 	}
 
-	_, err = p.StateProvider.RestoreState(r, false)
+	state, err = p.StateProvider.RestoreState(r, false)
 	if err != nil {
 		return
 	}
@@ -598,13 +617,14 @@ func (p *AuthenticateProviderImpl) RemoveLoginID(w http.ResponseWriter, r *http.
 func (p *AuthenticateProviderImpl) HandleSSOCallback(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(error), err error) {
 	v := url.Values{}
 	writeResponse = func(err error) {
-		sid := v.Get("x_sid")
+		// sid := v.Get("x_sid")
 
 		if err != nil {
 			// It is assumed that LoginIdentityProvider and LinkIdentityProvider always
 			// generate a state.
-			p.StateProvider.UpdateError(sid, err)
+			// TODO: Fix SSO state
 			// FIXME: temporary fix, see SkygearIO/skygear-server#1478
+			// p.StateProvider.UpdateError(sid, err)
 			callbackURL := v.Get("error_uri")
 			if callbackURL == "" {
 				callbackURL = "/login"

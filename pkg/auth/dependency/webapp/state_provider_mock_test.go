@@ -5,6 +5,7 @@
 package webapp
 
 import (
+	flows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	gomock "github.com/golang/mock/gomock"
 	http "net/http"
 	reflect "reflect"
@@ -62,6 +63,20 @@ func (mr *MockStateStoreMockRecorder) Set(state interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockStateStore)(nil).Set), state)
 }
 
+// Delete mocks base method
+func (m *MockStateStore) Delete(id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete
+func (mr *MockStateStoreMockRecorder) Delete(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockStateStore)(nil).Delete), id)
+}
+
 // MockStateProvider is a mock of StateProvider interface
 type MockStateProvider struct {
 	ctrl     *gomock.Controller
@@ -86,39 +101,29 @@ func (m *MockStateProvider) EXPECT() *MockStateProviderMockRecorder {
 }
 
 // CreateState mocks base method
-func (m *MockStateProvider) CreateState(r *http.Request, inputError error) {
+func (m *MockStateProvider) CreateState(r *http.Request, result *flows.WebAppResult, inputError error) *State {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "CreateState", r, inputError)
+	ret := m.ctrl.Call(m, "CreateState", r, result, inputError)
+	ret0, _ := ret[0].(*State)
+	return ret0
 }
 
 // CreateState indicates an expected call of CreateState
-func (mr *MockStateProviderMockRecorder) CreateState(r, inputError interface{}) *gomock.Call {
+func (mr *MockStateProviderMockRecorder) CreateState(r, result, inputError interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateState", reflect.TypeOf((*MockStateProvider)(nil).CreateState), r, inputError)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateState", reflect.TypeOf((*MockStateProvider)(nil).CreateState), r, result, inputError)
 }
 
 // UpdateState mocks base method
-func (m *MockStateProvider) UpdateState(r *http.Request, inputError error) {
+func (m *MockStateProvider) UpdateState(s *State, r *flows.WebAppResult, inputError error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "UpdateState", r, inputError)
+	m.ctrl.Call(m, "UpdateState", s, r, inputError)
 }
 
 // UpdateState indicates an expected call of UpdateState
-func (mr *MockStateProviderMockRecorder) UpdateState(r, inputError interface{}) *gomock.Call {
+func (mr *MockStateProviderMockRecorder) UpdateState(s, r, inputError interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateState", reflect.TypeOf((*MockStateProvider)(nil).UpdateState), r, inputError)
-}
-
-// UpdateError mocks base method
-func (m *MockStateProvider) UpdateError(id string, inputError error) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "UpdateError", id, inputError)
-}
-
-// UpdateError indicates an expected call of UpdateError
-func (mr *MockStateProviderMockRecorder) UpdateError(id, inputError interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateError", reflect.TypeOf((*MockStateProvider)(nil).UpdateError), id, inputError)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateState", reflect.TypeOf((*MockStateProvider)(nil).UpdateState), s, r, inputError)
 }
 
 // RestoreState mocks base method
@@ -134,4 +139,16 @@ func (m *MockStateProvider) RestoreState(r *http.Request, optional bool) (*State
 func (mr *MockStateProviderMockRecorder) RestoreState(r, optional interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreState", reflect.TypeOf((*MockStateProvider)(nil).RestoreState), r, optional)
+}
+
+// DeleteState mocks base method
+func (m *MockStateProvider) DeleteState(s *State) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "DeleteState", s)
+}
+
+// DeleteState indicates an expected call of DeleteState
+func (mr *MockStateProviderMockRecorder) DeleteState(s interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteState", reflect.TypeOf((*MockStateProvider)(nil).DeleteState), s)
 }

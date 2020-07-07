@@ -142,8 +142,7 @@ func TestValidateProvider(t *testing.T) {
 			impl := ValidateProviderImpl{}
 
 			err = impl.Validate(WebAppSchemaIDEnterPasswordRequest, url.Values{
-				"x_password":          []string{"123456"},
-				"x_interaction_token": []string{"Zu3Zaw4Uav54GOMd2hneCoangX0gvuVi"},
+				"x_password": []string{"123456"},
 			})
 			So(err, ShouldBeNil)
 		})

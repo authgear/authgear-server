@@ -7,8 +7,6 @@ import (
 )
 
 type InteractionProvider interface {
-	GetInteraction(token string) (*interaction.Interaction, error)
-	SaveInteraction(*interaction.Interaction) (string, error)
 	Commit(*interaction.Interaction) (*interaction.Result, error)
 	NewInteractionLogin(intent *interaction.IntentLogin, clientID string) (*interaction.Interaction, error)
 	NewInteractionLoginAs(

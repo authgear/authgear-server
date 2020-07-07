@@ -60,9 +60,6 @@ func (f *PasswordFlow) startUpdatePasswordInteraction(i *interaction.Interaction
 	if err != nil {
 		return err
 	}
-	if i.Error != nil {
-		return i.Error
-	}
 
 	s, err = f.Interactions.GetInteractionState(i)
 	if err != nil {

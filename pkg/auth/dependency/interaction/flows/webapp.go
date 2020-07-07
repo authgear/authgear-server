@@ -39,14 +39,8 @@ func (f *WebAppFlow) LoginWithLoginID(loginID string) (*WebAppResult, error) {
 		return nil, err
 	}
 
-	token, err := f.Interactions.SaveInteraction(i)
-	if err != nil {
-		return nil, err
-	}
-
 	return &WebAppResult{
 		Interaction: i,
-		Token:       token,
 	}, nil
 }
 
@@ -69,14 +63,8 @@ func (f *WebAppFlow) SignupWithLoginID(loginIDKey, loginID string) (*WebAppResul
 		return nil, err
 	}
 
-	token, err := f.Interactions.SaveInteraction(i)
-	if err != nil {
-		return nil, err
-	}
-
 	return &WebAppResult{
 		Interaction: i,
-		Token:       token,
 	}, nil
 }
 
@@ -134,12 +122,7 @@ func (f *WebAppFlow) handleSignup(i *interaction.Interaction) error {
 	return nil
 }
 
-func (f *WebAppFlow) EnterSecret(token string, secret string) (*WebAppResult, error) {
-	i, err := f.Interactions.GetInteraction(token)
-	if err != nil {
-		return nil, err
-	}
-
+func (f *WebAppFlow) EnterSecret(i *interaction.Interaction, secret string) (*WebAppResult, error) {
 	s, err := f.Interactions.GetInteractionState(i)
 	if err != nil {
 		return nil, err
@@ -150,21 +133,16 @@ func (f *WebAppFlow) EnterSecret(token string, secret string) (*WebAppResult, er
 	}
 
 	if s.CurrentStep().Step == interaction.StepSetupPrimaryAuthenticator {
-		return f.SetupSecret(token, secret)
+		return f.SetupSecret(i, secret)
 	}
 	if s.CurrentStep().Step == interaction.StepAuthenticatePrimary {
-		return f.AuthenticateSecret(token, secret)
+		return f.AuthenticateSecret(i, secret)
 	}
 
 	panic("interaction_flow_webapp: unexpected interaction state")
 }
 
-func (f *WebAppFlow) SetupSecret(token string, secret string) (*WebAppResult, error) {
-	i, err := f.Interactions.GetInteraction(token)
-	if err != nil {
-		return nil, err
-	}
-
+func (f *WebAppFlow) SetupSecret(i *interaction.Interaction, secret string) (*WebAppResult, error) {
 	s, err := f.Interactions.GetInteractionState(i)
 	if err != nil {
 		return nil, err
@@ -180,10 +158,6 @@ func (f *WebAppFlow) SetupSecret(token string, secret string) (*WebAppResult, er
 	})
 	if err != nil {
 		return nil, err
-	}
-
-	if i.Error != nil {
-		return nil, i.Error
 	}
 
 	s, err = f.Interactions.GetInteractionState(i)
@@ -237,12 +211,7 @@ func (f *WebAppFlow) SetupSecret(token string, secret string) (*WebAppResult, er
 	}
 }
 
-func (f *WebAppFlow) AuthenticateSecret(token string, secret string) (*WebAppResult, error) {
-	i, err := f.Interactions.GetInteraction(token)
-	if err != nil {
-		return nil, err
-	}
-
+func (f *WebAppFlow) AuthenticateSecret(i *interaction.Interaction, secret string) (*WebAppResult, error) {
 	s, err := f.Interactions.GetInteractionState(i)
 	if err != nil {
 		return nil, err
@@ -260,19 +229,10 @@ func (f *WebAppFlow) AuthenticateSecret(token string, secret string) (*WebAppRes
 		return nil, err
 	}
 
-	if i.Error != nil {
-		return nil, i.Error
-	}
-
 	return f.afterPrimaryAuthentication(i)
 }
 
-func (f *WebAppFlow) TriggerOOBOTP(token string) (*WebAppResult, error) {
-	i, err := f.Interactions.GetInteraction(token)
-	if err != nil {
-		return nil, err
-	}
-
+func (f *WebAppFlow) TriggerOOBOTP(i *interaction.Interaction) (*WebAppResult, error) {
 	s, err := f.Interactions.GetInteractionState(i)
 	if err != nil {
 		return nil, err
@@ -289,14 +249,8 @@ func (f *WebAppFlow) TriggerOOBOTP(token string) (*WebAppResult, error) {
 		return nil, err
 	}
 
-	token, err = f.Interactions.SaveInteraction(i)
-	if err != nil {
-		return nil, err
-	}
-
 	return &WebAppResult{
 		Interaction: i,
-		Token:       token,
 	}, nil
 }
 
@@ -400,14 +354,8 @@ func (f *WebAppFlow) afterAddUpdateRemoveLoginID(i *interaction.Interaction) (re
 		panic("interaction_flow_webapp: unexpected authenticator type")
 	}
 
-	token, err := f.Interactions.SaveInteraction(i)
-	if err != nil {
-		return nil, err
-	}
-
 	return &WebAppResult{
 		Interaction: i,
-		Token:       token,
 	}, nil
 }
 

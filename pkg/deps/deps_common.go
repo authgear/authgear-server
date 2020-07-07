@@ -20,7 +20,6 @@ import (
 	identityprovider "github.com/authgear/authgear-server/pkg/auth/dependency/identity/provider"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
-	interactionredis "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/redis"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
 	oauthpq "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/pq"
@@ -165,9 +164,6 @@ var commonDeps = wire.NewSet(
 	),
 
 	wire.NewSet(
-		interactionredis.DependencySet,
-		wire.Bind(new(interaction.Store), new(*interactionredis.Store)),
-
 		interaction.DependencySet,
 		wire.Bind(new(interactionflows.InteractionProvider), new(*interaction.Provider)),
 

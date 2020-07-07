@@ -93,10 +93,9 @@ var WebAppSchema = validation.NewMultipartSchema("").
 		{
 			"type": "object",
 			"properties": {
-				"x_password": { "type": "string" },
-				"x_interaction_token": { "type": "string" }
+				"x_password": { "type": "string" }
 			},
-			"required": ["x_password", "x_interaction_token"]
+			"required": ["x_password"]
 		}
 	`).
 	Add(WebAppSchemaIDForgotPasswordRequest, `
