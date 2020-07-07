@@ -43,6 +43,8 @@ Authgear acts as OpenID Provider (OP).
   * [ID Token](#id-token)
     * [amr](#amr)
     * [acr](#acr)
+    * [https://authgear.com/user/is_anonymous](#httpsauthgearcomuseris_anonymous)
+    * [https://authgear.com/user/metadata](#httpsauthgearcomusermetadata)
   * [External application acting as RP while Authgear acting as OP](#external-application-acting-as-rp-while-authgear-acting-as-op)
   * [Authgear acting as authentication server with native application](#authgear-acting-as-authentication-server-with-native-application)
   * [Authgear acting as authentication server with web application](#authgear-acting-as-authentication-server-with-web-application)
@@ -280,7 +282,9 @@ The value is `["S256"]`
 
 ## ID Token
 
-### amr
+ID tokens contains following claims:
+
+### `amr`
 
 To indicate the authenticator used in authentication, `amr` claim is used in OIDC ID token.
 
@@ -292,12 +296,20 @@ To indicate the authenticator used in authentication, `amr` claim is used in OID
 
 If no authentication method is to be included in `amr` claim, `amr` claim would be omitted from the ID token.
 
-### acr
+### `acr`
 
 If any secondary authenticator is performed, `acr` claim would be included in ID token with value `http://schemas.openid.net/pape/policies/2007/06/multi-factor`.
 
 To perform step-up authentication, developer can pass a `acr_values` of  `http://schemas.openid.net/pape/policies/2007/06/multi-factor` to the authorize endpoint.
 
+
+### `https://authgear.com/user/is_anonymous`
+
+The value `true` means the user is anonymous. Otherwise, it is a normal user.
+
+### `https://authgear.com/user/metadata`
+
+Custom metadata of the user.
 
 ## External application acting as RP while Authgear acting as OP
 
