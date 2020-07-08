@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/core/intl"
+	"github.com/authgear/authgear-server/pkg/log"
 	"github.com/authgear/authgear-server/pkg/template"
 )
 
@@ -13,11 +14,22 @@ type Renderer interface {
 	Render(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, data interface{})
 }
 
+type HTMLRendererLogger struct{ *log.Logger }
+
+func NewHTMLRendererLogger(lf *log.Factory) HTMLRendererLogger {
+	return HTMLRendererLogger{lf.New("renderer")}
+}
+
 type HTMLRenderer struct {
 	TemplateEngine *template.Engine
+	Logger         HTMLRendererLogger
 }
 
 func (r *HTMLRenderer) Render(w http.ResponseWriter, req *http.Request, templateType config.TemplateItemType, data interface{}) {
+	r.Logger.WithFields(map[string]interface{}{
+		"data": data,
+	}).Debug("render with data")
+
 	preferredLanguageTags := intl.GetPreferredLanguageTags(req.Context())
 	out, err := r.TemplateEngine.WithValidatorOptions(
 		template.AllowRangeNode(true),
