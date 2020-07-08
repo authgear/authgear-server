@@ -3,6 +3,12 @@ package webapp
 import "github.com/google/wire"
 
 var DependencySet = wire.NewSet(
+	wire.Struct(new(BaseViewModeler), "*"),
+	wire.Struct(new(AuthenticationViewModeler), "*"),
+	wire.Struct(new(HTMLRenderer), "*"),
+	wire.Struct(new(FormPrefiller), "*"),
+	wire.Bind(new(Renderer), new(*HTMLRenderer)),
+
 	wire.Struct(new(RootHandler), "*"),
 	wire.Struct(new(LoginHandler), "*"),
 	wire.Struct(new(SignupHandler), "*"),

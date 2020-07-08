@@ -14,61 +14,61 @@ const (
 // nolint: gosec
 const definePasswordPolicy = `
 {{ define "PASSWORD_POLICY" }}
-{{ if .x_password_policies }}
+{{ if .PasswordPolicies }}
 <ul>
-{{ range .x_password_policies }}
-  {{ if eq .kind "PasswordTooShort" }}
+{{ range .PasswordPolicies }}
+  {{ if eq .Name "PasswordTooShort" }}
   <li class="primary-txt password-policy length {{ template "PASSWORD_POLICY_CLASS" . }}" data-min-length="{{ .min_length}}">
-    {{ localize "password-policy-minimum-length" .min_length }}
+    {{ localize "password-policy-minimum-length" .Info.min_length }}
   </li>
   {{ end }}
-  {{ if eq .kind "PasswordUppercaseRequired" }}
+  {{ if eq .Name "PasswordUppercaseRequired" }}
   <li class="primary-txt password-policy uppercase {{ template "PASSWORD_POLICY_CLASS" . }}">
     {{ localize "password-policy-uppercase" }}
   </li>
   {{ end }}
-  {{ if eq .kind "PasswordLowercaseRequired" }}
+  {{ if eq .Name "PasswordLowercaseRequired" }}
   <li class="primary-txt password-policy lowercase {{ template "PASSWORD_POLICY_CLASS" . }}">
     {{ localize "password-policy-lowercase" }}
   </li>
   {{ end }}
-  {{ if eq .kind "PasswordDigitRequired" }}
+  {{ if eq .Name "PasswordDigitRequired" }}
   <li class="primary-txt password-policy digit {{ template "PASSWORD_POLICY_CLASS" . }}">
     {{ localize "password-policy-digit" }}
   </li>
   {{ end }}
-  {{ if eq .kind "PasswordSymbolRequired" }}
+  {{ if eq .Name "PasswordSymbolRequired" }}
   <li class="primary-txt password-policy symbol {{ template "PASSWORD_POLICY_CLASS" . }}">
     {{ localize "password-policy-symbol" }}
   </li>
   {{ end }}
-  {{ if eq .kind "PasswordContainingExcludedKeywords" }}
+  {{ if eq .Name "PasswordContainingExcludedKeywords" }}
   <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
     {{ localize "password-policy-banned-words" }}
   </li>
   {{ end }}
-  {{ if eq .kind "PasswordBelowGuessableLevel" }}
-    {{ if eq .min_level 1.0 }}
+  {{ if eq .Name "PasswordBelowGuessableLevel" }}
+    {{ if eq .Info.min_level 1.0 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-1" }}
     </li>
     {{ end }}
-    {{ if eq .min_level 2.0 }}
+    {{ if eq .Info.min_level 2.0 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-2" }}
     </li>
     {{ end }}
-    {{ if eq .min_level 3.0 }}
+    {{ if eq .Info.min_level 3.0 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-3" }}
     </li>
     {{ end }}
-    {{ if eq .min_level 4.0 }}
+    {{ if eq .Info.min_level 4.0 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-4" }}
     </li>
     {{ end }}
-    {{ if eq .min_level 5.0 }}
+    {{ if eq .Info.min_level 5.0 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-5" }}
     </li>
@@ -95,13 +95,13 @@ passed
 
 const defineError = `
 {{ define "ERROR" }}
-{{ if .x_error }}
+{{ if .Error }}
 <ul class="errors">
-	{{ if eq .x_error.reason "ValidationFailed" }}
-		{{ range .x_error.info.causes }}
+	{{ if eq .Error.reason "ValidationFailed" }}
+		{{ range .Error.info.causes }}
 		{{ if (eq .kind "required") }}
 			{{ if (call $.SliceContains .details.missing "x_login_id" ) }}
-			<li class="error-txt">{{ localize "error-login-id-required" $.x_login_page_text_login_id_variant }}</li>
+			<li class="error-txt">{{ localize "error-login-id-required" $.LoginPageTextLoginIDVariant }}</li>
 			{{ else if (call $.SliceContains .details.missing "x_password" ) }}
 			<li class="error-txt">{{ localize "error-password-or-code-required" }}</li>
 			{{ else if (call $.SliceContains .details.missing "x_calling_code" ) }}
@@ -125,18 +125,18 @@ const defineError = `
 		<li class="error-txt">{{ . }}</li>
 		{{ end }}
 		{{ end }}
-	{{ else if eq .x_error.reason "InvalidCredentials" }}
+	{{ else if eq .Error.reason "InvalidCredentials" }}
 		<li class="error-txt">{{ localize "error-invalid-credentials" }}</li>
-	{{ else if eq .x_error.reason "PasswordPolicyViolated" }}
+	{{ else if eq .Error.reason "PasswordPolicyViolated" }}
 		<!-- This error is handled differently -->
-	{{ else if eq .x_error.reason "PasswordResetFailed" }}
+	{{ else if eq .Error.reason "PasswordResetFailed" }}
 		<li class="error-txt">{{ localize "error-password-reset-failed" }}</li>
-	{{ else if eq .x_error.reason "DuplicatedIdentity" }}
+	{{ else if eq .Error.reason "DuplicatedIdentity" }}
 		<li class="error-txt">{{ localize "error-duplicated-identity" }}</li>
-	{{ else if eq .x_error.reason "InvalidIdentityRequest" }}
+	{{ else if eq .Error.reason "InvalidIdentityRequest" }}
 		<li class="error-txt">{{ localize "error-remove-last-identity" }}</li>
 	{{ else }}
-		<li class="error-txt">{{ .x_error.message }}</li>
+		<li class="error-txt">{{ .Error.message }}</li>
 	{{ end }}
 </ul>
 {{ end }}
@@ -155,13 +155,13 @@ var TemplateAuthUIHTMLHeadHTML = template.Spec{
 	Default: `
 {{ define "auth_ui_html_head.html" }}
 <head>
-<title>{{ .app_name }}</title>
+<title>{{ .AppName }}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="{{ .x_static_asset_url_prefix }}/authui/css/main.css">
-<script src="{{ .x_static_asset_url_prefix }}/authui/js/main.js"></script>
-{{ if .x_css }}
+<link rel="stylesheet" href="{{ .StaticAssetURLPrefix }}/authui/css/main.css">
+<script src="{{ .StaticAssetURLPrefix }}/authui/js/main.js"></script>
+{{ if .CSS }}
 <style>
-{{ .x_css }}
+{{ .CSS }}
 </style>
 {{ end }}
 </head>
@@ -174,8 +174,8 @@ var TemplateAuthUIHeaderHTML = template.Spec{
 	IsHTML: true,
 	Default: `
 {{ define "auth_ui_header.html" }}
-{{ if .logo_uri }}
-<div class="logo" style="background-image: url('{{ .logo_uri }}'); background-position: center; background-size: contain; background-repeat: no-repeat"></div>
+{{ if .LogoURI }}
+<div class="logo" style="background-image: url('{{ .LogoURI }}'); background-position: center; background-size: contain; background-repeat: no-repeat"></div>
 {{ else }}
 <div class="logo"></div>
 {{ end }}
