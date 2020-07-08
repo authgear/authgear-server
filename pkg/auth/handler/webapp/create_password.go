@@ -4,10 +4,13 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/validation"
 )
 
 const (
@@ -66,15 +69,27 @@ var TemplateAuthUICreatePasswordHTML = template.Spec{
 `,
 }
 
+const CreatePasswordRequestSchema = "CreatePasswordRequestSchema"
+
+var CreatePasswordSchema = validation.NewMultipartSchema("").
+	Add(CreatePasswordRequestSchema, `
+		{
+			"type": "object",
+			"properties": {
+				"x_password": { "type": "string" }
+			},
+			"required": ["x_password"]
+		}
+	`).Instantiate()
+
 func ConfigureCreatePasswordRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
 		WithPathPattern("/create_password")
 }
 
-type CreatePasswordViewModel struct {
-	BaseViewModel
-	PasswordPolicyViewModel
+type CreatePasswordInteractions interface {
+	EnterSecret(i *interaction.Interaction, password string) (*interactionflows.WebAppResult, error)
 }
 
 type CreatePasswordHandler struct {
@@ -83,6 +98,8 @@ type CreatePasswordHandler struct {
 	BaseViewModel           *BaseViewModeler
 	PasswordPolicyViewModel *PasswordPolicyViewModeler
 	Renderer                Renderer
+	Interactions            CreatePasswordInteractions
+	Responder               Responder
 }
 
 func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -111,15 +128,33 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// FIXME(webapp): create_password
-	// h.Database.WithTx(func() error {
+	if r.Method == "POST" {
+		h.Database.WithTx(func() error {
+			state, err := h.State.RestoreState(r, false)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-	// 	// if r.Method == "POST" {
-	// 	// 	writeResponse, err := h.Provider.EnterSecret(w, r)
-	// 	// 	writeResponse(err)
-	// 	// 	return err
-	// 	// }
+			var result *interactionflows.WebAppResult
+			defer func() {
+				h.State.UpdateState(state, result, err)
+				h.Responder.Respond(w, r, state, result, err)
+			}()
 
-	// 	return nil
-	// })
+			err = CreatePasswordSchema.PartValidator(CreatePasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
+				return err
+			}
+
+			plainPassword := r.Form.Get("x_password")
+
+			result, err = h.Interactions.EnterSecret(state.Interaction, plainPassword)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+	}
 }

@@ -25,7 +25,7 @@ func (m *PasswordPolicyViewModeler) ViewModel(anyError interface{}) PasswordPoli
 
 				for _, causei := range apiError.Info["causes"].([]interface{}) {
 					if cause, ok := causei.(map[string]interface{}); ok {
-						if kind, ok := cause["kind"].(string); ok {
+						if kind, ok := cause["Name"].(string); ok {
 							if kind == string(policy.Name) {
 								policy.Info["x_is_violated"] = true
 							}
