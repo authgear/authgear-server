@@ -1,20 +1,11 @@
 package webapp
 
 import (
-	"net/http"
-	// "net/url"
-	// "github.com/authgear/authgear-server/pkg/auth/config"
-	// "github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	// "github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
-	// "github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
-	// interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
-	// "github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/crypto"
-	"github.com/authgear/authgear-server/pkg/core/errors"
-	// "github.com/authgear/authgear-server/pkg/core/phone"
-	// "github.com/authgear/authgear-server/pkg/httputil"
-	// "github.com/authgear/authgear-server/pkg/validation"
+// "net/url"
+// "github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+// "github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+// "github.com/authgear/authgear-server/pkg/core/phone"
+// "github.com/authgear/authgear-server/pkg/validation"
 )
 
 //
@@ -35,10 +26,6 @@ import (
 // 	GetInteractionState(i *interaction.Interaction) (*interaction.State, error)
 // }
 //
-type SSOStateCodec interface {
-	EncodeState(state sso.State) (string, error)
-	DecodeState(encodedState string) (*sso.State, error)
-}
 
 //
 // type AuthenticateProviderImpl struct {
@@ -50,9 +37,6 @@ type SSOStateCodec interface {
 // 	OAuthProviderFactory OAuthProviderFactory
 // }
 //
-type OAuthProviderFactory interface {
-	NewOAuthProvider(alias string) sso.OAuthProvider
-}
 
 //
 // // func (p *AuthenticateProviderImpl) get(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType) (writeResponse func(err error), err error) {
@@ -86,56 +70,6 @@ type OAuthProviderFactory interface {
 // 	result *interactionflows.WebAppResult,
 // 	err error,
 // ) {
-// 	onError := func() {
-// 		RedirectToCurrentPath(w, r)
-// 		return
-// 	}
-//
-// 	if err != nil {
-// 		onError()
-// 		return
-// 	}
-//
-// 	for _, cookie := range result.Cookies {
-// 		httputil.UpdateCookie(w, cookie)
-// 	}
-//
-// 	iState, err := p.Interactions.GetInteractionState(result.Interaction)
-// 	if err != nil {
-// 		onError()
-// 		return
-// 	}
-//
-// 	currentStep := iState.CurrentStep()
-// 	switch currentStep.Step {
-// 	case interaction.StepSetupPrimaryAuthenticator:
-// 		switch currentStep.AvailableAuthenticators[0].Type {
-// 		case authn.AuthenticatorTypeOOB:
-// 			RedirectToPathWithX(w, r, "/oob_otp")
-// 		case authn.AuthenticatorTypePassword:
-// 			RedirectToPathWithX(w, r, "/create_password")
-// 		default:
-// 			panic("webapp: unexpected authenticator type")
-// 		}
-// 	case interaction.StepSetupSecondaryAuthenticator:
-// 		panic("TODO: support StepSetupSecondaryAuthenticator")
-// 	case interaction.StepAuthenticatePrimary:
-// 		switch currentStep.AvailableAuthenticators[0].Type {
-// 		case authn.AuthenticatorTypeOOB:
-// 			RedirectToPathWithX(w, r, "/oob_otp")
-// 		case authn.AuthenticatorTypePassword:
-// 			RedirectToPathWithX(w, r, "/enter_password")
-// 		default:
-// 			panic("webapp: unexpected authenticator type")
-// 		}
-// 	case interaction.StepAuthenticateSecondary:
-// 		panic("TODO: support StepAuthenticateSecondary")
-// 	case interaction.StepCommit:
-// 		p.StateProvider.DeleteState(state)
-// 		RedirectToRedirectURI(w, r, p.ServerConfig.TrustProxy)
-// 	default:
-// 		panic("webapp: unexpected step")
-// 	}
 // }
 //
 // func (p *AuthenticateProviderImpl) LoginWithLoginID(w http.ResponseWriter, r *http.Request) (writeResponse func(err error), err error) {
@@ -306,59 +240,6 @@ type OAuthProviderFactory interface {
 //
 // 	return
 // }
-
-type OAuthService struct {
-	StateProvider        StateProvider
-	SSOStateCodec        SSOStateCodec
-	OAuthProviderFactory OAuthProviderFactory
-}
-
-func (s *OAuthService) LoginOAuthProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
-	var authURI string
-	var state *State
-
-	writeResponse = func(err error) {
-		s.StateProvider.UpdateState(state, nil, err)
-		if err != nil {
-			RedirectToCurrentPath(w, r)
-		} else {
-			http.Redirect(w, r, authURI, http.StatusFound)
-		}
-	}
-
-	oauthProvider := s.OAuthProviderFactory.NewOAuthProvider(providerAlias)
-	if oauthProvider == nil {
-		err = ErrOAuthProviderNotFound
-		return
-	}
-
-	state = s.StateProvider.CreateState(r, nil, nil)
-
-	// set hashed csrf cookies to sso state
-	// callback will verify if the request has the same cookie
-	cookie, err := r.Cookie(csrfCookieName)
-	if err != nil || cookie.Value == "" {
-		panic(errors.Newf("webapp: missing csrf cookies: %w", err))
-	}
-	hashedNonce := crypto.SHA256String(cookie.Value)
-	webappSSOState := SSOState{}
-	// Redirect back to the current page on error.
-	q := r.URL.Query()
-	q.Set("error_uri", r.URL.Path)
-	webappSSOState.SetRequestQuery(q.Encode())
-	ssoState := sso.State{
-		Action:      "login",
-		HashedNonce: hashedNonce,
-		Extra:       webappSSOState,
-	}
-	encodedState, err := s.SSOStateCodec.EncodeState(ssoState)
-	if err != nil {
-		return
-	}
-	authURI, err = oauthProvider.GetAuthURL(ssoState, encodedState)
-	return
-}
-
 //
 // func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
 // 	var authURI string

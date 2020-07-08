@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
 	identityanonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	identityprovider "github.com/authgear/authgear-server/pkg/auth/dependency/identity/provider"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc"
@@ -62,7 +63,9 @@ var requestDeps = wire.NewSet(
 	ProvideOAuthMetadataProviders,
 
 	handlerwebapp.DependencySet,
+	wire.Bind(new(handlerwebapp.Responder), new(*webapp.Responder)),
 	wire.Bind(new(handlerwebapp.LoginOAuthService), new(*webapp.OAuthService)),
+	wire.Bind(new(handlerwebapp.LoginInteractions), new(*interactionflows.WebAppFlow)),
 	// wire.Bind(new(handlerwebapp.SignupProvider), new(*webapp.AuthenticateProviderImpl)),
 	// wire.Bind(new(handlerwebapp.PromoteProvider), new(*webapp.AuthenticateProviderImpl)),
 	// wire.Bind(new(handlerwebapp.SSOProvider), new(*webapp.AuthenticateProviderImpl)),
