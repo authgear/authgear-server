@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -30,11 +31,12 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 {{ template "auth_ui_header.html" . }}
 
 <form class="simple-form vertical-form form-fields-container" method="post" novalidate>
-{{ $.csrfField }}
+{{ $.CSRFField }}
 
 <div class="nav-bar">
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
 	<div class="login-id primary-txt">
+	<!-- FIXME(webapp): show login ID -->
 	{{ if .x_national_number }}
 		+{{ .x_calling_code}} {{ .x_national_number }}
 	{{ else }}
@@ -52,8 +54,8 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 <button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
 <button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
 
-{{ if .x_password_authenticator_enabled }}
-<a class="link align-self-flex-start" href="{{ call .MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
+{{ if $.PasswordAuthenticatorEnabled }}
+<a class="link align-self-flex-start" href="{{ call $.MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
 {{ end }}
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
@@ -67,10 +69,10 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 `,
 }
 
-const EnterPasswordRequest = "EnterPasswordRequest"
+const EnterPasswordRequestSchema = "EnterPasswordRequestSchema"
 
 var EnterPasswordSchema = validation.NewMultipartSchema("").
-	Add(EnterPasswordRequest, `
+	Add(EnterPasswordRequestSchema, `
 		{
 			"type": "object",
 			"properties": {
@@ -87,7 +89,11 @@ func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterPasswordHandler struct {
-	Database *db.Handle
+	Database                *db.Handle
+	State                   webapp.StateProvider
+	BaseViewModel           *BaseViewModeler
+	AuthenticationViewModel *AuthenticationViewModeler
+	Renderer                Renderer
 }
 
 func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -96,20 +102,33 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	h.Database.WithTx(func() error {
-		// FIXME(webapp): enter_password
-		// if r.Method == "GET" {
-		// 	writeResponse, err := h.Provider.GetEnterPasswordForm(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+	if r.Method == "GET" {
+		state, err := h.State.RestoreState(r, false)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		// if r.Method == "POST" {
-		// 	writeResponse, err := h.Provider.EnterSecret(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
 
-		return nil
-	})
+		data := map[string]interface{}{}
+
+		Embed(data, baseViewModel)
+		Embed(data, authenticationViewModel)
+
+		h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterPasswordHTML, data)
+		return
+	}
+
+	// FIXME(webapp): enter_password
+	// h.Database.WithTx(func() error {
+	// 	// if r.Method == "POST" {
+	// 	// 	writeResponse, err := h.Provider.EnterSecret(w, r)
+	// 	// 	writeResponse(err)
+	// 	// 	return err
+	// 	// }
+
+	// 	return nil
+	// })
 }
