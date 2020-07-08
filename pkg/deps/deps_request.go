@@ -30,8 +30,8 @@ var requestDeps = wire.NewSet(
 
 		wire.NewSet(
 			sso.DependencySet,
-			// wire.Bind(new(webapp.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
-			// wire.Bind(new(webapp.SSOStateCodec), new(*sso.StateCodec)),
+			wire.Bind(new(webapp.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
+			wire.Bind(new(webapp.SSOStateCodec), new(*sso.StateCodec)),
 		),
 
 		wire.NewSet(
@@ -62,7 +62,7 @@ var requestDeps = wire.NewSet(
 	ProvideOAuthMetadataProviders,
 
 	handlerwebapp.DependencySet,
-	// wire.Bind(new(handlerwebapp.LoginProvider), new(*webapp.AuthenticateProviderImpl)),
+	wire.Bind(new(handlerwebapp.LoginOAuthService), new(*webapp.OAuthService)),
 	// wire.Bind(new(handlerwebapp.SignupProvider), new(*webapp.AuthenticateProviderImpl)),
 	// wire.Bind(new(handlerwebapp.PromoteProvider), new(*webapp.AuthenticateProviderImpl)),
 	// wire.Bind(new(handlerwebapp.SSOProvider), new(*webapp.AuthenticateProviderImpl)),

@@ -1,23 +1,22 @@
 package webapp
 
-// import (
-// 	"crypto/subtle"
-// 	"net/http"
-// 	"net/url"
-//
-// 	"github.com/authgear/authgear-server/pkg/auth/config"
-// 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-// 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
-// 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
-// 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
-// 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
-// 	"github.com/authgear/authgear-server/pkg/core/authn"
-// 	"github.com/authgear/authgear-server/pkg/core/crypto"
-// 	"github.com/authgear/authgear-server/pkg/core/errors"
-// 	"github.com/authgear/authgear-server/pkg/core/phone"
-// 	"github.com/authgear/authgear-server/pkg/httputil"
-// 	"github.com/authgear/authgear-server/pkg/validation"
-// )
+import (
+	"net/http"
+	// "net/url"
+	// "github.com/authgear/authgear-server/pkg/auth/config"
+	// "github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	// "github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+	// "github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
+	// interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
+	// "github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/crypto"
+	"github.com/authgear/authgear-server/pkg/core/errors"
+	// "github.com/authgear/authgear-server/pkg/core/phone"
+	// "github.com/authgear/authgear-server/pkg/httputil"
+	// "github.com/authgear/authgear-server/pkg/validation"
+)
+
 //
 // type InteractionFlow interface {
 // 	LoginWithLoginID(loginID string) (*interactionflows.WebAppResult, error)
@@ -36,10 +35,11 @@ package webapp
 // 	GetInteractionState(i *interaction.Interaction) (*interaction.State, error)
 // }
 //
-// type SSOStateCodec interface {
-// 	EncodeState(state sso.State) (string, error)
-// 	DecodeState(encodedState string) (*sso.State, error)
-// }
+type SSOStateCodec interface {
+	EncodeState(state sso.State) (string, error)
+	DecodeState(encodedState string) (*sso.State, error)
+}
+
 //
 // type AuthenticateProviderImpl struct {
 // 	ServerConfig         *config.ServerConfig
@@ -50,9 +50,10 @@ package webapp
 // 	OAuthProviderFactory OAuthProviderFactory
 // }
 //
-// type OAuthProviderFactory interface {
-// 	NewOAuthProvider(alias string) sso.OAuthProvider
-// }
+type OAuthProviderFactory interface {
+	NewOAuthProvider(alias string) sso.OAuthProvider
+}
+
 //
 // // func (p *AuthenticateProviderImpl) get(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType) (writeResponse func(err error), err error) {
 // // 	var state *State
@@ -305,52 +306,59 @@ package webapp
 //
 // 	return
 // }
-//
-// func (p *AuthenticateProviderImpl) LoginIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
-// 	var authURI string
-// 	var state *State
-//
-// 	writeResponse = func(err error) {
-// 		p.StateProvider.UpdateState(state, nil, err)
-// 		if err != nil {
-// 			RedirectToCurrentPath(w, r)
-// 		} else {
-// 			http.Redirect(w, r, authURI, http.StatusFound)
-// 		}
-// 	}
-//
-// 	oauthProvider := p.OAuthProviderFactory.NewOAuthProvider(providerAlias)
-// 	if oauthProvider == nil {
-// 		err = ErrOAuthProviderNotFound
-// 		return
-// 	}
-//
-// 	state = p.StateProvider.CreateState(r, nil, nil)
-//
-// 	// set hashed csrf cookies to sso state
-// 	// callback will verify if the request has the same cookie
-// 	cookie, err := r.Cookie(csrfCookieName)
-// 	if err != nil || cookie.Value == "" {
-// 		panic(errors.Newf("webapp: missing csrf cookies: %w", err))
-// 	}
-// 	hashedNonce := crypto.SHA256String(cookie.Value)
-// 	webappSSOState := SSOState{}
-// 	// Redirect back to the current page on error.
-// 	q := r.URL.Query()
-// 	q.Set("error_uri", r.URL.Path)
-// 	webappSSOState.SetRequestQuery(q.Encode())
-// 	ssoState := sso.State{
-// 		Action:      "login",
-// 		HashedNonce: hashedNonce,
-// 		Extra:       webappSSOState,
-// 	}
-// 	encodedState, err := p.SSOStateCodec.EncodeState(ssoState)
-// 	if err != nil {
-// 		return
-// 	}
-// 	authURI, err = oauthProvider.GetAuthURL(ssoState, encodedState)
-// 	return
-// }
+
+type OAuthService struct {
+	StateProvider        StateProvider
+	SSOStateCodec        SSOStateCodec
+	OAuthProviderFactory OAuthProviderFactory
+}
+
+func (s *OAuthService) LoginOAuthProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
+	var authURI string
+	var state *State
+
+	writeResponse = func(err error) {
+		s.StateProvider.UpdateState(state, nil, err)
+		if err != nil {
+			RedirectToCurrentPath(w, r)
+		} else {
+			http.Redirect(w, r, authURI, http.StatusFound)
+		}
+	}
+
+	oauthProvider := s.OAuthProviderFactory.NewOAuthProvider(providerAlias)
+	if oauthProvider == nil {
+		err = ErrOAuthProviderNotFound
+		return
+	}
+
+	state = s.StateProvider.CreateState(r, nil, nil)
+
+	// set hashed csrf cookies to sso state
+	// callback will verify if the request has the same cookie
+	cookie, err := r.Cookie(csrfCookieName)
+	if err != nil || cookie.Value == "" {
+		panic(errors.Newf("webapp: missing csrf cookies: %w", err))
+	}
+	hashedNonce := crypto.SHA256String(cookie.Value)
+	webappSSOState := SSOState{}
+	// Redirect back to the current page on error.
+	q := r.URL.Query()
+	q.Set("error_uri", r.URL.Path)
+	webappSSOState.SetRequestQuery(q.Encode())
+	ssoState := sso.State{
+		Action:      "login",
+		HashedNonce: hashedNonce,
+		Extra:       webappSSOState,
+	}
+	encodedState, err := s.SSOStateCodec.EncodeState(ssoState)
+	if err != nil {
+		return
+	}
+	authURI, err = oauthProvider.GetAuthURL(ssoState, encodedState)
+	return
+}
+
 //
 // func (p *AuthenticateProviderImpl) LinkIdentityProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error) {
 // 	var authURI string

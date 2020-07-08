@@ -34,7 +34,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 				{{ if eq .type "oauth" }}
 				<form class="authorize-idp-form" method="post" novalidate>
 				{{ $.CSRFField }}
-				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}" data-form-xhr="false">
+				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_provider_alias" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
 					{{ localize "sign-in-apple" }}
 					{{- end -}}
@@ -170,6 +170,10 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/login")
 }
 
+type LoginOAuthService interface {
+	LoginOAuthProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error)
+}
+
 type LoginHandler struct {
 	StateProvider           webapp.StateProvider
 	Database                *db.Handle
@@ -177,6 +181,7 @@ type LoginHandler struct {
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
 	Renderer                Renderer
+	OAuth                   LoginOAuthService
 }
 
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -216,22 +221,21 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Database.WithTx(func() error {
-		// FIXME(webapp): login
-		// if r.Method == "POST" {
-		// 	if r.Form.Get("x_idp_id") != "" {
-		// 		writeResponse, err := h.Provider.LoginIdentityProvider(w, r, r.Form.Get("x_idp_id"))
-		// 		writeResponse(err)
-		// 		return err
-		// 	}
+	if r.Method == "POST" {
+		h.Database.WithTx(func() error {
+			providerAlias := r.Form.Get("x_provider_alias")
+			if providerAlias != "" {
+				writeResponse, err := h.OAuth.LoginOAuthProvider(w, r, providerAlias)
+				writeResponse(err)
+				return err
+			}
 
-		// 	writeResponse, err := h.Provider.LoginWithLoginID(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
-
-		return nil
-	})
+			// 	writeResponse, err := h.Provider.LoginWithLoginID(w, r)
+			// 	writeResponse(err)
+			// 	return err
+			return nil
+		})
+	}
 
 	return
 }
