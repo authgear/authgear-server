@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
@@ -88,12 +90,18 @@ func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/enter_password")
 }
 
+type EnterPasswordInteractions interface {
+	EnterSecret(i *interaction.Interaction, password string) (*interactionflows.WebAppResult, error)
+}
+
 type EnterPasswordHandler struct {
 	Database                *db.Handle
 	State                   webapp.StateProvider
 	BaseViewModel           *BaseViewModeler
 	AuthenticationViewModel *AuthenticationViewModeler
 	Renderer                Renderer
+	Interactions            EnterPasswordInteractions
+	Responder               Responder
 }
 
 func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -121,14 +129,33 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// FIXME(webapp): enter_password
-	// h.Database.WithTx(func() error {
-	// 	// if r.Method == "POST" {
-	// 	// 	writeResponse, err := h.Provider.EnterSecret(w, r)
-	// 	// 	writeResponse(err)
-	// 	// 	return err
-	// 	// }
+	if r.Method == "POST" {
+		h.Database.WithTx(func() error {
+			state, err := h.State.RestoreState(r, false)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-	// 	return nil
-	// })
+			var result *interactionflows.WebAppResult
+			defer func() {
+				h.State.UpdateState(state, result, err)
+				h.Responder.Respond(w, r, state, result, err)
+			}()
+
+			err = EnterPasswordSchema.PartValidator(EnterPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
+				return err
+			}
+
+			plainPassword := r.Form.Get("x_password")
+
+			result, err = h.Interactions.EnterSecret(state.Interaction, plainPassword)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+	}
 }
