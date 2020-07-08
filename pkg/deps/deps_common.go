@@ -168,7 +168,7 @@ var commonDeps = wire.NewSet(
 
 		interactionflows.DependencySet,
 		wire.Bind(new(webapp.AnonymousFlow), new(*interactionflows.AnonymousFlow)),
-		// wire.Bind(new(webapp.InteractionFlow), new(*interactionflows.WebAppFlow)),
+		wire.Bind(new(webapp.ResponderInteractions), new(*interaction.Provider)),
 		wire.Bind(new(oauthhandler.AnonymousInteractionFlow), new(*interactionflows.AnonymousFlow)),
 		wire.Bind(new(forgotpassword.ResetPasswordFlow), new(*interactionflows.PasswordFlow)),
 	),

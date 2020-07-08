@@ -3,9 +3,12 @@ package webapp
 import (
 	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/core/phone"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -174,14 +177,20 @@ type LoginOAuthService interface {
 	LoginOAuthProvider(w http.ResponseWriter, r *http.Request, providerAlias string) (writeResponse func(err error), err error)
 }
 
+type LoginInteractions interface {
+	LoginWithLoginID(loginID string) (*interactionflows.WebAppResult, error)
+}
+
 type LoginHandler struct {
-	StateProvider           webapp.StateProvider
 	Database                *db.Handle
+	State                   webapp.StateProvider
 	BaseViewModel           *BaseViewModeler
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
 	Renderer                Renderer
 	OAuth                   LoginOAuthService
+	Interactions            LoginInteractions
+	Responder               Responder
 }
 
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -193,7 +202,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, err := h.StateProvider.RestoreState(r, true)
+		state, err := h.State.RestoreState(r, true)
 		if errors.Is(err, webapp.ErrStateNotFound) {
 			err = nil
 		}
@@ -221,21 +230,74 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	providerAlias := r.Form.Get("x_provider_alias")
+
+	if r.Method == "POST" && providerAlias != "" {
+		h.Database.WithTx(func() error {
+			writeResponse, err := h.OAuth.LoginOAuthProvider(w, r, providerAlias)
+			writeResponse(err)
+			return err
+		})
+		return
+	}
+
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			providerAlias := r.Form.Get("x_provider_alias")
-			if providerAlias != "" {
-				writeResponse, err := h.OAuth.LoginOAuthProvider(w, r, providerAlias)
-				writeResponse(err)
+			var state *webapp.State
+			var result *interactionflows.WebAppResult
+			var err error
+
+			defer func() {
+				h.State.UpdateState(state, result, err)
+				h.Responder.Respond(w, r, state, result, err)
+			}()
+			state = h.State.CreateState(r, nil, nil)
+
+			err = LoginSchema.PartValidator(LoginWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
 				return err
 			}
 
-			// 	writeResponse, err := h.Provider.LoginWithLoginID(w, r)
-			// 	writeResponse(err)
-			// 	return err
+			loginID, err := FormToLoginID(r.Form)
+			if err != nil {
+				return err
+			}
+
+			result, err = h.Interactions.LoginWithLoginID(loginID)
+			if err != nil {
+				return err
+			}
+
 			return nil
 		})
 	}
 
+	return
+}
+
+// FormToLoginID returns the raw login ID or the parsed phone number.
+func FormToLoginID(form url.Values) (loginID string, err error) {
+	if form.Get("x_login_id_input_type") == "phone" {
+		nationalNumber := form.Get("x_national_number")
+		countryCallingCode := form.Get("x_calling_code")
+		var e164 string
+		e164, err = phone.Parse(nationalNumber, countryCallingCode)
+		if err != nil {
+			err = &validation.AggregatedError{
+				Errors: []validation.Error{{
+					Keyword:  "format",
+					Location: "/x_national_number",
+					Info: map[string]interface{}{
+						"format": "phone",
+					},
+				}},
+			}
+			return
+		}
+		loginID = e164
+		return
+	}
+
+	loginID = form.Get("x_login_id")
 	return
 }

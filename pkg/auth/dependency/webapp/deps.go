@@ -13,6 +13,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(StateProvider), new(*StateProviderImpl)),
 	wire.Struct(new(URLProvider), "*"),
 	wire.Struct(new(OAuthService), "*"),
+	wire.Struct(new(Responder), "*"),
 
 	wire.Struct(new(CSPMiddleware), "*"),
 	wire.Struct(new(CSRFMiddleware), "*"),

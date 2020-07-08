@@ -1279,9 +1279,10 @@ func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Redis
+	handle := appProvider.Database
+	redisHandle := appProvider.Redis
 	stateStoreImpl := &webapp.StateStoreImpl{
-		Redis: handle,
+		Redis: redisHandle,
 	}
 	factory := appProvider.LoggerFactory
 	stateProviderLogger := webapp.NewStateProviderLogger(factory)
@@ -1289,7 +1290,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		StateStore: stateStoreImpl,
 		Logger:     stateProviderLogger,
 	}
-	dbHandle := appProvider.Database
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
 	config := appProvider.Config
@@ -1313,7 +1313,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
-		Database: dbHandle,
+		Database: handle,
 	}
 	store := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1426,7 +1426,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		Database:       dbHandle,
+		Database:       handle,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
@@ -1520,7 +1520,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	hookProvider := &hook.Provider{
 		Context:   context,
 		Logger:    hookLogger,
-		Database:  dbHandle,
+		Database:  handle,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -1545,7 +1545,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: handle,
+		Redis: redisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1577,14 +1577,61 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SSOStateCodec:        stateCodec,
 		OAuthProviderFactory: oAuthProviderFactory,
 	}
+	sessionConfig := appConfig.Session
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	redisLogger := redis3.NewLogger(factory)
+	redisStore := &redis3.Store{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: redisLogger,
+	}
+	eventStore := &redis2.EventStore{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	accessEventProvider := &auth.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionRand := _wireRandValue
+	sessionProvider := &session.Provider{
+		Request:      request,
+		Store:        redisStore,
+		AccessEvents: accessEventProvider,
+		ServerConfig: serverConfig,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       sessionRand,
+	}
+	userController := &flows.UserController{
+		Users:         userProvider,
+		SessionCookie: cookieDef,
+		Sessions:      sessionProvider,
+		Hooks:         hookProvider,
+	}
+	webAppFlow := &flows.WebAppFlow{
+		Config:         identityConfig,
+		Identities:     providerProvider,
+		Users:          userProvider,
+		Hooks:          hookProvider,
+		Interactions:   interactionProvider,
+		UserController: userController,
+	}
+	responder := &webapp.Responder{
+		ServerConfig:  serverConfig,
+		StateProvider: stateProviderImpl,
+		Interactions:  interactionProvider,
+	}
 	loginHandler := &webapp2.LoginHandler{
-		StateProvider:           stateProviderImpl,
-		Database:                dbHandle,
+		Database:                handle,
+		State:                   stateProviderImpl,
 		BaseViewModel:           baseViewModeler,
 		AuthenticationViewModel: authenticationViewModeler,
 		FormPrefiller:           formPrefiller,
 		Renderer:                htmlRenderer,
 		OAuth:                   oAuthService,
+		Interactions:            webAppFlow,
+		Responder:               responder,
 	}
 	return loginHandler
 }
