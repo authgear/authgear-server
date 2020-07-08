@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -29,7 +30,7 @@ var TemplateAuthUILogoutHTML = template.Spec{
 {{ template "auth_ui_header.html" . }}
 
 <form class="logout-form" method="post" novalidate>
-  {{ $.csrfField }}
+  {{ $.CSRFField }}
   <p class="primary-txt">{{ localize "logout-button-hint" }}</p>
   <button class="btn primary-btn align-self-center" type="submit" name="x_action" value="logout">{{ localize "logout-button-label" }}</button>
 </form>
@@ -72,13 +73,12 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// FIXME(webapp): logout
-	// h.Database.WithTx(func() error {
-	// 	if r.Method == "POST" && r.Form.Get("x_action") == "logout" {
-	// 		sess := auth.GetSession(r.Context())
-	// 		h.SessionManager.Logout(sess, w)
-	// 		webapp.RedirectToRedirectURI(w, r, h.ServerConfig.TrustProxy)
-	// 	}
-	// 	return nil
-	// })
+	if r.Method == "POST" {
+		h.Database.WithTx(func() error {
+			sess := auth.GetSession(r.Context())
+			h.SessionManager.Logout(sess, w)
+			webapp.RedirectToRedirectURI(w, r, h.ServerConfig.TrustProxy)
+			return nil
+		})
+	}
 }
