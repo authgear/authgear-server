@@ -2400,7 +2400,31 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 }
 
 func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
-	settingsHandler := &webapp2.SettingsHandler{}
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	baseViewModeler := &webapp2.BaseViewModeler{
+		ServerConfig: serverConfig,
+		AuthUI:       uiConfig,
+		Localization: localizationConfig,
+		Metadata:     appMetadata,
+	}
+	engine := appProvider.TemplateEngine
+	factory := appProvider.LoggerFactory
+	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
+	htmlRenderer := &webapp2.HTMLRenderer{
+		TemplateEngine: engine,
+		Logger:         htmlRendererLogger,
+	}
+	settingsHandler := &webapp2.SettingsHandler{
+		BaseViewModel: baseViewModeler,
+		Renderer:      htmlRenderer,
+	}
 	return settingsHandler
 }
 

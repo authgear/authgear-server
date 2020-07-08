@@ -45,10 +45,19 @@ func ConfigureSettingsRoute(route httproute.Route) httproute.Route {
 }
 
 type SettingsHandler struct {
-	// RenderProvider webapp.RenderProvider
+	BaseViewModel *BaseViewModeler
+	Renderer      Renderer
 }
 
 func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// FIXME(webapp): settings
-	// h.RenderProvider.WritePage(w, r, webapp.TemplateItemTypeAuthUISettingsHTML, nil)
+	if r.Method == "GET" {
+		baseViewModel := h.BaseViewModel.ViewModel(r, nil)
+
+		data := map[string]interface{}{}
+
+		Embed(data, baseViewModel)
+
+		h.Renderer.Render(w, r, TemplateItemTypeAuthUISettingsHTML, data)
+		return
+	}
 }
