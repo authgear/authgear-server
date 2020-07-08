@@ -12,7 +12,9 @@ type IdentityProvider interface {
 	ListCandidates(userID string) ([]identity.Candidate, error)
 }
 
-type LoginPageTextLoginIDVariant string
+// Ideally we should use type alias to present
+// LoginPageTextLoginIDVariant and LoginPageTextLoginIDInputType
+// But they may be passed to localize which does not support type alias of builtin types.
 
 const (
 	LoginPageTextLoginIDVariantNone            = "none"
@@ -20,8 +22,6 @@ const (
 	LoginPageTextLoginIDVariantEmail           = "email"
 	LoginPageTextLoginIDVariantUsername        = "username"
 )
-
-type LoginPageTextLoginIDInputType string
 
 const (
 	LoginPageTextLoginIDInputTypeText  = "text"
@@ -31,8 +31,8 @@ const (
 type AuthenticationViewModel struct {
 	IdentityCandidates            []identity.Candidate
 	LoginPageLoginIDHasPhone      bool
-	LoginPageTextLoginIDVariant   LoginPageTextLoginIDVariant
-	LoginPageTextLoginIDInputType LoginPageTextLoginIDInputType
+	LoginPageTextLoginIDVariant   string
+	LoginPageTextLoginIDInputType string
 	PasswordAuthenticatorEnabled  bool
 }
 
@@ -70,8 +70,8 @@ func (m *AuthenticationViewModeler) ViewModel(r *http.Request) AuthenticationVie
 		}
 	}
 
-	var loginPageTextLoginIDVariant LoginPageTextLoginIDVariant
-	var loginPageTextLoginIDInputType LoginPageTextLoginIDInputType
+	var loginPageTextLoginIDVariant string
+	var loginPageTextLoginIDInputType string
 	if hasEmail {
 		if hasUsername {
 			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantEamilOrUsername

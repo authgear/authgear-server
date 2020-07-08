@@ -1,9 +1,11 @@
 package webapp
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -28,10 +30,10 @@ var TemplateAuthUILoginHTML = template.Spec{
 		{{ template "auth_ui_header.html" . }}
 		<div class="authorize-form">
 			<div class="authorize-idp-section">
-				{{ range .x_identity_candidates }}
+				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
 				<form class="authorize-idp-form" method="post" novalidate>
-				{{ $.csrfField }}
+				{{ $.CSRFField }}
 				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
 					{{ localize "sign-in-apple" }}
@@ -56,7 +58,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 
 			{{ $has_oauth := false }}
 			{{ $has_login_id := false }}
-			{{ range .x_identity_candidates }}
+			{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
 				{{ $has_oauth = true }}
 				{{ end }}
@@ -71,12 +73,12 @@ var TemplateAuthUILoginHTML = template.Spec{
 			{{ template "ERROR" . }}
 
 			<form class="authorize-loginid-form" method="post" novalidate>
-				{{ $.csrfField }}
+				{{ $.CSRFField }}
 
-				{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}{{ if .x_login_page_login_id_has_phone }}
+				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if $.LoginPageLoginIDHasPhone }}
 				<div class="phone-input">
 					<select class="input select primary-txt" name="x_calling_code">
-						{{ range .x_calling_codes }}
+						{{ range $.CountryCallingCodes }}
 						<option
 							value="{{ . }}"
 							{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
@@ -91,28 +93,28 @@ var TemplateAuthUILoginHTML = template.Spec{
 				</div>
 				{{ end }}{{ end }}{{ end }}
 
-				{{ if .x_login_id_input_type }}{{ if not (eq .x_login_id_input_type "phone") }}{{ if (not (eq .x_login_page_text_login_id_variant "none")) }}
-				<input class="input text-input primary-txt" type="{{ .x_login_page_text_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .x_login_page_text_login_id_variant }}">
+				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
+				<input class="input text-input primary-txt" type="{{ $.LoginPageTextLoginIDInputType }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" $.LoginPageTextLoginIDVariant }}">
 				{{ end }}{{ end }}{{ end }}
 
-				{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}{{ if (not (eq .x_login_page_text_login_id_variant "none")) }}
-				<a class="link align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" .x_login_page_text_login_id_input_type }}">{{ localize "use-text-login-id-description" .x_login_page_text_login_id_variant }}</a>
+				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
+				<a class="link align-self-flex-start" href="{{ call $.MakeURLWithQuery "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}">{{ localize "use-text-login-id-description" $.LoginPageTextLoginIDVariant }}</a>
 				{{ end }}{{ end }}{{ end }}
 
-				{{ if .x_login_id_input_type }}{{ if not (eq .x_login_id_input_type "phone") }}{{ if .x_login_page_login_id_has_phone }}
-				<a class="link align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "phone" }}">{{ localize "use-phone-login-id-description" }}</a>
+				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.LoginPageLoginIDHasPhone }}
+				<a class="link align-self-flex-start" href="{{ call $.MakeURLWithQuery "x_login_id_input_type" "phone" }}">{{ localize "use-phone-login-id-description" }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				<div class="link">
 					<span class="primary-text">{{ localize "signup-button-hint" }}</span>
-					<a href="{{ call .MakeURLWithPathWithoutX "/signup" }}">{{ localize "signup-button-label" }}</a>
+					<a href="{{ call $.MakeURLWithPathWithoutX "/signup" }}">{{ localize "signup-button-label" }}</a>
 				</div>
 
-				{{ if .x_password_authenticator_enabled }}
-				<a class="link align-self-flex-start" href="{{ call .MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
+				{{ if $.PasswordAuthenticatorEnabled }}
+				<a class="link align-self-flex-start" href="{{ call $.MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
 				{{ end }}
 
-				{{ if or .x_login_page_login_id_has_phone (not (eq .x_login_page_text_login_id_variant "none")) }}
+				{{ if or $.LoginPageLoginIDHasPhone (not (eq $.LoginPageTextLoginIDVariant "none")) }}
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 				{{ end }}
 			</form>
@@ -124,10 +126,10 @@ var TemplateAuthUILoginHTML = template.Spec{
 `,
 }
 
-const LoginWithLoginIDRequest = "LoginWithLoginIDRequest"
+const LoginWithLoginIDRequestSchema = "LoginWithLoginIDRequestSchema"
 
 var LoginSchema = validation.NewMultipartSchema("").
-	Add(LoginWithLoginIDRequest, `
+	Add(LoginWithLoginIDRequestSchema, `
 	{
 		"type": "object",
 		"properties": {
@@ -169,7 +171,12 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 }
 
 type LoginHandler struct {
-	Database *db.Handle
+	StateProvider           webapp.StateProvider
+	Database                *db.Handle
+	BaseViewModel           *BaseViewModeler
+	AuthenticationViewModel *AuthenticationViewModeler
+	FormPrefiller           *FormPrefiller
+	Renderer                Renderer
 }
 
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -178,14 +185,39 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.FormPrefiller.Prefill(r.Form)
+
+	if r.Method == "GET" {
+		state, err := h.StateProvider.RestoreState(r, true)
+		if errors.Is(err, webapp.ErrStateNotFound) {
+			err = nil
+		}
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var anyError interface{}
+		if state != nil {
+			anyError = state.Error
+		}
+
+		baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
+
+		data := map[string]interface{}{}
+
+		EmbedForm(data, r.Form)
+		Embed(data, baseViewModel)
+		Embed(data, authenticationViewModel)
+
+		h.Renderer.Render(w, r, TemplateItemTypeAuthUILoginHTML, data)
+		return
+	}
+
 	h.Database.WithTx(func() error {
 		// FIXME(webapp): login
-		// if r.Method == "GET" {
-		// 	writeResponse, err := h.Provider.GetLoginForm(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
-
 		// if r.Method == "POST" {
 		// 	if r.Form.Get("x_idp_id") != "" {
 		// 		writeResponse, err := h.Provider.LoginIdentityProvider(w, r, r.Form.Get("x_idp_id"))

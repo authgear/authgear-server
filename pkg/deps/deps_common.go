@@ -118,7 +118,6 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(user.IdentityProvider), new(*identityprovider.Provider)),
 		wire.Bind(new(interaction.IdentityProvider), new(*identityprovider.Provider)),
 		wire.Bind(new(interactionflows.IdentityProvider), new(*identityprovider.Provider)),
-		// wire.Bind(new(webapp.IdentityProvider), new(*identityprovider.Provider)),
 	),
 
 	wire.NewSet(

@@ -1278,9 +1278,108 @@ func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Database
+	handle := appProvider.Redis
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Redis: handle,
+	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
+	}
+	dbHandle := appProvider.Database
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	baseViewModeler := &webapp2.BaseViewModeler{
+		ServerConfig: serverConfig,
+		AuthUI:       uiConfig,
+		Localization: localizationConfig,
+		Metadata:     appMetadata,
+	}
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
+	sqlExecutor := db.SQLExecutor{
+		Context:  context,
+		Database: dbHandle,
+	}
+	store := &loginid.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	reservedNameChecker := rootProvider.ReservedNameChecker
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:              loginIDConfig,
+		ReservedNameChecker: reservedNameChecker,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	loginidProvider := &loginid.Provider{
+		Store:             store,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	clockClock := _wireSystemClockValue
+	oauthProvider := &oauth3.Provider{
+		Store: oauthStore,
+		Clock: clockClock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	providerProvider := &provider.Provider{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		LoginID:        loginidProvider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+	}
+	authenticationViewModeler := &webapp2.AuthenticationViewModeler{
+		Identity:       providerProvider,
+		Authentication: authenticationConfig,
+	}
+	formPrefiller := &webapp2.FormPrefiller{
+		LoginID: loginIDConfig,
+		UI:      uiConfig,
+	}
+	engine := appProvider.TemplateEngine
+	htmlRenderer := &webapp2.HTMLRenderer{
+		TemplateEngine: engine,
+	}
 	loginHandler := &webapp2.LoginHandler{
-		Database: handle,
+		StateProvider:           stateProviderImpl,
+		Database:                dbHandle,
+		BaseViewModel:           baseViewModeler,
+		AuthenticationViewModel: authenticationViewModeler,
+		FormPrefiller:           formPrefiller,
+		Renderer:                htmlRenderer,
 	}
 	return loginHandler
 }
