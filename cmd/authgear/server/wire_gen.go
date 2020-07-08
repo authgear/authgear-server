@@ -1371,8 +1371,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		UI:      uiConfig,
 	}
 	engine := appProvider.TemplateEngine
+	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
 	htmlRenderer := &webapp2.HTMLRenderer{
 		TemplateEngine: engine,
+		Logger:         htmlRendererLogger,
 	}
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
@@ -1730,8 +1732,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		UI:      uiConfig,
 	}
 	engine := appProvider.TemplateEngine
+	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
 	htmlRenderer := &webapp2.HTMLRenderer{
 		TemplateEngine: engine,
+		Logger:         htmlRendererLogger,
 	}
 	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
 	stateCodec := &sso.StateCodec{
@@ -1936,6 +1940,46 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SSOStateCodec:        stateCodec,
 		OAuthProviderFactory: oAuthProviderFactory,
 	}
+	sessionConfig := appConfig.Session
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	redisLogger := redis3.NewLogger(factory)
+	redisStore := &redis3.Store{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: redisLogger,
+	}
+	eventStore := &redis2.EventStore{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	accessEventProvider := &auth.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionRand := _wireRandValue
+	sessionProvider := &session.Provider{
+		Request:      request,
+		Store:        redisStore,
+		AccessEvents: accessEventProvider,
+		ServerConfig: serverConfig,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       sessionRand,
+	}
+	userController := &flows.UserController{
+		Users:         userProvider,
+		SessionCookie: cookieDef,
+		Sessions:      sessionProvider,
+		Hooks:         hookProvider,
+	}
+	webAppFlow := &flows.WebAppFlow{
+		Config:         identityConfig,
+		Identities:     providerProvider,
+		Users:          userProvider,
+		Hooks:          hookProvider,
+		Interactions:   interactionProvider,
+		UserController: userController,
+	}
 	responder := &webapp.Responder{
 		ServerConfig:  serverConfig,
 		StateProvider: stateProviderImpl,
@@ -1949,6 +1993,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		FormPrefiller:           formPrefiller,
 		Renderer:                htmlRenderer,
 		OAuth:                   oAuthService,
+		Interactions:            webAppFlow,
 		Responder:               responder,
 	}
 	return signupHandler
