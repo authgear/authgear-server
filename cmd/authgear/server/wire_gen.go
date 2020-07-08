@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/hook"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
@@ -2763,6 +2764,209 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	messagingConfig := appConfig.Messaging
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Redis: redisHandle,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	queries := &user.Queries{
+		Store:      userStore,
+		Identities: providerProvider,
+	}
+	logger := hook.NewLogger(factory)
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    logger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	interactionLogger := interaction.NewLogger(factory)
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oobProvider := &oob.Provider{
+		Context:        context,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		Config:         authenticatorOOBConfig,
+		Store:          oobStore,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+		Clock:          clockClock,
+	}
+	bearertokenStore := &bearertoken.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
+	bearertokenProvider := &bearertoken.Provider{
+		Store:  bearertokenStore,
+		Config: authenticatorBearerTokenConfig,
+		Clock:  clockClock,
+	}
+	recoverycodeStore := &recoverycode.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
+	recoverycodeProvider := &recoverycode.Provider{
+		Store:  recoverycodeStore,
+		Config: authenticatorRecoveryCodeConfig,
+		Clock:  clockClock,
+	}
+	provider3 := &provider2.Provider{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	commands := &user.Commands{
+		Raw:   rawCommands,
+		Hooks: hookProvider,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	interactionProvider := &interaction.Provider{
+		Clock:         clockClock,
+		Logger:        interactionLogger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	anonymousFlow := &flows.AnonymousFlow{
+		Config:       authenticationConfig,
+		Interactions: interactionProvider,
+		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
+	}
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+		Anonymous: anonymousFlow,
+		States:    stateStoreImpl,
+	}
+	passwordFlow := &flows.PasswordFlow{
+		Interactions: interactionProvider,
+	}
+	forgotpasswordProvider := &forgotpassword.Provider{
+		Context:         context,
+		ServerConfig:    serverConfig,
+		Localization:    localizationConfig,
+		AppMetadata:     appMetadata,
+		Messaging:       messagingConfig,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Users:           queries,
+		Hooks:           hookProvider,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TemplateEngine:  engine,
+		TaskQueue:       queueQueue,
+		Interactions:    passwordFlow,
+		LoginIDProvider: loginidProvider,
+	}
 	forgotPasswordHandler := &webapp2.ForgotPasswordHandler{
 		Database:                handle,
 		State:                   stateProviderImpl,
@@ -2770,6 +2974,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationViewModel: authenticationViewModeler,
 		FormPrefiller:           formPrefiller,
 		Renderer:                htmlRenderer,
+		ForgotPassword:          forgotpasswordProvider,
 	}
 	return forgotPasswordHandler
 }

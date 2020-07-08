@@ -5,7 +5,6 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	wire.Struct(new(ForgotPasswordProvider), "*"),
 	wire.Struct(new(StateStoreImpl), "*"),
 	wire.Bind(new(StateStore), new(*StateStoreImpl)),
 	NewStateProviderLogger,

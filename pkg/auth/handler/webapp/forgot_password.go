@@ -87,10 +87,10 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 `,
 }
 
-const ForgotPasswordRequest = "ForgotPasswordRequest"
+const ForgotPasswordRequestSchema = "ForgotPasswordRequestSchema"
 
 var ForgotPasswordSchema = validation.NewMultipartSchema("").
-	Add(ForgotPasswordRequest, `
+	Add(ForgotPasswordRequestSchema, `
 		{
 			"type": "object",
 			"properties": {
@@ -131,6 +131,10 @@ func ConfigureForgotPasswordRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/forgot_password")
 }
 
+type ForgotPasswordInteractions interface {
+	SendCode(loginID string) error
+}
+
 type ForgotPasswordHandler struct {
 	Database                *db.Handle
 	State                   webapp.StateProvider
@@ -138,6 +142,7 @@ type ForgotPasswordHandler struct {
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
 	Renderer                Renderer
+	ForgotPassword          ForgotPasswordInteractions
 }
 
 func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -177,14 +182,37 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// FIXME(webapp): forgot_password
-	// h.Database.WithTx(func() error {
-	// 	// if r.Method == "POST" {
-	// 	// 	writeResponse, err := h.Provider.PostForgotPasswordForm(w, r)
-	// 	// 	writeResponse(err)
-	// 	// 	return err
-	// 	// }
+	if r.Method == "POST" {
+		h.Database.WithTx(func() error {
+			var state *webapp.State
+			var err error
 
-	// 	return nil
-	// })
+			defer func() {
+				h.State.UpdateState(state, nil, err)
+				if err != nil {
+					webapp.RedirectToCurrentPath(w, r)
+				} else {
+					webapp.RedirectToPathWithX(w, r, "/forgot_password/success")
+				}
+			}()
+			state = h.State.CreateState(r, nil, nil)
+
+			err = ForgotPasswordSchema.PartValidator(ForgotPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
+				return err
+			}
+
+			loginID, err := FormToLoginID(r.Form)
+			if err != nil {
+				return err
+			}
+
+			err = h.ForgotPassword.SendCode(loginID)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+	}
 }
