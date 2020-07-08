@@ -1,9 +1,11 @@
 package webapp
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -30,7 +32,7 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 {{ template "auth_ui_header.html" . }}
 
 <form class="simple-form vertical-form form-fields-container" method="post" novalidate>
-{{ $.csrfField }}
+{{ $.CSRFField }}
 
 <div class="nav-bar">
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
@@ -40,11 +42,11 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
-{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}{{ if .x_login_page_login_id_has_phone }}
+{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if $.LoginPageLoginIDHasPhone }}
 <div class="description primary-txt">{{ localize "forgot-password-phone-description" }}</div>
 <div class="phone-input">
 	<select class="input select primary-txt" name="x_calling_code">
-		{{ range .x_calling_codes }}
+		{{ range .CountryCallingCodes }}
 		<option
 			value="{{ . }}"
 			{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
@@ -59,20 +61,20 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 </div>
 {{ end }}{{ end }}{{ end }}
 
-{{ if .x_login_id_input_type }}{{ if (not (eq .x_login_id_input_type "phone")) }}{{ if or (eq .x_login_page_text_login_id_variant "email") (eq .x_login_page_text_login_id_variant "email_or_username") }}
+{{ if $.x_login_id_input_type }}{{ if (not (eq $.x_login_id_input_type "phone")) }}{{ if or (eq $.LoginPageTextLoginIDVariant "email") (eq $.LoginPageTextLoginIDVariant "email_or_username") }}
 <div class="description primary-txt">{{ localize "forgot-password-email-description" }}</div>
-<input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "email-placeholder" }}">
+<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "email-placeholder" }}">
 {{ end }}{{ end }}{{ end }}
 
-{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "phone" }}{{ if or (eq .x_login_page_text_login_id_variant "email") (eq .x_login_page_text_login_id_variant "email_or_username") }}
-<a class="link align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "email" }}">{{ localize "use-email-login-id-description" }}</a>
+{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if or (eq $.LoginPageTextLoginIDVariant "email") (eq $.LoginPageTextLoginIDVariant "email_or_username") }}
+<a class="link align-self-flex-start" href="{{ call $.MakeURLWithQuery "x_login_id_input_type" "email" }}">{{ localize "use-email-login-id-description" }}</a>
 {{ end }}{{ end }}{{ end }}
 
-{{ if .x_login_id_input_type }}{{ if eq .x_login_id_input_type "email" }}{{ if .x_login_page_login_id_has_phone }}
-<a class="link align-self-flex-start" href="{{ call .MakeURLWithQuery "x_login_id_input_type" "phone" }}">{{ localize "use-phone-login-id-description" }}</a>
+{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "email" }}{{ if $.LoginPageLoginIDHasPhone }}
+<a class="link align-self-flex-start" href="{{ call $.MakeURLWithQuery "x_login_id_input_type" "phone" }}">{{ localize "use-phone-login-id-description" }}</a>
 {{ end }}{{ end }}{{ end }}
 
-{{ if or .x_login_page_login_id_has_phone (not (eq .x_login_page_text_login_id_variant "none")) }}
+{{ if or $.LoginPageLoginIDHasPhone (not (eq $.LoginPageTextLoginIDVariant "none")) }}
 <button class="btn primary-btn submit-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 {{ end }}
 
@@ -130,7 +132,12 @@ func ConfigureForgotPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type ForgotPasswordHandler struct {
-	Database *db.Handle
+	Database                *db.Handle
+	State                   webapp.StateProvider
+	BaseViewModel           *BaseViewModeler
+	AuthenticationViewModel *AuthenticationViewModeler
+	FormPrefiller           *FormPrefiller
+	Renderer                Renderer
 }
 
 func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -139,20 +146,45 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	h.Database.WithTx(func() error {
-		// FIXME(webapp): forgot_password
-		// if r.Method == "GET" {
-		// 	writeResponse, err := h.Provider.GetForgotPasswordForm(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+	h.FormPrefiller.Prefill(r.Form)
 
-		// if r.Method == "POST" {
-		// 	writeResponse, err := h.Provider.PostForgotPasswordForm(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+	if r.Method == "GET" {
+		state, err := h.State.RestoreState(r, true)
+		if errors.Is(err, webapp.ErrStateNotFound) {
+			err = nil
+		}
 
-		return nil
-	})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var anyError interface{}
+		if state != nil {
+			anyError = state.Error
+		}
+
+		baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
+
+		data := map[string]interface{}{}
+
+		EmbedForm(data, r.Form)
+		Embed(data, baseViewModel)
+		Embed(data, authenticationViewModel)
+
+		h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordHTML, data)
+		return
+	}
+
+	// FIXME(webapp): forgot_password
+	// h.Database.WithTx(func() error {
+	// 	// if r.Method == "POST" {
+	// 	// 	writeResponse, err := h.Provider.PostForgotPasswordForm(w, r)
+	// 	// 	writeResponse(err)
+	// 	// 	return err
+	// 	// }
+
+	// 	return nil
+	// })
 }
