@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
 )
@@ -34,9 +34,8 @@ var TemplateAuthUIForgotPasswordSuccessHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
-<!-- FIXME: x_login_id -->
-
-<div class="description primary-txt">{{ localize "forgot-password-success-description" .x_login_id }}</div>
+<!-- FIXME(webapp): x_login_id -->
+<div class="description primary-txt">{{ localize "forgot-password-success-description" "FIXME" }}</div>
 
 <a class="btn primary-btn align-self-flex-end" href="{{ call .MakeURLWithPathWithoutX "/login" }}">{{ localize "login-button-label--forgot-password-success-page" }}</a>
 
@@ -56,7 +55,9 @@ func ConfigureForgotPasswordSuccessRoute(route httproute.Route) httproute.Route 
 }
 
 type ForgotPasswordSuccessHandler struct {
-	Database *db.Handle
+	State         webapp.StateProvider
+	BaseViewModel *BaseViewModeler
+	Renderer      Renderer
 }
 
 func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -65,14 +66,20 @@ func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return
 	}
 
-	h.Database.WithTx(func() error {
-		// FIXME(webapp): forgot_password_success
-		// if r.Method == "GET" {
-		// 	writeResponse, err := h.Provider.GetForgotPasswordSuccess(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+	if r.Method == "GET" {
+		state, err := h.State.RestoreState(r, false)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		return nil
-	})
+		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+
+		data := map[string]interface{}{}
+
+		Embed(data, baseViewModel)
+
+		h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordSuccessHTML, data)
+		return
+	}
 }

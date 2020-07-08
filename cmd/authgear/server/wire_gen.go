@@ -2981,9 +2981,39 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Database
+	handle := appProvider.Redis
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Redis: handle,
+	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
+	}
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	baseViewModeler := &webapp2.BaseViewModeler{
+		ServerConfig: serverConfig,
+		AuthUI:       uiConfig,
+		Localization: localizationConfig,
+		Metadata:     appMetadata,
+	}
+	engine := appProvider.TemplateEngine
+	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
+	htmlRenderer := &webapp2.HTMLRenderer{
+		TemplateEngine: engine,
+		Logger:         htmlRendererLogger,
+	}
 	forgotPasswordSuccessHandler := &webapp2.ForgotPasswordSuccessHandler{
-		Database: handle,
+		State:         stateProviderImpl,
+		BaseViewModel: baseViewModeler,
+		Renderer:      htmlRenderer,
 	}
 	return forgotPasswordSuccessHandler
 }
