@@ -1,9 +1,11 @@
 package webapp
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -30,7 +32,7 @@ var TemplateAuthUIResetPasswordHTML = template.Spec{
 {{ template "auth_ui_header.html" . }}
 
 <form class="simple-form vertical-form form-fields-container" method="post" novalidate>
-{{ $.csrfField }}
+{{ $.CSRFField }}
 
 <div class="title primary-txt">{{ localize "reset-password-page-title" }}</div>
 
@@ -78,7 +80,11 @@ func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type ResetPasswordHandler struct {
-	Database *db.Handle
+	Database                *db.Handle
+	State                   webapp.StateProvider
+	BaseViewModel           *BaseViewModeler
+	PasswordPolicyViewModel *PasswordPolicyViewModeler
+	Renderer                Renderer
 }
 
 func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -87,19 +93,41 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	h.Database.WithTx(func() error {
-		// FIXME(webapp): reset_password
-		// if r.Method == "GET" {
-		// 	writeResponse, err := h.Provider.GetResetPasswordForm(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+	if r.Method == "GET" {
+		state, err := h.State.RestoreState(r, true)
+		if errors.Is(err, webapp.ErrStateNotFound) {
+			err = nil
+		}
 
-		// if r.Method == "POST" {
-		// 	writeResponse, err := h.Provider.PostResetPasswordForm(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
-		return nil
-	})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var anyError interface{}
+		if state != nil {
+			anyError = state.Error
+		}
+
+		baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+		passwordPolicyViewModel := h.PasswordPolicyViewModel.ViewModel(anyError)
+
+		data := map[string]interface{}{}
+
+		Embed(data, baseViewModel)
+		Embed(data, passwordPolicyViewModel)
+
+		h.Renderer.Render(w, r, TemplateItemTypeAuthUIResetPasswordHTML, data)
+		return
+	}
+
+	// FIXME(webapp): reset_password
+	// h.Database.WithTx(func() error {
+	// 	// if r.Method == "POST" {
+	// 	// 	writeResponse, err := h.Provider.PostResetPasswordForm(w, r)
+	// 	// 	writeResponse(err)
+	// 	// 	return err
+	// 	// }
+	// 	return nil
+	// })
 }
