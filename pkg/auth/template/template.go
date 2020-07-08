@@ -4,16 +4,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/welcomemessage"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/template"
 )
-
-const DefaultErrorHTML = `<!DOCTYPE html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<p>{{ .error.Message }}</p>`
 
 func NewEngineWithConfig(
 	c *config.Config,

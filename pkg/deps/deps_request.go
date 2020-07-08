@@ -29,8 +29,8 @@ var requestDeps = wire.NewSet(
 
 		wire.NewSet(
 			sso.DependencySet,
-			wire.Bind(new(webapp.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
-			wire.Bind(new(webapp.SSOStateCodec), new(*sso.StateCodec)),
+			// wire.Bind(new(webapp.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
+			// wire.Bind(new(webapp.SSOStateCodec), new(*sso.StateCodec)),
 		),
 
 		wire.NewSet(
@@ -61,18 +61,18 @@ var requestDeps = wire.NewSet(
 	ProvideOAuthMetadataProviders,
 
 	handlerwebapp.DependencySet,
-	wire.Bind(new(handlerwebapp.LoginProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.SignupProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.PromoteProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.SSOProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.EnterLoginIDProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.EnterPasswordProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.CreatePasswordProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.OOBOTPProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.ForgotPasswordProvider), new(*webapp.ForgotPasswordProvider)),
-	wire.Bind(new(handlerwebapp.ForgotPasswordSuccessProvider), new(*webapp.ForgotPasswordProvider)),
-	wire.Bind(new(handlerwebapp.ResetPasswordProvider), new(*webapp.ForgotPasswordProvider)),
-	wire.Bind(new(handlerwebapp.ResetPasswordSuccessProvider), new(*webapp.ForgotPasswordProvider)),
-	wire.Bind(new(handlerwebapp.SettingsIdentityProvider), new(*webapp.AuthenticateProviderImpl)),
+	// wire.Bind(new(handlerwebapp.LoginProvider), new(*webapp.AuthenticateProviderImpl)),
+	// wire.Bind(new(handlerwebapp.SignupProvider), new(*webapp.AuthenticateProviderImpl)),
+	// wire.Bind(new(handlerwebapp.PromoteProvider), new(*webapp.AuthenticateProviderImpl)),
+	// wire.Bind(new(handlerwebapp.SSOProvider), new(*webapp.AuthenticateProviderImpl)),
+	// wire.Bind(new(handlerwebapp.EnterLoginIDProvider), new(*webapp.AuthenticateProviderImpl)),
+	// wire.Bind(new(handlerwebapp.EnterPasswordProvider), new(*webapp.AuthenticateProviderImpl)),
+	// wire.Bind(new(handlerwebapp.CreatePasswordProvider), new(*webapp.AuthenticateProviderImpl)),
+	// wire.Bind(new(handlerwebapp.OOBOTPProvider), new(*webapp.AuthenticateProviderImpl)),
+	// wire.Bind(new(handlerwebapp.ForgotPasswordProvider), new(*webapp.ForgotPasswordProvider)),
+	// wire.Bind(new(handlerwebapp.ForgotPasswordSuccessProvider), new(*webapp.ForgotPasswordProvider)),
+	// wire.Bind(new(handlerwebapp.ResetPasswordProvider), new(*webapp.ForgotPasswordProvider)),
+	// wire.Bind(new(handlerwebapp.ResetPasswordSuccessProvider), new(*webapp.ForgotPasswordProvider)),
+	// wire.Bind(new(handlerwebapp.SettingsIdentityProvider), new(*webapp.AuthenticateProviderImpl)),
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*auth.SessionManager)),
 )
