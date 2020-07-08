@@ -1733,6 +1733,17 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	htmlRenderer := &webapp2.HTMLRenderer{
 		TemplateEngine: engine,
 	}
+	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
+	stateCodec := &sso.StateCodec{
+		AppID:       appID,
+		Clock:       clockClock,
+		Credentials: jwtKeyMaterials,
+	}
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	logger := interaction.NewLogger(factory)
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1770,10 +1781,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
-	}
-	endpointsProvider := &endpoints.Provider{
-		Request: request,
-		Config:  serverConfig,
 	}
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
@@ -1896,6 +1903,39 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	anonymousFlow := &flows.AnonymousFlow{
+		Config:       authenticationConfig,
+		Interactions: interactionProvider,
+		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
+	}
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+		Anonymous: anonymousFlow,
+		States:    stateStoreImpl,
+	}
+	userInfoDecoder := sso.UserInfoDecoder{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                endpointsProvider,
+		IdentityConfig:           identityConfig,
+		Credentials:              oAuthClientCredentials,
+		RedirectURL:              urlProvider,
+		Clock:                    clockClock,
+		UserInfoDecoder:          userInfoDecoder,
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthService := &webapp.OAuthService{
+		StateProvider:        stateProviderImpl,
+		SSOStateCodec:        stateCodec,
+		OAuthProviderFactory: oAuthProviderFactory,
+	}
 	responder := &webapp.Responder{
 		ServerConfig:  serverConfig,
 		StateProvider: stateProviderImpl,
@@ -1908,6 +1948,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationViewModel: authenticationViewModeler,
 		FormPrefiller:           formPrefiller,
 		Renderer:                htmlRenderer,
+		OAuth:                   oAuthService,
 		Responder:               responder,
 	}
 	return signupHandler

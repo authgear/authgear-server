@@ -34,7 +34,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 				{{ if eq .type "oauth" }}
 				<form class="authorize-idp-form" method="post" novalidate>
 				{{ $.CSRFField }}
-				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}" data-form-xhr="false">
+				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_provider_alias" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
 					{{ localize "sign-up-apple" }}
 					{{- end -}}
@@ -182,6 +182,7 @@ type SignupHandler struct {
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
 	Renderer                Renderer
+	OAuth                   LoginOAuthService
 	Responder               Responder
 }
 
@@ -222,20 +223,24 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Database.WithTx(func() error {
-		// FIXME(webapp): signup
-		// if r.Method == "POST" {
-		// 	if r.Form.Get("x_idp_id") != "" {
-		// 		writeResponse, err := h.Provider.LoginIdentityProvider(w, r, r.Form.Get("x_idp_id"))
-		// 		writeResponse(err)
-		// 		return err
-		// 	}
+	providerAlias := r.Form.Get("x_provider_alias")
 
-		// 	writeResponse, err := h.Provider.CreateLoginID(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+	if r.Method == "POST" && providerAlias != "" {
+		h.Database.WithTx(func() error {
+			writeResponse, err := h.OAuth.LoginOAuthProvider(w, r, providerAlias)
+			writeResponse(err)
+			return err
+		})
+		return
+	}
 
-		return nil
-	})
+	// FIXME(webapp): signup
+	// h.Database.WithTx(func() error {
+	// 	// if r.Method == "POST" {
+	// 	// 	writeResponse, err := h.Provider.CreateLoginID(w, r)
+	// 	// 	writeResponse(err)
+	// 	// 	return err
+	// 	// }
+	// 	return nil
+	// })
 }
