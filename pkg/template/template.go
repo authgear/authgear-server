@@ -18,8 +18,8 @@ type RenderOptions struct {
 	TemplateBody string
 	// The additional templates to parse.
 	Defines []string
-	// The context for rendering the template
-	Context map[string]interface{}
+	// The data for rendering the template
+	Data interface{}
 	// The options to Validator
 	ValidatorOpts []ValidatorOption
 	// Funcs injects custom functions
@@ -64,7 +64,7 @@ func RenderTextTemplate(opts RenderOptions) (out string, err error) {
 	}
 
 	var buf bytes.Buffer
-	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, opts.Context); err != nil {
+	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, opts.Data); err != nil {
 		err = errors.Newf("failed to execute template: %w", err)
 		return
 	}
@@ -111,7 +111,7 @@ func RenderHTMLTemplate(opts RenderOptions) (out string, err error) {
 	}
 
 	var buf bytes.Buffer
-	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, opts.Context); err != nil {
+	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, opts.Data); err != nil {
 		err = errors.Newf("failed to execute template: %w", err)
 		return
 	}

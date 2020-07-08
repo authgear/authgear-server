@@ -19,7 +19,6 @@ func TestTemplateRender(t *testing.T) {
 			_, err = RenderTextTemplate(RenderOptions{
 				Name:         "test",
 				TemplateBody: template,
-				Context:      nil,
 			})
 			So(err, ShouldBeError, "failed to execute template: rendered template is too large")
 		})
@@ -30,7 +29,7 @@ func TestTemplateRender(t *testing.T) {
 				{{ template "A" }}
 				{{ template "B" }}
 				`,
-				Context: map[string]interface{}{
+				Data: map[string]interface{}{
 					"a": "42",
 				},
 				Defines: []string{
@@ -52,7 +51,7 @@ func TestTemplateRender(t *testing.T) {
 				TemplateBody: `
 				{{ localize "key" "string" 1 true .foobar }}
 				`,
-				Context: map[string]interface{}{
+				Data: map[string]interface{}{
 					"foobar": 42,
 				},
 				Funcs: map[string]interface{}{
@@ -145,7 +144,7 @@ func TestTemplateRender(t *testing.T) {
 			out, err := RenderHTMLTemplate(RenderOptions{
 				Name:         "test",
 				TemplateBody: template,
-				Context: map[string]interface{}{
+				Data: map[string]interface{}{
 					"URL":             "https://www.example.com",
 					"Title":           "Welcome to <b>My App</b>.",
 					"BackgroundColor": "#101020; /* for contrast */",
