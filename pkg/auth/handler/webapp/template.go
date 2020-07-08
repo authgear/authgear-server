@@ -18,7 +18,7 @@ const definePasswordPolicy = `
 <ul>
 {{ range .PasswordPolicies }}
   {{ if eq .Name "PasswordTooShort" }}
-  <li class="primary-txt password-policy length {{ template "PASSWORD_POLICY_CLASS" . }}" data-min-length="{{ .min_length}}">
+  <li class="primary-txt password-policy length {{ template "PASSWORD_POLICY_CLASS" . }}" data-min-length="{{ .Info.min_length}}">
     {{ localize "password-policy-minimum-length" .Info.min_length }}
   </li>
   {{ end }}
@@ -48,27 +48,27 @@ const definePasswordPolicy = `
   </li>
   {{ end }}
   {{ if eq .Name "PasswordBelowGuessableLevel" }}
-    {{ if eq .Info.min_level 1.0 }}
+    {{ if eq .Info.min_level 1 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-1" }}
     </li>
     {{ end }}
-    {{ if eq .Info.min_level 2.0 }}
+    {{ if eq .Info.min_level 2 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-2" }}
     </li>
     {{ end }}
-    {{ if eq .Info.min_level 3.0 }}
+    {{ if eq .Info.min_level 3 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-3" }}
     </li>
     {{ end }}
-    {{ if eq .Info.min_level 4.0 }}
+    {{ if eq .Info.min_level 4 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-4" }}
     </li>
     {{ end }}
-    {{ if eq .Info.min_level 5.0 }}
+    {{ if eq .Info.min_level 5 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
       {{ localize "password-policy-guessable-level-5" }}
     </li>
@@ -83,8 +83,8 @@ const definePasswordPolicy = `
 // nolint: gosec
 const definePasswordPolicyClass = `
 {{- define "PASSWORD_POLICY_CLASS" -}}
-{{- if .x_error_is_password_policy_violated -}}
-{{- if .x_is_violated -}}
+{{- if .Info.x_error_is_password_policy_violated -}}
+{{- if .Info.x_is_violated -}}
 violated
 {{- else -}}
 passed

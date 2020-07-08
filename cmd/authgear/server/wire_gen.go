@@ -2038,8 +2038,70 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	createPasswordHandler := &webapp2.CreatePasswordHandler{
+	redisHandle := appProvider.Redis
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Redis: redisHandle,
+	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
+	}
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	baseViewModeler := &webapp2.BaseViewModeler{
+		ServerConfig: serverConfig,
+		AuthUI:       uiConfig,
+		Localization: localizationConfig,
+		Metadata:     appMetadata,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	clockClock := _wireSystemClockValue
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
+	sqlExecutor := db.SQLExecutor{
+		Context:  context,
 		Database: handle,
+	}
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	checker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	passwordPolicyViewModeler := &webapp2.PasswordPolicyViewModeler{
+		PasswordChecker: checker,
+	}
+	identityConfig := appConfig.Identity
+	loginIDConfig := identityConfig.LoginID
+	formPrefiller := &webapp2.FormPrefiller{
+		LoginID: loginIDConfig,
+		UI:      uiConfig,
+	}
+	engine := appProvider.TemplateEngine
+	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
+	htmlRenderer := &webapp2.HTMLRenderer{
+		TemplateEngine: engine,
+		Logger:         htmlRendererLogger,
+	}
+	createPasswordHandler := &webapp2.CreatePasswordHandler{
+		Database:                handle,
+		State:                   stateProviderImpl,
+		BaseViewModel:           baseViewModeler,
+		PasswordPolicyViewModel: passwordPolicyViewModeler,
+		FormPrefiller:           formPrefiller,
+		Renderer:                htmlRenderer,
 	}
 	return createPasswordHandler
 }
