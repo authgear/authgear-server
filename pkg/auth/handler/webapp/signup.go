@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
@@ -130,10 +131,10 @@ var TemplateAuthUISignupHTML = template.Spec{
 `,
 }
 
-const SignupWithLoginIDRequest = "SignupWithLoginIDRequest"
+const SignupWithLoginIDRequestSchema = "SignupWithLoginIDRequestSchema"
 
 var SignupSchema = validation.NewMultipartSchema("").
-	Add(SignupWithLoginIDRequest, `
+	Add(SignupWithLoginIDRequestSchema, `
 		{
 			"type": "object",
 			"properties": {
@@ -175,6 +176,10 @@ func ConfigureSignupRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/signup")
 }
 
+type SignupInteractions interface {
+	SignupWithLoginID(loginIDKey string, loginID string) (*interactionflows.WebAppResult, error)
+}
+
 type SignupHandler struct {
 	Database                *db.Handle
 	State                   webapp.StateProvider
@@ -183,6 +188,7 @@ type SignupHandler struct {
 	FormPrefiller           *FormPrefiller
 	Renderer                Renderer
 	OAuth                   LoginOAuthService
+	Interactions            SignupInteractions
 	Responder               Responder
 }
 
@@ -234,13 +240,36 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// FIXME(webapp): signup
-	// h.Database.WithTx(func() error {
-	// 	// if r.Method == "POST" {
-	// 	// 	writeResponse, err := h.Provider.CreateLoginID(w, r)
-	// 	// 	writeResponse(err)
-	// 	// 	return err
-	// 	// }
-	// 	return nil
-	// })
+	if r.Method == "POST" {
+		h.Database.WithTx(func() error {
+			var state *webapp.State
+			var result *interactionflows.WebAppResult
+			var err error
+
+			defer func() {
+				h.State.UpdateState(state, result, err)
+				h.Responder.Respond(w, r, state, result, err)
+			}()
+
+			state = h.State.CreateState(r, nil, nil)
+
+			err = SignupSchema.PartValidator(SignupWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
+				return err
+			}
+
+			loginID, err := FormToLoginID(r.Form)
+			if err != nil {
+				return err
+			}
+
+			loginIDKey := r.Form.Get("x_login_id_key")
+			result, err = h.Interactions.SignupWithLoginID(loginIDKey, loginID)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+	}
 }

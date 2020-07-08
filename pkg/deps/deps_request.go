@@ -66,6 +66,7 @@ var requestDeps = wire.NewSet(
 	wire.Bind(new(handlerwebapp.Responder), new(*webapp.Responder)),
 	wire.Bind(new(handlerwebapp.LoginOAuthService), new(*webapp.OAuthService)),
 	wire.Bind(new(handlerwebapp.LoginInteractions), new(*interactionflows.WebAppFlow)),
+	wire.Bind(new(handlerwebapp.SignupInteractions), new(*interactionflows.WebAppFlow)),
 	// wire.Bind(new(handlerwebapp.SignupProvider), new(*webapp.AuthenticateProviderImpl)),
 	// wire.Bind(new(handlerwebapp.PromoteProvider), new(*webapp.AuthenticateProviderImpl)),
 	// wire.Bind(new(handlerwebapp.SSOProvider), new(*webapp.AuthenticateProviderImpl)),
