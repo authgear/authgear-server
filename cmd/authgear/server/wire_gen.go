@@ -2439,6 +2439,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
 	config := appProvider.Config
@@ -2449,7 +2450,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	handle := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -2607,10 +2607,24 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,
 	}
+	uiConfig := appConfig.UI
+	baseViewModeler := &webapp2.BaseViewModeler{
+		ServerConfig: serverConfig,
+		AuthUI:       uiConfig,
+		Localization: localizationConfig,
+		Metadata:     appMetadata,
+	}
+	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
+	htmlRenderer := &webapp2.HTMLRenderer{
+		TemplateEngine: engine,
+		Logger:         htmlRendererLogger,
+	}
 	logoutHandler := &webapp2.LogoutHandler{
+		Database:       handle,
 		ServerConfig:   serverConfig,
 		SessionManager: authSessionManager,
-		Database:       handle,
+		BaseViewModel:  baseViewModeler,
+		Renderer:       htmlRenderer,
 	}
 	return logoutHandler
 }
