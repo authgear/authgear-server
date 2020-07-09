@@ -10,7 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
-func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
+func (f *WebAppFlow) LoginWithOAuthProvider(state *State, oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
 	providerID := oauthAuthInfo.ProviderConfig.ProviderID()
 	claims := map[string]interface{}{
 		identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
@@ -18,21 +18,24 @@ func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebApp
 		identity.IdentityClaimOAuthProfile:      oauthAuthInfo.ProviderRawProfile,
 		identity.IdentityClaimOAuthClaims:       oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
 	}
-	i, err := f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
+
+	var err error
+	state.Interaction, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
 		Identity: identity.Spec{
 			Type:   authn.IdentityTypeOAuth,
 			Claims: claims,
 		},
 	}, "")
+
 	if err == nil {
-		return f.afterPrimaryAuthentication(i)
+		return f.afterPrimaryAuthentication(state)
 	}
 	if !errors.Is(err, interaction.ErrInvalidCredentials) {
 		return nil, err
 	}
 
 	// try signup
-	i, err = f.Interactions.NewInteractionSignup(&interaction.IntentSignup{
+	state.Interaction, err = f.Interactions.NewInteractionSignup(&interaction.IntentSignup{
 		Identity: identity.Spec{
 			Type:   authn.IdentityTypeOAuth,
 			Claims: claims,
@@ -41,39 +44,40 @@ func (f *WebAppFlow) LoginWithOAuthProvider(oauthAuthInfo sso.AuthInfo) (*WebApp
 	if err != nil {
 		return nil, err
 	}
-	s, err := f.Interactions.GetInteractionState(i)
+	s, err := f.Interactions.GetInteractionState(state.Interaction)
 	if err != nil {
 		return nil, err
 	}
 	if s.CurrentStep().Step != interaction.StepCommit {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
-	result, err := f.Interactions.Commit(i)
+	result, err := f.Interactions.Commit(state.Interaction)
 	if err != nil {
 		return nil, err
 	}
 
 	// create new interaction after signup
-	i, err = f.Interactions.NewInteractionLoginAs(
+	state.Interaction, err = f.Interactions.NewInteractionLoginAs(
 		&interaction.IntentLogin{
 			Identity: identity.Spec{
 				Type:   result.Identity.Type,
 				Claims: result.Identity.Claims,
 			},
-			OriginalIntentType: i.Intent.Type(),
+			OriginalIntentType: state.Interaction.Intent.Type(),
 		},
 		result.Attrs.UserID,
-		i.Identity,
-		i.PrimaryAuthenticator,
-		i.ClientID,
+		state.Interaction.Identity,
+		state.Interaction.PrimaryAuthenticator,
+		state.Interaction.ClientID,
 	)
 	if err != nil {
 		return nil, err
 	}
-	return f.afterPrimaryAuthentication(i)
+
+	return f.afterPrimaryAuthentication(state)
 }
 
-func (f *WebAppFlow) LinkWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (result *WebAppResult, err error) {
+func (f *WebAppFlow) LinkWithOAuthProvider(state *State, userID string, oauthAuthInfo sso.AuthInfo) (result *WebAppResult, err error) {
 	providerID := oauthAuthInfo.ProviderConfig.ProviderID()
 	claims := map[string]interface{}{
 		identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
@@ -83,7 +87,7 @@ func (f *WebAppFlow) LinkWithOAuthProvider(userID string, oauthAuthInfo sso.Auth
 	}
 
 	clientID := ""
-	i, err := f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
+	state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
 		Identity: identity.Spec{
 			Type:   authn.IdentityTypeOAuth,
 			Claims: claims,
@@ -93,7 +97,7 @@ func (f *WebAppFlow) LinkWithOAuthProvider(userID string, oauthAuthInfo sso.Auth
 		return
 	}
 
-	s, err := f.Interactions.GetInteractionState(i)
+	s, err := f.Interactions.GetInteractionState(state.Interaction)
 	if err != nil {
 		return
 	}
@@ -104,22 +108,19 @@ func (f *WebAppFlow) LinkWithOAuthProvider(userID string, oauthAuthInfo sso.Auth
 		panic("interaction_flow_webapp: unexpected interaction step")
 	}
 
-	_, err = f.Interactions.Commit(i)
+	_, err = f.Interactions.Commit(state.Interaction)
 	if err != nil {
 		return nil, err
 	}
 
-	result = &WebAppResult{
-		Interaction: i,
-	}
-
+	result = &WebAppResult{}
 	return
 }
 
-func (f *WebAppFlow) UnlinkWithOAuthProvider(userID string, providerConfig *config.OAuthSSOProviderConfig) (result *WebAppResult, err error) {
+func (f *WebAppFlow) UnlinkWithOAuthProvider(state *State, userID string, providerConfig *config.OAuthSSOProviderConfig) (result *WebAppResult, err error) {
 	providerID := providerConfig.ProviderID()
 	clientID := ""
-	i, err := f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
+	state.Interaction, err = f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
 		Identity: identity.Spec{
 			Type: authn.IdentityTypeOAuth,
 			Claims: map[string]interface{}{
@@ -131,7 +132,7 @@ func (f *WebAppFlow) UnlinkWithOAuthProvider(userID string, providerConfig *conf
 		return
 	}
 
-	s, err := f.Interactions.GetInteractionState(i)
+	s, err := f.Interactions.GetInteractionState(state.Interaction)
 	if err != nil {
 		return
 	}
@@ -140,14 +141,11 @@ func (f *WebAppFlow) UnlinkWithOAuthProvider(userID string, providerConfig *conf
 		panic("interaction_flow_webapp: unexpected step " + s.CurrentStep().Step)
 	}
 
-	_, err = f.Interactions.Commit(i)
+	_, err = f.Interactions.Commit(state.Interaction)
 	if err != nil {
 		return
 	}
 
-	result = &WebAppResult{
-		Interaction: i,
-	}
-
+	result = &WebAppResult{}
 	return
 }

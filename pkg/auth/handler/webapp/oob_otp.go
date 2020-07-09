@@ -5,9 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -119,13 +117,13 @@ func NewOOBOTPViewModel() OOBOTPViewModel {
 }
 
 type OOBOTPInteractions interface {
-	TriggerOOBOTP(i *interaction.Interaction) (*interactionflows.WebAppResult, error)
-	EnterSecret(i *interaction.Interaction, password string) (*interactionflows.WebAppResult, error)
+	TriggerOOBOTP(state *interactionflows.State) (*interactionflows.WebAppResult, error)
+	EnterSecret(state *interactionflows.State, password string) (*interactionflows.WebAppResult, error)
 }
 
 type OOBOTPHandler struct {
 	Database      *db.Handle
-	State         webapp.StateProvider
+	State         StateService
 	BaseViewModel *BaseViewModeler
 	Renderer      Renderer
 	Interactions  OOBOTPInteractions
@@ -172,7 +170,7 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.Responder.Respond(w, r, state, result, err)
 			}()
 
-			result, err = h.Interactions.TriggerOOBOTP(state.Interaction)
+			result, err = h.Interactions.TriggerOOBOTP(state)
 			if err != nil {
 				return err
 			}
@@ -203,7 +201,7 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			code := r.Form.Get("x_password")
 
-			result, err = h.Interactions.EnterSecret(state.Interaction, code)
+			result, err = h.Interactions.EnterSecret(state, code)
 			if err != nil {
 				return err
 			}

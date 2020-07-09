@@ -4,9 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -91,12 +89,12 @@ func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterPasswordInteractions interface {
-	EnterSecret(i *interaction.Interaction, password string) (*interactionflows.WebAppResult, error)
+	EnterSecret(state *interactionflows.State, password string) (*interactionflows.WebAppResult, error)
 }
 
 type EnterPasswordHandler struct {
 	Database                *db.Handle
-	State                   webapp.StateProvider
+	State                   StateService
 	BaseViewModel           *BaseViewModeler
 	AuthenticationViewModel *AuthenticationViewModeler
 	Renderer                Renderer
@@ -150,7 +148,7 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 			plainPassword := r.Form.Get("x_password")
 
-			result, err = h.Interactions.EnterSecret(state.Interaction, plainPassword)
+			result, err = h.Interactions.EnterSecret(state, plainPassword)
 			if err != nil {
 				return err
 			}

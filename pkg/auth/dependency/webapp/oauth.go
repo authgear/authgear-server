@@ -16,9 +16,9 @@ type OAuthProviderFactory interface {
 }
 
 type OAuthInteractions interface {
-	LoginWithOAuthProvider(sso.AuthInfo) (*interactionflows.WebAppResult, error)
-	LinkWithOAuthProvider(userID string, ssoAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
-	PromoteWithOAuthProvider(userID string, ssoAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
+	LoginWithOAuthProvider(state *interactionflows.State, ssoAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
+	LinkWithOAuthProvider(state *interactionflows.State, userID string, ssoAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
+	PromoteWithOAuthProvider(state *interactionflows.State, userID string, ssoAuthInfo sso.AuthInfo) (*interactionflows.WebAppResult, error)
 }
 
 type OAuthService struct {
@@ -53,7 +53,7 @@ func (e *OAuthRedirectError) Unwrap() error {
 	return e.err
 }
 
-func (s *OAuthService) LoginOAuthProvider(w http.ResponseWriter, r *http.Request, providerAlias string, state *State) (result *interactionflows.WebAppResult, err error) {
+func (s *OAuthService) LoginOAuthProvider(w http.ResponseWriter, r *http.Request, providerAlias string, state *interactionflows.State) (result *interactionflows.WebAppResult, err error) {
 	var authURI string
 
 	oauthProvider := s.OAuthProviderFactory.NewOAuthProvider(providerAlias)
@@ -80,9 +80,9 @@ func (s *OAuthService) LoginOAuthProvider(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	state.Extra[ExtraSSOAction] = "login"
-	state.Extra[ExtraSSONonce] = nonce
-	state.Extra[ExtraSSORedirectURI] = r.URL.String()
+	state.Extra[interactionflows.ExtraSSOAction] = "login"
+	state.Extra[interactionflows.ExtraSSONonce] = nonce
+	state.Extra[interactionflows.ExtraSSORedirectURI] = r.URL.String()
 
 	result = &interactionflows.WebAppResult{
 		RedirectURI: authURI,
@@ -90,10 +90,10 @@ func (s *OAuthService) LoginOAuthProvider(w http.ResponseWriter, r *http.Request
 	return
 }
 
-func (s *OAuthService) HandleSSOCallback(r *http.Request, providerAlias string, state *State, data SSOCallbackData) (result *interactionflows.WebAppResult, err error) {
-	action, _ := state.Extra[ExtraSSOAction].(string)
-	userID, _ := state.Extra[ExtraUserID].(string)
-	redirectURI, _ := state.Extra[ExtraSSORedirectURI].(string)
+func (s *OAuthService) HandleSSOCallback(r *http.Request, providerAlias string, state *interactionflows.State, data SSOCallbackData) (result *interactionflows.WebAppResult, err error) {
+	action, _ := state.Extra[interactionflows.ExtraSSOAction].(string)
+	userID, _ := state.Extra[interactionflows.ExtraUserID].(string)
+	redirectURI, _ := state.Extra[interactionflows.ExtraSSORedirectURI].(string)
 
 	// Wrap the error so that we can go back where we were.
 	defer func() {
@@ -122,7 +122,7 @@ func (s *OAuthService) HandleSSOCallback(r *http.Request, providerAlias string, 
 		return
 	}
 	hashedCookie := crypto.SHA256String(cookie.Value)
-	hashedNonce, ok := state.Extra[ExtraSSONonce].(string)
+	hashedNonce, ok := state.Extra[interactionflows.ExtraSSONonce].(string)
 	if !ok || subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(hashedCookie)) != 1 {
 		err = sso.NewSSOFailed(sso.SSOUnauthorized, "invalid nonce")
 		return
@@ -150,11 +150,11 @@ func (s *OAuthService) HandleSSOCallback(r *http.Request, providerAlias string, 
 
 	switch action {
 	case "login":
-		result, err = s.Interactions.LoginWithOAuthProvider(oauthAuthInfo)
+		result, err = s.Interactions.LoginWithOAuthProvider(state, oauthAuthInfo)
 	case "link":
-		result, err = s.Interactions.LinkWithOAuthProvider(userID, oauthAuthInfo)
+		result, err = s.Interactions.LinkWithOAuthProvider(state, userID, oauthAuthInfo)
 	case "promote":
-		result, err = s.Interactions.PromoteWithOAuthProvider(userID, oauthAuthInfo)
+		result, err = s.Interactions.PromoteWithOAuthProvider(state, userID, oauthAuthInfo)
 	default:
 		panic(fmt.Errorf("webapp: unexpected sso action: %v", action))
 	}

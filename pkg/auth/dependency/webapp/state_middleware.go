@@ -2,10 +2,16 @@ package webapp
 
 import (
 	"net/http"
+
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 )
 
+type StateMiddlewareStates interface {
+	Get(id string) (*interactionflows.State, error)
+}
+
 type StateMiddleware struct {
-	StateStore StateStore
+	StateStore StateMiddlewareStates
 }
 
 func (m *StateMiddleware) Handle(next http.Handler) http.Handler {

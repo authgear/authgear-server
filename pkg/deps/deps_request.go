@@ -33,6 +33,9 @@ var requestDeps = wire.NewSet(
 	wire.Bind(new(webapp.OAuthInteractions), new(*interactionflows.WebAppFlow)),
 
 	webapp.DependencySet,
+	wire.Bind(new(webapp.ResponderStates), new(*interactionflows.StateService)),
+	wire.Bind(new(webapp.URLProviderStates), new(*interactionflows.StateStoreRedis)),
+	wire.Bind(new(webapp.StateMiddlewareStates), new(*interactionflows.StateStoreRedis)),
 	wire.Bind(new(oauthhandler.WebAppURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
@@ -57,6 +60,7 @@ var requestDeps = wire.NewSet(
 	ProvideOAuthMetadataProviders,
 
 	handlerwebapp.DependencySet,
+	wire.Bind(new(handlerwebapp.StateService), new(*interactionflows.StateService)),
 	wire.Bind(new(handlerwebapp.Responder), new(*webapp.Responder)),
 	wire.Bind(new(handlerwebapp.LoginOAuthService), new(*webapp.OAuthService)),
 	wire.Bind(new(handlerwebapp.LoginInteractions), new(*interactionflows.WebAppFlow)),

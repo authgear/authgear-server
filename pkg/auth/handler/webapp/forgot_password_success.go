@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
 )
@@ -55,7 +54,7 @@ func ConfigureForgotPasswordSuccessRoute(route httproute.Route) httproute.Route 
 }
 
 type ForgotPasswordSuccessHandler struct {
-	State         webapp.StateProvider
+	State         StateService
 	BaseViewModel *BaseViewModeler
 	Renderer      Renderer
 }

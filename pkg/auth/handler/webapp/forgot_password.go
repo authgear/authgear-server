@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
@@ -137,7 +138,7 @@ type ForgotPasswordInteractions interface {
 
 type ForgotPasswordHandler struct {
 	Database                *db.Handle
-	State                   webapp.StateProvider
+	State                   StateService
 	BaseViewModel           *BaseViewModeler
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
@@ -155,7 +156,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if r.Method == "GET" {
 		state, err := h.State.RestoreState(r, true)
-		if errors.Is(err, webapp.ErrStateNotFound) {
+		if errors.Is(err, interactionflows.ErrStateNotFound) {
 			err = nil
 		}
 
@@ -184,7 +185,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			var state *webapp.State
+			var state *interactionflows.State
 			var err error
 
 			defer func() {

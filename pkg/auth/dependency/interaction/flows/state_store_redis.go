@@ -1,4 +1,4 @@
-package webapp
+package flows
 
 import (
 	"encoding/json"
@@ -10,13 +10,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/redis"
 )
 
-type StateStoreImpl struct {
+type StateStoreRedis struct {
 	Redis *redis.Handle
 }
 
-var _ StateStore = &StateStoreImpl{}
-
-func (s *StateStoreImpl) Get(id string) (state *State, err error) {
+func (s *StateStoreRedis) Get(id string) (state *State, err error) {
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		data, err := goredis.Bytes(conn.Do("GET", id))
 		if errors.Is(err, goredis.ErrNil) {
@@ -31,7 +29,7 @@ func (s *StateStoreImpl) Get(id string) (state *State, err error) {
 	return
 }
 
-func (s *StateStoreImpl) Set(state *State) (err error) {
+func (s *StateStoreRedis) Set(state *State) (err error) {
 	bytes, err := json.Marshal(state)
 	if err != nil {
 		return
@@ -45,7 +43,7 @@ func (s *StateStoreImpl) Set(state *State) (err error) {
 	return
 }
 
-func (s *StateStoreImpl) Delete(id string) (err error) {
+func (s *StateStoreRedis) Delete(id string) (err error) {
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		_, err := conn.Do("DEL", id)
 		return err

@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	coreurl "github.com/authgear/authgear-server/pkg/core/url"
 )
 
@@ -33,10 +34,14 @@ type AuthenticateURLOptions struct {
 	LoginHint   string
 }
 
+type URLProviderStates interface {
+	Set(*interactionflows.State) error
+}
+
 type URLProvider struct {
 	Endpoints EndpointsProvider
 	Anonymous AnonymousFlow
-	States    StateStore
+	States    URLProviderStates
 }
 
 func (p *URLProvider) AuthenticateURL(options AuthenticateURLOptions) (*url.URL, error) {
@@ -98,17 +103,18 @@ func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, login
 
 		switch action {
 		case anonymous.RequestActionPromote:
-			state := NewState()
-			state.Extra[ExtraUserID] = userID
-			p.States.Set(state)
+			state := interactionflows.NewState()
+			state.Extra[interactionflows.ExtraUserID] = userID
+			err = p.States.Set(state)
+			if err != nil {
+				return err
+			}
 			q["x_sid"] = state.ID
 			*uri = p.Endpoints.PromoteUserEndpointURL()
 			return nil
-
 		case anonymous.RequestActionAuth:
 			// TODO(webapp): support anonymous auth
 			panic("webapp: anonymous auth through web app is not supported")
-
 		default:
 			return errors.New("unknown anonymous request action")
 		}
