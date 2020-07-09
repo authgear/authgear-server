@@ -65,6 +65,21 @@ identity:
         enabled: false    # verification is disabled
 ```
 
+## Interaction with OOB-OTP authentication
+
+Verifying a login ID identity is equivalent to adding an OOB-OTP authenticator.
+Therefore:
+- Removing the OOB-OTP authenticator would cause the corresponding login ID
+  identity to become unverified.
+- Enrolling in OOB-OTP authentication would cause the corresponding login ID
+  identity to become verified.
+- Verifying a login ID identity would allow it to be used in OOB-OTP
+  authentication if enabled in the configuration.
+
+Note that even if OOB-OTP authentication is not enabled, user can still perform
+user verification. However, the added OOB-OTP authenticator cannot be used in
+authentication unless it is enabled in the configuration.
+
 ## Code & Message
 
 The verification code & message can be configured using OOB-OTP authenticator
