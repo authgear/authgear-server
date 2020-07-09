@@ -28,9 +28,6 @@ type Interaction struct {
 	NewAuthenticators    []*authenticator.Info `json:"new_authenticators,omitempty"`
 	RemoveIdentities     []*identity.Info      `json:"remove_identities,omitempty"`
 	RemoveAuthenticators []*authenticator.Info `json:"remove_authenticators,omitempty"`
-
-	// Extra is used to persist extra data across the interaction.
-	Extra map[string]string `json:"extra,omitempty"`
 }
 
 func newInteraction(clientID string, intent Intent) *Interaction {
@@ -38,7 +35,6 @@ func newInteraction(clientID string, intent Intent) *Interaction {
 		ClientID: clientID,
 		Intent:   intent,
 		State:    map[string]string{},
-		Extra:    map[string]string{},
 	}
 }
 

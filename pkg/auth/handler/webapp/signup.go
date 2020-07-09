@@ -6,7 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -177,12 +176,12 @@ func ConfigureSignupRoute(route httproute.Route) httproute.Route {
 }
 
 type SignupInteractions interface {
-	SignupWithLoginID(loginIDKey string, loginID string) (*interactionflows.WebAppResult, error)
+	SignupWithLoginID(state *interactionflows.State, loginIDKey string, loginID string) (*interactionflows.WebAppResult, error)
 }
 
 type SignupHandler struct {
 	Database                *db.Handle
-	State                   webapp.StateProvider
+	State                   StateService
 	BaseViewModel           *BaseViewModeler
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
@@ -202,7 +201,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		state, err := h.State.RestoreState(r, true)
-		if errors.Is(err, webapp.ErrStateNotFound) {
+		if errors.Is(err, interactionflows.ErrStateNotFound) {
 			err = nil
 		}
 
@@ -233,7 +232,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
-			var state *webapp.State
+			var state *interactionflows.State
 			var result *interactionflows.WebAppResult
 			var err error
 
@@ -255,7 +254,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			var state *webapp.State
+			var state *interactionflows.State
 			var result *interactionflows.WebAppResult
 			var err error
 
@@ -277,7 +276,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			loginIDKey := r.Form.Get("x_login_id_key")
-			result, err = h.Interactions.SignupWithLoginID(loginIDKey, loginID)
+			result, err = h.Interactions.SignupWithLoginID(state, loginIDKey, loginID)
 			if err != nil {
 				return err
 			}

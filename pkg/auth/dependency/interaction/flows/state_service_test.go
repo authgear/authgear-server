@@ -1,4 +1,4 @@
-package webapp
+package flows
 
 import (
 	"net/http"
@@ -10,15 +10,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/log"
 )
 
-func TestStateProvider(t *testing.T) {
-	Convey("StateProviderImpl", t, func() {
+func TestStateService(t *testing.T) {
+	Convey("StateService", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
 		store := NewMockStateStore(ctrl)
-		p := StateProviderImpl{
+		p := StateService{
 			StateStore: store,
-			Logger:     StateProviderLogger{log.Null},
+			Logger:     StateServiceLogger{log.Null},
 		}
 
 		Convey("CreateState ignore existing sid", func() {

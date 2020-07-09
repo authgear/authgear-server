@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/core/phone"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
@@ -174,16 +173,16 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 }
 
 type LoginOAuthService interface {
-	LoginOAuthProvider(w http.ResponseWriter, r *http.Request, providerAlias string, state *webapp.State) (*interactionflows.WebAppResult, error)
+	LoginOAuthProvider(w http.ResponseWriter, r *http.Request, providerAlias string, state *interactionflows.State) (*interactionflows.WebAppResult, error)
 }
 
 type LoginInteractions interface {
-	LoginWithLoginID(loginID string) (*interactionflows.WebAppResult, error)
+	LoginWithLoginID(state *interactionflows.State, loginID string) (*interactionflows.WebAppResult, error)
 }
 
 type LoginHandler struct {
 	Database                *db.Handle
-	State                   webapp.StateProvider
+	State                   StateService
 	BaseViewModel           *BaseViewModeler
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
@@ -203,7 +202,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		state, err := h.State.RestoreState(r, true)
-		if errors.Is(err, webapp.ErrStateNotFound) {
+		if errors.Is(err, interactionflows.ErrStateNotFound) {
 			err = nil
 		}
 
@@ -234,7 +233,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
-			var state *webapp.State
+			var state *interactionflows.State
 			var result *interactionflows.WebAppResult
 			var err error
 
@@ -256,7 +255,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			var state *webapp.State
+			var state *interactionflows.State
 			var result *interactionflows.WebAppResult
 			var err error
 
@@ -276,7 +275,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			result, err = h.Interactions.LoginWithLoginID(loginID)
+			result, err = h.Interactions.LoginWithLoginID(state, loginID)
 			if err != nil {
 				return err
 			}

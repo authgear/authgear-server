@@ -14,10 +14,14 @@ type ResponderInteractions interface {
 	GetInteractionState(i *interaction.Interaction) (*interaction.State, error)
 }
 
+type ResponderStates interface {
+	DeleteState(*interactionflows.State)
+}
+
 type Responder struct {
-	ServerConfig  *config.ServerConfig
-	StateProvider StateProvider
-	Interactions  ResponderInteractions
+	ServerConfig *config.ServerConfig
+	States       ResponderStates
+	Interactions ResponderInteractions
 }
 
 type ErrorRedirect interface {
@@ -27,7 +31,7 @@ type ErrorRedirect interface {
 func (r *Responder) Respond(
 	w http.ResponseWriter,
 	req *http.Request,
-	state *State,
+	state *interactionflows.State,
 	result *interactionflows.WebAppResult,
 	err error,
 ) {
@@ -53,7 +57,7 @@ func (r *Responder) Respond(
 		return
 	}
 
-	iState, err := r.Interactions.GetInteractionState(result.Interaction)
+	iState, err := r.Interactions.GetInteractionState(state.Interaction)
 	if err != nil {
 		onError()
 		return
@@ -84,7 +88,7 @@ func (r *Responder) Respond(
 	case interaction.StepAuthenticateSecondary:
 		panic("TODO: support StepAuthenticateSecondary")
 	case interaction.StepCommit:
-		r.StateProvider.DeleteState(state)
+		r.States.DeleteState(state)
 		RedirectToRedirectURI(w, req, r.ServerConfig.TrustProxy)
 	default:
 		panic("webapp: unexpected step")

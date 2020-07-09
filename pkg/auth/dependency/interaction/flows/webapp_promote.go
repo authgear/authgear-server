@@ -17,10 +17,9 @@ const (
 	WebAppExtraStateAnonymousUserPromotion string = "https://authgear.com/claims/web_app/anonymous_user_promotion"
 )
 
-func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID string) (*WebAppResult, error) {
+func (f *WebAppFlow) PromoteWithLoginID(state *State, loginIDKey, loginID string, userID string) (*WebAppResult, error) {
 	var err error
 
-	var i *interaction.Interaction
 	iden := identity.Spec{
 		Type: authn.IdentityTypeLoginID,
 		Claims: map[string]interface{}{
@@ -32,18 +31,18 @@ func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID strin
 	if f.Config.OnConflict.Promotion == config.PromotionConflictBehaviorLogin {
 		_, _, err = f.Identities.GetByClaims(authn.IdentityTypeLoginID, iden.Claims)
 		if errors.Is(err, identity.ErrIdentityNotFound) {
-			i, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
+			state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
 				Identity: iden,
 			}, "", userID)
 		} else if err != nil {
 			return nil, err
 		} else {
-			i, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
+			state.Interaction, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
 				Identity: iden,
 			}, "")
 		}
 	} else {
-		i, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
+		state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
 			Identity: iden,
 		}, "", userID)
 	}
@@ -51,23 +50,20 @@ func (f *WebAppFlow) PromoteWithLoginID(loginIDKey, loginID string, userID strin
 		return nil, err
 	}
 
-	if i.Intent.Type() == interaction.IntentTypeLogin {
-		err = f.handleLogin(i)
+	if state.Interaction.Intent.Type() == interaction.IntentTypeLogin {
+		err = f.handleLogin(state)
 	} else {
-		err = f.handleSignup(i)
+		err = f.handleSignup(state)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	i.Extra[WebAppExtraStateAnonymousUserPromotion] = userID
-
-	return &WebAppResult{
-		Interaction: i,
-	}, nil
+	state.Extra[WebAppExtraStateAnonymousUserPromotion] = userID
+	return &WebAppResult{}, nil
 }
 
-func (f *WebAppFlow) PromoteWithOAuthProvider(userID string, oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
+func (f *WebAppFlow) PromoteWithOAuthProvider(state *State, userID string, oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
 	providerID := oauthAuthInfo.ProviderConfig.ProviderID()
 	iden := identity.Spec{
 		Type: authn.IdentityTypeOAuth,
@@ -80,22 +76,21 @@ func (f *WebAppFlow) PromoteWithOAuthProvider(userID string, oauthAuthInfo sso.A
 	}
 	var err error
 
-	var i *interaction.Interaction
 	if f.Config.OnConflict.Promotion == config.PromotionConflictBehaviorLogin {
 		_, _, err = f.Identities.GetByClaims(authn.IdentityTypeOAuth, iden.Claims)
 		if errors.Is(err, identity.ErrIdentityNotFound) {
-			i, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
+			state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
 				Identity: iden,
 			}, "", userID)
 		} else if err != nil {
 			return nil, err
 		} else {
-			i, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
+			state.Interaction, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
 				Identity: iden,
 			}, "")
 		}
 	} else {
-		i, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
+		state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
 			Identity: iden,
 		}, "", userID)
 	}
@@ -103,7 +98,7 @@ func (f *WebAppFlow) PromoteWithOAuthProvider(userID string, oauthAuthInfo sso.A
 		return nil, err
 	}
 
-	s, err := f.Interactions.GetInteractionState(i)
+	s, err := f.Interactions.GetInteractionState(state.Interaction)
 	if err != nil {
 		return nil, err
 	} else if s.CurrentStep().Step != interaction.StepCommit {
@@ -112,19 +107,19 @@ func (f *WebAppFlow) PromoteWithOAuthProvider(userID string, oauthAuthInfo sso.A
 		panic("interaction_flow_webapp: unexpected interaction step")
 	}
 
-	i.Extra[WebAppExtraStateAnonymousUserPromotion] = userID
+	state.Extra[WebAppExtraStateAnonymousUserPromotion] = userID
 
-	result, err := f.Interactions.Commit(i)
+	result, err := f.Interactions.Commit(state.Interaction)
 	if err != nil {
 		return nil, err
 	}
 
-	return f.afterAnonymousUserPromotion(i, result)
+	return f.afterAnonymousUserPromotion(state, result)
 }
 
-func (f *WebAppFlow) afterAnonymousUserPromotion(i *interaction.Interaction, ir *interaction.Result) (*WebAppResult, error) {
+func (f *WebAppFlow) afterAnonymousUserPromotion(state *State, ir *interaction.Result) (*WebAppResult, error) {
 	var err error
-	anonUserID := i.Extra[WebAppExtraStateAnonymousUserPromotion]
+	anonUserID, _ := state.Extra[WebAppExtraStateAnonymousUserPromotion].(string)
 
 	anonUser, err := f.Users.Get(anonUserID)
 	if err != nil {
@@ -133,7 +128,7 @@ func (f *WebAppFlow) afterAnonymousUserPromotion(i *interaction.Interaction, ir 
 
 	// Remove anonymous identity if the same user is reused
 	if anonUserID == ir.Attrs.UserID {
-		i, err = f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
+		state.Interaction, err = f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{
 			Identity: identity.Spec{
 				Type:   authn.IdentityTypeAnonymous,
 				Claims: map[string]interface{}{},
@@ -143,7 +138,7 @@ func (f *WebAppFlow) afterAnonymousUserPromotion(i *interaction.Interaction, ir 
 			return nil, err
 		}
 
-		s, err := f.Interactions.GetInteractionState(i)
+		s, err := f.Interactions.GetInteractionState(state.Interaction)
 		if err != nil {
 			return nil, err
 		}
@@ -152,7 +147,7 @@ func (f *WebAppFlow) afterAnonymousUserPromotion(i *interaction.Interaction, ir 
 			panic("interaction_flow_webapp: unexpected step " + s.CurrentStep().Step)
 		}
 
-		_, err = f.Interactions.Commit(i)
+		_, err = f.Interactions.Commit(state.Interaction)
 		if err != nil {
 			return nil, err
 		}
@@ -177,7 +172,7 @@ func (f *WebAppFlow) afterAnonymousUserPromotion(i *interaction.Interaction, ir 
 		return nil, err
 	}
 
-	result, err := f.UserController.CreateSession(i, ir)
+	result, err := f.UserController.CreateSession(state.Interaction, ir)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +181,6 @@ func (f *WebAppFlow) afterAnonymousUserPromotion(i *interaction.Interaction, ir 
 	// failure may cause lost users.
 
 	return &WebAppResult{
-		Interaction: i,
-		Cookies:     result.Cookies,
+		Cookies: result.Cookies,
 	}, nil
 }

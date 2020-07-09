@@ -3,7 +3,6 @@ package flows
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/core/handler"
 	"github.com/authgear/authgear-server/pkg/httputil"
@@ -11,7 +10,6 @@ import (
 
 type WebAppResult struct {
 	RedirectURI string
-	Interaction *interaction.Interaction
 	Cookies     []*http.Cookie
 }
 

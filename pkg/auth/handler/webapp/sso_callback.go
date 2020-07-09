@@ -16,12 +16,12 @@ func ConfigureSSOCallbackRoute(route httproute.Route) httproute.Route {
 }
 
 type SSOCallbackOAuthService interface {
-	HandleSSOCallback(r *http.Request, providerAlias string, state *webapp.State, data webapp.SSOCallbackData) (*interactionflows.WebAppResult, error)
+	HandleSSOCallback(r *http.Request, providerAlias string, state *interactionflows.State, data webapp.SSOCallbackData) (*interactionflows.WebAppResult, error)
 }
 
 type SSOCallbackHandler struct {
 	Database  *db.Handle
-	State     webapp.StateProvider
+	State     StateService
 	OAuth     SSOCallbackOAuthService
 	Responder Responder
 }
