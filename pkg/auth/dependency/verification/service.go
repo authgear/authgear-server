@@ -83,9 +83,13 @@ func (s *Service) IsUserVerified(userID string) (bool, error) {
 		return false, err
 	}
 
+	return s.IsVerified(is, as), nil
+}
+
+func (s *Service) IsVerified(identities []*identity.Info, authenticators []*authenticator.Info) bool {
 	numVerifiable := 0
 	numVerified := 0
-	for _, i := range is {
+	for _, i := range identities {
 		switch i.Type {
 		case authn.IdentityTypeLoginID:
 			if !s.isLoginIDKeyVerifiable(i.Claims[identity.IdentityClaimLoginIDKey].(string)) {
@@ -93,7 +97,11 @@ func (s *Service) IsUserVerified(userID string) (bool, error) {
 			}
 
 			numVerifiable++
-			for _, a := range as {
+			for _, a := range authenticators {
+				if a.Type != authn.AuthenticatorTypeOOB {
+					continue
+				}
+
 				spec := a.ToSpec()
 				if s.Identities.RelateIdentityToAuthenticator(i.ToSpec(), &spec) != nil {
 					numVerified++
@@ -110,9 +118,9 @@ func (s *Service) IsUserVerified(userID string) (bool, error) {
 
 	switch s.Config.Criteria {
 	case config.VerificationCriteriaAny:
-		return numVerifiable > 0 && numVerified >= 1, nil
+		return numVerifiable > 0 && numVerified >= 1
 	case config.VerificationCriteriaAll:
-		return numVerifiable > 0 && numVerified == numVerifiable, nil
+		return numVerifiable > 0 && numVerified == numVerifiable
 	default:
 		panic("verification: unknown criteria " + s.Config.Criteria)
 	}

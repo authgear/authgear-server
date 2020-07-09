@@ -184,5 +184,8 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Provider)),
 	),
 
-	verification.DependencySet,
+	wire.NewSet(
+		verification.DependencySet,
+		wire.Bind(new(user.VerificationService), new(*verification.Service)),
+	),
 )

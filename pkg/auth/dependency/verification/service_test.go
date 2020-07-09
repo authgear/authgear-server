@@ -101,7 +101,7 @@ func TestService(t *testing.T) {
 			So(must(service.IsIdentityVerified(identityLoginID("username", "bar"))), ShouldBeFalse)
 		})
 
-		Convey("IsUserVerified", func() {
+		Convey("IsVerified", func() {
 			cases := []struct {
 				Identities     []*identity.Info
 				Authenticators []*authenticator.Info
@@ -136,7 +136,7 @@ func TestService(t *testing.T) {
 						identityOfType(authn.IdentityTypeOAuth),
 					},
 					Authenticators: []*authenticator.Info{
-						{ID: "email", Props: map[string]interface{}{"test-id": "login-id-foo@example.com"}},
+						{ID: "email", Type: authn.AuthenticatorTypeOOB, Props: map[string]interface{}{"test-id": "login-id-foo@example.com"}},
 					},
 					AnyResult: true, AllResult: true,
 				},
@@ -145,7 +145,7 @@ func TestService(t *testing.T) {
 						identityLoginID("phone", "+85200000000"),
 					},
 					Authenticators: []*authenticator.Info{
-						{ID: "phone", Props: map[string]interface{}{"test-id": "login-id-+85200000000"}},
+						{ID: "phone", Type: authn.AuthenticatorTypeOOB, Props: map[string]interface{}{"test-id": "login-id-+85200000000"}},
 					},
 					AnyResult: false, AllResult: false,
 				},
@@ -155,7 +155,7 @@ func TestService(t *testing.T) {
 						identityLoginID("phone", "+85200000000"),
 					},
 					Authenticators: []*authenticator.Info{
-						{ID: "email", Props: map[string]interface{}{"test-id": "login-id-foo@example.com"}},
+						{ID: "email", Type: authn.AuthenticatorTypeOOB, Props: map[string]interface{}{"test-id": "login-id-foo@example.com"}},
 					},
 					AnyResult: true, AllResult: true,
 				},
@@ -163,17 +163,11 @@ func TestService(t *testing.T) {
 
 			for i, c := range cases {
 				Convey(fmt.Sprintf("case %d", i), func() {
-					identities.EXPECT().ListByUser("user-id").Return(c.Identities, nil)
-					authenticators.EXPECT().List("user-id", authn.AuthenticatorTypeOOB).Return(c.Authenticators, nil)
-
 					service.Config.Criteria = config.VerificationCriteriaAny
-					So(must(service.IsUserVerified("user-id")), ShouldEqual, c.AnyResult)
-
-					identities.EXPECT().ListByUser("user-id").Return(c.Identities, nil)
-					authenticators.EXPECT().List("user-id", authn.AuthenticatorTypeOOB).Return(c.Authenticators, nil)
+					So(service.IsVerified(c.Identities, c.Authenticators), ShouldEqual, c.AnyResult)
 
 					service.Config.Criteria = config.VerificationCriteriaAll
-					So(must(service.IsUserVerified("user-id")), ShouldEqual, c.AllResult)
+					So(service.IsVerified(c.Identities, c.Authenticators), ShouldEqual, c.AllResult)
 				})
 			}
 		})

@@ -94,7 +94,9 @@ func TestProviderFlow(t *testing.T) {
 				// step 2 setup
 
 				userProvider.EXPECT().Create(
-					gomock.Any(), gomock.Any(), gomock.Eq([]*identity.Info{ii}),
+					gomock.Any(), gomock.Any(),
+					gomock.Eq([]*identity.Info{ii}),
+					gomock.Eq([]*authenticator.Info{ai}),
 				).Return(nil)
 
 				identityProvider.EXPECT().CheckIdentityDuplicated(gomock.Eq(ii)).Return(nil)

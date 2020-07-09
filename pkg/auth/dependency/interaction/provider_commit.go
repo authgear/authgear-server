@@ -108,7 +108,7 @@ func (p *Provider) onCommitSignup(i *Interaction, intent *IntentSignup) error {
 		return err
 	}
 
-	err = p.User.Create(i.UserID, intent.UserMetadata, i.NewIdentities)
+	err = p.User.Create(i.UserID, intent.UserMetadata, i.NewIdentities, i.NewAuthenticators)
 	if err != nil {
 		return err
 	}

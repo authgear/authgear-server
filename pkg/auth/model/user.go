@@ -15,8 +15,9 @@
 package model
 
 import (
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"time"
+
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 // User is the unify way of returning a AuthInfo with LoginID to SDK
@@ -25,6 +26,7 @@ type User struct {
 	CreatedAt   time.Time              `json:"created_at"`
 	LastLoginAt *time.Time             `json:"last_login_at,omitempty"`
 	IsAnonymous bool                   `json:"is_anonymous"`
+	IsVerified  bool                   `json:"is_verified"`
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 

@@ -66,7 +66,7 @@ type AuthenticatorProvider interface {
 }
 
 type UserProvider interface {
-	Create(userID string, metadata map[string]interface{}, identities []*identity.Info) error
+	Create(userID string, metadata map[string]interface{}, identities []*identity.Info, authenticators []*authenticator.Info) error
 	Get(userID string) (*model.User, error)
 }
 

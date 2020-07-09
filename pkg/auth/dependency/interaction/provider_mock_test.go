@@ -422,17 +422,17 @@ func (m *MockUserProvider) EXPECT() *MockUserProviderMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockUserProvider) Create(userID string, metadata map[string]interface{}, identities []*identity.Info) error {
+func (m *MockUserProvider) Create(userID string, metadata map[string]interface{}, identities []*identity.Info, authenticators []*authenticator.Info) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", userID, metadata, identities)
+	ret := m.ctrl.Call(m, "Create", userID, metadata, identities, authenticators)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create
-func (mr *MockUserProviderMockRecorder) Create(userID, metadata, identities interface{}) *gomock.Call {
+func (mr *MockUserProviderMockRecorder) Create(userID, metadata, identities, authenticators interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserProvider)(nil).Create), userID, metadata, identities)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserProvider)(nil).Create), userID, metadata, identities, authenticators)
 }
 
 // Get mocks base method
